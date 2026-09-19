@@ -36,7 +36,8 @@
     "bench:firmware": "node bench/firmware.ts",
     "bench:build-metadata": "node bench/build-metadata.ts",
     "bench:build-commands": "node bench/build-commands.ts",
-    "bench:buildcommands": "node bench/buildcommands.ts"
+    "bench:buildcommands": "node bench/buildcommands.ts",
+    "bench:shaper": "node bench/shaper.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
