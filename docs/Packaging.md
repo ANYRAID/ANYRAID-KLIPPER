@@ -21,8 +21,17 @@ klippy`.
 
 If you are building a package of Klipper from git, it is usual practice not to
 ship a .git directory, so the versioning must be handled without git.  To do
-this, use the script shipped in `scripts/make_version.py` which should be run as
-follows: `python2 scripts/make_version.py YOURDISTRONAME > klippy/.version`.
+this, use Node.js 26 to run the dependency-free TypeScript tool:
+`node scripts/make_version.mts YOURDISTRONAME > klippy/.version`.
+It reads the repository containing the script, regardless of the working
+directory, and preserves the Git tag/commit/dirty suffix and distribution naming
+format of the former Python tool. Source archives without Git metadata produce
+`?-YOURDISTRONAME`; generate `.version` before removing `.git` to retain the
+actual revision. Control characters in distribution names are rejected.
+
+This versioning tool no longer requires Python. The C-helper compilation and
+Python bytecode steps above still describe the legacy host; the complete host
+migration and remaining gates are tracked in [Node_Host_Migration.md](Node_Host_Migration.md).
 
 ## Sample packaging script
 
