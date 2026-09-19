@@ -10,6 +10,7 @@ export type Handler=(command:CommandContext)=>void|Promise<void>;
 interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;}
 export interface DispatchHooks {
   output(message:string):void;
+  drain?():Promise<void>;
   shutdown(reason:string):void;
   commandError?():void;
 }
@@ -45,7 +46,10 @@ export class GCodeDispatch {
     try {
       let count=0;
       for(const line of lines) {
-        if(count++&&count%128===0)await new Promise<void>(resolve=>setImmediate(resolve));
+        if(count++&&count%128===0) {
+          await this.#hooks.drain?.();
+          await new Promise<void>(resolve=>setImmediate(resolve));
+        }
         controller.signal.throwIfAborted();let acknowledged=false;
         const ack=(message?:string):boolean=>{
           if(!needAck||acknowledged)return false;
@@ -80,6 +84,7 @@ export class GCodeDispatch {
         }
         ack();
       }
+      await this.#hooks.drain?.();controller.signal.throwIfAborted();
     }finally{if(this.#active===controller)this.#active=undefined;}
   }
 }
