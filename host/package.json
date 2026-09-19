@@ -33,7 +33,8 @@
     "bench:thermal-runtime": "node bench/thermal-runtime.ts",
     "bench:thermistor": "node bench/thermistor.ts",
     "bench:package-version": "node bench/package-version.ts",
-    "bench:firmware": "node bench/firmware.ts"
+    "bench:firmware": "node bench/firmware.ts",
+    "bench:build-metadata": "node bench/build-metadata.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
