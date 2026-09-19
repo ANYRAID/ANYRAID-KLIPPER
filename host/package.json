@@ -52,7 +52,8 @@
     "bench:partial-flush": "node bench/partial-flush.ts",
     "bench:clock-calibration": "node bench/clock-calibration.ts",
     "bench:secondary-sync": "node bench/secondary-sync.ts",
-    "bench:clock-runtime": "node bench/clock-runtime.ts"
+    "bench:clock-runtime": "node bench/clock-runtime.ts",
+    "bench:queries": "node bench/queries.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
