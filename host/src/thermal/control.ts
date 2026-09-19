@@ -56,6 +56,8 @@ export class HeaterPWM {
   this.#lastHeartbeat=estimatedPrintTime;this.#validUntil=estimatedPrintTime+5;
  }
  shutdown():void {this.#stopped=true;this.#validUntil=-999;}
+ /** Call only after the output adapter has cancelled queued power and forced zero. */
+ confirmOff():void {this.#value=0;this.#next=0;}
  update(readTime:number,requested:number,target:number):{time:number;power:number}|undefined {
   if(![readTime,requested,target].every(Number.isFinite)||readTime<=this.#lastSample||requested<0||requested>this.#max||target<0)throw new RangeError('Invalid PWM request');
   const value=target<=0||readTime>this.#validUntil||this.#stopped?0:requested;
