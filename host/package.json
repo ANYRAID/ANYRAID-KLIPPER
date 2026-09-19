@@ -65,7 +65,8 @@
     "bench:uart": "node bench/uart.ts",
     "bench:firmware-fault": "node bench/firmware-fault.ts",
     "bench:firmware-fault-motion": "node bench/firmware-fault-motion.ts",
-    "bench:mcu-group": "node bench/mcu-group.ts"
+    "bench:mcu-group": "node bench/mcu-group.ts",
+    "bench:serial-batch": "node bench/serial-batch.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

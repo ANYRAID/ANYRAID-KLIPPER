@@ -15,7 +15,8 @@ export interface SerialSessionOptions {
  stopDevice(cause:unknown):Promise<void>;
  onMessage?(response:TimedResponse):void;
 }
-interface Ack {motion?:boolean;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
+interface ControlAck {motion?:false;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
+type Ack=ControlAck|{motion:true;deadline:number};
 interface AckWait {boundary:bigint;remaining:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
 /** Owns bootstrap, ACK dispatch and clock sampling on one preconfigured Linux
  * UART/stream fd. Does not open/configure termios or initialize MCU actuators. */
@@ -108,17 +109,21 @@ export class SerialSession {
     const capacity=3968-this.#pending.size;
     if(capacity<=0){await new Promise<void>(resolve=>this.#space.add(resolve));continue;}
     const end=Math.min(index+capacity,staged.length);
-    for(;index<end;index++){
-     const p=staged[index];if(serialClock.now()>=p.deadline)throw new Error('Motion enqueue deadline exceeded');
-     const id=this.#queue.send(p.data,p.min,p.req,1);this.#lastAccepted=id;this.#motionPending++;
-     this.#pending.set(id,{motion:true,deadline:p.deadline,resolve:()=>{},reject:()=>{},cleanup:()=>{if(--this.#motionPending===0){clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;}}});
+    const chunk=staged.slice(index,end);let deadline=Infinity;for(const p of chunk)deadline=Math.min(deadline,p.deadline);
+    if(serialClock.now()>=deadline)throw new Error('Motion enqueue deadline exceeded');
+    let id=this.#queue.sendBatch(chunk,1,deadline);this.#lastAccepted=id+BigInt(chunk.length-1);
+    for(const p of chunk){
+     this.#motionPending++;
+     this.#pending.set(id++,{motion:true,deadline:p.deadline});
      this.#armMotionDeadline(p.deadline);
     }
+    index=end;
    }
    this.#assertOpen();this.clock.assertActive();
   }catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion send and stop failed');}throw error;}
   finally{this.#motionBusy=false;}
  }
+ #motionDone(){if(--this.#motionPending===0){clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;}}
  #armMotionDeadline(deadline:number){
   if(deadline>=this.#motionExpiry)return;clearTimeout(this.#motionTimer);this.#motionExpiry=deadline;
   this.#motionTimer=setTimeout(()=>{
@@ -149,7 +154,7 @@ export class SerialSession {
   let count=0;
   try{for(let i=0;i<256;i++){
    const event=this.#queue.pull();if(event===undefined)break;count++;if(event===null)throw new Error('Serial receive thread exited');
-   if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);ack.cleanup();ack.resolve();
+   if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);if(ack.motion)this.#motionDone();else{ack.cleanup();ack.resolve();}
     if(this.#ackWaits.size)for(const wait of this.#ackWaits)if(event.notifyId<=wait.boundary&&--wait.remaining===0){wait.cleanup();wait.resolve();}
     for(const wake of this.#space)wake();this.#space.clear();}
    else for(const message of this.#dictionary.parseFrame(event.data)){
@@ -167,7 +172,7 @@ export class SerialSession {
   this.#state='closed';this.#fault=cause;let cleanupError:unknown;
   this.#stopPromise=Promise.resolve().then(async()=>{try{await this.#options.stopDevice(cause);}catch(error){this.#stopError=error;throw new AggregateError([cause,cleanupError,error].filter(e=>e!==undefined),'Serial device stop failed');}if(cleanupError!==undefined){this.#stopError=cleanupError;throw cleanupError;}});
   clearImmediate(this.#continuation);this.#continuation=undefined;clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;
-  for(const p of this.#pending.values()){p.cleanup();p.reject(cause);}this.#pending.clear();for(const wake of this.#space)wake();this.#space.clear();
+  for(const p of this.#pending.values()){if(p.motion)this.#motionDone();else{p.cleanup();p.reject(cause);}}this.#pending.clear();for(const wake of this.#space)wake();this.#space.clear();
   for(const wait of this.#ackWaits){wait.cleanup();wait.reject(cause);}
   try{this.#queue.close();}catch(error){cleanupError=error;}
   void this.#queries.stop(cause).catch(()=>{});void this.#clock?.stop(cause).catch(()=>{});

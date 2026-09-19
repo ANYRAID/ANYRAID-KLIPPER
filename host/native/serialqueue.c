@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <string.h>
 #include "serialqueue.h"
 #include "pyhelper.h"
 napi_status uart_exports(napi_env,napi_value);
@@ -44,6 +45,22 @@ static napi_value send_queue(napi_env env,napi_callback_info info){
  if(!h->cq[(int)queue])h->cq[(int)queue]=serialqueue_alloc_commandqueue();
  serialqueue_send(h->sq,h->cq[(int)queue],bytes,(int)len,min,req,id);h->last_id=id;h->pending++;return nothing(env);
 }
+static uint64_t read_le64(const uint8_t *p){uint64_t n=0;for(int i=0;i<8;i++)n|=(uint64_t)p[i]<<(8*i);return n;}
+static napi_value send_batch(napi_env env,napi_callback_info info){
+ size_t n=5;napi_value a[5];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=5)REJECT("Expected queue, packed batch, first notification, command queue and deadline");struct handle *h=get(env,a[0]);if(!h)return NULL;
+ napi_typedarray_type type;size_t len,offset;void *raw;napi_value backing;CHECK(napi_get_typedarray_info(env,a[1],&type,&len,&raw,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
+ uint64_t first;double queue,deadline;
+ if(type!=napi_uint8_array||!owned||len<76||len%76||len/76>4096||!integer(env,a[2],&first)||first<=h->last_id||!number(env,a[3],&queue)||queue<0||queue>=128||floor(queue)!=queue||!number(env,a[4],&deadline)||deadline<0)REJECT("Invalid serial batch");
+ size_t count=len/76;if(count>4096-h->pending)REJECT("Serial pending message capacity exceeded");if(count-1>UINT64_MAX-first)REJECT("Serial notification overflow");
+ uint8_t *bytes=raw;
+ // Validate the complete batch before allocation, queue mutation or I/O.
+ for(size_t i=0;i<count;i++){uint8_t *p=bytes+i*76;if(read_le64(p)>MAX_CLOCK||read_le64(p+8)>MAX_CLOCK||p[16]<1||p[16]>59)REJECT("Invalid serial batch packet");}
+ napi_value result;CHECK(napi_get_undefined(env,&result));struct list_head messages;list_init(&messages);
+ for(size_t i=0;i<count;i++){uint8_t *p=bytes+i*76;struct queue_message *qm=calloc(1,sizeof(*qm));if(!qm){message_queue_free(&messages);REJECT("Serial batch allocation failed");}qm->len=p[16];memcpy(qm->msg,p+17,qm->len);qm->min_clock=read_le64(p);qm->req_clock=read_le64(p+8);qm->notify_id=first+i;list_add_tail(&qm->node,&messages);}
+ if(!h->cq[(int)queue])h->cq[(int)queue]=serialqueue_alloc_commandqueue();
+ if(deadline&&get_monotonic()>=deadline){message_queue_free(&messages);REJECT("Motion enqueue deadline exceeded");}
+ serialqueue_send_batch(h->sq,h->cq[(int)queue],&messages);h->last_id=first+count-1;h->pending+=count;return result;
+}
 static napi_value pull(napi_env env,napi_callback_info info){
  size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;struct pull_queue_message p;
  int status=serialqueue_try_pull(h->sq,&p);if(!status)return nothing(env);if(status<0){napi_value v;CHECK(napi_get_null(env,&v));return v;}
@@ -56,5 +73,6 @@ static napi_value estimate(napi_env env,napi_callback_info info){size_t n=4;napi
 static napi_value now(napi_env env,napi_callback_info info){(void)info;napi_value v;CHECK(napi_create_double(env,get_monotonic(),&v));return v;}
 static napi_value stats(napi_env env,napi_callback_info info){size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;char buf[4096];serialqueue_get_stats(h->sq,buf,sizeof(buf));napi_value v;CHECK(napi_create_string_utf8(env,buf,NAPI_AUTO_LENGTH,&v));return v;}
 static napi_value init(napi_env env,napi_value exports){CHECK(uart_exports(env,exports));napi_property_descriptor d[]={
+ {"sendBatch",NULL,send_batch,NULL,NULL,NULL,napi_default,NULL},
  {"wakeFd",NULL,wake_fd,NULL,NULL,NULL,napi_default,NULL},{"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_queue,NULL,NULL,NULL,napi_default,NULL},{"send",NULL,send_queue,NULL,NULL,NULL,napi_default,NULL},{"pull",NULL,pull,NULL,NULL,NULL,napi_default,NULL},{"configure",NULL,configure,NULL,NULL,NULL,napi_default,NULL},{"estimate",NULL,estimate,NULL,NULL,NULL,napi_default,NULL},{"now",NULL,now,NULL,NULL,NULL,napi_default,NULL},{"stats",NULL,stats,NULL,NULL,NULL,napi_default,NULL}};CHECK(napi_define_properties(env,exports,sizeof(d)/sizeof(d[0]),d));return exports;}
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
