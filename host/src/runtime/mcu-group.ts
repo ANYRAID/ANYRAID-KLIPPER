@@ -60,7 +60,7 @@ export class MCUGroup {
  }
  assertActive():void{
   if(this.#state!=='ready')throw new Error('MCU group is not ready',{cause:this.#fault});
-  try{for(const session of this.#sessions.values()){if(session.status.state!=='ready')throw new Error('MCU session is not ready');session.clock.assertActive();}}
+  try{for(const session of this.#sessions.values())session.assertActive();}
   catch(error){void this.stop(error).catch(()=>{});throw error;}
  }
  session(id:string):SerialSession{this.assertActive();const s=this.#sessions.get(id);if(!s)throw new Error('Unknown MCU');return s;}

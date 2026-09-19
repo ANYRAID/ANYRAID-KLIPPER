@@ -43,3 +43,6 @@ test('UART factory connects a real PTY through the group lifecycle',async()=>{
 test('a slow safety acknowledgement cannot delay stopping peer host queues',async()=>{
  const gate=Promise.withResolvers<void>(),f=await fixture(async id=>{if(id===0)await gate.promise;}),group=new MCUGroup(f.entries);try{await group.start(signal());let finished=false;const stopped=group.stop().then(()=>{finished=true;});await until(()=>f.stops[1]===1);assert.deepEqual(f.stops,[1,1]);assert.ok(f.sessions.every(s=>s.status.state==='closed'));assert.equal(finished,false);assert.equal(group.status.state,'stopping');gate.resolve();await stopped;assert.equal(group.status.state,'stopped');}finally{gate.resolve();await group.stop();await f.close();}
 });
+test('group health guard still stops every MCU on invalidated clock',async()=>{
+ const f=await fixture(),group=new MCUGroup(f.entries);try{await group.start(signal());f.sessions[0].clock.sync.invalidate();assert.throws(()=>group.assertActive(),/expired/);await group.stop();assert.deepEqual(f.stops,[1,1]);assert.ok(f.sessions.every(s=>s.status.state==='closed'));}finally{await group.stop();await f.close();}
+});
