@@ -41,14 +41,15 @@ test('rejected move admission does not advance coordinate state',()=>{
 import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
 import {ExtrusionGuard} from '../src/motion/extrusion.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
+import {LinearKinematics} from '../src/kinematics/linear.ts';
 test('coordinate commands feed lookahead and actual XYZ/extruder C queues consistently',()=>{
   const guard=new ExtrusionGuard({nozzleDiameter:.4,filamentDiameter:1.75,maxCrossSection:.64,maxVelocity:25,maxAccel:500,maxDistance:50,instantCornerVelocity:1});
   const limits={...motionLimits(100,1000),extraAxes:[(a:Move,b:Move,index:number)=>guard.junction(a,b,index)]};
   const lookahead=new LookAheadQueue();let position=[0,0,0,0];
+  const kinematics=new LinearKinematics({kind:'cartesian',ranges:[[0,200],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:10,maxZAccel:100});
+  kinematics.markHomed([0,1,2]); // Simulated completion; no physical endstop attached.
   const engine=new GCodeMove({position:()=>position,move:(target,speed)=>{
-    // Simulated homed workspace and heater permission, not hardware discovery.
-    if(target.slice(0,3).some(v=>v<0||v>200))throw new Error('Out of test workspace');
-    const move=new Move(limits,position,target,speed);guard.check(move,3,true);lookahead.add(move);position=[...move.endPos];
+    const move=new Move(limits,position,target,speed);kinematics.check(move);guard.check(move,3,true);lookahead.add(move);position=[...move.endPos];
   }});
   engine.execute('G1',{X:10,E:1,F:600});engine.execute('G91');engine.execute('G1',{Y:10,E:1});
   engine.execute('G90');engine.execute('G92',{E:0});engine.execute('G1',{X:20,E:1});

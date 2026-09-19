@@ -24,7 +24,8 @@
     "bench:gcode-parser": "node bench/gcode-parser.ts",
     "bench:gcode-dispatch": "node bench/gcode-dispatch.ts",
     "bench:gcode-input": "node bench/gcode-input.ts",
-    "bench:gcode-session": "node bench/gcode-session.ts"
+    "bench:gcode-session": "node bench/gcode-session.ts",
+    "bench:kinematics": "node bench/kinematics.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
