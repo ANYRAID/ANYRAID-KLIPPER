@@ -26,7 +26,8 @@
     "bench:gcode-input": "node bench/gcode-input.ts",
     "bench:gcode-session": "node bench/gcode-session.ts",
     "bench:kinematics": "node bench/kinematics.ts",
-    "bench:delta": "node bench/delta.ts"
+    "bench:delta": "node bench/delta.ts",
+    "bench:thermal": "node bench/thermal.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
