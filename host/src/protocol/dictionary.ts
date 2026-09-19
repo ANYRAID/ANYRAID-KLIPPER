@@ -66,6 +66,7 @@ export class MessageDictionary {
     this.#raw=Uint8Array.from(raw);
   }
   get rawIdentify():Uint8Array {return this.#raw.slice();}
+  get constants():Readonly<Record<string,unknown>>{return structuredClone(this.#config);}
   hasConstant(name:string):boolean{return Object.hasOwn(this.#config,name);}
   constant(name:string):unknown {
     if(!Object.hasOwn(this.#config,name)) throw new ProtocolError(`Missing firmware constant: ${name}`);
