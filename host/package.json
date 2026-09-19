@@ -64,7 +64,8 @@
     "bench:position-barrier": "node bench/position-barrier.ts",
     "bench:uart": "node bench/uart.ts",
     "bench:firmware-fault": "node bench/firmware-fault.ts",
-    "bench:firmware-fault-motion": "node bench/firmware-fault-motion.ts"
+    "bench:firmware-fault-motion": "node bench/firmware-fault-motion.ts",
+    "bench:mcu-group": "node bench/mcu-group.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

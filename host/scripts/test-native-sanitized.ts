@@ -23,5 +23,5 @@ for(const address of [false,true]) {
     // lifetime errors, without claiming process-wide leak accounting.
     env.ASAN_OPTIONS='detect_leaks=0:abort_on_error=1';
   }
-  run(['--test','test/trap-queue.test.ts','test/step-compressor.test.ts','test/step-solver.test.ts','test/native-shaper.test.ts','test/pressure-advance.test.ts','test/native-delta.test.ts','test/motion-coordinator.test.ts','test/partial-flush.test.ts','test/clock-calibration.test.ts','test/secondary-sync.test.ts','test/clock-runtime.test.ts','test/serial-queue.test.ts','test/serial-session.test.ts','test/serial-motion.test.ts','test/native-position.test.ts','test/uart.test.ts','test/firmware-fault.test.ts'],env);
+  run(['--test','test/trap-queue.test.ts','test/step-compressor.test.ts','test/step-solver.test.ts','test/native-shaper.test.ts','test/pressure-advance.test.ts','test/native-delta.test.ts','test/motion-coordinator.test.ts','test/partial-flush.test.ts','test/clock-calibration.test.ts','test/secondary-sync.test.ts','test/clock-runtime.test.ts','test/serial-queue.test.ts','test/serial-session.test.ts','test/serial-motion.test.ts','test/native-position.test.ts','test/uart.test.ts','test/firmware-fault.test.ts','test/mcu-group.test.ts'],env);
 }
