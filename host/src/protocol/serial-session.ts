@@ -1,5 +1,6 @@
+import {configureMCU,type MCUConfigPlan,type ConfiguredMCU} from './mcu-config.ts';
 import type {ScheduledPacket} from '../motion/move-queue.ts';
-import type {ScheduledTransport} from '../motion/move-queue-sink.ts';
+import type {ScheduledTransport,MCUQueueConfig} from '../motion/move-queue-sink.ts';
 import {NativeSerialQueue,serialClock} from './serial-queue.ts';
 import {QueryConnection,type QueryOptions} from './queries.ts';
 import {MessageDictionary} from './dictionary.ts';
@@ -20,6 +21,7 @@ export class SerialSession {
  #queue:NativeSerialQueue;#queries:QueryConnection;#dictionary=new MessageDictionary();#clock:ClockRuntime|undefined;
  #options:SerialSessionOptions;#pending=new Map<bigint,Ack>();#continuation:ReturnType<typeof setImmediate>|undefined;
  #motionTimer:ReturnType<typeof setTimeout>|undefined;#motionExpiry=Infinity;#motionPending=0;
+ #configuration:ConfiguredMCU|undefined;#configuring=false;
  #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
@@ -28,7 +30,7 @@ export class SerialSession {
   this.#queries=new QueryConnection({send:(p,s)=>this.#send(p,s),setClockEstimate:e=>this.#estimate(e),stop:e=>this.stop(e)},serialClock);
   try{this.#queue.watch(()=>this.#pump(),error=>{void this.stop(error).catch(()=>{});});}catch(error){this.#queue.close();throw error;}
  }
- get status(){return {state:this.#state,pendingAcks:this.#pending.size,fault:this.#fault,stopError:this.#stopError};}
+ get status(){return {state:this.#state,pendingAcks:this.#pending.size,configured:!!this.#configuration,fault:this.#fault,stopError:this.#stopError};}
  get dictionary():MessageDictionary{if(this.#state!=='warming'&&this.#state!=='ready')throw new Error('Firmware dictionary is not ready');return this.#dictionary;}
  get clock():ClockRuntime{if(!this.#clock)throw new Error('Clock is not initialized');return this.#clock;}
  async initialize(signal:AbortSignal):Promise<void>{
@@ -44,13 +46,26 @@ export class SerialSession {
   finally{signal.removeEventListener('abort',abort);}
  }
  query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={}):Promise<TimedResponse>{
-  if(this.#state!=='ready')return Promise.reject(new Error('Serial session is not ready'));
+  if(this.#state!=='ready'||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}return this.#queries.query(payload,responseName,signal,options);
+ }
+ get configuration():ConfiguredMCU{if(!this.#configuration)throw new Error('MCU is not configured');return this.#configuration;}
+ async configure(plan:MCUConfigPlan,signal:AbortSignal):Promise<ConfiguredMCU>{
+  if(this.#state!=='ready'||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
+  this.#configuring=true;
+  try{this.clock.assertActive();const result=await configureMCU(this.#dictionary,{query:(p,n,s)=>this.#queries.query(p,n,s,{retries:5}),send:(p,s)=>this.#send(p,s),stop:e=>this.stop(e)},plan,signal);this.#assertOpen();this.clock.assertActive();this.#configuration=result;return result;}
+  catch(error){try{await this.stop(error);}catch{/* failure retained */}throw error;}
+  finally{this.#configuring=false;}
+ }
+ /** Build the move-slot sink binding using firmware-confirmed capacity. */
+ motionQueue(id:string,emitterIds:readonly string[],clockAt:(printTime:number)=>bigint):MCUQueueConfig{
+  if(!/^[A-Za-z0-9_.:-]{1,128}$/.test(id)||typeof clockAt!=='function')throw new Error('Invalid MCU motion queue binding');
+  return {id,emitters:[...emitterIds],moveSlots:this.configuration.moveSlots,clockAt,transport:this.motionTransport(emitterIds)};
  }
  /** One ordered motion queue per MCU, matching steppersync's single cq.
   * Resolve after native acceptance; firmware ACKs remain tracked in background. */
  motionTransport(emitterIds:readonly string[]):ScheduledTransport{
-  if(this.#state!=='ready'||this.#motionBound)throw new Error('Motion transport requires an unbound ready session');
+  if(this.#state!=='ready'||this.#motionBound||!this.#configuration||this.#configuration.moveSlots<1)throw new Error('Motion transport requires an unbound ready session with configured move slots');
   if(!emitterIds.length||emitterIds.length>128||new Set(emitterIds).size!==emitterIds.length||emitterIds.some(id=>!/^[A-Za-z0-9_.:-]{1,128}$/.test(id)))throw new Error('Invalid motion emitter binding');
   this.#motionBound=true;const ids=new Set(emitterIds);return {send:packets=>this.#motion(packets,ids),stop:cause=>this.stop(cause)};
  }

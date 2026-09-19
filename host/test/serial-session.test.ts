@@ -43,3 +43,8 @@ test('event-driven receive drains bursts beyond one batch without another wire w
  for(let i=0;i<600;i++)firmware.emitEcho(i);await Promise.race([done,delay(1000).then(()=>{throw new Error('Burst drain stalled');})]);assert.deepEqual(values,Array.from({length:600},(_,i)=>i));assert.equal(session.status.state,'ready');
  }finally{await session.stop();await firmware.close();}
 });
+test('motion binding requires successful firmware configuration and cannot configure twice',async()=>{
+ const firmware=await serialFirmware(),session=new SerialSession(firmware.fd,{async stopDevice(){}});
+ try{await session.initialize(signal());assert.throws(()=>session.motionTransport(['x']),/configured/);const result=await session.configure({oidCount:4,commands:[],reservedMoves:12},signal());assert.equal(result.moveSlots,500);assert.equal(session.status.configured,true);assert.equal(session.configuration,result);assert.equal(session.motionQueue('mcu',['x'],()=>0n).moveSlots,500);await assert.rejects(session.configure({oidCount:4,commands:[]},signal()),/unconfigured/);
+ }finally{await session.stop();await firmware.close();}
+});

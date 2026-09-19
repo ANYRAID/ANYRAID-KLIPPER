@@ -96,6 +96,19 @@ export class MessageDictionary {
     if(out.length>59) throw new ProtocolError('Message exceeds frame payload');
     return Uint8Array.from(out);
   }
+  /** Configuration command text; preserve the original string separately for CRC. */
+  encodeCommand(text:string):Uint8Array {
+    const parts=text.trim().split(/\s+/),name=parts.shift()!,message=this.#byName.get(name);
+    if(!message||message.kind!=='command')throw new ProtocolError('Unknown firmware command');
+    const params:Record<string,WireValue>=Object.create(null);
+    for(const part of parts){const split=part.indexOf('='),key=part.slice(0,split),raw=part.slice(split+1),parameter=message.parameters.find(p=>p.name===key);
+      if(split<1||!parameter||Object.hasOwn(params,key))throw new ProtocolError('Invalid command parameter');
+      if(parameter.enumeration)params[key]=raw;
+      else if(dynamic(parameter.format)){if(!/^(?:[0-9a-f]{2})*$/i.test(raw))throw new ProtocolError('Expected hexadecimal byte pairs');params[key]=Buffer.from(raw,'hex');}
+      else {if(!/^[+-]?(?:0x[0-9a-f]+|0b[01]+|0o[0-7]+|0+|[1-9][0-9]*)$/i.test(raw))throw new ProtocolError('Invalid integer literal');const sign=raw[0]==='-'?-1n:1n,body=/^[+-]/.test(raw)?raw.slice(1):raw;const value=sign*BigInt(body);if(value< -0x80000000n||value>0xffffffffn)throw new ProtocolError('Integer outside MCU wire range');params[key]=Number(value);}
+    }
+    return this.encode(name,params);
+  }
   parseFrame(frame:Uint8Array):DecodedMessage[] {
     const length=checkFrame(frame);
     if(length<=0 || length!==frame.length) throw new ProtocolError('Invalid or concatenated frame');
