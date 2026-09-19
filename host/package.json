@@ -13,7 +13,8 @@
     "bench:protocol": "node bench/protocol.ts",
     "test:protocol-native": "node bench/protocol-native.ts",
     "bench:runtime": "node bench/runtime.ts",
-    "bench:rpc-oracle": "node bench/rpc-oracle.ts"
+    "bench:rpc-oracle": "node bench/rpc-oracle.ts",
+    "bench:motion": "node bench/motion.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
