@@ -5,9 +5,10 @@ interface NativeTrapQueue {
   append(handle:object,rows:Float64Array):void;
   extract(handle:object,capacity:number,start:number,end:number):Float64Array;
   finalize(handle:object,time:number,history:number):void;
+  setPosition(handle:object,time:number,x:number,y:number,z:number):void;
   close(handle:object):void;
 }
-const native=createRequire(import.meta.url)('../../build/trapq.node') as NativeTrapQueue;
+const native=createRequire(import.meta.url)(process.env.ANYRAID_TRAPQ_ADDON??'../../build/trapq.node') as NativeTrapQueue;
 /** Owns a C trapq. Explicit disposal is preferred; native GC finalization is a fallback. */
 export class TrapQueue {
   #handle=native.create();
@@ -36,6 +37,8 @@ export class TrapQueue {
   /** Rows of 10 doubles in reverse chronology, matching pull_move in trapq.h. */
   extract(capacity:number,start:number,end:number):Float64Array {return native.extract(this.#handle,capacity,start,end);}
   finalize(time:number,clearHistoryTime:number):void {native.finalize(this.#handle,time,clearHistoryTime);}
+  /** Reset the host queue only. Caller must first coordinate MCU stop/drain. */
+  setPosition(time:number,x:number,y:number,z:number):void {native.setPosition(this.#handle,time,x,y,z);}
   dispose():void {if(!this.#closed) {native.close(this.#handle);this.#closed=true;}}
   [Symbol.dispose]():void {this.dispose();}
 }

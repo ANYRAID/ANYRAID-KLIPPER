@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build:native": "node scripts/build-native.ts",
+    "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "node scripts/build-native.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.ts",

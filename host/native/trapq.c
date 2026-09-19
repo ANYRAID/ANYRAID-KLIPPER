@@ -7,7 +7,12 @@
 #define CHECK(x) do { if ((x)!=napi_ok) { napi_throw_error(env,NULL,"Node-API failure"); return NULL; } } while(0)
 #define REJECT(msg) do { napi_throw_range_error(env,NULL,msg); return NULL; } while(0)
 static const napi_type_tag tag={0x4179726169645451ULL,0x323630393230ULL};
-struct handle {struct trapq *q; double end; size_t nodes;};
+struct handle {struct trapq *q; double end, finalized; size_t nodes;};
+static void recount(struct handle *h) {
+    h->nodes=0;struct move *m;
+    list_for_each_entry(m,&h->q->moves,node)h->nodes++;
+    list_for_each_entry(m,&h->q->history,node)h->nodes++;
+}
 static void cleanup(napi_env env,void *data,void *hint) {
     (void)env;(void)hint;struct handle *h=data;if(h->q)trapq_free(h->q);free(h);
 }
@@ -84,10 +89,21 @@ static napi_value finalize(napi_env env,napi_callback_info info) {
     if(argc!=3)REJECT("Expected handle and cleanup times");
     struct handle *h=get(env,args[0]);if(!h)return NULL;
     double time,history;CHECK(napi_get_value_double(env,args[1],&time));CHECK(napi_get_value_double(env,args[2],&history));
-    if(!isfinite(time)||!isfinite(history)||history<0||time<history||time>=1e15)REJECT("Invalid cleanup times");
-    trapq_finalize_moves(h->q,time,history);h->end=fmax(h->end,time);h->nodes=0;struct move *m;
-    list_for_each_entry(m,&h->q->moves,node)h->nodes++;
-    list_for_each_entry(m,&h->q->history,node)h->nodes++;
+    if(!isfinite(time)||!isfinite(history)||history<0||time<history||time>=1e15||time<h->finalized)REJECT("Invalid cleanup times");
+    trapq_finalize_moves(h->q,time,history);h->end=fmax(h->end,time);h->finalized=time;recount(h);
+    napi_value result;CHECK(napi_get_undefined(env,&result));return result;
+}
+static napi_value set_position(napi_env env,napi_callback_info info) {
+    size_t argc=5;napi_value args[5];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));
+    if(argc!=5)REJECT("Expected handle, time and XYZ position");
+    struct handle *h=get(env,args[0]);if(!h)return NULL;
+    double values[4];for(int i=0;i<4;i++) {
+        CHECK(napi_get_value_double(env,args[i+1],&values[i]));
+        if(!isfinite(values[i]))REJECT("Nonfinite position reset");
+    }
+    if(values[0]<h->finalized||values[0]>=1e15)REJECT("Position reset precedes finalized motion");
+    trapq_set_position(h->q,values[0],values[1],values[2],values[3]);
+    h->end=values[0];h->finalized=values[0];recount(h);
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 static napi_value close_queue(napi_env env,napi_callback_info info) {
@@ -102,8 +118,9 @@ static napi_value init(napi_env env,napi_value exports) {
         {"append",NULL,append,NULL,NULL,NULL,napi_default,NULL},
         {"extract",NULL,extract,NULL,NULL,NULL,napi_default,NULL},
         {"finalize",NULL,finalize,NULL,NULL,NULL,napi_default,NULL},
+        {"setPosition",NULL,set_position,NULL,NULL,NULL,napi_default,NULL},
         {"close",NULL,close_queue,NULL,NULL,NULL,napi_default,NULL}
     };
-    CHECK(napi_define_properties(env,exports,5,descriptors));return exports;
+    CHECK(napi_define_properties(env,exports,6,descriptors));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

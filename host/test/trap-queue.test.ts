@@ -33,6 +33,34 @@ test('native batch validation is atomic, rejects shared buffers and protects dis
   queue.appendRaw(rows.subarray(0,13));
   assert.throws(()=>queue.appendRaw(rows.subarray(0,13)),/Overlapping/);
   queue.dispose();queue.dispose();assert.throws(()=>queue.extract(1,0,10),/closed/);
-  const native=createRequire(import.meta.url)('../build/trapq.node');
+  const native=createRequire(import.meta.url)(process.env.ANYRAID_TRAPQ_ADDON??'../build/trapq.node');
   assert.throws(()=>native.append({},new Float64Array()),/Invalid trapq handle/);
+});
+test('position reset truncates future motion and resumes from the supplied coordinate',()=>{
+  const queue=new TrapQueue();try {
+    queue.appendRaw(new Float64Array([1,0,10,0,0,0,0,1,0,0,1,1,0]));
+    queue.setPosition(5,50,2,3);
+    const history=queue.extract(10,0,20);
+    assert.deepEqual([...history.subarray(0,10)],[5,0,0,0,50,2,3,0,0,0]);
+    assert.equal(history[10],1);assert.equal(history[11],4);
+    queue.appendRaw(new Float64Array([5,0,1,0,50,2,3,1,0,0,2,2,0]));
+    const newest=queue.extract(1,0,20);
+    assert.equal(newest[4]+newest[2]*newest[1],52);
+  } finally {queue.dispose();}
+});
+test('reset and cleanup reject rewinding finalized state without changing history',()=>{
+  const queue=new TrapQueue();try {
+    queue.setPosition(5,1,2,3);const before=queue.extract(10,0,10);
+    assert.throws(()=>queue.setPosition(4,0,0,0),/precedes/);
+    assert.throws(()=>queue.setPosition(6,NaN,0,0),/Nonfinite/);
+    assert.throws(()=>queue.finalize(4,0),/cleanup/);
+    assert.deepEqual(queue.extract(10,0,10),before);
+  } finally {queue.dispose();}
+});
+test('repeated native queue creation, reset, history cleanup and disposal',()=>{
+  for(let i=0;i<1000;i++) {
+    const queue=new TrapQueue();queue.appendPlanned(planned(),1);
+    queue.setPosition(1.5,i,0,0);queue.finalize(2,1.5);queue.extract(10,0,10);
+    queue.dispose();queue.dispose();
+  }
 });
