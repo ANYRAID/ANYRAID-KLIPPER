@@ -5,7 +5,7 @@ int input_shaper_set_shaper_params(struct stepper_kinematics *,char,int,double *
 static napi_value configure_shapers(napi_env env,napi_callback_info info) {
     size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and shaper parameters");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;
-    if(!h->sk||h->mode==5||h->started||h->pending)REJECT("Configure shaping before step generation");
+    if(!h->sk||h->mode>=5||h->started||h->pending)REJECT("Configure shaping before step generation");
     napi_typedarray_type type;size_t len,offset;void *data;napi_value backing;
     CHECK(napi_get_typedarray_info(env,args[1],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
     if(type!=napi_float64_array||!owned||len!=63)REJECT("Invalid packed shaper parameters");

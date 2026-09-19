@@ -43,7 +43,8 @@
     "bench:step-compressor": "node bench/step-compressor.ts",
     "bench:step-solver": "node bench/step-solver.ts",
     "bench:native-shaper": "node bench/native-shaper.ts",
-    "bench:pressure-advance": "node bench/pressure-advance.ts"
+    "bench:pressure-advance": "node bench/pressure-advance.ts",
+    "bench:native-delta": "node bench/native-delta.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

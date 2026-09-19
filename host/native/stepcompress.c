@@ -11,6 +11,7 @@
 struct stepper_kinematics *cartesian_stepper_alloc(char);
 struct stepper_kinematics *corexy_stepper_alloc(char);
 struct stepper_kinematics *extruder_stepper_alloc(void);
+struct stepper_kinematics *delta_stepper_alloc(double,double,double);
 void extruder_stepper_free(struct stepper_kinematics *);
 void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,double);
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
@@ -18,7 +19,7 @@ void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,dou
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
 struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
-    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance;};
+    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;};
 static void free_solver(struct stepper_kinematics *sk,int mode) {
     if(mode==5)extruder_stepper_free(sk);else free(sk);
 }
@@ -129,13 +130,16 @@ static napi_value attach_solver(napi_env env,napi_callback_info info) {
     CHECK(napi_unwrap(env,args[1],(void**)&q));if(!q||!q->q)REJECT("Closed motion queue");
     napi_typedarray_type type;size_t len,offset;void *data;napi_value backing;
     CHECK(napi_get_typedarray_info(env,args[2],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
-    if(type!=napi_float64_array||!owned||len!=5)REJECT("Invalid solver settings");
-    double *v=data;for(int i=0;i<5;i++)if(!isfinite(v[i]))REJECT("Nonfinite solver setting");
-    if(v[0]<0||v[0]>5||floor(v[0])!=v[0]||v[1]<=2e-8)REJECT("Invalid kinematics or step distance");
-    struct stepper_kinematics *sk=v[0]<3?cartesian_stepper_alloc('x'+(int)v[0]):v[0]<5?corexy_stepper_alloc(v[0]==3?'+':'-'):extruder_stepper_alloc();
+    if(type!=napi_float64_array||!owned||(len!=5&&len!=8))REJECT("Invalid solver settings");
+    double *v=data;for(size_t i=0;i<len;i++)if(!isfinite(v[i]))REJECT("Nonfinite solver setting");
+    if(v[0]<0||v[0]>6||floor(v[0])!=v[0]||v[1]<=2e-8)REJECT("Invalid kinematics or step distance");
+    if((v[0]==6)!=(len==8))REJECT("Invalid Delta geometry settings");
+    if(v[0]==6&&(v[5]<=0||!isfinite(v[5]*v[5])||v[5]*v[5]<=0))REJECT("Invalid Delta arm length");
+    struct stepper_kinematics *sk=v[0]<3?cartesian_stepper_alloc('x'+(int)v[0]):v[0]<5?corexy_stepper_alloc(v[0]==3?'+':'-'):v[0]==5?extruder_stepper_alloc():delta_stepper_alloc(v[5]*v[5],v[6],v[7]);
     itersolve_set_position(sk,v[2],v[3],v[4]);
     if(!isfinite(sk->commanded_pos)||sk->commanded_pos+v[1]*.5==sk->commanded_pos||sk->commanded_pos-v[1]*.5==sk->commanded_pos){free_solver(sk,(int)v[0]);REJECT("Initial actuator position exceeds step resolution");}
     napi_status status=napi_create_reference(env,args[1],1,&h->queue_ref);if(status!=napi_ok){free_solver(sk,(int)v[0]);CHECK(status);}
+    if(v[0]==6){h->arm2=v[5]*v[5];h->tower_x=v[6];h->tower_y=v[7];}
     h->sk=sk;h->queue=q;h->mode=(int)v[0];h->path_position=sk->commanded_pos;for(int i=0;i<3;i++)h->gain[i]=1.;
     itersolve_set_trapq(sk,q->q,v[1]);sk->last_flush_time=fmax(q->finalized,h->last_time);sk->last_move_time=sk->last_flush_time;
     h->link.generated=sk->last_flush_time;h->link.next=q->solvers;q->solvers=&h->link;
@@ -164,6 +168,20 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
         if(p0+half_step==p0||p0-half_step==p0||p1+half_step==p1||p1-half_step==p1)REJECT("Actuator position exceeds step resolution");
         double ratio=h->mode==5?1.:h->mode<3?fabs(m->axes_r.axis[h->mode]):fabs(m->axes_r.x)+fabs(m->axes_r.y);
         double velocity=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1))*ratio;
+        if(h->mode==6){
+            // Distance along a quadratic segment can turn internally. Evaluate
+            // that vertex as well as both ends before bounding the Jacobian.
+            struct coord a=move_get_coord(m,t0),b=move_get_coord(m,t1),c=a;
+            double turn=m->half_accel?-m->start_v/(2*m->half_accel):t0;
+            if(turn>t0&&turn<t1)c=move_get_coord(m,turn);
+            double dx=fmax(fabs(h->tower_x-a.x),fmax(fabs(h->tower_x-b.x),fabs(h->tower_x-c.x)));
+            double dy=fmax(fabs(h->tower_y-a.y),fmax(fabs(h->tower_y-b.y),fabs(h->tower_y-c.y)));
+            double ax=h->tower_x-a.x,ay=h->tower_y-a.y,bx=h->tower_x-b.x,by=h->tower_y-b.y,cx=h->tower_x-c.x,cy=h->tower_y-c.y;
+            double rad=h->arm2-fmax(ax*ax+ay*ay,fmax(bx*bx+by*by,cx*cx+cy*cy));
+            if(!isfinite(rad)||rad<=0)REJECT("Delta path outside nonsingular arm reach");
+            double jac=fabs(m->axes_r.z)+(dx*fabs(m->axes_r.x)+dy*fabs(m->axes_r.y))/sqrt(rad);
+            velocity=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1))*jac;
+        }
         double steps=ceil(velocity*(end-begin)/h->sk->step_dist)+2.;
         if(!isfinite(steps)||steps>200000||steps+estimate+h->pending>200000)REJECT("Generation step budget exceeded; use a smaller interval or flush");
         if(velocity/h->sk->step_dist>h->frequency*.5)REJECT("Stepper speed exceeds MCU clock resolution");
