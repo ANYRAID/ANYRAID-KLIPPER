@@ -9,13 +9,15 @@ export interface CompressedSteps {
   position:bigint;
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
-interface Native {calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
 export class StepCompressor {
   #handle:object;#closed=false;#offset:number;#frequency:number;
   constructor(s:StepCompressorSettings){this.#offset=s.timeOffset;this.#frequency=s.frequency;this.#handle=native.create(new Float64Array([s.frequency,s.timeOffset,s.oid,s.maxError,s.queueStepTag,s.directionTag,s.invertDirection?1:0]),s.initialClock??0n);}
+  /** Startup only: seed observed MCU position without resetting step clocks. */
+  initializePosition(clock:bigint,position:bigint):void{native.initializePosition(this.#handle,clock,position);}
   /** Validate without mutating; used to update an MCU's whole stepper group. */
   validateClockCalibration(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,false);}
   calibrateClock(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,true);this.#offset=offset;this.#frequency=frequency;}

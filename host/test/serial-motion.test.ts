@@ -4,6 +4,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {SerialSession} from '../src/protocol/serial-session.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
+import {StepperPosition} from '../src/motion/stepper-position.ts';
 import {compileStepper} from '../src/motion/stepper-config.ts';
 import {PrinterPins} from '../src/protocol/pins.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
@@ -15,6 +16,7 @@ const signal=()=>new AbortController().signal;
 test('native motion generation passes through move slots and serial frames without payload changes',async()=>{
  const fw=await serialFirmware(),s=new SerialSession(fw.fd,{async stopDevice(){}});
  try{await s.initialize(signal());const pins=new PrinterPins<SerialSession>();pins.register('mcu',s);const compiled=compileStepper(s,s.dictionary,{oid:3,step:pins.lookup('PA0',{canInvert:true}),direction:pins.lookup('!PA1',{canInvert:true}),rotationDistance:1,stepsPerRotation:100});await s.configure({oidCount:4,commands:[compiled.config],restart:[compiled.restart],pins:pins.resolver('mcu')},signal());assert.equal(fw.stepperConfigs.length,1);using q=new TrapQueue();q.appendRaw(new Float64Array([1.8,0,.1,0,0,0,0,1,0,0,10,10,0]));using x=q.createStepper({...compiled.compressor,timeOffset:0},'x',compiled.stepDistance);
+ const position=new StepperPosition(1,100),reply=await s.query(compiled.positionQuery,'stepper_position',signal(),{oid:3});position.alignResponse(reply.message.parameters.pos as number,!!compiled.compressor.invertDirection,0,count=>x.initializePosition(s.clock.sync.getClock(reply.receiveTime),count));assert.equal(position.mcuPosition(0),0n);
  let retained:readonly MotionOutput[]=[];const sink=new MoveQueueSink([s.motionQueue('mcu',['x'],t=>x.clockAt(t))],async outputs=>{retained=outputs;});
  const coordinator=new MotionCoordinator([{id:'x',queue:q,stepper:x}],sink,16*1024*1024,0,[s.clock]);await coordinator.advance(1.9);
  const expected=retained.flatMap(o=>o.messages.flatMap(p=>s.dictionary.parseFrame(encodeFrame(0,p.data))));await until(()=>fw.motion.length===expected.length&&s.status.pendingAcks===0);

@@ -59,7 +59,8 @@
     "bench:serial-motion": "node bench/serial-motion.ts",
     "bench:mcu-config": "node bench/mcu-config.ts",
     "bench:pins": "node bench/pins.ts",
-    "bench:stepper-config": "node bench/stepper-config.ts"
+    "bench:stepper-config": "node bench/stepper-config.ts",
+    "bench:stepper-position": "node bench/stepper-position.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

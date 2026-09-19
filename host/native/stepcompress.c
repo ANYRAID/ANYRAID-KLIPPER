@@ -20,7 +20,7 @@ void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,dou
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
 struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock,flushed_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
-    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;
+    struct solver_link link;double path_position;int mode,started,position_initialized;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;
     double pa_times[128],pa_values[128],pa_last_time;size_t pa_count;};
 static void free_solver(struct stepper_kinematics *sk,int mode) {
     if(mode==5)extruder_stepper_free(sk);else free(sk);
@@ -220,6 +220,15 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     h->started=1;h->path_position=position;h->link.generated=until;h->pending+=estimate;h->total+=estimate;
     napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
 }
+static napi_value initialize_position(napi_env env,napi_callback_info info){
+ size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, clock and position");struct handle *h=get(env,args[0],0);if(!h)return NULL;
+ uint64_t clock;int64_t position;bool exact_clock=false,exact_position=false;
+ CHECK(napi_get_value_bigint_uint64(env,args[1],&clock,&exact_clock));CHECK(napi_get_value_bigint_int64(env,args[2],&position,&exact_position));
+ if(!exact_clock||clock>9007199254740991ULL||clock<h->flushed_clock||!exact_position||position>4503599627370495LL||position< -4503599627370495LL)REJECT("Invalid initial position or history clock");
+ if(h->position_initialized||h->started||h->total||h->pending||!list_empty(&h->messages))REJECT("Position initialization requires an unused compressor");
+ h->failed=1;if(stepcompress_set_last_position(h->sc,clock,position))REJECT("Native position initialization failed");h->position_initialized=1;
+ napi_value result;CHECK(napi_get_undefined(env,&result));h->failed=0;return result;
+}
 static napi_value init(napi_env env,napi_value exports) {
     napi_property_descriptor methods[]={
       {"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"append",NULL,append,NULL,NULL,NULL,napi_default,NULL},
@@ -227,8 +236,8 @@ static napi_value init(napi_env env,napi_value exports) {
       {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"schedulePressureAdvance",NULL,schedule_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
-      {"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
+      {"initializePosition",NULL,initialize_position,NULL,NULL,NULL,napi_default,NULL},{"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,11,methods));return exports;
+    CHECK(napi_define_properties(env,exports,12,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
