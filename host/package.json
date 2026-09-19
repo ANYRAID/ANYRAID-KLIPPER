@@ -28,7 +28,8 @@
     "bench:kinematics": "node bench/kinematics.ts",
     "bench:delta": "node bench/delta.ts",
     "bench:thermal": "node bench/thermal.ts",
-    "bench:thermal-verify": "node bench/thermal-verify.ts"
+    "bench:thermal-verify": "node bench/thermal-verify.ts",
+    "bench:temperature-state": "node bench/temperature-state.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
