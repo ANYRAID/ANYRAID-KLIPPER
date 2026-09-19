@@ -44,6 +44,6 @@ test('invalid times leave the coordinator usable while oversized native output f
 import {MoveQueueSink} from '../src/motion/move-queue-sink.ts';
 test('native coordinated motion reaches the MCU slot scheduler with retained step history',async()=>{
  using q=new TrapQueue();fill(q);using x=q.createStepper(settings,'x',.01),y=q.createStepper({...settings,oid:4},'y',.01);let histories=0,packets=0;const ids=new Set<string>();
- const sink=new MoveQueueSink([{id:'main',emitters:['x','y'],moveSlots:8,clockAt:t=>BigInt(Math.round(t*1e6)),transport:{async send(messages){assert(histories>0);packets+=messages.length;for(const p of messages)ids.add(p.id);},async stop(){assert.fail('unexpected stop');}}}],async outputs=>{histories+=outputs.reduce((sum,o)=>sum+o.history.length,0);});
- const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'y',queue:q,stepper:y}],sink);await c.advanceWindow(1.5,1.45);await c.advanceWindow(2.1,2.05);await c.advance(2.1);assert(packets>0);assert.deepEqual(ids,new Set(['x','y']));assert.equal(c.status.committedTime,2.1);
+ const sink=new MoveQueueSink([{id:'main',emitters:['x','y'],moveSlots:8,clockAt:t=>x.clockAt(t),transport:{async send(messages){assert(histories>0);packets+=messages.length;for(const p of messages)ids.add(p.id);},async stop(){assert.fail('unexpected stop');}}}],async outputs=>{histories+=outputs.reduce((sum,o)=>sum+o.history.length,0);});
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'y',queue:q,stepper:y}],sink);await c.advanceWindow(1.5,1.45);c.calibrateClock(['x','y'],0,1000100);await c.advanceWindow(2.1,2.05);await c.advance(2.1);assert(packets>0);assert.deepEqual(ids,new Set(['x','y']));assert.equal(c.status.committedTime,2.1);
 });

@@ -543,6 +543,18 @@ stepcompress_commit(struct stepcompress *sc)
     return 0;
 }
 
+// Latest accepted step clock, including the reversible candidate and raw queue.
+uint64_t
+stepcompress_latest_clock(struct stepcompress *sc)
+{
+    if (sc->next_step_clock)
+        return sc->next_step_clock;
+    if (sc->queue && sc->queue_next > sc->queue_pos)
+        return sc->last_step_clock + (uint32_t)(
+            sc->queue_next[-1].clock32 - (uint32_t)sc->last_step_clock);
+    return sc->last_step_clock;
+}
+
 // Number of uncompressed steps, including the reversible filter candidate.
 uint32_t
 stepcompress_pending_steps(struct stepcompress *sc)

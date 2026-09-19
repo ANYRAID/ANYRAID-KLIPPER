@@ -9,13 +9,18 @@ export interface CompressedSteps {
   position:bigint;
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
-interface Native {schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
 export class StepCompressor {
-  #handle:object;#closed=false;
-  constructor(s:StepCompressorSettings){this.#handle=native.create(new Float64Array([s.frequency,s.timeOffset,s.oid,s.maxError,s.queueStepTag,s.directionTag,s.invertDirection?1:0]),s.initialClock??0n);}
+  #handle:object;#closed=false;#offset:number;#frequency:number;
+  constructor(s:StepCompressorSettings){this.#offset=s.timeOffset;this.#frequency=s.frequency;this.#handle=native.create(new Float64Array([s.frequency,s.timeOffset,s.oid,s.maxError,s.queueStepTag,s.directionTag,s.invertDirection?1:0]),s.initialClock??0n);}
+  /** Validate without mutating; used to update an MCU's whole stepper group. */
+  validateClockCalibration(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,false);}
+  calibrateClock(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,true);this.#offset=offset;this.#frequency=frequency;}
+  /** Same rounding as original C clock_from_time; usable by MoveQueueSink. */
+  clockAt(printTime:number):bigint{const raw=(printTime-this.#offset)*this.#frequency,rounded=Math.floor(raw+.5);if(this.#closed||!Number.isFinite(printTime)||!Number.isSafeInteger(rounded)||raw<0)throw new RangeError('Invalid print-time clock');return BigInt(rounded);}
   /** @internal Queue capability supplied by TrapQueue.createStepper. */
   bindQueue(queue:object,mode:StepperKinematics,stepDistance:number,position:readonly number[]):void {
     const delta=typeof mode==='object';

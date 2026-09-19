@@ -35,6 +35,15 @@ export class MotionCoordinator {
   this.#stopPromise=Promise.resolve().then(()=>this.#sink.stop(cause)).catch(stopError=>{this.#fault=new AggregateError([cause,stopError],'Motion failure and device stop failure');throw this.#fault;});
   return this.#stopPromise;
  }
+ /** Caller selects every emitter belonging to the calibrated MCU. No awaits
+  * are allowed between validation and application to the entire group. */
+ calibrateClock(ids:readonly string[],offset:number,frequency:number):void{
+  if(this.#busy||this.#failed)throw new Error('Clock calibration requires an idle healthy coordinator');
+  if(!ids.length||new Set(ids).size!==ids.length)throw new Error('Invalid calibration group');
+  const bindings=ids.map(id=>{const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');return b;});
+  for(const b of bindings)b.stepper.validateClockCalibration(offset,frequency);
+  for(const b of bindings)b.stepper.calibrateClock(offset,frequency);
+ }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
   if(!Number.isFinite(flushUntil)||generationUntil<flushUntil+.001)return Promise.reject(new RangeError('Generation must lead flush by at least 1 ms'));

@@ -125,6 +125,24 @@ static napi_value flush(napi_env env,napi_callback_info info) {
     CHECK(napi_set_named_property(env,result,"messages",messages));CHECK(napi_set_named_property(env,result,"history",history));CHECK(napi_set_named_property(env,result,"position",position));
     message_queue_free(&h->messages);stepcompress_history_expire(h->sc,UINT64_MAX);h->pending=stepcompress_pending_steps(h->sc);h->flushed_clock=barrier>h->flushed_clock?barrier:h->flushed_clock;h->failed=0;return result;
 }
+static napi_value calibrate_clock(napi_env env,napi_callback_info info) {
+    size_t argc=4;napi_value args[4];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=4)REJECT("Expected handle, offset, frequency and apply flag");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    double offset,frequency;bool apply;CHECK(napi_get_value_double(env,args[1],&offset));CHECK(napi_get_value_double(env,args[2],&frequency));CHECK(napi_get_value_bool(env,args[3],&apply));
+    if(!isfinite(offset)||!isfinite(frequency)||frequency<=0||frequency>1e9)REJECT("Invalid clock calibration");
+    uint64_t latest=stepcompress_latest_clock(h->sc);
+    if(!isfinite(offset-.5/frequency)||!isfinite(offset+((double)latest-.5)/frequency))REJECT("Clock calibration inverse overflows");
+    if(offset!=h->offset||frequency!=h->frequency){
+        double time=h->sk?h->link.generated:h->last_time;
+        double raw=(time-offset)*frequency,converted=raw+.5;
+        if(!isfinite(converted)||raw<0||converted>9007199254740991.)REJECT("Calibration exceeds exact clock range");
+        uint64_t clock=(uint64_t)converted;
+        if(clock<h->flushed_clock||(h->total&&clock<=latest))REJECT("Calibration would overlap previously accepted step clocks");
+    }
+    napi_value result;CHECK(napi_get_undefined(env,&result));
+    if(apply){stepcompress_set_time(h->sc,offset,frequency);h->offset=offset;h->frequency=frequency;}
+    return result;
+}
 static napi_value close_handle(napi_env env,napi_callback_info info) {
     size_t argc=1;napi_value args[1];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=1)REJECT("Expected handle");
     struct handle *h=get(env,args[0],1);if(!h)return NULL;detach(env,h);stepcompress_free(h->sc);h->sc=NULL;message_queue_free(&h->messages);
@@ -209,7 +227,8 @@ static napi_value init(napi_env env,napi_value exports) {
       {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"schedulePressureAdvance",NULL,schedule_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
+      {"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,10,methods));return exports;
+    CHECK(napi_define_properties(env,exports,11,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

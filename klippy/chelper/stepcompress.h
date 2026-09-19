@@ -26,6 +26,7 @@ void stepcompress_set_time(struct stepcompress *sc
                            , double time_offset, double mcu_freq);
 int stepcompress_append(struct stepcompress *sc, int sdir
                         , double print_time, double step_time);
+uint64_t stepcompress_latest_clock(struct stepcompress *sc);
 uint32_t stepcompress_pending_steps(struct stepcompress *sc);
 int stepcompress_commit(struct stepcompress *sc);
 int stepcompress_flush(struct stepcompress *sc, uint64_t move_clock);
