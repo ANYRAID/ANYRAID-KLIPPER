@@ -5,7 +5,7 @@ int input_shaper_set_shaper_params(struct stepper_kinematics *,char,int,double *
 static napi_value configure_shapers(napi_env env,napi_callback_info info) {
     size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and shaper parameters");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;
-    if(!h->sk||h->mode>=5||h->started||h->pending)REJECT("Configure shaping before step generation");
+    if(!h->sk||h->mode==5||h->started||h->pending)REJECT("Configure shaping before step generation");
     napi_typedarray_type type;size_t len,offset;void *data;napi_value backing;
     CHECK(napi_get_typedarray_info(env,args[1],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
     if(type!=napi_float64_array||!owned||len!=63)REJECT("Invalid packed shaper parameters");
@@ -58,6 +58,7 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
     }
     if(until<start)REJECT("Insufficient initial shaper padding");
     double low=start-post,high=until+pre,max_v[3]={0,0,0},bound[3]={0,0,0};
+    double lower[3]={INFINITY,INFINITY,INFINITY},upper[3]={-INFINITY,-INFINITY,-INFINITY};
     struct coord previous={0};int seen=0;size_t segments=0;
     struct move *at_start=NULL,*at_end=NULL,*m;
     list_for_each_entry(m,&h->queue->q->moves,node) {
@@ -68,12 +69,16 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
         double t0=fmax(low,m->print_time)-m->print_time,t1=fmin(high,end)-m->print_time;
         if(t1<t0)continue;
         if(h->mode==5&&((m->start_v||m->half_accel)&&m->axes_r.x!=1.))REJECT("Extruder requires a dedicated E queue");
-        struct coord a=move_get_coord(m,t0),b=move_get_coord(m,t1);
+        struct coord a=move_get_coord(m,t0),b=move_get_coord(m,t1),vertex=a;
+        double turn=m->half_accel?-m->start_v/(2*m->half_accel):t0;
+        if(turn>t0&&turn<t1)vertex=move_get_coord(m,turn);
         double speed=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1));
         for(int axis=0;axis<3;axis++)if(h->sk->active_flags&(AF_X<<axis)) {
             if(!isfinite(a.axis[axis])||!isfinite(b.axis[axis])||(seen&&fabs(a.axis[axis]-previous.axis[axis])>h->sk->step_dist*.00001))REJECT("Discontinuous shaper source path");
             double velocity=speed*fabs(m->axes_r.axis[axis]);
             max_v[axis]=fmax(max_v[axis],velocity);
+            lower[axis]=fmin(lower[axis],fmin(a.axis[axis],fmin(b.axis[axis],vertex.axis[axis])));
+            upper[axis]=fmax(upper[axis],fmax(a.axis[axis],fmax(b.axis[axis],vertex.axis[axis])));
             bound[axis]=fmax(bound[axis],fabs(a.axis[axis])+velocity*(t1-t0));
             if(!h->started&&m->print_time<start&&end>h->link.generated&&velocity>0)REJECT("Initial shaper padding contains motion");
         }
@@ -84,6 +89,23 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
     if(!at_start||!at_end)REJECT("Incomplete shaper motion coverage");
     double velocity=0,position_bound=0;
     for(int i=0;i<3;i++){velocity+=max_v[i]*h->gain[i];position_bound+=bound[i]*h->gain[i];}
+    if(h->mode==6){
+        // Each shaped axis can sample different source times. Bound its whole
+        // interval, including small negative weights, before applying Delta's
+        // nonlinear Jacobian. Sum(normalized weights)=1, L1 norm=gain.
+        double extent[3];
+        for(int i=0;i<3;i++){
+            double center=lower[i]*.5+upper[i]*.5;
+            double radius=(upper[i]*.5-lower[i]*.5)*h->gain[i];
+            // Outward margin covers coefficient normalization and accumulation.
+            radius+=32*2.2204460492503131e-16*(fabs(center)+radius+1);
+            extent[i]=fabs((i==0?h->tower_x:i==1?h->tower_y:0)-center)+radius;
+        }
+        double rad=h->arm2-extent[0]*extent[0]-extent[1]*extent[1];
+        if(!isfinite(rad)||rad<=0)REJECT("Shaped Delta path outside nonsingular arm reach; shorten generation interval");
+        velocity=max_v[2]*h->gain[2]+(extent[0]*max_v[0]*h->gain[0]+extent[1]*max_v[1]*h->gain[1])/sqrt(rad);
+        position_bound=sqrt(h->arm2)+extent[2];
+    }
     if(h->mode==5){
         // The pressure term is bounded by PA*max_velocity. The derivative of
         // the normalized triangular kernel has L1 norm 2/half_smooth_time,
