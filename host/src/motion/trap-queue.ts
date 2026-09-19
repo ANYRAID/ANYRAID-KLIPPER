@@ -15,9 +15,12 @@ const native=createRequire(import.meta.url)(process.env.ANYRAID_TRAPQ_ADDON??'..
 export class TrapQueue {
   #handle=native.create();
   #closed=false;
+  #steppers=new WeakSet<StepCompressor>();
+  /** Queue identity check for coordinated generation. */
+  ownsStepper(stepper:StepCompressor):boolean{return this.#steppers.has(stepper);}
   createStepper(settings:StepCompressorSettings,mode:StepperKinematics,stepDistance:number,position:readonly [number,number,number]=[0,0,0]):StepCompressor {
     const stepper=new StepCompressor(settings);
-    try {stepper.bindQueue(this.#handle,mode,stepDistance,position);return stepper;}catch(error){stepper.dispose();throw error;}
+    try {stepper.bindQueue(this.#handle,mode,stepDistance,position);this.#steppers.add(stepper);return stepper;}catch(error){stepper.dispose();throw error;}
   }
   /** Packed rows: time, accelT, cruiseT, decelT, xyz, xyzRatio, startV, cruiseV, accel. */
   appendRaw(rows:Float64Array):void {native.append(this.#handle,rows);}

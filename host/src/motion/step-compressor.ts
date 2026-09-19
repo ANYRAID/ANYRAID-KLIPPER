@@ -35,6 +35,7 @@ export class StepCompressor {
     }
     native.configureShapers(this.#handle,packed);
   }
+  get generatedTime():number{return native.windows(this.#handle)[3];}
   get scanWindow():{future:number;past:number;safeFinalizeTime:number|null} {
     const [future,past,safeFinalizeTime]=native.windows(this.#handle);return {future,past,safeFinalizeTime:safeFinalizeTime<0?null:safeFinalizeTime};
   }

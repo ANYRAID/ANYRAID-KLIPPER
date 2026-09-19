@@ -40,10 +40,11 @@ static napi_value configure_shapers(napi_env env,napi_callback_info info) {
 static napi_value shaper_windows(napi_env env,napi_callback_info info) {
     size_t argc=1;napi_value args[1];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=1)REJECT("Expected handle");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;if(!h->sk)REJECT("No attached solver");
-    napi_value buffer,result;void *data;CHECK(napi_create_arraybuffer(env,3*sizeof(double),&data,&buffer));
+    napi_value buffer,result;void *data;CHECK(napi_create_arraybuffer(env,4*sizeof(double),&data,&buffer));
     double *v=data;v[0]=h->sk->gen_steps_pre_active;v[1]=h->link.retention;
+    v[3]=h->link.generated;
     v[2]=v[1]?nextafter(h->link.generated-v[1],-INFINITY):h->link.generated;
-    CHECK(napi_create_typedarray(env,napi_float64_array,3,buffer,0,&result));return result;
+    CHECK(napi_create_typedarray(env,napi_float64_array,4,buffer,0,&result));return result;
 }
 static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
     double start=h->link.generated,pre=h->sk->gen_steps_pre_active,post=h->sk->gen_steps_post_active;
