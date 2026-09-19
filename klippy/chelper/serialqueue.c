@@ -948,8 +948,9 @@ serialqueue_send(struct serialqueue *sq, struct command_queue *cq, uint8_t *msg
 
 // Return a message read from the serial port (or wait for one if none
 // available)
-void __visible
-serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+static void
+serialqueue_pull_inner(struct serialqueue *sq, struct pull_queue_message *pqm,
+                      int blocking)
 {
     struct receiver *receiver = &sq->receiver;
     pthread_mutex_lock(&receiver->lock);
@@ -957,6 +958,11 @@ serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
     while (list_empty(&receiver->queue)) {
         if (pollreactor_is_exit(sq->pr))
             goto exit;
+        if (!blocking) {
+            pqm->len = -2;
+            pthread_mutex_unlock(&receiver->lock);
+            return;
+        }
         receiver->waiting = 1;
         int ret = pthread_cond_wait(&receiver->cond, &receiver->lock);
         if (ret)
@@ -983,6 +989,20 @@ serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
 exit:
     pqm->len = -1;
     pthread_mutex_unlock(&receiver->lock);
+}
+
+void __visible
+serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+{
+    serialqueue_pull_inner(sq, pqm, 1);
+}
+
+// Nonblocking consumer for event-loop hosts: 1=message, 0=empty, -1=closed.
+int __visible
+serialqueue_try_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+{
+    serialqueue_pull_inner(sq, pqm, 0);
+    return pqm->len >= 0 ? 1 : pqm->len == -2 ? 0 : -1;
 }
 
 void __visible

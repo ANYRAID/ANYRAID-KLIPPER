@@ -6,7 +6,7 @@
     "node": ">=26 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",
     "typecheck": "tsc -p tsconfig.json",
@@ -53,7 +53,8 @@
     "bench:clock-calibration": "node bench/clock-calibration.ts",
     "bench:secondary-sync": "node bench/secondary-sync.ts",
     "bench:clock-runtime": "node bench/clock-runtime.ts",
-    "bench:queries": "node bench/queries.ts"
+    "bench:queries": "node bench/queries.ts",
+    "bench:serial-queue": "node bench/serial-queue.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

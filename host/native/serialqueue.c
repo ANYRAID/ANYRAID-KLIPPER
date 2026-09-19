@@ -1,0 +1,50 @@
+// Node-API bridge to the existing GPL-3.0-or-later serialqueue core.
+#include <node_api.h>
+#include <stdlib.h>
+#include <math.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "serialqueue.h"
+#include "pyhelper.h"
+#define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
+#define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
+static const napi_type_tag tag={0x4179726169645351ULL,0x3236303932303031ULL};
+struct handle {struct serialqueue *sq;struct command_queue *cq[128];int fd;uint64_t last_id;unsigned pending;};
+static void release(struct handle *h){if(h->sq){serialqueue_exit(h->sq);serialqueue_free(h->sq);h->sq=NULL;for(int i=0;i<128;i++){serialqueue_free_commandqueue(h->cq[i]);h->cq[i]=NULL;}close(h->fd);}}
+static void cleanup(napi_env env,void *data,void *hint){(void)env;(void)hint;struct handle *h=data;release(h);free(h);}
+static struct handle *get(napi_env env,napi_value obj){bool match=false;struct handle *h=NULL;if(napi_check_object_type_tag(env,obj,&tag,&match)!=napi_ok||!match||napi_unwrap(env,obj,(void**)&h)!=napi_ok||!h||!h->sq){napi_throw_error(env,NULL,"Invalid or closed serial queue");return NULL;}return h;}
+static int number(napi_env env,napi_value v,double *d){return napi_get_value_double(env,v,d)==napi_ok&&isfinite(*d);}
+static int integer(napi_env env,napi_value v,uint64_t *d){bool exact=false;return napi_get_value_bigint_uint64(env,v,d,&exact)==napi_ok&&exact;}
+static napi_value nothing(napi_env env){napi_value v;napi_get_undefined(env,&v);return v;}
+static napi_value create(napi_env env,napi_callback_info info){
+ size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));double fd;
+ if(n!=1||!number(env,a[0],&fd)||fd<0||fd>0x7fffffff||floor(fd)!=fd)REJECT("Invalid serial file descriptor");
+ int owned=fcntl((int)fd,F_DUPFD_CLOEXEC,0);if(owned<0)REJECT("Unable to duplicate serial descriptor");
+ struct handle *h=calloc(1,sizeof(*h));if(!h){close(owned);REJECT("Allocation failed");}h->fd=owned;
+ char name[16]="anyraid-node";h->sq=serialqueue_alloc(owned,'u',0,name);if(!h->sq){close(owned);free(h);REJECT("Unable to create serial queue");}
+ napi_value obj;napi_status status=napi_create_object(env,&obj);if(status==napi_ok)status=napi_type_tag_object(env,obj,&tag);if(status==napi_ok)status=napi_wrap(env,obj,h,cleanup,NULL,NULL);if(status!=napi_ok){cleanup(env,h,NULL);CHECK(status);}return obj;
+}
+static napi_value close_queue(napi_env env,napi_callback_info info){size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;release(h);return nothing(env);}
+static napi_value send_queue(napi_env env,napi_callback_info info){
+ size_t n=6;napi_value a[6];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=6)REJECT("Expected queue, payload, clocks, notification and command queue");struct handle *h=get(env,a[0]);if(!h)return NULL;
+ napi_typedarray_type type;size_t len,offset;void *bytes;napi_value backing;CHECK(napi_get_typedarray_info(env,a[1],&type,&len,&bytes,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
+ uint64_t min,req,id;double queue;
+ if(type!=napi_uint8_array||!owned||len<1||len>59||!integer(env,a[2],&min)||!integer(env,a[3],&req)||min>MAX_CLOCK||req>MAX_CLOCK||!integer(env,a[4],&id)||id<=h->last_id||!number(env,a[5],&queue)||queue<0||queue>=128||floor(queue)!=queue)REJECT("Invalid serial message");
+ if(h->pending>=4096)REJECT("Serial pending message capacity exceeded");
+ if(!h->cq[(int)queue])h->cq[(int)queue]=serialqueue_alloc_commandqueue();
+ serialqueue_send(h->sq,h->cq[(int)queue],bytes,(int)len,min,req,id);h->last_id=id;h->pending++;return nothing(env);
+}
+static napi_value pull(napi_env env,napi_callback_info info){
+ size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;struct pull_queue_message p;
+ int status=serialqueue_try_pull(h->sq,&p);if(!status)return nothing(env);if(status<0){napi_value v;CHECK(napi_get_null(env,&v));return v;}
+ if(p.notify_id&&h->pending)h->pending--;
+ napi_value obj,data,v;CHECK(napi_create_object(env,&obj));CHECK(napi_create_buffer_copy(env,p.len,p.msg,NULL,&data));CHECK(napi_set_named_property(env,obj,"data",data));
+ CHECK(napi_create_double(env,p.sent_time,&v));CHECK(napi_set_named_property(env,obj,"sentTime",v));CHECK(napi_create_double(env,p.receive_time,&v));CHECK(napi_set_named_property(env,obj,"receiveTime",v));CHECK(napi_create_bigint_uint64(env,p.notify_id,&v));CHECK(napi_set_named_property(env,obj,"notifyId",v));return obj;
+}
+static napi_value configure(napi_env env,napi_callback_info info){size_t n=3;napi_value a[3];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=3)REJECT("Expected queue, frequency and receive window");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,window;if(!number(env,a[1],&freq)||freq<=0||freq>1e9||!number(env,a[2],&window)||window<64||window>65536||floor(window)!=window)REJECT("Invalid serial configuration");serialqueue_set_wire_frequency(h->sq,freq);serialqueue_set_receive_window(h->sq,(int)window);return nothing(env);}
+static napi_value estimate(napi_env env,napi_callback_info info){size_t n=4;napi_value a[4];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=4)REJECT("Expected clock estimate");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,time;uint64_t clock;if(!number(env,a[1],&freq)||freq<=0||freq>1e9||!number(env,a[2],&time)||time<0||!integer(env,a[3],&clock)||clock>MAX_CLOCK)REJECT("Invalid serial clock estimate");serialqueue_set_clock_est(h->sq,freq,time,clock);return nothing(env);}
+static napi_value now(napi_env env,napi_callback_info info){(void)info;napi_value v;CHECK(napi_create_double(env,get_monotonic(),&v));return v;}
+static napi_value stats(napi_env env,napi_callback_info info){size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;char buf[4096];serialqueue_get_stats(h->sq,buf,sizeof(buf));napi_value v;CHECK(napi_create_string_utf8(env,buf,NAPI_AUTO_LENGTH,&v));return v;}
+static napi_value init(napi_env env,napi_value exports){napi_property_descriptor d[]={
+ {"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_queue,NULL,NULL,NULL,napi_default,NULL},{"send",NULL,send_queue,NULL,NULL,NULL,napi_default,NULL},{"pull",NULL,pull,NULL,NULL,NULL,napi_default,NULL},{"configure",NULL,configure,NULL,NULL,NULL,napi_default,NULL},{"estimate",NULL,estimate,NULL,NULL,NULL,napi_default,NULL},{"now",NULL,now,NULL,NULL,NULL,napi_default,NULL},{"stats",NULL,stats,NULL,NULL,NULL,napi_default,NULL}};CHECK(napi_define_properties(env,exports,sizeof(d)/sizeof(d[0]),d));return exports;}
+NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
