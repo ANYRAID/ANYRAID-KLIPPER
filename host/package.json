@@ -30,7 +30,8 @@
     "bench:thermal": "node bench/thermal.ts",
     "bench:thermal-verify": "node bench/thermal-verify.ts",
     "bench:temperature-state": "node bench/temperature-state.ts",
-    "bench:thermal-runtime": "node bench/thermal-runtime.ts"
+    "bench:thermal-runtime": "node bench/thermal-runtime.ts",
+    "bench:thermistor": "node bench/thermistor.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
