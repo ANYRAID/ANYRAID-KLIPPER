@@ -92,7 +92,7 @@ static napi_value finalize(napi_env env,napi_callback_info info) {
     struct trap_handle *h=get(env,args[0]);if(!h)return NULL;
     double time,history;CHECK(napi_get_value_double(env,args[1],&time));CHECK(napi_get_value_double(env,args[2],&history));
     if(!isfinite(time)||!isfinite(history)||history<0||time<history||time>=1e15||time<h->finalized)REJECT("Invalid cleanup times");
-    for(struct solver_link *s=h->solvers;s;s=s->next)if(time>s->generated)REJECT("Cannot finalize ungenerated stepper motion");
+    for(struct solver_link *s=h->solvers;s;s=s->next)if(time>(s->retention?nextafter(s->generated-s->retention,-INFINITY):s->generated))REJECT("Cannot finalize ungenerated stepper motion");
     trapq_finalize_moves(h->q,time,history);h->end=fmax(h->end,time);h->finalized=time;recount(h);
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }

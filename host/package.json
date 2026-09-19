@@ -41,7 +41,8 @@
     "bench:shaper-fit": "node bench/shaper-fit.ts",
     "build:stepcompress": "node scripts/build-stepcompress.ts",
     "bench:step-compressor": "node bench/step-compressor.ts",
-    "bench:step-solver": "node bench/step-solver.ts"
+    "bench:step-solver": "node bench/step-solver.ts",
+    "bench:native-shaper": "node bench/native-shaper.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

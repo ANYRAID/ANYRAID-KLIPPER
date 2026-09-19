@@ -15,9 +15,10 @@ struct stepper_kinematics *corexy_stepper_alloc(char);
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
 struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
-    struct solver_link link;double path_position;int mode;};
+    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3];};
 static void detach(napi_env env,struct handle *h) {
     if(h->sk){free(h->sk);h->sk=NULL;}
+    if(h->orig_sk){free(h->orig_sk);h->orig_sk=NULL;}
     if(h->queue){
         struct trap_handle *q=h->queue;struct solver_link **link=&q->solvers;
         while(*link && *link!=&h->link)link=&(*link)->next;
@@ -134,6 +135,7 @@ static napi_value attach_solver(napi_env env,napi_callback_info info) {
     h->link.generated=sk->last_flush_time;h->link.next=q->solvers;q->solvers=&h->link;
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
+#include "shaper.inc.c"
 static napi_value generate_steps(napi_env env,napi_callback_info info) {
     size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and generation time");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;if(!h->sk)REJECT("No attached solver");
@@ -141,6 +143,7 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     if(!isfinite(until)||until<start||until>h->queue->end)REJECT("Generation must advance within queued motion");
     long double clock=((long double)until-h->offset)*h->frequency;
     if(clock<0||clock>9007199254740990.L)REJECT("Generation clock exceeds exact range");
+    if(h->orig_sk)return generate_shaped(env,h,until);
     double position=h->path_position;size_t estimate=0;
     trapq_check_sentinels(h->queue->q);struct move *m;
     list_for_each_entry(m,&h->queue->q->moves,node) {
@@ -161,14 +164,15 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     }
     if(h->total>INT64_MAX-estimate)REJECT("Position accounting overflow");
     if(until>start&&itersolve_generate_steps(h->sk,h->sc,until)){h->failed=1;REJECT("Native step generation failed");}
-    h->path_position=position;h->link.generated=until;h->pending+=estimate;h->total+=estimate;
+    h->started=1;h->path_position=position;h->link.generated=until;h->pending+=estimate;h->total+=estimate;
     napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
 }
 static napi_value init(napi_env env,napi_value exports) {
     napi_property_descriptor methods[]={
       {"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"append",NULL,append,NULL,NULL,NULL,napi_default,NULL},
       {"attachSolver",NULL,attach_solver,NULL,NULL,NULL,napi_default,NULL},{"generate",NULL,generate_steps,NULL,NULL,NULL,napi_default,NULL},
+      {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,6,methods));return exports;
+    CHECK(napi_define_properties(env,exports,8,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
