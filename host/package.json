@@ -22,7 +22,8 @@
     "bench:trapq": "node bench/trap-queue.ts",
     "bench:gcode": "node bench/gcode-move.ts",
     "bench:gcode-parser": "node bench/gcode-parser.ts",
-    "bench:gcode-dispatch": "node bench/gcode-dispatch.ts"
+    "bench:gcode-dispatch": "node bench/gcode-dispatch.ts",
+    "bench:gcode-input": "node bench/gcode-input.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
