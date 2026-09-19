@@ -37,3 +37,9 @@ test('abort while awaiting a native ACK rejects initialization promptly',async()
  try{const p=session.initialize(abort.signal),rejected=assert.rejects(p,/cancel ACK/);await delay(5);abort.abort(new Error('cancel ACK'));await rejected;assert.equal(session.status.pendingAcks,0);assert.equal(session.status.state,'closed');
  }finally{await session.stop();await firmware.close();}
 });
+test('event-driven receive drains bursts beyond one batch without another wire wake',async()=>{
+ const firmware=await serialFirmware();const values:number[]=[];let finish!:()=>void;const done=new Promise<void>(r=>{finish=r;});const session=new SerialSession(firmware.fd,{async stopDevice(){},onMessage(reply){if(reply.message.name==='echo_response'){values.push(reply.message.parameters.value as number);if(values.length===600)finish();}}});
+ try{await session.initialize(signal());await session.query(session.dictionary.encode('echo',{value:999}),'echo_response',signal());
+ for(let i=0;i<600;i++)firmware.emitEcho(i);await Promise.race([done,delay(1000).then(()=>{throw new Error('Burst drain stalled');})]);assert.deepEqual(values,Array.from({length:600},(_,i)=>i));assert.equal(session.status.state,'ready');
+ }finally{await session.stop();await firmware.close();}
+});

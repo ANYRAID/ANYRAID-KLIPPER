@@ -16,13 +16,13 @@ interface Ack {deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cle
  * UART/stream fd. Does not open/configure termios or initialize MCU actuators. */
 export class SerialSession {
  #queue:NativeSerialQueue;#queries:QueryConnection;#dictionary=new MessageDictionary();#clock:ClockRuntime|undefined;
- #options:SerialSessionOptions;#pending=new Map<bigint,Ack>();#timer:ReturnType<typeof setTimeout>|undefined;
+ #options:SerialSessionOptions;#pending=new Map<bigint,Ack>();#continuation:ReturnType<typeof setImmediate>|undefined;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
   this.#options={...options};this.#queue=new NativeSerialQueue(fd);
   this.#queries=new QueryConnection({send:(p,s)=>this.#send(p,s),setClockEstimate:e=>this.#estimate(e),stop:e=>this.stop(e)},serialClock);
-  this.#schedule();
+  try{this.#queue.watch(()=>this.#pump(),error=>{void this.stop(error).catch(()=>{});});}catch(error){this.#queue.close();throw error;}
  }
  get status(){return {state:this.#state,pendingAcks:this.#pending.size,fault:this.#fault,stopError:this.#stopError};}
  get dictionary():MessageDictionary{if(this.#state!=='warming'&&this.#state!=='ready')throw new Error('Firmware dictionary is not ready');return this.#dictionary;}
@@ -57,11 +57,12 @@ export class SerialSession {
    }catch(error){reject(error);void this.stop(error).catch(()=>{});}
   });
  }
- #schedule(){this.#timer=setTimeout(()=>this.#pump(),1);}
  #pump(){
   if(this.#stopPromise)return;
+  clearImmediate(this.#continuation);this.#continuation=undefined;
+  let count=0;
   try{for(let i=0;i<256;i++){
-   const event=this.#queue.pull();if(event===undefined)break;if(event===null)throw new Error('Serial receive thread exited');
+   const event=this.#queue.pull();if(event===undefined)break;count++;if(event===null)throw new Error('Serial receive thread exited');
    if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);ack.cleanup();ack.resolve();}
    else for(const message of this.#dictionary.parseFrame(event.data)){
     const response={message,sentTime:event.sentTime,receiveTime:event.receiveTime};
@@ -69,14 +70,14 @@ export class SerialSession {
     if(this.#stopPromise)return;
    }
   }
-  this.#schedule();
+  if(count===256)this.#continuation=setImmediate(()=>this.#pump());
   }catch(error){void this.stop(error).catch(()=>{});}
  }
  stop(cause:unknown=new Error('Serial session stopped')):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
   this.#state='closed';this.#fault=cause;let cleanupError:unknown;
   this.#stopPromise=Promise.resolve().then(async()=>{try{await this.#options.stopDevice(cause);}catch(error){this.#stopError=error;throw new AggregateError([cause,cleanupError,error].filter(e=>e!==undefined),'Serial device stop failed');}if(cleanupError!==undefined){this.#stopError=cleanupError;throw cleanupError;}});
-  clearTimeout(this.#timer);this.#timer=undefined;
+  clearImmediate(this.#continuation);this.#continuation=undefined;
   for(const p of this.#pending.values()){p.cleanup();p.reject(cause);}this.#pending.clear();
   try{this.#queue.close();}catch(error){cleanupError=error;}
   void this.#clock?.stop().catch(()=>{});void this.#queries.stop(cause).catch(()=>{});

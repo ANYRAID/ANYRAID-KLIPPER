@@ -12,6 +12,7 @@
 // clock times, prioritizes commands, and handles retransmissions.  A
 // background thread is launched to do this work and minimize latency.
 
+#include <errno.h> // errno
 #include <linux/can.h> // // struct can_frame
 #include <math.h> // fabs
 #include <pthread.h> // pthread_mutex_lock
@@ -22,6 +23,7 @@
 #include <string.h> // memset
 #include <termios.h> // tcflush
 #include <unistd.h> // pipe
+#include <sys/socket.h> // send
 #include "compiler.h" // __visible
 #include "list.h" // list_add_tail
 #include "msgblock.h" // message_alloc
@@ -42,6 +44,7 @@ struct receiver {
     pthread_mutex_t lock;
     pthread_cond_t cond;
     int waiting;
+    int wake_fd;
     struct list_head queue;
     struct list_head old_receive;
 };
@@ -149,7 +152,15 @@ receive_append_wake(struct receiver *receiver, struct list_head *msgs)
 {
     int dokick = 0;
     pthread_mutex_lock(&receiver->lock);
+    int need_wake = list_empty(&receiver->queue) || list_empty(msgs);
     list_join_tail(msgs, &receiver->queue);
+    if (need_wake && receiver->wake_fd >= 0) {
+        // Nonblocking wake socket: EAGAIN means a wake is already pending.
+        int ret;
+        do {
+            ret = send(receiver->wake_fd, ".", 1, MSG_DONTWAIT | MSG_NOSIGNAL);
+        } while (ret < 0 && errno == EINTR);
+    }
     if (receiver->waiting) {
         receiver->waiting = 0;
         dokick = 1;
@@ -710,6 +721,7 @@ serialqueue_alloc(int serial_fd, char serial_fd_type, int client_id
 {
     struct serialqueue *sq = malloc(sizeof(*sq));
     memset(sq, 0, sizeof(*sq));
+    sq->receiver.wake_fd = -1;
     sq->serial_fd = serial_fd;
     sq->serial_fd_type = serial_fd_type;
     sq->client_id = client_id;
@@ -1003,6 +1015,22 @@ serialqueue_try_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
 {
     serialqueue_pull_inner(sq, pqm, 0);
     return pqm->len >= 0 ? 1 : pqm->len == -2 ? 0 : -1;
+}
+
+// Optional event-loop wake socket. Caller owns fd and must detach before close.
+void __visible
+serialqueue_set_wake_fd(struct serialqueue *sq, int fd)
+{
+    pthread_mutex_lock(&sq->receiver.lock);
+    sq->receiver.wake_fd = fd;
+    if (fd >= 0) {
+        // Also cover data or EOF that arrived before attaching the listener.
+        int ret;
+        do {
+            ret = send(fd, ".", 1, MSG_DONTWAIT | MSG_NOSIGNAL);
+        } while (ret < 0 && errno == EINTR);
+    }
+    pthread_mutex_unlock(&sq->receiver.lock);
 }
 
 void __visible

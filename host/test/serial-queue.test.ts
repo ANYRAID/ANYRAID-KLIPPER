@@ -32,3 +32,21 @@ test('native queue validates clocks, payloads and capacity before enqueueing',as
 test('closing native duplicate leaves original descriptor owned by caller',async()=>{
  const p=await serialPair(),q=new NativeSerialQueue(p.fd);q.close();const q2=new NativeSerialQueue(p.fd);q2.close();await p.close();assert.throws(()=>new NativeSerialQueue(-1),/descriptor/);
 });
+test('event watcher observes data queued before registration and stops callbacks after close',async()=>{
+ const p=await serialPair(),q=new NativeSerialQueue(p.fd),decoder=new FrameDecoder();let peerSaw=false,calls=0;const events:SerialEvent[]=[];
+ try{p.peer.on('data',chunk=>{for(const f of decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk)){peerSaw=true;p.peer.write(encodeFrame((f[1]+1)&15,new Uint8Array()));}});const id=q.send(Uint8Array.of(3));await until(()=>peerSaw);await delay(10);
+ q.watch(()=>{calls++;let e;while((e=q.pull()))events.push(e);},error=>{throw error;});assert.throws(()=>q.watch(()=>{},()=>{}),/already/);
+ await until(()=>events.some(e=>e.notifyId===id));q.close();const before=calls;await delay(15);assert.equal(calls,before);
+ }finally{q.close();await p.close();}
+});
+test('event callback failure closes the native queue and reaches the error handler',async()=>{
+ const p=await serialPair(),q=new NativeSerialQueue(p.fd);let failure:unknown;
+ try{q.watch(()=>{throw new Error('consumer failed');},error=>{failure=error;});await until(()=>failure!==undefined);assert.match(String(failure),/consumer failed/);assert.throws(()=>q.pull(),/closed/);
+ }finally{q.close();await p.close();}
+});
+test('repeated watched queue shutdown releases wake descriptors and native threads',async()=>{
+ const {readdirSync}=await import('node:fs');
+ async function cycle(){const p=await serialPair(),q=new NativeSerialQueue(p.fd);try{await new Promise<void>((resolve,reject)=>{q.watch(resolve,reject);});}finally{q.close();await p.close();await delay(1);}}
+ await cycle();const before=readdirSync('/proc/self/fd').length;
+ for(let i=0;i<20;i++)await cycle();assert.ok(readdirSync('/proc/self/fd').length<=before,'wake descriptor leak');
+});
