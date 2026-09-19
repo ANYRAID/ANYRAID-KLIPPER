@@ -20,3 +20,10 @@ run(['--test','test/trap-queue.test.ts'],{
   // access/lifetime violations, not process-wide leak accounting.
   ASAN_OPTIONS:'detect_leaks=0:abort_on_error=1',
 });
+run(['scripts/build-stepcompress.ts','--sanitize']);
+run(['--test','test/step-compressor.test.ts'],{...process.env,ANYRAID_STEPCOMPRESS_ADDON:fileURLToPath(new URL('../build/stepcompress-ubsan.node',import.meta.url))});
+run(['scripts/build-stepcompress.ts','--address']);
+run(['--test','test/step-compressor.test.ts'],{
+  ...process.env,ANYRAID_STEPCOMPRESS_ADDON:fileURLToPath(new URL('../build/stepcompress-asan.node',import.meta.url)),
+  LD_PRELOAD:[runtime,process.env.LD_PRELOAD].filter(Boolean).join(':'),ASAN_OPTIONS:'detect_leaks=0:abort_on_error=1',
+});

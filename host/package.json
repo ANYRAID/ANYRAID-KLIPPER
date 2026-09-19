@@ -8,7 +8,7 @@
   "scripts": {
     "build:native": "node scripts/build-native.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
-    "pretest": "node scripts/build-native.ts",
+    "pretest": "node scripts/build-native.ts && node scripts/build-stepcompress.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.ts",
     "bench": "node bench/math.ts",
@@ -38,7 +38,9 @@
     "bench:build-commands": "node bench/build-commands.ts",
     "bench:buildcommands": "node bench/buildcommands.ts",
     "bench:shaper": "node bench/shaper.ts",
-    "bench:shaper-fit": "node bench/shaper-fit.ts"
+    "bench:shaper-fit": "node bench/shaper-fit.ts",
+    "build:stepcompress": "node scripts/build-stepcompress.ts",
+    "bench:step-compressor": "node bench/step-compressor.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
