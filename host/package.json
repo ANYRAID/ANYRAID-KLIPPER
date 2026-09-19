@@ -37,7 +37,8 @@
     "bench:build-metadata": "node bench/build-metadata.ts",
     "bench:build-commands": "node bench/build-commands.ts",
     "bench:buildcommands": "node bench/buildcommands.ts",
-    "bench:shaper": "node bench/shaper.ts"
+    "bench:shaper": "node bench/shaper.ts",
+    "bench:shaper-fit": "node bench/shaper-fit.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
