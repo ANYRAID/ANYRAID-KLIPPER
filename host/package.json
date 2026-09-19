@@ -45,7 +45,8 @@
     "bench:native-shaper": "node bench/native-shaper.ts",
     "bench:pressure-advance": "node bench/pressure-advance.ts",
     "bench:native-delta": "node bench/native-delta.ts",
-    "bench:delta-shaper": "node bench/delta-shaper.ts"
+    "bench:delta-shaper": "node bench/delta-shaper.ts",
+    "bench:pressure-updates": "node bench/pressure-updates.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

@@ -143,6 +143,35 @@ static napi_value configure_pressure_advance(napi_env env,napi_callback_info inf
     itersolve_set_position(sk,h->path_position,0,0);itersolve_set_trapq(sk,h->queue->q,h->sk->step_dist);
     sk->last_flush_time=h->sk->last_flush_time;sk->last_move_time=h->sk->last_move_time;
     extruder_set_pressure_advance(sk,0,advance,smooth);
-    free_solver(h->sk,5);h->sk=sk;h->pressure_advance=advance;h->link.retention=sk->gen_steps_post_active;
+    free_solver(h->sk,5);h->sk=sk;h->pressure_advance=advance;h->pa_count=1;h->pa_times[0]=0;h->pa_values[0]=advance;h->pa_last_time=0;h->link.retention=sk->gen_steps_post_active;
+    napi_value result;CHECK(napi_get_undefined(env,&result));return result;
+}
+
+static napi_value schedule_pressure_advance(napi_env env,napi_callback_info info) {
+    size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, activation time and advance");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||h->sk->gen_steps_pre_active<=0||!h->pa_count)REJECT("Scheduled pressure advance requires an enabled fixed smoothing window");
+    double time,advance;CHECK(napi_get_value_double(env,args[1],&time));CHECK(napi_get_value_double(env,args[2],&advance));
+    if(!isfinite(time)||time>=1e15||time<=h->pa_last_time||time<=h->link.generated+h->sk->gen_steps_pre_active
+       ||!isfinite(advance)||advance<=0)REJECT("Schedule positive advance strictly after generated lookahead and previous updates");
+    // Parameters are selected by source-phase START time, not by the sampled
+    // point inside a phase. Keep the coefficient of a long phase still in use.
+    double cutoff=h->link.generated-h->link.retention,oldest=0;
+    trapq_check_sentinels(h->queue->q);struct move *m;
+    list_for_each_entry(m,&h->queue->q->moves,node) {
+        if(m->print_time>cutoff)break;
+        if(m->move_t>0&&m->print_time+m->move_t>=cutoff){oldest=m->print_time;break;}
+    }
+    size_t drop=0;while(drop+1<h->pa_count&&h->pa_times[drop+1]<oldest)drop++;
+    int changed=advance!=h->pa_values[h->pa_count-1];
+    if(h->pa_count-drop+(size_t)changed>128)REJECT("Too many pending pressure updates; generate motion before scheduling more");
+    double saved=h->sk->last_flush_time;
+    h->sk->last_flush_time=fmin(saved,nextafter(oldest+h->link.retention,-INFINITY));
+    extruder_set_pressure_advance(h->sk,time,advance,2*h->link.retention);
+    h->sk->last_flush_time=saved;
+    if(drop){memmove(h->pa_times,h->pa_times+drop,(h->pa_count-drop)*sizeof(double));memmove(h->pa_values,h->pa_values+drop,(h->pa_count-drop)*sizeof(double));h->pa_count-=drop;}
+    if(changed){h->pa_times[h->pa_count]=time;h->pa_values[h->pa_count++]=advance;}
+    h->pa_last_time=time;h->pressure_advance=0;
+    for(size_t i=0;i<h->pa_count;i++)h->pressure_advance=fmax(h->pressure_advance,h->pa_values[i]);
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }

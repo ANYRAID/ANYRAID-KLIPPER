@@ -9,7 +9,7 @@ export interface CompressedSteps {
   position:bigint;
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
-interface Native {configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object):CompressedSteps;close(handle:object):void}
+interface Native {schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
@@ -23,6 +23,8 @@ export class StepCompressor {
   }
   /** Configure an E-only queue before generation. Zero advance disables smoothing. */
   configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);}
+  /** Schedule a positive coefficient at a future source-phase boundary; smooth time stays fixed. */
+  schedulePressureAdvance(printTime:number,advance:number):void{native.schedulePressureAdvance(this.#handle,printTime,advance);}
   /** Atomically replace XYZ shapers before any generation; omitted axes are disabled. */
   configureShapers(shapers:Partial<Record<'x'|'y'|'z',Shaper>>):void {
     if(Object.keys(shapers).some(k=>!['x','y','z'].includes(k)))throw new RangeError('Unknown shaper axis');

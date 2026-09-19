@@ -42,3 +42,27 @@ test('zero smoothing disables advance and unsafe generation can be retried after
  s.configurePressureAdvance(.05,0);assert.deepEqual(s.scanWindow,{future:0,past:0,safeFinalizeTime:0});
  s.generate(2.1);assert.deepEqual(s.flush(),run(0));
 });
+test('scheduled pressure changes cannot rewrite generated convolution and preserve long source phases',()=>{
+ function run(live:boolean){using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.2,.1);if(!live)s.schedulePressureAdvance(1.8,.2);s.generate(1.6);if(live)s.schedulePressureAdvance(1.8,.2);s.generate(2.1);return s.flush();}
+ assert.deepEqual(run(true),run(false));assert.equal(run(true).position,900n);
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.generate(1.5);
+ for(const [time,advance] of [[1.52,.1],[1.6,0],[1.6,-1],[NaN,.1],[1.6,Infinity]])assert.throws(()=>s.schedulePressureAdvance(time,advance));
+ s.schedulePressureAdvance(1.8,.1);assert.throws(()=>s.schedulePressureAdvance(1.7,.2));s.generate(2.1);assert.equal(s.flush().position,900n);
+});
+test('pressure update queue is bounded and releases history once source phases retire',()=>{
+ using q=new TrapQueue();const rows:number[]=[];let time=1,x=0;
+ for(let i=0;i<200;i++){rows.push(time,0,.1,0,x,0,0,1,1,0,1,1,0);time+=.1;x+=.1;}
+ rows.push(time,0,.2,0,x,0,0,0,0,0,0,0,0);q.appendRaw(new Float64Array(rows));using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.01,.04);
+ for(let i=1;i<128;i++)s.schedulePressureAdvance(i*.1,i%2?.02:.01);
+ assert.throws(()=>s.schedulePressureAdvance(12.8,.03),/Too many pending/);
+ s.generate(14);s.flush();s.schedulePressureAdvance(15,.03);s.generate(time+.1);assert.equal(s.flush().position,2000n);
+});
+test('scheduled pressure changes require a configured fixed nonzero window',()=>{
+ using q=new TrapQueue();using e=q.createStepper(settings,'extruder',.01);assert.throws(()=>e.schedulePressureAdvance(1,.1));
+ e.configurePressureAdvance(.1,0);assert.throws(()=>e.schedulePressureAdvance(1,.1));using x=q.createStepper(settings,'x',.01);assert.throws(()=>x.schedulePressureAdvance(1,.1));
+});
+test('an empty queue does not retire future pressure changes through the tail sentinel',()=>{
+ using q=new TrapQueue();using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.01,.04);
+ for(let i=1;i<128;i++)s.schedulePressureAdvance(i*.1,i%2?.02:.01);
+ assert.throws(()=>s.schedulePressureAdvance(12.8,.03),/Too many pending/);
+});
