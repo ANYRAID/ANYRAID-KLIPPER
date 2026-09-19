@@ -1,3 +1,5 @@
+import type {ScheduledPacket} from '../motion/move-queue.ts';
+import type {ScheduledTransport} from '../motion/move-queue-sink.ts';
 import {NativeSerialQueue,serialClock} from './serial-queue.ts';
 import {QueryConnection,type QueryOptions} from './queries.ts';
 import {MessageDictionary} from './dictionary.ts';
@@ -11,12 +13,14 @@ export interface SerialSessionOptions {
  stopDevice(cause:unknown):Promise<void>;
  onMessage?(response:TimedResponse):void;
 }
-interface Ack {deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
+interface Ack {motion?:boolean;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
 /** Owns bootstrap, ACK dispatch and clock sampling on one preconfigured Linux
  * UART/stream fd. Does not open/configure termios or initialize MCU actuators. */
 export class SerialSession {
  #queue:NativeSerialQueue;#queries:QueryConnection;#dictionary=new MessageDictionary();#clock:ClockRuntime|undefined;
  #options:SerialSessionOptions;#pending=new Map<bigint,Ack>();#continuation:ReturnType<typeof setImmediate>|undefined;
+ #motionTimer:ReturnType<typeof setTimeout>|undefined;#motionExpiry=Infinity;#motionPending=0;
+ #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
@@ -43,15 +47,66 @@ export class SerialSession {
   if(this.#state!=='ready')return Promise.reject(new Error('Serial session is not ready'));
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}return this.#queries.query(payload,responseName,signal,options);
  }
+ /** One ordered motion queue per MCU, matching steppersync's single cq.
+  * Resolve after native acceptance; firmware ACKs remain tracked in background. */
+ motionTransport(emitterIds:readonly string[]):ScheduledTransport{
+  if(this.#state!=='ready'||this.#motionBound)throw new Error('Motion transport requires an unbound ready session');
+  if(!emitterIds.length||emitterIds.length>128||new Set(emitterIds).size!==emitterIds.length||emitterIds.some(id=>!/^[A-Za-z0-9_.:-]{1,128}$/.test(id)))throw new Error('Invalid motion emitter binding');
+  this.#motionBound=true;const ids=new Set(emitterIds);return {send:packets=>this.#motion(packets,ids),stop:cause=>this.stop(cause)};
+ }
+ async #motion(packets:readonly ScheduledPacket[],ids:ReadonlySet<string>):Promise<void>{
+  if(this.#motionBusy)throw new Error('Motion send already in progress');this.#motionBusy=true;
+  try{
+   if(this.#state!=='ready')throw new Error('Motion session is not ready');this.clock.assertActive();
+   if(packets.length>200000)throw new RangeError('Motion batch exceeds message budget');
+   let bytes=0;const now=serialClock.now(),staged:{data:Uint8Array;min:bigint;req:bigint;deadline:number}[]=[];
+   for(const p of packets){
+    if(!ids.has(p.id)||!(p.data instanceof Uint8Array)||p.data.length<1||p.data.length>59||typeof p.minClock!=='bigint'||typeof p.reqClock!=='bigint'||p.minClock<0n||p.reqClock<0n||p.minClock>=0x7fffffffffffffffn||p.reqClock>=0x7fffffffffffffffn)throw new RangeError('Invalid scheduled motion packet');
+    bytes+=p.data.length+32;if(bytes>16*1024*1024)throw new RangeError('Motion batch exceeds byte budget');
+    // Same 31-bit comparison guard as serialqueue_send_batch.
+    const release=p.reqClock!==0x7fffffff00000000n&&p.reqClock>p.minClock+(3n<<29n)?p.reqClock-(3n<<29n):p.minClock;
+    const ready=release===0n?now:this.clock.sync.systemTime(release);
+    const requested=p.reqClock===0n||p.reqClock===0x7fffffff00000000n?now:this.clock.sync.systemTime(p.reqClock);
+    if(!Number.isFinite(ready)||!Number.isFinite(requested)||Math.max(ready,requested)>now+60)throw new RangeError('Motion clocks exceed 60 second horizon');
+    staged.push({data:Uint8Array.from(p.data),min:p.minClock,req:p.reqClock,deadline:Math.max(now,ready,requested)+5});
+   }
+   let index=0;
+   while(index<staged.length){
+    this.#assertOpen();this.clock.assertActive();
+    // Reserve 128 native slots for clock/control queries even under backpressure.
+    const capacity=3968-this.#pending.size;
+    if(capacity<=0){await new Promise<void>(resolve=>this.#space.add(resolve));continue;}
+    const end=Math.min(index+capacity,staged.length);
+    for(;index<end;index++){
+     const p=staged[index];if(serialClock.now()>=p.deadline)throw new Error('Motion enqueue deadline exceeded');
+     const id=this.#queue.send(p.data,p.min,p.req,1);this.#motionPending++;
+     this.#pending.set(id,{motion:true,deadline:p.deadline,resolve:()=>{},reject:()=>{},cleanup:()=>{if(--this.#motionPending===0){clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;}}});
+     this.#armMotionDeadline(p.deadline);
+    }
+   }
+   this.#assertOpen();this.clock.assertActive();
+  }catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion send and stop failed');}throw error;}
+  finally{this.#motionBusy=false;}
+ }
+ #armMotionDeadline(deadline:number){
+  if(deadline>=this.#motionExpiry)return;clearTimeout(this.#motionTimer);this.#motionExpiry=deadline;
+  this.#motionTimer=setTimeout(()=>{
+   this.#motionTimer=undefined;this.#motionExpiry=Infinity;if(this.#stopPromise)return;
+   const now=serialClock.now();let next=Infinity;
+   for(const ack of this.#pending.values())if(ack.motion){if(ack.deadline<=now){void this.stop(new Error('Motion acknowledgement timed out')).catch(()=>{});return;}next=Math.min(next,ack.deadline);}
+   if(next!==Infinity)this.#armMotionDeadline(next);
+  },Math.max(1,(deadline-serialClock.now())*1000));
+ }
  #assertOpen(){if(this.#state==='closed')throw new Error('Serial session is closed');}
  #estimate(e:ReleaseEstimate){this.#assertOpen();this.#queue.setClockEstimate(e);}
  #send(payload:Uint8Array,signal:AbortSignal):Promise<void>{
-  signal.throwIfAborted();this.#assertOpen();if(this.#pending.size>=128)throw new Error('Too many outstanding serial acknowledgements');
+  signal.throwIfAborted();this.#assertOpen();if(this.#queryPending>=128)throw new Error('Too many outstanding serial acknowledgements');
   return new Promise((resolve,reject)=>{
    let timer:ReturnType<typeof setTimeout>|undefined;
    const abort=()=>{void this.stop(signal.reason??new Error('Serial send cancelled')).catch(()=>{});};
    try{const id=this.#queue.send(payload),deadline=serialClock.now()+5;
-    const cleanup=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);};
+    this.#queryPending++;
+    const cleanup=()=>{this.#queryPending--;clearTimeout(timer);signal.removeEventListener('abort',abort);};
     this.#pending.set(id,{deadline,resolve,reject,cleanup});signal.addEventListener('abort',abort,{once:true});
     timer=setTimeout(()=>{void this.stop(new Error('Serial acknowledgement timed out')).catch(()=>{});},5000);
    }catch(error){reject(error);void this.stop(error).catch(()=>{});}
@@ -63,7 +118,7 @@ export class SerialSession {
   let count=0;
   try{for(let i=0;i<256;i++){
    const event=this.#queue.pull();if(event===undefined)break;count++;if(event===null)throw new Error('Serial receive thread exited');
-   if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);ack.cleanup();ack.resolve();}
+   if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);ack.cleanup();ack.resolve();for(const wake of this.#space)wake();this.#space.clear();}
    else for(const message of this.#dictionary.parseFrame(event.data)){
     const response={message,sentTime:event.sentTime,receiveTime:event.receiveTime};
     if(!this.#queries.receive(response))this.#options.onMessage?.(response);
@@ -77,8 +132,8 @@ export class SerialSession {
   if(this.#stopPromise)return this.#stopPromise;
   this.#state='closed';this.#fault=cause;let cleanupError:unknown;
   this.#stopPromise=Promise.resolve().then(async()=>{try{await this.#options.stopDevice(cause);}catch(error){this.#stopError=error;throw new AggregateError([cause,cleanupError,error].filter(e=>e!==undefined),'Serial device stop failed');}if(cleanupError!==undefined){this.#stopError=cleanupError;throw cleanupError;}});
-  clearImmediate(this.#continuation);this.#continuation=undefined;
-  for(const p of this.#pending.values()){p.cleanup();p.reject(cause);}this.#pending.clear();
+  clearImmediate(this.#continuation);this.#continuation=undefined;clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;
+  for(const p of this.#pending.values()){p.cleanup();p.reject(cause);}this.#pending.clear();for(const wake of this.#space)wake();this.#space.clear();
   try{this.#queue.close();}catch(error){cleanupError=error;}
   void this.#clock?.stop().catch(()=>{});void this.#queries.stop(cause).catch(()=>{});
   return this.#stopPromise;
