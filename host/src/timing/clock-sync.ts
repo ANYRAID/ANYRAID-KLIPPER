@@ -32,6 +32,7 @@ export class ClockSync {
   #lastSent:number;
   #pending=0;
   #revision=0;
+  #invalid=false;
   constructor(frequency:number,uptimeClock:bigint,sentTime:number) {
     if(!Number.isFinite(frequency)||frequency<=0||!Number.isFinite(frequency**2)||uptimeClock<0n||uptimeClock>0xffffffffffffffffn)
       throw new RangeError('Invalid MCU clock initialization');
@@ -41,11 +42,13 @@ export class ClockSync {
   }
   get revision():number{return this.#revision;}
   get lastClock():bigint {return this.#lastClock;}
-  get active():boolean {return this.#pending<=4;}
+  get active():boolean {return !this.#invalid&&this.#pending<=4;}
   get estimate():ClockEstimate {return {sampleTime:this.#estimateTime,origin:this.#origin,clockOffset:this.#estimateOffset,frequency:this.#frequency};}
-  querySent():void {this.#pending++;}
+  invalidate():void{this.#invalid=true;this.#revision++;}
+  querySent():void {if(this.#invalid)throw new Error('Clock estimator is invalidated');this.#pending++;}
   /** Calibration warmup mirrors the initial eight upstream samples. */
   accept(sample:ClockSample,warmup=false):ReleaseEstimate|null {
+    if(this.#invalid)throw new Error('Clock estimator is invalidated');
     const {clock32,sentTime,receiveTime}=sample;
     if(!Number.isInteger(clock32)||clock32<0||clock32>0xffffffff) throw new RangeError('Invalid MCU clock sample');
     finiteTime(sentTime);finiteTime(receiveTime);
@@ -54,6 +57,7 @@ export class ClockSync {
     const clock=this.#lastClock+BigInt.asUintN(32,BigInt(clock32)-this.#lastClock);
     if(clock>0xffffffffffffffffn) throw new RangeError('MCU uptime overflow');
     this.#revision++;this.#lastClock=clock;this.#pending=0;
+    if(warmup) this.#lastPredictionTime=-9999;
     if(!sentTime) return null; // retransmission: departure timestamp is ambiguous
     this.#lastSent=sentTime;
     // Rebase before floating point regression loses tick resolution.
@@ -65,7 +69,6 @@ export class ClockSync {
     const relative=Number(clock-this.#origin);
     const expected=(sentTime-this.#timeAvg)*this.#frequency+this.#clockAvg;
     const error2=(relative-expected)**2;
-    if(warmup) this.#lastPredictionTime=-9999;
     if(error2>25*this.#predictionVariance && error2>(.000500*this.nominalFrequency)**2) {
       if(relative>expected && sentTime<this.#lastPredictionTime+10) return null;
       this.#predictionVariance=(.001*this.nominalFrequency)**2;

@@ -42,3 +42,8 @@ test('long-running regression rebases while preserving origin translation and ti
   assert.equal(b.getClock(20010.001)-a.getClock(20010.001),origin);
   assert.ok(Math.abs(Number(a.getClock(20010.001))-1280000000000)<=1);
 });
+test('warmup retransmission still resets the following outlier recovery window',()=>{
+ const sync=new ClockSync(1000,0n,10);sync.accept({clock32:1000,sentTime:11,receiveTime:11},true);
+ assert.equal(sync.accept({clock32:2000,sentTime:0,receiveTime:12},true),null);
+ assert.notEqual(sync.accept({clock32:3500,sentTime:13,receiveTime:13}),null);
+});

@@ -13,10 +13,11 @@ export interface MotionSink {
 /** Single-use coordination of native step generation. Does not implement the MCU
  * move-slot scheduler, clock calibration, serial transport or hardware watchdog. */
 export class MotionCoordinator {
+ #guards:readonly {assertActive():void}[];
  #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#fault:unknown;#failed=false;
  #stopPromise:Promise<void>|undefined;
  #generated:number;#committed:number;#sequence=0;#maxBytes:number;
- constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0){
+ constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[]){
   if(!bindings.length||bindings.length>128||!Number.isSafeInteger(maxBatchBytes)||maxBatchBytes<1)throw new RangeError('Invalid motion coordinator limits');
   const ids=new Set<string>(),steppers=new Set<StepCompressor>();
   for(const b of bindings){
@@ -26,6 +27,7 @@ export class MotionCoordinator {
   if(!Number.isFinite(initialCommittedTime)||initialCommittedTime<0||initialCommittedTime>=1e15)throw new RangeError('Invalid initial committed time');
   const time=initialCommittedTime;
   if(bindings.some(b=>b.stepper.generatedTime!==time))throw new Error('Steppers must match the declared committed baseline');
+  this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
  }
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy,failed:this.#failed,fault:this.#fault};}
@@ -41,6 +43,7 @@ export class MotionCoordinator {
   if(this.#busy||this.#failed)throw new Error('Clock calibration requires an idle healthy coordinator');
   if(!ids.length||new Set(ids).size!==ids.length)throw new Error('Invalid calibration group');
   const bindings=ids.map(id=>{const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');return b;});
+  try{for(const guard of this.#guards)guard.assertActive();}catch(error){void this.shutdown(error).catch(()=>{});throw error;}
   for(const b of bindings)b.stepper.validateClockCalibration(offset,frequency);
   for(const b of bindings)b.stepper.calibrateClock(offset,frequency);
  }
@@ -57,6 +60,7 @@ export class MotionCoordinator {
   if(until===this.#generated&&flushUntil===this.#committed)return;
   this.#busy=true;
   try{
+   for(const guard of this.#guards)guard.assertActive();
    const from=this.#committed;
    // No packets leave the host until every attached actuator has generated.
    if(until>this.#generated)for(const b of this.#bindings)b.stepper.generate(until);
@@ -69,7 +73,9 @@ export class MotionCoordinator {
     if(bytes>this.#maxBytes)throw new RangeError('Motion output exceeds batch budget');
     outputs.push({...out,id:b.id});
    }
+   for(const guard of this.#guards)guard.assertActive();
    await this.#sink.commit({sequence:this.#sequence++,from,until:flushUntil,generatedUntil:until,outputs});
+   for(const guard of this.#guards)guard.assertActive();
    if(this.#failed)throw this.#fault;
    this.#committed=flushUntil;
    // Shared XYZ queues wait for the largest retained convolution window.
