@@ -31,6 +31,7 @@ export class ClockSync {
   #frequency:number;
   #lastSent:number;
   #pending=0;
+  #revision=0;
   constructor(frequency:number,uptimeClock:bigint,sentTime:number) {
     if(!Number.isFinite(frequency)||frequency<=0||!Number.isFinite(frequency**2)||uptimeClock<0n||uptimeClock>0xffffffffffffffffn)
       throw new RangeError('Invalid MCU clock initialization');
@@ -38,6 +39,7 @@ export class ClockSync {
     this.nominalFrequency=this.#frequency=frequency;this.#origin=this.#lastClock=uptimeClock;
     this.#timeAvg=this.#estimateTime=this.#lastSent=sentTime;this.#predictionVariance=(.001*frequency)**2;
   }
+  get revision():number{return this.#revision;}
   get lastClock():bigint {return this.#lastClock;}
   get active():boolean {return this.#pending<=4;}
   get estimate():ClockEstimate {return {sampleTime:this.#estimateTime,origin:this.#origin,clockOffset:this.#estimateOffset,frequency:this.#frequency};}
@@ -51,7 +53,7 @@ export class ClockSync {
     // Replies advance monotonically modulo 2^32, unlike nearest-clock conversion.
     const clock=this.#lastClock+BigInt.asUintN(32,BigInt(clock32)-this.#lastClock);
     if(clock>0xffffffffffffffffn) throw new RangeError('MCU uptime overflow');
-    this.#lastClock=clock;this.#pending=0;
+    this.#revision++;this.#lastClock=clock;this.#pending=0;
     if(!sentTime) return null; // retransmission: departure timestamp is ambiguous
     this.#lastSent=sentTime;
     // Rebase before floating point regression loses tick resolution.
