@@ -5,7 +5,7 @@ int input_shaper_set_shaper_params(struct stepper_kinematics *,char,int,double *
 static napi_value configure_shapers(napi_env env,napi_callback_info info) {
     size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and shaper parameters");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;
-    if(!h->sk||h->started||h->pending)REJECT("Configure shaping before step generation");
+    if(!h->sk||h->mode==5||h->started||h->pending)REJECT("Configure shaping before step generation");
     napi_typedarray_type type;size_t len,offset;void *data;napi_value backing;
     CHECK(napi_get_typedarray_info(env,args[1],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
     if(type!=napi_float64_array||!owned||len!=63)REJECT("Invalid packed shaper parameters");
@@ -67,6 +67,7 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
         if(end<low)continue;
         double t0=fmax(low,m->print_time)-m->print_time,t1=fmin(high,end)-m->print_time;
         if(t1<t0)continue;
+        if(h->mode==5&&((m->start_v||m->half_accel)&&m->axes_r.x!=1.))REJECT("Extruder requires a dedicated E queue");
         struct coord a=move_get_coord(m,t0),b=move_get_coord(m,t1);
         double speed=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1));
         for(int axis=0;axis<3;axis++)if(h->sk->active_flags&(AF_X<<axis)) {
@@ -83,6 +84,13 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
     if(!at_start||!at_end)REJECT("Incomplete shaper motion coverage");
     double velocity=0,position_bound=0;
     for(int i=0;i<3;i++){velocity+=max_v[i]*h->gain[i];position_bound+=bound[i]*h->gain[i];}
+    if(h->mode==5){
+        // The pressure term is bounded by PA*max_velocity. The derivative of
+        // the normalized triangular kernel has L1 norm 2/half_smooth_time,
+        // also covering changes in pressure-advance eligibility at boundaries.
+        position_bound+=h->pressure_advance*max_v[0];
+        velocity+=2*h->pressure_advance*max_v[0]/pre;
+    }
     double half=h->sk->step_dist*.5;
     if(!isfinite(position_bound)||position_bound+half==position_bound)REJECT("Shaped position exceeds step resolution");
     double estimate=ceil(velocity*(until-start)/h->sk->step_dist)+segments*2.+4.;
@@ -97,4 +105,22 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
     if(until>start&&itersolve_generate_steps(h->sk,h->sc,until)){h->failed=1;REJECT("Native shaped generation failed");}
     h->started=1;h->path_position=position;h->link.generated=until;h->pending+=(size_t)estimate;h->total+=(uint64_t)estimate;
     napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
+}
+
+static napi_value configure_pressure_advance(napi_env env,napi_callback_info info) {
+    size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, advance and smooth time");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||h->started||h->pending)REJECT("Configure pressure advance on an extruder before generation");
+    double advance,smooth;CHECK(napi_get_value_double(env,args[1],&advance));CHECK(napi_get_value_double(env,args[2],&smooth));
+    if(!isfinite(advance)||advance<0||!isfinite(smooth)||smooth<0||smooth>.2)REJECT("Invalid pressure advance settings");
+    if(!advance)smooth=0;
+    if(smooth&&!isfinite(1./((smooth*.5)*(smooth*.5))))REJECT("Pressure smoothing exceeds numeric resolution");
+    // Replace before printing, preserving atomic configuration and freeing all
+    // parameter nodes with the core's dedicated destructor.
+    struct stepper_kinematics *sk=extruder_stepper_alloc();
+    itersolve_set_position(sk,h->path_position,0,0);itersolve_set_trapq(sk,h->queue->q,h->sk->step_dist);
+    sk->last_flush_time=h->sk->last_flush_time;sk->last_move_time=h->sk->last_move_time;
+    extruder_set_pressure_advance(sk,0,advance,smooth);
+    free_solver(h->sk,5);h->sk=sk;h->pressure_advance=advance;h->link.retention=sk->gen_steps_post_active;
+    napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }

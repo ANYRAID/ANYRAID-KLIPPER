@@ -10,14 +10,20 @@
 #include "itersolve.h"
 struct stepper_kinematics *cartesian_stepper_alloc(char);
 struct stepper_kinematics *corexy_stepper_alloc(char);
+struct stepper_kinematics *extruder_stepper_alloc(void);
+void extruder_stepper_free(struct stepper_kinematics *);
+void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,double);
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
 #define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
 struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
-    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3];};
+    struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance;};
+static void free_solver(struct stepper_kinematics *sk,int mode) {
+    if(mode==5)extruder_stepper_free(sk);else free(sk);
+}
 static void detach(napi_env env,struct handle *h) {
-    if(h->sk){free(h->sk);h->sk=NULL;}
+    if(h->sk){free_solver(h->sk,h->mode);h->sk=NULL;}
     if(h->orig_sk){free(h->orig_sk);h->orig_sk=NULL;}
     if(h->queue){
         struct trap_handle *q=h->queue;struct solver_link **link=&q->solvers;
@@ -125,12 +131,12 @@ static napi_value attach_solver(napi_env env,napi_callback_info info) {
     CHECK(napi_get_typedarray_info(env,args[2],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
     if(type!=napi_float64_array||!owned||len!=5)REJECT("Invalid solver settings");
     double *v=data;for(int i=0;i<5;i++)if(!isfinite(v[i]))REJECT("Nonfinite solver setting");
-    if(v[0]<0||v[0]>4||floor(v[0])!=v[0]||v[1]<=2e-8)REJECT("Invalid kinematics or step distance");
-    struct stepper_kinematics *sk=v[0]<3?cartesian_stepper_alloc('x'+(int)v[0]):corexy_stepper_alloc(v[0]==3?'+':'-');
+    if(v[0]<0||v[0]>5||floor(v[0])!=v[0]||v[1]<=2e-8)REJECT("Invalid kinematics or step distance");
+    struct stepper_kinematics *sk=v[0]<3?cartesian_stepper_alloc('x'+(int)v[0]):v[0]<5?corexy_stepper_alloc(v[0]==3?'+':'-'):extruder_stepper_alloc();
     itersolve_set_position(sk,v[2],v[3],v[4]);
-    if(!isfinite(sk->commanded_pos)||sk->commanded_pos+v[1]*.5==sk->commanded_pos||sk->commanded_pos-v[1]*.5==sk->commanded_pos){free(sk);REJECT("Initial actuator position exceeds step resolution");}
-    napi_status status=napi_create_reference(env,args[1],1,&h->queue_ref);if(status!=napi_ok){free(sk);CHECK(status);}
-    h->sk=sk;h->queue=q;h->mode=(int)v[0];h->path_position=sk->commanded_pos;
+    if(!isfinite(sk->commanded_pos)||sk->commanded_pos+v[1]*.5==sk->commanded_pos||sk->commanded_pos-v[1]*.5==sk->commanded_pos){free_solver(sk,(int)v[0]);REJECT("Initial actuator position exceeds step resolution");}
+    napi_status status=napi_create_reference(env,args[1],1,&h->queue_ref);if(status!=napi_ok){free_solver(sk,(int)v[0]);CHECK(status);}
+    h->sk=sk;h->queue=q;h->mode=(int)v[0];h->path_position=sk->commanded_pos;for(int i=0;i<3;i++)h->gain[i]=1.;
     itersolve_set_trapq(sk,q->q,v[1]);sk->last_flush_time=fmax(q->finalized,h->last_time);sk->last_move_time=sk->last_flush_time;
     h->link.generated=sk->last_flush_time;h->link.next=q->solvers;q->solvers=&h->link;
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
@@ -143,19 +149,20 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     if(!isfinite(until)||until<start||until>h->queue->end)REJECT("Generation must advance within queued motion");
     long double clock=((long double)until-h->offset)*h->frequency;
     if(clock<0||clock>9007199254740990.L)REJECT("Generation clock exceeds exact range");
-    if(h->orig_sk)return generate_shaped(env,h,until);
+    if(h->orig_sk||(h->mode==5&&h->sk->gen_steps_pre_active>0))return generate_shaped(env,h,until);
     double position=h->path_position;size_t estimate=0;
     trapq_check_sentinels(h->queue->q);struct move *m;
     list_for_each_entry(m,&h->queue->q->moves,node) {
         if(m->print_time>=until)break;
         double begin=fmax(start,m->print_time),end=fmin(until,m->print_time+m->move_t);
         if(end<=begin)continue;
+        if(h->mode==5&&((m->start_v||m->half_accel)&&m->axes_r.x!=1.))REJECT("Extruder requires a dedicated E queue");
         double t0=begin-m->print_time,t1=end-m->print_time;
         double p0=h->sk->calc_position_cb(h->sk,m,t0),p1=h->sk->calc_position_cb(h->sk,m,t1);
         if(!isfinite(p0)||!isfinite(p1)||fabs(p0-position)>h->sk->step_dist*.500001)REJECT("Discontinuous actuator path");
         double half_step=h->sk->step_dist*.5;
         if(p0+half_step==p0||p0-half_step==p0||p1+half_step==p1||p1-half_step==p1)REJECT("Actuator position exceeds step resolution");
-        double ratio=h->mode<3?fabs(m->axes_r.axis[h->mode]):fabs(m->axes_r.x)+fabs(m->axes_r.y);
+        double ratio=h->mode==5?1.:h->mode<3?fabs(m->axes_r.axis[h->mode]):fabs(m->axes_r.x)+fabs(m->axes_r.y);
         double velocity=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1))*ratio;
         double steps=ceil(velocity*(end-begin)/h->sk->step_dist)+2.;
         if(!isfinite(steps)||steps>200000||steps+estimate+h->pending>200000)REJECT("Generation step budget exceeded; use a smaller interval or flush");
@@ -171,8 +178,9 @@ static napi_value init(napi_env env,napi_value exports) {
     napi_property_descriptor methods[]={
       {"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"append",NULL,append,NULL,NULL,NULL,napi_default,NULL},
       {"attachSolver",NULL,attach_solver,NULL,NULL,NULL,napi_default,NULL},{"generate",NULL,generate_steps,NULL,NULL,NULL,napi_default,NULL},
+      {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,8,methods));return exports;
+    CHECK(napi_define_properties(env,exports,9,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
