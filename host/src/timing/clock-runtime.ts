@@ -28,7 +28,7 @@ export class ClockRuntime {
   this.#stopPromise=Promise.resolve().then(()=>this.#transport.stop(cause)).catch(error=>{this.#stopError=error;this.#state='failed';this.#fault??=error;throw new AggregateError([cause,error],'Clock shutdown failed');});
   this.#sync?.invalidate();this.#cancel?.();this.#cancel=undefined;this.#abort.abort(cause);return this.#stopPromise;
  }
- stop():Promise<void>{return this.#end(new Error('Clock sampling stopped'),false);}
+ stop(cause:unknown=new Error('Clock sampling stopped')):Promise<void>{return this.#end(cause,false);}
  #fail(error:unknown):void{void this.#end(error,true).catch(()=>{});}
  assertActive():void{
   if(this.#state!=='active')throw new Error('Clock runtime is not active');

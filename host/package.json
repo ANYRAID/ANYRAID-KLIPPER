@@ -62,7 +62,9 @@
     "bench:stepper-config": "node bench/stepper-config.ts",
     "bench:stepper-position": "node bench/stepper-position.ts",
     "bench:position-barrier": "node bench/position-barrier.ts",
-    "bench:uart": "node bench/uart.ts"
+    "bench:uart": "node bench/uart.ts",
+    "bench:firmware-fault": "node bench/firmware-fault.ts",
+    "bench:firmware-fault-motion": "node bench/firmware-fault-motion.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

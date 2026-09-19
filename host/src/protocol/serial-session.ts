@@ -1,3 +1,4 @@
+import {firmwareFault} from './firmware-fault.ts';
 import {configureMCU,type MCUConfigPlan,type ConfiguredMCU} from './mcu-config.ts';
 import type {ScheduledPacket} from '../motion/move-queue.ts';
 import type {ScheduledTransport,MCUQueueConfig} from '../motion/move-queue-sink.ts';
@@ -135,6 +136,7 @@ export class SerialSession {
    const event=this.#queue.pull();if(event===undefined)break;count++;if(event===null)throw new Error('Serial receive thread exited');
    if(event.notifyId){const ack=this.#pending.get(event.notifyId);if(!ack)throw new Error('Unknown serial acknowledgement');if(serialClock.now()>=ack.deadline)throw new Error('Serial acknowledgement deadline exceeded');this.#pending.delete(event.notifyId);ack.cleanup();ack.resolve();for(const wake of this.#space)wake();this.#space.clear();}
    else for(const message of this.#dictionary.parseFrame(event.data)){
+    const fault=firmwareFault(message,event.receiveTime,this.#state==='ready'?this.#clock?.sync:undefined);if(fault)throw fault;
     const response={message,sentTime:event.sentTime,receiveTime:event.receiveTime};
     if(!this.#queries.receive(response))this.#options.onMessage?.(response);
     if(this.#stopPromise)return;
@@ -150,7 +152,7 @@ export class SerialSession {
   clearImmediate(this.#continuation);this.#continuation=undefined;clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;
   for(const p of this.#pending.values()){p.cleanup();p.reject(cause);}this.#pending.clear();for(const wake of this.#space)wake();this.#space.clear();
   try{this.#queue.close();}catch(error){cleanupError=error;}
-  void this.#clock?.stop().catch(()=>{});void this.#queries.stop(cause).catch(()=>{});
+  void this.#queries.stop(cause).catch(()=>{});void this.#clock?.stop(cause).catch(()=>{});
   return this.#stopPromise;
  }
 }
