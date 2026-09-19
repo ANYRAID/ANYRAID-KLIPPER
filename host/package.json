@@ -11,7 +11,9 @@
     "bench": "node bench/math.ts",
     "bench:spectrum": "node bench/spectrum.ts",
     "bench:protocol": "node bench/protocol.ts",
-    "test:protocol-native": "node bench/protocol-native.ts"
+    "test:protocol-native": "node bench/protocol-native.ts",
+    "bench:runtime": "node bench/runtime.ts",
+    "bench:rpc-oracle": "node bench/rpc-oracle.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
