@@ -60,7 +60,8 @@
     "bench:mcu-config": "node bench/mcu-config.ts",
     "bench:pins": "node bench/pins.ts",
     "bench:stepper-config": "node bench/stepper-config.ts",
-    "bench:stepper-position": "node bench/stepper-position.ts"
+    "bench:stepper-position": "node bench/stepper-position.ts",
+    "bench:position-barrier": "node bench/position-barrier.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

@@ -18,7 +18,7 @@ void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,dou
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
 #define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
-struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock,flushed_clock;int failed;
+struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock,flushed_clock,position_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
     struct solver_link link;double path_position;int mode,started,position_initialized;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;
     double pa_times[128],pa_values[128],pa_last_time;size_t pa_count;};
@@ -181,6 +181,22 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     if(!isfinite(until)||until<start||until>h->queue->end)REJECT("Generation must advance within queued motion");
     long double clock=((long double)until-h->offset)*h->frequency;
     if(clock<0||clock>9007199254740990.L)REJECT("Generation clock exceeds exact range");
+    if(h->position_initialized){
+        double observed=h->offset+(double)h->position_clock/h->frequency;
+        double boundary=fmin(until,observed);
+        if(start<boundary){
+            trapq_check_sentinels(h->queue->q);struct move *move;
+            int active=h->sk->active_flags;
+            list_for_each_entry(move,&h->queue->q->moves,node){
+                double begin=move->print_time-h->sk->gen_steps_pre_active;
+                if(begin>=boundary)break;
+                double end=move->print_time+move->move_t+h->sk->gen_steps_post_active;
+                if(end<=start||!(move->start_v||move->half_accel))continue;
+                if((active&AF_X&&move->axes_r.x!=0.)||(active&AF_Y&&move->axes_r.y!=0.)||(active&AF_Z&&move->axes_r.z!=0.))
+                    REJECT("Motion precedes observed position history");
+            }
+        }
+    }
     if(h->orig_sk||(h->mode==5&&h->sk->gen_steps_pre_active>0))return generate_shaped(env,h,until);
     double position=h->path_position;size_t estimate=0;
     trapq_check_sentinels(h->queue->q);struct move *m;
@@ -226,7 +242,7 @@ static napi_value initialize_position(napi_env env,napi_callback_info info){
  CHECK(napi_get_value_bigint_uint64(env,args[1],&clock,&exact_clock));CHECK(napi_get_value_bigint_int64(env,args[2],&position,&exact_position));
  if(!exact_clock||clock>9007199254740991ULL||clock<h->flushed_clock||!exact_position||position>4503599627370495LL||position< -4503599627370495LL)REJECT("Invalid initial position or history clock");
  if(h->position_initialized||h->started||h->total||h->pending||!list_empty(&h->messages))REJECT("Position initialization requires an unused compressor");
- h->failed=1;if(stepcompress_set_last_position(h->sc,clock,position))REJECT("Native position initialization failed");h->position_initialized=1;
+ h->failed=1;if(stepcompress_set_last_position(h->sc,clock,position))REJECT("Native position initialization failed");h->position_initialized=1;h->position_clock=clock;h->flushed_clock=clock;
  napi_value result;CHECK(napi_get_undefined(env,&result));h->failed=0;return result;
 }
 static napi_value init(napi_env env,napi_value exports) {
