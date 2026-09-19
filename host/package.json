@@ -48,7 +48,8 @@
     "bench:delta-shaper": "node bench/delta-shaper.ts",
     "bench:pressure-updates": "node bench/pressure-updates.ts",
     "bench:motion-coordinator": "node bench/motion-coordinator.ts",
-    "bench:move-queue": "node bench/move-queue.ts"
+    "bench:move-queue": "node bench/move-queue.ts",
+    "bench:partial-flush": "node bench/partial-flush.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

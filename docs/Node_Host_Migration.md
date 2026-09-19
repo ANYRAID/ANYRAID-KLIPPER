@@ -1146,3 +1146,44 @@ Node 26.9.0 中位 4.496 ms / p95 11.682 ms，Python 3.12.13 + CFFI 中位
 类型检查与全部 194 项测试通过；ASan/UBSan 各 52 项原生/集成测试通过。
 真实串口/CAN、MCU 时钟校准更新、错开的生成/压缩游标、设备 watchdog、
 完整 Moonraker 和 Python 运行入口替代仍待完成。
+
+### 分离生成和压缩提交边界（2026-09-20）
+
+`StepCompressor.flushThrough(printTime)` 使用原内核的部分 flush，保留
+尚未到达压缩边界的可回滚候选步进。时钟换算沿用原 `clock_from_time`
+的 double 加 0.5 后截断规则，并拒绝回退、非有限时刻和超过已生成运动
+的提交。`flush()` 保留显式全部排空语义。压缩过程可能合并跨越边界的
+步进，方向切换/容量自动压缩也可能提前产生消息，因此返回包仍必须经
+MCU move-slot 调度器按 reqClock 控制，不能直接立即发送。
+
+`MotionCoordinator.advanceWindow(generationUntil, flushUntil, historyTime)`
+要求生成至少领先提交 1 ms，保留原 step-direction-step 过滤所需窗口。
+批次 from/until 现在表示提交边界，generatedUntil 单独记录生成进度。
+支持只推进生成而暂不提交，也支持不重新生成就追上排空；共享运动历史
+仍按生成后的卷积保留窗口清理。历史删除时刻不得晚于提交边界。
+普通 advance 为显式排空入口，应用应仅在已协调的边界使用，不能在连续
+运动中以它替代 advanceWindow。
+
+新增原 C `stepcompress_pending_steps()` 只读取尚未压缩的队列和候选
+步进数量。部分 flush 后用它更新资源统计，不能像全部 flush 那样把
+pending 直接置零。输出转换失败后禁止重试该压缩器，避免部分读出后的
+重复提交。压缩历史交接给调用方后释放；返回 position 是已压缩历史的
+终点，可能超过本次提交边界，不表示当前物理位置。
+
+18 万个连续步进的资源回归触发原 C 中 `46342 * 46341` 的有符号乘法
+溢出。四处三角数计算改用 uint32_t 中间乘积再除二；单包 count 上限
+65535，乘积可放入 uint32_t，除二后的结果可放入 int32_t。测试验证
+总步数及每条历史的首末时钟整数关系；ASan/UBSan 均不再报该溢出。
+
+`npm run bench:partial-flush` 固定从提交 `20a22102` 读取修改前的 C
+压缩器作 Python/CFFI 对照。4 组夹具覆盖分批追加/部分 flush、快速反向、
+32 位回绕和高时钟；每批 payload、调度时钟、历史和位置精确一致。
+2 万步、每 200 步一次部分 flush，3 次预热、11 次采样：Node 26.9.0
+中位 1.736 ms / p95 2.223 ms，Python 3.12.13 + CFFI 中位 12.054 ms /
+p95 12.300 ms，约快 6.95 倍。两边包含输出序列化；不是打印速度倍数。
+另修正旧 step-compressor 基准的 Python 列表反复拼接，使用线性展开；
+复测全部 flush 中位 1.115 / 9.887 ms（Node / Python），约快 8.87 倍。
+
+类型检查、全部 199 项测试与 ASan/UBSan 各 57 项检查通过。滚动生成、
+部分压缩、多 MCU 调度的内存接收器链路已贯通；目标板持续负载尾延迟、
+真实串口/CAN、时钟动态校准和完整运行入口等门禁仍未完成。

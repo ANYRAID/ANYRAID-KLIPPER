@@ -1,4 +1,4 @@
-// Node-API bridge to the unchanged GPLv3 step compression core.
+// Node-API bridge to the GPLv3 step compression core.
 #include <node_api.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -18,7 +18,7 @@ void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,dou
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
 #define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
 static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
-struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock;int failed;
+struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock,flushed_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
     struct solver_link link;double path_position;int mode,started;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;
     double pa_times[128],pa_values[128],pa_last_time;size_t pa_count;};
@@ -61,7 +61,7 @@ static napi_value create(napi_env env,napi_callback_info info) {
     if(!lossless||clock>9007199254740991ULL)REJECT("Clock exceeds exact time-conversion range");
     double initial=v[1]+clock/v[0];if(!isfinite(initial))REJECT("Initial time overflow");
     struct handle *h=calloc(1,sizeof(*h));if(!h)REJECT("Allocation failed");list_init(&h->messages);
-    h->sc=stepcompress_alloc(&h->messages);h->frequency=v[0];h->offset=v[1];h->last_time=initial;h->last_clock=clock;
+    h->sc=stepcompress_alloc(&h->messages);h->frequency=v[0];h->offset=v[1];h->last_time=initial;h->last_clock=clock;h->flushed_clock=clock;
     stepcompress_fill(h->sc,(uint32_t)v[2],(uint32_t)v[3],(int32_t)v[4],(int32_t)v[5]);
     stepcompress_set_invert_sdir(h->sc,(uint32_t)v[6]);stepcompress_set_time(h->sc,v[1],v[0]);
     stepcompress_reset(h->sc,clock);
@@ -78,7 +78,7 @@ static napi_value append(napi_env env,napi_callback_info info) {
     CHECK(napi_get_typedarray_info(env,args[1],&type,&len,&data,&backing,&offset));bool owned=false;CHECK(napi_is_arraybuffer(env,backing,&owned));
     if(type!=napi_float64_array||!owned||len%3||len/3+h->pending>200000)REJECT("Invalid or over-capacity step batch");
     if(h->total>INT64_MAX-len/3)REJECT("Position accounting overflow");
-    double *v=data,last=h->last_time;uint64_t last_clock=h->last_clock;
+    double *v=data,last=h->last_time;uint64_t last_clock=h->last_clock>h->flushed_clock?h->last_clock:h->flushed_clock;
     for(size_t i=0;i<len;i+=3) {
         if((v[i]!=0&&v[i]!=1)||!isfinite(v[i+1])||!isfinite(v[i+2]))REJECT("Invalid step tuple");
         double time=v[i+1]+v[i+2];long double clock=((long double)v[i+1]+v[i+2]-h->offset)*h->frequency;
@@ -93,9 +93,17 @@ static napi_value append(napi_env env,napi_callback_info info) {
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 static napi_value flush(napi_env env,napi_callback_info info) {
-    size_t argc=1;napi_value args[1];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=1)REJECT("Expected handle");
+    size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc<1)REJECT("Expected handle and optional flush time");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;
-    if(stepcompress_flush(h->sc,UINT64_MAX)){h->failed=1;REJECT("Native step flush failed");}
+    uint64_t clock=UINT64_MAX,barrier=h->last_clock;
+    if(argc==2){
+        double time;CHECK(napi_get_value_double(env,args[1],&time));double converted=(time-h->offset)*h->frequency+.5;
+        if(!isfinite(time)||!isfinite(converted)||(time-h->offset)*h->frequency<0||converted>9007199254740991.|| (h->sk&&time>h->link.generated))REJECT("Invalid flush time or ungenerated motion");
+        clock=barrier=(uint64_t)converted;if(clock<h->flushed_clock)REJECT("Cannot rewind flush clock");
+    }else if(h->sk){double converted=(h->link.generated-h->offset)*h->frequency+.5;if(converted>=0&&converted<=9007199254740991.)barrier=(uint64_t)converted;}
+    // Once mutation starts, any conversion/allocation failure prohibits replay.
+    h->failed=1;
+    if(stepcompress_flush(h->sc,clock)){h->failed=1;REJECT("Native step flush failed");}
     napi_value result,messages,history,buffer,position;CHECK(napi_create_object(env,&result));CHECK(napi_create_array(env,&messages));
     struct queue_message *qm;uint32_t index=0;
     list_for_each_entry(qm,&h->messages,node) {
@@ -115,7 +123,7 @@ static napi_value flush(napi_env env,napi_callback_info info) {
     free(rows);CHECK(napi_create_typedarray(env,napi_bigint64_array,(size_t)count*6,buffer,0,&history));
     CHECK(napi_create_bigint_int64(env,stepcompress_find_past_position(h->sc,UINT64_MAX),&position));
     CHECK(napi_set_named_property(env,result,"messages",messages));CHECK(napi_set_named_property(env,result,"history",history));CHECK(napi_set_named_property(env,result,"position",position));
-    message_queue_free(&h->messages);stepcompress_history_expire(h->sc,UINT64_MAX);h->pending=0;return result;
+    message_queue_free(&h->messages);stepcompress_history_expire(h->sc,UINT64_MAX);h->pending=stepcompress_pending_steps(h->sc);h->flushed_clock=barrier>h->flushed_clock?barrier:h->flushed_clock;h->failed=0;return result;
 }
 static napi_value close_handle(napi_env env,napi_callback_info info) {
     size_t argc=1;napi_value args[1];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=1)REJECT("Expected handle");

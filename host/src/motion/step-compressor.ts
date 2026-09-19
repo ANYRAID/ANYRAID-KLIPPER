@@ -9,7 +9,7 @@ export interface CompressedSteps {
   position:bigint;
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
-interface Native {schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object):CompressedSteps;close(handle:object):void}
+interface Native {schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
@@ -45,6 +45,9 @@ export class StepCompressor {
   append(steps:Float64Array):void{native.append(this.#handle,steps);}
   /** Commits all pending steps. Returns and releases native packet/history storage.
    * Persist history needed for homing before dropping this result. */
+  /** Flush compression toward printTime, retaining the reversible future step.
+   * Output may include commands beyond the boundary; MCU scheduling must gate them. */
+  flushThrough(printTime:number):CompressedSteps{return native.flush(this.#handle,printTime);}
   flush():CompressedSteps{return native.flush(this.#handle);}
   dispose():void{if(!this.#closed){native.close(this.#handle);this.#closed=true;}}
   [Symbol.dispose]():void{this.dispose();}

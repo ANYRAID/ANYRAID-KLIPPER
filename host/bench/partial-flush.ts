@@ -12,7 +12,7 @@ const fixtures=[0,1,2,3].map(kind=>{
  const rows=[];for(let i=0;i<(kind===0?20000:2000);i++){time+=(kind===1?.0001:.0008)+i%71*.000001;rows.push(Math.floor(i/(kind===1?1:500))%2,time,0);}
  return {initialClock,rows};
 });
-const root=fileURLToPath(new URL('../../',import.meta.url)),dir=mkdtempSync(join(tmpdir(),'anyraid-stepcompress-'));
+const root=fileURLToPath(new URL('../../',import.meta.url)),dir=mkdtempSync(join(tmpdir(),'anyraid-partial-compression-'));
 const python=String.raw`
 import cffi,json,sys,time
 ffi=cffi.FFI();ffi.cdef('''
@@ -24,6 +24,7 @@ struct stepcompress *stepcompress_alloc(struct list_head *);void stepcompress_fr
 void stepcompress_fill(struct stepcompress *,uint32_t,uint32_t,int32_t,int32_t);
 void stepcompress_set_time(struct stepcompress *,double,double);int stepcompress_reset(struct stepcompress *,uint64_t);
 int stepcompress_append(struct stepcompress *,int,double,double);int stepcompress_flush(struct stepcompress *,uint64_t);
+void stepcompress_history_expire(struct stepcompress *,uint64_t);
 int stepcompress_extract_old(struct stepcompress *,struct pull_history_steps *,int,uint64_t,uint64_t);
 int64_t stepcompress_find_past_position(struct stepcompress *,uint64_t);void message_queue_free(struct list_head *);
 ''');lib=ffi.dlopen(sys.argv[1]);fixtures=json.load(open(sys.argv[2]));MAX=2**64-1
@@ -33,15 +34,25 @@ def run(f,capture=True):
  sc=lib.stepcompress_alloc(queue)
  try:
   lib.stepcompress_fill(sc,3,25,5,6);lib.stepcompress_set_time(sc,0,1e6);assert lib.stepcompress_reset(sc,f['initialClock'])==0
-  for row in f['rows']:assert lib.stepcompress_append(sc,int(row[0]),row[1],row[2])==0
+  results=[]
+  def capture():
+   messages=[];node=root.next
+   while node!=root:
+    qm=ffi.cast('struct queue_message *',ffi.cast('char *',node)-ffi.offsetof('struct queue_message','node'))
+    messages.append([bytes(ffi.buffer(qm.msg,qm.len)).hex(),str(qm.min_clock),str(qm.req_clock)]);node=node.next
+   history=ffi.new('struct pull_history_steps[]',len(f['rows'])+1);n=lib.stepcompress_extract_old(sc,history,len(f['rows'])+1,0,MAX)
+   assert n<len(f['rows'])+1
+   rows=[[str(getattr(history[i],k)) for k in ['first_clock','last_clock','start_position','step_count','interval','add']] for i in range(n)]
+   result={'messages':messages,'history':[value for row in rows for value in row],'position':str(lib.stepcompress_find_past_position(sc,MAX))}
+   lib.message_queue_free(queue);lib.stepcompress_history_expire(sc,MAX);return result
+  for i in range(0,len(f['rows']),200):
+   chunk=f['rows'][i:i+200]
+   for row in chunk:assert lib.stepcompress_append(sc,int(row[0]),row[1],row[2])==0
+   until=max(f['initialClock']/1e6,chunk[-1][1]-.002)
+   assert lib.stepcompress_flush(sc,int(until*1e6+.5))==0
+   results.append(capture())
   assert lib.stepcompress_flush(sc,MAX)==0
-  messages=[];node=root.next
-  while node!=root:
-   qm=ffi.cast('struct queue_message *',ffi.cast('char *',node)-ffi.offsetof('struct queue_message','node'))
-   messages.append([bytes(ffi.buffer(qm.msg,qm.len)).hex(),str(qm.min_clock),str(qm.req_clock)]);node=node.next
-  history=ffi.new('struct pull_history_steps[]',len(f['rows'])+1);n=lib.stepcompress_extract_old(sc,history,len(f['rows'])+1,0,MAX)
-  rows=[[str(getattr(history[i],k)) for k in ['first_clock','last_clock','start_position','step_count','interval','add']] for i in range(n)]
-  return {'messages':messages,'history':[value for row in rows for value in row],'position':str(lib.stepcompress_find_past_position(sc,MAX))}
+  results.append(capture());return results
  finally:lib.stepcompress_free(sc);lib.message_queue_free(queue)
 results=[run(f) for f in fixtures]
 for _ in range(3):run(fixtures[0])
@@ -52,10 +63,14 @@ print(json.dumps({'results':results,'times':sorted(times)}))
 `;
 try{
  const lib=join(dir,'stepcompress.so'),input=join(dir,'fixtures.json');writeFileSync(input,JSON.stringify(fixtures));
- const cc=spawnSync(process.env.CC??'cc',['-O2','-shared','-fPIC',...['stepcompress.c','msgblock.c','pyhelper.c'].map(p=>join(root,'klippy/chelper',p)),'-lm','-o',lib],{encoding:'utf8',timeout:30000});assert.equal(cc.status,0,cc.stderr);
+ const baseline=spawnSync('git',['show','20a22102:klippy/chelper/stepcompress.c'],{cwd:root,encoding:'utf8'});assert.equal(baseline.status,0,baseline.stderr);writeFileSync(join(dir,'original-stepcompress.c'),baseline.stdout);
+ const cc=spawnSync(process.env.CC??'cc',['-O2','-shared','-fPIC','-I'+join(root,'klippy/chelper'),...['stepcompress.c','msgblock.c','pyhelper.c'].map(p=>p==='stepcompress.c'?join(dir,'original-stepcompress.c'):join(root,'klippy/chelper',p)),'-lm','-o',lib],{encoding:'utf8',timeout:30000});assert.equal(cc.status,0,cc.stderr);
  const p=spawnSync(process.env.PYTHON??'python3',['-c',python,lib,input],{encoding:'utf8',timeout:60000,maxBuffer:32*1024*1024});assert.equal(p.status,0,p.stderr||String(p.error));const oracle=JSON.parse(p.stdout);
  const arrays=fixtures.map(f=>new Float64Array(f.rows));
- const run=(i:number)=>{using c=new StepCompressor({...settings,initialClock:BigInt(fixtures[i].initialClock)});c.append(arrays[i]);const r=c.flush();return {messages:r.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...r.history].map(String),position:String(r.position)};};
+ const run=(i:number)=>{using c=new StepCompressor({...settings,initialClock:BigInt(fixtures[i].initialClock)});const results=[];
+ const capture=(r:ReturnType<StepCompressor['flush']>)=>({messages:r.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...r.history].map(String),position:String(r.position)});
+ for(let offset=0;offset<arrays[i].length;offset+=600){const rows=arrays[i].subarray(offset,offset+600);c.append(rows);results.push(capture(c.flushThrough(Math.max(fixtures[i].initialClock/1e6,rows[rows.length-2]-.002))));}
+ results.push(capture(c.flush()));return results;};
  fixtures.forEach((_,i)=>assert.deepEqual(run(i),oracle.results[i]));
  for(let i=0;i<3;i++)run(0);const times=[];for(let i=0;i<11;i++){const t=performance.now();run(0);times.push(performance.now()-t);}times.sort((a,b)=>a-b);
  console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,fixtures:fixtures.length,packetAndHistoryExact:true,steps:20000,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5]},null,2));

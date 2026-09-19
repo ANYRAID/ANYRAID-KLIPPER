@@ -136,7 +136,8 @@ compress_bisect_add(struct stepcompress *sc)
                 return (struct step_move){ interval, count, add };
             }
             nextpoint = minmax_point(sc, sc->queue_pos + nextcount - 1);
-            int32_t nextaddfactor = nextcount*(nextcount-1)/2;
+            // The product can exceed INT32_MAX before division by two.
+            int32_t nextaddfactor = (uint32_t)nextcount*(nextcount-1)/2;
             int32_t c = add*nextaddfactor;
             if (nextmininterval*nextcount < nextpoint.minp - c)
                 nextmininterval = idiv_up(nextpoint.minp - c, nextcount);
@@ -148,7 +149,7 @@ compress_bisect_add(struct stepcompress *sc)
         }
 
         // Check if this is the best sequence found so far
-        int32_t count = nextcount - 1, addfactor = count*(count-1)/2;
+        int32_t count = nextcount - 1, addfactor = (uint32_t)count*(count-1)/2;
         int32_t reach = add*addfactor + interval*count;
         if (reach > bestreach
             || (reach == bestreach && interval > bestinterval)) {
@@ -166,7 +167,7 @@ compress_bisect_add(struct stepcompress *sc)
         }
 
         // Check if a greater or lesser add could extend the sequence
-        int32_t nextaddfactor = nextcount*(nextcount-1)/2;
+        int32_t nextaddfactor = (uint32_t)nextcount*(nextcount-1)/2;
         int32_t nextreach = add*nextaddfactor + interval*nextcount;
         if (nextreach < nextpoint.minp) {
             minadd = add + 1;
@@ -347,7 +348,7 @@ stepcompress_set_time(struct stepcompress *sc
 static void
 add_move(struct stepcompress *sc, uint64_t first_clock, struct step_move *move)
 {
-    int32_t addfactor = move->count*(move->count-1)/2;
+    int32_t addfactor = (uint32_t)move->count*(move->count-1)/2;
     uint32_t ticks = move->add*addfactor + move->interval*(move->count-1);
     uint64_t last_clock = first_clock + ticks;
 
@@ -540,6 +541,14 @@ stepcompress_commit(struct stepcompress *sc)
     if (sc->next_step_clock)
         return queue_append(sc);
     return 0;
+}
+
+// Number of uncompressed steps, including the reversible filter candidate.
+uint32_t
+stepcompress_pending_steps(struct stepcompress *sc)
+{
+    return (sc->queue ? sc->queue_next - sc->queue_pos : 0)
+        + (sc->next_step_clock != 0);
 }
 
 // Flush pending steps

@@ -2,7 +2,7 @@ import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
 import type {TrapQueue} from './trap-queue.ts';
 export interface MotionBinding {id:string;queue:TrapQueue;stepper:StepCompressor}
 export interface MotionOutput extends CompressedSteps {id:string}
-export interface MotionBatch {sequence:number;from:number;until:number;outputs:readonly MotionOutput[]}
+export interface MotionBatch {sequence:number;from:number;until:number;generatedUntil?:number;outputs:readonly MotionOutput[]}
 export interface MotionSink {
  /** Preserve each output's packet order, route to its MCU, and retain homing history.
   * Resolve after accepting the entire batch. Rejection may mean partial acceptance. */
@@ -35,27 +35,34 @@ export class MotionCoordinator {
   this.#stopPromise=Promise.resolve().then(()=>this.#sink.stop(cause)).catch(stopError=>{this.#fault=new AggregateError([cause,stopError],'Motion failure and device stop failure');throw this.#fault;});
   return this.#stopPromise;
  }
- async advance(until:number,clearHistoryTime=0):Promise<void>{
+ /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
+ advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
+  if(!Number.isFinite(flushUntil)||generationUntil<flushUntil+.001)return Promise.reject(new RangeError('Generation must lead flush by at least 1 ms'));
+  return this.advance(generationUntil,clearHistoryTime,flushUntil);
+ }
+ /** With no flushUntil, drain through generation time; use at coordinated boundaries. */
+ async advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
   if(this.#failed)throw new Error('Motion coordinator is faulted',{cause:this.#fault});
   if(this.#busy)throw new Error('Motion batch already in progress');
-  if(!Number.isFinite(until)||until<this.#generated||until>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0||clearHistoryTime>until)throw new RangeError('Invalid motion batch times');
-  if(until===this.#generated)return;
+  if(!Number.isFinite(until)||until<this.#generated||until>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0||clearHistoryTime>flushUntil||!Number.isFinite(flushUntil)||flushUntil<this.#committed||flushUntil>until)throw new RangeError('Invalid motion batch times');
+  if(until===this.#generated&&flushUntil===this.#committed)return;
   this.#busy=true;
   try{
-   const from=this.#generated;
+   const from=this.#committed;
    // No packets leave the host until every attached actuator has generated.
-   for(const b of this.#bindings)b.stepper.generate(until);
+   if(until>this.#generated)for(const b of this.#bindings)b.stepper.generate(until);
    this.#generated=until;
+   if(flushUntil===this.#committed)return;
    const outputs:MotionOutput[]=[];let bytes=0;
    for(const b of this.#bindings){
-    const out=b.stepper.flush();bytes+=out.history.byteLength;
+    const out=b.stepper.flushThrough(flushUntil);bytes+=out.history.byteLength;
     for(const p of out.messages)bytes+=p.data.length+32;
     if(bytes>this.#maxBytes)throw new RangeError('Motion output exceeds batch budget');
     outputs.push({...out,id:b.id});
    }
-   await this.#sink.commit({sequence:this.#sequence++,from,until,outputs});
+   await this.#sink.commit({sequence:this.#sequence++,from,until:flushUntil,generatedUntil:until,outputs});
    if(this.#failed)throw this.#fault;
-   this.#committed=until;
+   this.#committed=flushUntil;
    // Shared XYZ queues wait for the largest retained convolution window.
    const cutoffs=new Map<TrapQueue,number|null>();
    for(const b of this.#bindings){const time=b.stepper.scanWindow.safeFinalizeTime,old=cutoffs.get(b.queue);
