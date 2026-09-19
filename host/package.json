@@ -20,7 +20,8 @@
     "bench:motion": "node bench/motion.ts",
     "bench:clock": "node bench/clock-sync.ts",
     "bench:trapq": "node bench/trap-queue.ts",
-    "bench:gcode": "node bench/gcode-move.ts"
+    "bench:gcode": "node bench/gcode-move.ts",
+    "bench:gcode-parser": "node bench/gcode-parser.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
