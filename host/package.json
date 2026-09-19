@@ -54,7 +54,8 @@
     "bench:secondary-sync": "node bench/secondary-sync.ts",
     "bench:clock-runtime": "node bench/clock-runtime.ts",
     "bench:queries": "node bench/queries.ts",
-    "bench:serial-queue": "node bench/serial-queue.ts"
+    "bench:serial-queue": "node bench/serial-queue.ts",
+    "bench:serial-session": "node bench/serial-session.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

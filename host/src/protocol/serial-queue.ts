@@ -20,6 +20,7 @@ export const serialClock:ClockScheduler={now:()=>native.now(),schedule(callback,
 export class NativeSerialQueue {
  #handle:object;#closed=false;#id=0n;
  constructor(fd:number){this.#handle=native.create(fd);}
+ /** Zero leaves the corresponding native setting unchanged. */
  configure(baud:number,receiveWindow:number):void{native.configure(this.#handle,baud,receiveWindow);}
  setClockEstimate(estimate:ReleaseEstimate):void{native.estimate(this.#handle,estimate.frequency,estimate.sampleTime,estimate.clock);}
  send(payload:Uint8Array,minClock=0n,reqClock=0n,commandQueue=0):bigint{const id=this.#id+1n;native.send(this.#handle,payload,minClock,reqClock,id,commandQueue);this.#id=id;return id;}

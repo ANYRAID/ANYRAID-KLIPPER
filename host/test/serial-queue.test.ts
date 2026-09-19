@@ -25,7 +25,7 @@ test('native clock release holds future messages without blocking Node',async()=
 });
 test('native queue validates clocks, payloads and capacity before enqueueing',async()=>{
  const p=await serialPair(),q=new NativeSerialQueue(p.fd);
- try{assert.throws(()=>q.send(new Uint8Array()),/Invalid/);assert.throws(()=>q.send(new Uint8Array(60)),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),-1n),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),0n,1n<<63n),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),0n,0n,128),/Invalid/);assert.throws(()=>q.configure(0,64),/Invalid/);assert.throws(()=>q.setClockEstimate({frequency:1,sampleTime:0,clock:1n<<63n}),/Invalid/);
+ try{assert.throws(()=>q.send(new Uint8Array()),/Invalid/);assert.throws(()=>q.send(new Uint8Array(60)),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),-1n),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),0n,1n<<63n),/Invalid/);assert.throws(()=>q.send(Uint8Array.of(1),0n,0n,128),/Invalid/);assert.throws(()=>q.configure(-1,64),/Invalid/);assert.throws(()=>q.setClockEstimate({frequency:1,sampleTime:0,clock:1n<<63n}),/Invalid/);
  for(let i=0;i<4096;i++)q.send(Uint8Array.of(1),1000000000000n,1000000000000n);assert.throws(()=>q.send(Uint8Array.of(1)),/capacity/);assert.equal(q.pull(),undefined);
  }finally{q.close();q.close();assert.throws(()=>q.send(Uint8Array.of(1)),/closed/);await p.close();}
 });
