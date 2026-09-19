@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include "serialqueue.h"
 #include "pyhelper.h"
+napi_status uart_exports(napi_env,napi_value);
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
 #define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
 static const napi_type_tag tag={0x4179726169645351ULL,0x3236303932303031ULL};
@@ -54,6 +55,6 @@ static napi_value configure(napi_env env,napi_callback_info info){size_t n=3;nap
 static napi_value estimate(napi_env env,napi_callback_info info){size_t n=4;napi_value a[4];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=4)REJECT("Expected clock estimate");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,time;uint64_t clock;if(!number(env,a[1],&freq)||freq<=0||freq>1e9||!number(env,a[2],&time)||time<0||!integer(env,a[3],&clock)||clock>MAX_CLOCK)REJECT("Invalid serial clock estimate");serialqueue_set_clock_est(h->sq,freq,time,clock);return nothing(env);}
 static napi_value now(napi_env env,napi_callback_info info){(void)info;napi_value v;CHECK(napi_create_double(env,get_monotonic(),&v));return v;}
 static napi_value stats(napi_env env,napi_callback_info info){size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;char buf[4096];serialqueue_get_stats(h->sq,buf,sizeof(buf));napi_value v;CHECK(napi_create_string_utf8(env,buf,NAPI_AUTO_LENGTH,&v));return v;}
-static napi_value init(napi_env env,napi_value exports){napi_property_descriptor d[]={
+static napi_value init(napi_env env,napi_value exports){CHECK(uart_exports(env,exports));napi_property_descriptor d[]={
  {"wakeFd",NULL,wake_fd,NULL,NULL,NULL,napi_default,NULL},{"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_queue,NULL,NULL,NULL,napi_default,NULL},{"send",NULL,send_queue,NULL,NULL,NULL,napi_default,NULL},{"pull",NULL,pull,NULL,NULL,NULL,napi_default,NULL},{"configure",NULL,configure,NULL,NULL,NULL,napi_default,NULL},{"estimate",NULL,estimate,NULL,NULL,NULL,napi_default,NULL},{"now",NULL,now,NULL,NULL,NULL,napi_default,NULL},{"stats",NULL,stats,NULL,NULL,NULL,napi_default,NULL}};CHECK(napi_define_properties(env,exports,sizeof(d)/sizeof(d[0]),d));return exports;}
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

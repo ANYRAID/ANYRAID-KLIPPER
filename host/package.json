@@ -61,7 +61,8 @@
     "bench:pins": "node bench/pins.ts",
     "bench:stepper-config": "node bench/stepper-config.ts",
     "bench:stepper-position": "node bench/stepper-position.ts",
-    "bench:position-barrier": "node bench/position-barrier.ts"
+    "bench:position-barrier": "node bench/position-barrier.ts",
+    "bench:uart": "node bench/uart.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
