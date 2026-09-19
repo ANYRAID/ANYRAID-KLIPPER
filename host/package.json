@@ -6,9 +6,9 @@
     "node": ">=26 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
-    "pretest": "node scripts/build-native.ts && node scripts/build-stepcompress.ts",
+    "pretest": "npm run build:native",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.ts",
     "bench": "node bench/math.ts",
@@ -40,7 +40,8 @@
     "bench:shaper": "node bench/shaper.ts",
     "bench:shaper-fit": "node bench/shaper-fit.ts",
     "build:stepcompress": "node scripts/build-stepcompress.ts",
-    "bench:step-compressor": "node bench/step-compressor.ts"
+    "bench:step-compressor": "node bench/step-compressor.ts",
+    "bench:step-solver": "node bench/step-solver.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

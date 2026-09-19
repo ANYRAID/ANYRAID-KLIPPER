@@ -64,3 +64,8 @@ test('repeated native queue creation, reset, history cleanup and disposal',()=>{
     queue.dispose();queue.dispose();
   }
 });
+test('motion phases cannot disappear below absolute print-time precision',()=>{
+ using queue=new TrapQueue();
+ assert.throws(()=>queue.appendRaw(new Float64Array([1e14,.0001,0,0,0,0,0,1,0,0,0,1,10000])),/time resolution/);
+ assert.equal(queue.extract(10,0,1e14+1).length,0);
+});
