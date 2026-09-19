@@ -1,0 +1,1368 @@
+{
+  "source": "https://github.com/Arksine/moonraker",
+  "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "apiVersion": [
+    1,
+    5,
+    0
+  ],
+  "scopeNote": "Source registration inventory, not an expanded endpoint coverage claim. Dynamic expressions, loops, forwarded Klippy methods, transports, response schemas, events and optional integrations require independent contract tests. Every item remains unimplemented.",
+  "components": [
+    {
+      "name": "analysis",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "announcements",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "application",
+      "tier": "server",
+      "status": "not-implemented"
+    },
+    {
+      "name": "authorization",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "button",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "data_store",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "database",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "dbus_manager",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "extensions",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "file_manager",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "gpio",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "history",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "http_client",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "job_queue",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "job_state",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "klippy_apis",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "klippy_connection",
+      "tier": "server",
+      "status": "not-implemented"
+    },
+    {
+      "name": "ldap",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "machine",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "mqtt",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "notifier",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "octoprint_compat",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "paneldue",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "power",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "proc_stats",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "secrets",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "sensor",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "shell_command",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "simplyprint",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "spoolman",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "td1",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "template",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "update_manager",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "webcam",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "websockets",
+      "tier": "server",
+      "status": "not-implemented"
+    },
+    {
+      "name": "wled",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "zeroconf",
+      "tier": "optional",
+      "status": "not-implemented"
+    }
+  ],
+  "registrations": [
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 163,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 167,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/estimate\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 171,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/process\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 175,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/dump_config\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 64,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 68,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/dismiss\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 72,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/update\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 76,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/feed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 80,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/feeds\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 84,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:dismissed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 87,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:entries_updated\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 90,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:dismiss_wake\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 260,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"klippy.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 262,
+      "method": "register_upload_handler",
+      "targetExpression": "\"/server/files/upload\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 448,
+      "method": "register_endpoint",
+      "targetExpression": "endpoint",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 258,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"moonraker.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 236,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/login\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 241,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/logout\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 245,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/refresh_jwt\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 250,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/user\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 254,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/users/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 258,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/user/password\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 262,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/api_key\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 267,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/oneshot_token\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 271,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 277,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_created\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 278,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_deleted\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 281,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_logged_out\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/button.py",
+      "line": 37,
+      "method": "register_notification",
+      "targetExpression": "\"button:button_event\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/data_store.py",
+      "line": 62,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/temperature_store\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/data_store.py",
+      "line": 66,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/gcode_store\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 244,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 247,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/item\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 250,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/backup\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 254,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/restore\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 257,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/compact\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 37,
+      "method": "register_endpoint",
+      "targetExpression": "\"/connection/register_remote_method\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 42,
+      "method": "register_endpoint",
+      "targetExpression": "\"/connection/send_event\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 46,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/extensions/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 49,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/extensions/request\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 110,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 113,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/metadata\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 116,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/metascan\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 119,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/thumbnails\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 122,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/roots\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 125,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/directory\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 129,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/move\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 132,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/copy\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 135,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/zip\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 138,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/delete_file\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 143,
+      "method": "register_notification",
+      "targetExpression": "\"file_manager:filelist_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 209,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"klippy.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 312,
+      "method": "register_static_file_handler",
+      "targetExpression": "root",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 212,
+      "method": "register_notification",
+      "targetExpression": "\"history:history_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 214,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/job\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 218,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 221,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/totals\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 224,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/reset_totals\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 55,
+      "method": "register_notification",
+      "targetExpression": "\"job_queue:job_queue_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 56,
+      "method": "register_remote_method",
+      "targetExpression": "\"pause_job_queue\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 57,
+      "method": "register_remote_method",
+      "targetExpression": "\"start_job_queue\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 59,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/job\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 63,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/pause\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 66,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/start\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 69,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 72,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/jump\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 56,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/pause\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 59,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/resume\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 62,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/cancel\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 65,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/start\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 68,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 71,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/firmware_restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 102,
+      "method": "register_remote_method",
+      "targetExpression": "'process_gcode_response'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 105,
+      "method": "register_remote_method",
+      "targetExpression": "'process_status_update'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 394,
+      "method": "register_endpoint",
+      "targetExpression": "ep",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 127,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/reboot\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 130,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/shutdown\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 133,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 136,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/stop\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 139,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/start\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 142,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/system_info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 145,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/sudo/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 148,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/sudo/password\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 151,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/serial\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 154,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/usb\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 157,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/canbus\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 160,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/video\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 164,
+      "method": "register_notification",
+      "targetExpression": "\"machine:service_state_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 165,
+      "method": "register_notification",
+      "targetExpression": "\"machine:sudo_alert\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 168,
+      "method": "register_remote_method",
+      "targetExpression": "\"shutdown_machine\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 170,
+      "method": "register_remote_method",
+      "targetExpression": "\"reboot_machine\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 394,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/mqtt/publish\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 398,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/mqtt/subscribe\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 443,
+      "method": "register_remote_method",
+      "targetExpression": "\"publish_mqtt_topic\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/notifier.py",
+      "line": 60,
+      "method": "register_remote_method",
+      "targetExpression": "\"notify\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/notifier.py",
+      "line": 79,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/notifiers/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 69,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/version'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 73,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/server'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 79,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/login'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 83,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/currentuser'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 87,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/settings'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 97,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/job'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 104,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printer'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 107,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printer/command'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 114,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printerprofiles'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 120,
+      "method": "register_upload_handler",
+      "targetExpression": "\"/api/files/local\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 122,
+      "method": "register_endpoint",
+      "targetExpression": "\"/api/files/moonraker/(?P<relative_path>.+)\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/paneldue.py",
+      "line": 111,
+      "method": "register_remote_method",
+      "targetExpression": "\"paneldue_beep\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 81,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/devices\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 84,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 88,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/on\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 92,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/off\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 96,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/device\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 100,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_device_power\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 106,
+      "method": "register_notification",
+      "targetExpression": "\"power:power_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 88,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/proc_stats\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 94,
+      "method": "register_notification",
+      "targetExpression": "\"proc_stats:proc_stat_update\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 79,
+      "method": "register_notification",
+      "targetExpression": "\"proc_stats:cpu_throttled\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 231,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 236,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 241,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/measurements\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 248,
+      "method": "register_notification",
+      "targetExpression": "SENSOR_EVENT_NAME",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 72,
+      "method": "register_remote_method",
+      "targetExpression": "\"spoolman_set_active_spool\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 90,
+      "method": "register_notification",
+      "targetExpression": "\"spoolman:active_spool_set\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 91,
+      "method": "register_notification",
+      "targetExpression": "\"spoolman:spoolman_status_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 99,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/spool_id\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 104,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/proxy\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 109,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/td1.py",
+      "line": 196,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/td1/data\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/td1.py",
+      "line": 199,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/td1/reboot\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 151,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/moonraker\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 154,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/klipper\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 157,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/system\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 160,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/client\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 163,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/full\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 166,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/upgrade\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 169,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 172,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/refresh\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 175,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/recover\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 178,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/rollback\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 181,
+      "method": "register_notification",
+      "targetExpression": "\"update_manager:update_response\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 182,
+      "method": "register_notification",
+      "targetExpression": "\"update_manager:update_refreshed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 53,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 56,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/item\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 60,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/test\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 63,
+      "method": "register_notification",
+      "targetExpression": "\"webcam:webcams_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/websockets.py",
+      "line": 57,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/websocket/id\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/websockets.py",
+      "line": 61,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/connection/identify\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 424,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_wled_state\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 425,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_wled\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 429,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/strips\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 432,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 435,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/on\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 438,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/off\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 441,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/toggle\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 444,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/strip\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/zeroconf.py",
+      "line": 211,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/zeroconf/ssdp\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/loghelper.py",
+      "line": 166,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/logs/rollover\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 118,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 121,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/config\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 124,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 127,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_ready\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 128,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_shutdown\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 129,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_disconnect\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 131,
+      "method": "register_notification",
+      "targetExpression": "\"server:gcode_response\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 386,
+      "method": "register_notification",
+      "targetExpression": "event_name",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 431,
+      "method": "register_remote_method",
+      "targetExpression": "method_name",
+      "status": "not-implemented"
+    }
+  ]
+}
