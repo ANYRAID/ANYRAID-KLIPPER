@@ -23,7 +23,7 @@
 | MCU 链路 | 二进制协议、时钟同步、串口/CAN、重传、C 内核绑定 | 编解码、字典、64 位扩展与主时钟估计核心已实现；多 MCU 校准与实际传输未迁移 |
 | 运行时 | 配置、事件循环、G-code、状态、生命周期、异常停机 | G-code 分块输入、解析、坐标和串行调度基础已实现；设备 I/O、完整命令注册、配置、事件与生命周期待迁移 |
 | 扩展 | 所有传感器、温控、探针、调平、校准和外围设备 | PID/开关控制、PWM 授权和 verify_heater 状态计算已实现；传感器、保护调度与硬件接线待迁移 |
-| 工具链 | 构建、烧录、测试、图表、数据分析、文档站及第三方 Python | 包版本及 Robin/Chitu 封装工具已切换并删除旧 Python 脚本；其余待迁移 |
+| 工具链 | 构建、烧录、测试、图表、数据分析、文档站及第三方 Python | 包版本、Robin/Chitu 封装及 buildcommands 生成入口已切换并删除旧 Python 脚本；Kconfig、烧录及其余工具待迁移 |
 | Moonraker | 以下完整功能矩阵及客户端兼容测试 | 上游已固定；JSON-RPC 调度基础已实现，业务组件与网络服务未实现 |
 | 产品操作 | 以下宏替代设计及故障注入测试 | 打印状态机初版与模拟适配器测试；真实设备、持久化、超时与恢复待实现 |
 
@@ -717,3 +717,44 @@ Python。生成器目前是可验证组件，完整入口切换仍须逐字节�
 
 版本/工具信息、Kconfig 与 identify 压缩数据仍待迁移；Makefile 此阶段
 仍调用 buildcommands.py，原文件尚未删除。完整入口切换仍须进一步对照。
+
+### buildcommands 完整入口切换（2026-09-20）
+
+Makefile 已使用 `NODE`（默认 `node`）调用 `scripts/buildcommands.mts`，
+删除旧 `scripts/buildcommands.py`。新增版本/工具探测、Kconfig 快照读取、
+完整 handler 编排和 identify 压缩生成；改动生成模块会触发 make 重建。
+入口仅依赖 Node.js 26 内置模块，不需要 npm 安装。固件构建 CI 同步安装
+Node 26，主机 CI 增加 Linux MCU 编译/链接检查。Kconfig 的配置解析、
+menuconfig、savedefconfig、其他工具和实际打印主机仍有 Python 依赖。
+
+版本保留 Git 优先、源包 `.version` 回退、dirty/工具不完整时附时间与
+主机名的行为；工具参数按 POSIX 引号解析后直接启动进程，不经 shell。
+JSON 保留 Python 的 ASCII 转义、Unicode 标量键排序与整数精确性。
+先完成生成和临时文件写入，再发布字典和 C 文件；输入错误不会覆盖既有
+产物。两个文件分别原子替换，不宣称跨文件事务；发布失败时 make 失败。
+
+`npm run bench:buildcommands -- REQUESTS DEFCONFIG` 可加入实际构建请求。
+对照脚本从基线 `ce7002be` 提取旧 Python，仅供迁移验证，依赖该 Git 历史。
+基础夹具、607 条组合声明及 Linux MCU 实际请求的 JSON 和非压缩 C 表
+精确一致（生成文件头中的脚本路径按迁移调整）。Node 与 Python 压缩器
+输出并非逐字节相同，双方解压内容精确一致；固定版本信息下压缩大小：
+基础 197/197 字节、组合 2202/2197 字节、Linux 实际请求 4150/4127 字节
+（Node/Python）。Linux 夹具增加 23 字节，尚未验收其他 MCU 的 flash 余量。
+
+同机 Node 26.9.0 / Python 3.12.13、3 次预热、11 次测量，607 条请求：
+
+| 范围 | Node 中位 / p95 ms | Python 中位 / p95 ms |
+| --- | --- | --- |
+| 解析、全部表及 identify 生成 | 4.746 / 5.890 | 4.638 / 4.785 |
+| CLI 启动、六个工具探测、Git 查询、文件输出 | 113.056 / 131.566 | 54.191 / 58.958 |
+
+CLI 测量交替执行新旧入口，协议字典除随时间变化的版本字段外全部相同。
+约 59 ms 的一次性构建回退已记录；该入口不在打印热路径，不把此结果
+用作运动精度或打印速度的验收。类型检查和全部 128 项测试通过；前两阶段
+元数据与命令表对照在删除旧文件后仍通过。
+
+本机 GCC 12.3 使用 `test/configs/linuxprocess.config` 完成真实 Linux MCU
+编译、链接及 Makefile 的 check-gcc 检查。使用临时输出目录，并分两次
+调用 `make olddefconfig`、`make all`；配置更新与构建不合并为一次 make。
+未运行或刷写生成的 MCU 程序。ARM/AVR 交叉编译器本机不可用，因此全部
+MCU 构建矩阵、固件刷写和硬件打印验证仍未执行；远程 CI 尚未运行。

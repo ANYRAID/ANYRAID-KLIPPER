@@ -1,3 +1,4 @@
+import {originalBuildCommands} from './build-reference.ts';
 import {spawnSync} from 'node:child_process';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
@@ -38,7 +39,7 @@ const dir=mkdtempSync(join(tmpdir(),'anyraid-build-metadata-'));let oracle:{resu
 function run(lines:string[]){const b=new BuildMetadata();for(const line of lines)if(!b.accept(line))throw new Error('Unhandled metadata');return {code:b.generate(),dictionary:b.dictionary()};}
 try {
  const input=join(dir,'input.json');writeFileSync(input,JSON.stringify(fixtures));
- const p=spawnSync(process.env.PYTHON??'python3',['-c',python,fileURLToPath(new URL('../../scripts/buildcommands.py',import.meta.url)),fileURLToPath(new URL('../../klippy',import.meta.url)),input],{encoding:'utf8',timeout:60000,maxBuffer:16*1024*1024});if(p.status!==0)throw new Error(p.stderr||String(p.error));oracle=JSON.parse(p.stdout);
+ const p=spawnSync(process.env.PYTHON??'python3',['-c',python,originalBuildCommands(dir),fileURLToPath(new URL('../../klippy',import.meta.url)),input],{encoding:'utf8',timeout:60000,maxBuffer:16*1024*1024});if(p.status!==0)throw new Error(p.stderr||String(p.error));oracle=JSON.parse(p.stdout);
  fixtures.forEach((f,i)=>assert.deepEqual(run(f),oracle.results[i]));
  const source=join(dir,'generated.c');writeFileSync(source,'#include <stdint.h>\n#undef __always_inline\n#define __always_inline __attribute__((always_inline))\n#define PROGMEM\n#define __visible\n#define __section(x)\n#define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))\n#define IP_OUT_HIGH 1\nstruct initial_pin_s {int pin; int flags;};\nvoid irq_poll(void);\n'+run(lines).code);
  const cc=spawnSync(process.env.CC??'cc',['-std=gnu11','-Werror','-fsyntax-only',source],{encoding:'utf8',timeout:30000});assert.equal(cc.status,0,cc.stderr);

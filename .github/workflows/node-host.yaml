@@ -18,3 +18,10 @@ jobs:
       - run: npm test
       - run: npm run test:protocol-native
       - run: npm run test:native-sanitized
+      - name: Build Linux MCU with Node command generator
+        working-directory: .
+        run: |
+          build_dir=$(mktemp -d)
+          cp test/configs/linuxprocess.config "$build_dir/config"
+          make KCONFIG_CONFIG="$build_dir/config" OUT="$build_dir/out/" olddefconfig
+          make KCONFIG_CONFIG="$build_dir/config" OUT="$build_dir/out/" all

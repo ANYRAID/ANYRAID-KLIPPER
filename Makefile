@@ -20,6 +20,7 @@ OBJDUMP=$(CROSS_PREFIX)objdump
 STRIP=$(CROSS_PREFIX)strip
 CPP=cpp
 PYTHON=python3
+NODE=node
 
 # Source files
 src-y =
@@ -78,11 +79,11 @@ $(OUT)klipper.elf: $(OBJS_klipper.elf)
 $(OUT)%.o.ctr: $(OUT)%.o
 	$(Q)$(OBJCOPY) -j '.compile_time_request' -O binary $^ $@
 
-$(OUT)compile_time_request.o: $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) ./scripts/buildcommands.py
+$(OUT)compile_time_request.o: $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) ./scripts/buildcommands.mts $(wildcard host/src/build/*.ts)
 	@echo "  Building $@"
 	$(Q)cat $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) | tr -s '\0' '\n' > $(OUT)compile_time_request.txt
 	$(Q)$(PYTHON) lib/kconfiglib/savedefconfig.py --kconfig src/Kconfig --out $(OUT)defconfig
-	$(Q)$(PYTHON) ./scripts/buildcommands.py -d $(OUT)klipper.dict -k $(OUT)defconfig -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
+	$(Q)$(NODE) ./scripts/buildcommands.mts -d $(OUT)klipper.dict -k $(OUT)defconfig -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
 	$(Q)$(CC) $(CFLAGS) -c $(OUT)compile_time_request.c -o $@
 
 ################ Auto generation of "board/" include file link

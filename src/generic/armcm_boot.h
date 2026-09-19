@@ -16,7 +16,7 @@ void armcm_main(void);
         NVIC_EnableIRQ((NUM));                          \
     } while (0)
 
-// Vectors created by scripts/buildcommands.py from DECL_ARMCM_IRQ commands
+// Vectors created by scripts/buildcommands.mts from DECL_ARMCM_IRQ commands
 extern const void * const VectorTable[];
 
 #endif // armcm_boot.h

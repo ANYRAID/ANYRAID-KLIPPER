@@ -86,6 +86,11 @@ at https://github.com/dw-0/kiauh
 To compile the micro-controller code, start by running these commands
 on your host device:
 
+This branch also requires Node.js 26 for firmware command generation. Ensure
+`node` is on PATH, or pass `NODE=/absolute/path/to/node` to `make`. The generator
+uses Node built-ins and needs no npm install. Python is still required for
+Kconfig and the remaining legacy tools.
+
 ```
 cd ~/klipper/
 make menuconfig
