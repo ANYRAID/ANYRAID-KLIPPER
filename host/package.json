@@ -34,7 +34,8 @@
     "bench:thermistor": "node bench/thermistor.ts",
     "bench:package-version": "node bench/package-version.ts",
     "bench:firmware": "node bench/firmware.ts",
-    "bench:build-metadata": "node bench/build-metadata.ts"
+    "bench:build-metadata": "node bench/build-metadata.ts",
+    "bench:build-commands": "node bench/build-commands.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
