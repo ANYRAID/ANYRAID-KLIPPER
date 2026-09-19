@@ -41,3 +41,9 @@ test('invalid times leave the coordinator usable while oversized native output f
  const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){commits++;},async stop(){stops++;}},1);
  await assert.rejects(c.advance(NaN));assert.equal(c.status.failed,false);await assert.rejects(c.advance(2.1),/budget/);assert.equal(stops,1);assert.equal(commits,0);
 });
+import {MoveQueueSink} from '../src/motion/move-queue-sink.ts';
+test('native coordinated motion reaches the MCU slot scheduler with retained step history',async()=>{
+ using q=new TrapQueue();fill(q);using x=q.createStepper(settings,'x',.01),y=q.createStepper({...settings,oid:4},'y',.01);let histories=0,packets=0;
+ const sink=new MoveQueueSink([{id:'main',emitters:['x','y'],moveSlots:8,clockAt:t=>BigInt(Math.round(t*1e6)),transport:{async send(messages){assert(histories>0);packets+=messages.length;assert(messages.some(p=>p.id==='x'));assert(messages.some(p=>p.id==='y'));},async stop(){assert.fail('unexpected stop');}}}],async outputs=>{histories+=outputs.reduce((sum,o)=>sum+o.history.length,0);});
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'y',queue:q,stepper:y}],sink);await c.advance(2.1);assert(packets>0);assert.equal(c.status.committedTime,2.1);
+});
