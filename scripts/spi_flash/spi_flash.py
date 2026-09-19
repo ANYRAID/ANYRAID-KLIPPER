@@ -6,6 +6,7 @@
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 import sys
+import subprocess
 import argparse
 import os
 import zlib
@@ -80,9 +81,11 @@ def check_need_convert(board_name, config):
     dest_bin = os.path.join(
             os.path.dirname(klipper_bin),
             os.path.basename(config['firmware_path']))
-    cmd = "%s %s %s %s" % (sys.executable, conv_util, klipper_bin, dest_bin)
+    runtime = (os.environ.get("NODE", "node") if conv_util.endswith('.mts')
+               else sys.executable)
+    cmd = [runtime, conv_util, klipper_bin, dest_bin]
     output("Converting Klipper binary to custom format...")
-    os.system(cmd)
+    subprocess.check_call(cmd)
     output_line("Done")
     config['klipper_bin_path'] = dest_bin
 

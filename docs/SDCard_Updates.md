@@ -77,8 +77,16 @@ the default location it can be done by specifying the `-f` option:
 ```
 
 Note that when upgrading a MKS Robin E3 it is not necessary to manually run
-`update_mks_robin.py` and supply the resulting binary to `flash-sdcard.sh`.
+`update_mks_robin.mts` and supply the resulting binary to `flash-sdcard.sh`.
 This procedure is automated during the upload process.
+
+MKS Robin and Chitu firmware conversion requires Node.js 26. The upload helper
+uses `node` from PATH, or the executable named by the `NODE` environment variable.
+For manual conversion, run `node scripts/update_mks_robin.mts INPUT OUTPUT` or
+`node scripts/update_chitu.mts INPUT OUTPUT`. Failed conversion stops the upload;
+an existing output file is preserved until conversion succeeds. The converters
+accept firmware files up to 64 MiB. The SPI/SDIO upload driver itself still uses
+Python during the host migration.
 
 The `-c` option is used to perform a check or verify-only operation
 to test if the board is running the specified firmware correctly.  This

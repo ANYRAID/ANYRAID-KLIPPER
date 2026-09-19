@@ -46,7 +46,7 @@ BOARD_DEFS = {
         'mcu': "stm32f103xe",
         'spi_bus': "spi2",
         "cs_pin": "PA15",
-        "conversion_script": "scripts/update_mks_robin.py",
+        "conversion_script": "scripts/update_mks_robin.mts",
         "firmware_path": "Robin_e3.bin",
         "current_firmware_path": "Robin_e3.cur"
     },
@@ -57,7 +57,7 @@ BOARD_DEFS = {
         'spi_pins': "PC8,PD2,PC12",
         'cs_pin': "PC11",
         'skip_verify': True,
-        "conversion_script": "scripts/update_mks_robin.py",
+        "conversion_script": "scripts/update_mks_robin.mts",
         "firmware_path": "ROBIN_NANO35.BIN",
         "current_firmware_path": "ROBIN_NANO35.BIN"
     },
@@ -160,7 +160,7 @@ BOARD_DEFS = {
         'spi_pins': "PC8,PD2,PC12",
         "cs_pin": "PC11",
         #'sdio_bus': 'sdio',
-        "conversion_script": "scripts/update_chitu.py",
+        "conversion_script": "scripts/update_chitu.mts",
         "firmware_path": "update.cbd",
         'skip_verify': True
     },
