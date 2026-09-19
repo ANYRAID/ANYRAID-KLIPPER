@@ -19,7 +19,7 @@
 | 工作域 | 实现及验收要求 | 当前状态 |
 | --- | --- | --- |
 | 数学基础 | 向量、三球定位、矩阵、最小二乘、坐标下降；差分与残差、性能 | TS 初版；频谱 Worker 已实现，坐标下降后台隔离待实现 |
-| 运动主机 | lookahead、队列、运动学、挤出、限速、压强提前、输入整形 | Move/lookahead 和挤出准入/转角数学已迁移；硬件队列与其他运动子系统待实现 |
+| 运动主机 | lookahead、队列、运动学、挤出、限速、压强提前、输入整形 | Move/lookahead、挤出准入、Node-API trapq 已实现；步进和硬件链路待接入 |
 | MCU 链路 | 二进制协议、时钟同步、串口/CAN、重传、C 内核绑定 | 编解码、字典、64 位扩展与主时钟估计核心已实现；多 MCU 校准与实际传输未迁移 |
 | 运行时 | 配置、事件循环、G-code、状态、生命周期、异常停机 | 未迁移 |
 | 扩展 | 所有传感器、温控、探针、调平、校准和外围设备 | 未迁移 |
@@ -80,6 +80,10 @@ Moonraker 必须锁定上游版本/提交，逐项盘点 HTTP、WebSocket、JSON
 ## 当前开发命令
 
 安装 Node.js 26 后：
+
+原生队列构建需要 Linux C 编译器及 Node 开发头文件。默认使用 Node 可执行
+文件所在发行目录的 `include/node`；系统安装可用 `NODE_INCLUDE` 指定。
+`npm test` 会先构建原生模块；此构建入口不使用 node-gyp 或 Python。
 
 ```sh
 cd host
@@ -274,3 +278,33 @@ npm run bench:motion
 多 MCU SecondarySync、打印时间校准、周期查询、真实串口释放估计接入和
 失联停机流程尚未迁移；原 Python clocksync.py 仍在活动路径中。
 本批最终类型检查及 47 项测试通过；硬件与远程门禁仍未执行。
+
+### 无 Python 的原生梯形队列接口（2026-09-20）
+
+`host/native/trapq.c` 通过 Node-API 包装仓库原 `klippy/chelper/trapq.c`，
+没有重写已验证的 C 梯形计算。`TrapQueue.appendPlanned` 将已规划运动批量
+传入 XYZ 或挤出队列；挤出路径保留比例与 pressure-advance eligibility 标志，
+但还未接入压力提前迭代器。history 提取和 finalize 调用同一原 C 实现。
+
+接口使用带类型标记的独立句柄，支持显式 dispose 和 GC 回收后备；释放后
+访问被拒绝。每批最多 65,536 条，队列节点预算 400,000，消费历史后重新
+计数释放预算。整批检查有限值、计算溢出、时间单调性后才写入，拒绝共享
+缓冲区；提取结果为独立缓冲区。原 C 分配器的进程级 OOM 行为尚未改造。
+
+```sh
+cd host
+npm run build:native
+npm run bench:trapq
+```
+
+基准需要独立开发对照 Python 环境安装 CFFI，可通过 `PYTHON` 或
+`PYTHONPATH` 指定；新主机运行及构建均不需要 CFFI。
+10,000 次运动、30,000 个片段与原 Python/CFFI 的原生结果逐值一致。
+同一桌面 CPU、Node 26.9.0 / CFFI 2.1.1，3 次预热、11 次测量：
+Python/CFFI 逐条写入及释放中位 8.842 ms / p95 9.623 ms；Node-API
+逐条 5.239 / 5.809 ms，批量 1.048 / 1.062 ms。批量性能门禁通过。
+输入打包在此微基准计时之外，完整规划到步进链路仍须另外验收。
+
+最终类型检查、无 Python 原生构建及 50 项测试通过。尚缺队列位置重设、
+步进迭代器、压缩与串口调度绑定，不能启动真实打印；ARM/目标板、原生
+内存检测、真实高负载 GC 与长期运行验证仍待完成。

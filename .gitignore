@@ -7,3 +7,4 @@ klippy/.version
 
 # Node host development dependencies
 host/node_modules/
+host/build/

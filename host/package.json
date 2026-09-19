@@ -6,6 +6,8 @@
     "node": ">=26 <27"
   },
   "scripts": {
+    "build:native": "node scripts/build-native.ts",
+    "pretest": "node scripts/build-native.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.ts",
     "bench": "node bench/math.ts",
@@ -15,7 +17,8 @@
     "bench:runtime": "node bench/runtime.ts",
     "bench:rpc-oracle": "node bench/rpc-oracle.ts",
     "bench:motion": "node bench/motion.ts",
-    "bench:clock": "node bench/clock-sync.ts"
+    "bench:clock": "node bench/clock-sync.ts",
+    "bench:trapq": "node bench/trap-queue.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
