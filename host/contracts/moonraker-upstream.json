@@ -93,7 +93,8 @@
     {
       "name": "klippy_connection",
       "tier": "server",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/klippy-socket.ts; host/test/klippy-socket.test.ts; host/bench/klippy-socket.ts. Actual Unix ETX request/reply and remote callback transport; no readiness initialization, subscription aggregation, endpoint discovery, remote-method registration lifecycle, peer credentials or production composition yet."
     },
     {
       "name": "ldap",
