@@ -116,7 +116,8 @@
     "bench:query-adc": "node bench/query-adc.ts",
     "bench:heaters": "node bench/heaters.ts",
     "bench:temperature-wait": "node bench/temperature-wait.ts",
-    "bench:standard-heaters": "node bench/standard-heaters.ts"
+    "bench:standard-heaters": "node bench/standard-heaters.ts",
+    "bench:heater-shutdown": "node bench/heater-shutdown.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

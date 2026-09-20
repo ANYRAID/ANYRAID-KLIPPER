@@ -10,6 +10,7 @@ interface Entry {name:string;heater:HeaterRuntime;gcodeId?:string;}
 /** Owns configured heater lifecycles. The supplied barrier orders target changes
  * with the motion queue; it must settle when that ordering is established. */
 export class PrinterHeaters {
+ #detachers=new Set<()=>void>();#dispatches=new Set<GCodeDispatch>();
  #sensors=new Map<string,SensorEntry>();#waits=new Set<AbortController>();
  #waitTimeout:number;#waitTimer:TemperatureWaitTimer|undefined;
  #entries=new Map<string,Entry>();#started=false;#closed=false;#generation=0;
@@ -26,16 +27,17 @@ export class PrinterHeaters {
  }
  register(name:string,heater:HeaterRuntime,gcodeId?:string):void{
   const short=name.trim().split(/\s+/).at(-1)!;
-  if(this.#started||this.#closed||!short||name.length>256||/[\u0000-\u001f\u007f]/u.test(name)||this.#entries.has(short)||this.#entries.size>=64)throw new Error('Invalid or duplicate heater registration');
+  if(this.#started||this.#closed||heater.status.stopped||!short||name.length>256||/[\u0000-\u001f\u007f]/u.test(name)||this.#entries.has(short)||this.#entries.size>=64)throw new Error('Invalid or duplicate heater registration');
   if(gcodeId!==undefined&&!/^[A-Za-z][A-Za-z0-9_]{0,15}$/.test(gcodeId))throw new Error('Invalid temperature G-code id');
   for(const entry of this.#entries.values())if(entry.heater===heater||gcodeId!==undefined&&entry.gcodeId===gcodeId)throw new Error('Duplicate heater or temperature G-code id');
-  this.registerSensor(name,heater,gcodeId);
-  this.#entries.set(short,{name,heater,gcodeId});
+  const detach=heater.subscribeShutdown(reason=>this.shutdown(`Heater '${short}' stopped: ${reason}`));
+  try{this.registerSensor(name,heater,gcodeId);this.#entries.set(short,{name,heater,gcodeId});this.#detachers.add(detach);}
+  catch(error){detach();throw error;}
  }
- get status(){return {started:this.#started,closed:this.#closed,fault:this.#reason,shutdownErrors:[...this.#errors],available_heaters:Array.from(this.#entries.values(),e=>e.name),available_sensors:[...this.#sensors.keys()]};}
+ get status(){return {started:this.#started,closed:this.#closed,fault:this.#reason,shutdownErrors:[...new Set([...this.#errors,...Array.from(this.#entries.values(),e=>e.heater.status.shutdownError).filter(error=>error!==undefined)])],available_heaters:Array.from(this.#entries.values(),e=>e.name),available_sensors:[...this.#sensors.keys()]};}
  start():void{
   if(this.#started||this.#closed)throw new Error('Heater registry cannot restart');
-  try{for(const entry of this.#entries.values())entry.heater.start();this.#started=true;}
+  try{for(const entry of this.#entries.values()){entry.heater.start();if(this.#closed)throw new Error('Heater registry stopped during startup');}this.#started=true;}
   catch(error){this.shutdown('Heater registry startup failed');throw error;}
  }
  report():string{
@@ -92,15 +94,19 @@ export class PrinterHeaters {
     else if(heater.status.shutdownError!==undefined)errors.push(heater.status.shutdownError);
    }catch(error){errors.push(error);}
   }
-  if(errors.length){this.shutdown('One or more heater outputs failed to turn off');throw new AggregateError([...errors,...this.#errors],'Heater turn off failed');}
+  if(errors.length){this.shutdown('One or more heater outputs failed to turn off');throw new AggregateError([...errors,...this.status.shutdownErrors],'Heater turn off failed');}
  }
  shutdown(reason='Heater registry stopped'):void{
   if(this.#closed)return;this.#closed=true;this.#generation++;this.#reason=reason;this.#abortWaits(reason);
+  for(const detach of this.#detachers)try{detach();}catch(error){this.#errors.push(error);}this.#detachers.clear();
   for(const {heater} of this.#entries.values()){
-   try{heater.shutdown(reason);if(heater.status.shutdownError!==undefined)this.#errors.push(heater.status.shutdownError);}catch(error){this.#errors.push(error);}
+   try{heater.shutdown(reason);}catch(error){this.#errors.push(error);}
   }
+  const dispatches=[...this.#dispatches];this.#dispatches.clear();
+  for(const dispatch of dispatches)try{dispatch.emergencyStop(reason);}catch(error){this.#errors.push(error);}
  }
  attach(dispatch:GCodeDispatch,standard:StandardHeaterCommands={}):void{
+  if(this.#closed||this.#dispatches.size>=64)throw new Error('Heater registry is closed or has too many dispatchers');
   const bed=standard.bed,extruders=standard.extruders?[...standard.extruders]:undefined,active=standard.activeExtruder;
   if(bed!==undefined&&!this.#entries.has(bed))throw new Error('Bed heater is not registered');
   if(extruders&&(extruders.length===0||extruders.length>64||new Set(extruders).size!==extruders.length||extruders.some(name=>!this.#entries.has(name))||extruders.length>1&&typeof active!=='function'))throw new Error('Invalid extruder heater mapping');
@@ -129,5 +135,6 @@ export class PrinterHeaters {
    const bound=(key:string)=>{const raw=command.params[key];if(raw===undefined)return undefined;if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw))throw new GCodeError(`Invalid ${key}`);return Number(raw);};
    return this.wait(name,bound('MINIMUM'),bound('MAXIMUM'),command.signal,()=>command.respondRaw(this.report()));
   });
+  this.#dispatches.add(dispatch);
  }
 }

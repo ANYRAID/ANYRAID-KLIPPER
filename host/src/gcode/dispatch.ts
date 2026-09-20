@@ -19,7 +19,7 @@ export interface DispatchHooks {
 export class GCodeDispatch {
   #handlers=new Map<string,Registration>();#ready=false;#reason='Printer is not ready';
   #tail:Promise<void>=Promise.resolve();#pending=0;#active:AbortController|undefined;#generation=0;
-  #hooks:DispatchHooks;
+  #hooks:DispatchHooks;#stopping=false;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
   hasCommand(name:string):boolean {return this.#handlers.has(name);}
   register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean}={}):void {
@@ -28,7 +28,9 @@ export class GCodeDispatch {
   }
   setReady(ready:boolean,reason='Printer is not ready'):void {this.#ready=ready;this.#reason=reason;}
   emergencyStop(reason='Shutdown due to M112 command'):void {
-    this.#generation++;this.#ready=false;this.#reason=reason;this.#active?.abort(new GCodeError(reason));this.#hooks.shutdown(reason);
+    if(this.#stopping)return;this.#stopping=true;
+    try{this.#generation++;this.#ready=false;this.#reason=reason;this.#active?.abort(new GCodeError(reason));this.#hooks.shutdown(reason);}
+    finally{this.#stopping=false;}
   }
   /** Serial scripts reject at the first command error; acknowledged input continues. */
   execute(script:string,options:{acknowledge?:boolean}={}):Promise<void> {
