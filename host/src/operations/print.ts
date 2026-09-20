@@ -22,6 +22,8 @@ export interface StartPrint {
   bed: number;
 }
 export interface PrintDevice {
+  /** Synchronous fault notification; it must not wait for controller cleanup. */
+  subscribeFault?(listener:(cause:unknown)=>void):()=>void;
   /** All methods resolve only after the device acknowledges the action. */
   prepare(request: Readonly<StartPrint>, signal: AbortSignal): Promise<void>;
   start(fileId: string, signal: AbortSignal): Promise<void>;
@@ -66,6 +68,17 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #faultStop:Promise<void>|undefined;#faultCause:unknown;
+  get failure():unknown{return this.#faultCause;}
+  /** Latch an asynchronous device fault and await the same safety cleanup. */
+  fault(cause:unknown):Promise<void>{
+    if(this.#faultStop)return this.#faultStop;
+    const deferred=Promise.withResolvers<void>();this.#faultStop=deferred.promise;
+    this.#faultCause=cause;this.#state='failed';
+    this.#abort?.abort(cause);
+    void Promise.resolve().then(()=>printDeadline(this.#ensureStopped(),'safe stop',this.#deadlines.stopMs)).then(deferred.resolve,deferred.reject);
+    return deferred.promise;
+  }
   #journal: PrintJournal | undefined;
   #journalRecord: JournalRecord | undefined;
   #journalWrite: Promise<void> | undefined;
@@ -142,9 +155,12 @@ export class PrintController {
     this.#journal = options.journal;
     this.#device = device;
     this.#limits = { ...limits };
+    try{device.subscribeFault?.(cause=>{void this.fault(cause).catch(()=>{});});}
+    catch(error){if(options.journal)journalOwners.delete(options.journal);throw error;}
   }
   /** Restore metadata only. Interrupted jobs require acknowledged cancellation;
    * no heating, movement, homing, or file replay occurs during restoration.
+   * An independently reported device fault still initiates safety stop.
    * Caller owns the journal and must provide the uniquely bound device adapter. */
   static async restore(
     device: PrintDevice,
@@ -158,6 +174,7 @@ export class PrintController {
     const controller = new PrintController(device, limits, deadlines, options);
     try {
       const record = await journal.active();
+      if(controller.#faultStop)throw new Error('Cannot restore a faulted print device',{cause:controller.#faultCause});
       if (record) {
         if (record.state !== 'interrupted')
           throw new Error('Cannot adopt a live print journal');
@@ -173,6 +190,7 @@ export class PrintController {
     }
   }
   start(input: StartPrint): Promise<void> {
+    if(this.#faultStop)return Promise.reject(new Error('Printer fault requires device reinitialization',{cause:this.#faultCause}));
     // Validate all user parameters before acquiring a device or causing effects.
     if (
       typeof input !== 'object' ||

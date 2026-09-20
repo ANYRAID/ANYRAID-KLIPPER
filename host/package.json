@@ -122,7 +122,8 @@
     "bench:generation-pwm": "node bench/generation-pwm.ts",
     "bench:async-heater-runtime": "node bench/async-heater-runtime.ts",
     "bench:async-heater-config": "node bench/async-heater-config.ts",
-    "bench:async-heaters": "node bench/async-heaters.ts"
+    "bench:async-heaters": "node bench/async-heaters.ts",
+    "bench:thermal-print-device": "node bench/thermal-print-device.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

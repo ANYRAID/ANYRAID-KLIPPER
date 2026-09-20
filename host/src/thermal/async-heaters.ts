@@ -4,12 +4,13 @@ import {fixedDecimal} from '../diagnostics/python-literal.ts';
 import {AsyncHeaterRuntime} from './async-runtime.ts';
 import {bindHeaterCommands} from './heater-commands.ts';
 import type {TemperatureSensor,StandardHeaterCommands} from './heaters.ts';
-import {waitForTemperature,waitForTemperatureCondition,type TemperatureWaitTimer} from './temperature-wait.ts';
+import {waitForTemperature,waitForTemperatureCondition,type WaitTemperature,type TemperatureWaitTimer} from './temperature-wait.ts';
 interface SensorEntry {sensor:TemperatureSensor;gcodeId?:string;}
 interface Entry {name:string;heater:AsyncHeaterRuntime;gcodeId?:string;}
 /** Owns configured heater lifecycles. The supplied barrier orders target changes
  * with the motion queue; it must settle when that ordering is established. */
 export class AsyncPrinterHeaters {
+ #listeners=new Set<(reason:string)=>void>();
  #starting=false;#stopSettled=false;#stop:Promise<void>|undefined;#off:Promise<void>|undefined;#zero=new Map<AsyncHeaterRuntime,Promise<void>>();
  #detachers=new Set<()=>void>();#dispatches=new Set<GCodeDispatch>();
  #sensors=new Map<string,SensorEntry>();#waits=new Set<AbortController>();
@@ -43,6 +44,9 @@ export class AsyncPrinterHeaters {
    this.#started=true;
   }catch(error){try{await this.shutdown('Heater registry startup failed');}catch(stopError){throw new AggregateError([error,stopError],'Heater startup and shutdown failed',{cause:error});}throw error;}
   finally{this.#starting=false;}
+ }
+ getTemperature(name:string):WaitTemperature{
+  const heater=this.#entries.get(name)?.heater;if(!heater)throw new GCodeError(`Unknown heater '${name}'`);return heater.getTemperature();
  }
  report():string{
   if(!this.#started)return 'T:0';
@@ -111,6 +115,11 @@ export class AsyncPrinterHeaters {
   });
   return deferred.promise;
  }
+ subscribeShutdown(listener:(reason:string)=>void):()=>void{
+  if(typeof listener!=='function'||this.#listeners.has(listener)||this.#listeners.size>=64)throw new Error('Invalid heater group shutdown subscription');
+  if(this.#closed){listener(this.#reason!);return ()=>{};}
+  this.#listeners.add(listener);return ()=>{this.#listeners.delete(listener);};
+ }
  shutdown(reason='Heater registry stopped'):Promise<void>{
   if(this.#stop)return this.#stop;
   const deferred=Promise.withResolvers<void>();this.#stop=deferred.promise;
@@ -118,6 +127,7 @@ export class AsyncPrinterHeaters {
   for(const detach of this.#detachers)try{detach();}catch(error){this.#errors.push(error);}this.#detachers.clear();
   const jobs:Promise<void>[]=[];
   for(const {heater} of this.#entries.values())try{jobs.push(heater.shutdown(reason));}catch(error){this.#errors.push(error);}
+  const listeners=[...this.#listeners];this.#listeners.clear();for(const listener of listeners)try{listener(reason);}catch(error){this.#errors.push(error);}
   const dispatches=[...this.#dispatches];this.#dispatches.clear();
   for(const dispatch of dispatches)try{dispatch.emergencyStop(reason);}catch(error){this.#errors.push(error);}
   void Promise.allSettled(jobs).then(results=>{
