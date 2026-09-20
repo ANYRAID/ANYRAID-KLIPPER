@@ -105,7 +105,8 @@
     "bench:stack": "node bench/stack.ts",
     "bench:print-operations": "node bench/print-operations.ts",
     "bench:print-journal": "node bench/print-journal.ts",
-    "bench:print-recovery": "node bench/print-recovery.ts"
+    "bench:print-recovery": "node bench/print-recovery.ts",
+    "bench:stepstats": "node bench/stepstats.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
