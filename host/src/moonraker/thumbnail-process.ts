@@ -8,7 +8,7 @@ interface Request {id:number;data:string;bytes:number;finish:(error:unknown,imag
 export class ThumbnailProcessor {
  #child:ChildProcess;#requests=new Map<number,Request>();#active:number|undefined;#next=0;#bytes=0;#closed=false;#closing:Promise<void>|undefined;
  #exit=Promise.withResolvers<void>();#options:Required<ThumbnailProcessorOptions>;
- private constructor(options:Required<ThumbnailProcessorOptions>){this.#options=options;this.#child=fork(new URL('./thumbnail-process-child.ts',import.meta.url),[],{execPath:process.execPath,execArgv:['--max-old-space-size=128','--max-semi-space-size=16'],env:{...process.env,UV_THREADPOOL_SIZE:'2'},serialization:'advanced',stdio:['ignore','ignore','ignore','ipc']});}
+ private constructor(options:Required<ThumbnailProcessorOptions>){this.#options=options;this.#child=fork(new URL('./thumbnail-process-child.ts',import.meta.url),[],{execPath:process.execPath,execArgv:['--max-old-space-size=64','--max-semi-space-size=8'],env:{...process.env,UV_THREADPOOL_SIZE:'2'},serialization:'advanced',stdio:['ignore','ignore','ignore','ipc']});}
  static async open(input:ThumbnailProcessorOptions={}):Promise<ThumbnailProcessor>{
   const options={maxPending:input.maxPending??4,maxQueuedBytes:input.maxQueuedBytes??4*1024**2,timeoutMs:input.timeoutMs??5000,startupTimeoutMs:input.startupTimeoutMs??5000};
   for(const [key,max] of [['maxPending',64],['maxQueuedBytes',16*1024**2],['timeoutMs',60000],['startupTimeoutMs',60000]] as const)if(!Number.isSafeInteger(options[key])||options[key]<1||options[key]>max)throw new RangeError('Invalid thumbnail process capacity');

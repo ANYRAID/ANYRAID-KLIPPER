@@ -27,3 +27,13 @@ test('QOI conversion preserves pixel channels and rejects oversized, truncated o
  for(const mutated of [encoded.subarray(0,encoded.length-1),Buffer.concat([encoded.subarray(0,14),Buffer.from([253]),encoded.subarray(-8)])])await assert.rejects(prepareThumbnailImages(block(mutated,32,32,'qoi'),signal()),/QOI/);
  const oversized=Buffer.from(encoded);oversized.writeUInt32BE(100000,4);await assert.rejects(prepareThumbnailImages(block(oversized,32,32,'qoi'),signal()),/limit/);
 });
+test('multiple thumbnails retain only the largest encoded candidate pixels regardless of block order',async()=>{
+ const flat=await sharp({create:{width:256,height:64,channels:3,background:'blue'}}).png().toBuffer(),raw=Buffer.alloc(96*48*3);let seed=42;for(let i=0;i<raw.length;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;raw[i]=seed>>>24;}const noise=await sharp(raw,{raw:{width:96,height:48,channels:3}}).png().toBuffer();assert.ok(noise.length>flat.length);
+ const expected=(await prepareThumbnailImages(block(noise,96,48),signal()))[0];for(const text of [block(flat,256,64)+block(noise,96,48),block(noise,96,48)+block(flat,256,64)]){const images=await prepareThumbnailImages(text,signal());assert.equal(images.length,3);assert.equal(images[0].width,32);assert.equal(images[0].height,16);assert.deepEqual(images[0].bytes,expected.bytes);}
+});
+test('raw-pixel reuse preserves transparency and still validates sources when a 32-square exists',async()=>{
+ const raw=Buffer.alloc(64*64*4);for(let i=0;i<raw.length;i+=4){raw[i]=220;raw[i+1]=100;raw[i+2]=40;raw[i+3]=128;}
+ const png=await sharp(raw,{raw:{width:64,height:64,channels:4}}).png().toBuffer(),qoiBytes=Buffer.from(qoi.encode(new Uint8Array(raw.buffer,raw.byteOffset,raw.byteLength),{width:64,height:64,channels:4,colorspace:0}));
+ const a=await prepareThumbnailImages(block(png,64,64),signal()),b=await prepareThumbnailImages(block(qoiBytes,64,64,'qoi'),signal());const decoded=await sharp(a[0].bytes).raw().toBuffer();assert.deepEqual(decoded,await sharp(b[0].bytes).raw().toBuffer());assert.equal(decoded[3],128);for(let channel=0;channel<3;channel++)assert.ok(Math.abs(decoded[channel]-raw[channel])<=1);
+ const square=await sharp({create:{width:32,height:32,channels:3,background:'red'}}).png().toBuffer();await assert.rejects(prepareThumbnailImages(block(Buffer.from('bad'),64,64)+block(square,32,32),signal()),/signature/);
+});
