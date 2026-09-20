@@ -15,6 +15,10 @@ export interface SerialSessionOptions {
  stopDevice(cause:unknown):Promise<void>;
  onMessage?(response:TimedResponse):void;
 }
+export interface TimedCommandQueue {
+ send(payload:Uint8Array,minClock:bigint,reqClock:bigint,signal:AbortSignal):Promise<void>;
+ stop(cause:unknown):Promise<void>;
+}
 interface ControlAck {motion?:false;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
 type Ack=ControlAck|{motion:true;deadline:number};
 interface AckWait {boundary:bigint;remaining:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
@@ -27,6 +31,7 @@ export class SerialSession {
  #motionTimer:ReturnType<typeof setTimeout>|undefined;#motionExpiry=Infinity;#motionPending=0;
  #configuration:ConfiguredMCU|undefined;#configuring=false;
  #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
+ #nextCommandQueue=2;#outputPending=0;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
@@ -67,6 +72,20 @@ export class SerialSession {
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}return this.#queries.query(payload,responseName,signal,options);
  }
  get configuration():ConfiguredMCU{if(!this.#configuration)throw new Error('MCU is not configured');return this.#configuration;}
+ /** Independent FIFO for scheduled peripheral commands. Motion uses queue 1;
+  * peripherals use 2..127 and at most 64 reserved control ACK slots in total. */
+ commandQueue():TimedCommandQueue{
+  this.assertActive();if(!this.#configuration||this.#nextCommandQueue>=128)throw new Error('Configured MCU and an available command queue are required');
+  const queue=this.#nextCommandQueue++;
+  return {send:(payload,min,req,signal)=>{
+   try{this.assertActive();if(this.#configuring||this.#outputPending>=64)throw new Error('Scheduled command capacity exceeded');if(typeof min!=='bigint'||typeof req!=='bigint'||min<0n||req<min||req>=0x7fffffffffffffffn)throw new RangeError('Invalid scheduled command clocks');
+    const now=serialClock.now(),release=req>min+(3n<<29n)?req-(3n<<29n):min;
+    const ready=release===0n?now:this.clock.sync.systemTime(release),requested=req===0n?now:this.clock.sync.systemTime(req);
+    if(!Number.isFinite(ready)||!Number.isFinite(requested)||Math.max(ready,requested)>now+60)throw new RangeError('Scheduled command exceeds 60 second horizon');
+    return this.#send(payload,signal,{queue,min,req,deadline:Math.max(now,ready,requested)+5});
+   }catch(error){return Promise.reject(error);}
+  },stop:cause=>this.stop(cause)};
+ }
  async configure(plan:MCUConfigPlan,signal:AbortSignal):Promise<ConfiguredMCU>{
   if(this.#state!=='ready'||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
   this.#configuring=true;
@@ -135,16 +154,16 @@ export class SerialSession {
  }
  #assertOpen(){if(this.#state==='closed')throw new Error('Serial session is closed');}
  #estimate(e:ReleaseEstimate){this.#assertOpen();this.#queue.setClockEstimate(e);}
- #send(payload:Uint8Array,signal:AbortSignal):Promise<void>{
+ #send(payload:Uint8Array,signal:AbortSignal,scheduled?:{queue:number;min:bigint;req:bigint;deadline:number}):Promise<void>{
   signal.throwIfAborted();this.#assertOpen();if(this.#queryPending>=128)throw new Error('Too many outstanding serial acknowledgements');
   return new Promise((resolve,reject)=>{
    let timer:ReturnType<typeof setTimeout>|undefined;
    const abort=()=>{void this.stop(signal.reason??new Error('Serial send cancelled')).catch(()=>{});};
-   try{const id=this.#queue.send(payload),deadline=serialClock.now()+5;this.#lastAccepted=id;
-    this.#queryPending++;
-    const cleanup=()=>{this.#queryPending--;clearTimeout(timer);signal.removeEventListener('abort',abort);};
+   try{const id=scheduled?this.#queue.sendBatch([{data:payload,min:scheduled.min,req:scheduled.req}],scheduled.queue,scheduled.deadline):this.#queue.send(payload),deadline=scheduled?.deadline??serialClock.now()+5;this.#lastAccepted=id;
+    this.#queryPending++;if(scheduled)this.#outputPending++;
+    const cleanup=()=>{this.#queryPending--;if(scheduled)this.#outputPending--;clearTimeout(timer);signal.removeEventListener('abort',abort);};
     this.#pending.set(id,{deadline,resolve,reject,cleanup});signal.addEventListener('abort',abort,{once:true});
-    timer=setTimeout(()=>{void this.stop(new Error('Serial acknowledgement timed out')).catch(()=>{});},5000);
+    timer=setTimeout(()=>{void this.stop(new Error('Serial acknowledgement timed out')).catch(()=>{});},Math.max(1,(deadline-serialClock.now())*1000));
    }catch(error){reject(error);void this.stop(error).catch(()=>{});}
   });
  }

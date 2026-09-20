@@ -1,4 +1,4 @@
-import {SerialSession,type SerialSessionOptions} from '../protocol/serial-session.ts';
+import {SerialSession,type SerialSessionOptions,type TimedCommandQueue} from '../protocol/serial-session.ts';
 import {connectUART,type UARTOptions} from '../protocol/uart.ts';
 import type {MCUQueueConfig} from '../motion/move-queue-sink.ts';
 export interface MCUConnection {
@@ -64,6 +64,10 @@ export class MCUGroup {
   catch(error){void this.stop(error).catch(()=>{});throw error;}
  }
  session(id:string):SerialSession{this.assertActive();const s=this.#sessions.get(id);if(!s)throw new Error('Unknown MCU');return s;}
+ commandQueue(id:string):TimedCommandQueue{
+  const queue=this.session(id).commandQueue();
+  return {send:async(payload,min,req,signal)=>{try{this.assertActive();await queue.send(payload,min,req,signal);this.assertActive();}catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU output and group stop failed');}throw error;}},stop:cause=>this.stop(cause)};
+ }
  /** Bind the motion sink to whole-group health and stop propagation. */
  motionQueue(id:string,emitters:readonly string[],clockAt:(printTime:number)=>bigint):MCUQueueConfig{
   const queue=this.session(id).motionQueue(id,emitters,clockAt);
