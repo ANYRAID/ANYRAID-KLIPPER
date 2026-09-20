@@ -17,12 +17,13 @@ function strings(value:unknown,name:string):string[]{if(!Array.isArray(value)||v
 export class KlippyLifecycle {
  #subscriptions:SubscriptionManager;#cache:KlippyStatusCache;#socket:KlippySocket;#options:KlippyInitializationOptions;#poll:number;#timeout:number;#revision=0;#observerError:Error|undefined;#starting:Promise<KlippySnapshot>|undefined;
  #snapshot:KlippySnapshot=freeze({connected:false,identified:false,initialized:false,state:'disconnected',stateMessage:'',info:{},endpoints:[],requirementsChecked:false,missingRequirements:[]});
- #registrationReady=false;
+ // A per-generation capability: later shutdown/error does not revoke it.
+ #remoteMethodsEnabled=false;
  #remoteMethods=new Map<string,()=>void>();#registeredRemoteMethods=new Set<string>();#nextRemoteGeneration=1;
  constructor(options:KlippyInitializationOptions){if(typeof options.version!=='string'||!options.version||options.version.length>1024)throw new ApiError(400,'Invalid Moonraker version');this.#options={...options};this.#cache=new KlippyStatusCache(options.statusCacheLimits);this.#poll=bound(options.pollIntervalMs,250,60000);this.#timeout=bound(options.startupTimeoutMs,300000,2147483647);this.#socket=new KlippySocket(options.socketLimits);
   this.#subscriptions=new SubscriptionManager({cache:this.#cache,base:{webhooks:null},onSnapshotDifference:status=>{try{if(Object.hasOwn(status,"webhooks"))this.#webhooks(status.webhooks);}catch(error){void this.#socket.close().catch(()=>{});throw error;}},request:(objects,signal)=>this.#socket.request('objects/subscribe',{objects:objects as Json,response_template:{method:'process_status_update'}},{signal,timeoutMs:20000}),deliver:(client,status,eventtime)=>this.#options.onSubscriptionStatus?.(client,status,eventtime)});
   this.#socket.registerMethod('process_status_update',(p,signal)=>this.#status(p,signal));this.#socket.registerMethod('process_gcode_response',(p,signal)=>{if(typeof p.response!=='string')throw new ApiError(502,'Invalid GCode response');return this.#options.onGcode?.(p.response,signal);});
-  this.#socket.signal.addEventListener('abort',()=>{this.#registeredRemoteMethods.clear();void this.#subscriptions.close();this.#cache.clear();this.#revision++;this.#publish({connected:false,initialized:false,state:'disconnected',endpoints:[]});},{once:true});
+  this.#socket.signal.addEventListener('abort',()=>{this.#remoteMethodsEnabled=false;this.#registeredRemoteMethods.clear();void this.#subscriptions.close();this.#cache.clear();this.#revision++;this.#publish({connected:false,initialized:false,state:'disconnected',endpoints:[]});},{once:true});
   if(options.remoteMethods!==undefined){if(!options.remoteMethods||typeof options.remoteMethods!=='object'||Array.isArray(options.remoteMethods)||![Object.prototype,null].includes(Object.getPrototypeOf(options.remoteMethods)))throw new ApiError(400,'Invalid remote method configuration');for(const [name,handler] of Object.entries(options.remoteMethods))this.registerRemoteMethod(name,handler);}
  }
  /** Static component registration only. Releasing removes local ownership;
@@ -47,7 +48,7 @@ export class KlippyLifecycle {
   const cancelRegistration=()=>release();options.signal?.addEventListener('abort',cancelRegistration,{once:true});
   try{await this.#socket.request('register_remote_method',{remote_method:name,response_template:{method:callbackName}},{...options,timeoutMs:options.timeoutMs??20000,signal});signal.throwIfAborted();this.#registeredRemoteMethods.add(name);return release;}catch(error){release();throw error;}finally{options.signal?.removeEventListener('abort',cancelRegistration);}
  }
- get remoteRegistrationReady(){return (this.#snapshot.initialized||this.#registrationReady)&&this.#snapshot.state==='ready'&&!this.signal.aborted;}
+ get remoteRegistrationReady(){return this.#remoteMethodsEnabled&&this.#snapshot.connected&&this.#snapshot.state!=='disconnected'&&!this.signal.aborted;}
  get remoteMethods(){return {configured:[...this.#remoteMethods.keys()],registered:[...this.#registeredRemoteMethods]};}
  get cachedStatus():StatusView{return this.#cache.read();}
  get cacheMetrics(){return this.#cache.metrics;}
@@ -68,12 +69,13 @@ export class KlippyLifecycle {
    for(;;){const revision=this.#revision,first=!this.#snapshot.identified,info=await request('info',first?{client_info:{program:'Moonraker',version:this.#options.version}}:{});if(!object(info))throw new ApiError(502,'Invalid Klippy info');const current=state(info.state),text=info.state_message===undefined?this.#snapshot.stateMessage:message(info.state_message);this.#publish({identified:true,info:freeze(structuredClone(info)),...revision===this.#revision?{state:current,stateMessage:text}:{}});if(first)await endpoints();if(this.#snapshot.state!=='startup')break;await delay(this.#poll,undefined,{signal});}
    const revision=this.#revision,cacheRevision=this.#cache.revision,subscription=await request('objects/subscribe',{objects:{webhooks:null},response_template:{method:'process_status_update'}});if(!object(subscription)||!object(subscription.status)||typeof subscription.eventtime!=='number'||!Number.isFinite(subscription.eventtime))throw new ApiError(502,'Invalid initial Klippy subscription');this.#cache.replace(adoptStatus(subscription.status),cacheRevision);if(revision===this.#revision&&Object.hasOwn(subscription.status,'webhooks'))this.#webhooks(subscription.status.webhooks);
    await request('gcode/subscribe_output',{response_template:{method:'process_gcode_response'}});await endpoints();
-   if(this.#snapshot.state==='ready'){const objects=await request('objects/list');if(!object(objects))throw new ApiError(502,'Invalid Klippy object list');const available=new Set(strings(objects.objects,'object list'));this.#publish({requirementsChecked:true,missingRequirements:['virtual_sdcard','display_status','pause_resume'].filter(v=>!available.has(v))});}
-   for(const [name,owner] of this.#remoteMethods){if(this.#snapshot.state!=='ready')break;await request('register_remote_method',{response_template:{method:name},remote_method:name});if(this.#remoteMethods.get(name)===owner)this.#registeredRemoteMethods.add(name);}
-   if(this.#snapshot.state==='ready'){this.#registrationReady=true;await this.#options.onRemoteMethodsReady?.();signal.throwIfAborted();}
+   const registerMethods=this.#snapshot.state==='ready';
+   if(registerMethods){const objects=await request('objects/list');if(!object(objects))throw new ApiError(502,'Invalid Klippy object list');const available=new Set(strings(objects.objects,'object list'));this.#publish({requirementsChecked:true,missingRequirements:['virtual_sdcard','display_status','pause_resume'].filter(v=>!available.has(v))});}
+   if(registerMethods)for(const [name,owner] of this.#remoteMethods){await request('register_remote_method',{response_template:{method:name},remote_method:name});if(this.#remoteMethods.get(name)===owner)this.#registeredRemoteMethods.add(name);}
+   if(registerMethods){this.#remoteMethodsEnabled=true;await this.#options.onRemoteMethodsReady?.();signal.throwIfAborted();}
    signal.throwIfAborted();this.#publish({initialized:true});signal.throwIfAborted();return this.#snapshot;
   }catch(error){try{await this.#socket.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Klippy initialization and cleanup failed');}throw this.#observerError??(budget.signal.aborted?budget.signal.reason:error);}
-  finally{this.#registrationReady=false;clearTimeout(timer);budget.signal.removeEventListener('abort',stop);}
+  finally{clearTimeout(timer);budget.signal.removeEventListener('abort',stop);}
  }
  request(method:string,params:Record<string,Json>={},options:KlippyRequestOptions={}){return this.#socket.request(method,params,options);}
  subscribe(client:number,objects:unknown,signal?:AbortSignal){if(!this.#snapshot.initialized||this.signal.aborted)return Promise.reject(new ApiError(503,'Klippy subscriptions unavailable'));if(!this.#options.onSubscriptionStatus)return Promise.reject(new ApiError(503,'Subscription delivery owner required'));return this.#subscriptions.subscribe(client,objects,signal);}

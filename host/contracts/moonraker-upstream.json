@@ -457,7 +457,7 @@
       "method": "register_endpoint",
       "targetExpression": "\"/connection/register_remote_method\"",
       "status": "partial",
-      "evidence": "host/src/moonraker/agent-methods.ts; host/test/klippy-lifecycle.test.ts; host/bench/agent-methods.ts. WebSocket agent identity and inbound authorization; independently authorized, generation-cancelled callbacks; bounded pre-start registrations published before initialized/ready with observable failures. Live registration waits for Klippy acknowledgement unlike upstream. Explicit reconnect and opt-in automatic supervision restore still-connected agents after old-generation drain; shutdown-state registration and production authorization remain incomplete."
+      "evidence": "host/src/moonraker/agent-methods.ts; host/test/klippy-lifecycle.test.ts; host/bench/agent-methods.ts. WebSocket agent identity and inbound authorization; independently authorized, generation-cancelled callbacks; bounded pre-start registrations published before initialized/ready with observable failures. Live registration waits for Klippy acknowledgement unlike upstream. Explicit reconnect and opt-in automatic supervision restore still-connected agents after old-generation drain; Registration remains enabled after ready transitions to shutdown/error; initial non-ready generations keep pending registrations. Four pinned upstream state decisions match (bench/remote-methods.ts). Production authorization remains incomplete."
     },
     {
       "file": "moonraker/components/extensions.py",
