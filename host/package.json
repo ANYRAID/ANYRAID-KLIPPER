@@ -113,7 +113,8 @@
     "bench:sensor-config": "node bench/sensor-config.ts",
     "bench:heater-config": "node bench/heater-config.ts",
     "bench:adc-diagnostics": "node bench/adc-diagnostics.ts",
-    "bench:query-adc": "node bench/query-adc.ts"
+    "bench:query-adc": "node bench/query-adc.ts",
+    "bench:heaters": "node bench/heaters.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

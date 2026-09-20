@@ -10,6 +10,7 @@ export class TemperatureState {
   this.#config={...config};this.#inverseSmooth=1/config.smoothTime;
   if(!Number.isFinite(this.#inverseSmooth))throw new RangeError('Temperature smoothing overflow');
  }
+ get limits(){return {minimum:this.#config.minimum,maximum:this.#config.maximum};}
  get state(){return {target:this.#target,lastTemperature:this.#last,lastTime:this.#time,smoothedTemperature:this.#smooth,received:this.#received,fault:this.#fault};}
  setTarget(target:number):void {
   if(!Number.isFinite(target)||target<0||(target!==0&&(target<this.#config.minimum||target>this.#config.maximum)))throw new RangeError('Requested temperature out of range');

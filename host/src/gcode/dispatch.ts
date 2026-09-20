@@ -4,6 +4,7 @@ export interface CommandContext extends ParsedCommand {
   signal:AbortSignal;
   rawParameters():string;
   respondInfo(message:string):void;
+  respondRaw(message:string):void;
   ack(message?:string):boolean;
 }
 export type Handler=(command:CommandContext)=>void|Promise<void>;
@@ -20,6 +21,7 @@ export class GCodeDispatch {
   #tail:Promise<void>=Promise.resolve();#pending=0;#active:AbortController|undefined;#generation=0;
   #hooks:DispatchHooks;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
+  hasCommand(name:string):boolean {return this.#handlers.has(name);}
   register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean}={}):void {
     if(!/^[A-Z_][A-Z0-9_]*$/.test(name)||this.#handlers.has(name))throw new Error('Invalid or duplicate command registration');
     this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false});
@@ -64,7 +66,7 @@ export class GCodeDispatch {
             parsed.command=parsed.command.split(/\s/)[0];registration=this.#handlers.get(parsed.command);
           }
           const context:CommandContext={...parsed,signal:controller.signal,rawParameters:()=>rawParameters(parsed),
-            respondInfo:message=>this.#hooks.output('// '+message.trim().split('\n').map(s=>s.trim()).join('\n// ')),ack};
+            respondRaw:message=>this.#hooks.output(message),respondInfo:message=>this.#hooks.output('// '+message.trim().split('\n').map(s=>s.trim()).join('\n// ')),ack};
           if(!registration&&parsed.command==='M105')ack('T:0');
           else if(!registration&&parsed.command==='M21'){}
           else {

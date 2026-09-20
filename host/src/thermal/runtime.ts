@@ -31,6 +31,11 @@ export class HeaterRuntime {
    this.#pwm.heartbeat(t.print);this.#cancel=this.#timer(()=>this.#tick());
   }catch(error){this.shutdown('Heater startup failed');throw error;}
  }
+ get limits(){return this.#state.limits;}
+ getTemperature(){
+  try{return this.#state.status(this.#now().print);}
+  catch(error){this.shutdown('Invalid thermal query clock');throw error;}
+ }
  get status(){
   return {...this.#state.state,started:this.#started,stopped:this.#stopped,fault:this.#fault,shutdownError:this.#stopError};
  }
@@ -71,7 +76,7 @@ export class HeaterRuntime {
   if(this.#stopped)return;this.#stopped=true;this.#fault=reason;
   this.#state.shutdown(reason);this.#pwm.shutdown();
   try{this.#cancel?.();}catch(error){this.#stopError=error;}this.#cancel=undefined;
-  try{this.#output.turnOff();}catch(error){this.#stopError=error;}
+  try{this.#output.turnOff();}catch(error){this.#stopError=this.#stopError===undefined?error:new AggregateError([this.#stopError,error],'Heater timer and output shutdown failed');}
  }
  [Symbol.dispose]():void {this.shutdown();}
 }
