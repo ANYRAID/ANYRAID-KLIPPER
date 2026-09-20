@@ -152,13 +152,15 @@ export function parseLiteral(source: string): Literal {
   if (at !== source.length) fail();
   return result;
 }
-/** Python's %.6f rounding (ties-to-even), including negative zero and values
+/** Python fixed-point rounding (ties-to-even), including negative zero and values
  * above 1e21 where Number.toFixed switches to exponent notation. */
-export function fixed6(value: number): string {
+export function fixed6(value: number): string {return fixedDecimal(value,6);}
+export function fixedDecimal(value:number, precision:number):string {
+  if(!Number.isInteger(precision)||precision<0||precision>6)throw new RangeError('Invalid fixed decimal precision');
   if (!Number.isFinite(value))
     return Number.isNaN(value) ? 'nan' : value < 0 ? '-inf' : 'inf';
-  if (Math.abs(value) < 1e21 && (Math.abs(value) * 1e6) % 1 !== 0.5)
-    return Object.is(value, -0) ? '-0.000000' : value.toFixed(6);
+  if (Math.abs(value) < 1e21 && (Math.abs(value) * 10**precision) % 1 !== 0.5)
+    return Object.is(value, -0) ? '-'+(0).toFixed(precision) : value.toFixed(precision);
   const buffer = new ArrayBuffer(8),
     view = new DataView(buffer);
   view.setFloat64(0, value);
@@ -168,7 +170,7 @@ export function fixed6(value: number): string {
     fraction = bits & ((1n << 52n) - 1n),
     mantissa = exponent ? fraction + (1n << 52n) : fraction,
     power = exponent ? exponent - 1075 : -1074;
-  let scaled = mantissa * 1000000n;
+  let scaled = mantissa * 10n**BigInt(precision);
   if (power >= 0) scaled <<= BigInt(power);
   else {
     const shift = BigInt(-power),
@@ -178,6 +180,6 @@ export function fixed6(value: number): string {
     if (remainder * 2n > divisor || (remainder * 2n === divisor && scaled & 1n))
       scaled++;
   }
-  const digits = scaled.toString().padStart(7, '0');
-  return (negative ? '-' : '') + digits.slice(0, -6) + '.' + digits.slice(-6);
+  const digits = scaled.toString().padStart(precision+1, '0');
+  return (negative ? '-' : '') + (precision ? digits.slice(0, -precision) + '.' + digits.slice(-precision) : digits);
 }

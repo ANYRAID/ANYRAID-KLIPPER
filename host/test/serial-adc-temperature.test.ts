@@ -1,3 +1,4 @@
+import {QueryADC} from '../src/inputs/query-adc.ts';
 import {createLinearSensor} from '../src/thermal/linear-sensors.ts';
 import type {TemperatureConverter} from '../src/thermal/adc.ts';
 import {test} from 'node:test';
@@ -94,6 +95,9 @@ test('out-of-range serial temperature retains ADC evidence after MCU shutdown',a
   assert.equal(status.adc.temperature,null);assert.ok(status.adc.rawValue!==null);
   assert.ok(status.adc.estimatedTemperature!==null&&Math.abs(status.adc.estimatedTemperature-350)<1);
   assert.equal(w.readings.length,0);assert.equal(w.faults.length,1);
+  const query=new QueryADC();query.register('extruder',w.sensor);
+  assert.deepEqual(w.sensor.lastValue,[status.adc.readTime,status.adc.rawValue]);
+  assert.match(query.report('extruder','4700'),/ADC object "extruder" has value/);
   status.adc.rawValue=1;assert.notEqual(w.sensor.status.adc.rawValue,1);
  }finally{await p.close();}
 });

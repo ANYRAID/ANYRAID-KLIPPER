@@ -22,6 +22,7 @@ export class SerialADCTemperature<T>{
   this.#input=new ADCInput(this.plan,n=>session.clock.sync.nearestClock(n),printAt,samples=>this.#converter.receive(samples));
   this.#detach=session.subscribeResponse(this.plan.legacy?'analog_in_state oid=%c next_clock=%u value=%hu':'analog_in_state oid=%c next_clock=%u values=%*s',config.oid,{receive:r=>{try{const now=this.#now();if(!Number.isFinite(r.receiveTime)||r.receiveTime>now||now-r.receiveTime>7)throw new Error('ADC report delivery expired');this.#receive=r.receiveTime;this.#input.receive(r.message);}catch(error){this.#fail(error);throw error;}},closed:cause=>this.#close(cause)});
  }
+ get lastValue(){return this.#input.lastValue;}
  get status(){return {active:this.#active,closed:this.#closed,fault:this.#fault,stopError:this.#stopError,lastSample:this.#sample?[...this.#sample]:undefined,adc:this.#converter.status};}
  #now():number{const now=this.#timer.now();if(!Number.isFinite(now)||now<0||now<this.#lastNow)throw new Error('ADC host clock is invalid');this.#lastNow=now;return now;}
  #fresh(now:number):void{
