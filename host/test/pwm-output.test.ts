@@ -1,0 +1,28 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {compilePWM,PWMOutput} from '../src/outputs/pwm.ts';
+import {MessageDictionary} from '../src/protocol/dictionary.ts';
+import {PrinterPins} from '../src/protocol/pins.ts';
+import {serialFirmware} from './helpers/serial-firmware.ts';
+import {SerialSession} from '../src/protocol/serial-session.ts';
+import {serialClock} from '../src/protocol/serial-queue.ts';
+const signal=()=>new AbortController().signal;
+function setup(frequency=1000,max=255){const d=new MessageDictionary();d.identify(Buffer.from(JSON.stringify({commands:{'config_pwm_out oid=%c pin=%u cycle_ticks=%u value=%hu default_value=%hu max_duration=%u':24,'queue_pwm_out oid=%c clock=%u value=%hu':25,'set_digital_out_pwm_cycle oid=%c cycle_ticks=%u':26,'config_digital_out oid=%c pin=%u value=%c default_value=%c max_duration=%u':21,'queue_digital_out oid=%c clock=%u on_ticks=%u':23},responses:{},config:{CLOCK_FREQ:frequency,PWM_MAX:max}})),false);const chip={},pins=new PrinterPins<object>();pins.register('mcu',chip);return {d,chip,pin:pins.lookup('PA0'),clock:(t:number)=>BigInt(Math.trunc(t*frequency)),print:(c:bigint)=>Number(c)/frequency};}
+test('hardware PWM retains config truncation versus restart and update half-up rounding',async()=>{
+ const x=setup(),c=compilePWM(x.chip,x.d,{oid:3,pin:x.pin,hardware:true,start:.5,shutdown:.5,currentPrintTime:1},x.clock);assert.equal(c.initialClock,1200n);assert.match(c.commands[0],/value=127 default_value=127/);assert.deepEqual(c.restart,['queue_pwm_out oid=3 clock=1200 value=128']);assert.deepEqual(c.init,[]);let payload:Uint8Array|undefined;const p=new PWMOutput(c,x.d,{async send(data){payload=data;},async stop(){}},x.clock,x.print);await p.setPWM(1.3,.5,signal());assert.deepEqual(payload,x.d.encode('queue_pwm_out',{oid:3,clock:1300,value:128}));assert.equal(p.nextAlignedPrintTime(1.31),1.31);
+});
+test('software PWM emits cycle and init commands and aligns using signed integer ceiling',async()=>{
+ const x=setup(),c=compilePWM(x.chip,x.d,{oid:3,pin:x.pin,start:.5,maxDuration:0,currentPrintTime:1},x.clock);assert.deepEqual(c.commands,['config_digital_out oid=3 pin=PA0 value=0 default_value=0 max_duration=0','set_digital_out_pwm_cycle oid=3 cycle_ticks=100']);assert.deepEqual(c.init,['queue_digital_out oid=3 clock=1200 on_ticks=50']);assert.deepEqual(c.restart,[]);const p=new PWMOutput(c,x.d,{async send(){},async stop(){}},x.clock,x.print);assert.equal(p.nextAlignedPrintTime(1.31,.05),1.3);assert.equal(p.nextAlignedPrintTime(1.01),1.1);await p.setPWM(1.3,1,signal());assert.equal(p.nextAlignedPrintTime(1.31),1.31);
+});
+test('PWM validates protection, cycle tick ranges and normalized power before scheduling',async()=>{
+ const x=setup(),base={oid:3,pin:x.pin,currentPrintTime:1};assert.throws(()=>compilePWM(x.chip,x.d,{...base,start:.5,shutdown:.5},x.clock),/shutdown/);assert.throws(()=>compilePWM(x.chip,x.d,{...base,cycleTime:.0001},x.clock),/tick/);assert.throws(()=>compilePWM(x.chip,x.d,{...base,maxDuration:.0001},x.clock),/tick/);assert.throws(()=>compilePWM(x.chip,x.d,{...base,maxDuration:3e6},x.clock),/tick/);assert.throws(()=>compilePWM(x.chip,x.d,{...base,start:2},x.clock),/power/);const p=new PWMOutput(compilePWM(x.chip,x.d,base,x.clock),x.d,{async send(){throw new Error('should not send');},async stop(){}},x.clock,x.print);await assert.rejects(p.setPWM(1.1,.5,signal()),/rewind/);await assert.rejects(p.setPWM(1.3,NaN,signal()),/power/);assert.equal(p.status.failed,false);
+});
+test('PWM initial and runtime wire clocks wrap without losing FIFO high bits',async()=>{
+ const x=setup(),c=compilePWM(x.chip,x.d,{oid:3,pin:x.pin,currentPrintTime:0},()=>0x100000005n);assert.equal(c.initialClock,0x100000005n);assert.match(c.init[0],/clock=5 /);let minimum=0n;const p=new PWMOutput(c,x.d,{async send(_p,min){minimum=min;},async stop(){}},()=>0x100000010n,x.print);await p.setPWM(1,.2,signal());assert.equal(minimum,0x100000005n);assert.equal(p.status.lastClock,0x100000010n);
+});
+test('PWM transport rejection fences subsequent output and retains safety stop failure',async()=>{
+ const x=setup(),c=compilePWM(x.chip,x.d,{oid:3,pin:x.pin,currentPrintTime:1},x.clock);let stops=0;const p=new PWMOutput(c,x.d,{async send(){throw new Error('wire failed');},async stop(){stops++;throw new Error('stop failed');}},x.clock,x.print);await assert.rejects(p.setPWM(1.3,.5,signal()),/PWM output and device stop failed/);await assert.rejects(p.setPWM(1.4,0,signal()),/faulted/);assert.equal(stops,1);assert.match(String(p.status.fault),/wire failed/);
+});
+for(const hardware of [false,true])test(`${hardware?'hardware':'software'} PWM config and timed duty reach the native serial session`,async()=>{
+ const fw=await serialFirmware(),s=new SerialSession(fw.fd,{async stopDevice(){}});try{await s.initialize(signal());const chip={},pins=new PrinterPins<object>();pins.register('mcu',chip);const pin=pins.lookup('!PA0',{canInvert:true}),frequency=1e6,clock=(t:number)=>BigInt(Math.trunc(t*frequency)),now=Number(s.clock.sync.getClock(serialClock.now()))/frequency;const c=compilePWM(chip,s.dictionary,{oid:3,pin,hardware,currentPrintTime:now},clock);await s.configure({oidCount:4,commands:c.commands,restart:c.restart,init:c.init,reservedMoves:c.reservedMoves},signal());const output=new PWMOutput(c,s.dictionary,s.commandQueue(),clock,t=>Number(t)/frequency);await output.setPWM(now+.25,.25,signal());const last=fw.outputs.at(-1)!;assert.equal(last.name,hardware?'queue_pwm_out':'queue_digital_out');assert.equal(last.parameters[hardware?'value':'on_ticks'],hardware?191:75000);assert.equal(s.configuration.moveSlots,511);}finally{await s.stop();await fw.close();}
+});

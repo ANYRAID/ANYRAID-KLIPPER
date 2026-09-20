@@ -67,7 +67,8 @@
     "bench:firmware-fault-motion": "node bench/firmware-fault-motion.ts",
     "bench:mcu-group": "node bench/mcu-group.ts",
     "bench:serial-batch": "node bench/serial-batch.ts",
-    "bench:digital-output": "node bench/digital-output.ts"
+    "bench:digital-output": "node bench/digital-output.ts",
+    "bench:pwm-output": "node bench/pwm-output.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
