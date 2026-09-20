@@ -31,6 +31,9 @@ export class HeaterRuntime {
    this.#pwm.heartbeat(t.print);this.#cancel=this.#timer(()=>this.#tick());
   }catch(error){this.shutdown('Heater startup failed');throw error;}
  }
+ isBusy():boolean{
+  this.#active();const state=this.#state.state;return this.#control.busy(state.smoothedTemperature,state.target);
+ }
  get limits(){return this.#state.limits;}
  getTemperature(){
   try{return this.#state.status(this.#now().print);}

@@ -2,9 +2,10 @@
 import {GCodeDispatch,GCodeError} from '../gcode/dispatch.ts';
 import {fixedDecimal} from '../diagnostics/python-literal.ts';
 import {HeaterRuntime} from './runtime.ts';
-import {waitForTemperature,type WaitTemperature,type TemperatureWaitTimer} from './temperature-wait.ts';
+import {waitForTemperature,waitForTemperatureCondition,type WaitTemperature,type TemperatureWaitTimer} from './temperature-wait.ts';
 export interface TemperatureSensor {getTemperature():WaitTemperature;}
 interface SensorEntry {sensor:TemperatureSensor;gcodeId?:string;}
+export interface StandardHeaterCommands {bed?:string;extruders?:readonly string[];activeExtruder?:()=>string;}
 interface Entry {name:string;heater:HeaterRuntime;gcodeId?:string;}
 /** Owns configured heater lifecycles. The supplied barrier orders target changes
  * with the motion queue; it must settle when that ordering is established. */
@@ -57,14 +58,29 @@ export class PrinterHeaters {
   if(minimum===undefined&&maximum===undefined||minimum!==undefined&&!Number.isFinite(minimum)||maximum!==undefined&&!Number.isFinite(maximum)||(maximum??Infinity)<=(minimum??-Infinity))throw new GCodeError('Invalid temperature wait range');
   const sensor=this.#entries.get(name)?.heater??this.#sensors.get(name)?.sensor;
   if(!sensor)throw new GCodeError(`Unknown temperature sensor '${name}'`);
+  await this.#observe(signal,local=>waitForTemperature({minimum,maximum,timeoutSeconds:this.#waitTimeout,signal:local,read:()=>sensor.getTemperature(),report,timer:this.#waitTimer}));
+ }
+ async waitUntilStable(name:string,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
+  const heater=this.#entries.get(name)?.heater;if(!heater)throw new GCodeError(`Unknown heater '${name}'`);
+  await this.#observe(signal,local=>waitForTemperatureCondition({timeoutSeconds:this.#waitTimeout,signal:local,read:()=>heater.getTemperature(),ready:()=>!heater.isBusy(),report,timer:this.#waitTimer}));
+ }
+ async #observe(signal:AbortSignal,run:(signal:AbortSignal)=>Promise<void>):Promise<void>{
   if(!this.#started||this.#closed)throw new GCodeError('Heater registry is not active');
   signal.throwIfAborted();
   if(this.#waits.size>=64)throw new GCodeError('Too many temperature waits');
   const controller=new AbortController(),abort=()=>controller.abort(signal.reason);
   signal.addEventListener('abort',abort,{once:true});this.#waits.add(controller);
-  try{await waitForTemperature({minimum,maximum,timeoutSeconds:this.#waitTimeout,signal:controller.signal,read:()=>sensor.getTemperature(),report,timer:this.#waitTimer});}
+  try{await run(controller.signal);}
   catch(error){if(!controller.signal.aborted)this.shutdown('Temperature wait failed');throw error;}
   finally{signal.removeEventListener('abort',abort);this.#waits.delete(controller);}
+ }
+ async setTemperature(name:string,target:number,wait:boolean,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
+  const generation=this.#generation;
+  await this.setTarget(name,target,signal);
+  if(wait&&target!==0){
+   signal.throwIfAborted();if(generation!==this.#generation||this.#closed)throw new GCodeError('Heater wait invalidated by shutdown or turn off');
+   await this.waitUntilStable(name,signal,report);
+  }
  }
  #abortWaits(reason:string):void{for(const wait of this.#waits)wait.abort(new GCodeError(reason));}
  turnOffAll():void{
@@ -84,8 +100,22 @@ export class PrinterHeaters {
    try{heater.shutdown(reason);if(heater.status.shutdownError!==undefined)this.#errors.push(heater.status.shutdownError);}catch(error){this.#errors.push(error);}
   }
  }
- attach(dispatch:GCodeDispatch):void{
-  for(const name of ['M105','SET_HEATER_TEMPERATURE','TURN_OFF_HEATERS','TEMPERATURE_WAIT'])if(dispatch.hasCommand(name))throw new Error(`Duplicate command '${name}'`);
+ attach(dispatch:GCodeDispatch,standard:StandardHeaterCommands={}):void{
+  const bed=standard.bed,extruders=standard.extruders?[...standard.extruders]:undefined,active=standard.activeExtruder;
+  if(bed!==undefined&&!this.#entries.has(bed))throw new Error('Bed heater is not registered');
+  if(extruders&&(extruders.length===0||extruders.length>64||new Set(extruders).size!==extruders.length||extruders.some(name=>!this.#entries.has(name))||extruders.length>1&&typeof active!=='function'))throw new Error('Invalid extruder heater mapping');
+  const extra=[...(bed!==undefined?['M140','M190']:[]),...(extruders?['M104','M109']:[])];
+  for(const name of ['M105','SET_HEATER_TEMPERATURE','TURN_OFF_HEATERS','TEMPERATURE_WAIT',...extra])if(dispatch.hasCommand(name))throw new Error(`Duplicate command '${name}'`);
+  const temperature=(raw:string|undefined)=>{const text=raw??'0';if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)||!Number.isFinite(Number(text)))throw new GCodeError('Invalid heater temperature');return Number(text);};
+  if(bed!==undefined)for(const name of ['M140','M190'])dispatch.register(name,command=>this.setTemperature(bed,temperature(command.params.S),name==='M190',command.signal,()=>command.respondRaw(this.report())));
+  if(extruders)for(const name of ['M104','M109'])dispatch.register(name,command=>{
+   const target=temperature(command.params.S),raw=command.params.T;let selected:string|undefined;
+   if(raw!==undefined){
+    if(!/^[+-]?\d+$/.test(raw)||!Number.isSafeInteger(Number(raw))||Number(raw)<0)throw new GCodeError('Invalid extruder index');
+    selected=extruders[Number(raw)];if(selected===undefined){if(target<=0)return;throw new GCodeError('Extruder not configured');}
+   }else{selected=active?active():extruders[0];if(!extruders.includes(selected))throw new GCodeError('Active extruder is not configured');}
+   return this.setTemperature(selected,target,name==='M109',command.signal,()=>command.respondRaw(this.report()));
+  });
   dispatch.register('M105',command=>{const message=this.report();if(!command.ack(message))command.respondRaw(message);},{whenNotReady:true});
   dispatch.register('SET_HEATER_TEMPERATURE',command=>{
    const name=command.params.HEATER;if(name===undefined)throw new GCodeError('Missing HEATER');

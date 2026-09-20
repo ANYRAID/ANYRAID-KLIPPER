@@ -8,8 +8,12 @@ export interface TemperatureWaitOptions {
 /** No temperature or target writes. Only a fresh, healthy reading can complete
  * a wait. Scheduler callbacks must run asynchronously, as setTimeout does. */
 export function waitForTemperature(options:TemperatureWaitOptions):Promise<void>{
- const minimum=options.minimum??-Infinity,maximum=options.maximum??Infinity,timeout=options.timeoutSeconds??1800;
+ const minimum=options.minimum??-Infinity,maximum=options.maximum??Infinity;
  if(options.minimum===undefined&&options.maximum===undefined||options.minimum!==undefined&&!Number.isFinite(minimum)||options.maximum!==undefined&&!Number.isFinite(maximum)||maximum<=minimum)return Promise.reject(new RangeError('Invalid temperature wait range'));
+ return waitForTemperatureCondition({...options,ready:state=>state.temperature>=minimum&&state.temperature<=maximum});
+}
+export function waitForTemperatureCondition(options:Omit<TemperatureWaitOptions,'minimum'|'maximum'>&{ready:(state:WaitTemperature)=>boolean}):Promise<void>{
+ const timeout=options.timeoutSeconds??1800;
  if(!Number.isFinite(timeout)||timeout<=0||timeout>86400)return Promise.reject(new RangeError('Invalid temperature wait timeout'));
  return new Promise<void>((resolve,reject)=>{
   const clock=options.timer??timer;let cancel:(()=>void)|undefined,finished=false,last=-Infinity,start:number|undefined;
@@ -27,7 +31,8 @@ export function waitForTemperature(options:TemperatureWaitOptions):Promise<void>
     if(now-start>=timeout)throw new Error('Temperature wait timed out');
     const state=options.read();
     if(state.stale||state.fault!==undefined||!Number.isFinite(state.temperature)||!Number.isFinite(state.target))throw new Error('Temperature wait requires a fresh healthy sensor');
-    if(state.temperature>=minimum&&state.temperature<=maximum){finish(false);return;}
+    const ready=options.ready(state);if(typeof ready!=='boolean')throw new Error('Invalid temperature completion predicate');
+    if(ready){finish(false);return;}
     options.report();options.signal.throwIfAborted();
     const stop=clock.schedule(()=>{cancel=undefined;poll();},Math.min(1,timeout-(now-start)));
     if(finished)stop();else cancel=stop;
