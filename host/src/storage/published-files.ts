@@ -1,24 +1,46 @@
-import {open,mkdir,link,unlink,type FileHandle} from 'node:fs/promises';
+import {createRequire} from 'node:module';
+import {open,mkdir,link,unlink,opendir,lstat,type FileHandle} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {createSealedPrintReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
+const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
 /** Private flat storage. Caller authenticates/authorizes IDs; no client paths.
  * Content and receipts are immutable publications. Root descriptor anchors IO. */
 export class PublishedPrintFiles {
+ #storedBytes=0;#reservedBytes=0;#records=new Set<string>();#publishing=new Set<string>();#maxStorage:number;#maxFiles:number;#writeFault:unknown;
  #root:FileHandle;#maxBytes:number;#maxOperations:number;#budget:PrintSnapshotBudget;
  #pending=new Set<Promise<unknown>>();#closed=false;#closing:Promise<void>|undefined;
- private constructor(root:FileHandle,maxBytes:number,maxOperations:number,budget:PrintSnapshotBudget){this.#root=root;this.#maxBytes=maxBytes;this.#maxOperations=maxOperations;this.#budget=budget;}
- static async open(directory:string,options:{maxFileBytes?:number;maxOperations?:number;budget?:PrintSnapshotBudget}={}):Promise<PublishedPrintFiles>{
-  const max=options.maxFileBytes??64*1024**2,count=options.maxOperations??8;
+ private constructor(root:FileHandle,maxBytes:number,maxOperations:number,budget:PrintSnapshotBudget,maxStorage:number,maxFiles:number){this.#maxStorage=maxStorage;this.#maxFiles=maxFiles;this.#root=root;this.#maxBytes=maxBytes;this.#maxOperations=maxOperations;this.#budget=budget;}
+ static async open(directory:string,options:{maxFileBytes?:number;maxOperations?:number;budget?:PrintSnapshotBudget;maxStorageBytes?:number;maxPublishedFiles?:number}={}):Promise<PublishedPrintFiles>{
+  const max=options.maxFileBytes??64*1024**2,count=options.maxOperations??8,storage=options.maxStorageBytes??1024**3,files=options.maxPublishedFiles??1024;
   if(typeof directory!=='string'||!isAbsolute(directory)||!Number.isSafeInteger(max)||max<1||max>1024**3||!Number.isSafeInteger(count)||count<1||count>64)throw new RangeError('Invalid published file store configuration');
+  if(!Number.isSafeInteger(storage)||storage<1||storage>1024**4||!Number.isSafeInteger(files)||files<1||files>10000)throw new RangeError('Invalid published storage quota');
   await mkdir(directory,{mode:0o700}).catch(error=>{if(error.code!=='EEXIST')throw error;});
   const root=await open(directory,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW);
-  try{const stat=await root.stat();if(stat.uid!==process.getuid!()||(stat.mode&0o077)!==0)throw new Error('Published file directory must be private and owned by service');return new PublishedPrintFiles(root,max,count,options.budget??defaultPrintSnapshotBudget);}catch(error){await root.close();throw error;}
+  try{const stat=await root.stat();if(stat.uid!==process.getuid!()||(stat.mode&0o077)!==0)throw new Error('Published file directory must be private and owned by service');native.lockDirectory(root.fd);const store=new PublishedPrintFiles(root,max,count,options.budget??defaultPrintSnapshotBudget,storage,files);await store.#recover();return store;}catch(error){await root.close();throw error;}
  }
- get status(){return {closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
+ get status(){return {storedBytes:this.#storedBytes,reservedBytes:this.#reservedBytes,publishedFiles:this.#records.size,pendingPublications:this.#publishing.size,maxStorageBytes:this.#maxStorage,maxPublishedFiles:this.#maxFiles,writeFault:this.#writeFault,closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
+ async #recover():Promise<void>{
+  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0;
+  const directory=await opendir(this.#path('.'));
+  for await(const entry of directory){
+   if(++count>32768)throw new Error('Published directory entry limit exceeded');
+   const stat=await lstat(this.#path(entry.name));if(!stat.isFile()||stat.uid!==process.getuid!()||!Number.isSafeInteger(stat.size)||stat.size>1024**3)throw new Error('Unexpected published storage entry');
+   if(/^[a-f0-9]{64}\.gcode$/.test(entry.name))blobs.set(entry.name,stat.size);
+   else if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name))receipts.set(entry.name,stat.size);
+   else if(/^\.(?:upload|receipt)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
+   else throw new Error('Unknown published storage entry');
+  }
+  const referenced=new Set<string>();let receiptBytes=0;
+  // Validate ALL references before deleting anything, including temporary names.
+  for(const [name,size] of receipts){const id=name.slice(0,-5),record=await this.#record(id),blob=record.sha256+'.gcode';if(blobs.get(blob)!==record.size)throw new Error('Published receipt references missing or invalid content');referenced.add(blob);this.#records.add(id);receiptBytes+=size;}
+  const garbage=[...temporary,...[...blobs.keys()].filter(name=>!referenced.has(name))];
+  for(const name of garbage)await unlink(this.#path(name));if(garbage.length)await this.#root.sync();
+  this.#storedBytes=receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
+ }
  #id(id:string):void{if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new Error('Invalid published file identifier');}
  #path(name:string):string{return `/proc/self/fd/${this.#root.fd}/${name}`;}
  #run<T>(operation:()=>Promise<T>):Promise<T>{
@@ -45,9 +67,12 @@ export class PublishedPrintFiles {
  }
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
  publish(id:string,name:string,source:FileHandle,signal:AbortSignal):Promise<PublishedPrintFile>{return this.#run(async()=>{
-  this.#id(id);if(typeof name!=='string'||!name||name.length>256||/[\u0000-\u001f\u007f]/u.test(name))throw new Error('Invalid published file name');signal.throwIfAborted();
+  this.#id(id);if(this.#writeFault)throw new Error('Published writes require recovery',{cause:this.#writeFault});if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});if(typeof name!=='string'||!name||name.length>256||/[\u0000-\u001f\u007f]/u.test(name))throw new Error('Invalid published file name');signal.throwIfAborted();
   const before=await source.stat({bigint:true});signal.throwIfAborted();if(!before.isFile()||before.size>BigInt(this.#maxBytes))throw new Error('Published source exceeds regular file limit');
+  if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});
+  let reserved=Number(before.size)+2048;if(this.#records.size+this.#publishing.size>=this.#maxFiles||reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published storage quota exceeded');
   const temp=this.#path('.upload-'+randomUUID()),receiptTemp=this.#path('.receipt-'+randomUUID());let file:FileHandle|undefined,receipt:FileHandle|undefined,failure:unknown;
+  this.#reservedBytes+=reserved;this.#publishing.add(id);
   try{
    file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
    const buffer=Buffer.alloc(65536),hash=createHash('sha256');let position=0;
@@ -59,15 +84,17 @@ export class PublishedPrintFiles {
    const record:PublishedPrintFile=Object.freeze({version:1,id,name,sha256:hash.digest('hex'),size:position});
    await file.chmod(0o400);await file.sync();await file.close();file=undefined;signal.throwIfAborted();
    // Link is atomic and never replaces content already published under its digest.
-   try{await link(temp,this.#path(record.sha256+'.gcode'));}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(record,signal);}
+   try{await link(temp,this.#path(record.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(record,signal);}
    await this.#root.sync();signal.throwIfAborted();
    receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();await receipt.close();receipt=undefined;signal.throwIfAborted();
-   await link(receiptTemp,this.#path(id+'.json'));await this.#root.sync();return record;
+   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.add(id);this.#publishing.delete(id);await this.#root.sync();return record;
   }catch(error){failure=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);
    const removed=await Promise.allSettled([unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;}),unlink(receiptTemp).catch(error=>{if(error.code!=='ENOENT')throw error;})]);
    const errors=[...closed,...removed].filter(result=>result.status==='rejected').map(result=>result.reason);
-   if(errors.length)throw new AggregateError([...(failure===undefined?[]:[failure]),...errors],'Published file cleanup failed',{cause:failure});
+   this.#publishing.delete(id);
+   if(errors.length){this.#writeFault=new AggregateError([...(failure===undefined?[]:[failure]),...errors],'Published file cleanup failed',{cause:failure});throw this.#writeFault;}
+   this.#reservedBytes-=reserved;
   }
  });}
  acquire(id:string,signal:AbortSignal){return this.#run(async()=>{

@@ -7,7 +7,7 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {createSealedPrintReader} from '../src/gcode/sealed-file.ts';
-const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../build/sealed-file.node') as {create():number;seal(fd:number):void};
+const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../build/sealed-file.node') as {create():number;seal(fd:number):void;lockDirectory(fd:number):void};
 const sha=(text:string)=>createHash('sha256').update(text).digest('hex'),signal=()=>new AbortController().signal;
 async function fixture(text='G1 X1\n'){
  const directory=await mkdtemp(join(tmpdir(),'sealed-print-')),path=join(directory,'file');await writeFile(path,text);const file=await open(path,'r');
@@ -28,6 +28,10 @@ test('empty files seal normally and repeated failed snapshots do not leak descri
 });
 test('native sealing rejects invalid descriptors and ordinary disk files',async()=>{
  for(const fd of [-1,1.5,NaN,Infinity])assert.throws(()=>native.seal(fd),/descriptor/);const f=await fixture();try{assert.throws(()=>native.seal(f.file.fd),/print file seals|Seal print file/);}finally{await f.close();}
+});
+test('native directory locking rejects invalid descriptors and ordinary files',async()=>{
+ for(const fd of [-1,1.5,NaN,Infinity,2**32])assert.throws(()=>native.lockDirectory(fd),/descriptor/);
+ const f=await fixture();try{assert.throws(()=>native.lockDirectory(f.file.fd),/requires directory/);}finally{await f.close();}
 });
 
 test('cancellation and mutation during copy close the private snapshot',async()=>{

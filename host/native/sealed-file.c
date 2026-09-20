@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include <node_api.h>
 #include <sys/mman.h>
+#include <sys/file.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -69,6 +71,35 @@ seal(napi_env env, napi_callback_info info)
 }
 
 static napi_value
+lock_directory(napi_env env, napi_callback_info info)
+{
+    size_t count = 1;
+    napi_value args[1];
+    double number;
+    if (napi_get_cb_info(env, info, &count, args, NULL, NULL) != napi_ok
+        || count != 1
+        || napi_get_value_double(env, args[0], &number) != napi_ok
+        || !isfinite(number) || number < 0 || number > INT_MAX
+        || floor(number) != number) {
+        napi_throw_type_error(env, NULL, "Invalid directory descriptor");
+        return NULL;
+    }
+    int fd = (int)number;
+    struct stat status;
+    if (fstat(fd, &status) < 0)
+        return failure(env, "Read directory for locking");
+    if (!S_ISDIR(status.st_mode)) {
+        napi_throw_type_error(env, NULL, "Storage lock requires directory");
+        return NULL;
+    }
+    if (flock(fd, LOCK_EX | LOCK_NB) < 0)
+        return failure(env, "Lock published file directory");
+    napi_value result;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+static napi_value
 page_size(napi_env env, napi_callback_info info)
 {
     (void)info;
@@ -91,9 +122,11 @@ init(napi_env env, napi_value exports)
     napi_property_descriptor methods[] = {
         {"create", NULL, create, NULL, NULL, NULL, napi_default, NULL},
         {"seal", NULL, seal, NULL, NULL, NULL, napi_default, NULL},
-        {"pageSize", NULL, page_size, NULL, NULL, NULL, napi_default, NULL}
+        {"pageSize", NULL, page_size, NULL, NULL, NULL, napi_default, NULL},
+        {"lockDirectory", NULL, lock_directory, NULL, NULL, NULL,
+         napi_default, NULL}
     };
-    if (napi_define_properties(env, exports, 3, methods) != napi_ok) {
+    if (napi_define_properties(env, exports, 4, methods) != napi_ok) {
         napi_throw_error(env, NULL, "Register sealed file methods");
         return NULL;
     }
