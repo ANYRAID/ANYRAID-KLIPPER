@@ -163,13 +163,16 @@ and Klipper's [MCU commands](MCU_Commands.md).
 
 ### Parsing Klipper messages in a candump log
 
-One may use the `parsecandump.py` tool to parse the low-level Klipper
+One may use the `parsecandump.ts` tool to parse the low-level Klipper
 micro-controller messages contained in a candump log. Using this tool
 is an advanced topic that requires knowledge of Klipper
 [MCU commands](MCU_Commands.md). For example:
 ```
-./scripts/parsecandump.py mycanlog 108 ./out/klipper.dict
+node ./scripts/parsecandump.ts mycanlog 108 ./out/klipper.dict
 ```
+
+The tool requires Node.js 26 and no npm dependencies. It reads saved logs
+and writes diagnostics to standard output; it does not open a CAN interface.
 
 This tool produces output similar to the [parsedump
 tool](Debugging.md#translating-gcode-files-to-micro-controller-commands). See
@@ -185,7 +188,7 @@ then the second micro-controller would be `10a`, the third would be
 
 The candump log must be produced using the `-tz -Ddex` command-line
 arguments (for example: `candump -tz -Ddex can0,#FFFFFFFF`) in order
-to use the `parsecandump.py` tool.
+to use the `parsecandump.ts` tool.
 
 ## Using a logic analyzer on the canbus wiring
 

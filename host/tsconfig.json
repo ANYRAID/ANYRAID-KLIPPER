@@ -9,7 +9,16 @@
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "bench/**/*.ts", "scripts/**/*.ts", "../scripts/*.mts"]
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "bench/**/*.ts",
+    "scripts/**/*.ts",
+    "../scripts/*.mts",
+    "../scripts/*.ts"
+  ]
 }
