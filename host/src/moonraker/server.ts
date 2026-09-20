@@ -1,5 +1,6 @@
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
 import {ResponseCompletion} from './response-completion.ts';
+import {subscriptionConnectionId} from './subscription-connection.ts';
 import {NotificationFanout,type NotificationLimits,type DeliveryReport} from './notifications.ts';
 import {RemoteClients} from './clients.ts';
 import {EndpointRegistry} from './endpoints.ts';
@@ -16,6 +17,9 @@ export interface MoonrakerNetworkOptions {
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
+ /** Required to associate an HTTP subscription with a different transport.
+  * Check authenticated ownership/permissions of source and target explicitly. */
+ authorizeSubscriptionConnection?(source:NetworkAuthorization,target:NetworkAuthorization):void|Promise<void>;
  notificationLimits?:NotificationLimits;
  /** Required for server-initiated requests to clients/agents. */
  authorizeClientRequest?(method:string,params:ClientArguments,request:NetworkAuthorization):void|Promise<void>;
@@ -45,6 +49,7 @@ export class MoonrakerNetwork {
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
   this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
   if(options.authorizeNotification!==undefined&&typeof options.authorizeNotification!=='function')throw new TypeError('Invalid notification authorization');
+  if(options.authorizeSubscriptionConnection!==undefined&&typeof options.authorizeSubscriptionConnection!=='function')throw new TypeError('Invalid subscription connection authorization');
   if(options.authorizeNotification)this.#notifications=new NotificationFanout(options.notificationLimits);
   if(options.authorizeClientRequest!==undefined&&typeof options.authorizeClientRequest!=='function')throw new TypeError('Invalid client request authorization');
   if(options.authorizeClientRequest)this.#clientRequests=new ClientRequests(options.clientRequestLimits);
@@ -90,6 +95,11 @@ export class MoonrakerNetwork {
  #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number):RpcContext{
   return {transport,signal,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
  }
+ async #subscriptionConnection(request:IncomingMessage,body:Uint8Array,signal:AbortSignal):Promise<{id:number;signal:AbortSignal}>{
+  if(!this.#options.authorizeSubscriptionConnection)throw new ApiError(503,'Subscription connection authorization is required');signal.throwIfAborted();
+  const id=subscriptionConnectionId(request.url??'',body,request.headers['content-type']??''),peer=this.#peers.get(id);if(!peer||peer.abort.signal.aborted)throw new ApiError(404,'Subscription connection is no longer available');
+  const combined=AbortSignal.any([signal,peer.abort.signal]);await this.#options.authorizeSubscriptionConnection({request,transport:'http',signal:combined},{request:peer.request,transport:'websocket',connectionId:id,signal:combined});combined.throwIfAborted();if(this.#peers.get(id)!==peer)throw new ApiError(404,'Subscription connection changed');return {id,signal:peer.abort.signal};
+ }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',allowed=isRPC?['POST']:this.#options.endpoints?.allowed(path);
@@ -108,6 +118,7 @@ export class MoonrakerNetwork {
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
     context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};
+    context.subscriptionConnection=()=>this.#subscriptionConnection(request,body,signal);
     const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
     if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');if(completion){const sent=await new Promise<boolean>(resolve=>{const closed=()=>{response.off('finish',finished);resolve(false);},finished=()=>{response.off('close',closed);resolve(true);};response.once('close',closed);response.once('finish',finished);response.end(result??undefined);});if(!completion.complete(sent))response.destroy(completion.error);}else response.end(result??undefined);}

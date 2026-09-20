@@ -23,8 +23,8 @@ export class SubscriptionDelivery {
  #check(client:Client,signal:AbortSignal){signal.throwIfAborted();if(this.#closed||this.#clients.get(client.id)!==client||client.signal.aborted)throw new ApiError(503,'Subscription connection unavailable');}
  async subscribe(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(this.#closed||!this.#options.enabled())throw new ApiError(503,'Authorized subscription delivery unavailable');
-  if(context.transport!=='websocket'||!context.connectionId||!context.afterResponse)throw new ApiError(400,'WebSocket subscription context required');
-  const id=context.connectionId,filter=new SubscriptionFilter(Object.hasOwn(params,'objects')?params.objects:{});let client=this.#clients.get(id);
+  if(!context.afterResponse||!(context.transport==='websocket'&&context.connectionId||context.transport==='http'&&context.subscriptionConnection))throw new ApiError(400,'HTTP or WebSocket subscription context required');
+  const filter=new SubscriptionFilter(Object.hasOwn(params,'objects')?params.objects:{}),associated=context.transport==='http'?await context.subscriptionConnection!():undefined,id=associated?.id??context.connectionId!;associated?.signal.throwIfAborted();context.signal.throwIfAborted();let client=this.#clients.get(id);
   if(!client){const signal=this.#options.signal(id);signal.throwIfAborted();client={id,signal,abort:()=>this.#remove(client!),holds:0,filter:new SubscriptionFilter({}),time:-Infinity,queue:[],bytes:0,pending:new Set()};this.#clients.set(id,client);signal.addEventListener('abort',client.abort,{once:true});}
   const owner=client;owner.holds++;let finished=false;const release=(sent:boolean)=>{if(finished)return;finished=true;context.signal.removeEventListener('abort',cancel);if(!sent){this.#remove(owner);return;}owner.holds--;if(!owner.holds)this.#flush(owner);},cancel=()=>release(false);
   try{context.afterResponse(release);context.signal.addEventListener('abort',cancel,{once:true});this.#check(owner,context.signal);

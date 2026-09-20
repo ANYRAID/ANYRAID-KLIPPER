@@ -3124,3 +3124,50 @@ serial-session 的突发接收测试在 MCU query 阶段超时。相关串口实
 objects:null 拒绝及非 WebSocket 上下文边界测试，交付拥有者共 7 项测试，
 完整 512 项再次通过，类型检查通过。明确缺失 objects 表示空选择，显式
 null 是参数错误，不再被误解释为退订。
+
+## HTTP 订阅关联与跨连接授权
+
+公开 `/printer/objects/subscribe` 现支持 GET 和 POST；HTTP JSON-RPC 的
+`printer.objects.subscribe` 也可通过请求 URL 关联 WebSocket。状态仍向
+目标 WebSocket 的 notify_status_update 通道交付，HTTP 只返回初始快照。
+
+关联编号来自 URL 查询或 application/x-www-form-urlencoded 表单中的
+connection_id，符合固定上游 get_associated_websocket 的参数来源；JSON
+对象中的同名字段不作为关联依据。编号须是正的安全整数，允许十进制
+前导零及外围空白；拒绝重复编号、负号/正号、小数、指数及不能精确表示
+的数值。这比上游 int 转换和重复参数取值规则更严格，是显式的歧义与
+精度保护。connection_id 不混入向 Klippy 发送的对象字段选择。
+
+除既有每次方法授权、逐次通知授权之外，必须显式配置
+`authorizeSubscriptionConnection(source, target)`，核对 HTTP 请求主体是否
+有权改变目标 WebSocket 的订阅。缺失策略返回 503，不默认视为同一用户。
+回调收到源 HTTP 和目标 WebSocket 的请求上下文，以及组合了源取消和
+目标断连的信号；策略返回后再次确认目标仍是同一存活连接。异步策略
+无视取消时仍由网络请求生命周期计费。身份存储和权限判断由真实授权
+组件提供，本阶段没有用测试中的请求头比较替代生产认证。
+
+授权关联完成后复用现有订阅拥有者、聚合事务、初始快照衔接和回应完成
+屏障。HTTP response finish 之后释放后续通知，但两个独立网络连接的
+客户端观察顺序不能由此保证；消费者仍须遵守 eventtime。通知逐次使用
+目标 WebSocket 的授权上下文，不继承 HTTP 的一次性授权结果。
+
+4 项解析/网络测试覆盖查询与表单来源、重复/不安全编号、缺失策略及
+异步授权期间目标断连；1 项真实 HTTP＋WebSocket＋Unix 测试覆盖跨用户
+拒绝且不发送 Klippy 请求、GET/表单 POST/HTTP JSON-RPC、裁剪快照、
+目标通知、退订和已断开的编号。既有测试也更新为：路由已经存在时，
+缺失通知策略返回 503，而不是上一阶段的 404。
+
+`bench:http-subscription` 对同一 WebSocket 目标和实际 Unix 模拟 Klippy
+交替执行 100 次 HTTP 或 WebSocket 订阅，HTTP 每次执行显式关联授权，
+所有回应核对字段与数值。Node 26.9.0，3 次预热、51 样本，中位 / p95
+分别为 HTTP 31.201 / 41.847 ms、WebSocket 14.532 / 20.597 ms。
+该对照包含不同传输的请求成本，不代表两者应达到相同时延，也不是固定
+Python 全链路性能对照。HTTP 高频重复变更及真实打印并发仍须目标环境
+验证。基准与完整回归分开执行。
+
+剩余范围包括 Unix/MQTT 订阅传输、真实授权组件、完整 Moonraker 业务
+组件、重连和生产组合，以及目标板运动精度/打印速度/停机验收。HTTP
+入口接通不会改变完整迁移目标尚未完成的结论。
+
+最终完整 517 项主机测试（含原生构建、HTTP/WebSocket/Unix/PTY）、类型
+检查及差异格式检查通过。未执行真实打印硬件验收。

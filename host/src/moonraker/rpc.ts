@@ -8,6 +8,8 @@ export interface RpcContext {
   /** Network-frame handoff, after the complete batch response. Synchronous
    * callback; false on cancellation/failure. Not a remote receipt guarantee. */
   afterResponse?(callback:(sent:boolean)=>void):void;
+  /** HTTP-only, explicitly authorized association with a live WebSocket. */
+  subscriptionConnection?():Promise<{id:number;signal:AbortSignal}>;
   transport:Transport;
   signal:AbortSignal;
   connectionId?:number;
