@@ -36,6 +36,11 @@ export class JsonRpcDispatcher {
     let value:unknown;
     try {value=parseRequestJson(typeof input==='string'?input:new TextDecoder('utf-8',{fatal:true}).decode(input));}
     catch(error) {return JSON.stringify(error instanceof JsonNumberError?failure(-32600,error.message):failure(-32700,'Parse error'));}
+    return this.dispatchValue(value,context);
+  }
+  /** Transport-owned decoded input. The transport must enforce the wire byte
+   * limit before decoding; shape/depth limits still apply here. */
+  async dispatchValue(value:unknown,context:RpcContext):Promise<string|null> {
     // Validate shape depth before recursively passing arbitrary client data to handlers.
     try {validateJson(value);} catch {return JSON.stringify(failure(-32600,'Invalid Request'));}
     if(Array.isArray(value)) {
