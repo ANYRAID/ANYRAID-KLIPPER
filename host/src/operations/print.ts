@@ -7,6 +7,8 @@ export type PrintState =
   | 'pausing'
   | 'paused'
   | 'resuming'
+  | 'finishing'
+  | 'completed'
   | 'cancelling'
   | 'cancelled'
   | 'failed';
@@ -23,6 +25,9 @@ export interface PrintDevice {
   start(fileId: string, signal: AbortSignal): Promise<void>;
   pause(signal: AbortSignal): Promise<void>;
   resume(signal: AbortSignal): Promise<void>;
+  /** Verify this job reached EOF, drain all remaining motion, and acknowledge
+   * final safe heating/output state. Must not discard unexecuted print moves. */
+  finish(requestId: string, signal: AbortSignal): Promise<void>;
   /** Idempotent: stop queued motion and heating, acknowledging the safe state.
    * Must be safe to call again after an interrupted action settles. */
   stop(): Promise<void>;
@@ -36,14 +41,33 @@ export interface PrintDeadlines {
   pauseMs: number;
   resumeMs: number;
   stopMs: number;
+  finishMs: number;
 }
 export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
   startMs: 600000,
   pauseMs: 30000,
   resumeMs: 30000,
   stopMs: 10000,
+  finishMs: 30000,
 });
+export interface PrintControllerOptions {
+  maxRememberedRequests?: number;
+}
+interface PrintRecord {
+  request: Readonly<StartPrint>;
+  started: Promise<void>;
+  completed?: Promise<void>;
+}
 export class PrintController {
+  #history = new Map<string, PrintRecord>();
+  #historyLimit: number;
+  #lastReset: string | undefined;
+  get rememberedRequests(): number {
+    return this.#history.size;
+  }
+  get currentRequest(): Readonly<StartPrint> | undefined {
+    return this.#start;
+  }
   #device: PrintDevice;
   #deadlines: PrintDeadlines;
   #pendingActions = new Set<Promise<void>>();
@@ -69,6 +93,7 @@ export class PrintController {
     device: PrintDevice,
     limits: PrintLimits,
     deadlines: Partial<PrintDeadlines> = {},
+    options: PrintControllerOptions = {},
   ) {
     if (
       !Number.isFinite(limits.maxNozzle) ||
@@ -77,6 +102,23 @@ export class PrintController {
       limits.maxBed <= 0
     )
       throw new RangeError('Invalid device temperature limits');
+    this.#historyLimit = options.maxRememberedRequests ?? 1024;
+    if (
+      !Number.isSafeInteger(this.#historyLimit) ||
+      this.#historyLimit < 1 ||
+      this.#historyLimit > 65536
+    )
+      throw new RangeError('Invalid print history limit');
+    for (const method of [
+      'prepare',
+      'start',
+      'pause',
+      'resume',
+      'finish',
+      'stop',
+    ] as const)
+      if (typeof device?.[method] !== 'function')
+        throw new TypeError('Incomplete print device adapter');
     this.#deadlines = { ...defaultPrintDeadlines, ...deadlines };
     for (const value of Object.values(this.#deadlines))
       if (!Number.isSafeInteger(value) || value < 1 || value > 86400000)
@@ -103,20 +145,31 @@ export class PrintController {
       input.bed > this.#limits.maxBed
     )
       return Promise.reject(new RangeError('Invalid print request'));
-    if (this.#start?.requestId === input.requestId) {
+    const prior = this.#history.get(input.requestId);
+    if (prior) {
       if (
-        this.#start.fileId !== input.fileId ||
-        this.#start.nozzle !== input.nozzle ||
-        this.#start.bed !== input.bed
+        prior.request.fileId !== input.fileId ||
+        prior.request.nozzle !== input.nozzle ||
+        prior.request.bed !== input.bed
       )
         return Promise.reject(
           new Error('Idempotency key conflicts with previous request'),
         );
-      return this.#startPromise!;
+      return prior.started;
     }
     if (this.#state !== 'idle')
       return Promise.reject(new Error(`Cannot start while ${this.#state}`));
-    this.#start = Object.freeze({ ...input });
+    if (this.#history.size >= this.#historyLimit)
+      return Promise.reject(
+        new Error('Print request history capacity reached'),
+      );
+    this.#start = Object.freeze({
+      version: 1,
+      requestId: input.requestId,
+      fileId: input.fileId,
+      nozzle: input.nozzle,
+      bed: input.bed,
+    });
     this.#startPromise = this.#run(
       'start',
       'preparing',
@@ -127,6 +180,10 @@ export class PrintController {
         await this.#device.start(this.#start!.fileId, signal);
       },
     );
+    this.#history.set(input.requestId, {
+      request: this.#start,
+      started: this.#startPromise,
+    });
     return this.#startPromise;
   }
   pause(): Promise<void> {
@@ -146,9 +203,59 @@ export class PrintController {
       this.#device.resume(signal),
     );
   }
+  /** Trusted job completion path; the adapter must independently verify EOF. */
+  complete(requestId: string): Promise<void> {
+    if (
+      typeof requestId !== 'string' ||
+      !/^[A-Za-z0-9_-]{1,128}$/.test(requestId)
+    )
+      return Promise.reject(new RangeError('Invalid print request identifier'));
+    const record = this.#history.get(requestId);
+    if (record?.completed) return record.completed;
+    if (this.#start?.requestId !== requestId)
+      return Promise.reject(
+        new Error('Completion does not belong to current print'),
+      );
+    if (this.#state !== 'printing' || this.#active)
+      return Promise.reject(new Error(`Cannot complete while ${this.#state}`));
+    const completed = this.#run('finish', 'finishing', 'completed', (signal) =>
+      this.#device.finish(requestId, signal),
+    );
+    record!.completed = completed;
+    return completed;
+  }
+  /** Acknowledges a terminal job locally; does not execute any device action. */
+  reset(requestId: string): void {
+    if (
+      typeof requestId !== 'string' ||
+      !/^[A-Za-z0-9_-]{1,128}$/.test(requestId)
+    )
+      throw new RangeError('Invalid print request identifier');
+    if (this.#state === 'idle' && this.#lastReset === requestId) return;
+    if (this.#start?.requestId !== requestId)
+      throw new Error('Reset does not belong to current print');
+    if (
+      !['completed', 'cancelled'].includes(this.#state) ||
+      this.#active ||
+      this.#pendingActions.size ||
+      this.#stopInFlight ||
+      this.#safety
+    )
+      throw new Error('Cannot reset before terminal device acknowledgement');
+    this.#state = 'idle';
+    this.#lastReset = requestId;
+    this.#start = undefined;
+    this.#startPromise = undefined;
+    this.#cancel = undefined;
+    // Never evict idempotency history silently: a late request must not reprint.
+  }
   cancel(): Promise<void> {
     if (this.#cancel) return this.#cancel;
-    if (this.#state === 'idle' || this.#state === 'cancelled')
+    if (
+      this.#state === 'idle' ||
+      this.#state === 'cancelled' ||
+      this.#state === 'completed'
+    )
       return Promise.resolve();
     this.#state = 'cancelling';
     const active = this.#active;
@@ -222,7 +329,7 @@ export class PrintController {
     return safety;
   }
   #run(
-    operation: 'start' | 'pause' | 'resume',
+    operation: 'start' | 'pause' | 'resume' | 'finish',
     transient: PrintState,
     success: PrintState,
     action: (signal: AbortSignal) => Promise<void>,

@@ -24,6 +24,9 @@ function fixture(overrides: Partial<PrintDevice> = {}) {
     resume: async () => {
       calls.push('resume');
     },
+    finish: async () => {
+      calls.push('finish');
+    },
     stop: async () => {
       calls.push('stop');
     },
@@ -128,6 +131,7 @@ function deviceWith(overrides: Partial<PrintDevice>): PrintDevice {
     start: async () => {},
     pause: async () => {},
     resume: async () => {},
+    finish: async () => {},
     stop: async () => {},
     ...overrides,
   };
@@ -483,4 +487,227 @@ test('abort listener reentry observes the same cancellation promise', async () =
   await rejected;
   await cancel;
   assert.equal(controller.state, 'cancelled');
+});
+
+test('normal completion waits for drained motion acknowledgement and does not cancel queued moves', async () => {
+  const entered = deferred(),
+    ack = deferred();
+  let finishes = 0,
+    stops = 0;
+  const controller = new PrintController(
+    deviceWith({
+      finish: async (id) => {
+        assert.equal(id, request.requestId);
+        finishes++;
+        entered.resolve();
+        await ack.promise;
+      },
+      stop: async () => {
+        stops++;
+      },
+    }),
+    limits,
+  );
+  await assert.rejects(controller.complete('missing'), /current print/);
+  await controller.start(request);
+  const completed = controller.complete(request.requestId);
+  assert.equal(completed, controller.complete(request.requestId));
+  await entered.promise;
+  assert.equal(controller.state, 'finishing');
+  assert.throws(
+    () => controller.reset(request.requestId),
+    /terminal device acknowledgement/,
+  );
+  await assert.rejects(controller.pause(), /Cannot pause/);
+  ack.resolve();
+  await completed;
+  assert.equal(controller.state, 'completed');
+  assert.equal(finishes, 1);
+  await controller.cancel();
+  assert.equal(stops, 0);
+  assert.equal(controller.state, 'completed');
+});
+test('next job keeps old start and completion idempotency without accepting stale effects', async () => {
+  const { controller, calls } = fixture();
+  const first = controller.start(request);
+  await first;
+  const completed = controller.complete(request.requestId);
+  await completed;
+  controller.reset(request.requestId);
+  assert.equal(controller.state, 'idle');
+  assert.equal(Boolean(controller.currentRequest), false);
+  assert.equal(controller.start(request), first);
+  await first;
+  assert.equal(controller.state, 'idle');
+  const next = { ...request, requestId: 'job2', fileId: 'file2' };
+  await controller.start(next);
+  assert.equal(controller.complete(request.requestId), completed);
+  await completed;
+  assert.equal(controller.state, 'printing');
+  assert.equal(controller.currentRequest?.requestId, 'job2');
+  assert.equal(Object.isFrozen(controller.currentRequest), true);
+  assert.equal(controller.rememberedRequests, 2);
+  await assert.rejects(
+    controller.start({ ...request, fileId: 'changed' }),
+    /conflicts/,
+  );
+  assert.deepEqual(calls, ['prepare', 'start', 'finish', 'prepare', 'start']);
+  await controller.cancel();
+  controller.reset('job2');
+  await assert.rejects(controller.complete('job2'), /current print/);
+});
+test('bounded history never evicts an old request to make it executable again', async () => {
+  let starts = 0;
+  const controller = new PrintController(
+    deviceWith({
+      start: async () => {
+        starts++;
+      },
+    }),
+    limits,
+    {},
+    { maxRememberedRequests: 2 },
+  );
+  const first = controller.start(request);
+  await first;
+  await controller.cancel();
+  controller.reset(request.requestId);
+  await controller.start({ ...request, requestId: 'job2' });
+  await controller.complete('job2');
+  assert.throws(() => controller.reset(request.requestId), /current print/);
+  controller.reset('job2');
+  controller.reset('job2');
+  await assert.rejects(
+    controller.start({ ...request, requestId: 'job3' }),
+    /history capacity/,
+  );
+  assert.equal(controller.start(request), first);
+  assert.equal(starts, 2);
+  assert.equal(controller.state, 'idle');
+  assert.equal(controller.rememberedRequests, 2);
+  for (const limit of [0, -1, NaN, Infinity, 1.5, 65537])
+    assert.throws(
+      () =>
+        new PrintController(
+          deviceWith({}),
+          limits,
+          {},
+          { maxRememberedRequests: limit },
+        ),
+      /history limit/,
+    );
+});
+test('cancel during completion waits for the late finisher and final stop, then permits a new job', async () => {
+  const entered = deferred(),
+    late = deferred(),
+    final = deferred(),
+    finalEntered = deferred();
+  let stops = 0;
+  const controller = new PrintController(
+    deviceWith({
+      finish: async () => {
+        entered.resolve();
+        await late.promise;
+      },
+      stop: async () => {
+        if (++stops === 2) {
+          finalEntered.resolve();
+          await final.promise;
+        }
+      },
+    }),
+    limits,
+    { stopMs: 1000 },
+  );
+  await controller.start(request);
+  const completed = controller.complete(request.requestId),
+    rejected = assert.rejects(completed, /cancelled/);
+  await entered.promise;
+  const cancel = controller.cancel();
+  await rejected;
+  late.resolve();
+  await finalEntered.promise;
+  assert.equal(controller.state, 'cancelling');
+  assert.throws(() => controller.reset(request.requestId));
+  final.resolve();
+  await cancel;
+  controller.reset(request.requestId);
+  await controller.start({ ...request, requestId: 'job2' });
+  assert.equal(controller.state, 'printing');
+  await assert.rejects(controller.complete(request.requestId), /cancelled/);
+  assert.equal(controller.state, 'printing');
+  await controller.cancel();
+});
+test('completion verification failure and deadline cannot be acknowledged as successful jobs', async () => {
+  const missing = new PrintController(
+    deviceWith({
+      finish: async () => {
+        throw new Error('EOF not verified');
+      },
+    }),
+    limits,
+  );
+  await missing.start(request);
+  await assert.rejects(missing.complete(request.requestId), /EOF not verified/);
+  assert.equal(missing.state, 'failed');
+  assert.throws(() => missing.reset(request.requestId));
+  await missing.cancel();
+  missing.reset(request.requestId);
+  const late = deferred();
+  let stops = 0;
+  const controller = new PrintController(
+    deviceWith({
+      finish: () => late.promise,
+      stop: async () => {
+        stops++;
+      },
+    }),
+    limits,
+    { finishMs: 25, stopMs: 25 },
+  );
+  await controller.start(request);
+  await assert.rejects(
+    controller.complete(request.requestId),
+    (error: unknown) =>
+      error instanceof AggregateError && error.errors[0].operation === 'finish',
+  );
+  assert.equal(controller.state, 'failed');
+  assert.throws(() => controller.reset(request.requestId));
+  late.resolve();
+  await tick();
+  assert.equal(stops, 2);
+  assert.equal(controller.state, 'failed');
+  await controller.cancel();
+  controller.reset(request.requestId);
+  assert.equal(controller.state, 'idle');
+});
+test('adapters lacking a completion acknowledgement are rejected before printing', () => {
+  const device = deviceWith({});
+  delete (device as Partial<PrintDevice>).finish;
+  assert.throws(
+    () => new PrintController(device, limits),
+    /Incomplete print device adapter/,
+  );
+});
+
+test('remembered requests contain only immutable versioned fields', async () => {
+  let received: Readonly<StartPrint> | undefined;
+  const controller = new PrintController(
+    deviceWith({
+      prepare: async (value) => {
+        received = value;
+      },
+    }),
+    limits,
+  );
+  const input = { ...request, extra: { script: 'untrusted metadata' } };
+  const running = controller.start(input);
+  input.fileId = 'changed';
+  await running;
+  assert.deepEqual(received, request);
+  assert.equal(Object.isFrozen(received), true);
+  assert.deepEqual(controller.currentRequest, request);
+  await controller.cancel();
+  controller.reset(request.requestId);
+  assert.equal(controller.rememberedRequests, 1);
 });

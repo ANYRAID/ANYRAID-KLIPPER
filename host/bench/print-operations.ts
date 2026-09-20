@@ -12,9 +12,17 @@ try {
   const path = join(dir, 'baseline.mts');
   writeFileSync(
     path,
-    execFileSync('git', ['show', 'aab05679:host/src/operations/print.ts'], {
+    execFileSync('git', ['show', 'b87bb86c:host/src/operations/print.ts'], {
       cwd: root,
     }),
+  );
+  writeFileSync(
+    join(dir, 'print-deadline.ts'),
+    execFileSync(
+      'git',
+      ['show', 'b87bb86c:host/src/operations/print-deadline.ts'],
+      { cwd: root },
+    ),
   );
   const baseline = (await import(pathToFileURL(path).href))
     .PrintController as typeof PrintController;
@@ -22,7 +30,7 @@ try {
   const jobs = 2000;
   for (const [name, Controller] of [
     ['baseline', baseline],
-    ['deadlines', PrintController],
+    ['completionHistory', PrintController],
   ] as const) {
     const samples: number[] = [];
     for (let run = 0; run < 13; run++) {
@@ -35,6 +43,7 @@ try {
         start: effect,
         pause: effect,
         resume: effect,
+        finish: effect,
         stop: effect,
       };
       const start = performance.now();
@@ -67,11 +76,67 @@ try {
       microsecondsPerOperation: (samples[5] * 1000) / (jobs * 4),
     });
   }
+  const completionSamples: number[] = [];
+  for (let run = 0; run < 13; run++) {
+    let calls = 0;
+    const effect = async () => {
+      calls++;
+    };
+    const device: PrintDevice = {
+      prepare: effect,
+      start: effect,
+      pause: effect,
+      resume: effect,
+      finish: effect,
+      stop: effect,
+    };
+    const controller = new PrintController(
+      device,
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { maxRememberedRequests: jobs },
+    );
+    const start = performance.now();
+    for (let i = 0; i < jobs; i++) {
+      const requestId = 'job' + i;
+      await controller.start({
+        version: 1,
+        requestId,
+        fileId: 'file',
+        nozzle: 210,
+        bed: 60,
+      });
+      await controller.complete(requestId);
+      controller.reset(requestId);
+    }
+    const elapsed = performance.now() - start;
+    assert.equal(calls, jobs * 3);
+    assert.equal(controller.rememberedRequests, jobs);
+    assert.equal(controller.state, 'idle');
+    await controller.start({
+      version: 1,
+      requestId: 'job0',
+      fileId: 'file',
+      nozzle: 210,
+      bed: 60,
+    });
+    assert.equal(calls, jobs * 3);
+    if (run >= 2) completionSamples.push(elapsed);
+  }
+  completionSamples.sort((a, b) => a - b);
+  const completedJobs = {
+    sequence: ['start', 'complete', 'reset'],
+    jobsPerSample: jobs,
+    deviceCallsPerJob: 3,
+    medianMs: completionSamples[5],
+    p95Ms: completionSamples[10],
+    microsecondsPerJob: (completionSamples[5] * 1000) / jobs,
+  };
   console.log(
     JSON.stringify(
       {
         node: process.version,
-        baseline: 'aab05679',
+        baseline: 'b87bb86c',
         jobsPerSample: jobs,
         operationsPerJob: 4,
         samples: 11,
@@ -79,6 +144,7 @@ try {
         scope:
           'Resolved simulated device ACKs; complete start/pause/resume/cancel lifecycle with equal call counts. Measures controller overhead, not heater, motion, serial latency or hardware safety.',
         results,
+        completedJobs,
       },
       null,
       2,
