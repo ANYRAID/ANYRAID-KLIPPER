@@ -62,6 +62,9 @@ interface PrintRecord {
   started: Promise<void>;
   completed?: Promise<void>;
 }
+// A journal represents one persistent printer owner within this process.
+// Never release it on reset/failure: old controller references remain callable.
+const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
   #journal: PrintJournal | undefined;
   #journalRecord: JournalRecord | undefined;
@@ -130,6 +133,11 @@ export class PrintController {
     for (const value of Object.values(this.#deadlines))
       if (!Number.isSafeInteger(value) || value < 1 || value > 86400000)
         throw new RangeError('Invalid print deadline');
+    if (options.journal) {
+      if (journalOwners.has(options.journal))
+        throw new Error('Print journal already owned by a controller');
+      journalOwners.add(options.journal);
+    }
     this.#journal = options.journal;
     this.#device = device;
     this.#limits = { ...limits };
@@ -145,16 +153,23 @@ export class PrintController {
   ): Promise<PrintController> {
     if (!options?.journal)
       throw new TypeError('Restoration requires a print journal');
+    const journal = options.journal;
     const controller = new PrintController(device, limits, deadlines, options);
-    const record = await options.journal.active();
-    if (record) {
-      if (record.state !== 'interrupted')
-        throw new Error('Cannot adopt a live print journal');
-      controller.#journalRecord = record;
-      controller.#start = Object.freeze({ ...record.request });
-      controller.#state = 'interrupted';
+    try {
+      const record = await journal.active();
+      if (record) {
+        if (record.state !== 'interrupted')
+          throw new Error('Cannot adopt a live print journal');
+        controller.#journalRecord = record;
+        controller.#start = Object.freeze({ ...record.request });
+        controller.#state = 'interrupted';
+      }
+      return controller;
+    } catch (error) {
+      // No device action or controller reference escaped failed restoration.
+      journalOwners.delete(journal);
+      throw error;
     }
-    return controller;
   }
   start(input: StartPrint): Promise<void> {
     // Validate all user parameters before acquiring a device or causing effects.

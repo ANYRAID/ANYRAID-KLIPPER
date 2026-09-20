@@ -12,7 +12,7 @@ try {
   const path = join(dir, 'baseline.mts');
   writeFileSync(
     path,
-    execFileSync('git', ['show', '366ac78c:host/src/operations/print.ts'], {
+    execFileSync('git', ['show', 'cbc8ca9d:host/src/operations/print.ts'], {
       cwd: root,
     }),
   );
@@ -20,7 +20,7 @@ try {
     join(dir, 'print-deadline.ts'),
     execFileSync(
       'git',
-      ['show', '366ac78c:host/src/operations/print-deadline.ts'],
+      ['show', 'cbc8ca9d:host/src/operations/print-deadline.ts'],
       { cwd: root },
     ),
   );
@@ -136,7 +136,7 @@ try {
     JSON.stringify(
       {
         node: process.version,
-        baseline: '366ac78c',
+        baseline: 'cbc8ca9d',
         jobsPerSample: jobs,
         operationsPerJob: 4,
         samples: 11,

@@ -124,8 +124,7 @@ test('failed storage acknowledgement prevents effects and reset cannot erase sta
   await assert.rejects(c.cancel());
   assert.equal(c.state, 'failed');
   assert.throws(() => c.reset('job'));
-  const fresh = f.controller();
-  await assert.rejects(fresh.start({ ...request, requestId: 'new' }));
+  assert.throws(() => f.controller(), /already owned/);
   assert.equal(f.calls.filter((x) => x === 'start').length, 1);
 });
 test('cancel during preparation drains action before persisting cancellation', async (t) => {
@@ -257,7 +256,7 @@ test('restore refuses to adopt a live record or hide a closed journal', async (t
       {},
       { journal: f.journal },
     ),
-    /live/,
+    /already owned/,
   );
   assert.equal(f.calls.length, before);
   await f.journal.close();
@@ -335,4 +334,76 @@ test('restoring a terminal journal yields idle without device calls', async (t) 
   assert.equal(restored.currentRequest, undefined);
   assert.equal(f.calls.length, before);
   assert.equal((await f.journal.get('job'))?.state, 'completed');
+});
+test('one journal cannot be bound to competing controllers even after terminal reset', async (t) => {
+  const f = await setup(t),
+    controller = f.controller();
+  assert.throws(() => f.controller(), /already owned/);
+  await controller.start(request);
+  assert.throws(() => f.controller(), /already owned/);
+  await controller.cancel();
+  controller.reset('job');
+  assert.throws(() => f.controller(), /already owned/);
+  assert.equal(f.calls.filter((x) => x === 'start').length, 1);
+});
+test('pending restoration claims journal before asynchronous lookup and failed read releases claim', async (t) => {
+  const f = await setup(t),
+    entered = deferred(),
+    release = deferred();
+  const active = f.journal.active.bind(f.journal);
+  f.journal.active = async () => {
+    entered.resolve();
+    await release.promise;
+    throw new Error('Read unavailable');
+  };
+  const options = { journal: f.journal };
+  const restoring = PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    {},
+    options,
+  );
+  const failure = assert.rejects(restoring, /Read unavailable/);
+  await entered.promise;
+  options.journal = undefined as never;
+  assert.throws(() => f.controller(), /already owned/);
+  release.resolve();
+  await failure;
+  assert.deepEqual(f.calls, []);
+  f.journal.active = active;
+  const controller = await PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    {},
+    { journal: f.journal },
+  );
+  await controller.start(request);
+  await controller.cancel();
+});
+test('validation and rejected live-record restoration do not consume journal ownership', async (t) => {
+  const f = await setup(t);
+  assert.throws(
+    () =>
+      new PrintController(
+        f.device,
+        { maxNozzle: -1, maxBed: 110 },
+        {},
+        { journal: f.journal },
+      ),
+  );
+  await f.journal.reserve(request);
+  await assert.rejects(
+    PrintController.restore(
+      f.device,
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { journal: f.journal },
+    ),
+    /live/,
+  );
+  // Removing the failed restore's claim is observable without allowing replay.
+  const controller = f.controller();
+  await assert.rejects(controller.start(request), /reconciliation/);
+  assert.equal(f.calls.includes('start'), false);
+  assert.equal((await f.journal.get('job'))?.state, 'reserved');
 });
