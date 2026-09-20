@@ -6,7 +6,7 @@ export class TemperatureState {
  #config:TemperatureConfig;#inverseSmooth:number;#target=0;#last=0;#time=0;#smooth=0;#received=false;#fault:string|undefined;
  constructor(config:TemperatureConfig) {
   if(![config.minimum,config.maximum,config.minimumExtrude,config.smoothTime].every(Number.isFinite)||config.minimum< -273.15||config.maximum<=config.minimum
-   ||config.minimumExtrude<config.minimum||config.minimumExtrude>config.maximum||config.smoothTime<=0)throw new RangeError('Invalid temperature configuration');
+   ||config.minimumExtrude<config.minimum||config.smoothTime<=0)throw new RangeError('Invalid temperature configuration');
   this.#config={...config};this.#inverseSmooth=1/config.smoothTime;
   if(!Number.isFinite(this.#inverseSmooth))throw new RangeError('Temperature smoothing overflow');
  }
