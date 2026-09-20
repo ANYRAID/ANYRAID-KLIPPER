@@ -15,6 +15,7 @@ export class ThermalPrintDevice implements PrintDevice {
   heaters.subscribeShutdown(reason=>{this.#setFault(new Error(reason));void this.stop().catch(()=>{});});
   device.subscribeFault?.(cause=>{this.#setFault(cause);void this.stop().catch(()=>{});});
  }
+ subscribeEOF(listener:(requestId:string)=>void):()=>void{return this.#device.subscribeEOF?.(listener)??(()=>{});}
  subscribeFault(listener:(cause:unknown)=>void):()=>void{
   if(typeof listener!=='function'||this.#listeners.has(listener)||this.#listeners.size>=64)throw new Error('Invalid print fault subscription');
   if(this.#fault){listener(this.#fault);return ()=>{};}

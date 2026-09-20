@@ -24,6 +24,8 @@ export interface StartPrint {
 export interface PrintDevice {
   /** Synchronous fault notification; it must not wait for controller cleanup. */
   subscribeFault?(listener:(cause:unknown)=>void):()=>void;
+  /** EOF reports command consumption only; finish must still drain the device. */
+  subscribeEOF?(listener:(requestId:string)=>void):()=>void;
   /** All methods resolve only after the device acknowledges the action. */
   prepare(request: Readonly<StartPrint>, signal: AbortSignal): Promise<void>;
   start(fileId: string, signal: AbortSignal): Promise<void>;
@@ -68,13 +70,27 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
-  #faultStop:Promise<void>|undefined;#faultCause:unknown;
-  get failure():unknown{return this.#faultCause;}
+  #deviceSubscriptions:(()=>void)[]=[];
+  #detachDevice():unknown[]{
+    const errors:unknown[]=[];for(const detach of this.#deviceSubscriptions.splice(0).reverse())try{detach();}catch(error){errors.push(error);}return errors;
+  }
+  #eofPending:string|undefined;
+  #receivedEOF(requestId:string):void{
+    if(requestId!==this.#start?.requestId||!['preparing','printing','pausing','paused','resuming'].includes(this.#state))return;
+    this.#eofPending=requestId;this.#finishEOF();
+  }
+  #finishEOF():void{
+    if(!this.#eofPending||this.#active||this.#state!=='printing'||this.#faultStop)return;
+    const requestId=this.#eofPending;this.#eofPending=undefined;
+    void this.complete(requestId).catch(()=>{});
+  }
+  #faultStop:Promise<void>|undefined;#faultCause:unknown;#operationError:unknown;
+  get failure():unknown{return this.#faultCause??this.#operationError;}
   /** Latch an asynchronous device fault and await the same safety cleanup. */
   fault(cause:unknown):Promise<void>{
     if(this.#faultStop)return this.#faultStop;
     const deferred=Promise.withResolvers<void>();this.#faultStop=deferred.promise;
-    this.#faultCause=cause;this.#state='failed';
+    this.#eofPending=undefined;this.#faultCause=cause;this.#state='failed';
     this.#abort?.abort(cause);
     void Promise.resolve().then(()=>printDeadline(this.#ensureStopped(),'safe stop',this.#deadlines.stopMs)).then(deferred.resolve,deferred.reject);
     return deferred.promise;
@@ -155,8 +171,13 @@ export class PrintController {
     this.#journal = options.journal;
     this.#device = device;
     this.#limits = { ...limits };
-    try{device.subscribeFault?.(cause=>{void this.fault(cause).catch(()=>{});});}
-    catch(error){if(options.journal)journalOwners.delete(options.journal);throw error;}
+    try{
+      if(device.subscribeFault)this.#deviceSubscriptions.push(device.subscribeFault(cause=>{void this.fault(cause).catch(()=>{});}));
+      if(device.subscribeEOF)this.#deviceSubscriptions.push(device.subscribeEOF(requestId=>this.#receivedEOF(requestId)));
+    }catch(error){
+      const cleanup=this.#detachDevice();if(options.journal)journalOwners.delete(options.journal);
+      if(cleanup.length)throw new AggregateError([error,...cleanup],'Print subscription rollback failed',{cause:error});throw error;
+    }
   }
   /** Restore metadata only. Interrupted jobs require acknowledged cancellation;
    * no heating, movement, homing, or file replay occurs during restoration.
@@ -185,7 +206,8 @@ export class PrintController {
       return controller;
     } catch (error) {
       // No device action or controller reference escaped failed restoration.
-      journalOwners.delete(journal);
+      const cleanup=controller.#detachDevice();journalOwners.delete(journal);
+      if(cleanup.length)throw new AggregateError([error,...cleanup],'Print restoration cleanup failed',{cause:error});
       throw error;
     }
   }
@@ -330,7 +352,7 @@ export class PrintController {
       !['completed', 'cancelled'].includes(this.#journalRecord.state)
     )
       throw new Error('Cannot reset before durable terminal acknowledgement');
-    this.#journalRecord = undefined;
+    this.#journalRecord = undefined;this.#operationError=undefined;
     this.#state = 'idle';
     this.#lastReset = requestId;
     this.#start = undefined;
@@ -347,7 +369,7 @@ export class PrintController {
       this.#state === 'completed'
     )
       return Promise.resolve();
-    this.#state = 'cancelling';
+    this.#eofPending=undefined;this.#state = 'cancelling';
     const active = this.#active;
     const cancellation = (async () => {
       await Promise.resolve();
@@ -489,6 +511,7 @@ export class PrintController {
         this.#state = success;
       } catch (error) {
         if (this.#state !== 'cancelling') {
+          this.#operationError??=error;
           this.#state = 'failed';
           try {
             await printDeadline(
@@ -507,6 +530,7 @@ export class PrintController {
       } finally {
         this.#active = undefined;
         this.#abort = undefined;
+        this.#finishEOF();
       }
     })();
     return this.#active;
