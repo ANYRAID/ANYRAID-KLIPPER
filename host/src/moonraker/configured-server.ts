@@ -1,5 +1,6 @@
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {SubscriptionDelivery} from './subscription-delivery.ts';
+import {KlippyNotifications} from './klippy-notifications.ts';
 import type {DeliveryReport} from './notifications.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
@@ -11,6 +12,7 @@ import {EndpointRegistry} from './endpoints.ts';
 import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
 export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
+const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
@@ -35,7 +37,7 @@ export class ConfiguredMoonraker {
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
- #gcodeNotifications={received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0};
+ #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
@@ -53,22 +55,32 @@ export class ConfiguredMoonraker {
   * retry or replay is performed by HTTP server startup. */
  attachKlippy(path:string,options:Omit<KlippyInitializationOptions,'version'|'onSnapshot'>={}):Promise<KlippySnapshot>{
   if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
+  let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
   const runtime=new KlippyLifecycle({...options,version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
+   if(!snapshot.connected)this.#subscriptions?.close();
+   if(routedEndpoints!==snapshot.endpoints||routedInitialization!==snapshot.initialized){
    const exposed=new Set(snapshot.endpoints.filter(name=>!['list_endpoints','gcode/subscribe_output','register_remote_method','objects/subscribe'].includes(name))),added=new Map<string,()=>void>();
-   if(snapshot.initialized&&snapshot.endpoints.includes('objects/subscribe'))exposed.add('objects/subscribe');if(!snapshot.connected)this.#subscriptions?.close();
+   if(snapshot.initialized&&snapshot.endpoints.includes('objects/subscribe'))exposed.add('objects/subscribe');
    try{for(const name of exposed)if(!this.#klippyRoutes.has(name))added.set(name,name==='objects/subscribe'?this.endpoints.register({endpoint:name,methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):this.endpoints.register({endpoint:name,methods:['GET','POST'],remote:true},(params,_verb,context)=>runtime.request(name,{...params},{signal:context.signal})));}catch(error){for(const release of added.values())release();throw error;}
    for(const [name,release] of this.#klippyRoutes)if(!exposed.has(name)){release();this.#klippyRoutes.delete(name);}for(const [name,release] of added)this.#klippyRoutes.set(name,release);
+   routedEndpoints=snapshot.endpoints;routedInitialization=snapshot.initialized;
+   }
    if(!this.#stopping)this.setInformation({...this.#base,connected:snapshot.connected,state:snapshot.state,missingRequirements:snapshot.missingRequirements});
+   for(const method of this.#klippyEvents.observe(snapshot))this.#broadcastTracked(method,[],this.#klippyNotifications);
   }});this.#klippy=runtime;this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>runtime.subscribe(id,objects,signal),remove:id=>runtime.removeSubscription(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time]),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});return runtime.initialize(path);
  }
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
+ get klippyNotifications(){return {...this.#klippyNotifications};}
  #broadcastGcode(response:string):void{
-  this.#gcodeNotifications.received++;if(this.#stopping||this.#network.status.phase!=='listening'||!this.#network.status.notifications){this.#gcodeNotifications.disabled++;return;}
-  const consume=(report:DeliveryReport)=>{for(const key of ['sent','denied','closed','overflow','failed'] as const)this.#gcodeNotifications[key]+=report[key];};
+  this.#broadcastTracked('notify_gcode_response',[response],this.#gcodeNotifications);
+ }
+ #broadcastTracked(method:string,params:readonly Json[],metrics:ReturnType<typeof notificationMetrics>):void{
+  metrics.received++;if(this.#stopping||this.#network.status.phase!=='listening'||!this.#network.status.notifications){metrics.disabled++;return;}
+  const consume=(report:DeliveryReport)=>{for(const key of ['sent','denied','closed','overflow','failed'] as const)metrics[key]+=report[key];};
   // Client output cannot hold the Klippy callback lane or stop a print.
   // The network owns bounded authorization/output work and waits for it on close.
-  try{const result=this.#network.dispatchBroadcast('notify_gcode_response',[response]);if('then' in result)void result.then(consume,()=>{this.#gcodeNotifications.rejected++;});else consume(result);}catch{this.#gcodeNotifications.rejected++;}
+  try{const result=this.#network.dispatchBroadcast(method,params);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
  }
  get klippy(){return this.#klippy?.snapshot??null;}
  get clients(){return this.#network.clients;}

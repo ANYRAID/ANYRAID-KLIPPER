@@ -1339,21 +1339,24 @@
       "line": 127,
       "method": "register_notification",
       "targetExpression": "\"server:klippy_ready\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Full upstream event bus, reconnect supervision and non-WebSocket transports remain incomplete."
     },
     {
       "file": "moonraker/server.py",
       "line": 128,
       "method": "register_notification",
       "targetExpression": "\"server:klippy_shutdown\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Full upstream event bus, reconnect supervision and non-WebSocket transports remain incomplete."
     },
     {
       "file": "moonraker/server.py",
       "line": 129,
       "method": "register_notification",
       "targetExpression": "\"server:klippy_disconnect\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Full upstream event bus, reconnect supervision and non-WebSocket transports remain incomplete."
     },
     {
       "file": "moonraker/server.py",
