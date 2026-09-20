@@ -19,11 +19,12 @@ export class KlippyLifecycle {
  #snapshot:KlippySnapshot=freeze({connected:false,identified:false,initialized:false,state:'disconnected',stateMessage:'',info:{},endpoints:[],requirementsChecked:false,missingRequirements:[]});
  // A per-generation capability: later shutdown/error does not revoke it.
  #remoteMethodsEnabled=false;
+ #remoteMethodFailures=new Map<string,{status:number;message:string}>();
  #remoteMethods=new Map<string,()=>void>();#registeredRemoteMethods=new Set<string>();#nextRemoteGeneration=1;
  constructor(options:KlippyInitializationOptions){if(typeof options.version!=='string'||!options.version||options.version.length>1024)throw new ApiError(400,'Invalid Moonraker version');this.#options={...options};this.#cache=new KlippyStatusCache(options.statusCacheLimits);this.#poll=bound(options.pollIntervalMs,250,60000);this.#timeout=bound(options.startupTimeoutMs,300000,2147483647);this.#socket=new KlippySocket(options.socketLimits);
   this.#subscriptions=new SubscriptionManager({cache:this.#cache,base:{webhooks:null},onSnapshotDifference:status=>{try{if(Object.hasOwn(status,"webhooks"))this.#webhooks(status.webhooks);}catch(error){void this.#socket.close().catch(()=>{});throw error;}},request:(objects,signal)=>this.#socket.request('objects/subscribe',{objects:objects as Json,response_template:{method:'process_status_update'}},{signal,timeoutMs:20000}),deliver:(client,status,eventtime)=>this.#options.onSubscriptionStatus?.(client,status,eventtime)});
   this.#socket.registerMethod('process_status_update',(p,signal)=>this.#status(p,signal));this.#socket.registerMethod('process_gcode_response',(p,signal)=>{if(typeof p.response!=='string')throw new ApiError(502,'Invalid GCode response');return this.#options.onGcode?.(p.response,signal);});
-  this.#socket.signal.addEventListener('abort',()=>{this.#remoteMethodsEnabled=false;this.#registeredRemoteMethods.clear();void this.#subscriptions.close();this.#cache.clear();this.#revision++;this.#publish({connected:false,initialized:false,state:'disconnected',endpoints:[]});},{once:true});
+  this.#socket.signal.addEventListener('abort',()=>{this.#remoteMethodsEnabled=false;this.#remoteMethodFailures.clear();this.#registeredRemoteMethods.clear();void this.#subscriptions.close();this.#cache.clear();this.#revision++;this.#publish({connected:false,initialized:false,state:'disconnected',endpoints:[]});},{once:true});
   if(options.remoteMethods!==undefined){if(!options.remoteMethods||typeof options.remoteMethods!=='object'||Array.isArray(options.remoteMethods)||![Object.prototype,null].includes(Object.getPrototypeOf(options.remoteMethods)))throw new ApiError(400,'Invalid remote method configuration');for(const [name,handler] of Object.entries(options.remoteMethods))this.registerRemoteMethod(name,handler);}
  }
  /** Static component registration only. Releasing removes local ownership;
@@ -34,7 +35,7 @@ export class KlippyLifecycle {
  }
  #installRemoteMethod(name:string,handler:KlippyMethod,callbackName:string):()=>void{
   if(typeof name!=='string'||!name||name.length>256||name.includes('\0')||name.startsWith('__mr_')||['process_status_update','process_gcode_response'].includes(name)||typeof handler!=='function'||this.#remoteMethods.has(name))throw new ApiError(400,'Invalid or duplicate remote method');
-  if(this.#remoteMethods.size>=256)throw new ApiError(429,'Remote method capacity exceeded');const remove=this.#socket.registerMethod(callbackName,handler);let active=true;const release=()=>{if(!active)return;active=false;if(this.#remoteMethods.get(name)===release){this.#remoteMethods.delete(name);this.#registeredRemoteMethods.delete(name);}remove();};this.#remoteMethods.set(name,release);return release;
+  if(this.#remoteMethods.size>=256)throw new ApiError(429,'Remote method capacity exceeded');const remove=this.#socket.registerMethod(callbackName,handler);let active=true;const release=()=>{if(!active)return;active=false;if(this.#remoteMethods.get(name)===release){this.#remoteMethods.delete(name);this.#remoteMethodFailures.delete(name);this.#registeredRemoteMethods.delete(name);}remove();};this.#remoteMethods.set(name,release);return release;
  }
  /** Live generation-scoped registration. A unique wire callback name prevents
   * late messages for an old owner from reaching a replacement of the same name. */
@@ -49,6 +50,7 @@ export class KlippyLifecycle {
   try{await this.#socket.request('register_remote_method',{remote_method:name,response_template:{method:callbackName}},{...options,timeoutMs:options.timeoutMs??20000,signal});signal.throwIfAborted();this.#registeredRemoteMethods.add(name);return release;}catch(error){release();throw error;}finally{options.signal?.removeEventListener('abort',cancelRegistration);}
  }
  get remoteRegistrationReady(){return this.#remoteMethodsEnabled&&this.#snapshot.connected&&this.#snapshot.state!=='disconnected'&&!this.signal.aborted;}
+ get remoteMethodFailures(){return [...this.#remoteMethodFailures].map(([name,error])=>({name,...error}));}
  get remoteMethods(){return {configured:[...this.#remoteMethods.keys()],registered:[...this.#registeredRemoteMethods]};}
  get cachedStatus():StatusView{return this.#cache.read();}
  get cacheMetrics(){return this.#cache.metrics;}
@@ -71,7 +73,10 @@ export class KlippyLifecycle {
    await request('gcode/subscribe_output',{response_template:{method:'process_gcode_response'}});await endpoints();
    const registerMethods=this.#snapshot.state==='ready';
    if(registerMethods){const objects=await request('objects/list');if(!object(objects))throw new ApiError(502,'Invalid Klippy object list');const available=new Set(strings(objects.objects,'object list'));this.#publish({requirementsChecked:true,missingRequirements:['virtual_sdcard','display_status','pause_resume'].filter(v=>!available.has(v))});}
-   if(registerMethods)for(const [name,owner] of this.#remoteMethods){await request('register_remote_method',{response_template:{method:name},remote_method:name});if(this.#remoteMethods.get(name)===owner)this.#registeredRemoteMethods.add(name);}
+   if(registerMethods)for(const [name,owner] of this.#remoteMethods){
+    try{await request('register_remote_method',{response_template:{method:name},remote_method:name});if(this.#remoteMethods.get(name)===owner)this.#registeredRemoteMethods.add(name);}
+    catch(error){signal.throwIfAborted();if(!(error instanceof ApiError))throw error;if(this.#remoteMethods.get(name)===owner)this.#remoteMethodFailures.set(name,{status:error.status,message:error.message.slice(0,4096)});}
+   }
    if(registerMethods){this.#remoteMethodsEnabled=true;await this.#options.onRemoteMethodsReady?.();signal.throwIfAborted();}
    signal.throwIfAborted();this.#publish({initialized:true});signal.throwIfAborted();return this.#snapshot;
   }catch(error){try{await this.#socket.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Klippy initialization and cleanup failed');}throw this.#observerError??(budget.signal.aborted?budget.signal.reason:error);}

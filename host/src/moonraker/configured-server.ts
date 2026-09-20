@@ -122,6 +122,7 @@ export class ConfiguredMoonraker {
   try{const result=this.#network.dispatchBroadcast(method,params);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
  }
  get klippy(){return this.#klippy?.snapshot??null;}
+ get klippyRemoteMethodFailures(){return this.#klippy?.remoteMethodFailures??[];}
  get klippyRemoteMethods(){return this.#klippy?.remoteMethods??null;}
  get agentRemoteMethods(){return this.#agentMethods.registrations;}
  get agentMethodDeliveries(){return this.#agentMethods.metrics;}
@@ -136,7 +137,7 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
-  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);this.#information.replace({...copy,warnings:[...new Set([...copy.warnings,...this.reader.warnings()])]});this.#base=copy;
+  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);this.#information.replace({...copy,warnings:[...new Set([...copy.warnings,...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
