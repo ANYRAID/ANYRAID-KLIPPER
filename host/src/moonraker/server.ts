@@ -1,3 +1,7 @@
+import type {ThumbnailDownloads} from './thumbnail-download.ts';
+import {Readable} from 'node:stream';
+import {pipeline} from 'node:stream/promises';
+import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {ClientCalls} from './client-calls.ts';
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
 import {ResponseCompletion} from './response-completion.ts';
@@ -15,6 +19,7 @@ export interface NetworkAuthorization {
 }
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
+ thumbnails?:ThumbnailDownloads;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
@@ -90,7 +95,7 @@ export class MoonrakerNetwork {
   const origin=request.headers.origin;if(origin===undefined)return true;
   try{const url=new URL(origin);return this.#origins.has(origin)||['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase();}catch{return false;}
  }
- #error(response:ServerResponse,status:number,message:string):void{if(response.destroyed||response.writableEnded)return;response.writeHead(status,{'content-type':'application/json; charset=UTF-8'});response.end(JSON.stringify({error:{code:status,message}}));}
+ #error(response:ServerResponse,status:number,message:string):void{if(response.destroyed||response.writableEnded)return;if(response.headersSent){response.destroy();return;}response.writeHead(status,{'content-type':'application/json; charset=UTF-8'});response.end(JSON.stringify({error:{code:status,message}}));}
  #rejectUpgrade(socket:Duplex,status:number):void{socket.end(`HTTP/1.1 ${status} Rejected\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);}
  #launch(run:(signal:AbortSignal)=>Promise<void>,parent?:AbortSignal):void{
   const abort=new AbortController(),cancel=()=>abort.abort(parent?.reason??new Error('Client disconnected'));parent?.addEventListener('abort',cancel,{once:true});if(parent?.aborted)cancel();
@@ -108,28 +113,43 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',allowed=isRPC?['POST']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC?['POST']:isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');}
-  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key'});response.end();return;}
+  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, If-None-Match'});response.end();return;}
   if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
   if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
   this.#launch(async signal=>{
-   let reserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
+   let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    if(isThumbnail){
+     const download=await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
+     if(!Number.isSafeInteger(download.size)||download.size<1||download.size>8*maxBytes)throw new ApiError(500,'Invalid thumbnail size');
+     response.setHeader('content-type',download.contentType);response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');
+     if(request.method==='HEAD'&&!request.headers['if-none-match']){response.setHeader('content-length',download.size);response.end();return;}
+     if(download.size>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');
+     this.#outputBytes+=download.size;outputReserved=download.size;
+     const image=await download.read();signal.throwIfAborted();if(image.bytes.length!==download.size)throw new ApiError(500,'Thumbnail size changed');
+     const etag='"'+image.sha256+'"';response.setHeader('etag',etag);
+     const condition=request.headers['if-none-match'];if(condition?.split(',').some(value=>value.trim()==='*'||value.trim().replace(/^W\//,'')===etag)){response.writeHead(304);response.end();return;}
+     response.setHeader('content-length',image.bytes.length);
+     if(request.method==='HEAD'){response.end();return;}
+     async function* chunks(){for(let offset=0;offset<image.bytes.length;offset+=65536){signal.throwIfAborted();yield image.bytes.subarray(offset,offset+65536);await yieldImmediate(undefined,{signal});}}
+     await pipeline(Readable.from(chunks(),{objectMode:false,highWaterMark:65536}),response,{signal});return;
+    }
     context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};
     context.subscriptionConnection=()=>this.#subscriptionConnection(request,body,signal);
     const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
     if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');if(completion){const sent=await new Promise<boolean>(resolve=>{const closed=()=>{response.off('finish',finished);resolve(false);},finished=()=>{response.off('close',closed);resolve(true);};response.once('close',closed);response.once('finish',finished);response.end(result??undefined);});if(!completion.complete(sent))response.destroy(completion.error);}else response.end(result??undefined);}
    }catch(error){if(signal.aborted)this.#error(response,503,'Request cancelled');else if(!isRPC&&error instanceof ApiError)this.#error(response,Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500,error.message);else this.#error(response,isRPC?400:500,isRPC?'Invalid request body':'Internal Server Error');}
-   finally{if(completion&&!completion.complete(false))response.destroy(completion.error);this.#buffered-=reserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
+   finally{if(completion&&!completion.complete(false))response.destroy(completion.error);this.#buffered-=reserved;this.#outputBytes-=outputReserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
   },parent.signal);
  }
  #connected(request:IncomingMessage,socket:WebSocket):void{

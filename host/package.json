@@ -142,7 +142,8 @@
     "bench:metadata-extractor": "node bench/metadata-extractor.ts",
     "bench:thumbnail-images": "node bench/thumbnail-images.ts",
     "bench:thumbnail-process": "node bench/thumbnail-process.ts",
-    "bench:thumbnail-storage": "node bench/thumbnail-storage.ts"
+    "bench:thumbnail-storage": "node bench/thumbnail-storage.ts",
+    "bench:thumbnail-download": "node bench/thumbnail-download.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

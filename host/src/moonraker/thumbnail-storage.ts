@@ -6,6 +6,7 @@ import type {ThumbnailImage} from './thumbnail-images.ts';
 import {FileMetadataStore,type MetadataTicket} from './file-metadata.ts';
 import type {Json} from './rpc.ts';
 const MAX_IMAGES=65,MAX_CONTENT=8*1024**2,MAX_HEADER=64*1024,MAX_BUNDLE=12+MAX_HEADER+MAX_CONTENT;
+export class ThumbnailStorageBusyError extends Error {constructor(){super('Thumbnail storage operation limit exceeded');}}
 interface Member {width:number;height:number;format:'png'|'jpg';miniature:boolean;offset:number;size:number;sha256:string;}
 interface Bundle {bytes:Buffer;start:number;members:Member[];}
 const idCheck=(id:string)=>{if(typeof id!=='string'||!/^thumb-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id))throw new TypeError('Invalid thumbnail bundle identifier');};
@@ -34,7 +35,7 @@ export class ThumbnailStorage {
  }
  static newId():string{return 'thumb-'+randomUUID();}
  get status(){return {closed:this.#closed,pending:this.#pending.size,cacheBytes:this.#cacheBytes,cachedBundles:this.#cache.size,staging:this.#budget.status,storage:this.#store.status};}
- #run<T>(operation:()=>Promise<T>):Promise<T>{if(this.#closed)return Promise.reject(new Error('Thumbnail storage is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new Error('Thumbnail storage operation limit exceeded'));const task=Promise.resolve().then(operation);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));}
+ #run<T>(operation:()=>Promise<T>):Promise<T>{if(this.#closed)return Promise.reject(new Error('Thumbnail storage is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new ThumbnailStorageBusyError());const task=Promise.resolve().then(operation);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));}
  #drop(id:string):void{const cached=this.#cache.get(id);if(cached){this.#cacheBytes-=cached.bytes.length;this.#cache.delete(id);}}
  async #load(id:string,signal:AbortSignal):Promise<Bundle>{
   idCheck(id);signal.throwIfAborted();const cached=this.#cache.get(id);if(cached){this.#cache.delete(id);this.#cache.set(id,cached);return cached;}
@@ -44,7 +45,7 @@ export class ThumbnailStorage {
  #metadata(id:string,bundle:Bundle){return {id,thumbnails:bundle.members.map((m,i)=>({width:m.width,height:m.height,size:m.size,relative_path:`.thumbs/${id}/${i}.${m.format}`}))};}
  publish(id:string,images:readonly ThumbnailImage[],signal:AbortSignal){return this.#run(async()=>{idCheck(id);signal.throwIfAborted();const bundle=encode(images),source=await sealedBuffer(bundle.bytes,signal,this.#budget);try{await this.#store.publish(id,'thumbnail-bundle',source.file,signal);return this.#metadata(id,bundle);}finally{await source.close();}});}
  inspect(id:string,signal:AbortSignal){return this.#run(async()=>this.#metadata(id,await this.#load(id,signal)));}
- read(id:string,index:number,signal:AbortSignal){return this.#run(async()=>{if(!Number.isSafeInteger(index)||index<0||index>=MAX_IMAGES)throw new RangeError('Invalid thumbnail index');const bundle=await this.#load(id,signal),member=bundle.members[index];if(!member)throw new Error('Thumbnail index not found');const bytes=Buffer.from(bundle.bytes.subarray(bundle.start+member.offset,bundle.start+member.offset+member.size));return {bytes,contentType:member.format==='png'?'image/png':'image/jpeg',sha256:member.sha256,width:member.width,height:member.height};});}
+ read(id:string,index:number,signal:AbortSignal,maxBytes=MAX_CONTENT){return this.#run(async()=>{if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>MAX_CONTENT)throw new RangeError('Invalid thumbnail read limit');if(!Number.isSafeInteger(index)||index<0||index>=MAX_IMAGES)throw new RangeError('Invalid thumbnail index');const bundle=await this.#load(id,signal),member=bundle.members[index];if(!member)throw new Error('Thumbnail index not found');if(member.size>maxBytes)throw new RangeError('Thumbnail read limit exceeded');const bytes=Buffer.from(bundle.bytes.subarray(bundle.start+member.offset,bundle.start+member.offset+member.size));return {bytes,contentType:member.format==='png'?'image/png':'image/jpeg',sha256:member.sha256,width:member.width,height:member.height};});}
  remove(id:string,signal:AbortSignal){return this.#run(async()=>{idCheck(id);this.#epoch++;this.#drop(id);await this.#store.remove(id,signal);});}
  close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#epoch++;this.#cache.clear();this.#cacheBytes=0;this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#store.close());return this.#closing;}
 }
