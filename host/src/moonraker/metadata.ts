@@ -1,5 +1,5 @@
 // Server metadata contracts follow pinned moonraker/server.py (GPL-3.0-or-later).
-import {dirname,isAbsolute,relative,sep,normalize} from 'node:path';
+import {dirname,isAbsolute,sep,normalize} from 'node:path';
 import {ApiError,validateJson,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
 export type KlippyState='disconnected'|'startup'|'ready'|'error'|'shutdown';
@@ -39,7 +39,9 @@ export class ServerConfiguration {
   if(!s.parsed||typeof s.parsed!=='object'||Array.isArray(s.parsed)||!s.original||typeof s.original!=='object'||Array.isArray(s.original))throw new Error('Invalid configuration sections');
   for(const section of Object.values(s.parsed))if(!section||typeof section!=='object'||Array.isArray(section))throw new Error('Parsed configuration sections must be objects');
   for(const section of Object.values(s.original))if(!section||typeof section!=='object'||Array.isArray(section)||Object.values(section).some(v=>typeof v!=='string'))throw new Error('Original configuration values must be strings');
-  const parent=dirname(s.primaryFile),files=s.files.map(file=>{if(!isAbsolute(file.filename)||normalize(file.filename)!==file.filename||file.filename.includes('\0'))throw new Error('Configuration requires canonical absolute paths');const path=relative(parent,file.filename);return {filename:path==='..'||path.startsWith(`..${sep}`)||isAbsolute(path)?file.filename:path,sections:strings(file.sections,1024)};});
+  // Upstream Path.relative_to is lexical: a source loaded through ../ keeps
+  // that provenance, including symlink/.. paths with different real targets.
+  const parent=dirname(s.primaryFile),prefix=parent.endsWith(sep)?parent:parent+sep,files=s.files.map(file=>{if(!isAbsolute(file.filename)||file.filename.includes('\0'))throw new Error('Configuration requires absolute source paths');const filename=file.filename.split(sep).filter(part=>part!==''&&part!=='.').join(sep);const absolute=sep+filename;return {filename:absolute.startsWith(prefix)?absolute.slice(prefix.length):absolute,sections:strings(file.sections,1024)};});
   const view={config:s.parsed,orig:s.original,files};checkJson(view);this.#view=freeze(structuredClone(view)) as unknown as Record<string,Json>;
  }
  read():Record<string,Json>{return this.#view;}
