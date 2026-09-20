@@ -54,3 +54,21 @@ test('native ACK may precede a query response without closing a subscribed senso
  const p=await pair();try{const w=wiring(p);await p.s.configure({oidCount:4,commands:w.sensor.plan.commands,init:w.sensor.plan.init},signal());w.sensor.activate();p.fw.delayEcho(15);const r=await p.s.query(p.s.dictionary.encode('echo',{value:42}),'echo_response',signal(),{timeout:1});assert.equal(r.message.parameters.value,42);assert.equal(p.stops,0);assert.equal(w.sensor.status.active,true);assert.equal(p.s.status.pendingAcks,0);
  }finally{await p.close();}
 });
+for(const intervening of [1,20])test(`delayed response uses current sequence after ${intervening} intervening ACKs`,async()=>{
+ const p=await pair();try{
+  p.fw.holdEcho();
+  const frames=p.fw.frames;
+  const echo=p.s.query(p.s.dictionary.encode('echo',{value:73}),'echo_response',signal(),{timeout:1});
+  const observed=echo.then(value=>({value,error:undefined}),error=>({value:undefined,error}));
+  await until(()=>p.fw.frames>frames);
+  for(let i=0;i<intervening;i++){
+   const config=await p.s.query(p.s.dictionary.encode('get_config',{}),'config',signal(),{timeout:1});
+   assert.equal(config.message.name,'config');
+  }
+  p.fw.releaseEcho();
+  const result=await observed;
+  assert.ifError(result.error);
+  assert.equal(result.value!.message.parameters.value,73);
+  assert.equal(p.stops,0);
+ }finally{await p.close();}
+});
