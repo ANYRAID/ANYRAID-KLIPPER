@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {mkdtemp,mkdir,writeFile,utimes,symlink,rm} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,utimes,symlink,rm,stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
@@ -37,7 +37,8 @@ try{
   const child=join(root,`d${d}`);await mkdir(child);
   for(let f=0;f<50;f++){const path=join(child,`part${f}.gcode`);await writeFile(path,'G1 X1\n');await utimes(path,1700000000,1700000000.125);}
  }
- for(const name of ['Z.g','a.GCODE','readonly.gcode','ignore.txt','\ue000.nc','\u{10000}.nc','İ.gco','Σ.gcode','\u{10d70}.gcode','\u{10d50}.gcode']){const path=join(root,name);await writeFile(path,'G1 X2\n');await utimes(path,-12.25,-12.25);}
+ for(const name of ['Z.g','a.GCODE','readonly.gcode','ignore.txt','\ue000.nc','\u{10000}.nc','İ.gco','Σ.gcode','\u{10d70}.gcode','\u{10d50}.gcode']){const path=join(root,name);await writeFile(path,'G1 X2\n');await utimes(path,new Date(-12250),new Date(-12250));}
+ assert.equal((await stat(join(root,'a.GCODE'))).mtimeMs,-12250);
  await mkdir(join(root,'private'));await writeFile(join(root,'private','hidden.gcode'),'secret');
  await mkdir(join(root,'.git'));await writeFile(join(root,'.git','hidden.gcode'),'secret');
  await symlink('..',join(root,'d0','loop'));await symlink('d0',join(root,'alias'));await symlink('a.GCODE',join(root,'link.gcode'));await symlink('missing',join(root,'broken.gcode'));
