@@ -87,7 +87,8 @@
     "bench:klippy-lifecycle": "node bench/klippy-lifecycle.ts",
     "bench:subscription-status": "node bench/subscription-status.ts",
     "bench:subscription-manager": "node bench/subscription-manager.ts",
-    "bench:targeted-notifications": "node bench/targeted-notifications.ts"
+    "bench:targeted-notifications": "node bench/targeted-notifications.ts",
+    "bench:subscription-journal": "node bench/subscription-journal.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
