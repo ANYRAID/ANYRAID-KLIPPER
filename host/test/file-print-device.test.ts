@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,open,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {createSealedPrintReader} from '../src/gcode/sealed-file.ts';
 import {FilePrintDevice,type FilePrintMotion} from '../src/operations/file-print-device.ts';
 import {ThermalPrintDevice} from '../src/operations/thermal-print-device.ts';
 import {PrintController,type PrintDevice,type StartPrint} from '../src/operations/print.ts';
@@ -24,7 +26,7 @@ async function fixture(script='G1 X1\n',handler:(command:CommandContext)=>void|P
  await group.start();members[0].sample(1,220);members[1].sample(1,80);
  const dispatch=new GCodeDispatch({output(){},shutdown(){events.push('dispatch-stop');}});dispatch.register('G1',handler);
  const motion:FilePrintMotion={prepare:async()=>{events.push('prepare');dispatch.setReady(true);},start:async()=>{events.push('start');},pause:async()=>{events.push('pause');},resume:async()=>{events.push('resume');},finish:async()=>{events.push('drain');await finish.promise;events.push('drained');},stop:async()=>{events.push('stop');}};
- const device=new FilePrintDevice(motion,dispatch,async id=>{assert.equal(id,'file');return GCodeFileReader.adopt(await open(path,'r'),{batchLines:1});}),thermal=new ThermalPrintDevice(device,group,{nozzle:'extruder',bed:'bed'}),controller=new PrintController(thermal,{maxNozzle:300,maxBed:130});
+ const device=new FilePrintDevice(motion,dispatch,async(id,signal)=>{assert.equal(id,'file');const source=await open(path,'r');try{return (await createSealedPrintReader(source,createHash('sha256').update(script).digest('hex'),signal,{batchLines:1})).reader;}finally{await source.close();}}),thermal=new ThermalPrintDevice(device,group,{nozzle:'extruder',bed:'bed'}),controller=new PrintController(thermal,{maxNozzle:300,maxBed:130});
  return {group,resets,events,finish,motion,device,thermal,controller,dispatch,path,async close(){finish.resolve();for(const list of resets)for(const reset of list)reset.resolve();await group.shutdown().catch(()=>{});await thermal.stop().catch(()=>{});await rm(directory,{recursive:true,force:true});}};
 }
 test('file EOF automatically completes only after motion drain and heater reset ACKs',async()=>{

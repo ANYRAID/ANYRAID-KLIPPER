@@ -6,7 +6,7 @@
     "node": ">=26 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",
     "typecheck": "tsc -p tsconfig.json",
@@ -126,7 +126,8 @@
     "bench:thermal-print-device": "node bench/thermal-print-device.ts",
     "bench:gcode-file-reader": "node bench/gcode-file-reader.ts",
     "bench:gcode-file-execution": "node bench/gcode-file-execution.ts",
-    "bench:file-print-device": "node bench/file-print-device.ts"
+    "bench:file-print-device": "node bench/file-print-device.ts",
+    "bench:sealed-file": "node bench/sealed-file.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
