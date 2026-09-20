@@ -56,10 +56,10 @@ export class ConfiguredMoonraker {
  }
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
- attachKlippy(path:string,options:Omit<KlippyInitializationOptions,'version'|'onSnapshot'>={}):Promise<KlippySnapshot>{
+ attachKlippy(path:string,options:Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>={}):Promise<KlippySnapshot>{
   if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
-  const runtime=new KlippyLifecycle({...options,version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
+  const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
    if(routedEndpoints!==snapshot.endpoints||routedInitialization!==snapshot.initialized){
    const exposed=new Set(snapshot.endpoints.filter(name=>!['list_endpoints','gcode/subscribe_output','register_remote_method','objects/subscribe'].includes(name))),added=new Map<string,()=>void>();
@@ -87,6 +87,7 @@ export class ConfiguredMoonraker {
  }
  get klippy(){return this.#klippy?.snapshot??null;}
  get klippyRemoteMethods(){return this.#klippy?.remoteMethods??null;}
+ get agentRemoteMethods(){return this.#agentMethods.registrations;}
  get agentMethodDeliveries(){return this.#agentMethods.metrics;}
  get clients(){return this.#network.clients;}
  getClient(id:number){return this.#network.getClient(id);}
