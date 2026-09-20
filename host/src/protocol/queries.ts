@@ -13,7 +13,7 @@ export interface AcknowledgedTransport {
  stop(cause:unknown):Promise<void>;
 }
 export interface QueryOptions {oid?:number;timeout?:number;retries?:number}
-interface Pending {start:number;deadline:number;response?:TimedResponse;controller:AbortController}
+interface Pending {start:number;deadline:number;response?:TimedResponse;notify?:()=>void;controller:AbortController}
 const timing:ClockScheduler={now:()=>performance.now()/1000,schedule(callback,seconds){const timer=setTimeout(callback,seconds*1000);return ()=>clearTimeout(timer);}};
 function key(name:string,oid?:number){if(!/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(name)||oid!==undefined&&(!Number.isInteger(oid)||oid<0||oid>0xffffffff))throw new ProtocolError('Invalid response route');return `${name}:${oid??''}`;}
 /** Read-only query layer, not a replacement for serialqueue wire reliability.
@@ -22,6 +22,7 @@ export class QueryConnection implements ClockConnection {
  #transport:AcknowledgedTransport;#timing:ClockScheduler;#pending=new Map<string,Pending>();#stopPromise:Promise<void>|undefined;#closed=false;#fault:unknown;#stopError:unknown;#lastNow=0;
  constructor(transport:AcknowledgedTransport,scheduler:ClockScheduler=timing){this.#transport=transport;this.#timing=scheduler;}
  get status(){return {pending:this.#pending.size,closed:this.#closed,fault:this.#fault,stopError:this.#stopError};}
+ hasPending(name:string,oid?:number):boolean{return this.#pending.has(key(name,oid));}
  #now(){const n=this.#timing.now();if(!Number.isFinite(n)||n<0||n<this.#lastNow)throw new ProtocolError('Invalid query monotonic clock');this.#lastNow=n;return n;}
  stop(cause:unknown):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
@@ -44,7 +45,7 @@ export class QueryConnection implements ClockConnection {
    const p=this.#pending.get(key(message.name,oid));if(!p)return false;
    if(now>=p.deadline)throw new Error('MCU query deadline exceeded');
    if(receiveTime<p.start||sentTime!==0&&sentTime<p.start)return false;
-   p.response=structuredClone(reply);return true;
+   p.response=structuredClone(reply);p.notify?.();return true;
   }catch(error){this.#fail(error);throw error;}
  }
  async query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={}):Promise<TimedResponse>{
@@ -62,11 +63,16 @@ export class QueryConnection implements ClockConnection {
     this.#check(p);
     await this.#cancellable(()=>this.#transport.send(command.slice(),p.controller.signal),p);
     this.#check(p);if(p.response)return p.response;
-    if(attempt===retries)throw new Error(`Unable to obtain '${responseName}' response`);
+    if(attempt===retries){
+     // ACK confirms command delivery, not that its response has arrived. A
+     // non-retrying query waits within its original deadline without resending.
+     if(retries===0){await this.#cancellable(()=>new Promise<void>(resolve=>{p.notify=resolve;if(p.response)resolve();}),p);this.#check(p);return p.response!;}
+     throw new Error(`Unable to obtain '${responseName}' response`);
+    }
     await this.#delay(.010*2**attempt,p);
    }
   }catch(error){this.#fail(error);throw error;}
-  finally{cancel();signal.removeEventListener('abort',abort);this.#pending.delete(route);}
+  finally{p.notify=undefined;cancel();signal.removeEventListener('abort',abort);this.#pending.delete(route);}
  }
  #check(p:Pending){p.controller.signal.throwIfAborted();if(this.#now()>=p.deadline)throw new Error('MCU query deadline exceeded');}
  #cancellable<T>(run:()=>Promise<T>,p:Pending):Promise<T>{return new Promise((resolve,reject)=>{

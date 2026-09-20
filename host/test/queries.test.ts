@@ -30,7 +30,7 @@ test('read query retries follow the original six-attempt exponential schedule',a
 });
 test('missing response does not implicitly retry and closes the connection',async()=>{
  const clock=new FakeClock();let writes=0,stops=0;const q=new QueryConnection({async send(){writes++;},setClockEstimate(){},async stop(){stops++;}},clock);
- await assert.rejects(q.query(Uint8Array.of(3),'clock',signal()),/Unable/);await settle();assert.equal(writes,1);assert.equal(stops,1);assert.equal(q.status.closed,true);
+ const failed=assert.rejects(q.query(Uint8Array.of(3),'clock',signal(),{timeout:.1}),/timed out/);await clock.advance(.11);await failed;await settle();assert.equal(writes,1);assert.equal(stops,1);assert.equal(q.status.closed,true);
 });
 test('deadline cancels all pending operations even when send ignores abort',async()=>{
  const clock=new FakeClock();let stops=0;const q=new QueryConnection({send:()=>new Promise(()=>{}),setClockEstimate(){},async stop(){stops++;}},clock);
@@ -75,4 +75,12 @@ test('read-only clock adapter explicitly retries a missing response after ACK',a
  const clock=new FakeClock(),d=new MessageDictionary();d.identify(Buffer.from(JSON.stringify({commands:{get_uptime:2,get_clock:3},responses:{'uptime high=%u clock=%u':4,'clock clock=%u':5},config:{CLOCK_FREQ:1e6}})),false);
  let q:QueryConnection,writes=0;q=new QueryConnection({async send(){if(++writes===2)q.receive(response(clock));},setClockEstimate(){},async stop(){}},clock);
  const transport=new DictionaryClockTransport(d,q),p=transport.queryClock(signal());await clock.advance(.02);assert.equal((await p).clock32,1);assert.equal(writes,2);assert.equal(clock.pending,0);await q.stop('done');
+});
+test('non-retrying queries wait for a response after ACK without resending',async()=>{
+ const clock=new FakeClock();let writes=0;const q=new QueryConnection({async send(){writes++;},setClockEstimate(){},async stop(){}},clock);
+ let done=false;const p=q.query(Uint8Array.of(3),'clock',signal(),{timeout:.1}).then(r=>{done=true;return r;});await clock.advance(.05);assert.equal(done,false);assert.equal(q.hasPending('clock'),true);q.receive(response(clock));assert.equal((await p).message.parameters.clock,1);assert.equal(writes,1);assert.equal(clock.pending,0);assert.equal(q.hasPending('clock'),false);await q.stop('done');
+});
+test('aborting an acknowledged response wait releases it and ignores late replies',async()=>{
+ const clock=new FakeClock(),abort=new AbortController();let writes=0;const q=new QueryConnection({async send(){writes++;},setClockEstimate(){},async stop(){}},clock);
+ const p=q.query(Uint8Array.of(3),'clock',abort.signal);await settle();abort.abort(new Error('cancel response wait'));await assert.rejects(p,/cancel response wait/);assert.equal(writes,1);assert.equal(q.receive(response(clock)),false);assert.equal(clock.pending,0);
 });

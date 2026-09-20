@@ -69,7 +69,8 @@
     "bench:serial-batch": "node bench/serial-batch.ts",
     "bench:digital-output": "node bench/digital-output.ts",
     "bench:pwm-output": "node bench/pwm-output.ts",
-    "bench:adc-input": "node bench/adc-input.ts"
+    "bench:adc-input": "node bench/adc-input.ts",
+    "bench:serial-temperature": "node bench/serial-temperature.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

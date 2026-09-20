@@ -15,6 +15,12 @@ export interface SerialSessionOptions {
  stopDevice(cause:unknown):Promise<void>;
  onMessage?(response:TimedResponse):void;
 }
+export interface ResponseSubscription {
+ receive(response:TimedResponse):void;
+ /** Synchronous lifecycle notification; the native queue is already closed.
+  * Must not wait for or initiate asynchronous cleanup here. */
+ closed(cause:unknown):void;
+}
 export interface TimedCommandQueue {
  send(payload:Uint8Array,minClock:bigint,reqClock:bigint,signal:AbortSignal):Promise<void>;
  stop(cause:unknown):Promise<void>;
@@ -32,6 +38,7 @@ export class SerialSession {
  #configuration:ConfiguredMCU|undefined;#configuring=false;
  #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
  #nextCommandQueue=2;#outputPending=0;
+ #subscriptions=new Map<string,Map<number,ResponseSubscription>>();#subscriptionCount=0;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
@@ -44,6 +51,16 @@ export class SerialSession {
  get clock():ClockRuntime{if(!this.#clock)throw new Error('Clock is not initialized');return this.#clock;}
  /** Health check without allocating a status snapshot. */
  assertActive():void{if(this.#state!=='ready')throw new Error('MCU session is not ready',{cause:this.#fault});this.clock.assertActive();}
+ /** Register before MCU configuration so init reports cannot race registration.
+  * Each name/OID has one consumer; subscribed responses cannot be queried. */
+ subscribeResponse(format:string,oid:number,handler:ResponseSubscription):()=>void{
+  this.assertActive();if(!Number.isInteger(oid)||oid<0||oid>254||typeof handler.receive!=='function'||typeof handler.closed!=='function')throw new Error('Invalid response subscription');
+  const {name}=this.#dictionary.lookup(format);
+  if(['clock','uptime','identify_response','shutdown','is_shutdown','starting'].includes(name)||!format.includes(' oid=%c')||this.#queries.hasPending(name,oid)||this.#configuring)throw new Error('Response subscription requires an idle route');
+  const routes=this.#subscriptions.get(name);if(routes?.has(oid)||this.#subscriptionCount>=512)throw new Error('Response subscription duplicate or capacity exceeded');
+  const owned={receive:handler.receive.bind(handler),closed:handler.closed.bind(handler)},map=routes??new Map<number,ResponseSubscription>();if(!routes)this.#subscriptions.set(name,map);map.set(oid,owned);this.#subscriptionCount++;
+  return ()=>{if(this.#subscriptions.get(name)!==map||map.get(oid)!==owned)return;map.delete(oid);this.#subscriptionCount--;if(!map.size)this.#subscriptions.delete(name);};
+ }
  /** Wait for ACKs of messages accepted before this call. Later sends do not
   * extend the snapshot. This is delivery, not MCU execution or physical stop.
   * Aborting cancels only this observation, not already accepted commands. */
@@ -69,6 +86,7 @@ export class SerialSession {
  }
  query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={}):Promise<TimedResponse>{
   if(this.#state!=='ready'||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
+  if(options.oid!==undefined&&this.#subscriptions.get(responseName)?.has(options.oid))return Promise.reject(new Error('Response route is subscribed'));
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}return this.#queries.query(payload,responseName,signal,options);
  }
  get configuration():ConfiguredMCU{if(!this.#configuration)throw new Error('MCU is not configured');return this.#configuration;}
@@ -179,7 +197,7 @@ export class SerialSession {
    else for(const message of this.#dictionary.parseFrame(event.data)){
     const fault=firmwareFault(message,event.receiveTime,this.#state==='ready'?this.#clock?.sync:undefined);if(fault)throw fault;
     const response={message,sentTime:event.sentTime,receiveTime:event.receiveTime};
-    if(!this.#queries.receive(response))this.#options.onMessage?.(response);
+    if(!this.#queries.receive(response)){const oid=message.parameters.oid,handler=typeof oid==='number'?this.#subscriptions.get(message.name)?.get(oid):undefined;if(handler)handler.receive(response);else this.#options.onMessage?.(response);}
     if(this.#stopPromise)return;
    }
   }
@@ -195,6 +213,8 @@ export class SerialSession {
   for(const wait of this.#ackWaits){wait.cleanup();wait.reject(cause);}
   try{this.#queue.close();}catch(error){cleanupError=error;}
   void this.#queries.stop(cause).catch(()=>{});void this.#clock?.stop(cause).catch(()=>{});
+  const subscribers=[...this.#subscriptions.values()].flatMap(routes=>[...routes.values()]);this.#subscriptions.clear();this.#subscriptionCount=0;
+  for(const subscriber of subscribers)try{subscriber.closed(cause);}catch(error){cleanupError=cleanupError===undefined?error:new AggregateError([cleanupError,error],'Serial subscription cleanup failed');}
   return this.#stopPromise;
  }
 }
