@@ -139,7 +139,8 @@
     "bench:slicer-identification": "node bench/slicer-identification.ts",
     "bench:metadata-prusa": "node bench/metadata-prusa.ts",
     "bench:metadata-other": "node bench/metadata-other.ts",
-    "bench:metadata-extractor": "node bench/metadata-extractor.ts"
+    "bench:metadata-extractor": "node bench/metadata-extractor.ts",
+    "bench:thumbnail-images": "node bench/thumbnail-images.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
@@ -148,6 +149,8 @@
   },
   "dependencies": {
     "fft.js": "4.0.4",
+    "qoijs": "1.0.0",
+    "sharp": "0.35.4",
     "ws": "8.21.3"
   }
 }
