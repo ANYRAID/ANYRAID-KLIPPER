@@ -103,7 +103,8 @@
     "bench:candump": "node bench/candump.ts",
     "bench:whitespace": "node bench/whitespace.ts",
     "bench:stack": "node bench/stack.ts",
-    "bench:print-operations": "node bench/print-operations.ts"
+    "bench:print-operations": "node bench/print-operations.ts",
+    "bench:print-journal": "node bench/print-journal.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
