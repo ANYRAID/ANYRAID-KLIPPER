@@ -223,3 +223,40 @@ test('job tracking initializes from live cache instead of a stale initial subscr
 },(m,s)=>{if(m.method==='objects/subscribe'){
  s.write(wire({method:'process_status_update',params:{eventtime:3,status:{print_stats:{state:'printing',filename:'a',total_duration:7}}}})+wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;
 }}));
+test('configured job state survives reconnect without replay or fabricated start events',()=>peer(async(path,seen,sockets,dir)=>{
+ const file=join(dir,'job-state.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const changes:any[]=[],server=await ConfiguredMoonraker.load(file,{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}});
+ try{
+  assert.equal(Boolean(server.jobState),false);
+  await server.attachKlippy(path,{trackJobState:true,onJobChange:c=>{changes.push(c);}});
+  assert.equal(server.jobState?.stats.state,'standby');
+  sockets[0].write(wire({method:'process_status_update',params:{eventtime:2,status:{print_stats:{state:'printing',filename:'a',total_duration:1}}}}));
+  await until(()=>changes.length===1);
+  sockets[0].destroy();await until(()=>server.klippy?.connected===false);
+  assert.equal(server.jobState?.event,'error');
+  await server.reconnectKlippy();
+  assert.equal(server.jobState?.stats.state,'paused');assert.equal(server.jobState?.event,'error');assert.equal(changes.length,1);
+  sockets[1].write(wire({method:'process_status_update',params:{eventtime:4,status:{print_stats:{state:'printing',total_duration:4}}}}));
+  await until(()=>changes.length===2);assert.equal(changes[1].event,'resumed');
+  assert.equal(seen.some(m=>m.method==='gcode/script'),false);
+  const snapshot=server.jobState!; (snapshot.stats as any).state='complete';assert.equal(server.jobState?.stats.state,'printing');
+ }finally{await server.close();}
+},(m,s,seen)=>{if(m.method==='objects/subscribe'){
+ const first=seen.filter(r=>r.method==='objects/subscribe').length===1;
+ s.write(wire({id:m.id,result:{eventtime:first?1:3,status:{webhooks:{state:'ready'},print_stats:{state:first?'standby':'paused',filename:'a',total_duration:first?0:3,info:{current_layer:null,total_layer:null}}}}}));return false;
+}}));
+test('unready reconnect retains last job information rather than clearing it with empty status',()=>peer(async(path,_seen,sockets,dir)=>{
+ const file=join(dir,'job-unready.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const server=await ConfiguredMoonraker.load(file,{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}});
+ try{
+  await server.attachKlippy(path,{trackJobState:true});
+  sockets[0].destroy();await until(()=>server.klippy?.connected===false);
+  assert.equal(server.jobState?.stats.filename,'unfinished.gcode');
+  await server.reconnectKlippy();assert.equal(server.klippy?.state,'error');
+  assert.equal(server.jobState?.stats.filename,'unfinished.gcode');assert.equal(server.jobState?.event,'error');
+ }finally{await server.close();}
+},(m,s,seen)=>{
+ const second=seen.filter(r=>r.method==='info').length>1;
+ if(m.method==='info'&&second){s.write(wire({id:m.id,result:{state:'error',state_message:'Configuration invalid'}}));return false;}
+ if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:second?{}:{webhooks:{state:'ready'},print_stats:{state:'printing',filename:'unfinished.gcode',total_duration:5}}}}));return false;}
+}));

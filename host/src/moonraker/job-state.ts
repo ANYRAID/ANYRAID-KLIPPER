@@ -13,11 +13,13 @@ export type JobEvent =
 type Stats = Readonly<Record<string, Json>>;
 export type JobChange =
   | { kind: 'state'; event: JobEvent; previous: Stats; current: Stats }
-  | { kind: 'layer'; current: number; total: number };
+  | { kind: 'layer'; current: number; total: number | null };
 const idle = (state: Json | undefined) =>
   ['standby', 'complete', 'cancelled', 'error'].includes(state as string);
 function stats(value: unknown): Stats {
   const data = prepareStatus({ print_stats: value }).print_stats;
+  if (Object.keys(data).length > 256)
+    throw new ApiError(502, 'Too many print stats fields');
   if (
     data.state !== undefined &&
     ![
@@ -40,8 +42,6 @@ function stats(value: unknown): Stats {
   if (data.info !== undefined) {
     if (!data.info || typeof data.info !== 'object' || Array.isArray(data.info))
       throw new ApiError(502, 'Invalid print layer info');
-    if (data.info.total_layer === null)
-      throw new ApiError(502, 'Invalid total layer');
     for (const key of ['current_layer', 'total_layer']) {
       const value = data.info[key];
       if (
@@ -115,7 +115,10 @@ export class JobState {
           Object.freeze({
             kind: 'layer',
             current: layer,
-            total: (delta.info.total_layer ?? 0) as number,
+            total:
+              delta.info.total_layer === undefined
+                ? 0
+                : (delta.info.total_layer as number | null),
           }),
         );
     }

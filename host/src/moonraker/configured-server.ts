@@ -1,3 +1,4 @@
+import {JobState} from './job-state.ts';
 import {readKlippyBinding,type KlippyPathContext} from './klippy-config.ts';
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {SubscriptionDelivery} from './subscription-delivery.ts';
@@ -44,7 +45,7 @@ export class ConfiguredMoonraker {
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
- #agentMethods:AgentMethods;
+ #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  #supervisor:KlippySupervisor|undefined;
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
@@ -76,6 +77,7 @@ export class ConfiguredMoonraker {
  #attachKlippy(path:string,options:KlippyAttachmentOptions):Promise<KlippySnapshot>{
   if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
   this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
+  if(options.trackJobState)this.#jobState??=new JobState();
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
   const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
@@ -88,7 +90,7 @@ export class ConfiguredMoonraker {
    }
    if(!this.#stopping)this.setInformation({...this.#base,connected:snapshot.connected,state:snapshot.state,missingRequirements:snapshot.missingRequirements});
    for(const method of this.#klippyEvents.observe(snapshot))this.#broadcastTracked(method,[],this.#klippyNotifications);
-  }});this.#klippy=runtime;this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>runtime.subscribe(id,objects,signal),remove:id=>runtime.removeSubscription(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time]),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});return runtime.initialize(path);
+  }},this.#jobState);this.#klippy=runtime;this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>runtime.subscribe(id,objects,signal),remove:id=>runtime.removeSubscription(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time]),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});return runtime.initialize(path);
  }
  /** Explicit recovery only after disconnection. Drain the old generation and
   * recreate protocol state; never replay G-code or an uncertain old request. */
@@ -120,6 +122,7 @@ export class ConfiguredMoonraker {
   this.#supervisor=supervisor;supervisor.start();
  }
  get klippySupervisor(){return this.#supervisor?.status??null;}
+ get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
  get klippyNotifications(){return {...this.#klippyNotifications};}
