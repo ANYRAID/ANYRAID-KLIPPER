@@ -72,7 +72,8 @@
     "bench:adc-input": "node bench/adc-input.ts",
     "bench:serial-temperature": "node bench/serial-temperature.ts",
     "bench:moonraker-network": "node bench/moonraker-network.ts",
-    "bench:moonraker-endpoints": "node bench/moonraker-endpoints.ts"
+    "bench:moonraker-endpoints": "node bench/moonraker-endpoints.ts",
+    "bench:moonraker-metadata": "node bench/moonraker-metadata.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

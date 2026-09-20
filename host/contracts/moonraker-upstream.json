@@ -1309,14 +1309,16 @@
       "line": 118,
       "method": "register_endpoint",
       "targetExpression": "\"/server/info\"",
-      "status": "not-implemented"
+      "status": "contract-implemented",
+      "evidence": "host/src/moonraker/metadata.ts; host/test/moonraker-metadata.test.ts; host/bench/moonraker-metadata.ts. Runtime component/configuration owners still need production lifecycle bindings."
     },
     {
       "file": "moonraker/server.py",
       "line": 121,
       "method": "register_endpoint",
       "targetExpression": "\"/server/config\"",
-      "status": "not-implemented"
+      "status": "contract-implemented",
+      "evidence": "host/src/moonraker/metadata.ts; host/test/moonraker-metadata.test.ts; host/bench/moonraker-metadata.ts. Runtime component/configuration owners still need production lifecycle bindings."
     },
     {
       "file": "moonraker/server.py",
