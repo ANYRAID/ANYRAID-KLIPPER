@@ -54,6 +54,8 @@ test('bounded pending PWM requests stop admission synchronously on overload',asy
 test('native serial ADC drives acknowledged heater PWM and a sensor fault stops the session',async()=>{
  const {serialFirmware}=await import('./helpers/serial-firmware.ts');
  const {SerialSession}=await import('../src/protocol/serial-session.ts');
+ const {AsyncPrinterHeaters}=await import('../src/thermal/async-heaters.ts');
+ const {GCodeDispatch}=await import('../src/gcode/dispatch.ts');
  const {serialClock}=await import('../src/protocol/serial-queue.ts');
  const {compilePWM}=await import('../src/outputs/pwm.ts');
  const {GenerationPWMOutput}=await import('../src/outputs/generation-pwm.ts');
@@ -64,7 +66,8 @@ test('native serial ADC drives acknowledged heater PWM and a sensor fault stops 
  const reader=new ConfigurationReader(new ConfigurationSource('/heater.cfg',{extruder:{sensor_type:'Generic 3950',min_temp:'0',max_temp:'300',control:'watermark'}},[]),null);
  const parsed=readHeaterConfiguration(reader,'extruder'),requirements=parsed.outputRequirements;
  const firmware=await serialFirmware();let deviceStops=0;const session=new SerialSession(firmware.fd,{async stopDevice(){deviceStops++;}}),signal=new AbortController().signal;
- let runtime:AsyncHeaterRuntime|undefined;
+ let runtime:AsyncHeaterRuntime|undefined;const group=new AsyncPrinterHeaters(()=>{});
+ const dispatch=new GCodeDispatch({output(){},shutdown:reason=>{void group.shutdown(reason).catch(()=>{});}});
  try{
   await session.initialize(signal);const chip={},clock=(t:number)=>BigInt(Math.trunc(t*1e6)),print=(clock:bigint)=>Number(clock)/1e6;
   const now=()=>print(session.clock.sync.getClock(serialClock.now())),pin=(name:string)=>({chip,chipName:'mcu',pin:name,invert:0 as const,pullup:0 as const});
@@ -73,15 +76,15 @@ test('native serial ADC drives acknowledged heater PWM and a sensor fault stops 
   await session.configure({oidCount:5,commands:[...plan.commands,...sensor.plan.commands],init:[...plan.init,...sensor.plan.init],restart:plan.restart,reservedMoves:plan.reservedMoves},signal);
   const output=new GenerationPWMOutput(plan,session.dictionary,session.commandQueue(),session.commandQueue(),clock,print);
   runtime=createConfiguredAsyncHeater(reader,'extruder',()=>output,()=>({system:serialClock.now(),print:now()}),()=>()=>{}).runtime;
-  await runtime.start(signal);sensor.activate();
+  group.register('extruder',runtime,'T');group.attach(dispatch,{extruders:['extruder']});await group.start(signal);dispatch.setReady(true);sensor.activate();
   const emit=(temperature:number)=>{const raw=Math.round(converter.adc(temperature)*32760),next=clock(now()+.3-.008);firmware.emit('analog_in_state',{oid:4,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});};
   const until=async(check:()=>boolean)=>{const deadline=Date.now()+2000;while(!check()){if(Date.now()>deadline)throw new Error('serial heater condition timed out');await new Promise(resolve=>setTimeout(resolve,2));}};
-  emit(25);await until(()=>runtime!.status.received);await runtime.setTarget(200,signal);emit(26);
+  emit(25);await until(()=>runtime!.status.received);await dispatch.execute('M104 S200');emit(26);
   await until(()=>firmware.outputs.some(event=>event.name==='queue_digital_out_generation'&&event.parameters.on_ticks===100000));
-  await runtime.setTarget(0,signal);assert.equal(output.status.defaultConfirmed,true);assert.equal(runtime.status.phase,'active');
+  await dispatch.execute('TURN_OFF_HEATERS');assert.equal(output.status.defaultConfirmed,true);assert.equal(runtime.status.phase,'active');
   assert.ok(firmware.outputs.some(event=>event.name==='reset_digital_out_generation'&&event.parameters.generation===2));
-  emit(350);await until(()=>runtime!.status.stopped);await runtime.shutdown();assert.equal(runtime.status.outputStopConfirmed,true);assert.equal(deviceStops,1);assert.equal(session.status.state,'closed');
- }finally{await runtime?.shutdown().catch(()=>{});await session.stop().catch(()=>{});await firmware.close();}
+  emit(350);await until(()=>runtime!.status.stopped);await group.shutdown();assert.equal(group.status.stopConfirmed,true);assert.equal(runtime.status.outputStopConfirmed,true);assert.equal(deviceStops,1);assert.equal(session.status.state,'closed');
+ }finally{await group.shutdown().catch(()=>{});await runtime?.shutdown().catch(()=>{});await session.stop().catch(()=>{});await firmware.close();}
 });
 test('reentrant stop during output submission still waits for the accepted write',async()=>{
  const f=fixture(),starting=f.runtime.start();f.resets[0].resolve();await starting;f.runtime.sample(1,25);await f.runtime.setTarget(200);
