@@ -130,7 +130,8 @@
     "bench:sealed-file": "node bench/sealed-file.ts",
     "bench:snapshot-budget": "node bench/snapshot-budget.ts",
     "bench:published-files": "node bench/published-files.ts",
-    "bench:published-recovery": "node bench/published-recovery.ts"
+    "bench:published-recovery": "node bench/published-recovery.ts",
+    "bench:published-delete": "node bench/published-delete.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
