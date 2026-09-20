@@ -9,7 +9,7 @@ interface Peer {id:number;target:ClientRequestTarget;abort:()=>void;closed:boole
 interface Job {id:number;peer:Peer;encoded:string;bytes:number;abort:AbortController;working:boolean;settled:boolean;sent:boolean;resolve:(value:Json)=>void;reject:(error:unknown)=>void;done?:Promise<void>;finish?:()=>void;timer?:ReturnType<typeof setTimeout>;signal?:AbortSignal;cancel:()=>void;}
 function limit(value:number|undefined,fallback:number,max:number):number{const n=value??fallback;if(!Number.isSafeInteger(n)||n<1||n>max)throw new ApiError(400,'Invalid client request limit');return n;}
 function freeze(value:Json):void{if(value&&typeof value==='object'){for(const child of Object.values(value))freeze(child);Object.freeze(value);}}
-function encode(value:Json):string{
+export function encodeClientMessage(value:Json):string{
  let text=JSON.stringify(value);
  // Keep finite binary64 quantities above MAX_SAFE_INTEGER explicitly floating
  // on the wire; exact integer quantities must already be encoded as strings.
@@ -32,7 +32,7 @@ export class ClientRequests {
   const peer=this.#peers.get(id);if(this.#closed||!peer||peer.closed)throw new ApiError(503,'Client is not connected');if(options.signal?.aborted)throw new ApiError(499,'Client request cancelled');
   if(typeof method!=='string'||!method||method.length>256)throw new ApiError(400,'Invalid client method');if(params!==null&&(typeof params!=='object'||!params))throw new ApiError(400,'Client arguments must be an object or list');validateJson(params);
   if(!Number.isSafeInteger(this.#next))throw new ApiError(503,'Client request IDs exhausted');const requestId=this.#next++,include=params!==null&&(Array.isArray(params)?params.length:Object.keys(params).length)>0;
-  const encoded=encode({jsonrpc:'2.0',method,id:requestId,...include?{params}:{} }),bytes=Buffer.byteLength(encoded);if(bytes>1024*1024)throw new ApiError(413,'Client request exceeds message limit');
+  const encoded=encodeClientMessage({jsonrpc:'2.0',method,id:requestId,...include?{params}:{} }),bytes=Buffer.byteLength(encoded);if(bytes>1024*1024)throw new ApiError(413,'Client request exceeds message limit');
   if(this.#jobs.size>=this.#pending||peer.jobs.size>=this.#perClient||this.#bytes+bytes>this.#maximumBytes)throw new ApiError(429,'Client request capacity exceeded');
   const timeout=limit(options.timeoutMs,this.#timeout,2147483647),snapshot:ClientArguments=JSON.parse(encoded).params??null;freeze(snapshot);
   let resolve!:(value:Json)=>void,reject!:(error:unknown)=>void;const result=new Promise<Json>((a,b)=>{resolve=a;reject=b;});

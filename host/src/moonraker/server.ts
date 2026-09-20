@@ -1,3 +1,4 @@
+import {ClientCalls} from './client-calls.ts';
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
 import {ResponseCompletion} from './response-completion.ts';
 import {subscriptionConnectionId} from './subscription-connection.ts';
@@ -21,6 +22,9 @@ export interface MoonrakerNetworkOptions {
   * Check authenticated ownership/permissions of source and target explicitly. */
  authorizeSubscriptionConnection?(source:NetworkAuthorization,target:NetworkAuthorization):void|Promise<void>;
  notificationLimits?:NotificationLimits;
+ /** Required for reply-free agent callbacks; independent of inbound and request authorization. */
+ authorizeClientCall?(method:string,params:ClientArguments,request:NetworkAuthorization):void|Promise<void>;
+ clientCallLimits?:NotificationLimits;
  /** Required for server-initiated requests to clients/agents. */
  authorizeClientRequest?(method:string,params:ClientArguments,request:NetworkAuthorization):void|Promise<void>;
  clientRequestLimits?:ClientRequestLimits;
@@ -36,7 +40,7 @@ function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isAr
 /** Moonraker JSON-RPC network transport. Business APIs and authorization storage
  * remain separate components; the required authorize callback never defaults to allow. */
 export class MoonrakerNetwork {
- #clients=new RemoteClients();#notifications:NotificationFanout|undefined;#clientRequests:ClientRequests|undefined;
+ #clientCalls:ClientCalls|undefined;#clients=new RemoteClients();#notifications:NotificationFanout|undefined;#clientRequests:ClientRequests|undefined;
  #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
  #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
  #outputBytes=0;#maximumOutputBytes:number;
@@ -51,6 +55,8 @@ export class MoonrakerNetwork {
   if(options.authorizeNotification!==undefined&&typeof options.authorizeNotification!=='function')throw new TypeError('Invalid notification authorization');
   if(options.authorizeSubscriptionConnection!==undefined&&typeof options.authorizeSubscriptionConnection!=='function')throw new TypeError('Invalid subscription connection authorization');
   if(options.authorizeNotification)this.#notifications=new NotificationFanout(options.notificationLimits);
+  if(options.authorizeClientCall!==undefined&&typeof options.authorizeClientCall!=='function')throw new TypeError('Invalid client call authorization');
+  if(options.authorizeClientCall)this.#clientCalls=new ClientCalls(options.clientCallLimits);
   if(options.authorizeClientRequest!==undefined&&typeof options.authorizeClientRequest!=='function')throw new TypeError('Invalid client request authorization');
   if(options.authorizeClientRequest)this.#clientRequests=new ClientRequests(options.clientRequestLimits);
   this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
@@ -73,7 +79,7 @@ export class MoonrakerNetwork {
  getUnidentifiedClients(){return this.#clients.unidentified();}
  getAgents(){return this.#clients.agents();}
  getAgent(name:string){return this.#clients.agent(name);}
- get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered,outputBufferedBytes:this.#outputBytes,notifications:this.#notifications?.status??null,clientRequests:this.#clientRequests?.status??null};}
+ get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered,outputBufferedBytes:this.#outputBytes,notifications:this.#notifications?.status??null,clientCalls:this.#clientCalls?.status??null,clientRequests:this.#clientRequests?.status??null};}
  async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
   this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
@@ -130,6 +136,7 @@ export class MoonrakerNetwork {
   const id=this.#nextId++;if(!Number.isSafeInteger(id)){socket.terminate();return;}
   const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);this.#clients.add(id);
   if(this.#notifications)this.#notifications.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeNotification!(method,params,{request,transport:'websocket',connectionId:id,signal}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
+  if(this.#clientCalls)this.#clientCalls.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientCall!(method,params,{request,transport:'websocket',connectionId:id,signal}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
   if(this.#clientRequests)this.#clientRequests.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeClientRequest!(method,params,{request,transport:'websocket',connectionId:id,signal}),send:message=>this.#send(peer,message)});
   socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);const client=this.#clients.remove(id);if(client?.identity?.type==='agent')this.#agentEvent(id,{agent:client.identity.name,event:'disconnected'});});
   socket.on('message',data=>{
@@ -152,6 +159,7 @@ export class MoonrakerNetwork {
  disconnectClient(id:number):void{const peer=this.#peers.get(id);if(peer){peer.abort.abort(new Error('Client delivery stopped'));peer.socket.terminate();}}
  notifyAuthorized(id:number,method:string,params:readonly Json[]):Promise<DeliveryReport>{return Promise.resolve(this.dispatchNotification(id,method,params));}
  dispatchNotification(id:number,method:string,params:readonly Json[]):DeliveryReport|Promise<DeliveryReport>{if(!this.#notifications)throw new ApiError(503,'Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.dispatchTo(id,method,params);}
+ dispatchClientCall(id:number,method:string,params:ClientArguments=null):DeliveryReport|Promise<DeliveryReport>{if(!this.#clientCalls)throw new ApiError(503,'Client call authorization is required');if(this.#phase!=='listening')throw new ApiError(503,'Network is not listening');return this.#clientCalls.dispatchTo(id,method,params);}
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){if(!this.#clientRequests)throw new ApiError(503,'Client request authorization is required');if(this.#phase!=='listening')throw new ApiError(503,'Network is not listening');return this.#clientRequests.request(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{return Promise.resolve(this.dispatchBroadcast(method,params,excluded));}
  dispatchBroadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):DeliveryReport|Promise<DeliveryReport>{if(!this.#notifications)throw new ApiError(503,'Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.dispatch(method,params,excluded);}
@@ -161,10 +169,11 @@ export class MoonrakerNetwork {
  close():Promise<void>{
   if(this.#close)return this.#close;if(this.#phase==='closed')return Promise.resolve();this.#phase='closing';clearInterval(this.#heartbeat);
   const clientRequestsClosed=this.#clientRequests?.close()??Promise.resolve();
+  const clientCallsClosed=this.#clientCalls?.close()??Promise.resolve();
   const notificationsClosed=this.#notifications?.close()??Promise.resolve();
   for(const abort of this.#requests.keys())abort.abort(new Error('Moonraker network shutting down'));for(const peer of this.#peers.values()){peer.abort.abort(new Error('Moonraker network shutting down'));peer.socket.terminate();}for(const socket of this.#sockets)socket.destroy();
   const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await new Promise<void>(resolve=>{if(!this.#server.listening)resolve();else this.#server.close(()=>resolve());});})();
   let timeout:ReturnType<typeof setTimeout>|undefined;
-  this.#close=Promise.race([Promise.all([serverClosed,notificationsClosed,clientRequestsClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Network tasks did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
+  this.#close=Promise.race([Promise.all([serverClosed,clientCallsClosed,notificationsClosed,clientRequestsClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Network tasks did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
  }
 }
