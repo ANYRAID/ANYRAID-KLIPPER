@@ -83,6 +83,19 @@ export class PublishedPrintFiles {
   }finally{await file.close();}
  }
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
+ /** Bounded binary acquisition for non-G-code owners. The returned Buffer is an
+  * independent verified snapshot; it never enters the text G-code reader. */
+ readBytes(id:string,signal:AbortSignal,maxBytes=8*1024**2):Promise<{record:PublishedPrintFile;bytes:Buffer}>{return this.#run(async()=>{
+  this.#id(id);if(!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>64*1024**2)throw new RangeError('Invalid published binary read limit');signal.throwIfAborted();
+  const record=await this.#record(id);if(record.size>maxBytes)throw new Error('Published binary read limit exceeded');
+  const file=await open(this.#path(record.sha256+'.gcode'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const before=await file.stat({bigint:true});if(!before.isFile()||before.size!==BigInt(record.size))throw new Error('Published binary content size mismatch');
+   const bytes=Buffer.allocUnsafe(record.size),hash=createHash('sha256');let position=0;
+   while(position<bytes.length){signal.throwIfAborted();const {bytesRead}=await file.read(bytes,position,Math.min(65536,bytes.length-position),position);signal.throwIfAborted();if(!bytesRead)throw new Error('Published binary content truncated');hash.update(bytes.subarray(position,position+bytesRead));position+=bytesRead;}
+   const after=await file.stat({bigint:true});signal.throwIfAborted();if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs||hash.digest('hex')!==record.sha256)throw new Error('Published binary content changed or digest mismatch');
+   return {record,bytes};
+  }finally{await file.close();}
+ },false,signal);}
  publish(id:string,name:string,source:FileHandle,signal:AbortSignal):Promise<PublishedPrintFile>{return this.#run(async()=>{
   this.#id(id);if(this.#writeFault)throw new Error('Published writes require recovery',{cause:this.#writeFault});if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});if(typeof name!=='string'||!name||name.length>256||/[\u0000-\u001f\u007f]/u.test(name))throw new Error('Invalid published file name');signal.throwIfAborted();
   const before=await source.stat({bigint:true});signal.throwIfAborted();if(!before.isFile()||before.size>BigInt(this.#maxBytes))throw new Error('Published source exceeds regular file limit');
