@@ -1,14 +1,21 @@
 import {metadataPattern} from './slicer-identification.ts';
 import type {MetadataWindow} from './metadata-window.ts';
-const startPattern=metadataPattern(String.raw`\n[MG]\d+\s.*\n`),endPattern=metadataPattern(String.raw`\n[MG]\d+\s.*\n`,'g');
+const startPattern=metadataPattern(String.raw`\n[MG]\d+\s.*\n`);
 export function parseCommonMetadata(window:Pick<MetadataWindow,'header'|'footer'|'size'>):Record<string,number>{
  const result:Record<string,number>={},start=startPattern.exec(window.header);
  if(start)result.gcode_start_byte=Buffer.byteLength(window.header.slice(0,start.index));
- // Search overlapping forward matches to find the rightmost terminating LF.
- // Equivalent to Python's reversed search, without allocating reversed codepoints.
- endPattern.lastIndex=0;let end:RegExpExecArray|null,last=-1;
- while((end=endPattern.exec(window.footer))!==null){last=Math.max(last,end.index+end[0].length);endPattern.lastIndex=end.index+1;}
- if(last>=0)result.gcode_end_byte=window.size-Buffer.byteLength(window.footer.slice(last));
+ // A match spans at most two lines (its whitespace can be LF). The last
+ // valid command start therefore has the rightmost terminating LF. Search native
+ // string prefixes backwards, then test only its one/two-line candidate.
+ let g=window.footer.lastIndexOf('\nG'),m=window.footer.lastIndexOf('\nM');
+ while(g>=0||m>=0){
+  const begin=Math.max(g,m),firstEnd=window.footer.indexOf('\n',begin+1);
+  if(firstEnd>=0){const secondEnd=window.footer.indexOf('\n',firstEnd+1),candidate=window.footer.slice(begin,(secondEnd>=0?secondEnd:firstEnd)+1),match=startPattern.exec(candidate);
+   if(match?.index===0){result.gcode_end_byte=window.size-Buffer.byteLength(window.footer.slice(begin+match[0].length));break;}
+  }
+  if(g===begin)g=begin>0?window.footer.lastIndexOf('\nG',begin-1):-1;
+  if(m===begin)m=begin>0?window.footer.lastIndexOf('\nM',begin-1):-1;
+ }
  return result;
 }
 const height=metadataPattern(String.raw`G1\sZ([0-9]*\.?[0-9]+)\s`,'g');

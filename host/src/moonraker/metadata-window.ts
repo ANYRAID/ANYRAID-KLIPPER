@@ -30,7 +30,7 @@ function sliceCodepoints(value:string):{header:string;footer:string}{
 }
 /** Read the pinned Python extractor's byte windows from an authorized descriptor.
  * Caller retains ownership. No path resolution, content write or whole-file digest. */
-export async function readMetadataWindow(source:FileHandle,signal:AbortSignal,options:{maxFileBytes?:number}={}):Promise<MetadataWindow>{
+export async function readMetadataWindow(source:FileHandle,signal:Pick<AbortSignal,'throwIfAborted'>,options:{maxFileBytes?:number}={}):Promise<MetadataWindow>{
  const max=options.maxFileBytes??16*1024**3;if(!Number.isSafeInteger(max)||max<0||max>1024**4)throw new RangeError('Invalid metadata file limit');
  signal.throwIfAborted();const before=await source.stat({bigint:true});signal.throwIfAborted();
  if(!before.isFile()||before.size>BigInt(max))throw new Error('Metadata source exceeds regular file limit');

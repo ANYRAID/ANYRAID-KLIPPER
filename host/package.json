@@ -138,7 +138,8 @@
     "bench:metadata-window": "node bench/metadata-window.ts",
     "bench:slicer-identification": "node bench/slicer-identification.ts",
     "bench:metadata-prusa": "node bench/metadata-prusa.ts",
-    "bench:metadata-other": "node bench/metadata-other.ts"
+    "bench:metadata-other": "node bench/metadata-other.ts",
+    "bench:metadata-extractor": "node bench/metadata-extractor.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
