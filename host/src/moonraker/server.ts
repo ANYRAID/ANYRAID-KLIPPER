@@ -134,6 +134,9 @@ export class MoonrakerNetwork {
   try{peer.socket.send(message,release);return true;}catch{release(new Error('WebSocket output failed'));return false;}
  }
  notify(connectionId:number,method:string,params:readonly Json[]):boolean{const peer=this.#peers.get(connectionId);if(!peer||peer.abort.signal.aborted)return false;return this.#send(peer,encodeNotification(method,params));}
+ /** Connection lifetime, distinct from any individual RPC request deadline. */
+ connectionSignal(id:number):AbortSignal{const peer=this.#peers.get(id);if(!peer||peer.abort.signal.aborted)throw new ApiError(404,'Connection is no longer available');return peer.abort.signal;}
+ notifyAuthorized(id:number,method:string,params:readonly Json[]):Promise<DeliveryReport>{if(!this.#notifications)throw new ApiError(503,'Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.publishTo(id,method,params);}
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){if(!this.#clientRequests)throw new ApiError(503,'Client request authorization is required');if(this.#phase!=='listening')throw new ApiError(503,'Network is not listening');return this.#clientRequests.request(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{if(!this.#notifications)throw new ApiError(503,'Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.publish(method,params,excluded);}
  #agentEvent(id:number,event:Json):void{if(this.#notifications&&this.#phase==='listening')void this.broadcast('notify_agent_event',[event],[id]).catch(()=>{});}

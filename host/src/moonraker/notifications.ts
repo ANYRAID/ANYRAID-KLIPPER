@@ -29,12 +29,21 @@ export class NotificationFanout {
  remove(id:number):void{const client=this.#clients.get(id);if(!client)return;this.#clients.delete(id);client.removed=true;client.target.signal.removeEventListener('abort',client.abort);client.controller.abort(new Error('Notification client disconnected'));clearTimeout(client.active?.timer);for(const task of client.queue.splice(0))this.#finish(client,task,'closed');}
  #disconnect(client:Client,reason:string):void{if(client.removed)return;this.remove(client.id);try{client.target.disconnect(new Error(reason));}catch{/* Transport is already removed; cleanup must not strand other recipients. */}}
  publish(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{
+  return this.#publish(method,params,[...this.#clients.values()],false,excluded);
+ }
+ /** Target one connection without scanning or authorizing unrelated clients.
+  * Shares the broadcast queue, ordering, cancellation and capacity accounting. */
+ publishTo(id:number,method:string,params:readonly Json[]):Promise<DeliveryReport>{
+  if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid notification client');
+  const client=this.#clients.get(id);return this.#publish(method,params,client?[client]:[],!client);
+ }
+ #publish(method:string,params:readonly Json[],clients:readonly Client[],missing=false,excluded:readonly number[]=[]):Promise<DeliveryReport>{
   if(this.#closed)return Promise.reject(new Error('Notification fanout is closed'));
   const encoded=encodeNotification(method,params),bytes=Buffer.byteLength(encoded);if(bytes>1024*1024)throw new Error('Notification exceeds message size limit');
-  const payload:Json[]=JSON.parse(encoded).params??[];freeze(payload);const mask=new Set(excluded),pending:Promise<void>[]=[],result=report();
+  const payload:Json[]=JSON.parse(encoded).params??[];freeze(payload);const mask=excluded.length?new Set(excluded):undefined,pending:Promise<void>[]=[],result=report();if(missing){result.closed++;this.#totals.closed++;}
   // Snapshot iteration: authorization callbacks may remove/add connections.
-  for(const client of [...this.#clients.values()]){
-   if(mask.has(client.id)||client.removed)continue;
+  for(const client of clients){
+   if(client.removed||mask?.has(client.id))continue;
    if(this.#tasks.size>=this.#pending||this.#bytes+bytes>this.#maximumBytes||client.queue.length+(client.active?1:0)>=this.#perClient){this.#totals.overflow++;result.overflow++;this.#disconnect(client,'Notification queue capacity exceeded');continue;}
    const task:Task={method,params:payload,encoded,bytes};
    this.#tasks.add(task);this.#bytes+=bytes;client.queue.push(task);this.#advance(client);if(task.status!==undefined)result[task.status]++;else pending.push(wait(task).then(status=>{result[status]++;}));
