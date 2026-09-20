@@ -48,6 +48,10 @@ export class AgentMethods {
    try{await this.#publish(record,klippy);}catch{klippy.signal.throwIfAborted();}
   }
  }
+ /** Do not let an old registration completion overwrite a new generation. */
+ async settleGeneration(klippy:KlippyLifecycle):Promise<void>{
+  await Promise.allSettled([...this.#records.values()].filter(r=>r.runtime===klippy&&r.pending).map(r=>r.pending!));
+ }
  get registrations(){return [...this.#records.values()].map(r=>({name:r.name,client:r.client,state:r.pending?'publishing':r.runtime?.signal.aborted?'pending':r.error?'failed':r.release?'registered':'pending',...(r.error?{error:r.error}:{})}));}
  get metrics(){return {...this.#metrics};}
  close(){this.#owner.abort();this.#release();}

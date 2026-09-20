@@ -13,6 +13,7 @@ import {EndpointRegistry} from './endpoints.ts';
 import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
 export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
+type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
@@ -40,6 +41,7 @@ export class ConfiguredMoonraker {
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  #agentMethods:AgentMethods;
+ #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
@@ -56,8 +58,13 @@ export class ConfiguredMoonraker {
  }
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
- attachKlippy(path:string,options:Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>={}):Promise<KlippySnapshot>{
+ attachKlippy(path:string,options:KlippyAttachmentOptions={}):Promise<KlippySnapshot>{
+  if(this.#reconnecting)throw new Error('Klippy recovery already in progress');
+  return this.#attachKlippy(path,options);
+ }
+ #attachKlippy(path:string,options:KlippyAttachmentOptions):Promise<KlippySnapshot>{
   if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
+  this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
   const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
@@ -71,6 +78,20 @@ export class ConfiguredMoonraker {
    if(!this.#stopping)this.setInformation({...this.#base,connected:snapshot.connected,state:snapshot.state,missingRequirements:snapshot.missingRequirements});
    for(const method of this.#klippyEvents.observe(snapshot))this.#broadcastTracked(method,[],this.#klippyNotifications);
   }});this.#klippy=runtime;this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>runtime.subscribe(id,objects,signal),remove:id=>runtime.removeSubscription(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time]),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});return runtime.initialize(path);
+ }
+ /** Explicit recovery only after disconnection. Drain the old generation and
+  * recreate protocol state; never replay G-code or an uncertain old request. */
+ async reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
+  const previous=this.#klippy,attachment=this.#lastAttachment;
+  if(this.#stopping||this.#reconnecting||!previous||!attachment||!previous.signal.aborted)throw new Error('Klippy recovery requires a disconnected, attached generation');
+  this.#reconnecting=true;
+  try{
+   await previous.close();await this.#agentMethods.settleGeneration(previous);
+   if(this.#stopping)throw new Error('Configured server is stopping');
+   if(this.#klippy!==previous)throw new Error('Klippy generation changed during recovery');
+   this.#klippy=undefined;
+   return await this.#attachKlippy(path??attachment.path,options??attachment.options);
+  }finally{this.#reconnecting=false;}
  }
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
