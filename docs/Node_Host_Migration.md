@@ -4819,3 +4819,49 @@ bench:generation-pwm 使用 Node 26.9.0，读取固定 Git a593d551 的旧 PWMOu
 这仍是异步输出基础，不满足现有同步 HeaterOutput.turnOff 的完成语义。
 尚未把 Promise 忽略后塞入同步温控接口；后续需要温控生命周期的异步确认
 装配及设备级退出流程。生产入口仍为 Python，本阶段未部署或刷写固件。
+
+### 温控异步确认生命周期（2026-09-21）
+
+新增 thermal/async-runtime.ts，复用现有 TemperatureState、PID / watermark、
+HeaterPWM 和 HeaterCheck 数学实现。ConfirmedHeaterOutput 明确要求 reset、
+setPWM、stop 返回完成 Promise；不能将异步适配器塞入旧同步 HeaterOutput。
+GenerationPWMOutput 现在提供周期、最大输出持续时间和反相后的逻辑默认功率
+元数据，构造温控时要求默认功率为零、看门狗为三秒、PWM 周期不超过采样
+延迟。CompiledPWM 保留 maximumDuration。调用方仍须在配置设备前校验初始
+输出为零；构造运行时发生在设备配置之后，不能修复此前配置造成的输出。
+
+start 等待 reset 确认与旧发送排空后才开放加热，并在 ACK 后再次检查调用方
+取消及生命周期。setTarget(0) 立即禁止新功率，等待 reset 后才允许重新加热；
+等待期间继续更新温度与控制器历史，但不提交 PWM。正目标只确认设置目标，
+实际功率仍由后续 ADC 样本产生；它不表示温度已到达目标。
+
+sample 保持同步计算，最多保留 32 个待完成输出。适配器调用前登记在途写入，
+防止适配器同步触发 shutdown 后漏等当前写入。发送失败立即封锁生命周期并
+发起设备停止；被代次重置撤销的旧写入不当作故障。独立定时器继续检查传感器
+超时、保护线程停顿与加热速率，不能依靠新的 ADC 样本才发现停止采样。
+
+shutdown 先同步撤销加热资格，再取消定时器、启动设备停止并通知全部订阅者；
+返回的共享 Promise 等待设备停止与全部已接收写入结束。phase=stopping 不能
+当作物理停止完成；outputStopConfirmed 只表示适配器停止确认，不是电气反馈。
+定时器取消、观察者与设备停止错误保留在 shutdownErrors，停止失败返回
+AggregateError。底层 stop 必须有自己的期限及失败处理，并解除已接收写入；
+本层不能让一个永不结束的任意适配器凭空完成。对象终止后不能重启。
+
+新增 11 项回归覆盖启动/零目标等待 ACK、取消、待发送容量、发送失败、独立
+保护定时器、停止失败、同步重入和不安全配置。串口用例连接真实 SerialSession
+和 NativeSerialQueue、模拟固件对端、SerialADCTemperature 与 GenerationPWMOutput：
+ADC 驱动非零功率、零目标使用第二代重置、超范围 ADC 触发唯一设备停止，最终
+会话 closed。该对端验证协议与 ACK；没有真实温度、GPIO 或板端运行时证据。
+完整测试 **712 项通过**，类型、项目空白及差异检查通过。
+
+bench:async-heater-runtime 在 Node 26.9.0 / Ryzen 5 3500X 上比较 20,000 次
+采样；三次预热、11 次测量，两种 Node 路径交替执行并给予相同微任务服务机会。
+833 次 PWM 的时间及功率与 Python 原实现逐项完全一致。中位 / p95：Python
+22.202 / 22.525 ms，同步 Node 1.659 / 4.924 ms，异步 Node 2.278 / 5.748 ms。
+异步路径比 Python 中位快约 9.75 倍，比同步 Node 每样本增加约 30.9 ns。
+输出使用立即完成的模拟 ACK，结果仅覆盖主机计算和 Promise 跟踪，不证明
+真实 UART 延迟、目标板调度或打印速度。
+
+旧同步 PrinterHeaters、配置工厂和生产入口尚未切换至此异步生命周期。
+下一步需要把多加热器停止、G-code 等待与配置装配全部改为明确等待确认，
+不能仅忽略 Promise 后宣称迁移完成。本阶段未部署或刷写固件。

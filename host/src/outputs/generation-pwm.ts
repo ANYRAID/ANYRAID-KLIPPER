@@ -17,6 +17,7 @@ export class GenerationPWMOutput {
   if(!Number.isFinite(config.shutdownValue)||config.shutdownValue<0||config.shutdownValue>1)throw new RangeError('Invalid PWM shutdown default');
   this.#config={...config};this.#dictionary=dictionary;this.#data=data;this.#control=control;this.#clockAt=clockAt;this.#printAt=printAt;
  }
+ get configuration(){return {cycleTime:this.#config.cycleTime,maximumDuration:this.#config.maximumDuration,defaultPower:this.#config.invert?1-this.#config.shutdownValue:this.#config.shutdownValue};}
  get status(){return {phase:this.#phase,generation:this.#generation,defaultConfirmed:this.#offConfirmed,pendingWrites:this.#pending.size,fault:this.#fault,stopError:this.#stopError};}
  #assertNotFailed():void{if(this.#phase==='failed')throw this.#fault;}
  #assertReady():void{if(this.#phase!=='ready')throw new Error('PWM generation is not ready',{cause:this.#fault});}

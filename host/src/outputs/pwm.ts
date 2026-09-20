@@ -8,7 +8,7 @@ export interface PWMConfig<T> {
 }
 export interface CompiledPWM {
  readonly oid:number;readonly invert:0|1;readonly hardware:boolean;
- readonly cycleTime:number;readonly cycleTicks:number;readonly maxValue:number;
+ readonly cycleTime:number;readonly maximumDuration:number;readonly cycleTicks:number;readonly maxValue:number;
  readonly initialClock:bigint;readonly startValue:number;readonly shutdownValue:number;readonly reservedMoves:1;
  readonly commands:readonly string[];readonly restart:readonly string[];readonly init:readonly string[];
 }
@@ -45,7 +45,7 @@ export function compilePWM<T>(chip:T,d:MessageDictionary,options:PWMConfig<T>,cl
   commands.push(`config_digital_out oid=${oid} pin=${pin.pin} value=${Number(startValue>=1)} default_value=${Number(shutdownValue>=.5)} max_duration=${durationTicks}`,`set_digital_out_pwm_cycle oid=${oid} cycle_ticks=${cycleTicks}`);
   init.push(`queue_digital_out oid=${oid} clock=${wireClock} on_ticks=${Math.trunc(startValue*cycleTicks+.5)}`);
  }
- return Object.freeze({oid,invert:pin.invert,hardware,cycleTime,cycleTicks,maxValue,initialClock,startValue,shutdownValue,reservedMoves:1,commands:Object.freeze(commands),restart:Object.freeze(restart),init:Object.freeze(init)});
+ return Object.freeze({oid,invert:pin.invert,hardware,cycleTime,maximumDuration:duration,cycleTicks,maxValue,initialClock,startValue,shutdownValue,reservedMoves:1,commands:Object.freeze(commands),restart:Object.freeze(restart),init:Object.freeze(init)});
 }
 /** Scheduled duty updates. Does not cancel previously queued power or implement
  * physical heater shutdown; an independent safety adapter is still required. */
