@@ -202,3 +202,24 @@ test('configuration-owned startup reads the Unix path, supervises after listenin
 test('Klippy captures kernel identity separately from self-reported info and clears it on disconnect',()=>peer(async(path,_seen,sockets)=>{
  const runtime=new KlippyLifecycle({version:'test'});await runtime.initialize(path);assert.equal(runtime.snapshot.info.process_id,999999);assert.deepEqual(runtime.peerCredentials,{process_id:process.pid,user_id:process.getuid!(),group_id:process.getgid!()});assert.equal(runtime.peerCredentialError,null);sockets[0].destroy();await until(()=>runtime.signal.aborted);assert.equal(runtime.peerCredentials,null);await runtime.close();
 },(m,s)=>{if(m.method==='info'){s.write(wire({id:m.id,result:{state:'ready',process_id:999999,user_id:999999,group_id:999999}}));return false;}}));
+test('opt-in job tracking retains base subscription and observes live state and disconnect',()=>peer(async(path,seen,sockets)=>{
+ const changes:any[]=[],runtime=new KlippyLifecycle({version:'test',trackJobState:true,onJobChange:c=>{changes.push(c);},onSubscriptionStatus(){}});
+ try{
+  await runtime.initialize(path);assert.equal(runtime.jobState?.stats.state,'standby');assert.equal(changes.length,0);
+  sockets[0].write(wire({method:'process_status_update',params:{eventtime:2,status:{print_stats:{state:'printing',filename:'a',total_duration:1}}}}));
+  await until(()=>changes.length===1);assert.equal(changes[0].event,'started');
+  await runtime.subscribe(1,{toolhead:null});
+  assert.equal(seen.filter(m=>m.method==='objects/subscribe').at(-1).params.objects.print_stats,null);
+  sockets[0].destroy();await until(()=>runtime.signal.aborted);
+  assert.equal(runtime.jobState?.event,'error');assert.equal(runtime.jobState?.stats.state,'error');
+ }finally{await runtime.close();}
+},(m,s,seen)=>{if(m.method==='objects/subscribe'){
+ const initial=seen.filter(r=>r.method==='objects/subscribe').length===1;
+ s.write(wire({id:m.id,result:{eventtime:initial?1:3,status:{webhooks:{state:'ready'},print_stats:{state:initial?'standby':'printing',filename:'a',total_duration:initial?0:1},toolhead:{position:[0,0,0]}}}}));return false;
+}}));
+test('job tracking initializes from live cache instead of a stale initial subscription reply',()=>peer(async(path)=>{
+ const changes:any[]=[],runtime=new KlippyLifecycle({version:'test',trackJobState:true,onJobChange:c=>{changes.push(c);}});
+ try{await runtime.initialize(path);assert.equal(runtime.jobState?.stats.state,'printing');assert.equal(runtime.jobState?.stats.total_duration,7);assert.deepEqual(changes,[]);}finally{await runtime.close();}
+},(m,s)=>{if(m.method==='objects/subscribe'){
+ s.write(wire({method:'process_status_update',params:{eventtime:3,status:{print_stats:{state:'printing',filename:'a',total_duration:7}}}})+wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;
+}}));
