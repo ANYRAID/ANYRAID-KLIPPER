@@ -83,6 +83,7 @@ export class ConfiguredMoonraker {
   try{const result=this.#network.dispatchBroadcast(method,params);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
  }
  get klippy(){return this.#klippy?.snapshot??null;}
+ get klippyRemoteMethods(){return this.#klippy?.remoteMethods??null;}
  get clients(){return this.#network.clients;}
  getClient(id:number){return this.#network.getClient(id);}
  getClientsByName(name:string){return this.#network.getClientsByName(name);}
