@@ -34,7 +34,7 @@ function clone<T extends Json>(value:T):T{validateJson(value);return structuredC
 export class ConfigurationReader {
  readonly source:ConfigurationSource;
  #parsed:ConfigurationSnapshot['parsed']=dict();#warnings=new Set<string>();
- constructor(source:ConfigurationSource){this.source=source;this.ensure('server');}
+ constructor(source:ConfigurationSource,initialSection:string|null='server'){this.source=source;if(initialSection!==null)this.ensure(initialSection);}
  ensure(section:string):void{checkName(section);this.#parsed[section]??=dict();}
  section(name:string,fallback?:string):ConfigSection{this.ensure(name);if(fallback!==undefined)checkName(fallback);return new ConfigSection(this,name,fallback);}
  sections():string[]{return Object.keys(this.source.original).filter(s=>s!=='DEFAULT');}

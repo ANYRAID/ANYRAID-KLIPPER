@@ -4344,3 +4344,45 @@ bench:linear-temperature 每轮十万次正向加反向转换，2 次预热、11
 诊断后独立复测成功，上表仅来自成功轮次。该基准不含串口、温控调度或
 真实硬件。Python 原模块、其配置加载/诊断和 graph_temp_sensor.py 尚未
 整体替换，不能将转换核心接入写成全文件迁移或实机验收完成。
+
+### 线性传感器配置注册与创建（2026-09-21）
+
+新增 LinearSensorRegistry / loadLinearSensors，从现有 INI 读取器的
+[adc_temperature 名称] 节注册自定义电压或电阻表；heater 的 sensor_type
+可选择该表或八种默认线性传感器。参考电压 adc_voltage（默认 5）、
+voltage_offset（默认 0）、pullup_resistor（默认 4700）在消费该定义的
+加热器配置中读取，使同一校准定义可供不同电路配置创建独立转换器。
+
+以 resistance1 是否存在选择电阻定义，否则读 voltageN；按上游顺序
+读取 temperature1..999，在首个缺失温度处停止，对应电压/电阻缺失则
+拒绝。至少两点、最多 256 个自定义定义；重复自定义名称或覆盖默认名称
+拒绝。名称按节中的空白规范化，校准表冻结保存。曲线可逆性及电气范围
+在创建转换器时由上一节实现校验，注册本身不配置引脚、不操作设备。
+
+原配置文件加载器默认要求 [server]，本轮增加显式第三参数 requiredSection：
+省略仍要求 server，传 null 可读取无服务节的配置；ConfigurationReader
+对应的第二参数传 null 可避免建立隐含 server 的解析记录。示例：
+
+```typescript
+const source = await loadConfiguration(filename, {}, null);
+const reader = new ConfigurationReader(source, null);
+const sensors = loadLinearSensors(reader);
+const converter = sensors.create(reader.section('extruder'));
+// converter 可交给现有 ADCTemperature / SerialADCTemperature。
+```
+
+该方式复用现有有界 INI 文件读取和数值校验，不宣称全部 Klipper 配置
+语义已经迁移；SAVE_CONFIG、完整对象加载器、传感器诊断、绘图工具和
+生产主入口仍未替换。未使用的编号间断后字段继续通过 reader.validate
+报告，避免在本次创建过程中悄悄消费未采用的校准点。
+
+新增四项文件级测试，覆盖共享校准定义的不同电路配置、缺失校准值与
+名称冲突、电气参数错误、编号间断后的未使用字段、Moonraker 默认仍要求
+server 以及指定其他必需节。完整主机 **644 项通过**，类型、项目空白和
+差异检查通过。双精度电阻回算测试使用 1e-10 绝对容差。
+
+bench:linear-config 比较已解析配置创建转换器和直接构造，Node 26.9.0，
+2 次预热、11 次测量、每轮 10,000 次构造并读取同一校准温度：直接构造
+中位 / p95 为 6.166 / 9.666 ms，配置创建为 18.279 / 19.179 ms，
+配置创建平均约 1.828 微秒/次。仅构造阶段增加读取与校验；采样回调不再
+读取配置，上一节的转换核心不变。本基准不含文件 I/O 或硬件验收。

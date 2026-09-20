@@ -38,7 +38,7 @@ export class ConfigurationSource {
 }
 /** Read completely before publication. Includes cannot start a partial reload.
  * Async filesystem access; no writes, template execution, or device effects. */
-export async function loadConfiguration(filename:string,limits:ConfigurationLimits={}):Promise<ConfigurationSource>{
+export async function loadConfiguration(filename:string,limits:ConfigurationLimits={},requiredSection:string|null='server'):Promise<ConfigurationSource>{
  const maximum={bytes:limits.bytes??8*1024*1024,files:limits.files??256,depth:limits.depth??64,directoryEntries:limits.directoryEntries??16384};
  for(const n of Object.values(maximum))if(!Number.isSafeInteger(n)||n<1)fail('Invalid configuration resource limit');
  if(typeof filename!=='string'||!filename||filename.includes('\0'))fail('Invalid configuration filename');
@@ -115,7 +115,8 @@ export async function loadConfiguration(filename:string,limits:ConfigurationLimi
   }
   parseBuffer(buffer,path);
  }
- try{await read(main,0);if(!Object.hasOwn(sections,'server'))fail('No section [server] in config');
+ if(requiredSection!==null&&(typeof requiredSection!=='string'||!requiredSection||requiredSection.includes('\0')))fail('Invalid required configuration section');
+ try{await read(main,0);if(requiredSection!==null&&!Object.hasOwn(sections,requiredSection))fail('No section ['+requiredSection+'] in config');
   const original:Record<string,Values>=dictionary();original.DEFAULT={...defaults};for(const [key,values]of Object.entries(sections))original[key]=Object.assign(dictionary<string>(),defaults,values);
   for(const [section,owners]of sectionFiles)for(const owner of owners)files[owner].sections.push(section);
   return new ConfigurationSource(await realpath(main),original,files);

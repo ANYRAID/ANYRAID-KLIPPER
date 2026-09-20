@@ -108,7 +108,8 @@
     "bench:print-recovery": "node bench/print-recovery.ts",
     "bench:stepstats": "node bench/stepstats.ts",
     "bench:job-state": "node bench/job-state.ts",
-    "bench:linear-temperature": "node bench/linear-temperature.ts"
+    "bench:linear-temperature": "node bench/linear-temperature.ts",
+    "bench:linear-config": "node bench/linear-config.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
