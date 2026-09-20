@@ -4386,3 +4386,40 @@ bench:linear-config 比较已解析配置创建转换器和直接构造，Node 2
 中位 / p95 为 6.166 / 9.666 ms，配置创建为 18.279 / 19.179 ms，
 配置创建平均约 1.828 微秒/次。仅构造阶段增加读取与校验；采样回调不再
 读取配置，上一节的转换核心不变。本基准不含文件 I/O 或硬件验收。
+
+### 热敏电阻默认表与统一模拟传感器配置（2026-09-21）
+
+新增 AnalogSensorRegistry，统一选择八种线性传感器和八种默认热敏电阻。
+默认热敏电阻校准取自 Git 2a3d4b70 的 temperature_sensors.cfg，运行时
+不读取或执行 Python；默认模型深冻结，注册器持有隔离副本。Generic 3950
+保留配置中的三点校准，不将名称中的 3950 擅自解释为 Beta 参数。
+
+自定义 [thermistor 名称] 支持 temperature1 / resistance1 / beta，或
+三组 temperatureN / resistanceN 校准。三点顺序由已有 Thermistor 排序；
+注册前计算并校验系数。使用端读取 pullup_resistor（默认 4700）和
+inline_resistor（默认 0），创建独立转换器。电阻必须大于零、温度必须
+高于绝对零度，避免原算法除零/对数无定义。上游的 Beta 回退仍由现有
+Thermistor 保留，调用方可检查 coefficients.betaFallback。
+
+自定义热敏电阻可覆盖同名默认校准；两个规范化后同名的自定义节、或
+热敏电阻与线性传感器的名称冲突拒绝。自定义热敏电阻最多 256 个。
+原默认文件中的裸 [adc_temperature] 是模块加载标记，loadLinearSensors
+现在跳过它而不当作自定义定义；其中若存在未消费配置项，仍可通过读取器
+的未使用项检查发现。
+
+使用方式为 new AnalogSensorRegistry(reader)，随后对加热器节调用
+registry.create(reader.section('extruder'))。结果仍是 TemperatureConverter，
+可直接接到已有 ADC 采样组件。本轮不实现 I2C/SPI/主机/组合温度传感器，
+也没有替代完整 Klipper 对象加载器、真实设备引脚装配或生产入口。
+
+新增五项测试：读取真实 temperature_sensors.cfg、同一入口创建全部
+16 种模拟传感器、自定义 Beta / 乱序三点及使用端电气参数、默认覆盖与
+冲突校验，以及固定 Python 的八种热敏电阻正反向差异。差异共 10,648 个
+结果，容差为绝对 1e-8 加相对 1e-11；这些是软件计算一致性，不能代替
+实物标定。完整主机 **649 项通过**，类型、项目空白和差异检查通过。
+
+bench:sensor-config 在 Node 26.9.0 下运行 2 次预热、11 次测量，每轮
+10,000 次 Generic 3950 创建及一次转换。直接构造中位 / p95 为
+4.140 / 4.769 ms，配置注册器创建为 8.845 / 9.112 ms，后者平均约
+0.884 微秒/次。计时含系数重算，不含文件读取；采样时不会再次查配置，
+原热敏电阻转换核心不变。仍需实机温度、故障和打印性能验收。

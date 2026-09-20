@@ -82,7 +82,7 @@ export function loadLinearSensors(
 ): LinearSensorRegistry {
   const registry = new LinearSensorRegistry();
   for (const name of reader.sections())
-    if (/^adc_temperature(?:\s|$)/.test(name))
+    if (/^adc_temperature\s/.test(name))
       registry.register(reader.section(name));
   return registry;
 }
