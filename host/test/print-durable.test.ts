@@ -407,3 +407,50 @@ test('validation and rejected live-record restoration do not consume journal own
   assert.equal(f.calls.includes('start'), false);
   assert.equal((await f.journal.get('job'))?.state, 'reserved');
 });
+test('repeated cancel deadlines reuse the entire stop-and-commit operation', async (t) => {
+  const f = await setup(t),
+    release = deferred();
+  const controller = new PrintController(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    { stopMs: 30 },
+    { journal: f.journal },
+  );
+  let stops = 0,
+    commits = 0;
+  f.device.stop = async () => {
+    stops++;
+  };
+  const transition = f.journal.transition.bind(f.journal);
+  f.journal.transition = async (...args) => {
+    const record = await transition(...args);
+    if (args[2] === 'cancelled') {
+      commits++;
+      await release.promise;
+    }
+    return record;
+  };
+  await controller.start(request);
+  try {
+    for (let i = 0; i < 3; i++) {
+      await assert.rejects(controller.cancel(), /timed out/);
+      assert.equal(controller.state, 'failed');
+      assert.throws(() => controller.reset('job'));
+    }
+    assert.equal(stops, 1);
+    assert.equal(commits, 1);
+  } finally {
+    release.resolve();
+  }
+  await controller.cancel();
+  assert.equal(stops, 1);
+  assert.equal(commits, 1);
+  controller.reset('job');
+  f.device.prepare = async () => {};
+  await controller.start({ ...request, requestId: 'next' });
+  assert.equal((await f.journal.get('next'))?.state, 'started');
+  await controller.cancel();
+  assert.equal(stops, 2);
+  assert.equal(commits, 2);
+  assert.equal((await f.journal.get('next'))?.state, 'cancelled');
+});

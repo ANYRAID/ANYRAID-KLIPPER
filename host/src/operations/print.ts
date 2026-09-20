@@ -94,6 +94,7 @@ export class PrintController {
   #active: Promise<void> | undefined;
   #abort: AbortController | undefined;
   #cancel: Promise<void> | undefined;
+  #cancelTask: { promise: Promise<void>; pending: boolean } | undefined;
   #start: StartPrint | undefined;
   #startPromise: Promise<void> | undefined;
   get state(): PrintState {
@@ -301,7 +302,8 @@ export class PrintController {
       this.#pendingActions.size ||
       this.#stopInFlight ||
       this.#safety ||
-      this.#journalWrite
+      this.#journalWrite ||
+      this.#cancelTask?.pending
     )
       throw new Error('Cannot reset before terminal device acknowledgement');
     if (
@@ -316,6 +318,7 @@ export class PrintController {
     this.#start = undefined;
     this.#startPromise = undefined;
     this.#cancel = undefined;
+    this.#cancelTask = undefined;
     // Never evict idempotency history silently: a late request must not reprint.
   }
   cancel(): Promise<void> {
@@ -331,13 +334,29 @@ export class PrintController {
     const cancellation = (async () => {
       await Promise.resolve();
       try {
-        const pending = Promise.allSettled([active, this.#ensureStopped()]);
+        if (!this.#cancelTask) {
+          const pending = Promise.allSettled([active, this.#ensureStopped()]);
+          const task = {
+            pending: true,
+            promise: (async () => {
+              const results = await pending;
+              if (results[1].status === 'rejected') throw results[1].reason;
+              await this.#persist('cancelled');
+            })(),
+          };
+          this.#cancelTask = task;
+          task.promise.then(
+            () => {
+              task.pending = false;
+            },
+            () => {
+              task.pending = false;
+              if (this.#cancelTask === task) this.#cancelTask = undefined;
+            },
+          );
+        }
         await printDeadline(
-          (async () => {
-            const results = await pending;
-            if (results[1].status === 'rejected') throw results[1].reason;
-            await this.#persist('cancelled');
-          })(),
+          this.#cancelTask.promise,
           'cancel',
           this.#deadlines.stopMs,
         );
