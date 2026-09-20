@@ -2292,3 +2292,52 @@ Python 75.379 / 75.440 ms。该旧 RPC 基准使用 Python stdlib JSON 和
 配置修改事务/备份/保存、模板与 secrets 组件、运行时生命周期绑定仍待迁移；
 `server.config` 保持 `contract-implemented`，完整 Moonraker 和 Python
 全面替换目标仍未完成。
+
+### Moonraker 组件类型读取与已解析配置记录
+
+`host/src/moonraker/config-reader.ts` 新增 `ConfigurationReader` 与
+`ConfigSection`，在不可变文件配置源上提供字符串、整数、浮点、布尔、
+choice、列表、多维列表、整数/浮点列表和字典读取。支持默认值、
+above/below/minval/maxval 边界、列表尺寸约束、弃用警告及旧 section 回退。
+只在请求 section 不存在时回退，不因当前 section 缺少某个选项而回退。
+布尔接受上游的 true/false、yes/no、on/off、1/0；十进制数支持合法数字
+下划线及 Python 3.12 所用 Unicode 15 的 Nd 数字，不接受十六进制语法。
+
+记录按上游的首次读取规则保存；重复读取可以请求不同转换，已记录值不被
+后一次读取覆盖。choice 记录原始选项值而返回映射结果；使用默认值时不做
+数值范围比较，与上游一致。原始值的类型转换错误标记 `__CONFIG_ERROR__`，
+范围/choice 错误仍抛出而不写成功数值记录。回退来源的记录容器按需建立，
+不要求调用方提前初始化旧 section 的读取器。重复警告去重。
+
+精度政策明确收紧：整数值和数值型整数默认值必须是安全整数，浮点必须
+有限，拒绝 NaN、Infinity 和溢出；精确的大整数仍应以字符串读取并交由
+明确的 BigInt 协议处理，不能隐式转换为 Number。保留浮点负零，整数
+负零与 Python int 一样归为零。默认对象、列表与首次读取记录隔离复制，
+外部修改返回值或 `parsed()` 副本不能改变已发布配置。嵌套列表最多
+8 层，列表/字典解析最多 100000 项，仍受配置源总字节及 JSON 校验限制。
+
+`reader.snapshot()` / `reader.publish(serverConfiguration)` 现在直接使用
+组件实际读取形成的类型化记录，无需手工构造 parsed。7 项新增测试包含
+真实文件到组件类型读取再到服务器元数据发布。`validate()` 检查未消费的
+section/option；警告保留名称，省略上游原本输出的原始值，避免泄漏凭据。
+警告与已解析视图尚未自动接入完整生产组件生命周期。
+
+完整 388 项主机回归和类型检查通过。新增
+`MOONRAKER_SOURCE=/上游目录 npm run bench:moonraker-config-reader`，从固定
+提交原始 `ConfigHelper` / `DictSourceWrapper` AST 运行参考实现，58 组
+返回值、已解析记录及警告差分通过。负零直接比较数值，未通过 JSON
+重编码将其抹平；安全整数/非有限值拒绝作为额外政策单独测试。
+
+最终独立性能结果：Node 26.9.0、Python 3.12.13，3 次预热、11 次采样；
+Python 样本先于 Node，未交替执行。以下单位为 ms：
+
+| 工作负载 | Node 中位 / p95 | Python 中位 / p95 |
+| --- | --- | --- |
+| 40000 次重复类型读取，整数/浮点/布尔/5 项整数列表各 10000 次 | 22.657 / 24.061 | 98.740 / 102.674 |
+| 1000 个新读取器，各首次读取上述 4 项并取 parsed | 9.905 / 10.335 | 15.267 / 15.324 |
+
+第二项 Node 返回深拷贝，原实现 `get_parsed_config()` 为浅拷贝；未将这项
+差异隐藏为相同复制成本。基准不含磁盘、模板/GPIO 组件或真实打印并发，
+当前负载下两项均未见性能退步，不替代目标硬件期限和运动精度验收。
+完整组件初始化接线、路径/模板/GPIO getter、配置修改事务/保存/备份、
+secrets 和运行时重启仍待迁移。尚未删除或切换 Python 主机入口。

@@ -1310,7 +1310,7 @@
       "method": "register_endpoint",
       "targetExpression": "\"/server/info\"",
       "status": "contract-implemented",
-      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed raw source implemented; typed component configuration and runtime owners still need production lifecycle bindings."
+      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed source and typed readers implemented: host/src/moonraker/config-reader.ts; host/test/config-reader.test.ts; host/bench/moonraker-config-reader.ts. Component wiring and runtime owners still need production lifecycle bindings."
     },
     {
       "file": "moonraker/server.py",
@@ -1318,7 +1318,7 @@
       "method": "register_endpoint",
       "targetExpression": "\"/server/config\"",
       "status": "contract-implemented",
-      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed raw source implemented; typed component configuration and runtime owners still need production lifecycle bindings."
+      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed source and typed readers implemented: host/src/moonraker/config-reader.ts; host/test/config-reader.test.ts; host/bench/moonraker-config-reader.ts. Component wiring and runtime owners still need production lifecycle bindings."
     },
     {
       "file": "moonraker/server.py",
