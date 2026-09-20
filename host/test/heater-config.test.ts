@@ -30,3 +30,34 @@ test('verification overrides and failed cycle configuration retain shutdown prot
  assert.equal(heater.verification.checkGainTime,40);assert.equal(heater.verification.maxError,70);
  assert.throws(()=>heater.runtime.start(),/cycle failed/);assert.equal(f.calls.at(-1)?.method,'off');
 });
+test('configured async heater requires safe output metadata and ACK before activation',async()=>{
+ const {createConfiguredAsyncHeater}=await import('../src/thermal/heater-config.ts');
+ const requests:unknown[]=[],reset=Promise.withResolvers<void>(),stop=Promise.withResolvers<void>();let resets=0,stops=0;
+ const heater=createConfiguredAsyncHeater(reader({pwm_cycle_time:'.2'}),'extruder',requirements=>{
+  requests.push(requirements);assert.equal(Object.isFrozen(requirements),true);
+  return {configuration:{cycleTime:.2,maximumDuration:3,defaultPower:0,initialPower:0},reset(){resets++;return reset.promise;},setPWM:async()=>{},stop(){stops++;return stop.promise;}};
+ },()=>({system:1,print:1}),()=>()=>{});
+ assert.deepEqual(requests,[{cycleTime:.2,maximumDuration:3,start:0,shutdown:0}]);assert.equal(resets,0);assert.equal(stops,0);
+ const starting=heater.runtime.start();assert.equal(heater.runtime.status.phase,'starting');reset.resolve();await starting;
+ heater.adc.receive([[1,heater.converter.adc(25)]]);await heater.runtime.setTarget(200);
+ assert.throws(()=>heater.adc.receive([[1.3,1]]),/range/);assert.equal(heater.runtime.status.phase,'stopping');assert.equal(stops,1);
+ stop.resolve();await heater.runtime.shutdown();assert.equal(heater.runtime.status.phase,'stopped');
+});
+test('async configuration rejects invalid settings before output factory and unsafe output before reset',async()=>{
+ const {createConfiguredAsyncHeater}=await import('../src/thermal/heater-config.ts');let constructed=0,resets=0;
+ const factory=()=>{constructed++;return {configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},reset:async()=>{resets++;},setPWM:async()=>{},stop:async()=>{}};};
+ for(const values of [{control:'unknown'},{pwm_cycle_time:'.31'},{max_power:'2'},{sensor_type:'missing'},{sensor_type:'AD595',min_temp:'-100'}] as Record<string,string>[])assert.throws(()=>createConfiguredAsyncHeater(reader(values),'extruder',factory,()=>({system:1,print:1})));
+ assert.equal(constructed,0);
+ for(const override of [{cycleTime:.2},{initialPower:1},{defaultPower:1},{maximumDuration:2}])assert.throws(()=>createConfiguredAsyncHeater(reader({}),'extruder',()=>{const output=factory();Object.assign(output.configuration,override);return output;},()=>({system:1,print:1})),/match|requires/);
+ assert.equal(resets,0);
+});
+test('async and synchronous configuration preserve bed and PID defaults identically',async()=>{
+ const {createConfiguredAsyncHeater}=await import('../src/thermal/heater-config.ts');
+ for(const name of ['extruder','heater_bed']){
+  const options=name==='heater_bed'?{control:'watermark',max_temp:'130'}:{control:'pid',max_temp:'300'},f=fixture(),source=reader(options,{},name);
+  const sync=createConfiguredHeater(source,name,f.output,f.clock,()=>()=>{});
+  const async=createConfiguredAsyncHeater(source,name,r=>({configuration:{cycleTime:r.cycleTime,maximumDuration:r.maximumDuration,defaultPower:r.shutdown,initialPower:r.start},reset:async()=>{},setPWM:async()=>{},stop:async()=>{}}),f.clock,()=>()=>{});
+  assert.deepEqual(async.settings,sync.settings);assert.deepEqual(async.verification,sync.verification);assert.equal(async.pwmCycleTime,sync.pwmCycleTime);
+  await async.runtime.start();async.adc.receive([[1,async.converter.adc(100)]]);assert.equal(async.runtime.canExtrude(),false);await async.runtime.shutdown();
+ }
+});

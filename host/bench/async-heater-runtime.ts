@@ -33,7 +33,7 @@ const oracle=JSON.parse(processResult.stdout) as {result:number[][];times:number
 async function run(asynchronous:boolean){
  let time=0,tick=()=>{};const output:number[][]=[],control=new PIDControl({kp:22,ki:1.08,kd:114,smoothTime:1,maxPower:1});
  const clock=()=>({system:time,print:time}),timer=(callback:()=>void)=>{tick=callback;return ()=>{};};
- const runtime=asynchronous?new AsyncHeaterRuntime(config,control,{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0},reset:async()=>{},setPWM:async(t,v)=>{output.push([t,v]);},stop:async()=>{}},clock,{},timer):new HeaterRuntime(config,control,{configureMaximumDuration:()=>{},turnOff:()=>{},schedule:(t,v)=>{output.push([t,v]);}},clock,{},timer);
+ const runtime=asynchronous?new AsyncHeaterRuntime(config,control,{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},reset:async()=>{},setPWM:async(t,v)=>{output.push([t,v]);},stop:async()=>{}},clock,{},timer):new HeaterRuntime(config,control,{configureMaximumDuration:()=>{},turnOff:()=>{},schedule:(t,v)=>{output.push([t,v]);}},clock,{},timer);
  await runtime.start();runtime.sample(.1,200);await runtime.setTarget(200);
  for(let i=2;i<samples+2;i++){
   time=i*.1;runtime.sample(time,198);if(i%10===0)tick();

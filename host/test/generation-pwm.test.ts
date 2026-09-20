@@ -19,7 +19,7 @@ function setup(hardware=false){
  return {plan,dictionary,data,control,output};
 }
 for(const hardware of [false,true])test(`${hardware?'hardware':'software'} PWM reset confirms safe default, drains old writes and advances generation`,async()=>{
- const f=setup(hardware);await assert.rejects(f.output.setPWM(2,.5,signal()),/not ready/);
+ const f=setup(hardware);assert.deepEqual(f.output.configuration,{cycleTime:.1,maximumDuration:2,initialPower:0,defaultPower:0});await assert.rejects(f.output.setPWM(2,.5,signal()),/not ready/);
  const initial=f.output.reset(signal());assert.equal(f.control.calls[0].min,0n);assert.equal(f.control.calls[0].req,0n);f.control.calls[0].resolve();await initial;
  assert.equal(f.output.status.defaultConfirmed,true);
  const old=f.output.setPWM(2,.25,signal()),oldRejected=assert.rejects(old,PWMGenerationSuperseded);

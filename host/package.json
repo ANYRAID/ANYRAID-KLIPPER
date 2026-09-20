@@ -120,7 +120,8 @@
     "bench:heater-shutdown": "node bench/heater-shutdown.ts",
     "bench:firmware-output-generation": "node bench/firmware-output-generation.ts",
     "bench:generation-pwm": "node bench/generation-pwm.ts",
-    "bench:async-heater-runtime": "node bench/async-heater-runtime.ts"
+    "bench:async-heater-runtime": "node bench/async-heater-runtime.ts",
+    "bench:async-heater-config": "node bench/async-heater-config.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

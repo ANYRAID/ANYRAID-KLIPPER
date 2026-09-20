@@ -7,7 +7,7 @@ const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function fixture(){
  let now=1,tick=()=>{},stops=0,cancelled=0;
  const resets:ReturnType<typeof Promise.withResolvers<void>>[]=[],writes:(ReturnType<typeof Promise.withResolvers<void>>&{time:number;power:number})[]=[],stopped=Promise.withResolvers<void>();
- const output:ConfirmedHeaterOutput={configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0},reset(){const job=Promise.withResolvers<void>();resets.push(job);return job.promise;},setPWM(time,power){const job=Promise.withResolvers<void>();writes.push({...job,time,power});return job.promise;},stop(cause){stops++;for(const reset of resets)reset.reject(cause);for(const write of writes)write.reject(cause);return stopped.promise;}};
+ const output:ConfirmedHeaterOutput={configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},reset(){const job=Promise.withResolvers<void>();resets.push(job);return job.promise;},setPWM(time,power){const job=Promise.withResolvers<void>();writes.push({...job,time,power});return job.promise;},stop(cause){stops++;for(const reset of resets)reset.reject(cause);for(const write of writes)write.reject(cause);return stopped.promise;}};
  const runtime=new AsyncHeaterRuntime(config,new BangBangControl(1),output,()=>({system:now,print:now}),{},callback=>{tick=callback;return ()=>{cancelled++;};});
  return {runtime,output,resets,writes,stopped,get stops(){return stops;},get cancelled(){return cancelled;},advance(time:number){now=time;tick();}};
 }
@@ -58,17 +58,21 @@ test('native serial ADC drives acknowledged heater PWM and a sensor fault stops 
  const {compilePWM}=await import('../src/outputs/pwm.ts');
  const {GenerationPWMOutput}=await import('../src/outputs/generation-pwm.ts');
  const {SerialADCTemperature}=await import('../src/thermal/serial-adc.ts');
- const {Thermistor}=await import('../src/thermal/thermistor.ts');
+ const {readHeaterConfiguration,createConfiguredAsyncHeater}=await import('../src/thermal/heater-config.ts');
+ const {ConfigurationReader}=await import('../src/moonraker/config-reader.ts');
+ const {ConfigurationSource}=await import('../src/moonraker/config-source.ts');
+ const reader=new ConfigurationReader(new ConfigurationSource('/heater.cfg',{extruder:{sensor_type:'Generic 3950',min_temp:'0',max_temp:'300',control:'watermark'}},[]),null);
+ const parsed=readHeaterConfiguration(reader,'extruder'),requirements=parsed.outputRequirements;
  const firmware=await serialFirmware();let deviceStops=0;const session=new SerialSession(firmware.fd,{async stopDevice(){deviceStops++;}}),signal=new AbortController().signal;
  let runtime:AsyncHeaterRuntime|undefined;
  try{
   await session.initialize(signal);const chip={},clock=(t:number)=>BigInt(Math.trunc(t*1e6)),print=(clock:bigint)=>Number(clock)/1e6;
   const now=()=>print(session.clock.sync.getClock(serialClock.now())),pin=(name:string)=>({chip,chipName:'mcu',pin:name,invert:0 as const,pullup:0 as const});
-  const plan=compilePWM(chip,session.dictionary,{oid:3,pin:pin('PA0'),maxDuration:3,currentPrintTime:now()},clock),converter=new Thermistor(4700,0,{point:[25,100000],beta:3950});
+  const plan=compilePWM(chip,session.dictionary,{oid:3,pin:pin('PA0'),...requirements,maxDuration:requirements.maximumDuration,currentPrintTime:now()},clock),converter=parsed.converter;
   const sensor=new SerialADCTemperature(session,chip,{oid:4,pin:pin('PA1'),minimum:0,maximum:300,currentPrintTime:now()},converter,clock,print,{sample:(time,temp)=>runtime!.sample(time,temp),shutdown:reason=>{void runtime?.shutdown(reason).catch(()=>{});}});
   await session.configure({oidCount:5,commands:[...plan.commands,...sensor.plan.commands],init:[...plan.init,...sensor.plan.init],restart:plan.restart,reservedMoves:plan.reservedMoves},signal);
   const output=new GenerationPWMOutput(plan,session.dictionary,session.commandQueue(),session.commandQueue(),clock,print);
-  runtime=new AsyncHeaterRuntime(config,new BangBangControl(1),output,()=>({system:serialClock.now(),print:now()}),{},()=>()=>{});
+  runtime=createConfiguredAsyncHeater(reader,'extruder',()=>output,()=>({system:serialClock.now(),print:now()}),()=>()=>{}).runtime;
   await runtime.start(signal);sensor.activate();
   const emit=(temperature:number)=>{const raw=Math.round(converter.adc(temperature)*32760),next=clock(now()+.3-.008);firmware.emit('analog_in_state',{oid:4,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});};
   const until=async(check:()=>boolean)=>{const deadline=Date.now()+2000;while(!check()){if(Date.now()>deadline)throw new Error('serial heater condition timed out');await new Promise(resolve=>setTimeout(resolve,2));}};

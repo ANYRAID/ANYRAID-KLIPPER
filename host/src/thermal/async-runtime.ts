@@ -4,7 +4,7 @@ import {HeaterCheck,type HeaterCheckConfig} from './verify.ts';
 import {PWMGenerationSuperseded} from '../outputs/generation-pwm.ts';
 import type {ThermalClock,ThermalTimer} from './runtime.ts';
 export interface ConfirmedHeaterOutput {
- readonly configuration:Readonly<{cycleTime:number;maximumDuration:number;defaultPower:number}>;
+ readonly configuration:Readonly<{cycleTime:number;maximumDuration:number;defaultPower:number;initialPower:number}>;
  reset(signal:AbortSignal):Promise<void>;
  setPWM(time:number,power:number,signal:AbortSignal):Promise<void>;
  /** Must confirm independent device stop and settle accepted host writes. */
@@ -22,7 +22,7 @@ export class AsyncHeaterRuntime {
  #lastSystem=-Infinity;#lastPrint=-Infinity;#lastTick=0;#startTime=0;#nextCheck=0;
  constructor(config:TemperatureConfig&{maxPower:number;reportDelay:number},control:PIDControl|BangBangControl,output:ConfirmedHeaterOutput,clock:()=>ThermalClock,verification:HeaterCheckConfig={},schedule:ThermalTimer=timer){
   const protection=output.configuration;
-  if(protection.defaultPower!==0||protection.maximumDuration!==3||!Number.isFinite(protection.cycleTime)||protection.cycleTime<=0||protection.cycleTime>config.reportDelay)throw new Error('Heater output requires zero default, three-second watchdog and valid PWM cycle');
+  if(protection.initialPower!==0||protection.defaultPower!==0||protection.maximumDuration!==3||!Number.isFinite(protection.cycleTime)||protection.cycleTime<=0||protection.cycleTime>config.reportDelay)throw new Error('Heater output requires zero initial/default power, three-second watchdog and valid PWM cycle');
   this.#state=new TemperatureState(config);this.#pwm=new HeaterPWM(config.maxPower,config.reportDelay);this.#check=new HeaterCheck(verification);
   this.#control=control;this.#output=output;this.#clock=clock;this.#timer=schedule;
  }
