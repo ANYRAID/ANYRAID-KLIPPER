@@ -5442,3 +5442,56 @@ Node Worker 往返中位 / p95 为 19.151 / 21.365 ms，Python 原扫描为
 当前是实际文件根的查询组件；私有发布 ID 与路径命名空间的绑定、上传下载、
 目录操作、路径式删除、元数据提取、通知和生产装配仍未完成。生产入口仍为
 Python，本阶段未部署或刷写。
+
+### 单层目录查询与扩展元数据接口（2026-09-21）
+
+FileListing 新增 directory 查询，由既有 Worker 执行单层扫描。HTTP GET
+/server/files/directory 和 WebSocket server.files.get_directory 已注册，path
+默认 gcodes。EndpointRegistry 增加显式 rpcVerbPrefix，以便分阶段实现的 GET
+仍使用上游多动词接口的 get_directory 名称；HTTP 授权回调也取得该规范名称。
+未注册 post_directory/delete_directory，HTTP POST/DELETE 返回 405，不能把
+读端点的完成当作目录创建或删除已经实现。
+
+查询返回 dirs/files/disk_usage/root_info，dirs 使用 dirname、files 使用 filename。
+此接口列出普通文件的全部扩展名，仅查看一层；符号链接文件仍显示只读，
+断链跳过。请求路径按上游先词法规范化再解析注册根，随后按真实路径检查
+保留目录和 .git，包含指向保留目录的符号链接。目标不存在或不是目录返回
+400，直接查询禁止读取目录返回 403；允许读取的父目录仍可显示这些子目录
+的空权限条目，符合上游查询语义。路径元数据仍不授权后续文件读写。
+
+磁盘计数在 Worker 中取得，先用 BigInt 计算 total=blocks*bsize、
+used=(blocks-bfree)*bsize、free=bavail*bsize，再检查 JSON 安全整数范围。
+free 保留普通用户可用空间语义，不把为系统保留的空间计入可用量。扫描继续
+受条目、响应、请求数量和取消限制约束。磁盘空间会随其他进程改变，因此
+不同查询之间不能把 used/free 当作同一时刻的静态快照。
+
+extended 接受布尔值或大小写不敏感的 true/false 字符串。扩展 gcodes 查询
+要求装配同步只读的元数据快照提供者；未配置时明确返回 503，而不是宣称
+已经完成切片元数据提取。config 等其他根不需要该提供者。仅有效 G-code
+扩展名查缓存，使用根内相对路径索引，按上游语义合并已有字段，包括同名
+字段覆盖。合并逐项计入响应字节预算，超过限额立即停止；字符串先检查
+未转义字节长度，避免先构造巨大 JSON 才发现超限。对通过预算的合并结果
+生成独立结构化副本，响应修改不会污染缓存中的嵌套对象。解析器、缩略图
+提取及元数据持久库仍未在本阶段完成。
+
+五项新测试覆盖单层条目/权限/磁盘量、路径与保留链接拒绝、容量、规范 RPC
+名称/授权/405、扩展元数据覆盖和缓存隔离、缺失提供者及过大响应。原文件
+网络测试增加真实 HTTP 目录请求。最终完整回归 **807 项通过**，类型、项目
+空白及差异检查通过；契约清单的目录注册点标为 partial。
+
+bench:file-directory 对固定上游提交及相同 SHA-256 的 file_manager.py 提取
+_list_directory/get_path_info/check_reserved_path/get_relative_path 原 AST，
+对照同一个真实文件系统树和扩展元数据。复现设置
+MOONRAKER_FILE_MANAGER_SOURCE 后执行 `npm --prefix host run bench:file-directory`。
+1002 个文件、3 个子目录的输出逐项相同，包括顺序、字段及权限；磁盘 total
+精确比较，动态 used/free 检查合法性和空间关系，不假设查询间不变。
+
+完整回归后独立测量，Node 26.9.0 / Python 3.12.13，五次预热、11 次测量：
+Node Worker 往返、端点参数/结果校验与扩展字段合并的中位 / p95 为
+13.706 / 15.260 ms，Python 原目录方法为 51.383 / 51.940 ms。父线程事件
+循环延迟 p95 / 最大值为 2.546 / 5.304 ms，包含测试检查开销。缓存命中，
+Python 先测、Node 后测，不含 Worker 启动或网络传输；尚未验证冷盘、其他
+文件系统的容量字段、目标板或真实打印负载下的调度期限。
+
+目录 POST/DELETE、上传下载、路径式文件删除、通知、动态根与生产装配继续
+开放，生产入口仍为 Python。本阶段未部署或刷写。

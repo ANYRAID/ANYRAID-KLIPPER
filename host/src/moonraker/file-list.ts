@@ -1,15 +1,17 @@
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
-import {ApiError,type Json} from './rpc.ts';
+import {ApiError,validateJson,type Json} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 export interface FileRoot {name:string;path:string;permissions:'r'|'rw';}
 export interface FileListEntry {path:string;modified:number;size:number;permissions:'r'|'rw'|'';}
+export interface FileDirectory {dirs:Record<string,Json>[];files:Record<string,Json>[];disk_usage:{total:number;used:number;free:number};root_info:{name:string;permissions:'r'|'rw'};}
+export interface DirectoryScan {relativePath:string;result:FileDirectory;}
 export interface FileListingOptions {
  roots:readonly {name:string;path:string;writable:boolean}[];
  reserved?:readonly {path:string;canRead:boolean}[];
  maxEntries?:number;maxFiles?:number;maxOutputBytes?:number;maxPending?:number;timeoutMs?:number;
 }
-interface Pending {cancel:Int32Array;finish:(error:unknown,value?:FileListEntry[])=>void;dispose:()=>void;}
+interface Pending {cancel:Int32Array;finish:(error:unknown,value?:unknown)=>void;dispose:()=>void;}
 /** Observational filesystem metadata in a dedicated Worker. These listings grant
  * no capability to open or mutate a pathname later; authorization is separate. */
 export class FileListing {
@@ -33,19 +35,22 @@ export class FileListing {
  }
  roots():readonly Readonly<FileRoot>[] {if(this.#closed)throw new ApiError(503,'File listing is closed');return this.#roots;}
  get pendingRequests():number{return this.#pending.size;}
- list(root:string,signal:AbortSignal):Promise<FileListEntry[]>{
+ get maxOutputBytes():number{return this.#options.maxOutputBytes;}
+ list(root:string,signal:AbortSignal):Promise<FileListEntry[]>{return this.#call('list',root,signal) as Promise<FileListEntry[]>;}
+ directory(path:string,signal:AbortSignal):Promise<DirectoryScan>{return this.#call('directory',path,signal) as Promise<DirectoryScan>;}
+ #call(method:'list'|'directory',root:string,signal:AbortSignal):Promise<unknown>{
   if(this.#closed)return Promise.reject(new ApiError(503,'File listing is closed'));
-  if(typeof root!=='string'||root.length>128)return Promise.reject(new ApiError(400,'Invalid root argument'));
+  if(typeof root!=='string'||!root.isWellFormed()||root.includes('\0')||Buffer.byteLength(root)>(method==='list'?128:4096))return Promise.reject(new ApiError(400,'Invalid root argument'));
   if(signal.aborted)return Promise.reject(signal.reason);
   if(this.#pending.size>=this.#options.maxPending||this.#next===Number.MAX_SAFE_INTEGER)return Promise.reject(new ApiError(503,'File listing queue is full'));
-  const id=++this.#next,cancel=new Int32Array(new SharedArrayBuffer(4)),result=Promise.withResolvers<FileListEntry[]>();let settled=false;
-  const finish=(error:unknown,value?:FileListEntry[])=>{if(settled)return;settled=true;if(error!==undefined)result.reject(error);else result.resolve(value!);};
+  const id=++this.#next,cancel=new Int32Array(new SharedArrayBuffer(4)),result=Promise.withResolvers<unknown>();let settled=false;
+  const finish=(error:unknown,value?:unknown)=>{if(settled)return;settled=true;if(error!==undefined)result.reject(error);else result.resolve(value!);};
   // Aborted calls retain their capacity slot until the Worker acknowledges them.
   const abort=()=>{Atomics.store(cancel,0,1);finish(signal.reason??new ApiError(499,'File listing cancelled'));};
   const timer=setTimeout(()=>{Atomics.store(cancel,0,1);finish(new ApiError(504,'File listing timed out'));},this.#options.timeoutMs);
   const dispose=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);};
   this.#pending.set(id,{cancel,finish,dispose});signal.addEventListener('abort',abort,{once:true});
-  try{this.#worker.postMessage({id,root,cancel:cancel.buffer});}catch(error){this.#pending.delete(id);dispose();finish(error);}
+  try{this.#worker.postMessage({id,method,root,cancel:cancel.buffer});}catch(error){this.#pending.delete(id);dispose();finish(error);}
   return result.promise;
  }
  close():Promise<void>{
@@ -54,12 +59,37 @@ export class FileListing {
   this.#closing=this.#worker.terminate().then(()=>{});return this.#closing;
  }
 }
-export function registerFileListing(registry:EndpointRegistry,files:FileListing):()=>void{
+function boundedJsonBytes(value:Json,limit:number):number{
+ let bytes=0;const add=(size:number)=>{bytes+=size;if(bytes>limit)throw new ApiError(413,'Directory response limit exceeded');};
+ const string=(text:string)=>{if(Buffer.byteLength(text)>limit-bytes)throw new ApiError(413,'Directory response limit exceeded');add(Buffer.byteLength(JSON.stringify(text)));};
+ const visit=(item:Json):void=>{
+  if(typeof item==='string'){string(item);return;}
+  if(item===null||typeof item!=='object'){add(JSON.stringify(item).length);return;}
+  add(2);if(Array.isArray(item)){for(let i=0;i<item.length;i++){if(i)add(1);visit(item[i]);}}
+  else{let first=true;for(const [key,child] of Object.entries(item)){if(!first)add(1);first=false;string(key);add(1);visit(child);}}
+ };visit(value);return bytes;
+}
+export function registerFileListing(registry:EndpointRegistry,files:FileListing,metadata?:(filename:string)=>Readonly<Record<string,Json>>|undefined):()=>void{
  const detach:(()=>void)[]=[];
  try{
   detach.push(registry.register({endpoint:'/server/files/roots',methods:['GET']},()=>files.roots() as unknown as Json));
   detach.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>{
    const root=Object.hasOwn(params,'root')?params.root:'gcodes';if(typeof root!=='string')throw new ApiError(400,'Unable to extract argument [root] as string');return files.list(root,context.signal) as unknown as Promise<Json>;
+  }));
+  detach.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},async(params,_verb,context)=>{
+   const path=Object.hasOwn(params,'path')?params.path:'gcodes',extended=Object.hasOwn(params,'extended')?params.extended:false;
+   if(typeof path!=='string')throw new ApiError(400,'Unable to extract argument [path] as string');
+   if(typeof extended!=='boolean'&&(typeof extended!=='string'||!['true','false'].includes(extended.toLowerCase())))throw new ApiError(400,'Unable to convert argument [extended] to boolean');
+   const enrich=extended===true||typeof extended==='string'&&extended.toLowerCase()==='true';
+   const {relativePath,result}=await files.directory(path,context.signal);
+   if(enrich&&result.root_info.name==='gcodes'&&!metadata)throw new ApiError(503,'File metadata provider is not configured');
+   let outputBytes=Buffer.byteLength(JSON.stringify(result));
+   if(enrich&&result.root_info.name==='gcodes')result.files=result.files.map(file=>{
+    context.signal.throwIfAborted();const name=file.filename as string;if(!/\.(gcode|g|gco|ufp|nc)$/i.test(name))return file;
+    const extra=metadata!(relativePath?relativePath+'/'+name:name);if(extra===undefined)return file;validateJson(extra);const merged={...file,...extra};outputBytes+=boundedJsonBytes(merged,files.maxOutputBytes)-boundedJsonBytes(file,files.maxOutputBytes);if(outputBytes>files.maxOutputBytes)throw new ApiError(413,'Directory response limit exceeded');return structuredClone(merged);
+   });
+   if(outputBytes>files.maxOutputBytes)throw new ApiError(413,'Directory response limit exceeded');
+   return result as unknown as Json;
   }));
  }catch(error){for(const remove of detach.reverse())remove();throw error;}
  let closed=false;return ()=>{if(closed)return;closed=true;for(const remove of detach.reverse())remove();};

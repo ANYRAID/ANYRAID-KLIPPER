@@ -2,9 +2,9 @@
 // Original Copyright (C) 2020 Eric Callahan. See pinned contracts manifest.
 import {pythonLower} from './python-lower.ts';
 import {parentPort,workerData} from 'node:worker_threads';
-import {opendirSync,statSync,lstatSync,readlinkSync} from 'node:fs';
-import {isAbsolute,join,dirname,extname} from 'node:path';
-import type {FileListingOptions,FileRoot,FileListEntry} from './file-list.ts';
+import {opendirSync,statSync,lstatSync,readlinkSync,statfsSync} from 'node:fs';
+import {isAbsolute,join,dirname,extname,normalize} from 'node:path';
+import type {FileListingOptions,FileRoot,FileListEntry,DirectoryScan} from './file-list.ts';
 const options=workerData as Required<FileListingOptions>,port=parentPort!;
 const error=(message:string,code=500)=>Object.assign(new Error(message),{code});
 function canonical(path:string):string{
@@ -51,12 +51,39 @@ function list(root:string,cancel:Int32Array):FileListEntry[]{
  }
  check();const keys=new Map<string,string>();for(const item of result){check();keys.set(item.path,pythonLower(item.path));}result.sort((a,b)=>codepoints(keys.get(a.path)!,keys.get(b.path)!));check();return result;
 }
+function directory(request:string,cancel:Int32Array):DirectoryScan{
+ const normalized=normalize(request).replace(/^\/+|\/+$/g,''),slash=normalized.indexOf('/'),root=slash<0?normalized:normalized.slice(0,slash),relativePath=slash<0?'':normalized.slice(slash+1),definition=roots.get(root);
+ if(!definition)throw error(`Invalid root path (${root})`,400);
+ const path=join(definition.path,relativePath),check=()=>{if(Atomics.load(cancel,0))throw error('Directory listing cancelled',499);};
+ check();let status;try{status=statSync(path);}catch(e){if(['ENOENT','ENOTDIR'].includes((e as NodeJS.ErrnoException).code??''))throw error(`Directory does not exist (${path})`,400);throw e;}
+ if(!status.isDirectory())throw error(`Directory does not exist (${path})`,400);
+ if(denied(canonical(path)))throw error('Access to directory forbidden by reserved path',403);
+ const result:DirectoryScan={relativePath,result:{dirs:[],files:[],disk_usage:{total:0,used:0,free:0},root_info:{name:root,permissions:definition.permissions}}};
+ let entries=0,bytes=256;const handle=opendirSync(path,{encoding:'buffer' as BufferEncoding});
+ try{for(let entry=handle.readSync();entry;entry=handle.readSync()){
+  check();if(++entries>options.maxEntries)throw error('Directory entry limit exceeded',413);
+  const name=Buffer.isBuffer(entry.name)?new TextDecoder('utf-8',{fatal:true}).decode(entry.name):entry.name,full=join(path,name);
+  let stat;try{stat=statSync(full,{bigint:true});}catch(e){if(['ENOENT','ENOTDIR','ELOOP'].includes((e as NodeJS.ErrnoException).code??''))continue;throw e;}
+  if(!stat.isDirectory()&&!stat.isFile())continue;
+  const real=canonical(full);let permissions:'rw'|'r'|''=definition.permissions;
+  if(denied(real))permissions='';else if(entry.isSymbolicLink()&&stat.isFile()||reserved.some(item=>contained(item.path,real)))permissions='r';
+  const size=Number(stat.size);if(!Number.isSafeInteger(size))throw error('File size exceeds exact JSON integer range');
+  let seconds=stat.mtimeNs/1000000000n,nanos=stat.mtimeNs%1000000000n;if(nanos<0){seconds--;nanos+=1000000000n;}
+  const info={modified:Number(seconds)+Number(nanos)*1e-9,size,permissions,...(stat.isDirectory()?{dirname:name}:{filename:name})};
+  bytes+=Buffer.byteLength(JSON.stringify(info))+1;if(bytes>options.maxOutputBytes||result.result.dirs.length+result.result.files.length>=options.maxFiles)throw error('Directory response limit exceeded',413);
+  (stat.isDirectory()?result.result.dirs:result.result.files).push(info);
+ }}finally{handle.closeSync();}
+ check();const fs=statfsSync(path,{bigint:true}),usage={total:Number(fs.blocks*fs.bsize),used:Number((fs.blocks-fs.bfree)*fs.bsize),free:Number(fs.bavail*fs.bsize)};
+ if(Object.values(usage).some(value=>!Number.isSafeInteger(value)||value<0))throw error('Disk usage exceeds exact JSON integer range');
+ result.result.disk_usage=usage;check();return result;
+}
+
 try{
  for(const definition of options.roots){const path=canonical(definition.path);if(path==='/'||!statSync(path).isDirectory())throw error('Invalid file root');const dir=opendirSync(path);dir.closeSync();roots.set(definition.name,{name:definition.name,path,permissions:definition.writable?'rw':'r'});}
  for(const item of options.reserved)reserved.push({path:canonical(item.path),canRead:item.canRead});
  port.postMessage({ready:true,roots:[...roots.values()]});
- port.on('message',({id,root,cancel}:{id:number;root:string;cancel:SharedArrayBuffer})=>{
-  try{port.postMessage({id,value:list(root,new Int32Array(cancel))});}
+ port.on('message',({id,method,root,cancel}:{id:number;method:'list'|'directory';root:string;cancel:SharedArrayBuffer})=>{
+  try{port.postMessage({id,value:method==='directory'?directory(root,new Int32Array(cancel)):list(root,new Int32Array(cancel))});}
   catch(e){port.postMessage({id,error:{code:typeof (e as any).code==='number'?(e as any).code:500,message:(e as Error).message}});}
  });
 }catch(e){port.postMessage({ready:false,error:(e as Error).message});port.close();}

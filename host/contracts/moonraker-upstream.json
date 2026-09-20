@@ -526,7 +526,8 @@
       "line": 125,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/directory\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "GET directory and server.files.get_directory in file-list.ts/file-list-worker.ts; directory, permission, disk usage and explicit metadata-provider merge tested in file-directory.test.ts and against pinned original AST in bench/file-directory.ts. POST/DELETE directory operations, metadata extraction and production assembly remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",

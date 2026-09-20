@@ -3,7 +3,7 @@ import {parseRequestJson,JsonNumberError} from './json.ts';
 // and DynamicRequestHandler. GPL-3.0-or-later.
 import {JsonRpcDispatcher,ApiError,validateJson,type Json,type RpcContext,type Transport} from './rpc.ts';
 export type RequestVerb='GET'|'POST'|'DELETE';
-export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;}
+export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;rpcVerbPrefix?:boolean;}
 export type EndpointHandler=(params:Readonly<Record<string,Json>>,verb:RequestVerb,context:RpcContext)=>Json|Promise<Json>;
 interface Entry{path:string;methods:readonly RequestVerb[];rpcNames:readonly string[];objects:boolean;handler:EndpointHandler;transports:ReadonlySet<Transport>;}
 const verbs:readonly RequestVerb[]=['GET','POST','DELETE'];
@@ -35,9 +35,10 @@ export class EndpointRegistry{
  register(options:EndpointOptions,handler:EndpointHandler):()=>void{
   const {endpoint,remote=false}=options,path=remote?`/printer/${endpoint.replace(/^\/+|\/+$/g,'')}`:endpoint,transports=new Set<Transport>(options.transports??['http','websocket','unix','mqtt']);
   if(path==='/server/jsonrpc'||!/^\/(?:printer|server|machine|access|api|debug)\/[A-Za-z0-9_/-]+$/.test(path)||path.includes('//')||path.endsWith('/')||path.length>512||typeof handler!=='function'||!transports.size||[...transports].some(t=>!['http','websocket','unix','mqtt'].includes(t)))throw new Error('Invalid endpoint definition');
+  if(options.rpcVerbPrefix!==undefined&&(typeof options.rpcVerbPrefix!=='boolean'||remote))throw new Error('Invalid RPC verb prefix');
   if(this.#entries.has(path))throw new Error('Endpoint already registered');
   const methods=remote?['GET','POST'] as const:verbs.filter(v=>options.methods.includes(v));if(!methods.length||!remote&&(methods.length!==options.methods.length))throw new Error('Invalid endpoint request methods');
-  const parts=path.slice(1).split('/'),name=parts.at(-1)!,names=remote||methods.length===1?[parts.join('.')]:methods.map(v=>[...parts.slice(0,-1),`${v.toLowerCase()}_${name}`].join('.'));
+  const parts=path.slice(1).split('/'),name=parts.at(-1)!,names=remote||methods.length===1&&!options.rpcVerbPrefix?[parts.join('.')]:methods.map(v=>[...parts.slice(0,-1),`${v.toLowerCase()}_${name}`].join('.'));
   const rpcEnabled=remote||!(transports.size===1&&transports.has('http'));if(rpcEnabled&&names.some(n=>this.dispatcher.has(n)))throw new Error('RPC method already registered');
   const entry:Entry={path,methods:[...methods],rpcNames:names,objects:remote&&endpoint.startsWith('objects/'),handler,transports};
   if(rpcEnabled)for(let i=0;i<names.length;i++)this.dispatcher.register(names[i],[...transports],(params,context)=>handler(params,methods[i],context));

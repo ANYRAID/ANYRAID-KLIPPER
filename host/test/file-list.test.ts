@@ -73,6 +73,7 @@ test('authenticated HTTP and WebSocket expose actual root and file list contract
   assert.equal((await fetch(url+'/server/files/list')).status,401);
   assert.equal((await fetch(url+'/server/files/list?root=config',{headers:{'x-api-key':'key'}})).status,403);
   const response=await fetch(url+'/server/files/list',{headers:{'x-api-key':'key'}});assert.equal(response.status,200);assert.deepEqual((await response.json() as any).result,await f.files.list('gcodes',signal()));
+  const directory=await fetch(url+'/server/files/directory?path=gcodes/parts',{headers:{'x-api-key':'key'}});assert.equal(directory.status,200);assert.deepEqual((await directory.json() as any).result.files.map((v:any)=>v.filename),['b.GCODE']);
   ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'key'}});await once(ws,'open');const received=once(ws,'message');ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.roots'}));assert.deepEqual(JSON.parse(String((await received)[0])).result,f.files.roots());
   const invalid=once(ws,'message');ws.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'server.files.list',params:{root:123}}));assert.equal(JSON.parse(String((await invalid)[0])).error.code,400);
  }finally{ws?.terminate();await network.close();detach();await f.close();}
