@@ -94,7 +94,7 @@
       "name": "klippy_connection",
       "tier": "server",
       "status": "partial",
-      "evidence": "host/src/moonraker/klippy-socket.ts; host/src/moonraker/klippy-lifecycle.ts; host/src/moonraker/subscription-status.ts; ConfiguredMoonraker.attachKlippy; host/test/klippy-lifecycle.test.ts; host/test/subscription-status.test.ts; host/bench/klippy-lifecycle.ts; host/bench/subscription-status.ts. Unix transport, one-generation initialization, authorized dynamic forwarding, subscription union/projection model and bounded immutable status cache. Public multi-client subscription transactions and delivery, file-manager path validation, remote-method registration, peer credentials, reconnect supervision and production daemon remain incomplete."
+      "evidence": "host/src/moonraker/klippy-socket.ts; host/src/moonraker/klippy-lifecycle.ts; host/src/moonraker/subscription-status.ts; ConfiguredMoonraker.attachKlippy; host/test/klippy-lifecycle.test.ts; host/test/subscription-status.test.ts; host/bench/klippy-lifecycle.ts; host/bench/subscription-status.ts. Unix transport, one-generation initialization, authorized dynamic forwarding, subscription union/projection model, bounded immutable status cache and serialized multi-client transactions (subscription-manager.ts) wired to KlippyLifecycle. Public subscription transport, authorization and ordered delivery, file-manager path validation, remote-method registration, peer credentials, reconnect supervision and production daemon remain incomplete."
     },
     {
       "name": "ldap",
