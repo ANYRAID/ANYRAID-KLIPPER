@@ -3642,3 +3642,42 @@ ready 动态拥有者 17.700 / 19.238 ms，shutdown 动态拥有者
 失败处理位于初始化路径，没有移入每次回调；动态路径相对直接传输的
 尾延迟开销仍存在，不能宣称目标硬件性能门禁已通过。完整 Python daemon
 速度对照、生产入口、其余 Python 模块及实际运动/打印验收继续未完成。
+
+### 配置驱动的 Klippy 连接启动（2026-09-20）
+
+调用 `ConfiguredMoonraker.load` 时传入 `klippy: {}` 可由配置服务拥有连接。
+load 读取 `[server] klippy_uds_address`，完成路径与重试间隔校验，尚不连接；
+start 成功监听网络后启用已有自动管理器，close 取消并等待连接任务。
+可选 `klippy.initialization`、`klippy.retryDelayMs` 传递初始化配置与重试间隔。
+启用配置拥有者时禁止另行手工 attach/reconnect/supervise，避免两方管理
+同一个连接。未传入 klippy 的既有调用行为不变。
+
+固定上游默认是 `/tmp/klippy_uds`，不是推断的数据目录路径。未配置时像
+上游 getpath 一样直接返回默认 Path，不调用模板渲染或预先解析符号链接。
+显式路径按进程工作目录解析相对位置，支持当前用户 `~` 和 `~/`，逐个路径
+分量跟随链接再处理 `..`，包括链接目标尚不存在的情况；不要求 socket
+已创建。配置快照消费该选项，不再产生未解析选项告警。
+
+模板路径必须提供 `klippy.pathContext.render`，由真实模板组件/调用者渲染；
+当前尚未迁移完整 Moonraker Jinja 环境，不把花括号模板当普通文件名。
+`~其他用户` 展开仍明确拒绝。相比上游，另外拒绝空路径、NUL、超过 Linux
+Unix socket 107 字节路径容量和超过 40 次链接展开；避免无效路径被静默
+截断或无界解析。`pathContext.cwd/home` 可明确传入解析环境；Python strip
+语义保留 BOM，且正确去除其支持的控制空白。
+
+完整主机 **562 项通过**；最终补充“默认值不得触发渲染”检查后，4 项路径
+测试独立通过，类型与差异检查通过。实际 Unix/WebSocket 集成覆盖 load
+不连接、start 后自动初始化、配置快照与告警、掉线恢复和关闭。非法模板
+在网络监听前失败。7 组路径结果与 Python 3.12.13 pathlib 对照一致，同时
+从固定上游 AST 核对默认路径。未将其宣称为完整 getpath/Jinja 兼容。
+
+`MOONRAKER_SOURCE=<固定源码路径> npm --prefix host run bench:klippy-config`
+测量 3 次预热、51 轮，每轮 100 次含符号链接和 `..` 的路径解析：
+Node 26.9.0 中位 / p95 为 10.769 / 11.660 ms，Python 为
+2.763 / 2.850 ms。Node 异步文件系统实现约慢 3.9 倍，平均每次约 0.108 ms；
+这项工作仅在 load 时执行一次，自动重连复用已解析路径，不进入运动计算
+或每次回调路径。未声称文件系统吞吐与 Python 持平。
+
+这是文件配置服务的连接入口，不是已可替代生产的独立 daemon。
+命令行/服务安装入口、完整模板组件、授权存储、peer credentials、其余
+Moonraker 组件及全部 Python 替换仍待完成，实际打印精度和性能未验收。

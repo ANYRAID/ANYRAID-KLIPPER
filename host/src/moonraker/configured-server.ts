@@ -1,3 +1,4 @@
+import {readKlippyBinding,type KlippyPathContext} from './klippy-config.ts';
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {SubscriptionDelivery} from './subscription-delivery.ts';
 import {KlippyNotifications} from './klippy-notifications.ts';
@@ -20,6 +21,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
  configurationLimits?:ConfigurationLimits;
+ /** Enables configuration-owned Klippy supervision when the network starts. */
+ klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
 /** Pinned server.py host/port and application.py PrimaryRouter capacity defaults.
  * Port zero is valid for an ephemeral listener, as in Tornado/Node listen(). */
@@ -44,7 +47,9 @@ export class ConfiguredMoonraker {
  #agentMethods:AgentMethods;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  #supervisor:KlippySupervisor|undefined;
- private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
+ #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
+ private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
+  this.#automatic=automatic;
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
@@ -56,12 +61,15 @@ export class ConfiguredMoonraker {
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
-  return new ConfiguredMoonraker(new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits)),options);
+  if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
+  const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
+  const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
+  return new ConfiguredMoonraker(reader,options,automatic);
  }
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
  attachKlippy(path:string,options:KlippyAttachmentOptions={}):Promise<KlippySnapshot>{
-  if(this.#supervisor)throw new Error('Klippy connection is owned by the supervisor');
+  if(this.#automatic||this.#supervisor)throw new Error('Klippy connection is owned by configuration or the supervisor');
   if(this.#reconnecting)throw new Error('Klippy recovery already in progress');
   return this.#attachKlippy(path,options);
  }
@@ -85,7 +93,7 @@ export class ConfiguredMoonraker {
  /** Explicit recovery only after disconnection. Drain the old generation and
   * recreate protocol state; never replay G-code or an uncertain old request. */
  reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
-  if(this.#supervisor)return Promise.reject(new Error('Klippy connection is owned by the supervisor'));
+  if(this.#automatic||this.#supervisor)return Promise.reject(new Error('Klippy connection is owned by configuration or the supervisor'));
   return this.#reconnectKlippy(path,options);
  }
  async #reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
@@ -103,6 +111,10 @@ export class ConfiguredMoonraker {
  /** Explicit opt-in to daemon-style connection ownership; network start alone
   * still does not initiate a printer connection. */
  superviseKlippy(path:string,options:KlippyAttachmentOptions={},retryDelayMs=250):void{
+  if(this.#automatic)throw new Error('Klippy connection is owned by configuration');
+  this.#superviseKlippy(path,options,retryDelayMs);
+ }
+ #superviseKlippy(path:string,options:KlippyAttachmentOptions,retryDelayMs:number):void{
   if(this.#stopping||this.#klippy||this.#supervisor||this.#reconnecting)throw new Error('Klippy connection already owned or server stopping');
   const supervisor=new KlippySupervisor(async()=>{if(this.#klippy)await this.#reconnectKlippy();else await this.#attachKlippy(path,options);return this.#klippy!.signal;},()=>this.#klippy?.close()??Promise.resolve(),retryDelayMs);
   this.#supervisor=supervisor;supervisor.start();
@@ -147,7 +159,9 @@ export class ConfiguredMoonraker {
  async #start():Promise<AddressInfo>{
   try{
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
-   return await this.#network.listen(this.binding.port,this.binding.host);
+   const address=await this.#network.listen(this.binding.port,this.binding.host);
+   if(this.#automatic)this.#superviseKlippy(this.#automatic.path,this.#automatic.initialization,this.#automatic.retryDelayMs);
+   return address;
   }catch(error){try{await this.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Configured server startup and cleanup failed');}throw error;}
  }
  notify(connectionId:number,method:string,params:readonly Json[]):boolean{return this.#network.notify(connectionId,method,params);}

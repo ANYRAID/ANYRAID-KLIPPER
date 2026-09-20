@@ -96,7 +96,8 @@
     "bench:klippy-notifications": "node bench/klippy-notifications.ts",
     "bench:remote-methods": "node bench/remote-methods.ts",
     "bench:client-calls": "node bench/client-calls.ts",
-    "bench:agent-methods": "node bench/agent-methods.ts"
+    "bench:agent-methods": "node bench/agent-methods.ts",
+    "bench:klippy-config": "node bench/klippy-config.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

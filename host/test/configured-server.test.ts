@@ -49,3 +49,6 @@ test('failed shutdown retains owned registrations until active requests actually
  service.rpc.register('server.slow',['http'],async()=>{entered();await blocked;return null;});
  try{const address=await service.start(),pending=fetch(`http://127.0.0.1:${address.port}/server/jsonrpc`,{method:'POST',headers:{'content-type':'application/json','x-api-key':'test'},body:JSON.stringify({jsonrpc:'2.0',method:'server.slow',id:1})}).catch(()=>null);await started;await assert.rejects(service.close(),/shutdown deadline/);assert.equal(service.status.phase,'closing');assert.equal(service.rpc.has('server.config'),true);release();await pending;await service.close();assert.equal(service.rpc.has('server.config'),false);assert.equal(service.status.phase,'closed');}finally{release?.();await service.close();}
 }));
+test('invalid configured Klippy path fails load before network startup',()=>fixture('[server]\nhost=127.0.0.1\nport=0\nklippy_uds_address={data_path}/klippy.sock',async path=>{
+ await assert.rejects(ConfiguredMoonraker.load(path,{authorize,information:info(),klippy:{}}),/renderer/);await assert.rejects(ConfiguredMoonraker.load(path,{authorize,information:info(),klippy:{retryDelayMs:0}}),/retry/);
+}));
