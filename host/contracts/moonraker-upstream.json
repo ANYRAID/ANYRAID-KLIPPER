@@ -94,7 +94,7 @@
       "name": "klippy_connection",
       "tier": "server",
       "status": "partial",
-      "evidence": "host/src/moonraker/klippy-socket.ts; host/test/klippy-socket.test.ts; host/bench/klippy-socket.ts. Actual Unix ETX request/reply and remote callback transport; no readiness initialization, subscription aggregation, endpoint discovery, remote-method registration lifecycle, peer credentials or production composition yet."
+      "evidence": "host/src/moonraker/klippy-socket.ts; host/src/moonraker/klippy-lifecycle.ts; ConfiguredMoonraker.attachKlippy; host/test/klippy-lifecycle.test.ts; host/bench/klippy-lifecycle.ts. Unix transport plus one-generation info/discovery/initial subscriptions/required-object checks and authorized dynamic forwarding. Full subscription aggregation, file-manager path validation, remote-method registration, peer credentials, reconnect supervision and production daemon remain incomplete."
     },
     {
       "name": "ldap",

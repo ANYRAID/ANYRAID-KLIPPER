@@ -1,3 +1,4 @@
+import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
 import type {AddressInfo} from 'node:net';
@@ -30,6 +31,7 @@ export class ConfiguredMoonraker {
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
+ #klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
   this.reader=reader;this.binding=readNetworkBinding(reader);
@@ -44,6 +46,18 @@ export class ConfiguredMoonraker {
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   return new ConfiguredMoonraker(new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits)),options);
  }
+ /** Explicitly attach one Klippy generation; no implicit device connection,
+  * retry or replay is performed by HTTP server startup. */
+ attachKlippy(path:string,options:Omit<KlippyInitializationOptions,'version'|'onSnapshot'>={}):Promise<KlippySnapshot>{
+  if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
+  const runtime=new KlippyLifecycle({...options,version:this.#base.version,onSnapshot:snapshot=>{
+   const exposed=new Set(snapshot.endpoints.filter(name=>!['list_endpoints','gcode/subscribe_output','register_remote_method','objects/subscribe'].includes(name))),added=new Map<string,()=>void>();
+   try{for(const name of exposed)if(!this.#klippyRoutes.has(name))added.set(name,this.endpoints.register({endpoint:name,methods:['GET','POST'],remote:true},(params,_verb,context)=>runtime.request(name,{...params},{signal:context.signal})));}catch(error){for(const release of added.values())release();throw error;}
+   for(const [name,release] of this.#klippyRoutes)if(!exposed.has(name)){release();this.#klippyRoutes.delete(name);}for(const [name,release] of added)this.#klippyRoutes.set(name,release);
+   if(!this.#stopping)this.setInformation({...this.#base,connected:snapshot.connected,state:snapshot.state,missingRequirements:snapshot.missingRequirements});
+  }});this.#klippy=runtime;return runtime.initialize(path);
+ }
+ get klippy(){return this.#klippy?.snapshot??null;}
  get clients(){return this.#network.clients;}
  getClient(id:number){return this.#network.getClient(id);}
  getClientsByName(name:string){return this.#network.getClientsByName(name);}
@@ -55,7 +69,7 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
-  const copy=structuredClone(snapshot);this.#information.replace({...copy,warnings:[...new Set([...copy.warnings,...this.reader.warnings()])]});this.#base=copy;
+  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);this.#information.replace({...copy,warnings:[...new Set([...copy.warnings,...this.reader.warnings()])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
@@ -72,6 +86,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;await this.#network.close();this.#release();
+  this.#stopping=true;await Promise.all([this.#network.close(),this.#klippy?.close()]);for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();
  }
 }

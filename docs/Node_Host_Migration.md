@@ -2753,3 +2753,71 @@ klippy_connection 组件仅更新为 partial。就绪/错误状态握手、动�
 
 本阶段完整 452 项回归及类型检查通过；随后补充阻塞写队列边界测试，
 本模块 16 项测试再次通过。未将未重跑的完整套件写为 453 项通过。
+
+## 单代 Klippy 初始化与动态代理接入
+
+`KlippyLifecycle` 将实际 Unix 链路推进到 info 识别、startup 轮询、基础
+端点发现、webhooks 与 GCode 输出初始订阅、完整端点刷新和必需对象检查。
+首次 info 携带上游格式的 client_info（program 为 Moonraker，version
+取服务版本），后续轮询不重复识别。默认轮询间隔 250 ms、初始化总期限
+300 秒；首次查询不额外等待 250 ms。此实现目前对请求/结构错误严格
+失败并关闭连接，上游部分请求失败后继续轮询或记录错误，尚需在重连/
+恢复拥有者中完成相应兼容策略。
+
+快照区分 connected、identified、initialized、实际 Klippy state、
+requirementsChecked 与 missingRequirements。只有实际 info/webhooks
+数据可产生 ready；连接成功暂记 startup，不是打印就绪声明。ready 时
+核对 virtual_sdcard、display_status、pause_resume，对缺失项如实报告。
+error/shutdown 初始化可结束，但不会伪造已经核对全部必需对象。文件
+管理器的 virtual_sdcard 路径校验尚未接通，不能据此宣称完整需求验证。
+
+webhooks 状态修订号防止较早的 info/订阅回应覆盖后来的 shutdown 或
+state_message。快照及原始 info 为不可变副本；一般位置通知不重复发布
+服务器元数据。onStatus/onGcode 回调通过底层回调生命周期接收通知。
+状态观察回调失败会关闭连接并拒绝初始化；断连快照仍会发布，避免留下
+陈旧连接状态。取消轮询、启动期限和关闭共享真实连接生命周期。
+
+`ConfiguredMoonraker.attachKlippy(path, options)` 显式连接一代 Klippy。
+它不由 HTTP listen 隐式连接设备，不自动重试/重放；当前没有读取
+klippy_uds_address 并自动启动的生产 daemon。发现的普通端点通过既有
+共享注册表映射为 /printer/* 的 REST GET/POST 与 printer.* RPC，逐次
+经过网络授权，再转发到当前 Klippy 连接。路由更新先完成新增注册，
+冲突时回滚本轮新增项；断连清理本代拥有的路由，不覆盖原有拥有者。
+
+list_endpoints、gcode/subscribe_output、register_remote_method 保留为
+内部端点；objects/subscribe 在多客户端订阅聚合完成前尚未公开。
+外部 GCode 输出广播、订阅分发与扩展远程方法桥接仍需后续组件接线。
+接入后 ServerInformation 的连接状态和缺失项由 Klippy 快照拥有，其他
+组件的 setInformation 更新不能覆盖这些实际状态；未接入时维持原有
+显式快照接口。网络与 Klippy 关闭并行取消各自任务，真实结束后释放路由。
+
+10 项新增测试覆盖启动序列、识别参数、startup 轮询、晚到 info/订阅
+覆盖保护、缺失对象、实时回调、断连、期限/畸形回应、观察者异常、授权
+REST 转发、保留端点、元数据所有权、二次发现冲突回滚与启动期间关闭。
+
+`bench:klippy-lifecycle` 对照固定上游 _check_ready、_request_endpoints、
+_request_initial_subscriptions、_verify_klippy_requirements 源码 AST，
+startup→ready、ready、error、shutdown 四组请求序列、端点及缺失项一致。
+源码对照的服务器事件/路径/服务探测为空替身，对象表不含 virtual_sdcard，
+因此不覆盖文件管理器配置路径分支；不是完整上游初始化等价证明。
+
+Node 26.9.0，3 次预热、51 次采样，同一 Unix 模拟端交替运行生命周期
+拥有者与直接请求/回调，单位 ms、中位 / p95：
+
+| 工作负载 | 生命周期拥有者 | 直接调用对照 |
+| --- | --- | --- |
+| 30 次连接、六类握手请求与关闭 | 7.900 / 10.703 | 5.966 / 8.168 |
+| 5000 条 webhooks/位置通知全部处理完成 | 30.037 / 32.742 | 28.712 / 32.293 |
+
+初始化额外中位成本约每代 0.064 ms；通知中位高约 4.6%、p95 高约 1.4%，
+每条中位增加约 0.265 微秒，明确保留这项校验与状态管理成本。通知测试
+重复携带相同 webhooks 状态并消费位置值，不包含完整订阅聚合或打印
+并发。早期仅初始化基准为 7.928 / 10.850 对 5.961 / 8.533 ms；加入
+通知测试后重跑得到上表，未与完整回归并行执行。
+
+完整 klippy_connection 仍为 partial：多客户端订阅/缓存、文件路径、
+远程方法注册/注销与恢复、peer credentials、重连监督器、配置驱动的
+生产启动及实际打印精度/速度/停机验收均未完成，整体迁移目标保持未完成。
+
+本阶段完整 463 项主机回归（含原生构建和 socket/PTY 测试）、类型检查
+及差异格式检查通过。完整硬件门禁仍未执行。
