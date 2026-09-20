@@ -58,7 +58,8 @@
     {
       "name": "file_manager",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "FileListing Worker and authenticated roots/list REST+WebSocket routes in host/src/moonraker/file-list.ts; real filesystem and pinned original-method differential tests. Dynamic root updates, metadata extraction, directory operations, upload/download/delete paths, observers and production assembly remain incomplete."
     },
     {
       "name": "gpio",
@@ -488,7 +489,8 @@
       "line": 110,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/list\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/file-list.ts; host/src/moonraker/file-list-worker.ts; host/test/file-list.test.ts; host/bench/file-list.ts. Actual root/list response contracts; bounded static root configuration, explicit invalid UTF-8 rejection, no dynamic root observer or production assembly."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
@@ -516,7 +518,8 @@
       "line": 122,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/roots\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/file-list.ts; host/src/moonraker/file-list-worker.ts; host/test/file-list.test.ts; host/bench/file-list.ts. Actual root/list response contracts; bounded static root configuration, explicit invalid UTF-8 rejection, no dynamic root observer or production assembly."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",

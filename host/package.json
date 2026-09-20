@@ -131,7 +131,8 @@
     "bench:snapshot-budget": "node bench/snapshot-budget.ts",
     "bench:published-files": "node bench/published-files.ts",
     "bench:published-recovery": "node bench/published-recovery.ts",
-    "bench:published-delete": "node bench/published-delete.ts"
+    "bench:published-delete": "node bench/published-delete.ts",
+    "bench:file-list": "node bench/file-list.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
