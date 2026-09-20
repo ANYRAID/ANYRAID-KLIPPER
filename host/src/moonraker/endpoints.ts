@@ -1,3 +1,4 @@
+import {parseRequestJson,JsonNumberError} from './json.ts';
 // Endpoint mapping and query parsing follow the pinned Moonraker APIDefinition
 // and DynamicRequestHandler. GPL-3.0-or-later.
 import {JsonRpcDispatcher,ApiError,validateJson,type Json,type RpcContext,type Transport} from './rpc.ts';
@@ -13,7 +14,7 @@ function convert(value:string,hint:string):Json{
  if(hint==='bool')return value.toLowerCase()==='true';
  if(hint==='int'&&/^[+-]?\d+$/.test(numeric)){const n=Number(numeric);return Number.isSafeInteger(n)?n:value;}
  if(hint==='float'&&/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(numeric)){const n=Number(numeric);return Number.isFinite(n)?n:value;}
- if(hint==='json')try{const v:unknown=JSON.parse(value);validateJson(v);return v;}catch{}
+ if(hint==='json')try{const v:unknown=parseRequestJson(value);validateJson(v);return v;}catch{}
  return value;
 }
 export function parseRestArguments(query:string,body:Uint8Array,contentType:string,objects=false):Record<string,Json>{
@@ -21,7 +22,7 @@ export function parseRestArguments(query:string,body:Uint8Array,contentType:stri
  const parsed:Record<string,Json>=Object.create(null);
  for(const [key,value] of encoded){if(excluded.has(key))continue;if(objects){parsed[key]=value?value.split(','):null;continue;}const at=key.lastIndexOf(':');parsed[at<0?key:key.slice(0,at)]=at<0?value:convert(value,key.slice(at+1));}
  const result:Record<string,Json>=objects?{objects:parsed}:parsed;
- if(contentType.trim().startsWith('application/json')){let json:unknown;try{json=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(body));}catch{validateJson(result);return result;}
+ if(contentType.trim().startsWith('application/json')){let json:unknown;try{json=parseRequestJson(new TextDecoder('utf-8',{fatal:true}).decode(body));}catch(error){if(error instanceof JsonNumberError)throw new ApiError(400,error.message);validateJson(result);return result;}
   if(json===null||typeof json!=='object'||Array.isArray(json))throw new ApiError(400,'JSON request body must be an object');validateJson(json);for(const [key,value] of Object.entries(json))Object.defineProperty(result,key,{value,writable:true,enumerable:true,configurable:true});
  }
  validateJson(result);return result;

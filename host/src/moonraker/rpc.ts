@@ -1,3 +1,4 @@
+import {parseRequestJson,JsonNumberError} from './json.ts';
 // Dispatch behavior based on Moonraker common.JsonRPC, pinned in contracts/.
 // Original Copyright (C) 2020 Eric Callahan. GPL-3.0-or-later.
 export type Json=null|boolean|number|string|Json[]|{[key:string]:Json};
@@ -33,8 +34,8 @@ export class JsonRpcDispatcher {
     const size=typeof input==='string'?Buffer.byteLength(input):input.byteLength;
     if(size>1024*1024) return JSON.stringify(failure(-32600,'Request too large'));
     let value:unknown;
-    try {value=JSON.parse(typeof input==='string'?input:new TextDecoder('utf-8',{fatal:true}).decode(input));}
-    catch {return JSON.stringify(failure(-32700,'Parse error'));}
+    try {value=parseRequestJson(typeof input==='string'?input:new TextDecoder('utf-8',{fatal:true}).decode(input));}
+    catch(error) {return JSON.stringify(error instanceof JsonNumberError?failure(-32600,error.message):failure(-32700,'Parse error'));}
     // Validate shape depth before recursively passing arbitrary client data to handlers.
     try {validateJson(value);} catch {return JSON.stringify(failure(-32600,'Invalid Request'));}
     if(Array.isArray(value)) {
