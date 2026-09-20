@@ -29,7 +29,10 @@ export class NotificationFanout {
  remove(id:number):void{const client=this.#clients.get(id);if(!client)return;this.#clients.delete(id);client.removed=true;client.target.signal.removeEventListener('abort',client.abort);client.controller.abort(new Error('Notification client disconnected'));clearTimeout(client.active?.timer);for(const task of client.queue.splice(0))this.#finish(client,task,'closed');}
  #disconnect(client:Client,reason:string):void{if(client.removed)return;this.remove(client.id);try{client.target.disconnect(new Error(reason));}catch{/* Transport is already removed; cleanup must not strand other recipients. */}}
  publish(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{
-  return Promise.resolve(this.#publish(method,params,[...this.#clients.values()],false,excluded));
+  return Promise.resolve(this.dispatch(method,params,excluded));
+ }
+ dispatch(method:string,params:readonly Json[],excluded:readonly number[]=[]):DeliveryReport|Promise<DeliveryReport>{
+  return this.#publish(method,params,[...this.#clients.values()],false,excluded);
  }
  /** Target one connection without scanning or authorizing unrelated clients.
   * Shares the broadcast queue, ordering, cancellation and capacity accounting. */

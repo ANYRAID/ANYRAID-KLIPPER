@@ -711,7 +711,8 @@
       "line": 102,
       "method": "register_remote_method",
       "targetExpression": "'process_gcode_response'",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "KlippyLifecycle process_gcode_response and ConfiguredMoonraker authorized notify_gcode_response broadcast; exact text, slow-recipient isolation, counters and real Unix/WebSocket tests. Full event bus, other transports and production composition remain incomplete."
     },
     {
       "file": "moonraker/components/klippy_connection.py",
@@ -1359,7 +1360,8 @@
       "line": 131,
       "method": "register_notification",
       "targetExpression": "\"server:gcode_response\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "KlippyLifecycle process_gcode_response and ConfiguredMoonraker authorized notify_gcode_response broadcast; exact text, slow-recipient isolation, counters and real Unix/WebSocket tests. Full event bus, other transports and production composition remain incomplete."
     },
     {
       "file": "moonraker/server.py",
