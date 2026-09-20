@@ -84,7 +84,8 @@
     "bench:moonraker-extensions": "node bench/moonraker-extensions.ts",
     "bench:json-validation": "node bench/json-validation.ts",
     "bench:klippy-socket": "node bench/klippy-socket.ts",
-    "bench:klippy-lifecycle": "node bench/klippy-lifecycle.ts"
+    "bench:klippy-lifecycle": "node bench/klippy-lifecycle.ts",
+    "bench:subscription-status": "node bench/subscription-status.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

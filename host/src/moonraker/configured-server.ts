@@ -57,6 +57,7 @@ export class ConfiguredMoonraker {
    if(!this.#stopping)this.setInformation({...this.#base,connected:snapshot.connected,state:snapshot.state,missingRequirements:snapshot.missingRequirements});
   }});this.#klippy=runtime;return runtime.initialize(path);
  }
+ get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
  get klippy(){return this.#klippy?.snapshot??null;}
  get clients(){return this.#network.clients;}
  getClient(id:number){return this.#network.getClient(id);}
