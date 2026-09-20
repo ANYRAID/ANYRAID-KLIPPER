@@ -114,7 +114,8 @@
     "bench:heater-config": "node bench/heater-config.ts",
     "bench:adc-diagnostics": "node bench/adc-diagnostics.ts",
     "bench:query-adc": "node bench/query-adc.ts",
-    "bench:heaters": "node bench/heaters.ts"
+    "bench:heaters": "node bench/heaters.ts",
+    "bench:temperature-wait": "node bench/temperature-wait.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
