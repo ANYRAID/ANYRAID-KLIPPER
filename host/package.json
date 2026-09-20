@@ -70,13 +70,16 @@
     "bench:digital-output": "node bench/digital-output.ts",
     "bench:pwm-output": "node bench/pwm-output.ts",
     "bench:adc-input": "node bench/adc-input.ts",
-    "bench:serial-temperature": "node bench/serial-temperature.ts"
+    "bench:serial-temperature": "node bench/serial-temperature.ts",
+    "bench:moonraker-network": "node bench/moonraker-network.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
+    "@types/ws": "8.18.1",
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "fft.js": "4.0.4"
+    "fft.js": "4.0.4",
+    "ws": "8.21.3"
   }
 }

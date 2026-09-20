@@ -24,7 +24,7 @@
 | 运行时 | 配置、事件循环、G-code、状态、生命周期、异常停机 | G-code 分块输入、解析、坐标和串行调度基础已实现；设备 I/O、完整命令注册、配置、事件与生命周期待迁移 |
 | 扩展 | 所有传感器、温控、探针、调平、校准和外围设备 | PID/开关控制、PWM 授权和 verify_heater 状态计算已实现；传感器、保护调度与硬件接线待迁移 |
 | 工具链 | 构建、烧录、测试、图表、数据分析、文档站及第三方 Python | 包版本、Robin/Chitu 封装及 buildcommands 生成入口已切换并删除旧 Python 脚本；Kconfig、烧录及其余工具待迁移 |
-| Moonraker | 以下完整功能矩阵及客户端兼容测试 | 上游已固定；JSON-RPC 调度基础已实现，业务组件与网络服务未实现 |
+| Moonraker | 以下完整功能矩阵及客户端兼容测试 | 上游已固定；JSON-RPC 调度及 HTTP/WebSocket 传输基础已实现，业务组件、完整授权及其他传输仍待完成 |
 | 产品操作 | 以下宏替代设计及故障注入测试 | 打印状态机初版与模拟适配器测试；真实设备、持久化、超时与恢复待实现 |
 
 Moonraker 必须锁定上游版本/提交，逐项盘点 HTTP、WebSocket、JSON-RPC
@@ -39,7 +39,8 @@ Moonraker 必须锁定上游版本/提交，逐项盘点 HTTP、WebSocket、JSON
 源码声明 API 版本 1.5.0。完整组件目录的 37 个组件和 Python AST 中
 167 处接口/通知/远程方法注册调用记录于
 [`moonraker-upstream.json`](../host/contracts/moonraker-upstream.json)。
-每项均为 `not-implemented`。此清单保留动态表达式、源码路径和行号，
+application/websockets 已有部分传输实现，server.websocket.id 有契约验证；
+其余注册点仍未实现。此清单保留动态表达式、源码路径和行号，
 不是全部展开后的端点集合；循环、转发的 Klippy 方法、传输协议、参数、
 响应、错误、事件、权限、可选集成仍需逐项建立契约测试。
 
@@ -198,8 +199,8 @@ npm run test:protocol-native # 需要 cc，编译原 C 文件，不需要 Python
 不向客户端暴露详情，远程 agent 的 null 结果可正确交付。
 这些与上游的边界差异必须纳入后续完整客户端兼容评估。
 
-当前未启动 HTTP/WebSocket/Unix/MQTT 服务，也未注册任何 Moonraker
-业务端点，不能宣称已集成完整 Moonraker。37 个组件迁移状态仍未完成。
+本初始阶段未启动 HTTP/WebSocket/Unix/MQTT 服务，也未注册业务端点。
+后续 HTTP/WebSocket 进展见文末网络传输章节；37 个组件的完整迁移仍未完成。
 
 ```sh
 cd host
@@ -2023,3 +2024,67 @@ ADCInput + ADCTemperature 回调与新增订阅、新鲜度及生命周期接线
 激活前缓存、温度校准、首报/过期/未来数据故障、消费者失败及 ACK
 先于响应。生产入口、完整输出安全适配器、回零、Moonraker 业务、
 消费级操作及硬件门禁仍未完成。
+
+### Moonraker HTTP/WebSocket 网络传输（2026-09-20）
+
+`moonraker/server.ts` 将已有 JsonRpcDispatcher 接到实际 Node HTTP
+服务与 ws 8.21.3（类型 8.18.1）。默认监听地址为 127.0.0.1，端口由
+调用方指定；本阶段只在临时端口启动测试实例，没有部署常驻服务。
+入口为 POST /server/jsonrpc 与 /websocket。HTTP 要求 application/json，
+RPC 成功通知返回 200 空响应；HTTP 层错误使用 error.code/message。
+WebSocket 接受文本/二进制 JSON，独立消息并发执行、批次内部顺序执行。
+`server.websocket.id` 仅在 WebSocket 上返回当前连接 ID；notify 方法
+发送 notify_* 通知。Unix、MQTT、Klippy 桥接及其他 REST 路由尚未实现。
+
+每个方法调用必须经过调用方提供的 authorize 钩子，没有默认放行。
+构造服务时缺少授权钩子会拒绝启动；此钩子仍不是完整的 Moonraker
+用户、JWT、API Key、可信客户端或连接识别实现。Origin 默认允许同源
+及无 Origin 的原生客户端，可额外配置精确来源列表；不信任转发头。
+允许来源的预检和凭据 CORS 头已接入，TLS/代理部署仍需单独完成。
+
+默认限制：50 个 WebSocket、256 个全局在途请求、单 WebSocket 32 个
+请求，单条输入/输出 1 MiB，总计被接收任务持有的输入 8 MiB，单连接
+输出缓冲 1 MiB。总输入计数不是进程 RSS 上限，也不包含尚未组装完整
+的 WebSocket 帧或 JSON 解析对象。HTTP 超载返回 429；WebSocket 超载
+或慢客户端终止连接并取消其请求。关闭压缩，10 秒 ping 周期检查存活。
+请求默认 300 秒截止时间，可配置；长时间业务操作需要设计后台任务
+或相应期限，不能假定所有 Moonraker 方法都已满足该默认值。
+
+客户端断连、请求截止和服务器关闭通过 AbortSignal 传给授权及处理器。
+忽略取消的处理器继续占用容量；关闭默认等候 5 秒，仍未结束则报告
+失败并保持 closing，不把未完成任务描述为已清空。处理器实际结束后
+可再次关闭。测试覆盖启动中关闭、延迟清理、容量保留、缓冲回收和
+Node 原生浏览器兼容 WebSocket 客户端。RPC 业务处理器仍必须遵守取消
+契约，不能在关闭钩子中反过来等待当前请求自身完成。
+
+`bench:moonraker-network` 为 Node 与 Python 分别启动独立服务进程，
+共用同一 Node 客户端交替请求。Python 从固定提交读取实际 JsonRPC、
+RPCHandler.post 和 JSON wrapper，使用其锁定的 Tornado 6.5.8 及
+msgspec 0.21.1，加上原 WebSocket.open 的 TCP_NODELAY 设置。授权和
+业务处理为无副作用的 echo 替身；这不是完整 Moonraker 服务比较。
+六组 HTTP RPC 契约相同；另明确记录顶层 null 的差异：原 dispatcher
+抛异常导致 HTTP 500，新实现保留已有的 JSON-RPC Invalid Request。
+
+本机 Ryzen 5 3500X / Node 26.9.0 / Python 3.12.13，3 次预热、11 次
+采样，最终在其他回归结束后单独运行：
+
+| 每次采样负载 | Node 中位 / p95（ms） | Python 中位 / p95（ms） |
+| --- | --- | --- |
+| 200 次顺序 HTTP | 49.068 / 53.164 | 72.399 / 78.757 |
+| 500 次顺序 WebSocket | 24.524 / 32.485 | 42.514 / 44.627 |
+| 320 次 WebSocket，16 并发 | 5.775 / 6.897 | 9.458 / 10.280 |
+
+早期对照适配器缺少 TCP_NODELAY，使 Python 并发请求受到延迟确认影响，
+同时未启用 msgspec；这组数值不作为性能结论。上述最终结果已经补齐
+二者，仍不证明目标板上的打印并行负载、完整授权或文件业务性能。
+Python 参考依赖仅解包在 /tmp/anyraid-moonraker-network-oracle/lib，按
+上游 uv.lock 校验 wheel SHA256，没有引入 Node 服务运行依赖。
+复现需设置 MOONRAKER_SOURCE 为包含固定提交的检出，并让 PYTHON 指向
+具备该 Tornado/msgspec 的解释器，或通过 PYTHONPATH 提供参考库，然后
+运行 npm run bench:moonraker-network。
+
+类型检查、全部 356 项回归通过；依赖安装审计未报告漏洞。覆盖清单将
+application/websockets 标为 partial，并只将已验证的 websocket ID
+注册点标为 implemented。完整业务端点、身份识别、授权存储、文件/
+打印任务、设备服务、Unix/MQTT、Moonraker 通知来源和消费级操作绑定
+仍待完成，生产 Klippy 入口仍使用 Python。

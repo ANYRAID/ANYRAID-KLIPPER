@@ -6,6 +6,7 @@ export type Transport='http'|'websocket'|'unix'|'mqtt';
 export interface RpcContext {
   transport:Transport;
   signal:AbortSignal;
+  connectionId?:number;
   /** Required authorization hook, called before each method invocation. */
   authorize(method:string,params:Readonly<Record<string,Json>>):void|Promise<void>;
   receiveResponse?(id:RpcId,response:{result?:Json;error?:Json}):void;
@@ -94,4 +95,9 @@ function validateJson(value:unknown):asserts value is Json {
     pending.push([item,depth,true]);
     for(const child of Object.values(item)) pending.push([child,depth+1]);
   }
+}
+
+export function encodeNotification(method:string,params:readonly Json[]):string {
+  if(!/^notify_[A-Za-z0-9_]+$/.test(method)||method.length>256)throw new Error('Invalid notification name');
+  validateJson(params);return JSON.stringify({jsonrpc:'2.0',method,params});
 }

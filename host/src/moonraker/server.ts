@@ -1,0 +1,109 @@
+import {createServer,type IncomingMessage,type ServerResponse,type Server} from 'node:http';
+import type {AddressInfo} from 'node:net';
+import type {Duplex} from 'node:stream';
+import {WebSocketServer,WebSocket,type RawData} from 'ws';
+import {JsonRpcDispatcher,encodeNotification,type Json,type RpcContext} from './rpc.ts';
+export interface NetworkAuthorization {
+ request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;
+}
+export interface MoonrakerNetworkOptions {
+ authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
+ /** Additional allowed browser origins. Same-origin and clients without Origin
+  * are accepted; method authorization is always required independently. */
+ origins?:readonly string[];maxConnections?:number;maxRequests?:number;maxRequestsPerSocket?:number;
+ requestTimeoutMs?:number;shutdownTimeoutMs?:number;maxBufferedBytes?:number;
+}
+interface Peer{socket:WebSocket;request:IncomingMessage;abort:AbortController;active:number;alive:boolean;}
+const maxBytes=1024*1024;
+function bounded(value:number|undefined,fallback:number,max:number):number{const n=value??fallback;if(!Number.isInteger(n)||n<1||n>max)throw new RangeError('Invalid network capacity or timeout');return n;}
+function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isArray(data)?Buffer.concat(data):Buffer.from(data);}
+/** Moonraker JSON-RPC network transport. Business APIs and authorization storage
+ * remain separate components; the required authorize callback never defaults to allow. */
+export class MoonrakerNetwork {
+ #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
+ #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
+ #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
+ #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
+ constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions){
+  if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');this.#rpc=rpc;this.#options={...options};
+  this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
+  this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
+  this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
+  this.#ws=new WebSocketServer({noServer:true,maxPayload:maxBytes,perMessageDeflate:false});
+  this.#server.on('connection',socket=>{this.#sockets.add(socket);socket.on('close',()=>this.#sockets.delete(socket));});
+  this.#server.on('upgrade',(request,socket,head)=>{
+   if(this.#phase!=='listening'||this.#peers.size>=this.#maxConnections){this.#rejectUpgrade(socket,503);return;}
+   if(request.url?.split('?')[0]!=='/websocket'){this.#rejectUpgrade(socket,404);return;}
+   if(!this.#origin(request)){this.#rejectUpgrade(socket,403);return;}
+   this.#ws.handleUpgrade(request,socket,head,ws=>this.#connected(request,ws));
+  });
+  this.#server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});
+  rpc.register('server.websocket.id',['websocket'],(_p,context)=>({websocket_id:context.connectionId!}));
+ }
+ get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered};}
+ async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
+  if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
+  this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
+  catch(error){if(this.#phase==='starting')this.#phase='new';throw error;}
+  this.#heartbeat=setInterval(()=>{for(const peer of this.#peers.values()){if(peer.socket.readyState!==WebSocket.OPEN)continue;if(!peer.alive){peer.socket.terminate();continue;}peer.alive=false;peer.socket.ping();}},10000);this.#heartbeat.unref();return this.#server.address() as AddressInfo;
+ }
+ #origin(request:IncomingMessage):boolean{
+  const origin=request.headers.origin;if(origin===undefined)return true;
+  try{const url=new URL(origin);return this.#origins.has(origin)||['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase();}catch{return false;}
+ }
+ #error(response:ServerResponse,status:number,message:string):void{if(response.destroyed||response.writableEnded)return;response.writeHead(status,{'content-type':'application/json; charset=UTF-8'});response.end(JSON.stringify({error:{code:status,message}}));}
+ #rejectUpgrade(socket:Duplex,status:number):void{socket.end(`HTTP/1.1 ${status} Rejected\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);}
+ #launch(run:(signal:AbortSignal)=>Promise<void>,parent?:AbortSignal):void{
+  const abort=new AbortController(),cancel=()=>abort.abort(parent?.reason??new Error('Client disconnected'));parent?.addEventListener('abort',cancel,{once:true});if(parent?.aborted)cancel();
+  const timeout=setTimeout(()=>abort.abort(new Error('RPC request timed out')),this.#timeout);
+  // Publish the task before invoking handlers so reentrant shutdown sees it.
+  const job=Promise.resolve().then(()=>run(abort.signal)).catch(()=>{}).finally(()=>{clearTimeout(timeout);parent?.removeEventListener('abort',cancel);this.#requests.delete(abort);});this.#requests.set(abort,job);
+ }
+ #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number):RpcContext{
+  return {transport,signal,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal})};
+ }
+ #http(request:IncomingMessage,response:ServerResponse):void{
+  if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
+  if(request.url?.split('?')[0]!=='/server/jsonrpc'){this.#error(response,404,'Not Found');return;}
+  if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
+  if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');}
+  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':'POST, OPTIONS','access-control-allow-headers':'Content-Type, Authorization, X-Api-Key'});response.end();return;}
+  if(request.method!=='POST'){this.#error(response,405,'Method Not Allowed');return;}
+  if(!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
+  if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
+  const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
+  this.#launch(async signal=>{
+   let reserved=0;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
+   try{
+    signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
+    for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
+    const result=await this.#rpc.dispatch(Buffer.concat(chunks),this.#context(request,'http',signal));signal.throwIfAborted();
+    if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
+    if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');response.end(result??undefined);}
+   }catch{this.#error(response,signal.aborted?503:400,signal.aborted?'Request cancelled':'Invalid request body');}
+   finally{this.#buffered-=reserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
+  },parent.signal);
+ }
+ #connected(request:IncomingMessage,socket:WebSocket):void{
+  const id=this.#nextId++;if(!Number.isSafeInteger(id)){socket.terminate();return;}
+  const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);
+  socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);});
+  socket.on('message',data=>{
+   const size=Array.isArray(data)?data.reduce((n,b)=>n+b.byteLength,0):data.byteLength;
+   if(this.#buffered+size>this.#maxBuffered){peer.abort.abort(new Error('Request buffer capacity exceeded'));socket.terminate();return;}
+   if(this.#phase!=='listening'||peer.active>=this.#perSocket||this.#requests.size>=this.#maxRequests){peer.abort.abort(new Error('WebSocket request capacity exceeded'));socket.terminate();return;}
+   peer.active++;this.#buffered+=size;this.#launch(async signal=>{const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const result=await this.#rpc.dispatch(bytes(data),this.#context(request,'websocket',signal,id));signal.throwIfAborted();if(result!==null)this.#send(peer,result);}finally{signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
+  });
+ }
+ #send(peer:Peer,message:string):boolean{if(peer.socket.readyState!==WebSocket.OPEN)return false;const size=Buffer.byteLength(message);if(size>maxBytes||peer.socket.bufferedAmount+size>maxBytes){peer.abort.abort(new Error('WebSocket output capacity exceeded'));peer.socket.terminate();return false;}peer.socket.send(message,error=>{if(error)peer.socket.terminate();});return true;}
+ notify(connectionId:number,method:string,params:readonly Json[]):boolean{const peer=this.#peers.get(connectionId);if(!peer||peer.abort.signal.aborted)return false;return this.#send(peer,encodeNotification(method,params));}
+ /** Abort requests and wait for cooperative handlers. Ignored cancellation is
+  * reported after the shutdown deadline, never silently reported as drained. */
+ close():Promise<void>{
+  if(this.#close)return this.#close;if(this.#phase==='closed')return Promise.resolve();this.#phase='closing';clearInterval(this.#heartbeat);
+  for(const abort of this.#requests.keys())abort.abort(new Error('Moonraker network shutting down'));for(const peer of this.#peers.values()){peer.abort.abort(new Error('Moonraker network shutting down'));peer.socket.terminate();}for(const socket of this.#sockets)socket.destroy();
+  const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await new Promise<void>(resolve=>{if(!this.#server.listening)resolve();else this.#server.close(()=>resolve());});})();
+  let timeout:ReturnType<typeof setTimeout>|undefined;
+  this.#close=Promise.race([Promise.all([serverClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('RPC handlers did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
+ }
+}

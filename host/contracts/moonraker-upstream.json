@@ -6,7 +6,7 @@
     5,
     0
   ],
-  "scopeNote": "Source registration inventory, not an expanded endpoint coverage claim. Dynamic expressions, loops, forwarded Klippy methods, transports, response schemas, events and optional integrations require independent contract tests. Every item remains unimplemented.",
+  "scopeNote": "Source registration inventory, not an expanded endpoint coverage claim. Dynamic expressions, loops, forwarded Klippy methods, transports, response schemas, events and optional integrations require independent contract tests. Statuses describe only the cited implementation and contract evidence; partial transport work does not imply full component coverage.",
   "components": [
     {
       "name": "analysis",
@@ -21,7 +21,8 @@
     {
       "name": "application",
       "tier": "server",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/server.ts; host/test/moonraker-network.test.ts"
     },
     {
       "name": "authorization",
@@ -181,7 +182,8 @@
     {
       "name": "websockets",
       "tier": "server",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/server.ts; host/test/moonraker-network.test.ts"
     },
     {
       "name": "wled",
@@ -1222,7 +1224,8 @@
       "line": 57,
       "method": "register_endpoint",
       "targetExpression": "\"/server/websocket/id\"",
-      "status": "not-implemented"
+      "status": "implemented",
+      "evidence": "WebSocket-only server.websocket.id with per-method authorization and per-connection ID; host/test/moonraker-network.test.ts"
     },
     {
       "file": "moonraker/components/websockets.py",
