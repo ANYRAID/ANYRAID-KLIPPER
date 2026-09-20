@@ -25,7 +25,7 @@ test('byte windows cover short, intermediate and large files with no duplicate o
 });
 test('decoded window slicing uses codepoints and independently ignores split UTF-8 sequences',async()=>{
  for(const data of [Buffer.from('😀'+'H'.repeat(R-4)+'gap'+'T'.repeat(R)),Buffer.concat([Buffer.alloc(R-1,65),Buffer.from('中'),Buffer.alloc(32,66)])]){
-  const f=await fixture(data);try{const window=await readMetadataWindow(f.file,signal()),head=decodeMetadataUtf8(data.subarray(0,R)),tail=decodeMetadataUtf8(data.subarray(data.length>2*R?data.length-R:R)),points=Array.from(head+tail);assert.equal(window.data,head+tail);assert.equal(window.header,points.slice(0,R).join(''));assert.equal(window.footer,points.slice(-R).join(''));}finally{await f.close();}
+  const f=await fixture(data);try{const window=await readMetadataWindow(f.file,signal()),head=decodeMetadataUtf8(data.subarray(0,R)),tail=decodeMetadataUtf8(data.subarray(data.length>2*R?data.length-R:R)),points=Array.from(head+tail);assert.equal(window.identificationHeader,head);assert.equal(window.data,head+tail);assert.equal(window.header,points.slice(0,R).join(''));assert.equal(window.footer,points.slice(-R).join(''));}finally{await f.close();}
  }
 });
 test('short reads complete, while source changes and cancellation reject the window',async()=>{

@@ -5592,3 +5592,46 @@ Python 逐项比较通过，中位 / p95：Node **18.870 / 21.491 ms**，Python
 本阶段仅完成输入基础，没有切片器识别、字段解析、图片处理、全文件摘要、
 元数据 Worker 调度或接口自动填充。生产入口仍为 Python；完整迁移与真实
 打印性能验收继续开放，本阶段未部署或刷写。
+
+### 切片器识别与公共元数据字段（2026-09-21）
+
+新增 identifySlicer，迁移固定上游版本全部识别器：Slic3r PE、Slic3r、
+BambuStudio、PrusaSlicer 及其通用/已知别名分支、Cura、Simplify3D、KISSlicer、
+IdeaMaker、IceSL、Kiri:Moto 和 SimplyPrint。优先级保留子类先于父类的注册顺序，
+不是文件中哪个标记先出现就选哪个。通用 Prusa 标记保留派生类排除、最后一个
+空格分割名字/版本，以及没有空格时空名字的原语义。IceSL 空版本上游会抛错，
+这里也明确拒绝，不能把畸形输入当作识别成功。
+
+metadata-window 增加 identificationHeader，保留首个字节窗口单独解码的文本；
+识别必须使用这个字段。构造器使用的 header 可能由首尾窗口拼接后按码点截取，
+在多字节文件中会混入尾部，不能用于初始识别。测试加入两种头部的区分断言。
+
+固定正则使用 Python 3.12 / Unicode 15 的 decimal、digit、space 范围表，位于
+contracts/unicode-numeric-space-15.json，避免 Node Unicode 17 引入新的数字。
+Python 的点号只排除 LF；CR、Unicode 行分隔符仍可属于版本字段。空白匹配接受
+U+001C 等 Python 空白而不接受 BOM，IceSL 的 isdigit 保留上标数字规则。
+该转换辅助器仅供这里固定的模式使用，不是通用 Python 正则兼容层。
+
+parseCommonMetadata 迁移 G-code 首尾字节偏移；parseUnknownMetadata 另外迁移
+UnknownSlicer 的首层高度、对象高度、首层喷嘴/床温、腔温。保留原始无符号
+十进制匹配、首个温度、最小/最大高度规则，不把这些字段当成运动控制指令。
+非有限数值明确拒绝，避免向元数据 JSON 发布 Infinity。已知切片器不能用
+UnknownSlicer 结果冒充专属字段解析。字节结束位置采用重叠的正向命令匹配，
+找到最右终止 LF，与原反转字符串搜索等价，避免构造整段反转码点数组。
+
+bench:slicer-identification 校验上一阶段相同固定 metadata.py SHA-256，并直接
+执行其 AST 类、识别器和字段解析方法。设置 MOONRAKER_METADATA_SOURCE 后运行
+`npm --prefix host run bench:slicer-identification`。352 个识别样本覆盖全部家族、
+两两标记竞争、Unicode 空白/数字及通用排除；1007 个字段样本包括 Unicode
+字节偏移、缺少换行、重叠命令以及固定种子的 1000 组混合序列，结果逐项相同。
+
+本模块尚未装配自动提取 Worker，已知切片器的专属字段、缩略图、对象处理器、
+元数据库持久化与生产入口迁移仍待完成。桌面解析基准不等于真实打印期限验收。
+
+本阶段新增四项测试并扩展窗口边界断言，最终完整回归 **823 项通过**，类型、
+项目空白及差异检查通过。回归后独立基准：Node 26.9.0 / Python 3.12.13，
+五次预热、11 次测量，每次 352 次识别加 700000 字节公共/Unknown 字段解析。
+Node 中位 / p95 **16.595 / 16.768 ms**，Python **24.306 / 24.462 ms**。
+计时不含磁盘读取、图片处理、已知家族专属字段和网络传输；Python 先测，
+Node 后测，输入已驻内存。结果仅证明该批次，没有覆盖窗口读取的既有性能
+差距、目标板调度或实际打印。本阶段未部署或刷写。

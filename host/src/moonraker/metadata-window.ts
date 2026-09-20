@@ -16,6 +16,7 @@ export function decodeMetadataUtf8(bytes:Buffer):string{
  return output.toString('utf8',0,written);
 }
 export interface MetadataWindow {
+ readonly identificationHeader:string;
  readonly size:number;readonly modified:number;readonly data:string;readonly header:string;readonly footer:string;
  readonly source:Readonly<{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint}>;
 }
@@ -45,5 +46,5 @@ export async function readMetadataWindow(source:FileHandle,signal:AbortSignal,op
  const after=await source.stat({bigint:true});signal.throwIfAborted();
  if(before.dev!==after.dev||before.ino!==after.ino||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Metadata source changed during read');
  const data=head+tail;let seconds=before.mtimeNs/1000000000n,nanos=before.mtimeNs%1000000000n;if(nanos<0){seconds--;nanos+=1000000000n;}
- return Object.freeze({size,modified:Number(seconds)+Number(nanos)*1e-9,data,...sliceCodepoints(data),source:Object.freeze({dev:before.dev,ino:before.ino,mtimeNs:before.mtimeNs,ctimeNs:before.ctimeNs})});
+ return Object.freeze({size,modified:Number(seconds)+Number(nanos)*1e-9,identificationHeader:head,data,...sliceCodepoints(data),source:Object.freeze({dev:before.dev,ino:before.ino,mtimeNs:before.mtimeNs,ctimeNs:before.ctimeNs})});
 }
