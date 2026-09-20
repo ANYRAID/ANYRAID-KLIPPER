@@ -3,8 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,open,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {createHash} from 'node:crypto';
-import {createSealedPrintReader} from '../src/gcode/sealed-file.ts';
+import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 import {FilePrintDevice,type FilePrintMotion} from '../src/operations/file-print-device.ts';
 import {ThermalPrintDevice} from '../src/operations/thermal-print-device.ts';
 import {PrintController,type PrintDevice,type StartPrint} from '../src/operations/print.ts';
@@ -17,6 +16,7 @@ const request:StartPrint={version:1,requestId:'job',fileId:'file',nozzle:200,bed
 const until=async(check:()=>boolean)=>{const end=Date.now()+3000;while(!check()){if(Date.now()>end)throw new Error('file print condition timed out');await new Promise(resolve=>setImmediate(resolve));}};
 async function fixture(script='G1 X1\n',handler:(command:CommandContext)=>void|Promise<void>=()=>{}){
  const directory=await mkdtemp(join(tmpdir(),'file-print-')),path=join(directory,'file.gcode');await writeFile(path,script);
+ const store=await PublishedPrintFiles.open(join(directory,'published')),source=await open(path,'r');try{await store.publish('file','part.gcode',source,new AbortController().signal);}finally{await source.close();}
  const members:AsyncHeaterRuntime[]=[];const group=new AsyncPrinterHeaters(()=>{}),resets:ReturnType<typeof Promise.withResolvers<void>>[][]=[[],[]],events:string[]=[],finish=Promise.withResolvers<void>();
  for(const [i,name] of ['extruder','bed'].entries()){
   const runtime=new AsyncHeaterRuntime({minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3},new BangBangControl(1),{configuration:{cycleTime:.1,maximumDuration:3,initialPower:0,defaultPower:0},reset(){const job=Promise.withResolvers<void>();resets[i].push(job);if(resets[i].length===1)job.resolve();return job.promise;},setPWM:async()=>{},stop:async cause=>{for(const job of resets[i])job.reject(cause);}},()=>({system:1,print:1}),{},()=>()=>{});group.register(name,runtime);
@@ -26,8 +26,8 @@ async function fixture(script='G1 X1\n',handler:(command:CommandContext)=>void|P
  await group.start();members[0].sample(1,220);members[1].sample(1,80);
  const dispatch=new GCodeDispatch({output(){},shutdown(){events.push('dispatch-stop');}});dispatch.register('G1',handler);
  const motion:FilePrintMotion={prepare:async()=>{events.push('prepare');dispatch.setReady(true);},start:async()=>{events.push('start');},pause:async()=>{events.push('pause');},resume:async()=>{events.push('resume');},finish:async()=>{events.push('drain');await finish.promise;events.push('drained');},stop:async()=>{events.push('stop');}};
- const device=new FilePrintDevice(motion,dispatch,async(id,signal)=>{assert.equal(id,'file');const source=await open(path,'r');try{return (await createSealedPrintReader(source,createHash('sha256').update(script).digest('hex'),signal,{batchLines:1})).reader;}finally{await source.close();}}),thermal=new ThermalPrintDevice(device,group,{nozzle:'extruder',bed:'bed'}),controller=new PrintController(thermal,{maxNozzle:300,maxBed:130});
- return {group,resets,events,finish,motion,device,thermal,controller,dispatch,path,async close(){finish.resolve();for(const list of resets)for(const reset of list)reset.resolve();await group.shutdown().catch(()=>{});await thermal.stop().catch(()=>{});await rm(directory,{recursive:true,force:true});}};
+ const device=new FilePrintDevice(motion,dispatch,async(id,signal)=>store.acquire(id,signal)),thermal=new ThermalPrintDevice(device,group,{nozzle:'extruder',bed:'bed'}),controller=new PrintController(thermal,{maxNozzle:300,maxBed:130});
+ return {group,resets,events,finish,motion,device,thermal,controller,dispatch,path,async close(){finish.resolve();for(const list of resets)for(const reset of list)reset.resolve();await group.shutdown().catch(()=>{});await thermal.stop().catch(()=>{});await store.close();await rm(directory,{recursive:true,force:true});}};
 }
 test('file EOF automatically completes only after motion drain and heater reset ACKs',async()=>{
  const f=await fixture();try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.controller.state,'finishing');assert.equal(f.device.status.file?.eof,true);assert.equal(f.resets[0].length,1);
