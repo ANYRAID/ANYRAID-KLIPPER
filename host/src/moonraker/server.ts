@@ -1,3 +1,4 @@
+import {NotificationFanout,type NotificationLimits,type DeliveryReport} from './notifications.ts';
 import {RemoteClients} from './clients.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import {createServer,type IncomingMessage,type ServerResponse,type Server} from 'node:http';
@@ -11,10 +12,13 @@ export interface NetworkAuthorization {
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
+ /** Required to enable broadcasts; separate from inbound method authorization. */
+ authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
+ notificationLimits?:NotificationLimits;
  /** Additional allowed browser origins. Same-origin and clients without Origin
   * are accepted; method authorization is always required independently. */
  origins?:readonly string[];maxConnections?:number;maxRequests?:number;maxRequestsPerSocket?:number;
- requestTimeoutMs?:number;shutdownTimeoutMs?:number;maxBufferedBytes?:number;
+ requestTimeoutMs?:number;shutdownTimeoutMs?:number;maxBufferedBytes?:number;maxOutputBytes?:number;
 }
 interface Peer{socket:WebSocket;request:IncomingMessage;abort:AbortController;active:number;alive:boolean;}
 const maxBytes=1024*1024;
@@ -23,16 +27,20 @@ function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isAr
 /** Moonraker JSON-RPC network transport. Business APIs and authorization storage
  * remain separate components; the required authorize callback never defaults to allow. */
 export class MoonrakerNetwork {
- #clients=new RemoteClients();
+ #clients=new RemoteClients();#notifications:NotificationFanout|undefined;
  #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
  #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
+ #outputBytes=0;#maximumOutputBytes:number;
  #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
  #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
  constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions){
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');if(options.endpoints&&options.endpoints.dispatcher!==rpc)throw new Error('Endpoint registry must share the network dispatcher');this.#rpc=rpc;this.#options={...options};
+  this.#maximumOutputBytes=bounded(options.maxOutputBytes,8*maxBytes,64*maxBytes);
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
   this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
+  if(options.authorizeNotification!==undefined&&typeof options.authorizeNotification!=='function')throw new TypeError('Invalid notification authorization');
+  if(options.authorizeNotification)this.#notifications=new NotificationFanout(options.notificationLimits);
   this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
   this.#ws=new WebSocketServer({noServer:true,maxPayload:maxBytes,perMessageDeflate:false});
   this.#server.on('connection',socket=>{this.#sockets.add(socket);socket.on('close',()=>this.#sockets.delete(socket));});
@@ -44,7 +52,7 @@ export class MoonrakerNetwork {
   });
   this.#server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});
   rpc.register('server.websocket.id',['websocket'],(_p,context)=>({websocket_id:context.connectionId!}));
-  rpc.register('server.connection.identify',['websocket'],(params,context)=>{const client=this.#clients.identify(context.connectionId!,params);return {connection_id:client.id};});
+  rpc.register('server.connection.identify',['websocket'],(params,context)=>{const client=this.#clients.identify(context.connectionId!,params);if(client.identity?.type==='agent')this.#agentEvent(client.id,{agent:client.identity.name,event:'connected',data:{...client.identity}});return {connection_id:client.id};});
  }
  get clients(){return this.#clients.all();}
  getClient(id:number){return this.#clients.get(id);}
@@ -52,7 +60,7 @@ export class MoonrakerNetwork {
  getClientsByType(type:string){return this.#clients.byType(type);}
  getUnidentifiedClients(){return this.#clients.unidentified();}
  getAgent(name:string){return this.#clients.agent(name);}
- get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered};}
+ get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered,outputBufferedBytes:this.#outputBytes,notifications:this.#notifications?.status??null};}
  async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
   this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
@@ -101,7 +109,8 @@ export class MoonrakerNetwork {
  #connected(request:IncomingMessage,socket:WebSocket):void{
   const id=this.#nextId++;if(!Number.isSafeInteger(id)){socket.terminate();return;}
   const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);this.#clients.add(id);
-  socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);this.#clients.remove(id);});
+  if(this.#notifications)this.#notifications.add(id,{signal:peer.abort.signal,authorize:(method,params,signal)=>this.#options.authorizeNotification!(method,params,{request,transport:'websocket',connectionId:id,signal}),send:message=>this.#send(peer,message),disconnect:reason=>{peer.abort.abort(reason);socket.terminate();}});
+  socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);const client=this.#clients.remove(id);if(client?.identity?.type==='agent')this.#agentEvent(id,{agent:client.identity.name,event:'disconnected'});});
   socket.on('message',data=>{
    const size=Array.isArray(data)?data.reduce((n,b)=>n+b.byteLength,0):data.byteLength;
    if(this.#buffered+size>this.#maxBuffered){peer.abort.abort(new Error('Request buffer capacity exceeded'));socket.terminate();return;}
@@ -109,15 +118,23 @@ export class MoonrakerNetwork {
    peer.active++;this.#buffered+=size;this.#launch(async signal=>{const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const result=await this.#rpc.dispatch(bytes(data),this.#context(request,'websocket',signal,id));signal.throwIfAborted();if(result!==null)this.#send(peer,result);}finally{signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
   });
  }
- #send(peer:Peer,message:string):boolean{if(peer.socket.readyState!==WebSocket.OPEN)return false;const size=Buffer.byteLength(message);if(size>maxBytes||peer.socket.bufferedAmount+size>maxBytes){peer.abort.abort(new Error('WebSocket output capacity exceeded'));peer.socket.terminate();return false;}peer.socket.send(message,error=>{if(error)peer.socket.terminate();});return true;}
+ #send(peer:Peer,message:string):boolean{
+  if(peer.socket.readyState!==WebSocket.OPEN)return false;const size=Buffer.byteLength(message);
+  if(size>maxBytes||peer.socket.bufferedAmount+size>maxBytes||this.#outputBytes+size>this.#maximumOutputBytes){peer.abort.abort(new Error('WebSocket output capacity exceeded'));peer.socket.terminate();return false;}
+  this.#outputBytes+=size;let settled=false;const release=(error?:Error)=>{if(settled)return;settled=true;this.#outputBytes-=size;if(error){peer.abort.abort(new Error('WebSocket output failed'));peer.socket.terminate();}};
+  try{peer.socket.send(message,release);return true;}catch{release(new Error('WebSocket output failed'));return false;}
+ }
  notify(connectionId:number,method:string,params:readonly Json[]):boolean{const peer=this.#peers.get(connectionId);if(!peer||peer.abort.signal.aborted)return false;return this.#send(peer,encodeNotification(method,params));}
+ broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{if(!this.#notifications)throw new Error('Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.publish(method,params,excluded);}
+ #agentEvent(id:number,event:Json):void{if(this.#notifications&&this.#phase==='listening')void this.broadcast('notify_agent_event',[event],[id]).catch(()=>{});}
  /** Abort requests and wait for cooperative handlers. Ignored cancellation is
   * reported after the shutdown deadline, never silently reported as drained. */
  close():Promise<void>{
   if(this.#close)return this.#close;if(this.#phase==='closed')return Promise.resolve();this.#phase='closing';clearInterval(this.#heartbeat);
+  const notificationsClosed=this.#notifications?.close()??Promise.resolve();
   for(const abort of this.#requests.keys())abort.abort(new Error('Moonraker network shutting down'));for(const peer of this.#peers.values()){peer.abort.abort(new Error('Moonraker network shutting down'));peer.socket.terminate();}for(const socket of this.#sockets)socket.destroy();
   const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await new Promise<void>(resolve=>{if(!this.#server.listening)resolve();else this.#server.close(()=>resolve());});})();
   let timeout:ReturnType<typeof setTimeout>|undefined;
-  this.#close=Promise.race([Promise.all([serverClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('RPC handlers did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
+  this.#close=Promise.race([Promise.all([serverClosed,notificationsClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('Network tasks did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
  }
 }

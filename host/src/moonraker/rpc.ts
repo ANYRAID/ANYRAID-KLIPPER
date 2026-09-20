@@ -101,5 +101,6 @@ export function validateJson(value:unknown):asserts value is Json {
 
 export function encodeNotification(method:string,params:readonly Json[]):string {
   if(!/^notify_[A-Za-z0-9_]+$/.test(method)||method.length>256)throw new Error('Invalid notification name');
-  validateJson(params);return JSON.stringify({jsonrpc:'2.0',method,params});
+  if(!Array.isArray(params))throw new Error('Notification parameters must be an array');
+  validateJson(params);return JSON.stringify({jsonrpc:'2.0',method,...(params.length?{params}:{})});
 }

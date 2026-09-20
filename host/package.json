@@ -78,7 +78,8 @@
     "bench:moonraker-config-source": "node bench/moonraker-config-source.ts",
     "bench:moonraker-config-reader": "node bench/moonraker-config-reader.ts",
     "bench:moonraker-configured-server": "node bench/moonraker-configured-server.ts",
-    "bench:moonraker-clients": "node bench/moonraker-clients.ts"
+    "bench:moonraker-clients": "node bench/moonraker-clients.ts",
+    "bench:moonraker-notifications": "node bench/moonraker-notifications.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

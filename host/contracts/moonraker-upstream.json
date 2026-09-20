@@ -52,7 +52,8 @@
     {
       "name": "extensions",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Agent identity reservations and authorized connected/disconnected notifications in host/src/moonraker/clients.ts and host/src/moonraker/server.ts; host/test/notifications.test.ts. Agent method routing, Klippy remote methods and extension endpoints remain unimplemented."
     },
     {
       "name": "file_manager",
@@ -1233,7 +1234,7 @@
       "method": "register_endpoint",
       "targetExpression": "\"/server/connection/identify\"",
       "status": "partial",
-      "evidence": "host/src/moonraker/clients.ts; host/src/moonraker/server.ts; host/test/clients.test.ts; host/bench/moonraker-clients.ts. WebSocket identity/directory and agent name reservations implemented; per-method authorization remains required. JWT/API-key sessions, agent method routing and lifecycle notifications remain pending. Strict string bounds and atomic conflict rollback differ from upstream."
+      "evidence": "host/src/moonraker/clients.ts; host/src/moonraker/server.ts; host/test/clients.test.ts; host/bench/moonraker-clients.ts. WebSocket identity/directory and agent name reservations implemented; per-method authorization remains required. Authorized agent lifecycle notifications are available through host/src/moonraker/notifications.ts with tests and benchmark in host/test/notifications.test.ts and host/bench/moonraker-notifications.ts. JWT/API-key sessions, generic event bindings and agent method routing remain pending. Strict string bounds and atomic conflict rollback differ from upstream."
     },
     {
       "file": "moonraker/components/wled.py",

@@ -1,0 +1,51 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {once} from 'node:events';
+import {setTimeout as delay} from 'node:timers/promises';
+import {WebSocket} from 'ws';
+import {NotificationFanout} from '../src/moonraker/notifications.ts';
+import {MoonrakerNetwork} from '../src/moonraker/server.ts';
+import {JsonRpcDispatcher,ApiError} from '../src/moonraker/rpc.ts';
+async function until(fn:()=>boolean){for(let i=0;i<500;i++){if(fn())return;await delay(2);}throw new Error('Condition timed out');}
+test('broadcast snapshots payload once, authorizes recipients and honors exclusions',async()=>{
+ const fanout=new NotificationFanout(),received:string[][]=[[],[],[]],controllers=received.map(()=>new AbortController());
+ for(let i=0;i<3;i++)fanout.add(i+1,{signal:controllers[i].signal,authorize(_m,p){assert.ok(Object.isFrozen(p));assert.ok(Object.isFrozen(p[0]));if(i===1)throw new ApiError(401,'Denied');},send:text=>{received[i].push(text);return true;},disconnect(){}});
+ const data={position:[1,2,3]},result=await fanout.publish('notify_status_update',[data],[3]);data.position[0]=9;assert.deepEqual(result,{sent:1,denied:1,closed:0,overflow:0,failed:0});assert.deepEqual(JSON.parse(received[0][0]).params,[{position:[1,2,3]}]);assert.equal(received[1].length+received[2].length,0);assert.equal(fanout.status.pending,0);assert.equal(fanout.status.bytes,0);await fanout.close();
+});
+test('async authorization preserves order per client without blocking other clients',async()=>{
+ const fanout=new NotificationFanout(),slow:string[]=[],fast:string[]=[];let release!:()=>void;const gate=new Promise<void>(r=>release=r);let calls=0;
+ fanout.add(1,{signal:new AbortController().signal,authorize(){return ++calls===1?gate:undefined;},send:v=>{slow.push(v);return true;},disconnect(){}});fanout.add(2,{signal:new AbortController().signal,authorize(){},send:v=>{fast.push(v);return true;},disconnect(){}});
+ const first=fanout.publish('notify_state',[1]),second=fanout.publish('notify_state',[2]);assert.equal(fast.length,2);assert.equal(slow.length,0);assert.equal(calls,1);release();await Promise.all([first,second]);assert.deepEqual(slow.map(s=>JSON.parse(s).params),[[1],[2]]);await fanout.close();
+});
+test('queue overflow cancels waiting messages and closes the overloaded recipient',async()=>{
+ const fanout=new NotificationFanout({perClient:2,pending:2});let release!:()=>void,disconnected=0,sends=0;const gate=new Promise<void>(r=>release=r);fanout.add(1,{signal:new AbortController().signal,authorize:()=>gate,send(){sends++;return true;},disconnect(){disconnected++;}});
+ const a=fanout.publish('notify_state',[1]),b=fanout.publish('notify_state',[2]);assert.equal((await fanout.publish('notify_state',[3])).overflow,1);assert.equal((await b).closed,1);assert.equal(fanout.status.pending,1);assert.equal(disconnected,1);release();assert.equal((await a).closed,1);assert.equal(sends,0);await fanout.close();assert.equal(fanout.status.bytes,0);
+});
+test('disconnect and timeout keep ignored authorization accounted for until it settles',async()=>{
+ const fanout=new NotificationFanout({timeoutMs:10});let release!:()=>void,aborted=false,disconnected=0;const gate=new Promise<void>(r=>release=r);fanout.add(1,{signal:new AbortController().signal,authorize(_m,_p,signal){signal.addEventListener('abort',()=>aborted=true);return gate;},send(){throw new Error('Must not send');},disconnect(){disconnected++;}});
+ const task=fanout.publish('notify_state',[]);await until(()=>disconnected===1);assert.equal(aborted,true);assert.equal(fanout.status.pending,1);let closed=false;const closing=fanout.close().then(()=>closed=true);await delay(2);assert.equal(closed,false);release();await closing;assert.equal((await task).closed,1);assert.equal(fanout.status.pending,0);
+});
+test('global byte limits, malformed messages and transport exceptions cannot leak jobs',async()=>{
+ const fanout=new NotificationFanout({bytes:10});let disconnected=0;fanout.add(1,{signal:new AbortController().signal,authorize(){},send(){return true;},disconnect(){disconnected++;}});assert.throws(()=>fanout.publish('invalid',[]));assert.throws(()=>fanout.publish('notify_x',['x'.repeat(1024*1024)]));assert.equal((await fanout.publish('notify_x',[])).overflow,1);assert.equal(disconnected,1);await fanout.close();
+ const failed=new NotificationFanout();failed.add(1,{signal:new AbortController().signal,authorize(){},send(){throw new Error('transport');},disconnect(){throw new Error('cleanup');}});assert.equal((await failed.publish('notify_x',[])).failed,1);assert.equal(failed.status.pending,0);await failed.close();
+});
+test('live agent events are authorized, exclude their sender and release disconnected identity',async()=>{
+ const rpc=new JsonRpcDispatcher(),network=new MoonrakerNetwork(rpc,{authorize(){},authorizeNotification(_m,_p,c){if(c.request.headers['x-notify']!=='yes')throw new ApiError(401,'Denied');}});const address=await network.listen(),url=`ws://127.0.0.1:${address.port}/websocket`,sockets:WebSocket[]=[];
+ try{const observer=new WebSocket(url,{headers:{'x-notify':'yes'}}),denied=new WebSocket(url),agent=new WebSocket(url,{headers:{'x-notify':'yes'}});sockets.push(observer,denied,agent);await Promise.all(sockets.map(s=>once(s,'open')));const received:any[]=[],rejected:any[]=[],own:any[]=[];observer.on('message',m=>received.push(JSON.parse(String(m))));denied.on('message',m=>rejected.push(JSON.parse(String(m))));agent.on('message',m=>own.push(JSON.parse(String(m))));agent.send(JSON.stringify({jsonrpc:'2.0',method:'server.connection.identify',params:{client_name:'worker',version:'1',type:'agent',url:''},id:1}));await until(()=>own.length===1&&received.length===1);assert.equal(own[0].result.connection_id,network.getAgent('worker')?.id);assert.equal(received[0].method,'notify_agent_event');assert.equal(received[0].params[0].event,'connected');assert.equal(rejected.length,0);agent.terminate();await until(()=>received.length===2);assert.deepEqual(received[1].params,[{agent:'worker',event:'disconnected'}]);assert.equal(network.getAgent('worker'),undefined);assert.equal(rejected.length,0);
+ }finally{for(const socket of sockets)socket.terminate();await network.close();}
+});
+test('network closes only after asynchronous notification authorization has settled',async()=>{
+ let release!:()=>void,entered=false;const gate=new Promise<void>(r=>release=r),network=new MoonrakerNetwork(new JsonRpcDispatcher(),{authorize(){},authorizeNotification(){entered=true;return gate;},shutdownTimeoutMs:20});const address=await network.listen(),ws=new WebSocket(`ws://127.0.0.1:${address.port}/websocket`);await once(ws,'open');try{const delivery=network.broadcast('notify_state',[1]);assert.equal(entered,true);await assert.rejects(network.close(),/shutdown deadline/);assert.equal(network.status.phase,'closing');assert.equal(network.status.notifications?.pending,1);release();assert.equal((await delivery).closed,1);await network.close();assert.equal(network.status.notifications?.pending,0);}finally{release?.();ws.terminate();await network.close();}
+});
+test('broadcast requires an explicit notification policy',async()=>{const network=new MoonrakerNetwork(new JsonRpcDispatcher(),{authorize(){}});try{await network.listen();assert.throws(()=>network.broadcast('notify_state',[]),/authorization/);}finally{await network.close();}});
+test('empty notifications omit params and non-array parameters are rejected',async()=>{const fanout=new NotificationFanout();let encoded='';fanout.add(1,{signal:new AbortController().signal,authorize(){},send:value=>{encoded=value;return true;},disconnect(){}});await fanout.publish('notify_empty',[]);assert.deepEqual(JSON.parse(encoded),{jsonrpc:'2.0',method:'notify_empty'});assert.throws(()=>fanout.publish('notify_bad',{} as any),/array/);await fanout.close();});
+test('global WebSocket output budget bounds aggregate fanout and disconnects overflow recipients',async()=>{
+ const network=new MoonrakerNetwork(new JsonRpcDispatcher(),{authorize(){},authorizeNotification(){},maxOutputBytes:150}),address=await network.listen(),url=`ws://127.0.0.1:${address.port}/websocket`,clients=[new WebSocket(url),new WebSocket(url)];
+ try{await Promise.all(clients.map(c=>once(c,'open')));const pending=network.broadcast('notify_state',['x'.repeat(50)]);assert.ok(network.status.outputBufferedBytes<=150);const result=await pending;assert.equal(result.sent,1);assert.equal(result.closed,1);await until(()=>network.clients.length===1&&network.status.outputBufferedBytes===0);}finally{for(const client of clients)client.terminate();await network.close();}
+});
+test('a long queued burst drains iteratively without reordering or retaining tasks',async()=>{
+ const queue=new NotificationFanout({pending:4096,perClient:4096}),values:number[]=[];let release!:()=>void,first=true;const gate=new Promise<void>(r=>release=r);queue.add(1,{signal:new AbortController().signal,authorize(){if(first){first=false;return gate;}},send:encoded=>{values.push(JSON.parse(encoded).params[0]);return true;},disconnect(){}});const results=Array.from({length:4096},(_,i)=>queue.publish('notify_state',[i]));assert.equal(queue.status.pending,4096);release();await Promise.all(results);assert.deepEqual(values,Array.from({length:4096},(_,i)=>i));assert.equal(queue.status.pending,0);assert.equal(queue.status.bytes,0);await queue.close();
+});
+test('late authorization from a removed client cannot disconnect a replacement with the same ID',async()=>{
+ const queue=new NotificationFanout({timeoutMs:10});let release!:()=>void,replaced=0;const gate=new Promise<void>(r=>release=r);queue.add(1,{signal:new AbortController().signal,authorize:()=>gate,send(){throw new Error('Old client must not send');},disconnect(){}});const old=queue.publish('notify_state',[1]);queue.remove(1);queue.add(1,{signal:new AbortController().signal,authorize(){},send(){replaced++;return true;},disconnect(){throw new Error('New client must remain connected');}});await delay(15);release();assert.equal((await old).closed,1);assert.equal((await queue.publish('notify_state',[2])).sent,1);assert.equal(replaced,1);await queue.close();
+});

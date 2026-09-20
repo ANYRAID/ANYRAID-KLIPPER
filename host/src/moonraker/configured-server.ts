@@ -64,6 +64,7 @@ export class ConfiguredMoonraker {
   }catch(error){try{await this.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Configured server startup and cleanup failed');}throw error;}
  }
  notify(connectionId:number,method:string,params:readonly Json[]):boolean{return this.#network.notify(connectionId,method,params);}
+ broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
   this.#stopping=true;await this.#network.close();this.#release();
  }
