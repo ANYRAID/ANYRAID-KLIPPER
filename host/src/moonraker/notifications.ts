@@ -29,15 +29,19 @@ export class NotificationFanout {
  remove(id:number):void{const client=this.#clients.get(id);if(!client)return;this.#clients.delete(id);client.removed=true;client.target.signal.removeEventListener('abort',client.abort);client.controller.abort(new Error('Notification client disconnected'));clearTimeout(client.active?.timer);for(const task of client.queue.splice(0))this.#finish(client,task,'closed');}
  #disconnect(client:Client,reason:string):void{if(client.removed)return;this.remove(client.id);try{client.target.disconnect(new Error(reason));}catch{/* Transport is already removed; cleanup must not strand other recipients. */}}
  publish(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{
-  return this.#publish(method,params,[...this.#clients.values()],false,excluded);
+  return Promise.resolve(this.#publish(method,params,[...this.#clients.values()],false,excluded));
  }
  /** Target one connection without scanning or authorizing unrelated clients.
   * Shares the broadcast queue, ordering, cancellation and capacity accounting. */
  publishTo(id:number,method:string,params:readonly Json[]):Promise<DeliveryReport>{
+  return Promise.resolve(this.dispatchTo(id,method,params));
+ }
+ /** Internal hot path: completed synchronous authorization has no Promise job. */
+ dispatchTo(id:number,method:string,params:readonly Json[]):DeliveryReport|Promise<DeliveryReport>{
   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid notification client');
   const client=this.#clients.get(id);return this.#publish(method,params,client?[client]:[],!client);
  }
- #publish(method:string,params:readonly Json[],clients:readonly Client[],missing=false,excluded:readonly number[]=[]):Promise<DeliveryReport>{
+ #publish(method:string,params:readonly Json[],clients:readonly Client[],missing=false,excluded:readonly number[]=[]):DeliveryReport|Promise<DeliveryReport>{
   if(this.#closed)return Promise.reject(new Error('Notification fanout is closed'));
   const encoded=encodeNotification(method,params),bytes=Buffer.byteLength(encoded);if(bytes>1024*1024)throw new Error('Notification exceeds message size limit');
   const payload:Json[]=JSON.parse(encoded).params??[];freeze(payload);const mask=excluded.length?new Set(excluded):undefined,pending:Promise<void>[]=[],result=report();if(missing){result.closed++;this.#totals.closed++;}
@@ -48,7 +52,7 @@ export class NotificationFanout {
    const task:Task={method,params:payload,encoded,bytes};
    this.#tasks.add(task);this.#bytes+=bytes;client.queue.push(task);this.#advance(client);if(task.status!==undefined)result[task.status]++;else pending.push(wait(task).then(status=>{result[status]++;}));
   }
-  return pending.length?Promise.all(pending).then(()=>result):Promise.resolve(result);
+  return pending.length?Promise.all(pending).then(()=>result):result;
  }
  #advance(client:Client):void{
   if(client.active||client.removed)return;

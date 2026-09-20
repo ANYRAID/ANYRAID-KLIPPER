@@ -89,7 +89,8 @@
     "bench:subscription-manager": "node bench/subscription-manager.ts",
     "bench:targeted-notifications": "node bench/targeted-notifications.ts",
     "bench:subscription-journal": "node bench/subscription-journal.ts",
-    "bench:response-completion": "node bench/response-completion.ts"
+    "bench:response-completion": "node bench/response-completion.ts",
+    "bench:subscription-delivery": "node bench/subscription-delivery.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
