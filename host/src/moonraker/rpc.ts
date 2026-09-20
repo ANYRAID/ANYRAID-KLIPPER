@@ -88,20 +88,21 @@ export class JsonRpcDispatcher {
   }
 }
 export function validateJson(value:unknown):asserts value is Json {
-  const pending:[unknown,number,boolean?][]=[[value,0]];let count=0;
-  const seen=new Set<object>();
-  while(pending.length) {
-    const [item,depth,leaving]=pending.pop()!;
-    if(leaving) {seen.delete(item as object);continue;}
+  // Depth is checked on entry before any further descent. The old
+  // explicit stack allocated a tuple for every value and every leave marker.
+  let count=0;const ancestors=new Set<object>();
+  function visit(item:unknown,depth:number):void {
     if(++count>100000||depth>64) throw new Error('JSON structure limit');
-    if(item===null||typeof item==='string'||typeof item==='boolean') continue;
-    if(typeof item==='number'&&Number.isFinite(item)) continue;
+    if(item===null||typeof item==='string'||typeof item==='boolean') return;
+    if(typeof item==='number'&&Number.isFinite(item)) return;
     if(typeof item!=='object'||!item) throw new Error('Non-JSON result');
-    if(seen.has(item)) throw new Error('Cyclic JSON result');seen.add(item);
+    if(ancestors.has(item)) throw new Error('Cyclic JSON result');
     if(!Array.isArray(item)&&Object.getPrototypeOf(item)!==Object.prototype&&Object.getPrototypeOf(item)!==null) throw new Error('Non-JSON object');
-    pending.push([item,depth,true]);
-    for(const child of Object.values(item)) pending.push([child,depth+1]);
+    ancestors.add(item);
+    for(const child of Object.values(item)) visit(child,depth+1);
+    ancestors.delete(item);
   }
+  visit(value,0);
 }
 
 export function encodeNotification(method:string,params:readonly Json[]):string {

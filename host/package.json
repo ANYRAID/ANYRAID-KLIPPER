@@ -81,7 +81,8 @@
     "bench:moonraker-clients": "node bench/moonraker-clients.ts",
     "bench:moonraker-notifications": "node bench/moonraker-notifications.ts",
     "bench:moonraker-client-requests": "node bench/moonraker-client-requests.ts",
-    "bench:moonraker-extensions": "node bench/moonraker-extensions.ts"
+    "bench:moonraker-extensions": "node bench/moonraker-extensions.ts",
+    "bench:json-validation": "node bench/json-validation.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
