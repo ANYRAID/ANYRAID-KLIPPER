@@ -65,6 +65,7 @@ export class MoonrakerNetwork {
  getClientsByName(name:string){return this.#clients.byName(name);}
  getClientsByType(type:string){return this.#clients.byType(type);}
  getUnidentifiedClients(){return this.#clients.unidentified();}
+ getAgents(){return this.#clients.agents();}
  getAgent(name:string){return this.#clients.agent(name);}
  get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered,outputBufferedBytes:this.#outputBytes,notifications:this.#notifications?.status??null,clientRequests:this.#clientRequests?.status??null};}
  async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
@@ -134,7 +135,7 @@ export class MoonrakerNetwork {
  }
  notify(connectionId:number,method:string,params:readonly Json[]):boolean{const peer=this.#peers.get(connectionId);if(!peer||peer.abort.signal.aborted)return false;return this.#send(peer,encodeNotification(method,params));}
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){if(!this.#clientRequests)throw new ApiError(503,'Client request authorization is required');if(this.#phase!=='listening')throw new ApiError(503,'Network is not listening');return this.#clientRequests.request(id,method,params,options);}
- broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{if(!this.#notifications)throw new Error('Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.publish(method,params,excluded);}
+ broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]):Promise<DeliveryReport>{if(!this.#notifications)throw new ApiError(503,'Notification authorization is required');if(this.#phase!=='listening')return Promise.reject(new Error('Network is not listening'));return this.#notifications.publish(method,params,excluded);}
  #agentEvent(id:number,event:Json):void{if(this.#notifications&&this.#phase==='listening')void this.broadcast('notify_agent_event',[event],[id]).catch(()=>{});}
  /** Abort requests and wait for cooperative handlers. Ignored cancellation is
   * reported after the shutdown deadline, never silently reported as drained. */

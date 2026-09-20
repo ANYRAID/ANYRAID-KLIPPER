@@ -41,7 +41,7 @@ Moonraker 必须锁定上游版本/提交，逐项盘点 HTTP、WebSocket、JSON
 [`moonraker-upstream.json`](../host/contracts/moonraker-upstream.json)。
 application/websockets 已有部分传输、配置启动和客户端识别实现；
 server.websocket.id 有契约验证，server.info/config 为契约实现，
-server.connection.identify 为部分实现。其余注册点仍未实现。
+server.connection.identify 与扩展 list/request/send_event 为部分实现。其余注册点仍未实现。
 此清单保留动态表达式、源码路径和行号，
 不是全部展开后的端点集合；循环、转发的 Klippy 方法、传输协议、参数、
 响应、错误、事件、权限、可选集成仍需逐项建立契约测试。
@@ -2575,3 +2575,58 @@ WebSocket RPC 为 20.703 / 27.377 对 40.217 / 48.616；320 次、16 并发
 WebSocket RPC 为 4.988 / 8.420 对 9.228 / 11.546。此基准未启用出站
 授权策略，验证的是既有默认路径；出站开启和满载回应由本节专用基准
 及集成测试覆盖。授权/业务处理仍为空替身，不代表生产负载已验收。
+
+
+## 扩展代理列表、转发与自定义事件
+
+`registerExtensions` 将三个接口接入共享端点注册表，
+`ConfiguredMoonraker` 自动注册并在网络任务真正排空后注销：
+
+| 接口 | 已接通的传输 | 行为 |
+| --- | --- | --- |
+| /server/extensions/list / server.extensions.list | REST GET、HTTP RPC、WebSocket | 返回在线 agent 的身份列表，按识别顺序排列 |
+| /server/extensions/request / server.extensions.request | REST POST、HTTP RPC、WebSocket | 以 agent 名称和 method 转发 arguments 对象/数组，等待回应 |
+| server.connection.send_event | WebSocket | 仅已识别的 agent 可发送自定义事件，排除发送者并逐接收者授权 |
+
+列表来自 agent 索引，不扫描普通客户端；已断连代理移除，重连重新排序。
+转发先经过入站端点授权，再经过独立的 `authorizeClientRequest`，后者
+检查目标连接及实际编码载荷；两者不互相代替。发起方断连或请求取消会
+取消其待处理转发，保留目标 agent 连接。目标断连则拒绝调用方，旧请求
+不会转交给同名新连接。错误通过 RPC 返回 424 并保留远端 error 数据；
+REST 沿用既有 HTTP 错误结构。参数和身份字段继续执行本项目的严格字符串
+及长度约束，不采用上游 get_str 对非字符串的隐式转换。
+
+事件中的 agent 名称取自连接身份，不采信请求内同名字段。connected 与
+disconnected 为保留事件；普通 web 客户端、HTTP 调用、缺少独立通知策略
+的服务均不能发送事件。data 按上游保留非 null JSON 值，包括 false；
+事件回执等待广播任务结束，`ok` 不是全部观察者已收到的保证。未授权
+接收者会被过滤，广播失败/关闭仍受既有队列和关闭规则约束。
+
+注册过程若遇到端点冲突，会撤销本次已注册部分，保留原有拥有者；释放
+可重复调用。新增 8 项测试覆盖 REST/RPC、实时身份、两层授权、远端错误、
+参数边界、事件、发起方/agent 断连、同名重连、缺失策略、注册回滚与
+识别顺序。`bench:moonraker-extensions` 对照固定 ExtensionManager 源码
+AST 的三个处理器，11 组列表、转发及事件契约通过。
+
+Node 26.9.0，3 次预热、51 次采样，在同一 localhost 服务、同一 agent 与
+调用客户端上交替测试新接口和直接调用对照，单位 ms，中位 / p95：
+
+| 工作负载 | 新接口 | 对照 |
+| --- | --- | --- |
+| 500 次 WebSocket 代理转发往返 | 42.617 / 52.048 | 固定目标直接转发 42.477 / 48.802 |
+| 200 次 REST 代理转发往返 | 61.612 / 72.222 | 固定目标直接转发 61.338 / 67.268 |
+| 500 次代理列表 RPC | 18.724 / 19.522 | 扫描客户端列表 18.901 / 19.629 |
+| 500 次自定义事件回执 | 27.917 / 29.078 | 固定身份直接广播 28.073 / 28.992 |
+
+转发中位开销分别约 0.3% / 0.4%，但 p95 分别高约 6.7% / 7.4%，不能
+用中位接近来宣称尾时延无退步。事件回执计时不等于观察者全部收包。
+基准对照共享端点调度、授权与双向 RPC 生命周期；没有运行完整 Python
+服务或目标板，也没有覆盖大规模代理和打印并发。上一节纯内存双向请求
+约 24% 的退步仍存在，没有被此结果消除。
+
+extensions 及三个注册点保持 partial：Klippy 远程方法注册/注销、Unix
+代理连接、其他传输和生产身份授权存储仍未完成。真实打印速度、运动精度
+和故障停机门禁保持未验收，完整 Python 替换目标仍未完成。
+
+本阶段完整 432 项主机回归（包括原生构建、socket/PTY 集成）及 TypeScript
+类型检查通过。性能基准与回归串行执行，未将并行竞争的结果混入上述采样。

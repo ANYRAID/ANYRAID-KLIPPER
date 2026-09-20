@@ -1,3 +1,4 @@
+import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
 import type {AddressInfo} from 'node:net';
 import {loadConfiguration,ConfigurationError,type ConfigurationLimits} from './config-source.ts';
@@ -35,7 +36,9 @@ export class ConfiguredMoonraker {
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
   this.#network=new MoonrakerNetwork(this.rpc,{...options,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
-  this.#release=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
+  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
+  const releaseExtensions=registerExtensions(this.endpoints,this.#network);
+  this.#release=()=>{releaseExtensions();releaseMetadata();};
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
@@ -46,6 +49,7 @@ export class ConfiguredMoonraker {
  getClientsByName(name:string){return this.#network.getClientsByName(name);}
  getClientsByType(type:string){return this.#network.getClientsByType(type);}
  getUnidentifiedClients(){return this.#network.getUnidentifiedClients();}
+ getAgents(){return this.#network.getAgents();}
  getAgent(name:string){return this.#network.getAgent(name);}
  get status(){return this.#network.status;}
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */

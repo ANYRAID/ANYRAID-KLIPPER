@@ -18,6 +18,7 @@ export class RemoteClients {
  byName(name:string):readonly RemoteClient[]{return name?Object.freeze([...this.#clients.values()].filter(c=>c.identity?.name.toLowerCase()===name.toLowerCase())):Object.freeze([]);}
  byType(type:string):readonly RemoteClient[]{return type?Object.freeze([...this.#clients.values()].filter(c=>c.identity?.type===type.toLowerCase())):Object.freeze([]);}
  unidentified():readonly RemoteClient[]{return Object.freeze([...this.#clients.values()].filter(c=>!c.identity));}
+ agents():readonly RemoteClient[]{return Object.freeze([...this.#agents.values()].map(id=>this.#clients.get(id)!));}
  agent(name:string):RemoteClient|undefined{const id=this.#agents.get(name);return id===undefined?undefined:this.#clients.get(id);}
  identify(id:number,params:Readonly<Record<string,Json>>):RemoteClient{
   const previous=this.#clients.get(id);if(!previous)throw new ApiError(400,'Connection is no longer available');if(previous.identity)throw new ApiError(400,'Connection already identified');
