@@ -1,4 +1,5 @@
 import {ClientRequests,type ClientArguments,type ClientRequestLimits,type ClientRequestOptions} from './client-requests.ts';
+import {ResponseCompletion} from './response-completion.ts';
 import {NotificationFanout,type NotificationLimits,type DeliveryReport} from './notifications.ts';
 import {RemoteClients} from './clients.ts';
 import {EndpointRegistry} from './endpoints.ts';
@@ -101,16 +102,17 @@ export class MoonrakerNetwork {
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
   this.#launch(async signal=>{
-   let reserved=0;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
+   let reserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};
     const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
-    if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');response.end(result??undefined);}
+    if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');if(completion){const sent=await new Promise<boolean>(resolve=>{const closed=()=>{response.off('finish',finished);resolve(false);},finished=()=>{response.off('close',closed);resolve(true);};response.once('close',closed);response.once('finish',finished);response.end(result??undefined);});if(!completion.complete(sent))response.destroy(completion.error);}else response.end(result??undefined);}
    }catch(error){if(signal.aborted)this.#error(response,503,'Request cancelled');else if(!isRPC&&error instanceof ApiError)this.#error(response,Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500,error.message);else this.#error(response,isRPC?400:500,isRPC?'Invalid request body':'Internal Server Error');}
-   finally{this.#buffered-=reserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
+   finally{if(completion&&!completion.complete(false))response.destroy(completion.error);this.#buffered-=reserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
   },parent.signal);
  }
  #connected(request:IncomingMessage,socket:WebSocket):void{
@@ -124,7 +126,7 @@ export class MoonrakerNetwork {
    const decoded=this.#clientRequests?.acceptFrame(id,bytes(data));if(decoded&&decoded.value===undefined)return;
    if(this.#buffered+size>this.#maxBuffered){peer.abort.abort(new Error('Request buffer capacity exceeded'));socket.terminate();return;}
    if(this.#phase!=='listening'||peer.active>=this.#perSocket||this.#requests.size>=this.#maxRequests){peer.abort.abort(new Error('WebSocket request capacity exceeded'));socket.terminate();return;}
-   peer.active++;this.#buffered+=size;this.#launch(async signal=>{const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const context=this.#context(request,'websocket',signal,id),result=decoded?await this.#rpc.dispatchValue(decoded.value,context):await this.#rpc.dispatch(bytes(data),context);signal.throwIfAborted();if(result!==null)this.#send(peer,result);}finally{signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
+   peer.active++;this.#buffered+=size;this.#launch(async signal=>{let completion:ResponseCompletion|undefined;const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const context=this.#context(request,'websocket',signal,id);context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};const result=decoded?await this.#rpc.dispatchValue(decoded.value,context):await this.#rpc.dispatch(bytes(data),context);signal.throwIfAborted();const sent=result===null||this.#send(peer,result);if(completion&&!completion.complete(sent))socket.terminate();}finally{if(completion&&!completion.complete(false))socket.terminate();signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
   });
  }
  #send(peer:Peer,message:string):boolean{

@@ -5,6 +5,9 @@ export type Json=null|boolean|number|string|Json[]|{[key:string]:Json};
 export type RpcId=number|string|null;
 export type Transport='http'|'websocket'|'unix'|'mqtt';
 export interface RpcContext {
+  /** Network-frame handoff, after the complete batch response. Synchronous
+   * callback; false on cancellation/failure. Not a remote receipt guarantee. */
+  afterResponse?(callback:(sent:boolean)=>void):void;
   transport:Transport;
   signal:AbortSignal;
   connectionId?:number;
