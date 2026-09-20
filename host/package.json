@@ -136,7 +136,8 @@
     "bench:file-directory": "node bench/file-directory.ts",
     "bench:file-metadata": "node bench/file-metadata.ts",
     "bench:metadata-window": "node bench/metadata-window.ts",
-    "bench:slicer-identification": "node bench/slicer-identification.ts"
+    "bench:slicer-identification": "node bench/slicer-identification.ts",
+    "bench:metadata-prusa": "node bench/metadata-prusa.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
