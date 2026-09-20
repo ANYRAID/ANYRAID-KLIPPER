@@ -177,7 +177,7 @@ Different graphs can be produced. For more information run:
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
-information. There is a logextract.py script that may be useful when
+information. There is a Node.js 26 logextract.ts script that may be useful when
 analyzing a micro-controller shutdown or similar problem. It is
 typically run with something like:
 
@@ -185,8 +185,12 @@ typically run with something like:
 mkdir work_directory
 cd work_directory
 cp /tmp/klippy.log .
-~/klipper/scripts/logextract.py ./klippy.log
+node ~/klipper/scripts/logextract.ts ./klippy.log
 ```
+
+This tool requires Node.js 26 and no npm dependencies. It preserves log
+integer precision and only writes diagnostic files; it does not execute
+the extracted G-code.
 
 The script will extract the printer config file and will extract MCU
 shutdown information. The information dumps from an MCU shutdown (if
