@@ -1,3 +1,5 @@
+import {createLinearSensor} from '../src/thermal/linear-sensors.ts';
+import type {TemperatureConverter} from '../src/thermal/adc.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -23,8 +25,8 @@ test('response subscriptions are exclusive, isolate OIDs, detach and close all c
   await assert.rejects(p.s.stop(new Error('wire closed')),/cleanup failed/);assert.equal(closed,2);assert.equal(p.stops,1);stop();
  }finally{await p.close();}
 });
-function wiring(p:Awaited<ReturnType<typeof pair>>,oid=3){
- const chip={},converter=new Thermistor(4700,0,{point:[25,100000],beta:3950}),readings:[number,number][]=[],faults:string[]=[];
+function wiring(p:Awaited<ReturnType<typeof pair>>,oid=3,converter:TemperatureConverter=new Thermistor(4700,0,{point:[25,100000],beta:3950})){
+ const chip={},readings:[number,number][]=[],faults:string[]=[];
  let offset=0,tick:(()=>void)|undefined,cancelled=0;
  const timer:SensorTimer={now:()=>serialClock.now()+offset,schedule(cb){tick=cb;return ()=>{cancelled++;tick=undefined;};}};
  const print=(clock:bigint)=>Number(clock)/1e6,now=print(p.s.clock.sync.getClock(serialClock.now()));
@@ -70,5 +72,15 @@ for(const intervening of [1,20])test(`delayed response uses current sequence aft
   assert.ifError(result.error);
   assert.equal(result.value!.message.parameters.value,73);
   assert.equal(p.stops,0);
+ }finally{await p.close();}
+});
+test('PT1000 linear converter configures and receives native serial ADC reports',async()=>{
+ const p=await pair();try{
+  const w=wiring(p,3,createLinearSensor('PT1000'));
+  await p.s.configure({oidCount:4,commands:w.sensor.plan.commands,init:w.sensor.plan.init},signal());
+  w.sensor.activate();w.emit(200);await until(()=>w.readings.length===1);
+  // Includes raw ADC quantization; interpolation-only comparisons are tighter.
+  assert.ok(Math.abs(w.readings[0][1]-200)<.1);
+  assert.deepEqual(w.faults,[]);
  }finally{await p.close();}
 });
