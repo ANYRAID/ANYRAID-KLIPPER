@@ -140,7 +140,8 @@
     "bench:metadata-prusa": "node bench/metadata-prusa.ts",
     "bench:metadata-other": "node bench/metadata-other.ts",
     "bench:metadata-extractor": "node bench/metadata-extractor.ts",
-    "bench:thumbnail-images": "node bench/thumbnail-images.ts"
+    "bench:thumbnail-images": "node bench/thumbnail-images.ts",
+    "bench:thumbnail-process": "node bench/thumbnail-process.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
