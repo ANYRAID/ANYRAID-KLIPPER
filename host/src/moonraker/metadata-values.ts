@@ -28,11 +28,12 @@ export function pythonJsonStrings(values:string[]):string{return '['+values.map(
 /** CPython 3.12 finite-float sum uses Neumaier compensation. */
 export function metadataSum(values:number[]):number{let high=0,low=0;for(const value of values){const next=high+value;low+=Math.abs(high)>=Math.abs(value)?(high-next)+value:(value-next)+high;high=next;}const result=high+low;if(!Number.isFinite(result))throw new RangeError('Nonfinite metadata sum');return result;}
 /** Round the exact IEEE-754 value to six decimal places, ties to even. */
-export function roundMetadataHeight(value:number):number{
+export function roundMetadataHeight(value:number):number{return roundMetadataDecimal(value,6);}
+export function roundMetadataDecimal(value:number,places:2|6):number{
  if(!Number.isFinite(value))throw new RangeError('Nonfinite metadata height');
  const buffer=new ArrayBuffer(8),view=new DataView(buffer);view.setFloat64(0,value);const bits=view.getBigUint64(0),exponent=Number((bits>>52n)&2047n),negative=(bits>>63n)!==0n;
  let numerator=(bits&((1n<<52n)-1n))+(exponent?1n<<52n:0n),denominator=1n;const power=exponent?exponent-1075:-1074;
- if(power>=0)numerator<<=BigInt(power);else denominator<<=BigInt(-power);numerator*=1000000n;
+ if(power>=0)numerator<<=BigInt(power);else denominator<<=BigInt(-power);numerator*=10n**BigInt(places);
  let quotient=numerator/denominator;const remainder=numerator%denominator;if(remainder*2n>denominator||(remainder*2n===denominator&&(quotient&1n)!==0n))quotient++;
- return Number(`${negative?'-':''}${quotient}e-6`);
+ return Number(`${negative?'-':''}${quotient}e-${places}`);
 }

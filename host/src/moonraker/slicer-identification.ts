@@ -5,7 +5,14 @@ const decimal=charClass(unicode.decimal),space=charClass(unicode.space),digit=ne
 /** Translate only the fixed patterns below, not arbitrary Python regular expressions.
  * Python dot excludes LF alone, unlike JavaScript dot. Unicode tables pin Python 3.12. */
 export function metadataPattern(pattern:string,flags=''):RegExp{
- return new RegExp(pattern.replaceAll('\\d',decimal).replaceAll('\\s',space).replaceAll('.*','[^\\n]*').replaceAll('.+','[^\\n]+'),'u'+flags);
+ let result='',inClass=false;
+ for(let i=0;i<pattern.length;i++){
+  const char=pattern[i];
+  if(char==='\\'){const next=pattern[++i];result+=next==='d'?decimal:next==='s'?space:'\\'+next;continue;}
+  if(char==='[')inClass=true;else if(char===']')inClass=false;
+  result+=char==='.'&&!inClass&&!flags.includes('s')?'[^\\n]':char;
+ }
+ return new RegExp(result,'u'+flags);
 }
 export type SlicerFamily='UnknownSlicer'|'PrusaSlicer'|'Slic3rPE'|'Slic3r'|'BambuStudio'|'Cura'|'Simplify3D'|'KISSlicer'|'IdeaMaker'|'IceSL'|'KiriMoto';
 export interface SlicerIdentity {readonly family:SlicerFamily;readonly name:string;readonly version:string;}
