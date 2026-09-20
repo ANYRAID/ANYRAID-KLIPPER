@@ -1,3 +1,4 @@
+import {boundedJsonBytes} from './json-size.ts';
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
 import {ApiError,validateJson,type Json} from './rpc.ts';
@@ -58,16 +59,6 @@ export class FileListing {
   for(const pending of this.#pending.values()){Atomics.store(pending.cancel,0,1);pending.finish(new ApiError(503,'File listing is closed'));pending.dispose();}this.#pending.clear();
   this.#closing=this.#worker.terminate().then(()=>{});return this.#closing;
  }
-}
-function boundedJsonBytes(value:Json,limit:number):number{
- let bytes=0;const add=(size:number)=>{bytes+=size;if(bytes>limit)throw new ApiError(413,'Directory response limit exceeded');};
- const string=(text:string)=>{if(Buffer.byteLength(text)>limit-bytes)throw new ApiError(413,'Directory response limit exceeded');add(Buffer.byteLength(JSON.stringify(text)));};
- const visit=(item:Json):void=>{
-  if(typeof item==='string'){string(item);return;}
-  if(item===null||typeof item!=='object'){add(JSON.stringify(item).length);return;}
-  add(2);if(Array.isArray(item)){for(let i=0;i<item.length;i++){if(i)add(1);visit(item[i]);}}
-  else{let first=true;for(const [key,child] of Object.entries(item)){if(!first)add(1);first=false;string(key);add(1);visit(child);}}
- };visit(value);return bytes;
 }
 export function registerFileListing(registry:EndpointRegistry,files:FileListing,metadata?:(filename:string)=>Readonly<Record<string,Json>>|undefined):()=>void{
  const detach:(()=>void)[]=[];

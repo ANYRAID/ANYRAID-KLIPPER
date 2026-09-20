@@ -133,7 +133,8 @@
     "bench:published-recovery": "node bench/published-recovery.ts",
     "bench:published-delete": "node bench/published-delete.ts",
     "bench:file-list": "node bench/file-list.ts",
-    "bench:file-directory": "node bench/file-directory.ts"
+    "bench:file-directory": "node bench/file-directory.ts",
+    "bench:file-metadata": "node bench/file-metadata.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

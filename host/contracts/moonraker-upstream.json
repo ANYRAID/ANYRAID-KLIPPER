@@ -497,7 +497,8 @@
       "line": 113,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/metadata\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Bounded immutable FileMetadataStore with scan tickets, metadata/thumbnails GET and RPC responses in host/src/moonraker/file-metadata.ts; real network and directory integration in file-metadata.test.ts; pinned original handlers and MetadataStorage.get differential benchmark in bench/file-metadata.ts. Extraction, persistent metadata DB, file watcher invalidation, thumbnail generation/download and production assembly remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
@@ -511,7 +512,8 @@
       "line": 119,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/thumbnails\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Bounded immutable FileMetadataStore with scan tickets, metadata/thumbnails GET and RPC responses in host/src/moonraker/file-metadata.ts; real network and directory integration in file-metadata.test.ts; pinned original handlers and MetadataStorage.get differential benchmark in bench/file-metadata.ts. Extraction, persistent metadata DB, file watcher invalidation, thumbnail generation/download and production assembly remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
