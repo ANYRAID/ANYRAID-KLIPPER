@@ -56,6 +56,8 @@ export class KlippyLifecycle {
  get cacheMetrics(){return this.#cache.metrics;}
  get snapshot():KlippySnapshot{return this.#snapshot;}
  get signal(){return this.#socket.signal;}
+ get peerCredentials(){return this.#socket.peerCredentials;}
+ get peerCredentialError(){return this.#socket.peerCredentialError;}
  get transportStatus(){return this.#socket.status;}
  #publish(changes:Partial<KlippySnapshot>){this.#snapshot=freeze({...this.#snapshot,...changes});try{this.#options.onSnapshot?.(this.#snapshot);}catch(error){this.#observerError??=new Error('Klippy state observer failed',{cause:error});void this.#socket.close().catch(()=>{});}}
  #webhooks(value:unknown){if(!object(value))throw new ApiError(502,'Invalid webhooks status');const changes:Partial<KlippySnapshot>={...(Object.hasOwn(value,'state')?{state:state(value.state)}:{}),...(Object.hasOwn(value,'state_message')?{stateMessage:message(value.state_message)}:{})};this.#revision++;if(changes.state!==undefined&&changes.state!==this.#snapshot.state||changes.stateMessage!==undefined&&changes.stateMessage!==this.#snapshot.stateMessage)this.#publish(changes);}

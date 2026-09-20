@@ -6,7 +6,7 @@
     "node": ">=26 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",
     "typecheck": "tsc -p tsconfig.json",
@@ -97,7 +97,8 @@
     "bench:remote-methods": "node bench/remote-methods.ts",
     "bench:client-calls": "node bench/client-calls.ts",
     "bench:agent-methods": "node bench/agent-methods.ts",
-    "bench:klippy-config": "node bench/klippy-config.ts"
+    "bench:klippy-config": "node bench/klippy-config.ts",
+    "bench:unix-peer": "node bench/unix-peer.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

@@ -1,3 +1,4 @@
+import {unixPeerCredentials,type UnixPeerCredentials} from './unix-peer.ts';
 // Klippy webhook wire protocol: JSON messages terminated by ETX, without the
 // JSON-RPC version field. Based on pinned Moonraker klippy_connection.py.
 import {Socket} from 'node:net';
@@ -32,11 +33,14 @@ function encode(value:Json):string{let text=JSON.stringify(value);if(/\d{16}/.te
  * A successful socket connection is NOT a Klippy readiness assertion.
  * Cancellation/timeout only stops waiting: already written commands may execute. */
 export class KlippySocket {
+ #peerCredentials:UnixPeerCredentials|null=null;#peerCredentialError:string|null=null;
  #phase:'new'|'connecting'|'connected'|'closing'|'closed'='new';#socket:Socket|undefined;#frames:KlippyFrames;#abort=new AbortController();#methods=new Map<string,KlippyMethod>();
  #pending=new Map<number,Pending>();#callbacks=new Set<Callback>();#next=1;#pendingBytes=0;#outputBytes=0;#callbackBytes=0;#closedSocket=Promise.resolve();#socketEnded=true;
  #openingReject:((e:unknown)=>void)|undefined;#openingTimer:ReturnType<typeof setTimeout>|undefined;#closing:Promise<void>|undefined;
  #limits:{pending:number;pendingBytes:number;outputBytes:number;callbacks:number;callbackBytes:number;requestTimeoutMs:number;callbackTimeoutMs:number;connectTimeoutMs:number;shutdownTimeoutMs:number};
  constructor(limits:KlippySocketLimits={}){this.#frames=new KlippyFrames(limits.frameBytes);this.#limits={pending:bound(limits.pending,256,100000),pendingBytes:bound(limits.pendingBytes,8*1024*1024,64*1024*1024),outputBytes:bound(limits.outputBytes,8*1024*1024,64*1024*1024),callbacks:bound(limits.callbacks,32,10000),callbackBytes:bound(limits.callbackBytes,20*1024*1024,64*1024*1024),requestTimeoutMs:bound(limits.requestTimeoutMs,300000,2147483647),callbackTimeoutMs:bound(limits.callbackTimeoutMs,30000,2147483647),connectTimeoutMs:bound(limits.connectTimeoutMs,5000,60000),shutdownTimeoutMs:bound(limits.shutdownTimeoutMs,5000,60000)};}
+ get peerCredentials(){return this.#peerCredentials;}
+ get peerCredentialError(){return this.#peerCredentialError;}
  get signal():AbortSignal{return this.#abort.signal;}
  get status(){return {phase:this.#phase,pending:this.#pending.size,pendingBytes:this.#pendingBytes,outputBytes:this.#outputBytes,callbacks:this.#callbacks.size,callbackBytes:this.#callbackBytes,inputBytes:this.#frames.bufferedBytes};}
  registerMethod(name:string,handler:KlippyMethod):()=>void{if(!name||name.length>256||typeof handler!=='function'||this.#methods.has(name)||this.#phase==='closing'||this.#phase==='closed')throw new Error('Invalid Klippy remote method');this.#methods.set(name,handler);return ()=>{if(this.#methods.get(name)===handler)this.#methods.delete(name);};}
@@ -44,7 +48,7 @@ export class KlippySocket {
   if(this.#phase!=='new'||typeof path!=='string'||!path||path.includes('\0')||Buffer.byteLength(path)>107)return Promise.reject(new ApiError(400,'Invalid Klippy socket path or state'));
   this.#phase='connecting';this.#socketEnded=false;const socket=this.#socket=new Socket();this.#closedSocket=new Promise<void>(resolve=>socket.once('close',()=>{this.#socketEnded=true;this.#fail(new ApiError(503,'Klippy disconnected'));this.#checkClosed();resolve();}));
   socket.on('error',()=>this.#fail(new ApiError(503,'Klippy socket failed')));socket.on('data',chunk=>{if(this.#phase!=='connected')return;try{this.#frames.push(Buffer.isBuffer(chunk)?chunk:Buffer.from(chunk),frame=>{this.#message(frame);return this.#phase==='connected';});}catch(error){this.#fail(error instanceof ApiError?error:new ApiError(502,'Invalid Klippy frame'));}});socket.on('end',()=>this.#fail(new ApiError(503,'Klippy disconnected')));
-  return new Promise<void>((resolve,reject)=>{this.#openingReject=reject;this.#openingTimer=setTimeout(()=>this.#fail(new ApiError(504,'Klippy connection timed out')),this.#limits.connectTimeoutMs);socket.once('connect',()=>{if(this.#phase!=='connecting')return;clearTimeout(this.#openingTimer);this.#openingReject=undefined;this.#phase='connected';resolve();});try{socket.connect(path);}catch{this.#fail(new ApiError(503,'Klippy socket failed'));}});
+  return new Promise<void>((resolve,reject)=>{this.#openingReject=reject;this.#openingTimer=setTimeout(()=>this.#fail(new ApiError(504,'Klippy connection timed out')),this.#limits.connectTimeoutMs);socket.once('connect',()=>{if(this.#phase!=='connecting')return;clearTimeout(this.#openingTimer);this.#openingReject=undefined;this.#phase='connected';try{this.#peerCredentials=unixPeerCredentials(socket);this.#peerCredentialError=null;}catch(error){this.#peerCredentialError=error instanceof Error?error.message.slice(0,4096):'Peer credentials unavailable';}resolve();});try{socket.connect(path);}catch{this.#fail(new ApiError(503,'Klippy socket failed'));}});
  }
  request(method:string,params:Record<string,Json>={},options:KlippyRequestOptions={}):Promise<Json>{
   if(this.#phase!=='connected')throw new ApiError(503,'Klippy Host not connected');if(options.signal?.aborted)throw new ApiError(499,'Klippy request cancelled');
@@ -68,7 +72,7 @@ export class KlippySocket {
   const ended=()=>{clearTimeout(job.timer);if(this.#callbacks.delete(job))this.#callbackBytes-=bytes;job.finish();this.#checkClosed();};
   try{const task=handler(params,this.#abort.signal);if(task&&typeof task.then==='function')Promise.resolve(task).then(ended,()=>{this.#fail(new ApiError(502,'Klippy callback failed'));ended();});else ended();}catch{this.#fail(new ApiError(502,'Klippy callback failed'));ended();}
  }
- #fail(error:ApiError){if(this.#phase==='closed')return;this.#phase='closing';clearTimeout(this.#openingTimer);this.#openingReject?.(error);this.#openingReject=undefined;for(const id of this.#pending.keys())this.#settle(id,new ApiError(error.status,error.message,{mayHaveExecuted:true}));this.#abort.abort(error);this.#frames.clear();this.#socket?.destroy();this.#checkClosed();}
+ #fail(error:ApiError){if(this.#phase==='closed')return;this.#phase='closing';this.#peerCredentials=null;this.#peerCredentialError=null;clearTimeout(this.#openingTimer);this.#openingReject?.(error);this.#openingReject=undefined;for(const id of this.#pending.keys())this.#settle(id,new ApiError(error.status,error.message,{mayHaveExecuted:true}));this.#abort.abort(error);this.#frames.clear();this.#socket?.destroy();this.#checkClosed();}
  #checkClosed(){if(this.#phase==='closing'&&this.#socketEnded&&!this.#callbacks.size){this.#phase='closed';this.#methods.clear();}}
  close():Promise<void>{if(this.#closing)return this.#closing;this.#fail(new ApiError(503,'Klippy connection closed'));let timer:ReturnType<typeof setTimeout>|undefined;this.#closing=Promise.race([Promise.all([this.#closedSocket,...[...this.#callbacks].map(j=>j.done)]),new Promise<never>((_r,reject)=>{timer=setTimeout(()=>reject(new Error('Klippy callbacks did not stop before shutdown deadline')),this.#limits.shutdownTimeoutMs);})]).then(()=>{this.#checkClosed();}).finally(()=>{clearTimeout(timer);this.#closing=undefined;});return this.#closing;}
 }

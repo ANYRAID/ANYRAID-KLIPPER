@@ -3681,3 +3681,39 @@ Node 26.9.0 中位 / p95 为 10.769 / 11.660 ms，Python 为
 这是文件配置服务的连接入口，不是已可替代生产的独立 daemon。
 命令行/服务安装入口、完整模板组件、授权存储、peer credentials、其余
 Moonraker 组件及全部 Python 替换仍待完成，实际打印精度和性能未验收。
+
+### Linux Unix 对端内核身份（2026-09-20）
+
+新增独立 Node-API 只读绑定 `unix-peer.c`，使用 getpeername 确認连接为
+AF_UNIX，再通过 SO_PEERCRED 读取 PID/UID/GID。校验整数描述符、连接类型、
+返回长度和有效 PID，不接管、复制或关闭调用者的描述符。UID/GID 以无符号
+32 位数返回，避免符号截断。`build:native` 已纳入这一模块。
+
+Node 26 没有公共 socket 描述符读取接口，因此私有 `_handle.fd` 依赖集中
+在 `unix-peer.ts`；读取前检查 Socket 实例、destroyed、pending、connecting
+和 readyState，并同步进入原生调用，期间没有异步让出导致 JS 关闭/复用
+描述符。升级 Node 时必须保留该适配器的实际连接测试。首轮测试发现新建
+未连接 Socket 也可能报告 open，已通过 pending 检查修正。
+
+KlippySocket 在每次连接建立时读取一次并保存冻结结果，断连清除；生命周期
+和配置服务通过 peerCredentials / klippyPeerCredentials 提供这些内核数据。
+读取失败时保留独立的 peerCredentialError / klippyPeerCredentialError，
+连接仍可按上游策略继续，但不能声称身份已核验。Klippy 自报 process_id /
+user_id / group_id 保留在 info 中，不能覆盖内核字段。该元数据尚未接入
+服务提供者、进程生命周期核验或授权策略；PID 1 不被推断为实际 Klippy
+进程，systemd socket activation 的服务归属仍需后续组件处理。
+
+完整主机 **565 项通过**，类型与差异检查通过。跨进程测试由独立 Node
+子进程监听 socket，核对读到子进程 PID 而不是检查方 PID；还覆盖文件、
+关闭、非法、TCP 描述符拒绝且不接管连接，以及自报假身份不能覆盖内核
+数据、断连清理。既有 `test:native-sanitized` 已加入新模块，UBSan / ASan
+各 **167 项通过**；ASan 沿用既有 detect_leaks=0，不宣称进程级泄漏覆盖。
+
+`bench:unix-peer` 直接提取固定上游 get_unix_peer_credentials helper，
+对同一真实 Unix 服务端核对三项身份一致。Node 26.9.0 / Python 3.12.13，
+3 次预热、51 轮，每轮 10,000 次：Node 中位 / p95
+12.289 / 12.677 ms，Python 6.987 / 7.020 ms。Node 额外检查连接类型，
+并经过原生边界和冻结返回对象，约慢 1.76 倍，平均单次约 1.23 微秒。
+实际只在连接建立时读取，缓存 getter 和运动/回调路径不重复调用 getsockopt。
+没有以此宣称完整 daemon、服务归属、授权或实际打印验收已完成；全部
+Python 替换和其余 Moonraker/产品功能仍在进行。

@@ -134,6 +134,8 @@ export class ConfiguredMoonraker {
   try{const result=this.#network.dispatchBroadcast(method,params);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
  }
  get klippy(){return this.#klippy?.snapshot??null;}
+ get klippyPeerCredentials(){return this.#klippy?.peerCredentials??null;}
+ get klippyPeerCredentialError(){return this.#klippy?.peerCredentialError??null;}
  get klippyRemoteMethodFailures(){return this.#klippy?.remoteMethodFailures??[];}
  get klippyRemoteMethods(){return this.#klippy?.remoteMethods??null;}
  get agentRemoteMethods(){return this.#agentMethods.registrations;}
