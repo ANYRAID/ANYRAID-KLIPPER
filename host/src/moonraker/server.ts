@@ -1,12 +1,14 @@
+import {EndpointRegistry} from './endpoints.ts';
 import {createServer,type IncomingMessage,type ServerResponse,type Server} from 'node:http';
 import type {AddressInfo} from 'node:net';
 import type {Duplex} from 'node:stream';
 import {WebSocketServer,WebSocket,type RawData} from 'ws';
-import {JsonRpcDispatcher,encodeNotification,type Json,type RpcContext} from './rpc.ts';
+import {JsonRpcDispatcher,ApiError,encodeNotification,type Json,type RpcContext} from './rpc.ts';
 export interface NetworkAuthorization {
  request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;
 }
 export interface MoonrakerNetworkOptions {
+ endpoints?:EndpointRegistry;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
  /** Additional allowed browser origins. Same-origin and clients without Origin
   * are accepted; method authorization is always required independently. */
@@ -25,7 +27,7 @@ export class MoonrakerNetwork {
  #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
  #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
  constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions){
-  if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');this.#rpc=rpc;this.#options={...options};
+  if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');if(options.endpoints&&options.endpoints.dispatcher!==rpc)throw new Error('Endpoint registry must share the network dispatcher');this.#rpc=rpc;this.#options={...options};
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
   this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
   this.#server=createServer({maxHeaderSize:16384,requestTimeout:30000,headersTimeout:10000},(request,response)=>this.#http(request,response));this.#server.maxConnections=this.#maxConnections+this.#maxRequests;
@@ -64,12 +66,13 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  if(request.url?.split('?')[0]!=='/server/jsonrpc'){this.#error(response,404,'Not Found');return;}
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',allowed=isRPC?['POST']:this.#options.endpoints?.allowed(path);
+  if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');}
-  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':'POST, OPTIONS','access-control-allow-headers':'Content-Type, Authorization, X-Api-Key'});response.end();return;}
-  if(request.method!=='POST'){this.#error(response,405,'Method Not Allowed');return;}
-  if(!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
+  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key'});response.end();return;}
+  if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
+  if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
   const parent=new AbortController(),disconnected=()=>{if(!response.writableEnded)parent.abort(new Error('HTTP client disconnected'));};response.once('close',disconnected);
   this.#launch(async signal=>{
@@ -77,10 +80,11 @@ export class MoonrakerNetwork {
    try{
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
-    const result=await this.#rpc.dispatch(Buffer.concat(chunks),this.#context(request,'http',signal));signal.throwIfAborted();
+    const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
     if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');response.end(result??undefined);}
-   }catch{this.#error(response,signal.aborted?503:400,signal.aborted?'Request cancelled':'Invalid request body');}
+   }catch(error){if(signal.aborted)this.#error(response,503,'Request cancelled');else if(!isRPC&&error instanceof ApiError)this.#error(response,Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500,error.message);else this.#error(response,isRPC?400:500,isRPC?'Invalid request body':'Internal Server Error');}
    finally{this.#buffered-=reserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
   },parent.signal);
  }

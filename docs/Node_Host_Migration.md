@@ -2088,3 +2088,63 @@ application/websockets 标为 partial，并只将已验证的 websocket ID
 注册点标为 implemented。完整业务端点、身份识别、授权存储、文件/
 打印任务、设备服务、Unix/MQTT、Moonraker 通知来源和消费级操作绑定
 仍待完成，生产 Klippy 入口仍使用 Python。
+
+### Moonraker 静态 JSON REST 与共享端点注册（2026-09-20）
+
+`moonraker/endpoints.ts` 提供 EndpointRegistry，业务组件可通过一次注册
+获得 JSON REST 与 RPC 映射。网络服务的 endpoints 选项必须与网络层
+共用同一个 JsonRpcDispatcher。单请求类型沿用路径转点号的 RPC 名称；
+多类型按 GET、POST、DELETE 的上游顺序生成 get_ / post_ / delete_
+末段名称。仅 HTTP 的本地端点不注册 RPC；远程 Klippy 端点强制接受
+GET/POST，并保留仅 HTTP 时仍有 HTTP JSON-RPC 方法的上游例外。
+注册先验证所有名称和路由，冲突不留下半注册状态；释放句柄幂等。
+/server/jsonrpc 为网络层保留路径，不能被业务注册覆盖。
+
+JSON REST 成功结果包装为 result，与对应 RPC 使用同一业务处理器。
+每次调用先按相同的规范方法名授权；REST 中 ApiError 保留 HTTP 状态码
+与 error.code/message，普通内部异常不暴露堆栈或内部消息。方法不匹配
+返回 405。接入已有请求容量、缓冲预算、Origin、取消和关闭等待机制。
+此阶段只提供静态 JSON 端点，不实现正则/路径捕获、原始内容/文件流、
+HTTP 请求关联 WebSocket 连接或 Klippy 实际转发。
+
+查询与表单参数采用最后一个重复值，表单覆盖查询；支持 int、float、
+bool、json 提示及末个冒号拆分。未知/无法转换提示保留字符串，bool
+仅不区分大小写的 true 为真。数字支持 ASCII 十进制和 Python 的数字
+分隔符。JSON 对象字段覆盖参数；无效 JSON 语法沿用上游回退到查询
+参数的行为。远程 objects/* 查询采用对象字段列表解析。排除原始的
+_、token、access_token、connection_id 参数名，沿用上游排除位置。
+
+明确的边界加强：无效 URL 编码拒绝，参数名称数量上限 1024；JSON
+主体须为对象，避免原字典更新接受非对象结构的不一致行为。int 提示
+超出 JS 安全整数范围、float 非有限或非 ASCII 数字语法时保留字符串，
+由业务类型校验决定是否接受，不先舍入。这个保护针对参数类型提示；
+JSON 主体仍采用标准 JS 数值解析，业务中的大整数标识/时钟必须使用
+明确的字符串或 BigInt 边界，不能据此宣称任意大整数 JSON 保持精确。
+构造参数对象时避免 __proto__ 等特殊键污染对象原型。
+
+`bench:moonraker-endpoints` 执行固定上游 APIDefinition 和
+DynamicRequestHandler 的原方法，27 组静态/远程、请求类型和传输组合
+以及 9 组查询/表单/JSON/对象解析结果一致。原解析器使用请求替身及
+stdlib JSON；上述明确加强的边界单独测试，不混称完全相同。
+3 次预热、11 次采样，每次 10000 次解析：Node 26.9.0 中位/p95
+49.687 / 50.449 ms，Python 3.12.13 为 114.056 / 114.741 ms。
+
+网络基准另加入原 DynamicRequestHandler._process_http_request 与
+其原参数解析方法，真实 Tornado GET/POST 处理，msgspec 开启。
+同一 Node 客户端、独立服务进程、3 次预热及 11 次采样：
+
+| 每次采样负载 | Node 中位 / p95（ms） | Python 中位 / p95（ms） |
+| --- | --- | --- |
+| 200 次 JSON REST GET | 37.262 / 46.783 | 60.816 / 71.042 |
+| 200 次 HTTP JSON-RPC | 49.807 / 54.513 | 69.666 / 94.074 |
+| 500 次顺序 WebSocket | 23.386 / 26.155 | 43.923 / 48.935 |
+| 320 次 WebSocket，16 并发 | 5.875 / 7.236 | 9.485 / 14.811 |
+
+三组新增 REST 网络契约、原六组 HTTP RPC 契约通过。本轮各负载优于
+同轮 Python 参考，不代表相较前一提交零回退或混合打印负载期限达标。
+网络性能表测量的是 GET 有效参数路径，最后新增的无效 JSON 回退校验
+另经上面的最终解析基准复核。
+
+类型检查、全部 362 项回归通过。端点注册基础不等于已实现其业务；
+上游组件清单仍只有已验证的 websocket ID 注册点标为 implemented。
+完整授权、文件/任务业务、设备服务、Klippy 转发与消费级操作继续待办。

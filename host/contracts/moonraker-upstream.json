@@ -22,7 +22,7 @@
       "name": "application",
       "tier": "server",
       "status": "partial",
-      "evidence": "host/src/moonraker/server.ts; host/test/moonraker-network.test.ts"
+      "evidence": "host/src/moonraker/server.ts; host/src/moonraker/endpoints.ts; host/test/moonraker-network.test.ts; host/test/moonraker-endpoints.test.ts"
     },
     {
       "name": "authorization",

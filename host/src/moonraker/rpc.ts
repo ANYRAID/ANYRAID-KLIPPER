@@ -27,6 +27,7 @@ export class JsonRpcDispatcher {
     if(!name||!transports.length||this.#methods.has(name)) throw new Error('Invalid or duplicate RPC registration');
     this.#methods.set(name,{transports:new Set(transports),handler});
   }
+  has(name:string):boolean{return this.#methods.has(name);}
   remove(name:string):void {this.#methods.delete(name);}
   async dispatch(input:string|Uint8Array,context:RpcContext):Promise<string|null> {
     const size=typeof input==='string'?Buffer.byteLength(input):input.byteLength;
@@ -80,7 +81,7 @@ export class JsonRpcDispatcher {
     }
   }
 }
-function validateJson(value:unknown):asserts value is Json {
+export function validateJson(value:unknown):asserts value is Json {
   const pending:[unknown,number,boolean?][]=[[value,0]];let count=0;
   const seen=new Set<object>();
   while(pending.length) {
