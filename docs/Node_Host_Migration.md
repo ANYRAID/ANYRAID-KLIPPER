@@ -3794,3 +3794,50 @@ Node 26.9.0 / Python 3.12.13，中位 / p95（ms）：
 最终 Node 大样本仍比 Python 慢约 11%，小样本启动开销更明显；保留该
 测量限制，不称为普遍加速。此替代是离线诊断工具，不构成实时打印速度
 或物理 CAN 总线验收。完整 Moonraker、其余 Python 与产品控制迁移继续进行。
+
+### CI 空白检查器迁移（2026-09-20）
+
+`scripts/check_whitespace.py` 已替换为 Node.js 26 的
+`scripts/check_whitespace.ts`。既有 `check_whitespace.sh` / `ci-build.sh`
+调用链改用 Node，支持 `NODE` 指定运行程序，无需 npm 依赖。
+保留缺失/不可读文件忽略、逐行 UTF-8 校验、控制字符首错、Makefile tab
+例外、尾空格、文件末尾换行、错误顺序和退出码 255。80 字符规则仍只
+适用于原有小写 `.c` / `.h` / `.py`；按 Unicode 码点而非 UTF-16 单元
+计数，不擅自为 TS 引入不同于当前代码风格的行宽要求。
+
+Unicode 分类固定为原开发基线 Python 3.12 的 Unicode 15.0.0。
+712 段 category C 范围来自 CPython unicodedata，作为静态 TypeScript
+数据纳入项目；运行时不加载 Python 或外部 Unicode 服务。Node 26 自带
+Unicode 17，因此未直接使用其 category C 正则，以免升级运行时改变
+未分配字符的判定。未来更新 Unicode 策略须显式更新范围及独立对照。
+
+shell 入口改用带引号的目录与 NUL 分隔路径，移除 eval，启用 pipefail；
+继续排除 scripts/kconfig，并纳入 host/src、test、scripts、bench 中的
+Node 主机源码和 `.ts` / `.mts`。基线发现 serialqueue.h 已有一处超长
+声明，新增扫描发现 PTY 测试辅助 C 存在五处超长行，均只整理换行和空格。
+实际项目空白检查及 bash 语法检查通过。
+
+Node CI 新增该检查、Python 3.12 独立 oracle 环境和完整 Git 历史获取。
+历史脚本对照通过 Git 固定提交读取；浅克隆不能提供这些对象，因此 CI
+使用 fetch-depth: 0。Python 仅为当前迁移期开发对照需求，检查器本身
+没有 Python 依赖。新测试默认使用 PATH 中的 python3，也可通过
+WHITESPACE_PYTHON 指定 Python 3.12；不把其他 Unicode 版本误认为同一基线。
+本次未运行 GitHub 远程工作流，不将本机结果标为远程 CI 已通过。
+
+完整主机 **577 项通过**，类型检查通过。全部 1,114,112 个 Unicode
+码点分类与 Python 15.0.0 数据摘要一致；CLI 对照覆盖非法 UTF-8、控制
+字符、私用/未分配字符、补充平面字符长度、大小写扩展名、Makefile、
+带空格路径、缺失和空文件、末尾换行，逐字比较 stderr/stdout 与退出码。
+独立 shell 集成测试还验证新目录扫描、路径分隔、错误传播和 Kconfig 排除。
+
+`bench:whitespace`：Node 26.9.0 / Python 3.12.13，原脚本固定于
+`cd9d5c66`，2 次预热、11 次测量，完整 CLI 启动和文件校验。
+两边每轮退出成功且 stdout/stderr SHA-256 一致，中位 / p95（ms）：
+
+| 场景 | Node | Python |
+| --- | --- | --- |
+| 测量时 1,216 个已追踪源码路径 | 206.195 / 221.073 | 699.810 / 726.452 |
+| 100,000 行 ASCII / Unicode 混合文本 | 142.436 / 158.089 | 382.861 / 389.511 |
+
+本机扫描分别约快 3.4 倍和 2.7 倍。该工具属于构建检查，不进入打印或
+实时运动路径；其余 Python、Moonraker 与消费级控制流程迁移仍未完成。

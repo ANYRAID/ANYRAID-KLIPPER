@@ -100,7 +100,8 @@
     "bench:klippy-config": "node bench/klippy-config.ts",
     "bench:unix-peer": "node bench/unix-peer.ts",
     "bench:logextract": "node bench/logextract.ts",
-    "bench:candump": "node bench/candump.ts"
+    "bench:candump": "node bench/candump.ts",
+    "bench:whitespace": "node bench/whitespace.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

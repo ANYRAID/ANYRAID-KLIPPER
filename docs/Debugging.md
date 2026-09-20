@@ -8,7 +8,9 @@ The main Klipper GitHub repository uses "github actions" to run a
 series of regression tests. It can be useful to run some of these
 tests locally.
 
-The source code "whitespace check" can be run with:
+The source code "whitespace check" requires Node.js 26 (or an absolute
+Node path supplied via the `NODE` environment variable) and no npm
+dependencies. It can be run with:
 ```
 ./scripts/check_whitespace.sh
 ```

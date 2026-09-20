@@ -8,11 +8,19 @@ jobs:
         working-directory: host
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '26'
           cache: npm
           cache-dependency-path: host/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check source whitespace with Node
+        working-directory: .
+        run: ./scripts/check_whitespace.sh
       - run: npm ci --ignore-scripts
       - run: npm run typecheck
       - run: npm test
