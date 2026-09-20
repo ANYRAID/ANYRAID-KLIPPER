@@ -111,7 +111,8 @@
     "bench:linear-temperature": "node bench/linear-temperature.ts",
     "bench:linear-config": "node bench/linear-config.ts",
     "bench:sensor-config": "node bench/sensor-config.ts",
-    "bench:heater-config": "node bench/heater-config.ts"
+    "bench:heater-config": "node bench/heater-config.ts",
+    "bench:adc-diagnostics": "node bench/adc-diagnostics.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

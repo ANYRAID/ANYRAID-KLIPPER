@@ -84,3 +84,16 @@ test('PT1000 linear converter configures and receives native serial ADC reports'
   assert.deepEqual(w.faults,[]);
  }finally{await p.close();}
 });
+test('out-of-range serial temperature retains ADC evidence after MCU shutdown',async()=>{
+ const p=await pair();
+ try{
+  const w=wiring(p);await p.s.configure({oidCount:4,commands:w.sensor.plan.commands,init:w.sensor.plan.init},signal());w.sensor.activate();
+  w.emit(350);await until(()=>p.stops===1);
+  const status=w.sensor.status;
+  assert.equal(status.closed,true);assert.equal(status.adc.faultCode,'out-of-range');
+  assert.equal(status.adc.temperature,null);assert.ok(status.adc.rawValue!==null);
+  assert.ok(status.adc.estimatedTemperature!==null&&Math.abs(status.adc.estimatedTemperature-350)<1);
+  assert.equal(w.readings.length,0);assert.equal(w.faults.length,1);
+  status.adc.rawValue=1;assert.notEqual(w.sensor.status.adc.rawValue,1);
+ }finally{await p.close();}
+});
