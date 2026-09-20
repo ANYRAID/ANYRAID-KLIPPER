@@ -1232,7 +1232,8 @@
       "line": 61,
       "method": "register_endpoint",
       "targetExpression": "\"/server/connection/identify\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/clients.ts; host/src/moonraker/server.ts; host/test/clients.test.ts; host/bench/moonraker-clients.ts. WebSocket identity/directory and agent name reservations implemented; per-method authorization remains required. JWT/API-key sessions, agent method routing and lifecycle notifications remain pending. Strict string bounds and atomic conflict rollback differ from upstream."
     },
     {
       "file": "moonraker/components/wled.py",

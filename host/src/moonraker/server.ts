@@ -1,3 +1,4 @@
+import {RemoteClients} from './clients.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import {createServer,type IncomingMessage,type ServerResponse,type Server} from 'node:http';
 import type {AddressInfo} from 'node:net';
@@ -22,11 +23,13 @@ function bytes(data:RawData):Buffer{return Buffer.isBuffer(data)?data:Array.isAr
 /** Moonraker JSON-RPC network transport. Business APIs and authorization storage
  * remain separate components; the required authorize callback never defaults to allow. */
 export class MoonrakerNetwork {
+ #clients=new RemoteClients();
  #rpc:JsonRpcDispatcher;#options:MoonrakerNetworkOptions;#server:Server;#ws:WebSocketServer;
  #peers=new Map<number,Peer>();#nextId=1;#requests=new Map<AbortController,Promise<void>>();#sockets=new Set<Duplex>();
  #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
  #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
  constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions){
+  if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');if(options.endpoints&&options.endpoints.dispatcher!==rpc)throw new Error('Endpoint registry must share the network dispatcher');this.#rpc=rpc;this.#options={...options};
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
   this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
@@ -41,7 +44,14 @@ export class MoonrakerNetwork {
   });
   this.#server.on('clientError',(_error,socket)=>{if(socket.writable)socket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\nContent-Length: 0\r\n\r\n');});
   rpc.register('server.websocket.id',['websocket'],(_p,context)=>({websocket_id:context.connectionId!}));
+  rpc.register('server.connection.identify',['websocket'],(params,context)=>{const client=this.#clients.identify(context.connectionId!,params);return {connection_id:client.id};});
  }
+ get clients(){return this.#clients.all();}
+ getClient(id:number){return this.#clients.get(id);}
+ getClientsByName(name:string){return this.#clients.byName(name);}
+ getClientsByType(type:string){return this.#clients.byType(type);}
+ getUnidentifiedClients(){return this.#clients.unidentified();}
+ getAgent(name:string){return this.#clients.agent(name);}
  get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered};}
  async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
@@ -90,8 +100,8 @@ export class MoonrakerNetwork {
  }
  #connected(request:IncomingMessage,socket:WebSocket):void{
   const id=this.#nextId++;if(!Number.isSafeInteger(id)){socket.terminate();return;}
-  const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);
-  socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);});
+  const peer:Peer={socket,request,abort:new AbortController(),active:0,alive:true};this.#peers.set(id,peer);this.#clients.add(id);
+  socket.on('error',()=>socket.terminate());socket.on('pong',()=>{peer.alive=true;});socket.on('close',()=>{peer.abort.abort(new Error('WebSocket client disconnected'));this.#peers.delete(id);this.#clients.remove(id);});
   socket.on('message',data=>{
    const size=Array.isArray(data)?data.reduce((n,b)=>n+b.byteLength,0):data.byteLength;
    if(this.#buffered+size>this.#maxBuffered){peer.abort.abort(new Error('Request buffer capacity exceeded'));socket.terminate();return;}
@@ -108,6 +118,6 @@ export class MoonrakerNetwork {
   for(const abort of this.#requests.keys())abort.abort(new Error('Moonraker network shutting down'));for(const peer of this.#peers.values()){peer.abort.abort(new Error('Moonraker network shutting down'));peer.socket.terminate();}for(const socket of this.#sockets)socket.destroy();
   const serverClosed=(async()=>{await this.#opening?.catch(()=>{});await new Promise<void>(resolve=>{if(!this.#server.listening)resolve();else this.#server.close(()=>resolve());});})();
   let timeout:ReturnType<typeof setTimeout>|undefined;
-  this.#close=Promise.race([Promise.all([serverClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('RPC handlers did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
+  this.#close=Promise.race([Promise.all([serverClosed,...this.#requests.values()]),new Promise<never>((_,reject)=>{timeout=setTimeout(()=>reject(new Error('RPC handlers did not stop before shutdown deadline')),this.#shutdownTimeout);})]).then(()=>{this.#phase='closed';this.#rpc.remove('server.websocket.id');this.#rpc.remove('server.connection.identify');for(const client of this.#clients.all())this.#clients.remove(client.id);this.#ws.close();}).finally(()=>{clearTimeout(timeout);this.#close=undefined;});return this.#close;
  }
 }

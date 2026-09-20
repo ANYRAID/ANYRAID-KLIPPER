@@ -40,6 +40,12 @@ export class ConfiguredMoonraker {
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   return new ConfiguredMoonraker(new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits)),options);
  }
+ get clients(){return this.#network.clients;}
+ getClient(id:number){return this.#network.getClient(id);}
+ getClientsByName(name:string){return this.#network.getClientsByName(name);}
+ getClientsByType(type:string){return this.#network.getClientsByType(type);}
+ getUnidentifiedClients(){return this.#network.getUnidentifiedClients();}
+ getAgent(name:string){return this.#network.getAgent(name);}
  get status(){return this.#network.status;}
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
