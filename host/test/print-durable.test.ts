@@ -205,3 +205,134 @@ test('late cancellation commit cannot restore success after deadline and retry r
   assert.equal(cancellations, 1);
   c.reset('job');
 });
+test('restoration exposes interrupted identity without effects and requires stop before next job', async (t) => {
+  const f = await setup(t);
+  await f.controller().start(request);
+  await f.reopen();
+  const before = f.calls.length;
+  const restored = await PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    {},
+    { journal: f.journal },
+  );
+  assert.equal(restored.state, 'interrupted');
+  assert.deepEqual(restored.currentRequest, request);
+  assert.equal(Object.isFrozen(restored.currentRequest), true);
+  assert.equal(f.calls.length, before);
+  await assert.rejects(restored.resume());
+  await assert.rejects(restored.start({ ...request, requestId: 'next' }));
+  assert.throws(() => restored.reset('job'));
+  const stopped = deferred(),
+    release = deferred();
+  f.device.stop = async () => {
+    stopped.resolve();
+    await release.promise;
+  };
+  const cancelling = restored.cancel();
+  assert.equal(restored.cancel(), cancelling);
+  await stopped.promise;
+  assert.equal((await f.journal.active())?.state, 'interrupted');
+  release.resolve();
+  await cancelling;
+  assert.equal((await f.journal.get('job'))?.state, 'cancelled');
+  restored.reset('job');
+  await assert.rejects(restored.start(request), /reconciliation/);
+  // A rejected replay still requires its controller's acknowledged cleanup.
+  await restored.cancel();
+  restored.reset('job');
+  f.device.prepare = async () => {};
+  await restored.start({ ...request, requestId: 'next' });
+  assert.equal(restored.state, 'printing');
+  await restored.cancel();
+});
+test('restore refuses to adopt a live record or hide a closed journal', async (t) => {
+  const f = await setup(t);
+  await f.controller().start(request);
+  const before = f.calls.length;
+  await assert.rejects(
+    PrintController.restore(
+      f.device,
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { journal: f.journal },
+    ),
+    /live/,
+  );
+  assert.equal(f.calls.length, before);
+  await f.journal.close();
+  await assert.rejects(
+    PrintController.restore(
+      f.device,
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { journal: f.journal },
+    ),
+  );
+});
+test('failed recovery stop retains interrupted record for a fresh acknowledged retry', async (t) => {
+  const f = await setup(t);
+  await f.controller().start(request);
+  await f.reopen();
+  const restored = await PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    {},
+    { journal: f.journal },
+  );
+  f.device.stop = async () => {
+    throw new Error('offline');
+  };
+  await assert.rejects(restored.cancel(), /offline/);
+  assert.equal(restored.state, 'failed');
+  assert.equal((await f.journal.active())?.state, 'interrupted');
+  assert.throws(() => restored.reset('job'));
+  f.device.stop = async () => {};
+  await restored.cancel();
+  restored.reset('job');
+  assert.equal(restored.state, 'idle');
+});
+test('recovery timeout owns late stop and cannot clear interruption before acknowledgement', async (t) => {
+  const f = await setup(t);
+  await f.controller().start(request);
+  await f.reopen();
+  const release = deferred();
+  let stops = 0;
+  f.device.stop = async () => {
+    stops++;
+    await release.promise;
+  };
+  const restored = await PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    { stopMs: 30 },
+    { journal: f.journal },
+  );
+  await assert.rejects(restored.cancel(), /timed out/);
+  assert.equal((await f.journal.active())?.state, 'interrupted');
+  assert.throws(() => restored.reset('job'));
+  const retry = restored.cancel();
+  release.resolve();
+  await retry;
+  assert.equal(stops, 1);
+  assert.equal((await f.journal.get('job'))?.state, 'cancelled');
+  restored.reset('job');
+});
+test('restoring a terminal journal yields idle without device calls', async (t) => {
+  const f = await setup(t),
+    c = f.controller();
+  await c.start(request);
+  await c.complete('job');
+  await f.reopen();
+  const before = f.calls.length;
+  const restored = await PrintController.restore(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    {},
+    { journal: f.journal },
+  );
+  assert.equal(restored.state, 'idle');
+  assert.equal(restored.currentRequest, undefined);
+  assert.equal(f.calls.length, before);
+  assert.equal((await f.journal.get('job'))?.state, 'completed');
+});

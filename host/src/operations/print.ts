@@ -3,6 +3,7 @@ import { printDeadline } from './print-deadline.ts';
 /** Product-facing print lifecycle; adapters enforce limits again at the device boundary. */
 export type PrintState =
   | 'idle'
+  | 'interrupted'
   | 'preparing'
   | 'printing'
   | 'pausing'
@@ -132,6 +133,28 @@ export class PrintController {
     this.#journal = options.journal;
     this.#device = device;
     this.#limits = { ...limits };
+  }
+  /** Restore metadata only. Interrupted jobs require acknowledged cancellation;
+   * no heating, movement, homing, or file replay occurs during restoration.
+   * Caller owns the journal and must provide the uniquely bound device adapter. */
+  static async restore(
+    device: PrintDevice,
+    limits: PrintLimits,
+    deadlines: Partial<PrintDeadlines>,
+    options: PrintControllerOptions & { journal: PrintJournal },
+  ): Promise<PrintController> {
+    if (!options?.journal)
+      throw new TypeError('Restoration requires a print journal');
+    const controller = new PrintController(device, limits, deadlines, options);
+    const record = await options.journal.active();
+    if (record) {
+      if (record.state !== 'interrupted')
+        throw new Error('Cannot adopt a live print journal');
+      controller.#journalRecord = record;
+      controller.#start = Object.freeze({ ...record.request });
+      controller.#state = 'interrupted';
+    }
+    return controller;
   }
   start(input: StartPrint): Promise<void> {
     // Validate all user parameters before acquiring a device or causing effects.
