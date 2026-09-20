@@ -124,7 +124,8 @@
     "bench:async-heater-config": "node bench/async-heater-config.ts",
     "bench:async-heaters": "node bench/async-heaters.ts",
     "bench:thermal-print-device": "node bench/thermal-print-device.ts",
-    "bench:gcode-file-reader": "node bench/gcode-file-reader.ts"
+    "bench:gcode-file-reader": "node bench/gcode-file-reader.ts",
+    "bench:gcode-file-execution": "node bench/gcode-file-execution.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
