@@ -25,6 +25,20 @@ tar xfz klipper-dict-20??????.tar.gz
 ~/klippy-env/bin/python ~/klipper/scripts/test_klippy.py -d dict/ ~/klipper/test/klippy/*.test
 ```
 
+## Estimating AVR stack usage
+
+With AVR binutils and Node.js 26 installed, inspect a firmware disassembly:
+
+```
+avr-objdump -d out/klipper.elf | node scripts/checkstack.ts
+```
+
+The tool preserves the previous AVR stack heuristic, including preamble,
+call, tail-call, command-table and event-handler accounting. The reported
+values are estimates, not proven stack bounds: indirect calls and recursive
+cycles cannot establish the actual worst-case usage. It is not an analyzer
+for every MCU architecture. No npm dependencies are required.
+
 ## Manually sending commands to the micro-controller
 
 Normally, the host klippy.py process would be used to translate gcode
