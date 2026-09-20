@@ -17,7 +17,7 @@ function strings(value:unknown,name:string):string[]{if(!Array.isArray(value)||v
 export class KlippyLifecycle {
  #subscriptions:SubscriptionManager;#cache:KlippyStatusCache;#socket:KlippySocket;#options:KlippyInitializationOptions;#poll:number;#timeout:number;#revision=0;#observerError:Error|undefined;#starting:Promise<KlippySnapshot>|undefined;
  #snapshot:KlippySnapshot=freeze({connected:false,identified:false,initialized:false,state:'disconnected',stateMessage:'',info:{},endpoints:[],requirementsChecked:false,missingRequirements:[]});
- #remoteMethods=new Map<string,()=>void>();#registeredRemoteMethods=new Set<string>();
+ #remoteMethods=new Map<string,()=>void>();#registeredRemoteMethods=new Set<string>();#nextRemoteGeneration=1;
  constructor(options:KlippyInitializationOptions){if(typeof options.version!=='string'||!options.version||options.version.length>1024)throw new ApiError(400,'Invalid Moonraker version');this.#options={...options};this.#cache=new KlippyStatusCache(options.statusCacheLimits);this.#poll=bound(options.pollIntervalMs,250,60000);this.#timeout=bound(options.startupTimeoutMs,300000,2147483647);this.#socket=new KlippySocket(options.socketLimits);
   this.#subscriptions=new SubscriptionManager({cache:this.#cache,base:{webhooks:null},onSnapshotDifference:status=>{try{if(Object.hasOwn(status,"webhooks"))this.#webhooks(status.webhooks);}catch(error){void this.#socket.close().catch(()=>{});throw error;}},request:(objects,signal)=>this.#socket.request('objects/subscribe',{objects:objects as Json,response_template:{method:'process_status_update'}},{signal,timeoutMs:20000}),deliver:(client,status,eventtime)=>this.#options.onSubscriptionStatus?.(client,status,eventtime)});
   this.#socket.registerMethod('process_status_update',(p,signal)=>this.#status(p,signal));this.#socket.registerMethod('process_gcode_response',(p,signal)=>{if(typeof p.response!=='string')throw new ApiError(502,'Invalid GCode response');return this.#options.onGcode?.(p.response,signal);});
@@ -28,8 +28,23 @@ export class KlippyLifecycle {
   * Klippy has no unregister request, so later peer callbacks are ignored. */
  registerRemoteMethod(name:string,handler:KlippyMethod):()=>void{
   if(this.#starting||this.signal.aborted)throw new ApiError(409,'Remote methods must be configured before initialization');
-  if(typeof name!=='string'||!name||name.length>256||name.includes('\0')||['process_status_update','process_gcode_response'].includes(name)||typeof handler!=='function'||this.#remoteMethods.has(name))throw new ApiError(400,'Invalid or duplicate remote method');
-  if(this.#remoteMethods.size>=256)throw new ApiError(429,'Remote method capacity exceeded');const remove=this.#socket.registerMethod(name,handler);let active=true;const release=()=>{if(!active)return;active=false;if(this.#remoteMethods.get(name)===release){this.#remoteMethods.delete(name);this.#registeredRemoteMethods.delete(name);}remove();};this.#remoteMethods.set(name,release);return release;
+  return this.#installRemoteMethod(name,handler,name);
+ }
+ #installRemoteMethod(name:string,handler:KlippyMethod,callbackName:string):()=>void{
+  if(typeof name!=='string'||!name||name.length>256||name.includes('\0')||name.startsWith('__mr_')||['process_status_update','process_gcode_response'].includes(name)||typeof handler!=='function'||this.#remoteMethods.has(name))throw new ApiError(400,'Invalid or duplicate remote method');
+  if(this.#remoteMethods.size>=256)throw new ApiError(429,'Remote method capacity exceeded');const remove=this.#socket.registerMethod(callbackName,handler);let active=true;const release=()=>{if(!active)return;active=false;if(this.#remoteMethods.get(name)===release){this.#remoteMethods.delete(name);this.#registeredRemoteMethods.delete(name);}remove();};this.#remoteMethods.set(name,release);return release;
+ }
+ /** Live generation-scoped registration. A unique wire callback name prevents
+  * late messages for an old owner from reaching a replacement of the same name. */
+ async registerLiveRemoteMethod(name:string,handler:KlippyMethod,owner:AbortSignal,options:KlippyRequestOptions={}):Promise<()=>void>{
+  if(!this.#snapshot.initialized||this.#snapshot.state!=='ready'||this.signal.aborted)throw new ApiError(503,'Klippy remote registration unavailable');
+  if(typeof handler!=='function')throw new ApiError(400,'Invalid remote method handler');owner.throwIfAborted();options.signal?.throwIfAborted();
+  if(!Number.isSafeInteger(this.#nextRemoteGeneration))throw new ApiError(429,'Remote generation exhausted');const callbackName='__mr_'+(this.#nextRemoteGeneration++).toString(36),controller=new AbortController(),lifetime=AbortSignal.any([owner,this.signal,controller.signal]);
+  const remove=this.#installRemoteMethod(name,(params)=>{if(lifetime.aborted)return;try{const task=handler(params,lifetime);if(task&&typeof task.then==='function')return Promise.resolve(task).catch(error=>{if(!lifetime.aborted)throw error;});}catch(error){if(!lifetime.aborted)throw error;}},callbackName);
+  let active=true;const release=()=>{if(!active)return;active=false;lifetime.removeEventListener('abort',release);remove();controller.abort(new ApiError(499,'Remote method owner released'));};lifetime.addEventListener('abort',release,{once:true});
+  const signal=options.signal?AbortSignal.any([lifetime,options.signal]):lifetime;
+  const cancelRegistration=()=>release();options.signal?.addEventListener('abort',cancelRegistration,{once:true});
+  try{await this.#socket.request('register_remote_method',{remote_method:name,response_template:{method:callbackName}},{...options,timeoutMs:options.timeoutMs??20000,signal});signal.throwIfAborted();this.#registeredRemoteMethods.add(name);return release;}catch(error){release();throw error;}finally{options.signal?.removeEventListener('abort',cancelRegistration);}
  }
  get remoteMethods(){return {configured:[...this.#remoteMethods.keys()],registered:[...this.#registeredRemoteMethods]};}
  get cachedStatus():StatusView{return this.#cache.read();}
