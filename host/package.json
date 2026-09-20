@@ -95,7 +95,8 @@
     "bench:gcode-notifications": "node bench/gcode-notifications.ts",
     "bench:klippy-notifications": "node bench/klippy-notifications.ts",
     "bench:remote-methods": "node bench/remote-methods.ts",
-    "bench:client-calls": "node bench/client-calls.ts"
+    "bench:client-calls": "node bench/client-calls.ts",
+    "bench:agent-methods": "node bench/agent-methods.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

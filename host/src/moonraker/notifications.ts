@@ -8,7 +8,7 @@ export interface NotificationTarget<P=readonly Json[]> {
  send(encoded:string):boolean;
  disconnect(reason:Error):void;
 }
-interface Task<P> {method:string;params:P;encoded:string;bytes:number;resolve?:(status:DeliveryStatus)=>void;done?:Promise<DeliveryStatus>;status?:DeliveryStatus;timer?:ReturnType<typeof setTimeout>;}
+interface Task<P> {signal?:AbortSignal;cancel?:()=>void;method:string;params:P;encoded:string;bytes:number;resolve?:(status:DeliveryStatus)=>void;done?:Promise<DeliveryStatus>;status?:DeliveryStatus;timer?:ReturnType<typeof setTimeout>;}
 interface Client<P> {id:number;target:NotificationTarget<P>;queue:Task<P>[];active?:Task<P>;abort:()=>void;removed:boolean;controller:AbortController;}
 function wait<P>(task:Task<P>):Promise<DeliveryStatus>{if(!task.done)task.done=task.status===undefined?new Promise<DeliveryStatus>(resolve=>task.resolve=resolve):Promise.resolve(task.status);return task.done;}
 const report=():DeliveryReport=>({sent:0,denied:0,closed:0,overflow:0,failed:0});
@@ -41,19 +41,21 @@ export class OutboundNotifications<P> {
   return Promise.resolve(this.dispatchTo(id,method,params));
  }
  /** Internal hot path: completed synchronous authorization has no Promise job. */
- dispatchTo(id:number,method:string,params:P):DeliveryReport|Promise<DeliveryReport>{
+ dispatchTo(id:number,method:string,params:P,signal?:AbortSignal):DeliveryReport|Promise<DeliveryReport>{
   if(!Number.isSafeInteger(id)||id<1)throw new Error('Invalid notification client');
-  const client=this.#clients.get(id);return this.#publish(method,params,client?[client]:[],!client);
+  const client=this.#clients.get(id);return this.#publish(method,params,client?[client]:[],!client,[],signal);
  }
- #publish(method:string,params:P,clients:readonly Client<P>[],missing=false,excluded:readonly number[]=[]):DeliveryReport|Promise<DeliveryReport>{
+ #publish(method:string,params:P,clients:readonly Client<P>[],missing=false,excluded:readonly number[]=[],signal?:AbortSignal):DeliveryReport|Promise<DeliveryReport>{
   if(this.#closed)return Promise.reject(new Error('Notification fanout is closed'));
   const encoded=this.#codec.encode(method,params),bytes=Buffer.byteLength(encoded);if(bytes>1024*1024)throw new Error('Notification exceeds message size limit');
   const payload:P=JSON.parse(encoded).params??this.#codec.empty;freeze(payload as Json);const mask=excluded.length?new Set(excluded):undefined,pending:Promise<void>[]=[],result=report();if(missing){result.closed++;this.#totals.closed++;}
   // Snapshot iteration: authorization callbacks may remove/add connections.
   for(const client of clients){
    if(client.removed||mask?.has(client.id))continue;
+   if(signal?.aborted){result.closed++;this.#totals.closed++;continue;}
    if(this.#tasks.size>=this.#pending||this.#bytes+bytes>this.#maximumBytes||client.queue.length+(client.active?1:0)>=this.#perClient){this.#totals.overflow++;result.overflow++;this.#disconnect(client,'Notification queue capacity exceeded');continue;}
-   const task:Task<P>={method,params:payload,encoded,bytes};
+   const task:Task<P>={method,params:payload,encoded,bytes,signal};
+   if(signal){task.cancel=()=>{if(client.active!==task){const index=client.queue.indexOf(task);if(index>=0)client.queue.splice(index,1);this.#finish(client,task,'closed');}};signal.addEventListener('abort',task.cancel,{once:true});}
    this.#tasks.add(task);this.#bytes+=bytes;client.queue.push(task);this.#advance(client);if(task.status!==undefined)result[task.status]++;else pending.push(wait(task).then(status=>{result[status]++;}));
   }
   return pending.length?Promise.all(pending).then(()=>result):result;
@@ -61,7 +63,7 @@ export class OutboundNotifications<P> {
  #advance(client:Client<P>):void{
   if(client.active||client.removed)return;
   while(!client.active&&!client.removed&&client.queue.length){
-   const task=client.queue.shift()!;client.active=task;const signal=client.controller.signal;
+   const task=client.queue.shift()!;client.active=task;const signal=task.signal?AbortSignal.any([client.controller.signal,task.signal]):client.controller.signal;
    try{
     const authorized=client.target.authorize(task.method,task.params,signal);
     if(authorized&&typeof authorized.then==='function'){
@@ -73,11 +75,11 @@ export class OutboundNotifications<P> {
   }
  }
  #deliver(client:Client<P>,task:Task<P>):void{
-  if(client.removed||client.controller.signal.aborted){this.#finish(client,task,'closed');return;}
+  if(client.removed||client.controller.signal.aborted||task.signal?.aborted){this.#finish(client,task,'closed');return;}
   try{if(client.target.send(task.encoded))this.#finish(client,task,'sent');else{this.#disconnect(client,'Notification transport closed');this.#finish(client,task,'closed');}}
   catch{this.#disconnect(client,'Notification transport failed');this.#finish(client,task,'failed');}
  }
- #finish(client:Client<P>,task:Task<P>,status:DeliveryStatus):void{if(!this.#tasks.delete(task))return;clearTimeout(task.timer);this.#bytes-=task.bytes;if(client.active===task)client.active=undefined;this.#totals[status]++;task.status=status;task.resolve?.(status);}
+ #finish(client:Client<P>,task:Task<P>,status:DeliveryStatus):void{if(!this.#tasks.delete(task))return;if(task.cancel)task.signal?.removeEventListener('abort',task.cancel);clearTimeout(task.timer);this.#bytes-=task.bytes;if(client.active===task)client.active=undefined;this.#totals[status]++;task.status=status;task.resolve?.(status);}
  close():Promise<void>{this.#closed=true;for(const id of [...this.#clients.keys()])this.remove(id);return Promise.all([...this.#tasks].map(task=>wait(task))).then(()=>{});}
 }
 

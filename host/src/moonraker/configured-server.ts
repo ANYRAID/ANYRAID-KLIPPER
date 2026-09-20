@@ -1,6 +1,7 @@
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
 import {SubscriptionDelivery} from './subscription-delivery.ts';
 import {KlippyNotifications} from './klippy-notifications.ts';
+import {AgentMethods} from './agent-methods.ts';
 import type {DeliveryReport} from './notifications.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
@@ -38,6 +39,7 @@ export class ConfiguredMoonraker {
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
+ #agentMethods:AgentMethods;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
@@ -45,7 +47,8 @@ export class ConfiguredMoonraker {
   this.#network=new MoonrakerNetwork(this.rpc,{...options,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
-  this.#release=()=>{releaseExtensions();releaseMetadata();};
+  this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
+  this.#release=()=>{this.#agentMethods.close();releaseExtensions();releaseMetadata();};
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
@@ -84,6 +87,7 @@ export class ConfiguredMoonraker {
  }
  get klippy(){return this.#klippy?.snapshot??null;}
  get klippyRemoteMethods(){return this.#klippy?.remoteMethods??null;}
+ get agentMethodDeliveries(){return this.#agentMethods.metrics;}
  get clients(){return this.#network.clients;}
  getClient(id:number){return this.#network.getClient(id);}
  getClientsByName(name:string){return this.#network.getClientsByName(name);}

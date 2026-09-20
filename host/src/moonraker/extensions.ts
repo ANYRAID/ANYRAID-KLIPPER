@@ -17,7 +17,7 @@ function string(params:Readonly<Record<string,Json>>,key:string,max=4096):string
 }
 /** Registration is transactional across the three routes. Identity is read
  * from live connections; inbound and outbound authorization remain independent.
- * Klippy remote-method registration is owned by the future Klippy bridge. */
+ * Klippy remote-method registration is composed separately by AgentMethods. */
 export function registerExtensions(registry:EndpointRegistry,host:ExtensionHost):()=>void{
  const releases:(()=>void)[]=[];
  try{
