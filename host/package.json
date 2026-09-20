@@ -76,7 +76,8 @@
     "bench:moonraker-metadata": "node bench/moonraker-metadata.ts",
     "bench:json-precision": "node bench/json-precision.ts",
     "bench:moonraker-config-source": "node bench/moonraker-config-source.ts",
-    "bench:moonraker-config-reader": "node bench/moonraker-config-reader.ts"
+    "bench:moonraker-config-reader": "node bench/moonraker-config-reader.ts",
+    "bench:moonraker-configured-server": "node bench/moonraker-configured-server.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
