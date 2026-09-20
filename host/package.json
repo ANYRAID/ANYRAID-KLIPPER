@@ -127,7 +127,8 @@
     "bench:gcode-file-reader": "node bench/gcode-file-reader.ts",
     "bench:gcode-file-execution": "node bench/gcode-file-execution.ts",
     "bench:file-print-device": "node bench/file-print-device.ts",
-    "bench:sealed-file": "node bench/sealed-file.ts"
+    "bench:sealed-file": "node bench/sealed-file.ts",
+    "bench:snapshot-budget": "node bench/snapshot-budget.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

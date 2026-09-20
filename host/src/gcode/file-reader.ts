@@ -7,14 +7,15 @@ export class GCodeFileReader {
  #decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});
  #file:FileHandle;#snapshot:BigIntStats;#buffer=Buffer.alloc(0);#readOffset=0;#position=0;
  #pending:GCodeFileBatch|undefined;#reading=false;#closed=false;#eof=false;#fault:unknown;
- #closing:Promise<void>|undefined;
+ #closing:Promise<void>|undefined;#onClosed:(()=>void)|undefined;
  #chunk:Buffer;#batchLines:number;
- private constructor(file:FileHandle,snapshot:BigIntStats,chunkBytes:number,batchLines:number){this.#file=file;this.#snapshot=snapshot;this.#chunk=Buffer.alloc(chunkBytes);this.#batchLines=batchLines;}
- static async adopt(file:FileHandle,options:{chunkBytes?:number;batchLines?:number;maxBytes?:number}={}):Promise<GCodeFileReader>{
+ private constructor(file:FileHandle,snapshot:BigIntStats,chunkBytes:number,batchLines:number,onClosed?:()=>void){this.#onClosed=onClosed;this.#file=file;this.#snapshot=snapshot;this.#chunk=Buffer.alloc(chunkBytes);this.#batchLines=batchLines;}
+ static async adopt(file:FileHandle,options:{chunkBytes?:number;batchLines?:number;maxBytes?:number;onClosed?:()=>void}={}):Promise<GCodeFileReader>{
   const chunk=options.chunkBytes??65536,lines=options.batchLines??128,max=options.maxBytes??16*1024**3;
   if(!Number.isSafeInteger(chunk)||chunk<1||chunk>65536||!Number.isSafeInteger(lines)||lines<1||lines>128||!Number.isSafeInteger(max)||max<1)throw new RangeError('Invalid G-code file limits');
+  if(options.onClosed!==undefined&&typeof options.onClosed!=='function')throw new TypeError('Invalid file close observer');
   const stat=await file.stat({bigint:true});if(!stat.isFile()||stat.size>BigInt(max)||stat.size>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('G-code source must be a bounded regular file');
-  return new GCodeFileReader(file,stat,chunk,lines);
+  return new GCodeFileReader(file,stat,chunk,lines,options.onClosed);
  }
  get status(){return {size:Number(this.#snapshot.size),readOffset:this.#readOffset,position:this.#position,pending:this.#pending!==undefined,eof:this.#eof,closed:this.#closed,fault:this.#fault};}
  async #unchanged():Promise<void>{
@@ -64,6 +65,6 @@ export class GCodeFileReader {
  close():Promise<void>{
   if(this.#closing)return this.#closing;const deferred=Promise.withResolvers<void>();this.#closing=deferred.promise;
   this.#closed=true;this.#pending=undefined;this.#buffer=Buffer.alloc(0);
-  void Promise.resolve().then(()=>this.#file.close()).then(deferred.resolve,deferred.reject);return deferred.promise;
+  void Promise.resolve().then(()=>this.#file.close()).then(()=>{try{this.#onClosed?.();this.#onClosed=undefined;deferred.resolve();}catch(error){deferred.reject(error);}},deferred.reject);return deferred.promise;
  }
 }

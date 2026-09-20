@@ -69,13 +69,31 @@ seal(napi_env env, napi_callback_info info)
 }
 
 static napi_value
+page_size(napi_env env, napi_callback_info info)
+{
+    (void)info;
+    long size = sysconf(_SC_PAGESIZE);
+    if (size <= 0 || size > INT_MAX) {
+        napi_throw_error(env, NULL, "Invalid kernel page size");
+        return NULL;
+    }
+    napi_value result;
+    if (napi_create_int32(env, (int)size, &result) != napi_ok) {
+        napi_throw_error(env, NULL, "Return kernel page size");
+        return NULL;
+    }
+    return result;
+}
+
+static napi_value
 init(napi_env env, napi_value exports)
 {
     napi_property_descriptor methods[] = {
         {"create", NULL, create, NULL, NULL, NULL, napi_default, NULL},
-        {"seal", NULL, seal, NULL, NULL, NULL, napi_default, NULL}
+        {"seal", NULL, seal, NULL, NULL, NULL, napi_default, NULL},
+        {"pageSize", NULL, page_size, NULL, NULL, NULL, napi_default, NULL}
     };
-    if (napi_define_properties(env, exports, 2, methods) != napi_ok) {
+    if (napi_define_properties(env, exports, 3, methods) != napi_ok) {
         napi_throw_error(env, NULL, "Register sealed file methods");
         return NULL;
     }
