@@ -1,0 +1,207 @@
+import { test, type TestContext } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { PrintJournal } from '../src/operations/print-journal.ts';
+import { PrintController, type PrintDevice } from '../src/operations/print.ts';
+
+const request = {
+  version: 1 as const,
+  requestId: 'job',
+  fileId: 'file',
+  nozzle: 200,
+  bed: 60,
+};
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+async function setup(t: TestContext) {
+  const directory = await mkdtemp(join(tmpdir(), 'durable-controller-'));
+  let journal = await PrintJournal.open({
+    path: join(directory, 'jobs.db'),
+    deviceId: 'printer',
+  });
+  t.after(async () => {
+    await journal.close();
+    await rm(directory, { recursive: true });
+  });
+  const calls: string[] = [];
+  const device: PrintDevice = {
+    prepare: async () => {
+      assert.equal((await journal.get(request.requestId))?.state, 'reserved');
+      calls.push('prepare');
+    },
+    start: async () => {
+      calls.push('start');
+    },
+    pause: async () => {},
+    resume: async () => {},
+    finish: async () => {
+      calls.push('finish');
+    },
+    stop: async () => {
+      calls.push('stop');
+    },
+  };
+  const controller = () =>
+    new PrintController(
+      device,
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { journal },
+    );
+  return {
+    get journal() {
+      return journal;
+    },
+    controller,
+    device,
+    calls,
+    reopen: async () => {
+      await journal.close();
+      journal = await PrintJournal.open({
+        path: join(directory, 'jobs.db'),
+        deviceId: 'printer',
+      });
+    },
+  };
+}
+test('durable lifecycle reserves before effects and refuses completed replay after restart', async (t) => {
+  const f = await setup(t),
+    c = f.controller();
+  await c.start(request);
+  assert.equal((await f.journal.get('job'))?.state, 'started');
+  await c.complete('job');
+  assert.equal((await f.journal.get('job'))?.state, 'completed');
+  c.reset('job');
+  await f.reopen();
+  const next = f.controller();
+  await assert.rejects(next.start(request), /reconciliation/);
+  assert.equal(f.calls.filter((x) => x === 'start').length, 1);
+  assert.equal((await f.journal.get('job'))?.state, 'completed');
+});
+test('cancel does not persist terminal state before device stop acknowledgement', async (t) => {
+  const f = await setup(t),
+    c = f.controller(),
+    stop = deferred(),
+    entered = deferred();
+  f.device.stop = async () => {
+    entered.resolve();
+    await stop.promise;
+  };
+  await c.start(request);
+  const cancellation = c.cancel();
+  await entered.promise;
+  assert.equal((await f.journal.get('job'))?.state, 'started');
+  assert.throws(() => c.reset('job'));
+  stop.resolve();
+  await cancellation;
+  assert.equal((await f.journal.get('job'))?.state, 'cancelled');
+  c.reset('job');
+});
+test('restart leaves uncertain print interrupted and blocks all new device starts', async (t) => {
+  const f = await setup(t);
+  await f.controller().start(request);
+  await f.reopen();
+  assert.equal((await f.journal.active())?.state, 'interrupted');
+  await assert.rejects(
+    f.controller().start({ ...request, requestId: 'other' }),
+  );
+  assert.equal(f.calls.filter((x) => x === 'start').length, 1);
+  assert.equal((await f.journal.active())?.state, 'interrupted');
+});
+test('failed storage acknowledgement prevents effects and reset cannot erase started job', async (t) => {
+  const f = await setup(t),
+    c = f.controller();
+  await c.start(request);
+  await f.journal.close();
+  await assert.rejects(c.complete('job'));
+  await assert.rejects(c.cancel());
+  assert.equal(c.state, 'failed');
+  assert.throws(() => c.reset('job'));
+  const fresh = f.controller();
+  await assert.rejects(fresh.start({ ...request, requestId: 'new' }));
+  assert.equal(f.calls.filter((x) => x === 'start').length, 1);
+});
+test('cancel during preparation drains action before persisting cancellation', async (t) => {
+  const f = await setup(t),
+    prepared = deferred(),
+    release = deferred();
+  f.device.prepare = async () => {
+    prepared.resolve();
+    await release.promise;
+  };
+  const c = f.controller();
+  const start = c.start(request);
+  const rejected = assert.rejects(start);
+  await prepared.promise;
+  const cancel = c.cancel();
+  assert.equal((await f.journal.active())?.state, 'reserved');
+  release.resolve();
+  await Promise.all([rejected, cancel]);
+  assert.equal((await f.journal.get('job'))?.state, 'cancelled');
+  assert.equal(f.calls.includes('start'), false);
+});
+test('cancel overlapping durable completion preserves committed safe completion', async (t) => {
+  const f = await setup(t),
+    c = f.controller();
+  await c.start(request);
+  const committed = deferred(),
+    release = deferred();
+  const transition = f.journal.transition.bind(f.journal);
+  f.journal.transition = async (...args) => {
+    const record = await transition(...args);
+    if (args[2] === 'completed') {
+      committed.resolve();
+      await release.promise;
+    }
+    return record;
+  };
+  const complete = c.complete('job');
+  const rejected = assert.rejects(complete);
+  await committed.promise;
+  const cancel = c.cancel();
+  release.resolve();
+  await Promise.all([rejected, cancel]);
+  assert.equal(c.state, 'cancelled');
+  assert.equal((await f.journal.get('job'))?.state, 'completed');
+  c.reset('job');
+});
+test('late cancellation commit cannot restore success after deadline and retry reconciles', async (t) => {
+  const f = await setup(t);
+  const c = new PrintController(
+    f.device,
+    { maxNozzle: 280, maxBed: 110 },
+    { stopMs: 50 },
+    { journal: f.journal },
+  );
+  await c.start(request);
+  const committed = deferred(),
+    release = deferred();
+  const transition = f.journal.transition.bind(f.journal);
+  let cancellations = 0;
+  f.journal.transition = async (...args) => {
+    if (args[2] === 'cancelled') cancellations++;
+    const record = await transition(...args);
+    if (args[2] === 'cancelled') {
+      committed.resolve();
+      await release.promise;
+    }
+    return record;
+  };
+  const cancelled = assert.rejects(c.cancel(), /timed out/);
+  await committed.promise;
+  await cancelled;
+  assert.equal(c.state, 'failed');
+  assert.throws(() => c.reset('job'));
+  release.resolve();
+  await c.cancel();
+  assert.equal(c.state, 'cancelled');
+  assert.equal(cancellations, 1);
+  c.reset('job');
+});

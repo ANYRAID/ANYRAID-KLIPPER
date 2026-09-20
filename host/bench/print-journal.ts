@@ -5,6 +5,8 @@ import { join } from 'node:path';
 import { spawnSync, execFileSync } from 'node:child_process';
 import { performance, monitorEventLoopDelay } from 'node:perf_hooks';
 import { PrintJournal } from '../src/operations/print-journal.ts';
+import { PrintController } from '../src/operations/print.ts';
+const integrated = process.env.PRINT_JOURNAL_BENCH_CONTROLLER === '1';
 const dir = mkdtempSync(
   join(process.env.PRINT_JOURNAL_BENCH_DIR ?? tmpdir(), 'journal-bench-'),
 );
@@ -19,6 +21,32 @@ try {
     const path = join(dir, `run${run}.sqlite`),
       start = performance.now(),
       journal = await PrintJournal.open({ path, deviceId: 'bench' });
+    let effects = 0;
+    const controller = new PrintController(
+      {
+        prepare: async () => {
+          effects++;
+        },
+        start: async () => {
+          effects++;
+        },
+        finish: async () => {
+          effects++;
+        },
+        pause: async () => {
+          throw new Error('Unexpected pause');
+        },
+        resume: async () => {
+          throw new Error('Unexpected resume');
+        },
+        stop: async () => {
+          throw new Error('Unexpected stop');
+        },
+      },
+      { maxNozzle: 280, maxBed: 110 },
+      {},
+      { journal },
+    );
     const startup = performance.now() - start;
     info = journal.info;
     const histogram = monitorEventLoopDelay({ resolution: 1 });
@@ -29,6 +57,18 @@ try {
     try {
       for (let i = 0; i < jobs; i++) {
         const id = 'job' + i;
+        if (integrated) {
+          await controller.start({
+            version: 1,
+            requestId: id,
+            fileId: 'file',
+            nozzle: 210,
+            bed: 60,
+          });
+          await controller.complete(id);
+          controller.reset(id);
+          continue;
+        }
         assert.equal(
           (
             await journal.reserve({
@@ -48,6 +88,7 @@ try {
       clearInterval(timer);
       histogram.disable();
     }
+    assert.equal(effects, integrated ? jobs * 3 : 0);
     const elapsed = performance.now() - begun;
     const delay = histogram.max / 1e6;
     await journal.close();
@@ -77,6 +118,7 @@ try {
     JSON.stringify(
       {
         node: process.version,
+        integratedController: integrated,
         filesystem: execFileSync('stat', ['-f', '-c', '%T', dir], {
           encoding: 'utf8',
         }).trim(),

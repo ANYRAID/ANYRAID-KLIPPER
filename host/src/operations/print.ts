@@ -1,3 +1,4 @@
+import type { PrintJournal, JournalRecord } from './print-journal.ts';
 import { printDeadline } from './print-deadline.ts';
 /** Product-facing print lifecycle; adapters enforce limits again at the device boundary. */
 export type PrintState =
@@ -52,6 +53,8 @@ export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
 });
 export interface PrintControllerOptions {
   maxRememberedRequests?: number;
+  /** Owned externally; keep open until all device actions and cleanup settle. */
+  journal?: PrintJournal;
 }
 interface PrintRecord {
   request: Readonly<StartPrint>;
@@ -59,6 +62,9 @@ interface PrintRecord {
   completed?: Promise<void>;
 }
 export class PrintController {
+  #journal: PrintJournal | undefined;
+  #journalRecord: JournalRecord | undefined;
+  #journalWrite: Promise<void> | undefined;
   #history = new Map<string, PrintRecord>();
   #historyLimit: number;
   #lastReset: string | undefined;
@@ -123,6 +129,7 @@ export class PrintController {
     for (const value of Object.values(this.#deadlines))
       if (!Number.isSafeInteger(value) || value < 1 || value > 86400000)
         throw new RangeError('Invalid print deadline');
+    this.#journal = options.journal;
     this.#device = device;
     this.#limits = { ...limits };
   }
@@ -175,9 +182,18 @@ export class PrintController {
       'preparing',
       'printing',
       async (signal) => {
+        if (this.#journal) {
+          const reservation = await this.#journal.reserve(this.#start!);
+          if (!reservation.created)
+            throw new Error('Persisted print request requires reconciliation');
+          this.#journalRecord = reservation.record;
+          signal.throwIfAborted();
+        }
         await this.#device.prepare(this.#start!, signal);
         signal.throwIfAborted();
         await this.#device.start(this.#start!.fileId, signal);
+        signal.throwIfAborted();
+        await this.#persist('started');
       },
     );
     this.#history.set(input.requestId, {
@@ -218,8 +234,15 @@ export class PrintController {
       );
     if (this.#state !== 'printing' || this.#active)
       return Promise.reject(new Error(`Cannot complete while ${this.#state}`));
-    const completed = this.#run('finish', 'finishing', 'completed', (signal) =>
-      this.#device.finish(requestId, signal),
+    const completed = this.#run(
+      'finish',
+      'finishing',
+      'completed',
+      async (signal) => {
+        await this.#device.finish(requestId, signal);
+        signal.throwIfAborted();
+        await this.#persist('completed');
+      },
     );
     record!.completed = completed;
     return completed;
@@ -239,9 +262,17 @@ export class PrintController {
       this.#active ||
       this.#pendingActions.size ||
       this.#stopInFlight ||
-      this.#safety
+      this.#safety ||
+      this.#journalWrite
     )
       throw new Error('Cannot reset before terminal device acknowledgement');
+    if (
+      this.#journal &&
+      this.#journalRecord &&
+      !['completed', 'cancelled'].includes(this.#journalRecord.state)
+    )
+      throw new Error('Cannot reset before durable terminal acknowledgement');
+    this.#journalRecord = undefined;
     this.#state = 'idle';
     this.#lastReset = requestId;
     this.#start = undefined;
@@ -263,12 +294,15 @@ export class PrintController {
       await Promise.resolve();
       try {
         const pending = Promise.allSettled([active, this.#ensureStopped()]);
-        const results = await printDeadline(
-          pending,
+        await printDeadline(
+          (async () => {
+            const results = await pending;
+            if (results[1].status === 'rejected') throw results[1].reason;
+            await this.#persist('cancelled');
+          })(),
           'cancel',
           this.#deadlines.stopMs,
         );
-        if (results[1].status === 'rejected') throw results[1].reason;
         this.#state = 'cancelled';
       } catch (error) {
         this.#state = 'failed';
@@ -286,6 +320,28 @@ export class PrintController {
     // Publish ownership before invoking potentially reentrant abort listeners.
     this.#abort?.abort(new Error('Print cancelled'));
     return cancellation;
+  }
+  async #persist(state: 'started' | 'completed' | 'cancelled'): Promise<void> {
+    if (this.#journalWrite) {
+      await this.#journalWrite;
+      return this.#persist(state);
+    }
+    const record = this.#journalRecord;
+    if (!this.#journal || !record) return;
+    // Finish may commit while cancellation waits for its underlying action.
+    // Its acknowledged safe terminal result must never be overwritten.
+    if (['completed', 'cancelled'].includes(record.state)) return;
+    const write = this.#journal
+      .transition(record.request.requestId, record.revision, state)
+      .then((updated) => {
+        this.#journalRecord = updated;
+      });
+    this.#journalWrite = write;
+    try {
+      await write;
+    } finally {
+      if (this.#journalWrite === write) this.#journalWrite = undefined;
+    }
   }
   #track(action: Promise<void>): Promise<void> {
     this.#pendingActions.add(action);
