@@ -9,7 +9,7 @@ export interface PWMConfig<T> {
 export interface CompiledPWM {
  readonly oid:number;readonly invert:0|1;readonly hardware:boolean;
  readonly cycleTime:number;readonly cycleTicks:number;readonly maxValue:number;
- readonly initialClock:bigint;readonly startValue:number;readonly reservedMoves:1;
+ readonly initialClock:bigint;readonly startValue:number;readonly shutdownValue:number;readonly reservedMoves:1;
  readonly commands:readonly string[];readonly restart:readonly string[];readonly init:readonly string[];
 }
 const maxClock=0x7fffffffffffffffn;
@@ -45,15 +45,16 @@ export function compilePWM<T>(chip:T,d:MessageDictionary,options:PWMConfig<T>,cl
   commands.push(`config_digital_out oid=${oid} pin=${pin.pin} value=${Number(startValue>=1)} default_value=${Number(shutdownValue>=.5)} max_duration=${durationTicks}`,`set_digital_out_pwm_cycle oid=${oid} cycle_ticks=${cycleTicks}`);
   init.push(`queue_digital_out oid=${oid} clock=${wireClock} on_ticks=${Math.trunc(startValue*cycleTicks+.5)}`);
  }
- return Object.freeze({oid,invert:pin.invert,hardware,cycleTime,cycleTicks,maxValue,initialClock,startValue,reservedMoves:1,commands:Object.freeze(commands),restart:Object.freeze(restart),init:Object.freeze(init)});
+ return Object.freeze({oid,invert:pin.invert,hardware,cycleTime,cycleTicks,maxValue,initialClock,startValue,shutdownValue,reservedMoves:1,commands:Object.freeze(commands),restart:Object.freeze(restart),init:Object.freeze(init)});
 }
 /** Scheduled duty updates. Does not cancel previously queued power or implement
  * physical heater shutdown; an independent safety adapter is still required. */
 export class PWMOutput {
  #config:CompiledPWM;#dictionary:MessageDictionary;#queue:TimedCommandQueue;
  #clockAt:(time:number)=>bigint;#printAt:(clock:bigint)=>number;#last:bigint;#value:number;
+ #generation:number|undefined;
  #failed=false;#fault:unknown;#stop:Promise<void>|undefined;
- constructor(config:CompiledPWM,dictionary:MessageDictionary,queue:TimedCommandQueue,clockAt:(time:number)=>bigint,printAt:(clock:bigint)=>number){this.#config={...config};this.#dictionary=dictionary;this.#queue=queue;this.#clockAt=clockAt;this.#printAt=printAt;this.#last=config.initialClock;this.#value=config.startValue;}
+ constructor(config:CompiledPWM,dictionary:MessageDictionary,queue:TimedCommandQueue,clockAt:(time:number)=>bigint,printAt:(clock:bigint)=>number,generation?:number){if(generation!==undefined&&(!Number.isInteger(generation)||generation<1||generation>0xffffffff))throw new RangeError('Invalid PWM generation');this.#generation=generation;this.#config={...config};this.#dictionary=dictionary;this.#queue=queue;this.#clockAt=clockAt;this.#printAt=printAt;this.#last=config.initialClock;this.#value=config.startValue;}
  get status(){return {lastClock:this.#last,lastValue:this.#value,failed:this.#failed,fault:this.#fault};}
  nextAlignedPrintTime(printTime:number,allowEarly=0):number {
   if(this.#failed)throw new Error('PWM output is faulted',{cause:this.#fault});
@@ -72,7 +73,9 @@ export class PWMOutput {
   if(!Number.isFinite(printTime)||printTime<0)throw new RangeError('Invalid PWM update time');
   const clock=this.#clockAt(printTime);if(typeof clock!=='bigint'||clock<this.#last||clock<0n||clock>=maxClock)throw new RangeError('PWM clock cannot rewind or overflow');
   const duty=this.#config.invert?1-value:value,ticks=Math.trunc(duty*this.#config.maxValue+.5);
-  const payload=this.#dictionary.encode(this.#config.hardware?'queue_pwm_out':'queue_digital_out',this.#config.hardware?{oid:this.#config.oid,clock:Number(BigInt.asUintN(32,clock)),value:ticks}:{oid:this.#config.oid,clock:Number(BigInt.asUintN(32,clock)),on_ticks:ticks});
+  const name=(this.#config.hardware?'queue_pwm_out':'queue_digital_out')+(this.#generation===undefined?'':'_generation');
+  const parameters:Record<string,number>=this.#config.hardware?{oid:this.#config.oid,clock:Number(BigInt.asUintN(32,clock)),value:ticks}:{oid:this.#config.oid,clock:Number(BigInt.asUintN(32,clock)),on_ticks:ticks};
+  const payload=this.#dictionary.encode(name,this.#generation===undefined?parameters:{...parameters,generation:this.#generation});
   try{const pending=this.#queue.send(payload,this.#last,clock,signal);this.#last=clock;this.#value=duty;await pending;if(this.#failed)throw this.#fault;}
   catch(error){if(!this.#failed){this.#failed=true;this.#fault=error;this.#stop=Promise.resolve().then(()=>this.#queue.stop(error));}try{await this.#stop;}catch(stopError){throw new AggregateError([error,stopError],'PWM output and device stop failed');}throw error;}
  }
