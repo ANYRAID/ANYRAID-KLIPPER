@@ -2,6 +2,7 @@ import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} fr
 import {SubscriptionDelivery} from './subscription-delivery.ts';
 import {KlippyNotifications} from './klippy-notifications.ts';
 import {AgentMethods} from './agent-methods.ts';
+import {KlippySupervisor} from './klippy-supervisor.ts';
 import type {DeliveryReport} from './notifications.ts';
 import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
@@ -42,6 +43,7 @@ export class ConfiguredMoonraker {
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  #agentMethods:AgentMethods;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
+ #supervisor:KlippySupervisor|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions){
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
@@ -59,6 +61,7 @@ export class ConfiguredMoonraker {
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
  attachKlippy(path:string,options:KlippyAttachmentOptions={}):Promise<KlippySnapshot>{
+  if(this.#supervisor)throw new Error('Klippy connection is owned by the supervisor');
   if(this.#reconnecting)throw new Error('Klippy recovery already in progress');
   return this.#attachKlippy(path,options);
  }
@@ -81,7 +84,11 @@ export class ConfiguredMoonraker {
  }
  /** Explicit recovery only after disconnection. Drain the old generation and
   * recreate protocol state; never replay G-code or an uncertain old request. */
- async reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
+ reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
+  if(this.#supervisor)return Promise.reject(new Error('Klippy connection is owned by the supervisor'));
+  return this.#reconnectKlippy(path,options);
+ }
+ async #reconnectKlippy(path?:string,options?:KlippyAttachmentOptions):Promise<KlippySnapshot>{
   const previous=this.#klippy,attachment=this.#lastAttachment;
   if(this.#stopping||this.#reconnecting||!previous||!attachment||!previous.signal.aborted)throw new Error('Klippy recovery requires a disconnected, attached generation');
   this.#reconnecting=true;
@@ -93,6 +100,14 @@ export class ConfiguredMoonraker {
    return await this.#attachKlippy(path??attachment.path,options??attachment.options);
   }finally{this.#reconnecting=false;}
  }
+ /** Explicit opt-in to daemon-style connection ownership; network start alone
+  * still does not initiate a printer connection. */
+ superviseKlippy(path:string,options:KlippyAttachmentOptions={},retryDelayMs=250):void{
+  if(this.#stopping||this.#klippy||this.#supervisor||this.#reconnecting)throw new Error('Klippy connection already owned or server stopping');
+  const supervisor=new KlippySupervisor(async()=>{if(this.#klippy)await this.#reconnectKlippy();else await this.#attachKlippy(path,options);return this.#klippy!.signal;},()=>this.#klippy?.close()??Promise.resolve(),retryDelayMs);
+  this.#supervisor=supervisor;supervisor.start();
+ }
+ get klippySupervisor(){return this.#supervisor?.status??null;}
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
  get klippyNotifications(){return {...this.#klippyNotifications};}
@@ -140,6 +155,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;this.#subscriptions?.close();await Promise.all([this.#network.close(),this.#klippy?.close()]);for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();
+  this.#stopping=true;this.#subscriptions?.close();await Promise.all([this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close()]);for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();
  }
 }
