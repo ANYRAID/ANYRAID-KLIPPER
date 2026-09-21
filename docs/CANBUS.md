@@ -56,9 +56,12 @@ bus.
 Each micro-controller on the CAN bus is assigned a unique id based on
 the factory chip identifier encoded into each micro-controller. To
 find each micro-controller device id, make sure the hardware is
-powered and wired correctly, and then run:
+powered and wired correctly. The query tool requires Linux, Node.js 26.9
+or later in the 26.x series, and the native host module. Build it once from
+the Klipper checkout with `npm --prefix host run build:native` (requires a
+C compiler and matching Node headers). Then run:
 ```
-~/klippy-env/bin/python ~/klipper/scripts/canbus_query.py can0
+node ~/klipper/scripts/canbus_query.ts can0
 ```
 
 If uninitialized CAN devices are detected the above command will
@@ -70,9 +73,15 @@ Found canbus_uuid=11aa22bb33cc, Application: Klipper
 Each device will have a unique identifier. In the above example,
 `11aa22bb33cc` is the micro-controller's "canbus_uuid".
 
-Note that the `canbus_query.py` tool will only report uninitialized
+Note that the `canbus_query.ts` tool will only report uninitialized
 devices - if Klipper (or a similar tool) configures the device then it
 will no longer appear in the list.
+
+The previous Python query entry has been removed. The Node tool reports
+results after its two-second receive window and exits with an error if
+transport fails or more than 4096 distinct devices respond. It does not
+configure the CAN interface or assign node IDs. Do not use it during an
+active print; see the [query restrictions](CANBUS_Troubleshooting.md#use-canbus_queryts-only-to-identify-nodes-never-previously-seen).
 
 ## Configuring Klipper
 
@@ -93,7 +102,7 @@ node.
 When Klipper uses this mode the micro-controller appears as a "USB CAN
 bus adapter" under Linux. The "Klipper bridge mcu" itself will appear
 as if it was on this CAN bus - it can be identified via
-`canbus_query.py` and it must be configured like other CAN bus Klipper
+`canbus_query.ts` and it must be configured like other CAN bus Klipper
 nodes.
 
 Some important notes when using this mode:

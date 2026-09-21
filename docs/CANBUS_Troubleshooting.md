@@ -118,10 +118,10 @@ necessary to increase the `txqueuelen` above the recommended value
 of 128. However, as above, care should be taken when selecting a new
 value to avoid excessive round-trip-time latency.
 
-## Use `canbus_query.py` only to identify nodes never previously seen
+## Use `canbus_query.ts` only to identify nodes never previously seen
 
 It is only valid to use the
-[`canbus_query.py` tool](CANBUS.md#finding-the-canbus_uuid-for-new-micro-controllers)
+[`canbus_query.ts` tool](CANBUS.md#finding-the-canbus_uuid-for-new-micro-controllers)
 to identify micro-controllers that have never been previously
 identified. Once all nodes on a bus are identified, record the
 resulting uuids in the printer.cfg, and avoid running the tool
