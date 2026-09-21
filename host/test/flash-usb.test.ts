@@ -4,7 +4,7 @@ import {flashUsb,usbFlashTarget,UsbFlashExitError} from '../src/diagnostics/flas
 import {flashRecorder,flashReference} from '../bench/flash-usb-reference.ts';
 const signal=()=>new AbortController().signal;
 const variants=[['sam3x8e',undefined],['sam4e8e',undefined],['same70q20',undefined],['samd21g18',0x2000],['same54p20',0x4000],['lpc1768',undefined],['stm32f103',0x8000800],['stm32f103',0x8000000],['stm32f407',0x8004000],['stm32f407',0x8000000],['stm32f042',0x8000000],['stm32f070',0x8000000],['stm32f072',0x8000000],['stm32g0b1',0x8000000],['stm32f7',0x8000000],['stm32h7',0x8000000],['stm32l4',0x8000000],['stm32g4',0x8000000],['rp2040',undefined],['rp2350',undefined]] as const;
-test('USB flash actions and argument vectors match original Python across every MCU route',async()=>{
+test('USB flash actions and argument vectors match frozen original Python traces across every MCU route',async()=>{
  const cases=variants.flatMap(([mcu,start])=>[false,true].flatMap(sudo=>[false,true].map(katapult=>({mcu,start,sudo,katapult,device:'/dev/tty source',image:'/tmp/firmware with space.bin'}))));
  cases.push(...variants.filter(([mcu])=>!mcu.startsWith('sam')).map(([mcu,start])=>({mcu,start,sudo:true,katapult:false,device:mcu==='rp2350'?'2E8A:000F':mcu==='rp2040'?'2e8a:0003':' 0483:DF11 ',image:'/tmp/firmware.bin'})));
  const reference=flashReference(cases);for(const [i,c] of cases.entries()){const recorded=flashRecorder(c.katapult);await flashUsb(c,recorded.io,signal());assert.deepEqual(recorded.events,reference.results[i].events,JSON.stringify(c));}

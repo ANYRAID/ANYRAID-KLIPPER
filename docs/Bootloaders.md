@@ -9,6 +9,7 @@ ANYRAID USB 烧录入口现为 Node.js 26 的 `scripts/flash_usb.ts`，相关
 读回失败后发送 COMPLETE。请检查设备状态后再决定恢复步骤。
 本分支尚未通过物理板卡验收；完整验证边界见
 [Node 迁移说明](Node_Host_Migration.md)。
+旧 `scripts/flash_usb.py` 已移除；独立的 Katapult Python 工具尚未退役。
 
 This document provides information on common bootloaders found on
 micro-controllers that Klipper supports.

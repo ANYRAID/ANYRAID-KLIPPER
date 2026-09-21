@@ -1,0 +1,4288 @@
+{
+  "schema": 1,
+  "provenance": {
+    "commit": "9573f9ab4e50e931512ffe997e15a0781ed169f1",
+    "files": [
+      {
+        "path": "scripts/flash_usb.py",
+        "sha256": "61a13035a5d790ba7a221f911f56da3486e3dfffaffb825516ad95b3fc841ab0"
+      },
+      {
+        "path": "host/bench/flash-usb-reference.ts",
+        "sha256": "b9b25be796d66cf41480defd42d34b3ae0a5f346659805b0958dd28312d77435"
+      },
+      {
+        "path": "host/bench/flash-usb.ts",
+        "sha256": "3fe7392ef22d72bd54dd4450a6695347cd11e52f2d4d13fd68221de1d977cea5"
+      },
+      {
+        "path": "host/bench/usb-bootloader.ts",
+        "sha256": "c5cd80d9818ff3feeecb42409436bc973565fffd3eb1483234aedf8f68a7b250"
+      },
+      {
+        "path": "host/test/flash-usb.test.ts",
+        "sha256": "fa48c48ae9759b344f29389d00970080e9c953ba32483132c20efc3c8ee15b3f"
+      }
+    ],
+    "python": "3.12.13"
+  },
+  "cases": [
+    {
+      "options": {
+        "mcu": "sam3x8e",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-b",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam3x8e",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-b",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam3x8e",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-b",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam3x8e",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-b",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam4e8e",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam4e8e",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam4e8e",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam4e8e",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same70q20",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same70q20",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same70q20",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same70q20",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "samd21g18",
+        "start": 8192,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x2000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "samd21g18",
+        "start": 8192,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x2000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "samd21g18",
+        "start": 8192,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x2000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "samd21g18",
+        "start": 8192,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x2000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same54p20",
+        "start": 16384,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x4000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same54p20",
+        "start": 16384,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x4000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same54p20",
+        "start": 16384,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x4000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "same54p20",
+        "start": 16384,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "--offset=0x4000",
+            "-b",
+            "-R",
+            "-w",
+            "/tmp/firmware with space.bin",
+            "-v"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "lpc1768",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "lpc1768",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "lpc1768",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "lpc1768",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134219776,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134219776,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134219776,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134219776,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "2",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "2",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134234112,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134234112,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134234112,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134234112,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f042",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f042",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f042",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f042",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f070",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f070",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f070",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f070",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f072",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f072",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f072",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f072",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g0b1",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g0b1",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g0b1",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g0b1",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f7",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f7",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32h7",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32h7",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32h7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32h7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32l4",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32l4",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32l4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32l4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g4",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g4",
+        "start": 134217728,
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware with space.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2040",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware with space.bin",
+            "001",
+            "023"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2040",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2040",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware with space.bin",
+            "001",
+            "023"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2040",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "sudo": false,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware with space.bin",
+            "001",
+            "023"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "sudo": false,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "sudo": true,
+        "katapult": false,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware with space.bin",
+            "001",
+            "023"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "sudo": true,
+        "katapult": true,
+        "device": "/dev/tty source",
+        "image": "/tmp/firmware with space.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/tty source"
+        ],
+        [
+          "usb",
+          "/dev/tty source"
+        ],
+        [
+          "boot",
+          "/dev/tty source"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/firmware with space.bin"
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "lpc1768",
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134219776,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "2",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134234112,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "lib/hidflash/hid-flash",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f042",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f070",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f072",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g0b1",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32h7",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32l4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32g4",
+        "start": 134217728,
+        "sudo": true,
+        "katapult": false,
+        "device": " 0483:DF11 ",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-d",
+            ",0483:DF11",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2040",
+        "sudo": true,
+        "katapult": false,
+        "device": "2e8a:0003",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "sudo": true,
+        "katapult": false,
+        "device": "2E8A:000F",
+        "image": "/tmp/firmware.bin"
+      },
+      "events": [
+        [
+          "run",
+          [
+            "sudo",
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/firmware.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "sam4",
+        "device": "/dev/ttyMock",
+        "image": "/tmp/image.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/ttyMock"
+        ],
+        [
+          "boot",
+          "/dev/serial/by-path/mock"
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          "/dev/ttyMock"
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-e",
+            "-w",
+            "/tmp/image.bin",
+            "-v"
+          ]
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ],
+        [
+          "wait",
+          "/dev/serial/by-path/mock",
+          null
+        ],
+        [
+          "run",
+          [
+            "lib/bossac/bin/bossac",
+            "-U",
+            "-p",
+            "/dev/serial/by-path/mock",
+            "-b",
+            "-R"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f407",
+        "device": "/dev/ttyMock",
+        "image": "/tmp/image.bin",
+        "start": 134217728
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/ttyMock"
+        ],
+        [
+          "usb",
+          "/dev/ttyMock"
+        ],
+        [
+          "boot",
+          "/dev/ttyMock"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "dfu-util",
+            "-p",
+            "1-2.3",
+            "-R",
+            "-a",
+            "0",
+            "-s",
+            "0x8000000:leave",
+            "-D",
+            "/tmp/image.bin"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "rp2350",
+        "device": "/dev/ttyMock",
+        "image": "/tmp/image.bin"
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/ttyMock"
+        ],
+        [
+          "usb",
+          "/dev/ttyMock"
+        ],
+        [
+          "boot",
+          "/dev/ttyMock"
+        ],
+        [
+          "wait",
+          "/sys/mock/busnum",
+          null
+        ],
+        [
+          "read",
+          "/sys/mock/busnum"
+        ],
+        [
+          "read",
+          "/sys/mock/devnum"
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "run",
+          [
+            "sudo",
+            "lib/rp2040_flash/rp2040_flash",
+            "/tmp/image.bin",
+            "001",
+            "023"
+          ]
+        ]
+      ]
+    },
+    {
+      "options": {
+        "mcu": "stm32f103",
+        "device": "/dev/ttyMock",
+        "image": "/tmp/image.bin",
+        "start": 134219776,
+        "katapult": true
+      },
+      "events": [
+        [
+          "serial",
+          "/dev/ttyMock"
+        ],
+        [
+          "usb",
+          "/dev/ttyMock"
+        ],
+        [
+          "boot",
+          "/dev/ttyMock"
+        ],
+        [
+          "wait",
+          "/sys/mock/interface",
+          null
+        ],
+        [
+          "detect",
+          "/sys/mock/interface"
+        ],
+        [
+          "katapult",
+          "/dev/serial/by-path/mock",
+          "/tmp/image.bin"
+        ]
+      ]
+    }
+  ],
+  "historicalMeasurements": {
+    "routing": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "warmup": 100,
+      "runs": 1001,
+      "scope": "Injected action recording only; no subprocess, USB, re-enumeration waits or firmware writes. Node includes asynchronous dispatch and validation; Python includes suppressed progress formatting. Not print-speed evidence.",
+      "results": [
+        {
+          "mcu": "sam4",
+          "katapult": false,
+          "actions": 7,
+          "node": {
+            "medianMs": 0.002669999999994843,
+            "p95Ms": 0.007040000000003488
+          },
+          "python": {
+            "medianMs": 0.0018099999579135329,
+            "p95Ms": 0.0018399987311568111
+          }
+        },
+        {
+          "mcu": "stm32f407",
+          "katapult": false,
+          "actions": 6,
+          "node": {
+            "medianMs": 0.003179999999986194,
+            "p95Ms": 0.004439999999988231
+          },
+          "python": {
+            "medianMs": 0.0022899985197000206,
+            "p95Ms": 0.0023199991119327024
+          }
+        },
+        {
+          "mcu": "rp2350",
+          "katapult": false,
+          "actions": 8,
+          "node": {
+            "medianMs": 0.005209999999976844,
+            "p95Ms": 0.007540000000005875
+          },
+          "python": {
+            "medianMs": 0.00332999843521975,
+            "p95Ms": 0.003360000846441835
+          }
+        },
+        {
+          "mcu": "stm32f103",
+          "katapult": true,
+          "actions": 6,
+          "node": {
+            "medianMs": 0.0019800000000032014,
+            "p95Ms": 0.002769999999998163
+          },
+          "python": {
+            "medianMs": 0.0014599991118302569,
+            "p95Ms": 0.0014800007193116471
+          }
+        }
+      ]
+    },
+    "touch": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "warmup": 5,
+      "runs": 31,
+      "batch": 1000,
+      "scope": "Real PTY failure at first DTR ioctl only. Node includes flock and observable rejected Promise/assertion; Python silently swallows the same unsupported ioctl. Does not measure successful physical bootloader entry or printing.",
+      "nodeTiming": {
+        "medianMs": 8.66292900000002,
+        "p95Ms": 9.886225999999994
+      },
+      "pythonTiming": {
+        "medianMs": 7.528554000600707,
+        "p95Ms": 7.578463999379892
+      }
+    }
+  },
+  "scope": "Frozen successful Python action traces and historical desktop timings. No Python source stored; restore provenance files from commit to regenerate. PTY touch covers first DTR failure only; no physical flashing or print-speed evidence."
+}
