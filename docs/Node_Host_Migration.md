@@ -10622,3 +10622,43 @@ Python 退役和 MCU CAN 打印传输的完成条件保持不变。本阶段只�
 验证，没有运行时行为修改，无需重跑此前解码性能基准。
 
 完整原生构建及回归 **1319 项通过**；类型、项目空白与差异检查通过。
+
+### 隔离 vcan 内核验证与过滤器修正（2026-09-22）
+
+本机允许非特权用户/网络命名空间，已用 `unshare --user --map-root-user
+--net` 创建临时 vcan。测试前确认当前 user/net 命名空间均不同于调用方，
+只在该空间创建、关闭和删除 `vcan-test`；退出释放命名空间，不修改主机
+现有接口。本机 Linux `6.18.36-amd64-desktop-rolling`、Node 26.9.0。
+
+**真实内核测试发现并修复了之前替身未发现的错误**：数据过滤掩码中
+加入 CAN_ERR_FLAG 会选择错误帧接收列表，原查询收到零条正常响应。
+现使用 `CAN_SFF_MASK | CAN_EFF_FLAG | CAN_RTR_FLAG`，错误帧仍由 RAW
+socket 的默认设置排除。参见
+[官方过滤示例](https://docs.kernel.org/networking/can.html#can-filter-usage-optimisation)
+及[内核 can_rcv_list_find](https://github.com/torvalds/linux/blob/master/net/can/af_can.c)。
+此前“过滤器正确”的替身断言同步修正；以本节内核证据更新前两节结论。
+
+新增独立 C 测试对端，在真实 SocketCAN 上断言查询 ID=0x3f0、长度 1、
+数据 00，并发送 9 个响应，包括正确/错误 ID、扩展帧、RTR、重复 UUID、
+短数据和错误命令。直接原生读取精确收到 6 个标准 0x3f1 数据帧，证明
+其他 ID/扩展/RTR 在内核被过滤，而非只被 TypeScript 解码器忽略。
+真实 CLI 完成两秒窗口，输出零 UUID、全 FF UUID、11aa22bb33cc 及对应
+Klipper/CanBoot/Unknown，重复项不覆盖首次类型，总数为 3。
+
+另覆盖空闲接收取消、接收过程中接口下线的读取错误、发送前下线及
+接口删除后的发送错误。上述场景普通、UBSan、ASan 三种构建均通过。
+首次 ASan 尝试出现 DEADLYSIGNAL，未定位到具体产品调用栈；测试驱动
+随后限定 LD_PRELOAD/ASAN_OPTIONS 仅传给 Node，避免注入编译器、ip、
+unshare 与独立测试对端，复测通过。不将一次复测通过宣称为已证明
+此前异常的根因。ASan 仍禁用 Node/V8 进程级泄漏统计。
+
+复现：`npm --prefix host run build:native` 后执行
+`npm --prefix host run test:can-vcan`。该专门集成命令需要 Linux vcan、
+允许非特权 user/net 命名空间、iproute2 和 C 编译器；条件不满足时明确
+失败，不以跳过冒充通过。全量软件回归 **1319 项通过**，类型、空白和
+差异检查通过；新增内核集成单独执行，不计入 1319。
+
+vcan 补齐的是内核协议链路，仍不覆盖物理 CAN 控制器/固件响应、硬件
+错误恢复、总线负载、目标板和打印时序。固定两秒发现窗口不是高频打印
+路径，此处没有新增吞吐性能结论。旧 Python 工具及其参考基准仍待退役，
+完整 Python/Moonraker 迁移和消费级打印流程验收继续保持未完成。

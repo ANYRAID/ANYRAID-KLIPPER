@@ -34,7 +34,7 @@ static int mock_filter(int fd, int level, int option,
     const struct can_filter *f = value;
     assert(f->can_id == 0x3f1);
     assert(f->can_mask == (CAN_SFF_MASK | CAN_EFF_FLAG
-                          | CAN_RTR_FLAG | CAN_ERR_FLAG));
+                          | CAN_RTR_FLAG));
     filters++;
     if (!strcmp(mode, "filter")) { errno = EINVAL; return -1; }
     return 0;

@@ -20,7 +20,9 @@ static napi_value open_channel(napi_env env,napi_callback_info info){
  if(napi_get_value_string_utf8(env,a,name,sizeof(name),&length)!=napi_ok||strlen(name)!=length){napi_throw_type_error(env,NULL,"Invalid CAN interface name");return NULL;}
  unsigned index=if_nametoindex(name);if(!index)return fail(env,"Find CAN interface");
  int fd=socket(PF_CAN,SOCK_RAW|SOCK_NONBLOCK|SOCK_CLOEXEC,CAN_RAW);if(fd<0)return fail(env,"Open CAN socket");
- struct can_filter filter={.can_id=0x3f1,.can_mask=CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG|CAN_ERR_FLAG};
+ // CAN_ERR_FLAG in can_mask selects error subscriptions, not data exclusion.
+ // RAW sockets exclude error frames by default (CAN_RAW_ERR_FILTER is unset).
+ struct can_filter filter={.can_id=0x3f1,.can_mask=CAN_SFF_MASK|CAN_EFF_FLAG|CAN_RTR_FLAG};
  const char *op="Filter CAN discovery responses";
  if(setsockopt(fd,SOL_CAN_RAW,CAN_RAW_FILTER,&filter,sizeof(filter)))goto error;
  struct sockaddr_can addr={.can_family=AF_CAN,.can_ifindex=(int)index};op="Bind CAN interface";
