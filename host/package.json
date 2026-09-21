@@ -151,7 +151,8 @@
     "bench:graphstats": "node bench/graphstats.ts",
     "bench:graphstats-export": "node bench/graphstats-export.ts",
     "bench:graph-extruder": "node bench/graph-extruder.ts",
-    "bench:graph-shaper": "node bench/graph-shaper.ts"
+    "bench:graph-shaper": "node bench/graph-shaper.ts",
+    "bench:shaper-export": "node bench/shaper-export.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

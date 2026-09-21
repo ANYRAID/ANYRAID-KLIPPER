@@ -19,3 +19,12 @@ export function renderStatsSvg(plot:StatsPlot,xAxis:PlotXAxis={label:'Time (UTC)
  parts.push('<g clip-path="url(#plot)">');plot.curves.forEach((c,index)=>{const color=colors[index%colors.length];if(c.style==='points'){for(let i=0;i<c.times.length;i++)parts.push(`<circle cx="${x(c.times[i]).toFixed(3)}" cy="${y(c.values[i],c.axis).toFixed(3)}" r="1.6" fill="${color}"/>`);}else if(c.times.length){const path=c.times.map((time,i)=>`${i?'L':'M'}${x(time).toFixed(3)},${y(c.values[i],c.axis).toFixed(3)}`).join('');parts.push(`<path d="${path}" stroke="${color}" stroke-width="1.4" fill="none"/>`);if(c.times.length===1)parts.push(`<circle cx="${x(c.times[0])}" cy="${y(c.values[0],c.axis)}" r="2" fill="${color}"/>`);}});parts.push('</g>');
  plot.curves.forEach((c,i)=>{const px=left+(i%3)*(width-left-25)/3,py=top+h+66+Math.floor(i/3)*20;parts.push(`<g><title>${escape(c.label)}</title><path d="M${px} ${py-4}h14" stroke="${colors[i%colors.length]}" stroke-width="2"/><text x="${px+20}" y="${py}">${escape(Array.from(c.label).slice(0,25).join(''))}</text></g>`);});parts.push('</svg>');const output=parts.join('');if(Buffer.byteLength(output)>64*1024**2)throw new RangeError('SVG output capacity exceeded');return output;
 }
+
+export interface StatsPanel {plot:StatsPlot;xAxis:PlotXAxis;}
+/** Stack independently clipped plots into one standalone document. */
+export function renderStatsPanels(panels:readonly StatsPanel[]):string{
+ if(!panels.length||panels.length>8)throw new RangeError('Expected 1 to 8 plot panels');
+ let count=0;for(const panel of panels)for(const curve of panel.plot.curves){count+=curve.times.length;if(count>500000)throw new RangeError('Combined plot point capacity exceeded');}
+ let height=0;const parts:string[]=[];panels.forEach((panel,i)=>{let svg=renderStatsSvg(panel.plot,panel.xAxis);const match=/^<svg [^>]*height="(\d+)"/.exec(svg);if(!match)throw new Error('Missing generated SVG dimensions');const h=Number(match[1]);svg=svg.replace('<svg ',`<svg x="0" y="${height}" `).replaceAll('id="plot"',`id="panel${i}"`).replaceAll('clip-path="url(#plot)"',`clip-path="url(#panel${i})"`);parts.push(svg);height+=h;});
+ const output=`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${height}" viewBox="0 0 800 ${height}" role="img"><title>Diagnostic plots</title>${parts.join('')}</svg>`;if(Buffer.byteLength(output)>64*1024**2)throw new RangeError('SVG output capacity exceeded');return output;
+}

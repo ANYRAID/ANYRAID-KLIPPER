@@ -219,6 +219,24 @@ diagnostic simulation, not a calibration command or a hardware validation.
 The original `graph_extruder.py` remains available for its interactive
 Matplotlib window and PDF/EPS export.
 
+## Generating input shaper simulation graphs
+
+The Node.js 26 tool exports the frequency response and unit step response
+in a single file, using the same host dependencies as the tools above:
+
+```
+node ~/klipper/scripts/graph_shaper.ts -o shaper.png
+node ~/klipper/scripts/graph_shaper.ts --shaper zvd --shaper_freq 45 --system_freq 60 -o shaper.svg
+```
+
+Use `--damping_ratio`, `--test_damping_ratios` (comma separated), and
+`--system_damping_ratio` to adjust damping. Run with `--help` for defaults.
+The output formats are SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
+an array of two panels, each with its plot data and horizontal axis label.
+The simulation does not configure a printer or measure physical resonance.
+The original `graph_shaper.py` remains available for an interactive
+Matplotlib window and PDF/EPS export.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
