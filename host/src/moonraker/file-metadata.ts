@@ -9,7 +9,7 @@ function filename(value:string):void{if(typeof value!=='string'||!value.isWellFo
 /** Immutable bounded snapshots. Scanner/storage owners must invalidate a changed
  * source and commit with its current ticket; this cache does not watch files. */
 export class FileMetadataStore {
- #thumbnailOwners=new Map<string,Set<string>>();
+ #thumbnailOwners=new Map<string,Set<string>>();#retiringBundles=new Set<string>();
  #entries=new Map<string,Entry>();#bytes=0;#maxRecords:number;#maxBytes:number;#maxRecordBytes:number;
  constructor(options:{maxRecords?:number;maxBytes?:number;maxRecordBytes?:number}={}){
   this.#maxRecords=options.maxRecords??4096;this.#maxBytes=options.maxBytes??16*1024**2;this.#maxRecordBytes=options.maxRecordBytes??256*1024;
@@ -27,6 +27,7 @@ export class FileMetadataStore {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new TypeError('Invalid file metadata');validateJson(value);
   const thumbnails=value.thumbnails;if(thumbnails!==undefined){if(!Array.isArray(thumbnails)||thumbnails.length>256||thumbnails.some(item=>!item||typeof item!=='object'||Array.isArray(item)||item.relative_path!==undefined&&item.relative_path!==null&&typeof item.relative_path!=='string'))throw new TypeError('Invalid thumbnail metadata');}
   const bytes=boundedJsonBytes(value,this.#maxRecordBytes);boundedJsonBytes({...value,filename:ticket.filename},1024**2);if(this.#bytes+bytes>this.#maxBytes)throw new ApiError(503,'Metadata cache byte capacity exceeded');
+  if(this.#retiringBundles.size)for(const relative of this.#references(value))if(this.#retiringBundles.has(relative.split('/')[1]))throw new ApiError(409,'Thumbnail bundle is retiring');
   const snapshot=structuredClone(value);freeze(snapshot);entry.snapshot=snapshot;entry.bytes=bytes;entry.ticket=undefined;this.#bytes+=bytes;this.#index(ticket.filename,snapshot);return true;
  }
  isCurrent(ticket:MetadataTicket):boolean{return this.#entries.get(ticket.filename)?.ticket===ticket;}
@@ -43,6 +44,14 @@ export class FileMetadataStore {
   const at=path.lastIndexOf('.thumbs/'),relative=path.slice(at);if(at<0)return;
   let found:{filename:string;snapshot:Readonly<Record<string,Json>>;size:number}|undefined;
   for(const filename of this.#thumbnailOwners.get(relative)??[]){if(thumbnailPath(filename,relative)!==path)continue;const snapshot=this.peek(filename)!;const item=(snapshot.thumbnails as Record<string,Json>[]).find(item=>item.relative_path===relative)!;if(!Number.isSafeInteger(item.size)||typeof item.size!=='number'||item.size<1||item.size>8*1024**2)return;if(found)return;found={filename,snapshot,size:item.size};}return found;
+ }
+ /** Exclude new references during awaited storage retirement. The lifecycle
+  * owner must still prevent replay of retired scan tickets after release. */
+ guardThumbnailRetirement(id:string):()=>void{
+  if(!/^thumb-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id))throw new TypeError('Invalid thumbnail retirement ID');
+  if(this.#retiringBundles.has(id)||this.#retiringBundles.size>=64)throw new ApiError(409,'Thumbnail retirement already active or full');
+  for(let index=0;index<100;index++)for(const ext of ['png','jpg'])if(this.#thumbnailOwners.has(`.thumbs/${id}/${index}.${ext}`))throw new ApiError(409,'Thumbnail bundle is still referenced');
+  this.#retiringBundles.add(id);let active=true;return ()=>{if(active){active=false;this.#retiringBundles.delete(id);}};
  }
  metadata(path:string):Record<string,Json>{const snapshot=this.peek(path);if(!snapshot)throw new ApiError(404,`Metadata not available for <${path}>`);return {...snapshot,filename:path};}
  thumbnails(path:string):Json[]{
