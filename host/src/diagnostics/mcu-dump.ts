@@ -1,4 +1,4 @@
-// GPL-3.0-or-later. Based on scripts/dump_mcu.py (Eric Callahan, 2022).
+// GPL-3.0-or-later. Based on the former scripts/dump_mcu.py (Eric Callahan, 2022).
 import {open,rename,rm} from 'node:fs/promises';
 import {basename,dirname,join} from 'node:path';
 import {randomUUID} from 'node:crypto';

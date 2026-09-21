@@ -521,3 +521,7 @@ is published by same-directory atomic replacement; failed reads retain the
 previous output file. Existing output must be a regular file, not a device,
 directory or symlink. See `--help` for all options. Physical UART, RPMsg,
 CAN controllers and target-board timing still require hardware validation.
+
+The former `scripts/dump_mcu.py` entry has been removed. Use the Node
+command above; its runtime and numerical reference benchmark no longer
+require Python.
