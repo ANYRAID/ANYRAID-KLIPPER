@@ -35,6 +35,7 @@ export class GCodeMove {
   get gcodePosition():number[] {
     const s=this.#state,p=s.position.map((v,i)=>v-s.base[i]);p[3]/=s.extrudeFactor;return p;
   }
+  usesPort(port:MovePort):boolean {return this.#port===port;}
   /** Bind transformed position/motion functions before dispatching movement. */
   setPort(port:MovePort):MovePort {const previous=this.#port;this.#port=port;return previous;}
   resetPosition():void {
