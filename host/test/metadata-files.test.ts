@@ -80,3 +80,20 @@ test('closing configured server during recovery drains work without starting a l
  const f=await fixture();let server:ConfiguredMoonraker|undefined;const entered=Promise.withResolvers<void>(),resume=Promise.withResolvers<void>();
  try{await f.files.rescan('层/part.gcode',signal);f.cache.clear();const read=f.snapshots.read.bind(f.snapshots);f.snapshots.read=async(...args)=>{entered.resolve();await resume.promise;return read(...args);};server=await configured(f);const opening=server.start(),rejected=assert.rejects(opening);await entered.promise;let closed=false;const closing=server.close().then(()=>{closed=true;});await delay(10);assert.equal(closed,false);resume.resolve();await rejected;await closing;assert.equal(server.status.phase,'closed');assert.equal(f.files.status.pending,0);assert.equal(f.cache.peek('层/part.gcode'),undefined);}finally{resume.resolve();await server?.close();await f.close();}
 });
+test('configured metadata owns the full scan, thumbnail query and authenticated binary download chain',async()=>{
+ const f=await fixture();let server:ConfiguredMoonraker|undefined;
+ try{
+  const {default:sharp}=await import('sharp'),png=await sharp({create:{width:64,height:32,channels:3,background:'#3478ab'}}).png().toBuffer(),b64=png.toString('base64');await writeFile(join(f.root,'层/part.gcode'),`; thumbnail begin 64 32 ${b64.length}\n; ${b64}\n; thumbnail end\nG1 X1\n`);
+  const config=join(f.dir,'images.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0\n');const calls:{method:string;filename?:unknown}[]=[];
+  const options={metadataFiles:f.files,authorize(method:string,params:any,{request}:any){calls.push({method,filename:params.filename});if(request.headers['x-api-key']!=='test')throw new ApiError(401,'Unauthorized');if(params.filename&&request.headers['x-deny-file'])throw new ApiError(403,'Forbidden');},information:{connected:false,state:'disconnected' as const,components:['application'],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}};
+  await assert.rejects(ConfiguredMoonraker.load(config,{...options,thumbnails:f.files.downloads}),/cannot be overridden/);assert.equal(f.files.status.closed,false);
+  server=await ConfiguredMoonraker.load(config,options);const address=await server.start(),base=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'test','content-type':'application/json'};
+  const scan=await fetch(base+'/server/files/metascan',{method:'POST',headers,body:JSON.stringify({filename:'层/part.gcode'})});assert.equal(scan.status,200);
+  const thumbs:any=await (await fetch(base+'/server/files/thumbnails?filename='+encodeURIComponent('层/part.gcode'),{headers})).json();assert.equal(thumbs.result.length,2);const path='/server/files/gcodes/'+encodeURI(thumbs.result[1].thumbnail_path);
+  assert.equal((await fetch(base+path)).status,401);assert.equal((await fetch(base+path,{headers:{...headers,'x-deny-file':'1'}})).status,403);
+  const response=await fetch(base+path,{headers});assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/png');assert.deepEqual(Buffer.from(await response.arrayBuffer()),png);assert.ok(calls.some(call=>call.method==='server.files.download'&&call.filename==='层/part.gcode'));
+  const head=await fetch(base+path,{method:'HEAD',headers});assert.equal(head.status,200);assert.equal(Number(head.headers.get('content-length')),png.length);assert.equal((await head.arrayBuffer()).byteLength,0);
+  const cached=await fetch(base+path,{headers:{...headers,'if-none-match':response.headers.get('etag')!}});assert.equal(cached.status,304);
+  await f.owner.invalidate('层/part.gcode',signal);assert.equal((await fetch(base+path,{headers})).status,404);
+ }finally{await server?.close();await f.close();}
+});

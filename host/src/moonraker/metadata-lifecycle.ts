@@ -1,3 +1,4 @@
+import {ThumbnailDownloads} from './thumbnail-download.ts';
 import type {FileHandle} from 'node:fs/promises';
 import {ApiError} from './rpc.ts';
 import {FileMetadataStore,validateMetadataFilename} from './file-metadata.ts';
@@ -26,6 +27,7 @@ export class MetadataLifecycle {
  get status(){return {closed:this.#closed,pending:this.#pending.size,maxPending:this.#maxPending};}
  metadata(filename:string){return this.#options.cache.metadata(filename);}
  thumbnails(filename:string){return this.#options.cache.thumbnails(filename);}
+ thumbnailDownloads(){return new ThumbnailDownloads(this.#options.images,this.#options.cache);}
  selectedFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state==='selected').map(value=>value.filename));}
  #admit<T>(prepare:()=>()=>Promise<T>):Promise<T>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Metadata lifecycle is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new ApiError(503,'Metadata lifecycle queue is full'));
