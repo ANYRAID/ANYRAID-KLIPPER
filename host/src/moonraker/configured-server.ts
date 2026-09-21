@@ -231,6 +231,8 @@ export class ConfiguredMoonraker {
    if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
    if(this.#metadataMonitor)await this.#metadataMonitor.start();else if(this.#discoverMetadata)this.#metadataDiscovery=await this.#metadataFiles!.scanDiscovered(this.#startupAbort.signal);
    this.#startupAbort.signal.throwIfAborted();
+   if(this.#database)await this.#database.sealTableRegistration();
+   this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    if(this.#automatic)this.#superviseKlippy(this.#automatic.path,this.#automatic.initialization,this.#automatic.retryDelayMs);
    return address;

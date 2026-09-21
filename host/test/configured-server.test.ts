@@ -52,3 +52,7 @@ test('failed shutdown retains owned registrations until active requests actually
 test('invalid configured Klippy path fails load before network startup',()=>fixture('[server]\nhost=127.0.0.1\nport=0\nklippy_uds_address={data_path}/klippy.sock',async path=>{
  await assert.rejects(ConfiguredMoonraker.load(path,{authorize,information:info(),klippy:{}}),/renderer/);await assert.rejects(ConfiguredMoonraker.load(path,{authorize,information:info(),klippy:{retryDelayMs:0}}),/retry/);
 }));
+test('server seals component table registration before exposing its listener',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ const {DatabaseStore}=await import('../src/moonraker/database.ts'),store=await DatabaseStore.open({path:join(path,'..','tables.sqlite')}),service=await ConfiguredMoonraker.load(path,{authorize,information:info(),database:store});
+ try{await store.registerTable({name:'component_table',prototype:'component_table (id INTEGER PRIMARY KEY)',version:1});await service.start();await assert.rejects(store.registerTable({name:'late_table',prototype:'late_table (id INT)',version:1}),e=>e instanceof ApiError&&e.status===409);await store.insert('ui','still_writable',true);assert.equal(await store.get('ui','still_writable'),true);}finally{await service.close();}
+}));

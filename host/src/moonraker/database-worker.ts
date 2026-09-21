@@ -1,3 +1,4 @@
+import type {DatabaseTableDefinition} from './database-table.ts';
 import {serialize} from 'node:v8';
 import {createDatabaseBackup,deleteDatabaseBackup,databaseRestorePath} from './database-backup-files.ts';
 import {parentPort,workerData} from 'node:worker_threads';
@@ -38,6 +39,8 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
   }
   let value:Json=null;const [namespace,key,input]=message.args;
   switch(message.method){
+   case 'register-table':value=engine.registerTable(namespace as unknown as DatabaseTableDefinition,checkReply);break;
+   case 'seal-tables':engine.sealTableRegistration();break;
    case 'restore':value=await engine.restore(databaseRestorePath(options.backupDirectory,namespace as string,options.path),checkReply);break;
    case 'backup':value=await createDatabaseBackup(engine,options.backupDirectory,namespace as string,options.path);break;
    case 'delete-backup':value=deleteDatabaseBackup(options.backupDirectory,namespace as string,options.path);break;

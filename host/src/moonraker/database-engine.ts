@@ -1,3 +1,4 @@
+import {migrateTable,tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {statSync} from 'node:fs';
 import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
 import {ApiError,type Json} from './rpc.ts';
@@ -9,6 +10,7 @@ const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT N
 /** Synchronous engine owned exclusively by a Worker. Every read-modify-write
  * happens in one SQLite transaction, including nested-key operations. */
 export class DatabaseEngine {
+ #tablesSealed=false;readonly #registeredTables=new Set<string>();
  readonly #registeredNamespaces=new Set(['moonraker','database']);
  readonly #namespaces=new Set<string>();#namespaceBytes=2;
  readonly #statements=new Map<string,StatementSync>();
@@ -124,6 +126,8 @@ export class DatabaseEngine {
  clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
  list():string[]{return [...this.#namespaces].sort(namespaceOrder);}
+ registerTable(input:DatabaseTableDefinition,validate?:(result:Json)=>void):Json{const definition=tableDefinition(input),key=definition.name.toLowerCase();if(this.#tablesSealed)throw new ApiError(409,'Table registration is closed');if(this.#registeredTables.has(key))throw new ApiError(409,'Table already registered by a component');if(this.#registeredTables.size>=256)throw new ApiError(413,'Registered table capacity exceeded');const result=this.#transaction(()=>{const result=migrateTable(this.#db,definition);validate?.(result);return result;});this.#registeredTables.add(key);return result;}
+ sealTableRegistration():void{this.#tablesSealed=true;}
  get dataVersion():number{return Number(this.#prepare('PRAGMA data_version').get()!.data_version);}
  get restoreState(){return this.#restoreState;}
  async restore(path:string,validate?:(info:Json)=>void):Promise<{restored_tables:string[];restored_namespaces:string[]}>{
