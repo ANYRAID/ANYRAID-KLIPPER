@@ -11201,3 +11201,43 @@ Moonraker 和生产打印入口迁移仍未完成。
 
 删除后完整原生构建与回归 **1351 项通过**，类型、项目空白与差异
 检查通过。仓库保留的 Python 文件从 206 减少为 205 个。
+
+## Katapult CAN 传输与隔离 vcan 验证（2026-09-22）
+
+`host/src/diagnostics/katapult-can.ts` 使用原生 SocketCAN 打开和内核
+过滤，按 Linux 本机字节序编码 16 字节 classic CAN 帧，Katapult
+字节流拆成最多 8 字节的数据包。默认节点号 129 与原工具一致，
+发送 ID 为 `256 + 2 * nodeId`，只接收其加一的标准数据 ID；DLC、
+完整帧大小及接收 ID 再次校验，拒绝扩展/RTR 等标志混入。
+
+目标必须已运行 Katapult，且调用方需在空闲总线上保留节点号。
+只向指定 UUID 发送一次 `0x3f0 / 0x11 + UUID + nodeId` 分配，等待
+原协议的 500 ms 稳定时间，再进行 CONNECT 和 GET_CANBUS_ID；UUID
+核对通过后才允许写入。没有广播清空其他节点，没有自动重启、重新
+连接或重发。取消不能撤销已经发送的分配。原 Python 的启动跳转、
+全节点 reset、自动 USB-CAN bridge 转串口和独立 CAN CLI 尚待迁移，
+本阶段不声称等价替代整个 flashtool。
+
+串口和 CAN 共用新 `katapult-stream.ts`，统一有界缓冲、CRC、命令
+关联、priming、期限和关闭。写入有进展时立即继续处理剩余字节，
+仅零进展/EAGAIN 时让出等待，避免每个 CAN 帧固定增加 1 ms。最多
+一个协议帧的发送循环受请求期限约束，没有新增后台重放队列。
+
+2 项普通测试覆盖 48 位 UUID、节点号边界、本机 CAN ABI、DLC/ID/
+标志拒绝和打开前取消。既有串口及 USB CLI 专项重新验证通过。
+新增 `npm --prefix host run test:katapult-vcan` 在独立 user/net
+namespace 中创建 vcan；首先核验 namespace 与主机不同，才允许
+修改接口。C 桥断言一次且精确的 UUID/节点分配，将真实 CAN 分帧
+转交模拟固件，并返回实际 CAN 包。覆盖完整 4093 字节写入/读回、
+UUID 错误、CRC 错误、分配等待取消、超时及接口 down，错误路径
+均没有 SEND_BLOCK/COMPLETE 或自动重发。
+
+Node 26.9.0，5 次预热/11 次完整测量，中位 / p95
+**543.649 / 547.230 ms**，包含每次 500 ms 分配等待、36 条协议命令、
+真实 SocketCAN 与模拟固件。没有物理总线、Flash 延迟或 Python
+同环境完整传输对照，也不是打印速度验收。CAN 广播发现、桥接恢复、
+实机验收与完整 Moonraker 仍未完成。
+
+独立 vcan 普通、UBSan、ASan/UBSan 三轮均通过；完整原生构建及
+回归 **1353 项通过**，类型、项目空白与差异检查通过。ASan 未启用
+Node 进程全局泄漏核算，本阶段没有修改主机物理 CAN 接口。
