@@ -56,3 +56,36 @@ test('server seals component table registration before exposing its listener',()
  const {DatabaseStore}=await import('../src/moonraker/database.ts'),store=await DatabaseStore.open({path:join(path,'..','tables.sqlite')}),service=await ConfiguredMoonraker.load(path,{authorize,information:info(),database:store});
  try{await store.registerTable({name:'component_table',prototype:'component_table (id INTEGER PRIMARY KEY)',version:1});await service.start();await assert.rejects(store.registerTable({name:'late_table',prototype:'late_table (id INT)',version:1}),e=>e instanceof ApiError&&e.status===409);await store.insert('ui','still_writable',true);assert.equal(await store.get('ui','still_writable'),true);}finally{await service.close();}
 }));
+test('owned sensors sample after listening, publish changes and close with the server',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ const {SensorStore}=await import('../src/moonraker/sensors.ts');const sensors=new SensorStore();sensors.register({id:'room',type:'MQTT',capacity:2});sensors.update('room',{t:{value:22.5}});
+ const service=await ConfiguredMoonraker.load(path,{authorize,information:info(),sensors,authorizeNotification:authorize});let ws:WebSocket|undefined;
+ try{
+  assert.equal(service.sensorStatus?.samples,0);assert.deepEqual(sensors.measurements(),{room:{}});
+  await assert.rejects(ConfiguredMoonraker.load(path,{authorize,information:info(),sensors}),/already owned/);
+  const address=await service.start(),url=`http://127.0.0.1:${address.port}`;
+  assert.equal((await fetch(url+'/server/sensors/list')).status,401);
+  ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(ws,'open');
+  const [message]=await once(ws,'message',{signal:AbortSignal.timeout(4000)});assert.deepEqual(JSON.parse(message.toString()),{jsonrpc:'2.0',method:'notify_sensor_update',params:[{room:{t:22.5}}]});
+  let body:any=await(await fetch(url+'/server/sensors/measurements?sensor=room',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(body.result,{room:{t:[22.5]}});
+  const messages:any[]=[];ws.on('message',data=>messages.push(JSON.parse(data.toString())));
+  const initial=service.sensorStatus!.samples,deadline=Date.now()+4000;while(service.sensorStatus!.samples===initial&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+  assert.ok(service.sensorStatus!.samples>initial);assert.equal(messages.length,0);assert.deepEqual(sensors.measurements(),{room:{t:[22.5,22.5]}});
+  const changed=once(ws,'message',{signal:AbortSignal.timeout(4000)});sensors.disconnect('room');assert.deepEqual(JSON.parse((await changed)[0].toString()).params,[{room:{}}]);
+ }finally{ws?.terminate();await service.close();}
+ assert.equal(sensors.status.closed,true);assert.equal(service.rpc.has('server.sensors.list'),false);assert.throws(()=>sensors.update('room',{t:{value:0}}),/closed/);
+ const count=service.sensorStatus!.samples;await new Promise(r=>setTimeout(r,1100));assert.equal(service.sensorStatus!.samples,count);
+}));
+test('failed network startup closes transferred sensor store and releases query routes',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ const {SensorStore}=await import('../src/moonraker/sensors.ts');const sensors=new SensorStore(),blocker=createServer();blocker.listen(0,'127.0.0.1');await once(blocker,'listening');await writeFile(path,`[server]\nhost=127.0.0.1\nport=${(blocker.address() as any).port}`);
+ const service=await ConfiguredMoonraker.load(path,{authorize,information:info(),sensors});
+ try{await assert.rejects(service.start(),/EADDRINUSE/);assert.equal(sensors.status.closed,true);assert.equal(service.sensorStatus?.samples,0);assert.equal(service.rpc.has('server.sensors.info'),false);}finally{await service.close();await new Promise<void>(r=>blocker.close(()=>r()));}
+}));
+test('sensor sampling failure stops the timer and exposes component failure without leaking details',()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ const {SensorStore}=await import('../src/moonraker/sensors.ts');const sensors=new SensorStore();let calls=0;sensors.sample=()=>{calls++;throw new Error('private-source-detail');};
+ const service=await ConfiguredMoonraker.load(path,{authorize,information:info(),sensors});
+ try{
+  const address=await service.start(),deadline=Date.now()+4000;while(!service.sensorStatus?.error&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+  assert.equal(service.sensorStatus?.error,'private-source-detail');const body:any=await(await fetch(`http://127.0.0.1:${address.port}/server/info`,{headers:{'x-api-key':'test'}})).json();assert.ok(body.result.failed_components.includes('sensor'));assert.ok(body.result.warnings.includes('Sensor sampling failed; restart required'));assert.equal(JSON.stringify(body).includes('private-source-detail'),false);
+  await new Promise(r=>setTimeout(r,1100));assert.equal(calls,1);
+ }finally{await service.close();}
+}));

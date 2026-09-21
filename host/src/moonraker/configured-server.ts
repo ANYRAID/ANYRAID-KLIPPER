@@ -1,3 +1,4 @@
+import {SensorStore,registerSensors} from './sensors.ts';
 import {HistoryFileMetadata} from './history-file-metadata.ts';
 import {PrintApi,registerPrintApi,type PrintApiOptions} from './print-api.ts';
 import {HistoryRuntime,type HistoryRuntimeOptions} from './history-runtime.ts';
@@ -31,6 +32,7 @@ import {ServerInformation,ServerConfiguration,registerServerMetadata,type Inform
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
 export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
+const sensorOwners=new WeakSet<SensorStore>();
 const fileOwners=new WeakSet<MetadataFiles>();
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
@@ -41,6 +43,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  onPrintStartComplete?:PrintApiOptions['onStartComplete'];
  /** Enable the G-code portion of data_store; temperature sampling is separate. */
  gcodeStore?:{maxBytes?:number};
+ /** Transfers telemetry store lifetime on successful load; samples once per second after listening. */
+ sensors?:SensorStore;
  temperatureStore?:{maxSensors?:number;maxSlots?:number};
  /** Transfers database lifetime on successful load. */
  database?:DatabaseStore;
@@ -85,6 +89,7 @@ export class ConfiguredMoonraker {
  #gcodeStore:GcodeStore|undefined;
  #temperatureStore:TemperatureStoreRuntime|undefined;
  #database:DatabaseStore|undefined;#historyRuntime:HistoryRuntime|undefined;#historyNotifications=notificationMetrics();
+ #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
  #printApi:PrintApi;
  #databaseRestart={requested:false,error:null as string|null};
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
@@ -92,6 +97,7 @@ export class ConfiguredMoonraker {
  #supervisor:KlippySupervisor|undefined;
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
+  if(options.sensors&&(sensorOwners.has(options.sensors)||options.sensors.status.closed))throw new ConfigurationError('Invalid or already owned sensor store');
   if(options.history?.auxiliary&&options.history.auxiliaryTotals)throw new ConfigurationError('History auxiliary source must own its reset fields');
   if(options.database&&(databaseOwners.has(options.database)||options.database.status.closed||options.database.status.closing))throw new ConfigurationError('Invalid or already owned database');
   if(options.metadataFiles&&fileOwners.has(options.metadataFiles))throw new ConfigurationError('Metadata files already have a server owner');
@@ -103,6 +109,7 @@ export class ConfiguredMoonraker {
   this.#network=new MoonrakerNetwork(this.rpc,{...options,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   if(options.temperatureStore)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
+  this.#sensors=options.sensors;const releaseSensors=this.#sensors?registerSensors(this.endpoints,this.#sensors):()=>{};
   this.#database=options.database;const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
   if(options.history)this.#historyRuntime=new HistoryRuntime(options.history.repository,{auxiliary:options.history.auxiliary,metadata:options.history.metadata??(this.#metadataFiles?filename=>this.#metadataFiles!.historyMetadata(filename):undefined),onFailure:()=>{if(!this.#stopping)this.setInformation(this.#base);},notify:async event=>{
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
@@ -120,11 +127,13 @@ export class ConfiguredMoonraker {
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
+  if(this.#sensors)sensorOwners.add(this.#sensors);
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.sensors!==undefined&&(!(options.sensors instanceof SensorStore)||options.sensors.status.closed||sensorOwners.has(options.sensors)))throw new ConfigurationError('Invalid or already owned sensor store');
   if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new ConfigurationError('Invalid maintenance gate');
   if(options.onDatabaseRestore!==undefined&&(typeof options.onDatabaseRestore!=='function'||!options.database))throw new ConfigurationError('Database restore requires a database and service restart owner');
   if(options.database!==undefined&&(!(options.database instanceof DatabaseStore)||options.database.status.closed||options.database.status.closing||databaseOwners.has(options.database)))throw new ConfigurationError('Invalid or already owned database');
@@ -207,6 +216,7 @@ export class ConfiguredMoonraker {
  #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
+ get sensorStatus(){return this.#sensors?{...this.#sensors.status,samples:this.#sensorSamples,error:this.#sensorError,notifications:{...this.#sensorNotifications}}:null;}
  get historyStatus(){return this.#historyRuntime?{...this.#historyRuntime.status,notifications:{...this.#historyNotifications}}:null;}
  async drainHistory():Promise<void>{await this.#historyRuntime?.drain();}
  get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
@@ -246,7 +256,7 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
-  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,components:[...new Set([...copy.components,...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
+  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,components:[...new Set([...copy.components,...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
@@ -262,6 +272,12 @@ export class ConfiguredMoonraker {
    if(this.#database)await this.#database.sealTableRegistration();
    this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
+   this.#startupAbort.signal.throwIfAborted();
+   if(this.#sensors){this.#sensorTimer=setInterval(()=>{
+    if(this.#stopping)return;
+    try{const changes=this.#sensors!.sample();this.#sensorSamples++;if(Object.keys(changes).length)this.#broadcastTracked('notify_sensor_update',[changes],this.#sensorNotifications);}
+    catch(error){this.#sensorError=error instanceof Error?error.message:'Sensor sampling failed';clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;this.setInformation(this.#base);}
+   },1000);this.#sensorTimer.unref();}
    if(this.#automatic)this.#superviseKlippy(this.#automatic.path,this.#automatic.initialization,this.#automatic.retryDelayMs);
    return address;
   }catch(error){try{await this.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Configured server startup and cleanup failed');}throw error;}
@@ -272,6 +288,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;this.#printApi.close();this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;this.#sensors?.close();this.#printApi.close();this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }
