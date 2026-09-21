@@ -8,6 +8,7 @@ const params={algo:'bicubic' as const,x_count:7,y_count:9,mesh_x_pps:2,mesh_y_pp
 const matrix=Array.from({length:9},(_,y)=>Array.from({length:7},(_,x)=>Math.sin(x*.7)*.3+Math.cos(y*.4)*.2));
 const moves=Array.from({length:240},(_,i)=>({start:[(i*31)%260-20,(i*17)%340-20,i%7,i*.4],end:[(i*67)%260-20,(i*53)%340-20,(i+3)%7,-i*.2],options:{factor:[0,.125,.5,1][i%4],fadeOffset:[0,.1,-.2][i%3],splitDeltaZ:[.01,.025,.1][i%3],checkDistance:[3,5,7.5][i%3]}}));
 for(const end of [[0,0,0,0],[0,0,5,0],[0,0,0,100],[20,1e-11,0,5e-11],[6,0,8,2]])moves.push({start:[0,0,0,0],end,options:{factor:1,fadeOffset:0,splitDeltaZ:.025,checkDistance:5}});
+moves.push({start:[0,0,0,0],end:[22.321073814882276,73.64712141640123,67.66994874229113,1],options:{factor:1,fadeOffset:0,splitDeltaZ:.01,checkDistance:102.47609863746705}});
 const source=String.raw`
 import sys,json,ast,math,logging,time
 source=ast.parse(open(sys.argv[1]).read());nodes=[n for n in source.body if isinstance(n,ast.ClassDef) and n.name in ['ZMesh','MoveSplitter'] or isinstance(n,ast.FunctionDef) and n.name in ['constrain','lerp','isclose']];ns=dict(math=math,logging=logging,BedMeshError=RuntimeError);exec(compile(ast.Module(body=nodes,type_ignores=[]),sys.argv[1],'exec'),ns);ns['ZMesh'].print_mesh=lambda *a:None

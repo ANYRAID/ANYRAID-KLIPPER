@@ -1,3 +1,4 @@
+import {spatialDistance} from './distance.ts';
 // Port of Move and LookAheadQueue from klippy/toolhead.py.
 // Copyright (C) 2016-2025 Kevin O'Connor. GPL-3.0-or-later.
 export interface MotionLimits {
@@ -12,17 +13,6 @@ export interface Trapezoid {
   accelT:number;cruiseT:number;decelT:number;
 }
 function positive(value:number):boolean {return Number.isFinite(value)&&value>0;}
-// CPython 3.12+ sum() compensates rounding. Near-straight junctions amplify
-// even a one-ulp norm difference, so retain its high/low accumulation here.
-function spatialDistance(axes:readonly number[]):number {
-  let high=0,low=0;
-  for(let i=0;i<3;i++) {
-    const value=axes[i]*axes[i],total=high+value;
-    low+=Math.abs(high)>=Math.abs(value)?(high-total)+value:(value-total)+high;
-    high=total;
-  }
-  return Math.sqrt(high+low);
-}
 export function motionLimits(maxVelocity:number,maxAccel:number,squareCornerVelocity=5,minCruiseRatio=.5):MotionLimits {
   if(!positive(maxVelocity)||!positive(maxAccel)||!Number.isFinite(squareCornerVelocity)||squareCornerVelocity<0
     ||!Number.isFinite(minCruiseRatio)||minCruiseRatio<0||minCruiseRatio>=1) throw new RangeError('Invalid motion limits');
