@@ -1,3 +1,4 @@
+import {PrintApi,registerPrintApi,type PrintApiOptions} from './print-api.ts';
 import {HistoryRuntime,type HistoryRuntimeOptions} from './history-runtime.ts';
 import {HistoryRepository} from './history-repository.ts';
 import {registerHistory,type HistoryApiOptions} from './history-api.ts';
@@ -36,6 +37,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
  maintenanceGate?:MaintenanceGate;
+ onPrintStartComplete?:PrintApiOptions['onStartComplete'];
  /** Enable the G-code portion of data_store; temperature sampling is separate. */
  gcodeStore?:{maxBytes?:number};
  temperatureStore?:{maxSensors?:number;maxSlots?:number};
@@ -82,6 +84,7 @@ export class ConfiguredMoonraker {
  #gcodeStore:GcodeStore|undefined;
  #temperatureStore:TemperatureStoreRuntime|undefined;
  #database:DatabaseStore|undefined;#historyRuntime:HistoryRuntime|undefined;#historyNotifications=notificationMetrics();
+ #printApi:PrintApi;
  #databaseRestart={requested:false,error:null as string|null};
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
@@ -103,6 +106,8 @@ export class ConfiguredMoonraker {
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
+  this.#printApi=new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,onStartComplete:options.onPrintStartComplete});
+  const releasePrint=registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistory=options.history?registerHistory(this.endpoints,options.history,operation=>this.#historyRuntime!.mutate(operation)):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
@@ -112,7 +117,7 @@ export class ConfiguredMoonraker {
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
  }
@@ -127,6 +132,7 @@ export class ConfiguredMoonraker {
   if(options.discoverMetadataOnStart!==undefined&&(typeof options.discoverMetadataOnStart!=='boolean'||options.discoverMetadataOnStart&&!options.metadataFiles))throw new ConfigurationError('Metadata discovery requires a file owner');
   if(options.metadataFiles!==undefined&&options.thumbnails!==undefined)throw new ConfigurationError('Metadata-owned thumbnails cannot be overridden');
   if(options.metadataFiles!==undefined&&(!(options.metadataFiles instanceof MetadataFiles)||options.metadataFiles.status.closed))throw new ConfigurationError('Invalid metadata file owner');
+  if(options.onPrintStartComplete!==undefined&&typeof options.onPrintStartComplete!=='function')throw new ConfigurationError('Invalid print start observer');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
@@ -197,6 +203,7 @@ export class ConfiguredMoonraker {
  get databaseRestoreStatus(){return {...this.#databaseRestart,state:this.#database?.status.restoreState??null};}
  #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
  get klippySupervisor(){return this.#supervisor?.status??null;}
+ get printControlStatus(){return this.#printApi.status;}
  get historyStatus(){return this.#historyRuntime?{...this.#historyRuntime.status,notifications:{...this.#historyNotifications}}:null;}
  async drainHistory():Promise<void>{await this.#historyRuntime?.drain();}
  get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
@@ -262,6 +269,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;this.#printApi.close();this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }

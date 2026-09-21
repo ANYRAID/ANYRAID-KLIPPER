@@ -387,3 +387,21 @@ test('history persistence failure reaches server info and cannot prevent databas
   assert.equal((await history.get('1')).status,'in_progress');await assert.rejects(server.close(),/invariant/);assert.equal(database.status.closed,true);
  }finally{if(!database.status.closed)await server.close().catch(()=>{});}
 },(m,s)=>{if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;}}));
+test('configured print controls cross HTTP, WebSocket and the actual Unix Klippy transport with trusted identity',()=>peer(async(path,seen,sockets,dir)=>{
+ const file=join(dir,'print-api.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');const events:any[]=[];
+ const server=await ConfiguredMoonraker.load(file,{onPrintStartComplete:event=>{events.push(event);},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(_m,_p,c){if(c.request.headers['x-key']!=='test')throw new ApiError(401,'Denied');return {username:'alice'};}});let ws:WebSocket|undefined;
+ try{
+  const address=await server.start(),url='http://127.0.0.1:'+address.port,headers={'x-key':'test','content-type':'application/json'};
+  const post=(action:string,params={})=>fetch(url+'/printer/print/'+action,{method:'POST',headers,body:JSON.stringify(params)});
+  assert.equal((await post('start',{filename:'part.gcode'})).status,503);await server.attachKlippy(path,{trackJobState:true});
+  const before=seen.length;assert.equal((await fetch(url+'/printer/print/start',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename:'part.gcode'})})).status,401);assert.equal(seen.length,before);
+  assert.deepEqual(await(await post('start',{filename:'/part.gcode',username:'forged'})).json(),{result:'ok'});assert.deepEqual(events,[{filename:'part.gcode',user:{username:'alice'}}]);
+  assert.equal((await post('start',{filename:'missing.gcode'})).status,400);assert.equal(events.length,1);
+  assert.equal((await post('start',{filename:'part.gcode\nM112'})).status,400);
+  assert.deepEqual(await(await post('pause')).json(),{result:'ok'});
+  ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-key':'test'}});await once(ws,'open');const reply=once(ws,'message');ws.send(JSON.stringify({jsonrpc:'2.0',method:'printer.print.resume',id:1}));assert.equal(JSON.parse(String((await reply)[0])).result,'ok');
+  assert.deepEqual(await(await post('cancel')).json(),{result:'ok'});
+  assert.deepEqual(seen.filter(m=>m.method==='gcode/script'||m.method.startsWith('pause_resume/')).map(m=>[m.method,m.params]),[['gcode/script',{script:'SDCARD_PRINT_FILE FILENAME="part.gcode"'}],['gcode/script',{script:'SDCARD_PRINT_FILE FILENAME="missing.gcode"'}],['pause_resume/pause',{}],['pause_resume/resume',{}],['pause_resume/cancel',{}]]);
+  sockets[0].destroy();await until(()=>server.klippy?.connected===false);assert.equal((await post('resume')).status,503);assert.equal(events.length,1);
+ }finally{ws?.terminate();await server.close();}assert.equal(server.printControlStatus.closed,true);
+},(m,s)=>{if(m.method==='list_endpoints'){s.write(wire({id:m.id,result:{endpoints:[...endpoints,'gcode/script','pause_resume/pause','pause_resume/resume','pause_resume/cancel']}}));return false;}if(m.method==='gcode/script'||m.method.startsWith('pause_resume/')){s.write(wire(m.params.script?.includes('missing')?{id:m.id,error:{message:'File missing'}}:{id:m.id,result:'ok'}));return false;}}));
