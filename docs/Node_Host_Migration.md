@@ -11796,3 +11796,89 @@ magic 61267；测试结束后单独测量，基线运行时为 `e5e270f4`，共�
 `HistoryFieldData` 注册/配置层及各实际提供方组件。字段展示精度、
 退役字段过滤、提供方重启绑定仍需在该层完成；不能把测试采集器当成
 已迁移全部传感器集成。Python 主打印入口和物理打印验收依旧未完成。
+
+### 历史字段注册与整数/浮点类型（2026-09-22）
+
+新增 `host/src/moonraker/history-fields.ts`。`HistoryFields` 可直接作为
+上一阶段的 auxiliary source：在 `history.auxiliary` 工厂里创建注册表，
+通过 `register` 注册 provider/name、description、strategy、units、
+precision、reset、excludePaused、reportTotal 和 reportMaximum，返回
+注册表即可接入已有生命周期。提供方持有返回字段的 `tracker` 进行更新。
+最多注册 64 个字段；保留 provider/name 唯一性及保留名称 history 检查。
+配置快照使用上游字段名，并实时反映 reset callback 和 exclude_paused
+的变化；调用方修改配置或数据快照不会修改注册表内部定义。
+
+展示值与累计输入分离：展示时按照 precision 舍入浮点值，事务仍使用
+未舍入的 raw value。例如展示 2.675 为 2.67，但不会在下一次累计前
+把增量提前变成 2.67。collect 不产生 totals，basic 仅在当前值为数字
+或布尔值时产生配置要求的 totals；布尔累计输入转换为数值 0/1。
+
+`HistoryTracker` 新增显式 `numberType: 'float' | 'integer'`，默认 float，
+因为 JS Number 本身不能区分 Python 的 15 和 15.0。更新可通过
+`update(value, numberType)` 覆盖本次类型；重置可通过
+`setResetCallback(callback, numberType)` 指定回调类型。提供方必须根据
+输入契约保留这一信息，不用 Number.isInteger 猜测原始词法类型。
+此标记作用于标量数字，不会为任意嵌套 JSON 自动恢复原始数字词法。
+
+整数展示不受负 precision 影响，浮点展示按 Python round 处理；average
+在产生平均值后为浮点，delta/accumulate 传播数值类型，maximum/minimum
+保留实际选中操作数的类型（包括相等值时保留原值）。整数零归一化为
+正零，浮点负零保留。声明为整数的样本必须在 JS 安全整数范围内，
+超范围拒绝且保留旧状态，不会静默近似。更大的精确整数仍需提供方采用
+BigInt/字符串等单独契约，不能通过此 Number 接口传入。
+
+整数 delta 在必要时使用 BigInt 处理中间差值，最终结果仍须为安全整数。
+例如累计从 0 到 MAX_SAFE_INTEGER 再到 -2，直接 double 减后再加可能
+误得 -1；当前结果保持 -2。通常差值安全时保持 Number 路径。异步 reset
+回调被明确拒绝并消费拒绝结果，避免隐藏在注册表中的 Promise 导致
+未处理异常。
+
+21 组策略/精度组合与固定上游 HistoryFieldData/FieldTracker 源码逐步
+比较配置、展示值和原始累计描述；另测试整数边界、相等值类型、负零、
+容量、配置所有权和非法回调。配置服务器 Unix→WebSocket/HTTP 测试现
+直接使用注册表，确认展示舍入和持久累计路径相连。类型检查、空白
+检查及最终完整回归 **1,399/1,399 通过**。
+
+性能均为 Node 26.9.0，同机串行测量，与完整回归分开运行。
+`node host/bench/history-fields.ts` 对比 `255bb601` 的采集器，2 轮预热、
+7 轮计时，每轮 100,000 次标量更新；类型信息不是免费功能：
+
+| 策略 | 原 TS 中位 ms | 当前 TS 中位 ms |
+| --- | ---: | ---: |
+| basic | 1.634 | 2.202 |
+| delta | 2.257 | 3.344 |
+| accumulate | 2.074 | 2.573 |
+| average | 2.371 | 2.943 |
+| maximum | 1.719 | 2.492 |
+| minimum | 1.886 | 2.572 |
+| collect | 20.186 | 21.349 |
+
+同一脚本的 16 字段完整快照+JSON 编码，每轮 1,000 次：
+
+| 路径 | Node 中位/p95 ms | Python 中位/p95 ms |
+| --- | ---: | ---: |
+| 固定读数 | 27.644 / 28.011 | 39.286 / 39.354 |
+| 每次更新读数 | 28.901 / 30.417 | 42.815 / 42.905 |
+| 100,000 次整数 delta 边界交替 | 13.627 / 15.107 | 27.251 / 27.488 |
+
+另外重新运行 `node host/bench/history-tracker.ts`，2 轮预热、11 轮计时，
+每轮 100,000 次更新，对照原 Python 算法并核对最终值：
+
+| 策略 | Node 中位/p95 ms | Python 中位/p95 ms |
+| --- | ---: | ---: |
+| basic | 1.622 / 2.394 | 24.452 / 24.569 |
+| delta | 2.992 / 5.364 | 33.416 / 33.467 |
+| accumulate | 2.525 / 4.905 | 31.074 / 32.092 |
+| average | 2.610 / 3.467 | 39.356 / 39.541 |
+| maximum | 2.072 / 2.172 | 39.261 / 39.327 |
+| minimum | 2.336 / 2.395 | 39.236 / 39.316 |
+| collect | 22.478 / 23.063 | 75.191 / 75.676 |
+
+相比旧 TS 的中位开销增加约 6%–48%，因此不宣称无退化；相比本轮原
+Python 标量采集仍更快。不同脚本的 JIT/调用形态不同，不能混成同一
+配对样本。展示格式化在作业快照边界，不进入运动控制回路。真实提供方
+并发、目标板调度和实际打印速度仍需验收。
+
+字段注册层已经可用，但 sensor/MQTT、Spoolman 等实际提供方组件及
+配置文件解析尚未完整迁移；退役字段的 API 可见性、提供方重启恢复也
+仍待补齐。本轮没有退役新的 Python 文件，不代表全量目标完成。
