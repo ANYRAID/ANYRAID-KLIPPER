@@ -327,8 +327,18 @@ Values retain full double precision, so text differs from the Python
 tool's rounded output. Normalized input remains marked as normalized;
 mixing normalized and unnormalized datasets is rejected. Raw graph mode
 (`-r`) cannot be combined with CSV output.
-Spectrograms, interactive windows, and PDF/EPS still require the original
-Python tool. These offline graphs do not measure print quality or configure
+Spectrogram CSV export accepts one raw log and an optional axis:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -s -a all -o spectrogram.csv raw_data.csv
+```
+
+Its first column contains frequency and the remaining columns contain time
+frames, with a literal `freq\t` header followed by relative time centers.
+The export includes all frequencies regardless of `-f`, matching the Python
+CSV convention, and preserves double precision. Processed PSD input and
+combining `-s` with `-r` are rejected. Spectrogram images, interactive windows,
+and PDF/EPS still require the original Python tool. These offline graphs do not measure print quality or configure
 the printer.
 
 ## Extracting information from the klippy.log file

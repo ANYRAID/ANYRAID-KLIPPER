@@ -162,7 +162,8 @@
     "bench:accelerometer-file": "node bench/accelerometer-file.ts",
     "bench:graph-accelerometer": "node bench/graph-accelerometer.ts",
     "bench:spectrum-csv": "node bench/spectrum-csv.ts",
-    "bench:spectrogram": "node bench/spectrogram.ts"
+    "bench:spectrogram": "node bench/spectrogram.ts",
+    "bench:spectrogram-csv": "node bench/spectrogram-csv.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
