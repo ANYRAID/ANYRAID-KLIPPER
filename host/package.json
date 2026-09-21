@@ -165,7 +165,8 @@
     "bench:spectrogram": "node bench/spectrogram.ts",
     "bench:spectrogram-csv": "node bench/spectrogram-csv.ts",
     "bench:spectrogram-plot": "node bench/spectrogram-plot.ts",
-    "bench:calibrate-cli": "node bench/calibrate-cli.ts"
+    "bench:calibrate-cli": "node bench/calibrate-cli.ts",
+    "bench:webhook-console": "node bench/webhook-console.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
