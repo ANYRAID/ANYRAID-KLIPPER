@@ -14,7 +14,7 @@ export interface MotionSink {
  * move-slot scheduler, clock calibration, serial transport or hardware watchdog. */
 export class MotionCoordinator {
  #guards:readonly {assertActive():void}[];
- #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#fault:unknown;#failed=false;
+ #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#bounded=false;#fault:unknown;#failed=false;
  #stopPromise:Promise<void>|undefined;
  #finalizedSourceTime=0;#generated:number;#committed:number;#sequence=0;#maxBytes:number;
  constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[]){
@@ -34,7 +34,7 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
- get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy,failed:this.#failed,fault:this.#fault};}
+ get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy||this.#bounded,failed:this.#failed,fault:this.#fault};}
  shutdown(cause:unknown=new Error('Motion shutdown requested')):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
   this.#failed=true;this.#fault=cause;
@@ -44,7 +44,7 @@ export class MotionCoordinator {
  /** Caller selects every emitter belonging to the calibrated MCU. No awaits
   * are allowed between validation and application to the entire group. */
  calibrateClock(ids:readonly string[],offset:number,frequency:number):void{
-  if(this.#busy||this.#failed)throw new Error('Clock calibration requires an idle healthy coordinator');
+  if(this.#busy||this.#bounded||this.#failed)throw new Error('Clock calibration requires an idle healthy coordinator');
   if(!ids.length||new Set(ids).size!==ids.length)throw new Error('Invalid calibration group');
   const bindings=ids.map(id=>{const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');return b;});
   try{for(const guard of this.#guards)guard.assertActive();}catch(error){void this.shutdown(error).catch(()=>{});throw error;}
@@ -55,8 +55,8 @@ export class MotionCoordinator {
   * positions must give each bound queue's exact endpoint at lastMoveTime; no
   * later source motion may already be appended. Failure after padding is terminal.
   * Returned clocks still require transport ACK and MCU-time observation. */
- async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
-  if(this.#failed||this.#busy)throw new Error('Motion coordinator cannot drain');
+ async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,maxWindowSeconds?:number):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
+  if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot drain');
   const queues=new Set(this.#bindings.map(b=>b.queue));
   if(!Number.isFinite(lastMoveTime)||lastMoveTime<this.#generated||lastMoveTime>=1e15||positions.size!==queues.size||[...positions].some(([q,p])=>!queues.has(q)||!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))throw new RangeError('Invalid motion drain endpoints');
   let past=0,future=0;for(const b of this.#bindings){const w=b.stepper.scanWindow;past=Math.max(past,w.past);future=Math.max(future,w.future);}
@@ -66,19 +66,19 @@ export class MotionCoordinator {
   try{
    for(const guard of this.#guards)guard.assertActive();
    for(const q of queues){const p=positions.get(q)!;q.appendRaw(new Float64Array([lastMoveTime,0,sourceUntil-lastMoveTime,0,...p,0,0,0,0,0,0]));}
-   await this.advance(until);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
+   if(maxWindowSeconds===undefined)await this.advance(until);else await this.advanceBounded(until,0,until,maxWindowSeconds);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
   }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}
  }
  /** Generate only where every solver has its required future source data.
   * Does not pad a stop or wait for MCU execution. Caller owns sourceUntil. */
- async advanceSource(sourceUntil:number,clearHistoryTime=0):Promise<boolean>{
-  if(this.#failed||this.#busy)throw new Error('Motion coordinator cannot stream');
+ async advanceSource(sourceUntil:number,clearHistoryTime=0,maxWindowSeconds?:number):Promise<boolean>{
+  if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot stream');
   if(!Number.isFinite(sourceUntil)||sourceUntil<this.#generated||sourceUntil>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0)throw new RangeError('Invalid source horizon');
   let future=0;for(const b of this.#bindings)future=Math.max(future,b.stepper.scanWindow.future);
   const generation=sourceUntil-future-.001,flush=generation-.002;
   if(generation<=this.#generated||flush<this.#committed)return false;
   if(sourceUntil-generation<future||generation-flush<.001||clearHistoryTime>flush)throw new RangeError('Unrepresentable streaming horizon');
-  await this.advanceWindow(generation,flush,clearHistoryTime);return true;
+  if(maxWindowSeconds===undefined)await this.advanceWindow(generation,flush,clearHistoryTime);else await this.advanceBounded(generation,clearHistoryTime,flush,maxWindowSeconds);return true;
  }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
@@ -86,7 +86,32 @@ export class MotionCoordinator {
   return this.advance(generationUntil,clearHistoryTime,flushUntil);
  }
  /** With no flushUntil, drain through generation time; use at coordinated boundaries. */
- async advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
+ advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
+  if(this.#bounded)return Promise.reject(new Error('Motion window operation already in progress'));
+  return this.#advance(until,clearHistoryTime,flushUntil);
+ }
+ /** Bound native work in time while retaining direction-filter lookahead.
+  * Source queues must include stationary startup coverage from their baseline.
+  * Native step/byte budgets still apply to each window; failure stops all
+  * bindings and does not replay prefixes accepted by earlier windows. */
+ async advanceBounded(until:number,clearHistoryTime=0,flushUntil=until,maxWindowSeconds=.25):Promise<void>{
+  if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot start bounded generation');
+  if(!Number.isFinite(until)||until<this.#generated||until>=1e15||!Number.isFinite(flushUntil)||flushUntil<this.#committed||flushUntil>until||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0||clearHistoryTime>flushUntil||!Number.isFinite(maxWindowSeconds)||maxWindowSeconds<.01||maxWindowSeconds>1||Math.ceil((until-this.#generated)/maxWindowSeconds)>1000000)throw new RangeError('Invalid bounded generation limits');
+  this.#bounded=true;let windows=0;
+  try{
+   while(this.#generated<until){
+    // The first convolution evaluation needs retained startup padding before
+    // ordinary windows can begin. Native continuity/budget guards still apply.
+    let span=maxWindowSeconds;if(this.#generated===0)for(const b of this.#bindings)span=Math.max(span,b.stepper.scanWindow.past+.001);
+    const next=Math.min(until,this.#generated+span);if(next<=this.#generated)throw new RangeError('Unrepresentable generation window');
+    const flush=next===until?flushUntil:Math.max(this.#committed,Math.min(flushUntil,next-.002));
+    await this.#advance(next,Math.min(clearHistoryTime,flush),flush);
+    if(++windows%8===0&&this.#generated<until)await new Promise<void>(resolve=>setImmediate(resolve));
+   }
+   if(this.#committed<flushUntil)await this.#advance(until,clearHistoryTime,flushUntil);
+  }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}finally{this.#bounded=false;}
+ }
+ async #advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
   if(this.#failed)throw new Error('Motion coordinator is faulted',{cause:this.#fault});
   if(this.#busy)throw new Error('Motion batch already in progress');
   if(!Number.isFinite(until)||until<this.#generated||until>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0||clearHistoryTime>flushUntil||!Number.isFinite(flushUntil)||flushUntil<this.#committed||flushUntil>until)throw new RangeError('Invalid motion batch times');

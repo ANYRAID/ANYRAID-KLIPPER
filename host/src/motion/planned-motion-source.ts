@@ -11,7 +11,7 @@ export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
  * class does not infer a safe print time from host wall time. */
 export class PlannedMotionSource {
  readonly #routes:readonly PlannedQueue[];readonly #drain:CoordinatedMotionDrain;
- readonly #ends:Float64Array;#head=0;#count=0;
+ readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;
  #position:number[];#time:number;#busy=false;#paused=false;#failed=false;#fault:unknown;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536){
   if(!Number.isSafeInteger(maxBufferedMoves)||maxBufferedMoves<1||maxBufferedMoves>65536)throw new RangeError('Invalid source capacity');
@@ -36,8 +36,14 @@ export class PlannedMotionSource {
   for(const m of moves as readonly Move[]){const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
   return {position,time};
  }
+ #seed():void{
+  if(this.#seeded)return;const from=this.#drain.generatedTime;
+  if(!Number.isFinite(from)||from>this.#time)throw new RangeError('Invalid source generation baseline');
+  if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(new Float64Array([from,0,this.#time-from,0,...p,0,0,0,0,0,0]));}
+  this.#seeded=true;
+ }
  #append(moves:readonly Move[]):void{
-  const {position,time}=this.#validate(moves,true);
+  const {position,time}=this.#validate(moves,true);this.#seed();
   for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
   this.#position=[...position];this.#time=time;this.#count+=moves.length;
  }
@@ -50,7 +56,7 @@ export class PlannedMotionSource {
   * Success means transport acceptance, not completed physical movement. */
  async flush(signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
   this.#check();signal.throwIfAborted();if(this.#paused)throw new Error('Planned source is paused');this.#busy=true;
-  try{const result=await this.#drain.advanceSource(this.#time,signal,timeoutMs,clearHistoryTime);this.#release();return result;}
+  try{this.#seed();const result=await this.#drain.advanceSource(this.#time,signal,timeoutMs,clearHistoryTime);this.#release();return result;}
   catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  async drain(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
