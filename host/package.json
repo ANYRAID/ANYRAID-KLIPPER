@@ -213,7 +213,8 @@
     "bench:database-backup": "node bench/database-backup.ts",
     "bench:database-compact": "node bench/database-compact.ts",
     "bench:database-restore": "node bench/database-restore.ts",
-    "test:katapult-vcan": "node scripts/test-katapult-vcan.ts"
+    "test:katapult-vcan": "node scripts/test-katapult-vcan.ts",
+    "test:katapult-startup-vcan": "node scripts/test-katapult-startup-vcan.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

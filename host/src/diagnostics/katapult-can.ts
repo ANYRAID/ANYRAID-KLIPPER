@@ -40,3 +40,11 @@ export async function flashKatapultCAN(name:string,uuid:string,image:Uint8Array,
  options={...options};const snapshot=Buffer.from(image),transport=await openKatapultCAN(name,uuid,options,signal);
  try{return await flashKatapultFirmware(snapshot,transport,signal,{expectedMcu:options.expectedMcu,expectedUuid:transport.identity.uuid});}finally{transport.close();}
 }
+/** Targeted Klipper admin reboot; does not reset or assign other CAN nodes. */
+export async function requestKatapultCANBootloader(name:string,uuid:string,signal:AbortSignal):Promise<void>{
+ signal.throwIfAborted();const identity=katapultCanAddress(uuid);
+ if(typeof name!=='string'||!/^[A-Za-z0-9_.:-]{1,15}$/.test(name))throw new TypeError('Invalid CAN interface');
+ const native=createRequire(import.meta.url)(process.env.ANYRAID_SERIALQUEUE_ADDON??'../../build/serialqueue.node') as {openCAN(name:string,id:number):number};
+ const fd=native.openCAN(name,identity.clientId);
+ try{signal.throwIfAborted();const packet=katapultCanPacket(0x3f0,Buffer.concat([Buffer.from([2]),Buffer.from(identity.uuid,'hex')]));if(writeSync(fd,packet)!==16)throw new Error('Short Katapult reboot request');}finally{closeSync(fd);}
+}

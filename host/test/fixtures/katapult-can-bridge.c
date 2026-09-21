@@ -18,8 +18,17 @@ static void output(const void *data, size_t length)
         length-=n;
     }
 }
-int main(void)
+int main(int argc, char **argv)
 {
+    const char *uuid=argc>1 ? argv[1] : "112233445566";
+    assert(strlen(uuid)==12);
+    unsigned char id[6];
+    for (int i=0;i<6;i++) {
+        unsigned value;
+        assert(sscanf(uuid+2*i,"%2x",&value)==1);
+        id[i]=(unsigned char)value;
+    }
+    int needs_reboot=argc>2 && !strcmp(argv[2],"reboot"),rebooted=0;
     int fd=socket(PF_CAN,SOCK_RAW|SOCK_CLOEXEC,CAN_RAW);
     assert(fd >= 0);
     struct can_filter filters[2]={
@@ -41,7 +50,17 @@ int main(void)
             struct can_frame f;
             assert(read(fd,&f,sizeof(f)) == sizeof(f) && f.len <= 8);
             if (f.can_id == 0x3f0) {
-                const unsigned char expected[]={17,17,34,51,68,85,102,129};
+                if (f.data[0]==2) {
+                    assert(needs_reboot && !rebooted && !assigned);
+                    assert(f.len==7 && !memcmp(f.data+1,id,6));
+                    rebooted=1;
+                    fputs("REBOOT\n",stderr);
+                    continue;
+                }
+                assert(!needs_reboot || rebooted);
+                unsigned char expected[8]={17};
+                memcpy(expected+1,id,6);
+                expected[7]=129;
                 assert(!assigned && f.len == 8);
                 assert(!memcmp(f.data,expected,8));
                 assigned=1;
