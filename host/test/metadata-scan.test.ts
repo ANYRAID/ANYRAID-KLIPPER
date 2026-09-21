@@ -1,5 +1,6 @@
+import {MetadataSnapshots,restoreMetadataSnapshot} from '../src/moonraker/metadata-snapshots.ts';
 import {MetadataScanIntents} from '../src/moonraker/metadata-intents.ts';
-import {scanFileMetadataWithIntent,MetadataIntentScanError} from '../src/moonraker/metadata-intent-scan.ts';
+import {scanFileMetadataWithIntent,scanFileMetadataPersisted,MetadataIntentScanError} from '../src/moonraker/metadata-intent-scan.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,open,writeFile,rm} from 'node:fs/promises';
@@ -90,4 +91,28 @@ test('failed scans retain their durable intent while rejected intent admission c
   await assert.rejects(scanFileMetadataWithIntent(journal,options),(error:any)=>error instanceof MetadataIntentScanError&&(error.cause as any).status===409&&error.intent.id===journal.unresolved()[0].id);
   assert.equal(journal.unresolved().length,1);assert.deepEqual(await f.storage.listIds(options.signal),[]);await journal.close();const rejected=await f.options();await assert.rejects(scanFileMetadataWithIntent(journal,rejected),/closed/);assert.equal(rejected.source.fd,-1);assert.equal(f.cache.peek('part.gcode'),undefined);
  }finally{await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+
+test('persistent scan publishes query metadata only after snapshot durability and restores after reopen',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'persistent-scan-')),journal=await MetadataScanIntents.open(join(dir,'intents'));let snapshots=await MetadataSnapshots.open(join(dir,'snapshots'));try{
+  const original=snapshots.put.bind(snapshots);snapshots.put=async(...args)=>{assert.equal(f.cache.peek('part.gcode'),undefined);const saved=await original(...args);assert.equal(f.cache.peek('part.gcode'),undefined);return saved;};
+  const options=await f.options(),result=await scanFileMetadataPersisted(journal,snapshots,options);assert.equal(result.result.committed,true);assert.ok(result.snapshotId);assert.equal(journal.unresolved().length,1);const prior=f.cache.metadata('part.gcode');f.cache.clear();await snapshots.close();snapshots=await MetadataSnapshots.open(join(dir,'snapshots'));
+  assert.equal(await restoreMetadataSnapshot(snapshots,result.snapshotId,f.cache,f.cache.begin('part.gcode'),f.storage,options.validateSource,options.signal),true);assert.deepEqual(f.cache.metadata('part.gcode'),prior);
+ }finally{await snapshots.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+test('snapshot publication failure retains intent and image evidence without exposing query metadata',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'persistent-scan-failed-')),journal=await MetadataScanIntents.open(join(dir,'intents')),snapshots=await MetadataSnapshots.open(join(dir,'snapshots'),{maxStorageBytes:1});try{
+  const options=await f.options();await assert.rejects(scanFileMetadataPersisted(journal,snapshots,options),error=>error instanceof MetadataIntentScanError);assert.equal(f.cache.peek('part.gcode'),undefined);const [intent]=journal.unresolved();assert.ok(intent);assert.deepEqual(await f.storage.listIds(options.signal),[intent.bundleId]);assert.equal(options.source.fd,-1);
+ }finally{await snapshots.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+test('superseding a scan during snapshot persistence keeps the new cache and old recovery evidence',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'persistent-scan-stale-')),journal=await MetadataScanIntents.open(join(dir,'intents')),snapshots=await MetadataSnapshots.open(join(dir,'snapshots'));try{
+  const original=snapshots.put.bind(snapshots);snapshots.put=async(...args)=>{const saved=await original(...args);f.cache.commit(f.cache.begin('part.gcode'),{size:999});return saved;};const options=await f.options(),result=await scanFileMetadataPersisted(journal,snapshots,options);assert.equal(result.result.committed,false);assert.equal(f.cache.metadata('part.gcode').size,999);assert.deepEqual(await snapshots.listIds(options.signal),[result.snapshotId]);assert.equal(journal.unresolved().length,1);
+ }finally{await snapshots.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+
+test('source invalidation after durable snapshot write prevents shared cache publication',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'persistent-scan-source-')),journal=await MetadataScanIntents.open(join(dir,'intents')),snapshots=await MetadataSnapshots.open(join(dir,'snapshots'));try{
+  const original=snapshots.put.bind(snapshots);snapshots.put=async(...args)=>{const saved=await original(...args);await writeFile(f.path,'G1 X999 F600\n');return saved;};const options=await f.options();await assert.rejects(scanFileMetadataPersisted(journal,snapshots,options),(error:any)=>error instanceof MetadataIntentScanError&&(error.cause as any).status===409);assert.equal(f.cache.peek('part.gcode'),undefined);assert.equal((await snapshots.listIds(options.signal)).length,1);assert.equal(journal.unresolved().length,1);assert.equal((await f.storage.listIds(options.signal)).length,1);
+ }finally{await snapshots.close();await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });

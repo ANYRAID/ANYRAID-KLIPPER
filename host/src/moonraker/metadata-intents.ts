@@ -5,11 +5,12 @@ import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 export interface MetadataScanIntent {readonly version:1;readonly id:string;readonly filename:string;readonly bundleId:string;}
 const uuid='[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}',idPattern=new RegExp('^scan-('+uuid+')$');
 function validFilename(value:unknown):value is string{return typeof value==='string'&&value.isWellFormed()&&!!value&&Buffer.byteLength(value)<=4096&&!value.includes('\0')&&value.split('/').every(part=>!!part&&part!=='.'&&part!=='..');}
-function decode(bytes:Buffer,id:string):MetadataScanIntent{
- const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)),match=idPattern.exec(id);
- if(!match||!value||Object.keys(value).length!==4||value.version!==1||value.id!==id||value.bundleId!=='thumb-'+match[1]||!validFilename(value.filename))throw new Error('Invalid persisted metadata scan intent');
- return Object.freeze({version:1,id,filename:value.filename,bundleId:value.bundleId});
+export function metadataScanIntent(value:unknown):MetadataScanIntent{
+ const record=value as MetadataScanIntent,match=typeof record?.id==='string'?idPattern.exec(record.id):null;
+ if(!match||Object.keys(record).length!==4||record.version!==1||record.bundleId!=='thumb-'+match[1]||!validFilename(record.filename))throw new Error('Invalid metadata scan intent');
+ return Object.freeze({version:1,id:record.id,filename:record.filename,bundleId:record.bundleId});
 }
+function decode(bytes:Buffer,id:string):MetadataScanIntent{const value=metadataScanIntent(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));if(value.id!==id)throw new Error('Metadata intent receipt mismatch');return value;}
 /** A write error can have an uncertain durable result. The original intent stays
  * available to the caller; reopening verifies receipts before reconciliation. */
 export class MetadataIntentWriteError extends Error {
