@@ -66,7 +66,7 @@ export function thumbnailPath(file:string,relative:string):string{
  const parent=parts(file);parent.pop();const prefix=relative.startsWith('/')?root(relative):root(file),joined=relative.startsWith('/')?parts(relative):[...parent,...parts(relative)];
  return prefix+joined.join('/')||'.';
 }
-export function registerFileMetadata(registry:EndpointRegistry,store:FileMetadataStore):()=>void{
+export function registerFileMetadata(registry:EndpointRegistry,store:Pick<FileMetadataStore,'metadata'|'thumbnails'>):()=>void{
  const removers:(()=>void)[]=[];
  const name=(params:Readonly<Record<string,Json>>)=>{const value=params.filename;if(typeof value!=='string'||Buffer.byteLength(value)>4096||!value.isWellFormed()||value.includes('\0'))throw new ApiError(400,'Unable to extract argument [filename] as string');return value;};
  try{

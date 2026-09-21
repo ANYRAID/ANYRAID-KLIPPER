@@ -1,3 +1,5 @@
+import {MetadataFiles,registerFileMetascan} from './metadata-files.ts';
+import {registerFileMetadata} from './file-metadata.ts';
 import {JobState} from './job-state.ts';
 import {readKlippyBinding,type KlippyPathContext} from './klippy-config.ts';
 import {KlippyLifecycle,type KlippyInitializationOptions,type KlippySnapshot} from './klippy-lifecycle.ts';
@@ -17,11 +19,15 @@ import {ServerInformation,ServerConfiguration,registerServerMetadata,type Inform
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
 export interface NetworkBinding {readonly host:string;readonly port:number;readonly maxConnections:number;}
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
+const fileOwners=new WeakSet<MetadataFiles>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
  configurationLimits?:ConfigurationLimits;
+ /** Transfers admission-layer lifetime on successful load. Restore selected
+  * metadata before listening; close files on shutdown, but not its dependencies. */
+ metadataFiles?:MetadataFiles;
  /** Enables configuration-owned Klippy supervision when the network starts. */
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
@@ -41,6 +47,7 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
 export class ConfiguredMoonraker {
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
+ #metadataFiles:MetadataFiles|undefined;#startupAbort=new AbortController();#metadataRecovery:{restored:number;unavailable:number}|null=null;
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
@@ -50,7 +57,8 @@ export class ConfiguredMoonraker {
  #supervisor:KlippySupervisor|undefined;
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
-  this.#automatic=automatic;
+  if(options.metadataFiles&&fileOwners.has(options.metadataFiles))throw new ConfigurationError('Metadata files already have a server owner');
+  this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
@@ -58,9 +66,13 @@ export class ConfiguredMoonraker {
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
-  this.#release=()=>{this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,this.#metadataFiles):()=>{};
+  const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
+  this.#release=()=>{releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.metadataFiles!==undefined&&(!(options.metadataFiles instanceof MetadataFiles)||options.metadataFiles.status.closed))throw new ConfigurationError('Invalid metadata file owner');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
@@ -151,6 +163,7 @@ export class ConfiguredMoonraker {
  getAgents(){return this.#network.getAgents();}
  getAgent(name:string){return this.#network.getAgent(name);}
  get status(){return this.#network.status;}
+ get metadataRecovery(){return this.#metadataRecovery?{...this.#metadataRecovery}:null;}
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
@@ -164,6 +177,8 @@ export class ConfiguredMoonraker {
  async #start():Promise<AddressInfo>{
   try{
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
+   if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
+   this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    if(this.#automatic)this.#superviseKlippy(this.#automatic.path,this.#automatic.initialization,this.#automatic.retryDelayMs);
    return address;
@@ -175,6 +190,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;this.#subscriptions?.close();await Promise.all([this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close()]);for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();
+  this.#stopping=true;this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const settled=await Promise.allSettled([this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);
  }
 }

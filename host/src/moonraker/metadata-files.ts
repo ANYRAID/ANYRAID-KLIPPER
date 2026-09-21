@@ -21,6 +21,8 @@ export class MetadataFiles {
   return new MetadataFiles(root,options,limit);
  }
  get status(){return {closed:this.#stop.signal.aborted,pending:this.#pending.size,maxPending:this.#limit};}
+ metadata(filename:string){return this.#options.lifecycle.metadata(filename);}
+ thumbnails(filename:string){return this.#options.lifecycle.thumbnails(filename);}
  #name(filename:string):void{
   try{validateMetadataFilename(filename);}catch{throw new ApiError(400,'Invalid metadata filename');}
   const parts=filename.split('/');if(parts.length>64)throw new ApiError(400,'Metadata path is too deep');
