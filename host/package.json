@@ -195,7 +195,8 @@
     "bench:bed-mesh-profile-store": "node bench/bed-mesh-profile-store.ts",
     "bench:bed-mesh-profile-command": "node bench/bed-mesh-profile-command.ts",
     "bench:bed-mesh-switch": "node bench/bed-mesh-switch.ts",
-    "bench:mcu-clock-barrier": "node bench/mcu-clock-barrier.ts"
+    "bench:mcu-clock-barrier": "node bench/mcu-clock-barrier.ts",
+    "bench:mcu-motion-boundary": "node bench/mcu-motion-boundary.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

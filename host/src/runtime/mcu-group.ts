@@ -1,3 +1,4 @@
+import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 import {SerialSession,type SerialSessionOptions,type TimedCommandQueue} from '../protocol/serial-session.ts';
 import {connectUART,type UARTOptions} from '../protocol/uart.ts';
 import type {MCUQueueConfig} from '../motion/move-queue-sink.ts';
@@ -72,6 +73,22 @@ export class MCUGroup {
  motionQueue(id:string,emitters:readonly string[],clockAt:(printTime:number)=>bigint):MCUQueueConfig{
   const queue=this.session(id).motionQueue(id,emitters,clockAt);
   return {...queue,transport:{send:async packets=>{try{this.assertActive();await queue.transport.send(packets);this.assertActive();}catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU motion and group stop failed');}throw error;}},stop:cause=>this.stop(cause)}};
+ }
+ /** Snapshot barrier after the producer has flushed all motion. Concurrent new
+  * sends are not fenced here and are not covered by this boundary. Firmware
+  * clock passage is not physical position feedback. Failure stops the group. */
+ async waitForMotionClocks(targets:Readonly<Record<string,bigint>>,signal:AbortSignal,timeoutMs=30000):Promise<void>{
+  this.assertActive();signal.throwIfAborted();
+  const entries=Object.entries(targets);
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000||entries.length!==this.#sessions.size||entries.some(([id,tick])=>!this.#sessions.has(id)||typeof tick!=='bigint'||tick<0n||tick>=0xffffffffffffffffn))throw new RangeError('Motion clock boundary must cover every MCU with valid ticks');
+  const owned=entries.map(([id,tick])=>({session:this.#sessions.get(id)!,tick})),local=new AbortController(),combined=AbortSignal.any([signal,this.#abort.signal,local.signal]);
+  const timer=setTimeout(()=>local.abort(new Error('MCU motion boundary timed out')),timeoutMs);
+  try{
+   await Promise.all(owned.map(t=>t.session.waitForAcknowledgements(combined)));combined.throwIfAborted();this.assertActive();
+   await waitForMcuClocks(owned.map(t=>({clock:t.session.clock,tick:t.tick})),combined,{timeoutSeconds:timeoutMs/1000});
+   combined.throwIfAborted();this.assertActive();
+  }catch(error){local.abort(error);try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU motion boundary and stop failed');}throw error;}
+  finally{clearTimeout(timer);}
  }
  stop(cause:unknown=new Error('MCU group stopped')):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
