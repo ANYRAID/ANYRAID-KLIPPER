@@ -187,3 +187,13 @@ test('late replacement failure rolls back deletion and every inserted chunk; que
   const next={new:{version:2}},replacing=store.syncNamespace('ui',next);next.new.version=3;const reading=store.get('ui');await replacing;assert.deepEqual(await reading,{new:{version:2}});await store.syncNamespace('ui',{});assert.deepEqual(await store.get('ui'),{});
  }finally{await store.close();}
 }));
+
+test('record codec fast paths retain floating-point distinctions, special field names and UTF-8 failure isolation',()=>{
+ const examples:Json[]=[{a:1,b:[2.675,1e-200],c:'中文'},{a:{b:[-0,1e20,1e21,1e100]}},JSON.parse('{"__proto__":{"safe":true},"constructor":1,"toString":2}')];
+ for(const value of examples)assert.deepEqual(decodeDatabaseRecord(encodeDatabaseRecord(value)),value);
+ for(let i=0;i<100;i++){assert.throws(()=>decodeDatabaseRecord(Buffer.from([115,0xe4,0xb8])),e=>e instanceof ApiError&&e.status===422);assert.equal(decodeDatabaseRecord(encodeDatabaseRecord('中文🙂')),'中文🙂');assert.throws(()=>decodeDatabaseRecord(Buffer.from([123,34,0xff])),e=>e instanceof ApiError&&e.status===422);assert.deepEqual(decodeDatabaseRecord(encodeDatabaseRecord({ok:true})),{ok:true});}
+ const cycle:Record<string,unknown>={};cycle.self=cycle;assert.throws(()=>encodeDatabaseRecord(cycle as Json));assert.throws(()=>encodeDatabaseRecord({a:Infinity}));
+});
+test('fast result construction never treats special keys as prototype operations',()=>directory(async dir=>{
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite')});try{const data=JSON.parse('{"__proto__":{"safe":true},"constructor":1,"toString":2,"hasOwnProperty":3}');await store.insertBatch('ui',data);const result=await store.get('ui');assert.deepEqual(result,data);assert.equal(Object.getPrototypeOf(result),Object.prototype);assert.equal(Object.hasOwn(result as object,'__proto__'),true);assert.deepEqual(await store.getBatch('ui',Object.keys(data)),data);await store.update('ui','__proto__',{added:1});assert.deepEqual(await store.get('ui','__proto__'),{safe:true,added:1});assert.equal(({} as Record<string,unknown>).safe,undefined);}finally{await store.close();}
+}));
