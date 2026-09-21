@@ -32,6 +32,8 @@ export class BedMesh {
  setOffsets(x:number|null,y:number|null):void{if(x!==null&&!Number.isFinite(x)||y!==null&&!Number.isFinite(y))throw new RangeError('Invalid mesh offset');if(x!==null)this.#offsetX=x;if(y!==null)this.#offsetY=y;}
  /** Validate both new buffers before committing; direct meshes must not alias. */
  setZeroReference(x:number,y:number):void{const offset=this.calcZ(x,y),probed=Float64Array.from(this.#probed,v=>v-offset),mesh=Float64Array.from(this.#mesh,v=>v-offset);if(!probed.every(Number.isFinite)||!mesh.every(Number.isFinite))throw new RangeError('Zero reference overflow');this.#probed=probed;this.#mesh=mesh;}
+ /** Independent exact snapshot, including current zero reference and XY offsets. */
+ copy():BedMesh{const p=this.params,result=new BedMesh(p,Array.from({length:p.y_count},()=>Array<number>(p.x_count).fill(0)));result.#probed=this.#probed.slice();result.#mesh=this.#mesh.slice();result.#offsetX=this.#offsetX;result.#offsetY=this.#offsetY;return result;}
  meshValues():Float64Array{return this.#mesh.slice();}
  probedValues():Float64Array{return this.#probed.slice();}
  range():[number,number]{let low=Infinity,high=-Infinity;for(const v of this.#mesh){low=Math.min(low,v);high=Math.max(high,v);}return [low,high];}
