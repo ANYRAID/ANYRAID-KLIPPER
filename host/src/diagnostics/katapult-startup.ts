@@ -23,3 +23,11 @@ export async function flashKatapultTarget(name:string,uuid:string,image:Uint8Arr
  const serial=openKatapultSerial(device,{prime:katapultNeedsPriming(product)},signal);
  try{return {transport:'serial' as const,...await flashKatapultFirmware(snapshot,serial,signal,{expectedMcu:options.expectedMcu})};}finally{serial.close();}
 }
+/** Request only; ordinary CAN completion means the request was sent, not that a
+ * later CONNECT has succeeded. USB bridge completion includes re-enumeration. */
+export async function requestKatapultTarget(name:string,uuid:string,signal:AbortSignal){
+ signal.throwIfAborted();const identity=katapultCanAddress(uuid),bridge=await findKatapultBridge(name,identity.uuid,signal);
+ await requestKatapultCANBootloader(name,identity.uuid,signal);
+ if(bridge)return {transport:'serial' as const,device:await waitKatapultBridge(bridge,signal)};
+ await delay(1000,undefined,{signal});return {transport:'can' as const};
+}

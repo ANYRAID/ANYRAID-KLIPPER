@@ -33,3 +33,9 @@ ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
 `node scripts/flash_usb.ts --katapult -d /dev/serial/by-id/设备 固件.bin`。
 刷写前应停止打印主机并确认设备空闲；取消不能撤销已经写入的固件。
 当前验证包含模拟协议与 PTY，实际板卡烧录和打印性能仍待验收。
+
+独立 Katapult 工具为 `node scripts/katapult.ts --help`，支持串口/CAN
+刷写、状态、定向启动请求和 CAN 查询。CAN 使用前还需运行
+`node host/scripts/build-can-query.ts`；示例见
+[Bootloaders](docs/Bootloaders.md)。旧 Katapult Python 工具暂保留用于
+兼容差分，节点恢复语义和物理板卡验收仍未完成。

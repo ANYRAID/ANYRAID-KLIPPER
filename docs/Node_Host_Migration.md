@@ -11313,3 +11313,53 @@ Node 26.9.0，4093 字节固件，5 次预热/11 次普通 CAN 全流程测量�
 独立启动/桥接 vcan 的普通、UBSan 和 ASan/UBSan 三轮通过，既有
 Katapult vcan 也重新通过；完整原生构建及回归 **1357 项通过**，
 类型、项目空白与差异检查通过。没有物理 CAN/USB 重启或刷写。
+
+## 独立 Katapult Node CLI（2026-09-22）
+
+新增 `scripts/katapult.ts` 与 `katapult-cli.ts`，接受原工具的
+`-d/-b/-i/-f/-u/-q/-r/-s/-v` 选项。刷写、状态、CAN 查询和只请求
+启动互斥；拒绝串口/CAN 混用和不会被该模式消费的关键参数。
+补充 `--node-id`、`--already-bootloader`、`--prime` 与刷写时的
+`--expected-mcu`。默认固件路径仍为 `~/klipper/out/klipper.bin`，
+示例显式使用 -f；成功提示在资源关闭后输出，失败退出非零。
+
+CAN 刷写接入定向重启、桥接识别和串口切换；状态只分配/连接并核对
+UUID，不发 SEND_BLOCK/COMPLETE；只请求启动不分配节点、不刷写。
+查询复用只读 discovery，不广播清空节点，显示 Klipper/Katapult/
+Unknown，因此只能保证发现响应查询的未分配节点，未等价复现旧
+工具为查询清空全总线节点 ID 的行为。
+
+串口准备会识别 USB Klipper/Katapult；已识别的 Klipper 设备通过
+原生 1200 波特率操作进入 bootloader，等待唯一新 tty 并按产品名
+启用 priming。未知或非 USB 串口刷写按已运行 Katapult 处理，与原
+工具一致；只请求启动模式则发送一次精确字节串
+`~ 0x1c Request Serial Bootloader!! ~`，等待原有 1000 ms 后关闭。
+写入以非阻塞方式限时执行，取消关闭 fd，不重发请求。USB 的真实
+重新枚举分支仍需物理板卡验收，不能由未知设备 PTY 用例证明。
+
+4 项 CLI 专项覆盖参数与模式、真实串口子进程 status/flash/priming、
+精确串口启动字节、活动 status 的 SIGTERM，以及显式 MCU 冲突在
+请求/CONNECT 前拒绝。ASan/UBSan 串口专项通过。独立
+`npm --prefix host run test:katapult-cli-vcan` 验证真实子进程 CAN
+flash/status/request/query 和 SIGTERM；C 桥断言重启/分配次数及
+UUID，状态没有写入或 COMPLETE，取消和 request 没有刷写命令。
+
+Node 26.9.0，4093 字节，5 次预热/11 次完整进程测量：
+
+| 独立 CLI 路径 | 中位 / p95 ms |
+| --- | ---: |
+| 串口 PTY（含 priming） | 145.871 / 192.372 |
+| CAN vcan（含定向重启及 1500 ms 等待） | 1643.481 / 1648.250 |
+
+串口由 `node host/bench/katapult-cli.ts` 测量，CAN 随独立 vcan
+测试输出。包含进程启动、文件预检、协议校验与退出；没有 Python
+同环境完整 CLI 比较、物理总线/Flash 或打印速度数据，串口 p95
+波动不被解释为稳定延迟保证。README 与 Bootloaders 补充构建和
+运行说明。
+
+完整原生构建及回归 **1361 项通过**，类型、项目空白和差异检查
+通过。旧 flashtool.py 仍保留：全节点 reset、进程占用扫描、完整
+恢复行为与参考程序退役未完成；没有物理设备操作或生产部署。
+
+无 Python PATH（只保留 Node、as、ld，CC 为 /usr/bin/cc）下，4 项
+独立串口 CLI 测试也通过；这不表示整个项目已经移除 Python。

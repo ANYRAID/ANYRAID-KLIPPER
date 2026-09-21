@@ -11,6 +11,40 @@ ANYRAID USB 烧录入口现为 Node.js 26 的 `scripts/flash_usb.ts`，相关
 [Node 迁移说明](Node_Host_Migration.md)。
 旧 `scripts/flash_usb.py` 已移除；独立的 Katapult Python 工具尚未退役。
 
+### ANYRAID Katapult Node 工具
+
+先准备 Node 26 开发头文件和本机 C 编译器，再运行：
+
+```sh
+node host/scripts/build-serialqueue.ts
+node host/scripts/build-can-query.ts
+node scripts/katapult.ts --help
+```
+
+停止打印主机并确认目标设备空闲后，可以使用以下入口：
+
+```sh
+# 串口刷写；USB Klipper 设备会先请求进入 bootloader
+node scripts/katapult.ts -d /dev/serial/by-id/设备 -f out/klipper.bin
+# CAN 定向重启后刷写，自动处理匹配的 USB-CAN 桥接器
+node scripts/katapult.ts -i can0 -u 设备UUID -f out/klipper.bin
+# 已经进入 Katapult 的 CAN 设备可省略启动请求
+node scripts/katapult.ts -i can0 -u 设备UUID --already-bootloader -f out/klipper.bin
+# 状态、仅请求启动、查询未分配节点
+node scripts/katapult.ts -i can0 -u 设备UUID --status
+node scripts/katapult.ts -i can0 -u 设备UUID --request-bootloader
+node scripts/katapult.ts -i can0 --query
+```
+
+查询不会广播清空已有节点 ID，因此不保证列出已分配的节点。状态
+模式仍需连接/分配节点，不能当作无设备动作的检查。CAN 节点号默认
+129，可用 `--node-id` 指定总线上已保留的空闲编号。串口支持 `--baud`
+和 `--prime`；`--expected-mcu` 可在刷写时增加显式 MCU 核对。
+无 USB 标识的串口在刷写模式下按已运行 Katapult 处理，启动请求
+模式则发送原串口启动序列。`--verbose` 输出结构化结果；失败退出
+非零，错误或取消后不会自动重试刷写。旧工具的全节点 ID reset、
+进程占用扫描和全部恢复行为尚未等价替代，物理板卡验收仍开放。
+
 This document provides information on common bootloaders found on
 micro-controllers that Klipper supports.
 
