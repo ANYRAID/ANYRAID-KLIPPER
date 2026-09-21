@@ -405,3 +405,26 @@ test('configured print controls cross HTTP, WebSocket and the actual Unix Klippy
   sockets[0].destroy();await until(()=>server.klippy?.connected===false);assert.equal((await post('resume')).status,503);assert.equal(events.length,1);
  }finally{ws?.terminate();await server.close();}assert.equal(server.printControlStatus.closed,true);
 },(m,s)=>{if(m.method==='list_endpoints'){s.write(wire({id:m.id,result:{endpoints:[...endpoints,'gcode/script','pause_resume/pause','pause_resume/resume','pause_resume/cancel']}}));return false;}if(m.method==='gcode/script'||m.method.startsWith('pause_resume/')){s.write(wire(m.params.script?.includes('missing')?{id:m.id,error:{message:'File missing'}}:{id:m.id,result:'ok'}));return false;}}));
+test('configured history binds request identity once across response ordering and failed same-name starts',()=>peer(async(path,_seen,sockets,dir)=>{
+ const {DatabaseStore}=await import('../src/moonraker/database.ts'),{HistoryRepository}=await import('../src/moonraker/history-repository.ts');
+ const file=join(dir,'attribution.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');const database=await DatabaseStore.open({path:join(dir,'attribution.db')}),history=await HistoryRepository.open(database);
+ const server=await ConfiguredMoonraker.load(file,{database,history:{repository:history,fileExists:()=>true},onPrintStartComplete(){throw new Error('Ignored observer failure');},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(_m,_p,c){return {username:String(c.request.headers['x-test-user']??'anonymous')};}});
+ try{
+  const address=await server.start();await server.attachKlippy(path);const url='http://127.0.0.1:'+address.port;
+  const post=(name:string)=>fetch(url+'/printer/print/start',{method:'POST',headers:{'content-type':'application/json','x-test-user':name},body:JSON.stringify({filename:'part',username:'forged'})});
+  assert.equal((await post('alice')).status,200);await until(()=>server.jobState?.event==='complete');await server.drainHistory();assert.equal((await history.get('1')).user,'alice');
+  assert.equal((await post('bob')).status,200);assert.equal(server.historyStatus?.awaitingPrintStart,true);assert.throws(()=>server.maintenanceGate.acquire(),/not idle/);
+  const update=(state:string,time:number)=>sockets[0].write(wire({method:'process_status_update',params:{eventtime:time,status:{print_stats:{state,filename:'part',total_duration:time,print_duration:time,filament_used:1}}}}));
+  update('printing',4);update('complete',5);await until(()=>server.jobState?.stats.total_duration===5);await server.drainHistory();assert.equal((await history.get('2')).user,'bob');
+  assert.equal((await post('carol')).status,400);assert.equal(server.historyStatus?.awaitingPrintStart,false);
+  update('printing',6);update('complete',7);await until(()=>server.jobState?.stats.total_duration===7);await server.drainHistory();assert.equal((await history.get('3')).user,'No User');assert.equal((await history.totals()).total_jobs,3);
+ }finally{await server.close();}
+},(m,s,seen)=>{
+ if(m.method==='list_endpoints'){s.write(wire({id:m.id,result:{endpoints:[...endpoints,'gcode/script']}}));return false;}
+ if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;}
+ if(m.method==='gcode/script'){
+  const count=seen.filter(item=>item.method==='gcode/script').length;
+  if(count===1)for(const [state,time] of [['printing',2],['complete',3]] as const)s.write(wire({method:'process_status_update',params:{eventtime:time,status:{print_stats:{state,filename:'part',total_duration:time,print_duration:time,filament_used:1}}}}));
+  s.write(wire(count===3?{id:m.id,error:{message:'Rejected start'}}:{id:m.id,result:'ok'}));return false;
+ }
+}));

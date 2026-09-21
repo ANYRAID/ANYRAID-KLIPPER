@@ -12,6 +12,8 @@ export interface PrintStartEvent {readonly filename:string;readonly user:Authori
 export interface PrintApiOptions {
  backend():PrintBackend|undefined;
  maintenanceGate:MaintenanceGate;
+ /** Reliable synchronous admission owner, separate from best-effort observers. */
+ beginStart?(event:PrintStartEvent,request:AbortSignal,lifetime:AbortSignal):(success:boolean)=>void;
  /** Observational only. Failure is reported separately and never retries a print. */
  onStartComplete?(event:PrintStartEvent):void|Promise<void>;
 }
@@ -25,7 +27,7 @@ export function printFilename(value:Json|undefined):string{
  * not infer physical completion, retry uncertain commands, or own macro logic. */
 export class PrintApi {
  readonly #options:PrintApiOptions;#starting=false;#closed=false;#abort=new AbortController();#observerPending=false;#observerError:string|null=null;
- constructor(options:PrintApiOptions){if(typeof options.backend!=='function'||!(options.maintenanceGate instanceof MaintenanceGate)||options.onStartComplete!==undefined&&typeof options.onStartComplete!=='function')throw new TypeError('Invalid print API owner');this.#options=options;}
+ constructor(options:PrintApiOptions){if(typeof options.backend!=='function'||!(options.maintenanceGate instanceof MaintenanceGate)||options.onStartComplete!==undefined&&typeof options.onStartComplete!=='function'||options.beginStart!==undefined&&typeof options.beginStart!=='function')throw new TypeError('Invalid print API owner');this.#options=options;}
  get status(){return {starting:this.#starting,closed:this.#closed,observerError:this.#observerError,observerPending:this.#observerPending};}
  async call(action:'start'|'pause'|'resume'|'cancel',params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(!['start','pause','resume','cancel'].includes(action))throw new ApiError(400,'Invalid print action');
@@ -36,19 +38,20 @@ export class PrintApi {
   if(!backend.snapshot.endpoints.includes(method))throw new ApiError(503,'Klippy print endpoint is unavailable');
   if(action==='start'&&this.#starting)throw new ApiError(409,'A print start request is already pending');
   let release:()=>void;try{release=this.#options.maintenanceGate.activity();}catch(error){if(error instanceof MaintenanceBusyError)throw new ApiError(409,error.message);throw error;}
-  if(action==='start')this.#starting=true;
+  if(action==='start')this.#starting=true;let settle:((success:boolean)=>void)|undefined,succeeded=false;
   try{
-   const signal=AbortSignal.any([context.signal,backend.signal,this.#abort.signal]);signal.throwIfAborted();
+   const lifetime=filename!==undefined&&this.#options.beginStart?AbortSignal.any([backend.signal,this.#abort.signal]):undefined,signal=AbortSignal.any(lifetime?[context.signal,lifetime]:[context.signal,backend.signal,this.#abort.signal]);signal.throwIfAborted();
+   if(filename!==undefined&&this.#options.beginStart){settle=this.#options.beginStart(Object.freeze({filename,user:context.user}),signal,lifetime!);if(typeof settle!=='function')throw new ApiError(500,'Invalid print admission owner');}
    // Preserve literal backslashes as well as quotes for Klippy's POSIX shlex.
    const args:Record<string,Json>=filename===undefined?{}:{script:'SDCARD_PRINT_FILE FILENAME="'+filename.replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"'};
-   const result=await backend.request(method,args,{signal});signal.throwIfAborted();
+   const result=await backend.request(method,args,{signal});signal.throwIfAborted();succeeded=true;settle?.(true);
    if(filename!==undefined&&this.#options.onStartComplete){
     const event=Object.freeze({filename,user:context.user});
     if(this.#observerPending)this.#observerError='Print observer capacity exceeded';
     else try{const pending=this.#options.onStartComplete(event);if(pending){this.#observerPending=true;void Promise.resolve(pending).catch(error=>{this.#observerError=error instanceof Error?error.message:'Print observer failed';}).finally(()=>{this.#observerPending=false;});}}catch(error){this.#observerError=error instanceof Error?error.message:'Print observer failed';}
    }
    return result;
-  }finally{if(action==='start')this.#starting=false;release();}
+  }finally{try{if(!succeeded)settle?.(false);}finally{if(action==='start')this.#starting=false;release();}}
  }
  close():void{this.#closed=true;this.#abort.abort(new ApiError(503,'Print API is closed'));}
 }
