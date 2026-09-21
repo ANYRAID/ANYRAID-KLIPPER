@@ -5,14 +5,20 @@ import {normalizeShaperDataset,type ShaperDataset} from './shaper-fit.ts';
 export interface NamedSpectrum extends ShaperDataset {name:string;normalized:boolean;axes?:{x:Float64Array;y:Float64Array;z:Float64Array};}
 export type AccelerometerLog={kind:'raw';name:string;samples:Float64Array}|{kind:'psd';datasets:NamedSpectrum[]};
 function csvHeader(line:string):string[]{const result:string[]=[];let field='',quoted=false,closed=false;for(let i=0;i<line.length;i++){const c=line[i];if(quoted){if(c==='"'){if(line[i+1]==='"'){field+='"';i++;}else{quoted=false;closed=true;}}else field+=c;}else if(c===','){result.push(field);field='';closed=false;}else if(c==='"'&&!field&&!closed)quoted=true;else{if(closed||c==='"')throw new Error('Malformed CSV header');field+=c;}}if(quoted)throw new Error('Unterminated CSV header');result.push(field);return result;}
-function numeric(text:string,missing=false):number{const value=text.trim();if(!value&&missing)return 0;if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value))throw new Error('Invalid accelerometer number');const n=Number(value);if(!Number.isFinite(n))throw new Error('Nonfinite accelerometer number');return n;}
+function numeric(text:string,missing=false):number{const value=text.trim();if(!value&&missing)return 0;// Number's finite decimal grammar also accepts unsigned 0x/0b/0o; reject those explicitly.
+ const radix=value.charCodeAt(1)|32;if(!value||(value.charCodeAt(0)===48&&(radix===120||radix===98||radix===111)))throw new Error('Invalid accelerometer number');const n=Number(value);if(!Number.isFinite(n))throw new Error('Nonfinite accelerometer number');return n;}
 export function parseAccelerometerLog(text:string,name:string):AccelerometerLog{
  if(Buffer.byteLength(text)>64*1024**2)throw new RangeError('Accelerometer text limit exceeded');
  const lines=text.split(/\r\n|\r|\n/).filter(line=>line.trim()&&!line.startsWith('#'));if(!lines.length)throw new Error('No accelerometer data');if(lines.some(line=>line.length>65536))throw new RangeError('Accelerometer line limit exceeded');
  const psd=lines[0].startsWith('freq,'),header=psd?csvHeader(lines.shift()!):undefined,width=header?.length??4;
  if(width>128||!lines.length||lines.length>1000000||lines.length*width>4000000)throw new RangeError('Accelerometer table capacity exceeded');
  const raw=psd?undefined:new Float64Array(lines.length*4),columns=psd?Array.from({length:width},()=>new Float64Array(lines.length)):[];
- for(let i=0;i<lines.length;i++){const fields=lines[i].split('#',1)[0].split(',');if(fields.length!==width)throw new Error('Inconsistent accelerometer column count');for(let j=0;j<width;j++){const value=numeric(fields[j],psd);if(raw)raw[i*4+j]=value;else columns[j][i]=value;}const coordinate=raw?raw[i*4]:columns[0][i],previous=raw?raw[(i-1)*4]:columns[0][i-1];if((psd&&coordinate<0)||(i>0&&coordinate<=previous))throw new Error('Sample coordinates must increase');}
+ for(let i=0;i<lines.length;i++){
+  const line=lines[i],comment=line.indexOf('#'),content=comment<0?line:line.slice(0,comment);
+  if(raw){let start=0;for(let j=0;j<4;j++){const comma=content.indexOf(',',start);if((j<3&&comma<0)||(j===3&&comma>=0))throw new Error('Inconsistent accelerometer column count');raw[i*4+j]=numeric(content.slice(start,comma<0?content.length:comma));start=comma+1;}}
+  else{const fields=content.split(',');if(fields.length!==width)throw new Error('Inconsistent accelerometer column count');for(let j=0;j<width;j++)columns[j][i]=numeric(fields[j],true);}
+  const coordinate=raw?raw[i*4]:columns[0][i],previous=raw?raw[(i-1)*4]:columns[0][i-1];if((psd&&coordinate<0)||(i>0&&coordinate<=previous))throw new Error('Sample coordinates must increase');
+ }
  if(raw)return {kind:'raw',name,samples:raw};
  const marker=header!.indexOf('shapers:'),normalized=marker>=0,axisFormat=header!.slice(0,5).join(',')==='freq,psd_x,psd_y,psd_z,psd_xyz',end=marker<0?width:marker,datasets:NamedSpectrum[]=[];
  if(axisFormat&&end<5)throw new Error('Incomplete axis spectrum');
