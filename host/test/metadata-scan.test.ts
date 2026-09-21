@@ -1,3 +1,5 @@
+import {MetadataScanIntents} from '../src/moonraker/metadata-intents.ts';
+import {scanFileMetadataWithIntent,MetadataIntentScanError} from '../src/moonraker/metadata-intent-scan.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,open,writeFile,rm} from 'node:fs/promises';
@@ -74,4 +76,18 @@ test('source mutation while image processing is paused rejects the combined scan
   await until(()=>f.processor.status.active);await writeFile(f.path,'G1 X999 F600\n');process.kill(pid,'SIGCONT');await rejected;
   assert.equal(f.cache.peek('part.gcode'),undefined);assert.equal(f.storage.status.storage.publishedFiles,0);assert.equal(f.processor.status.closed,false);
  }finally{await f.close();}
+});
+
+test('intent is durable before scanning and success retains it until explicit reconciliation',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'scan-intent-owner-'));let journal=await MetadataScanIntents.open(dir);try{
+  const options=await f.options(),check=options.validateSource;options.validateSource=async(source)=>{assert.equal(journal.unresolved().length,1);return check(source);};
+  const result=await scanFileMetadataWithIntent(journal,options);assert.equal(result.result.committed,true);assert.equal(result.result.bundleId,result.intent.bundleId);await journal.close();journal=await MetadataScanIntents.open(dir);assert.deepEqual(journal.unresolved(),[result.intent]);assert.deepEqual(await f.storage.listIds(options.signal),[result.intent.bundleId]);
+ }finally{await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+test('failed scans retain their durable intent while rejected intent admission closes source',async()=>{
+ const f=await fixture(),dir=await mkdtemp(join(tmpdir(),'scan-intent-failed-')),journal=await MetadataScanIntents.open(dir);try{
+  const options=await f.options();options.validateSource=async()=>false;
+  await assert.rejects(scanFileMetadataWithIntent(journal,options),(error:any)=>error instanceof MetadataIntentScanError&&(error.cause as any).status===409&&error.intent.id===journal.unresolved()[0].id);
+  assert.equal(journal.unresolved().length,1);assert.deepEqual(await f.storage.listIds(options.signal),[]);await journal.close();const rejected=await f.options();await assert.rejects(scanFileMetadataWithIntent(journal,rejected),/closed/);assert.equal(rejected.source.fd,-1);assert.equal(f.cache.peek('part.gcode'),undefined);
+ }finally{await journal.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });
