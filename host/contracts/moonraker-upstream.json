@@ -43,7 +43,8 @@
     {
       "name": "database",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, backups/restores/compact, tables/batches/update helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly."
     },
     {
       "name": "dbus_manager",
@@ -425,14 +426,16 @@
       "line": 244,
       "method": "register_endpoint",
       "targetExpression": "\"/server/database/list\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/database.ts; database-worker.ts; database-engine.ts; database-record.ts; host/test/database.test.ts; host/bench/database.ts. Optional ConfiguredMoonraker owner, authenticated REST/RPC, persisted protected/forbidden namespaces and real SQLite transactions; configured backup-directory listing only. No debug bypass or complete daemon assembly."
     },
     {
       "file": "moonraker/components/database.py",
       "line": 247,
       "method": "register_endpoint",
       "targetExpression": "\"/server/database/item\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/database.ts; database-worker.ts; database-engine.ts; database-record.ts; host/test/database.test.ts; host/bench/database.ts. Optional ConfiguredMoonraker owner, authenticated REST/RPC, persisted protected/forbidden namespaces and real SQLite transactions; configured backup-directory listing only. No debug bypass or complete daemon assembly."
     },
     {
       "file": "moonraker/components/database.py",
