@@ -37,3 +37,17 @@ test('uncached binary reads reject corrupt content and cache size stays bounded'
 test('close drains accepted publication before releasing the exclusive store lock',async()=>{
  const f=await fixture(),input=await images(),id=ThumbnailStorage.newId();try{const publishing=f.store.publish(id,input,signal()),closing=f.store.close();assert.equal((await publishing).id,id);await closing;assert.equal(f.store.status.cacheBytes,0);await assert.rejects(f.store.read(id,0,signal()),/closed/);const recovered=await ThumbnailStorage.open(f.root);try{assert.equal((await recovered.inspect(id,signal())).thumbnails.length,2);}finally{await recovered.close();}}finally{await f.close();}
 });
+test('receipt inventory waits for accepted staging and survives restart without decoding images',async()=>{
+ const f=await fixture(),input=await images(),id=ThumbnailStorage.newId();try{
+  const publishing=f.store.publish(id,input,signal()),inventory=f.store.listIds(signal());await publishing;
+  const ids=await inventory;assert.deepEqual(ids,[id]);assert.equal(Object.isFrozen(ids),true);assert.equal(f.store.status.cachedBundles,0);
+  await f.store.close();const recovered=await ThumbnailStorage.open(f.root);try{
+   assert.deepEqual(await recovered.listIds(signal()),[id]);assert.equal(recovered.status.cachedBundles,0);await recovered.remove(id,signal());assert.deepEqual(await recovered.listIds(signal()),[]);assert.deepEqual(ids,[id]);
+  }finally{await recovered.close();}
+ }finally{await f.close();}
+});
+test('receipt inventory rejects cancellation and closing, retaining all published content',async()=>{
+ const f=await fixture(),id=ThumbnailStorage.newId();try{
+  await f.store.publish(id,await images(),signal());await assert.rejects(f.store.listIds(AbortSignal.abort(new Error('inventory cancelled'))),/inventory cancelled/);assert.deepEqual(await f.store.listIds(signal()),[id]);await f.store.close();await assert.rejects(f.store.listIds(signal()),/closed/);
+ }finally{await f.close();}
+});

@@ -82,6 +82,9 @@ export class PublishedPrintFiles {
    signal.throwIfAborted();if(hash.digest('hex')!==record.sha256)throw new Error('Existing published content digest mismatch');
   }finally{await file.close();}
  }
+ /** Snapshot known receipt IDs behind the mutation barrier. This is an inventory,
+  * not a claim that every receipt is still referenced by higher-level metadata. */
+ listIds(signal:AbortSignal):Promise<readonly string[]>{return this.#run(async()=>{signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});return Object.freeze([...this.#records.keys()].sort());},true,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
  /** Bounded binary acquisition for non-G-code owners. The returned Buffer is an
   * independent verified snapshot; it never enters the text G-code reader. */
