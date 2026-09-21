@@ -11241,3 +11241,38 @@ Node 26.9.0，5 次预热/11 次完整测量，中位 / p95
 独立 vcan 普通、UBSan、ASan/UBSan 三轮均通过；完整原生构建及
 回归 **1353 项通过**，类型、项目空白与差异检查通过。ASan 未启用
 Node 进程全局泄漏核算，本阶段没有修改主机物理 CAN 接口。
+
+## USB-CAN 桥接识别与精确 UUID 转换（2026-09-22）
+
+`host/src/diagnostics/katapult-bridge.ts` 迁移原工具的 fasthash64 和
+USB 芯片序列号到 CAN UUID 的转换。64 位乘法、移位、掩码均使用
+BigInt；最后取哈希的低 6 字节并按 Klipper 字节序输出固定 12 位
+十六进制，不经过可能丢失精度的 Number。序列号解析匹配 Python
+bytes.fromhex 的 ASCII 字节间空白规则，拒绝半字节、非法字符和
+超过 1024 字符的输入；空序列的纯函数结果也与 Python 一致，但
+设备发现不会采用空 serial。保留原 fast-hash MIT 许可说明。
+
+只读 `findKatapultBridge` 同时匹配 CAN 接口、Klipper 制造商、
+GS USB 1d50:606f 和计算出的 UUID，重复匹配报错。重启后可调用
+`waitKatapultBridge` 按原轮询周期等 USB 身份变化，并在稳定等待
+后再次检查，要求新设备为 Katapult 且只有一个可用 tty。身份继续
+变化、非 Katapult 设备、多串口、取消或超时均拒绝；不会选第一个
+tty 猜测目标。UART 类型最终由原生打开校验，这里只检查路径存在。
+这些是供后续 CAN 启动/桥接切换使用的组件，尚未接入自动重启路径。
+
+3 项专项覆盖 261 组 Python 哈希/UUID 差分（长度 0–64、所有尾块
+长度、0/1/uint64 最大值等 seed），以及临时 sysfs 的接口/UUID
+关联、重复匹配、重新枚举、错误设备、多 tty 和取消。精确整型
+差分不意味着运动计算或实际打印精度已验收。
+
+`node host/bench/katapult-hash.ts`：Node 26.9.0 / Python 3.12.13，
+每轮 10000 个 12 字节序列号，各执行一次通用 64 位哈希和一次
+UUID 转换，5 次预热/11 次测量，全部结果逐项一致。Node 中位/p95
+**28.739/33.924 ms**，Python **64.408/64.666 ms**；包含十六进制
+解析与格式化，Python 原函数尾块 debug 输出被捕获到内存。没有
+sysfs、USB 重新枚举或打印热路径测量；不需要引入 Rust 数学库来
+满足本项整数精度。自动桥接恢复、完整 CLI、实机及 Moonraker
+功能迁移仍未完成。
+
+完整原生构建及回归 **1356 项通过**，类型、项目空白和差异检查
+通过；未连接、重启或刷写实际 USB-CAN 桥接设备。
