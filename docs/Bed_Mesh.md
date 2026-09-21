@@ -787,7 +787,27 @@ model JSON are supported; a file output is required. Sample points are dots,
 missing points are magenta rings, and start/stop use a green triangle and
 red square. Empty paths are rendered without invented endpoints. Colors,
 markers and layout differ from Matplotlib; JSON preserves exact coordinates.
-Surface plots and animation still use the Python tool below.
+Static height surfaces are also supported:
+
+```
+node scripts/graph_mesh.ts plot probedz -o probed.png mesh-dump.json
+node scripts/graph_mesh.ts plot meshz -o interpolated.svg mesh-dump.json
+node scripts/graph_mesh.ts plot overlay -p saved-profile -o overlay.png mesh-dump.json
+node scripts/graph_mesh.ts plot delta -p saved-profile -o delta.json mesh-dump.json
+```
+
+`probedz -p NAME` selects a saved profile instead of the current mesh.
+`overlay` and `delta` require `-p`; delta is current minus saved heights.
+Delta rejects mismatched matrix dimensions and checks the original six mesh
+parameters with the Python tool's 1e-6 tolerance. Surface images use a fixed
+orthographic view, shared physical X/Y scale and explicitly exaggerated Z.
+Each surface has its own color scale; overlays are translucent. `-s` clips
+the displayed polygons to the machine X/Y range. JSON retains all vertices.
+
+Image rendering admits at most 50000 cells across both surfaces, without
+silent downsampling; use JSON for larger grids. A zero-height mesh uses a
+0.001 mm Z display range. Colors, camera and layout differ from Matplotlib.
+Interactive rotation and animation still use the Python tool below.
 
 The `graph_mesh.py` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
