@@ -30,6 +30,7 @@ export class MotionCoordinator {
   this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
  }
+ usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy,failed:this.#failed,fault:this.#fault};}
  shutdown(cause:unknown=new Error('Motion shutdown requested')):Promise<void>{

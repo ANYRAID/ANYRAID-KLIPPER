@@ -9,6 +9,8 @@ import type {TrapQueue} from './trap-queue.ts';
 export class CoordinatedMotionDrain {
  readonly #coordinator:MotionCoordinator;readonly #sink:MoveQueueSink;readonly #group:MCUGroup;#busy=false;
  constructor(coordinator:MotionCoordinator,sink:MoveQueueSink,group:MCUGroup){if(!coordinator.usesSink(sink))throw new Error('Motion drain sink does not belong to coordinator');this.#coordinator=coordinator;this.#sink=sink;this.#group=group;}
+ usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
+ async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
  async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,signal:AbortSignal,timeoutMs=30000){
   if(this.#busy)throw new Error('Motion drain already active');signal.throwIfAborted();this.#group.assertActive();
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid motion drain timeout');
