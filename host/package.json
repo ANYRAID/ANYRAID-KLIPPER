@@ -152,7 +152,8 @@
     "bench:graphstats-export": "node bench/graphstats-export.ts",
     "bench:graph-extruder": "node bench/graph-extruder.ts",
     "bench:graph-shaper": "node bench/graph-shaper.ts",
-    "bench:shaper-export": "node bench/shaper-export.ts"
+    "bench:shaper-export": "node bench/shaper-export.ts",
+    "bench:graph-temperature": "node bench/graph-temperature.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

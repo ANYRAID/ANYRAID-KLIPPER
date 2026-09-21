@@ -7139,3 +7139,52 @@ GUI、PDF/EPS 仍未迁移，原 Python 工具保留；完整目标继续保持�
 未部署、刷写或切换 Python 生产入口。
 
 本阶段完整原生构建与回归 **963 项通过**，类型、项目空白及差异检查通过。
+
+### 温度传感器诊断工具（2026-09-21）
+
+新增 `node scripts/graph_temp_sensor.ts -o sensors.png`，支持 -p/--pullup、
+-v/--voltage、-s/--sensors、-r/--resistance，SVG/PNG/JPEG/WebP/TIFF/JSON
+输出复用共享面板导出器。默认覆盖当前八个内置线性传感器与八个热敏
+电阻，按名称排序；显式传感器列表保留顺序，可通过 --help 查看名称。
+默认计算 1..350°C 的 ADC，用 1..349°C 点生成 ADC 与相邻一度绝对差值
+双图；电阻模式使用全部 350 点以及原 pullup*adc/(1-adc) 公式。
+电压型传感器的该结果不是物理电阻；超出校准点范围的外推也不等于
+传感器可用或加热器安全范围。Node 不读取硬件、不改变热控制配置。
+
+实际检查发现原 graph_temp_sensor.py 调用的 thermistor.load_config
+已经不存在，原 import_sensors 入口不能直接工作。参考适配器保留原
+绘图循环和当前 Python 转换公式，只替换传感器注册：线性类型取原
+DefaultVoltageSensors/DefaultResistanceSensors，热敏电阻取当前
+klippy/extras/temperature_sensors.cfg 并调用原系数初始化。生产 Node
+使用此前已迁移的转换器与内置数据，既不调用 Python，也不复刻一套公式。
+参考测试明确验证旧注册函数缺失；不将适配后的结果称为原 CLI 可运行。
+
+新增两项测试：16 个传感器在 4700Ω/5V、2200Ω/3.3V 下的两种模式逐点
+对照，真实 CLI 的参数 JSON、单双图 PNG 解码、帮助与非法输入。误差
+门限为 abs(actual-reference) <= 1e-9*max(1,abs(reference))，仅用于
+诊断数值差分。输入限定正有限电阻/电压及 1..32 个已知传感器；非有限
+换算结果拒绝，不静默裁剪或改变原电阻公式。已目视检查全部 16 个
+传感器的 ADC 双图，长图例沿用截断文本及 SVG 完整 title，可使用 -s
+选择少量传感器进行清晰比较。
+
+`npm --prefix host run bench:graph-temperature`，Node 26.9.0 对 Python
+3.12.13，16 个传感器、五批预热/11 批测量：
+
+| 操作 | Node 中位 / p95 | Python 中位 / p95 |
+| --- | --- | --- |
+| ADC 双图计算 | 1.010 / 1.642 ms | 11.578 / 11.664 ms |
+| 电阻图计算 | 0.930 / 0.987 ms | 11.518 / 11.611 ms |
+| 已有 ADC 数据的 PNG 导出 | 42.663 / 47.660 ms | 未测 |
+| 已有电阻数据的 PNG 导出 | 19.015 / 19.821 ms | 未测 |
+
+本次最大缩放误差为 3.764e-15。计算计时包含转换器创建及曲线计算，Python
+校准点范围警告被关闭、Matplotlib 由曲线记录器替代；进程启动和 IPC
+不计入，PNG 导出单独计时。没有真实 ADC 精度、目标板或打印速度证明。
+原脚本 SHA-256 为
+`0668fdcffa3521b18d4211548e850be6b36f5870344462661a59c8934ffaf8df`，
+原温度配置 SHA-256 为
+`ad51db8c1984646f56dc1c7a946d5e43b4ff9e5c52f305c01b166e84a0d3a857`。
+GUI、PDF/EPS 及项目其他 Python 部分仍待迁移，原参考脚本保留。
+未部署、刷写或切换 Python 生产入口。
+
+本阶段完整原生构建与回归 **965 项通过**，类型、项目空白及差异检查通过。

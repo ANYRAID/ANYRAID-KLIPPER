@@ -237,6 +237,26 @@ The simulation does not configure a printer or measure physical resonance.
 The original `graph_shaper.py` remains available for an interactive
 Matplotlib window and PDF/EPS export.
 
+## Generating temperature sensor graphs
+
+With Node.js 26 and the host dependencies installed, plot the built-in
+analog sensors without connecting to a printer:
+
+```
+node ~/klipper/scripts/graph_temp_sensor.ts -o sensors.png
+node ~/klipper/scripts/graph_temp_sensor.ts -s "Generic 3950,PT1000" -p 4700 -v 5 -r -o resistance.svg
+```
+
+The default output contains ADC and absolute ADC change per degree curves;
+`-r` selects the original pullup-based resistance formula. For voltage
+sensors this is a formula-derived equivalent, not their physical resistance.
+`-s` selects comma-separated sensor names, `-p` changes the pullup resistance,
+and `-v` changes ADC voltage. `--help` lists the 16 supported built-in sensors.
+The available file formats are SVG, PNG, JPEG, WebP, TIFF, and JSON panels.
+These curves do not establish sensor accuracy or a safe heater temperature
+range. The legacy Python script currently references a removed thermistor
+registration function; its interactive window is not replaced by this tool.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
