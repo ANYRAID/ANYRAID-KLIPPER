@@ -171,7 +171,20 @@ The Klippy log file (/tmp/klippy.log) stores statistics on bandwidth,
 micro-controller load, and host buffer load. It can be useful to graph
 these statistics after a print.
 
-To generate a graph, a one time step is necessary to install the
+For file export with Node.js 26, install the host dependencies once and run:
+
+```
+npm --prefix ~/klipper/host ci
+node ~/klipper/scripts/graphstats.ts /tmp/klippy.log -o loadgraph.png
+```
+
+The Node tool supports SVG, PNG, JPEG, WebP, TIFF, and JSON curve data. Use
+`-s` for system load, `-f` for MCU frequency, `-m` to select an MCU, or
+`-t heater_bed,extruder` for temperatures. An output filename is required;
+run `node ~/klipper/scripts/graphstats.ts --help` for the options.
+
+The original Python tool is still required for its interactive window and
+other export formats such as PDF/EPS. For that tool, install the
 "matplotlib" package:
 
 ```

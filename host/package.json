@@ -148,7 +148,8 @@
     "bench:thumbnail-inventory": "node bench/thumbnail-inventory.ts",
     "bench:metadata-versions": "node bench/metadata-versions.ts",
     "bench:metadata-startup": "node bench/metadata-startup.ts",
-    "bench:graphstats": "node bench/graphstats.ts"
+    "bench:graphstats": "node bench/graphstats.ts",
+    "bench:graphstats-export": "node bench/graphstats-export.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
