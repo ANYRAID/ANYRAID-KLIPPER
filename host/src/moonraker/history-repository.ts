@@ -11,6 +11,9 @@ export const historyTables=[
 export const historyTotalFields=['total_jobs','total_time','total_print_time','total_filament_used','longest_job','longest_print'] as const;
 export interface HistoryStats {filename:string;total_duration:number;print_duration:number;filament_used:number;}
 export interface HistoryMarker {job_id:string;print_start_time:number;}
+export interface HistoryAuxiliaryTotal {provider:string;field:string;maximum:number|null;total:number|null;}
+export interface HistoryAuxiliaryUpdate {provider:string;field:string;value:number;report_total:boolean;report_maximum:boolean;precision?:number|null;}
+export interface HistoryAuxiliarySnapshot {data:Json[];totals:HistoryAuxiliaryUpdate[];}
 export interface HistoryStart extends HistoryStats {metadata_generation?:string;user?:string;start_time:number;metadata?:Record<string,Json>;auxiliary_data?:Json[];}
 export interface HistoryJob extends HistoryStats {job_id:string;user:string;status:string;start_time:number;end_time:number|null;metadata:Record<string,Json>;auxiliary_data:Json[];}
 export interface HistoryList {before?:number;since?:number;limit?:number;start?:number;order?:string;}
@@ -39,6 +42,28 @@ const totalsQuery=():SqlOperation=>({
  sql:"SELECT field,maximum,total FROM job_totals WHERE provider='history' AND instance_id=? AND ((field IN ('total_jobs','total_time','total_print_time','total_filament_used') AND maximum IS NULL AND typeof(total) IN ('real','integer') AND total>=0) OR (field IN ('longest_job','longest_print') AND total IS NULL AND typeof(maximum) IN ('real','integer') AND maximum>=0)) AND (field!='total_jobs' OR (total<=9007199254740991 AND total=CAST(total AS INTEGER)))",
  params:[instance],expectRows:6,
 });
+const auxiliaryQuery=():SqlOperation=>({sql:"SELECT provider,field,maximum,total FROM job_totals WHERE provider!='history' AND instance_id=? ORDER BY rowid",params:[instance]});
+const auxiliaryGuard=():SqlOperation=>({sql:"SELECT provider FROM job_totals WHERE provider!='history' AND instance_id=? AND (typeof(provider)!='text' OR provider='' OR typeof(field)!='text' OR field='' OR typeof(maximum) NOT IN ('null','real','integer') OR typeof(total) NOT IN ('null','real','integer')) LIMIT 1",params:[instance],expectRows:0});
+function auxiliaryTotals(result:SqlResult):HistoryAuxiliaryTotal[]{return result.rows.map(([provider,field,maximum,total])=>{
+ if(typeof provider!=='string'||typeof field!=='string'||!provider||!field||[maximum,total].some(value=>value!==null&&(typeof value!=='number'||!Number.isFinite(value))))throw new ApiError(422,'Invalid auxiliary history total');
+ return {provider,field,maximum:maximum as number|null,total:total as number|null};
+});}
+function auxiliaryUpdates(input:HistoryAuxiliaryUpdate[],key:SqlValue):SqlOperation[]{
+ if(!Array.isArray(input)||input.length>64)throw new ApiError(400,'Invalid auxiliary history fields');
+ const seen=new Set<string>();
+ return input.map(item=>{
+  const provider=text(item.provider),field=text(item.field),precision=item.precision??null;
+  if(!provider||provider==='history'||!field||typeof item.value!=='number'||!Number.isFinite(item.value)||typeof item.report_total!=='boolean'||typeof item.report_maximum!=='boolean'||!item.report_total&&!item.report_maximum||precision!==null&&!Number.isSafeInteger(precision))throw new ApiError(400,'Invalid auxiliary history update');
+  const identity=JSON.stringify([provider,field]);if(seen.has(identity))throw new ApiError(400,'Duplicate auxiliary history field');seen.add(identity);
+  const value:SqlValue={real:item.value};
+  // Round only the final sum. Rounding an INSERT candidate before conflict
+  // handling can overflow even when the existing total cancels that increment.
+  return {
+   sql:"WITH previous AS (SELECT rowid AS id,maximum,total FROM job_totals WHERE provider=? AND field=? AND instance_id=?) INSERT INTO job_totals(provider,field,maximum,total,instance_id) SELECT ?,?,CASE WHEN ? THEN moonraker_history_round(CASE WHEN previous.id IS NULL THEN ? ELSE max(COALESCE(previous.maximum,0),?) END,?) ELSE NULL END,CASE WHEN ? THEN moonraker_history_round(CASE WHEN previous.id IS NULL THEN ? ELSE COALESCE(previous.total,0)+? END,?) ELSE NULL END,? FROM (SELECT 1) LEFT JOIN previous ON 1 WHERE EXISTS(SELECT 1 FROM job_history WHERE job_id=? AND instance_id=? AND status='in_progress') ON CONFLICT(provider,field,instance_id) DO UPDATE SET maximum=excluded.maximum,total=excluded.total",
+   params:[provider,field,instance,provider,field,Number(item.report_maximum),value,value,precision,Number(item.report_total),value,value,precision,instance,key,instance],
+  };
+ });
+}
 export class HistoryRepository {
  readonly #db:DatabaseStore;
  private constructor(db:DatabaseStore){this.#db=db;}
@@ -74,6 +99,13 @@ export class HistoryRepository {
  async totals():Promise<Record<string,number>>{
   const [result]=await this.#db.sql(tables,[totalsQuery()]);return this.#totals(result);
  }
+ async allTotals():Promise<{job_totals:Record<string,number>;auxiliary_totals:HistoryAuxiliaryTotal[]}>{
+  const base=totalsQuery(),auxiliary=auxiliaryQuery();
+  // One read-only SQLite statement sees one committed snapshot and can reuse
+  // the scoped plan cache without opening a write transaction for polling.
+  const result=await this.#db.sqlRead(['job_totals'],{sql:`SELECT 'history' AS provider,field,maximum,total FROM (${base.sql}) UNION ALL SELECT provider,field,maximum,total FROM (${auxiliary.sql})`,params:[...base.params!,...auxiliary.params!]});
+  return {job_totals:this.#totals({...result,rows:result.rows.filter(row=>row[0]==='history').map(row=>row.slice(1))}),auxiliary_totals:auxiliaryTotals({...result,rows:result.rows.filter(row=>row[0]!=='history')})};
+ }
  #totals(result:SqlResult):Record<string,number>{
   const totals:Record<string,number>={};for(const [field,maximum,total] of result.rows){if(typeof field!=='string'||!historyTotalFields.includes(field as typeof historyTotalFields[number]))throw new ApiError(422,'Invalid history total field');const value=maximum===null?total:maximum;if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw new ApiError(422,'Invalid history total');totals[field]=value;}
   if(Object.keys(totals).length!==6)throw new ApiError(422,'Missing history totals');return totals;
@@ -94,25 +126,31 @@ export class HistoryRepository {
   ]);
   return {deleted_jobs:result[1].rows.map(row=>String(row[0])).sort((a,b)=>a.length-b.length||a.localeCompare(b,'en'))};
  }
- async resetTotals():Promise<{last_totals:Record<string,number>;last_auxiliary_totals:Json[]}>{
+ async resetTotals(fields:HistoryAuxiliaryUpdate[]=[]):Promise<{last_totals:Record<string,number>;last_auxiliary_totals:HistoryAuxiliaryTotal[]}>{
+  // The caller supplies currently registered numeric fields. Never reset an
+  // unknown provider merely because its previous rows remain in this database.
+  const resets=auxiliaryUpdates(fields,1).map((operation,i):SqlOperation=>({sql:'INSERT INTO job_totals(provider,field,maximum,total,instance_id) VALUES(?,?,?,?,?) ON CONFLICT(provider,field,instance_id) DO UPDATE SET maximum=excluded.maximum,total=excluded.total',params:[operation.params![0],operation.params![1],fields[i].report_maximum?0:null,fields[i].report_total?0:null,instance]}));
   const result=await this.#db.sql(tables,[
    {sql:"SELECT job_id FROM job_history WHERE instance_id=? AND status='in_progress' LIMIT 1",params:[instance],expectRows:0},
    totalsQuery(),
+   auxiliaryQuery(),
+   auxiliaryGuard(),
    {sql:"UPDATE job_totals SET maximum=CASE WHEN maximum IS NULL THEN NULL ELSE 0 END,total=CASE WHEN total IS NULL THEN NULL ELSE 0 END WHERE provider='history' AND field IN ('total_jobs','total_time','total_print_time','total_filament_used','longest_job','longest_print') AND instance_id=?",params:[instance]},
+   ...resets,
   ]);
-  return {last_totals:this.#totals(result[1]),last_auxiliary_totals:[]};
+  return {last_totals:this.#totals(result[1]),last_auxiliary_totals:auxiliaryTotals(result[2])};
  }
- async finish(id:string,status:string,input:HistoryStats,endTime:number,metadata?:Record<string,Json>):Promise<HistoryJob>{
+ async finish(id:string,status:string,input:HistoryStats,endTime:number,metadata?:Record<string,Json>,auxiliary?:HistoryAuxiliarySnapshot):Promise<HistoryJob>{
   if(!['completed','error','cancelled','klippy_shutdown','klippy_disconnect','server_exit'].includes(status))throw new ApiError(400,'Invalid final history status');
-  const replacement=metadata===undefined?null:jsonBinding(metadata,true),key=sqlId(id),data=stats(input),end=number(endTime),current=await this.get(id);
+  const replacement=metadata===undefined?null:jsonBinding(metadata,true),key=sqlId(id),data=stats(input),end=number(endTime),auxiliaryData=auxiliary===undefined?null:jsonBinding(auxiliary.data,false),updates=auxiliary===undefined?[]:auxiliaryUpdates(auxiliary.totals,key),current=await this.get(id);
   const accepted=data.filename===current.filename&&data.total_duration>=current.total_duration?data:current;
   const values=[1,accepted.total_duration,accepted.print_duration,accepted.filament_used,accepted.total_duration,accepted.print_duration];
   const operations:SqlOperation[]=historyTotalFields.map((field,i)=>({
    sql:field.startsWith('total_')?"UPDATE job_totals SET total=total+? WHERE provider='history' AND field=? AND instance_id=? AND EXISTS(SELECT 1 FROM job_history WHERE job_id=? AND instance_id=? AND status='in_progress')":"UPDATE job_totals SET maximum=max(maximum,?) WHERE provider='history' AND field=? AND instance_id=? AND EXISTS(SELECT 1 FROM job_history WHERE job_id=? AND instance_id=? AND status='in_progress')",
    params:[{real:values[i]},field,instance,key,instance],
   }));
-  operations.unshift(totalsQuery());
-  operations.push({sql:"UPDATE job_history SET status=?,end_time=?,print_duration=?,total_duration=?,filament_used=?,metadata=COALESCE(?,metadata) WHERE job_id=? AND instance_id=? AND status='in_progress'",params:[status,{real:end},{real:accepted.print_duration},{real:accepted.total_duration},{real:accepted.filament_used},replacement,key,instance]},rowQuery(key),totalsQuery());
+  operations.unshift(totalsQuery(),...(auxiliary?[auxiliaryGuard()]:[]));
+  operations.push(...updates,...(auxiliary?[auxiliaryQuery()]:[]),{sql:"UPDATE job_history SET status=?,end_time=?,print_duration=?,total_duration=?,filament_used=?,metadata=COALESCE(?,metadata),auxiliary_data=COALESCE(?,auxiliary_data) WHERE job_id=? AND instance_id=? AND status='in_progress'",params:[status,{real:end},{real:accepted.print_duration},{real:accepted.total_duration},{real:accepted.filament_used},replacement,auxiliaryData,key,instance]},rowQuery(key),totalsQuery());
   const result=await this.#db.sql(tables,operations);return job(result[result.length-2]);
  }
 }

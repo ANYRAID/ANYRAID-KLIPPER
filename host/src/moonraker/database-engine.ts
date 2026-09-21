@@ -2,6 +2,7 @@ import {executeSql,releaseSqlPlans,type SqlOperation,type SqlResult} from './dat
 import {migrateTable,tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {statSync} from 'node:fs';
 import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
+import {roundHistoryDecimal} from './history-round.ts';
 import {ApiError,type Json} from './rpc.ts';
 import {databaseNamespace,databaseKey,databaseBatchKeys,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
 export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;}
@@ -23,6 +24,10 @@ export class DatabaseEngine {
   this.#maxDatabaseBytes=options.maxDatabaseBytes??256*1024*1024;this.#path=options.path;this.#recordBytes=options.maxRecordBytes??1024*1024;this.#replyBytes=options.maxReplyBytes??8*1024*1024;
   this.#db=new DatabaseSync(options.path,{timeout:1000});
   try{
+   this.#db.function('moonraker_history_round',{deterministic:true},(value,precision)=>{
+    if(typeof value!=='number'||precision!==null&&typeof precision!=='number')throw new ApiError(422,'Invalid history rounding arguments');
+    try{return roundHistoryDecimal(value,precision);}catch{throw new ApiError(422,'Invalid or overflowing history total');}
+   });
    this.#db.exec('PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL');
    const pageSize=Number(this.#prepare('PRAGMA page_size').get()!.page_size),pages=Math.floor((options.maxDatabaseBytes??256*1024*1024)/pageSize);
    if(Number(this.#prepare('PRAGMA page_count').get()!.page_count)>pages)throw new ApiError(413,'Database exceeds configured capacity');
