@@ -8,7 +8,8 @@ const dict=<T>():Record<string,T>=>Object.create(null);
  * like read_file; failed buffers do not publish partially parsed values. */
 export class KlipperConfigText {
  #sections:Record<string,Record<string,string>>=dict();
- append(text:string):void{
+ append(text:string):string[]{
+  const touched=new Set<string>();
   if(typeof text!=='string'||Buffer.byteLength(text)>8*1024*1024)throw new RangeError('Klipper config text limit exceeded');
   const staged:Record<string,Record<string,string[]>>=dict();for(const [section,values] of Object.entries(this.#sections)){staged[section]=dict();for(const [key,value] of Object.entries(values))staged[section][key]=[value];}
   let current:Record<string,string[]>|undefined,option:string|undefined,indent=0,items=0;
@@ -20,12 +21,12 @@ export class KlipperConfigText {
    const level=line.match(leading)![0].length;
    if(current&&option!==undefined&&level>indent){current[option].push(value);continue;}
    indent=level;const header=value.match(/^\[(.+)\]/);
-   if(header){const name=header[1];current=staged[name]??(staged[name]=dict());option=undefined;if(++items>100000)throw new RangeError('Config item limit exceeded');continue;}
+   if(header){const name=header[1];touched.add(name);current=staged[name]??(staged[name]=dict());option=undefined;if(++items>100000)throw new RangeError('Config item limit exceeded');continue;}
    if(!current)throw new Error('Klipper config option outside a section');
    const match=value.match(/^(.*?)\s*[:=]\s*(.*)$/);if(!match||!trim(match[1]))throw new Error('Invalid Klipper config line');
    option=trim(match[1]).toLowerCase();current[option]=[trim(match[2])];if(++items>100000)throw new RangeError('Config item limit exceeded');
   }
-  const complete:Record<string,Record<string,string>>=dict();for(const [name,values] of Object.entries(staged)){complete[name]=dict();for(const [key,value] of Object.entries(values))complete[name][key]=value.join('\n').replace(new RegExp(`[${ws}]+$`),'');}this.#sections=complete;
+  const complete:Record<string,Record<string,string>>=dict();for(const [name,values] of Object.entries(staged)){complete[name]=dict();for(const [key,value] of Object.entries(values))complete[name][key]=value.join('\n').replace(new RegExp(`[${ws}]+$`),'');}this.#sections=complete;return [...touched].filter(s=>s!=='DEFAULT');
  }
  sections():string[]{return Object.keys(this.#sections).filter(s=>s!=='DEFAULT');}
  hasOption(section:string|null,option:string):boolean{const key=option.toLowerCase();if(!section||section==='DEFAULT')return Object.hasOwn(this.#sections.DEFAULT??{},key);if(!Object.hasOwn(this.#sections,section))return false;return Object.hasOwn(this.#sections[section],key)||Object.hasOwn(this.#sections.DEFAULT??{},key);}
