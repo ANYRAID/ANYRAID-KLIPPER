@@ -7,11 +7,13 @@ import {validateMetadataFilename} from './file-metadata.ts';
 import type {MetadataLifecycle} from './metadata-lifecycle.ts';
 import type {MetadataExtraction} from './metadata-extractor.ts';
 import type {EndpointRegistry} from './endpoints.ts';
+export interface MetadataObservation {():void;healthy():void;fault():void;}
 export interface MetadataFilesOptions {root:string;lifecycle:MetadataLifecycle;maxPending?:number;}
 /** Linux descriptor-anchored G-code access. Root and all child components reject
  * symlinks at each open. The configured root's ancestors are trusted. The caller
  * owns lifecycle; close this admission layer before closing its dependencies. */
 export class MetadataFiles {
+ #observationReadable=true;
  #observation:MetadataDirectoryWatches|undefined;#discovering=false;
  #root:FileHandle;#options:MetadataFilesOptions;#limit:number;#pending=new Set<Promise<unknown>>();#stop=new AbortController();#closing:Promise<void>|undefined;
  private constructor(root:FileHandle,options:MetadataFilesOptions,limit:number){this.#root=root;this.#options={...options};this.#limit=limit;}
@@ -23,11 +25,12 @@ export class MetadataFiles {
   return new MetadataFiles(root,options,limit);
  }
  get status(){return {closed:this.#stop.signal.aborted,pending:this.#pending.size,maxPending:this.#limit};}
- observe(change:()=>void,error:(error:Error)=>void,maxDirectories=1024):()=>void{if(this.#stop.signal.aborted||this.#observation)throw new Error('Metadata observation is closed or already owned');const observer=new MetadataDirectoryWatches(this.#root,change,error,maxDirectories);this.#observation=observer;return ()=>{observer.close();if(this.#observation===observer)this.#observation=undefined;};}
+ observe(change:()=>void,error:(error:Error)=>void,maxDirectories=1024):MetadataObservation{if(this.#stop.signal.aborted||this.#observation)throw new Error('Metadata observation is closed or already owned');const observer=new MetadataDirectoryWatches(this.#root,change,error,maxDirectories);this.#observation=observer;this.#observationReadable=false;const release=()=>{observer.close();if(this.#observation===observer){this.#observation=undefined;this.#observationReadable=false;}};return Object.assign(release,{healthy:()=>{if(this.#observation===observer)this.#observationReadable=true;},fault:()=>{if(this.#observation===observer)this.#observationReadable=false;}});}
+ #assertReadable(){if(this.#stop.signal.aborted||!this.#observationReadable)throw new ApiError(503,'File metadata monitoring is unavailable');}
  get watchedDirectories(){return this.#observation?.count??0;}
- get downloads(){return this.#options.lifecycle.thumbnailDownloads();}
- metadata(filename:string){return this.#options.lifecycle.metadata(filename);}
- thumbnails(filename:string){return this.#options.lifecycle.thumbnails(filename);}
+ get downloads(){return this.#options.lifecycle.thumbnailDownloads(()=>this.#assertReadable());}
+ metadata(filename:string){this.#assertReadable();return this.#options.lifecycle.metadata(filename);}
+ thumbnails(filename:string){this.#assertReadable();return this.#options.lifecycle.thumbnails(filename);}
  #name(filename:string):void{
   try{validateMetadataFilename(filename);}catch{throw new ApiError(400,'Invalid metadata filename');}
   const parts=filename.split('/');if(parts.length>64)throw new ApiError(400,'Metadata path is too deep');

@@ -1,7 +1,7 @@
 import {setTimeout as delay} from 'node:timers/promises';
 import {watch,type FSWatcher} from 'node:fs';
 import type {FileHandle} from 'node:fs/promises';
-import type {MetadataFiles} from './metadata-files.ts';
+import type {MetadataFiles,MetadataObservation} from './metadata-files.ts';
 /** Bounded non-recursive watches on already validated directory descriptors. */
 export class MetadataDirectoryWatches {
  #entries=new Map<string,{identity:string;watcher:FSWatcher}>();#closed=false;#change:()=>void;#error:(error:Error)=>void;#limit:number;
@@ -23,16 +23,16 @@ export interface MetadataMonitorOptions {debounceMs?:number;intervalMs?:number;m
 /** Events are hints, not reliable filenames. One reconciliation at a time and one
  * dirty bit coalesce storms. Periodic passes cover events lost by the OS. */
 export class MetadataMonitor {
- #files:MetadataFiles;#options:Required<MetadataMonitorOptions>;#abort=new AbortController();#release:(()=>void)|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#interval:ReturnType<typeof setInterval>|undefined;#running:Promise<void>|undefined;#closing:Promise<void>|undefined;#dirty=false;#phase:'new'|'running'|'faulted'|'closed'='new';#passes=0;#lastError:string|undefined;
- constructor(files:MetadataFiles,options:MetadataMonitorOptions={}){this.#files=files;this.#options={debounceMs:options.debounceMs??100,intervalMs:options.intervalMs??30000,maxDirectories:options.maxDirectories??1024};for(const [value,min,max] of [[this.#options.debounceMs,1,60000],[this.#options.intervalMs,10,3600000],[this.#options.maxDirectories,1,4096]])if(!Number.isSafeInteger(value)||value<min||value>max)throw new RangeError('Invalid metadata monitor options');}
+ #files:MetadataFiles;#options:Required<MetadataMonitorOptions>;#abort=new AbortController();#release:MetadataObservation|undefined;#onFault:(()=>void)|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#interval:ReturnType<typeof setInterval>|undefined;#running:Promise<void>|undefined;#closing:Promise<void>|undefined;#dirty=false;#phase:'new'|'running'|'faulted'|'closed'='new';#passes=0;#lastError:string|undefined;
+ constructor(files:MetadataFiles,options:MetadataMonitorOptions={},onFault?:()=>void){if(onFault!==undefined&&typeof onFault!=='function')throw new TypeError('Invalid metadata fault callback');this.#onFault=onFault;this.#files=files;this.#options={debounceMs:options.debounceMs??100,intervalMs:options.intervalMs??30000,maxDirectories:options.maxDirectories??1024};for(const [value,min,max] of [[this.#options.debounceMs,1,60000],[this.#options.intervalMs,10,3600000],[this.#options.maxDirectories,1,4096]])if(!Number.isSafeInteger(value)||value<min||value>max)throw new RangeError('Invalid metadata monitor options');}
  get status(){return {phase:this.#phase,watchedDirectories:this.#files.watchedDirectories,passes:this.#passes,active:!!this.#running,dirty:this.#dirty,lastError:this.#lastError};}
  async start():Promise<void>{
   if(this.#phase!=='new')throw new Error('Metadata monitor already started');this.#phase='running';
   try{this.#release=this.#files.observe(()=>this.#hint(),error=>this.#fail(error),this.#options.maxDirectories);await this.#pump();if(this.#phase!=='running')throw new Error('Metadata monitor stopped during startup');this.#interval=setInterval(()=>this.#hint(),this.#options.intervalMs);this.#interval.unref();}catch(error){this.#fail(error);throw error;}
  }
  #hint(){if(this.#phase!=='running')return;this.#dirty=true;if(this.#running||this.#timer)return;this.#timer=setTimeout(()=>{this.#timer=undefined;void this.#pump().catch(()=>{});},this.#options.debounceMs);this.#timer.unref();}
- #pump():Promise<void>{if(this.#running)return this.#running;if(this.#phase!=='running')return Promise.reject(new Error('Metadata monitor is stopped'));this.#dirty=false;const task=(async()=>{for(let attempt=0;;attempt++){try{await this.#files.scanDiscovered(this.#abort.signal);this.#passes++;return;}catch(error){if(this.#abort.signal.aborted)throw error;if(attempt<2&&transient(error)){await delay(250,undefined,{signal:this.#abort.signal});continue;}this.#fail(error);throw error;}}})();this.#running=task.finally(()=>{this.#running=undefined;if(this.#dirty)this.#hint();});return this.#running;}
- #fail(error:unknown){if(this.#phase==='closed'||this.#phase==='faulted')return;this.#phase='faulted';this.#lastError=error instanceof Error?error.message:String(error);this.#clear();this.#abort.abort(error);}
+ #pump():Promise<void>{if(this.#running)return this.#running;if(this.#phase!=='running')return Promise.reject(new Error('Metadata monitor is stopped'));this.#dirty=false;const task=(async()=>{for(let attempt=0;;attempt++){try{await this.#files.scanDiscovered(this.#abort.signal);this.#abort.signal.throwIfAborted();this.#release?.healthy();this.#passes++;return;}catch(error){if(this.#abort.signal.aborted)throw error;if(attempt<2&&transient(error)){await delay(250,undefined,{signal:this.#abort.signal});continue;}this.#fail(error);throw error;}}})();this.#running=task.finally(()=>{this.#running=undefined;if(this.#dirty)this.#hint();});return this.#running;}
+ #fail(error:unknown){if(this.#phase==='closed'||this.#phase==='faulted')return;this.#phase='faulted';this.#lastError=error instanceof Error?error.message:String(error);this.#release?.fault();this.#clear();this.#abort.abort(error);try{this.#onFault?.();}catch{this.#lastError+='; status update failed';}}
  #clear(){if(this.#timer)clearTimeout(this.#timer);if(this.#interval)clearInterval(this.#interval);this.#timer=undefined;this.#interval=undefined;this.#dirty=false;this.#release?.();this.#release=undefined;}
  close():Promise<void>{if(this.#closing)return this.#closing;this.#phase='closed';this.#clear();this.#abort.abort(new Error('Metadata monitor closing'));this.#closing=Promise.allSettled(this.#running?[this.#running]:[]).then(()=>{});return this.#closing;}
 }

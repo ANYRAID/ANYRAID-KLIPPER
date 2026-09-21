@@ -169,11 +169,24 @@ test('monitor coalesces changes during active reconciliation and close drains it
  }finally{resume.resolve();await monitor.close();await f.close();}
 });
 test('periodic reconciliation covers missing event delivery',async()=>{
- const f=await fixture();f.files.observe=()=>()=>{};const monitor=new MetadataMonitor(f.files,{debounceMs:1,intervalMs:20});try{await monitor.start();await writeFile(join(f.root,'层/part.gcode'),'G1 X76543\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);assert.equal(monitor.status.phase,'running');assert.ok(monitor.status.passes>=2);}finally{await monitor.close();await f.close();}
+ const f=await fixture();f.files.observe=()=>Object.assign(()=>{},{healthy(){},fault(){}});const monitor=new MetadataMonitor(f.files,{debounceMs:1,intervalMs:20});try{await monitor.start();await writeFile(join(f.root,'层/part.gcode'),'G1 X76543\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);assert.equal(monitor.status.phase,'running');assert.ok(monitor.status.passes>=2);}finally{await monitor.close();await f.close();}
 });
 test('configured monitor starts before listening and stops with its server',async()=>{
  const f=await fixture();let server:ConfiguredMoonraker|undefined;try{server=await configured(f,false,{debounceMs:5,intervalMs:60000});await server.start();assert.equal(server.metadataMonitor?.phase,'running');assert.ok(f.cache.peek('层/part.gcode'));await writeFile(join(f.root,'层/part.gcode'),'G1 X54321\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);await server.close();assert.equal(server.metadataMonitor?.phase,'closed');assert.equal(server.metadataMonitor?.active,false);assert.equal(f.files.status.closed,true);}finally{await server?.close();await f.close();}
 });
 test('monitor retries a transient admission conflict without overlapping reconciliation',async()=>{
  const f=await fixture(),original=f.files.scanDiscovered.bind(f.files);let calls=0;f.files.scanDiscovered=async(...args)=>{if(++calls===1)throw new ApiError(503,'Metadata file queue is full');return original(...args);};const monitor=new MetadataMonitor(f.files);try{await monitor.start();assert.equal(calls,2);assert.equal(monitor.status.phase,'running');assert.equal(monitor.status.watchedDirectories,2);}finally{await monitor.close();assert.equal(f.files.watchedDirectories,0);await f.close();}
+});
+test('background monitoring failure marks server health and blocks metadata and image reads',async()=>{
+ const f=await fixture();let server:ConfiguredMoonraker|undefined;try{
+  const {default:sharp}=await import('sharp'),png=await sharp({create:{width:32,height:32,channels:3,background:'blue'}}).png().toBuffer(),b64=png.toString('base64');await writeFile(join(f.root,'层/part.gcode'),`; thumbnail begin 32 32 ${b64.length}\n; ${b64}\n; thumbnail end\nG1 X1\n`);
+  server=await configured(f,false,{debounceMs:5,intervalMs:60000});const address=await server.start(),base=`http://127.0.0.1:${address.port}`,metadataPath='/server/files/metadata?filename='+encodeURIComponent('层/part.gcode'),thumbsPath='/server/files/thumbnails?filename='+encodeURIComponent('层/part.gcode');
+  const thumbs:any=await(await fetch(base+thumbsPath)).json(),imagePath='/server/files/gcodes/'+encodeURI(thumbs.result[0].thumbnail_path);assert.equal((await fetch(base+imagePath)).status,200);
+  const pending=await f.files.downloads.resolve(imagePath,{transport:'http',signal,authorize(){}});f.files.scanDiscovered=async()=>{throw new Error('injected corrupt snapshot');};await writeFile(join(f.root,'trigger.txt'),'event');await eventually(()=>server!.metadataMonitor?.phase==='faulted');
+  for(const path of [metadataPath,thumbsPath,imagePath])assert.equal((await fetch(base+path)).status,503);assert.equal((await fetch(base+imagePath,{method:'HEAD'})).status,503);await assert.rejects(pending.read(),(e:any)=>e.status===503);
+  const info:any=await(await fetch(base+'/server/info')).json();assert.ok(info.result.failed_components.includes('metadata_monitor'));assert.ok(info.result.warnings.some((value:string)=>value.includes('File metadata monitoring failed')));assert.equal(f.files.watchedDirectories,0);
+ }finally{await server?.close();await f.close();}
+});
+test('only the current observer can enable reads after a successful reconciliation',async()=>{
+ const f=await fixture();try{await f.files.rescan('层/part.gcode',signal);const first=f.files.observe(()=>{},()=>{});assert.throws(()=>f.files.metadata('层/part.gcode'),(e:any)=>e.status===503);first.healthy();assert.equal(f.files.metadata('层/part.gcode').layer_height,.2);first();assert.throws(()=>f.files.thumbnails('层/part.gcode'),(e:any)=>e.status===503);const next=f.files.observe(()=>{},()=>{});try{first.healthy();assert.throws(()=>f.files.metadata('层/part.gcode'),(e:any)=>e.status===503);next.healthy();first.fault();assert.equal(f.files.metadata('层/part.gcode').layer_height,.2);}finally{next();}}finally{await f.close();}
 });

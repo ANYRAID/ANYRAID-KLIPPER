@@ -27,7 +27,7 @@ export class MetadataLifecycle {
  get status(){return {closed:this.#closed,pending:this.#pending.size,maxPending:this.#maxPending};}
  metadata(filename:string){return this.#options.cache.metadata(filename);}
  thumbnails(filename:string){return this.#options.cache.thumbnails(filename);}
- thumbnailDownloads(){return new ThumbnailDownloads(this.#options.images,this.#options.cache);}
+ thumbnailDownloads(assertAvailable?:()=>void){return new ThumbnailDownloads(this.#options.images,this.#options.cache,assertAvailable);}
  activeFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state!=='invalidated').map(value=>value.filename));}
  selectedFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state==='selected').map(value=>value.filename));}
  #admit<T>(prepare:()=>()=>Promise<T>):Promise<T>{
