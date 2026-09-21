@@ -353,3 +353,37 @@ test('throwing G-code observer releases shared admission without forwarding',()=
  const {MaintenanceGate}=await import('../src/operations/maintenance-gate.ts');const gate=new MaintenanceGate(),failure=new Error('observer'),runtime=new KlippyLifecycle({version:'test',maintenanceGate:gate,onGcodeCommand:()=>{throw failure;}});
  try{await runtime.initialize(path);assert.throws(()=>runtime.request('gcode/script',{script:'G1 X1'}),e=>e===failure);gate.acquire()();assert.equal(seen.some(m=>m.method==='gcode/script'),false);}finally{await runtime.close();}
 }));
+test('configured history follows Unix job events, publishes committed notifications and drains before database close',()=>peer(async(path,seen,sockets,dir)=>{
+ const {DatabaseStore}=await import('../src/moonraker/database.ts'),{HistoryRepository}=await import('../src/moonraker/history-repository.ts');
+ const file=join(dir,'history-runtime.conf'),databasePath=join(dir,'history.db');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const database=await DatabaseStore.open({path:databasePath}),history=await HistoryRepository.open(database);
+ const server=await ConfiguredMoonraker.load(file,{database,history:{repository:history,fileExists:()=>true},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){},authorizeNotification(){}});
+ let ws:WebSocket|undefined;
+ try{
+  const address=await server.start();assert.throws(()=>server.attachKlippy(path,{trackJobState:false}),/requires job/);await server.attachKlippy(path);
+  ws=new WebSocket('ws://127.0.0.1:'+address.port+'/websocket');await once(ws,'open');const messages:any[]=[];ws.on('message',raw=>messages.push(JSON.parse(String(raw))));
+  const update=(state:string,time:number)=>sockets.at(-1)!.write(wire({method:'process_status_update',params:{eventtime:time,status:{print_stats:{state,filename:'part.gcode',total_duration:time,print_duration:time-1,filament_used:2.675}}}}));
+  update('printing',2);update('complete',3);await until(()=>server.jobState?.event==='complete');await server.drainHistory();await until(()=>messages.filter(m=>m.method==='notify_history_changed').length===2);
+  const events=messages.filter(m=>m.method==='notify_history_changed').map(m=>m.params[0]);assert.deepEqual(events.map(e=>e.action),['added','finished']);assert.equal(events[1].job.status,'completed');assert.equal((await history.totals()).total_jobs,1);
+  update('printing',4);await until(()=>server.jobState?.event==='started');await server.drainHistory();sockets[0].destroy();await until(()=>server.klippy?.connected===false);await server.drainHistory();assert.equal((await history.get('2')).status,'klippy_disconnect');
+  await server.reconnectKlippy();update('printing',6);await until(()=>server.jobState?.stats.total_duration===6);await server.drainHistory();
+  sockets[1].write(wire({method:'process_status_update',params:{eventtime:7,status:{webhooks:{state:'shutdown',state_message:'Stopped'}}}}));await until(()=>server.klippy?.state==='shutdown');await server.drainHistory();assert.equal((await history.get('3')).status,'klippy_shutdown');
+  sockets[1].destroy();await until(()=>server.klippy?.connected===false);await server.drainHistory();await server.reconnectKlippy();update('printing',8);await until(()=>server.jobState?.stats.total_duration===8);await server.close();assert.equal(database.status.closed,true);
+  const reopened=await DatabaseStore.open({path:databasePath});try{const persisted=await HistoryRepository.open(reopened);assert.equal((await persisted.get('4')).status,'server_exit');assert.equal((await persisted.totals()).total_jobs,4);}finally{await reopened.close();}
+  assert.equal(seen.some(m=>m.method==='gcode/script'),false);
+ }finally{ws?.terminate();await server.close();}
+},(m,s)=>{if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;}}));
+test('history persistence failure reaches server info and cannot prevent database cleanup',()=>peer(async(path,_seen,sockets,dir)=>{
+ const {DatabaseStore}=await import('../src/moonraker/database.ts'),{HistoryRepository}=await import('../src/moonraker/history-repository.ts');
+ const file=join(dir,'history-failed.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const database=await DatabaseStore.open({path:join(dir,'failed.db')}),history=await HistoryRepository.open(database),server=await ConfiguredMoonraker.load(file,{database,history:{repository:history,fileExists:()=>false},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}});
+ try{
+  const address=await server.start();await server.attachKlippy(path);
+  const update=(state:string,time:number)=>sockets[0].write(wire({method:'process_status_update',params:{eventtime:time,status:{print_stats:{state,filename:'part.gcode',total_duration:time}}}}));
+  update('printing',2);await until(()=>server.jobState?.event==='started');await server.drainHistory();
+  await database.sql(['job_totals'],[{sql:"UPDATE job_totals SET total='broken' WHERE field='total_time'"}]);
+  update('complete',3);await until(()=>server.jobState?.event==='complete');await assert.rejects(server.drainHistory(),/invariant/);
+  const info:any=await(await fetch('http://127.0.0.1:'+address.port+'/server/info')).json();assert.ok(info.result.failed_components.includes('history'));assert.ok(info.result.warnings.some((warning:string)=>warning.includes('History persistence failed')));assert.equal(server.klippy?.state,'ready');
+  assert.equal((await history.get('1')).status,'in_progress');await assert.rejects(server.close(),/invariant/);assert.equal(database.status.closed,true);
+ }finally{if(!database.status.closed)await server.close().catch(()=>{});}
+},(m,s)=>{if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby',filename:'',total_duration:0}}}}));return false;}}));

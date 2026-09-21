@@ -82,3 +82,25 @@ async def mutate():
  return results
 print(json.dumps(asyncio.run(mutate()),allow_nan=False))
 `;}
+export function historyEventsOracle():string{return historyOracle().split('data=json.load(sys.stdin)')[0]+String.raw`
+import copy,logging
+methods=[n for n in history.body if isinstance(n,(ast.FunctionDef,ast.AsyncFunctionDef)) and n.name in {'_on_job_state_changed','add_job','finish_job','_reset_current_job'}]
+exec('from __future__ import annotations\nclass Observer(History):\n'+__import__('textwrap').indent(ast.unparse(ast.Module(body=methods,type_ignores=[])),'    '))
+JobEvent=types.SimpleNamespace(**{name.upper():name for name in ['started','complete','error','cancelled','standby','paused','resumed']})
+time.time=lambda:100
+owner=Observer();owner.current_job=None;owner.current_job_id=None;owner.job_user='No User';owner.job_paused=False;owner.request_lock=asyncio.Lock();owner.auxiliary_fields=[]
+owner.grab_job_metadata=lambda:None;owner.update_metadata=lambda ident:None
+events=[];next_id=0
+async def save(job,ident):
+ global next_id
+ if ident is None:next_id+=1;return next_id
+ return ident
+async def totals():pass
+def notify(action):
+ job=copy.deepcopy(owner.current_job.get_stats());job['job_id']=f'{owner.current_job_id:06X}';events.append({'action':action,'job':job})
+owner.save_job=save;owner._update_job_totals=totals;owner.send_history_event=notify
+async def observe(changes):
+ for change in changes:await owner._on_job_state_changed(change['event'],change['previous'],change['current'])
+asyncio.run(observe(json.load(sys.stdin)))
+print(json.dumps(events,allow_nan=False))
+`;}
