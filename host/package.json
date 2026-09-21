@@ -182,7 +182,8 @@
     "bench:guarded-bed-mesh": "node bench/guarded-bed-mesh.ts",
     "bench:bed-mesh-fade-config": "node bench/bed-mesh-fade-config.ts",
     "bench:bed-mesh-profiles": "node bench/bed-mesh-profiles.ts",
-    "bench:klipper-autosave": "node bench/klipper-autosave.ts"
+    "bench:klipper-autosave": "node bench/klipper-autosave.ts",
+    "bench:klipper-text": "node bench/klipper-text.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
