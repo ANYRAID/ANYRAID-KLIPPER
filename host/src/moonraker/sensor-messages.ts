@@ -21,6 +21,7 @@ export class SensorMessages {
   if(!(store instanceof SensorStore)||store.closed||typeof render!=='function'||!Number.isSafeInteger(maxBytes)||maxBytes<1||maxBytes>1048576||!Number.isSafeInteger(maxParameters)||maxParameters<1||maxParameters>256)throw new ApiError(400,'Invalid sensor message source');
   store.info(id);this.#store=store;this.#id=id;this.#render=render;this.#maxBytes=maxBytes;this.#maxParameters=maxParameters;
  }
+ owns(store:SensorStore):boolean{return this.#store===store;}
  get status(){return {closed:this.#closed,received:this.#received,accepted:this.#accepted,rejected:this.#rejected,ignored:this.#ignored};}
  receive(payload:Uint8Array):boolean{
   if(this.#closed||this.#store.closed){this.#ignored++;return false;}

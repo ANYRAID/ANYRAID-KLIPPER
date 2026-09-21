@@ -2,6 +2,7 @@ import {MqttClient,type IClientOptions} from 'mqtt';
 import {connect as tcpConnect,isIP} from 'node:net';
 import {connect as tlsConnect} from 'node:tls';
 import {Duplex,Transform,type TransformCallback} from 'node:stream';
+import type {SensorStore} from './sensors.ts';
 import {SensorMessages} from './sensor-messages.ts';
 import {ApiError} from './rpc.ts';
 type QoS=0|1|2;
@@ -62,7 +63,8 @@ export class MqttSensors {
   for(const receiver of receivers)receiverOwners.add(receiver);
  }
  #subscribed(generation:number){if(this.#closed||generation!==this.#generation)return;this.#ready=true;this.#failure=null;clearTimeout(this.#timer);this.#resolve?.();this.#resolve=undefined;this.#reject=undefined;}
- get status(){return {closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,failure:this.#failure};}
+ owns(store:SensorStore):boolean{return [...this.#topics.values()].every(group=>group.receivers.every(receiver=>receiver.owns(store)));}
+ get status(){return {started:this.#started,closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,failure:this.#failure};}
  start():Promise<void>{if(this.#closed)return Promise.reject(new Error('MQTT sensors are closed'));if(this.#starting)return this.#starting;
   this.#starting=new Promise<void>((resolve,reject)=>{this.#resolve=resolve;this.#reject=reject;this.#timer=setTimeout(()=>{this.#failure='MQTT startup timed out';reject(new Error(this.#failure));void this.close();},this.#timeout);this.#started=true;this.#client.connect();});return this.#starting;
  }
