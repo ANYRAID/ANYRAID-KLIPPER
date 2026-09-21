@@ -6,7 +6,7 @@ import {firmwareIdentityReference} from '../bench/firmware-identity-reference.ts
 import {katapultSimulator} from '../bench/katapult-reference.ts';
 const signal=()=>new AbortController().signal;
 const dict=(mcu='stm32f407')=>deflateSync(JSON.stringify({app:'Klipper',version:'v-test',config:{MCU:mcu}}));
-test('embedded dictionary discovery matches original Python including offsets and compressed streams followed by binary data',async()=>{
+test('embedded dictionary discovery matches frozen original Python including offsets and compressed streams followed by binary data',async()=>{
  for(const prefix of [0,1,257,65537]){const image=Buffer.concat([Buffer.alloc(prefix,0xff),dict(),Buffer.alloc(51,0xaa)]),found=await findFirmwareIdentity(image,signal()),reference=firmwareIdentityReference(image);assert.deepEqual(found,{offset:prefix,...reference.identity});}
  const noDictionary=Buffer.alloc(4096,0xff);assert.equal(await findFirmwareIdentity(noDictionary,signal()),undefined);assert.equal(firmwareIdentityReference(noDictionary).identity,null);
 });

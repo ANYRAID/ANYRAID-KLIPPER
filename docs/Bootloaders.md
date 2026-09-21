@@ -9,7 +9,7 @@ ANYRAID USB 烧录入口现为 Node.js 26 的 `scripts/flash_usb.ts`，相关
 读回失败后发送 COMPLETE。请检查设备状态后再决定恢复步骤。
 本分支尚未通过物理板卡验收；完整验证边界见
 [Node 迁移说明](Node_Host_Migration.md)。
-旧 `scripts/flash_usb.py` 已移除；独立的 Katapult Python 工具尚未退役。
+旧 `scripts/flash_usb.py` 与 `lib/katapult/flashtool.py` 已移除；使用本页 Node 入口。
 
 ### ANYRAID Katapult Node 工具
 
@@ -524,18 +524,19 @@ The first time CanBoot has been flashed it should detect that no application
 is present and enter the bootloader.  If this doesn't occur it is possible to
 enter the bootloader by pressing the reset button twice in succession.
 
-The `flashtool.py` utility supplied in the `lib/katapult` folder may be used to
+The Node.js 26 `scripts/katapult.ts` utility described above may be used to
 upload Klipper firmware.  The device UUID is necessary to flash.  If you do not
 have a UUID it is possible to query nodes currently running the bootloader:
 ```
-python3 flash_can.py -q
+node scripts/katapult.ts -i can0 --query
 ```
-This will return UUIDs for all connected nodes not currently assigned a UUID.
-This should include all nodes currently in the bootloader.
+This will return UUIDs for all connected nodes not currently assigned a node ID.
+To explicitly clear all Katapult node IDs first, use `--query --reset-node-ids`
+only while the entire bus is idle for maintenance.
 
 Once you have a UUID, you may upload firmware with following command:
 ```
-python3 flash_can.py -i can0 -f ~/klipper/out/klipper.bin -u aabbccddeeff
+node scripts/katapult.ts -i can0 -f ~/klipper/out/klipper.bin -u aabbccddeeff
 ```
 
 Where `aabbccddeeff` is replaced by your UUID.  Note that the `-i` and `-f`

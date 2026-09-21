@@ -39,5 +39,5 @@ ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
 独立 Katapult 工具为 `node scripts/katapult.ts --help`，支持串口/CAN
 刷写、状态、定向启动请求和 CAN 查询。CAN 使用前还需运行
 `node host/scripts/build-can-query.ts`；示例见
-[Bootloaders](docs/Bootloaders.md)。旧 Katapult Python 工具暂保留用于
-兼容差分，节点恢复语义和物理板卡验收仍未完成。
+[Bootloaders](docs/Bootloaders.md)。旧 Katapult Python 工具已退役，差分参考保存为固定契约数据。
+写入失败不会自动重放或启动未验证的固件，物理板卡验收仍未完成。

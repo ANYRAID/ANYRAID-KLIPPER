@@ -82,10 +82,10 @@ also be processed if the mcu is shutdown.
 This method also applies to devices operating in
 [CANBridge](CANBUS.md#usb-to-can-bus-bridge-mode) mode.
 
-#### Katapult's flashtool.py
+#### ANYRAID Katapult Node tool
 
 ```shell
-python3 ./katapult/scripts/flashtool.py -i <CAN_IFACE> -u <UUID> -r
+node scripts/katapult.ts -i <CAN_IFACE> -u <UUID> -r
 ```
 
 Where `<CAN_IFACE>` is the can interface to use. If using `can0`, both the `-i`

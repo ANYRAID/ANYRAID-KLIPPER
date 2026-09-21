@@ -6,7 +6,7 @@ import {join} from 'node:path';
 import {katapultFastHash64,usbSerialToCanUuid,findKatapultBridge,waitKatapultBridge} from '../src/diagnostics/katapult-bridge.ts';
 import {katapultHashReference} from '../bench/katapult-hash-reference.ts';
 const signal=()=>new AbortController().signal;
-test('BigInt fasthash and byte-swapped UUID match original Python through 64-bit boundaries and every tail length',()=>{
+test('BigInt fasthash and byte-swapped UUID match frozen original Python through 64-bit boundaries and every tail length',()=>{
  const cases=Array.from({length:65},(_,length)=>[0n,1n,0xffffffffffffffffn,0xa16231a7n].map(seed=>({hex:Buffer.from(Array.from({length},(_,i)=>(i*137+length*41)&255)).toString('hex'),seed:String(seed)}))).flat();cases.push({hex:' \t00 ff\n12AB\r',seed:'2711761319'});
  const reference=katapultHashReference(cases);for(const [i,c] of cases.entries()){assert.equal(katapultFastHash64(Buffer.from(c.hex.replace(/\s/g,''),'hex'),BigInt(c.seed)).toString(16).padStart(16,'0'),reference.hashes[i]);assert.equal(usbSerialToCanUuid(c.hex),reference.uuids[i]);}
  for(const serial of ['a','a a','gg','0x12','00\u00a0ff','00'.repeat(513)])assert.throws(()=>usbSerialToCanUuid(serial));assert.throws(()=>katapultFastHash64(Buffer.alloc(1),-1n));assert.throws(()=>katapultFastHash64(Buffer.alloc(1),1n<<64n));

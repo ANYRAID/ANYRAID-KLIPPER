@@ -166,11 +166,13 @@ support.  The file "diskio.c" in the original archive is not included
 as it is only serves as an example for how to implement the media api
 callbacks.
 
-The katapult directory contains code from:
+The former lib/katapult/flashtool.py was derived from:
   https://github.com/Arksine/katapult
-revision b0bf421069e2aab810db43d6e15f38817d981451.  The Python module,
-flashtool.py, is taken from the repo's scripts directory.  It may be
-used to upload firmware to devices flashed with the Katapult bootloader.
+revision b0bf421069e2aab810db43d6e15f38817d981451.  It has been replaced
+by scripts/katapult.ts and the GPL TypeScript implementation in host/.
+Frozen original protocol and numerical reference results, source hashes,
+and historical benchmark evidence are in host/contracts/katapult-legacy.json.
+The original implementation remains available in Git history.
 
 The can2040 directory contains code from:
   https://github.com/KevinOConnor/can2040

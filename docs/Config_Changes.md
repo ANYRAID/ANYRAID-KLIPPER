@@ -8,6 +8,12 @@ All dates in this document are approximate.
 
 ## Changes
 
+20260922: ANYRAID 的 `lib/katapult/flashtool.py` 已由 Node.js 26
+`scripts/katapult.ts` 替代。手动调用方式见 [Bootloaders](Bootloaders.md)。
+默认查询不再隐式清空所有 Katapult 节点 ID；总线维护时可显式使用
+`--query --reset-node-ids`。写入结果不确定或读回失败时不重放写入，
+也不发送 COMPLETE 启动未验证固件。物理板卡验收仍未完成。
+
 20260915: Support for the `TEMPERATURE_PROBE_CALIBRATE` `METHOD=tap`
 parameter has been removed. Use
 `TEMPERATURE_PROBE_CALIBRATE MANUAL_METHOD=tap` instead.

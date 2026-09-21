@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {flashKatapult,katapultFrame,katapultReply,katapultInfo} from '../src/diagnostics/katapult.ts';
 import {katapultSimulator,katapultReference} from '../bench/katapult-reference.ts';
 const signal=()=>new AbortController().signal;
-test('Katapult complete upload/readback frames and padded SHA match original Python for all block sizes',async()=>{
+test('Katapult complete upload/readback frames and padded SHA match frozen original Python for all block sizes',async()=>{
  const image=Buffer.from(Array.from({length:1003},(_,i)=>i*37&255));
  for(const size of [64,128,256,512]){const sim=katapultSimulator(size),reference=katapultReference(image,size),result=await flashKatapult(image,sim.transport,signal(),{expectedMcu:'stm32f407'});assert.deepEqual(sim.frames.map(f=>f.toString('hex')),reference.frames);assert.equal(result.sha1,reference.sha1);assert.equal(result.blocks,Math.ceil(image.length/size));assert.equal(result.info.software,'test');}
 });
