@@ -1,4 +1,5 @@
 import {execFileSync} from 'node:child_process';
+import type {MotionProfileOptions} from '../src/diagnostics/graph-motion.ts';
 import type {MotionFilter} from '../src/diagnostics/motion-filters.ts';
 import {fileURLToPath} from 'node:url';
 const source=String.raw`
@@ -15,11 +16,13 @@ def subplots(**kw):
  panels.clear();return Stub(),[Axis() for _ in range(kw['nrows'])]
 m=types.ModuleType('matplotlib');m.pyplot=types.SimpleNamespace(subplots=subplots);m.font_manager=types.SimpleNamespace(FontProperties=Stub);sys.modules['matplotlib']=m
 r=runpy.run_path(sys.argv[1]);samples=[]
-if len(sys.argv)>3:
+profile=json.loads(sys.argv[5]);g=r['plot_motion'].__globals__;g['get_acc_pos']=r['get_acc_pos_ao'+str(profile.get('order',2))]
+if profile.get('jerkLimit'):g['get_acc']=r['get_accel_jerk_limit']
+if sys.argv[3]:
  name=sys.argv[3];smooth=float(sys.argv[4]);fn=r['calc_'+name]
  r['plot_motion'].__globals__['gen_updated_position']=lambda p:fn(p) if name=='spring_raw' else fn(p,smooth)
 for i in range(int(sys.argv[2])):
  start=time.perf_counter();r['plot_motion']();samples.append((time.perf_counter()-start)*1000)
-print(json.dumps(dict(panels=panels,samples=samples),allow_nan=False))
+print(json.dumps(dict(panels=panels,samples=samples,positions=r['gen_positions']()),allow_nan=False))
 `;
-export function motionGraphReference(runs=1,filter?:MotionFilter,smoothTime=(2/3)/40):{panels:{curves:{times:number[];values:number[]}[];axis:string;range?:[number,number]}[];samples:number[]}{return JSON.parse(execFileSync('/usr/bin/python3',['-c',source,fileURLToPath(new URL('../../scripts/graph_motion.py',import.meta.url)),String(runs),...(filter?[filter,String(smoothTime)]:[])],{encoding:'utf8',maxBuffer:32*1024**2}));}
+export function motionGraphReference(runs=1,filter?:MotionFilter,smoothTime=(2/3)/40,profile:MotionProfileOptions={}):{positions:number[];panels:{curves:{times:number[];values:number[]}[];axis:string;range?:[number,number]}[];samples:number[]}{return JSON.parse(execFileSync('/usr/bin/python3',['-c',source,fileURLToPath(new URL('../../scripts/graph_motion.py',import.meta.url)),String(runs),filter??'',String(smoothTime),JSON.stringify(profile)],{encoding:'utf8',maxBuffer:32*1024**2}));}

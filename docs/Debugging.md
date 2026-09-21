@@ -279,9 +279,18 @@ node ~/klipper/scripts/graph_motion.ts --filter weighted4 --smooth_time 0.020 -o
 Available filters are `average`, `smooth`, `weighted`, `weighted2`,
 `weighted3`, `weighted4`, `spring_raw`, and `spring_double_weighted`.
 The smoothing default is `(2/3)/40` seconds; `spring_raw` has no smoothing
-parameter. Windows must fit the fixed 50 ms margin. The original Python
-script remains for its interactive window and other source-edited
-experiments, such as higher-order acceleration and alternate legacy shapers.
+parameter. Windows must fit the fixed 50 ms margin. Use `--accel_order 4`
+or `--accel_order 6` for the original higher-order position curves, and
+`--jerk_limit` for the original fixed jerk limit. These options can be
+combined with a filter; the default acceleration order is 2. For example:
+
+```
+node ~/klipper/scripts/graph_motion.ts --accel_order 6 --jerk_limit --filter weighted4 -o motion.png
+```
+
+These are offline diagnostic experiments, not production planner settings.
+The original Python script remains for its interactive window and other
+source-edited experiments, such as alternate legacy shapers.
 
 ## Extracting information from the klippy.log file
 

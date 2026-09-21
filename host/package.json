@@ -155,7 +155,8 @@
     "bench:shaper-export": "node bench/shaper-export.ts",
     "bench:graph-temperature": "node bench/graph-temperature.ts",
     "bench:graph-motion": "node bench/graph-motion.ts",
-    "bench:motion-filters": "node bench/motion-filters.ts"
+    "bench:motion-filters": "node bench/motion-filters.ts",
+    "bench:motion-profile": "node bench/motion-profile.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
