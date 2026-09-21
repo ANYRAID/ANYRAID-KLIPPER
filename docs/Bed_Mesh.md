@@ -741,7 +741,8 @@ node scripts/graph_mesh.ts analyze mesh-dump.json
 node scripts/graph_mesh.ts analyze --json -o report.json mesh-dump.json
 ```
 
-This Node command currently accepts regular local JSON files only. It reports
+This Node command accepts regular local JSON files, Unix sockets, and
+HTTP(S)/WS(S) server URLs. It reports
 path counts and duplicates, current and saved mesh statistics, and pairwise
 height differences. Differences are explicitly `A - B`; incompatible grids
 are reported as skipped, without interpolation. The current mesh takes
@@ -753,8 +754,25 @@ the input path.
 Node corrects the legacy Y-coordinate upper-bound typo for rectangular beds
 and reports the actual rapid-scan sample count. It accepts at most 32 saved
 profiles and two million total height values. Files are limited to 64 MiB;
-nonfinite or unsafe integer JSON values are rejected. Socket/WebSocket
-acquisition, plotting and animation still use the Python tool below.
+nonfinite or unsafe integer JSON values are rejected. Remote acquisition uses one `bed_mesh/dump_mesh` request and a 20-second
+deadline (`--timeout MS`, 1..600000). The HTTP scheme is mapped to WebSocket
+and `/klippysocket` is appended unless already present. URL path/query case
+is preserved. Credentials in the URL authority, fragments, redirects and
+binary WebSocket responses are rejected. Connections are not retried or
+replayed. TLS uses the runtime's default certificate validation.
+
+Snapshots can be saved without running analysis:
+
+```
+node scripts/graph_mesh.ts dump -o mesh-dump.json /tmp/klippy_uds
+node scripts/graph_mesh.ts analyze http://my-printer.local
+```
+
+Without `-o`, `dump` writes a timestamped JSON filename. Remote replies are
+limited to 64 MiB in total, including unrelated messages. Malformed JSON,
+UTF-8, unsafe integers and non-object mesh results are rejected. This is a
+read-only request and does not pass `mesh_args` or apply calibration changes.
+Plotting and animation still use the Python tool below.
 
 The `graph_mesh.py` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
