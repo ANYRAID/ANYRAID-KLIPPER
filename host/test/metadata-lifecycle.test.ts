@@ -52,3 +52,13 @@ test('a new owner restores the selected version after every component has been r
 test('failed current preparation retains its pending intent until explicit invalidation',async()=>{
  const f=await fixture();try{await writeFile(f.path,'; thumbnail begin 32 32 8\n; AAAAAAAA\n; thumbnail end\n');await assert.rejects(f.scan());assert.equal(f.components.versions.current('part.gcode')?.state,'pending');assert.equal(f.components.cache.peek('part.gcode'),undefined);assert.equal(await f.owner.retireSuperseded(signal),0);assert.equal(f.components.intents.unresolved().length,1);await f.owner.invalidate('part.gcode',signal);assert.equal(await f.owner.retireSuperseded(signal),1);assert.equal(f.components.intents.unresolved().length,0);}finally{await f.close();}
 });
+test('queued recovery cannot revoke the ticket of a later admitted scan',async()=>{
+ const f=await fixture();try{
+  await f.scan();const entered=Promise.withResolvers<void>(),resume=Promise.withResolvers<void>(),begin=f.components.intents.begin.bind(f.components.intents);
+  f.components.intents.begin=async(...args)=>{if(args[0]==='other.gcode'){entered.resolve();await resume.promise;}return begin(...args);};
+  const other=f.owner.scan('other.gcode',await open(f.path,'r'),signal,f.validate);await entered.promise;
+  const recovering=f.owner.recover('part.gcode',signal,f.validate),latest=f.scan();
+  // f.scan opens asynchronously; ensure its cache ticket is admitted first.
+  await until(()=>f.owner.status.pending===3);resume.resolve();await other;assert.equal(await recovering,false);assert.equal((await latest).committed,true);
+ }finally{await f.close();}
+});

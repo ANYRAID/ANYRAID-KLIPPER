@@ -50,16 +50,30 @@ export class MetadataFiles {
   catch(error){if(error instanceof ApiError&&[400,404].includes(error.status))return false;throw error;}
   finally{await source?.close();}
  }
- rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  try{if(this.#stop.signal.aborted)throw new ApiError(503,'Metadata files are closed');signal.throwIfAborted();this.#name(filename);if(this.#pending.size>=this.#limit)throw new ApiError(503,'Metadata file queue is full');}catch(error){return Promise.reject(error);}
+ #admit<T>(signal:AbortSignal,validate:()=>void,operation:(signal:AbortSignal)=>Promise<T>):Promise<T>{
+  try{if(this.#stop.signal.aborted)throw new ApiError(503,'Metadata files are closed');signal.throwIfAborted();validate();if(this.#pending.size>=this.#limit)throw new ApiError(503,'Metadata file queue is full');}catch(error){return Promise.reject(error);}
   const combined=AbortSignal.any([signal,this.#stop.signal]);
-  const task=Promise.resolve().then(async()=>{
+  const task=Promise.resolve().then(()=>{combined.throwIfAborted();return operation(combined);});
+  this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+ }
+ rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
+  return this.#admit(signal,()=>this.#name(filename),async combined=>{
    const source=await this.#source(filename,combined);
    const result=await this.#options.lifecycle.scan(filename,source,combined,(value,s)=>this.#validate(filename,value,s));
    combined.throwIfAborted();if(!result.committed)throw new ApiError(409,'Metadata scan was superseded');
    try{return this.#options.lifecycle.metadata(filename);}catch(error){if(error instanceof ApiError&&error.status===404)throw new ApiError(409,'Metadata scan was superseded');throw error;}
   });
-  this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+ }
+ async #recover(filename:string,signal:AbortSignal):Promise<boolean>{
+  let changed=false;
+  try{return await this.#options.lifecycle.recover(filename,signal,async(value,s)=>{const valid=await this.#validate(filename,value,s);if(!valid)changed=true;return valid;});}
+  catch(error){signal.throwIfAborted();if(changed&&error instanceof ApiError&&error.status===409)return false;throw error;}
+ }
+ recover(filename:string,signal:AbortSignal):Promise<boolean>{return this.#admit(signal,()=>this.#name(filename),s=>this.#recover(filename,s));}
+ /** Snapshot selected names only; no fallback or discovery of unscanned files.
+  * Stop on corruption/IO failure. Earlier successful records remain available. */
+ restoreSelected(signal:AbortSignal):Promise<{restored:number;unavailable:number}>{
+  return this.#admit(signal,()=>{},async s=>{const names=this.#options.lifecycle.selectedFilenames();let restored=0,unavailable=0;for(const filename of names){s.throwIfAborted();this.#name(filename);if(await this.#recover(filename,s))restored++;else unavailable++;}s.throwIfAborted();return {restored,unavailable};});
  }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Metadata files are closing'));this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#root.close());return this.#closing;}
 }

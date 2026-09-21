@@ -25,6 +25,7 @@ export class MetadataLifecycle {
  constructor(options:MetadataLifecycleOptions){this.#maxPending=options.maxPending??4;if(!Number.isSafeInteger(this.#maxPending)||this.#maxPending<1||this.#maxPending>16)throw new RangeError('Invalid metadata lifecycle capacity');this.#components=[options.extractor,options.processor,options.images,options.intents,options.snapshots,options.versions,options.cache];if(this.#components.some(value=>!value||typeof value!=='object'))throw new TypeError('Metadata lifecycle components are required');if(this.#components.some(value=>ownedComponents.has(value)))throw new Error('Metadata component already has a lifecycle owner');for(const value of this.#components)ownedComponents.add(value);this.#options={...options};}
  get status(){return {closed:this.#closed,pending:this.#pending.size,maxPending:this.#maxPending};}
  metadata(filename:string){return this.#options.cache.metadata(filename);}
+ selectedFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state==='selected').map(value=>value.filename));}
  #admit<T>(prepare:()=>()=>Promise<T>):Promise<T>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Metadata lifecycle is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new ApiError(503,'Metadata lifecycle queue is full'));
   let operation:()=>Promise<T>;try{operation=prepare();}catch(error){return Promise.reject(error);}
@@ -62,7 +63,7 @@ export class MetadataLifecycle {
   finally{if(source.fd>=0){try{await source.close();}catch(cleanup){throw new AggregateError(failed?[primary,cleanup]:[cleanup],'Metadata lifecycle source cleanup failed');}}}
  }
  invalidate(filename:string,signal:AbortSignal):Promise<MetadataVersion>{return this.#admit(()=>{signal.throwIfAborted();validateMetadataFilename(filename);this.#options.cache.invalidate(filename);return ()=>this.#options.versions.invalidate(filename,signal);});}
- recover(filename:string,signal:AbortSignal,validateSource:Validate):Promise<boolean>{return this.#admit(()=>{signal.throwIfAborted();validateMetadataFilename(filename);const o=this.#options;return ()=>restoreCurrentMetadata({versions:o.versions,snapshots:o.snapshots,images:o.images,cache:o.cache,ticket:o.cache.begin(filename),signal,validateSource});});}
+ recover(filename:string,signal:AbortSignal,validateSource:Validate):Promise<boolean>{return this.#admit(()=>{signal.throwIfAborted();validateMetadataFilename(filename);if(typeof validateSource!=='function')throw new TypeError('Metadata source validation is required');const o=this.#options,ticket=o.cache.begin(filename);return ()=>restoreCurrentMetadata({versions:o.versions,snapshots:o.snapshots,images:o.images,cache:o.cache,ticket,signal,validateSource});});}
  retire(intent:MetadataScanIntent,signal:AbortSignal):Promise<void>{return this.#admit(()=>()=>retireMetadataScan({intent,...this.#options,signal,authorizeRetirement:async value=>this.#options.versions.canRetire(value)}));}
  /** Reclaim only intents explicitly superseded/invalidated in the version store.
   * Unknown intents and the current pending/selected scan are retained. */

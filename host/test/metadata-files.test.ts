@@ -50,3 +50,18 @@ test('source replacement after opening cannot select metadata from the detached 
 test('close cancels active work and drains descriptor admission before returning',async()=>{
  const f=await fixture();try{const original=f.intents.begin.bind(f.intents),entered=Promise.withResolvers<void>();f.intents.begin=async(...args)=>{entered.resolve();await delay(10);return original(...args);};const pending=f.files.rescan('层/part.gcode',signal),rejected=assert.rejects(pending);await entered.promise;await f.files.close();await rejected;assert.equal(f.files.status.pending,0);assert.equal(f.owner.status.closed,false);await assert.rejects(f.files.rescan('层/part.gcode',signal),/closed/);assert.equal(f.cache.peek('层/part.gcode'),undefined);}finally{await f.close();}
 });
+test('selected startup recovery restores valid files and refuses changed or deleted sources',async()=>{
+ const f=await fixture();try{
+  await writeFile(join(f.root,'changed.gcode'),'G1 X1\n');await writeFile(join(f.root,'deleted.gcode'),'G1 X2\n');
+  for(const name of ['层/part.gcode','changed.gcode','deleted.gcode'])await f.files.rescan(name,signal);
+  await writeFile(join(f.root,'changed.gcode'),'G1 X999\n');await rm(join(f.root,'deleted.gcode'));f.cache.clear();
+  assert.deepEqual(await f.files.restoreSelected(signal),{restored:1,unavailable:2});assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);assert.equal(f.cache.peek('changed.gcode'),undefined);assert.equal(f.cache.peek('deleted.gcode'),undefined);
+  assert.equal(await f.files.recover('unknown.gcode',signal),false);assert.equal(f.versions.current('changed.gcode')?.state,'selected');
+ }finally{await f.close();}
+});
+test('startup recovery propagates snapshot corruption instead of treating it as a source change',async()=>{
+ const f=await fixture();try{await f.files.rescan('层/part.gcode',signal);f.cache.clear();const read=f.snapshots.read.bind(f.snapshots);f.snapshots.read=async()=>{throw new Error('corrupt snapshot');};await assert.rejects(f.files.restoreSelected(signal),/corrupt snapshot/);assert.equal(f.cache.peek('层/part.gcode'),undefined);f.snapshots.read=read;assert.deepEqual(await f.files.restoreSelected(signal),{restored:1,unavailable:0});}finally{await f.close();}
+});
+test('startup recovery obeys admission and cancellation before any cache mutation',async()=>{
+ const f=await fixture();try{await f.files.rescan('层/part.gcode',signal);const cancelled=new AbortController();cancelled.abort(new Error('cancel startup'));await assert.rejects(f.files.restoreSelected(cancelled.signal),/cancel startup/);assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);const recovery=f.files.restoreSelected(signal);await assert.rejects(f.files.rescan('层/part.gcode',signal),/queue is full/);assert.deepEqual(await recovery,{restored:1,unavailable:0});await f.files.close();await assert.rejects(f.files.restoreSelected(signal),/closed/);}finally{await f.close();}
+});
