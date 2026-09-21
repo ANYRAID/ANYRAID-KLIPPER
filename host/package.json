@@ -193,7 +193,8 @@
     "bench:klipper-save-command": "node bench/klipper-save-command.ts",
     "bench:bed-mesh-save": "node bench/bed-mesh-save.ts",
     "bench:bed-mesh-profile-store": "node bench/bed-mesh-profile-store.ts",
-    "bench:bed-mesh-profile-command": "node bench/bed-mesh-profile-command.ts"
+    "bench:bed-mesh-profile-command": "node bench/bed-mesh-profile-command.ts",
+    "bench:bed-mesh-switch": "node bench/bed-mesh-switch.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

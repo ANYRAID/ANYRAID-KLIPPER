@@ -10,7 +10,7 @@ export interface BedMeshPortOptions {
   * Must not perform I/O or mutate endpoints or previously admitted moves. */
  validate:(move:Move)=>void;signal?:AbortSignal;splitDeltaZ?:number;checkDistance?:number;
 }
-/** GCodeMove adapter owning a lookahead queue and a fixed mesh snapshot.
+/** GCodeMove adapter owning a lookahead queue and an owned mesh snapshot.
  * Physical position means accepted/planned position, not measured MCU position. */
 export class BedMeshMovePort implements MovePort {
  #mesh:BedMesh|null;#fade:BedMeshFade;#limits:MotionLimits;#validate:(move:Move)=>void;
@@ -59,6 +59,23 @@ export class BedMeshMovePort implements MovePort {
    const finalPhysical=[...previous];const due=this.#queue.addBatch(staged);this.#active();
    this.#physical=finalPhysical;this.#logical=target;this.#flushDue=due||this.#flushDue;
   }finally{this.#finish();}
+ }
+ currentMesh():BedMesh|null{this.#idle();return this.#mesh?.copy()??null;}
+ /** Drain must submit these old-mesh trajectories and await all downstream
+  * movement, including earlier flushes. It must honor cancellation and perform
+  * hardware stop on failure; this port can only stop host admission. */
+ async replaceMesh(mesh:BedMesh|null,fadeConfig:BedMeshFadeConfig,drain:(moves:Move[],signal:AbortSignal)=>Promise<void>,signal?:AbortSignal):Promise<readonly number[]>{
+  this.#idle();if(typeof drain!=='function')throw new TypeError('Motion drain required');
+  const signals=[this.#signal,signal].filter((s):s is AbortSignal=>s!==undefined),combined=AbortSignal.any(signals);combined.throwIfAborted();
+  const next=mesh?.copy()??null,fade=BedMeshFade.forMesh(next,fadeConfig),logical=[...this.#physical];
+  if(next)logical[2]=fade.unapply(logical[2],next.calcZ(logical[0],logical[1]));
+  const abort=()=>this.shutdown(combined.reason);this.#busy=true;combined.addEventListener('abort',abort,{once:true});
+  try{
+   const moves=this.#queue.flush(false);this.#flushDue=false;
+   await drain(moves,combined);combined.throwIfAborted();this.#active();
+   this.#mesh=next;this.#fade=fade;this.#logical=logical;return [...logical];
+  }catch(error){this.shutdown(error);throw this.#fault;}
+  finally{combined.removeEventListener('abort',abort);this.#finish();}
  }
  /** Flush for downstream planning; does not send anything to hardware. */
  flush(lazy=false):Move[]{this.#idle();this.#busy=true;try{const moves=this.#queue.flush(lazy);this.#flushDue=false;return moves;}finally{this.#finish();}}
