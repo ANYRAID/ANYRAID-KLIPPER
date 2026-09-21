@@ -298,6 +298,27 @@ The legacy formulas are distinct from the current production definitions
 used by `graph_shaper.ts`. The Python script remains as a differential
 reference and for its interactive window and PDF/EPS output.
 
+## Generating accelerometer and frequency graphs
+
+Use Node.js 26 with the host dependencies installed:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -r -o acceleration.png raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -f 200 -a all -o frequency.svg raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -a x -o comparison.png first.csv second.csv
+```
+
+Raw mode plots all three axes after subtracting each axis mean. Frequency
+mode accepts raw samples or processed PSD files; a single XYZ spectrum shows
+the total and three axes, while multiple datasets are shown separately.
+Selecting an axis requires that axis to exist in every dataset. Previously
+normalized files retain their values. Supported outputs are SVG, PNG,
+JPEG, WebP, TIFF, and JSON panels. Long curve names and offsets are retained
+in JSON and SVG titles even when the visible legend is shortened.
+Spectrograms, CSV export, interactive windows, and PDF/EPS still require
+the original Python tool. These offline graphs do not measure print quality
+or configure the printer.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
