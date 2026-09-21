@@ -24,6 +24,7 @@ export class MetadataLifecycle {
  #components:object[];#options:MetadataLifecycleOptions;#maxPending:number;#tail:Promise<unknown>=Promise.resolve();#pending=new Set<Promise<unknown>>();#closed=false;#closing:Promise<void>|undefined;
  constructor(options:MetadataLifecycleOptions){this.#maxPending=options.maxPending??4;if(!Number.isSafeInteger(this.#maxPending)||this.#maxPending<1||this.#maxPending>16)throw new RangeError('Invalid metadata lifecycle capacity');this.#components=[options.extractor,options.processor,options.images,options.intents,options.snapshots,options.versions,options.cache];if(this.#components.some(value=>!value||typeof value!=='object'))throw new TypeError('Metadata lifecycle components are required');if(this.#components.some(value=>ownedComponents.has(value)))throw new Error('Metadata component already has a lifecycle owner');for(const value of this.#components)ownedComponents.add(value);this.#options={...options};}
  get status(){return {closed:this.#closed,pending:this.#pending.size,maxPending:this.#maxPending};}
+ metadata(filename:string){return this.#options.cache.metadata(filename);}
  #admit<T>(prepare:()=>()=>Promise<T>):Promise<T>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Metadata lifecycle is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new ApiError(503,'Metadata lifecycle queue is full'));
   let operation:()=>Promise<T>;try{operation=prepare();}catch(error){return Promise.reject(error);}
