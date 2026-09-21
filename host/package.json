@@ -189,7 +189,8 @@
     "bench:klipper-save-preflight": "node bench/klipper-save-preflight.ts",
     "bench:klipper-save-commit": "node bench/klipper-save-commit.ts",
     "bench:klipper-save-changes": "node bench/klipper-save-changes.ts",
-    "bench:klipper-save-session": "node bench/klipper-save-session.ts"
+    "bench:klipper-save-session": "node bench/klipper-save-session.ts",
+    "bench:klipper-save-command": "node bench/klipper-save-command.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

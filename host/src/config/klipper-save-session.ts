@@ -8,7 +8,7 @@ export type ConfigurationSaveState='idle'|'saving'|'saved'|'failed'|'recovery-re
  * restarts a device. After an uncertain commit, reload/recovery needs a new session. */
 export class KlipperSaveSession {
  readonly #path:string;readonly #changes:KlipperSaveChanges;readonly #limits:KlipperFileLimits;
- #current:string;#state:ConfigurationSaveState='idle';#restartRequired=false;#error:unknown;
+ #current:string;#state:ConfigurationSaveState='idle';#restartRequired=false;#sealedForRestart=false;#error:unknown;
  static async load(path:string,limits:KlipperFileLimits={}){
   const loaded=await inspectKlipperConfiguration(path,limits);
   return Object.freeze({source:loaded.source,session:new KlipperSaveSession(loaded.source.primaryFile,loaded.mainText,loaded.autosave,limits)});
@@ -16,9 +16,11 @@ export class KlipperSaveSession {
  constructor(path:string,current:string,saved:SavedConfiguration={},limits:KlipperFileLimits={}){
   this.#path=path;this.#current=current;this.#changes=new KlipperSaveChanges(saved);this.#limits={...limits};
  }
- apply(changes:readonly SaveChange[]):void{this.#changes.apply(changes);}
- get status(){return {...this.#changes.status,state:this.#state,restartRequired:this.#restartRequired,error:this.#error};}
+ apply(changes:readonly SaveChange[]):void{if(this.#sealedForRestart)throw new Error('Configuration session sealed for restart');this.#changes.apply(changes);}
+ sealForRestart():void{if(this.#state!=='saved'||this.#changes.status.save_config_pending||this.#sealedForRestart)throw new Error('Configuration is not ready for restart');this.#sealedForRestart=true;}
+ get status(){return {...this.#changes.status,state:this.#state,restartRequired:this.#restartRequired,sealedForRestart:this.#sealedForRestart,error:this.#error};}
  async save(signal?:AbortSignal){
+  if(this.#sealedForRestart)throw new Error('Configuration session sealed for restart');
   if(this.#state==='saving')throw new Error('Configuration save already in progress');
   if(this.#state==='recovery-required')throw new Error('Configuration save requires recovery and reload',{cause:this.#error});
   const snapshot=this.#changes.capture();this.#state='saving';this.#error=undefined;
