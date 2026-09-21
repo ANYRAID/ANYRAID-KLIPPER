@@ -9,6 +9,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include "usb-bootloader.h"
 static napi_value fail(napi_env env,const char *operation){char message[256];snprintf(message,sizeof(message),"%s: %s",operation,strerror(errno));napi_throw_error(env,NULL,message);return NULL;}
 static int baud_value(napi_env env,napi_value value,unsigned *baud){double n;if(napi_get_value_double(env,value,&n)!=napi_ok||!isfinite(n)||n<1||n>4000000||floor(n)!=n){napi_throw_range_error(env,NULL,"Invalid UART baud rate");return 0;}*baud=(unsigned)n;return 1;}
 static int speed(int fd,unsigned baud){struct termios2 t;if(ioctl(fd,TCGETS2,&t))return -1;t.c_cflag=(t.c_cflag&~(CBAUD|CIBAUD))|BOTHER;t.c_ispeed=t.c_ospeed=baud;if(ioctl(fd,TCSETS2,&t))return -1;if(ioctl(fd,TCGETS2,&t))return -1;if(t.c_ispeed!=baud||t.c_ospeed!=baud){errno=EINVAL;return -1;}return 0;}
@@ -32,4 +33,11 @@ static napi_value open_uart(napi_env env,napi_callback_info info){
  error:{int saved=errno;close(fd);errno=saved;return fail(env,operation);}
 }
 static napi_value set_baud(napi_env env,napi_callback_info info){size_t n=2;napi_value a[2],result;double fd;unsigned baud;if(napi_get_cb_info(env,info,&n,a,NULL,NULL)!=napi_ok||n!=2||napi_get_value_double(env,a[0],&fd)!=napi_ok||!isfinite(fd)||fd<0||fd>2147483647||floor(fd)!=fd){napi_throw_type_error(env,NULL,"Invalid UART fd");return NULL;}if(!baud_value(env,a[1],&baud))return NULL;if(speed((int)fd,baud))return fail(env,"Set UART baud");napi_get_undefined(env,&result);return result;}
-napi_status uart_exports(napi_env env,napi_value exports){napi_property_descriptor d[]={{"openUART",NULL,open_uart,NULL,NULL,NULL,napi_default,NULL},{"setUARTBaud",NULL,set_baud,NULL,NULL,NULL,napi_default,NULL}};return napi_define_properties(env,exports,2,d);}
+static napi_value touch_usb(napi_env env,napi_callback_info info){
+ size_t n=1,len=0;napi_value a[1],result;char path[4096];
+ if(napi_get_cb_info(env,info,&n,a,NULL,NULL)!=napi_ok||n!=1||napi_get_value_string_utf8(env,a[0],NULL,0,&len)!=napi_ok||!len||len>=sizeof(path)){napi_throw_type_error(env,NULL,"Invalid USB bootloader path");return NULL;}
+ if(napi_get_value_string_utf8(env,a[0],path,sizeof(path),&len)!=napi_ok||strlen(path)!=len||path[0]!='/'){napi_throw_type_error(env,NULL,"USB bootloader path must be absolute without NUL");return NULL;}
+ const char *operation;if(usb_bootloader_touch(path,&operation))return fail(env,operation);
+ napi_get_undefined(env,&result);return result;
+}
+napi_status uart_exports(napi_env env,napi_value exports){napi_property_descriptor d[]={{"touchUSBBootloader",NULL,touch_usb,NULL,NULL,NULL,napi_default,NULL},{"openUART",NULL,open_uart,NULL,NULL,NULL,napi_default,NULL},{"setUARTBaud",NULL,set_baud,NULL,NULL,NULL,napi_default,NULL}};return napi_define_properties(env,exports,3,d);}

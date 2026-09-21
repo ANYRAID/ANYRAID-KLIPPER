@@ -10959,3 +10959,40 @@ Katapult ID、陈旧链接、取消、重新枚举超时与备用路径抖动。
 
 完整原生构建与回归 **1336 项通过**，类型、项目空白和差异检查通过。
 生产打印入口、真实 USB/目标板验证与完整 Moonraker 迁移仍未完成。
+
+## 原生 USB 1200 波特率进入操作（2026-09-22）
+
+`host/native/usb-bootloader.h` 与 `uart.c` 新增
+`touchUSBBootloader`，通过 Node-API 暴露给
+`host/src/diagnostics/usb-bootloader.ts`，成为 USB 系统适配器的默认
+进入操作。顺序为打开端口、取得非阻塞 advisory flock、抬高 DTR、
+读取 termios2、保留其他设置并将输入输出改为 1200 波特率、降低
+DTR、关闭描述符。没有复用会设置 raw 模式/RTS/清空输入的 UART
+连接函数，避免向本操作加入原脚本没有的串口动作。
+
+相比原脚本，打开增加 NOCTTY/NONBLOCK/CLOEXEC，锁失败或 ioctl
+失败会向调用者报错，不再静默继续。flock 只对遵守同一锁约定的
+进程有效。失败关闭保持原始 errno，close 不因 EINTR 重试；无
+自动重试 DTR 序列。取消在同步序列前后检查，不能中断已进入内核
+的 ioctl，也不能撤销已经发生的 DTR 边沿。
+
+新增 2 项专项测试：编译包含实际 `uart.c` 的系统调用替身，断言
+全部调用顺序、打开标志、1200 速率、保留 flags/VMIN、7 个失败点
+的错误与关闭，以及非法路径在系统调用前拒绝；真实 PTY 验证不
+支持 DTR 时可靠失败并释放描述符、预先取消无动作。普通、UBSan
+和 ASan/UBSan 专项均通过，加入持续原生 sanitizer 测试入口。
+ASan 不做 Node 进程全局泄漏核算，PTY 不模拟真实 DTR 电平。
+
+`node host/bench/usb-bootloader.ts` 比较原 Python `enter_bootloader`
+与 Node 在真实 PTY 首个 DTR ioctl 失败时的路径。Node 26.9.0 /
+Python 3.12.13，5 轮预热、31 轮测量，每轮 1000 次，中位 / p95
+分别为 Node **8.671 / 10.199 ms**、Python **7.635 / 7.677 ms**。
+Node 额外包含锁、Promise 拒绝及断言，Python 静默吞掉错误；本次
+每次约增加 1.04 微秒中位开销。此结果只说明维护失败路径的开销，
+不能外推成功进入 bootloader、固件刷写或打印速度。
+
+尚未连接物理设备；实际 USB 控制器进入、Katapult 协议与 CLI
+集成仍待完成，旧 Python 烧录入口继续保留。
+
+完整原生构建与回归 **1338 项通过**，类型、项目空白和差异检查
+通过；修正 C 夹具长行后专项再次通过。没有生产入口切换或硬件刷写。
