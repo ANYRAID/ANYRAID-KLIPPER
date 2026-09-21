@@ -203,6 +203,22 @@ One can then view the resulting **loadgraph.png** file.
 Different graphs can be produced. For more information run:
 `~/klipper/scripts/graphstats.py --help`
 
+## Generating extruder motion graphs
+
+For an offline illustration of extruder pressure advance, the Node.js 26
+tool generates the original fixed sample motion and compares nominal,
+raw pressure advance, and smoothed pressure advance velocities:
+
+```
+node ~/klipper/scripts/graph_extruder.ts -o extruder.png
+```
+
+It uses the same installed host dependencies and export formats as the
+Node load graph tool. The horizontal axis is elapsed seconds. This is a
+diagnostic simulation, not a calibration command or a hardware validation.
+The original `graph_extruder.py` remains available for its interactive
+Matplotlib window and PDF/EPS export.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
