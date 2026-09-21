@@ -30,6 +30,8 @@ export class KlipperConfigText {
  }
  sections():string[]{return Object.keys(this.#sections).filter(s=>s!=='DEFAULT');}
  hasOption(section:string|null,option:string):boolean{const key=option.toLowerCase();if(!section||section==='DEFAULT')return Object.hasOwn(this.#sections.DEFAULT??{},key);if(!Object.hasOwn(this.#sections,section))return false;return Object.hasOwn(this.#sections[section],key)||Object.hasOwn(this.#sections.DEFAULT??{},key);}
+ /** Explicit options only: persistence must not materialize DEFAULT inheritance. */
+ rawValues():Record<string,Record<string,string>>{const result:Record<string,Record<string,string>>=dict();for(const [name,values] of Object.entries(this.#sections))result[name]=Object.assign(dict<string>(),values);return result;}
  values():Record<string,Record<string,string>>{const result:Record<string,Record<string,string>>=dict();result.DEFAULT={...(this.#sections.DEFAULT??{})};for(const name of this.sections())result[name]=Object.assign(dict<string>(),result.DEFAULT,this.#sections[name]);return result;}
 }
 /** Main-file text path without include expansion. Rejects includes explicitly;

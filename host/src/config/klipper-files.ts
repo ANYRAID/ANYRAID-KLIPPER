@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {open,opendir,stat} from 'node:fs/promises';
 import {dirname,isAbsolute,resolve} from 'node:path';
 import {ConfigurationSource} from '../moonraker/config-source.ts';
+import type {SavedConfiguration} from './klipper-save.ts';
 import {KlipperConfigText} from './klipper-text.ts';
 import {splitKlipperAutosave,stripAutosaveDuplicates} from './klipper-autosave.ts';
 function globExpression(pattern:string):RegExp{
@@ -13,8 +14,10 @@ function globExpression(pattern:string):RegExp{
 }
 
 export interface KlipperFileVersion {readonly filename:string;readonly identity:string;readonly size:string;readonly mtimeNs:string;readonly ctimeNs:string;readonly mode:string;readonly uid:string;readonly gid:string;readonly sha256:string;}
-export interface KlipperInspection {source:ConfigurationSource;regular:ConfigurationSource;versions:readonly KlipperFileVersion[];}
+export interface KlipperInspection {mainText:string;autosave:SavedConfiguration;source:ConfigurationSource;regular:ConfigurationSource;versions:readonly KlipperFileVersion[];}
 export interface KlipperFileLimits {bytes?:number;files?:number;depth?:number;directoryEntries?:number;signal?:AbortSignal;}
+/** One read pipeline provides regular, effective and explicit autosave values. */
+export async function inspectKlipperConfiguration(filename:string,options:KlipperFileLimits={}):Promise<KlipperInspection>{return load(filename,options);}
 export async function loadKlipperConfiguration(filename:string,options:KlipperFileLimits={}):Promise<ConfigurationSource>{return (await load(filename,options)).source;}
 /** Read-only candidate inspection: includes resolve relative to the real main
  * path; the original main file is opened and checked, never replaced. */
@@ -25,7 +28,7 @@ async function load(filename:string,options:KlipperFileLimits,mainText?:string,e
  if(!filename||filename.includes('\0'))throw new RangeError('Invalid configuration path');
  const check=()=>options.signal?.throwIfAborted();check();
  const versions:KlipperFileVersion[]=[];
- const parsed=new KlipperConfigText(),active=new Set<string>(),files:{filename:string;sections:string[]}[]=[];let bytes=0,entries=0,autosave='';
+ const parsed=new KlipperConfigText(),active=new Set<string>(),files:{filename:string;sections:string[]}[]=[];let bytes=0,entries=0,autosave='',loadedMainText='';
  async function expand(pattern:string):Promise<string[]>{
   const parts=pattern.split('/').filter(Boolean);if(parts.length>limits.depth)throw new RangeError('Include path depth exceeded');
   let candidates=['/'];for(const part of parts){const next:string[]=[];for(const base of candidates){check();const path=base+(base.endsWith('/')?'':'/')+part;
@@ -44,10 +47,10 @@ async function load(filename:string,options:KlipperFileLimits,mainText?:string,e
    const chunks:Buffer[]=[],hash=createHash('sha256');for(;;){check();const buffer=Buffer.allocUnsafe(Math.min(65536,limits.bytes-bytes+1));const result=await file.read(buffer,0,buffer.length,null);if(!result.bytesRead)break;bytes+=result.bytesRead;if(bytes>limits.bytes)throw new RangeError('Configuration byte budget exceeded');const chunk=buffer.subarray(0,result.bytesRead);chunks.push(chunk);hash.update(chunk);}const after=await file.stat({bigint:true});if(info.dev!==after.dev||info.ino!==after.ino||info.size!==after.size||info.mtimeNs!==after.mtimeNs||info.ctimeNs!==after.ctimeNs||info.mode!==after.mode||info.uid!==after.uid||info.gid!==after.gid)throw new Error('Configuration changed during read');versions.push(Object.freeze({filename:path,identity,size:String(info.size),mtimeNs:String(info.mtimeNs),ctimeNs:String(info.ctimeNs),mode:String(info.mode),uid:String(info.uid),gid:String(info.gid),sha256:hash.digest('hex')}));text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Buffer.concat(chunks)).replace(/\r\n|\r/g,'\n');
   }finally{await file.close();}
   active.add(identity);const metadata={filename:path,sections:[] as string[]};files.push(metadata);
-  try{if(main){if(expectedMainText!==undefined&&text!==expectedMainText.replace(/\r\n|\r/g,'\n'))throw new Error('Main configuration changed during save preparation');if(mainText!==undefined){bytes+=Buffer.byteLength(mainText);if(bytes>limits.bytes)throw new RangeError('Configuration byte budget exceeded');text=mainText.replace(/\r\n|\r/g,'\n');}const parts=splitKlipperAutosave(text);if(parts.status==='corrupt')throw new Error('Corrupt Klipper autosave: '+parts.reason);text=parts.regular;autosave=parts.autosave;}
+  try{if(main){if(expectedMainText!==undefined&&text!==expectedMainText.replace(/\r\n|\r/g,'\n'))throw new Error('Main configuration changed during save preparation');if(mainText!==undefined){bytes+=Buffer.byteLength(mainText);if(bytes>limits.bytes)throw new RangeError('Configuration byte budget exceeded');text=mainText.replace(/\r\n|\r/g,'\n');}loadedMainText=text;const parts=splitKlipperAutosave(text);if(parts.status==='corrupt')throw new Error('Corrupt Klipper autosave: '+parts.reason);text=parts.regular;autosave=parts.autosave;}
    let buffer:string[]=[];const append=()=>{for(const section of parsed.append(buffer.join('\n')))if(!metadata.sections.includes(section))metadata.sections.push(section);buffer=[];};
    for(const raw of text.split('\n')){check();const line=raw.split('#',1)[0],header=line.match(/^\[(.+)\]/)?.[1];if(header?.startsWith('include ')){append();const spec=header.slice(8).trim();if(!spec)throw new Error('Empty Klipper include');const pattern=isAbsolute(spec)?spec:dirname(path)+'/'+spec;const matches=await expand(pattern);if(!matches.length&&!/[*?[]/.test(pattern))throw new Error('Missing Klipper include: '+spec);for(const child of matches)await read(child,depth+1);}else buffer.push(line);}append();
   }finally{active.delete(identity);}
  }
- const main=resolve(filename);await read(main,0,true);const regularValues=parsed.values(),regularFiles=files.map(f=>({...f,sections:[...f.sections]}));const saved=stripAutosaveDuplicates(autosave,(s,k)=>parsed.hasOption(s,k));for(const section of parsed.append(saved))if(!files[0].sections.includes(section))files[0].sections.push(section);check();return {versions:Object.freeze(versions),source:new ConfigurationSource(main,parsed.values(),files),regular:new ConfigurationSource(main,regularValues,regularFiles)};
+ const main=resolve(filename);await read(main,0,true);const regularValues=parsed.values(),regularFiles=files.map(f=>({...f,sections:[...f.sections]}));const saved=stripAutosaveDuplicates(autosave,(s,k)=>parsed.hasOption(s,k));for(const section of parsed.append(saved))if(!files[0].sections.includes(section))files[0].sections.push(section);const savedParser=new KlipperConfigText();savedParser.append(saved);const explicitSaved=savedParser.rawValues();for(const values of Object.values(explicitSaved))Object.freeze(values);check();return {mainText:loadedMainText,autosave:Object.freeze(explicitSaved),versions:Object.freeze(versions),source:new ConfigurationSource(main,parsed.values(),files),regular:new ConfigurationSource(main,regularValues,regularFiles)};
 }

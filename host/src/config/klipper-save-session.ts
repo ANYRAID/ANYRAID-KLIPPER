@@ -2,13 +2,17 @@ import {KlipperSaveChanges,type SaveChange} from './klipper-save-changes.ts';
 import type {SavedConfiguration} from './klipper-save.ts';
 import {prepareKlipperSave} from './klipper-save-preflight.ts';
 import {commitKlipperSave,KlipperSaveCommitError} from './klipper-save-commit.ts';
-import type {KlipperFileLimits} from './klipper-files.ts';
+import {inspectKlipperConfiguration,type KlipperFileLimits} from './klipper-files.ts';
 export type ConfigurationSaveState='idle'|'saving'|'saved'|'failed'|'recovery-required';
 /** Owns one loaded configuration session. Saving never activates parameters or
  * restarts a device. After an uncertain commit, reload/recovery needs a new session. */
 export class KlipperSaveSession {
  readonly #path:string;readonly #changes:KlipperSaveChanges;readonly #limits:KlipperFileLimits;
  #current:string;#state:ConfigurationSaveState='idle';#restartRequired=false;#error:unknown;
+ static async load(path:string,limits:KlipperFileLimits={}){
+  const loaded=await inspectKlipperConfiguration(path,limits);
+  return Object.freeze({source:loaded.source,session:new KlipperSaveSession(loaded.source.primaryFile,loaded.mainText,loaded.autosave,limits)});
+ }
  constructor(path:string,current:string,saved:SavedConfiguration={},limits:KlipperFileLimits={}){
   this.#path=path;this.#current=current;this.#changes=new KlipperSaveChanges(saved);this.#limits={...limits};
  }
