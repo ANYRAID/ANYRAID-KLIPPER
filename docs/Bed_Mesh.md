@@ -772,7 +772,22 @@ Without `-o`, `dump` writes a timestamped JSON filename. Remote replies are
 limited to 64 MiB in total, including unrelated messages. Malformed JSON,
 UTF-8, unsafe integers and non-object mesh results are rejected. This is a
 read-only request and does not pass `mesh_args` or apply calibration changes.
-Plotting and animation still use the Python tool below.
+Static point/path plots also have a Node implementation:
+
+```
+node scripts/graph_mesh.ts list
+node scripts/graph_mesh.ts plot points -o points.svg mesh-dump.json
+node scripts/graph_mesh.ts plot path -s -o path.png mesh-dump.json
+node scripts/graph_mesh.ts plot rapid -o rapid.json http://my-printer.local
+```
+
+`-s`/`--scale-plot` uses the machine's reported X/Y axis limits. Both axes
+use equal millimeters-per-pixel scaling. SVG, PNG, JPEG, WebP, TIFF and full
+model JSON are supported; a file output is required. Sample points are dots,
+missing points are magenta rings, and start/stop use a green triangle and
+red square. Empty paths are rendered without invented endpoints. Colors,
+markers and layout differ from Matplotlib; JSON preserves exact coordinates.
+Surface plots and animation still use the Python tool below.
 
 The `graph_mesh.py` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
