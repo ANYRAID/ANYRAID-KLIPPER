@@ -1,5 +1,5 @@
 import {constants} from 'node:fs';
-import {open,type FileHandle} from 'node:fs/promises';
+import {open,opendir,type FileHandle} from 'node:fs/promises';
 import {extname,isAbsolute} from 'node:path';
 import {ApiError,type Json} from './rpc.ts';
 import {validateMetadataFilename} from './file-metadata.ts';
@@ -31,17 +31,17 @@ export class MetadataFiles {
   const extension=extname(filename);if(extension==='.ufp')throw new ApiError(501,'UFP metadata extraction is not implemented');
   if(!['.gcode','.g','.gco','.nc'].includes(extension))throw new ApiError(400,'Not a valid gcode file');
  }
- async #source(filename:string,signal:AbortSignal):Promise<FileHandle>{
+ async #source(filename:string,signal:AbortSignal,directory=false):Promise<FileHandle>{
   let parent=this.#root,owned:FileHandle|undefined;
   try{
    const parts=filename.split('/');
    for(let i=0;i<parts.length;i++){
     signal.throwIfAborted();const last=i===parts.length-1;
-    const next=await open(`/proc/self/fd/${parent.fd}/${parts[i]}`,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK|(last?0:constants.O_DIRECTORY));
+    const next=await open(`/proc/self/fd/${parent.fd}/${parts[i]}`,constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK|(!last||directory?constants.O_DIRECTORY:0));
     try{await owned?.close();}catch(error){await next.close();throw error;}
     owned=next;parent=next;
    }
-   signal.throwIfAborted();if(!(await owned!.stat()).isFile())throw new ApiError(400,'Metadata source is not a regular file');
+   signal.throwIfAborted();const status=await owned!.stat();if(directory?!status.isDirectory():!status.isFile())throw new ApiError(400,'Metadata source has an invalid type');
    const source=owned!;owned=undefined;return source;
   }catch(error){
    if(['ENOENT','ENOTDIR','ELOOP'].includes((error as NodeJS.ErrnoException).code??''))throw new ApiError(404,'G-code file unavailable or symlink forbidden');throw error;
@@ -60,12 +60,13 @@ export class MetadataFiles {
   this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }
  rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  return this.#admit(signal,()=>this.#name(filename),async combined=>{
+  return this.#admit(signal,()=>this.#name(filename),combined=>this.#scan(filename,combined));
+ }
+ async #scan(filename:string,combined:AbortSignal):Promise<Record<string,Json>>{
    const source=await this.#source(filename,combined);
    const result=await this.#options.lifecycle.scan(filename,source,combined,(value,s)=>this.#validate(filename,value,s));
    combined.throwIfAborted();if(!result.committed)throw new ApiError(409,'Metadata scan was superseded');
    try{return this.#options.lifecycle.metadata(filename);}catch(error){if(error instanceof ApiError&&error.status===404)throw new ApiError(409,'Metadata scan was superseded');throw error;}
-  });
  }
  async #recover(filename:string,signal:AbortSignal):Promise<boolean>{
   let changed=false;
@@ -77,6 +78,35 @@ export class MetadataFiles {
   * Stop on corruption/IO failure. Earlier successful records remain available. */
  restoreSelected(signal:AbortSignal):Promise<{restored:number;unavailable:number}>{
   return this.#admit(signal,()=>{},async s=>{const names=this.#options.lifecycle.selectedFilenames();let restored=0,unavailable=0;for(const filename of names){s.throwIfAborted();this.#name(filename);if(await this.#recover(filename,s))restored++;else unavailable++;}s.throwIfAborted();return {restored,unavailable};});
+ }
+ /** Enumerate completely before scanning, with bounded names and traversal.
+  * Symlinks and private directories are skipped; each admitted source is reopened
+  * from the anchored root before use. Discovery is not a directory snapshot. */
+ scanDiscovered(signal:AbortSignal,limits:{maxEntries?:number;maxFiles?:number;maxBytes?:number}={}):Promise<{restored:number;scanned:number;unavailable:number;unsupported:number}>{
+  const maxEntries=limits.maxEntries??65536,maxFiles=limits.maxFiles??1024,maxBytes=limits.maxBytes??4*1024**2;
+  return this.#admit(signal,()=>{for(const [value,max] of [[maxEntries,262144],[maxFiles,4096],[maxBytes,8*1024**2]])if(!Number.isSafeInteger(value)||value<1||value>max)throw new RangeError('Invalid metadata discovery capacity');},async s=>{
+   const names:string[]=[];let entries=0,bytes=0,unsupported=0;
+   const walk=async(relative:string,depth:number):Promise<void>=>{
+    s.throwIfAborted();if(depth>64)throw new ApiError(413,'Metadata directory depth exceeded');
+    const source=await this.#source(relative||'.',s,true);
+    try{const directory=await opendir(`/proc/self/fd/${source.fd}`,{encoding:'buffer' as BufferEncoding,bufferSize:32});
+     try{for(let entry=await directory.read();entry;entry=await directory.read()){
+      s.throwIfAborted();if(++entries>maxEntries)throw new ApiError(413,'Metadata discovery entry limit exceeded');
+      const name=Buffer.isBuffer(entry.name)?new TextDecoder('utf-8',{fatal:true}).decode(entry.name):entry.name;
+      if(name==='.git'||name==='.thumbs'||entry.isSymbolicLink())continue;
+      const path=relative?relative+'/'+name:name;if(Buffer.byteLength(path)>4096)throw new ApiError(413,'Metadata discovery path limit exceeded');
+      if(entry.isDirectory()){await walk(path,depth+1);continue;}if(!entry.isFile())continue;
+      const extension=extname(name);if(extension==='.ufp'){unsupported++;continue;}if(!['.gcode','.g','.gco','.nc'].includes(extension))continue;
+      this.#name(path);bytes+=Buffer.byteLength(path);if(names.length>=maxFiles||bytes>maxBytes)throw new ApiError(413,'Metadata discovery file capacity exceeded');names.push(path);
+     }}finally{await directory.close();}
+    }finally{await source.close();}
+   };
+   await walk('',0);let restored=0,scanned=0,unavailable=0;
+   for(const name of names){s.throwIfAborted();if(await this.#recover(name,s)){restored++;continue;}
+    try{await this.#scan(name,s);scanned++;}catch(error){s.throwIfAborted();if(error instanceof ApiError&&error.status===404){unavailable++;continue;}throw error;}
+   }
+   s.throwIfAborted();return {restored,scanned,unavailable,unsupported};
+  });
  }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Metadata files are closing'));this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#root.close());return this.#closing;}
 }

@@ -28,6 +28,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Transfers admission-layer lifetime on successful load. Restore selected
   * metadata before listening; close files on shutdown, but not its dependencies. */
  metadataFiles?:MetadataFiles;
+ /** Opt in to bounded source discovery and scanning before listening. */
+ discoverMetadataOnStart?:boolean;
  /** Enables configuration-owned Klippy supervision when the network starts. */
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
@@ -47,6 +49,7 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
 export class ConfiguredMoonraker {
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
+ #discoverMetadata=false;#metadataDiscovery:{restored:number;scanned:number;unavailable:number;unsupported:number}|null=null;
  #metadataFiles:MetadataFiles|undefined;#startupAbort=new AbortController();#metadataRecovery:{restored:number;unavailable:number}|null=null;
  #network:MoonrakerNetwork;#information:ServerInformation;#configuration:ServerConfiguration;
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
@@ -58,7 +61,7 @@ export class ConfiguredMoonraker {
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
   if(options.metadataFiles&&fileOwners.has(options.metadataFiles))throw new ConfigurationError('Metadata files already have a server owner');
-  this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;
+  this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
@@ -72,6 +75,7 @@ export class ConfiguredMoonraker {
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.discoverMetadataOnStart!==undefined&&(typeof options.discoverMetadataOnStart!=='boolean'||options.discoverMetadataOnStart&&!options.metadataFiles))throw new ConfigurationError('Metadata discovery requires a file owner');
   if(options.metadataFiles!==undefined&&options.thumbnails!==undefined)throw new ConfigurationError('Metadata-owned thumbnails cannot be overridden');
   if(options.metadataFiles!==undefined&&(!(options.metadataFiles instanceof MetadataFiles)||options.metadataFiles.status.closed))throw new ConfigurationError('Invalid metadata file owner');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');
@@ -164,6 +168,7 @@ export class ConfiguredMoonraker {
  getAgents(){return this.#network.getAgents();}
  getAgent(name:string){return this.#network.getAgent(name);}
  get status(){return this.#network.status;}
+ get metadataDiscovery(){return this.#metadataDiscovery?{...this.#metadataDiscovery}:null;}
  get metadataRecovery(){return this.#metadataRecovery?{...this.#metadataRecovery}:null;}
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
@@ -179,6 +184,7 @@ export class ConfiguredMoonraker {
   try{
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
    if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
+   if(this.#discoverMetadata)this.#metadataDiscovery=await this.#metadataFiles!.scanDiscovered(this.#startupAbort.signal);
    this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    if(this.#automatic)this.#superviseKlippy(this.#automatic.path,this.#automatic.initialization,this.#automatic.retryDelayMs);

@@ -65,7 +65,7 @@ test('startup recovery propagates snapshot corruption instead of treating it as 
 test('startup recovery obeys admission and cancellation before any cache mutation',async()=>{
  const f=await fixture();try{await f.files.rescan('层/part.gcode',signal);const cancelled=new AbortController();cancelled.abort(new Error('cancel startup'));await assert.rejects(f.files.restoreSelected(cancelled.signal),/cancel startup/);assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);const recovery=f.files.restoreSelected(signal);await assert.rejects(f.files.rescan('层/part.gcode',signal),/queue is full/);assert.deepEqual(await recovery,{restored:1,unavailable:0});await f.files.close();await assert.rejects(f.files.restoreSelected(signal),/closed/);}finally{await f.close();}
 });
-async function configured(f:Awaited<ReturnType<typeof fixture>>){const config=join(f.dir,'owned.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0\n');return ConfiguredMoonraker.load(config,{metadataFiles:f.files,authorize(){},information:{connected:false,state:'disconnected',components:['application'],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}});}
+async function configured(f:Awaited<ReturnType<typeof fixture>>,discoverMetadataOnStart=false){const config=join(f.dir,'owned.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0\n');return ConfiguredMoonraker.load(config,{metadataFiles:f.files,discoverMetadataOnStart,authorize(){},information:{connected:false,state:'disconnected',components:['application'],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}});}
 test('configured owner restores before listening and closes only its file admission component',async()=>{
  const f=await fixture();let server:ConfiguredMoonraker|undefined;
  try{await f.files.rescan('层/part.gcode',signal);f.cache.clear();server=await configured(f);assert.equal(server.metadataRecovery,null);assert.equal(server.status.phase,'new');await assert.rejects(configured(f),/already have/);
@@ -96,4 +96,17 @@ test('configured metadata owns the full scan, thumbnail query and authenticated 
   const cached=await fetch(base+path,{headers:{...headers,'if-none-match':response.headers.get('etag')!}});assert.equal(cached.status,304);
   await f.owner.invalidate('层/part.gcode',signal);assert.equal((await fetch(base+path,{headers})).status,404);
  }finally{await server?.close();await f.close();}
+});
+test('bounded discovery scans new nested files, restores unchanged files and reports unsupported UFP',async()=>{
+ const f=await fixture();try{
+  await writeFile(join(f.root,'new.nc'),'G1 X9\n');await writeFile(join(f.root,'unsupported.ufp'),'not a gcode');await writeFile(join(f.root,'ignored.txt'),'ignore');await symlink(join(f.root,'层'),join(f.root,'linked'));await mkdir(join(f.root,'.git'));await writeFile(join(f.root,'.git/hidden.gcode'),'G1 X999\n');
+  const before=(await readdir('/proc/self/fd')).length;assert.deepEqual(await f.files.scanDiscovered(signal),{restored:0,scanned:2,unavailable:0,unsupported:1});assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);assert.equal(f.cache.peek('.git/hidden.gcode'),undefined);assert.equal(f.cache.peek('linked/part.gcode'),undefined);assert.equal((await readdir('/proc/self/fd')).length,before);
+  assert.deepEqual(await f.files.scanDiscovered(signal),{restored:2,scanned:0,unavailable:0,unsupported:1});assert.equal(f.intents.unresolved().length,2);await writeFile(join(f.root,'new.nc'),'G1 X12345\n');assert.deepEqual(await f.files.scanDiscovered(signal),{restored:1,scanned:1,unavailable:0,unsupported:1});
+ }finally{await f.close();}
+});
+test('discovery limits and pre-cancellation fail before beginning any scan and close directory handles',async()=>{
+ const f=await fixture();try{await writeFile(join(f.root,'second.gcode'),'G1 X2\n');const before=(await readdir('/proc/self/fd')).length;for(const limits of [{maxEntries:1},{maxFiles:1},{maxBytes:1}])await assert.rejects(f.files.scanDiscovered(signal,limits),(e:any)=>e.status===413);assert.equal(f.intents.unresolved().length,0);assert.equal((await readdir('/proc/self/fd')).length,before);const controller=new AbortController();controller.abort(new Error('stop discovery'));await assert.rejects(f.files.scanDiscovered(controller.signal),/stop discovery/);assert.equal(f.cache.status.entries,0);}finally{await f.close();}
+});
+test('configured discovery scans previously unknown G-code before opening HTTP',async()=>{
+ const f=await fixture();let server:ConfiguredMoonraker|undefined;try{server=await configured(f,true);const address=await server.start();assert.deepEqual(server.metadataRecovery,{restored:0,unavailable:0});assert.deepEqual(server.metadataDiscovery,{restored:0,scanned:1,unavailable:0,unsupported:0});const reply=await fetch(`http://127.0.0.1:${address.port}/server/files/metadata?filename=${encodeURIComponent('层/part.gcode')}`);assert.equal(reply.status,200);assert.equal((await reply.json() as any).result.layer_height,.2);}finally{await server?.close();await f.close();}
 });
