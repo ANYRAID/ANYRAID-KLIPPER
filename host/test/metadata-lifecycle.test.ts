@@ -62,3 +62,11 @@ test('queued recovery cannot revoke the ticket of a later admitted scan',async()
   await until(()=>f.owner.status.pending===3);resume.resolve();await other;assert.equal(await recovering,false);assert.equal((await latest).committed,true);
  }finally{await f.close();}
 });
+test('history metadata exposes only selected immutable snapshots with their durable generation',async()=>{
+ const f=await fixture();try{
+  assert.equal(f.owner.historyMetadata('part.gcode'),undefined);
+  const first=await f.scan(),snapshot=f.owner.historyMetadata('part.gcode')!;assert.equal(snapshot.generation,first.version!.id);assert.equal(snapshot.fields,f.components.cache.peek('part.gcode'));assert.ok(Object.isFrozen(snapshot.fields));
+  await f.owner.invalidate('part.gcode',signal);assert.equal(f.owner.historyMetadata('part.gcode'),undefined);
+  const second=await f.scan();assert.notEqual(f.owner.historyMetadata('part.gcode')!.generation,snapshot.generation);assert.equal(f.owner.historyMetadata('part.gcode')!.generation,second.version!.id);
+ }finally{await f.close();}assert.throws(()=>f.owner.historyMetadata('part.gcode'),/closed/);
+});

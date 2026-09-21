@@ -104,3 +104,12 @@ async def observe(changes):
 asyncio.run(observe(json.load(sys.stdin)))
 print(json.dumps(events,allow_nan=False))
 `;}
+export function historyMetadataOracle():string{return historyOracle().split('data=json.load(sys.stdin)')[0]+String.raw`
+import copy
+method=next(n for n in history.body if isinstance(n,ast.FunctionDef) and n.name=='grab_job_metadata')
+exec('from __future__ import annotations\n'+ast.unparse(method))
+value=json.load(sys.stdin)
+owner=types.SimpleNamespace(current_job=types.SimpleNamespace(filename='part.gcode',metadata=None),file_manager=types.SimpleNamespace(get_metadata_storage=lambda:types.SimpleNamespace(get=lambda filename,default:copy.deepcopy(value))))
+grab_job_metadata(owner)
+print(json.dumps(owner.current_job.metadata,allow_nan=False))
+`;}

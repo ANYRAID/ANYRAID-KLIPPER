@@ -1,4 +1,4 @@
-import {HistoryRuntime} from './history-runtime.ts';
+import {HistoryRuntime,type HistoryRuntimeOptions} from './history-runtime.ts';
 import {HistoryRepository} from './history-repository.ts';
 import {registerHistory,type HistoryApiOptions} from './history-api.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
@@ -42,7 +42,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Transfers database lifetime on successful load. */
  database?:DatabaseStore;
  /** Repository must be initialized on this database before loading the server. */
- history?:HistoryApiOptions;
+ history?:HistoryApiOptions&{metadata?:HistoryRuntimeOptions['metadata']};
  /** Service owner must reopen all database-dependent components after restore. */
  onDatabaseRestore?:()=>void|Promise<void>;
  configurationLimits?:ConfigurationLimits;
@@ -99,7 +99,7 @@ export class ConfiguredMoonraker {
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   if(options.temperatureStore)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
   this.#database=options.database;const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
-  if(options.history)this.#historyRuntime=new HistoryRuntime(options.history.repository,{onFailure:()=>{if(!this.#stopping)this.setInformation(this.#base);},notify:async event=>{
+  if(options.history)this.#historyRuntime=new HistoryRuntime(options.history.repository,{metadata:options.history.metadata??(this.#metadataFiles?filename=>this.#metadataFiles!.historyMetadata(filename):undefined),onFailure:()=>{if(!this.#stopping)this.setInformation(this.#base);},notify:async event=>{
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
@@ -120,7 +120,7 @@ export class ConfiguredMoonraker {
   if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new ConfigurationError('Invalid maintenance gate');
   if(options.onDatabaseRestore!==undefined&&(typeof options.onDatabaseRestore!=='function'||!options.database))throw new ConfigurationError('Database restore requires a database and service restart owner');
   if(options.database!==undefined&&(!(options.database instanceof DatabaseStore)||options.database.status.closed||options.database.status.closing||databaseOwners.has(options.database)))throw new ConfigurationError('Invalid or already owned database');
-  if(options.history!==undefined&&(!options.history||!(options.history.repository instanceof HistoryRepository)||!options.database||!options.history.repository.owns(options.database)||typeof options.history.fileExists!=='function'))throw new ConfigurationError('History requires its database and file existence owner');
+  if(options.history!==undefined&&(!options.history||!(options.history.repository instanceof HistoryRepository)||!options.database||!options.history.repository.owns(options.database)||typeof options.history.fileExists!=='function'||options.history.metadata!==undefined&&typeof options.history.metadata!=='function'))throw new ConfigurationError('History requires its database and file existence owner');
   if(options.temperatureStore!==undefined&&(!options.temperatureStore||typeof options.temperatureStore!=='object'||Array.isArray(options.temperatureStore)))throw new ConfigurationError('Invalid temperature store options');
   if(options.gcodeStore!==undefined&&(!options.gcodeStore||typeof options.gcodeStore!=='object'||Array.isArray(options.gcodeStore)))throw new ConfigurationError('Invalid G-code store options');
   if(options.metadataMonitor!==undefined&&(!options.metadataFiles||!options.metadataMonitor||typeof options.metadataMonitor!=='object'||Array.isArray(options.metadataMonitor)))throw new ConfigurationError('Metadata monitoring requires a file owner');

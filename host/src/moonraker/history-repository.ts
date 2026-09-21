@@ -92,9 +92,9 @@ export class HistoryRepository {
   ]);
   return {last_totals:this.#totals(result[1]),last_auxiliary_totals:[]};
  }
- async finish(id:string,status:string,input:HistoryStats,endTime:number):Promise<HistoryJob>{
+ async finish(id:string,status:string,input:HistoryStats,endTime:number,metadata?:Record<string,Json>):Promise<HistoryJob>{
   if(!['completed','error','cancelled','klippy_shutdown','klippy_disconnect','server_exit'].includes(status))throw new ApiError(400,'Invalid final history status');
-  const key=sqlId(id),data=stats(input),end=number(endTime),current=await this.get(id);
+  const replacement=metadata===undefined?null:jsonBinding(metadata,true),key=sqlId(id),data=stats(input),end=number(endTime),current=await this.get(id);
   const accepted=data.filename===current.filename&&data.total_duration>=current.total_duration?data:current;
   const values=[1,accepted.total_duration,accepted.print_duration,accepted.filament_used,accepted.total_duration,accepted.print_duration];
   const operations:SqlOperation[]=historyTotalFields.map((field,i)=>({
@@ -102,7 +102,7 @@ export class HistoryRepository {
    params:[{real:values[i]},field,instance,key,instance],
   }));
   operations.unshift(totalsQuery());
-  operations.push({sql:"UPDATE job_history SET status=?,end_time=?,print_duration=?,total_duration=?,filament_used=? WHERE job_id=? AND instance_id=? AND status='in_progress'",params:[status,{real:end},{real:accepted.print_duration},{real:accepted.total_duration},{real:accepted.filament_used},key,instance]},rowQuery(key),totalsQuery());
+  operations.push({sql:"UPDATE job_history SET status=?,end_time=?,print_duration=?,total_duration=?,filament_used=?,metadata=COALESCE(?,metadata) WHERE job_id=? AND instance_id=? AND status='in_progress'",params:[status,{real:end},{real:accepted.print_duration},{real:accepted.total_duration},{real:accepted.filament_used},replacement,key,instance]},rowQuery(key),totalsQuery());
   const result=await this.#db.sql(tables,operations);return job(result[result.length-2]);
  }
 }

@@ -29,6 +29,7 @@ export class MetadataFiles {
  #assertReadable(){if(this.#stop.signal.aborted||!this.#observationReadable)throw new ApiError(503,'File metadata monitoring is unavailable');}
  get watchedDirectories(){return this.#observation?.count??0;}
  get downloads(){return this.#options.lifecycle.thumbnailDownloads(()=>this.#assertReadable());}
+ historyMetadata(filename:string){this.#assertReadable();return this.#options.lifecycle.historyMetadata(filename);}
  metadata(filename:string){this.#assertReadable();return this.#options.lifecycle.metadata(filename);}
  thumbnails(filename:string){this.#assertReadable();return this.#options.lifecycle.thumbnails(filename);}
  #name(filename:string):void{
