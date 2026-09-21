@@ -492,3 +492,32 @@ using gtkwave with:
 ```
 gtkwave avrsim.vcd
 ```
+
+## Reading MCU memory with the Node diagnostic tool
+
+The Node.js 26.9+ tool uses the firmware's `debug_read` command. Build the
+native host module with `npm --prefix host run build:native`, then use:
+
+```
+node scripts/dump_mcu.ts -s 0x0 -l 0x400 /dev/serial/by-id/DEVICE flash.bin
+node scripts/dump_mcu.ts -c can0 -i 64 -s 0x0 -l 0x400 11aa22bb33cc flash.bin
+```
+
+Choose the address and length for the specific MCU; reading memory-mapped
+registers can have side effects. Use this tool only with the printing host
+stopped and the printer idle. CAN connection assigns the specified node ID;
+that assignment is not undone by cancellation. Transport cleanup does not
+perform or certify a physical emergency stop.
+
+UART defaults to 250000 baud and the AVR leave-bootloader sequence. Use
+`--no-bootloader` for a device that does not use that sequence. RPMsg paths
+starting with `/dev/rpmsg_` and paths under `/tmp/` use a prepared character
+stream; `--pipe` selects this explicitly. The stream must already have the
+correct mode. Regular files are not accepted as pipe devices.
+
+`--connect-timeout` sets the initialization deadline in milliseconds
+(default 60000). SIGINT or SIGTERM cancels pending work. Successful output
+is published by same-directory atomic replacement; failed reads retain the
+previous output file. Existing output must be a regular file, not a device,
+directory or symlink. See `--help` for all options. Physical UART, RPMsg,
+CAN controllers and target-board timing still require hardware validation.
