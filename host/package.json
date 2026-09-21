@@ -147,7 +147,8 @@
     "bench:metadata-scan": "node bench/metadata-scan.ts",
     "bench:thumbnail-inventory": "node bench/thumbnail-inventory.ts",
     "bench:metadata-versions": "node bench/metadata-versions.ts",
-    "bench:metadata-startup": "node bench/metadata-startup.ts"
+    "bench:metadata-startup": "node bench/metadata-startup.ts",
+    "bench:graphstats": "node bench/graphstats.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
