@@ -1,3 +1,4 @@
+import {fixedDecimal} from '../math/python-decimal.ts';
 // GPL-3.0-or-later. ZMesh numerical port from extras/bed_mesh.py.
 // Original Copyright (C) 2018-2019 Eric Callahan.
 export interface BedMeshParameters {min_x:number;max_x:number;min_y:number;max_y:number;x_count:number;y_count:number;mesh_x_pps:number;mesh_y_pps:number;algo:'direct'|'lagrange'|'bicubic';tension:number;}
@@ -34,6 +35,12 @@ export class BedMesh {
  setZeroReference(x:number,y:number):void{const offset=this.calcZ(x,y),probed=Float64Array.from(this.#probed,v=>v-offset),mesh=Float64Array.from(this.#mesh,v=>v-offset);if(!probed.every(Number.isFinite)||!mesh.every(Number.isFinite))throw new RangeError('Zero reference overflow');this.#probed=probed;this.#mesh=mesh;}
  /** Independent exact snapshot, including current zero reference and XY offsets. */
  copy():BedMesh{const p=this.params,result=new BedMesh(p,Array.from({length:p.y_count},()=>Array<number>(p.x_count).fill(0)));result.#probed=this.#probed.slice();result.#mesh=this.#mesh.slice();result.#offsetX=this.#offsetX;result.#offsetY=this.#offsetY;return result;}
+ /** Python row-wise compensated sum, then two-decimal ties-to-even rounding. */
+ average():number{
+  const sum=(start:number,count:number,stride:number)=>{let high=0,low=0;for(let i=0;i<count;i++){const value=this.#mesh[start+i*stride],total=high+value;low+=Math.abs(high)>=Math.abs(value)?(high-total)+value:(value-total)+high;high=total;}return high+low;};
+  let high=0,low=0;for(let y=0;y<this.height;y++){const value=sum(y*this.width,this.width,1),total=high+value;low+=Math.abs(high)>=Math.abs(value)?(high-total)+value:(value-total)+high;high=total;}
+  const average=(high+low)/this.#mesh.length;if(!Number.isFinite(average))throw new RangeError('Mesh average overflow');return Number(fixedDecimal(average,2));
+ }
  meshValues():Float64Array{return this.#mesh.slice();}
  probedValues():Float64Array{return this.#probed.slice();}
  range():[number,number]{let low=Infinity,high=-Infinity;for(const v of this.#mesh){low=Math.min(low,v);high=Math.max(high,v);}return [low,high];}
