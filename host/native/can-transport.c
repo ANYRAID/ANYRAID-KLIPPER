@@ -1,4 +1,4 @@
-// GPL-3.0-or-later. Passive bound SocketCAN descriptor for serialqueue.
+// GPL-3.0-or-later. Bound SocketCAN descriptor with optional one-shot node assignment.
 #include <node_api.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
@@ -18,12 +18,13 @@ static napi_value can_fail(napi_env env, const char *operation)
 }
 static napi_value open_can(napi_env env, napi_callback_info info)
 {
-    size_t count=2, length=0;
-    napi_value args[2], result;
+    size_t count=3, length=0, uuid_length=0;
+    void *uuid=NULL;
+    napi_value args[3], result;
     char name[IFNAMSIZ];
     double client;
     if (napi_get_cb_info(env, info, &count, args, NULL, NULL) != napi_ok
-        || count != 2
+        || (count != 2 && count != 3)
         || napi_get_value_string_utf8(env, args[0], NULL, 0, &length)
            != napi_ok || length == 0 || length >= sizeof(name)
         || napi_get_value_string_utf8(env, args[0], name, sizeof(name),
@@ -33,6 +34,12 @@ static napi_value open_can(napi_env env, napi_callback_info info)
         || !isfinite(client) || client < 256 || client > 766
         || floor(client/2) != client/2) {
         napi_throw_type_error(env, NULL, "Invalid CAN interface or client ID");
+        return NULL;
+    }
+    if (count == 3
+        && (napi_get_buffer_info(env, args[2], &uuid, &uuid_length) != napi_ok
+            || uuid_length != 6)) {
+        napi_throw_type_error(env, NULL, "CAN UUID must contain six bytes");
         return NULL;
     }
     unsigned index=if_nametoindex(name);
@@ -51,6 +58,18 @@ static napi_value open_can(napi_env env, napi_callback_info info)
     };
     operation="Bind CAN transport";
     if (bind(fd, (struct sockaddr *)&address, sizeof(address))) goto error;
+    if (count == 3) {
+        struct can_frame frame={.can_id=0x3f0, .len=8, .data={1}};
+        memcpy(frame.data+1, uuid, 6);
+        frame.data[7]=(unsigned char)((client-256)/2);
+        operation="Assign CAN node";
+        ssize_t written;
+        do {
+            written=send(fd, &frame, sizeof(frame), MSG_NOSIGNAL);
+        } while (written < 0 && errno == EINTR);
+        if (written < 0) goto error;
+        if (written != sizeof(frame)) { errno=EIO; goto error; }
+    }
     if (napi_create_int32(env, fd, &result) != napi_ok) {
         close(fd);
         napi_throw_error(env, NULL, "Return CAN descriptor");
