@@ -5,7 +5,7 @@ import type {EndpointRegistry} from './endpoints.ts';
 export interface MetadataTicket {readonly filename:string;}
 interface Entry {ticket?:MetadataTicket;snapshot?:Readonly<Record<string,Json>>;bytes:number;keyBytes:number;}
 function freeze(value:Json):void{if(value&&typeof value==='object'&&!Object.isFrozen(value)){for(const child of Object.values(value))freeze(child);Object.freeze(value);}}
-function filename(value:string):void{if(typeof value!=='string'||!value.isWellFormed()||!value||value.startsWith('/')||value.includes('\0')||Buffer.byteLength(value)>4096||value.split('/').some(part=>!part||part==='.'||part==='..'))throw new TypeError('Invalid metadata filename');}
+export function validateMetadataFilename(value:string):void{if(typeof value!=='string'||!value.isWellFormed()||!value||value.startsWith('/')||value.includes('\0')||Buffer.byteLength(value)>4096||value.split('/').some(part=>!part||part==='.'||part==='..'))throw new TypeError('Invalid metadata filename');}
 /** Immutable bounded snapshots. Scanner/storage owners must invalidate a changed
  * source and commit with its current ticket; this cache does not watch files. */
 export class FileMetadataStore {
@@ -17,7 +17,7 @@ export class FileMetadataStore {
  }
  get status(){return {entries:this.#entries.size,bytes:this.#bytes,maxRecords:this.#maxRecords,maxBytes:this.#maxBytes,maxRecordBytes:this.#maxRecordBytes};}
  begin(path:string):MetadataTicket{
-  filename(path);const previous=this.#entries.get(path),keyBytes=Buffer.byteLength(path);
+  validateMetadataFilename(path);const previous=this.#entries.get(path),keyBytes=Buffer.byteLength(path);
   if(!previous&&(this.#entries.size>=this.#maxRecords||this.#bytes+keyBytes>this.#maxBytes))throw new ApiError(503,'Metadata cache capacity exceeded');
   if(previous){this.#unindex(path,previous.snapshot);this.#bytes-=previous.bytes;}else this.#bytes+=keyBytes;
   const ticket=Object.freeze({filename:path});this.#entries.set(path,{ticket,bytes:0,keyBytes});return ticket;
