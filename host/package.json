@@ -160,7 +160,8 @@
     "bench:legacy-motion-shaper": "node bench/legacy-motion-shaper.ts",
     "bench:accelerometer-log": "node bench/accelerometer-log.ts",
     "bench:accelerometer-file": "node bench/accelerometer-file.ts",
-    "bench:graph-accelerometer": "node bench/graph-accelerometer.ts"
+    "bench:graph-accelerometer": "node bench/graph-accelerometer.ts",
+    "bench:spectrum-csv": "node bench/spectrum-csv.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

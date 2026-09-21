@@ -315,9 +315,21 @@ Selecting an axis requires that axis to exist in every dataset. Previously
 normalized files retain their values. Supported outputs are SVG, PNG,
 JPEG, WebP, TIFF, and JSON panels. Long curve names and offsets are retained
 in JSON and SVG titles even when the visible legend is shortened.
-Spectrograms, CSV export, interactive windows, and PDF/EPS still require
-the original Python tool. These offline graphs do not measure print quality
-or configure the printer.
+Frequency CSV export is also available:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -f 200 -o resonances.csv first.csv second.csv
+```
+
+CSV output uses all available axes for one dataset, or a common 0.2 Hz grid
+for multiple datasets. The upper frequency bound is exclusive for CSV.
+Values retain full double precision, so text differs from the Python
+tool's rounded output. Normalized input remains marked as normalized;
+mixing normalized and unnormalized datasets is rejected. Raw graph mode
+(`-r`) cannot be combined with CSV output.
+Spectrograms, interactive windows, and PDF/EPS still require the original
+Python tool. These offline graphs do not measure print quality or configure
+the printer.
 
 ## Extracting information from the klippy.log file
 
