@@ -178,7 +178,8 @@
     "bench:bed-mesh-fade": "node bench/bed-mesh-fade.ts",
     "bench:lookahead-batch": "node bench/lookahead-batch.ts",
     "bench:bed-mesh-port": "node bench/bed-mesh-port.ts",
-    "bench:bed-mesh-chain": "node bench/bed-mesh-chain.ts"
+    "bench:bed-mesh-chain": "node bench/bed-mesh-chain.ts",
+    "bench:guarded-bed-mesh": "node bench/guarded-bed-mesh.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
