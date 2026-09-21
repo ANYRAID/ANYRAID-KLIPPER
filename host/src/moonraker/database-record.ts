@@ -15,7 +15,7 @@ export function encodeDatabaseRecord(value:Json):Buffer{
   if(Number.isSafeInteger(value)&&!Object.is(value,-0)){result[0]=113;if(little)result.writeBigInt64LE(BigInt(value),1);else result.writeBigInt64BE(BigInt(value),1);}
   else{result[0]=100;if(little)result.writeDoubleLE(value,1);else result.writeDoubleBE(value,1);}return result;
  }
- return Buffer.from(JSON.stringify(value,(_key,item)=>typeof item==='number'&&(!Number.isSafeInteger(item)||Object.is(item,-0))?(JSON as typeof JSON&{rawJSON(text:string):unknown}).rawJSON(Object.is(item,-0)?'-0.0':item.toExponential()):item));
+ return Buffer.from(JSON.stringify(value,(_key,item)=>typeof item==='number'&&(Number.isInteger(item)&&!Number.isSafeInteger(item)||Object.is(item,-0))?(JSON as typeof JSON&{rawJSON(text:string):unknown}).rawJSON(Object.is(item,-0)?'-0.0':item.toExponential()):item));
 }
 export function decodeDatabaseRecord(input:Uint8Array):Json{
  const value=Buffer.from(input);try{
@@ -34,3 +34,5 @@ export function decodeDatabaseRecord(input:Uint8Array):Json{
 }
 export const databaseObject=(value:Json):value is Record<string,Json>=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 export function ownDatabaseField(target:Record<string,Json>,field:string,value:Json){Object.defineProperty(target,field,{value,writable:true,enumerable:true,configurable:true});}
+/** Batch keys are literal root keys, never dot-separated paths. */
+export function databaseBatchKeys(keys:unknown):string[]{if(!Array.isArray(keys)||keys.length>4096||keys.some(key=>typeof key!=='string'||!key||!key.isWellFormed()||Buffer.byteLength(key)>1024))throw new ApiError(400,'Invalid database batch keys');return [...keys];}

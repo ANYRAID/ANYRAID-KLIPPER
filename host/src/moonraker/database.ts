@@ -2,7 +2,7 @@ import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
 import {lstat} from 'node:fs/promises';
 import {ApiError,validateJson,type Json} from './rpc.ts';
-import {databaseNamespace,databaseKey,type DatabaseKey} from './database-record.ts';
+import {databaseNamespace,databaseKey,databaseBatchKeys,type DatabaseKey} from './database-record.ts';
 import type {DatabaseOptions} from './database-engine.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 export interface DatabaseStoreOptions extends DatabaseOptions {backupDirectory?:string;maxPending?:number;maxPendingBytes?:number;}
@@ -39,6 +39,11 @@ export class DatabaseStore {
  }
  get(namespace:string,key?:DatabaseKey|null){databaseNamespace(namespace);if(key!==undefined&&key!==null)databaseKey(key);return this.#call('get',[namespace,key as Json??null]);}
  insert(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('insert',[namespace,key as Json,value]);}
+ update(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('update',[namespace,key as Json,value]);}
+ insertBatch(namespace:string,records:Record<string,Json>){databaseNamespace(namespace);databaseBatchKeys(Object.keys(records));return this.#call('insert-batch',[namespace,records]);}
+ getBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('get-batch',[namespace,keys as Json]);}
+ deleteBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('delete-batch',[namespace,keys as Json]);}
+ moveBatch(namespace:string,sources:readonly string[],destinations:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(sources);databaseBatchKeys(destinations);return this.#call('move-batch',[namespace,sources as Json,destinations as Json]);}
  delete(namespace:string,key:DatabaseKey){databaseNamespace(namespace);databaseKey(key);return this.#call('delete',[namespace,key as Json]);}
  list(){return this.#call('api-list',[]);}
  api(verb:'GET'|'POST'|'DELETE',namespace:string,key:Json|undefined,value?:Json){databaseNamespace(namespace);if(verb!=='GET'||key!==undefined&&key!==null)databaseKey(key);if(verb==='POST'&&value===undefined)throw new ApiError(400,'Missing database value');return this.#call(verb==='GET'?'api-get':verb==='POST'?'api-insert':'api-delete',[namespace,key??null,value??null]);}

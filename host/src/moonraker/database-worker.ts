@@ -16,6 +16,11 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{
   switch(message.method){
    case 'get':value=engine.get(namespace as string,key as DatabaseKey|null);break;
    case 'insert':engine.insert(namespace as string,key as DatabaseKey,input);break;
+   case 'update':engine.update(namespace as string,key as DatabaseKey,input);break;
+   case 'insert-batch':engine.insertBatch(namespace as string,key as Record<string,Json>);break;
+   case 'get-batch':value=engine.getBatch(namespace as string,key as string[]);break;
+   case 'delete-batch':value=engine.deleteBatch(namespace as string,key as string[],checkReply);break;
+   case 'move-batch':engine.moveBatch(namespace as string,key as string[],input as string[]);break;
    case 'delete':value=engine.delete(namespace as string,key as DatabaseKey,checkReply);break;
    case 'api-list':{const forbidden=policy('forbidden_namespaces',['database']);value={namespaces:engine.list().filter(ns=>!forbidden.has(ns)),backups:backups()};break;}
    case 'api-get':case 'api-insert':case 'api-delete':{

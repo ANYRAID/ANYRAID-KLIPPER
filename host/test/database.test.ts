@@ -76,3 +76,27 @@ test('concurrent server construction cannot take ownership of one database twice
  const result=await Promise.allSettled([ConfiguredMoonraker.load(file,options),ConfiguredMoonraker.load(file,options)]);
  try{assert.equal(result.filter(r=>r.status==='fulfilled').length,1);assert.equal(result.filter(r=>r.status==='rejected').length,1);}finally{for(const r of result)if(r.status==='fulfilled')await r.value.close();await database.close();}
 }));
+test('database updates and literal-key batches match pinned Python including null and sequential rename collisions',()=>directory(async dir=>{
+ const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+ const operations:Json[][]=[['insertBatch','ui',{a:{x:1,sub:{old:1}},b:2,'literal.dot':null}],['update','ui','a',{y:2}],['update','ui','a.sub',{added:2}],['get','ui','a'],['update','ui','a.x',null],['update','ui','b',null],['getBatch','ui',['a','b','literal.dot','missing','a']],['moveBatch','ui',['a','b'],['b','a']],['getBatch','ui',['a','b']],['insertBatch','ui',{c:3,d:4}],['moveBatch','ui',['c','d'],['c.new']],['getBatch','ui',['c','d','c.new']],['deleteBatch','ui',['a','a','missing','literal.dot']],['getBatch','ui',[]],['getBatch','ui',['a','literal.dot','c.new','d']]];
+ const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
+ try{for(const [method,namespace,...args] of operations){const methods={insertBatch:()=>store.insertBatch(namespace as string,args[0] as Record<string,Json>),update:()=>store.update(namespace as string,args[0] as string,args[1]),get:()=>store.get(namespace as string,args[0] as string),getBatch:()=>store.getBatch(namespace as string,args[0] as string[]),moveBatch:()=>store.moveBatch(namespace as string,args[0] as string[],args[1] as string[]),deleteBatch:()=>store.deleteBatch(namespace as string,args[0] as string[])};actual.push({value:await methods[method as keyof typeof methods]()});}assert.deepEqual(actual,JSON.parse(expected.stdout));}finally{await store.close();}
+}));
+test('invalid updates and oversized batch entries roll back all prior modifications',()=>directory(async dir=>{
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxRecordBytes:128,maxReplyBytes:100});
+ try{
+  await store.insertBatch('ui',{a:{x:1},b:'old'});await assert.rejects(store.update('ui','a.x.child',2));assert.deepEqual(await store.get('ui','a'),{x:1});await assert.rejects(store.update('ui','missing',{x:1}),e=>e instanceof ApiError&&e.status===404);
+  await assert.rejects(store.insertBatch('ui',{b:'new',c:'x'.repeat(200)}),e=>e instanceof ApiError&&e.status===413);assert.equal(await store.get('ui','b'),'old');await assert.rejects(store.get('ui','c'),e=>e instanceof ApiError&&e.status===404);
+  await store.insertBatch('ui',{one:'x'.repeat(60),two:'y'.repeat(60)});await assert.rejects(store.deleteBatch('ui',['one','two']),e=>e instanceof ApiError&&e.status===413);assert.equal(await store.get('ui','one'),'x'.repeat(60));assert.equal(await store.get('ui','two'),'y'.repeat(60));
+  const mutable={first:{n:1},second:null};const write=store.insertBatch('owned',mutable);mutable.first.n=999;await write;assert.deepEqual(await store.getBatch('owned',['first','second']),{first:{n:1},second:null});
+  assert.throws(()=>store.moveBatch('ui',['b'],['']),/batch keys/);assert.equal(await store.get('ui','b'),'old');
+ }finally{await store.close();}
+}));
+test('multi-statement batches roll back earlier SQL chunks and return one consistent acknowledged state',()=>directory(async dir=>{
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxRecordBytes:128});
+ try{const records=Object.fromEntries(Array.from({length:130},(_,i)=>['key'+i,i]));await store.insertBatch('ui',records);assert.deepEqual(await store.getBatch('ui',Object.keys(records)),records);
+  const invalid:Record<string,Json>={...records,key129:'x'.repeat(200)};for(let i=0;i<129;i++)invalid['key'+i]=-i-1;await assert.rejects(store.insertBatch('ui',invalid),e=>e instanceof ApiError&&e.status===413);assert.deepEqual(await store.getBatch('ui',Object.keys(records)),records);
+  await store.moveBatch('ui',['key0','key1'],['__proto__','hasOwnProperty']);assert.deepEqual(await store.getBatch('ui',['__proto__','hasOwnProperty']),Object.fromEntries([['__proto__',0],['hasOwnProperty',1]]));
+ }finally{await store.close();}
+}));

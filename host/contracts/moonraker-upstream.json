@@ -44,7 +44,7 @@
       "name": "database",
       "tier": "core",
       "status": "partial",
-      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, backups/restores/compact, tables/batches/update helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly."
+      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, backups/restores/compact, table registration and namespace lifecycle helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly. Internal shallow update and literal-root insert/get/delete/move batches now have pinned Python differential tests. Batches use one transaction with at most 64 rows per INSERT statement; later-chunk failure rolls back prior chunks. DATABASE_BATCH_SIZE benchmark includes actual Python thread dispatch; Node remains slower in observed disk round trips."
     },
     {
       "name": "dbus_manager",

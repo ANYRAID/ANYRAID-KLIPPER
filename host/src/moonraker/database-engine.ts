@@ -1,6 +1,6 @@
 import {DatabaseSync,type StatementSync} from 'node:sqlite';
 import {ApiError,type Json} from './rpc.ts';
-import {databaseNamespace,databaseKey,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
+import {databaseNamespace,databaseKey,databaseBatchKeys,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
 export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;}
 const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT NOT NULL,\n    value record NOT NULL,\n    PRIMARY KEY (namespace, key)\n)';
 /** Synchronous engine owned exclusively by a Worker. Every read-modify-write
@@ -39,6 +39,31 @@ export class DatabaseEngine {
    for(const field of path.slice(1,-1)){if(!Object.hasOwn(item,field))ownDatabaseField(item,field,{});const next=item[field];if(!databaseObject(next))throw new ApiError(400,'Database parent is not an object');item=next;}
    ownDatabaseField(item,path.at(-1)!,value);this.#write(namespace,path[0],record);
   });
+ }
+ update(namespace:string,key:DatabaseKey,value:Json):void{
+  databaseNamespace(namespace);const path=databaseKey(key);this.#transaction(()=>{
+   let record=this.#record(namespace,path[0]);
+   const merge=(previous:Json,next:Json):Json=>{if(databaseObject(previous)&&databaseObject(next)){for(const [field,value] of Object.entries(next))ownDatabaseField(previous,field,value);return previous;}return next;};
+   if(path.length===1)record=merge(record,value);
+   else{let item=record;for(const field of path.slice(1,-1)){if(!databaseObject(item)||!Object.hasOwn(item,field))throw new ApiError(404,'Database key not found');item=item[field];}const field=path.at(-1)!;if(!databaseObject(item)||!Object.hasOwn(item,field))throw new ApiError(400,'Database update target not found');ownDatabaseField(item,field,merge(item[field],value));}
+   if(record!==null)this.#write(namespace,path[0],record);
+  });
+ }
+ insertBatch(namespace:string,records:Record<string,Json>):void{
+  databaseNamespace(namespace);if(!records||!databaseObject(records))throw new ApiError(400,'Invalid database batch records');const keys=databaseBatchKeys(Object.keys(records));
+  this.#transaction(()=>{for(let offset=0;offset<keys.length;offset+=64){const chunk=keys.slice(offset,offset+64),parameters:(string|Buffer)[]=[];for(const key of chunk){const encoded=encodeDatabaseRecord(records[key]);if(encoded.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');parameters.push(namespace,key,encoded);}this.#prepare('INSERT INTO namespace_store VALUES '+chunk.map(()=>'(?,?,?)').join(',')+' ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(...parameters);}});
+ }
+ getBatch(namespace:string,input:readonly string[]):Record<string,Json>{
+  databaseNamespace(namespace);const keys=databaseBatchKeys(input),result:Record<string,Json>={};let bytes=2;
+  for(const row of this.#prepare('SELECT key,value FROM namespace_store WHERE namespace=? AND key IN (SELECT value FROM json_each(?))').iterate(namespace,JSON.stringify(keys))){
+   if(typeof row.key!=='string'||!(row.value instanceof Uint8Array))throw new ApiError(422,'Invalid persisted record');if(row.value.byteLength>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');const value=decodeDatabaseRecord(row.value);bytes+=Buffer.byteLength(JSON.stringify(row.key))+Buffer.byteLength(JSON.stringify(value))+2;if(bytes>this.#replyBytes)throw new ApiError(413,'Database batch exceeds reply limit');ownDatabaseField(result,row.key,value);
+  }return result;
+ }
+ deleteBatch(namespace:string,input:readonly string[],validate?:(value:Json)=>void):Record<string,Json>{
+  databaseNamespace(namespace);const keys=databaseBatchKeys(input);return this.#transaction(()=>{const result=this.getBatch(namespace,keys);validate?.(result);this.#prepare('DELETE FROM namespace_store WHERE namespace=? AND key IN (SELECT value FROM json_each(?))').run(namespace,JSON.stringify(keys));return result;});
+ }
+ moveBatch(namespace:string,sources:readonly string[],destinations:readonly string[]):void{
+  databaseNamespace(namespace);const from=databaseBatchKeys(sources),to=databaseBatchKeys(destinations);this.#transaction(()=>{const statement=this.#prepare('UPDATE OR REPLACE namespace_store SET key=? WHERE namespace=? AND key=?');for(let i=0;i<Math.min(from.length,to.length);i++)statement.run(to[i],namespace,from[i]);});
  }
  delete(namespace:string,key:DatabaseKey,validate?:(value:Json)=>void):Json{
   databaseNamespace(namespace);const path=databaseKey(key);return this.#transaction(()=>{
