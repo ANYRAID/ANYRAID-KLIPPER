@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+// GPL-3.0-or-later. Offline calibration only; no printer configuration writes.
+import {parseArgs} from 'node:util';
+import {resolve,extname} from 'node:path';
+import {readAccelerometerLog} from '../host/src/calibration/accelerometer-file.ts';
+import {accelerometerDatasets,type NamedSpectrum} from '../host/src/calibration/accelerometer-log.ts';
+import {calibrationOptions} from '../host/src/calibration/calibrate-options.ts';
+import {ShaperFitExecutor} from '../host/src/calibration/shaper-fit-executor.ts';
+import {calibrationCsv,calibrationPlot} from '../host/src/diagnostics/calibrate-shaper.ts';
+import {writeDiagnosticText,writeStatsPanels} from '../host/src/diagnostics/graphstats-file.ts';
+const help='Usage: node scripts/calibrate_shaper.ts [options] LOG...\n -o, --output FILE  SVG, PNG, JPEG, WebP, TIFF or JSON plot\n -c, --csv FILE     Normalized spectra and fitted shaper responses\n --report FILE     Complete selected shaper metrics and response arrays as JSON\n -f, --max_freq HZ  Maximum frequency\n -s, --max_smoothing VALUE\n -v, --max_vibrs_pcnt PERCENT\n --scv VALUE (alias --square_corner_velocity)\n --shaper_freq [start]:end[:step] or increasing comma-separated list\n --shapers LIST    Names, including parameterized MZV\n --damping_ratio VALUE\n --test_damping_ratios LIST\n -h, --help\nWithout output files, print the recommendation only. No interactive GUI or printer changes.\n';
+const control=new AbortController(),stop=()=>control.abort(new Error('Calibration cancelled'));process.once('SIGINT',stop);process.once('SIGTERM',stop);
+try{const {values,positionals}=parseArgs({allowPositionals:true,options:{output:{type:'string',short:'o'},csv:{type:'string',short:'c'},report:{type:'string'},max_freq:{type:'string',short:'f'},max_smoothing:{type:'string',short:'s'},max_vibrs_pcnt:{type:'string',short:'v'},scv:{type:'string'},square_corner_velocity:{type:'string'},shaper_freq:{type:'string'},shapers:{type:'string'},damping_ratio:{type:'string'},test_damping_ratios:{type:'string'},help:{type:'boolean',short:'h'}}});if(values.help)process.stdout.write(help);else{
+ if(!positionals.length||positionals.length>16)throw new Error(help);if(values.scv!==undefined&&values.square_corner_velocity!==undefined)throw new Error('Use only one square corner velocity option');values.scv??=values.square_corner_velocity;
+ if(values.output!==undefined&&!['.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extname(values.output).toLowerCase()))throw new Error('Unsupported calibration plot format');if([values.output,values.csv,values.report].some(v=>v!==undefined&&!v))throw new Error('Empty output path');const options=calibrationOptions(values),outputs=[values.output,values.csv,values.report].filter((v):v is string=>v!==undefined).map(v=>resolve(v));if(new Set(outputs).size!==outputs.length||positionals.some(p=>outputs.includes(resolve(p))))throw new Error('Outputs must be distinct from inputs and each other');
+ const datasets:NamedSpectrum[]=[];let cells=0;for(const name of positionals){const log=await readAccelerometerLog(name,control.signal);cells+=log.kind==='raw'?log.samples.length:log.datasets.reduce((n,d)=>n+d.frequencies.length*(d.axes?5:2),0);if(cells>4000000)throw new RangeError('Calibration input budget exceeded');datasets.push(...accelerometerDatasets(log,true));if(datasets.length>16)throw new RangeError('Too many calibration datasets');}
+ const fit=await new ShaperFitExecutor().fit(datasets.map(d=>({frequencies:d.frequencies.slice(),psd:d.psd.slice()})),options,{signal:control.signal,timeoutMs:600000});
+ const max=options.maxFrequency??Math.max(...datasets.map(d=>d.frequencies.at(-1)!));
+ // Materialize and validate presentation before publishing any output.
+ const csv=values.csv?calibrationCsv(datasets,fit,options.maxFrequency??200):undefined,panel=values.output?calibrationPlot(datasets,fit,max):undefined;
+ const report=values.report?JSON.stringify({best:fit.best.name,shapers:fit.shapers.map(s=>({...s,frequencies:Array.from(s.frequencies),values:Array.from(s.values)}))},null,2)+'\n':undefined;
+ if(csv!==undefined)await writeDiagnosticText(csv,values.csv!,control.signal);if(panel)await writeStatsPanels([panel],values.output!,control.signal);if(report)await writeDiagnosticText(report,values.report!,control.signal);
+ for(const s of fit.shapers)process.stdout.write(`${s.name} @ ${s.frequency.toFixed(1)} Hz: vibrations ${(s.vibrations*100).toFixed(1)}%, smoothing ${s.smoothing.toFixed(3)}, max acceleration ${s.maxAcceleration.toFixed(0)}\n`);process.stdout.write(`Recommended shaper is ${fit.best.name} @ ${fit.best.frequency.toFixed(1)} Hz\n`);
+}}catch(error){process.stderr.write((error instanceof Error?error.message:String(error))+'\n');process.exitCode=1;}finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}

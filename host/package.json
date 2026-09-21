@@ -164,7 +164,8 @@
     "bench:spectrum-csv": "node bench/spectrum-csv.ts",
     "bench:spectrogram": "node bench/spectrogram.ts",
     "bench:spectrogram-csv": "node bench/spectrogram-csv.ts",
-    "bench:spectrogram-plot": "node bench/spectrogram-plot.ts"
+    "bench:spectrogram-plot": "node bench/spectrogram-plot.ts",
+    "bench:calibrate-cli": "node bench/calibrate-cli.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

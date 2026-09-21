@@ -353,6 +353,37 @@ The palette and layout differ from Matplotlib. Interactive windows and
 PDF/EPS still require the original Python tool. These offline graphs do not measure print quality or configure
 the printer.
 
+## Offline input shaper calibration with Node.js 26
+
+Install the host dependencies and run:
+
+```
+node ~/klipper/scripts/calibrate_shaper.ts -o calibration.png -c calibration.csv --report calibration.json raw_data.csv
+node ~/klipper/scripts/calibrate_shaper.ts --shaper_freq 30:80:5 --shapers mzv,ei first.csv second.csv
+```
+
+Inputs may be raw acceleration or processed spectra, including previously
+normalized spectra. Multiple datasets remain separate during fitting.
+Use `--help` for smoothing, vibration, damping and square corner velocity
+options. Without output paths, the command prints the recommendation only.
+Fitting runs in a cancellable Worker with a ten-minute timeout; it never
+applies the recommendation to the printer.
+
+`-o` supports SVG, PNG, JPEG, WebP, TIFF and JSON plot panels. `--report`
+contains fitted metrics and full response arrays, while `-c` exports
+normalized spectra and responses interpolated at the exported frequencies.
+CSV keeps full double precision; its text differs from the old rounded
+Python output. `-f` also sets the CSV frequency limit (exclusive), unlike
+the old wrapper. CSV without `-f` retains the 200 Hz default. Responses
+outside their computed grid use constant endpoint extrapolation.
+
+Long graph legends are shortened visually; SVG titles, JSON and console
+metrics retain the details. Outputs are individually atomically replaced,
+not published as one transaction: a later write failure can leave earlier
+outputs updated. Invalid input and fitting failure occur before any output
+is written. Real printer validation is still required before adopting
+settings; desktop calibration does not establish physical print quality.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
