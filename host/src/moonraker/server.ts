@@ -13,14 +13,14 @@ import {createServer,type IncomingMessage,type ServerResponse,type Server} from 
 import type {AddressInfo} from 'node:net';
 import type {Duplex} from 'node:stream';
 import {WebSocketServer,WebSocket,type RawData} from 'ws';
-import {JsonRpcDispatcher,ApiError,encodeNotification,type Json,type RpcContext} from './rpc.ts';
+import {JsonRpcDispatcher,ApiError,encodeNotification,type Json,type RpcContext,type AuthorizationResult} from './rpc.ts';
 export interface NetworkAuthorization {
  request:IncomingMessage;transport:'http'|'websocket';connectionId?:number;signal:AbortSignal;
 }
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  thumbnails?:ThumbnailDownloads;
- authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):void|Promise<void>;
+ authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):AuthorizationResult|Promise<AuthorizationResult>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
  /** Required to associate an HTTP subscription with a different transport.

@@ -1,7 +1,7 @@
 import {parseRequestJson,JsonNumberError} from './json.ts';
 // Endpoint mapping and query parsing follow the pinned Moonraker APIDefinition
 // and DynamicRequestHandler. GPL-3.0-or-later.
-import {JsonRpcDispatcher,ApiError,validateJson,type Json,type RpcContext,type Transport} from './rpc.ts';
+import {JsonRpcDispatcher,ApiError,validateJson,authorizedContext,type Json,type RpcContext,type Transport} from './rpc.ts';
 export type RequestVerb='GET'|'POST'|'DELETE';
 export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;rpcVerbPrefix?:boolean;}
 export type EndpointHandler=(params:Readonly<Record<string,Json>>,verb:RequestVerb,context:RpcContext)=>Json|Promise<Json>;
@@ -49,6 +49,6 @@ export class EndpointRegistry{
  parse(path:string,query:string,body:Uint8Array,contentType:string):Record<string,Json>{const entry=this.#http.get(path);if(!entry)throw new ApiError(404,'Not Found');return parseRestArguments(query,body,contentType,entry.objects);}
  async invoke(path:string,verb:string,params:Record<string,Json>,context:RpcContext):Promise<Json>{
   const entry=this.#http.get(path);if(!entry)throw new ApiError(404,'Not Found');const at=entry.methods.indexOf(verb as RequestVerb);if(at<0)throw new ApiError(405,'Method Not Allowed');
-  validateJson(params);context.signal.throwIfAborted();await context.authorize(entry.rpcNames[at]??entry.rpcNames[0],params);context.signal.throwIfAborted();const result=await entry.handler(params,verb as RequestVerb,context);context.signal.throwIfAborted();validateJson(result);return result;
+  validateJson(params);context.signal.throwIfAborted();const authorized=authorizedContext(context,await context.authorize(entry.rpcNames[at]??entry.rpcNames[0],params));const result=await entry.handler(params,verb as RequestVerb,authorized);context.signal.throwIfAborted();validateJson(result);return result;
  }
 }

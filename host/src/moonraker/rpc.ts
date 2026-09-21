@@ -4,7 +4,11 @@ import {parseRequestJson,JsonNumberError} from './json.ts';
 export type Json=null|boolean|number|string|Json[]|{[key:string]:Json};
 export type RpcId=number|string|null;
 export type Transport='http'|'websocket'|'unix'|'mqtt';
+export interface AuthorizedUser {readonly username:string;}
+export type AuthorizationResult=AuthorizedUser|null|void;
 export interface RpcContext {
+  /** Per-method identity from the successful authorization result, never params. */
+  readonly user?:AuthorizedUser;
   /** Network-frame handoff, after the complete batch response. Synchronous
    * callback; false on cancellation/failure. Not a remote receipt guarantee. */
   afterResponse?(callback:(sent:boolean)=>void):void;
@@ -14,8 +18,19 @@ export interface RpcContext {
   signal:AbortSignal;
   connectionId?:number;
   /** Required authorization hook, called before each method invocation. */
-  authorize(method:string,params:Readonly<Record<string,Json>>):void|Promise<void>;
+  authorize(method:string,params:Readonly<Record<string,Json>>):AuthorizationResult|Promise<AuthorizationResult>;
   receiveResponse?(id:RpcId,response:{result?:Json;error?:Json}):void;
+}
+/** Copy only the non-secret identity into a fresh method context. A shared
+ * transport/batch context must never retain another request's identity. */
+export function authorizedContext(context:RpcContext,value:AuthorizationResult):RpcContext{
+  context.signal.throwIfAborted();
+  let user:AuthorizedUser|undefined;
+  if(value!==undefined&&value!==null){
+    if(typeof value!=='object'||Array.isArray(value)||typeof value.username!=='string'||!value.username||!value.username.isWellFormed()||value.username.includes('\0')||Buffer.byteLength(value.username)>4096)throw new ApiError(500,'Invalid authorization identity');
+    user=Object.freeze({username:value.username});
+  }
+  return {...context,user};
 }
 export class ApiError extends Error {
   readonly status:number;
@@ -77,9 +92,8 @@ export class JsonRpcDispatcher {
     if(!isObject(params)) return failure(-32602,'Invalid params:',id);
     try {
       context.signal.throwIfAborted();
-      await context.authorize(value.method,params);
-      context.signal.throwIfAborted();
-      const result=await method.handler(params,context);
+      const authorized=authorizedContext(context,await context.authorize(value.method,params));
+      const result=await method.handler(params,authorized);
       context.signal.throwIfAborted();
       validateJson(result);
       return id===null?null:{jsonrpc:'2.0',result,id};
