@@ -59,6 +59,6 @@ lib/bossac/bin/bossac:
 BOSSAC_OFFSET-$(CONFIG_MACH_SAMD21) := 0x2000
 BOSSAC_OFFSET-$(CONFIG_MACH_SAMX5) := 0x4000
 
-flash: $(OUT)klipper.bin lib/bossac/bin/bossac
+flash: $(OUT)klipper.bin lib/bossac/bin/bossac host/build/serialqueue.node
 	@echo "  Flashing $< to $(FLASH_DEVICE)"
-	$(Q)$(PYTHON) ./scripts/flash_usb.py -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" -s "$(BOSSAC_OFFSET-y)" $(OUT)klipper.bin
+	$(Q)$(NODE) ./scripts/flash_usb.ts -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" -s "$(BOSSAC_OFFSET-y)" $(OUT)klipper.bin

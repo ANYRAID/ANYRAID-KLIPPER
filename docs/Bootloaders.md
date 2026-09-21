@@ -1,5 +1,15 @@
 # Bootloaders
 
+ANYRAID USB 烧录入口现为 Node.js 26 的 `scripts/flash_usb.ts`，相关
+`make flash` 目标会自动构建串口原生模块。手动调用前可运行
+`node host/scripts/build-serialqueue.ts`，然后使用 `node scripts/flash_usb.ts
+--help` 查看参数。`--katapult` 只用于已经进入 Katapult 的设备；
+`--prime` 可为该模式显式启用 STM32 USB 双缓冲预热。
+发生超时、校验失败或取消后工具不会自动重新刷写，也不会在 Katapult
+读回失败后发送 COMPLETE。请检查设备状态后再决定恢复步骤。
+本分支尚未通过物理板卡验收；完整验证边界见
+[Node 迁移说明](Node_Host_Migration.md)。
+
 This document provides information on common bootloaders found on
 micro-controllers that Klipper supports.
 

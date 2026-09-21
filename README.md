@@ -24,3 +24,12 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 本分支的固件构建现需 Node.js 26（`node` 可在 PATH 中找到，或通过
 `make NODE=/绝对路径/node` 指定）。构建生成器不需要安装 npm 依赖；
 Kconfig 和其他尚未迁移的工具仍需要 Python。
+
+ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
+入口已切换为 Node；构建会使用本机 `HOSTCC`（默认 `cc`）生成串口
+原生模块，需要对应 Node 26 的开发头文件，可用 `NODE_INCLUDE` 指定。
+这些入口仍需各自的 bossac、dfu-util、hid-flash 或 picoboot 工具。
+已进入 Katapult 的串口设备可用
+`node scripts/flash_usb.ts --katapult -d /dev/serial/by-id/设备 固件.bin`。
+刷写前应停止打印主机并确认设备空闲；取消不能撤销已经写入的固件。
+当前验证包含模拟协议与 PTY，实际板卡烧录和打印性能仍待验收。

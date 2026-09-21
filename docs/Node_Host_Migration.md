@@ -11119,3 +11119,47 @@ USB 烧录 CLI/退役 Python 入口，也没有实机或打印吞吐验收。
 
 完整原生构建与回归 **1347 项通过**，类型、项目空白与差异检查
 通过。完整 Python 替代及 Moonraker 迁移目标仍未完成。
+
+## Node USB CLI 与 Makefile 入口切换（2026-09-22）
+
+新增 `scripts/flash_usb.ts` / `host/src/diagnostics/flash-usb-cli.ts`，
+接受原 `-t/-d/-s/--no-sudo` 参数，连接已有 bossac/DFU/HID/picoboot
+编排与原生 1200 波特率进入操作。重新枚举识别 Katapult 后，回调
+直接使用 Node 串口、产品名 priming、固件字典和读回校验，不调用
+Python flashtool。`--katapult -d DEVICE FIRMWARE` 支持已经进入
+bootloader 的串口，可用 `--prime` 显式启用双缓冲预热；这一路径
+不接受 MCU 路由、起始地址或 sudo 参数，不执行重启请求。
+
+固件必须是 1 字节至 64 MiB 的普通文件。通过同一 fd 有界读取，
+核对大小、mtime/ctime 在读取期间没有可观察变化；Katapult 使用
+内存快照，其他外部刷写器使用私有临时目录内的 0600 快照文件。
+退出时清理临时目录。该检查不是对恶意并发修改的原子文件系统快照
+或固件签名认证。SIGINT/SIGTERM 传播取消，成功提示在连接关闭后
+输出，失败返回非零状态；取消不能撤销已有固件写入。
+
+ATSAM、ATSAMD、LPC176x、RP2040/RP2350、STM32 的 `make flash`
+改为 `$(NODE) scripts/flash_usb.ts`，保持原 MCU/偏移/NOSUDO 参数。
+添加 `host/build/serialqueue.node` 依赖，由 `HOSTCC`（默认 cc）编译
+本机模块，避免误用 MCU 交叉编译器。Node 开发头文件需要与运行时
+匹配，可设置 NODE_INCLUDE。原 `scripts/flash_usb.py` 暂用于历史
+差分，尚未删除；其他 Python 刷写工具和 CAN Katapult 尚未替代。
+
+4 项 CLI 专项验证参数、真实子进程 + primed PTY 完整刷写、隔离
+PATH 下 dfu-util 替身收到正确参数/仓库 cwd/私有快照且退出后文件
+删除，以及空文件/目录拒绝和活动读取 SIGTERM。5 类 Makefile
+干运行确认 Node 命令和偏移，原生依赖目标实际构建通过。首次 stdin
+形式 make 干运行等待输入，终止该只读检查后改为临时 Makefile，
+没有执行真实 flash 目标。没有用源码文本检查代替入口子进程测试。
+
+`node host/bench/flash-usb-cli.ts`：Node 26.9.0，4093 字节/36 条命令，
+5 次预热/11 次测量，完整 CLI 进程中位 / p95 为
+**128.449 / 130.948 ms**。计入启动、文件读取、字典扫描、原生打开、
+priming、写入、读回、关闭和退出；模拟端与主机按 1 ms 轮询。
+没有同环境 Python 完整 CLI 对照、真实 USB 或打印性能证明。
+
+README、Bootloaders 和 HID 工具说明同步更新。此为任务分支入口
+切换，未合并/部署或执行物理刷写；各板卡、Katapult 恢复行为及
+打印质量/速度验收仍开放，不能据此宣布全面替代完成。
+
+完整原生构建及回归 **1351 项通过**，类型、项目空白和差异检查
+通过。生产打印入口与完整 Moonraker 迁移仍未完成。

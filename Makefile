@@ -21,6 +21,7 @@ STRIP=$(CROSS_PREFIX)strip
 CPP=cpp
 PYTHON=python3
 NODE=node
+HOSTCC?=cc
 
 # Source files
 src-y =
@@ -125,6 +126,11 @@ menuconfig:
 .DELETE_ON_ERROR:
 
 all: $(target-y)
+
+host/build/serialqueue.node: host/scripts/build-serialqueue.ts \
+    $(wildcard host/native/*.c host/native/*.h) \
+    $(wildcard klippy/chelper/*.c klippy/chelper/*.h)
+	$(Q)CC="$(HOSTCC)" $(NODE) host/scripts/build-serialqueue.ts
 
 clean:
 	$(Q)rm -rf $(OUT)
