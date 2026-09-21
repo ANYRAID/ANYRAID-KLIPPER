@@ -15,10 +15,10 @@ import {GCodeMove} from '../src/gcode/move.ts';
 import {inputShaper} from '../src/motion/shaper.ts';
 import {motionLimits} from '../src/motion/lookahead.ts';
 const mesh=(z:number)=>new BedMesh({min_x:0,max_x:20,min_y:0,max_y:20,x_count:2,y_count:2,mesh_x_pps:0,mesh_y_pps:0,algo:'direct',tension:.2},[[z,z],[z,z]]);
-async function fixture(run:(f:{source:PlannedMotionSource;port:BedMeshMovePort;binding:BedMeshProfileBinding;gcode:GCodeMove;group:MCUGroup;fw:Awaited<ReturnType<typeof serialFirmware>>;xyz:TrapQueue;extrusion:TrapQueue})=>Promise<void>,maxBufferedMoves=65536,filters=false){
+async function fixture(run:(f:{source:PlannedMotionSource;port:BedMeshMovePort;binding:BedMeshProfileBinding;gcode:GCodeMove;group:MCUGroup;fw:Awaited<ReturnType<typeof serialFirmware>>;xyz:TrapQueue;extrusion:TrapQueue})=>Promise<void>,maxBufferedMoves=65536,filters=false,retainHistory:()=>Promise<void>=async()=>{}){
  const fw=await serialFirmware(),signal=new AbortController().signal;let session!:SerialSession;const group=new MCUGroup([{id:'m',async connect(s,stopDevice){session=new SerialSession(fw.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){}}]);
  try{await group.start(signal);await session.configure({oidCount:5,commands:[]},signal);using xyz=new TrapQueue();using extrusion=new TrapQueue();const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};using x=xyz.createStepper({...settings,oid:3},'x',.01);using e=extrusion.createStepper({...settings,oid:4},'extruder',.01);if(filters){x.configureShapers({x:inputShaper('mzv',40,.1)});e.configurePressureAdvance(.05,.2);}
- const sink=new MoveQueueSink([group.motionQueue('m',['x','e'],t=>x.clockAt(t))],async()=>{}),coordinator=new MotionCoordinator([{id:'x',queue:xyz,stepper:x},{id:'e',queue:extrusion,stepper:e}],sink,16*1024*1024,0,[session.clock]);
+ const sink=new MoveQueueSink([group.motionQueue('m',['x','e'],t=>x.clockAt(t))],retainHistory),coordinator=new MotionCoordinator([{id:'x',queue:xyz,stepper:x},{id:'e',queue:extrusion,stepper:e}],sink,16*1024*1024,0,[session.clock]);
  const source=new PlannedMotionSource([{queue:xyz},{queue:extrusion,extrusionAxis:3}],new CoordinatedMotionDrain(coordinator,sink,group),Number(session.clock.sync.lastClock)/1e6+.1,[0,0,.1,0],maxBufferedMoves);
  const port=new BedMeshMovePort({mesh:mesh(.1),physicalPosition:[0,0,.1,0],limits:motionLimits(300,3000),validate:()=>{}}),gcode=new GCodeMove(port),binding=new BedMeshProfileBinding(port,gcode,{},(moves,s)=>source.drain(moves,s));await run({source,port,binding,gcode,group,fw,xyz,extrusion});
  }finally{await group.stop();await fw.close();}
@@ -59,7 +59,23 @@ test('capacity retains the tail of the slowest shaped or pressure-advance queue'
  f.gcode.execute('G1',{X:4,E:.4});f.source.append(f.port.flush());await f.source.flush(signal);assert.equal(f.source.status.bufferedMoves,2);
  await f.source.drain([],signal);assert.equal(f.source.status.bufferedMoves,0);assert.equal(f.source.status.failed,false);
 },3,true));
-test('capacity exhaustion inside a terminal mesh drain stops source and device group',async()=>fixture(async f=>{
+test('terminal mesh drain streams buffered prefixes to make capacity for its final batch',async()=>fixture(async f=>{
  for(let i=1;i<=3;i++){f.gcode.execute('G1',{X:i,F:600});f.source.append(f.port.flush());}f.gcode.execute('G1',{X:4});
- await assert.rejects(f.binding.activate(mesh(.3),'new',new AbortController().signal),MotionSourceCapacityError);assert.equal(f.source.status.failed,true);assert.equal(f.source.status.bufferedMoves,3);assert.equal(f.source.status.position[0],3);assert.equal(f.group.status.state,'stopped');assert.ok(f.port.fault);assert.equal(f.fw.motion.length,0);
+ await f.binding.activate(mesh(.3),'new',new AbortController().signal);assert.equal(f.source.status.failed,false);assert.equal(f.source.status.bufferedMoves,0);assert.equal(f.source.status.position[0],4);assert.equal(f.group.status.state,'ready');assert.equal(f.port.fault,undefined);assert.equal(f.port.currentMesh()!.calcZ(0,0),.3);
 },3));
+test('insufficient capacity for convolution fails without retry spinning and stops all devices',async()=>fixture(async f=>{
+ f.gcode.execute('G1',{X:1,E:.1,F:600});f.source.append(f.port.flush());f.gcode.execute('G1',{X:2,E:.2});
+ await assert.rejects(f.binding.activate(mesh(.3),'new',new AbortController().signal),MotionSourceCapacityError);assert.equal(f.source.status.failed,true);assert.equal(f.source.status.bufferedMoves,1);assert.equal(f.source.status.position[0],1);assert.equal(f.group.status.state,'stopped');assert.ok(f.port.fault);
+},1,true));
+test('large terminal batches own their suffix while repeatedly wrapping the capacity ring',async()=>fixture(async f=>{
+ for(let i=1;i<=9;i++)f.gcode.execute('G1',{X:i,E:i/10,F:600});const moves=f.port.flush();assert.equal(moves.length,9);const running=f.source.drain(moves,new AbortController().signal);
+ moves[8].endPos[0]=999;moves[8].profile!.cruiseV=999;await running;
+ assert.equal(f.source.status.position[0],9);assert.equal(f.source.status.position[3],.9);assert.equal(f.source.status.bufferedMoves,0);assert.equal(f.source.status.failed,false);
+ const steps=(oid:number)=>f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===oid).reduce((n,m)=>n+Number(m.parameters.count),0);assert.equal(steps(3),900);assert.equal(steps(4),90);
+},3));
+test('an invalid suffix is detected before any prefix of an oversized drain is submitted',async()=>fixture(async f=>{
+ for(let i=1;i<=9;i++)f.gcode.execute('G1',{X:i,E:i/10,F:600});const moves=f.port.flush();moves[8].profile=undefined;await assert.rejects(f.source.drain(moves,new AbortController().signal),/Invalid or discontinuous/);assert.equal(f.source.status.position[0],0);assert.equal(f.source.status.bufferedMoves,0);assert.equal(f.fw.motion.length,0);assert.equal(f.group.status.state,'stopped');
+},3));
+test('one deadline spans all capacity-driven streaming commits',async()=>{let commits=0;await fixture(async f=>{
+ for(let i=1;i<=9;i++)f.gcode.execute('G1',{X:i,E:i/10,F:600});await assert.rejects(f.source.drain(f.port.flush(),new AbortController().signal,25),/timed out/);assert.ok(commits>=1&&commits<=3);assert.equal(f.source.status.failed,true);assert.equal(f.group.status.state,'stopped');
+},3,false,async()=>{commits++;await new Promise(r=>setTimeout(r,12));});});

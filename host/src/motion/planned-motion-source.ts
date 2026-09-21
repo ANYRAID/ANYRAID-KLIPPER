@@ -1,3 +1,4 @@
+import {performance} from 'node:perf_hooks';
 import type {Move} from './lookahead.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import {CoordinatedMotionDrain} from './coordinated-drain.ts';
@@ -26,14 +27,18 @@ export class PlannedMotionSource {
  #capacity(moves:readonly Move[]):void{if(Array.isArray(moves)&&moves.length>this.#ends.length-this.#count)throw new MotionSourceCapacityError('Planned source capacity exceeded; flush before retrying');}
  #check():void{if(this.#failed)throw new Error('Planned motion source failed',{cause:this.#fault});if(this.#busy)throw new Error('Planned motion source busy');}
  async #stop(error:unknown):Promise<void>{this.#failed=true;this.#fault??=error;try{await this.#drain.stop(error);}catch(stop){this.#fault=new AggregateError([error,stop],'Planned source and stop failed');} }
- #append(moves:readonly Move[]):void{
-  if(!Array.isArray(moves)||moves.length>65536)throw new RangeError('Invalid planned source batch');
+ #validate(moves:readonly Move[],storeEnds:boolean,limit=65536){
+  if(!Array.isArray(moves)||moves.length>limit)throw new RangeError('Invalid planned source batch');
   if(this.#paused&&moves.length)throw new Error('Resume planned motion with a fresh print time first');
   let position=this.#position,time=this.#time,staged=0;
   // Validate the entire batch before any queue mutation. Input objects are used
   // synchronously, so callers cannot mutate them between queue appends.
-  for(const m of moves as readonly Move[]){const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
-  for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis);if(end!==time)throw new Error('Planned queue timelines differ');}
+  for(const m of moves as readonly Move[]){const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
+  return {position,time};
+ }
+ #append(moves:readonly Move[]):void{
+  const {position,time}=this.#validate(moves,true);
+  for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
   this.#position=[...position];this.#time=time;this.#count+=moves.length;
  }
  /** Append earlier lookahead flushes without losing the final drain endpoint. */
@@ -51,9 +56,24 @@ export class PlannedMotionSource {
  async drain(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
   this.#check();signal.throwIfAborted();this.#busy=true;
   try{
-   this.#capacity(moves);this.#append(moves);
+   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid motion drain timeout');
+   const deadline=performance.now()+timeoutMs,remaining=()=>{signal.throwIfAborted();const ms=Math.ceil(deadline-performance.now());if(ms<=0)throw new Error('Planned source drain timed out');return ms;};
+   if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid planned drain batch');
+   if(moves.length<=this.#ends.length-this.#count)this.#append(moves);
+   else {
+    // Snapshot before the first await. Later caller edits cannot change a suffix
+    // after its prefix has already reached a native queue or device.
+    const owned=moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined})) as Move[];
+    this.#validate(owned,false,100000);remaining();
+    let offset=0;
+    while(offset<owned.length){
+     const available=this.#ends.length-this.#count;
+     if(!available){await this.#drain.advanceSource(this.#time,signal,remaining());this.#release();remaining();if(this.#count===this.#ends.length)throw new MotionSourceCapacityError('Source capacity cannot cover the solver lookahead window');continue;}
+     const count=Math.min(available,owned.length-offset);this.#append(owned.slice(offset,offset+count));offset+=count;remaining();
+    }
+   }
    const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
-   const result=await this.#drain.drain(this.#time,positions,signal,timeoutMs);signal.throwIfAborted();this.#time=result.sourceUntil;this.#paused=true;this.#release();
+   const result=await this.#drain.drain(this.#time,positions,signal,remaining());remaining();this.#time=result.sourceUntil;this.#paused=true;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}
   finally{this.#busy=false;}
  }

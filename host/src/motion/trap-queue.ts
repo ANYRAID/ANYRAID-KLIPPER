@@ -24,7 +24,8 @@ export class TrapQueue {
   }
   /** Packed rows: time, accelT, cruiseT, decelT, xyz, xyzRatio, startV, cruiseV, accel. */
   appendRaw(rows:Float64Array):void {native.append(this.#handle,rows);}
-  appendPlanned(moves:readonly Move[],startTime:number,extrusionAxis?:number):number {
+  appendPlanned(moves:readonly Move[],startTime:number,extrusionAxis?:number,coverIdle=false):number {
+    if(typeof coverIdle!=='boolean')throw new TypeError('Invalid idle coverage option');
     if(!Number.isFinite(startTime)||startTime<0) throw new RangeError('Invalid print time');
     if(moves.length>65536) throw new RangeError('Motion batch too large');
     const rows=new Float64Array(moves.length*13);let count=0,time=startTime;
@@ -37,6 +38,11 @@ export class TrapQueue {
         const xyz=extrusionAxis===undefined?move.startPos.slice(0,3):[move.startPos[extrusionAxis],0,0];
         const axes=extrusionAxis===undefined?move.axesR.slice(0,3):[1,ratio>0&&(move.axesD[0]!==0||move.axesD[1]!==0)?1:0,0];
         rows.set([time,p.accelT,p.cruiseT,p.decelT,...xyz,...axes,p.startV*ratio,p.cruiseV*ratio,move.accel*ratio],count*13);count++;
+      } else if(coverIdle) {
+        // Preserve identical phase-time arithmetic while extending inactive
+        // axes to the common source horizon without generating movement.
+        const xyz=extrusionAxis===undefined?move.startPos.slice(0,3):[move.startPos[extrusionAxis],0,0];
+        rows.set([time,p.accelT,p.cruiseT,p.decelT,...xyz,0,0,0,0,0,0],count*13);count++;
       }
       time=((time+p.accelT)+p.cruiseT)+p.decelT;
       if(!Number.isFinite(time)||time>=1e15) throw new RangeError('Print time overflow');

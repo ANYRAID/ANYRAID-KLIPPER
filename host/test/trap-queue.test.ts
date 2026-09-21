@@ -69,3 +69,8 @@ test('motion phases cannot disappear below absolute print-time precision',()=>{
  assert.throws(()=>queue.appendRaw(new Float64Array([1e14,.0001,0,0,0,0,0,1,0,0,0,1,10000])),/time resolution/);
  assert.equal(queue.extract(10,0,1e14+1).length,0);
 });
+test('explicit idle coverage keeps travel-only and extrusion-only queues at the same source horizon',()=>{
+ const limits=motionLimits(100,1000),positions=[[0,0,0,0],[1,0,0,0],[1,0,0,1],[2,0,0,1]],moves=positions.slice(1).map((p,i)=>{const q=new LookAheadQueue();q.add(new Move(limits,positions[i],p,10));return q.flush()[0];});
+ using xyz=new TrapQueue();using extrusion=new TrapQueue();const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6};using x=xyz.createStepper({...settings,oid:3},'x',.01);using e=extrusion.createStepper({...settings,oid:4},'extruder',.01);
+ const end=xyz.appendPlanned(moves,1,undefined,true);assert.equal(extrusion.appendPlanned(moves,1,3,true),end);x.generate(end);e.generate(end);assert.equal(x.flush().position,200n);assert.equal(e.flush().position,100n);
+});
