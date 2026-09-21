@@ -50,3 +50,10 @@ test('repeated watched queue shutdown releases wake descriptors and native threa
  await cycle();const before=readdirSync('/proc/self/fd').length;
  for(let i=0;i<20;i++)await cycle();assert.ok(readdirSync('/proc/self/fd').length<=before,'wake descriptor leak');
 });
+test('CAN mode rejects invalid client IDs and stream descriptors before creating a queue',async()=>{
+ const pair=await serialPair();try{
+  for(const id of [0,255,257,768,NaN,Infinity,256.5])assert.throws(()=>new NativeSerialQueue(pair.fd,id),/CAN client ID/);
+  assert.throws(()=>new NativeSerialQueue(pair.fd,384),/Classical CAN RAW socket/);
+  const queue=new NativeSerialQueue(pair.fd);queue.close();
+ }finally{await pair.close();}
+});

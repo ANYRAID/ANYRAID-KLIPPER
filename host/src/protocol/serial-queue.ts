@@ -6,7 +6,7 @@ import type {ClockScheduler} from '../timing/clock-runtime.ts';
 export interface SerialEvent {data:Uint8Array;sentTime:number;receiveTime:number;notifyId:bigint}
 export interface SerialPacket {data:Uint8Array;min:bigint;req:bigint}
 interface Native {
- wakeFd(handle:object):number;create(fd:number):object;close(handle:object):void;
+ wakeFd(handle:object):number;create(fd:number,canClientId?:number):object;close(handle:object):void;
  send(handle:object,payload:Uint8Array,minClock:bigint,reqClock:bigint,notifyId:bigint,queue:number):void;
  sendBatch(handle:object,packed:Uint8Array,firstId:bigint,queue:number,deadline:number):void;
  pull(handle:object):SerialEvent|undefined|null;
@@ -18,12 +18,13 @@ const native=createRequire(import.meta.url)(process.env.ANYRAID_SERIALQUEUE_ADDO
 /** CLOCK_MONOTONIC_RAW shared with serialqueue timestamps. performance.now()
  * has a different origin and must not be mixed with these MCU samples. */
 export const serialClock:ClockScheduler={now:()=>native.now(),schedule(callback,seconds){const timer=setTimeout(callback,seconds*1000);return ()=>clearTimeout(timer);}};
-/** Linux UART/stream transport kernel. Owns a duplicate fd; original owner must
+/** Linux UART/stream or Classical CAN transport kernel. Optional canClientId
+ * selects a pre-bound CAN socket (even IDs 256..766), not an MCU node assignment. Owns a duplicate fd; original owner must
  * stop reading/writing and remains responsible for closing its own descriptor.
  * drain is nonblocking. close cancels host traffic, NOT already queued MCU moves. */
 export class NativeSerialQueue {
  #handle:object;#closed=false;#id=0n;#wake:Socket|undefined;
- constructor(fd:number){this.#handle=native.create(fd);}
+ constructor(fd:number,canClientId?:number){this.#handle=canClientId===undefined?native.create(fd):native.create(fd,canClientId);}
  /** Zero leaves the corresponding native setting unchanged. */
  configure(baud:number,receiveWindow:number):void{native.configure(this.#handle,baud,receiveWindow);}
  setClockEstimate(estimate:ReleaseEstimate):void{native.estimate(this.#handle,estimate.frequency,estimate.sampleTime,estimate.clock);}

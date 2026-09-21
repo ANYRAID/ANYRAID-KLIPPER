@@ -346,6 +346,13 @@ input_event(struct serialqueue *sq, double eventtime)
             pollreactor_do_exit(sq->pr);
             return;
         }
+        if (ret != sizeof(cf) || cf.can_dlc > 8
+            || sq->input_pos < 0
+            || (size_t)sq->input_pos + cf.can_dlc > sizeof(sq->input_buf)) {
+            errorf("Invalid Classical CAN input frame");
+            pollreactor_do_exit(sq->pr);
+            return;
+        }
         if (cf.can_id != sq->client_id + 1)
             return;
         memcpy(&sq->input_buf[sq->input_pos], cf.data, cf.can_dlc);

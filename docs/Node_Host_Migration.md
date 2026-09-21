@@ -10737,3 +10737,43 @@ Python 入口。特别是 CAN UUID 发现不等于 CAN 数据传输已接入；�
 
 本阶段完整原生构建及回归 **1323 项通过**，类型、项目空白与差异检查
 通过。没有访问真实设备内存、刷写固件或切换生产入口。
+
+## 原生串行队列 CAN 数据模式（2026-09-22）
+
+NativeSerialQueue 新增可选 canClientId，选择既有 C serialqueue 的 `c`
+模式；省略时维持 UART/stream。ID 限制为 `256 + 2 * nodeid`，nodeid
+为 0..255。SerialSession 同步传递选项，CAN 线速读取 firmware 的
+CANBUS_FREQUENCY，UART 仍读取 SERIAL_BAUD。UART 打开函数拒绝 CAN
+选项，避免错误模式触发串口准备后才失败。
+
+新增原生 `openCAN(interface,clientId)`，仅打开、绑定并过滤对应响应
+ID=clientId+1 的 Classical CAN socket，不分配节点 ID或发送发现。
+调用方拥有返回的原始 fd，队列拥有 CLOEXEC 副本。CAN 模式拒绝非
+AF_CAN、未绑定、非 RAW 或开启 CAN FD 的描述符；反之，CAN socket
+不能作为默认 UART 队列使用。关闭队列不关闭调用方的原始 fd。
+
+真实内核检查确认本机 CAN RAW 的 getsockname 返回 family/ifindex 的
+8 字节前缀，不能要求等于用户态 sockaddr_can 的 24 字节大小；其
+SO_PROTOCOL 返回 0，不能拿来判断 CAN_RAW=1。校验改为地址前缀、
+AF_CAN、正接口索引、SOCK_RAW 和可读取的 CAN_RAW_FD_FRAMES=0。
+C 接收路径还检查完整 can_frame、DLC<=8 和输入缓冲边界，异常关闭
+接收循环，避免继续拷贝不完整或超长数据。
+
+扩展隔离 vcan 集成：发送 59 字节 Klipper payload（完整协议帧 64
+字节），独立 C 对端验证经过 8 个 CAN 数据帧后拼出的每个字节；对端
+返回跨多个 CAN 帧的 30 字节 payload 响应，再发送独立 ACK。Node
+验证完整重组、一次通知、顺序时间戳和重复关闭；流 fd 与非法 CAN ID
+拒绝测试纳入常规套件。相关 UART/串行队列/会话专项 **22 项通过**。
+
+vcan 没有物理线速；测试对端显式等 3 ms，使模拟响应不早于配置的
+1 Mbit/s 传输时间模型。这用于协议/时间戳条件验证，不作为性能或
+硬件吞吐数据。现有 UART 快速路径没有新增逐消息参数转换；CAN
+高频实际吞吐、ACK 延迟尾部和目标板仍须独立测量后验收。
+
+尚未实现 UUID 到 nodeid 分配、get_canbus_id 身份验证和完整 CAN 会话
+初始化/时钟测试，也未把 CAN 接入打印或 dump CLI。此处只接通可绑定
+CAN 描述符与原生队列的接口，不宣称整个 CAN 主机链路已完成。
+
+本阶段完整原生构建及回归 **1324 项通过**；扩展后的真实 vcan 集成在
+普通、UBSan、ASan 三种串行队列构建下通过。类型、项目空白及差异
+检查通过。未连接物理 CAN 设备，未部署或切换生产打印入口。

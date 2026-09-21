@@ -16,7 +16,7 @@ function discard(fd:number,limit:number){const bytes=Buffer.allocUnsafe(limit);t
 export async function connectUART(path:string,options:UARTOptions,signal:AbortSignal):Promise<SerialSession>{
  signal.throwIfAborted();
  options={...options};
- if(typeof options.stopDevice!=='function'||options.leaveBootloader!==undefined&&typeof options.leaveBootloader!=='boolean')throw new TypeError('Invalid UART options');
+ if(options.canClientId!==undefined||typeof options.stopDevice!=='function'||options.leaveBootloader!==undefined&&typeof options.leaveBootloader!=='boolean')throw new TypeError('Invalid UART options');
  let fd=native.openUART(path,options.baud,options.rts??true),session:SerialSession|undefined;
  try{
   if(options.leaveBootloader!==false){

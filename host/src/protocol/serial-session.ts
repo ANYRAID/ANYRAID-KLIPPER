@@ -10,6 +10,8 @@ import {DictionaryClockTransport,type TimedResponse} from './clock-transport.ts'
 import {ClockRuntime} from '../timing/clock-runtime.ts';
 import type {ReleaseEstimate} from '../timing/clock-sync.ts';
 export interface SerialSessionOptions {
+ /** Already-bound Classical CAN socket; ID = 256 + 2 * node ID. */
+ canClientId?:number;
  /** Independent device shutdown/watchdog path. The host queue is already closed
   * when called; successful completion must mean device safety has been handled. */
  stopDevice(cause:unknown):Promise<void>;
@@ -42,7 +44,7 @@ export class SerialSession {
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
-  this.#options={...options};this.#queue=new NativeSerialQueue(fd);
+  this.#options={...options};this.#queue=new NativeSerialQueue(fd,options.canClientId);
   this.#queries=new QueryConnection({send:(p,s)=>this.#send(p,s),setClockEstimate:e=>this.#estimate(e),stop:e=>this.stop(e)},serialClock);
   try{this.#queue.watch(()=>this.#pump(),error=>{void this.stop(error).catch(()=>{});});}catch(error){this.#queue.close();throw error;}
  }
@@ -79,7 +81,7 @@ export class SerialSession {
    signal.throwIfAborted();const dictionary=await downloadIdentify(async(payload,s)=>(await this.#queries.query(payload,'identify_response',s,{retries:5})).message,{signal});
    signal.throwIfAborted();this.#assertOpen();this.#dictionary=dictionary;
    const setting=(name:string)=>{if(!dictionary.hasConstant(name))return 0;const raw=dictionary.constant(name);if(typeof raw!=='number'&&typeof raw!=='string'||typeof raw==='string'&&!/^[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(raw.trim()))throw new Error(`Invalid firmware ${name}`);const value=Number(raw);if(!Number.isFinite(value)||value<=0)throw new Error(`Invalid firmware ${name}`);return value;};
-   this.#queue.configure(setting('SERIAL_BAUD'),setting('RECEIVE_WINDOW'));this.#state='warming';
+   this.#queue.configure(setting(this.#options.canClientId===undefined?'SERIAL_BAUD':'CANBUS_FREQUENCY'),setting('RECEIVE_WINDOW'));this.#state='warming';
    const transport=new DictionaryClockTransport(dictionary,this.#queries);this.#clock=new ClockRuntime(transport.frequency,transport,serialClock);await this.#clock.start();signal.throwIfAborted();this.#assertOpen();this.#clock.assertActive();this.#state='ready';
   }catch(error){try{await this.stop(error);}catch{/* stop failure retained */}throw error;}
   finally{signal.removeEventListener('abort',abort);}
