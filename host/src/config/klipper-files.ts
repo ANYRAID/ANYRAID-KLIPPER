@@ -12,7 +12,11 @@ function globExpression(pattern:string):RegExp{
 }
 
 export interface KlipperFileLimits {bytes?:number;files?:number;depth?:number;directoryEntries?:number;signal?:AbortSignal;}
-export async function loadKlipperConfiguration(filename:string,options:KlipperFileLimits={}):Promise<ConfigurationSource>{
+export async function loadKlipperConfiguration(filename:string,options:KlipperFileLimits={}):Promise<ConfigurationSource>{return (await load(filename,options)).source;}
+/** Read-only candidate inspection: includes resolve relative to the real main
+ * path; the original main file is opened and checked, never replaced. */
+export async function inspectKlipperConfigurationCandidate(filename:string,text:string,options:KlipperFileLimits={},expectedMainText?:string):Promise<{source:ConfigurationSource;regular:ConfigurationSource}>{return load(filename,options,text,expectedMainText);}
+async function load(filename:string,options:KlipperFileLimits,mainText?:string,expectedMainText?:string):Promise<{source:ConfigurationSource;regular:ConfigurationSource}>{
  const limits={bytes:options.bytes??8*1024*1024,files:options.files??256,depth:options.depth??64,directoryEntries:options.directoryEntries??16384};
  for(const n of Object.values(limits))if(!Number.isSafeInteger(n)||n<1)throw new RangeError('Invalid Klipper configuration limits');
  if(!filename||filename.includes('\0'))throw new RangeError('Invalid configuration path');
@@ -36,10 +40,10 @@ export async function loadKlipperConfiguration(filename:string,options:KlipperFi
    const chunks:Buffer[]=[];for(;;){check();const buffer=Buffer.allocUnsafe(Math.min(65536,limits.bytes-bytes+1));const result=await file.read(buffer,0,buffer.length,null);if(!result.bytesRead)break;bytes+=result.bytesRead;if(bytes>limits.bytes)throw new RangeError('Configuration byte budget exceeded');chunks.push(buffer.subarray(0,result.bytesRead));}text=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(Buffer.concat(chunks)).replace(/\r\n|\r/g,'\n');
   }finally{await file.close();}
   active.add(identity);const metadata={filename:path,sections:[] as string[]};files.push(metadata);
-  try{if(main){const parts=splitKlipperAutosave(text);if(parts.status==='corrupt')throw new Error('Corrupt Klipper autosave: '+parts.reason);text=parts.regular;autosave=parts.autosave;}
+  try{if(main){if(expectedMainText!==undefined&&text!==expectedMainText.replace(/\r\n|\r/g,'\n'))throw new Error('Main configuration changed during save preparation');if(mainText!==undefined){bytes+=Buffer.byteLength(mainText);if(bytes>limits.bytes)throw new RangeError('Configuration byte budget exceeded');text=mainText.replace(/\r\n|\r/g,'\n');}const parts=splitKlipperAutosave(text);if(parts.status==='corrupt')throw new Error('Corrupt Klipper autosave: '+parts.reason);text=parts.regular;autosave=parts.autosave;}
    let buffer:string[]=[];const append=()=>{for(const section of parsed.append(buffer.join('\n')))if(!metadata.sections.includes(section))metadata.sections.push(section);buffer=[];};
    for(const raw of text.split('\n')){check();const line=raw.split('#',1)[0],header=line.match(/^\[(.+)\]/)?.[1];if(header?.startsWith('include ')){append();const spec=header.slice(8).trim();if(!spec)throw new Error('Empty Klipper include');const pattern=isAbsolute(spec)?spec:dirname(path)+'/'+spec;const matches=await expand(pattern);if(!matches.length&&!/[*?[]/.test(pattern))throw new Error('Missing Klipper include: '+spec);for(const child of matches)await read(child,depth+1);}else buffer.push(line);}append();
   }finally{active.delete(identity);}
  }
- const main=resolve(filename);await read(main,0,true);const saved=stripAutosaveDuplicates(autosave,(s,k)=>parsed.hasOption(s,k));for(const section of parsed.append(saved))if(!files[0].sections.includes(section))files[0].sections.push(section);check();return new ConfigurationSource(main,parsed.values(),files);
+ const main=resolve(filename);await read(main,0,true);const regularValues=parsed.values(),regularFiles=files.map(f=>({...f,sections:[...f.sections]}));const saved=stripAutosaveDuplicates(autosave,(s,k)=>parsed.hasOption(s,k));for(const section of parsed.append(saved))if(!files[0].sections.includes(section))files[0].sections.push(section);check();return {source:new ConfigurationSource(main,parsed.values(),files),regular:new ConfigurationSource(main,regularValues,regularFiles)};
 }
