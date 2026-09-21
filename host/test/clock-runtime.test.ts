@@ -52,3 +52,19 @@ test('reentrant cancellation still invokes the connection stop only once',async(
  const f=fixture();let runtime:ClockRuntime;f.transport.uptime=signal=>{signal.addEventListener('abort',()=>{void runtime.stop();});return new Promise(()=>{});};runtime=new ClockRuntime(1e6,f.transport,f.clock);
  const result=assert.rejects(runtime.start(),/stopped/);await settle();await runtime.stop();await result;assert.equal(f.stops,1);assert.equal(runtime.status.state,'stopped');assert.equal(f.clock.pending,0);
 });
+test('demand samples are bounded, share periodic ownership, and cannot revive a stopped clock',async()=>{
+ const f=fixture(),r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;await settle();const base=f.queries;
+ for(let i=0;i<100;i++)r.requestSample();await settle();assert.equal(f.queries,base);
+ await f.clock.advance(.05);let reply!:()=>void,requests=0;const original=f.transport.queryClock;
+ f.transport.queryClock=s=>new Promise(resolve=>{requests++;reply=()=>{void original(s).then(resolve);};});
+ r.requestSample();await settle();assert.equal(r.status.inFlight,true);
+ // A periodic tick and repeated consumers must not acquire another query route.
+ await f.clock.advance(1);for(let i=0;i<100;i++)r.requestSample();await settle();assert.equal(f.queries,base);assert.equal(requests,1);
+ reply();await settle();assert.equal(f.queries,base+1);assert.equal(r.status.inFlight,false);
+ const before=f.queries;for(let i=0;i<100;i++){r.requestSample();await settle();}assert.equal(f.queries,before);assert.equal(requests,2);
+ await r.stop();assert.throws(()=>r.requestSample(),/not active/);assert.equal(f.clock.pending,0);assert.equal(f.stops,1);
+});
+test('frequent demand refresh remains rate limited and does not change the sampled clock semantics',async()=>{
+ const f=fixture(),r=new ClockRuntime(1e6,f.transport,f.clock),start=r.start();await f.clock.advance(.41);await start;await settle();const before=f.queries,old=r.sync.lastClock;
+ for(let i=0;i<100;i++){r.requestSample();await f.clock.advance(.001);}assert.ok(f.queries-before<=2);assert.ok(r.sync.lastClock>old);r.assertActive();await r.stop();assert.equal(f.clock.pending,0);
+});

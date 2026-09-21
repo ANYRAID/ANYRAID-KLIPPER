@@ -17,7 +17,7 @@ export class ClockRuntime {
  #frequency:number;#transport:ClockTransport;#scheduler:ClockScheduler;#sync:ClockSync|undefined;
  #state:'idle'|'starting'|'active'|'stopped'|'failed'='idle';#fault:unknown;#stopError:unknown;
  #abort=new AbortController();#stopPromise:Promise<void>|undefined;#cancel:(()=>void)|undefined;
- #lastNow=0;#expires=Infinity;#inFlight=false;
+ #lastNow=0;#expires=Infinity;#inFlight=false;#lastRequest=-Infinity;
  constructor(frequency:number,transport:ClockTransport,timing:ClockScheduler=scheduler){if(!Number.isFinite(frequency)||frequency<=0||frequency>1e9)throw new RangeError('Invalid clock frequency');this.#frequency=frequency;this.#transport=transport;this.#scheduler=timing;}
  get status(){return {state:this.#state,fault:this.#fault,stopError:this.#stopError,inFlight:this.#inFlight};}
  get sync():ClockSync{if(!this.#sync)throw new Error('Clock is not initialized');return this.#sync;}
@@ -56,14 +56,23 @@ export class ClockRuntime {
    this.#state='active';this.#tick();if(this.status.state!=='active')throw this.#fault;
   }catch(error){try{await this.#end(error,true);}catch{/* Retained in status. */}throw error;}
  }
+ /** Best-effort fresh sample request. Shares the periodic query route, permits
+  * only one outstanding request, and limits extra traffic to at most 20 Hz.
+  * Completion must still be checked against sync.lastClock by the caller. */
+ requestSample():void{
+  this.assertActive();
+  try{if(this.#now()-this.#lastRequest>=.05)this.#sample();}catch(error){this.#fail(error);throw error;}
+ }
+ #sample():void{
+  if(this.#inFlight)return;
+  this.#inFlight=true;this.sync.querySent();const requested=this.#now();this.#lastRequest=requested;
+  void this.#query(s=>this.#transport.queryClock(s),Math.min(5,this.#expires-requested)).then(sample=>{
+   this.#abort.signal.throwIfAborted();const now=this.#validate(sample,requested);if(now>=this.#expires)throw new Error('Late clock response cannot renew expired motion authorization');
+   const estimate=this.sync.accept(sample);if(estimate)this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;
+  }).catch(error=>{if(this.#state==='active')this.#fail(error);}).finally(()=>{this.#inFlight=false;});
+ }
  #tick():void{
   if(this.#state!=='active')return;
-  try{this.assertActive();this.#cancel=this.#scheduler.schedule(()=>this.#tick(),PERIOD);if(this.#inFlight)return;
-   this.#inFlight=true;this.sync.querySent();const requested=this.#now();
-   void this.#query(s=>this.#transport.queryClock(s),Math.min(5,this.#expires-requested)).then(sample=>{
-    this.#abort.signal.throwIfAborted();const now=this.#validate(sample,requested);if(now>=this.#expires)throw new Error('Late clock response cannot renew expired motion authorization');
-    const estimate=this.sync.accept(sample);if(estimate)this.#transport.setClockEstimate(estimate);this.#expires=sample.receiveTime+STALE;
-   }).catch(error=>{if(this.#state==='active')this.#fail(error);}).finally(()=>{this.#inFlight=false;});
-  }catch(error){this.#fail(error);}
+  try{this.assertActive();this.#cancel=this.#scheduler.schedule(()=>this.#tick(),PERIOD);this.requestSample();}catch(error){this.#fail(error);}
  }
 }

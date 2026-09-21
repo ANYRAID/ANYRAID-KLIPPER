@@ -7,8 +7,11 @@ import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {ClockSync} from '../src/timing/clock-sync.ts';
 const frequency=64000000;
+const mode=process.env.CLOCK_SAMPLE_MODE??'periodic';
+if(!['periodic','demand'].includes(mode))throw new Error('Invalid clock sample mode');
+let elapsed=0;
 const samples=Array.from({length:5000},(_,index)=>{
-  const i=index+1,time=i*.9839;
+  const i=index+1,time=mode==='periodic'?i*.9839:(elapsed+=i%100<80?.05:.9839);
   return {clock32:Math.trunc(time*(frequency+125))>>>0,sentTime:i%53===0?0:10+time-(i%17===0?.02:0),receiveTime:10+time+.002+(i%7)*.0001};
 });
 const python=String.raw`
@@ -67,5 +70,5 @@ run(true);for(let i=0;i<3;i++) run();
 const times=[];
 for(let i=0;i<11;i++) {const start=performance.now();run();times.push(performance.now()-start);}
 times.sort((a,b)=>a-b);
-console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,samples:samples.length,accepted,maxFrequencyError,maxClockError,nodeMedianMs:times[5],pythonMedianMs:oracle.times[5],nodeP95Ms:times[10],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5]},null,2));
+console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,mode,samples:samples.length,accepted,maxFrequencyError,maxClockError,nodeMedianMs:times[5],pythonMedianMs:oracle.times[5],nodeP95Ms:times[10],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5]},null,2));
 assert.ok(times[5]<=oracle.times[5],'Clock estimation regressed against Python');
