@@ -126,3 +126,30 @@ test('failed backup production preserves the previous published file and removes
  const failed={async backup(path:string){await writeFile(path,'partial');throw new Error('injected backup failure');}} as unknown as import('../src/moonraker/database-engine.ts').DatabaseEngine;
  await assert.rejects(createDatabaseBackup(failed,dir,'saved.db',source),/injected/);assert.equal(await readFile(destination,'utf8'),'old backup');assert.deepEqual((await readdir(dir)).sort(),['saved.db','source.sqlite']);
 }));
+test('restore replaces the live SQLite database and fences queued stale writes until reopen',()=>directory(async dir=>{
+ const path=join(dir,'active.sqlite'),store=await DatabaseStore.open({path,backupDirectory:join(dir,'backups')});
+ try{await store.insert('ui','generation',1);await store.backup('saved.db');await store.insert('ui','generation',2);const restore=store.restore('saved.db'),late=store.insert('ui','late',true);const rejected=assert.rejects(late,e=>e instanceof ApiError&&e.status===503);const info=await restore as {restored_tables:string[];restored_namespaces:string[]};await rejected;assert.ok(info.restored_tables.includes('namespace_store'));assert.deepEqual(info.restored_namespaces,['ui']);assert.equal(store.status.restoreState,'restored');await assert.rejects(store.get('ui','generation'),e=>e instanceof ApiError&&e.status===503);}finally{await store.close();}
+ const reopened=await DatabaseStore.open({path});try{assert.equal(await reopened.get('ui','generation'),1);await assert.rejects(reopened.get('ui','late'),e=>e instanceof ApiError&&e.status===404);}finally{await reopened.close();}
+}));
+test('restore preflight rejects malformed, oversized or missing snapshots without freezing the active store',()=>directory(async dir=>{
+ const {writeFile}=await import('node:fs/promises'),path=join(dir,'active.sqlite'),store=await DatabaseStore.open({path,backupDirectory:dir,maxDatabaseBytes:65536});
+ try{await store.insert('ui','value','keep');await writeFile(join(dir,'invalid.db'),'not a database');await assert.rejects(store.restore('invalid.db'),e=>e instanceof ApiError&&e.status===422);assert.equal(store.status.restoreState,'ready');
+  await assert.rejects(store.restore('missing.db'),e=>e instanceof ApiError&&e.status===404);
+  const bad=new DatabaseSync(join(dir,'wrong.db'));bad.exec('CREATE TABLE namespace_store (x TEXT)');bad.close();await assert.rejects(store.restore('wrong.db'),e=>e instanceof ApiError&&e.status===422);
+  const large=new DatabaseSync(join(dir,'large.db'));large.exec('CREATE TABLE data (value BLOB); INSERT INTO data VALUES (zeroblob(131072))');large.close();await assert.rejects(store.restore('large.db'),e=>e instanceof ApiError&&e.status===413);assert.equal(store.status.restoreState,'ready');assert.equal(await store.get('ui','value'),'keep');await store.insert('ui','still_writable',true);
+ }finally{await store.close();}
+}));
+test('restore copies non-namespace tables as well as namespace data',()=>directory(async dir=>{
+ const path=join(dir,'active.sqlite'),store=await DatabaseStore.open({path,backupDirectory:dir});
+ try{await store.insert('ui','x',1);const sql=new DatabaseSync(path);sql.exec('CREATE TABLE extension_data (id INTEGER PRIMARY KEY, content BLOB); INSERT INTO extension_data VALUES (1,x\'0001ff\')');sql.close();await store.backup('extension.db');
+  const changed=new DatabaseSync(path);changed.exec('DROP TABLE extension_data');changed.close();const info=await store.restore('extension.db') as {restored_tables:string[]};assert.ok(info.restored_tables.includes('extension_data'));
+ }finally{await store.close();}
+ const restored=new DatabaseSync(path);try{assert.deepEqual(Buffer.from(restored.prepare('SELECT content FROM extension_data WHERE id=1').get()!.content as Uint8Array),Buffer.from([0,1,255]));assert.equal(restored.prepare('PRAGMA integrity_check').get()!.integrity_check,'ok');}finally{restored.close();}
+}));
+test('a client cancellation after restore admission still requests restart after the copy completes',()=>directory(async dir=>{
+ const {EndpointRegistry}=await import('../src/moonraker/endpoints.ts'),{JsonRpcDispatcher}=await import('../src/moonraker/rpc.ts'),{ResponseCompletion}=await import('../src/moonraker/response-completion.ts'),{registerDatabaseMaintenance}=await import('../src/moonraker/database-maintenance.ts');
+ const store=await DatabaseStore.open({path:join(dir,'active.sqlite'),backupDirectory:dir}),controller=new AbortController(),completion=new ResponseCompletion(controller.signal),registry=new EndpointRegistry(new JsonRpcDispatcher());let restarts=0;const release=registerDatabaseMaintenance(registry,store,()=>{},()=>{restarts++;});
+ try{await store.insert('ui','x',1);await store.backup('saved.db');await store.insert('ui','x',2);const restore=store.restore.bind(store);store.restore=filename=>{const pending=restore(filename);controller.abort(new Error('client disconnected'));return pending;};
+  await assert.rejects(registry.invoke('/server/database/restore','POST',{filename:'saved.db'},{transport:'http',signal:controller.signal,authorize(){},afterResponse:callback=>completion.add(callback)}),/client disconnected/);assert.equal(store.status.restoreState,'restored');assert.equal(restarts,1);completion.complete(false);assert.equal(restarts,1);
+ }finally{release();await store.close();}
+}));

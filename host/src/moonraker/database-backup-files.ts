@@ -17,3 +17,5 @@ export async function createDatabaseBackup(engine:DatabaseEngine,directory:strin
  finally{try{rmSync(stage,{recursive:true,force:true});}catch(error){if(published)throw new ApiError(503,'Backup published but temporary directory cleanup failed',{mayHaveCommitted:true});throw error;}}
 }
 export function deleteDatabaseBackup(directory:string|undefined,name:string,source:string):{backup_path:string}{const {root,path}=destination(directory,name,source,false);try{unlinkSync(path);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Database backup not found');throw error;}try{sync(root);}catch{throw new ApiError(503,'Backup deletion acknowledgement failed',{mayHaveCommitted:true});}return {backup_path:path};}
+
+export function databaseRestorePath(directory:string|undefined,name:string,source:string):string{const {path}=destination(directory,name,source,false);try{if(!lstatSync(path).isFile())throw new ApiError(400,'Restore source must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Database backup not found');throw error;}return path;}

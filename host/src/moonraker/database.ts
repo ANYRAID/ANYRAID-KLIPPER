@@ -13,12 +13,13 @@ interface Pending {resolve(value:Json):void;reject(error:unknown):void;bytes:num
  * caller disconnect does not prove that a transaction failed to commit. */
 export class DatabaseStore {
  readonly #worker:Worker;readonly #options:ResolvedDatabaseOptions;readonly #pending=new Map<number,Pending>();readonly #ready:Promise<void>;readonly #exited:Promise<void>;
+ #restoreState:'ready'|'restored'|'restore-failed'='ready';
  #bytes=0;#next=0;#closed=false;#closing:Promise<void>|undefined;
  private constructor(options:ResolvedDatabaseOptions){
   this.#options=options;this.#worker=new Worker(new URL('./database-worker.ts',import.meta.url),{workerData:options,execArgv:[]});
   let ready!:()=>void,failed!:(e:unknown)=>void;this.#ready=new Promise((resolve,reject)=>{ready=resolve;failed=reject;});
   const fail=(e:unknown)=>{this.#closed=true;failed(e);for(const pending of this.#pending.values())pending.reject(e);this.#pending.clear();this.#bytes=0;};
-  this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else pending.resolve(message.value);});
+  this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}if(message.restoreState)this.#restoreState=message.restoreState;const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else pending.resolve(message.value);});
   this.#worker.on('error',()=>fail(new ApiError(503,'Database worker failed')));this.#exited=new Promise(resolve=>this.#worker.once('exit',()=>{fail(new ApiError(503,'Database worker exited'));resolve();}));
  }
  static async open(options:DatabaseStoreOptions):Promise<DatabaseStore>{
@@ -30,10 +31,10 @@ export class DatabaseStore {
   try{if(!(await lstat(options.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   const owner=new DatabaseStore({...options,...limits});try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
  }
- get status(){return {closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
+ get status(){return {restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
  #call(method:string,args:Json[],closing=false):Promise<Json>{
   try{
-   if(this.#closed||this.#closing&&!closing)throw new ApiError(503,'Database is closed');validateJson(args);
+   if(this.#closed||this.#closing&&!closing)throw new ApiError(503,'Database is closed');if(!closing&&this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');validateJson(args);
    const bytes=Buffer.byteLength(JSON.stringify(args));if(!closing&&(this.#pending.size>=this.#options.maxPending||this.#bytes+bytes>this.#options.maxPendingBytes))throw new ApiError(429,'Database request queue is full');if(!closing&&this.#next>=Number.MAX_SAFE_INTEGER)throw new ApiError(503,'Database request IDs exhausted');
    const id=closing?0:++this.#next;return new Promise((resolve,reject)=>{this.#pending.set(id,{resolve,reject,bytes});this.#bytes+=bytes;try{this.#worker.postMessage({id,method,args});}catch(error){this.#pending.delete(id);this.#bytes-=bytes;reject(error);}});
   }catch(error){return Promise.reject(error);}
@@ -46,6 +47,7 @@ export class DatabaseStore {
  deleteBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('delete-batch',[namespace,keys as Json]);}
  moveBatch(namespace:string,sources:readonly string[],destinations:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(sources);databaseBatchKeys(destinations);return this.#call('move-batch',[namespace,sources as Json,destinations as Json]);}
  delete(namespace:string,key:DatabaseKey){databaseNamespace(namespace);databaseKey(key);return this.#call('delete',[namespace,key as Json]);}
+ restore(filename:string){return this.#call('restore',[databaseBackupName(filename)]);}
  backup(filename:string){return this.#call('backup',[databaseBackupName(filename)]);}
  deleteBackup(filename:string){return this.#call('delete-backup',[databaseBackupName(filename)]);}
  compact(){return this.#call('compact',[]);}

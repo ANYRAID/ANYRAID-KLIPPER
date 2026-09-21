@@ -209,7 +209,8 @@
     "bench:temperature-store": "node bench/temperature-store.ts",
     "bench:database": "node bench/database.ts",
     "bench:database-backup": "node bench/database-backup.ts",
-    "bench:database-compact": "node bench/database-compact.ts"
+    "bench:database-compact": "node bench/database-compact.ts",
+    "bench:database-restore": "node bench/database-restore.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

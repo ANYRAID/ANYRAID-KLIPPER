@@ -1,4 +1,4 @@
-import {createDatabaseBackup,deleteDatabaseBackup} from './database-backup-files.ts';
+import {createDatabaseBackup,deleteDatabaseBackup,databaseRestorePath} from './database-backup-files.ts';
 import {parentPort,workerData} from 'node:worker_threads';
 import {readdirSync,lstatSync} from 'node:fs';
 import {DatabaseEngine,type DatabaseOptions} from './database-engine.ts';
@@ -14,8 +14,10 @@ const engine=initialize();
 let commands=Promise.resolve();
 if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{commands=commands.then(async()=>{
  try{
+  if(engine.restoreState!=='ready'&&message.method!=='close')throw new ApiError(503,'Database awaits restart');
   let value:Json=null;const [namespace,key,input]=message.args;
   switch(message.method){
+   case 'restore':value=await engine.restore(databaseRestorePath(options.backupDirectory,namespace as string,options.path),checkReply);break;
    case 'backup':value=await createDatabaseBackup(engine,options.backupDirectory,namespace as string,options.path);break;
    case 'delete-backup':value=deleteDatabaseBackup(options.backupDirectory,namespace as string,options.path);break;
    case 'compact':value=engine.compact();break;
@@ -39,6 +41,6 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
    case 'close':engine.close();port.postMessage({id:message.id,value:null});port.close();return;
    default:throw new ApiError(400,'Unknown database method');
   }
-  checkReply(value);port.postMessage({id:message.id,value});
- }catch(e){port.postMessage({id:message.id,error:error(e)});}
+  checkReply(value);port.postMessage({id:message.id,value,restoreState:engine.restoreState});
+ }catch(e){port.postMessage({id:message.id,error:error(e),restoreState:engine.restoreState});}
 });});

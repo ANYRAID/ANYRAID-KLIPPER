@@ -8,10 +8,12 @@ const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT N
  * happens in one SQLite transaction, including nested-key operations. */
 export class DatabaseEngine {
  readonly #statements=new Map<string,StatementSync>();
+ #restoreState:'ready'|'restored'|'restore-failed'='ready';
+ readonly #maxDatabaseBytes:number;
  readonly #path:string;
  readonly #db:DatabaseSync;readonly #recordBytes:number;readonly #replyBytes:number;#closed=false;
  constructor(options:DatabaseOptions){
-  this.#path=options.path;this.#recordBytes=options.maxRecordBytes??1024*1024;this.#replyBytes=options.maxReplyBytes??8*1024*1024;
+  this.#maxDatabaseBytes=options.maxDatabaseBytes??256*1024*1024;this.#path=options.path;this.#recordBytes=options.maxRecordBytes??1024*1024;this.#replyBytes=options.maxReplyBytes??8*1024*1024;
   this.#db=new DatabaseSync(options.path,{timeout:1000});
   try{
    this.#db.exec('PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL');
@@ -76,6 +78,22 @@ export class DatabaseEngine {
   });
  }
  list():string[]{const result:string[]=[];let bytes=2;for(const row of this.#prepare('SELECT DISTINCT namespace FROM namespace_store ORDER BY namespace').iterate()){if(typeof row.namespace!=='string')throw new ApiError(422,'Invalid persisted namespace');bytes+=Buffer.byteLength(JSON.stringify(row.namespace))+1;if(bytes>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');result.push(row.namespace);}return result;}
+ get restoreState(){return this.#restoreState;}
+ async restore(path:string,validate?:(info:Json)=>void):Promise<{restored_tables:string[];restored_namespaces:string[]}>{
+  if(this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');
+  let source:DatabaseSync;try{source=new DatabaseSync(path,{readOnly:true,timeout:1000});}catch{throw new ApiError(422,'Invalid restore database');}
+  try{
+   source.exec('PRAGMA trusted_schema=OFF; BEGIN');
+   const pages=Number(source.prepare('PRAGMA page_count').get()!.page_count),pageSize=Number(source.prepare('PRAGMA page_size').get()!.page_size);if(pages*pageSize>this.#maxDatabaseBytes)throw new ApiError(413,'Restore database exceeds capacity');
+   const checks=source.prepare('PRAGMA integrity_check').all();if(checks.length!==1||checks[0].integrity_check!=='ok')throw new ApiError(422,'Restore database integrity check failed');
+   const schema=source.prepare('PRAGMA table_info(namespace_store)').all();if(schema.length!==3||schema.some((row,i)=>row.name!==['namespace','key','value'][i]||row.type!==['TEXT','TEXT','record'][i]||row.pk!==[1,2,0][i]||row.notnull!==1))throw new ApiError(422,'Unsupported restore namespace schema');
+   let replyBytes=Buffer.byteLength(JSON.stringify({restored_tables:[],restored_namespaces:[]}));const names=(sql:string):string[]=>{const result:string[]=[];for(const row of source.prepare(sql).iterate()){if(typeof row.name!=='string')throw new ApiError(422,'Invalid restore object name');replyBytes+=Buffer.byteLength(JSON.stringify(row.name))+(result.length?1:0);if(replyBytes>this.#replyBytes)throw new ApiError(413,'Restore manifest exceeds reply limit');result.push(row.name);}return result;};
+   const restored_tables=names("SELECT name FROM sqlite_schema WHERE type='table'"),restored_namespaces=names('SELECT DISTINCT namespace AS name FROM namespace_store'),info={restored_tables,restored_namespaces};validate?.(info);
+   // Once replacement starts, even a lost/failed acknowledgement fences old
+   // component writes until a fresh service generation opens the database.
+   this.#restoreState='restore-failed';await backup(source,this.#path);this.#restoreState='restored';return info;
+  }catch(error){if(this.#restoreState==='restore-failed')throw new ApiError(503,'Database restore needs restart',{mayHaveCommitted:true});if(!(error instanceof ApiError))throw new ApiError(422,'Invalid restore database');throw error;}finally{try{source.exec('ROLLBACK');}catch{}source.close();}
+ }
  backup(path:string):Promise<number>{return backup(this.#db,path);}
  compact():{previous_size:number;new_size:number}{const previous_size=statSync(this.#path).size;this.#db.exec('VACUUM');this.#db.exec('PRAGMA wal_checkpoint(TRUNCATE)');return {previous_size,new_size:statSync(this.#path).size};}
  close(){if(this.#closed)return;this.#closed=true;this.#db.close();}
