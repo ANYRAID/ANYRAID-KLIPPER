@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
+import {filterMotion,motionFilters} from '../src/diagnostics/motion-filters.ts';
+import {motionPlots} from '../src/diagnostics/graph-motion.ts';
+import {motionGraphReference} from '../bench/motion-graph-reference.ts';
+test('all eight motion filters preserve original ten downstream curves after differentiation',()=>{for(const filter of motionFilters){const actual=motionPlots(filter),reference=motionGraphReference(1,filter);actual.forEach((p,i)=>p.plot.curves.forEach((c,j)=>{const r=reference.panels[i].curves[j];assert.deepEqual(c.times,r.times);c.values.forEach((v,k)=>assert.ok(Math.abs(v-r.values[k])<=[1e-8,1e-4,1e-10][i],`${filter} panel ${i} sample ${k} error ${v-r.values[k]}`));}));}});
+test('filter boundaries, zero margins, finite inputs and bounded work are explicit',()=>{const input=Array.from({length:1200},(_,i)=>i*.125);for(const filter of motionFilters){const out=filterMotion(input,filter,.0004);assert.equal(out.length,input.length);assert.ok(out.slice(0,500).every(v=>v===0));assert.ok(out.slice(-500).every(v=>v===0));assert.ok(out.every(Number.isFinite));}assert.deepEqual(filterMotion([1,2,3],'smooth'),[0,0,0]);assert.deepEqual(filterMotion(input,'average',.1).slice(500,700),input.slice(500,700));for(const time of [0,-1,NaN,.101,.00001])assert.throws(()=>filterMotion(input,'weighted',time),RangeError);assert.throws(()=>filterMotion([NaN],'smooth'),RangeError);assert.throws(()=>filterMotion(Array(2),'smooth'),RangeError);assert.throws(()=>filterMotion(Array(100001).fill(1),'smooth'),RangeError);assert.throws(()=>filterMotion(Array(100000).fill(1),'weighted',.1),RangeError);assert.throws(()=>filterMotion(Array(1200).fill(Number.MAX_VALUE),'weighted',.01),RangeError);});
+test('motion CLI exposes experimental filter and smoothing without source edits',async()=>{const dir=await mkdtemp(join(tmpdir(),'motion-filter-'));try{const path=join(dir,'plot.json');execFileSync(process.execPath,[fileURLToPath(new URL('../../scripts/graph_motion.ts',import.meta.url)),'--filter','weighted4','--smooth_time','.020','-o',path]);assert.deepEqual(JSON.parse(await readFile(path,'utf8')),motionPlots('weighted4',.02));for(const args of [['--filter',''],['--filter','unknown'],['--smooth_time','.02'],['--filter','spring_raw','--smooth_time','.02']])assert.equal(spawnSync(process.execPath,[fileURLToPath(new URL('../../scripts/graph_motion.ts',import.meta.url)),...args,'-o',path]).status,1);}finally{await rm(dir,{recursive:true,force:true});}});

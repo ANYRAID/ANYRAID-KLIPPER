@@ -270,9 +270,18 @@ It uses the original script's fixed moves and legacy EI example, which is
 different from the current production input shaper. It does not change
 printer configuration. The acceleration image clips to ±15000 mm/s²;
 JSON keeps all numerical values. It supports the same file formats as the
-other Node graph tools above. The original Python script remains for its
-interactive window and source-edited experimental filters; those experiments
-are not yet available through the Node command.
+other Node graph tools above. Experimental filters can be selected directly:
+
+```
+node ~/klipper/scripts/graph_motion.ts --filter weighted4 --smooth_time 0.020 -o motion.png
+```
+
+Available filters are `average`, `smooth`, `weighted`, `weighted2`,
+`weighted3`, `weighted4`, `spring_raw`, and `spring_double_weighted`.
+The smoothing default is `(2/3)/40` seconds; `spring_raw` has no smoothing
+parameter. Windows must fit the fixed 50 ms margin. The original Python
+script remains for its interactive window and other source-edited
+experiments, such as higher-order acceleration and alternate legacy shapers.
 
 ## Extracting information from the klippy.log file
 
