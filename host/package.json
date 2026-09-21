@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=26 <27"
+    "node": ">=26.9 <27"
   },
   "scripts": {
     "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts",

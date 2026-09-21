@@ -1,3 +1,4 @@
+import {executeSql,type SqlOperation,type SqlResult} from './database-sql.ts';
 import {migrateTable,tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {statSync} from 'node:fs';
 import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
@@ -127,6 +128,7 @@ export class DatabaseEngine {
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
  list():string[]{return [...this.#namespaces].sort(namespaceOrder);}
  registerTable(input:DatabaseTableDefinition,validate?:(result:Json)=>void):Json{const definition=tableDefinition(input),key=definition.name.toLowerCase();if(this.#tablesSealed)throw new ApiError(409,'Table registration is closed');if(this.#registeredTables.has(key))throw new ApiError(409,'Table already registered by a component');if(this.#registeredTables.size>=256)throw new ApiError(413,'Registered table capacity exceeded');const result=this.#transaction(()=>{const result=migrateTable(this.#db,definition);validate?.(result);return result;});this.#registeredTables.add(key);return result;}
+ sql(tables:string[],operations:SqlOperation[],validate?:(result:Json)=>void):SqlResult[]{return this.#transaction(()=>{const result=executeSql(this.#db,tables,operations,this.#registeredTables,this.#replyBytes);validate?.(result as unknown as Json);return result;});}
  sealTableRegistration():void{this.#tablesSealed=true;}
  get dataVersion():number{return Number(this.#prepare('PRAGMA data_version').get()!.data_version);}
  get restoreState(){return this.#restoreState;}
