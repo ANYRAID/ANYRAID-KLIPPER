@@ -33,9 +33,20 @@ function finite(value:number):number{if(!Number.isFinite(value))throw new ApiErr
 /** Per-field, per-runtime state; no process-global history singleton. Updates
  * do no I/O. JSON ownership and a 64 KiB retained-value limit bound snapshots. */
 export class HistoryTracker {
+ /** Sensor frames update several fields atomically. Ordinary single-field
+  * updates keep their allocation-free numeric path. */
+ static updateBatch(updates:readonly {tracker:HistoryTracker;value:Json;numberType?:HistoryNumberType}[]):void{
+  if(!Array.isArray(updates)||updates.length>64||updates.some(update=>!(update.tracker instanceof HistoryTracker)))throw new ApiError(400,'Invalid history update batch');
+  const undo=[...new Set(updates.map(update=>update.tracker))].map(tracker=>tracker.#checkpoint());
+  try{for(const update of updates)update.tracker.update(update.value,update.numberType);}catch(error){for(const restore of undo)restore();throw error;}
+ }
  readonly #strategy:HistoryStrategy;readonly #enabled:HistoryTrackerOptions['trackingEnabled'];
  #reset:HistoryTrackerOptions['reset'];#exclude:boolean;#value:Json;#last:number|undefined;#count=0;#initialized=false;
  #sizes:number[]=[];#collectionBytes=2;
+ #checkpoint():()=>void{
+  const value=this.#strategy==='collect'?(this.#value as Json[]).slice():this.#value,sizes=this.#strategy==='collect'?this.#sizes.slice():this.#sizes,last=this.#last,count=this.#count,initialized=this.#initialized,bytes=this.#collectionBytes,floating=this.#floating,lastFloating=this.#lastFloating;
+  return ()=>{this.#value=value;this.#sizes=sizes;this.#last=last;this.#count=count;this.#initialized=initialized;this.#collectionBytes=bytes;this.#floating=floating;this.#lastFloating=lastFloating;};
+ }
  readonly #numberType:HistoryNumberType;#resetNumberType:HistoryNumberType;#floating=false;#lastFloating=false;
  constructor(options:HistoryTrackerOptions){
   if(!historyStrategies.includes(options.strategy)||typeof options.trackingEnabled!=='function'||options.reset!==undefined&&typeof options.reset!=='function'||options.excludePaused!==undefined&&typeof options.excludePaused!=='boolean')throw new ApiError(400,'Invalid history tracker options');

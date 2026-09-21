@@ -33,9 +33,12 @@ export class HistoryFields {
  readonly #fields=new Map<string,HistoryField>();readonly #enabled:(excludePaused:boolean)=>boolean;
  constructor(trackingEnabled:(excludePaused:boolean)=>boolean){if(typeof trackingEnabled!=='function')throw new ApiError(400,'Invalid history tracking gate');this.#enabled=trackingEnabled;}
  register(options:HistoryFieldOptions):HistoryField{
-  const field=new HistoryField(options,this.#enabled),c=field.configuration,key=JSON.stringify([c.provider,c.field]);
-  if(this.#fields.has(key))throw new ApiError(409,'History field already registered');if(this.#fields.size>=64)throw new ApiError(413,'History field capacity exceeded');
-  this.#fields.set(key,field);return field;
+  return this.registerBatch([options])[0];
+ }
+ registerBatch(options:readonly HistoryFieldOptions[]):HistoryField[]{
+  if(!Array.isArray(options)||this.#fields.size+options.length>64)throw new ApiError(413,'History field capacity exceeded');
+  const keys=new Set(this.#fields.keys()),pending=options.map(option=>{const field=new HistoryField(option,this.#enabled),c=field.configuration,key=JSON.stringify([c.provider,c.field]);if(keys.has(key))throw new ApiError(409,'History field already registered');keys.add(key);return {key,field};});
+  for(const {key,field} of pending)this.#fields.set(key,field);return pending.map(item=>item.field);
  }
  get configuration(){return [...this.#fields.values()].map(field=>field.configuration);}
  reset():void{for(const field of this.#fields.values())field.tracker.reset();}
