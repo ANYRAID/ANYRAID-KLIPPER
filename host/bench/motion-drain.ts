@@ -1,0 +1,8 @@
+import {performance} from 'node:perf_hooks';
+import assert from 'node:assert/strict';
+import {TrapQueue} from '../src/motion/trap-queue.ts';
+import {MotionCoordinator,type MotionOutput} from '../src/motion/coordinator.ts';
+import {inputShaper} from '../src/motion/shaper.ts';
+const settings={frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6};
+async function run(kind:number,automatic:boolean){using q=new TrapQueue();q.appendRaw(new Float64Array([1,.1,.8,.1,0,0,0,1,kind,0,0,10,100]));using step=q.createStepper(settings,kind?'extruder':'x',.01);if(kind)step.configurePressureAdvance(.05,.04);else step.configureShapers({x:inputShaper('mzv',40,.1)});if(!automatic){q.appendRaw(new Float64Array([2,0,.2,0,9,0,0,0,0,0,0,0,0]));step.generate(2.1);return step.flush();}let output:MotionOutput|undefined;const c=new MotionCoordinator([{id:'axis',queue:q,stepper:step}],{async commit(b){output=b.outputs[0];},async stop(){}});const result=await c.drain(2,new Map([[q,[9,0,0] as const]]));assert.ok(result.sourceUntil>result.generatedUntil);const {id,...steps}=output!;assert.equal(id,'axis');return steps;}
+for(const kind of [0,1])assert.deepEqual(await run(kind,true),await run(kind,false));const times:number[]=[];for(let i=0;i<16;i++){const start=performance.now();for(let j=0;j<100;j++)await run(j%2,true);if(i>=5)times.push(performance.now()-start);}times.sort((a,b)=>a-b);console.log(JSON.stringify({node:process.version,cases:2,exactNativeOutput:true,drainsPerBatch:100,medianMs:times[5],p95Ms:times[10],scope:'Native shaped and pressure-advance outputs compared with manually padded native queues. Timing includes native construction, generation and memory sink; transport/MCU waits excluded.'},null,2));

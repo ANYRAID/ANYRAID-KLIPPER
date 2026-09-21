@@ -47,6 +47,24 @@ export class MotionCoordinator {
   for(const b of bindings)b.stepper.validateClockCalibration(offset,frequency);
   for(const b of bindings)b.stepper.calibrateClock(offset,frequency);
  }
+ /** Close a producer-stopped motion boundary with stationary convolution data.
+  * positions must give each bound queue's exact endpoint at lastMoveTime; no
+  * later source motion may already be appended. Failure after padding is terminal.
+  * Returned clocks still require transport ACK and MCU-time observation. */
+ async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
+  if(this.#failed||this.#busy)throw new Error('Motion coordinator cannot drain');
+  const queues=new Set(this.#bindings.map(b=>b.queue));
+  if(!Number.isFinite(lastMoveTime)||lastMoveTime<this.#generated||lastMoveTime>=1e15||positions.size!==queues.size||[...positions].some(([q,p])=>!queues.has(q)||!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))throw new RangeError('Invalid motion drain endpoints');
+  let past=0,future=0;for(const b of this.#bindings){const w=b.stepper.scanWindow;past=Math.max(past,w.past);future=Math.max(future,w.future);}
+  const until=lastMoveTime+past+.001,sourceUntil=until+future+.001;
+  if(!Number.isFinite(sourceUntil)||sourceUntil>=1e15||until<=lastMoveTime||sourceUntil<=until||sourceUntil-until<future)throw new RangeError('Unrepresentable motion drain horizon');
+  const clocks:Record<string,bigint>=Object.create(null);for(const b of this.#bindings)clocks[b.id]=b.stepper.clockAt(until);
+  try{
+   for(const guard of this.#guards)guard.assertActive();
+   for(const q of queues){const p=positions.get(q)!;q.appendRaw(new Float64Array([lastMoveTime,0,sourceUntil-lastMoveTime,0,...p,0,0,0,0,0,0]));}
+   await this.advance(until);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
+  }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}
+ }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
   if(!Number.isFinite(flushUntil)||generationUntil<flushUntil+.001)return Promise.reject(new RangeError('Generation must lead flush by at least 1 ms'));
