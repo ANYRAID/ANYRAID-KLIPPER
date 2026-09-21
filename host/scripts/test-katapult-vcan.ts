@@ -15,10 +15,10 @@ async function inside(executable:string){
  assert.ok(process.env.KATAPULT_PARENT_NET&&process.env.KATAPULT_PARENT_USER);assert.notEqual(readlinkSync('/proc/self/ns/net'),process.env.KATAPULT_PARENT_NET);assert.notEqual(readlinkSync('/proc/self/ns/user'),process.env.KATAPULT_PARENT_USER);
  command('ip',['link','add','dev','vcan-test','type','vcan']);command('ip',['link','set','dev','vcan-test','up']);
  const samples:number[]=[];
- for(const mode of [...Array.from({length:16},()=> 'success'),'uuid','crc','cancel','timeout','down']){
+ for(const mode of [...Array.from({length:16},()=> 'success'),'nack','uuid','crc','cancel','timeout','down']){
   const peer=spawn(executable,[],{env:env(),stdio:['pipe','pipe','pipe']}),sim=katapultSimulator(256),seen:number[]=[];let diagnostic='',buffer:Buffer=Buffer.alloc(0),chain=Promise.resolve(),fault:unknown;
   peer.stderr.on('data',b=>diagnostic+=b);peer.stdin.on('error',()=>{});const ended=new Promise<number|null>((resolve,reject)=>{peer.once('error',reject);peer.once('close',resolve);});void ended.catch(()=>{});
-  peer.stdout.on('data',(bytes:Buffer)=>{buffer=Buffer.concat([buffer,bytes]);while(buffer.length>=4){const length=buffer[3]*4+8;if(buffer.length<length)break;const frame=Buffer.from(buffer.subarray(0,length));buffer=buffer.subarray(length);seen.push(frame[2]);chain=chain.then(async()=>{if(mode==='timeout'||mode==='down')return;let reply:Buffer=Buffer.from(await sim.transport.exchange(frame,2000,new AbortController().signal));if(mode==='uuid'&&frame[2]===0x16){const payload=Buffer.from(reply.subarray(4,-4));payload[4]^=1;reply=katapultFrame(0xa0,payload);}if(mode==='crc')reply[reply.length-4]^=1;peer.stdin.write(reply);}).catch(error=>{fault=error;});}});
+  peer.stdout.on('data',(bytes:Buffer)=>{buffer=Buffer.concat([buffer,bytes]);while(buffer.length>=4){const length=buffer[3]*4+8;if(buffer.length<length)break;const frame=Buffer.from(buffer.subarray(0,length));buffer=buffer.subarray(length);seen.push(frame[2]);chain=chain.then(async()=>{if(mode==='timeout'||mode==='down')return;const reject=mode==='nack'&&[0x11,0x14,0x16].includes(frame[2])&&seen.filter(c=>c===frame[2]).length===1;let reply:Buffer=reject?katapultFrame(0xf1):Buffer.from(await sim.transport.exchange(frame,2000,new AbortController().signal));if(mode==='uuid'&&frame[2]===0x16){const payload=Buffer.from(reply.subarray(4,-4));payload[4]^=1;reply=katapultFrame(0xa0,payload);}if(mode==='crc')reply[reply.length-4]^=1;peer.stdin.write(reply);}).catch(error=>{fault=error;});}});
   const controller=new AbortController();let timer:ReturnType<typeof setTimeout>|undefined;
   try{
    const deadline=performance.now()+3000;while(!diagnostic.includes('READY\n')){assert.equal(peer.exitCode,null,diagnostic);assert.ok(performance.now()<deadline);await delay(1);}
@@ -27,7 +27,7 @@ async function inside(executable:string){
    else if(mode==='timeout'||mode==='down'){const transport=await openKatapultCAN('vcan-test','112233445566',{},controller.signal);try{if(mode==='down')command('ip',['link','set','dev','vcan-test','down']);await assert.rejects(transport.exchange(katapultFrame(0x11),40,controller.signal),mode==='timeout'?/timed out/:/ENETDOWN/);}finally{transport.close();if(mode==='down')command('ip',['link','set','dev','vcan-test','up']);}}
    else{
     const work=flashKatapultCAN('vcan-test','112233445566',Buffer.alloc(4093,0xa5),controller.signal);
-    if(mode==='success'){const result=await work;samples.push(performance.now()-at);assert.equal(result.blocks,16);assert.equal(seen.at(-1),0x15);assert.equal(seen[1],0x16);assert.equal(seen.length,36);}
+    if(mode==='success'||mode==='nack'){const result=await work;if(mode==='success')samples.push(performance.now()-at);assert.equal(result.blocks,16);assert.equal(seen.at(-1),0x15);assert.equal(seen[mode==='nack'?2:1],0x16);assert.equal(seen.length,mode==='nack'?39:36);if(mode==='nack'){assert.equal(seen.filter(c=>c===0x12).length,16);assert.equal(seen.filter(c=>c===0x14).length,17);}}
     else{await assert.rejects(work,mode==='uuid'?/UUID/:/CRC/);assert.ok(!seen.includes(0x12));assert.ok(!seen.includes(0x15));}
    }
    assert.equal((diagnostic.match(/ASSIGNED/g)||[]).length,1);assert.equal(fault,undefined);

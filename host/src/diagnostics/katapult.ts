@@ -3,6 +3,10 @@
 import {createHash} from 'node:crypto';
 import {crc16} from '../protocol/codec.ts';
 export const KATAPULT_COMMAND={CONNECT:0x11,SEND_BLOCK:0x12,SEND_EOF:0x13,REQUEST_BLOCK:0x14,COMPLETE:0x15,GET_CANBUS_ID:0x16} as const;
+export class KatapultRejectedError extends Error {
+ readonly acknowledgement:number;
+ constructor(acknowledgement:number){super(`Katapult rejected command: acknowledgement 0x${acknowledgement.toString(16)}`);this.name='KatapultRejectedError';this.acknowledgement=acknowledgement;}
+}
 export function katapultFrame(command:number,payload:Uint8Array=new Uint8Array()):Buffer {
  if(!Number.isInteger(command)||command<0||command>255||payload.length>1020||payload.length%4)throw new RangeError('Invalid Katapult frame');
  const out=Buffer.alloc(payload.length+8);out.set([1,0x88,command,payload.length/4]);out.set(payload,4);out.writeUInt16LE(crc16(out.subarray(2,-4))&0xffff,out.length-4);out.set([0x99,3],out.length-2);return out;
@@ -10,14 +14,20 @@ export function katapultFrame(command:number,payload:Uint8Array=new Uint8Array()
 export function katapultReply(command:number,bytes:Uint8Array):Buffer {
  if(bytes.length>1028)throw new Error('Oversized Katapult response frame');
  const b=Buffer.from(bytes);
- if(b.length<12||b[0]!==1||b[1]!==0x88||b.length!==b[3]*4+8||b.at(-2)!==0x99||b.at(-1)!==3)throw new Error('Invalid Katapult response frame');
+ if(b.length<8||b[0]!==1||b[1]!==0x88||b.length!==b[3]*4+8||b.at(-2)!==0x99||b.at(-1)!==3)throw new Error('Invalid Katapult response frame');
  if(b.readUInt16LE(b.length-4)!==(crc16(b.subarray(2,-4))&0xffff))throw new Error('Katapult response CRC mismatch');
- if(b[2]!==0xa0)throw new Error(`Katapult rejected command: acknowledgement 0x${b[2].toString(16)}`);
+ if(b[2]!==0xa0){
+  if(![0xf1,0xf2,0xf3].includes(b[2])||![8,12].includes(b.length))throw new Error('Invalid Katapult rejection frame');
+  if(b.length===12&&b.readUInt32LE(4)!==command)throw new Error('Katapult acknowledged wrong command');
+  throw new KatapultRejectedError(b[2]);
+ }
+ if(b.length<12)throw new Error('Truncated Katapult acknowledgement');
  if(b.readUInt32LE(4)!==command)throw new Error('Katapult acknowledged wrong command');
  return b.subarray(8,-4);
 }
 export interface KatapultTransport {
- /** One request / complete response. Owns framing, USB priming, deadlines and
+ /** One logical request / complete response. timeoutMs bounds each attempt.
+  * Owns framing, USB priming, deadlines and
   * cancellation; must not replay a command after uncertain write completion. */
  exchange(frame:Buffer,timeoutMs:number,signal:AbortSignal):Promise<Uint8Array>;
 }
@@ -32,7 +42,8 @@ export function katapultInfo(payload:Uint8Array):KatapultInfo {
  return {protocol,start,blockSize,mcu:modern&&separator>=0?info.slice(0,separator):info,software:modern&&separator>=0?info.slice(separator+1):'?'};
 }
 /** Nominal original upload -> EOF -> readback -> COMPLETE sequence.
- * Fails closed on timeout, NACK/busy or address mismatch; never retries writes.
+ * Fails closed on timeout, busy or address mismatch; never retries writes.
+ * Stream transports may retry a parser NACK on non-writing commands only.
  * The owner closes transport on every outcome. SHA-1 is compatibility integrity,
  * not firmware authenticity. No COMPLETE is sent after failed verification. */
 export async function flashKatapult(image:Uint8Array,transport:KatapultTransport,signal:AbortSignal,options:{expectedMcu?:string;expectedUuid?:string}={}):Promise<{info:KatapultInfo;blocks:number;pages:number;sha1:string}> {

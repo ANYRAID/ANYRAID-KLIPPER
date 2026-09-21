@@ -11449,3 +11449,56 @@ SIGTERM 的用例在 1 秒观察窗口内不允许后续 CAN 帧；查询原生�
 完整原生构建及回归 **1363 项通过**，最终独立 vcan 所有用例通过，
 类型、项目空白和差异检查通过。未操作物理设备；Python flashtool
 仍用于差分，重试/错误恢复与参考退役尚未完成，完整迁移目标未达成。
+
+## Katapult 非写入命令的有界 NACK 恢复（2026-09-22）
+
+恢复策略核对上游 Katapult 固件提交
+`ec59b9bb9ad6c2ec8d4dc6831fbc77f0b308e29e`：
+[`command.c`](https://github.com/Arksine/katapult/blob/ec59b9bb9ad6c2ec8d4dc6831fbc77f0b308e29e/src/command.c)
+的解析器在分发前产生 NACK；
+[`flashcmd.c`](https://github.com/Arksine/katapult/blob/ec59b9bb9ad6c2ec8d4dc6831fbc77f0b308e29e/src/flashcmd.c)
+的写入/EOF 错误可能发生在 Flash 操作之后。因此命令错误、忙、超时、
+CRC 损坏不能作为“尚未写入”的证明；没有恢复旧 Python 对所有错误
+重发命令、失败后仍发送 COMPLETE 的行为。
+
+`katapultReply` 现在正确识别固件实际的 8 字节负响应，以及可选
+4 字节命令回显；CRC、长度与回显验证在分类前完成。8 字节成功
+ACK、未知负响应、额外负响应载荷和错误回显均拒绝。结构化
+`KatapultRejectedError` 保留 acknowledgement 类型供恢复策略使用。
+
+UART/CAN 共享 stream 对 CONNECT、GET_CANBUS_ID、REQUEST_BLOCK
+收到完整 `0xf1` NACK 时最多执行 5 次相同请求，间隔 500 ms。
+各次尝试有原 timeoutMs 的完整期限，最大逻辑超时预算为 5 × timeoutMs +
+4 × 500 ms，另受调用方取消信号约束；调度延迟不构成硬实时保证。
+仅发生允许重试的 NACK 才
+进入下一次尝试。USB priming 只执行一次，不随 CONNECT 重试。
+在重试等待期间仍独占 exchange；取消保留原始原因并关闭资源。
+SEND_BLOCK、SEND_EOF、COMPLETE 不重放；busy/command error、
+超时、CRC、异常尾随数据和错误回显也直接关闭失败。
+REQUEST_BLOCK 会修改固件传输状态，故这里称“非写入”而非完全
+无副作用；保留写入/读取地址与全量读回校验，不重连或自动恢复打印。
+
+新增 5 项专项覆盖原生负响应布局、成功恢复、5 次上限、禁止重放
+命令、重试退避期间取消，以及带 priming 的真实 PTY 完整刷写。
+独立 vcan 增加 CONNECT/UUID/首块读取各一次 NACK 的组合，检查
+16 次块写入保持不变，并完成 4093 字节读回及 COMPLETE。
+
+Node 26.9.0，4093 字节 PTY 完整流程，5 次预热/11 次测量：
+
+| 路径 | 中位 / p95 ms | 命令数（含 priming） |
+| --- | ---: | ---: |
+| 无 NACK 正常刷写 | 39.082 / 39.704 | 36 |
+| 首次读块 NACK，恢复后成功 | 540.375 / 541.813 | 37 |
+
+运行 `node host/bench/katapult-serial.ts`，加 `--nack` 注入一次读块
+NACK。正常路径历史中位/p95 为 39.290/39.967 ms，本轮未见明显
+退化，不将小幅差异解释为稳定加速；恢复路径包含明确的 500 ms
+退避。该比较没有 Python 完整串口传输对照，也不代表物理 Flash、
+目标板调度或打印速度。原有成功路径仍通过 Python 帧序列差分。
+
+最终完整原生构建与回归 **1368 项通过**；无 Python PATH 下新增
+5 项恢复测试通过。独立 vcan 的 NACK 组合及原有失败用例通过，
+正常 CAN 全流程中位/p95 **543.858/548.968 ms**（包含 500 ms
+节点分配等待）。类型、项目空白与差异检查通过。没有物理总线或
+板卡操作；本阶段只补齐可证实的非写入恢复，其他恢复语义、旧
+Python 工具退役、完整 Moonraker 和硬件验收仍待完成。
