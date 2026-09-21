@@ -46,6 +46,8 @@ export class DatabaseStore {
  }
  registerTable(definition:DatabaseTableDefinition){return this.#call('register-table',[tableDefinition(definition) as unknown as Json]);}
  sql(tables:string[],operations:SqlOperation[]):Promise<SqlResult[]>{return this.#call('sql',[tables,operations as unknown as Json]) as unknown as Promise<SqlResult[]>;}
+ /** One read-only statement uses SQLite's statement snapshot, without a write lock. */
+ sqlRead(tables:string[],operation:SqlOperation):Promise<SqlResult>{return this.#call('sql-read',[tables,operation as unknown as Json]) as unknown as Promise<SqlResult>;}
  sealTableRegistration(){return this.#call('seal-tables',[]);}
  async registerLocalNamespace(namespace:string,options:{forbidden?:boolean;parseKeys?:boolean}={}):Promise<DatabaseNamespace>{databaseNamespace(namespace);if(typeof (options.forbidden??false)!=='boolean'||typeof (options.parseKeys??false)!=='boolean')throw new ApiError(400,'Invalid namespace registration options');const wrapper=new DatabaseNamespace(this,namespace,options.parseKeys??false);await this.#call('register-local-namespace',[namespace,options.forbidden??false]);return wrapper;}
  unregisterLocalNamespace(namespace:string){databaseNamespace(namespace);return this.#call('unregister-local-namespace',[namespace]);}

@@ -59,7 +59,7 @@ export class HistoryRepository {
   const result=await this.#db.sql(tables,operations);return job(result[0]);
  }
  async metadataMarker(filename:string,version:string):Promise<HistoryMarker|undefined>{
-  const [result]=await this.#db.sql(tables,[{sql:'SELECT job_id,print_start_time FROM history_metadata WHERE filename=? AND instance_id=? AND generation=?',params:[text(filename),instance,generation(version)]}]);
+  const result=await this.#db.sqlRead(['history_metadata'],{sql:'SELECT job_id,print_start_time FROM history_metadata WHERE filename=? AND instance_id=? AND generation=?',params:[text(filename),instance,generation(version)]});
   if(!result.rows.length)return;const [id,time]=result.rows[0];try{return {job_id:uid(id),print_start_time:number(time)};}catch{throw new ApiError(422,'Invalid stored history metadata marker');}
  }
  async get(id:string):Promise<HistoryJob>{return job((await this.#db.sql(tables,[rowQuery(sqlId(id))]))[0]);}

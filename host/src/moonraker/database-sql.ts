@@ -20,8 +20,9 @@ function output(value:SQLOutputValue):SqlValue{
  if(typeof value==='number'&&!Number.isFinite(value))throw new ApiError(422,'Nonfinite SQL result');
  return value;
 }
-/** Trusted internal SQL only. An entire request is one engine-owned transaction. */
-export function executeSql(db:DatabaseSync,tables:string[],operations:SqlOperation[],registered:ReadonlySet<string>,limit:number):SqlResult[]{
+/** Trusted internal SQL only. The engine owns transaction policy; readOnly
+ * denies mutation and schema actions through SQLite authorization. */
+export function executeSql(db:DatabaseSync,tables:string[],operations:SqlOperation[],registered:ReadonlySet<string>,limit:number,readOnly=false):SqlResult[]{
  if(!Array.isArray(tables)||!tables.length||tables.length>256||tables.some(name=>typeof name!=='string'||!registered.has(name.toLowerCase())))throw new ApiError(400,'SQL requires registered component tables');
  if(!Array.isArray(operations)||!operations.length||operations.length>4096)throw new ApiError(400,'Invalid SQL operation count');
  const allowed=new Set(tables.map(name=>name.toLowerCase()));
@@ -38,7 +39,7 @@ export function executeSql(db:DatabaseSync,tables:string[],operations:SqlOperati
   if(database!==null&&database!=='main')return constants.SQLITE_DENY;
   if([constants.SQLITE_SELECT,constants.SQLITE_RECURSIVE].includes(action))return constants.SQLITE_OK;
   if(action===constants.SQLITE_FUNCTION)return b?.toLowerCase()==='load_extension'?constants.SQLITE_DENY:constants.SQLITE_OK;
-  if([constants.SQLITE_READ,constants.SQLITE_INSERT,constants.SQLITE_UPDATE,constants.SQLITE_DELETE].includes(action)&&a&&allowed.has(a.toLowerCase()))return constants.SQLITE_OK;
+  if((action===constants.SQLITE_READ||!readOnly&&[constants.SQLITE_INSERT,constants.SQLITE_UPDATE,constants.SQLITE_DELETE].includes(action))&&a&&allowed.has(a.toLowerCase()))return constants.SQLITE_OK;
   return constants.SQLITE_DENY;
  });
  try{

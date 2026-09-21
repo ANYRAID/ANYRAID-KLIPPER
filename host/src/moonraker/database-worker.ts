@@ -15,7 +15,7 @@ function backups():string[]{if(!options.backupDirectory)return [];try{return rea
 function initialize():DatabaseEngine|undefined{try{try{if(!lstatSync(options.path).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;}const engine=new DatabaseEngine(options);port.postMessage({ready:true});return engine;}catch(e){port.postMessage({ready:false,error:error(e)});port.close();return undefined;}}
 const engine=initialize();
 const cachedMethods=new Set(['namespace-keys','namespace-values','namespace-items']);
-const readMethods=new Set([...cachedMethods,'get','get-batch','namespace-contains','namespace-length','has-namespace','api-get','api-list']);
+const readMethods=new Set(['sql-read',...cachedMethods,'get','get-batch','namespace-contains','namespace-length','has-namespace','api-get','api-list']);
 const readCache=new Map<string,{encoded:Buffer|undefined;bytes:number}>(),cacheLimit=options.maxReadCacheBytes??8*1024*1024;
 let cacheBytes=0,cacheVersion:number|undefined,cacheHits=0,cacheMisses=0;
 const cacheStats=()=>({hits:cacheHits,misses:cacheMisses,entries:readCache.size,bytes:cacheBytes});
@@ -40,6 +40,7 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
   }
   let value:Json=null;const [namespace,key,input]=message.args;
   switch(message.method){
+   case 'sql-read':value=engine.sqlRead(namespace as string[],key as unknown as SqlOperation,checkReply) as unknown as Json;break;
    case 'sql':value=engine.sql(namespace as string[],key as unknown as SqlOperation[],checkReply) as unknown as Json;break;
    case 'register-table':value=engine.registerTable(namespace as unknown as DatabaseTableDefinition,checkReply);break;
    case 'seal-tables':engine.sealTableRegistration();break;
