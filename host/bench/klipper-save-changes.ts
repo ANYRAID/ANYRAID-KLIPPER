@@ -2,7 +2,7 @@ import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
-import {KlipperSaveChanges} from '../src/config/klipper-save-changes.ts';
+import {KlipperSaveChanges,type SaveChange} from '../src/config/klipper-save-changes.ts';
 type Op=['set',string,string,string]|['remove',string];
 const initial={x:{value:'old'},X:{value:'distinct'}};
 const ops:Op[]=[['set','x','Value','new'],['set','x','value','new'],['remove','x'],['remove','x'],['remove','unknown'],['set','x','points','\n1,2\n3,4'],['set','__proto__','constructor','safe'],['remove','X'],['set','X','VALUE','again']];
@@ -20,7 +20,7 @@ for op in r['ops']:
 a=create(r['large']);times=[]
 for i in range(16):
  start=time.perf_counter()
- for j in range(20):a.set('bed_mesh p0','version','1')
+ for j in range(20):a.set('bed_mesh p%d'%j,'version','1')
  times.append((time.perf_counter()-start)*1000)
 print(json.dumps(dict(results=results,times=times[5:],python=sys.version.split()[0])))
 `;
@@ -28,7 +28,11 @@ const ref=JSON.parse(execFileSync(process.env.PYTHON??'python3',['-c',py,fileURL
 const s=new KlipperSaveChanges(initial),results=[];
 for(const op of ops){if(op[0]==='set')s.set(op[1],op[2],op[3]);else s.removeSection(op[1]);results.push({status:s.status,values:s.capture().values});}
 assert.deepEqual(JSON.parse(JSON.stringify(results)),ref.results);
-const b=new KlipperSaveChanges(large),times:number[]=[];
-for(let i=0;i<16;i++){const start=performance.now();for(let j=0;j<20;j++)b.set('bed_mesh p0','version','1');if(i>=5)times.push(performance.now()-start);}
+const batch=ops.map((op):SaveChange=>op[0]==='set'?{kind:'set',section:op[1],option:op[2],value:op[3]}:{kind:'remove',section:op[1]});
+const atomic=new KlipperSaveChanges(initial);atomic.apply(batch);assert.deepEqual(JSON.parse(JSON.stringify({status:atomic.status,values:atomic.capture().values})),ref.results.at(-1));
+const b=new KlipperSaveChanges(large),times:number[]=[],batchTimes:number[]=[];
+const updates:SaveChange[]=Array.from({length:20},(_,j)=>({kind:'set',section:`bed_mesh p${j}`,option:'version',value:'1'}));
+for(let i=0;i<16;i++){const start=performance.now();for(let j=0;j<20;j++)b.set(`bed_mesh p${j}`,'version','1');if(i>=5)times.push(performance.now()-start);}
+for(let i=0;i<16;i++){const start=performance.now();b.apply(updates);if(i>=5)batchTimes.push(performance.now()-start);}
 const stats=(a:number[])=>{a.sort((a,b)=>a-b);return {medianMs:a[5],p95Ms:a[10]};};
-console.log(JSON.stringify({node:process.version,python:ref.python,operations:ops.length,exact:true,profiles:200,setsPerBatch:20,nodeTime:stats(times),pythonTime:stats(ref.times),scope:'Actual ConfigAutoSave set/remove/status; string values. Node additionally validates complete save serialization on each update. Configuration-time only; no disk writes, restart, or motion-loop benchmark.'},null,2));
+console.log(JSON.stringify({node:process.version,python:ref.python,operations:ops.length,exact:true,profiles:200,setsPerBatch:20,nodeTime:stats(times),nodeAtomicBatchTime:stats(batchTimes),pythonTime:stats(ref.times),scope:'Actual ConfigAutoSave set/remove/status; string values. Node validates complete save serialization once per single update or once per atomic batch. Configuration-time only; no disk writes, restart, or motion-loop benchmark.'},null,2));

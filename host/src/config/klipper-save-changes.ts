@@ -1,5 +1,7 @@
 import {buildKlipperSave,type SavedConfiguration} from './klipper-save.ts';
 export interface SaveChangesSnapshot {readonly revision:number;readonly values:SavedConfiguration;}
+export type SaveChange = {readonly kind:'set';readonly section:string;readonly option:string;readonly value:string}
+ | {readonly kind:'remove';readonly section:string};
 type Values=Record<string,Record<string,string>>;
 type Pending=Record<string,Record<string,string>|null>;
 const dict=<T>():Record<string,T>=>Object.create(null);
@@ -10,15 +12,30 @@ export class KlipperSaveChanges {
  #values:Values;#pending:Pending=dict();#changed=false;#revision=0;#snapshots=new WeakSet<object>();
  constructor(initial:SavedConfiguration={}){const values=copy(initial);validate(values);this.#values=values;}
  #next():number{if(this.#revision>=Number.MAX_SAFE_INTEGER)throw new RangeError('Save revision exhausted');return this.#revision+1;}
- set(section:string,option:string,value:string):void{
-  if(section==='DEFAULT')throw new RangeError('Cannot set DEFAULT as a saved section');
-  const next=copy(this.#values),key=option.toLowerCase();next[section]??=dict();next[section][key]=value;validate(next);
-  const revision=this.#next(),pending={...this.#pending,[section]:{...(this.#pending[section]??{}),[option]:value}};
+ set(section:string,option:string,value:string):void{this.apply([{kind:'set',section,option,value}]);}
+ removeSection(section:string):void{this.apply([{kind:'remove',section}]);}
+ /** Atomically publish the ordered operations after validating the final config.
+  * Intermediate values are staged, never exposed. One batch advances one revision. */
+ apply(changes:readonly SaveChange[]):void{
+  if(!Array.isArray(changes)||changes.length>100000)throw new RangeError('Save change batch budget exceeded');
+  if(!changes.length)return;
+  const next=copy(this.#values),pending:Pending=Object.assign(dict(),this.#pending);let changed=false;
+  for(const change of changes){
+   if(!change||typeof change.section!=='string')throw new TypeError('Invalid save change');
+   const section=change.section;
+   if(change.kind==='remove'){
+    if(section==='DEFAULT'||!Object.hasOwn(next,section))continue;
+    delete next[section];pending[section]=null;changed=true;
+   }else if(change.kind==='set'){
+    if(section==='DEFAULT')throw new RangeError('Cannot set DEFAULT as a saved section');
+    if(typeof change.option!=='string'||typeof change.value!=='string')throw new TypeError('Saved options and values must be strings');
+    next[section]??=dict();next[section][change.option.toLowerCase()]=change.value;
+    pending[section]={...(Object.hasOwn(pending,section)?pending[section]:null),[change.option]:change.value};changed=true;
+   }else throw new TypeError('Invalid save change kind');
+  }
+  if(!changed)return;
+  validate(next);const revision=this.#next();
   this.#values=next;this.#pending=pending;this.#changed=true;this.#revision=revision;
- }
- removeSection(section:string):void{
-  if(section==='DEFAULT'||!Object.hasOwn(this.#values,section))return;
-  const revision=this.#next(),next=copy(this.#values);delete next[section];this.#values=next;this.#pending={...this.#pending,[section]:null};this.#changed=true;this.#revision=revision;
  }
  get status():{save_config_pending:boolean;save_config_pending_items:Pending}{const pending=dict<Record<string,string>|null>();for(const [name,values] of Object.entries(this.#pending))pending[name]=values===null?null:{...values};return {save_config_pending:this.#changed,save_config_pending_items:pending};}
  capture():SaveChangesSnapshot{const values=copy(this.#values);for(const v of Object.values(values))Object.freeze(v);const snapshot=Object.freeze({revision:this.#revision,values:Object.freeze(values)});this.#snapshots.add(snapshot);return snapshot;}
