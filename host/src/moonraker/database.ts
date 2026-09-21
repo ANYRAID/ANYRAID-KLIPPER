@@ -1,3 +1,4 @@
+import {deserialize} from 'node:v8';
 import {DatabaseNamespace} from './database-namespace.ts';
 import {databaseBackupName} from './database-maintenance.ts';
 import {Worker} from 'node:worker_threads';
@@ -7,32 +8,33 @@ import {ApiError,validateJson,type Json} from './rpc.ts';
 import {databaseNamespace,databaseKey,databaseBatchKeys,type DatabaseKey} from './database-record.ts';
 import type {DatabaseOptions} from './database-engine.ts';
 import type {EndpointRegistry} from './endpoints.ts';
-export interface DatabaseStoreOptions extends DatabaseOptions {backupDirectory?:string;maxPending?:number;maxPendingBytes?:number;}
+export interface DatabaseStoreOptions extends DatabaseOptions {backupDirectory?:string;maxPending?:number;maxPendingBytes?:number;maxReadCacheBytes?:number;}
 type ResolvedDatabaseOptions=Required<Omit<DatabaseStoreOptions,'backupDirectory'>>&{backupDirectory?:string};
 interface Pending {resolve(value:Json):void;reject(error:unknown):void;bytes:number;}
 /** FIFO durable operations. Accepted writes are never retried or cancelled:
  * caller disconnect does not prove that a transaction failed to commit. */
 export class DatabaseStore {
  readonly #worker:Worker;readonly #options:ResolvedDatabaseOptions;readonly #pending=new Map<number,Pending>();readonly #ready:Promise<void>;readonly #exited:Promise<void>;
+ #readCache={hits:0,misses:0,entries:0,bytes:0};
  #restoreState:'ready'|'restored'|'restore-failed'='ready';
  #bytes=0;#next=0;#closed=false;#closing:Promise<void>|undefined;
  private constructor(options:ResolvedDatabaseOptions){
   this.#options=options;this.#worker=new Worker(new URL('./database-worker.ts',import.meta.url),{workerData:options,execArgv:[]});
   let ready!:()=>void,failed!:(e:unknown)=>void;this.#ready=new Promise((resolve,reject)=>{ready=resolve;failed=reject;});
   const fail=(e:unknown)=>{this.#closed=true;failed(e);for(const pending of this.#pending.values())pending.reject(e);this.#pending.clear();this.#bytes=0;};
-  this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}if(message.restoreState)this.#restoreState=message.restoreState;const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else pending.resolve(message.value);});
+  this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}if(message.readCache)this.#readCache=message.readCache;if(message.restoreState)this.#restoreState=message.restoreState;const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else{try{pending.resolve(message.encoded?deserialize(message.encoded):message.value);}catch{pending.reject(new ApiError(503,'Invalid database worker response'));}}});
   this.#worker.on('error',()=>fail(new ApiError(503,'Database worker failed')));this.#exited=new Promise(resolve=>this.#worker.once('exit',()=>{fail(new ApiError(503,'Database worker exited'));resolve();}));
  }
  static async open(options:DatabaseStoreOptions):Promise<DatabaseStore>{
   if(!options||typeof options.path!=='string'||!isAbsolute(options.path)||options.path.includes('\0')||Buffer.byteLength(options.path)>4096)throw new ApiError(400,'Invalid database path');
   if(options.backupDirectory!==undefined&&(!isAbsolute(options.backupDirectory)||options.backupDirectory.includes('\0')))throw new ApiError(400,'Invalid backup directory');
-  const limits={maxRecordBytes:options.maxRecordBytes??1024*1024,maxDatabaseBytes:options.maxDatabaseBytes??256*1024*1024,maxReplyBytes:options.maxReplyBytes??8*1024*1024,maxPending:options.maxPending??64,maxPendingBytes:options.maxPendingBytes??8*1024*1024};
-  for(const [name,value] of Object.entries(limits))if(!Number.isSafeInteger(value)||value<1||value>(name==='maxPending'?1024:name==='maxDatabaseBytes'?2**32:64*1024*1024))throw new ApiError(400,'Invalid database limits');
+  const limits={maxReadCacheBytes:options.maxReadCacheBytes??8*1024*1024,maxRecordBytes:options.maxRecordBytes??1024*1024,maxDatabaseBytes:options.maxDatabaseBytes??256*1024*1024,maxReplyBytes:options.maxReplyBytes??8*1024*1024,maxPending:options.maxPending??64,maxPendingBytes:options.maxPendingBytes??8*1024*1024};
+  for(const [name,value] of Object.entries(limits))if(!Number.isSafeInteger(value)||value<(name==='maxReadCacheBytes'?0:1)||value>(name==='maxPending'?1024:name==='maxDatabaseBytes'?2**32:64*1024*1024))throw new ApiError(400,'Invalid database limits');
   if(limits.maxDatabaseBytes<65536)throw new ApiError(400,'Database capacity too small');
   try{if(!(await lstat(options.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   const owner=new DatabaseStore({...options,...limits});try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
  }
- get status(){return {restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
+ get status(){return {readCache:{...this.#readCache},restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
  #call(method:string,args:Json[],closing=false):Promise<Json>{
   try{
    if(this.#closed||this.#closing&&!closing)throw new ApiError(503,'Database is closed');if(!closing&&this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');validateJson(args);

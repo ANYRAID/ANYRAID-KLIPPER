@@ -124,6 +124,7 @@ export class DatabaseEngine {
  clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
  list():string[]{return [...this.#namespaces].sort(namespaceOrder);}
+ get dataVersion():number{return Number(this.#prepare('PRAGMA data_version').get()!.data_version);}
  get restoreState(){return this.#restoreState;}
  async restore(path:string,validate?:(info:Json)=>void):Promise<{restored_tables:string[];restored_namespaces:string[]}>{
   if(this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');
