@@ -30,6 +30,7 @@ export class MotionCoordinator {
   this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
  }
+ usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy,failed:this.#failed,fault:this.#fault};}
  shutdown(cause:unknown=new Error('Motion shutdown requested')):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
