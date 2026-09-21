@@ -10,10 +10,13 @@ export const historyTables=[
 ];
 export const historyTotalFields=['total_jobs','total_time','total_print_time','total_filament_used','longest_job','longest_print'] as const;
 export interface HistoryStats {filename:string;total_duration:number;print_duration:number;filament_used:number;}
-export interface HistoryStart extends HistoryStats {user?:string;start_time:number;metadata?:Record<string,Json>;auxiliary_data?:Json[];}
+export interface HistoryMarker {job_id:string;print_start_time:number;}
+export interface HistoryStart extends HistoryStats {metadata_generation?:string;user?:string;start_time:number;metadata?:Record<string,Json>;auxiliary_data?:Json[];}
 export interface HistoryJob extends HistoryStats {job_id:string;user:string;status:string;start_time:number;end_time:number|null;metadata:Record<string,Json>;auxiliary_data:Json[];}
 export interface HistoryList {before?:number;since?:number;limit?:number;start?:number;order?:string;}
-const tables=['job_history','job_totals'],instance='default';
+const markerTable={name:'history_metadata',prototype:'history_metadata (filename TEXT NOT NULL, instance_id TEXT NOT NULL, generation TEXT NOT NULL, job_id INTEGER NOT NULL, print_start_time REAL NOT NULL, PRIMARY KEY (filename, instance_id))',version:1,migrations:{}};
+const tables=['job_history','job_totals','history_metadata'],instance='default';
+function generation(value:string):string{if(typeof value!=='string'||!value||!value.isWellFormed()||Buffer.byteLength(value)>256)throw new ApiError(400,'Invalid metadata generation');return value;}
 const number=(n:unknown)=>{if(typeof n!=='number'||!Number.isFinite(n)||n<0)throw new ApiError(400,'Invalid history number');return n;};
 const text=(s:unknown)=>{if(typeof s!=='string'||!s.isWellFormed()||Buffer.byteLength(s)>4096)throw new ApiError(400,'Invalid history text');return s;};
 function stats(data:HistoryStats):HistoryStats{return {filename:text(data.filename),total_duration:number(data.total_duration),print_duration:number(data.print_duration),filament_used:number(data.filament_used)};}
@@ -44,13 +47,20 @@ export class HistoryRepository {
   try{await db.get('moonraker','history');throw new ApiError(409,'Legacy history totals require migration');}catch(error){if(!(error instanceof ApiError&&error.status===404))throw error;}
   const seeds=historyTotalFields.map(field=>"INSERT INTO job_totals VALUES('history','"+field+"',"+(field.startsWith('total_')?'NULL,0':'0,NULL')+",'default')");
   for(const table of historyTables)await db.registerTable({...table,migrations:table.name==='job_totals'?{'0':seeds}:{}});
+  await db.registerTable(markerTable);
   const repository=new HistoryRepository(db);await repository.totals();
   await db.sql(tables,[{sql:"UPDATE job_history SET status='interrupted' WHERE status='in_progress' AND instance_id=?",params:[instance]}]);
   return repository;
  }
  async start(input:HistoryStart):Promise<HistoryJob>{
   const data=stats(input),metadata=jsonBinding(input.metadata??{},true),auxiliary=jsonBinding(input.auxiliary_data??[],false);
-  const result=await this.#db.sql(tables,[{sql:'INSERT INTO job_history VALUES(NULL,?,?,?,?,?,?,?,?,?,?,?) RETURNING *',params:[text(input.user??'No User'),data.filename,'in_progress',{real:number(input.start_time)},null,{real:data.print_duration},{real:data.total_duration},{real:data.filament_used},metadata,auxiliary,instance]}]);return job(result[0]);
+  const operations:SqlOperation[]=[{sql:'INSERT INTO job_history VALUES(NULL,?,?,?,?,?,?,?,?,?,?,?) RETURNING *',params:[text(input.user??'No User'),data.filename,'in_progress',{real:number(input.start_time)},null,{real:data.print_duration},{real:data.total_duration},{real:data.filament_used},metadata,auxiliary,instance]}];
+  if(input.metadata_generation!==undefined)operations.push({sql:'INSERT INTO history_metadata VALUES(?,?,?,last_insert_rowid(),?) ON CONFLICT(filename,instance_id) DO UPDATE SET generation=excluded.generation,job_id=excluded.job_id,print_start_time=excluded.print_start_time',params:[data.filename,instance,generation(input.metadata_generation),{real:input.start_time}]});
+  const result=await this.#db.sql(tables,operations);return job(result[0]);
+ }
+ async metadataMarker(filename:string,version:string):Promise<HistoryMarker|undefined>{
+  const [result]=await this.#db.sql(tables,[{sql:'SELECT job_id,print_start_time FROM history_metadata WHERE filename=? AND instance_id=? AND generation=?',params:[text(filename),instance,generation(version)]}]);
+  if(!result.rows.length)return;const [id,time]=result.rows[0];try{return {job_id:uid(id),print_start_time:number(time)};}catch{throw new ApiError(422,'Invalid stored history metadata marker');}
  }
  async get(id:string):Promise<HistoryJob>{return job((await this.#db.sql(tables,[rowQuery(sqlId(id))]))[0]);}
  async list(options:HistoryList={}):Promise<{count:number;jobs:HistoryJob[]}>{

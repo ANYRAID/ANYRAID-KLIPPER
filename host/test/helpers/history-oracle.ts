@@ -113,3 +113,16 @@ owner=types.SimpleNamespace(current_job=types.SimpleNamespace(filename='part.gco
 grab_job_metadata(owner)
 print(json.dumps(owner.current_job.metadata,allow_nan=False))
 `;}
+export function historyMarkerOracle():string{return historyOracle().split('data=json.load(sys.stdin)')[0]+String.raw`
+import copy
+method=next(n for n in history.body if isinstance(n,ast.FunctionDef) and n.name=='update_metadata')
+exec('from __future__ import annotations\nclass MarkerWriter:\n'+__import__('textwrap').indent(ast.unparse(method),'    '))
+data=json.load(sys.stdin)
+class Storage:
+ def get(self,name,default):return copy.deepcopy(data['metadata'])
+ def insert(self,name,value):self.value=value
+storage=Storage();owner=MarkerWriter();owner.file_manager=types.SimpleNamespace(get_metadata_storage=lambda:storage)
+owner.current_job=PrinterJob({'filename':data['filename'],'start_time':data['start_time']})
+owner.update_metadata(data['job_id']);print(json.dumps(storage.value))
+`;
+}

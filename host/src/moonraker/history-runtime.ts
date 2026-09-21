@@ -48,7 +48,7 @@ export class HistoryRuntime {
    void this.#enqueue(async()=>{
     if(event==='started'){
      await this.#finish('cancelled',previous,time);
-     const job=await this.#repository.start({...complete(current),start_time:time,user,metadata:metadata.snapshot?.fields});this.#current=job;this.#metadataGeneration=metadata.snapshot?.generation;await this.#event('added',job);
+     const job=await this.#repository.start({...complete(current),start_time:time,user,metadata:metadata.snapshot?.fields,metadata_generation:metadata.snapshot?.generation});this.#current=job;this.#metadataGeneration=metadata.snapshot?.generation;await this.#event('added',job);
     }else if(event==='complete')await this.#finish('completed',current,time,metadata.snapshot);
     else if(event==='error')await this.#finish('error',current,time,metadata.snapshot);
     else if(event==='cancelled'||event==='standby')await this.#finish('cancelled',previous,time,metadata.snapshot);

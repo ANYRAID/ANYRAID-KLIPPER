@@ -1,3 +1,4 @@
+import {HistoryFileMetadata} from './history-file-metadata.ts';
 import {PrintApi,registerPrintApi,type PrintApiOptions} from './print-api.ts';
 import {HistoryRuntime,type HistoryRuntimeOptions} from './history-runtime.ts';
 import {HistoryRepository} from './history-repository.ts';
@@ -116,7 +117,7 @@ export class ConfiguredMoonraker {
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
-  const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,this.#metadataFiles):()=>{};
+  const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
   this.#release=()=>{releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);

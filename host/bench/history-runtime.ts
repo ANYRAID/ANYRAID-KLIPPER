@@ -20,11 +20,11 @@ try{
    const history=await HistoryRepository.open(db);await db.sealTableRegistration();const events:string[]=[];
    const runtime=new HistoryRuntime(history,{metadata:withMetadata?()=>snapshot:undefined,clock:()=>100,notify:event=>{events.push(event.action);}});
    loop.enable();const before=performance.now();
-   if(mode==='direct'){for(let i=0;i<25;i++){const job=await history.start({...start,start_time:100,user,metadata});await history.finish(job.job_id,'completed',finish,100,metadata);}}
+   if(mode==='direct'){for(let i=0;i<25;i++){const job=await history.start({...start,start_time:100,user,metadata,metadata_generation:withMetadata?snapshot.generation:undefined});await history.finish(job.job_id,'completed',finish,100,metadata);}}
    else{for(let i=0;i<25;i++){const settle=withAttribution?runtime.beginPrint(start.filename,{username:user!},signal,signal):undefined;runtime.observe({kind:'state',event:'started',previous:finish,current:start});runtime.observe({kind:'state',event:'complete',previous:start,current:finish});settle?.(true);}if(run>=2)admission.push(performance.now()-before);await runtime.drain();}
    const elapsed=performance.now()-before;
    if(run>=2){(mode==='direct'?direct:queued).push(elapsed);if(mode==='queued')delays.push(loop.max/1e6);}
-   if(withAttribution)assert.ok((await history.list({limit:25})).jobs.every(job=>job.user===user));if(withMetadata)assert.deepEqual((await history.get('1')).metadata,metadata);assert.equal((await history.totals()).total_jobs,25);assert.equal((await history.totals()).total_time,750);if(mode==='queued')assert.equal(events.length,50);await runtime.close(finish);
+   if(withAttribution)assert.ok((await history.list({limit:25})).jobs.every(job=>job.user===user));if(withMetadata){assert.deepEqual((await history.get('1')).metadata,metadata);assert.equal((await history.metadataMarker(start.filename,snapshot.generation))?.job_id,'000019');}assert.equal((await history.totals()).total_jobs,25);assert.equal((await history.totals()).total_time,750);if(mode==='queued')assert.equal(events.length,50);await runtime.close(finish);
   }finally{loop.disable();await db.close();}
  }
  const stats=(a:number[])=>{a.sort((a,b)=>a-b);return {medianMs:a[2],p95Ms:a.at(-1)};};
