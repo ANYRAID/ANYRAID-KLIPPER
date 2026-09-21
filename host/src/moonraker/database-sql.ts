@@ -2,7 +2,7 @@ import {constants,DatabaseSync,type SQLInputValue,type StatementSync,type SQLOut
 import {ApiError,type Json} from './rpc.ts';
 import {boundedJsonBytes} from './json-size.ts';
 export type SqlValue=null|string|number|{integer:string}|{blob:string}|{real:number};
-export interface SqlOperation {sql:string;params?:SqlValue[];many?:SqlValue[][];}
+export interface SqlOperation {sql:string;params?:SqlValue[];many?:SqlValue[][];expectRows?:number;}
 export interface SqlResult {columns:string[];rows:SqlValue[][];changes:SqlValue;lastInsertRowid:SqlValue;}
 function binding(value:SqlValue):SQLInputValue{
  if(value===null||typeof value==='string')return value;
@@ -28,9 +28,10 @@ export function executeSql(db:DatabaseSync,tables:string[],operations:SqlOperati
  let executions=0;
  const prepared=operations.map(op=>{
   if(!op||typeof op.sql!=='string'||!op.sql.trim()||!op.sql.isWellFormed()||op.sql.includes('\0')||Buffer.byteLength(op.sql)>65536||op.params!==undefined&&!Array.isArray(op.params)||(op.params?.length??0)>4096)throw new ApiError(400,'Invalid SQL operation');
+  if(op.expectRows!==undefined&&(!Number.isSafeInteger(op.expectRows)||op.expectRows<0))throw new ApiError(400,'Invalid SQL expected row count');
   if(op.many!==undefined&&(!Array.isArray(op.many)||op.params!==undefined||op.many.some(row=>!Array.isArray(row)||row.length>4096)))throw new ApiError(400,'Invalid SQL many bindings');
   executions+=op.many?.length??1;if(executions>4096)throw new ApiError(413,'SQL execution count exceeds limit');
-  return {sql:op.sql,params:(op.params??[]).map(binding),many:op.many?.map(row=>row.map(binding))};
+  return {sql:op.sql,params:(op.params??[]).map(binding),many:op.many?.map(row=>row.map(binding)),expectRows:op.expectRows};
  });
  const results:SqlResult[]=[],statements=new Map<string,StatementSync>();let bytes=2;
  db.setAuthorizer((action,a,b,database)=>{
@@ -59,6 +60,7 @@ export function executeSql(db:DatabaseSync,tables:string[],operations:SqlOperati
      let changes=0n;for(const params of operation.many??[operation.params]){const info=statement.run(...params);changes+=BigInt(info.changes);result.lastInsertRowid=output(info.lastInsertRowid);}result.changes=output(changes);
      bytes+=boundedJsonBytes(result as unknown as Json,limit-bytes)+(results.length?1:0);
     }
+    if(operation.expectRows!==undefined&&result.rows.length!==operation.expectRows)throw new ApiError(409,'SQL result row invariant failed');
     if(bytes>limit)throw new ApiError(413,'SQL response exceeds limit');results.push(result);
   }
  }finally{try{for(const statement of statements.values())(statement as typeof statement&{close():void}).close();}finally{db.setAuthorizer(null);}}
