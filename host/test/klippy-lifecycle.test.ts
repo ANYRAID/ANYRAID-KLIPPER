@@ -260,3 +260,29 @@ test('unready reconnect retains last job information rather than clearing it wit
  if(m.method==='info'&&second){s.write(wire({id:m.id,result:{state:'error',state_message:'Configuration invalid'}}));return false;}
  if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:second?{}:{webhooks:{state:'ready'},print_stats:{state:'printing',filename:'unfinished.gcode',total_duration:5}}}}));return false;}
 }));
+test('configured G-code history records authenticated attempts and responses across reconnects',()=>peer(async(path,_seen,sockets,dir)=>{
+ const file=join(dir,'history.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0\n[data_store]\ngcode_store_size=3');
+ const server=await ConfiguredMoonraker.load(file,{gcodeStore:{},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(_m,_p,c){if(c.request.headers['x-key']!=='test')throw new ApiError(401,'Denied');}});
+ try{
+  const address=await server.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-key':'test','content-type':'application/json'};
+  await server.attachKlippy(path);
+  assert.equal((await fetch(url+'/server/gcode_store')).status,401);
+  assert.equal((await fetch(url+'/printer/gcode/script',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({script:'G28'})})).status,401);
+  assert.equal(server.gcodeStoreStatus?.records,0);
+  assert.equal((await fetch(url+'/printer/gcode/script',{method:'POST',headers,body:JSON.stringify({script:'G1 X1\nG1 X2'})})).status,200);
+  await until(()=>server.gcodeStoreStatus?.records===2);
+  const history:any=await(await fetch(url+'/server/gcode_store',{headers})).json();
+  assert.deepEqual(history.result.gcode_store.map((r:any)=>[r.type,r.message]),[['command','G1 X1\nG1 X2'],['response','ok']]);
+  assert.ok(history.result.gcode_store.every((r:any)=>Number.isFinite(r.time)));
+  const rpc:any=await(await fetch(url+'/server/jsonrpc',{method:'POST',headers,body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.gcode_store',params:{count:1}})})).json();assert.equal(rpc.result.gcode_store[0].message,'ok');
+  sockets[0].destroy();await until(()=>server.klippy?.connected===false);await server.reconnectKlippy(path);assert.equal(server.gcodeStoreStatus?.records,2);
+ }finally{await server.close();}assert.equal(server.rpc.has('server.gcode_store'),false);
+},(m,s)=>{if(m.method==='list_endpoints'){s.write(wire({id:m.id,result:{endpoints:[...endpoints,'gcode/script']}}));return false;}if(m.method==='gcode/script')s.write(wire({method:'process_gcode_response',params:{response:'ok'}}));}));
+test('G-code attempt hook excludes disconnected and aborted calls but retains backend failures',()=>peer(async(path)=>{
+ const commands:string[]=[],runtime=new KlippyLifecycle({version:'test',onGcodeCommand:script=>{commands.push(script);}});
+ try{
+  assert.throws(()=>runtime.request('gcode/script',{script:'disconnected'}));assert.deepEqual(commands,[]);
+  await runtime.initialize(path);const controller=new AbortController();controller.abort();assert.throws(()=>runtime.request('gcode/script',{script:'aborted'},{signal:controller.signal}));assert.deepEqual(commands,[]);
+  await assert.rejects(runtime.request('gcode/script',{script:'bad command'}));assert.deepEqual(commands,['bad command']);
+ }finally{await runtime.close();}
+},(m,s)=>{if(m.method==='gcode/script'){s.write(wire({id:m.id,error:{message:'Unknown command'}}));return false;}}));

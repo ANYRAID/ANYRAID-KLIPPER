@@ -37,7 +37,8 @@
     {
       "name": "data_store",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "G-code ring, UTF-8 payload budget, count slicing and authenticated REST/RPC registration in host/src/moonraker/gcode-store.ts; opt-in ConfiguredMoonraker command/response wiring survives reconnects. Pinned Python differential and Unix/HTTP tests in gcode-store.test.ts and klippy-lifecycle.test.ts. Temperature sampling and complete daemon assembly remain unimplemented."
     },
     {
       "name": "database",
@@ -415,7 +416,8 @@
       "line": 66,
       "method": "register_endpoint",
       "targetExpression": "\"/server/gcode_store\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/gcode-store.ts; host/test/gcode-store.test.ts; host/test/klippy-lifecycle.test.ts; host/bench/gcode-store.ts. Opt-in REST/RPC with caller-supplied authorization; bounded payload/count extensions; production authentication and all transports remain incomplete."
     },
     {
       "file": "moonraker/components/database.py",

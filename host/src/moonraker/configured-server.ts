@@ -1,3 +1,4 @@
+import {GcodeStore,registerGcodeStore} from './gcode-store.ts';
 import {MetadataMonitor,type MetadataMonitorOptions} from './metadata-watch.ts';
 import {MetadataFiles,registerFileMetascan} from './metadata-files.ts';
 import {registerFileMetadata} from './file-metadata.ts';
@@ -25,6 +26,8 @@ const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
+ /** Enable the G-code portion of data_store; temperature sampling is separate. */
+ gcodeStore?:{maxBytes?:number};
  configurationLimits?:ConfigurationLimits;
  /** Transfers admission-layer lifetime on successful load. Restore selected
   * metadata before listening; close files on shutdown, but not its dependencies. */
@@ -58,6 +61,7 @@ export class ConfiguredMoonraker {
  #subscriptions:SubscriptionDelivery|undefined;#klippy:KlippyLifecycle|undefined;#klippyRoutes=new Map<string,()=>void>();
  #base:InformationSnapshot;#release:()=>void;#opening:Promise<AddressInfo>|undefined;#stopping=false;
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
+ #gcodeStore:GcodeStore|undefined;
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
  #supervisor:KlippySupervisor|undefined;
@@ -69,15 +73,18 @@ export class ConfiguredMoonraker {
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
   this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
   this.#network=new MoonrakerNetwork(this.rpc,{...options,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
+  if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
+  const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.gcodeStore!==undefined&&(!options.gcodeStore||typeof options.gcodeStore!=='object'||Array.isArray(options.gcodeStore)))throw new ConfigurationError('Invalid G-code store options');
   if(options.metadataMonitor!==undefined&&(!options.metadataFiles||!options.metadataMonitor||typeof options.metadataMonitor!=='object'||Array.isArray(options.metadataMonitor)))throw new ConfigurationError('Metadata monitoring requires a file owner');
   if(options.discoverMetadataOnStart!==undefined&&(typeof options.discoverMetadataOnStart!=='boolean'||options.discoverMetadataOnStart&&!options.metadataFiles))throw new ConfigurationError('Metadata discovery requires a file owner');
   if(options.metadataFiles!==undefined&&options.thumbnails!==undefined)throw new ConfigurationError('Metadata-owned thumbnails cannot be overridden');
@@ -100,7 +107,7 @@ export class ConfiguredMoonraker {
   this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
   if(options.trackJobState)this.#jobState??=new JobState();
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
-  const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcode:(response,signal)=>{this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
+  const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcodeCommand:script=>{this.#gcodeStore?.record(script,'command');options.onGcodeCommand?.(script);},onGcode:(response,signal)=>{this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
    if(routedEndpoints!==snapshot.endpoints||routedInitialization!==snapshot.initialized){
    const exposed=new Set(snapshot.endpoints.filter(name=>!['list_endpoints','gcode/subscribe_output','register_remote_method','objects/subscribe'].includes(name))),added=new Map<string,()=>void>();
@@ -145,6 +152,7 @@ export class ConfiguredMoonraker {
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
+ get gcodeStoreStatus(){return this.#gcodeStore?.status??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
  get klippyNotifications(){return {...this.#klippyNotifications};}
  #broadcastGcode(response:string):void{
