@@ -67,3 +67,30 @@ test('corrupt numeric totals and exhausted exact job counts cannot silently chan
  await assert.rejects(history.finish(first.job_id,'completed',start,200),e=>e instanceof ApiError&&e.status===409);
  assert.equal((await history.get(first.job_id)).status,'in_progress');assert.equal((await history.totals()).total_jobs,Number.MAX_SAFE_INTEGER);
 }));
+test('history deletion preserves totals and active jobs block destructive operations atomically',()=>fixture(async db=>{
+ const history=await HistoryRepository.open(db),finished=await history.start(start);await history.finish(finished.job_id,'completed',start,200);const active=await history.start(start);
+ await assert.rejects(history.delete(active.job_id),e=>e instanceof ApiError&&e.status===409);
+ await assert.rejects(history.deleteAll(),e=>e instanceof ApiError&&e.status===409);
+ await assert.rejects(history.resetTotals(),e=>e instanceof ApiError&&e.status===409);
+ assert.equal((await history.list()).count,2);assert.equal((await history.totals()).total_jobs,1);
+ assert.deepEqual(await history.delete('1'),{deleted_jobs:['1']});assert.equal((await history.totals()).total_jobs,1);
+ await history.finish(active.job_id,'cancelled',start,210);assert.deepEqual(await history.deleteAll(),{deleted_jobs:['000002']});
+ const reset=await history.resetTotals();assert.equal(reset.last_totals.total_jobs,2);assert.deepEqual(reset.last_auxiliary_totals,[]);assert.equal((await history.totals()).total_jobs,0);
+ await assert.rejects(history.delete('2'),e=>e instanceof ApiError&&e.status===404);
+}));
+test('history reset preserves other instances and unregistered auxiliary totals',()=>fixture(async db=>{
+ const history=await HistoryRepository.open(db);
+ await db.sql(['job_totals'],[{sql:'INSERT INTO job_totals VALUES(?,?,?,?,?)',many:[['history','total_jobs',null,42,'other'],['plugin','energy',12,24,'default']]}]);
+ await history.resetTotals();
+ assert.deepEqual((await db.sql(['job_totals'],[{sql:"SELECT total FROM job_totals WHERE instance_id='other'"}]))[0].rows,[[42]]);
+ assert.deepEqual((await db.sql(['job_totals'],[{sql:"SELECT maximum,total FROM job_totals WHERE provider='plugin'"}]))[0].rows,[[12,24]]);
+}));
+test('bulk delete reply overflow rolls back every deleted job',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'history-delete-budget-')),db=await DatabaseStore.open({path:join(dir,'db'),maxReplyBytes:700});
+ try{
+  const history=await HistoryRepository.open(db);
+  await db.sql(['job_history'],[{sql:"INSERT INTO job_history VALUES(?,'No User','p.gcode','completed',1,2,1,1,0,'{}','[]','default')",many:Array.from({length:100},(_,i)=>[i+1])}]);
+  await assert.rejects(history.deleteAll(),e=>e instanceof ApiError&&e.status===413);
+  assert.deepEqual((await db.sql(['job_history'],[{sql:'SELECT count(*) FROM job_history'}]))[0].rows,[[100]]);
+ }finally{await db.close();await rm(dir,{recursive:true,force:true});}
+});

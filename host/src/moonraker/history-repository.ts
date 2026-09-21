@@ -55,16 +55,42 @@ export class HistoryRepository {
  async get(id:string):Promise<HistoryJob>{return job((await this.#db.sql(tables,[rowQuery(sqlId(id))]))[0]);}
  async list(options:HistoryList={}):Promise<{count:number;jobs:HistoryJob[]}>{
   const order=(options.order??'desc').toUpperCase(),limit=options.limit??50,start=options.start??0;
-  if(!['ASC','DESC'].includes(order)||!Number.isSafeInteger(limit)||!Number.isSafeInteger(start)||start<0)throw new ApiError(400,'Invalid history pagination');
+  if(!['ASC','DESC'].includes(order)||!Number.isSafeInteger(limit)||!Number.isSafeInteger(start) )throw new ApiError(400,'Invalid history pagination');
   const params:SqlValue[]=[instance];let sql='SELECT * FROM job_history WHERE instance_id=?';
-  for(const [value,column,operator] of [[options.before,'end_time','<'],[options.since,'start_time','>']] as const)if(value!==undefined&&value!==-1){sql+=' AND '+column+operator+'?';params.push({real:number(value)});}
+  for(const [value,column,operator] of [[options.before,'end_time','<'],[options.since,'start_time','>']] as const)if(value!==undefined&&value!==-1){sql+=' AND '+column+operator+'?';if(!Number.isFinite(value))throw new ApiError(400,'Invalid history time filter');params.push({real:value});}
   sql+=' ORDER BY job_id '+order;if(limit>0){sql+=' LIMIT ? OFFSET ?';params.push(limit,start);}
   const [result]=await this.#db.sql(tables,[{sql,params}]),jobs=result.rows.map((_,i)=>job(result,i));return {count:jobs.length,jobs};
  }
  async totals():Promise<Record<string,number>>{
-  const [result]=await this.#db.sql(tables,[totalsQuery()]);
+  const [result]=await this.#db.sql(tables,[totalsQuery()]);return this.#totals(result);
+ }
+ #totals(result:SqlResult):Record<string,number>{
   const totals:Record<string,number>={};for(const [field,maximum,total] of result.rows){if(typeof field!=='string'||!historyTotalFields.includes(field as typeof historyTotalFields[number]))throw new ApiError(422,'Invalid history total field');const value=maximum===null?total:maximum;if(typeof value!=='number'||!Number.isFinite(value)||value<0)throw new ApiError(422,'Invalid history total');totals[field]=value;}
   if(Object.keys(totals).length!==6)throw new ApiError(422,'Missing history totals');return totals;
+ }
+ owns(database:DatabaseStore):boolean{return this.#db===database;}
+ async delete(id:string):Promise<{deleted_jobs:string[]}>{
+  const key=sqlId(id);
+  const result=await this.#db.sql(tables,[
+   {sql:"SELECT job_id FROM job_history WHERE job_id=? AND instance_id=? AND status='in_progress' LIMIT 1",params:[key,instance],expectRows:0},
+   {sql:'DELETE FROM job_history WHERE job_id=? AND instance_id=? RETURNING job_id',params:[key,instance]},
+  ]);
+  if(!result[1].rows.length)throw new ApiError(404,'Unknown history job');return {deleted_jobs:[id]};
+ }
+ async deleteAll():Promise<{deleted_jobs:string[]}>{
+  const result=await this.#db.sql(tables,[
+   {sql:"SELECT job_id FROM job_history WHERE instance_id=? AND status='in_progress' LIMIT 1",params:[instance],expectRows:0},
+   {sql:"DELETE FROM job_history WHERE instance_id=? RETURNING printf('%06X',job_id)",params:[instance]},
+  ]);
+  return {deleted_jobs:result[1].rows.map(row=>String(row[0])).sort((a,b)=>a.length-b.length||a.localeCompare(b,'en'))};
+ }
+ async resetTotals():Promise<{last_totals:Record<string,number>;last_auxiliary_totals:Json[]}>{
+  const result=await this.#db.sql(tables,[
+   {sql:"SELECT job_id FROM job_history WHERE instance_id=? AND status='in_progress' LIMIT 1",params:[instance],expectRows:0},
+   totalsQuery(),
+   {sql:"UPDATE job_totals SET maximum=CASE WHEN maximum IS NULL THEN NULL ELSE 0 END,total=CASE WHEN total IS NULL THEN NULL ELSE 0 END WHERE provider='history' AND field IN ('total_jobs','total_time','total_print_time','total_filament_used','longest_job','longest_print') AND instance_id=?",params:[instance]},
+  ]);
+  return {last_totals:this.#totals(result[1]),last_auxiliary_totals:[]};
  }
  async finish(id:string,status:string,input:HistoryStats,endTime:number):Promise<HistoryJob>{
   if(!['completed','error','cancelled','klippy_shutdown','klippy_disconnect','server_exit'].includes(status))throw new ApiError(400,'Invalid final history status');
