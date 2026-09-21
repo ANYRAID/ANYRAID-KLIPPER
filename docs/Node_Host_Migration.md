@@ -8381,3 +8381,37 @@ Python **41.829/44.830 ms**。Python Config 替身提供已解析记录，Node
 
 完整原生构建和 **1051 项回归通过**，类型、空白及差异检查通过。
 整体 Python 替代、完整 Moonraker 与消费级打印运行时继续推进。
+
+### Klipper 自动保存块文本规则（2026-09-21）
+
+新增 config/klipper-autosave.ts，迁移 ConfigAutoSave._find_autosave_data
+与 _strip_duplicates。使用原完整 AUTOSAVE_HEADER，包括开头换行；
+逐行移除 #*# 前缀，保留正文空行、缩进和多行值。输入应已经经过文本
+文件换行规范化，本函数不混入磁盘读取或 include 解析；最多接受
+8 MiB UTF-8 文本，边界先检查再处理。
+
+额外返回 absent/valid/corrupt 状态和损坏类别。普通部分出现游离标记、
+重复头部、尾部未加前缀的修改等，均保留整份输入为 regular、autosave
+置空，与原提取结果一致；调用方必须处理 corrupt 状态，不能静默把
+损坏的校准值当作成功加载。Python str.strip 的空白集合在此保持，
+不使用会额外移除 BOM 的 JavaScript trim。
+
+重复字段判断由已解析普通/include 配置的 hasOption 回调提供。原配置
+优先时，保存块里的该字段及其全部续行加注释，不删除不相关字段；
+注释行和空行不打断重复值状态。函数只返回文本，不修改源文件。
+本阶段未接入主文件/包含文件的配置合并、持久化 SAVE_CONFIG 或重启，
+也未把普通 Moonraker 配置加载器直接改成 Klipper 专用加载器。
+
+三项测试覆盖完整 profile 多行提取、无保存块、损坏输入/大小上限、
+重复值与续行处理。`bench:klipper-autosave` AST 调用原 ConfigAutoSave
+方法，12 组正常/损坏/空白及大块数据的 regular/autosave/去重文本全部
+逐字相同。Python 对损坏样本发出原有警告，未将这些预期警告当作失败。
+
+Node 26.9.0 / Python 3.12.13，五批预热/11 批测量，每批 20 份文本，
+每份 37538 字节、500 个模拟 profile：Node 中位/p95
+**19.271/21.556 ms**，Python **39.507/39.576 ms**。包含 Node 字节预算
+检查；排除磁盘、include 查找、配置解析及任何写入，不代表完整启动
+过程或打印运行时性能。
+
+完整原生构建和 **1054 项回归通过**，类型、空白及差异检查通过。
+整体迁移与完整设备验收继续推进，未切换生产入口。
