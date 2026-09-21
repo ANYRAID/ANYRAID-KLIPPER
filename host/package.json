@@ -158,7 +158,8 @@
     "bench:motion-filters": "node bench/motion-filters.ts",
     "bench:motion-profile": "node bench/motion-profile.ts",
     "bench:legacy-motion-shaper": "node bench/legacy-motion-shaper.ts",
-    "bench:accelerometer-log": "node bench/accelerometer-log.ts"
+    "bench:accelerometer-log": "node bench/accelerometer-log.ts",
+    "bench:accelerometer-file": "node bench/accelerometer-file.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
