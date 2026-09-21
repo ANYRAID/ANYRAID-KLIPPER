@@ -1,3 +1,4 @@
+import {MaintenanceGate,MaintenanceBusyError} from '../operations/maintenance-gate.ts';
 import {JobState,type JobChange} from './job-state.ts';
 import {KlippyStatusCache,adoptStatus,type StatusCacheLimits,type StatusView} from './subscription-status.ts';
 import {SubscriptionManager} from './subscription-manager.ts';
@@ -6,7 +7,7 @@ import {KlippySocket,type KlippySocketLimits,type KlippyRequestOptions,type Klip
 import {ApiError,type Json} from './rpc.ts';
 import type {KlippyState} from './metadata.ts';
 export interface KlippySnapshot {readonly connected:boolean;readonly identified:boolean;readonly initialized:boolean;readonly state:KlippyState;readonly stateMessage:string;readonly info:Readonly<Record<string,Json>>;readonly endpoints:readonly string[];readonly requirementsChecked:boolean;readonly missingRequirements:readonly string[];}
-export interface KlippyInitializationOptions {version:string;trackJobState?:boolean;onJobChange?(change:JobChange):void;onRemoteMethodsReady?():Promise<void>;remoteMethods?:Readonly<Record<string,KlippyMethod>>;statusCacheLimits?:StatusCacheLimits;socketLimits?:KlippySocketLimits;pollIntervalMs?:number;startupTimeoutMs?:number;onSubscriptionStatus?(client:number,status:StatusView,eventtime:number):void;onSnapshot?(state:KlippySnapshot):void;onStatus?(status:Readonly<Record<string,Json>>,eventtime:number,signal:AbortSignal):void|Promise<void>;onGcodeCommand?(script:string):void;onGcode?(response:string,signal:AbortSignal):void|Promise<void>;}
+export interface KlippyInitializationOptions {maintenanceGate?:MaintenanceGate;version:string;trackJobState?:boolean;onJobChange?(change:JobChange):void;onRemoteMethodsReady?():Promise<void>;remoteMethods?:Readonly<Record<string,KlippyMethod>>;statusCacheLimits?:StatusCacheLimits;socketLimits?:KlippySocketLimits;pollIntervalMs?:number;startupTimeoutMs?:number;onSubscriptionStatus?(client:number,status:StatusView,eventtime:number):void;onSnapshot?(state:KlippySnapshot):void;onStatus?(status:Readonly<Record<string,Json>>,eventtime:number,signal:AbortSignal):void|Promise<void>;onGcodeCommand?(script:string):void;onGcode?(response:string,signal:AbortSignal):void|Promise<void>;}
 function bound(v:number|undefined,fallback:number,max:number){const n=v??fallback;if(!Number.isSafeInteger(n)||n<1||n>max)throw new ApiError(400,'Invalid Klippy initialization limit');return n;}
 const object=(v:unknown):v is Record<string,Json>=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 function freeze<T>(v:T):T{if(v&&typeof v==='object'&&!Object.isFrozen(v)){for(const x of Object.values(v))freeze(x);Object.freeze(v);}return v;}
@@ -25,7 +26,7 @@ export class KlippyLifecycle {
  #remoteMethodsEnabled=false;
  #remoteMethodFailures=new Map<string,{status:number;message:string}>();
  #remoteMethods=new Map<string,()=>void>();#registeredRemoteMethods=new Set<string>();#nextRemoteGeneration=1;
- constructor(options:KlippyInitializationOptions,jobState?:JobState){if(typeof options.version!=='string'||!options.version||options.version.length>1024)throw new ApiError(400,'Invalid Moonraker version');if(options.trackJobState!==undefined&&typeof options.trackJobState!=='boolean'||options.onJobChange!==undefined&&typeof options.onJobChange!=='function')throw new ApiError(400,'Invalid job state configuration');this.#options={...options};if(options.trackJobState)this.#jobs=jobState??new JobState();this.#cache=new KlippyStatusCache(options.statusCacheLimits);this.#poll=bound(options.pollIntervalMs,250,60000);this.#timeout=bound(options.startupTimeoutMs,300000,2147483647);this.#socket=new KlippySocket(options.socketLimits);
+ constructor(options:KlippyInitializationOptions,jobState?:JobState){if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new ApiError(400,'Invalid maintenance gate');if(typeof options.version!=='string'||!options.version||options.version.length>1024)throw new ApiError(400,'Invalid Moonraker version');if(options.trackJobState!==undefined&&typeof options.trackJobState!=='boolean'||options.onJobChange!==undefined&&typeof options.onJobChange!=='function')throw new ApiError(400,'Invalid job state configuration');this.#options={...options};if(options.trackJobState)this.#jobs=jobState??new JobState();this.#cache=new KlippyStatusCache(options.statusCacheLimits);this.#poll=bound(options.pollIntervalMs,250,60000);this.#timeout=bound(options.startupTimeoutMs,300000,2147483647);this.#socket=new KlippySocket(options.socketLimits);
   this.#subscriptions=new SubscriptionManager({cache:this.#cache,base:{webhooks:null,...this.#jobs?{print_stats:null}:{}},onSnapshotDifference:status=>{try{this.#jobUpdate(status);if(Object.hasOwn(status,"webhooks"))this.#webhooks(status.webhooks);}catch(error){void this.#socket.close().catch(()=>{});throw error;}},request:(objects,signal)=>this.#socket.request('objects/subscribe',{objects:objects as Json,response_template:{method:'process_status_update'}},{signal,timeoutMs:20000}),deliver:(client,status,eventtime)=>this.#options.onSubscriptionStatus?.(client,status,eventtime)});
   this.#socket.registerMethod('process_status_update',(p,signal)=>this.#status(p,signal));this.#socket.registerMethod('process_gcode_response',(p,signal)=>{if(typeof p.response!=='string')throw new ApiError(502,'Invalid GCode response');return this.#options.onGcode?.(p.response,signal);});
   this.#socket.signal.addEventListener('abort',()=>{this.#jobs?.disconnect();this.#jobsReady=false;this.#remoteMethodsEnabled=false;this.#remoteMethodFailures.clear();this.#registeredRemoteMethods.clear();void this.#subscriptions.close();this.#cache.clear();this.#revision++;this.#publish({connected:false,initialized:false,state:'disconnected',endpoints:[]});},{once:true});
@@ -89,7 +90,17 @@ export class KlippyLifecycle {
   }catch(error){try{await this.#socket.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Klippy initialization and cleanup failed');}throw this.#observerError??(budget.signal.aborted?budget.signal.reason:error);}
   finally{clearTimeout(timer);budget.signal.removeEventListener('abort',stop);}
  }
- request(method:string,params:Record<string,Json>={},options:KlippyRequestOptions={}){if(method==='gcode/script'&&typeof params.script==='string'&&this.#socket.status.phase==='connected'&&!options.signal?.aborted)this.#options.onGcodeCommand?.(params.script);return this.#socket.request(method,params,options);}
+ request(method:string,params:Record<string,Json>={},options:KlippyRequestOptions={}){
+  let release:(()=>void)|undefined;
+  try{
+   if(method==='gcode/script'&&typeof params.script==='string'&&this.#socket.status.phase==='connected'&&!options.signal?.aborted){
+    // Only the single emergency command bypasses admission; mixed scripts do not.
+    if(params.script.length>64||params.script.trim().toUpperCase()!=='M112')release=this.#options.maintenanceGate?.activity();
+    this.#options.onGcodeCommand?.(params.script);
+   }
+   const result=this.#socket.request(method,params,options);return release?result.finally(release):result;
+  }catch(error){release?.();if(error instanceof MaintenanceBusyError)return Promise.reject(new ApiError(409,error.message));throw error;}
+ }
  subscribe(client:number,objects:unknown,signal?:AbortSignal){if(!this.#snapshot.initialized||this.signal.aborted)return Promise.reject(new ApiError(503,'Klippy subscriptions unavailable'));if(!this.#options.onSubscriptionStatus)return Promise.reject(new ApiError(503,'Subscription delivery owner required'));return this.#subscriptions.subscribe(client,objects,signal);}
  subscribeComponent(owner:number,objects:unknown,signal?:AbortSignal){if(!this.#snapshot.initialized||this.signal.aborted)return Promise.reject(new ApiError(503,'Klippy subscriptions unavailable'));return this.#subscriptions.subscribeInternal(owner,objects,signal);}
  removeSubscription(client:number){this.#subscriptions.remove(client);}

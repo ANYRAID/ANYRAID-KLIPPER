@@ -1,3 +1,4 @@
+import {MaintenanceGate} from './maintenance-gate.ts';
 import type { PrintJournal, JournalRecord } from './print-journal.ts';
 import { printDeadline } from './print-deadline.ts';
 /** Product-facing print lifecycle; adapters enforce limits again at the device boundary. */
@@ -58,6 +59,7 @@ export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
 });
 export interface PrintControllerOptions {
   maxRememberedRequests?: number;
+  maintenanceGate?:MaintenanceGate;
   /** Owned externally; keep open until all device actions and cleanup settle. */
   journal?: PrintJournal;
 }
@@ -70,8 +72,10 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #maintenanceGate:MaintenanceGate|undefined;#removeMaintenanceProbe:(()=>void)|undefined;#restoringMetadata=false;
   #deviceSubscriptions:(()=>void)[]=[];
   #detachDevice():unknown[]{
+    this.#removeMaintenanceProbe?.();this.#removeMaintenanceProbe=undefined;
     const errors:unknown[]=[];for(const detach of this.#deviceSubscriptions.splice(0).reverse())try{detach();}catch(error){errors.push(error);}return errors;
   }
   #eofPending:string|undefined;
@@ -142,6 +146,7 @@ export class PrintController {
       limits.maxBed <= 0
     )
       throw new RangeError('Invalid device temperature limits');
+    if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new TypeError('Invalid maintenance gate');this.#maintenanceGate=options.maintenanceGate;
     this.#historyLimit = options.maxRememberedRequests ?? 1024;
     if (
       !Number.isSafeInteger(this.#historyLimit) ||
@@ -174,6 +179,7 @@ export class PrintController {
     try{
       if(device.subscribeFault)this.#deviceSubscriptions.push(device.subscribeFault(cause=>{void this.fault(cause).catch(()=>{});}));
       if(device.subscribeEOF)this.#deviceSubscriptions.push(device.subscribeEOF(requestId=>this.#receivedEOF(requestId)));
+      this.#removeMaintenanceProbe=this.#maintenanceGate?.registerIdle(()=>!this.#restoringMetadata&&!this.#faultStop&&['idle','completed','cancelled'].includes(this.#state)&&!this.#active&&!this.#pendingActions.size&&!this.#stopInFlight&&!this.#safety&&!this.#journalWrite&&!this.#cancelTask?.pending);
     }catch(error){
       const cleanup=this.#detachDevice();if(options.journal)journalOwners.delete(options.journal);
       if(cleanup.length)throw new AggregateError([error,...cleanup],'Print subscription rollback failed',{cause:error});throw error;
@@ -192,7 +198,7 @@ export class PrintController {
     if (!options?.journal)
       throw new TypeError('Restoration requires a print journal');
     const journal = options.journal;
-    const controller = new PrintController(device, limits, deadlines, options);
+    const controller = new PrintController(device, limits, deadlines, options);controller.#restoringMetadata=true;
     try {
       const record = await journal.active();
       if(controller.#faultStop)throw new Error('Cannot restore a faulted print device',{cause:controller.#faultCause});
@@ -203,7 +209,7 @@ export class PrintController {
         controller.#start = Object.freeze({ ...record.request });
         controller.#state = 'interrupted';
       }
-      return controller;
+      controller.#restoringMetadata=false;return controller;
     } catch (error) {
       // No device action or controller reference escaped failed restoration.
       const cleanup=controller.#detachDevice();journalOwners.delete(journal);
@@ -249,6 +255,7 @@ export class PrintController {
       return Promise.reject(
         new Error('Print request history capacity reached'),
       );
+    let releaseActivity:()=>void;try{releaseActivity=this.#maintenanceGate?.activity()??(()=>{});}catch(error){return Promise.reject(error);}
     this.#start = Object.freeze({
       version: 1,
       requestId: input.requestId,
@@ -275,6 +282,7 @@ export class PrintController {
         await this.#persist('started');
       },
     );
+    void this.#startPromise.then(releaseActivity,releaseActivity);
     this.#history.set(input.requestId, {
       request: this.#start,
       started: this.#startPromise,

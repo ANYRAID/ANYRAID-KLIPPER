@@ -1,3 +1,4 @@
+import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {registerDatabaseMaintenance} from './database-maintenance.ts';
 import {DatabaseStore,registerDatabase} from './database.ts';
 import {TemperatureStore,registerTemperatureStore} from './temperature-store.ts';
@@ -31,6 +32,7 @@ const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
+ maintenanceGate?:MaintenanceGate;
  /** Enable the G-code portion of data_store; temperature sampling is separate. */
  gcodeStore?:{maxBytes?:number};
  temperatureStore?:{maxSensors?:number;maxSlots?:number};
@@ -62,6 +64,7 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  * does not listen. Components consume config/register methods before start;
  * startup publishes their records and unused-option warnings together. */
 export class ConfiguredMoonraker {
+ readonly maintenanceGate:MaintenanceGate;
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
  #metadataMonitor:MetadataMonitor|undefined;
@@ -82,6 +85,7 @@ export class ConfiguredMoonraker {
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
   if(options.database&&(databaseOwners.has(options.database)||options.database.status.closed||options.database.status.closing))throw new ConfigurationError('Invalid or already owned database');
   if(options.metadataFiles&&fileOwners.has(options.metadataFiles))throw new ConfigurationError('Metadata files already have a server owner');
+  this.maintenanceGate=options.maintenanceGate??new MaintenanceGate();
   this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;if(options.metadataMonitor)this.#metadataMonitor=new MetadataMonitor(options.metadataFiles!,options.metadataMonitor,()=>{if(!this.#stopping)this.setInformation(this.#base);});
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
@@ -90,7 +94,7 @@ export class ConfiguredMoonraker {
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   if(options.temperatureStore)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
   this.#database=options.database;const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
-  const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined):()=>{};
+  const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
@@ -103,6 +107,7 @@ export class ConfiguredMoonraker {
   if(this.#database)databaseOwners.add(this.#database);
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new ConfigurationError('Invalid maintenance gate');
   if(options.onDatabaseRestore!==undefined&&(typeof options.onDatabaseRestore!=='function'||!options.database))throw new ConfigurationError('Database restore requires a database and service restart owner');
   if(options.database!==undefined&&(!(options.database instanceof DatabaseStore)||options.database.status.closed||options.database.status.closing||databaseOwners.has(options.database)))throw new ConfigurationError('Invalid or already owned database');
   if(options.temperatureStore!==undefined&&(!options.temperatureStore||typeof options.temperatureStore!=='object'||Array.isArray(options.temperatureStore)))throw new ConfigurationError('Invalid temperature store options');
@@ -130,7 +135,7 @@ export class ConfiguredMoonraker {
   this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
   if(options.trackJobState)this.#jobState??=new JobState();
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
-  const runtime=new KlippyLifecycle({...options,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcodeCommand:script=>{this.#gcodeStore?.record(script,'command');options.onGcodeCommand?.(script);},onGcode:(response,signal)=>{this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
+  const runtime=new KlippyLifecycle({...options,maintenanceGate:this.maintenanceGate,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onGcodeCommand:script=>{this.#gcodeStore?.record(script,'command');options.onGcodeCommand?.(script);},onGcode:(response,signal)=>{this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
    if(snapshot.initialized&&snapshot.state==='ready')this.#temperatureStore?.ready(runtime);
    if(routedEndpoints!==snapshot.endpoints||routedInitialization!==snapshot.initialized){

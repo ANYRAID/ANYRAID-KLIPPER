@@ -1,0 +1,9 @@
+import {performance} from 'node:perf_hooks';
+import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
+import {PrintController} from '../src/operations/print.ts';
+const noop=async()=>{};
+function summary(samples:number[]){const sorted=samples.toSorted((a,b)=>a-b);return {medianMs:sorted[Math.floor(sorted.length/2)],p95Ms:sorted[Math.ceil(sorted.length*.95)-1]};}
+async function lifecycle(enabled:boolean){const gate=enabled?new MaintenanceGate():undefined,controller=new PrintController({prepare:noop,start:noop,pause:noop,resume:noop,finish:noop,stop:noop},{maxNozzle:280,maxBed:110},{},{maintenanceGate:gate,maxRememberedRequests:2048});const start=performance.now();for(let i=0;i<1000;i++){const requestId=`job${i}`;await controller.start({version:1,requestId,fileId:'file1',nozzle:210,bed:60});await controller.pause();await controller.resume();await controller.complete(requestId);controller.reset(requestId);}return performance.now()-start;}
+const baseline:number[]=[],gated:number[]=[];for(let i=0;i<24;i++){let a:number,b:number;if(i%2){b=await lifecycle(true);a=await lifecycle(false);}else{a=await lifecycle(false);b=await lifecycle(true);}if(i>=4){baseline.push(a);gated.push(b);}}
+const admission:Record<string,unknown>={};for(const owners of [1,64]){const gate=new MaintenanceGate();for(let i=0;i<owners;i++)gate.registerIdle(()=>true);const samples:number[]=[];for(let round=0;round<24;round++){const start=performance.now();for(let i=0;i<100000;i++){gate.activity()();gate.acquire()();}if(round>=4)samples.push(performance.now()-start);}admission[String(owners)]=summary(samples);}
+console.log(JSON.stringify({node:process.version,scope:'CPU only; 1000 no-op device print lifecycles per sample; 100000 activity+maintenance pairs; no motion, transport or hardware timing',baseline:summary(baseline),gated:summary(gated),admission},null,2));

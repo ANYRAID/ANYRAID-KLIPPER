@@ -339,3 +339,17 @@ test('failed service restart remains observable and cannot reopen the restored d
  const server=await ConfiguredMoonraker.load(file,{database,information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){},onDatabaseRestore(){throw new Error('restart owner failed');}});
  try{const address=await server.start();await server.attachKlippy(path);const response=await fetch(`http://127.0.0.1:${address.port}/server/database/restore`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({filename:'saved.db'})});assert.equal(response.status,200);await response.json();await until(()=>!!server.databaseRestoreStatus.error);assert.equal(server.databaseRestoreStatus.error,'restart owner failed');await assert.rejects(database.insert('ui','stale',true),/awaits restart/);}finally{await server.close();}
 },(m,s)=>{if(m.method==='objects/subscribe'){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},print_stats:{state:'standby'}}}}));return false;}}));
+
+test('shared maintenance gate excludes forwarded scripts until reply and preserves emergency access',()=>peer(async(path,seen,sockets)=>{
+ const {MaintenanceGate,MaintenanceBusyError}=await import('../src/operations/maintenance-gate.ts');const gate=new MaintenanceGate(),commands:string[]=[],runtime=new KlippyLifecycle({version:'test',maintenanceGate:gate,onGcodeCommand:script=>{commands.push(script);}});
+ try{
+  await runtime.initialize(path);const pending=runtime.request('gcode/script',{script:'G1 X1'});assert.throws(()=>gate.acquire(),MaintenanceBusyError);await until(()=>seen.some(m=>m.params?.script==='G1 X1'));const message=seen.find(m=>m.params?.script==='G1 X1');sockets[0].write(wire({id:message.id,result:{}}));await pending;
+  const release=gate.acquire();await assert.rejects(runtime.request('gcode/script',{script:'G1 X2'}),e=>e instanceof ApiError&&e.status===409);await assert.rejects(runtime.request('gcode/script',{script:'M112\nG1 X3'}),e=>e instanceof ApiError&&e.status===409);
+  await runtime.request('gcode/script',{script:'M112'});await runtime.request('emergency_stop');assert.deepEqual(commands,['G1 X1','M112']);release();
+  await runtime.request('gcode/script',{script:'G1 X4'});assert.equal(gate.status.activities,0);
+ }finally{await runtime.close();}
+},m=>m.params?.script==='G1 X1'?false:undefined));
+test('throwing G-code observer releases shared admission without forwarding',()=>peer(async(path,seen)=>{
+ const {MaintenanceGate}=await import('../src/operations/maintenance-gate.ts');const gate=new MaintenanceGate(),failure=new Error('observer'),runtime=new KlippyLifecycle({version:'test',maintenanceGate:gate,onGcodeCommand:()=>{throw failure;}});
+ try{await runtime.initialize(path);assert.throws(()=>runtime.request('gcode/script',{script:'G1 X1'}),e=>e===failure);gate.acquire()();assert.equal(seen.some(m=>m.method==='gcode/script'),false);}finally{await runtime.close();}
+}));

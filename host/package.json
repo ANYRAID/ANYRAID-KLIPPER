@@ -12,6 +12,7 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test test/*.test.ts",
     "bench": "node bench/math.ts",
+    "bench:maintenance-gate": "node bench/maintenance-gate.ts",
     "bench:spectrum": "node bench/spectrum.ts",
     "bench:protocol": "node bench/protocol.ts",
     "test:protocol-native": "node bench/protocol-native.ts",
