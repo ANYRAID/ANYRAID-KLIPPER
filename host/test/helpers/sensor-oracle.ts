@@ -44,3 +44,25 @@ def run_sensor(case):
  return out
 `;
 }
+export function sensorConfigurationOracle():string{
+ const ref=JSON.parse(readFileSync(new URL('../../contracts/moonraker-sensor.json',import.meta.url),'utf8'));
+ return sensorOracle()+`
+original_tree=ast.parse(${JSON.stringify(ref.source)})
+base=next(n for n in original_tree.body if isinstance(n,ast.ClassDef) and n.name=='BaseSensor')
+base.name='ConfiguredSensor';base.bases=[ast.Name(id='BaseSensor',ctx=ast.Load())];base.body=[f for f in base.body if isinstance(f,ast.FunctionDef) and f.name=='__init__']
+exec('from __future__ import annotations\\n'+ast.unparse(ast.Module(body=[base],type_ignores=[])))
+def configure_sensor(name,options):
+ fields=[];warnings=[];h=History();FieldTracker.class_init(h)
+ server=types.SimpleNamespace(lookup_component=lambda name:types.SimpleNamespace(register_auxiliary_field=fields.append),add_warning=warnings.append)
+ class Config:
+  def get_server(self):return server
+  def get_name(self):return name
+  def get(self,key,*default):return options[key] if key in options else default[0]
+  def getint(self,key,default):return int(options.get(key,default))
+  def get_options(self):return options
+  def getdict(self,key):return dict(line.strip().split('=',1) for line in options[key].splitlines() if line.strip())
+  def error(self,message):return ValueError(message)
+ s=ConfiguredSensor(Config())
+ return dict(info=s.get_sensor_info(True),warnings=warnings)
+`;
+}

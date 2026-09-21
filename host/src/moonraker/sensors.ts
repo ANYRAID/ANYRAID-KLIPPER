@@ -9,7 +9,7 @@ type Value=number|boolean;
 export interface SensorReading {value:Value;numberType?:HistoryNumberType;}
 type Reading={value:Value;numberType:HistoryNumberType};
 export interface SensorHistoryField extends Omit<HistoryFieldOptions,'provider'|'reset'> {parameter:string;initTracker?:boolean;}
-export interface SensorOptions {id:string;type:string;name?:string;capacity?:number;maxParameters?:number;parameters?:Record<string,string>[];history?:SensorHistoryField[];}
+export interface SensorOptions {id:string;type:string;name?:string;historyProvider?:string;capacity?:number;maxParameters?:number;parameters?:Record<string,string>[];history?:SensorHistoryField[];}
 function text(value:string,empty=false):string{if(typeof value!=='string'||!value.isWellFormed()||!empty&&!value||Buffer.byteLength(value)>256)throw new ApiError(400,'Invalid sensor text');return value;}
 function limit(value:number,min:number,max:number):number{if(!Number.isSafeInteger(value)||value<min||value>max)throw new ApiError(400,'Invalid sensor capacity');return value;}
 class Ring {
@@ -27,7 +27,7 @@ class Sensor {
   const parameters=options.parameters??[];validateJson(parameters);boundedJsonBytes(parameters,65536);if(!Array.isArray(parameters)||parameters.length>maxParameters||parameters.some(info=>!info||Array.isArray(info)||typeof info!=='object'||Object.keys(info).length>32||Object.values(info).some(value=>typeof value!=='string'||Buffer.byteLength(value)>4096)))throw new ApiError(400,'Invalid sensor parameter information');this.#parameters=structuredClone(parameters);
   const definitions=options.history??[];if(!Array.isArray(definitions)||definitions.length>64||definitions.length&&!fields)throw new ApiError(400,'Sensor history requires a field registry');
   const callbacks=definitions.map(definition=>{const parameter=text(definition.parameter);if(definition.initTracker!==undefined&&typeof definition.initTracker!=='boolean')throw new ApiError(400,'Invalid sensor initialization flag');return definition.initTracker?()=>this.#measurements.get(parameter)?.value??0:undefined;});
-  const registered=fields?.registerBatch(definitions.map((definition,i)=>({...definition,provider:'sensor '+this.id,reset:callbacks[i]})))??[];
+  const registered=fields?.registerBatch(definitions.map((definition,i)=>({...definition,provider:options.historyProvider??'sensor '+this.id,reset:callbacks[i]})))??[];
   const bindings=registered.map((field,i)=>({parameter:definitions[i].parameter,field,reset:callbacks[i]}));this.#bindings=[...new Set(bindings.map(binding=>binding.parameter))].flatMap(parameter=>bindings.filter(binding=>binding.parameter===parameter));
   for(const binding of this.#bindings)if(binding.reset)binding.field.tracker.setResetCallback(binding.reset,'integer');
  }
