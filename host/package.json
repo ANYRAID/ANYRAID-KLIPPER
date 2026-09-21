@@ -220,10 +220,12 @@
   "devDependencies": {
     "@types/node": "^26.6.2",
     "@types/ws": "8.18.1",
+    "mqtt-packet": "9.0.2",
     "typescript": "^7.0.2"
   },
   "dependencies": {
     "fft.js": "4.0.4",
+    "mqtt": "5.16.0",
     "qoijs": "1.0.0",
     "sharp": "0.35.4",
     "ws": "8.21.3"
