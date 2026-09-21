@@ -34,16 +34,22 @@ node scripts/katapult.ts -i can0 -u 设备UUID --already-bootloader -f out/klipp
 node scripts/katapult.ts -i can0 -u 设备UUID --status
 node scripts/katapult.ts -i can0 -u 设备UUID --request-bootloader
 node scripts/katapult.ts -i can0 --query
+# 总线维护：清空所有 Katapult 节点 ID 后查询
+node scripts/katapult.ts -i can0 --query --reset-node-ids
 ```
 
-查询不会广播清空已有节点 ID，因此不保证列出已分配的节点。状态
+默认查询不会广播清空已有节点 ID，因此不保证列出已分配的节点。
+`--reset-node-ids` 仅用于 CAN 查询，会影响总线上所有 Katapult 节点，
+要求整个总线停止维护/打印活动；它发送清空命令并等待 500 ms 后查询。
+发送后的取消不能恢复旧节点 ID；在等待阶段取消时不会再查询或重发清空命令。状态
 模式仍需连接/分配节点，不能当作无设备动作的检查。CAN 节点号默认
 129，可用 `--node-id` 指定总线上已保留的空闲编号。串口支持 `--baud`
 和 `--prime`；`--expected-mcu` 可在刷写时增加显式 MCU 核对。
 无 USB 标识的串口在刷写模式下按已运行 Katapult 处理，启动请求
 模式则发送原串口启动序列。`--verbose` 输出结构化结果；失败退出
-非零，错误或取消后不会自动重试刷写。旧工具的全节点 ID reset、
-进程占用扫描和全部恢复行为尚未等价替代，物理板卡验收仍开放。
+非零，错误或取消后不会自动重试刷写。串口入口检查可见进程占用，
+但仍有权限和并发打开盲区。旧工具的全部恢复行为尚未等价替代，
+物理板卡验收仍开放。
 
 This document provides information on common bootloaders found on
 micro-controllers that Klipper supports.

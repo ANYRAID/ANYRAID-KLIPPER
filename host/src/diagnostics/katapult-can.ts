@@ -48,3 +48,13 @@ export async function requestKatapultCANBootloader(name:string,uuid:string,signa
  const fd=native.openCAN(name,identity.clientId);
  try{signal.throwIfAborted();const packet=katapultCanPacket(0x3f0,Buffer.concat([Buffer.from([2]),Buffer.from(identity.uuid,'hex')]));if(writeSync(fd,packet)!==16)throw new Error('Short Katapult reboot request');}finally{closeSync(fd);}
 }
+/** Explicit bus-wide maintenance operation. Clears Katapult node IDs, not
+ * Klipper IDs. Once sent, cancellation cannot restore previous assignments. */
+export async function resetKatapultCANNodes(name:string,signal:AbortSignal):Promise<void>{
+ signal.throwIfAborted();
+ if(typeof name!=='string'||!/^[A-Za-z0-9_.:-]{1,15}$/.test(name))throw new TypeError('Invalid CAN interface');
+ const native=createRequire(import.meta.url)(process.env.ANYRAID_SERIALQUEUE_ADDON??'../../build/serialqueue.node') as {openCAN(name:string,id:number):number};
+ const fd=native.openCAN(name,0x202);
+ try{signal.throwIfAborted();const packet=katapultCanPacket(0x3f0,Buffer.from([0x12]));if(writeSync(fd,packet)!==16)throw new Error('Short Katapult node reset');}finally{closeSync(fd);}
+ await delay(500,undefined,{signal});signal.throwIfAborted();
+}

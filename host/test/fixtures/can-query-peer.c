@@ -8,11 +8,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 static void require(int ok, const char *message)
 {
     if (!ok) { perror(message); exit(1); }
 }
-int main(void)
+int main(int argc, char **argv)
 {
     unsigned index = if_nametoindex("vcan-test");
     require(index != 0, "vcan-test index");
@@ -31,9 +32,33 @@ int main(void)
     puts("READY");
     fflush(stdout);
     struct pollfd pending = {.fd = fd, .events = POLLIN};
+    if (argc > 1 && !strcmp(argv[1], "idle")) {
+        require(poll(&pending, 1, 1000) == 0, "no packets before preflight");
+        close(fd);
+        return 0;
+    }
     require(poll(&pending, 1, 5000) == 1, "query timeout");
     struct can_frame query;
     require(read(fd, &query, sizeof(query)) == sizeof(query), "query read");
+    if (argc > 1) {
+        require(query.can_id == 0x3f0 && query.len == 1
+                && query.data[0] == 0x12, "reset content");
+        puts("RESET");
+        fflush(stdout);
+        if (!strcmp(argv[1], "cancel")) {
+            require(poll(&pending, 1, 1000) == 0, "no query after cancel");
+            close(fd);
+            return 0;
+        }
+        struct timespec start, end;
+        require(!clock_gettime(CLOCK_MONOTONIC, &start), "reset time");
+        require(poll(&pending, 1, 5000) == 1, "query after reset timeout");
+        require(!clock_gettime(CLOCK_MONOTONIC, &end), "query time");
+        require((end.tv_sec-start.tv_sec)*1000.
+                + (end.tv_nsec-start.tv_nsec)/1000000. >= 450.,
+                "reset settle interval");
+        require(read(fd, &query, sizeof(query)) == sizeof(query), "query read");
+    }
     require(query.can_id == 0x3f0 && query.len == 1 && query.data[0] == 0,
             "query content");
     struct can_frame replies[] = {

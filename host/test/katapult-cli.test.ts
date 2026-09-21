@@ -14,6 +14,8 @@ const script=fileURLToPath(new URL('../../scripts/katapult.ts',import.meta.url))
 function start(args:string[]){const child=spawn(process.execPath,[script,...args],{stdio:['ignore','pipe','pipe']});let stdout='',stderr='';child.stdout.on('data',b=>stdout+=b);child.stderr.on('data',b=>stderr+=b);const done=new Promise<{code:number|null;stdout:string;stderr:string}>((resolve,reject)=>{child.once('error',reject);child.once('close',code=>resolve({code,stdout,stderr}));});return {child,done};}
 test('Katapult CLI validates modes, identities and ignored/conflicting options',()=>{
  const can=parseKatapultArgs(['-i','can1','-u','0xFFFF','--node-id','255','-f','image.bin']);assert.ok(!can.help);assert.equal(can.uuid,'00000000ffff');assert.equal(can.nodeId,255);
+ const reset=parseKatapultArgs(['-q','--reset-node-ids']);assert.ok(!reset.help);assert.equal(reset.resetNodeIds,true);
+ for(const args of [['--reset-node-ids','-u','1'],['--reset-node-ids','-u','1','-s'],['--reset-node-ids','-u','1','-r'],['--reset-node-ids','-d','x']])assert.throws(()=>parseKatapultArgs(args),/requires CAN query/);
  assert.deepEqual(parseKatapultArgs(['--help']),{help:true});
  for(const args of [[],['-q','-s'],['-q','-u','1'],['-d','x','-u','1'],['-d','x','-i','can0'],['-d','x','-b','1.5'],['-u','1','--prime'],['-u','1','--node-id','256'],['-u','1','-s','-f','x'],['-d','x','-r','--already-bootloader'],['-d','x','--expected-mcu','']])assert.throws(()=>parseKatapultArgs(args),JSON.stringify(args));
 });
