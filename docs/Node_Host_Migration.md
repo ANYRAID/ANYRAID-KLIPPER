@@ -9681,8 +9681,8 @@ get(namespace) 返回空对象；dropEmptyNamespace 只在实际记录数为
 失败写入不留下虚假的命名空间；删除最后一条数据后需要显式 drop
 才能回收名称预算。registerNamespace 是可信内部 provider 接口，
 尚不等同于上游 register_local_namespace 的组件所有权和访问策略
-注册；组件 wrapper、策略注册/注销、sync_namespace、表注册与
-迁移、LMDB 导入、异常关机记账等仍待完成。
+注册；整体替换接口已在下文补齐。组件 wrapper、策略注册/注销、
+表注册与迁移、LMDB 导入、异常关机记账等仍待完成。
 
 固定上游原始 provider 方法差分测试覆盖注册、空批次、清空、计数、
 内部删除和显式移除。纠正旧差分 helper 在内部 delete 后额外调用
@@ -9705,3 +9705,45 @@ provider 真实线程比较，双方 SQLite WAL + synchronous FULL：
 整组操作时间，包含断言和任务往返。批量路径仍有 Node/Python
 差距，不能把生命周期相近耗时推广到所有数据库操作。这些是本机
 文件系统证据，不证明目标板、硬件断电恢复或实际打印速度。
+
+### 命名空间原子整体替换
+
+DatabaseStore.syncNamespace 通过 Worker FIFO 执行命名空间整体替换：
+一个 BEGIN IMMEDIATE 事务内删除旧记录，沿用 insertBatch 的
+64 行分块写入和统一记录编码，任一块失败则回滚全部删除与写入。
+最多 4096 个根键，根键按字面量解释，沿用记录大小和队列预算。
+成功响应代表本次事务已提交；输入在入队时取得快照，调用方随后
+修改对象不会改变已经接受的替换。空对象会清空数据但保留本代
+命名空间注册。该内部接口不新增公开 HTTP/RPC 端点。
+
+与固定上游明确存在两点差异。第一，上游 sync_namespace 未使用
+encode_record，只为字典和数组设置 SQLite adapter，写入标量 1
+成功后，读取触发原解码器 500；Node 将所有值按既有记录格式编码，
+从而修复标量、布尔值、null 的往返问题。第二，Node 要求命名空间
+已注册或已有记录，缺失返回 404；不复制上游对未注册空间写入后
+运行期 get_namespace 仍找不到它的状态。
+
+结构化记录的替换及空替换与固定上游原方法差分一致。新增测试
+复现标量缺陷，并验证 Node 中 -0、1e20、1e-200、MAX_SAFE_INTEGER、
+2.675、布尔值、null、中文和嵌套数值在数据库重开后的精确往返。
+第 130 条记录超限时，旧数据和前两块已插入数据一起回滚；另覆盖
+缺失命名空间、入队对象所有权以及替换后排队读取的顺序。
+
+全量 **1222 项通过**，类型与空白检查通过。工作树 ext 系列文件系统、
+Node.js v26.9.0、双方 SQLite WAL + synchronous FULL，9 轮去掉
+2 轮预热，p95 为 7 个有效样本最大值：
+
+- `DATABASE_BENCH_ROOT="$PWD" DATABASE_SYNC_NAMESPACE=1 node host/bench/database.ts`：
+  每轮 20 次替换并读取 200 条结构化记录，Node 中位/p95
+  **113.168/163.331 ms**，固定 Python provider 线程
+  **87.783/89.382 ms**；Node 事件循环最大观测延迟 **4.108 ms**。
+  双方使用相同结构化负载，此负载不触发上述 Python 标量缺陷。
+- `DATABASE_BENCH_ROOT="$PWD" DATABASE_BATCH_SIZE=50 node host/bench/database.ts`：
+  原有 200 条写入与读取、每批 50 条，Node **13.294/13.656 ms**，
+  Python **11.087/13.739 ms**；Node 事件循环最大观测延迟
+  **1.696 ms**，与前阶段 Node 批量路径耗时接近。
+
+整体替换本次 Node 中位耗时约比 Python 高 29%，不能称性能等价，
+仍需定位和优化；也不能将普通批量路径没有明显退化作为整体替换
+性能已达标的证据。本次仅交付正确性和可重复性能测量，生产接入、
+完整数据库组件及目标硬件打印速度验收仍未完成。

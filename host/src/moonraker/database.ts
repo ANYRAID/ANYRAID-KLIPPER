@@ -47,6 +47,7 @@ export class DatabaseStore {
  get(namespace:string,key?:DatabaseKey|null){databaseNamespace(namespace);if(key!==undefined&&key!==null)databaseKey(key);return this.#call('get',[namespace,key as Json??null]);}
  insert(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('insert',[namespace,key as Json,value]);}
  update(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('update',[namespace,key as Json,value]);}
+ syncNamespace(namespace:string,records:Record<string,Json>){databaseNamespace(namespace);databaseBatchKeys(Object.keys(records));return this.#call('sync-namespace',[namespace,records]);}
  insertBatch(namespace:string,records:Record<string,Json>){databaseNamespace(namespace);databaseBatchKeys(Object.keys(records));return this.#call('insert-batch',[namespace,records]);}
  getBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('get-batch',[namespace,keys as Json]);}
  deleteBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('delete-batch',[namespace,keys as Json]);}

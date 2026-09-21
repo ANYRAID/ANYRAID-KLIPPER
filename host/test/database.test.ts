@@ -169,3 +169,21 @@ test('virtual namespaces disappear on reopen; committed data reconstructs namesp
 test('namespace budget rejects new names before writes, failed writes leave no phantom namespace',()=>directory(async dir=>{
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxReplyBytes:32,maxRecordBytes:16});try{await assert.rejects(store.insert('failed','x','z'.repeat(32)),e=>e instanceof ApiError&&e.status===413);await assert.rejects(store.get('failed'),e=>e instanceof ApiError&&e.status===404);await store.registerNamespace('a'.repeat(24));await assert.rejects(store.insert('too-long','x',1),e=>e instanceof ApiError&&e.status===413);await assert.rejects(store.get('too-long','x'),e=>e instanceof ApiError&&e.status===404);await store.dropEmptyNamespace('a'.repeat(24));await store.insert('too-long','x',1);assert.equal(await store.get('too-long','x'),1);}finally{await store.close();}
 }));
+
+test('atomic namespace replacement matches pinned Python for structured records and preserves literal keys',()=>directory(async dir=>{
+ const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');
+ const operations:Json[][]=[['registerNamespace','ui'],['insertBatch','ui',{old:{x:1},keep:{old:true}}],['syncNamespace','ui',{keep:{new:true},'literal.dot':[1,2.675,null]}],['get','ui'],['namespaceLength','ui'],['syncNamespace','ui',{}],['get','ui']];
+ const expected=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations}),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];
+ try{for(const [method,namespace,value] of operations){let result:Json;switch(method){case 'registerNamespace':result=await store.registerNamespace(namespace as string);break;case 'insertBatch':result=await store.insertBatch(namespace as string,value as Record<string,Json>);break;case 'syncNamespace':result=await store.syncNamespace(namespace as string,value as Record<string,Json>);break;case 'namespaceLength':result=await store.namespaceLength(namespace as string);break;default:result=await store.get(namespace as string);}actual.push({value:result});}assert.deepEqual(actual,JSON.parse(expected.stdout));}finally{await store.close();}
+}));
+test('namespace sync fixes upstream scalar encoding and retains precise values across reopening',()=>directory(async dir=>{
+ const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');const result=spawnSync('/usr/bin/python3',['-c',databaseOracle()],{input:JSON.stringify({operations:[['registerNamespace','ui'],['syncNamespace','ui',{scalar:1}],['get','ui']]}),encoding:'utf8'});assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout),[{value:null},{value:null},{error:500}]);
+ const path=join(dir,'db.sqlite'),values={zero:-0,large:1e20,tiny:1e-200,safe:Number.MAX_SAFE_INTEGER,temperature:2.675,flag:true,empty:null,text:'中文',nested:{zero:-0,large:1e20}};let store=await DatabaseStore.open({path});try{await store.registerNamespace('ui');await store.syncNamespace('ui',values);assert.deepEqual(await store.get('ui'),values);await store.close();store=await DatabaseStore.open({path});assert.deepEqual(await store.get('ui'),values);}finally{await store.close();}
+}));
+test('late replacement failure rolls back deletion and every inserted chunk; queue order and input ownership remain intact',()=>directory(async dir=>{
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxRecordBytes:128});try{
+  await assert.rejects(store.syncNamespace('missing',{x:1}),e=>e instanceof ApiError&&e.status===404);await store.insertBatch('ui',{old:1,keep:{v:'old'}});
+  const values:Record<string,Json>=Object.fromEntries(Array.from({length:130},(_,i)=>['k'+i,i]));values.k129='x'.repeat(256);await assert.rejects(store.syncNamespace('ui',values),e=>e instanceof ApiError&&e.status===413);assert.deepEqual(await store.get('ui'),{old:1,keep:{v:'old'}});
+  const next={new:{version:2}},replacing=store.syncNamespace('ui',next);next.new.version=3;const reading=store.get('ui');await replacing;assert.deepEqual(await reading,{new:{version:2}});await store.syncNamespace('ui',{});assert.deepEqual(await store.get('ui'),{});
+ }finally{await store.close();}
+}));

@@ -55,9 +55,16 @@ export class DatabaseEngine {
    if(record!==null)this.#write(namespace,path[0],record);
   });
  }
+ #writeBatch(namespace:string,records:Record<string,Json>,keys:readonly string[]):void{for(let offset=0;offset<keys.length;offset+=64){const chunk=keys.slice(offset,offset+64),parameters:(string|Buffer)[]=[];for(const key of chunk){const encoded=encodeDatabaseRecord(records[key]);if(encoded.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');parameters.push(namespace,key,encoded);}this.#prepare('INSERT INTO namespace_store VALUES '+chunk.map(()=>'(?,?,?)').join(',')+' ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(...parameters);}}
  insertBatch(namespace:string,records:Record<string,Json>):void{
   databaseNamespace(namespace);if(!records||!databaseObject(records))throw new ApiError(400,'Invalid database batch records');const keys=databaseBatchKeys(Object.keys(records));this.#checkNamespaceCapacity(namespace);
-  this.#transaction(()=>{for(let offset=0;offset<keys.length;offset+=64){const chunk=keys.slice(offset,offset+64),parameters:(string|Buffer)[]=[];for(const key of chunk){const encoded=encodeDatabaseRecord(records[key]);if(encoded.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');parameters.push(namespace,key,encoded);}this.#prepare('INSERT INTO namespace_store VALUES '+chunk.map(()=>'(?,?,?)').join(',')+' ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(...parameters);}});this.registerNamespace(namespace);
+  this.#transaction(()=>this.#writeBatch(namespace,records,keys));this.registerNamespace(namespace);
+ }
+ /** Replace an existing namespace atomically, using the same record codec as insert. */
+ syncNamespace(namespace:string,records:Record<string,Json>):void{
+  databaseNamespace(namespace);if(!records||!databaseObject(records))throw new ApiError(400,'Invalid database namespace records');const keys=databaseBatchKeys(Object.keys(records));
+  if(!this.#namespaces.has(namespace))throw new ApiError(404,'Database namespace not found');
+  this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);this.#writeBatch(namespace,records,keys);});
  }
  getBatch(namespace:string,input:readonly string[]):Record<string,Json>{
   databaseNamespace(namespace);const keys=databaseBatchKeys(input),result:Record<string,Json>={};let bytes=2;
