@@ -166,7 +166,8 @@
     "bench:spectrogram-csv": "node bench/spectrogram-csv.ts",
     "bench:spectrogram-plot": "node bench/spectrogram-plot.ts",
     "bench:calibrate-cli": "node bench/calibrate-cli.ts",
-    "bench:webhook-console": "node bench/webhook-console.ts"
+    "bench:webhook-console": "node bench/webhook-console.ts",
+    "bench:mesh-analysis": "node bench/mesh-analysis.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
