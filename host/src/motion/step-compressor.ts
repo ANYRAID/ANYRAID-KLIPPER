@@ -23,6 +23,8 @@ export class StepCompressor {
   calibrateClock(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,true);this.#offset=offset;this.#frequency=frequency;}
   /** Same rounding as original C clock_from_time; usable by MoveQueueSink. */
   clockAt(printTime:number):bigint{const raw=(printTime-this.#offset)*this.#frequency,rounded=Math.floor(raw+.5);if(this.#closed||!Number.isFinite(printTime)||!Number.isSafeInteger(rounded)||raw<0)throw new RangeError('Invalid print-time clock');return BigInt(rounded);}
+  /** Convert an observed MCU clock using this emitter's current calibration. */
+  printTimeAtClock(clock:bigint):number{if(this.#closed||typeof clock!=='bigint'||clock<0n||clock>BigInt(Number.MAX_SAFE_INTEGER))throw new RangeError('Observed clock exceeds exact mapping range');const time=this.#offset+Number(clock)/this.#frequency;if(!Number.isFinite(time)||Math.abs(time)>=1e15)throw new RangeError('Invalid observed print time');return time;}
   /** @internal Queue capability supplied by TrapQueue.createStepper. */
   bindQueue(queue:object,mode:StepperKinematics,stepDistance:number,position:readonly number[]):void {
     const delta=typeof mode==='object';

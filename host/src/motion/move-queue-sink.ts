@@ -16,6 +16,7 @@ export class MoveQueueSink implements MotionSink {
   this.#owners=new Map();this.#mcus=configs.map((c,index)=>{for(const id of c.emitters){if(this.#owners.has(id))throw new Error('Emitter belongs to multiple MCUs');this.#owners.set(id,index);}return {config:{...c,emitters:[...c.emitters]},scheduler:new MoveQueueScheduler(c.emitters,c.moveSlots)};});
   this.#history=retainHistory;this.#until=initialCommittedTime;
  }
+ clockSources():readonly {readonly id:string;readonly emitters:readonly string[]}[]{return Object.freeze(this.#mcus.map(m=>Object.freeze({id:m.config.id,emitters:Object.freeze([...m.config.emitters])})));}
  /** Map every emitter boundary using the actual sink routing. Only valid once
   * all scheduled packets have been handed to transport. Caller must fence new
   * producers and still wait for ACKs and sampled MCU clocks. */

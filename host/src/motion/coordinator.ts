@@ -30,6 +30,15 @@ export class MotionCoordinator {
   this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
  }
+ /** Retain 30 seconds behind the slowest observed emitter, plus 1 ms margin.
+  * Observations must come from the same MCU routes and current generation. */
+ historyCutoff(clocks:Readonly<Record<string,bigint>>):number{
+  if(this.#failed)throw new Error('Motion coordinator is faulted');const entries=Object.entries(clocks);
+  if(entries.length!==this.#bindings.length||this.#bindings.some(b=>!Object.hasOwn(clocks,b.id)))throw new RangeError('History clocks must cover all emitters');
+  for(const guard of this.#guards)guard.assertActive();let time=Infinity;
+  for(const b of this.#bindings)time=Math.min(time,b.stepper.printTimeAtClock(clocks[b.id]));
+  const boundary=time-30,cutoff=Math.max(0,boundary-.001);if(cutoff>0&&cutoff>=boundary)throw new RangeError('History margin below print-time resolution');return cutoff;
+ }
  /** Common lower bound actually finalized in every source queue. */
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
@@ -55,8 +64,9 @@ export class MotionCoordinator {
   * positions must give each bound queue's exact endpoint at lastMoveTime; no
   * later source motion may already be appended. Failure after padding is terminal.
   * Returned clocks still require transport ACK and MCU-time observation. */
- async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,maxWindowSeconds?:number):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
+ async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,maxWindowSeconds?:number,historyClock?:()=>number):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
   if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot drain');
+  if(historyClock!==undefined&&maxWindowSeconds===undefined)throw new RangeError('History clock requires bounded generation');
   const queues=new Set(this.#bindings.map(b=>b.queue));
   if(!Number.isFinite(lastMoveTime)||lastMoveTime<this.#generated||lastMoveTime>=1e15||positions.size!==queues.size||[...positions].some(([q,p])=>!queues.has(q)||!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))throw new RangeError('Invalid motion drain endpoints');
   let past=0,future=0;for(const b of this.#bindings){const w=b.stepper.scanWindow;past=Math.max(past,w.past);future=Math.max(future,w.future);}
@@ -66,19 +76,20 @@ export class MotionCoordinator {
   try{
    for(const guard of this.#guards)guard.assertActive();
    for(const q of queues){const p=positions.get(q)!;q.appendRaw(new Float64Array([lastMoveTime,0,sourceUntil-lastMoveTime,0,...p,0,0,0,0,0,0]));}
-   if(maxWindowSeconds===undefined)await this.advance(until);else await this.advanceBounded(until,0,until,maxWindowSeconds);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
+   if(maxWindowSeconds===undefined)await this.advance(until);else await this.advanceBounded(until,0,until,maxWindowSeconds,historyClock);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
   }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}
  }
  /** Generate only where every solver has its required future source data.
   * Does not pad a stop or wait for MCU execution. Caller owns sourceUntil. */
- async advanceSource(sourceUntil:number,clearHistoryTime=0,maxWindowSeconds?:number):Promise<boolean>{
+ async advanceSource(sourceUntil:number,clearHistoryTime=0,maxWindowSeconds?:number,historyClock?:()=>number):Promise<boolean>{
   if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot stream');
+  if(historyClock!==undefined&&maxWindowSeconds===undefined)throw new RangeError('History clock requires bounded generation');
   if(!Number.isFinite(sourceUntil)||sourceUntil<this.#generated||sourceUntil>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0)throw new RangeError('Invalid source horizon');
   let future=0;for(const b of this.#bindings)future=Math.max(future,b.stepper.scanWindow.future);
   const generation=sourceUntil-future-.001,flush=generation-.002;
   if(generation<=this.#generated||flush<this.#committed)return false;
   if(sourceUntil-generation<future||generation-flush<.001||clearHistoryTime>flush)throw new RangeError('Unrepresentable streaming horizon');
-  if(maxWindowSeconds===undefined)await this.advanceWindow(generation,flush,clearHistoryTime);else await this.advanceBounded(generation,clearHistoryTime,flush,maxWindowSeconds);return true;
+  if(maxWindowSeconds===undefined)await this.advanceWindow(generation,flush,clearHistoryTime);else await this.advanceBounded(generation,clearHistoryTime,flush,maxWindowSeconds,historyClock);return true;
  }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
@@ -94,9 +105,11 @@ export class MotionCoordinator {
   * Source queues must include stationary startup coverage from their baseline.
   * Native step/byte budgets still apply to each window; failure stops all
   * bindings and does not replay prefixes accepted by earlier windows. */
- async advanceBounded(until:number,clearHistoryTime=0,flushUntil=until,maxWindowSeconds=.25):Promise<void>{
+ async advanceBounded(until:number,clearHistoryTime=0,flushUntil=until,maxWindowSeconds=.25,historyClock?:()=>number):Promise<void>{
   if(this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot start bounded generation');
   if(!Number.isFinite(until)||until<this.#generated||until>=1e15||!Number.isFinite(flushUntil)||flushUntil<this.#committed||flushUntil>until||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0||clearHistoryTime>flushUntil||!Number.isFinite(maxWindowSeconds)||maxWindowSeconds<.01||maxWindowSeconds>1||Math.ceil((until-this.#generated)/maxWindowSeconds)>1000000)throw new RangeError('Invalid bounded generation limits');
+  if(historyClock!==undefined&&typeof historyClock!=='function')throw new TypeError('Invalid history clock');
+  const history=(flush:number)=>{const cutoff=historyClock?historyClock():clearHistoryTime;if(!Number.isFinite(cutoff)||cutoff<0)throw new RangeError('Invalid observed history cutoff');return Math.min(cutoff,flush);};
   this.#bounded=true;let windows=0;
   try{
    while(this.#generated<until){
@@ -105,10 +118,10 @@ export class MotionCoordinator {
     let span=maxWindowSeconds;if(this.#generated===0)for(const b of this.#bindings)span=Math.max(span,b.stepper.scanWindow.past+.001);
     const next=Math.min(until,this.#generated+span);if(next<=this.#generated)throw new RangeError('Unrepresentable generation window');
     const flush=next===until?flushUntil:Math.max(this.#committed,Math.min(flushUntil,next-.002));
-    await this.#advance(next,Math.min(clearHistoryTime,flush),flush);
+    await this.#advance(next,history(flush),flush);
     if(++windows%8===0&&this.#generated<until)await new Promise<void>(resolve=>setImmediate(resolve));
    }
-   if(this.#committed<flushUntil)await this.#advance(until,clearHistoryTime,flushUntil);
+   if(this.#committed<flushUntil)await this.#advance(until,history(flushUntil),flushUntil);
   }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}finally{this.#bounded=false;}
  }
  async #advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
