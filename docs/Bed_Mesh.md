@@ -733,6 +733,29 @@ graph_mesh.py plot meshz http://my-printer.local
 
 ### Bed Mesh Analysis
 
+Local snapshot analysis is also available with Node.js 26 and the host
+package dependencies installed:
+
+```
+node scripts/graph_mesh.ts analyze mesh-dump.json
+node scripts/graph_mesh.ts analyze --json -o report.json mesh-dump.json
+```
+
+This Node command currently accepts regular local JSON files only. It reports
+path counts and duplicates, current and saved mesh statistics, and pairwise
+height differences. Differences are explicitly `A - B`; incompatible grids
+are reported as skipped, without interpolation. The current mesh takes
+precedence over a saved profile with the same name. JSON output keeps full
+numeric precision; the text report rounds values for display. The output
+file is atomically replaced after successful analysis and must differ from
+the input path.
+
+Node corrects the legacy Y-coordinate upper-bound typo for rectangular beds
+and reports the actual rapid-scan sample count. It accepts at most 32 saved
+profiles and two million total height values. Files are limited to 64 MiB;
+nonfinite or unsafe integer JSON values are rejected. Socket/WebSocket
+acquisition, plotting and animation still use the Python tool below.
+
 The `graph_mesh.py` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
 
