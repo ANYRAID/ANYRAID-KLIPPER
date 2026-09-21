@@ -191,7 +191,8 @@
     "bench:klipper-save-changes": "node bench/klipper-save-changes.ts",
     "bench:klipper-save-session": "node bench/klipper-save-session.ts",
     "bench:klipper-save-command": "node bench/klipper-save-command.ts",
-    "bench:bed-mesh-save": "node bench/bed-mesh-save.ts"
+    "bench:bed-mesh-save": "node bench/bed-mesh-save.ts",
+    "bench:bed-mesh-profile-store": "node bench/bed-mesh-profile-store.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
