@@ -1,3 +1,4 @@
+import {MetadataMonitor} from '../src/moonraker/metadata-watch.ts';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,mkdir,writeFile,rm,symlink,rename,readdir} from 'node:fs/promises';
@@ -65,7 +66,7 @@ test('startup recovery propagates snapshot corruption instead of treating it as 
 test('startup recovery obeys admission and cancellation before any cache mutation',async()=>{
  const f=await fixture();try{await f.files.rescan('层/part.gcode',signal);const cancelled=new AbortController();cancelled.abort(new Error('cancel startup'));await assert.rejects(f.files.restoreSelected(cancelled.signal),/cancel startup/);assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);const recovery=f.files.restoreSelected(signal);await assert.rejects(f.files.rescan('层/part.gcode',signal),/queue is full/);assert.deepEqual(await recovery,{restored:1,unavailable:0});await f.files.close();await assert.rejects(f.files.restoreSelected(signal),/closed/);}finally{await f.close();}
 });
-async function configured(f:Awaited<ReturnType<typeof fixture>>,discoverMetadataOnStart=false){const config=join(f.dir,'owned.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0\n');return ConfiguredMoonraker.load(config,{metadataFiles:f.files,discoverMetadataOnStart,authorize(){},information:{connected:false,state:'disconnected',components:['application'],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}});}
+async function configured(f:Awaited<ReturnType<typeof fixture>>,discoverMetadataOnStart=false,metadataMonitor?:import('../src/moonraker/metadata-watch.ts').MetadataMonitorOptions){const config=join(f.dir,'owned.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0\n');return ConfiguredMoonraker.load(config,{metadataFiles:f.files,discoverMetadataOnStart,metadataMonitor,authorize(){},information:{connected:false,state:'disconnected',components:['application'],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}});}
 test('configured owner restores before listening and closes only its file admission component',async()=>{
  const f=await fixture();let server:ConfiguredMoonraker|undefined;
  try{await f.files.rescan('层/part.gcode',signal);f.cache.clear();server=await configured(f);assert.equal(server.metadataRecovery,null);assert.equal(server.status.phase,'new');await assert.rejects(configured(f),/already have/);
@@ -150,4 +151,29 @@ test('reconciliation capacity includes durable missing names before any retireme
   await assert.rejects(f.files.scanDiscovered(signal,{maxFiles:1}),(e:any)=>e.status===413);assert.deepEqual(f.intents.unresolved(),[old]);assert.equal(f.versions.current('层/part.gcode')?.state,'selected');assert.equal(f.versions.current('new.gcode'),undefined);
   assert.deepEqual(await f.files.scanDiscovered(signal,{maxFiles:2}),{restored:0,scanned:1,unavailable:1,unsupported:0});
  }finally{await f.close();}
+});
+async function eventually(check:()=>boolean){for(let i=0;i<5000;i++){if(check())return;await delay(1);}assert.equal(check(),true);}
+test('native directory events update nested metadata, discover new directories and reconcile deletions',async()=>{
+ const f=await fixture(),monitor=new MetadataMonitor(f.files,{debounceMs:5,intervalMs:60000});try{
+  await monitor.start();assert.equal(monitor.status.phase,'running');await writeFile(join(f.root,'层/part.gcode'),'G1 X98765\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);
+  await mkdir(join(f.root,'new'));await writeFile(join(f.root,'new/created.gcode'),'G1 X1\n');await eventually(()=>!!f.cache.peek('new/created.gcode'));await rm(join(f.root,'new/created.gcode'));await eventually(()=>f.versions.current('new/created.gcode')?.state==='invalidated');assert.equal(f.cache.peek('new/created.gcode'),undefined);assert.equal(monitor.status.phase,'running');await rename(join(f.root,'层'),join(f.root,'renamed'));await eventually(()=>!!f.cache.peek('renamed/part.gcode')&&f.versions.current('层/part.gcode')?.state==='invalidated');assert.equal(monitor.status.phase,'running');
+ }finally{await monitor.close();await f.close();}
+});
+test('monitor bounds directory watches and reports capacity failure without leaving its observer owned',async()=>{
+ const f=await fixture(),monitor=new MetadataMonitor(f.files,{maxDirectories:1});try{await assert.rejects(monitor.start(),/watch capacity/);assert.equal(monitor.status.phase,'faulted');const replacement=new MetadataMonitor(f.files);try{await replacement.start();assert.equal(replacement.status.phase,'running');}finally{await replacement.close();}}finally{await monitor.close();await f.close();}
+});
+test('monitor coalesces changes during active reconciliation and close drains it',async()=>{
+ const f=await fixture(),monitor=new MetadataMonitor(f.files,{debounceMs:5,intervalMs:60000});const resume=Promise.withResolvers<void>();try{
+  await monitor.start();const read=f.snapshots.read.bind(f.snapshots),entered=Promise.withResolvers<void>();let active=0,maxActive=0;f.snapshots.read=async(...args)=>{active++;maxActive=Math.max(active,maxActive);entered.resolve();try{await resume.promise;return await read(...args);}finally{active--;}};
+  await writeFile(join(f.root,'trigger.txt'),'1');await entered.promise;for(let i=0;i<20;i++)await writeFile(join(f.root,'trigger.txt'),String(i));assert.equal(maxActive,1);let closed=false;const closing=monitor.close().then(()=>{closed=true;});await delay(10);assert.equal(closed,false);resume.resolve();await closing;assert.equal(monitor.status.phase,'closed');assert.equal(monitor.status.active,false);assert.equal(f.files.status.closed,false);
+ }finally{resume.resolve();await monitor.close();await f.close();}
+});
+test('periodic reconciliation covers missing event delivery',async()=>{
+ const f=await fixture();f.files.observe=()=>()=>{};const monitor=new MetadataMonitor(f.files,{debounceMs:1,intervalMs:20});try{await monitor.start();await writeFile(join(f.root,'层/part.gcode'),'G1 X76543\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);assert.equal(monitor.status.phase,'running');assert.ok(monitor.status.passes>=2);}finally{await monitor.close();await f.close();}
+});
+test('configured monitor starts before listening and stops with its server',async()=>{
+ const f=await fixture();let server:ConfiguredMoonraker|undefined;try{server=await configured(f,false,{debounceMs:5,intervalMs:60000});await server.start();assert.equal(server.metadataMonitor?.phase,'running');assert.ok(f.cache.peek('层/part.gcode'));await writeFile(join(f.root,'层/part.gcode'),'G1 X54321\n');await eventually(()=>f.cache.peek('层/part.gcode')?.size===10);await server.close();assert.equal(server.metadataMonitor?.phase,'closed');assert.equal(server.metadataMonitor?.active,false);assert.equal(f.files.status.closed,true);}finally{await server?.close();await f.close();}
+});
+test('monitor retries a transient admission conflict without overlapping reconciliation',async()=>{
+ const f=await fixture(),original=f.files.scanDiscovered.bind(f.files);let calls=0;f.files.scanDiscovered=async(...args)=>{if(++calls===1)throw new ApiError(503,'Metadata file queue is full');return original(...args);};const monitor=new MetadataMonitor(f.files);try{await monitor.start();assert.equal(calls,2);assert.equal(monitor.status.phase,'running');assert.equal(monitor.status.watchedDirectories,2);}finally{await monitor.close();assert.equal(f.files.watchedDirectories,0);await f.close();}
 });

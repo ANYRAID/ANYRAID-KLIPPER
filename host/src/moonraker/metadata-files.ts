@@ -1,3 +1,4 @@
+import {MetadataDirectoryWatches} from './metadata-watch.ts';
 import {constants} from 'node:fs';
 import {open,opendir,type FileHandle} from 'node:fs/promises';
 import {extname,isAbsolute} from 'node:path';
@@ -11,6 +12,7 @@ export interface MetadataFilesOptions {root:string;lifecycle:MetadataLifecycle;m
  * symlinks at each open. The configured root's ancestors are trusted. The caller
  * owns lifecycle; close this admission layer before closing its dependencies. */
 export class MetadataFiles {
+ #observation:MetadataDirectoryWatches|undefined;#discovering=false;
  #root:FileHandle;#options:MetadataFilesOptions;#limit:number;#pending=new Set<Promise<unknown>>();#stop=new AbortController();#closing:Promise<void>|undefined;
  private constructor(root:FileHandle,options:MetadataFilesOptions,limit:number){this.#root=root;this.#options={...options};this.#limit=limit;}
  static async open(options:MetadataFilesOptions):Promise<MetadataFiles>{
@@ -21,6 +23,8 @@ export class MetadataFiles {
   return new MetadataFiles(root,options,limit);
  }
  get status(){return {closed:this.#stop.signal.aborted,pending:this.#pending.size,maxPending:this.#limit};}
+ observe(change:()=>void,error:(error:Error)=>void,maxDirectories=1024):()=>void{if(this.#stop.signal.aborted||this.#observation)throw new Error('Metadata observation is closed or already owned');const observer=new MetadataDirectoryWatches(this.#root,change,error,maxDirectories);this.#observation=observer;return ()=>{observer.close();if(this.#observation===observer)this.#observation=undefined;};}
+ get watchedDirectories(){return this.#observation?.count??0;}
  get downloads(){return this.#options.lifecycle.thumbnailDownloads();}
  metadata(filename:string){return this.#options.lifecycle.metadata(filename);}
  thumbnails(filename:string){return this.#options.lifecycle.thumbnails(filename);}
@@ -95,11 +99,12 @@ export class MetadataFiles {
  scanDiscovered(signal:AbortSignal,limits:{maxEntries?:number;maxFiles?:number;maxBytes?:number}={}):Promise<{restored:number;scanned:number;unavailable:number;unsupported:number}>{
   const maxEntries=limits.maxEntries??65536,maxFiles=limits.maxFiles??1024,maxBytes=limits.maxBytes??4*1024**2;
   return this.#admit(signal,()=>{for(const [value,max] of [[maxEntries,262144],[maxFiles,4096],[maxBytes,8*1024**2]])if(!Number.isSafeInteger(value)||value<1||value>max)throw new RangeError('Invalid metadata discovery capacity');},async s=>{
-   const names:string[]=[];let entries=0,bytes=0,unsupported=0;
+   if(this.#discovering)throw new ApiError(503,'Metadata discovery already running');this.#discovering=true;try{
+   const observer=this.#observation,seen=new Set<string>();const names:string[]=[];let entries=0,bytes=0,unsupported=0;
    const walk=async(relative:string,depth:number):Promise<void>=>{
     s.throwIfAborted();if(depth>64)throw new ApiError(413,'Metadata directory depth exceeded');
     const source=await this.#source(relative||'.',s,true);
-    try{const directory=await opendir(`/proc/self/fd/${source.fd}`,{encoding:'buffer' as BufferEncoding,bufferSize:32});
+    try{seen.add(relative);await observer?.touch(relative,source);const directory=await opendir(`/proc/self/fd/${source.fd}`,{encoding:'buffer' as BufferEncoding,bufferSize:32});
      try{for(let entry=await directory.read();entry;entry=await directory.read()){
       s.throwIfAborted();if(++entries>maxEntries)throw new ApiError(413,'Metadata discovery entry limit exceeded');
       const name=Buffer.isBuffer(entry.name)?new TextDecoder('utf-8',{fatal:true}).decode(entry.name):entry.name;
@@ -111,7 +116,7 @@ export class MetadataFiles {
      }}finally{await directory.close();}
     }finally{await source.close();}
    };
-   await walk('',0);
+   await walk('',0);observer?.retain(seen);
    // Include active durable names absent from this enumeration. Their source is
    // reopened below: absence from the directory list alone never authorizes deletion.
    const included=new Set(names);for(const name of this.#options.lifecycle.activeFilenames()){
@@ -125,9 +130,10 @@ export class MetadataFiles {
     const result=await this.#refresh(name,s);if(result.state==='updated')scanned++;else unavailable++;
    }
    s.throwIfAborted();return {restored,scanned,unavailable,unsupported};
+   }finally{this.#discovering=false;}
   });
  }
- close():Promise<void>{if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Metadata files are closing'));this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#root.close());return this.#closing;}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#observation?.close();this.#observation=undefined;this.#stop.abort(new ApiError(503,'Metadata files are closing'));this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#root.close());return this.#closing;}
 }
 export function registerFileMetascan(registry:EndpointRegistry,files:MetadataFiles):()=>void{
  return registry.register({endpoint:'/server/files/metascan',methods:['POST']},(params,_verb,context)=>{
