@@ -62,6 +62,16 @@ export class MetadataFiles {
  rescan(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
   return this.#admit(signal,()=>this.#name(filename),combined=>this.#scan(filename,combined));
  }
+ /** Apply a confirmed file-change hint: revoke durable/public old state first,
+  * reclaim only that filename's superseded scans, then read the current source.
+  * Failure leaves old data unavailable; no rollback to stale metadata. */
+ refresh(filename:string,signal:AbortSignal):Promise<{state:'updated';metadata:Record<string,Json>}|{state:'unavailable'}>{
+  return this.#admit(signal,()=>this.#name(filename),s=>this.#refresh(filename,s));
+ }
+ async #refresh(filename:string,s:AbortSignal):Promise<{state:'updated';metadata:Record<string,Json>}|{state:'unavailable'}>{
+   const owner=this.#options.lifecycle;await owner.invalidate(filename,s);await owner.retireSuperseded(s,filename);s.throwIfAborted();
+   try{return {state:'updated',metadata:await this.#scan(filename,s)};}catch(error){s.throwIfAborted();if(error instanceof ApiError&&[400,404].includes(error.status))return {state:'unavailable'};throw error;}
+ }
  async #scan(filename:string,combined:AbortSignal):Promise<Record<string,Json>>{
    const source=await this.#source(filename,combined);
    const result=await this.#options.lifecycle.scan(filename,source,combined,(value,s)=>this.#validate(filename,value,s));
@@ -103,7 +113,7 @@ export class MetadataFiles {
    };
    await walk('',0);let restored=0,scanned=0,unavailable=0;
    for(const name of names){s.throwIfAborted();if(await this.#recover(name,s)){restored++;continue;}
-    try{await this.#scan(name,s);scanned++;}catch(error){s.throwIfAborted();if(error instanceof ApiError&&error.status===404){unavailable++;continue;}throw error;}
+    const result=await this.#refresh(name,s);if(result.state==='updated')scanned++;else unavailable++;
    }
    s.throwIfAborted();return {restored,scanned,unavailable,unsupported};
   });

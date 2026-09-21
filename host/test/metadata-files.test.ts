@@ -110,3 +110,24 @@ test('discovery limits and pre-cancellation fail before beginning any scan and c
 test('configured discovery scans previously unknown G-code before opening HTTP',async()=>{
  const f=await fixture();let server:ConfiguredMoonraker|undefined;try{server=await configured(f,true);const address=await server.start();assert.deepEqual(server.metadataRecovery,{restored:0,unavailable:0});assert.deepEqual(server.metadataDiscovery,{restored:0,scanned:1,unavailable:0,unsupported:0});const reply=await fetch(`http://127.0.0.1:${address.port}/server/files/metadata?filename=${encodeURIComponent('层/part.gcode')}`);assert.equal(reply.status,200);assert.equal((await reply.json() as any).result.layer_height,.2);}finally{await server?.close();await f.close();}
 });
+test('file refresh revokes deleted metadata durably, retires artifacts and supports recreation',async()=>{
+ const f=await fixture();try{
+  await f.files.rescan('层/part.gcode',signal);const previous=f.intents.unresolved()[0];await rm(join(f.root,'层/part.gcode'));
+  assert.deepEqual(await f.files.refresh('层/part.gcode',signal),{state:'unavailable'});assert.equal(f.cache.peek('层/part.gcode'),undefined);assert.equal(f.versions.current('层/part.gcode')?.state,'invalidated');assert.equal(f.intents.unresolved().length,0);assert.equal((await f.snapshots.listIds(signal)).includes('meta-'+previous.id.slice(5)),false);assert.equal(await f.files.recover('层/part.gcode',signal),false);
+  await writeFile(join(f.root,'层/part.gcode'),'G1 X123\n');const result=await f.files.refresh('层/part.gcode',signal);assert.equal(result.state,'updated');assert.equal(f.versions.current('层/part.gcode')?.state,'selected');assert.equal(f.intents.unresolved().length,1);
+ }finally{await f.close();}
+});
+test('repeated refresh reclaims only that filename and retains no superseded generations',async()=>{
+ const f=await fixture();try{
+  await writeFile(join(f.root,'other.gcode'),'G1 X1\n');await f.files.rescan('other.gcode',signal);await f.files.rescan('other.gcode',signal);const others=f.intents.unresolved().filter(value=>value.filename==='other.gcode');
+  for(let i=0;i<8;i++){await writeFile(join(f.root,'层/part.gcode'),`G1 X${i}\n`);assert.equal((await f.files.refresh('层/part.gcode',signal)).state,'updated');assert.equal(f.intents.unresolved().filter(value=>value.filename==='层/part.gcode').length,1);}
+  assert.deepEqual(f.intents.unresolved().filter(value=>value.filename==='other.gcode'),others);assert.equal((await f.snapshots.listIds(signal)).length,3);
+ }finally{await f.close();}
+});
+test('refresh errors and cancellation cannot restore stale metadata or acknowledge uncertain cleanup',async()=>{
+ const f=await fixture();try{
+  await f.files.rescan('层/part.gcode',signal);const cancelled=new AbortController();cancelled.abort(new Error('cancel refresh'));await assert.rejects(f.files.refresh('层/part.gcode',cancelled.signal),/cancel refresh/);assert.equal(f.cache.metadata('层/part.gcode').layer_height,.2);
+  const remove=f.snapshots.remove.bind(f.snapshots);f.snapshots.remove=async()=>{throw new Error('snapshot cleanup failed');};await assert.rejects(f.files.refresh('层/part.gcode',signal),/snapshot cleanup failed/);assert.equal(f.cache.peek('层/part.gcode'),undefined);assert.equal(f.versions.current('层/part.gcode')?.state,'invalidated');assert.equal(f.intents.unresolved().length,1);f.snapshots.remove=remove;
+  assert.equal((await f.files.refresh('层/part.gcode',signal)).state,'updated');assert.equal(f.intents.unresolved().length,1);
+ }finally{await f.close();}
+});
