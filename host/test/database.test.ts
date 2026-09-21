@@ -197,3 +197,37 @@ test('record codec fast paths retain floating-point distinctions, special field 
 test('fast result construction never treats special keys as prototype operations',()=>directory(async dir=>{
  const store=await DatabaseStore.open({path:join(dir,'db.sqlite')});try{const data=JSON.parse('{"__proto__":{"safe":true},"constructor":1,"toString":2,"hasOwnProperty":3}');await store.insertBatch('ui',data);const result=await store.get('ui');assert.deepEqual(result,data);assert.equal(Object.getPrototypeOf(result),Object.prototype);assert.equal(Object.hasOwn(result as object,'__proto__'),true);assert.deepEqual(await store.getBatch('ui',Object.keys(data)),data);await store.update('ui','__proto__',{added:1});assert.deepEqual(await store.get('ui','__proto__'),{safe:true,added:1});assert.equal(({} as Record<string,unknown>).safe,undefined);}finally{await store.close();}
 }));
+
+test('local namespace registration matches pinned component policies and rejects duplicate owners',()=>directory(async dir=>{
+ const {spawnSync}=await import('node:child_process'),{databaseOracle}=await import('./helpers/database-oracle.ts');const operations:[string,string,boolean?][]=[['register','\u{10000}',false],['register','\ue000',false],['register','ui',false],['register','hidden',true],['unregister','ui'],['register','ui',true],['unregister','missing'],['unregister','hidden']];
+ const base=databaseOracle().slice(0,databaseOracle().indexOf('def main():')),program=base+String.raw`
+component=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='MoonrakerDatabase')
+body=[n for n in component.body if isinstance(n,ast.FunctionDef) and n.name in {'register_local_namespace','unregister_local_namespace'}]
+exec('from __future__ import annotations\nclass Component:\n'+textwrap.indent(ast.unparse(ast.Module(body=body,type_ignores=[])),'    '))
+NamespaceWrapper=lambda *args: None
+provider,conn=create();owner=Component();owner.server=Server();owner.registered_namespaces={'database','moonraker'};owner.protected_namespaces={'moonraker'};owner.forbidden_namespaces={'database'};owner.db_provider=provider
+owner.insert_item=lambda ns,key,value: provider.insert_item(conn,ns,key,value)
+results=[]
+for op in json.load(sys.stdin):
+ if op[0]=='register': owner.register_local_namespace(op[1],op[2])
+ else: owner.unregister_local_namespace(op[1])
+ results.append({'visible':sorted(provider._namespaces-owner.forbidden_namespaces),'protected':provider.get_item(conn,'database','protected_namespaces',None),'forbidden':provider.get_item(conn,'database','forbidden_namespaces',None)})
+print(json.dumps(results));conn.close()
+`;
+ const expected=spawnSync('/usr/bin/python3',['-c',program],{input:JSON.stringify(operations),encoding:'utf8'});assert.equal(expected.status,0,expected.stderr);
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite')}),actual:Json[]=[];try{for(const [op,namespace,forbidden] of operations){if(op==='register')await store.registerLocalNamespace(namespace,{forbidden});else await store.unregisterLocalNamespace(namespace);const fallback=async(key:string)=>{try{return await store.get('database',key);}catch(error){if(error instanceof ApiError&&error.status===404)return null;throw error;}};actual.push({visible:(await store.list() as {namespaces:Json}).namespaces,protected:await fallback('protected_namespaces'),forbidden:await fallback('forbidden_namespaces')});}assert.deepEqual(actual,JSON.parse(expected.stdout));await assert.rejects(store.registerLocalNamespace('ui'),e=>e instanceof ApiError&&e.status===409);for(const namespace of ['database','moonraker'])await assert.rejects(store.unregisterLocalNamespace(namespace),e=>e instanceof ApiError&&e.status===403);}finally{await store.close();}
+}));
+test('namespace wrappers preserve literal versus parsed keys, internal writes, public permissions and reopened policies',()=>directory(async dir=>{
+ const path=join(dir,'db.sqlite');let store=await DatabaseStore.open({path});try{const ui=await store.registerLocalNamespace('ui');await ui.insert('a.b',{x:1});assert.deepEqual(await ui.get('a.b'),{x:1});assert.equal(await ui.get('missing'),null);assert.equal(await ui.get('missing','fallback'),'fallback');await ui.updateChild('a.b',{y:2});assert.deepEqual(await ui.get('a.b'),{x:1,y:2});assert.deepEqual(await store.api('GET','ui',['a.b']),{namespace:'ui',key:['a.b'],value:{x:1,y:2}});await assert.rejects(store.api('POST','ui','other',2),e=>e instanceof ApiError&&e.status===403);
+ const parsed=await store.wrapNamespace('ui');await parsed.insert('nested.value',3);assert.equal(await parsed.get(['nested','value']),3);assert.equal(await ui.length(),2);await ui.update({z:4});await ui.moveBatch(['z'],['z.new']);assert.deepEqual(await ui.getBatch(['z.new']),{'z.new':4});assert.deepEqual(await ui.deleteBatch(['z.new']),{'z.new':4});
+ const hidden=await store.registerLocalNamespace('hidden',{forbidden:true});await hidden.insert('secret',1);await assert.rejects(store.api('GET','hidden','secret'),e=>e instanceof ApiError&&e.status===403);await store.close();store=await DatabaseStore.open({path});await assert.rejects(store.api('POST','ui','x',1),e=>e instanceof ApiError&&e.status===403);await assert.rejects(store.api('GET','hidden','secret'),e=>e instanceof ApiError&&e.status===403);await store.registerLocalNamespace('ui');await store.unregisterLocalNamespace('ui');await store.api('POST','ui','x',1);await assert.rejects(store.wrapNamespace('absent'),e=>e instanceof ApiError&&e.status===404);
+ }finally{await store.close();}
+}));
+test('failed registration leaves no owner and failed multi-policy removal rolls back both updates',()=>directory(async dir=>{
+ const store=await DatabaseStore.open({path:join(dir,'db.sqlite'),maxRecordBytes:32});try{
+  const long='x'.repeat(30);await assert.rejects(store.registerLocalNamespace(long),e=>e instanceof ApiError&&e.status===413);await assert.rejects(store.wrapNamespace(long),e=>e instanceof ApiError&&e.status===404);await assert.rejects(store.registerLocalNamespace(long),e=>e instanceof ApiError&&e.status===413);
+  await store.registerLocalNamespace('target',{forbidden:true});await store.insert('database','forbidden_namespaces',['target']);await store.insert('database','protected_namespaces',['target','b'.repeat(17)]);
+  await assert.rejects(store.unregisterLocalNamespace('target'),e=>e instanceof ApiError&&e.status===413);assert.deepEqual(await store.get('database','forbidden_namespaces'),['target']);assert.deepEqual(await store.get('database','protected_namespaces'),['target','b'.repeat(17)]);await assert.rejects(store.registerLocalNamespace('target'),e=>e instanceof ApiError&&e.status===409);
+  await store.insert('database','protected_namespaces',['target']);await store.unregisterLocalNamespace('target');await store.registerLocalNamespace('target');
+ }finally{await store.close();}
+}));

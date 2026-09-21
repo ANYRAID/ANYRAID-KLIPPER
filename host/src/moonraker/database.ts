@@ -1,3 +1,4 @@
+import {DatabaseNamespace} from './database-namespace.ts';
 import {databaseBackupName} from './database-maintenance.ts';
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
@@ -39,6 +40,9 @@ export class DatabaseStore {
    const id=closing?0:++this.#next;return new Promise((resolve,reject)=>{this.#pending.set(id,{resolve,reject,bytes});this.#bytes+=bytes;try{this.#worker.postMessage({id,method,args});}catch(error){this.#pending.delete(id);this.#bytes-=bytes;reject(error);}});
   }catch(error){return Promise.reject(error);}
  }
+ async registerLocalNamespace(namespace:string,options:{forbidden?:boolean;parseKeys?:boolean}={}):Promise<DatabaseNamespace>{databaseNamespace(namespace);if(typeof (options.forbidden??false)!=='boolean'||typeof (options.parseKeys??false)!=='boolean')throw new ApiError(400,'Invalid namespace registration options');const wrapper=new DatabaseNamespace(this,namespace,options.parseKeys??false);await this.#call('register-local-namespace',[namespace,options.forbidden??false]);return wrapper;}
+ unregisterLocalNamespace(namespace:string){databaseNamespace(namespace);return this.#call('unregister-local-namespace',[namespace]);}
+ async wrapNamespace(namespace:string,parseKeys=true):Promise<DatabaseNamespace>{const wrapper=new DatabaseNamespace(this,namespace,parseKeys);if(!await this.#call('has-namespace',[namespace]))throw new ApiError(404,'Database namespace not found');return wrapper;}
  /** Provider namespace registration only; component access policies are separate. */
  registerNamespace(namespace:string){databaseNamespace(namespace);return this.#call('register-namespace',[namespace]);}
  clearNamespace(namespace:string){databaseNamespace(namespace);return this.#call('clear-namespace',[namespace]);}

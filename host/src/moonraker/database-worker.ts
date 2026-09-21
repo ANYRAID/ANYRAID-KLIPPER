@@ -21,6 +21,9 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
    case 'backup':value=await createDatabaseBackup(engine,options.backupDirectory,namespace as string,options.path);break;
    case 'delete-backup':value=deleteDatabaseBackup(options.backupDirectory,namespace as string,options.path);break;
    case 'compact':value=engine.compact();break;
+   case 'register-local-namespace':engine.registerLocalNamespace(namespace as string,key as boolean);break;
+   case 'unregister-local-namespace':engine.unregisterLocalNamespace(namespace as string);break;
+   case 'has-namespace':value=engine.hasNamespace(namespace as string);break;
    case 'register-namespace':engine.registerNamespace(namespace as string);break;
    case 'clear-namespace':engine.clearNamespace(namespace as string);break;
    case 'drop-empty-namespace':engine.dropEmptyNamespace(namespace as string);break;

@@ -3,10 +3,13 @@ import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
 import {ApiError,type Json} from './rpc.ts';
 import {databaseNamespace,databaseKey,databaseBatchKeys,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
 export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;}
+// Python sorted() orders Unicode code points, including astral namespace names.
+function namespaceOrder(a:string,b:string):number{let i=0,j=0;while(i<a.length&&j<b.length){const x=a.codePointAt(i)!,y=b.codePointAt(j)!;if(x!==y)return x-y;i+=x>65535?2:1;j+=y>65535?2:1;}return a.length-i-(b.length-j);}
 const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT NOT NULL,\n    value record NOT NULL,\n    PRIMARY KEY (namespace, key)\n)';
 /** Synchronous engine owned exclusively by a Worker. Every read-modify-write
  * happens in one SQLite transaction, including nested-key operations. */
 export class DatabaseEngine {
+ readonly #registeredNamespaces=new Set(['moonraker','database']);
  readonly #namespaces=new Set<string>();#namespaceBytes=2;
  readonly #statements=new Map<string,StatementSync>();
  #restoreState:'ready'|'restored'|'restore-failed'='ready';
@@ -86,12 +89,28 @@ export class DatabaseEngine {
    if(path.length===1||databaseObject(record)&&!Object.keys(record).length)this.#prepare('DELETE FROM namespace_store WHERE namespace=? AND key=?').run(namespace,path[0]);else this.#write(namespace,path[0],record);return result;
   });
  }
+ #namespacePolicy(key:string,defaults:string[]):Set<string>{const value=this.#lookup('database',key);if(value===undefined)return new Set(defaults);if(!Array.isArray(value)||value.some(item=>typeof item!=='string'))throw new ApiError(422,'Invalid persisted namespace policy');return new Set([...defaults,...value as string[]]);}
+ registerLocalNamespace(namespace:string,forbidden=false):void{
+  databaseNamespace(namespace);if(typeof forbidden!=='boolean')throw new ApiError(400,'Invalid namespace access policy');if(this.#registeredNamespaces.has(namespace))throw new ApiError(409,'Database namespace already registered');if(this.#registeredNamespaces.size>=4096)throw new ApiError(413,'Registered namespace capacity exceeded');
+  const key=forbidden?'forbidden_namespaces':'protected_namespaces',policy=this.#namespacePolicy(key,forbidden?['database']:['moonraker']),changed=!policy.has(namespace);policy.add(namespace);
+  const added=[namespace,...changed?['database']:[]].filter((name,index,all)=>all.indexOf(name)===index&&!this.#namespaces.has(name));
+  if(this.#namespaceBytes+added.reduce((sum,name)=>sum+Buffer.byteLength(JSON.stringify(name))+1,0)>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');
+  if(changed)this.#transaction(()=>this.#write('database',key,[...policy].sort(namespaceOrder)));
+  if(changed)this.registerNamespace('database');this.registerNamespace(namespace);this.#registeredNamespaces.add(namespace);
+ }
+ unregisterLocalNamespace(namespace:string):void{
+  databaseNamespace(namespace);if(namespace==='database'||namespace==='moonraker')throw new ApiError(403,'Cannot unregister a core namespace');
+  const forbidden=this.#namespacePolicy('forbidden_namespaces',['database']),protectedNames=this.#namespacePolicy('protected_namespaces',['moonraker']),removeForbidden=forbidden.delete(namespace),removeProtected=protectedNames.delete(namespace);
+  if(removeForbidden||removeProtected){this.#checkNamespaceCapacity('database');this.#transaction(()=>{if(removeForbidden)this.#write('database','forbidden_namespaces',[...forbidden].sort(namespaceOrder));if(removeProtected)this.#write('database','protected_namespaces',[...protectedNames].sort(namespaceOrder));});this.registerNamespace('database');}
+  this.#registeredNamespaces.delete(namespace);
+ }
+ hasNamespace(namespace:string):boolean{databaseNamespace(namespace);return this.#namespaces.has(namespace);}
  #checkNamespaceCapacity(namespace:string):void{if(!this.#namespaces.has(namespace)&&this.#namespaceBytes+Buffer.byteLength(JSON.stringify(namespace))+1>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');}
  registerNamespace(namespace:string):void{databaseNamespace(namespace);this.#checkNamespaceCapacity(namespace);if(!this.#namespaces.has(namespace)){this.#namespaces.add(namespace);this.#namespaceBytes+=Buffer.byteLength(JSON.stringify(namespace))+1;}}
  namespaceLength(namespace:string):number{databaseNamespace(namespace);return Number(this.#prepare('SELECT COUNT(*) AS count FROM namespace_store WHERE namespace=?').get(namespace)!.count);}
  clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
- list():string[]{return [...this.#namespaces].sort();}
+ list():string[]{return [...this.#namespaces].sort(namespaceOrder);}
  get restoreState(){return this.#restoreState;}
  async restore(path:string,validate?:(info:Json)=>void):Promise<{restored_tables:string[];restored_namespaces:string[]}>{
   if(this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');
