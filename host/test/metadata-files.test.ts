@@ -131,3 +131,23 @@ test('refresh errors and cancellation cannot restore stale metadata or acknowled
   assert.equal((await f.files.refresh('层/part.gcode',signal)).state,'updated');assert.equal(f.intents.unresolved().length,1);
  }finally{await f.close();}
 });
+test('directory reconciliation invalidates deleted durable names and recovers interrupted pending scans',async()=>{
+ const f=await fixture();try{
+  await f.files.rescan('层/part.gcode',signal);await writeFile(join(f.root,'pending.gcode'),'G1 X3\n');const pending=await f.intents.begin('pending.gcode',signal);await f.versions.begin(pending,signal);await rm(join(f.root,'层/part.gcode'));
+  assert.deepEqual(await f.files.scanDiscovered(signal),{restored:0,scanned:1,unavailable:1,unsupported:0});assert.equal(f.versions.current('层/part.gcode')?.state,'invalidated');assert.equal(f.cache.peek('层/part.gcode'),undefined);assert.equal(f.versions.current('pending.gcode')?.state,'selected');assert.equal(f.intents.unresolved().length,1);assert.notEqual(f.intents.unresolved()[0].id,pending.id);
+  assert.deepEqual(await f.files.scanDiscovered(signal),{restored:1,scanned:0,unavailable:0,unsupported:0});assert.equal((await f.snapshots.listIds(signal)).length,1);
+ }finally{await f.close();}
+});
+test('reconciliation finishes proven retirement but preserves unknown unversioned intents',async()=>{
+ const f=await fixture();try{
+  await f.files.rescan('层/part.gcode',signal);await f.owner.invalidate('层/part.gcode',signal);await rm(join(f.root,'层/part.gcode'));const unknown=await f.intents.begin('unknown.gcode',signal);
+  assert.deepEqual(await f.files.scanDiscovered(signal),{restored:0,scanned:0,unavailable:0,unsupported:0});assert.deepEqual(f.intents.unresolved(),[unknown]);assert.deepEqual(await f.snapshots.listIds(signal),[]);
+ }finally{await f.close();}
+});
+test('reconciliation capacity includes durable missing names before any retirement or new scan',async()=>{
+ const f=await fixture();try{
+  await f.files.rescan('层/part.gcode',signal);const old=f.intents.unresolved()[0];await rm(join(f.root,'层/part.gcode'));await writeFile(join(f.root,'new.gcode'),'G1 X1\n');
+  await assert.rejects(f.files.scanDiscovered(signal,{maxFiles:1}),(e:any)=>e.status===413);assert.deepEqual(f.intents.unresolved(),[old]);assert.equal(f.versions.current('层/part.gcode')?.state,'selected');assert.equal(f.versions.current('new.gcode'),undefined);
+  assert.deepEqual(await f.files.scanDiscovered(signal,{maxFiles:2}),{restored:0,scanned:1,unavailable:1,unsupported:0});
+ }finally{await f.close();}
+});

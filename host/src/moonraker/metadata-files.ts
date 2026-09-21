@@ -111,7 +111,16 @@ export class MetadataFiles {
      }}finally{await directory.close();}
     }finally{await source.close();}
    };
-   await walk('',0);let restored=0,scanned=0,unavailable=0;
+   await walk('',0);
+   // Include active durable names absent from this enumeration. Their source is
+   // reopened below: absence from the directory list alone never authorizes deletion.
+   const included=new Set(names);for(const name of this.#options.lifecycle.activeFilenames()){
+    s.throwIfAborted();if(included.has(name))continue;this.#name(name);bytes+=Buffer.byteLength(name);
+    if(names.length>=maxFiles||bytes>maxBytes)throw new ApiError(413,'Metadata reconciliation capacity exceeded');names.push(name);included.add(name);
+   }
+   // Finish interrupted retirement before admitting replacement scans. Unknown
+   // intents without a version are intentionally retained by the lifecycle owner.
+   await this.#options.lifecycle.retireSuperseded(s);let restored=0,scanned=0,unavailable=0;
    for(const name of names){s.throwIfAborted();if(await this.#recover(name,s)){restored++;continue;}
     const result=await this.#refresh(name,s);if(result.state==='updated')scanned++;else unavailable++;
    }

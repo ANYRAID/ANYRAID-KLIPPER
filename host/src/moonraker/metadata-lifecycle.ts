@@ -28,6 +28,7 @@ export class MetadataLifecycle {
  metadata(filename:string){return this.#options.cache.metadata(filename);}
  thumbnails(filename:string){return this.#options.cache.thumbnails(filename);}
  thumbnailDownloads(){return new ThumbnailDownloads(this.#options.images,this.#options.cache);}
+ activeFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state!=='invalidated').map(value=>value.filename));}
  selectedFilenames():readonly string[]{return Object.freeze(this.#options.versions.entries().filter(value=>value.state==='selected').map(value=>value.filename));}
  #admit<T>(prepare:()=>()=>Promise<T>):Promise<T>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Metadata lifecycle is closed'));if(this.#pending.size>=this.#maxPending)return Promise.reject(new ApiError(503,'Metadata lifecycle queue is full'));
