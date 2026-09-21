@@ -1,4 +1,4 @@
-import {executeSql,type SqlOperation,type SqlResult} from './database-sql.ts';
+import {executeSql,releaseSqlPlans,type SqlOperation,type SqlResult} from './database-sql.ts';
 import {migrateTable,tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {statSync} from 'node:fs';
 import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
@@ -127,7 +127,7 @@ export class DatabaseEngine {
  clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
  list():string[]{return [...this.#namespaces].sort(namespaceOrder);}
- registerTable(input:DatabaseTableDefinition,validate?:(result:Json)=>void):Json{const definition=tableDefinition(input),key=definition.name.toLowerCase();if(this.#tablesSealed)throw new ApiError(409,'Table registration is closed');if(this.#registeredTables.has(key))throw new ApiError(409,'Table already registered by a component');if(this.#registeredTables.size>=256)throw new ApiError(413,'Registered table capacity exceeded');const result=this.#transaction(()=>{const result=migrateTable(this.#db,definition);validate?.(result);return result;});this.#registeredTables.add(key);return result;}
+ registerTable(input:DatabaseTableDefinition,validate?:(result:Json)=>void):Json{const definition=tableDefinition(input),key=definition.name.toLowerCase();if(this.#tablesSealed)throw new ApiError(409,'Table registration is closed');if(this.#registeredTables.has(key))throw new ApiError(409,'Table already registered by a component');if(this.#registeredTables.size>=256)throw new ApiError(413,'Registered table capacity exceeded');const result=this.#transaction(()=>{releaseSqlPlans(this.#db);const result=migrateTable(this.#db,definition);validate?.(result);return result;});this.#registeredTables.add(key);return result;}
  sql(tables:string[],operations:SqlOperation[],validate?:(result:Json)=>void):SqlResult[]{return this.#transaction(()=>{const result=executeSql(this.#db,tables,operations,this.#registeredTables,this.#replyBytes);validate?.(result as unknown as Json);return result;});}
  sealTableRegistration():void{this.#tablesSealed=true;}
  sqlRead(tables:string[],operation:SqlOperation,validate?:(result:Json)=>void):SqlResult{const result=executeSql(this.#db,tables,[operation],this.#registeredTables,this.#replyBytes,true)[0];validate?.(result as unknown as Json);return result;}
@@ -145,10 +145,10 @@ export class DatabaseEngine {
    const restored_tables=names("SELECT name FROM sqlite_schema WHERE type='table'"),restored_namespaces=names('SELECT DISTINCT namespace AS name FROM namespace_store'),info={restored_tables,restored_namespaces};validate?.(info);
    // Once replacement starts, even a lost/failed acknowledgement fences old
    // component writes until a fresh service generation opens the database.
-   this.#restoreState='restore-failed';await backup(source,this.#path);this.#restoreState='restored';return info;
+   this.#restoreState='restore-failed';releaseSqlPlans(this.#db);await backup(source,this.#path);this.#restoreState='restored';return info;
   }catch(error){if(this.#restoreState==='restore-failed')throw new ApiError(503,'Database restore needs restart',{mayHaveCommitted:true});if(!(error instanceof ApiError))throw new ApiError(422,'Invalid restore database');throw error;}finally{try{source.exec('ROLLBACK');}catch{}source.close();}
  }
  backup(path:string):Promise<number>{return backup(this.#db,path);}
  compact():{previous_size:number;new_size:number}{const previous_size=statSync(this.#path).size;this.#db.exec('VACUUM');this.#db.exec('PRAGMA wal_checkpoint(TRUNCATE)');return {previous_size,new_size:statSync(this.#path).size};}
- close(){if(this.#closed)return;this.#closed=true;this.#db.close();}
+ close(){if(this.#closed)return;this.#closed=true;try{releaseSqlPlans(this.#db);}finally{this.#db.close();}}
 }

@@ -35,3 +35,42 @@ test('read response limits, invariants and lifecycle checks remain enforced',()=
  assert.deepEqual((await db.sqlRead(['jobs'],{sql:'WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<3) SELECT sum(x) FROM n'})).rows,[[6]]);
  await db.close();await assert.rejects(db.sqlRead(['jobs'],{sql:'SELECT 1'}),e=>e instanceof ApiError&&e.status===503);
 }));
+
+test('warm read plans cannot cross declared table scopes or reuse old parameter bindings',()=>fixture(async db=>{
+ await db.sql(['jobs'],[{sql:'INSERT INTO jobs VALUES(1,2,NULL)'}]);
+ const sql='SELECT id,value FROM jobs WHERE id=?';
+ assert.deepEqual((await db.sqlRead(['jobs','other_jobs'],{sql,params:[1]})).rows,[[1,2]]);
+ await assert.rejects(db.sqlRead(['other_jobs'],{sql,params:[1]}));
+ assert.deepEqual((await db.sqlRead(['JOBS'],{sql,params:[2]})).rows,[]);
+ assert.deepEqual((await db.sqlRead(['jobs'],{sql,params:[1]})).rows,[[1,2]]);
+ assert.deepEqual((await db.sqlRead(['jobs'],{sql:'SELECT ?',params:[7]})).rows,[[7]]);
+ assert.deepEqual((await db.sqlRead(['jobs'],{sql:'SELECT ?'})).rows,[[null]]);
+ await assert.rejects(db.sqlRead(['jobs'],{sql:'SELECT ?',params:['x'.repeat(10000)]}),e=>e instanceof ApiError&&e.status===413);
+ assert.deepEqual((await db.sqlRead(['jobs'],{sql:'SELECT ?',params:[9]})).rows,[[9]]);
+}));
+test('external schema changes refresh column metadata and reauthorize cached statements',()=>fixture(async(db,path)=>{
+ await db.sql(['jobs'],[{sql:'INSERT INTO jobs VALUES(1,2,NULL)'}]);const query={sql:'SELECT * FROM jobs'};
+ assert.deepEqual((await db.sqlRead(['jobs'],query)).columns,['id','value','other']);const external=new DatabaseSync(path);
+ try{
+  external.exec("ALTER TABLE jobs ADD COLUMN added TEXT DEFAULT 'new'");const altered=await db.sqlRead(['jobs'],query);assert.deepEqual(altered.columns,['id','value','other','added']);assert.deepEqual(altered.rows,[[1,2,null,'new']]);
+  external.exec('ALTER TABLE jobs ADD COLUMN "'+'q'.repeat(9000)+'" INTEGER');await assert.rejects(db.sqlRead(['jobs'],query),e=>e instanceof ApiError&&e.status===413);
+  external.exec('DROP TABLE jobs; CREATE VIEW jobs AS SELECT * FROM other_jobs');await assert.rejects(db.sqlRead(['jobs'],query));
+  external.exec('DROP VIEW jobs; CREATE TABLE jobs (different TEXT); INSERT INTO jobs VALUES(\'ok\')');const replaced=await db.sqlRead(['jobs'],query);assert.deepEqual(replaced.columns,['different']);assert.deepEqual(replaced.rows,[['ok']]);
+ }finally{external.close();}
+}));
+test('later table registration cannot remove the read plan authorization boundary',async()=>{
+ const directory=await mkdtemp(join(tmpdir(),'read-plan-register-')),db=await DatabaseStore.open({path:join(directory,'db')});
+ try{await db.registerTable({name:'first_table',prototype:'first_table (id INTEGER)',version:1});await db.sqlRead(['first_table'],{sql:'SELECT * FROM first_table'});
+  await db.registerTable({name:'second_table',prototype:'second_table (id INTEGER)',version:1});await db.sqlRead(['first_table'],{sql:'SELECT * FROM first_table'});await assert.rejects(db.sqlRead(['first_table'],{sql:'SELECT * FROM second_table'}));
+  await assert.rejects(db.sqlRead(['first_table'],{sql:'INSERT INTO first_table VALUES(1)'}));
+ }finally{await db.close();await rm(directory,{recursive:true,force:true});}
+});
+
+test('read plan eviction finalizes old native statements and closing releases retained plans',async()=>{
+ const {executeSql,releaseSqlPlans}=await import('../src/moonraker/database-sql.ts'),db=new DatabaseSync(':memory:'),held:ReturnType<DatabaseSync['prepare']>[]=[];
+ db.exec('CREATE TABLE jobs (id INTEGER)');const prepare=db.prepare.bind(db);db.prepare=(sql:string)=>{const s=prepare(sql);if(sql.startsWith('SELECT 1 AS column_')||sql.includes('oversized_binding'))held.push(s);return s;};
+ try{for(let i=0;i<40;i++)assert.deepEqual(executeSql(db,['jobs'],[{sql:`SELECT 1 AS column_${i}`}],new Set(['jobs']),8192,true)[0].rows,[[1]]);
+  assert.deepEqual(executeSql(db,['jobs'],[{sql:'SELECT length(?) AS oversized_binding',params:['x'.repeat(10000)]}],new Set(['jobs']),8192,true)[0].rows,[[10000]]);assert.throws(()=>held.pop()!.get());
+  assert.throws(()=>held[0].get());assert.deepEqual(held.at(-1)!.get(),[1n]);releaseSqlPlans(db);assert.throws(()=>held.at(-1)!.get());
+ }finally{releaseSqlPlans(db);db.close();}
+});
