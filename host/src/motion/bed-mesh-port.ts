@@ -8,13 +8,17 @@ export interface BedMeshPortOptions {
  mesh:BedMesh|null;fade:BedMeshFade;physicalPosition:readonly number[];limits:MotionLimits;
  /** Required synchronous kinematic/extrusion checks; may limit speed/acceleration.
   * Must not perform I/O or mutate endpoints or previously admitted moves. */
- validate:(move:Move)=>void;splitDeltaZ?:number;checkDistance?:number;
+ validate:(move:Move)=>void;signal?:AbortSignal;splitDeltaZ?:number;checkDistance?:number;
 }
 /** GCodeMove adapter owning a lookahead queue and a fixed mesh snapshot.
  * Physical position means accepted/planned position, not measured MCU position. */
 export class BedMeshMovePort implements MovePort {
  #mesh:BedMesh|null;#fade:BedMeshFade;#limits:MotionLimits;#validate:(move:Move)=>void;
  #logical:number[];#physical:number[];#queue=new LookAheadQueue();#busy=false;#flushDue=false;
+ #fault:Error|undefined;#signal:AbortSignal|undefined;
+ #onAbort=()=>this.shutdown(this.#signal?.reason);
+ #active():void{if(this.#fault)throw this.#fault;}
+ #finish():void{this.#busy=false;if(this.#fault){this.#queue.reset();this.#flushDue=false;}}
  #split:{splitDeltaZ:number;checkDistance:number};
  constructor(options:BedMeshPortOptions){
   const {physicalPosition,fade}=options;
@@ -24,10 +28,19 @@ export class BedMeshMovePort implements MovePort {
   if(!Number.isFinite(this.#split.splitDeltaZ)||this.#split.splitDeltaZ<.01||!Number.isFinite(this.#split.checkDistance)||this.#split.checkDistance<3)throw new RangeError('Invalid mesh split configuration');
   if(this.#mesh&&fade.enabled){const [low,high]=this.#mesh.range();if(fade.distance<=Math.max(Math.abs(low),Math.abs(high))||fade.distance<=high-fade.target||(fade.target!==0&&(fade.target<low||fade.target>high)))throw new RangeError('Invalid mesh fade range or target');}
   this.#logical=this.#inverse();new Move(this.#limits,this.#physical,this.#physical,1);
+  this.#signal=options.signal;if(this.#signal){this.#signal.addEventListener('abort',this.#onAbort,{once:true});if(this.#signal.aborted)this.#onAbort();}this.#active();
  }
- #idle(){if(this.#busy)throw new Error('Mesh motion admission active');}
+ #idle(){this.#active();if(this.#busy)throw new Error('Mesh motion admission active');}
  #inverse():number[]{const p=[...this.#physical];if(this.#mesh)p[2]=this.#fade.unapply(p[2],this.#mesh.calcZ(p[0],p[1]));return p;}
  position():readonly number[]{this.#idle();const position=this.#inverse();this.#logical=[...position];return position;}
+ /** Latches the first cause and drops only host-owned, unflushed motion.
+  * Already returned trajectories require a separate downstream hardware stop. */
+ shutdown(cause:unknown=new Error('Mesh motion stopped')):void{
+  this.#fault??=cause instanceof Error?cause:new Error('Mesh motion stopped',{cause});
+  this.#signal?.removeEventListener('abort',this.#onAbort);this.#signal=undefined;
+  if(!this.#busy){this.#queue.reset();this.#flushDue=false;}
+ }
+ get fault():Error|undefined{return this.#fault;}
  get plannedPosition():readonly number[]{return [...this.#physical];}
  get pending():number{return this.#queue.length;}
  get flushDue():boolean{return this.#flushDue;}
@@ -41,11 +54,11 @@ export class BedMeshMovePort implements MovePort {
    else {const end=[...target];if(this.#mesh)end[2]+=this.#fade.target;endpoints=[end];}
    if(this.#queue.length+endpoints.length>100000)throw new RangeError('Mesh lookahead budget exceeded');
    let previous=this.#physical;const staged:Move[]=[];
-   for(const end of endpoints){const move=new Move(this.#limits,previous,end,speed);if(move.distance){const outcome:unknown=this.#validate(move);if(outcome!==undefined){if(isPromise(outcome))void outcome.catch(()=>{});throw new TypeError('Motion validator must return synchronously without a value');}staged.push(move);}previous=move.endPos;}
-   const finalPhysical=[...previous];const due=this.#queue.addBatch(staged);
+   for(const end of endpoints){const move=new Move(this.#limits,previous,end,speed);if(move.distance){const outcome:unknown=this.#validate(move);if(outcome!==undefined){if(isPromise(outcome))void outcome.catch(()=>{});throw new TypeError('Motion validator must return synchronously without a value');}this.#active();staged.push(move);}previous=move.endPos;}
+   const finalPhysical=[...previous];const due=this.#queue.addBatch(staged);this.#active();
    this.#physical=finalPhysical;this.#logical=target;this.#flushDue=due||this.#flushDue;
-  }finally{this.#busy=false;}
+  }finally{this.#finish();}
  }
  /** Flush for downstream planning; does not send anything to hardware. */
- flush(lazy=false):Move[]{this.#idle();this.#busy=true;try{const moves=this.#queue.flush(lazy);this.#flushDue=false;return moves;}finally{this.#busy=false;}}
+ flush(lazy=false):Move[]{this.#idle();this.#busy=true;try{const moves=this.#queue.flush(lazy);this.#flushDue=false;return moves;}finally{this.#finish();}}
 }
