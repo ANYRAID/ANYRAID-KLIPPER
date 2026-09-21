@@ -33,16 +33,17 @@ class Sensor {
  }
  update(input:Readonly<Record<string,SensorReading>>):void{
   try{
-   if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length>this.#maxParameters)throw new ApiError(400,'Invalid sensor measurements');
+   if(!input||typeof input!=='object'||Array.isArray(input))throw new ApiError(400,'Invalid sensor measurements');
+   const entries=Object.entries(input);if(entries.length>this.#maxParameters)throw new ApiError(400,'Invalid sensor measurements');
    const next=new Map<string,Reading>();
-   for(const [name,reading] of Object.entries(input)){
+   for(const [name,reading] of entries){
     text(name);if(!reading||typeof reading!=='object')throw new ApiError(400,'Invalid sensor reading');const {value}=reading,numberType=reading.numberType??'float';
     if(!['float','integer'].includes(numberType)||typeof value!=='boolean'&&(typeof value!=='number'||!Number.isFinite(value))||typeof value==='number'&&numberType==='integer'&&!Number.isSafeInteger(value))throw new ApiError(422,'Invalid or unsafe sensor number');
     next.set(name,{value:typeof value==='number'&&numberType==='integer'&&value===0?0:value,numberType});
    }
-   if(new Set([...this.#history.keys(),...next.keys()]).size>this.#maxParameters)throw new ApiError(413,'Sensor parameter capacity exceeded');
-   const updates=this.#bindings.flatMap(binding=>{const reading=next.get(binding.parameter);return reading?[{tracker:binding.field.tracker,value:reading.value,numberType:reading.numberType}]:[];});
-   if(updates.length)HistoryTracker.updateBatch(updates);
+   let parameterCount=this.#history.size;for(const name of next.keys())if(!this.#history.has(name)&&++parameterCount>this.#maxParameters)throw new ApiError(413,'Sensor parameter capacity exceeded');
+   if(this.#bindings.length===1){const binding=this.#bindings[0],reading=next.get(binding.parameter);if(reading)binding.field.tracker.update(reading.value,reading.numberType);}
+   else if(this.#bindings.length){const updates=[];for(const binding of this.#bindings){const reading=next.get(binding.parameter);if(reading)updates.push({tracker:binding.field.tracker,value:reading.value,numberType:reading.numberType});}if(updates.length)HistoryTracker.updateBatch(updates);}
    this.#measurements=next;for(const binding of this.#bindings)if(binding.reset)binding.field.tracker.setResetCallback(binding.reset,next.get(binding.parameter)?.numberType??'integer');this.error=null;
   }catch(error){this.error=error instanceof Error?error.message:'Sensor update failed';throw error;}
  }
@@ -68,8 +69,10 @@ export class SensorStore {
   if(this.#sensors.has(id))throw new ApiError(409,'Sensor already registered');if(this.#sensors.size>=this.#maxSensors||this.#reserved+slots>this.#maxSlots)throw new ApiError(413,'Sensor store capacity exceeded');
   const sensor=new Sensor(options,capacity,parameters,fields);this.#sensors.set(id,sensor);this.#reserved+=slots;
  }
+ get closed():boolean{return this.#closed;}
  get status(){return {closed:this.#closed,sensors:this.#sensors.size,reservedSlots:this.#reserved,errors:Object.fromEntries([...this.#sensors].filter(([,sensor])=>sensor.error!==null).map(([id,sensor])=>[id,sensor.error]))};}
  update(id:string,input:Readonly<Record<string,SensorReading>>):void{this.#open();this.#sensor(id).update(input);}
+ recordError(id:string,message:string):void{this.#open();if(typeof message!=='string')throw new ApiError(400,'Invalid sensor error');this.#sensor(id).error=message.slice(0,4096);}
  disconnect(id:string):void{this.#open();this.#sensor(id).disconnect();}
  sample():Record<string,Record<string,Value>>{this.#open();const changed:[string,Record<string,Value>][]=[];for(const [id,sensor] of this.#sensors){const value=sensor.sample();if(value!==undefined)changed.push([id,value]);}return Object.fromEntries(changed);}
  list(extended=false){return {sensors:Object.fromEntries([...this.#sensors].map(([id,sensor])=>[id,sensor.info(extended)]))};}

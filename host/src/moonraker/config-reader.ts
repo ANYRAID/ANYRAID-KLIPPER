@@ -26,6 +26,8 @@ function convert(type:ListType,value:string):string|number{
 }
 /** Parse nested dictionary integers using the same Python-compatible lexical rules. */
 export function parseConfigurationInteger(value:string):number{return convert('int',value) as number;}
+const plainFloat=/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/;
+export function parseConfigurationFloat(value:string):number{if(plainFloat.test(value)){const number=Number(value);if(Number.isFinite(number))return number;}return convert('float',value) as number;}
 const booleans=new Map<string,boolean>([['1',true],['yes',true],['true',true],['on',true],['0',false],['no',false],['false',false],['off',false]]);
 function split(text:string,separator:string|null):string[]{if(separator===null)return strip(text).split(spaces);if(!separator)throw new ConfigurationError('Empty configuration separator');return text.split(separator);}
 function firstSplit(text:string,separator:string|null):string[]{if(separator===null){const match=spaces.exec(text);return match?[text.slice(0,match.index),text.slice(match.index+match[0].length)]:[text];}if(!separator)throw new ConfigurationError('Empty configuration separator');const index=text.indexOf(separator);return index<0?[text]:[text.slice(0,index),text.slice(index+separator.length)];}
