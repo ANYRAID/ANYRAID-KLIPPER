@@ -1,0 +1,6 @@
+import {performance} from 'node:perf_hooks';
+import assert from 'node:assert/strict';
+import {MoveQueueSink} from '../src/motion/move-queue-sink.ts';
+const base=1n<<54n,clocks:Record<string,bigint>={},configs=Array.from({length:8},(_,i)=>({id:`m${i}`,emitters:Array.from({length:16},(_,j)=>`m${i}:e${j}`),moveSlots:32,clockAt:()=>base,transport:{async send(){},async stop(){}}}));
+const outputs=configs.flatMap((c,i)=>c.emitters.map((id,j)=>{clocks[id]=base+BigInt(i*16+j);return {id,position:0n,history:new BigInt64Array(),messages:[]};}));const sink=new MoveQueueSink(configs,async()=>{});await sink.commit({sequence:0,from:0,until:1,outputs});const expected=Object.fromEntries(configs.map((c,i)=>[c.id,base+BigInt(i*16+15)])),times:number[]=[];assert.deepEqual(sink.motionClockTargets(clocks),expected);
+for(let i=0;i<16;i++){const start=performance.now();for(let j=0;j<1000;j++)sink.motionClockTargets(clocks);if(i>=5)times.push(performance.now()-start);}times.sort((a,b)=>a-b);console.log(JSON.stringify({node:process.version,mcus:8,emitters:128,mappingsPerBatch:1000,medianMs:times[5],p95Ms:times[10],scope:'Actual sink routing and complete 64-bit target validation on a drained in-memory sink. No native generation, serial ACK, sampled clock delay or physical motion.'},null,2));

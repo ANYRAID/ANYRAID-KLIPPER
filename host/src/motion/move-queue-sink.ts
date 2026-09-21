@@ -9,12 +9,21 @@ export interface ScheduledTransport {
 export interface MCUQueueConfig {id:string;emitters:readonly string[];moveSlots:number;clockAt:(printTime:number)=>bigint;transport:ScheduledTransport}
 /** Routes coordinator batches through an independent slot heap per MCU. */
 export class MoveQueueSink implements MotionSink {
- #mcus:{config:MCUQueueConfig;scheduler:MoveQueueScheduler}[];#owners:Map<string,number>;#sequence=0;#until:number;
+ #mcus:{config:MCUQueueConfig;scheduler:MoveQueueScheduler}[];#owners:Map<string,number>;#sequence=0;#until:number;#clocks:bigint[]|undefined;
  #history:(outputs:readonly MotionOutput[])=>Promise<void>;#busy=false;#stopped=false;#stopPromise:Promise<void>|undefined;
  constructor(configs:readonly MCUQueueConfig[],retainHistory:(outputs:readonly MotionOutput[])=>Promise<void>,initialCommittedTime=0){
   if(!configs.length||configs.length>16||new Set(configs.map(c=>c.id)).size!==configs.length||!Number.isFinite(initialCommittedTime)||initialCommittedTime<0)throw new RangeError('Invalid MCU queue configuration');
   this.#owners=new Map();this.#mcus=configs.map((c,index)=>{for(const id of c.emitters){if(this.#owners.has(id))throw new Error('Emitter belongs to multiple MCUs');this.#owners.set(id,index);}return {config:{...c,emitters:[...c.emitters]},scheduler:new MoveQueueScheduler(c.emitters,c.moveSlots)};});
   this.#history=retainHistory;this.#until=initialCommittedTime;
+ }
+ /** Map every emitter boundary using the actual sink routing. Only valid once
+  * all scheduled packets have been handed to transport. Caller must fence new
+  * producers and still wait for ACKs and sampled MCU clocks. */
+ motionClockTargets(emitters:Readonly<Record<string,bigint>>):Readonly<Record<string,bigint>>{
+  if(this.#busy||this.#stopped||!this.#clocks||this.#mcus.some(m=>m.scheduler.pending))throw new Error('Motion sink has no drained boundary');
+  const entries=Object.entries(emitters);if(entries.length!==this.#owners.size||entries.some(([id,tick])=>!this.#owners.has(id)||typeof tick!=='bigint'||tick<0n||tick>=0x7fffffffffffffffn))throw new RangeError('Clock boundary must cover every emitter');
+  const clocks=[...this.#clocks];for(const [id,tick] of entries){const i=this.#owners.get(id)!;if(tick>clocks[i])clocks[i]=tick;}
+  return Object.freeze(Object.fromEntries(this.#mcus.map((m,i)=>[m.config.id,clocks[i]])));
  }
  stop(cause:unknown):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;this.#stopped=true;
@@ -30,7 +39,7 @@ export class MoveQueueSink implements MotionSink {
    const packets=this.#mcus.map((m,i)=>m.scheduler.flush(clocks[i]));
    await this.#history(batch.outputs);if(this.#stopped)throw new Error('MCU move sink stopped during history retention');
    for(let i=0;i<this.#mcus.length;i++){if(this.#stopped)throw new Error('MCU move sink stopped during send');if(packets[i].length)await this.#mcus[i].config.transport.send(packets[i]);}
-   if(this.#stopped)throw new Error('MCU move sink stopped during send');this.#sequence++;this.#until=batch.until;
+   if(this.#stopped)throw new Error('MCU move sink stopped during send');this.#sequence++;this.#until=batch.until;this.#clocks=clocks;
   }catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Move commit and stop failed');}throw error;}
   finally{this.#busy=false;}
  }

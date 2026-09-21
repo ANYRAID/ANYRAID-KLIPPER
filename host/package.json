@@ -197,7 +197,8 @@
     "bench:bed-mesh-switch": "node bench/bed-mesh-switch.ts",
     "bench:mcu-clock-barrier": "node bench/mcu-clock-barrier.ts",
     "bench:mcu-motion-boundary": "node bench/mcu-motion-boundary.ts",
-    "bench:motion-drain": "node bench/motion-drain.ts"
+    "bench:motion-drain": "node bench/motion-drain.ts",
+    "bench:motion-clock-targets": "node bench/motion-clock-targets.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
