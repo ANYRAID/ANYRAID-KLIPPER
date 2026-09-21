@@ -23,7 +23,14 @@ export class SubscriptionManager {
  constructor(options:SubscriptionManagerOptions){this.#options={...options,journalLimits:{...options.journalLimits}};this.#base=new SubscriptionFilter(options.base??{});new SubscriptionJournal(this.#base,this.#options.journalLimits);this.#pending=options.maxPending??32;this.#maxClients=options.maxClients??10000;for(const n of [this.#pending,this.#maxClients])if(!Number.isSafeInteger(n)||n<1||n>10000)throw new ApiError(400,'Invalid subscription manager limit');}
  get metrics(){return {clients:this.#clients.size,pending:this.#queue.length+(this.#active?1:0),closed:this.#closed};}
  subscribe(client:number,objects:unknown,signal?:AbortSignal):Promise<SubscriptionReply>{
-  try{if(this.#closed)throw new ApiError(503,'Subscriptions closed');if(!Number.isSafeInteger(client)||client<1)throw new ApiError(400,'Invalid subscription client');if(signal?.aborted)throw new ApiError(499,'Subscription cancelled');if(this.metrics.pending>=this.#pending)throw new ApiError(429,'Subscription queue full');const filter=new SubscriptionFilter(objects);
+  if(!Number.isSafeInteger(client)||client<1)return Promise.reject(new ApiError(400,'Invalid subscription client'));return this.#subscribe(client,objects,signal);
+ }
+ /** Negative IDs belong exclusively to in-process component owners. */
+ subscribeInternal(owner:number,objects:unknown,signal?:AbortSignal):Promise<SubscriptionReply>{
+  if(!Number.isSafeInteger(owner)||owner>=0)return Promise.reject(new ApiError(400,'Invalid component owner'));return this.#subscribe(owner,objects,signal);
+ }
+ #subscribe(client:number,objects:unknown,signal?:AbortSignal):Promise<SubscriptionReply>{
+  try{if(this.#closed)throw new ApiError(503,'Subscriptions closed');if(signal?.aborted)throw new ApiError(499,'Subscription cancelled');if(this.metrics.pending>=this.#pending)throw new ApiError(429,'Subscription queue full');const filter=new SubscriptionFilter(objects);
    return new Promise((resolve,reject)=>{const controller=new AbortController(),cancel=()=>this.#cancel(job,new ApiError(499,'Subscription cancelled')),job:Job={client,filter,controller,resolve,reject,cleanup:()=>signal?.removeEventListener('abort',cancel),settled:false};signal?.addEventListener('abort',cancel,{once:true});this.#queue.push(job);this.#pump();});
   }catch(error){return Promise.reject(error);}
  }
@@ -33,7 +40,7 @@ export class SubscriptionManager {
  /** Input must already be prepared; cache application belongs to the status
   * lifecycle owner so each incoming delta is cached exactly once. */
  publish(status:StatusView,eventtime:number,excluded?:number):void{if(this.#closed)return;if(!Number.isFinite(eventtime))throw new ApiError(502,'Invalid status event time');const job=this.#active;if(job?.journal&&!job.controller.signal.aborted){try{job.journal.append(status,eventtime);}catch(error){this.#cancel(job,error);}}this.#deliver(status,eventtime,excluded);}
- #deliver(status:StatusView,eventtime:number,excluded?:number){if(this.#closed)return;for(const [client,filter] of this.#clients){if(client===excluded)continue;const projected=filter.project(status);if(Object.keys(projected).length)this.#options.deliver(client,projected,eventtime);}}
+ #deliver(status:StatusView,eventtime:number,excluded?:number){if(this.#closed)return;for(const [client,filter] of this.#clients){if(client===excluded||client<0)continue;const projected=filter.project(status);if(Object.keys(projected).length)this.#options.deliver(client,projected,eventtime);}}
  #pump(){if(this.#active||this.#closed)return;const job=this.#queue.shift();if(!job)return;this.#active=job;void this.#run(job).then(value=>this.#finish(job,undefined,value),error=>this.#finish(job,error)).finally(()=>{this.#active=undefined;if(this.#closed)this.#drained?.();else this.#pump();});}
  async #run(job:Job):Promise<SubscriptionReply>{
   const {client,filter,controller}=job;controller.signal.throwIfAborted();const subscribing=Object.keys(filter.objects).length>0;if(subscribing&&!this.#clients.has(client)&&this.#clients.size>=this.#maxClients)throw new ApiError(429,'Subscription client capacity exceeded');

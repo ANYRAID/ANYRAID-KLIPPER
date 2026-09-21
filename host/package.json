@@ -205,7 +205,8 @@
     "bench:planned-drain": "node bench/planned-drain.ts",
     "bench:motion-history": "node bench/motion-history.ts",
     "bench:motion-retention": "node bench/motion-retention.ts",
-    "bench:gcode-store": "node bench/gcode-store.ts"
+    "bench:gcode-store": "node bench/gcode-store.ts",
+    "bench:temperature-store": "node bench/temperature-store.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

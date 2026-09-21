@@ -286,3 +286,30 @@ test('G-code attempt hook excludes disconnected and aborted calls but retains ba
   await assert.rejects(runtime.request('gcode/script',{script:'bad command'}));assert.deepEqual(commands,['bad command']);
  }finally{await runtime.close();}
 },(m,s)=>{if(m.method==='gcode/script'){s.write(wire({id:m.id,error:{message:'Unknown command'}}));return false;}}));
+test('configured temperature history discovers, samples, filters monitors and retains history on reconnect',()=>peer(async(path,_seen,sockets,dir)=>{
+ const file=join(dir,'temperature.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0\n[data_store]\ntemperature_store_size=3');
+ const server=await ConfiguredMoonraker.load(file,{temperatureStore:{},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(_m,_p,c){if(c.request.headers['x-key']!=='test')throw new ApiError(401,'Denied');}});
+ try{
+  const address=await server.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-key':'test','content-type':'application/json'};await server.attachKlippy(path);await until(()=>server.temperatureStoreStatus?.running===true);
+  assert.equal((await fetch(url+'/server/temperature_store')).status,401);
+  const first:any=await(await fetch(url+'/server/temperature_store',{headers})).json();assert.deepEqual(first.result,{extruder:{temperatures:[2.67],targets:[210]}});
+  sockets[0].write(wire({method:'process_status_update',params:{eventtime:5,status:{extruder:{temperature:4.125},monitor:{temperature:null}}}}));await delay(1100);await until(()=>!!server.temperatureStoreStatus?.samples);
+  const sampled:any=await(await fetch(url+'/server/temperature_store?include_monitors=TRUE',{headers})).json();assert.equal(sampled.result.extruder.temperatures.at(-1),4.12);assert.equal(sampled.result.monitor.temperatures.at(-1),null);
+  assert.equal((await fetch(url+'/server/temperature_store?include_monitors=1',{headers})).status,400);
+  sockets[0].destroy();await until(()=>server.klippy?.connected===false);await server.reconnectKlippy(path);await until(()=>server.temperatureStoreStatus?.initializing===false);
+  const rpc:any=await(await fetch(url+'/server/jsonrpc',{method:'POST',headers,body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.temperature_store',params:{include_monitors:true}})})).json();assert.deepEqual(rpc.result.extruder.temperatures,[2.67,4.12,2.67]);assert.equal(rpc.result.monitor.temperatures.at(-1),19.98);
+ }finally{await server.close();}assert.equal(server.temperatureStoreStatus?.running,false);assert.equal(server.temperatureStoreStatus?.closed,true);assert.equal(server.rpc.has('server.temperature_store'),false);
+},(m,s)=>{
+ if(m.method==='objects/query'&&m.params.objects.heaters===null){s.write(wire({id:m.id,result:{status:{heaters:{available_sensors:['extruder'],available_monitors:['monitor']}}}}));return false;}
+ if(m.method==='objects/subscribe'&&Object.hasOwn(m.params.objects,'extruder')){s.write(wire({id:m.id,result:{eventtime:1,status:{webhooks:{state:'ready'},extruder:{temperature:2.675,target:210},monitor:{temperature:19.985}}}}));return false;}
+}));
+test('temperature discovery errors remain observable without claiming history readiness or closing Klippy',()=>peer(async(path,_seen,_sockets,dir)=>{
+ const file=join(dir,'temperature-error.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const server=await ConfiguredMoonraker.load(file,{temperatureStore:{},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}});
+ try{await server.attachKlippy(path);await until(()=>!!server.temperatureStoreStatus?.error);assert.equal(server.klippy?.initialized,true);assert.equal(server.temperatureStoreStatus?.sensors,0);assert.equal(server.temperatureStoreStatus?.running,false);}finally{await server.close();}
+},(m,s)=>{if(m.method==='objects/query'){s.write(wire({id:m.id,error:{message:'Heaters unavailable'}}));return false;}}));
+test('closing temperature storage cancels an in-flight discovery without publishing late readiness',()=>peer(async(path,seen,_sockets,dir)=>{
+ const file=join(dir,'temperature-pending.conf');await writeFile(file,'[server]\nhost=127.0.0.1\nport=0');
+ const server=await ConfiguredMoonraker.load(file,{temperatureStore:{},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}});
+ try{await server.attachKlippy(path);await until(()=>seen.some(m=>m.method==='objects/query'));assert.equal(server.temperatureStoreStatus?.initializing,true);await server.close();assert.equal(server.temperatureStoreStatus?.initializing,false);assert.equal(server.temperatureStoreStatus?.running,false);assert.equal(server.temperatureStoreStatus?.sensors,0);}finally{await server.close();}
+},m=>{if(m.method==='objects/query')return false;}));

@@ -91,6 +91,7 @@ export class KlippyLifecycle {
  }
  request(method:string,params:Record<string,Json>={},options:KlippyRequestOptions={}){if(method==='gcode/script'&&typeof params.script==='string'&&this.#socket.status.phase==='connected'&&!options.signal?.aborted)this.#options.onGcodeCommand?.(params.script);return this.#socket.request(method,params,options);}
  subscribe(client:number,objects:unknown,signal?:AbortSignal){if(!this.#snapshot.initialized||this.signal.aborted)return Promise.reject(new ApiError(503,'Klippy subscriptions unavailable'));if(!this.#options.onSubscriptionStatus)return Promise.reject(new ApiError(503,'Subscription delivery owner required'));return this.#subscriptions.subscribe(client,objects,signal);}
+ subscribeComponent(owner:number,objects:unknown,signal?:AbortSignal){if(!this.#snapshot.initialized||this.signal.aborted)return Promise.reject(new ApiError(503,'Klippy subscriptions unavailable'));return this.#subscriptions.subscribeInternal(owner,objects,signal);}
  removeSubscription(client:number){this.#subscriptions.remove(client);}
  async close(){const subscriptions=this.#subscriptions.close();await this.#socket.close();await subscriptions;await this.#starting?.catch(()=>{});}
 }

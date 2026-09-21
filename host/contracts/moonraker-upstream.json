@@ -38,7 +38,7 @@
       "name": "data_store",
       "tier": "core",
       "status": "partial",
-      "evidence": "G-code ring, UTF-8 payload budget, count slicing and authenticated REST/RPC registration in host/src/moonraker/gcode-store.ts; opt-in ConfiguredMoonraker command/response wiring survives reconnects. Pinned Python differential and Unix/HTTP tests in gcode-store.test.ts and klippy-lifecycle.test.ts. Temperature sampling and complete daemon assembly remain unimplemented."
+      "evidence": "Opt-in bounded G-code and temperature histories in gcode-store.ts, temperature-store.ts and temperature-store-runtime.ts, wired through ConfiguredMoonraker. Pinned Python differential, precise decimal rounding, authenticated REST/RPC, sensor discovery, internal aggregate subscriptions, one-second sampling, monitor filtering, reconnect retention and shutdown cancellation tested. Full daemon assembly and production authorization remain incomplete."
     },
     {
       "name": "database",
@@ -409,7 +409,8 @@
       "line": 62,
       "method": "register_endpoint",
       "targetExpression": "\"/server/temperature_store\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/temperature-store.ts; temperature-store-runtime.ts; host/test/temperature-store.test.ts; klippy-lifecycle.test.ts; host/bench/temperature-store.ts. Sensor fields, Python rounding, null/carry-forward, monitor filter and authenticated REST/RPC integrated opt-in. Capacity/sensor/slot limits and positive capacity are explicit extensions. Full daemon and transport acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/data_store.py",
