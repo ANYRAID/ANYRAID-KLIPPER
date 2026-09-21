@@ -18,5 +18,10 @@ export class DatabaseNamespace {
  deleteBatch(keys:readonly string[]){return this.#store.deleteBatch(this.namespace,keys);}
  moveBatch(from:readonly string[],to:readonly string[]){return this.#store.moveBatch(this.namespace,from,to);}
  clear(){return this.#store.clearNamespace(this.namespace);}
+ contains(key:DatabaseKey){return this.#store.namespaceContains(this.namespace,this.#key(key));}
+ keys(){return this.#store.namespaceKeys(this.namespace);}
+ values(){return this.#store.namespaceValues(this.namespace);}
+ items(){return this.#store.namespaceItems(this.namespace);}
+ async pop(key:DatabaseKey,...fallback:[]|[Json]):Promise<Json>{try{return await this.delete(key);}catch(error){if(error instanceof ApiError&&error.status===404&&fallback.length)return fallback[0];throw error;}}
  length(){return this.#store.namespaceLength(this.namespace);}
 }

@@ -47,6 +47,10 @@ export class DatabaseStore {
  registerNamespace(namespace:string){databaseNamespace(namespace);return this.#call('register-namespace',[namespace]);}
  clearNamespace(namespace:string){databaseNamespace(namespace);return this.#call('clear-namespace',[namespace]);}
  dropEmptyNamespace(namespace:string){databaseNamespace(namespace);return this.#call('drop-empty-namespace',[namespace]);}
+ namespaceKeys(namespace:string){databaseNamespace(namespace);return this.#call('namespace-keys',[namespace]) as Promise<string[]>;}
+ namespaceValues(namespace:string){databaseNamespace(namespace);return this.#call('namespace-values',[namespace]) as Promise<Json[]>;}
+ namespaceItems(namespace:string){databaseNamespace(namespace);return this.#call('namespace-items',[namespace]) as Promise<[string,Json][]>;}
+ namespaceContains(namespace:string,key:DatabaseKey){databaseNamespace(namespace);databaseKey(key);return this.#call('namespace-contains',[namespace,key as Json]) as Promise<boolean>;}
  namespaceLength(namespace:string){databaseNamespace(namespace);return this.#call('namespace-length',[namespace]) as Promise<number>;}
  get(namespace:string,key?:DatabaseKey|null){databaseNamespace(namespace);if(key!==undefined&&key!==null)databaseKey(key);return this.#call('get',[namespace,key as Json??null]);}
  insert(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('insert',[namespace,key as Json,value]);}

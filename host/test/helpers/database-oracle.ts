@@ -18,7 +18,7 @@ names={'RECORD_ENCODE_FUNCS','RECORD_DECODE_FUNCS','encode_record','decode_recor
 nodes=[n for n in source.body if getattr(n,'name',None) in names or isinstance(n,ast.AnnAssign) and getattr(n.target,'id',None) in names]
 exec('from __future__ import annotations\\n'+ast.unparse(ast.Module(body=nodes,type_ignores=[])))
 provider=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='SqliteProvider')
-methods={'sync_namespace','register_namespace','clear_namespace','_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','backup_database','compact_database','restore_database','_validate_restore_db','delete_item','get_item'}
+methods={'get_namespace_keys','get_namespace_values','get_namespace_items','namespace_contains','sync_namespace','register_namespace','clear_namespace','_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','backup_database','compact_database','restore_database','_validate_restore_db','delete_item','get_item'}
 body=[n for n in provider.body if isinstance(n,ast.FunctionDef) and n.name in methods]
 exec('from __future__ import annotations\\nclass Provider:\\n'+textwrap.indent(ast.unparse(ast.Module(body=body,type_ignores=[])),'    '))
 NAMESPACE_TABLE='namespace_store'
@@ -43,6 +43,10 @@ def main():
    elif method=='moveBatch': owner.move_batch(conn,*args);value=None
    elif method=='delete': value=owner.delete_item(conn,*args)
    elif method=='syncNamespace': owner.sync_namespace(conn,*args);value=None
+   elif method=='namespaceKeys': value=owner.get_namespace_keys(conn,*args)
+   elif method=='namespaceValues': value=owner.get_namespace_values(conn,*args)
+   elif method=='namespaceItems': value=owner.get_namespace_items(conn,*args)
+   elif method=='namespaceContains': value=owner.namespace_contains(conn,*args)
    elif method=='registerNamespace': owner.register_namespace(*args);value=None
    elif method=='clearNamespace': owner.clear_namespace(conn,*args);value=None
    elif method=='dropEmptyNamespace': owner.drop_empty_namespace(conn,*args);value=None

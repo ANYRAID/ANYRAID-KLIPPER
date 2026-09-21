@@ -107,6 +107,19 @@ export class DatabaseEngine {
  hasNamespace(namespace:string):boolean{databaseNamespace(namespace);return this.#namespaces.has(namespace);}
  #checkNamespaceCapacity(namespace:string):void{if(!this.#namespaces.has(namespace)&&this.#namespaceBytes+Buffer.byteLength(JSON.stringify(namespace))+1>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');}
  registerNamespace(namespace:string):void{databaseNamespace(namespace);this.#checkNamespaceCapacity(namespace);if(!this.#namespaces.has(namespace)){this.#namespaces.add(namespace);this.#namespaceBytes+=Buffer.byteLength(JSON.stringify(namespace))+1;}}
+ namespaceEntries(namespace:string,mode:'keys'|'values'|'items'):Json[]{
+  databaseNamespace(namespace);if(!['keys','values','items'].includes(mode))throw new ApiError(400,'Invalid namespace enumeration');const result:Json[]=[];let bytes=2;
+  const columns=mode==='keys'?'key':mode==='values'?'value':'key,value';
+  for(const row of this.#prepare('SELECT '+columns+' FROM namespace_store WHERE namespace=? ORDER BY key').iterate(namespace)){
+   let value:Json;if(mode==='keys'){if(typeof row.key!=='string')throw new ApiError(422,'Invalid persisted key');value=row.key;}
+   else{if(!(row.value instanceof Uint8Array))throw new ApiError(422,'Invalid persisted record');if(row.value.byteLength>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');value=decodeDatabaseRecord(row.value);if(mode==='items'){if(typeof row.key!=='string')throw new ApiError(422,'Invalid persisted key');value=[row.key,value];}}
+   bytes+=Buffer.byteLength(JSON.stringify(value))+(result.length?1:0);if(bytes>this.#replyBytes)throw new ApiError(413,'Database namespace enumeration exceeds reply limit');result.push(value);
+  }return result;
+ }
+ namespaceContains(namespace:string,key:DatabaseKey):boolean{
+  databaseNamespace(namespace);const path=databaseKey(key);if(path.length===1)return !!this.#prepare('SELECT 1 FROM namespace_store WHERE namespace=? AND key=?').get(namespace,path[0]);
+  let value=this.#lookup(namespace,path[0]);if(value===undefined)return false;for(const field of path.slice(1)){if(!databaseObject(value)||!Object.hasOwn(value,field))return false;value=value[field];}return true;
+ }
  namespaceLength(namespace:string):number{databaseNamespace(namespace);return Number(this.#prepare('SELECT COUNT(*) AS count FROM namespace_store WHERE namespace=?').get(namespace)!.count);}
  clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
  dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}

@@ -27,6 +27,10 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
    case 'register-namespace':engine.registerNamespace(namespace as string);break;
    case 'clear-namespace':engine.clearNamespace(namespace as string);break;
    case 'drop-empty-namespace':engine.dropEmptyNamespace(namespace as string);break;
+   case 'namespace-keys':value=engine.namespaceEntries(namespace as string,'keys');break;
+   case 'namespace-values':value=engine.namespaceEntries(namespace as string,'values');break;
+   case 'namespace-items':value=engine.namespaceEntries(namespace as string,'items');break;
+   case 'namespace-contains':value=engine.namespaceContains(namespace as string,key as DatabaseKey);break;
    case 'namespace-length':value=engine.namespaceLength(namespace as string);break;
    case 'get':value=engine.get(namespace as string,key as DatabaseKey|null);break;
    case 'insert':engine.insert(namespace as string,key as DatabaseKey,input);break;
