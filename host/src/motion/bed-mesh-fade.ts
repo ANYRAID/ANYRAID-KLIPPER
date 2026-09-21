@@ -1,8 +1,25 @@
 // GPL-3.0-or-later. Fade equations from extras/bed_mesh.py.
+import type {BedMesh} from './bed-mesh.ts';
+export interface BedMeshFadeConfig {start?:number;end?:number;target?:number|null;toolOffset?:number;}
 export interface BedMeshFadeOptions {start:number;end:number;target:number;toolOffset?:number;}
-/** Immutable, already-resolved fade configuration. Profile selection/mean target
- * and motion-queue admission remain the responsibility of the runtime. */
+/** Immutable numerical fade configuration, optionally resolved from a mesh. */
 export class BedMeshFade {
+ #automatic=false;
+ get automaticTarget():boolean{return this.#automatic;}
+ static forMesh(mesh:Pick<BedMesh,'average'|'range'>|null,config:BedMeshFadeConfig={}):BedMeshFade{
+  const start=config.start??1,end=config.end??0;
+  // Validate supplied numbers even when disabled or no mesh is selected.
+  const preliminary=new BedMeshFade({start,end,target:config.target??0,toolOffset:config.toolOffset});
+  const automatic=config.target===undefined||config.target===null;
+  const target=mesh&&preliminary.enabled?(automatic?mesh.average():config.target!):0;
+  const result=new BedMeshFade({start,end,target,toolOffset:config.toolOffset});result.#automatic=automatic;
+  if(mesh)result.validateMesh(mesh);return result;
+ }
+ validateMesh(mesh:Pick<BedMesh,'average'|'range'>):void{
+  if(!this.enabled)return;const [low,high]=mesh.range();
+  if(this.distance<=Math.max(Math.abs(low),Math.abs(high))||this.distance<=high-this.target||(!this.#automatic&&this.target!==0&&(this.target<low||this.target>high)))throw new RangeError('Invalid mesh fade range or target');
+  if(this.#automatic&&this.target!==mesh.average())throw new RangeError('Automatic fade target belongs to a different mesh');
+ }
  readonly start:number;readonly end:number;readonly target:number;readonly toolOffset:number;readonly distance:number;readonly enabled:boolean;
  constructor(options:BedMeshFadeOptions){
   const {start,end,target,toolOffset=0}=options;

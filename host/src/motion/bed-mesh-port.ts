@@ -1,11 +1,11 @@
 import {isAsyncFunction,isPromise} from 'node:util/types';
 import type {MovePort} from '../gcode/move.ts';
 import {BedMesh} from './bed-mesh.ts';
-import {BedMeshFade} from './bed-mesh-fade.ts';
+import {BedMeshFade,type BedMeshFadeConfig} from './bed-mesh-fade.ts';
 import {splitBedMeshMove} from './bed-mesh-split.ts';
 import {Move,LookAheadQueue,type MotionLimits} from './lookahead.ts';
 export interface BedMeshPortOptions {
- mesh:BedMesh|null;fade:BedMeshFade;physicalPosition:readonly number[];limits:MotionLimits;
+ mesh:BedMesh|null;fade?:BedMeshFade;fadeConfig?:BedMeshFadeConfig;physicalPosition:readonly number[];limits:MotionLimits;
  /** Required synchronous kinematic/extrusion checks; may limit speed/acceleration.
   * Must not perform I/O or mutate endpoints or previously admitted moves. */
  validate:(move:Move)=>void;signal?:AbortSignal;splitDeltaZ?:number;checkDistance?:number;
@@ -21,12 +21,13 @@ export class BedMeshMovePort implements MovePort {
  #finish():void{this.#busy=false;if(this.#fault){this.#queue.reset();this.#flushDue=false;}}
  #split:{splitDeltaZ:number;checkDistance:number};
  constructor(options:BedMeshPortOptions){
-  const {physicalPosition,fade}=options;
+  const {physicalPosition}=options;
+  if(options.fade&&options.fadeConfig)throw new RangeError('Specify resolved fade or fadeConfig, not both');
   if(!Array.isArray(physicalPosition)||physicalPosition.length!==4||!physicalPosition.every(Number.isFinite)||typeof options.validate!=='function'||isAsyncFunction(options.validate))throw new RangeError('Invalid mesh port configuration');
-  this.#mesh=options.mesh?.copy()??null;this.#fade=fade;this.#physical=[...physicalPosition];this.#limits={...options.limits,extraAxes:options.limits.extraAxes?[...options.limits.extraAxes]:undefined};this.#validate=options.validate;
+  this.#mesh=options.mesh?.copy()??null;this.#fade=options.fade??BedMeshFade.forMesh(this.#mesh,options.fadeConfig);this.#physical=[...physicalPosition];this.#limits={...options.limits,extraAxes:options.limits.extraAxes?[...options.limits.extraAxes]:undefined};this.#validate=options.validate;
   this.#split={splitDeltaZ:options.splitDeltaZ??.025,checkDistance:options.checkDistance??5};
   if(!Number.isFinite(this.#split.splitDeltaZ)||this.#split.splitDeltaZ<.01||!Number.isFinite(this.#split.checkDistance)||this.#split.checkDistance<3)throw new RangeError('Invalid mesh split configuration');
-  if(this.#mesh&&fade.enabled){const [low,high]=this.#mesh.range();if(fade.distance<=Math.max(Math.abs(low),Math.abs(high))||fade.distance<=high-fade.target||(fade.target!==0&&(fade.target<low||fade.target>high)))throw new RangeError('Invalid mesh fade range or target');}
+  if(this.#mesh)this.#fade.validateMesh(this.#mesh);
   this.#logical=this.#inverse();new Move(this.#limits,this.#physical,this.#physical,1);
   this.#signal=options.signal;if(this.#signal){this.#signal.addEventListener('abort',this.#onAbort,{once:true});if(this.#signal.aborted)this.#onAbort();}this.#active();
  }
