@@ -57,3 +57,14 @@ test('configured history rejects mismatched database ownership without closing e
   assert.equal(db.status.closed,false);assert.equal(other.status.closed,false);assert.equal((await history.start(data)).job_id,'000001');
  }finally{await other.close();}
 }));
+test('configured auxiliary source owns reset fields and rejects a conflicting reset provider',()=>fixture(async(history,db,dir)=>{
+ const path=join(dir,'auxiliary.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0');
+ const field={provider:'sensor',field:'energy',value:2.675,report_total:true,report_maximum:true,precision:2};
+ const first=await history.start(data);await history.finish(first.job_id,'completed',data,130,undefined,{data:[],totals:[field]});
+ const options={database:db,history:{repository:history,fileExists:()=>true,auxiliary:()=>({reset(){},snapshot:()=>({data:[],totals:[field]})})},information:{connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){}};
+ await assert.rejects(ConfiguredMoonraker.load(path,{...options,history:{...options.history,auxiliaryTotals:()=>[]}}),/own its reset/);assert.equal(db.status.closed,false);
+ const server=await ConfiguredMoonraker.load(path,options);try{
+  const address=await server.start(),url='http://127.0.0.1:'+address.port;
+  const result:any=await(await fetch(url+'/server/history/reset_totals',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})).json();assert.equal(result.result.last_auxiliary_totals[0].total,2.67);assert.equal((await history.allTotals()).auxiliary_totals[0].total,0);
+ }finally{await server.close();}
+}));

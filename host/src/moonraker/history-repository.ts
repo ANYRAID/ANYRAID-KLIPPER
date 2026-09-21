@@ -1,7 +1,8 @@
 // Moonraker history.py persistence semantics. GPL-3.0-or-later.
 // Original Copyright (C) 2024 Eric Callahan.
 import {DatabaseStore} from './database.ts';
-import {ApiError,type Json} from './rpc.ts';
+import {ApiError,validateJson,type Json} from './rpc.ts';
+import {boundedJsonBytes} from './json-size.ts';
 import {encodeDatabaseRecord,decodeDatabaseRecord} from './database-record.ts';
 import type {SqlOperation,SqlValue,SqlResult} from './database-sql.ts';
 export const historyTables=[
@@ -63,6 +64,13 @@ function auxiliaryUpdates(input:HistoryAuxiliaryUpdate[],key:SqlValue):SqlOperat
    params:[provider,field,instance,provider,field,Number(item.report_maximum),value,value,precision,Number(item.report_total),value,value,precision,instance,key,instance],
   };
  });
+}
+/** Capture at event ingress, before later provider updates or resets. */
+export function captureHistoryAuxiliary(input:HistoryAuxiliarySnapshot):{snapshot:HistoryAuxiliarySnapshot;bytes:number}{
+ if(!input||!Array.isArray(input.data)||!Array.isArray(input.totals))throw new ApiError(400,'Invalid auxiliary history snapshot');
+ auxiliaryUpdates(input.totals,1);
+ const result={data:input.data,totals:input.totals.map(field=>({...field,precision:field.precision??null}))};
+ validateJson(result);const bytes=boundedJsonBytes(result,1024*1024);return {snapshot:structuredClone(result),bytes};
 }
 export class HistoryRepository {
  readonly #db:DatabaseStore;
