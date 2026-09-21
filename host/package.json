@@ -175,7 +175,8 @@
     "bench:webhook-console-io": "node bench/webhook-console-io.ts",
     "bench:bed-mesh": "node bench/bed-mesh.ts",
     "bench:bed-mesh-split": "node bench/bed-mesh-split.ts",
-    "bench:bed-mesh-fade": "node bench/bed-mesh-fade.ts"
+    "bench:bed-mesh-fade": "node bench/bed-mesh-fade.ts",
+    "bench:lookahead-batch": "node bench/lookahead-batch.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

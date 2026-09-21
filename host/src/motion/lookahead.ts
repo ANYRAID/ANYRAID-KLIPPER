@@ -117,13 +117,17 @@ export class Move {
 export class LookAheadQueue {
   #queue:Move[]=[];
   #junctionFlush=.150;
+  #admitting=false;
+  #assertIdle():void {if(this.#admitting)throw new Error('Lookahead batch admission active');}
   get length():number {return this.#queue.length;}
   get last():Move|undefined {return this.#queue.at(-1);}
-  reset():void {this.#queue=[];this.#junctionFlush=.150;}
+  reset():void {this.#assertIdle();this.#queue=[];this.#junctionFlush=.150;}
   setFlushTime(time:number):void {
+    this.#assertIdle();
     if(!positive(time)) throw new RangeError('Invalid lookahead flush time');this.#junctionFlush=time;
   }
   add(move:Move):boolean {
+    this.#assertIdle();
     if(!move.distance) return false;
     if(this.#queue.length) move.calcJunction(this.#queue[this.#queue.length-1]);
     this.#queue.push(move);
@@ -131,7 +135,28 @@ export class LookAheadQueue {
     this.#junctionFlush-=move.minMoveT;
     return this.#junctionFlush<=0;
   }
+  /** Admit one transformed move atomically. Callers must finish kinematic and
+   * extrusion checks first. Junction callbacks must only inspect moves; they
+   * may not mutate the queue or other move fields. No physical I/O occurs here. */
+  addBatch(moves:readonly Move[]):boolean {
+    this.#assertIdle();
+    if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid lookahead batch');
+    const seen=new Set(this.#queue),staged:Move[]=[];
+    for(const move of moves){if(!(move instanceof Move)||seen.has(move))throw new RangeError('Duplicate or invalid batch move');seen.add(move);if(move.distance)staged.push(move);}
+    const original=staged.map(move=>[move.maxStartV2,move.maxMcrStartV2]);
+    let previous=this.last,remaining=this.#junctionFlush;
+    this.#admitting=true;
+    try {
+      for(const move of staged){if(previous){move.calcJunction(previous);remaining-=move.minMoveT;}previous=move;}
+      // Allocate the new array before committing either queue or flush budget.
+      const next=this.#queue.concat(staged);
+      this.#queue=next;this.#junctionFlush=remaining;
+      return staged.length>0&&next.length>1&&remaining<=0;
+    } catch(error){for(let i=0;i<staged.length;i++){staged[i].maxStartV2=original[i][0];staged[i].maxMcrStartV2=original[i][1];}throw error;}
+    finally{this.#admitting=false;}
+  }
   flush(lazy=false):Move[] {
+    this.#assertIdle();
     this.#junctionFlush=.150;
     let updateFlush=lazy,flushCount=this.#queue.length;
     const junctions:{move:Move;start:number;cruise:number|null;end:number}[]=new Array(flushCount);
