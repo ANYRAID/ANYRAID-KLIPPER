@@ -9514,8 +9514,8 @@ moveBatch，供内部组件调用。外部 REST/RPC 契约不变，仍通过原�
 REPLACE，并像 Python zip 一样以较短列表为准；它不是同时交换
 多个键，目标冲突会覆盖。getBatch / deleteBatch 忽略不存在的键，
 重复键只返回一次。为控制资源，每批最多 4096 个非空字符串键，
-单键最多 1024 字节；空插入批次不会创建没有实际记录的虚拟命名空间。
-命名空间注册与空命名空间生命周期仍需后续补齐。
+单键最多 1024 字节。后续生命周期修正已使空插入批次创建本代
+虚拟命名空间，内部删除与公开 DELETE 的差异见下文。
 
 写入以最多 64 行合并为一条 SQL，多条 SQL 仍在同一个事务内。
 测试在 130 条输入的最后分块触发记录超限，确认前两个分块的修改
@@ -9662,3 +9662,46 @@ Worker、Unix socket G-code 转发与急停，以及开始、暂停、停止清�
 64 个探针为 **15.397/15.691 ms**。这是本机 CPU 开销与既有 Node
 路径比较，没有 Python 对应共享准入实现；p95 的下降不能解释为
 稳定加速，也不证明目标板实时性或实际打印吞吐。
+
+### 命名空间的运行期生命周期
+
+DatabaseEngine 现在维护有容量限制的运行期命名空间集合。启动时
+从 namespace_store 现有记录重建；显式 registerNamespace 和成功的
+insertBatch（包括空批次）会注册命名空间，普通根级 null 插入仍是
+无操作。注册存在于本服务代次，不增加持久化虚拟表或占位记录。
+
+内部 delete、deleteBatch 和 clearNamespace 不移除空命名空间，
+get(namespace) 返回空对象；dropEmptyNamespace 只在实际记录数为
+零时移除它。公开 API DELETE 在删除成功后显式执行该步骤，保持
+上游接口行为。namespaceLength 查询实际记录数，缺失时为零。
+只存在内存的空命名空间在重新打开后消失，有持久化记录的空间恢复。
+所有接口走现有 Worker FIFO，清空使用 SQLite 事务。
+
+新增名称在写事务前检查累计名称预算，沿用 maxReplyBytes 限制，
+失败写入不留下虚假的命名空间；删除最后一条数据后需要显式 drop
+才能回收名称预算。registerNamespace 是可信内部 provider 接口，
+尚不等同于上游 register_local_namespace 的组件所有权和访问策略
+注册；组件 wrapper、策略注册/注销、sync_namespace、表注册与
+迁移、LMDB 导入、异常关机记账等仍待完成。
+
+固定上游原始 provider 方法差分测试覆盖注册、空批次、清空、计数、
+内部删除和显式移除。纠正旧差分 helper 在内部 delete 后额外调用
+drop 的错误组合；公开 API 的 drop 行为另行验证。还验证重开重建、
+预算拒绝、失败写入不产生空空间。全量 **1219 项通过**，类型与
+空白检查通过。
+
+在工作树 ext 系列文件系统，以 Node.js v26.9.0 和固定 Python
+provider 真实线程比较，双方 SQLite WAL + synchronous FULL：
+
+- `DATABASE_BENCH_ROOT="$PWD" DATABASE_NAMESPACE_LIFECYCLE=1 node host/bench/database.ts`：
+  每轮 20 个周期，每周期插入 200 条、计数、清空、读取空对象、移除
+  空空间、再计数。Node 中位/p95 **105.737/118.653 ms**，Python
+  **107.373/118.473 ms**，Node 事件循环最大观测延迟 **2.421 ms**。
+- `DATABASE_BENCH_ROOT="$PWD" DATABASE_BATCH_SIZE=50 node host/bench/database.ts`：
+  200 条写入与读取、每批 50 条，Node **13.325/15.123 ms**，Python
+  **10.968/13.369 ms**，Node 事件循环最大观测延迟 **1.610 ms**。
+
+各测 9 轮，去掉 2 轮预热，7 个有效样本的 p95 是最大值；结果为
+整组操作时间，包含断言和任务往返。批量路径仍有 Node/Python
+差距，不能把生命周期相近耗时推广到所有数据库操作。这些是本机
+文件系统证据，不证明目标板、硬件断电恢复或实际打印速度。

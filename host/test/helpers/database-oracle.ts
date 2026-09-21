@@ -18,7 +18,7 @@ names={'RECORD_ENCODE_FUNCS','RECORD_DECODE_FUNCS','encode_record','decode_recor
 nodes=[n for n in source.body if getattr(n,'name',None) in names or isinstance(n,ast.AnnAssign) and getattr(n.target,'id',None) in names]
 exec('from __future__ import annotations\\n'+ast.unparse(ast.Module(body=nodes,type_ignores=[])))
 provider=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='SqliteProvider')
-methods={'_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','backup_database','compact_database','restore_database','_validate_restore_db','delete_item','get_item'}
+methods={'register_namespace','clear_namespace','_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','backup_database','compact_database','restore_database','_validate_restore_db','delete_item','get_item'}
 body=[n for n in provider.body if isinstance(n,ast.FunctionDef) and n.name in methods]
 exec('from __future__ import annotations\\nclass Provider:\\n'+textwrap.indent(ast.unparse(ast.Module(body=body,type_ignores=[])),'    '))
 NAMESPACE_TABLE='namespace_store'
@@ -39,7 +39,11 @@ def main():
    elif method=='getBatch': value=owner.get_batch(conn,*args)
    elif method=='deleteBatch': value=owner.delete_batch(conn,*args)
    elif method=='moveBatch': owner.move_batch(conn,*args);value=None
-   elif method=='delete': value=owner.delete_item(conn,*args);owner.drop_empty_namespace(conn,args[0])
+   elif method=='delete': value=owner.delete_item(conn,*args)
+   elif method=='registerNamespace': owner.register_namespace(*args);value=None
+   elif method=='clearNamespace': owner.clear_namespace(conn,*args);value=None
+   elif method=='dropEmptyNamespace': owner.drop_empty_namespace(conn,*args);value=None
+   elif method=='namespaceLength': value=owner.get_namespace_length(conn,*args)
    else: value=owner.get_item(conn,*args)
    result.append({'value':value})
   except ServerError as error: result.append({'error':error.status})

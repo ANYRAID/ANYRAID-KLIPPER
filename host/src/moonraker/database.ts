@@ -39,6 +39,11 @@ export class DatabaseStore {
    const id=closing?0:++this.#next;return new Promise((resolve,reject)=>{this.#pending.set(id,{resolve,reject,bytes});this.#bytes+=bytes;try{this.#worker.postMessage({id,method,args});}catch(error){this.#pending.delete(id);this.#bytes-=bytes;reject(error);}});
   }catch(error){return Promise.reject(error);}
  }
+ /** Provider namespace registration only; component access policies are separate. */
+ registerNamespace(namespace:string){databaseNamespace(namespace);return this.#call('register-namespace',[namespace]);}
+ clearNamespace(namespace:string){databaseNamespace(namespace);return this.#call('clear-namespace',[namespace]);}
+ dropEmptyNamespace(namespace:string){databaseNamespace(namespace);return this.#call('drop-empty-namespace',[namespace]);}
+ namespaceLength(namespace:string){databaseNamespace(namespace);return this.#call('namespace-length',[namespace]) as Promise<number>;}
  get(namespace:string,key?:DatabaseKey|null){databaseNamespace(namespace);if(key!==undefined&&key!==null)databaseKey(key);return this.#call('get',[namespace,key as Json??null]);}
  insert(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('insert',[namespace,key as Json,value]);}
  update(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('update',[namespace,key as Json,value]);}

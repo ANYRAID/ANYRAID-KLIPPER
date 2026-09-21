@@ -7,6 +7,7 @@ const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT N
 /** Synchronous engine owned exclusively by a Worker. Every read-modify-write
  * happens in one SQLite transaction, including nested-key operations. */
 export class DatabaseEngine {
+ readonly #namespaces=new Set<string>();#namespaceBytes=2;
  readonly #statements=new Map<string,StatementSync>();
  #restoreState:'ready'|'restored'|'restore-failed'='ready';
  readonly #maxDatabaseBytes:number;
@@ -23,6 +24,7 @@ export class DatabaseEngine {
    this.#transaction(()=>{this.#db.exec(`CREATE TABLE IF NOT EXISTS ${prototype}; CREATE TABLE IF NOT EXISTS table_registry (name TEXT NOT NULL PRIMARY KEY, prototype TEXT NOT NULL, version INT)`);
    const schema=this.#prepare('PRAGMA table_info(namespace_store)').all();if(schema.length!==3||schema.some((r,i)=>r.name!==['namespace','key','value'][i]||r.type!==['TEXT','TEXT','record'][i]||r.pk!==[1,2,0][i]||r.notnull!==1))throw new ApiError(422,'Unsupported namespace table schema');
    this.#prepare('INSERT INTO table_registry VALUES(?,?,?) ON CONFLICT(name) DO NOTHING').run('namespace_store',prototype,1);});
+   for(const row of this.#prepare('SELECT DISTINCT namespace FROM namespace_store').iterate()){if(typeof row.namespace!=='string')throw new ApiError(422,'Invalid persisted namespace');this.registerNamespace(row.namespace);}
   }catch(error){this.#db.close();throw error;}
  }
  #prepare(sql:string):StatementSync{let statement=this.#statements.get(sql);if(!statement){statement=this.#db.prepare(sql);this.#statements.set(sql,statement);}return statement;}
@@ -32,17 +34,17 @@ export class DatabaseEngine {
  #transaction<T>(action:()=>T):T{this.#db.exec('BEGIN IMMEDIATE');try{const result=action();this.#db.exec('COMMIT');return result;}catch(error){try{this.#db.exec('ROLLBACK');}catch{}throw error;}}
  get(namespace:string,key?:DatabaseKey|null):Json{
   databaseNamespace(namespace);
-  if(key===undefined||key===null){const result:Record<string,Json>={};let bytes=2,found=false;for(const row of this.#prepare('SELECT key,value FROM namespace_store WHERE namespace=?').iterate(namespace)){found=true;const raw=row.value;if(!(raw instanceof Uint8Array)||typeof row.key!=='string')throw new ApiError(422,'Invalid persisted record');if(raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');const decoded=decodeDatabaseRecord(raw);bytes+=Buffer.byteLength(JSON.stringify(decoded))+Buffer.byteLength(JSON.stringify(String(row.key)))+2;if(bytes>this.#replyBytes||raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database namespace exceeds reply limit');ownDatabaseField(result,String(row.key),decoded);}if(!found)throw new ApiError(404,'Database namespace not found');return result;}
+  if(key===undefined||key===null){const result:Record<string,Json>={};let bytes=2;for(const row of this.#prepare('SELECT key,value FROM namespace_store WHERE namespace=?').iterate(namespace)){const raw=row.value;if(!(raw instanceof Uint8Array)||typeof row.key!=='string')throw new ApiError(422,'Invalid persisted record');if(raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');const decoded=decodeDatabaseRecord(raw);bytes+=Buffer.byteLength(JSON.stringify(decoded))+Buffer.byteLength(JSON.stringify(String(row.key)))+2;if(bytes>this.#replyBytes||raw.byteLength>this.#recordBytes)throw new ApiError(413,'Database namespace exceeds reply limit');ownDatabaseField(result,String(row.key),decoded);}if(!this.#namespaces.has(namespace))throw new ApiError(404,'Database namespace not found');return result;}
   const path=databaseKey(key);let record=this.#record(namespace,path[0]);for(const field of path.slice(1)){if(!databaseObject(record)||!Object.hasOwn(record,field))throw new ApiError(404,'Database key not found');record=record[field];}return record;
  }
  insert(namespace:string,key:DatabaseKey,value:Json):void{
-  databaseNamespace(namespace);const path=databaseKey(key);this.#transaction(()=>{
+  databaseNamespace(namespace);const path=databaseKey(key);if(path.length>1||value!==null)this.#checkNamespaceCapacity(namespace);this.#transaction(()=>{
    // Upstream ignores a top-level None, but stores None nested in an object.
    if(path.length===1){if(value!==null)this.#write(namespace,path[0],value);return;}
    let record:Json=this.#lookup(namespace,path[0])??{};if(!databaseObject(record))record={};let item=record as Record<string,Json>;
    for(const field of path.slice(1,-1)){if(!Object.hasOwn(item,field))ownDatabaseField(item,field,{});const next=item[field];if(!databaseObject(next))throw new ApiError(400,'Database parent is not an object');item=next;}
    ownDatabaseField(item,path.at(-1)!,value);this.#write(namespace,path[0],record);
-  });
+  });if(path.length>1||value!==null)this.registerNamespace(namespace);
  }
  update(namespace:string,key:DatabaseKey,value:Json):void{
   databaseNamespace(namespace);const path=databaseKey(key);this.#transaction(()=>{
@@ -54,8 +56,8 @@ export class DatabaseEngine {
   });
  }
  insertBatch(namespace:string,records:Record<string,Json>):void{
-  databaseNamespace(namespace);if(!records||!databaseObject(records))throw new ApiError(400,'Invalid database batch records');const keys=databaseBatchKeys(Object.keys(records));
-  this.#transaction(()=>{for(let offset=0;offset<keys.length;offset+=64){const chunk=keys.slice(offset,offset+64),parameters:(string|Buffer)[]=[];for(const key of chunk){const encoded=encodeDatabaseRecord(records[key]);if(encoded.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');parameters.push(namespace,key,encoded);}this.#prepare('INSERT INTO namespace_store VALUES '+chunk.map(()=>'(?,?,?)').join(',')+' ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(...parameters);}});
+  databaseNamespace(namespace);if(!records||!databaseObject(records))throw new ApiError(400,'Invalid database batch records');const keys=databaseBatchKeys(Object.keys(records));this.#checkNamespaceCapacity(namespace);
+  this.#transaction(()=>{for(let offset=0;offset<keys.length;offset+=64){const chunk=keys.slice(offset,offset+64),parameters:(string|Buffer)[]=[];for(const key of chunk){const encoded=encodeDatabaseRecord(records[key]);if(encoded.length>this.#recordBytes)throw new ApiError(413,'Database record exceeds limit');parameters.push(namespace,key,encoded);}this.#prepare('INSERT INTO namespace_store VALUES '+chunk.map(()=>'(?,?,?)').join(',')+' ON CONFLICT(namespace,key) DO UPDATE SET value=excluded.value').run(...parameters);}});this.registerNamespace(namespace);
  }
  getBatch(namespace:string,input:readonly string[]):Record<string,Json>{
   databaseNamespace(namespace);const keys=databaseBatchKeys(input),result:Record<string,Json>={};let bytes=2;
@@ -77,7 +79,12 @@ export class DatabaseEngine {
    if(path.length===1||databaseObject(record)&&!Object.keys(record).length)this.#prepare('DELETE FROM namespace_store WHERE namespace=? AND key=?').run(namespace,path[0]);else this.#write(namespace,path[0],record);return result;
   });
  }
- list():string[]{const result:string[]=[];let bytes=2;for(const row of this.#prepare('SELECT DISTINCT namespace FROM namespace_store ORDER BY namespace').iterate()){if(typeof row.namespace!=='string')throw new ApiError(422,'Invalid persisted namespace');bytes+=Buffer.byteLength(JSON.stringify(row.namespace))+1;if(bytes>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');result.push(row.namespace);}return result;}
+ #checkNamespaceCapacity(namespace:string):void{if(!this.#namespaces.has(namespace)&&this.#namespaceBytes+Buffer.byteLength(JSON.stringify(namespace))+1>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');}
+ registerNamespace(namespace:string):void{databaseNamespace(namespace);this.#checkNamespaceCapacity(namespace);if(!this.#namespaces.has(namespace)){this.#namespaces.add(namespace);this.#namespaceBytes+=Buffer.byteLength(JSON.stringify(namespace))+1;}}
+ namespaceLength(namespace:string):number{databaseNamespace(namespace);return Number(this.#prepare('SELECT COUNT(*) AS count FROM namespace_store WHERE namespace=?').get(namespace)!.count);}
+ clearNamespace(namespace:string):void{databaseNamespace(namespace);this.#transaction(()=>{this.#prepare('DELETE FROM namespace_store WHERE namespace=?').run(namespace);});}
+ dropEmptyNamespace(namespace:string):void{databaseNamespace(namespace);if(this.#namespaces.has(namespace)&&this.namespaceLength(namespace)===0){this.#namespaces.delete(namespace);this.#namespaceBytes-=Buffer.byteLength(JSON.stringify(namespace))+1;}}
+ list():string[]{return [...this.#namespaces].sort();}
  get restoreState(){return this.#restoreState;}
  async restore(path:string,validate?:(info:Json)=>void):Promise<{restored_tables:string[];restored_namespaces:string[]}>{
   if(this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');

@@ -21,6 +21,10 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
    case 'backup':value=await createDatabaseBackup(engine,options.backupDirectory,namespace as string,options.path);break;
    case 'delete-backup':value=deleteDatabaseBackup(options.backupDirectory,namespace as string,options.path);break;
    case 'compact':value=engine.compact();break;
+   case 'register-namespace':engine.registerNamespace(namespace as string);break;
+   case 'clear-namespace':engine.clearNamespace(namespace as string);break;
+   case 'drop-empty-namespace':engine.dropEmptyNamespace(namespace as string);break;
+   case 'namespace-length':value=engine.namespaceLength(namespace as string);break;
    case 'get':value=engine.get(namespace as string,key as DatabaseKey|null);break;
    case 'insert':engine.insert(namespace as string,key as DatabaseKey,input);break;
    case 'update':engine.update(namespace as string,key as DatabaseKey,input);break;
@@ -34,7 +38,7 @@ if(engine)port.on('message',(message:{id:number;method:string;args:Json[]})=>{co
     if(policy('forbidden_namespaces',['database']).has(namespace as string))throw new ApiError(403,'Database namespace is forbidden');
     if(message.method!=='api-get'&&policy('protected_namespaces',['moonraker']).has(namespace as string))throw new ApiError(403,'Database namespace is read-only');
     if(message.method==='api-get')value=engine.get(namespace as string,key as DatabaseKey|null);
-    else if(message.method==='api-delete')value=engine.delete(namespace as string,key as DatabaseKey,result=>checkReply({namespace,key,value:result}));
+    else if(message.method==='api-delete'){value=engine.delete(namespace as string,key as DatabaseKey,result=>checkReply({namespace,key,value:result}));engine.dropEmptyNamespace(namespace as string);}
     else{checkReply({namespace,key,value:input});engine.insert(namespace as string,key as DatabaseKey,input);value=input;}
     value={namespace,key,value};break;
    }
