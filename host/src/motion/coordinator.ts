@@ -16,7 +16,7 @@ export class MotionCoordinator {
  #guards:readonly {assertActive():void}[];
  #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#fault:unknown;#failed=false;
  #stopPromise:Promise<void>|undefined;
- #generated:number;#committed:number;#sequence=0;#maxBytes:number;
+ #finalizedSourceTime=0;#generated:number;#committed:number;#sequence=0;#maxBytes:number;
  constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[]){
   if(!bindings.length||bindings.length>128||!Number.isSafeInteger(maxBatchBytes)||maxBatchBytes<1)throw new RangeError('Invalid motion coordinator limits');
   const ids=new Set<string>(),steppers=new Set<StepCompressor>();
@@ -30,6 +30,8 @@ export class MotionCoordinator {
   this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
  }
+ /** Common lower bound actually finalized in every source queue. */
+ get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy,failed:this.#failed,fault:this.#fault};}
@@ -113,7 +115,9 @@ export class MotionCoordinator {
    const cutoffs=new Map<TrapQueue,number|null>();
    for(const b of this.#bindings){const time=b.stepper.scanWindow.safeFinalizeTime,old=cutoffs.get(b.queue);
     cutoffs.set(b.queue,old===null||time===null?null:old===undefined?time:Math.min(old,time));}
-   for(const [queue,time] of cutoffs)if(time!==null)queue.finalize(time,Math.min(time,clearHistoryTime));
+   let complete=true,finalized=Infinity;
+   for(const [queue,time] of cutoffs){if(time===null){complete=false;continue;}queue.finalize(time,Math.min(time,clearHistoryTime));finalized=Math.min(finalized,time);}
+   if(complete)this.#finalizedSourceTime=Math.max(this.#finalizedSourceTime,finalized);
   }catch(error){
    try{await this.shutdown(error);}catch{/* Failure is retained in status. */}
    throw this.#fault;
