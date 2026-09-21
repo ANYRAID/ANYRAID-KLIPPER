@@ -337,8 +337,20 @@ Its first column contains frequency and the remaining columns contain time
 frames, with a literal `freq\t` header followed by relative time centers.
 The export includes all frequencies regardless of `-f`, matching the Python
 CSV convention, and preserves double precision. Processed PSD input and
-combining `-s` with `-r` are rejected. Spectrogram images, interactive windows,
-and PDF/EPS still require the original Python tool. These offline graphs do not measure print quality or configure
+combining `-s` with `-r` are rejected. Spectrogram images and full matrix JSON
+are also available:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -s -f 200 -o spectrogram.png raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -s -o spectrogram.json raw_data.csv
+```
+
+Images use a logarithmic blue/green/yellow power scale; zero power is white.
+The image frequency limit is 0.01..100000 Hz. SVG embeds the complete cell
+raster; display resolution can combine cells, while JSON/CSV retain the
+numerical matrix. A single time frame occupies one half-window interval.
+The palette and layout differ from Matplotlib. Interactive windows and
+PDF/EPS still require the original Python tool. These offline graphs do not measure print quality or configure
 the printer.
 
 ## Extracting information from the klippy.log file

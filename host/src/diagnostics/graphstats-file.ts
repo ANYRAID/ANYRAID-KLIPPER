@@ -18,9 +18,9 @@ export async function writeStatsPanels(panels:readonly StatsPanel[],filename:str
  if(!panels.length||panels.length>8)throw new RangeError('Expected 1 to 8 plot panels');
  await writePlotDocument(panels,()=>renderStatsPanels(panels),filename,signal);
 }
-async function writePlotDocument(document:unknown,render:()=>string,filename:string,signal:AbortSignal):Promise<void>{
+export async function writePlotDocument(document:unknown,render:()=>string|Promise<string>,filename:string,signal:AbortSignal):Promise<void>{
  const extension=extname(filename).toLowerCase();if(!['.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extension))throw new Error('Supported outputs: SVG, PNG, JPEG, WebP, TIFF and JSON');signal.throwIfAborted();let bytes:Buffer;
- if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(render());if(extension==='.svg')bytes=svg;else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
+ if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(await render());if(extension==='.svg')bytes=svg;else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
  await writeDiagnosticBytes(bytes,filename,signal);
 }
 export async function writeDiagnosticText(text:string,filename:string,signal:AbortSignal):Promise<void>{signal.throwIfAborted();if(Buffer.byteLength(text)>64*1024**2)throw new RangeError('Diagnostic output limit exceeded');await writeDiagnosticBytes(Buffer.from(text),filename,signal);}
