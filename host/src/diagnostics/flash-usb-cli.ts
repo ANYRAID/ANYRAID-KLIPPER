@@ -1,3 +1,4 @@
+import {assertSerialAvailable} from './serial-ownership.ts';
 import {parseArgs} from 'node:util';
 import {open,mkdtemp,writeFile,rm,realpath,readFile} from 'node:fs/promises';
 import {constants} from 'node:fs';
@@ -19,7 +20,7 @@ export function parseUsbFlashArgs(argv:string[]):{help:true}|{help:false;target:
  if(values.prime&&!values.katapult)throw new Error('--prime requires --katapult');
  if(values.katapult&&(values.type!==undefined||values.start!==undefined||values['no-sudo']))throw new Error('--katapult does not accept MCU routing, address or sudo options');
  if(values.device.includes('\0')||values.device.length>4096||positionals[0].includes('\0'))throw new Error('Invalid device or firmware path');
- const target={mcu:values.type??'',device:values.katapult?resolve(values.device):values.device,image:resolve(positionals[0]),start,sudo:!values['no-sudo']};
+ const target={mcu:values.type??'',device:!values.katapult&&/^[a-f\d]{4}:[a-f\d]{4}$/i.test(values.device.trim())?values.device:resolve(values.device),image:resolve(positionals[0]),start,sudo:!values['no-sudo']};
  if(!values.katapult)usbFlashTarget(target);
  return {help:false,target,katapult:values.katapult??false,prime:values.prime??false};
 }
@@ -48,6 +49,7 @@ export async function runUsbFlash(argv:string[],signal:AbortSignal,output:(text:
  const parsed=parseUsbFlashArgs(argv);if(parsed.help){output(help);return;}
  const firmware=await readUsbFirmware(parsed.target.image,signal);
  const katapult=async(device:string,_image:string,active:AbortSignal)=>{
+  await assertSerialAvailable(device,active);
   const prime=parsed.prime||katapultNeedsPriming(await usbProduct(device,active));
   const transport=openKatapultSerial(device,{prime},active);
   let result:Awaited<ReturnType<typeof flashKatapultFirmware>>;

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {spawn,spawnSync} from 'node:child_process';
-import {mkdtempSync,rmSync,readlinkSync,mkdirSync,writeFileSync,symlinkSync} from 'node:fs';
+import {mkdtempSync,rmSync,readlinkSync,mkdirSync,writeFileSync,symlinkSync,openSync,closeSync,constants} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -22,8 +22,9 @@ async function inside(executable:string){
  assert.ok(process.env.KATAPULT_PARENT_NET&&process.env.KATAPULT_PARENT_USER);assert.notEqual(readlinkSync('/proc/self/ns/net'),process.env.KATAPULT_PARENT_NET);assert.notEqual(readlinkSync('/proc/self/ns/user'),process.env.KATAPULT_PARENT_USER);
  command('ip',['link','add','dev','vcan-test','type','vcan']);command('ip',['link','set','dev','vcan-test','up']);
  const samples:number[]=[];
- for(const mode of [...Array.from({length:16},()=> 'startup'),'startup-cancel','bridge','bridge-wrong','bridge-cancel']){
+ for(const mode of [...Array.from({length:16},()=> 'startup'),'startup-cancel','bridge','bridge-wrong','bridge-cancel','bridge-occupied']){
   const bridge=mode.startsWith('bridge')?bridgeFixture():undefined,uuid=bridge?.uuid??'112233445566',controller=new AbortController();
+  const held=mode==='bridge-occupied'?openSync(bridge!.pty.path,constants.O_RDWR|constants.O_NOCTTY|constants.O_NONBLOCK):undefined;
   const peer=spawn(executable,[uuid,'reboot'],{env:env(),stdio:['pipe','pipe','pipe']}),sim=katapultSimulator(256),seen:number[]=[];
   let diagnostic='',buffer:Buffer=Buffer.alloc(0),chain=Promise.resolve(),fault:unknown,timer:ReturnType<typeof setTimeout>|undefined;
   peer.stderr.on('data',b=>{diagnostic+=b;if(mode==='startup-cancel'&&diagnostic.includes('REBOOT\n'))controller.abort(new Error('cancel startup'));if(bridge&&diagnostic.includes('REBOOT\n')){writeFileSync(resolve(bridge.path,'idProduct'),mode==='bridge-wrong'?'ffff':'6177');writeFileSync(resolve(bridge.path,'manufacturer'),mode==='bridge-wrong'?'other':'katapult');if(mode==='bridge-cancel')controller.abort(new Error('cancel bridge'));}});
@@ -32,10 +33,11 @@ async function inside(executable:string){
   try{
    const deadline=performance.now()+3000;while(!diagnostic.includes('READY\n')){assert.equal(peer.exitCode,null,diagnostic);assert.ok(performance.now()<deadline);await delay(1);}
    const at=performance.now(),work=flashKatapultTarget('vcan-test',uuid,Buffer.alloc(4093,0xa5),controller.signal,{expectedMcu:'stm32f407',roots:bridge?{usb:bridge.usb,dev:bridge.dev}:undefined});
-   if(mode==='bridge-wrong'||mode.endsWith('cancel')){await assert.rejects(work);assert.equal(seen.length,0);if(bridge)assert.equal(bridge.pty.commands.length,0);}
+   if(mode==='bridge-occupied'){await assert.rejects(work,/in use by process/);assert.equal(seen.length,0);assert.equal(bridge!.pty.commands.length,0);}
+   else if(mode==='bridge-wrong'||mode.endsWith('cancel')){await assert.rejects(work);assert.equal(seen.length,0);if(bridge)assert.equal(bridge.pty.commands.length,0);}
    else{const result=await work;assert.equal(result.blocks,16);assert.equal(result.transport,bridge?'serial':'can');if(bridge){assert.equal(seen.length,0);assert.equal(bridge.pty.commands[0],0x90);assert.equal(bridge.pty.commands.at(-1),0x15);}else{samples.push(performance.now()-at);assert.equal(seen[1],0x16);assert.equal(seen.at(-1),0x15);assert.equal(seen.length,36);}}
    assert.equal((diagnostic.match(/REBOOT/g)||[]).length,1);assert.equal((diagnostic.match(/ASSIGNED/g)||[]).length,bridge||mode==='startup-cancel'?0:1);assert.equal(fault,undefined);
-  }finally{clearTimeout(timer);await chain;peer.stdin.end();const kill=setTimeout(()=>peer.kill('SIGKILL'),2000);try{assert.equal(await ended,0,diagnostic);}finally{clearTimeout(kill);if(bridge){await bridge.pty.close();rmSync(bridge.base,{recursive:true,force:true});}}}
+  }finally{clearTimeout(timer);await chain;peer.stdin.end();const kill=setTimeout(()=>peer.kill('SIGKILL'),2000);try{assert.equal(await ended,0,diagnostic);}finally{clearTimeout(kill);if(held!==undefined)closeSync(held);if(bridge){await bridge.pty.close();rmSync(bridge.base,{recursive:true,force:true});}}}
  }
  const s=samples.slice(5).sort((a,b)=>a-b);console.log(JSON.stringify({node:process.version,warmup:5,runs:11,imageBytes:4093,medianMs:s[5],p95Ms:s[10],scope:'Exact targeted reboot, original 1000 ms boot wait + 500 ms assignment settle, then complete real vcan/simulated firmware flash. Bridge uses temporary sysfs plus real PTY. No physical reboot, USB or flash timing.'}));
  console.log('PASS: targeted CAN reboot/flash, bridge-to-PTY programming, wrong bridge and cancellation with no fallback');

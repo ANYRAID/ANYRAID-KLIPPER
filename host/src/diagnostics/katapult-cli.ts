@@ -1,3 +1,4 @@
+import {assertSerialAvailable} from './serial-ownership.ts';
 import {parseArgs} from 'node:util';
 import {resolve} from 'node:path';
 import {homedir} from 'node:os';
@@ -35,6 +36,7 @@ export async function runKatapult(argv:string[],signal:AbortSignal,output:(text:
   if(firmware){const identity=await findFirmwareIdentity(firmware,signal);if(o.expectedMcu!==undefined&&identity?.mcu!==undefined&&o.expectedMcu!==identity.mcu)throw new Error('Requested MCU does not match firmware dictionary');}
   const selected=await prepareKatapultSerial(o.device,o.baud,signal,{requestOnly:o.mode==='request',alreadyBootloader:o.alreadyBootloader,prime:o.prime});
   if(o.mode==='request'){output('Bootloader Request Complete\n');return;}
+  if(selected.device!==o.device)await assertSerialAvailable(selected.device,signal);
   const transport=openKatapultSerial(selected.device,{baud:o.baud,prime:selected.prime},signal);let result;
   try{result=firmware?await flashKatapultFirmware(firmware,transport,signal,{expectedMcu:o.expectedMcu}):await katapultStatus(transport,signal);}finally{transport.close();}
   if(o.verbose||o.mode==='status')output(JSON.stringify(result)+'\n');output(o.mode==='status'?'Status Request Complete\n':'Programming Complete\n');return;

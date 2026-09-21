@@ -1,3 +1,4 @@
+import {assertSerialAvailable} from './serial-ownership.ts';
 import {readFile} from 'node:fs/promises';
 import {join,isAbsolute} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -20,6 +21,7 @@ export async function flashKatapultTarget(name:string,uuid:string,image:Uint8Arr
  if(!bridge){await delay(1000,undefined,{signal});return {transport:'can' as const,...await flashKatapultCAN(name,identity.uuid,snapshot,signal,options)};}
  const device=await waitKatapultBridge(bridge,signal,options.roots);
  let product='';try{product=(await readFile(join(bridge.path,'product'),{encoding:'utf8',signal})).trim().toLowerCase();}catch(error){signal.throwIfAborted();if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+ await assertSerialAvailable(device,signal);
  const serial=openKatapultSerial(device,{prime:katapultNeedsPriming(product)},signal);
  try{return {transport:'serial' as const,...await flashKatapultFirmware(snapshot,serial,signal,{expectedMcu:options.expectedMcu})};}finally{serial.close();}
 }

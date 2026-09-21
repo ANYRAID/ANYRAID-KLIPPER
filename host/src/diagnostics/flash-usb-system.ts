@@ -1,3 +1,4 @@
+import {assertSerialAvailable} from './serial-ownership.ts';
 // GPL-3.0-or-later. Linux filesystem/process adapters for USB flash orchestration.
 import {enterUsbBootloader} from './usb-bootloader.ts';
 import {access,readFile,readdir,readlink,realpath} from 'node:fs/promises';
@@ -53,8 +54,9 @@ export async function waitUsbPath(path:string,alternative:string|undefined,signa
   signal.throwIfAborted();if(clock.now()>=deadline)throw new Error(`USB device did not reconnect: ${path}`);
  }
 }
+async function guardedUsbBootloader(device:string,signal:AbortSignal){await assertSerialAvailable(device,signal);await enterUsbBootloader(device,signal);}
 export function createUsbFlashSystem(options:UsbFlashSystemOptions):UsbFlashIO {
- const {repository,enterBootloader=enterUsbBootloader,katapult,serialByPath='/dev/serial/by-path',ttyClass='/sys/class/tty'}=options;
+ const {repository,enterBootloader=guardedUsbBootloader,katapult,serialByPath='/dev/serial/by-path',ttyClass='/sys/class/tty'}=options;
  if(![repository,serialByPath,ttyClass].every(p=>isAbsolute(p)&&!p.includes('\0'))||typeof enterBootloader!=='function'||typeof katapult!=='function')throw new TypeError('Invalid USB system options');
  return {
   async serialPaths(device,signal){signal.throwIfAborted();const tty=await realpath(device),names=await readdir(serialByPath);for(const name of names){signal.throwIfAborted();const path=join(serialByPath,name);try{if(await realpath(path)===tty)return {tty,stable:path};}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}}signal.throwIfAborted();return {tty,stable:tty};},

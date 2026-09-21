@@ -13,6 +13,7 @@ function start(args:string[],env=process.env){const child=spawn(process.execPath
 test('USB CLI parses original routing arguments and rejects invalid/ambiguous options',()=>{
  const parsed=parseUsbFlashArgs(['-t','stm32f407','-d','0483:df11','-s','0x8000000','--no-sudo','firmware.bin']);assert.ok(!parsed.help);assert.equal(parsed.target.start,0x8000000);assert.equal(parsed.target.sudo,false);assert.equal(parsed.target.image,resolve('firmware.bin'));
  for(const args of [[],['-t','x','-d','x','f'],['--katapult','-d','x','-s','0','f'],['--katapult','-d','x','--no-sudo','f'],['-t','sam3','-d','x','--prime','f'],['-t','sam3','-d','x','-s','4294967296','f']])assert.throws(()=>parseUsbFlashArgs(args));
+ const relative=parseUsbFlashArgs(['-t','sam3','-d','relative-device','firmware.bin']);assert.ok(!relative.help);assert.equal(relative.target.device,resolve('relative-device'));
  assert.deepEqual(parseUsbFlashArgs(['--help']),{help:true});
 });
 test('USB CLI programs a real PTY Katapult via child process, including priming and completion',async()=>{
