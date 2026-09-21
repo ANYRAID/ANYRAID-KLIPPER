@@ -34,6 +34,13 @@ export class PlannedMotionSource {
  /** Call after a successful drain, before producing subsequent motion. The
   * supplied time must include the scheduler's current MCU lead requirement. */
  resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#time=printTime;this.#paused=false;}
+ /** Rolling commit; preserves the tail needed by shaping/pressure advance.
+  * Success means transport acceptance, not completed physical movement. */
+ async flush(signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
+  this.#check();signal.throwIfAborted();if(this.#paused)throw new Error('Planned source is paused');this.#busy=true;
+  try{return await this.#drain.advanceSource(this.#time,signal,timeoutMs,clearHistoryTime);}
+  catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
+ }
  async drain(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
   this.#check();signal.throwIfAborted();this.#busy=true;
   try{

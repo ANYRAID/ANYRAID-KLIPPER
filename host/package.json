@@ -200,7 +200,8 @@
     "bench:motion-drain": "node bench/motion-drain.ts",
     "bench:motion-clock-targets": "node bench/motion-clock-targets.ts",
     "bench:coordinated-drain": "node bench/coordinated-drain.ts",
-    "bench:planned-motion-source": "node bench/planned-motion-source.ts"
+    "bench:planned-motion-source": "node bench/planned-motion-source.ts",
+    "bench:motion-stream": "node bench/motion-stream.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

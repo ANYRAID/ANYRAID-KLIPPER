@@ -67,6 +67,17 @@ export class MotionCoordinator {
    await this.advance(until);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
   }catch(error){try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}
  }
+ /** Generate only where every solver has its required future source data.
+  * Does not pad a stop or wait for MCU execution. Caller owns sourceUntil. */
+ async advanceSource(sourceUntil:number,clearHistoryTime=0):Promise<boolean>{
+  if(this.#failed||this.#busy)throw new Error('Motion coordinator cannot stream');
+  if(!Number.isFinite(sourceUntil)||sourceUntil<this.#generated||sourceUntil>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0)throw new RangeError('Invalid source horizon');
+  let future=0;for(const b of this.#bindings)future=Math.max(future,b.stepper.scanWindow.future);
+  const generation=sourceUntil-future-.001,flush=generation-.002;
+  if(generation<=this.#generated||flush<this.#committed)return false;
+  if(sourceUntil-generation<future||generation-flush<.001||clearHistoryTime>flush)throw new RangeError('Unrepresentable streaming horizon');
+  await this.advanceWindow(generation,flush,clearHistoryTime);return true;
+ }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
   if(!Number.isFinite(flushUntil)||generationUntil<flushUntil+.001)return Promise.reject(new RangeError('Generation must lead flush by at least 1 ms'));

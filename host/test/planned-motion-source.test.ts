@@ -23,7 +23,7 @@ async function fixture(run:(f:{source:PlannedMotionSource;port:BedMeshMovePort;b
  }finally{await group.stop();await fw.close();}
 }
 test('mesh activation drains earlier flushes and current XYZ/extrusion through real serial firmware',async()=>fixture(async f=>{
- f.gcode.execute('G1',{X:1,E:.1,F:600});f.source.append(f.port.flush());const prior=f.source.status.sourceTime;
+ f.gcode.execute('G1',{X:1,E:.1,F:600});f.source.append(f.port.flush());assert.equal(await f.source.flush(new AbortController().signal),true);assert.equal(f.source.status.paused,false);const prior=f.source.status.sourceTime;
  f.gcode.execute('G1',{X:2,E:.2});await f.binding.activate(mesh(.3),'new',new AbortController().signal);
  assert.deepEqual(f.source.status.position,[2,0,.1,.2]);assert.ok(f.source.status.sourceTime>prior);assert.equal(f.source.status.paused,true);assert.ok(Math.abs(f.gcode.state.position[2]+.2)<1e-15);assert.equal(f.port.currentMesh()!.calcZ(0,0),.3);
  const steps=(oid:number)=>f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===oid).reduce((n,m)=>n+Number(m.parameters.count),0);assert.equal(steps(3),200);assert.equal(steps(4),20);

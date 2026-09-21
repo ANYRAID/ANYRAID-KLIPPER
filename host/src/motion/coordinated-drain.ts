@@ -5,13 +5,25 @@ import {MCUGroup} from '../runtime/mcu-group.ts';
 import type {TrapQueue} from './trap-queue.ts';
 /** Producer must remain fenced through completion and use sourceUntil for the
  * next source segment. Routes must be built from this group's motion queues.
- * Completion confirms firmware-time passage, never mechanical position. */
+ * Drain completion confirms firmware-time passage, never mechanical position.
+ * Streaming advance only commits the safe prefix; it does not await execution. */
 export class CoordinatedMotionDrain {
  readonly #coordinator:MotionCoordinator;readonly #sink:MoveQueueSink;readonly #group:MCUGroup;#busy=false;
  constructor(coordinator:MotionCoordinator,sink:MoveQueueSink,group:MCUGroup){if(!coordinator.usesSink(sink))throw new Error('Motion drain sink does not belong to coordinator');this.#coordinator=coordinator;this.#sink=sink;this.#group=group;}
  usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
+ async advanceSource(sourceUntil:number,signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
+  return this.#operate(signal,timeoutMs,async({run,check})=>{const advanced=await run(this.#coordinator.advanceSource(sourceUntil,clearHistoryTime));check();return advanced;});
+ }
  async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,signal:AbortSignal,timeoutMs=30000){
+  return this.#operate(signal,timeoutMs,async({run,check,combined,deadline})=>{
+   const result=await run(this.#coordinator.drain(lastMoveTime,positions));check();
+   const targets=this.#sink.motionClockTargets(result.clocks);
+   await run(this.#group.waitForMotionClocks(targets,combined,Math.max(1,Math.ceil(deadline-performance.now()))));check();
+   return Object.freeze({...result,targets});
+  });
+ }
+ async #operate<T>(signal:AbortSignal,timeoutMs:number,work:(context:{run:<R>(work:Promise<R>)=>Promise<R>;check:()=>void;combined:AbortSignal;deadline:number})=>Promise<T>):Promise<T>{
   if(this.#busy)throw new Error('Motion drain already active');signal.throwIfAborted();this.#group.assertActive();
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid motion drain timeout');
   this.#busy=true;const deadline=performance.now()+timeoutMs,local=new AbortController(),combined=AbortSignal.any([signal,local.signal]);let stopped:Promise<void>|undefined;
@@ -20,11 +32,7 @@ export class CoordinatedMotionDrain {
   const timer=setTimeout(()=>local.abort(new Error('Motion drain timed out')),timeoutMs);
   const check=()=>{if(performance.now()>=deadline&&!combined.aborted)local.abort(new Error('Motion drain timed out'));combined.throwIfAborted();};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let abort=()=>{};const cancelled=new Promise<never>((_resolve,reject)=>{abort=()=>reject(combined.reason);combined.addEventListener('abort',abort,{once:true});if(combined.aborted)abort();});try{return await Promise.race([work,cancelled]);}finally{combined.removeEventListener('abort',abort);}};
-  try{
-   const result=await run(this.#coordinator.drain(lastMoveTime,positions));check();
-   const targets=this.#sink.motionClockTargets(result.clocks);
-   await run(this.#group.waitForMotionClocks(targets,combined,Math.max(1,Math.ceil(deadline-performance.now()))));check();
-   return Object.freeze({...result,targets});
+  try{return await work({run,check,combined,deadline});
   }catch(error){try{await stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion drain and stop failed');}throw error;}
   finally{clearTimeout(timer);combined.removeEventListener('abort',abort);this.#busy=false;}
  }
