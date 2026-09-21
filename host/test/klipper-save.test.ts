@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {buildKlipperSave,type SavedConfiguration} from '../src/config/klipper-save.ts';
+import {parseKlipperMainText} from '../src/config/klipper-text.ts';
+import {AUTOSAVE_HEADER} from '../src/config/klipper-autosave.ts';
+test('save candidate replaces old autosave and comments full ordinary duplicate values',()=>{const input='[bed_mesh default]\npoints:\n  .1,.2\n  .3,.4\nversion: 1\n'+AUTOSAVE_HEADER+'#*# [old]\n#*# value: 1\n';const saved={'bed_mesh default':{points:'\n.5,.6\n.7,.8',version:'1'}};const result=buildKlipperSave(input,saved)!;assert.ok(result.regular.includes('#points:\n#  .1,.2\n#  .3,.4'));assert.ok(!result.text.includes('[old]'));const parsed=parseKlipperMainText(result.text,'candidate');assert.equal(parsed.original['bed_mesh default'].points,'\n.5,.6\n.7,.8');assert.deepEqual(saved,{'bed_mesh default':{points:'\n.5,.6\n.7,.8',version:'1'}});assert.equal(buildKlipperSave('[x]\na:1\n',{}),null);});
+test('save rejects corrupt source, ambiguous fields and values that would lose calibration text',()=>{assert.throws(()=>buildKlipperSave(AUTOSAVE_HEADER+'edited',{x:{a:'1'}}),/corrupted/);for(const saved of Array.of<SavedConfiguration>({x:{a:'1#lost'}},{x:{'a:b':'1'}},{'include extra.cfg':{a:'1'}},{x:{A:'1',a:'2'}},{x:{a:'1 ;lost'}}))assert.throws(()=>buildKlipperSave('',saved));});
+test('save candidate preserves includes for a required later conflict validation',()=>{const r=buildKlipperSave('[include machine.cfg]\n', {x:{a:'1'}})!;assert.ok(r.regular.includes('[include machine.cfg]'));assert.throws(()=>parseKlipperMainText(r.text,'candidate'),/include expansion/);});
