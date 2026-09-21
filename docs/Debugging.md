@@ -288,9 +288,15 @@ combined with a filter; the default acceleration order is 2. For example:
 node ~/klipper/scripts/graph_motion.ts --accel_order 6 --jerk_limit --filter weighted4 -o motion.png
 ```
 
+Use `--legacy_shaper` to select the original motion script's `zv`, `zvd`,
+`mzv`, `ei`, `2hump_ei`, or `3hump_ei` formula. This option is mutually
+exclusive with `--filter`; it can be combined with acceleration order and
+jerk options. The default remains legacy `ei`.
+
 These are offline diagnostic experiments, not production planner settings.
-The original Python script remains for its interactive window and other
-source-edited experiments, such as alternate legacy shapers.
+The legacy formulas are distinct from the current production definitions
+used by `graph_shaper.ts`. The Python script remains as a differential
+reference and for its interactive window and PDF/EPS output.
 
 ## Extracting information from the klippy.log file
 

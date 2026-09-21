@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import {performance} from 'node:perf_hooks';
+import {legacyMotionShapers} from '../src/diagnostics/legacy-motion-shaper.ts';
+import {motionPlots} from '../src/diagnostics/graph-motion.ts';
+import {motionGraphReference} from './motion-graph-reference.ts';
+const results=[],stats=(a:number[])=>{a.sort((a,b)=>a-b);return {medianMs:a[Math.floor(a.length/2)],p95Ms:a[Math.ceil(a.length*.95)-1]};};
+for(const legacyShaper of legacyMotionShapers){const profile={legacyShaper},reference=motionGraphReference(16,undefined,undefined,profile),times:number[]=[],maxError=[0,0,0];for(let run=0;run<16;run++){const start=performance.now(),panels=motionPlots(undefined,undefined,profile);if(run>=5)times.push(performance.now()-start);panels.forEach((p,i)=>p.plot.curves.forEach((c,j)=>{const r=reference.panels[i].curves[j];assert.deepEqual(c.times,r.times);c.values.forEach((v,k)=>{maxError[i]=Math.max(maxError[i],Math.abs(v-r.values[k]));});}));}maxError.forEach((v,i)=>assert.ok(v<=[1e-8,1e-4,1e-10][i]));results.push({legacyShaper,node:stats(times),python:stats(reference.samples.slice(5)),maxError});}console.log(JSON.stringify({node:process.version,warmups:5,runs:11,results,scope:'Six legacy graph_motion shapers with all ten default motion curves. Original Python functions selected via globals; process startup/IPC/rendering excluded. Not current production shaper definitions or real printer performance.'},null,2));
