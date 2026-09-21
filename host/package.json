@@ -172,7 +172,8 @@
     "bench:mesh-source": "node bench/mesh-source.ts",
     "bench:mesh-path": "node bench/mesh-path.ts",
     "bench:mesh-surface": "node bench/mesh-surface.ts",
-    "bench:webhook-console-io": "node bench/webhook-console-io.ts"
+    "bench:webhook-console-io": "node bench/webhook-console-io.ts",
+    "bench:bed-mesh": "node bench/bed-mesh.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",
