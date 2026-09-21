@@ -53,7 +53,10 @@ half-closed and responses are drained for up to 5000 ms. Use
 is retried for up to 10000 ms (`--connect-timeout MS`); other connection
 errors fail immediately. There is no reconnect or command replay after
 connection. Ctrl-C closes the connection; already sent commands may still
-execute. Keep stdin open when using long-lived subscriptions.
+execute. Cancellation also stops waiting for a blocked output write. The
+library does not destroy caller-owned output streams: an already submitted
+terminal write can still finish later, but cannot trigger a deferred socket
+send. Keep stdin open when using long-lived subscriptions.
 
 
 ## API Protocol
