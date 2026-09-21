@@ -257,6 +257,23 @@ These curves do not establish sensor accuracy or a safe heater temperature
 range. The legacy Python script currently references a removed thermistor
 registration function; its interactive window is not replaced by this tool.
 
+## Generating the legacy motion demonstration
+
+The Node.js 26 motion tool generates velocity, acceleration, and modeled
+belt-spring deviation in one file:
+
+```
+node ~/klipper/scripts/graph_motion.ts -o motion.png
+```
+
+It uses the original script's fixed moves and legacy EI example, which is
+different from the current production input shaper. It does not change
+printer configuration. The acceleration image clips to ±15000 mm/s²;
+JSON keeps all numerical values. It supports the same file formats as the
+other Node graph tools above. The original Python script remains for its
+interactive window and source-edited experimental filters; those experiments
+are not yet available through the Node command.
+
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging

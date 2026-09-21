@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {execFileSync,spawnSync} from 'node:child_process';
+import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import sharp from 'sharp';
+import {motionPlots} from '../src/diagnostics/graph-motion.ts';
+import {motionGraphReference} from '../bench/motion-graph-reference.ts';
+import {renderStatsPanels} from '../src/diagnostics/stats-svg.ts';
+test('motion velocity, acceleration and spring deviation match original default simulation',()=>{const actual=motionPlots(),reference=motionGraphReference();assert.equal(actual.length,reference.panels.length);actual.forEach((p,i)=>{const r=reference.panels[i];assert.equal(p.plot.axes[0],r.axis);assert.equal(p.plot.curves.length,r.curves.length);assert.deepEqual(p.yRanges?.[0],r.range);p.plot.curves.forEach((c,j)=>{assert.deepEqual(c.times,r.curves[j].times);c.values.forEach((v,k)=>assert.ok(Math.abs(v-r.curves[j].values[k])<=[1e-8,1e-4,1e-10][i],`panel ${i}, curve ${j}, sample ${k}: ${v-r.curves[j].values[k]}`));});});assert.ok(Math.min(...actual[0].plot.curves[1].values)<0);assert.ok(Math.max(...actual[1].plot.curves[1].values)>15000);const svg=renderStatsPanels(actual);assert.match(svg,/>15000<\/text>/);assert.match(svg,/>-15000<\/text>/);assert.throws(()=>renderStatsPanels([{...actual[0],yRanges:[[1,1]]}]),RangeError);});
+test('motion CLI exports three-panel image and exact JSON and rejects invalid invocation',async()=>{const dir=await mkdtemp(join(tmpdir(),'motion-graph-')),cli=fileURLToPath(new URL('../../scripts/graph_motion.ts',import.meta.url));try{const json=join(dir,'plot.json'),png=join(dir,'plot.png');execFileSync(process.execPath,[cli,'-o',json]);assert.deepEqual(JSON.parse(await readFile(json,'utf8')),motionPlots());execFileSync(process.execPath,[cli,'-o',png]);const meta=await sharp(png).metadata();assert.equal(meta.width,800);assert.equal(meta.height,1800);for(const top of [0,600,1200])assert.ok((await sharp(png).extract({left:0,top,width:800,height:600}).stats()).channels[0].stdev>10);assert.equal(spawnSync(process.execPath,[cli]).status,1);assert.equal(spawnSync(process.execPath,[cli,'operand','-o',png]).status,1);assert.match(execFileSync(process.execPath,[cli,'--help'],{encoding:'utf8'}),/Usage/);}finally{await rm(dir,{recursive:true,force:true});}});
