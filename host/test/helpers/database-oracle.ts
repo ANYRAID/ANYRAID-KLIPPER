@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 export function databaseOracle():string{
  const ref=JSON.parse(readFileSync(new URL('../../contracts/moonraker-database.json',import.meta.url),'utf8'));
  if(createHash('sha256').update(ref.source).digest('hex')!==ref.sourceSha256)throw new Error('Database source hash mismatch');
- return `import ast,json,sys,sqlite3,struct,operator,logging,types,textwrap,base64,time
+ return `import ast,json,sys,sqlite3,struct,operator,logging,types,textwrap,base64,time,pathlib
 from functools import reduce
 from typing import Dict
 class ServerError(Exception):
@@ -18,7 +18,7 @@ names={'RECORD_ENCODE_FUNCS','RECORD_DECODE_FUNCS','encode_record','decode_recor
 nodes=[n for n in source.body if getattr(n,'name',None) in names or isinstance(n,ast.AnnAssign) and getattr(n.target,'id',None) in names]
 exec('from __future__ import annotations\\n'+ast.unparse(ast.Module(body=nodes,type_ignores=[])))
 provider=next(n for n in source.body if isinstance(n,ast.ClassDef) and n.name=='SqliteProvider')
-methods={'_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','delete_item','get_item'}
+methods={'_insert_record','_get_record','get_namespace','get_namespace_length','drop_empty_namespace','insert_item','update_item','insert_batch','get_batch','delete_batch','move_batch','backup_database','compact_database','delete_item','get_item'}
 body=[n for n in provider.body if isinstance(n,ast.FunctionDef) and n.name in methods]
 exec('from __future__ import annotations\\nclass Provider:\\n'+textwrap.indent(ast.unparse(ast.Module(body=body,type_ignores=[])),'    '))
 NAMESPACE_TABLE='namespace_store'

@@ -44,7 +44,7 @@
       "name": "database",
       "tier": "core",
       "status": "partial",
-      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, backups/restores/compact, table registration and namespace lifecycle helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly. Internal shallow update and literal-root insert/get/delete/move batches now have pinned Python differential tests. Batches use one transaction with at most 64 rows per INSERT statement; later-chunk failure rolls back prior chunks. DATABASE_BATCH_SIZE benchmark includes actual Python thread dispatch; Node remains slower in observed disk round trips."
+      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, restore, table registration and namespace lifecycle helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly. Internal shallow update and literal-root insert/get/delete/move batches now have pinned Python differential tests. Batches use one transaction with at most 64 rows per INSERT statement; later-chunk failure rolls back prior chunks. DATABASE_BATCH_SIZE benchmark includes actual Python thread dispatch; Node remains slower in observed disk round trips. Online backup, atomic published files, deletion and VACUUM/checkpoint now run in FIFO Worker maintenance; REST/RPC creation/compaction require a connected initialized ready printer with observed idle print_stats. Paused/unknown states reject. Admission check does not lease against concurrent print starts. Filesystem-tagged benchmarks distinguish tmpfs from the workspace ext filesystem."
     },
     {
       "name": "dbus_manager",
@@ -442,7 +442,8 @@
       "line": 250,
       "method": "register_endpoint",
       "targetExpression": "\"/server/database/backup\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/database-maintenance.ts; database-backup-files.ts; database-worker.ts; database-engine.ts. Authenticated configured routes, online WAL backup with staging/fsync/rename, deletion, VACUUM/checkpoint, FIFO serialization and print-state admission guard. Tested WAL cut, queued writes/close, injected backup failure, traversal/symlink/active-file rejection and live print state. Full print-start mutual exclusion, restore/restart integration and hardware acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/database.py",
@@ -456,7 +457,8 @@
       "line": 257,
       "method": "register_endpoint",
       "targetExpression": "\"/server/database/compact\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/database-maintenance.ts; database-backup-files.ts; database-worker.ts; database-engine.ts. Authenticated configured routes, online WAL backup with staging/fsync/rename, deletion, VACUUM/checkpoint, FIFO serialization and print-state admission guard. Tested WAL cut, queued writes/close, injected backup failure, traversal/symlink/active-file rejection and live print state. Full print-start mutual exclusion, restore/restart integration and hardware acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/extensions.py",

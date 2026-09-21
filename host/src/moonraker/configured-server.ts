@@ -1,3 +1,4 @@
+import {registerDatabaseMaintenance} from './database-maintenance.ts';
 import {DatabaseStore,registerDatabase} from './database.ts';
 import {TemperatureStore,registerTemperatureStore} from './temperature-store.ts';
 import {TemperatureStoreRuntime} from './temperature-store-runtime.ts';
@@ -18,7 +19,7 @@ import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
 import type {AddressInfo} from 'node:net';
 import {loadConfiguration,ConfigurationError,type ConfigurationLimits} from './config-source.ts';
 import {ConfigurationReader} from './config-reader.ts';
-import {JsonRpcDispatcher,type Json} from './rpc.ts';
+import {ApiError,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import {ServerInformation,ServerConfiguration,registerServerMetadata,type InformationSnapshot} from './metadata.ts';
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from './server.ts';
@@ -86,6 +87,7 @@ export class ConfiguredMoonraker {
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   if(options.temperatureStore)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
   this.#database=options.database;const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
+  const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle()):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections);
@@ -93,7 +95,7 @@ export class ConfiguredMoonraker {
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy);
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
  }
@@ -120,6 +122,7 @@ export class ConfiguredMoonraker {
  }
  #attachKlippy(path:string,options:KlippyAttachmentOptions):Promise<KlippySnapshot>{
   if(this.#stopping||this.#klippy)throw new Error('Klippy generation already attached or server stopping');
+  options={...options,trackJobState:options.trackJobState??!!this.#database};
   this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
   if(options.trackJobState)this.#jobState??=new JobState();
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
@@ -166,6 +169,7 @@ export class ConfiguredMoonraker {
   const supervisor=new KlippySupervisor(async()=>{if(this.#klippy)await this.#reconnectKlippy();else await this.#attachKlippy(path,options);return this.#klippy!.signal;},()=>this.#klippy?.close()??Promise.resolve(),retryDelayMs);
   this.#supervisor=supervisor;supervisor.start();
  }
+ #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}

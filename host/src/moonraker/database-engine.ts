@@ -1,4 +1,5 @@
-import {DatabaseSync,type StatementSync} from 'node:sqlite';
+import {statSync} from 'node:fs';
+import {DatabaseSync,backup,type StatementSync} from 'node:sqlite';
 import {ApiError,type Json} from './rpc.ts';
 import {databaseNamespace,databaseKey,databaseBatchKeys,databaseObject,ownDatabaseField,encodeDatabaseRecord,decodeDatabaseRecord,type DatabaseKey} from './database-record.ts';
 export interface DatabaseOptions {path:string;maxRecordBytes?:number;maxDatabaseBytes?:number;maxReplyBytes?:number;}
@@ -7,9 +8,10 @@ const prototype='namespace_store (\n    namespace TEXT NOT NULL,\n    key TEXT N
  * happens in one SQLite transaction, including nested-key operations. */
 export class DatabaseEngine {
  readonly #statements=new Map<string,StatementSync>();
+ readonly #path:string;
  readonly #db:DatabaseSync;readonly #recordBytes:number;readonly #replyBytes:number;#closed=false;
  constructor(options:DatabaseOptions){
-  this.#recordBytes=options.maxRecordBytes??1024*1024;this.#replyBytes=options.maxReplyBytes??8*1024*1024;
+  this.#path=options.path;this.#recordBytes=options.maxRecordBytes??1024*1024;this.#replyBytes=options.maxReplyBytes??8*1024*1024;
   this.#db=new DatabaseSync(options.path,{timeout:1000});
   try{
    this.#db.exec('PRAGMA trusted_schema=OFF; PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL');
@@ -74,5 +76,7 @@ export class DatabaseEngine {
   });
  }
  list():string[]{const result:string[]=[];let bytes=2;for(const row of this.#prepare('SELECT DISTINCT namespace FROM namespace_store ORDER BY namespace').iterate()){if(typeof row.namespace!=='string')throw new ApiError(422,'Invalid persisted namespace');bytes+=Buffer.byteLength(JSON.stringify(row.namespace))+1;if(bytes>this.#replyBytes)throw new ApiError(413,'Database namespace list exceeds limit');result.push(row.namespace);}return result;}
+ backup(path:string):Promise<number>{return backup(this.#db,path);}
+ compact():{previous_size:number;new_size:number}{const previous_size=statSync(this.#path).size;this.#db.exec('VACUUM');this.#db.exec('PRAGMA wal_checkpoint(TRUNCATE)');return {previous_size,new_size:statSync(this.#path).size};}
  close(){if(this.#closed)return;this.#closed=true;this.#db.close();}
 }

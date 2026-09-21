@@ -100,3 +100,29 @@ test('multi-statement batches roll back earlier SQL chunks and return one consis
   await store.moveBatch('ui',['key0','key1'],['__proto__','hasOwnProperty']);assert.deepEqual(await store.getBatch('ui',['__proto__','hasOwnProperty']),Object.fromEntries([['__proto__',0],['hasOwnProperty',1]]));
  }finally{await store.close();}
 }));
+test('online backup includes committed WAL records and excludes writes queued behind it',()=>directory(async dir=>{
+ const {readFile,readdir}=await import('node:fs/promises'),path=join(dir,'active.sqlite'),backups=join(dir,'backups'),store=await DatabaseStore.open({path,backupDirectory:backups});
+ try{await store.insert('ui','value','before');const backing=store.backup('snapshot.db'),writing=store.insert('ui','value','after');assert.deepEqual(await backing,{backup_path:join(backups,'snapshot.db')});await writing;
+  const copy=await DatabaseStore.open({path:join(backups,'snapshot.db')});try{assert.equal(await copy.get('ui','value'),'before');}finally{await copy.close();}
+  const first=await readFile(join(backups,'snapshot.db'));await store.backup('snapshot.db');assert.notDeepEqual(await readFile(join(backups,'snapshot.db')),first);assert.deepEqual(await readdir(backups),['snapshot.db']);assert.deepEqual(await store.list(),{namespaces:['ui'],backups:['snapshot.db']});
+  const deleting=store.deleteBackup('snapshot.db'),closing=store.close();assert.deepEqual(await deleting,{backup_path:join(backups,'snapshot.db')});await closing;assert.deepEqual(await readdir(backups),[]);
+ }finally{await store.close();}
+}));
+test('backup paths reject traversal, symlinks and the active database; failure preserves existing backups',()=>directory(async dir=>{
+ const {writeFile,readFile}=await import('node:fs/promises'),path=join(dir,'active.sqlite'),store=await DatabaseStore.open({path,backupDirectory:dir});try{
+  await writeFile(join(dir,'old.db'),'keep');await symlink('old.db',join(dir,'link.db'));
+  for(const name of ['../escape','sub/file','..','', '\ud800'])assert.throws(()=>store.backup(name));
+  await assert.rejects(store.backup('active.sqlite'),/active database/);await assert.rejects(store.deleteBackup('active.sqlite'),/active database/);await assert.rejects(store.backup('link.db'),/regular file/);assert.equal(await readFile(join(dir,'old.db'),'utf8'),'keep');await assert.rejects(store.deleteBackup('missing.db'),e=>e instanceof ApiError&&e.status===404);
+ }finally{await store.close();}
+}));
+test('compaction preserves records and leaves prepared statements usable',()=>directory(async dir=>{
+ const path=join(dir,'db.sqlite');let store=await DatabaseStore.open({path});try{
+  await store.insertBatch('ui',Object.fromEntries(Array.from({length:200},(_,i)=>['key'+i,'x'.repeat(2048)])));await store.deleteBatch('ui',Array.from({length:190},(_,i)=>'key'+i));await store.close();store=await DatabaseStore.open({path});
+  const sizes=await store.compact() as {previous_size:number;new_size:number};assert.ok(sizes.new_size<sizes.previous_size);assert.equal(await store.get('ui','key199'),'x'.repeat(2048));await store.insert('ui','new',1);assert.equal(await store.get('ui','new'),1);
+ }finally{await store.close();}
+}));
+test('failed backup production preserves the previous published file and removes its staging directory',()=>directory(async dir=>{
+ const {writeFile,readFile,readdir}=await import('node:fs/promises'),{createDatabaseBackup}=await import('../src/moonraker/database-backup-files.ts');const source=join(dir,'source.sqlite'),destination=join(dir,'saved.db');await writeFile(source,'source');await writeFile(destination,'old backup');
+ const failed={async backup(path:string){await writeFile(path,'partial');throw new Error('injected backup failure');}} as unknown as import('../src/moonraker/database-engine.ts').DatabaseEngine;
+ await assert.rejects(createDatabaseBackup(failed,dir,'saved.db',source),/injected/);assert.equal(await readFile(destination,'utf8'),'old backup');assert.deepEqual((await readdir(dir)).sort(),['saved.db','source.sqlite']);
+}));

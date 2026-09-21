@@ -207,7 +207,9 @@
     "bench:motion-retention": "node bench/motion-retention.ts",
     "bench:gcode-store": "node bench/gcode-store.ts",
     "bench:temperature-store": "node bench/temperature-store.ts",
-    "bench:database": "node bench/database.ts"
+    "bench:database": "node bench/database.ts",
+    "bench:database-backup": "node bench/database-backup.ts",
+    "bench:database-compact": "node bench/database-compact.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

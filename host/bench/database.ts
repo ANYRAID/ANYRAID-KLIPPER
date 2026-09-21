@@ -1,3 +1,4 @@
+import {statfsSync} from 'node:fs';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -7,7 +8,7 @@ import assert from 'node:assert/strict';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {databaseOracle} from '../test/helpers/database-oracle.ts';
 const batchSize=Number(process.env.DATABASE_BATCH_SIZE??0);if(!Number.isSafeInteger(batchSize)||batchSize<0||batchSize>200)throw new Error('Invalid DATABASE_BATCH_SIZE');
-const dir=await mkdtemp(join(tmpdir(),'database-bench-')),count=200,value={temperature:210.125,name:'中文',payload:'x'.repeat(256)},times:number[]=[],delays:number[]=[];
+const dir=await mkdtemp(join(process.env.DATABASE_BENCH_ROOT??tmpdir(),'database-bench-')),count=200,value={temperature:210.125,name:'中文',payload:'x'.repeat(256)},times:number[]=[],delays:number[]=[];
 try{
  for(let run=0;run<9;run++){
   const owner=await DatabaseStore.open({path:join(dir,`node-${run}.sqlite`)}),loop=monitorEventLoopDelay({resolution:1});loop.enable();
@@ -46,5 +47,5 @@ asyncio.run(bench())
 `;
  const result=spawnSync('/usr/bin/python3',['-c',program,dir],{input:JSON.stringify({value,batchSize}),encoding:'utf8'});assert.equal(result.status,0,result.stderr);
  const stats=(values:number[])=>{values.sort((a,b)=>a-b);return {medianMs:values[Math.floor(values.length/2)],p95Ms:values.at(-1)!};};
- console.log(JSON.stringify({node:process.version,batchSize,writes:count,reads:count,nodeWorker:stats(times),pythonProviderThread:stats(JSON.parse(result.stdout)),nodeEventLoopMaxMs:Math.max(...delays),scope:'Disk SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance'},null,2));
+ console.log(JSON.stringify({node:process.version,filesystemMagic:statfsSync(dir).type,filesystem:statfsSync(dir).type===0x01021994?'tmpfs':statfsSync(dir).type===0xef53?'ext-family':'other',benchmarkRoot:process.env.DATABASE_BENCH_ROOT??tmpdir(),batchSize,writes:count,reads:count,nodeWorker:stats(times),pythonProviderThread:stats(JSON.parse(result.stdout)),nodeEventLoopMaxMs:Math.max(...delays),scope:'File-backed SQLite WAL + synchronous FULL on both sides; Node includes Worker round trips and bounded admission, Python uses original provider thread and Future dispatch; host filesystem only, not power-loss or target-board acceptance'},null,2));
 }finally{await rm(dir,{recursive:true,force:true});}
