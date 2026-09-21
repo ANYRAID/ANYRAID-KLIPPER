@@ -40,7 +40,9 @@ be on a single line, and it will automatically append the 0x03
 terminator when transmitting a request. (The Klipper API server does
 not have a newline requirement.)
 
-The console requires Node.js 26. Blank lines and lines beginning with `#`
+The console requires Node.js 26. The former `scripts/whconsole.py` entry
+has been removed; use `scripts/whconsole.ts` instead.
+Blank lines and lines beginning with `#`
 are ignored; invalid JSON reports an error and does not reach the socket.
 JSON number text is preserved exactly, including large integer IDs. Input
 lines and response frames are limited to 1 MiB each. UTF-8 errors and

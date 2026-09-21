@@ -1,4 +1,4 @@
-// GPL-3.0-or-later. Based on scripts/whconsole.py (Kevin O'Connor, 2020).
+// GPL-3.0-or-later. Based on the former Klipper scripts/whconsole.py (Kevin O'Connor, 2020).
 import {createConnection,type Socket} from 'node:net';
 import {Readable,Writable} from 'node:stream';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -11,10 +11,20 @@ export class ConsoleFrames {
  push(chunk:Buffer):Buffer[]{const frames:Buffer[]=[];let start=0;for(;;){const end=chunk.indexOf(this.delimiter,start),part=chunk.subarray(start,end<0?chunk.length:end),size=this.#length+part.length;if(size>this.maximum)throw new RangeError('Console frame limit exceeded');if(size>this.#buffer.length){const next=Buffer.allocUnsafe(Math.min(this.maximum,Math.max(4096,size,this.#buffer.length*2)));this.#buffer.copy(next,0,0,this.#length);this.#buffer=next;}part.copy(this.#buffer,this.#length);this.#length=size;if(end<0)return frames;frames.push(Buffer.from(this.#buffer.subarray(0,this.#length)));this.#length=0;start=end+1;if(start===chunk.length)return frames;}}
  finish():Buffer|undefined{if(!this.#length)return;const result=Buffer.from(this.#buffer.subarray(0,this.#length));this.#length=0;return result;}
 }
+const utf8=new TextDecoder('utf-8',{fatal:true});
 /** Validate syntax, then strip only out-of-string JSON whitespace. Never reserialize
  * parsed numbers: IDs and motion values retain their exact source lexemes. */
 export function consoleRequest(line:Buffer):string|undefined{
- const text=new TextDecoder('utf-8',{fatal:true}).decode(line).trim();if(!text||text.startsWith('#'))return;JSON.parse(text);let quoted=false,escaped=false,result='';for(const c of text){if(quoted){result+=c;if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')quoted=false;}else if(c==='"'){quoted=true;result+=c;}else if(!' \t\r\n'.includes(c))result+=c;}return result;
+ const text=utf8.decode(line).trim();if(!text||text.startsWith('#'))return;JSON.parse(text);
+ if(!/[ \t\r\n]/.test(text))return text;
+ let quoted=false,escaped=false,start=0,pieces:string[]|undefined;
+ for(let i=0;i<text.length;i++){
+  const c=text.charCodeAt(i);
+  if(quoted){if(escaped)escaped=false;else if(c===92)escaped=true;else if(c===34)quoted=false;}
+  else if(c===34)quoted=true;
+  else if(c===32||c===9||c===13||c===10){pieces??=[];if(start<i)pieces.push(text.slice(start,i));start=i+1;}
+ }
+ if(!pieces)return text;if(start<text.length)pieces.push(text.slice(start));return pieces.join('');
 }
 // Cancellation stops waiting without destroying caller-owned output streams.
 // Keep an error guard only until the outstanding write callback/error arrives.
@@ -35,6 +45,6 @@ export async function webhookConsole(path:string,input:Readable,output:Writable,
  const socketError=(error:Error)=>{ioControl.abort(error);input.destroy(error);},inputError=(error:Error)=>{ioControl.abort(error);connection.destroy(error);},sinkError=(error:Error)=>{ioControl.abort(error);connection.destroy(error);input.destroy(error);};connection.on('error',socketError);input.on('error',inputError);output.on('error',sinkError);errors.on('error',sinkError);
  try{await write(errors,'Connection.\n',ioSignal);
   const send=async(line:Buffer)=>{let request:string|undefined;try{request=consoleRequest(line);}catch{await write(errors,'ERROR: Unable to parse line\n',ioSignal);return;}if(request===undefined)return;await write(output,`SEND: ${request}\n`,ioSignal);await write(connection,request+'\x03',ioSignal);};
-  await Promise.all([(async()=>{try{for await(const chunk of input){for(const line of keyboard.push(Buffer.from(chunk)))await send(line);}const tail=keyboard.finish();if(tail)await send(tail);if(!remoteEnded){connection.end();drainTimer=setTimeout(()=>connection.destroy(new Error('Console response drain timed out')),drainMs);}}catch(error){if(!remoteEnded)throw error;}})(),(async()=>{for await(const chunk of connection){for(const frame of frames.push(Buffer.from(chunk))){const text=new TextDecoder('utf-8',{fatal:true}).decode(frame);await write(output,`GOT: ${text}\n`,ioSignal);}}if(frames.pending)throw new Error('Socket closed with an incomplete frame');remoteEnded=true;input.destroy();ioControl.abort(new Error('Socket closed'));await write(errors,'Socket closed\n',signal);})()]);
+  await Promise.all([(async()=>{try{for await(const chunk of input){for(const line of keyboard.push(Buffer.from(chunk)))await send(line);}const tail=keyboard.finish();if(tail)await send(tail);if(!remoteEnded){connection.end();drainTimer=setTimeout(()=>connection.destroy(new Error('Console response drain timed out')),drainMs);}}catch(error){if(!remoteEnded)throw error;}})(),(async()=>{for await(const chunk of connection){for(const frame of frames.push(Buffer.from(chunk))){const text=utf8.decode(frame);await write(output,`GOT: ${text}\n`,ioSignal);}}if(frames.pending)throw new Error('Socket closed with an incomplete frame');remoteEnded=true;input.destroy();ioControl.abort(new Error('Socket closed'));await write(errors,'Socket closed\n',signal);})()]);
  }finally{ioControl.abort(new Error('Console session closed'));clearTimeout(drainTimer);signal.removeEventListener('abort',abort);connection.destroy();input.destroy();/* Error listeners remain until stream close, covering asynchronous destroy. */const detach=()=>{connection.removeListener('error',socketError);input.removeListener('error',inputError);output.removeListener('error',sinkError);errors.removeListener('error',sinkError);};if(connection.closed&&input.closed)detach();else{let closed=0;const done=()=>{if(++closed===2)detach();};if(connection.closed)done();else connection.once('close',done);if(input.closed)done();else input.once('close',done);}}
 }
