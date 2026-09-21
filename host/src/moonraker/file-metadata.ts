@@ -29,6 +29,7 @@ export class FileMetadataStore {
   const bytes=boundedJsonBytes(value,this.#maxRecordBytes);boundedJsonBytes({...value,filename:ticket.filename},1024**2);if(this.#bytes+bytes>this.#maxBytes)throw new ApiError(503,'Metadata cache byte capacity exceeded');
   const snapshot=structuredClone(value);freeze(snapshot);entry.snapshot=snapshot;entry.bytes=bytes;entry.ticket=undefined;this.#bytes+=bytes;this.#index(ticket.filename,snapshot);return true;
  }
+ isCurrent(ticket:MetadataTicket):boolean{return this.#entries.get(ticket.filename)?.ticket===ticket;}
  fail(ticket:MetadataTicket):boolean{if(this.#entries.get(ticket.filename)?.ticket!==ticket)return false;return this.invalidate(ticket.filename);}
  invalidate(path:string):boolean{const entry=this.#entries.get(path);if(!entry)return false;this.#unindex(path,entry.snapshot);this.#entries.delete(path);this.#bytes-=entry.keyBytes+entry.bytes;return true;}
  clear():void{this.#thumbnailOwners.clear();this.#entries.clear();this.#bytes=0;}

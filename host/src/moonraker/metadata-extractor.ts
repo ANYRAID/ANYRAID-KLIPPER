@@ -2,7 +2,7 @@ import {Worker} from 'node:worker_threads';
 import type {FileHandle} from 'node:fs/promises';
 import {ApiError,type Json} from './rpc.ts';
 import {FileMetadataStore} from './file-metadata.ts';
-export interface MetadataExtraction {fields:Record<string,Json>;source:{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint};objects:{hasObjects:boolean;hasM486Objects:boolean};}
+export interface MetadataExtraction {thumbnailData?:string;fields:Record<string,Json>;source:{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint};objects:{hasObjects:boolean;hasM486Objects:boolean};}
 export interface MetadataExtractorOptions {maxPending?:number;timeoutMs?:number;maxFileBytes?:number;maxOutputBytes?:number;}
 interface Pending {cancel:Int32Array;finish:(error:unknown,value?:MetadataExtraction)=>void;dispose:()=>void;}
 /** Transfers admitted FileHandles to a serial, bounded Worker. A timeout fences the
@@ -28,7 +28,8 @@ export class MetadataExtractor {
  get closed():boolean{return this.#closed;}
  /** On admission postMessage transfers ownership. Rejected admission leaves the handle
   * with the caller; successful admission closes it in the Worker even on cancellation. */
- extract(source:FileHandle,signal:AbortSignal):Promise<MetadataExtraction>{
+ extract(source:FileHandle,signal:AbortSignal,includeThumbnailData=false):Promise<MetadataExtraction>{
+  if(typeof includeThumbnailData!=='boolean')return Promise.reject(new TypeError('Invalid thumbnail extraction option'));
   if(this.#closed)return Promise.reject(new ApiError(503,'Metadata extractor is closed'));
   if(signal.aborted)return Promise.reject(signal.reason);
   if(!source||!Number.isInteger(source.fd)||source.fd<0)return Promise.reject(new TypeError('Invalid metadata source handle'));
@@ -39,7 +40,7 @@ export class MetadataExtractor {
   const timer=setTimeout(()=>{this.#fail(new ApiError(504,'Metadata extraction timed out'));void this.close();},this.#options.timeoutMs);
   const dispose=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);};
   this.#pending.set(id,{cancel,finish,dispose});signal.addEventListener('abort',abort,{once:true});
-  try{this.#worker.postMessage({id,source,cancel:cancel.buffer},[source]);}catch(error){this.#pending.delete(id);dispose();finish(error);}
+  try{this.#worker.postMessage({id,source,cancel:cancel.buffer,includeThumbnailData},[source]);}catch(error){this.#pending.delete(id);dispose();finish(error);}
   return result.promise;
  }
  #fail(error:unknown):void{this.#closed=true;for(const pending of this.#pending.values()){Atomics.store(pending.cancel,0,1);pending.finish(error);pending.dispose();}this.#pending.clear();}
