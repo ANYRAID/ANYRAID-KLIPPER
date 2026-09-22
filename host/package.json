@@ -227,7 +227,8 @@
     "bench:motan-log-reader": "node bench/motan-log-reader.ts",
     "bench:motan-motion-samples": "node bench/motan-motion-samples.ts",
     "bench:motan-dispatch": "node bench/motan-dispatch.ts",
-    "bench:json-numeric-prefilter": "node bench/json-numeric-prefilter.ts"
+    "bench:json-numeric-prefilter": "node bench/json-numeric-prefilter.ts",
+    "bench:motan-sensor-samples": "node bench/motan-sensor-samples.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
