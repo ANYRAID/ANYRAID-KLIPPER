@@ -45,7 +45,7 @@ function receive(result:MotanTable,maxBytes:number,table:boolean):MotanTable {
        ||!label||label.name!==name||typeof label.label!=='string'||typeof label.units!=='string')
       throw new Error('Invalid Motan worker column');
     if(values instanceof Float64Array)bytes+=values.byteLength;
-    else{for(const value of values)bytes+=motanScalarBytes(value);Object.freeze(values);}
+    else{for(const value of values){if(value!==null&&typeof value==='object')Object.freeze(value);bytes+=motanScalarBytes(value);}Object.freeze(values);}
     Object.freeze(label);
   }
   if(bytes>maxBytes)throw new Error('Motan worker result budget exceeded');

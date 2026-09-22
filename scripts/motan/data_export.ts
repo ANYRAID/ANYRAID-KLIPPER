@@ -12,7 +12,8 @@ const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   -l, --list-datasets  List dataset syntax without opening a capture
   -h, --help           Show help
 Scalar columns and integer derivative/deviation/CoreXY/norm2/smooth/integral/SOS are supported.
-Structured status objects still need the legacy exporter.
+Structured status lists/dictionaries require --preserve-number-types.
+They use Python repr text and retain each row's historical snapshot.
 Mixed arithmetic requires known input types (typed status/Stallguard/phase).
 Unannotated raw sensor columns still reject ambiguous mixed arithmetic.
 SOS integers must fit NumPy int64/uint64; see migration notes.

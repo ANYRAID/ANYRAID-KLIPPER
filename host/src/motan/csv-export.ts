@@ -12,8 +12,12 @@ const numberText=(value:number)=>{
  if(!Number.isFinite(value))throw new Error('Motan CSV requires finite numeric values');
  return Object.is(value,-0)?'-0':String(value);
 };
-function scalarText(value:MotanScalar):string{
+function scalarText(value:MotanScalar,structured:WeakMap<object,string>):string{
  motanScalarBytes(value);
+ if(value!==null&&typeof value==='object'){
+  const cached=structured.get(value);if(cached!==undefined)return cached;
+  const text=quote(value.text);if(Object.isFrozen(value))structured.set(value,text);return text;
+ }
  return value===null?'':typeof value==='boolean'?(value?'True':'False'):typeof value==='number'?numberText(value):quote(String(value));
 }
 /** Caller owns and must not mutate the numeric analysis until iteration finishes.
@@ -35,13 +39,13 @@ export async function* motanCsvChunks(analysis:MotanTable,columns:readonly strin
   const unit=label.units.split('\n').at(-1)!;
   return {values,heading:unit==='Unknown'?label.label:label.label+' '+unit};
  });
- let pending='',bytes=0;
+ let pending='',bytes=0;const structured=new WeakMap<object,string>();
  const append=(row:string)=>{bytes+=Buffer.byteLength(row);if(bytes>max)throw new Error('Motan CSV output limit');pending+=row;};
  append(['Time (s)',...selected.map(column=>column.heading)].map(quote).join(',')+'\r\n');
  if(pending.length>=65536){yield Buffer.from(pending);pending='';}
  for(let i=0;i<analysis.times.length;i++){
   signal?.throwIfAborted();
-  append([numberText(analysis.times[i]),...selected.map(({values})=>scalarText(values[i]))].join(',')+'\r\n');
+  append([numberText(analysis.times[i]),...selected.map(({values})=>scalarText(values[i],structured))].join(',')+'\r\n');
   if(pending.length>=65536){yield Buffer.from(pending);pending='';}
   if((i+1)%256===0){await yieldImmediate();signal?.throwIfAborted();}
  }

@@ -10,7 +10,8 @@ import {MotanTypedPhaseSampler,motanTypedPhaseConfig} from './typed-phase-sample
 import {MotanStallguardSampler,MotanStatusFieldSampler,type MotanStallguardRow} from './diagnostic-samples.ts';
 import {parsePythonFloat} from '../moonraker/config-reader.ts';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
-import {motanScalarBytes,type MotanScalar} from './table.ts';
+import {motanScalarBytes,motanStructuredCell,type MotanStructuredCell,type MotanScalar} from './table.ts';
+import {motanPythonRepr} from './python-repr.ts';
 export const motanDatasetTypes=Object.freeze(['accelerometer','adxl345','angle','ldc1612','loadcell','stallguard','status','step_phase','stepq','trapq']);
 export interface DatasetLabel {name:string;label:string;units:string;}
 export interface MotanManagerOptions {start?:number;reader?:MotanReadOptions;dispatch?:DispatchOptions;maxIndexEntries?:number;}
@@ -101,15 +102,20 @@ export class MotanLogManager {
   const timeline=new Float64Array(times.length);let previous=this.#last;
   for(let i=0;i<timeline.length;i++){const time=times[i];if(typeof time!=='number'||!Number.isFinite(time)||time<previous)throw new Error('Motan scalar batch requires sequential nondecreasing times');timeline[i]=previous=time;}
   const result:Record<string,MotanScalar[]>=Object.create(null),datasets=Array.from(this.#datasets,([name,dataset])=>({dataset,values:selected.has(name)?result[name]=new Array<MotanScalar>(timeline.length):undefined}));
-  let bytes=timeline.length*(selected.size+1)*8;
+  let bytes=timeline.length*(selected.size+1)*8;const structured=new WeakMap<object,MotanStructuredCell>();
   if(!timeline.length)return Object.freeze({datasets:Object.freeze(result),scalarBytes:0});
   this.#busy=true;this.#started=true;
   try{
    for(let i=0;i<timeline.length;i++){
     this.#last=timeline[i];
     for(const entry of datasets){
-     this.#check();const value=await entry.dataset.sample(timeline[i]);this.#check();
+     this.#check();let value=await entry.dataset.sample(timeline[i]);this.#check();
      if(!entry.values)continue;
+     if(value!==null&&typeof value==='object'&&this.#preserveNumberTypes){
+      const source=value;let cell=structured.get(source);
+      if(!Object.isFrozen(source))throw new Error('Motan structured cells require immutable snapshots');
+      if(!cell){const remaining=maxScalarBytes-bytes+8-32;if(remaining<1)throw new Error('Motan table memory limit');cell=motanStructuredCell(motanPythonRepr(source,Math.min(1024**2,remaining)));structured.set(source,cell);}value=cell;
+     }
      bytes+=motanScalarBytes(value)-8;if(bytes>maxScalarBytes)throw new Error('Motan table memory limit');
      entry.values[i]=value as MotanScalar;
     }
