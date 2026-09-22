@@ -111,6 +111,7 @@ export class ConfiguredMoonraker {
  #sensorTransport:MqttSensors|undefined;
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
  #printApi:PrintApi|ProductPrintApi;
+ #printStateTask:Promise<void>|undefined;#printNotifications=notificationMetrics();
  #databaseRestart={requested:false,error:null as string|null};
  #agentMethods:AgentMethods;#jobState:JobState|undefined;
  #reconnecting=false;#lastAttachment:{path:string;options:KlippyAttachmentOptions}|undefined;
@@ -252,6 +253,7 @@ export class ConfiguredMoonraker {
  #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
+ get printNotifications(){return {...this.#printNotifications};}
  get mqttRpcStatus(){return this.#mqttRpc?.status??null;}
  get mqttStatus(){return this.#mqttStatus?.status??null;}
  get mqttMacroStatus(){return this.#mqttMacros?.status??null;}
@@ -267,6 +269,19 @@ export class ConfiguredMoonraker {
  get klippyNotifications(){return {...this.#klippyNotifications};}
  #broadcastGcode(response:string):void{
   this.#broadcastTracked('notify_gcode_response',[response],this.#gcodeNotifications);
+ }
+ async #observePrintState(api:ProductPrintApi,stream:ReturnType<ProductPrintApi['watchState']>):Promise<void>{
+  let lastToken:string|undefined;
+  try{for await(const _change of stream){
+   // Fanout/authorization runs in a later event-loop turn, after already queued
+   // device safety microtasks. The stream coalesces intervening state changes.
+   await new Promise<void>(resolve=>setImmediate(resolve));
+   if(this.#stopping)break;
+   // Read after the transition stack has unwound (reset also clears request).
+   // More than one transition can occur before delivery; expose only current state.
+   const status=api.status;if(status.state_token===lastToken)continue;lastToken=status.state_token;
+   this.#broadcastTracked('notify_print_state_changed',[{state:status.state,state_token:status.state_token,request_id:status.request?.request_id??null}],this.#printNotifications);
+  }}catch{this.#printNotifications.rejected++;}finally{await stream.return?.();}
  }
  #broadcastTracked(method:string,params:readonly Json[],metrics:ReturnType<typeof notificationMetrics>):void{
   metrics.received++;if(this.#stopping||this.#network.status.phase!=='listening'||!this.#network.status.notifications){metrics.disabled++;return;}
@@ -315,6 +330,7 @@ export class ConfiguredMoonraker {
    this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    this.#startupAbort.signal.throwIfAborted();
+   if(this.#printApi instanceof ProductPrintApi)this.#printStateTask=this.#observePrintState(this.#printApi,this.#printApi.watchState(this.#startupAbort.signal));
    if(this.#sensors){this.#sensorTimer=setInterval(()=>{
     if(this.#stopping)return;
     try{const changes=this.#sensors!.sample();this.#sensorSamples++;if(Object.keys(changes).length)this.#broadcastTracked('notify_sensor_update',[changes],this.#sensorNotifications);}
@@ -330,6 +346,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([printClosed,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }

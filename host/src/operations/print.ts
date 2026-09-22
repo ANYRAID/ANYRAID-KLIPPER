@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {PrintStateStream} from './print-state-stream.ts';
 import {MaintenanceGate} from './maintenance-gate.ts';
 import type { PrintJournal, JournalRecord } from './print-journal.ts';
 import { printDeadline } from './print-deadline.ts';
@@ -134,7 +135,15 @@ export class PrintController {
   #state: PrintState = 'idle';
   readonly #stateEpoch=randomUUID();#stateRevision=0n;#stateToken=this.#stateEpoch+':0';
   get stateToken():string{return this.#stateToken;}
-  #changeState(state:PrintState):void{if(this.#state===state)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);}
+  readonly #stateObservers=new Set<PrintStateStream>();
+  get stateObservers():number{return this.#stateObservers.size;}
+  /** Bounded live state feed. Slow readers get the latest unread state. */
+  watchState(signal:AbortSignal):AsyncIterableIterator<import('./print-state-stream.ts').PrintStateChange>{
+    signal.throwIfAborted();if(this.#stateObservers.size>=64)throw new Error('Print state observer capacity exceeded');
+    const stream=new PrintStateStream(Object.freeze({state:this.#state,stateToken:this.#stateToken}),signal,()=>this.#stateObservers.delete(stream));
+    this.#stateObservers.add(stream);return stream;
+  }
+  #changeState(state:PrintState):void{if(this.#state===state)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}}
   #active: Promise<void> | undefined;
   #abort: AbortController | undefined;
   #cancel: Promise<void> | undefined;
