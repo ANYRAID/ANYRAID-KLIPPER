@@ -14,8 +14,9 @@ const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   -d, --duration SEC   Analysis duration (default 5)
   --segment-time SEC  Sampling interval (default 0.000100)
   -h, --help           Show help
-Scalar columns supported; structured status objects and BigInt derived
-calculations still require the legacy exporter. Stdout may be partial on failure.
+Scalar columns and integer derivative/deviation/CoreXY are supported.
+Other integer filters and structured status objects need the legacy exporter.
+Mixed BigInt/Number arithmetic is rejected; stdout may be partial on failure.
 Limits: 1 million samples, 64 MiB accounted table budget, 256 MiB CSV, 60 s analysis.
 `;
 const controller=new AbortController(),executor=new MotanAnalysisExecutor();

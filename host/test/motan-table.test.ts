@@ -32,7 +32,7 @@ test('Motan table bounds scalar payload and rejects lossy derived BigInt convers
  try{
   await managerFixture(prefix,2,'corexy',{...fields,text:'x'.repeat(1000)});
   await assert.rejects(executor.analyze({prefix,datasets:['status(export_fields.text)'],output:'table',segmentTime:.01,duration:.2,maxNumericBytes:4096}),/table memory/);
-  await assert.rejects(executor.analyze({prefix,datasets:['derivative(status(export_fields.wide))'],output:'table',segmentTime:.01,duration:.2}),/requires finite Number/);
+  await assert.rejects(executor.analyze({prefix,datasets:['deviation(status(export_fields.wide),trapq(toolhead,x))'],output:'table',segmentTime:.01,duration:.2}),/Ambiguous mixed/);
   await assert.rejects(executor.analyze({prefix,datasets:['status(export_fields)'],output:'table',segmentTime:.01,duration:.2}),/finite scalar/);
   await assert.rejects(executor.analyze({prefix,datasets:['status(export_fields.wide)'],segmentTime:.01,duration:.2}),/cannot represent/);
   assert.equal((await executor.analyze({prefix,datasets:['status(export_fields.wide)'],output:'table',segmentTime:.01,duration:.02})).datasets['status(export_fields.wide)'][0],fields.wide);

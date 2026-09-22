@@ -6,10 +6,11 @@ import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from 
 import {motanNotch,motanButterworth} from './sos-design.ts';
 import {motanSOSFilter} from './sos-filter.ts';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
+import {motanScalarDerivative,motanScalarCombine,type MotanScalarSeries} from './scalar-math.ts';
 import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
 import {fixedDecimal} from '../math/python-decimal.ts';
 const strip=(s:string)=>s.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
-interface Node {info:DatasetLabel;generate?:(data:Record<string,Float64Array>)=>Float64Array;}
+interface Node {generateTable?:(data:Record<string,MotanScalarSeries>,maxBytes:number)=>MotanScalarSeries;info:DatasetLabel;generate?:(data:Record<string,Float64Array>)=>Float64Array;}
 export interface MotanAnalysis {times:Float64Array;datasets:Readonly<Record<string,Float64Array>>;labels:Readonly<Record<string,DatasetLabel>>;}
 export class MotanAnalyzer {
  readonly #manager:MotanLogManager;readonly #segment:number;readonly #samples:number;readonly #bytes:number;readonly #nodes=new Map<string,Node>();readonly #pending=new Set<string>();#started=false;#hasSOS=false;#sosExtraPoints=0;#failure:Error|undefined;
@@ -18,9 +19,9 @@ export class MotanAnalyzer {
  addDataset(name:string):DatasetLabel{this.#check();try{return this.#add(strip(name),0).info;}catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}}
  #add(name:string,depth:number):Node{
   const existing=this.#nodes.get(name);if(existing)return existing;if(depth>64||this.#nodes.size>=256||this.#pending.has(name)||name.length>4096)throw new Error('Motan analysis dependency limit');this.#pending.add(name);try{const [kind,...params]=splitMotanName(name);if(motanDatasetTypes.includes(kind)){const node={info:this.#manager.addDataset(name)};this.#nodes.set(name,node);return node;}
-   const arity:Record<string,[number,number]>={derivative:[1,1],integral:[1,3],norm2:[2,3],smooth:[1,2],kin:[1,1],corexy:[3,3],deviation:[2,2],sos:[5,6]};if(!arity[kind]||params.length<arity[kind][0]||params.length>arity[kind][1])throw new Error('Invalid Motan analyzer or parameters');const dependency=(value:string)=>{const key=strip(value);return {key,node:this.#add(key,depth+1)};};let label='',units='',generate:Node['generate'];
+   const arity:Record<string,[number,number]>={derivative:[1,1],integral:[1,3],norm2:[2,3],smooth:[1,2],kin:[1,1],corexy:[3,3],deviation:[2,2],sos:[5,6]};if(!arity[kind]||params.length<arity[kind][0]||params.length>arity[kind][1])throw new Error('Invalid Motan analyzer or parameters');const dependency=(value:string)=>{const key=strip(value);return {key,node:this.#add(key,depth+1)};};let label='',units='',generate:Node['generate'],generateTable:Node['generateTable'];
    if(kind==='kin'){const stepper=params[0],kin=motanObject(motanObject(motanObject(this.#manager.initialStatus.configfile).settings).printer).kinematics;if(!['cartesian','corexy'].includes(kin as string)||!['stepper_x','stepper_y','stepper_z'].includes(stepper))throw new Error('Unsupported Motan kinematics or stepper');const axis=stepper.at(-1)!;if(kin==='corexy'&&axis!=='z'){const a=dependency('trapq(toolhead,x)'),b=dependency('trapq(toolhead,y)');generate=data=>motanCombine(data[a.key],data[b.key],axis==='x'?'kin_x':'kin_y');}else{const source=dependency(`trapq(toolhead,${axis})`);generate=data=>new Float64Array(data[source.key]);}label='Position';units='Position\n(mm)';}
-   else if(kind==='corexy'){if(!['x','y'].includes(params[0]))throw new Error('Invalid Motan corexy axis');const a=dependency(params[1]),b=dependency(params[2]);generate=data=>motanCombine(data[a.key],data[b.key],params[0]==='x'?'corexy_x':'corexy_y');label=`Derived ${params[0]} position`;units='Position\n(mm)';}
+   else if(kind==='corexy'){if(!['x','y'].includes(params[0]))throw new Error('Invalid Motan corexy axis');const a=dependency(params[1]),b=dependency(params[2]);generate=data=>motanCombine(data[a.key],data[b.key],params[0]==='x'?'corexy_x':'corexy_y');generateTable=(data,maxBytes)=>motanScalarCombine(data[a.key],data[b.key],params[0]==='x'?'corexy_x':'corexy_y',maxBytes);label=`Derived ${params[0]} position`;units='Position\n(mm)';}
    else if(kind==='norm2'){const deps=params.map(dependency),words=['position','velocity','acceleration'],dataName=words.find(word=>deps[0].node.info.label.includes(word))??'';label=deps.map(({node})=>{let text=node.info.label;for(const word of words)text=strip(text.replaceAll(word,''));return text;}).join('+')+' '+dataName+' norm2';units=deps[0].node.info.units;generate=data=>motanNorm2(deps.map(({key})=>data[key]));}
    else{const source=dependency(params[0]),info=source.node.info;label=info.label;units=info.units;
     if(kind==='sos'){
@@ -41,13 +42,13 @@ export class MotanAnalyzer {
      this.#hasSOS=true;generate=data=>motanSOSFilter(sos,data[source.key],mode);
      label=`SOS ${description} (${label})`;
     }
-    else if(kind==='deviation'){const ref=dependency(params[1]);generate=data=>motanCombine(data[source.key],data[ref.key],'deviation');if(units!==ref.node.info.units){label='Deviation';units='Unknown';}else{label+=' deviation';const [first,...rest]=units.split('\n');units=[first,'Deviation',...rest].join('\n');}}
+    else if(kind==='deviation'){const ref=dependency(params[1]);generate=data=>motanCombine(data[source.key],data[ref.key],'deviation');generateTable=(data,maxBytes)=>motanScalarCombine(data[source.key],data[ref.key],'deviation',maxBytes);if(units!==ref.node.info.units){label='Deviation';units='Unknown';}else{label+=' deviation';const [first,...rest]=units.split('\n');units=[first,'Deviation',...rest].join('\n');}}
     else if(kind==='smooth'){const time=params[1]===undefined?.01:parsePythonFloat(params[1]);if(!Number.isFinite(time)||time<0)throw new Error('Invalid Motan smoothing time');generate=data=>motanSmooth(data[source.key],this.#segment,time);label='Smoothed '+label;}
-    else{const integral=kind==='integral';let replacements:[string,string][]|undefined;if(integral){if(units.includes('(mm/s)'))replacements=[['Velocity','Position'],['(mm/s)','(mm)']];else if(units.includes('(mm/s^2)'))replacements=[['Acceleration','Velocity'],['(mm/s^2)','(mm/s)']];const ref=params[1]===undefined?undefined:dependency(params[1]),halfLife=params[2]===undefined?.015:parsePythonFloat(params[2]);if(!Number.isFinite(halfLife)||halfLife<0)throw new Error('Invalid Motan integral half-life');generate=data=>motanIntegral(data[source.key],this.#segment,ref?data[ref.key]:undefined,halfLife);}else{if(units.includes('(mm)'))replacements=[['Position','Velocity'],['(mm)','(mm/s)']];else if(units.includes('(mm/s)'))replacements=[['Velocity','Acceleration'],['(mm/s)','(mm/s^2)']];generate=data=>motanDerivative(data[source.key],this.#segment);}
+    else{const integral=kind==='integral';let replacements:[string,string][]|undefined;if(integral){if(units.includes('(mm/s)'))replacements=[['Velocity','Position'],['(mm/s)','(mm)']];else if(units.includes('(mm/s^2)'))replacements=[['Acceleration','Velocity'],['(mm/s^2)','(mm/s)']];const ref=params[1]===undefined?undefined:dependency(params[1]),halfLife=params[2]===undefined?.015:parsePythonFloat(params[2]);if(!Number.isFinite(halfLife)||halfLife<0)throw new Error('Invalid Motan integral half-life');generate=data=>motanIntegral(data[source.key],this.#segment,ref?data[ref.key]:undefined,halfLife);}else{if(units.includes('(mm)'))replacements=[['Position','Velocity'],['(mm)','(mm/s)']];else if(units.includes('(mm/s)'))replacements=[['Velocity','Acceleration'],['(mm/s)','(mm/s^2)']];generate=data=>motanDerivative(data[source.key],this.#segment);generateTable=data=>motanScalarDerivative(data[source.key],this.#segment);}
      if(replacements){for(const [old,next] of replacements){label=label.replaceAll(old,next).replaceAll(old.toLowerCase(),next.toLowerCase());units=units.replaceAll(old,next).replaceAll(old.toLowerCase(),next.toLowerCase());}}else{label=integral?'Integral':'Derivative of '+label;units='Unknown';}
     }
    }
-   if(this.#nodes.size>=256)throw new Error('Motan analysis dependency limit');const node={info:Object.freeze({name,label,units}),generate};this.#nodes.set(name,node);return node;
+   if(this.#nodes.size>=256)throw new Error('Motan analysis dependency limit');const node={info:Object.freeze({name,label,units}),generate,generateTable};this.#nodes.set(name,node);return node;
   }finally{this.#pending.delete(name);}
  }
  #numericBytes(count:number):number{return count*(this.#nodes.size+3)*8+(this.#hasSOS?(count+this.#sosExtraPoints)*8:0);}
@@ -73,7 +74,7 @@ export class MotanAnalyzer {
     if(reserved(absolute.length+1)>this.#bytes)throw new Error('Motan table memory limit');absolute.push(t=next);
    }
    const times=Float64Array.from(absolute,time=>time-this.#manager.initialStartTime);
-   const data:Record<string,Float64Array|MotanScalar[]>=Object.create(null),labels:Record<string,DatasetLabel>=Object.create(null);
+   const data:Record<string,MotanScalarSeries>=Object.create(null),labels:Record<string,DatasetLabel>=Object.create(null);
    for(const [name,node]of this.#nodes){labels[name]=node.info;if(!node.generate)data[name]=new Array<MotanScalar>(times.length);}
    let bytes=reserved(times.length);
    for(let i=0;i<absolute.length;i++){
@@ -82,6 +83,9 @@ export class MotanAnalyzer {
      if(bytes>this.#bytes)throw new Error('Motan table memory limit');(data[name] as MotanScalar[])[i]=value as MotanScalar;}
     if((i+1)%256===0)await yieldImmediate();
    }
+   // Promote only already-Number columns before derived evaluation. This
+   // avoids repeated type scans/copies while preserving integer scalar columns.
+   for(const [name,values]of Object.entries(data))if(Array.isArray(values)&&values.every(value=>typeof value==='number'))data[name]=Float64Array.from(values as number[]);
    const numeric:Record<string,Float64Array>=Object.create(null);
    const dependencies=new Proxy(numeric,{get:(target,key)=>{
     if(typeof key!=='string')return undefined;if(Object.hasOwn(target,key))return target[key];
@@ -91,7 +95,11 @@ export class MotanAnalyzer {
     for(let i=0;i<values.length;i++){const value=values[i];if(typeof value!=='number'||!Number.isFinite(value))throw new Error('Motan derived analysis requires finite Number values: '+key);result[i]=value;}
     return target[key]=result;
    }});
-   for(const [name,node]of this.#nodes)if(node.generate)data[name]=node.generate(dependencies);
+   for(const [name,node]of this.#nodes)if(node.generate){
+    const values=node.generateTable?node.generateTable(data,this.#bytes-bytes+times.length*8):node.generate(dependencies);
+    if(!(values instanceof Float64Array))for(const value of values){bytes+=motanScalarBytes(value)-8;if(bytes>this.#bytes)throw new Error('Motan table memory limit');}
+    data[name]=values;
+   }
    for(const [name,values]of Object.entries(data))if(Array.isArray(values)){
     if(values.every(value=>typeof value==='number'))data[name]=numeric[name]??Float64Array.from(values as number[]);
     else Object.freeze(values);
