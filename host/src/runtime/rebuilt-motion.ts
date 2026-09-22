@@ -22,7 +22,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
  const {group,motion}=o;
  try{
   group.assertActive();
-  const ids=group.status.devices.map(d=>d.id),members=[...o.members];
+  const ids=group.status.devices.map(d=>d.id),members=o.members.map(m=>Object.freeze({...m,steppers:Object.freeze(m.steppers.map(s=>Object.freeze({...s})))}));
   if(ids.length!==members.length||new Set(members.map(m=>m.session)).size!==members.length)throw new Error('Rebuilt motion requires every physical MCU');
   const routes=members.map(m=>{const id=ids.find(id=>group.session(id)===m.session);if(!id)throw new Error('Rebuilt member does not belong to MCU group');m.session.assertCommandQueue(m.queue);return id;});
   const bindings=motion.bindings;
@@ -52,7 +52,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position);
-  check();return Object.freeze({motion,sink,coordinator,drain,source,routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({motion,sink,coordinator,drain,source,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
