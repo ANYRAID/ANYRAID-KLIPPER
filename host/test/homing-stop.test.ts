@@ -56,8 +56,10 @@ test('late safety failure stays observable after cleanup timeout',async()=>{
  }finally{fail(new Error('cleanup'));await f.close();}
 });
 test('a member closing during the final peer readback prevents snapshot publication',async()=>{
- const a=await fixture(),b=await fixture();try{a.fw.setTriggerReason(1);b.fw.setTriggerReason(2);const query=b.session.queryOnQueue.bind(b.session);
-  b.session.queryOnQueue=async(...args)=>{const result=await query(...args);if(args[2]==='stepper_position'&&args[4]?.oid===2)await a.session.stop(new Error('late member disconnect'));return result;};
+ const a=await fixture(),b=await fixture();try{a.fw.setTriggerReason(1);b.fw.setTriggerReason(2);const query=b.session.queryOnQueue.bind(b.session),queryA=a.session.queryOnQueue.bind(a.session);
+  let ready!:()=>void;const aComplete=new Promise<void>(resolve=>{ready=resolve;});
+  a.session.queryOnQueue=async(...args)=>{const result=await queryA(...args);if(args[2]==='stepper_position'&&args[4]?.oid===2)setImmediate(ready);return result;};
+  b.session.queryOnQueue=async(...args)=>{const result=await query(...args);if(args[2]==='stepper_position'&&args[4]?.oid===2){await aComplete;await a.session.stop(new Error('late member disconnect'));}return result;};
   const stop=new HomingStopConfirmation([a.member,b.member],0,a.endstop,a.sampling,()=>{});await assert.rejects(stop.finish(signal()),/not ready/);assert.equal(a.stops,1);assert.equal(b.stops,1);
  }finally{await a.close();await b.close();}
 });
