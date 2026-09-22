@@ -21,6 +21,8 @@ export interface StartPrint {
   fileId: string;
   nozzle: number;
   bed: number;
+  /** Unix milliseconds: admit before this time; not a heating/printing deadline. */
+  expiresAt?: number;
 }
 export interface PrintDevice {
   /** Synchronous fault notification; it must not wait for controller cleanup. */
@@ -234,7 +236,8 @@ export class PrintController {
       input.nozzle > this.#limits.maxNozzle ||
       !Number.isFinite(input.bed) ||
       input.bed < 0 ||
-      input.bed > this.#limits.maxBed
+      input.bed > this.#limits.maxBed ||
+      input.expiresAt !== undefined && (!Number.isSafeInteger(input.expiresAt) || input.expiresAt < 0)
     )
       return Promise.reject(new RangeError('Invalid print request'));
     const prior = this.#history.get(input.requestId);
@@ -242,13 +245,16 @@ export class PrintController {
       if (
         prior.request.fileId !== input.fileId ||
         prior.request.nozzle !== input.nozzle ||
-        prior.request.bed !== input.bed
+        prior.request.bed !== input.bed ||
+        prior.request.expiresAt !== input.expiresAt
       )
         return Promise.reject(
           new Error('Idempotency key conflicts with previous request'),
         );
       return prior.started;
     }
+    const expiresAt=input.expiresAt,admittedAt=expiresAt===undefined?0:performance.now(),remaining=expiresAt===undefined?Infinity:expiresAt-Date.now();
+    if(remaining<=0)return Promise.reject(new Error('Print request expired before admission'));
     if (this.#state !== 'idle')
       return Promise.reject(new Error(`Cannot start while ${this.#state}`));
     if (this.#history.size >= this.#historyLimit)
@@ -262,6 +268,7 @@ export class PrintController {
       fileId: input.fileId,
       nozzle: input.nozzle,
       bed: input.bed,
+      ...(expiresAt===undefined?{}:{expiresAt}),
     });
     this.#startPromise = this.#run(
       'start',
@@ -275,6 +282,9 @@ export class PrintController {
           this.#journalRecord = reservation.record;
           signal.throwIfAborted();
         }
+        // Durable reservation must finish before the first device effect. A
+        // wall-clock rollback cannot extend the original admission budget.
+        if(expiresAt!==undefined&&(Date.now()>=expiresAt||performance.now()-admittedAt>=remaining))throw new Error('Print request expired before admission');
         await this.#device.prepare(this.#start!, signal);
         signal.throwIfAborted();
         await this.#device.start(this.#start!.fileId, signal);

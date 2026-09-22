@@ -33,7 +33,8 @@ export function journalRequest(value: unknown): StartPrint {
     !Number.isFinite(v.nozzle) ||
     v.nozzle < 0 ||
     !Number.isFinite(v.bed) ||
-    v.bed < 0
+    v.bed < 0 ||
+    v.expiresAt !== undefined && (!Number.isSafeInteger(v.expiresAt) || v.expiresAt < 0)
   )
     throw new JournalError('INVALID', 'Invalid print request');
   return {
@@ -42,6 +43,7 @@ export function journalRequest(value: unknown): StartPrint {
     fileId: v.fileId,
     nozzle: v.nozzle,
     bed: v.bed,
+    ...(v.expiresAt===undefined?{}:{expiresAt:v.expiresAt}),
   };
 }
 export function validJournalId(value: unknown): value is string {
