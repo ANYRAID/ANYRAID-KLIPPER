@@ -1,16 +1,16 @@
 // GPL-3.0-or-later. From analyzers.py, copyright (C) 2021 Kevin O'Connor.
 import {MotanLogManager,motanDatasetTypes,splitMotanName,type DatasetLabel} from './log-manager.ts';
 import {motanObject} from './dispatch.ts';
-import {parsePythonFloat} from '../moonraker/config-reader.ts';
+import {parsePythonFloat,parseConfigurationInteger} from '../moonraker/config-reader.ts';
 import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from './derived-math.ts';
-import {motanNotch} from './sos-design.ts';
+import {motanNotch,motanButterworth} from './sos-design.ts';
 import {motanSOSFilter} from './sos-filter.ts';
 import {fixedDecimal} from '../math/python-decimal.ts';
 const strip=(s:string)=>s.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
 interface Node {info:DatasetLabel;generate?:(data:Record<string,Float64Array>)=>Float64Array;}
 export interface MotanAnalysis {times:Float64Array;datasets:Readonly<Record<string,Float64Array>>;labels:Readonly<Record<string,DatasetLabel>>;}
 export class MotanAnalyzer {
- readonly #manager:MotanLogManager;readonly #segment:number;readonly #samples:number;readonly #bytes:number;readonly #nodes=new Map<string,Node>();readonly #pending=new Set<string>();#started=false;#hasSOS=false;#failure:Error|undefined;
+ readonly #manager:MotanLogManager;readonly #segment:number;readonly #samples:number;readonly #bytes:number;readonly #nodes=new Map<string,Node>();readonly #pending=new Set<string>();#started=false;#hasSOS=false;#sosExtraPoints=0;#failure:Error|undefined;
  constructor(manager:MotanLogManager,segmentTime:number,options:{maxSamples?:number;maxNumericBytes?:number}={}){this.#manager=manager;this.#segment=segmentTime;this.#samples=options.maxSamples??1000000;this.#bytes=options.maxNumericBytes??64*1024**2;if(!Number.isFinite(segmentTime)||segmentTime<=0||!Number.isSafeInteger(this.#samples)||this.#samples<1||this.#samples>2000000||!Number.isSafeInteger(this.#bytes)||this.#bytes<1||this.#bytes>512*1024**2)throw new Error('Invalid Motan analysis limits');}
  #check(){if(this.#failure)throw this.#failure;if(this.#started)throw new Error('Motan analysis can only run once');}
  addDataset(name:string):DatasetLabel{this.#check();try{return this.#add(strip(name),0).info;}catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}}
@@ -23,11 +23,21 @@ export class MotanAnalyzer {
    else{const source=dependency(params[0]),info=source.node.info;label=info.label;units=info.units;
     if(kind==='sos'){
      const mode=params[1];if(mode!=='filt'&&mode!=='filtfilt')throw new Error('Invalid Motan SOS mode');
-     if(params[2]!=='notch')throw new Error('Motan Butterworth SOS design is not migrated yet');
-     if(params.length!==5)throw new Error('Invalid Motan notch parameters');
-     const frequency=parsePythonFloat(params[3]),quality=parsePythonFloat(params[4]),sos=motanNotch(frequency,quality,1/this.#segment);
+     const filter=params[2];let sos,description;
+     if(filter==='notch'){
+      if(params.length!==5)throw new Error('Invalid Motan notch parameters');
+      const frequency=parsePythonFloat(params[3]),quality=parsePythonFloat(params[4]);sos=motanNotch(frequency,quality,1/this.#segment);
+      description=`notch ${fixedDecimal(frequency,1)}Hz Q: ${fixedDecimal(quality,1)}`;
+     }else if(filter==='lowpass'||filter==='highpass'||filter==='bandpass'){
+      if(params.length!==(filter==='bandpass'?6:5))throw new Error('Invalid Motan Butterworth parameters');
+      const order=parseConfigurationInteger(params[3]),low=parsePythonFloat(params[4]),high=filter==='bandpass'?parsePythonFloat(params[5]):undefined;
+      sos=motanButterworth(order,high===undefined?low:[low,high],filter,1/this.#segment);
+      description=`${filter} ${high===undefined?fixedDecimal(low,0):fixedDecimal(low,1)+'..'+fixedDecimal(high,1)}Hz order ${order}`;
+     }else throw new Error('Unknown Motan SOS filter');
+     const edge=3*(2*sos.length+1-Math.min(sos.filter(row=>row[2]===0).length,sos.filter(row=>row[5]===0).length));
+     this.#sosExtraPoints=Math.max(this.#sosExtraPoints,2*edge+2*sos.length);
      this.#hasSOS=true;generate=data=>motanSOSFilter(sos,data[source.key],mode);
-     label=`SOS notch ${fixedDecimal(frequency,1)}Hz Q: ${fixedDecimal(quality,1)} (${label})`;
+     label=`SOS ${description} (${label})`;
     }
     else if(kind==='deviation'){const ref=dependency(params[1]);generate=data=>motanCombine(data[source.key],data[ref.key],'deviation');if(units!==ref.node.info.units){label='Deviation';units='Unknown';}else{label+=' deviation';const [first,...rest]=units.split('\n');units=[first,'Deviation',...rest].join('\n');}}
     else if(kind==='smooth'){const time=params[1]===undefined?.01:parsePythonFloat(params[1]);if(!Number.isFinite(time)||time<0)throw new Error('Invalid Motan smoothing time');generate=data=>motanSmooth(data[source.key],this.#segment,time);label='Smoothed '+label;}
@@ -38,7 +48,7 @@ export class MotanAnalyzer {
    if(this.#nodes.size>=256)throw new Error('Motan analysis dependency limit');const node={info:Object.freeze({name,label,units}),generate};this.#nodes.set(name,node);return node;
   }finally{this.#pending.delete(name);}
  }
- #numericBytes(count:number):number{return count*(this.#nodes.size+3)*8+(this.#hasSOS?(count+18)*8+16:0);}
+ #numericBytes(count:number):number{return count*(this.#nodes.size+3)*8+(this.#hasSOS?(count+this.#sosExtraPoints)*8:0);}
  async generate(duration=5):Promise<MotanAnalysis>{
   this.#check();if(!Number.isFinite(duration)||duration<0||!this.#nodes.size)throw new Error('Invalid Motan analysis duration or datasets');this.#started=true;
   try{const start=this.#manager.startTime,end=start+duration;if(!Number.isFinite(end))throw new Error('Motan analysis time exceeds finite range');let t=start;const absolute:number[]=[];while(t<end){const next=t+this.#segment;if(!(next>t))throw new Error('Motan segment cannot advance the time axis');if(absolute.length>=this.#samples)throw new Error('Motan analysis sample limit');if(this.#numericBytes(absolute.length+1)>this.#bytes)throw new Error('Motan analysis numeric memory limit');t=next;absolute.push(t);}const count=absolute.length;if(this.#numericBytes(count)>this.#bytes)throw new Error('Motan analysis numeric memory limit');const times=Float64Array.from(absolute,time=>time-this.#manager.initialStartTime),data:Record<string,Float64Array>=Object.create(null),labels:Record<string,DatasetLabel>=Object.create(null);for(const [name,node] of this.#nodes)labels[name]=node.info;

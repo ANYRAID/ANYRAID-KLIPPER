@@ -8,7 +8,7 @@ export interface SOSCase {
   order: number; cutoff: number | number[]; source: number[];
   mode: MotanSOSMode; fs?: number;
 }
-export interface SOSReference {sos: number[][]; values: number[]; ms: number[]; ideal?: number[];}
+export interface SOSReference {sos: number[][]; values: number[]; ms: number[]; preciseValues?: number[];}
 export function scipyReferenceEnvironment(): NodeJS.ProcessEnv {
   const roots = ['scipy-reference', 'pdf-reference'].map(name =>
     fileURLToPath(new URL(`../../node_modules/.cache/${name}`, import.meta.url)));
@@ -39,8 +39,24 @@ for c in json.load(sys.stdin):
  if ${highPrecision ? 'True' : 'False'}:
   import mpmath as mp
   assert mp.__version__=='1.3.0'
-  assert c['kind']=='notch'
   mp.mp.dps=80
+  if c['kind']!='notch':
+   rows=[[mp.mpf(float(v)) for v in row] for row in sos]
+   def apply_sos(x):
+    for b0,b1,b2,a0,a1,a2 in rows:
+     dc=(b0+b1+b2)/(a0+a1+a2)
+     z0=(dc-b0)*x[0];z1=(b2-a2*dc)*x[0];out=[]
+     for sample in x:
+      y=b0*sample+z0;z0=b1*sample-a1*y+z1;z1=b2*sample-a2*y;out.append(y)
+     x=out
+    return x
+   x=list(map(mp.mpf,source))
+   if c['mode']=='filtfilt':
+    edge=3*(2*len(rows)+1-min(sum(row[2]==0 for row in rows),sum(row[5]==0 for row in rows)))
+    x=[2*x[0]-x[j] for j in range(edge,0,-1)]+x+[2*x[-1]-x[-j-2] for j in range(edge)]
+    ideal=apply_sos(apply_sos(x)[::-1])[::-1][edge:-edge]
+   else: ideal=apply_sos(x)
+   entry['preciseValues']=list(map(float,ideal));result.append(entry);continue
   omega=2*mp.mpf(c['cutoff'])/fs*mp.pi
   gain=1/(1+mp.tan(omega/mp.mpf(c['order'])/2))
   b0=b2=gain;b1=a1=-2*gain*mp.cos(omega);a2=2*gain-1
@@ -54,7 +70,7 @@ for c in json.load(sys.stdin):
    edge=9;x=[2*x[0]-x[j] for j in range(edge,0,-1)]+x+[2*x[-1]-x[-j-2] for j in range(edge)]
    ideal=apply(apply(x)[::-1])[::-1][edge:-edge]
   else: ideal=apply(x)
-  entry['ideal']=list(map(float,ideal))
+  entry['preciseValues']=list(map(float,ideal))
  result.append(entry)
 print(json.dumps(result))`;
   return JSON.parse(execFileSync(process.env.MOTAN_SCIPY_PYTHON ?? 'python3', ['-c', script], {

@@ -235,7 +235,9 @@
     "bench:motan-derived-math": "node bench/motan-derived-math.ts",
     "bench:motan-analyzer": "node bench/motan-analyzer.ts",
     "bench:motan-sos-filter": "node bench/motan-sos-filter.ts",
-    "bench:motan-notch-analysis": "node bench/motan-notch-analysis.ts"
+    "bench:motan-notch-analysis": "node bench/motan-notch-analysis.ts",
+    "bench:motan-butterworth-analysis": "node bench/motan-butterworth-analysis.ts",
+    "bench:motan-butterworth-design": "node bench/motan-butterworth-design.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
@@ -250,6 +252,7 @@
   },
   "dependencies": {
     "busboy": "1.6.0",
+    "complex.js": "2.4.3",
     "fft.js": "4.0.4",
     "fontkit": "2.0.4",
     "mqtt": "5.16.0",
