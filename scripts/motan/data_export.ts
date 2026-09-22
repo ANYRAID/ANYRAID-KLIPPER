@@ -11,10 +11,11 @@ const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   --preserve-number-types  Preserve integer tokens in status columns (opt-in)
   -l, --list-datasets  List dataset syntax without opening a capture
   -h, --help           Show help
-Scalar columns and integer derivative/deviation/CoreXY/norm2/smooth/integral are supported.
-Other integer filters and structured status objects need the legacy exporter.
-Mixed integral sums require --preserve-number-types; stdout may be partial on failure.
-Mixed add/subtract and integer SOS remain limited; see migration notes.
+Scalar columns and integer derivative/deviation/CoreXY/norm2/smooth/integral/SOS are supported.
+Structured status objects still need the legacy exporter.
+Mixed integral/SOS inputs require --preserve-number-types.
+SOS integers must fit NumPy int64/uint64; mixed add/subtract remains limited.
+Stdout may be partial on failure; see migration notes.
 Limits: 1 million samples, 64 MiB accounted table budget, 256 MiB CSV, 60 s analysis.
 `;
 const controller=new AbortController();let executor:import('../../host/src/motan/analysis-executor.ts').MotanAnalysisExecutor|undefined;

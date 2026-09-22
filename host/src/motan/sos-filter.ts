@@ -1,4 +1,5 @@
 import type {MotanSeries} from './derived-math.ts';
+import type {MotanScalarSeries} from './scalar-math.ts';
 
 /** Normalized real second-order section: b0, b1, b2, a0=1, a1, a2. */
 export type MotanSOS = readonly (readonly number[])[];
@@ -109,6 +110,58 @@ export function motanSOSFilter(sos: MotanSOS, source: MotanSeries,
   for (let i = 0; i < edge; i++) {
     data[i] = 2 * source[0] - source[edge - i];
     data[edge + source.length + i] = 2 * source[source.length - 1] - source[source.length - 2 - i];
+  }
+  pass(data, sos, state, false);
+  if (mode === 'filtfilt') pass(data, sos, state, true);
+  for (const value of data) if (!Number.isFinite(value))
+    throw new Error('Motan SOS result exceeds finite range');
+  return edge ? data.slice(edge, edge + source.length) : data;
+}
+
+type InputKind='float64'|'int64'|'uint64';
+/** NumPy array inference for Python int/bool/float scalar columns. Object
+ * arrays are rejected by scipy SOS; integer odd extension wraps before cast. */
+export function motanScalarSOSFilter(sos:MotanSOS,source:MotanScalarSeries,mode:MotanSOSMode,maxBytes=64*1024**2,typedNumbers=false):Float64Array{
+  if(!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3||typeof typedNumbers!=='boolean')throw new Error('Invalid Motan scalar SOS budget or types');
+  if(source.length*8>maxBytes)throw new Error('Motan scalar result memory limit');
+  if(source instanceof Float64Array)return motanSOSFilter(sos,source,mode);
+  if(!Array.isArray(source)||!source.length||source.length>2000000)throw new Error('Motan SOS requires 1..2000000 samples');
+  const signedMin=-(1n<<63n),signedMax=(1n<<63n)-1n,unsignedMax=(1n<<64n)-1n;
+  let number=false,integer=false,negative=false,unsigned=false;
+  for(const value of source){
+    if(typeof value==='number'){if(!Number.isFinite(value))throw new Error('Motan SOS requires finite numeric scalars');number=true;}
+    else if(typeof value==='boolean')integer=true;
+    else if(typeof value==='bigint'){
+      if(value<signedMin||value>unsignedMax)throw new Error('Motan SOS does not support NumPy object integer arrays');
+      integer=true;if(value<0n)negative=true;if(value>signedMax)unsigned=true;
+    }else throw new Error('Motan SOS requires finite numeric scalars');
+  }
+  if(number&&integer&&!typedNumbers)throw new Error('Ambiguous mixed Motan integer/Number SOS input');
+  return filterScalar(sos,source,mode,number||negative&&unsigned?'float64':unsigned?'uint64':'int64');
+}
+function filterScalar(sos:MotanSOS,source:MotanScalarSeries,mode:MotanSOSMode,kind:InputKind):Float64Array{
+  coefficients(sos);
+  if (mode !== 'filt' && mode !== 'filtfilt') throw new Error('Invalid Motan SOS mode');
+  if ((!Array.isArray(source) && !(source instanceof Float64Array))
+      || !source.length || source.length > 2000000)
+    throw new Error('Motan SOS requires 1..2000000 samples');
+  const edge = mode === 'filt' ? 0 : 3 * (2 * sos.length + 1
+    - Math.min(sos.filter(row => row[2] === 0).length,
+               sos.filter(row => row[5] === 0).length));
+  if (source.length <= edge) throw new Error(`Motan SOS needs more than padlen ${edge} samples`);
+  if ((source.length + 2 * edge) * sos.length * (mode === 'filt' ? 1 : 2) > 50000000)
+    throw new Error('Motan SOS work limit exceeded');
+  const state = initialState(sos), data = new Float64Array(source.length + 2 * edge);
+  for(let i=0;i<source.length;i++)data[edge+i]=Number(source[i]);
+  for (let i = 0; i < edge; i++) {
+    if(kind==='float64'){
+      data[i] = 2 * Number(source[0]) - Number(source[edge - i]);
+      data[edge + source.length + i] = 2 * Number(source[source.length - 1]) - Number(source[source.length - 2 - i]);
+    }else{
+      const wrap=kind==='int64'?BigInt.asIntN:BigInt.asUintN;
+      data[i]=Number(wrap(64,2n*BigInt(source[0] as bigint|boolean)-BigInt(source[edge-i] as bigint|boolean)));
+      data[edge+source.length+i]=Number(wrap(64,2n*BigInt(source[source.length-1] as bigint|boolean)-BigInt(source[source.length-2-i] as bigint|boolean)));
+    }
   }
   pass(data, sos, state, false);
   if (mode === 'filtfilt') pass(data, sos, state, true);

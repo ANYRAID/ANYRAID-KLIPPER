@@ -59,11 +59,13 @@ Motan 运动数据采集入口已切换为
 Motan 数值 CSV 可使用
 `node scripts/motan/data_export.ts capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
 新入口无需 Python，支持取消、完整文件原子替换及文本/布尔/null/BigInt
-原始列，以及整数导数、偏差、CoreXY、norm2、平滑和积分计算。结构化状态对象、其余整数
-派生算子尚待迁移，旧 CSV 入口暂时保留。使用
+原始列，以及整数导数、偏差、CoreXY、norm2、平滑、积分和 SOS 计算。
+SOS 整数须在 NumPy int64/uint64 范围内。结构化状态对象和混合整数
+加减仍有限制，旧 CSV 入口暂时保留。使用
 `node scripts/motan/data_export.ts --list-datasets` 可直接列出数据集语法，
 不需要日志文件。性能与格式边界见迁移说明。
 
 需要区分状态列中的 JSON 整数 `1` 与浮点 `1.0` 时，可显式增加
 `--preserve-number-types`。该模式能保留类型到状态采样与整数偏差计算，
-但可能暴露尚未支持的整数滤波运算；当前不默认启用，详见迁移说明。
+SOS 输入仍受上述整数范围限制，混合整数加减尚有限制；该模式当前
+不默认启用，详见迁移说明。

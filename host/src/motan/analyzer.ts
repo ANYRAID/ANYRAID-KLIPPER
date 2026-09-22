@@ -4,7 +4,7 @@ import {motanObject} from './dispatch.ts';
 import {parsePythonFloat,parseConfigurationInteger} from '../moonraker/config-reader.ts';
 import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from './derived-math.ts';
 import {motanNotch,motanButterworth} from './sos-design.ts';
-import {motanSOSFilter} from './sos-filter.ts';
+import {motanSOSFilter,motanScalarSOSFilter} from './sos-filter.ts';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {motanScalarDerivative,motanScalarCombine,motanScalarNorm2,motanScalarSmooth,motanScalarIntegral,type MotanScalarSeries} from './scalar-math.ts';
 import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
@@ -39,7 +39,7 @@ export class MotanAnalyzer {
      }else throw new Error('Unknown Motan SOS filter');
      const edge=3*(2*sos.length+1-Math.min(sos.filter(row=>row[2]===0).length,sos.filter(row=>row[5]===0).length));
      this.#sosExtraPoints=Math.max(this.#sosExtraPoints,2*edge+2*sos.length);
-     this.#hasSOS=true;generate=data=>motanSOSFilter(sos,data[source.key],mode);
+     this.#hasSOS=true;generate=data=>motanSOSFilter(sos,data[source.key],mode);generateTable=(data,maxBytes)=>motanScalarSOSFilter(sos,data[source.key],mode,maxBytes,this.#manager.preserveNumberTypes);
      label=`SOS ${description} (${label})`;
     }
     else if(kind==='deviation'){const ref=dependency(params[1]);generate=data=>motanCombine(data[source.key],data[ref.key],'deviation');generateTable=(data,maxBytes)=>motanScalarCombine(data[source.key],data[ref.key],'deviation',maxBytes);if(units!==ref.node.info.units){label='Deviation';units='Unknown';}else{label+=' deviation';const [first,...rest]=units.split('\n');units=[first,'Deviation',...rest].join('\n');}}
