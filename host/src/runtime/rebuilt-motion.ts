@@ -52,7 +52,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position);
-  check();return Object.freeze({motion,sink,coordinator,drain,source,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,motion,sink,coordinator,drain,source,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
