@@ -233,7 +233,8 @@
     "bench:motan-phase-samples": "node bench/motan-phase-samples.ts",
     "bench:motan-log-manager": "node bench/motan-log-manager.ts",
     "bench:motan-derived-math": "node bench/motan-derived-math.ts",
-    "bench:motan-analyzer": "node bench/motan-analyzer.ts"
+    "bench:motan-analyzer": "node bench/motan-analyzer.ts",
+    "bench:motan-sos-filter": "node bench/motan-sos-filter.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
