@@ -1,4 +1,4 @@
-import {cloneMotanJson,mergeMotanObjects,copyMotanStatusRoot} from './number-types.ts';
+import {cloneMotanJson,mergeMotanObjects,copyMotanStatusRoot,motanNumberToken} from './number-types.ts';
 // GPL-3.0-or-later. Based on readlog.py, copyright (C) 2021 Kevin O'Connor.
 import {encodeMotanJson} from './capture.ts';
 import type {MotanMessage} from './log-reader.ts';
@@ -55,7 +55,7 @@ export class MotanStatusTracker {
  #bound(){if(this.#bytes>this.#maxStatusBytes)throw new Error('Motan status size limit exceeded');}
  #account(key:string,update:MotanObject):void{
   let fields=this.#fieldSizes.get(key);if(!fields){this.#bytes+=Buffer.byteLength(JSON.stringify(key))+3+(this.#fieldSizes.size?1:0);fields=new Map();this.#fieldSizes.set(key,fields);}
-  for(const [field,value] of Object.entries(update)){let bytes:number;if(typeof value==='number')bytes=Object.is(value,-0)?4:String(value).length;else if(typeof value==='bigint')bytes=String(value).length;else if(value===null)bytes=4;else if(typeof value==='boolean')bytes=value?4:5;else bytes=encodeMotanJson(value).length;
+  for(const [field,value] of Object.entries(update)){let bytes:number;if(typeof value==='number')bytes=motanNumberToken(update as Record<string,unknown>,field,value)?.length??(Object.is(value,-0)?4:String(value).length);else if(typeof value==='bigint')bytes=String(value).length;else if(value===null)bytes=4;else if(typeof value==='boolean')bytes=value?4:5;else bytes=encodeMotanJson(value).length;
    const previous=fields.get(field),prefix=previous?.prefix??Buffer.byteLength(JSON.stringify(field))+1,next=prefix+bytes;this.#bytes+=next-(previous?.bytes??0)+(previous===undefined&&fields.size?1:0);if(previous)previous.bytes=next;else fields.set(field,{prefix,bytes:next});
   }
  }
