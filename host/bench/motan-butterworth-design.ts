@@ -1,7 +1,7 @@
 import {performance} from 'node:perf_hooks';
 import {execFileSync} from 'node:child_process';
 import {motanButterworth} from '../src/motan/sos-design.ts';
-import {scipyReferenceEnvironment} from '../test/helpers/motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from '../test/helpers/motan-sos-oracle.ts';
 const cases=[
  {kind:'lowpass',order:8,cutoff:50},{kind:'highpass',order:8,cutoff:50},
  {kind:'bandpass',order:8,cutoff:[20,100]},
@@ -21,7 +21,7 @@ for c in json.load(sys.stdin):
   if run>=2: ms.append(elapsed)
  out.append(ms)
 print(json.dumps(out))`;
-const reference:number[][]=JSON.parse(execFileSync(process.env.MOTAN_SCIPY_PYTHON??'python3',['-c',script],{
+const reference:number[][]=JSON.parse(execFileSync(scipyReferencePython(),['-c',script],{
  input:JSON.stringify(cases),encoding:'utf8',env:scipyReferenceEnvironment(),
 }));
 const stats=(ms:number[])=>{ms.sort((a,b)=>a-b);return {median:ms[3],p95:ms[6]};};

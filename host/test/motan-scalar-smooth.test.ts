@@ -10,7 +10,7 @@ import {motanSmooth} from '../src/motan/derived-math.ts';
 import {scalarOracle,scalarBits} from './helpers/motan-scalar-oracle.ts';
 import {MotanAnalysisExecutor} from '../src/motan/analysis-executor.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment} from './helpers/motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from './helpers/motan-sos-oracle.ts';
 test('integer smoothing preserves exact weighting, sequential float sums, half-even windows and truncated edges',()=>{
  const b=1n<<53n,values=[b+1n,-b+3n,b+7n,-b-9n,b+11n];
  let seed=629;const random=()=>seed=(Math.imul(seed,1664525)+1013904223)>>>0;
@@ -46,7 +46,7 @@ test('integer smoothing supports worker chains and no-Python CSV with original e
   for(const name of columns)assert.ok(result.datasets[name] instanceof Float64Array);
   const root=fileURLToPath(new URL('../../',import.meta.url)),args=[prefix,'-c',JSON.stringify(columns),'--duration','5','--segment-time','.01'];
   const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:10000});
-  const python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:10000});
+  const python=execFileSync(scipyReferencePython(),[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:10000});
   const rows=(csv:string)=>csv.trimEnd().split('\r\n').slice(1).map(row=>row.split(',').map(Number));
   assert.deepEqual(rows(node),rows(python));assert.deepEqual(rows(node),Array.from(result.times,(time,i)=>[time,...columns.map(name=>result.datasets[name][i])]));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}

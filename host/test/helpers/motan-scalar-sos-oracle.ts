@@ -1,7 +1,7 @@
 import {execFileSync} from 'node:child_process';
 import type {MotanScalarSeries} from '../../src/motan/scalar-math.ts';
 import type {MotanSOS,MotanSOSMode} from '../../src/motan/sos-filter.ts';
-import {scipyReferenceEnvironment} from './motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from './motan-sos-oracle.ts';
 export function scalarSOSOracle(source:MotanScalarSeries,sos:MotanSOS,mode:MotanSOSMode,bench=false):{dtype:string;bits?:string[];ms?:number[];error?:string}{
  const script=`import json,sys,struct,time,numpy as np,scipy
 from scipy.signal import sosfilt,sosfiltfilt,sosfilt_zi
@@ -23,5 +23,5 @@ try:
  result['ms']=ms
 except Exception as error: result['error']=type(error).__name__+': '+str(error)
 print(json.dumps(result))`;
- return JSON.parse(execFileSync(process.env.MOTAN_SCIPY_PYTHON??'python3',['-c',script],{input:JSON.stringify({source:Array.from(source,v=>[typeof v,Object.is(v,-0)?'-0':String(v)]),sos,mode}),encoding:'utf8',env:scipyReferenceEnvironment(),maxBuffer:64*1024**2}));
+ return JSON.parse(execFileSync(scipyReferencePython(),['-c',script],{input:JSON.stringify({source:Array.from(source,v=>[typeof v,Object.is(v,-0)?'-0':String(v)]),sos,mode}),encoding:'utf8',env:scipyReferenceEnvironment(),maxBuffer:64*1024**2}));
 }

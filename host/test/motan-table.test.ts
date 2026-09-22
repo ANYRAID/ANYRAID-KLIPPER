@@ -9,7 +9,7 @@ import {MotanAnalysisExecutor} from '../src/motan/analysis-executor.ts';
 import {MotanAnalyzer} from '../src/motan/analyzer.ts';
 import {MotanLogManager} from '../src/motan/log-manager.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment} from './helpers/motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from './helpers/motan-sos-oracle.ts';
 const fields={text:'逗号, "引号"\r\n换行',wide:9007199254740993123456789n,empty:null,yes:true,no:false};
 const names=[...Object.keys(fields).map(key=>`status(export_fields.${key})`),'status(export_fields.absent)','stallguard(stepper_x,sg_result)','derivative(trapq(toolhead,x))'];
 test('Motan table worker preserves mixed scalars, EOF gaps and exact numeric dependencies',async()=>{
@@ -44,8 +44,8 @@ test('Motan mixed CSV CLI matches Python text, BigInt, boolean and empty fields 
   await managerFixture(prefix,2,'corexy',fields);
   const columns=[...names,names[0]],args=[prefix,'-c',JSON.stringify(columns),'-d','5','--segment-time','.01'];
   const csv=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:15000});
-  const legacy=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:15000});
-  const result=execFileSync('python3',['-c',`import csv,io,json,sys,struct
+  const legacy=execFileSync(scipyReferencePython(),[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:15000});
+  const result=execFileSync(scipyReferencePython(),['-c',`import csv,io,json,sys,struct
 x=json.load(sys.stdin)
 a,b=[list(csv.reader(io.StringIO(s,newline=''))) for s in x]
 assert a[0]==b[0]

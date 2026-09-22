@@ -9,6 +9,9 @@ export interface SOSCase {
   mode: MotanSOSMode; fs?: number;
 }
 export interface SOSReference {sos: number[][]; values: number[]; ms: number[]; preciseValues?: number[];}
+/** Every Motan SciPy reference entry, including the original CSV CLI, must use the
+ * same explicitly selected interpreter. An override failure never falls back. */
+export function scipyReferencePython():string { return process.env.MOTAN_SCIPY_PYTHON ?? 'python3'; }
 export function scipyReferenceEnvironment(): NodeJS.ProcessEnv {
   const roots = ['scipy-reference', 'pdf-reference'].map(name =>
     fileURLToPath(new URL(`../../node_modules/.cache/${name}`, import.meta.url)));
@@ -73,7 +76,7 @@ for c in json.load(sys.stdin):
   entry['preciseValues']=list(map(float,ideal))
  result.append(entry)
 print(json.dumps(result))`;
-  return JSON.parse(execFileSync(process.env.MOTAN_SCIPY_PYTHON ?? 'python3', ['-c', script], {
+  return JSON.parse(execFileSync(scipyReferencePython(), ['-c', script], {
     input: JSON.stringify(cases), encoding: 'utf8', maxBuffer: 64 * 1024 ** 2,
     env: scipyReferenceEnvironment(),
   }));

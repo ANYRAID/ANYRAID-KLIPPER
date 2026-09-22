@@ -6,7 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {managerFixture} from '../test/helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment} from '../test/helpers/motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from '../test/helpers/motan-sos-oracle.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),dir=await mkdtemp(join(tmpdir(),'motan-csv-bench-')),prefix=join(dir,'log');
 const numericColumns=['trapq(toolhead,x)','derivative(trapq(toolhead,x))','kin(stepper_x)','kin(stepper_y)','accelerometer(a,x)','status(heater.temperature)','trapq(toolhead,x)','deviation(kin(stepper_x),trapq(toolhead,x))'];
 try{
@@ -15,7 +15,7 @@ try{
   const columns=mixed?[...numericColumns,'status(export_fields.text)','status(export_fields.wide)','status(export_fields.empty)','status(export_fields.yes)']:numericColumns;
   const outputs:string[]=[];
   for(const mode of ['python','node','node-typed'] as const){
-   const command=mode==='python'?(process.env.MOTAN_SCIPY_PYTHON??'python3'):process.execPath;
+   const command=mode==='python'?scipyReferencePython():process.execPath;
    const args=[join(root,`scripts/motan/data_export.${mode==='python'?'py':'ts'}`),prefix,'-c',JSON.stringify(columns),'--segment-time','.001','-d',String(duration)];
    if(mode==='node-typed')args.push('--preserve-number-types');
    const ms:number[]=[];let output='';
@@ -26,7 +26,7 @@ try{
    ms.sort((a,b)=>a-b);outputs.push(output);
    console.log(JSON.stringify({node:process.version,mode,mixed,duration,columns:columns.length,bytes:Buffer.byteLength(output),elapsedMs:{median:ms[3],p95:ms[6]},includes:'process startup, analysis, CSV and stdout pipe'}));
   }
-  const result=execFileSync(process.env.MOTAN_SCIPY_PYTHON??'python3',['-c',`import csv,io,json,sys,struct
+  const result=execFileSync(scipyReferencePython(),['-c',`import csv,io,json,sys,struct
 x=json.load(sys.stdin)
 def decode(text):
  rows=list(csv.reader(io.StringIO(text,newline='')))

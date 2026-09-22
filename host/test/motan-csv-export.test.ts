@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {motanCsvChunks,writeMotanCsv} from '../src/motan/csv-export.ts';
 import type {MotanAnalysis} from '../src/motan/analyzer.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment} from './helpers/motan-sos-oracle.ts';
+import {scipyReferenceEnvironment,scipyReferencePython} from './helpers/motan-sos-oracle.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),cli=join(root,'scripts/motan/data_export.ts');
 const collect=async(analysis:MotanAnalysis,columns:string[])=>{const chunks=[];for await(const chunk of motanCsvChunks(analysis,columns))chunks.push(chunk);return Buffer.concat(chunks).toString();};
 function fixture(count=7):MotanAnalysis{
@@ -19,7 +19,7 @@ test('Motan CSV preserves numeric round trips, quoted headers and duplicate colu
  const analysis=fixture(),csv=await collect(analysis,['a','a']);
  assert.ok(csv.startsWith('Time (s),"quoted, ""sensor""\nline (mm/s)",'));
  assert.ok(csv.endsWith('\r\n'));assert.ok(csv.includes('\r\n0,-0,-0\r\n'));
- const parsed=JSON.parse(execFileSync('python3',['-c',`import csv,sys,io,json,struct
+ const parsed=JSON.parse(execFileSync(scipyReferencePython(),['-c',`import csv,sys,io,json,struct
 rows=list(csv.reader(io.StringIO(sys.stdin.read(),newline='')))
 print(json.dumps(dict(header=rows[0],bits=[[struct.pack('>d',float(v)).hex() for v in row] for row in rows[1:]])))`],{input:csv,encoding:'utf8'}));
  assert.deepEqual(parsed.header,['Time (s)',analysis.labels.a.label+' (mm/s)',analysis.labels.a.label+' (mm/s)']);
@@ -55,8 +55,8 @@ test('Motan numeric CSV CLI matches original exporter values and runs without Py
   const stdout=execFileSync(process.execPath,args,{encoding:'utf8',env,timeout:10000});
   execFileSync(process.execPath,[...args,'-o',output],{env,timeout:10000});
   assert.equal(await readFile(output,'utf8'),stdout);
-  const legacy=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(columns),'-d','.2','--segment-time','.01'],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:15000});
-  const decoded=JSON.parse(execFileSync('python3',['-c',`import sys,csv,io,json
+  const legacy=execFileSync(scipyReferencePython(),[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(columns),'-d','.2','--segment-time','.01'],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:15000});
+  const decoded=JSON.parse(execFileSync(scipyReferencePython(),['-c',`import sys,csv,io,json
 x=json.load(sys.stdin)
 def decode(s):
  rows=list(csv.reader(io.StringIO(s,newline='')))

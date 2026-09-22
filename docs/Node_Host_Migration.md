@@ -15281,3 +15281,68 @@ CSV，包含启动、解压、解析、worker、分析和 stdout，2 次预热/
 补充最小次正规偏移和真实状态类型切换后的最终定向检查为 8 项
 全部通过，0 失败、0 跳过；TypeScript、空白和差异检查通过。
 该结果不替代上述失败的整组 SOS 参考验证。
+
+### SciPy 参考崩溃的原生栈诊断与解释器选择一致性
+
+对上一阶段保留的 core 继续诊断：从当前 Deepin 软件源仅下载并
+解包 gdb 16.3 及依赖到 `/tmp/motan-gdb`，未安装系统软件。
+`python3.12-dbg` 中的符号与 `/usr/bin/python3.12` Build ID
+`a481bf6c20a9d280c25154d23e4568fdfff724c0` 匹配。关闭 gdb 自动
+加载及 debuginfod 后读取 core，匹配的 Python 帧为
+`sre_ucs1_search` → `sre_search` → `pattern_subx` →
+`_sre_SRE_Pattern_sub`。这与 faulthandler 的 `textwrap.dedent`
+和 SciPy 文档处理栈一致，发生于导入阶段，尚未执行 SOS 运算。
+
+core 内的模式为 `(?m)^    `、flags 40，16 个正则字节码单元与同版
+解释器重新编译的结果一致；未发现该模式字节码损坏。原生栈中仍有
+无法解析的地址，不能仅凭此断言内存损坏、硬件问题或某个库缺陷。
+最小 `scipy.signal` 导入在 gdb 下连续 20 次成功，未稳定重现原
+故障。符号化日志保留于本地忽略缓存的
+`motan-phase-core-symbols.log`，导入诊断在 `motan-scipy-debug/`。
+
+为隔离系统解释器构建差异，使用 [Python 官方 3.12.13 源码发布页](https://www.python.org/downloads/release/python-31213/)
+提供的 XZ 源码包，核验 SHA-256：
+`c08bc65a81971c1dd5783182826503369466c7e67374d1646519adf05207b684`。
+源码、依赖及构建结果均放在忽略目录
+`host/node_modules/.cache/cpython-reference-build/`；未执行安装或
+替换系统 Python。构建使用 GCC 12.3.0、默认 `-O3`，配置
+`--without-ensurepip --disable-test-modules`，`make -j2`；本地解包
+libffi 3.4.8 开发/运行库及 zlib 1.3.2 开发头，通过 CPPFLAGS、
+LDFLAGS 和 rpath 指向同目录 `deps/root`。配置及构建日志分别为
+`configure.log`、`build.log`。该构建缺少 SSL 等非本轮所需模块，
+仅用于参考诊断，不能作为通用或生产 Python 环境。
+
+新旧解释器均为 CPython 3.12.13 / 64 位 C long；使用同一缓存中
+NumPy 2.5.3、SciPy 1.17.1。独立构建先通过此前失败的三项整数
+SOS 检查。随后发现工具链选择不一致：已有直接 SciPy oracle
+支持 `MOTAN_SCIPY_PYTHON`，若干原 CSV 子进程仍硬编码 `python3`。
+新增共享 `scipyReferencePython()`，让 Motan 的 SciPy 差分入口、
+相关 CSV 检查和基准一致使用显式选定的解释器。未设变量时仍按
+既有方式调用 `python3`；指定解释器失败时不会自动改用其他解释器。
+其他不使用该 SciPy 工具链的 Python oracle 不受此变量控制。
+
+本机已构建解释器的选择示例（从仓库根目录运行）：
+
+```sh
+MOTAN_SCIPY_PYTHON="$PWD/host/node_modules/.cache/cpython-reference-build/Python-3.12.13/python" \
+PYTHONFAULTHANDLER=1 \
+host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \
+  --test --test-concurrency=1 host/test/motan*.test.ts
+```
+
+此命令要求上述缓存构建已存在，不会自动下载、重试、跳过测试或
+回退解释器。修正选择入口后的整组检查 123 项全部通过，0 失败、
+0 跳过，约 52 秒，未改变算法、参考数据、库版本或数值容差。
+上一阶段系统解释器的两次段错误仍作为失败记录保留；本次通过
+不足以证明其根因已修复或确认其属于系统解释器本身的缺陷。
+
+系统包与本地源码构建的编译/链接配置不同，本轮仅以独立构建进行
+精度和接口诊断，不将不同解释器下的基准混在一起声明性能提升。
+未来使用显式解释器进行性能比较时，必须记录其路径、版本和构建
+配置并重新建立基线。现有 Node 运行时代码及打印入口本轮未修改。
+
+额外将 PATH 中的 `python3` 临时替换为只返回错误的测试脚本，
+仍显式选择独立构建，三项整数 SOS 检查（含原 CSV 子进程）全部
+通过，证明该链路没有忽略选择而使用 PATH 回退。测试脚本已清理，
+日志为 `motan-python-override-guard.log`。类型、空白和差异检查
+通过；本轮未重跑整个项目测试或进行合并、部署、硬件验收。
