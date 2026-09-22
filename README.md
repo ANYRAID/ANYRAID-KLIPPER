@@ -54,3 +54,8 @@ Motan 运动数据采集入口已切换为
 `.json.gz`/`.index.gz` 格式并使用批量压缩；需要 Node.js 26，采集过程
 不调用 Python。输出文件必须不存在，重复采集请使用新前缀。Motan
 后续分析和绘图尚未全部迁移，性能与剩余范围见迁移说明。
+
+Motan 数值 CSV 可使用
+`node scripts/motan/data_export.ts capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
+新入口无需 Python，支持取消和完整文件原子替换；文本/null/大整数状态
+列及数据集列表尚待迁移，旧 CSV 入口暂时保留。性能与格式边界见迁移说明。

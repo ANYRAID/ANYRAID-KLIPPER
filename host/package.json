@@ -238,7 +238,8 @@
     "bench:motan-notch-analysis": "node bench/motan-notch-analysis.ts",
     "bench:motan-butterworth-analysis": "node bench/motan-butterworth-analysis.ts",
     "bench:motan-butterworth-design": "node bench/motan-butterworth-design.ts",
-    "bench:motan-analysis-executor": "node bench/motan-analysis-executor.ts"
+    "bench:motan-analysis-executor": "node bench/motan-analysis-executor.ts",
+    "bench:motan-csv-export": "node bench/motan-csv-export.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
