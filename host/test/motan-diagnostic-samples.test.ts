@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {MotanStallguardSampler,MotanStatusFieldSampler} from '../src/motan/diagnostic-samples.ts';
+import {MotanDispatcher,MotanStatusTracker} from '../src/motan/dispatch.ts';
+import {stallguardOracle} from './helpers/motan-diagnostic-oracle.ts';
+test('Stallguard selection matches actual Python including empty blocks, repeated queries and EOF quirk',async()=>{
+ for(const selection of ['sg_result','cs_actual'] as const){const blocks=[{data:[[1,100,3],[2,200,4]]},{data:[]},{data:[[4,400,6]]}],times=[0,.5,1,1.5,2,2,3,4,5],expected=stallguardOracle(blocks,times,selection);let at=0;const sampler=new MotanStallguardSampler(selection,async()=>blocks[at++] as {data:[number,number,number][]}|undefined??null),actual=[];for(const time of times)actual.push(await sampler.sample(time));assert.deepEqual(actual,expected.values);assert.equal(blocks[0].data.length,2);}
+});
+test('shared immutable Stallguard subscription supports independent diagnostics without destructive pop',async()=>{
+ let sent=false;const dispatch=new MotanDispatcher({pullMessage:async()=>sent?null:(sent=true,{q:'sg',params:{data:[[1,100,3],[2,200,4]]}})});dispatch.addHandler('sg','sg');dispatch.addHandler('cs','sg');const source=(name:string)=>async(time:number)=>(await dispatch.pull(time,name)) as unknown as {data:[number,number,number][]}|null,sg=new MotanStallguardSampler('sg_result',source('sg')),cs=new MotanStallguardSampler('cs_actual',source('cs'));assert.equal(await sg.sample(.5),100);assert.equal(await cs.sample(.5),3);assert.equal(await sg.sample(1.5),200);assert.equal(await cs.sample(1.5),4);assert.equal(await sg.sample(1.75),null);assert.equal(await cs.sample(1.75),null);assert.equal(dispatch.status.endOfData,true);
+});
+test('status fields retain cache boundaries, absent defaults, nulls, exact integers and own prototype keys',async()=>{
+ let at=0;const tracker=new MotanStatusTracker({sensor:{value:9007199254740993n}},async()=>[{status:{toolhead:{estimated_print_time:1},sensor:{value:null}}},{status:{toolhead:{estimated_print_time:2},sensor:{value:5}}}][at++]??null);const field=new MotanStatusFieldSampler('sensor.value',time=>tracker.sample(time));assert.equal(await field.sample(0),9007199254740993n);assert.equal(await field.sample(.5),9007199254740993n);assert.equal(await field.sample(1),null);assert.equal(await field.sample(2),5);const missing=new MotanStatusFieldSampler('missing.x',async()=>({status:{},nextTime:10}));assert.equal(await missing.sample(1),0);const proto=new MotanStatusFieldSampler('__proto__.value',async()=>({status:JSON.parse('{"__proto__":{"value":7}}'),nextTime:10}));assert.equal(await proto.sample(1),7);assert.equal(await new MotanStatusFieldSampler('constructor',async()=>({status:{},nextTime:10})).sample(1),0);
+});
+test('diagnostic samplers reject malformed data, endless sources, concurrent requests and backwards time',async()=>{
+ const bad=new MotanStallguardSampler('sg_result',async()=>({data:[[1,NaN,2]]}));await assert.rejects(bad.sample(1),/row/);await assert.rejects(bad.sample(2),/row/);await assert.rejects(new MotanStallguardSampler('sg_result',async()=>({data:[]})).sample(1),/limit/);const field=new MotanStatusFieldSampler('a.b',async()=>({status:{a:null},nextTime:1}));await assert.rejects(field.sample(0),/object/);await assert.rejects(field.sample(1),/object/);
+ let release!:(value:null)=>void;const waiting=new MotanStallguardSampler('sg_result',()=>new Promise(resolve=>{release=resolve;})),pending=waiting.sample(1);await assert.rejects(waiting.sample(1),/sequential/);release(null);await pending;await assert.rejects(waiting.sample(0),/sequential/);
+});
+test('status field cache and invalidation match the actual Python field handler',async()=>{
+ const {statusFieldOracle}=await import('./helpers/motan-diagnostic-oracle.ts');const times=[0,.1,.5,.999,1,1,1.5,2,3,100],expected=statusFieldOracle(times);let calls=0;const field=new MotanStatusFieldSampler('sensor.value',async time=>{calls++;return {status:{sensor:{value:Math.floor(time)}},nextTime:Math.floor(time)+1};}),actual=[];for(const time of times)actual.push(await field.sample(time));assert.deepEqual(actual,expected.values);assert.equal(calls,5);
+});
