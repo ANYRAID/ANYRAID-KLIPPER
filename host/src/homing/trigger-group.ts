@@ -8,10 +8,12 @@ import {encodeFrame} from '../protocol/codec.ts';
 /** Owns subscriptions and original C fastreader dispatch for one armed move.
  * Does not generate motion, infer homed axes or replace stop/readback recovery. */
 export class HomingTriggerGroup {
- #members:readonly HomingMember[];#plans:readonly TriggerPlan[];#primary:number;#sampling:EndstopSampling;
+ #members:readonly HomingMember[];#plans:readonly TriggerPlan[];#primary:number;#endstopOid:number;#sampling:EndstopSampling;
  #native:NativeTriggerDispatch;#unsubscribe:(()=>void)[]=[];#released=false;#armed=false;#started=false;#timeout:number;
  #arming:Promise<void>|undefined;#fault:unknown;#cleanup:Promise<void>|undefined;#cleanupPending=false;#cleanupErrors:unknown[]=[];
- #resolve!:(value:{member:number;reason:number})=>void;#reject!:(error:unknown)=>void;
+ #resolve!:(value:{member:number;reason:number})=>void;#reject!:(error:unknown)=>void;#rejectFailure!:(error:unknown)=>void;
+ /** Remains able to reject after completion, until release detaches observers. */
+ readonly failure:Promise<never>;
  /** First nonfault stop notification; this is not proof of a global endstop
   * hit. Recovery readback determines the authoritative primary stop reason. */
  readonly completion:Promise<Readonly<{member:number;reason:number}>>;
@@ -24,12 +26,17 @@ export class HomingTriggerGroup {
   const commands=members[primary].session.dictionary.parseFrame(encodeFrame(0,sampling.payload)),p=commands[0]?.parameters;
   if(commands.length!==1||commands[0].name!=='endstop_home'||p.oid!==endstop.oid||p.clock!==Number(BigInt.asUintN(32,sampling.reqClock))||p.rest_ticks!==Number(sampling.restTicks)||p.trsync_oid!==members[primary].trigger.oid||p.trigger_reason!==1||typeof p.sample_ticks!=='number'||p.sample_ticks<1||p.sample_ticks>0x7fffffff||typeof p.sample_count!=='number'||p.sample_count<1||p.sample_count>255||p.sample_ticks*(p.sample_count-1)>0x7fffffff||p.pin_value!==0&&p.pin_value!==1)throw new Error('Invalid homing sampling packet');
   this.#plans=this.#members.map((m,i)=>m.trigger.start(startClocks[i],m.steppers.map(s=>s.oid),expireTimeout,i/members.length));
-  this.#primary=primary;this.#sampling={...sampling,payload:sampling.payload.slice()};this.#timeout=timeoutMs;
+  this.#primary=primary;this.#endstopOid=endstop.oid;this.#sampling={...sampling,payload:sampling.payload.slice()};this.#timeout=timeoutMs;
   this.#assertFuture();
   this.#native=SerialSession.createTriggerDispatch(this.#members.map((m,i)=>({session:m.session,queue:m.queue,protocol:m.trigger,plan:this.#plans[i]})));
   this.completion=new Promise((resolve,reject)=>{this.#resolve=resolve;this.#reject=reject;});void this.completion.catch(()=>{});
+  this.failure=new Promise((_,reject)=>{this.#rejectFailure=reject;});void this.failure.catch(()=>{});
  }
  get status(){return {started:this.#started,armed:this.#armed,released:this.#released,fault:this.#fault,cleanupPending:this.#cleanupPending,cleanupErrors:[...this.#cleanupErrors]};}
+ conflictsWith(other:HomingTriggerGroup):boolean{
+  const objects=(g:HomingTriggerGroup)=>g.#members.map((m,i)=>({session:m.session,oids:[m.trigger.oid,...m.steppers.map(s=>s.oid),...i===g.#primary?[g.#endstopOid]:[]]}));
+  return objects(this).some(m=>objects(other).some(n=>m.session===n.session&&m.oids.some(oid=>n.oids.includes(oid))));
+ }
  #assertFuture(){for(let i=0;i<this.#members.length;i++){const m=this.#members[i];m.session.assertActive();if(this.#plans[i].startClock<=m.session.clock.sync.getClock(serialClock.now()))throw new Error('Homing arm start clock has expired');}}
  /** Start plans are ACKed on their respective FIFO before the native fastreader
   * is started. Endstop sampling is enabled only after every member is ready. */
@@ -48,14 +55,16 @@ export class HomingTriggerGroup {
    this.#native.start();this.#armed=true;
    await this.#members[this.#primary].queue.send(this.#sampling.payload,0n,this.#sampling.reqClock,s);
    s.throwIfAborted();this.#assertFuture();if(this.#released)throw this.#fault??new Error('Homing trigger released');
-  }catch(error){try{await observeRetirement(this.#fail(error),AbortSignal.timeout(this.#timeout));}catch(cleanup){throw new AggregateError([error,cleanup],'Homing arm and cleanup failed');}throw error;}
+  }catch(error){const deadline=new AbortController(),cleanupTimer=setTimeout(()=>deadline.abort(new Error('Homing arm cleanup timed out')),this.#timeout);try{await observeRetirement(this.#fail(error),deadline.signal);}catch(cleanup){throw new AggregateError([error,cleanup],'Homing arm and cleanup failed');}finally{clearTimeout(cleanupTimer);}throw error;}
   finally{clearTimeout(timer);signal.removeEventListener('abort',abort);}
  }
  /** Detach only. Use as HomingRecovery.release after disabling sampling.
   * This is not a device stop; unrecovered motion still requires a safety path. */
  release():void{if(this.#released)return;this.#released=true;this.#armed=false;for(const unsubscribe of this.#unsubscribe.splice(0))unsubscribe();this.#native.close();this.#reject(new Error('Homing trigger group released'));}
+ /** Safety failure/cancellation, unlike release(): stop every owned session. */
+ stop(cause:unknown=new Error('Homing trigger group stopped')):Promise<void>{return this.#fail(cause);}
  #fail(error:unknown):Promise<void>{
-  if(this.#cleanup)return this.#cleanup;this.#fault=error;this.#reject(error);let releaseError:unknown;try{this.release();}catch(e){releaseError=e;}
+  if(this.#cleanup)return this.#cleanup;this.#fault=error;this.#rejectFailure(error);this.#reject(error);let releaseError:unknown;try{this.release();}catch(e){releaseError=e;}
   this.#cleanupPending=true;
   this.#cleanup=Promise.allSettled(this.#members.map(m=>m.session.stop(error))).then(results=>{this.#cleanupErrors=[...(releaseError===undefined?[]:[releaseError]),...results.filter(r=>r.status==='rejected').map(r=>r.reason)];if(this.#cleanupErrors.length)throw new AggregateError(this.#cleanupErrors,'Homing trigger safety stop failed');}).finally(()=>{this.#cleanupPending=false;});return this.#cleanup;
  }

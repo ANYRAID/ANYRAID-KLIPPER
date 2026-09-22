@@ -7,7 +7,7 @@ import {HomingTriggerGroup} from '../src/homing/trigger-group.ts';
 import {HomingRecovery} from '../src/homing/recovery.ts';
 import {recoveryFixture} from './helpers/homing-recovery.ts';
 const signal=()=>new AbortController().signal;
-function setup(f:Awaited<ReturnType<typeof recoveryFixture>>,lead=.3){const starts=f.sessions.map(s=>s.clock.sync.getClock(serialClock.now()+lead)),sampling=f.options.endstop.home({printTime:Number(starts[0])/1e6,sampleTime:.000015,sampleCount:4,restTime:.001,trsyncOid:8},t=>BigInt(Math.round(t*1e6)));return {starts,sampling,group:new HomingTriggerGroup(f.options.members,0,f.options.endstop,sampling,starts,.25)};}
+function setup(f:Awaited<ReturnType<typeof recoveryFixture>>,lead=.3,timeoutMs=5000){const starts=f.sessions.map(s=>s.clock.sync.getClock(serialClock.now()+lead)),sampling=f.options.endstop.home({printTime:Number(starts[0])/1e6,sampleTime:.000015,sampleCount:4,restTime:.001,trsyncOid:8},t=>BigInt(Math.round(t*1e6)));return {starts,sampling,group:new HomingTriggerGroup(f.options.members,0,f.options.endstop,sampling,starts,.25,timeoutMs)};}
 test('all stepper registrations precede sampling and native hit completion integrates with recovery',async()=>{
  const f=await recoveryFixture(),{starts,sampling,group}=setup(f);let recovered:Awaited<ReturnType<HomingRecovery['recover']>>|undefined;
  try{
@@ -40,4 +40,8 @@ test('pre-cancelled arming stops the group and a released group cannot rearm',as
 });
 test('firmware trigger failure after arming closes all MCU sessions',async()=>{
  const f=await recoveryFixture(),{group}=setup(f);try{await group.arm(signal());f.fs[0].emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:4,clock:0});await assert.rejects(group.completion,/trigger stopped/);await Promise.all(f.sessions.map(s=>s.stop()));assert.equal(f.stops,2);assert(group.status.released);}finally{group.release();await f.close();}
+});
+test('arming failure bounds unresponsive safety cleanup and retains pending state',async()=>{
+ let release!:()=>void;const safety=new Promise<void>(resolve=>{release=resolve;}),f=await recoveryFixture(1,()=>safety),{group}=setup(f,.3,20);
+ try{const abort=new AbortController();abort.abort(new Error('cancel startup'));await assert.rejects(group.arm(abort.signal),AggregateError);assert.equal(group.status.cleanupPending,true);release();await f.sessions[0].stop();await new Promise(r=>setImmediate(r));assert.equal(group.status.cleanupPending,false);}finally{release();group.release();await f.close();}
 });
