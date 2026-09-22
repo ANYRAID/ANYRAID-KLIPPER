@@ -10,6 +10,7 @@ import {MotanTypedPhaseSampler,motanTypedPhaseConfig} from './typed-phase-sample
 import {MotanStallguardSampler,MotanStatusFieldSampler,type MotanStallguardRow} from './diagnostic-samples.ts';
 import {parsePythonFloat} from '../moonraker/config-reader.ts';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
+import {motanScalarBytes,type MotanScalar} from './table.ts';
 export const motanDatasetTypes=Object.freeze(['accelerometer','adxl345','angle','ldc1612','loadcell','stallguard','status','step_phase','stepq','trapq']);
 export interface DatasetLabel {name:string;label:string;units:string;}
 export interface MotanManagerOptions {start?:number;reader?:MotanReadOptions;dispatch?:DispatchOptions;maxIndexEntries?:number;}
@@ -83,6 +84,38 @@ export class MotanLogManager {
     if((i+1)%256===0&&i+1<timeline.length){await yieldImmediate();this.#check();}
    }
    return Object.freeze(result);
+  }catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}finally{this.#busy=false;}
+ }
+ /** Time-major scalar batch without per-row objects. The budget includes a
+  * snapshot timeline plus scalar payload charges. Returned columns are owned
+  * by the caller; scalarBytes excludes the temporary timeline. */
+ async sampleScalars(times:readonly number[]|Float64Array,maxScalarBytes=64*1024**2,names?:readonly string[]):Promise<{datasets:Readonly<Record<string,MotanScalar[]>>;scalarBytes:number}>{
+  this.#check();
+  if(this.#busy||!this.#datasets.size)throw new Error('Invalid or concurrent Motan manager sample');
+  if(names!==undefined&&(!Array.isArray(names)||names.length>127))throw new Error('Invalid Motan scalar batch datasets');
+  const selected=new Set(names??this.#datasets.keys());
+  if([...selected].some(name=>!this.#datasets.has(name)))throw new Error('Unknown Motan scalar batch dataset');
+  if((!Array.isArray(times)&&!(times instanceof Float64Array))||times.length>2000000
+    ||!Number.isSafeInteger(maxScalarBytes)||maxScalarBytes<1||maxScalarBytes>512*1024**2
+    ||times.length*(selected.size+1)*8>maxScalarBytes)throw new Error('Motan scalar batch memory or sample limit');
+  const timeline=new Float64Array(times.length);let previous=this.#last;
+  for(let i=0;i<timeline.length;i++){const time=times[i];if(typeof time!=='number'||!Number.isFinite(time)||time<previous)throw new Error('Motan scalar batch requires sequential nondecreasing times');timeline[i]=previous=time;}
+  const result:Record<string,MotanScalar[]>=Object.create(null),datasets=Array.from(this.#datasets,([name,dataset])=>({dataset,values:selected.has(name)?result[name]=new Array<MotanScalar>(timeline.length):undefined}));
+  let bytes=timeline.length*(selected.size+1)*8;
+  if(!timeline.length)return Object.freeze({datasets:Object.freeze(result),scalarBytes:0});
+  this.#busy=true;this.#started=true;
+  try{
+   for(let i=0;i<timeline.length;i++){
+    this.#last=timeline[i];
+    for(const entry of datasets){
+     this.#check();const value=await entry.dataset.sample(timeline[i]);this.#check();
+     if(!entry.values)continue;
+     bytes+=motanScalarBytes(value)-8;if(bytes>maxScalarBytes)throw new Error('Motan table memory limit');
+     entry.values[i]=value as MotanScalar;
+    }
+    if((i+1)%256===0){await yieldImmediate();this.#check();}
+   }
+   return Object.freeze({datasets:Object.freeze(result),scalarBytes:bytes-timeline.byteLength});
   }catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}finally{this.#busy=false;}
  }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#dispatch.close();this.#datasets.clear();this.#tracker=undefined;this.#closing=this.#reader.close();return this.#closing;}

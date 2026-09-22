@@ -5,7 +5,6 @@ import {parsePythonFloat,parseConfigurationInteger} from '../moonraker/config-re
 import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from './derived-math.ts';
 import {motanNotch,motanButterworth} from './sos-design.ts';
 import {motanSOSFilter,motanScalarSOSFilter} from './sos-filter.ts';
-import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {motanScalarDerivative,motanScalarCombine,motanScalarNorm2,motanScalarSmooth,motanScalarIntegral,type MotanScalarSeries} from './scalar-math.ts';
 import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
 import {fixedDecimal} from '../math/python-decimal.ts';
@@ -77,14 +76,12 @@ export class MotanAnalyzer {
    }
    const times=Float64Array.from(absolute,time=>time-this.#manager.initialStartTime);
    const data:Record<string,MotanScalarSeries>=Object.create(null),labels:Record<string,DatasetLabel>=Object.create(null);
-   for(const [name,node]of this.#nodes){labels[name]=node.info;if(!node.generate)data[name]=new Array<MotanScalar>(times.length);}
-   let bytes=reserved(times.length);
-   for(let i=0;i<absolute.length;i++){
-    const row=await this.#manager.sample(absolute[i]);
-    for(const [name]of raw){const value=row[name];bytes+=motanScalarBytes(value)-8;
-     if(bytes>this.#bytes)throw new Error('Motan table memory limit');(data[name] as MotanScalar[])[i]=value as MotanScalar;}
-    if((i+1)%256===0)await yieldImmediate();
-   }
+   for(const [name,node]of this.#nodes)labels[name]=node.info;
+   // The existing time/scratch reservation covers the manager's timeline
+   // snapshot. Charge scalar payload growth above raw reference slots once.
+   const baseBytes=reserved(times.length),rawSlots=raw.length*times.length*8;
+   const batch=await this.#manager.sampleScalars(absolute,this.#bytes-baseBytes+rawSlots+times.byteLength,raw.map(([name])=>name));
+   Object.assign(data,batch.datasets);let bytes=baseBytes+batch.scalarBytes-rawSlots;
    // Promote only already-Number columns before derived evaluation. This
    // avoids repeated type scans/copies while preserving integer scalar columns.
    for(const [name,values]of Object.entries(data))if(Array.isArray(values)&&values.every(value=>typeof value==='number'))data[name]=Float64Array.from(values as number[]);
