@@ -1,4 +1,5 @@
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
+import type {NativePrintUploads} from './native-print-uploads.ts';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
@@ -20,6 +21,8 @@ export interface NetworkAuthorization {
 export interface MoonrakerNetworkOptions {
  endpoints?:EndpointRegistry;
  thumbnails?:ThumbnailDownloads;
+ /** Native multipart HTTP admission; lifetime belongs to the composition owner. */
+ nativeUploads?:NativePrintUploads;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):AuthorizationResult|Promise<AuthorizationResult>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
@@ -113,7 +116,7 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC?['POST']:isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC||isUpload?['POST']:isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');}
@@ -125,6 +128,13 @@ export class MoonrakerNetwork {
   this.#launch(async signal=>{
    let reserved=0,outputReserved=0,completion:ResponseCompletion|undefined;const cancel=()=>{this.#error(response,503,'Request cancelled');request.destroy();};signal.addEventListener('abort',cancel,{once:true});
    try{
+    if(isUpload){
+     signal.throwIfAborted();response.setHeader('connection','close');
+     const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
+     this.#buffered+=budget;reserved=budget;
+     const result=await this.#options.nativeUploads!.receive(request,this.#context(request,'http',signal));signal.throwIfAborted();
+     response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
+    }
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);

@@ -61,7 +61,7 @@
       "name": "file_manager",
       "tier": "core",
       "status": "partial",
-      "evidence": "FileListing Worker and authenticated roots/list REST+WebSocket routes in host/src/moonraker/file-list.ts; real filesystem and pinned original-method differential tests. Dynamic root updates, metadata extraction, directory operations, upload/download/delete paths, observers and production assembly remain incomplete."
+      "evidence": "FileListing Worker and authenticated roots/list REST+WebSocket routes in host/src/moonraker/file-list.ts; real filesystem and pinned original-method differential tests. Dynamic root updates, metadata extraction, directory operations, upload/download/delete paths, observers and production assembly remain incomplete. NativePrintUploads adds opt-in multipart HTTP admission into immutable PublishedPrintFiles with separate native receipt IDs and no auto-print; configured native integration and bounded upload benchmarks are covered. Legacy multipart response compatibility, crash staging recovery and target-print throughput remain incomplete."
     },
     {
       "name": "gpio",

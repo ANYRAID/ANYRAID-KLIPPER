@@ -218,9 +218,11 @@
     "test:katapult-cli-vcan": "node scripts/test-katapult-cli-vcan.ts",
     "bench:diagnostic-pdf": "node bench/diagnostic-pdf.ts",
     "bench:print-state-stream": "node bench/print-state-stream.ts",
-    "bench:native-database-maintenance": "node bench/native-database-maintenance.ts"
+    "bench:native-database-maintenance": "node bench/native-database-maintenance.ts",
+    "bench:native-print-uploads": "node bench/native-print-uploads.ts"
   },
   "devDependencies": {
+    "@types/busboy": "1.5.4",
     "@types/fontkit": "2.0.9",
     "@types/node": "^26.6.2",
     "@types/pdfkit": "0.17.6",
@@ -231,6 +233,7 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "busboy": "1.6.0",
     "fft.js": "4.0.4",
     "fontkit": "2.0.4",
     "mqtt": "5.16.0",

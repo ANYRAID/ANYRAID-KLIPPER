@@ -1,0 +1,82 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,writeFile,readdir,readFile,rm} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import {request as httpRequest} from 'node:http';
+import {NativePrintUploads,registerNativeFileInfo} from '../src/moonraker/native-print-uploads.ts';
+import {MoonrakerNetwork,type MoonrakerNetworkOptions} from '../src/moonraker/server.ts';
+import {JsonRpcDispatcher,ApiError} from '../src/moonraker/rpc.ts';
+import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
+import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
+import {PublishedPrintFiles} from '../src/storage/published-files.ts';
+import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
+import {PrintController} from '../src/operations/print.ts';
+import {PrintJournal} from '../src/operations/print-journal.ts';
+import {FilePrintDevice} from '../src/operations/file-print-device.ts';
+import {GCodeDispatch} from '../src/gcode/dispatch.ts';
+const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert.ok(Date.now()<end,'Upload condition timed out');await new Promise(r=>setTimeout(r,5));}};
+const multipart=(data:string|Uint8Array='G1 X1\n',fields:Record<string,string>={},name='part.gcode')=>{const form=new FormData();form.append('file',new Blob([typeof data==='string'?data:new Uint8Array(data)]),name);for(const [key,value] of Object.entries(fields))form.append(key,value);return form;};
+async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize']}={}){
+ const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
+ const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize:options.authorize??(()=>{})}),address=await network.listen(),url=`http://127.0.0.1:${address.port}`;
+ return {dir,gate,files,uploads,network,url,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
+}
+test('streaming native upload exceeds JSON limit and publishes exact immutable bytes with authorized receipt lookup',async()=>{
+ const calls:{method:string;params:unknown}[]=[],f=await fixture({authorize:(method,params)=>{calls.push({method,params});}});
+ try{const data=Buffer.alloc(2*1024**2,59),sha256=createHash('sha256').update(data).digest('hex'),response=await f.post(multipart(data,{file_id:'large',checksum:sha256,root:'gcodes'},'模型.gcode'));assert.equal(response.status,200);const result=(await response.json()).result;assert.deepEqual(result,{file:{version:1,id:'large',name:'模型.gcode',size:data.length,sha256},print_started:false,print_queued:false});assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await (await fetch(f.url+'/printer/files/info?file_id=large')).json()).result.sha256,sha256);assert.deepEqual(calls.map(c=>c.method),['server.files.upload','server.files.upload','printer.files.info']);assert.deepEqual(calls[0].params,{});assert.equal((calls[1].params as any).size,data.length);assert.deepEqual((await readdir(f.dir)).sort(),['files']);assert.equal(f.network.status.bufferedBytes,0);
+  assert.equal((await f.post(multipart('changed',{file_id:'large'}))).status,409);assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await fetch(f.url+'/printer/files/info?file_id=missing')).status,404);
+ }finally{await f.clean();}
+});
+test('multipart bounds, fields, paths, digest and auto-print fail without publication or staging leftovers',async()=>{
+ const f=await fixture({max:100});try{
+  assert.equal((await f.post(multipart('x'.repeat(100),{file_id:'exact'}))).status,200);
+  const cases:[FormData,number][]=[[multipart('x'.repeat(101)),413],[multipart('G1',{print:'true'}),400],[multipart('G1',{path:'sub'}),400],[multipart('G1',{root:'config'}),400],[multipart('G1',{checksum:'0'.repeat(64)}),422],[multipart('G1',{},'../bad.gcode'),400],[multipart('G1',{},'bad.py'),400],[multipart('G1',{unexpected:'x'}),400],[multipart('G1',{file_id:'../id'}),400]];
+  const duplicate=multipart();duplicate.append('root','gcodes');duplicate.append('root','gcodes');cases.push([duplicate,400]);const extra=multipart();extra.append('file',new Blob(['G1']),'other.gcode');cases.push([extra,400]);cases.push([new FormData(),400]);
+  for(const [body,status] of cases){const response=await f.post(body);assert.equal(response.status,status,await response.text());assert.equal(f.files.status.publishedFiles,1);assert.deepEqual(await readdir(f.dir),['files']);}
+  const truncated=await fetch(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'},body:'--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\n\r\nG1'});assert.equal(truncated.status,400);assert.deepEqual(await readdir(f.dir),['files']);
+ }finally{await f.clean();}
+});
+test('upload authorizes before staging and after digest; maintenance blocks admission',async()=>{
+ let stage=0;const f=await fixture({authorize:(_m,params)=>{stage++;if(stage===1||Object.hasOwn(params,'sha256'))throw new ApiError(403,'Denied');}});
+ try{assert.equal((await f.post(multipart())).status,403);assert.equal(stage,1);assert.deepEqual(await readdir(f.dir),['files']);assert.equal((await f.post(multipart())).status,403);assert.equal(stage,3);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);const release=f.gate.acquire();try{assert.equal((await f.post(multipart())).status,409);assert.equal(stage,3);}finally{release();}}finally{await f.clean();}
+});
+test('held authorization has bounded admission and shutdown does not await an external policy',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:()=>held.promise});
+ try{const pending=f.post(multipart()).catch(()=>null);await until(()=>f.uploads.status.authorizing===1);assert.throws(()=>f.gate.acquire());assert.equal((await f.post(multipart())).status,429);await f.uploads.close();await pending;assert.equal(f.uploads.status.pending,0);assert.equal(f.uploads.status.authorizing,1);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal(f.files.status.publishedFiles,0);}finally{held.resolve();await f.clean();}
+});
+test('client disconnect during multipart streaming drains staging and releases activity',async()=>{
+ const f=await fixture();let req:ReturnType<typeof httpRequest>|undefined;try{
+  req=httpRequest(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'}});req.on('error',()=>{});req.write('--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\n\r\n'+('G1 X1\n'.repeat(10000)));await until(()=>f.uploads.status.pending===1);req.destroy();await until(()=>f.uploads.status.pending===0);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);const release=f.gate.acquire();release();
+ }finally{req?.destroy();await f.clean();}
+});
+test('configured native upload stays idle until durable HTTP start, then executes sealed file through EOF drain',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'upload-print-')),gate=new MaintenanceGate(),journal=await PrintJournal.open({path:join(dir,'journal.db'),deviceId:'printer'}),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir}),commands:string[]=[],drain=Promise.withResolvers<void>();let service:ConfiguredMoonraker|undefined;
+ const dispatch=new GCodeDispatch({output(){},shutdown(){}});dispatch.register('G1',command=>{commands.push(command.rawParameters());});
+ const device=new FilePrintDevice({async prepare(){dispatch.setReady(true);},async start(){},async pause(){},async resume(){},async finish(){await drain.promise;},async stop(){drain.resolve();}},dispatch,(id,signal)=>files.acquire(id,signal)),controller=new PrintController(device,{maxNozzle:300,maxBed:120},{},{journal,maintenanceGate:gate});
+ try{const path=join(dir,'main.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0');const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]};
+  await assert.rejects(ConfiguredMoonraker.load(path,{nativeUploads:uploads,maintenanceGate:gate,information,authorize:()=>{}}),/Native uploads/);
+  service=await ConfiguredMoonraker.load(path,{nativeUploads:uploads,productPrint:controller,maintenanceGate:gate,information,authorize:(_m,_p,ctx)=>{if(ctx.request.headers['x-api-key']!=='operator')throw new ApiError(401,'Denied');}});const address=await service.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'operator'};
+  const uploaded=await fetch(url+'/server/files/upload',{method:'POST',headers,body:multipart('G1 X1.000001\nG1 X2\n',{file_id:'part'})});assert.equal(uploaded.status,200);assert.equal(controller.state,'idle');assert.deepEqual(commands,[]);assert.equal((await fetch(url+'/printer/files/info?file_id=part')).status,401);
+  const started=await fetch(url+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({version:1,request_id:'job',file_id:'part',nozzle:0,bed:0,expires_at:Date.now()+60000})});assert.equal(started.status,200);await until(()=>controller.state==='finishing');assert.deepEqual(commands,['X1.000001','X2']);assert.notEqual((await journal.get('job'))?.state,'completed');drain.resolve();await until(()=>controller.state==='completed');assert.equal((await journal.get('job'))?.state,'completed');await service.close();assert.equal(uploads.status.closed,true);assert.equal(files.status.closed,false);assert.equal(gate.status.closed,true);
+ }finally{drain.resolve();await service?.close();await uploads.close();await files.close();await journal.close();await rm(dir,{recursive:true,force:true});}
+});
+test('aborted authorization remains counted until actual settlement and cannot grow without bound',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:()=>held.promise});try{
+  for(let i=1;i<=2;i++){const abort=new AbortController(),pending=fetch(f.url+'/server/files/upload',{method:'POST',body:multipart(),signal:abort.signal}).catch(()=>null);await until(()=>f.uploads.status.authorizing===i);abort.abort();await pending;await until(()=>f.uploads.status.pending===0);}
+  const encoded=new Request(f.url,{method:'POST',body:multipart()}),body=Buffer.from(await encoded.arrayBuffer());assert.equal((await fetch(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':encoded.headers.get('content-type')!},body})).status,503);assert.equal(f.uploads.status.authorizing,2);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal((await f.post(multipart())).status,200);
+ }finally{held.resolve();await f.clean();}
+});
+test('closing during final authorization prevents late publication and removes staged bytes',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:(_m,p)=>Object.hasOwn(p,'sha256')?held.promise:undefined});try{
+  const pending=f.post(multipart());await until(()=>f.uploads.status.authorizing===1);assert.ok((await readdir(f.dir)).some(name=>name.startsWith('anyraid-upload-')));await f.uploads.close();assert.equal((await pending).status,503);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal(f.files.status.publishedFiles,0);
+ }finally{held.resolve();await f.clean();}
+});
+test('chunked excess body and malformed headers reject without publication',async()=>{
+ const f=await fixture({max:100});try{
+  const response=await new Promise<number>((resolve,reject)=>{const req=httpRequest(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode!));});req.on('error',reject);req.write('x'.repeat(70000));req.end();});assert.equal(response,413);
+  for(const [url,type,body] of [[f.url+'/server/files/upload','multipart/form-data','x'],[f.url+'/server/files/upload?path=sub','multipart/form-data; boundary=abc','--abc--'],[f.url+'/server/files/upload','multipart/form-data; boundary=abc','--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\nX-Test: '+('x'.repeat(17000))+'\r\n\r\nG1\r\n--abc--']]){const result=await fetch(url,{method:'POST',headers:{'content-type':type},body});assert.equal(result.status,400);}
+  assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);assert.equal(f.network.status.bufferedBytes,0);
+ }finally{await f.clean();}
+});

@@ -1,3 +1,4 @@
+import {NativePrintUploads,registerNativeFileInfo} from './native-print-uploads.ts';
 import {ProductPrintApi,registerProductPrintApi} from './product-print-api.ts';
 import type {PrintController} from '../operations/print.ts';
 import {MqttRpc,type MqttAuthorization} from './mqtt-rpc.ts';
@@ -43,6 +44,7 @@ export interface NetworkBinding {readonly host:string;readonly port:number;reado
 type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnapshot'|'onRemoteMethodsReady'>;
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
+const uploadOwners=new WeakSet<NativePrintUploads>();
 const fileOwners=new WeakSet<MetadataFiles>();
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
@@ -110,6 +112,7 @@ export class ConfiguredMoonraker {
  #mqttMacros:MqttMacroPublisher|undefined;
  #sensorTransport:MqttSensors|undefined;
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
+ #nativeUploads:NativePrintUploads|undefined;
  #printApi:PrintApi|ProductPrintApi;
  #printStateTask:Promise<void>|undefined;#printNotifications=notificationMetrics();
  #databaseRestart={requested:false,error:null as string|null};
@@ -127,6 +130,7 @@ export class ConfiguredMoonraker {
   const mqttApi=options.sensorTransport?reader.section('mqtt').getBoolean('enable_moonraker_api',{defaultValue:!!options.mqttAuthorize}):false;
   if(mqttApi&&!options.mqttAuthorize)throw new ConfigurationError('MQTT API requires explicit broker authorization');
   const mqttApiQos=mqttApi?reader.section('mqtt').getInt('api_qos',{defaultValue:0,minval:0,maxval:2}) as 0|1|2:0;
+  if(options.nativeUploads!==undefined&&(!(options.nativeUploads instanceof NativePrintUploads)||!options.productPrint||!options.maintenanceGate||!options.nativeUploads.usesGate(options.maintenanceGate)||options.nativeUploads.status.closed||options.nativeUploads.status.pending||options.nativeUploads.status.authorizing||uploadOwners.has(options.nativeUploads)))throw new ConfigurationError('Native uploads require an unowned admission layer and the native print gate');
   this.maintenanceGate=options.maintenanceGate??new MaintenanceGate();
   if(options.productPrint&&(automatic||options.history||options.onPrintStartComplete))throw new ConfigurationError('Native print owner cannot share Klippy or legacy history/start hooks');
   this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;if(options.metadataMonitor)this.#metadataMonitor=new MetadataMonitor(options.metadataFiles!,options.metadataMonitor,()=>{if(!this.#stopping)this.setInformation(this.#base);});
@@ -145,6 +149,7 @@ export class ConfiguredMoonraker {
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
+  this.#nativeUploads=options.nativeUploads;const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
   const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
@@ -157,17 +162,19 @@ export class ConfiguredMoonraker {
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
   if(this.#sensors)sensorOwners.add(this.#sensors);
+  if(this.#nativeUploads)uploadOwners.add(this.#nativeUploads);
 
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(options.sensorTransport!==undefined&&(!(options.sensorTransport instanceof MqttSensors)||!options.sensors||!options.sensorTransport.owns(options.sensors)||options.sensorTransport.status.closed||options.sensorTransport.status.started||options.sensorTransport.status.rpcBound||mqttSensorOwners.has(options.sensorTransport)))throw new ConfigurationError('Invalid or already owned sensor transport');
   if(options.sensors!==undefined&&(!(options.sensors instanceof SensorStore)||options.sensors.status.closed||sensorOwners.has(options.sensors)))throw new ConfigurationError('Invalid or already owned sensor store');
+  if(options.nativeUploads!==undefined&&(!(options.nativeUploads instanceof NativePrintUploads)||!options.productPrint||!options.maintenanceGate||!options.nativeUploads.usesGate(options.maintenanceGate)||options.nativeUploads.status.closed||options.nativeUploads.status.pending||options.nativeUploads.status.authorizing||uploadOwners.has(options.nativeUploads)))throw new ConfigurationError('Native uploads require an unowned admission layer and the native print gate');
   if(options.maintenanceGate!==undefined&&!(options.maintenanceGate instanceof MaintenanceGate))throw new ConfigurationError('Invalid maintenance gate');
   if(options.onDatabaseRestore!==undefined&&(typeof options.onDatabaseRestore!=='function'||!options.database))throw new ConfigurationError('Database restore requires a database and service restart owner');
   if(options.database!==undefined&&(!(options.database instanceof DatabaseStore)||options.database.status.closed||options.database.status.closing||databaseOwners.has(options.database)))throw new ConfigurationError('Invalid or already owned database');
@@ -357,6 +364,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }
