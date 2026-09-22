@@ -112,7 +112,8 @@
     {
       "name": "mqtt",
       "tier": "optional",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. Production broker, complete configuration/template wiring, incoming MQTT RPC, status publication and publish_mqtt_topic remain incomplete."
     },
     {
       "name": "notifier",
@@ -861,14 +862,16 @@
       "line": 394,
       "method": "register_endpoint",
       "targetExpression": "\"/server/mqtt/publish\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-api.ts; configured-mqtt-publish.test.ts; bench/mqtt-api.ts. Authorized endpoint wired to bounded publication. Numeric lexical type parity and upstream unlimited waiting are not reproduced."
     },
     {
       "file": "moonraker/components/mqtt.py",
       "line": 398,
       "method": "register_endpoint",
       "targetExpression": "\"/server/mqtt/subscribe\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-api.ts; configured-mqtt-subscribe.test.ts; bench/mqtt-subscribe-api.ts. Authorized one-shot subscription with request cancellation, JSON/text decoding and precision rejection. Uses bounded waits and UTF-8 input; production broker acceptance remains open."
     },
     {
       "file": "moonraker/components/mqtt.py",

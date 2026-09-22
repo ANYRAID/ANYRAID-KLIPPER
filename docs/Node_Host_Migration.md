@@ -12544,3 +12544,49 @@ Buffer；接收上限 64 KiB，最多 32 个等待者。status.waiting 暴露当
 
 本阶段类型与空白检查、完整 1,453 项主机回归通过，无失败或跳过。
 未替换 Python 生产入口，未执行真实 broker、目标板或打印验收。
+
+### MQTT 订阅 HTTP/RPC 接线与载荷解码
+
+ConfiguredMoonraker 现在注册 POST `/server/mqtt/subscribe` 和
+`server.mqtt.subscribe`，仅开放 HTTP/WebSocket/Unix，通过既有授权
+回调后才建立临时订阅；MQTT 自身不能调用此 RPC。成功返回 topic 和
+payload，调用的取消信号传入等待器，服务关闭同时移除注册。
+
+有效 UTF-8 JSON 解码为结构化数据，其余 UTF-8 文本原样返回；支持
+JSON 前的 UTF-8 BOM，文本回退保留 BOM。输入上限 64 KiB，JSON 结构
+限制为响应包装预留一层。非有限 JSON 数值、超出安全范围的整数字面量、
+过深结构或无效 UTF-8 返回 422，而不是先舍入再返回看似有效的数据。
+数字字符串仍可原样传递精确值。仅支持 UTF-8，不复刻 Python 标准库
+对 UTF-16/32 JSON 的自动检测；原有 Number 字面类型限制仍然存在。
+
+超时仍为有界等待，默认 10 秒、最大 120 秒，非正期限发送前返回 504。
+HTTP 中断与 WebSocket 断开均会减少等待数并发送必要的 UNSUBSCRIBE；
+固定传感器保护沿用上一节。新增五项测试覆盖真实授权 HTTP/WebSocket
+JSON/文本响应、请求中断清理、超时/不安全 JSON 后恢复、数值及字节边界，
+并验证拒绝授权时没有 broker 订阅。
+
+初测发现每条普通文本都触发 JSON 解析异常，10 万次中位耗时约
+468 ms。现先检查合法 JSON 起始 token，普通文本直接返回；仍保留
+全部合法 JSON 类型及标准空白/BOM 的检查。Node v26.9.0，每轮
+100,000 次，2 轮预热、7 轮计时，逐轮与 Python 标准库参考核对结果：
+
+| 解码样例 | Node 中位/p95 ms | Python 中位/p95 ms |
+| --- | ---: | ---: |
+| JSON 传感器对象 | 148.827 / 149.393 | 223.571 / 225.719 |
+| UTF-8 纯文本 | 28.273 / 29.157 | 287.957 / 297.051 |
+| 含大整数字符串的 JSON | 112.211 / 112.706 | 166.747 / 167.483 |
+
+复现 `node host/bench/mqtt-subscribe-decode.ts`。Python 参考执行
+json.loads/JSONDecodeError/text decode，Node 另含精度与结构检查，
+没有测量 msgspec。授权 HTTP 端到端基准
+`node host/bench/mqtt-subscribe-api.ts` 每轮顺序执行 50 次订阅，
+2 轮预热、7 轮计时，整批中位/p95 为 2085.901 / 2110.233 ms，
+核对 450 次响应及等待清理。此结果包含本地 TCP 订阅/消息/取消往返，
+没有 Python 服务端对照，不代表解码器 CPU 上限或打印速度。
+端到端数据采于纯文本快速判断加入前，随后已完成上述解码性能复测。
+
+上游功能清单中 MQTT 组件与两个端点已标记 partial 并附证据，仍保留
+入站 MQTT RPC、状态发布、Klippy 远程方法、生产配置及实机验收缺口。
+
+本阶段类型与空白检查、完整 1,458 项主机回归通过，无失败或跳过。
+没有退役 Python 文件或改变生产打印入口。
