@@ -12245,3 +12245,48 @@ Python 为 32.578 / 33.083 ms，仍较慢；该测量在减少 Unicode 临时数
 模板候选总门禁仍不通过。首次受限环境的子进程输入等待已定位并终止，
 随后在正常子进程测试环境完成上述差分；未把中断的运行计为通过。
 未退役 Python 文件，未执行硬件或实际打印验收。
+
+### 原生模板候选：保留数值类型并验证完整渲染开销
+
+`host/native/template` 新增 Rust / N-API 候选，固定 MiniJinja 2.24.0、
+serde_json arbitrary_precision、num-bigint 和依赖锁文件。Node 26 通过
+`NativeTemplateCandidate` 调用；当前仅显式构建和测试，不自动接入服务器。
+它使用 Moonraker 的单花括号变量定界符，JSON、表达式、过滤器和
+set_result 在 Rust 内传递有类型的值，跨 N-API 输出显式整数/浮点/布尔
+标签，避免 JS Number 丢失 `1.0` 的浮点身份。
+
+common 舍入使用 binary64 精确有理数和 ties-to-even；整数舍入使用
+BigUint 中间计算。JSON 整数限 i128，整数运算溢出报错，输出整数仍限
+JS 安全范围；这不是 Python 任意精度整数的完整替代。测试确认大整数
+相减得到安全整数时保留精度，以及加、减、乘溢出不能被后续相减掩盖。
+
+候选限制模板/载荷/渲染文本各 64 KiB、16 个参数、JSON 深度 64 和
+100,000 fuel；失败清空当前结果，不向 SensorStore 发布半帧，关闭后
+拒绝渲染。没有文件加载器。这些限制不构成对任意不可信模板的完整
+内存沙箱，暂仅面向受信配置。secrets、log_debug、raise_error 等
+Moonraker 全局接口、完整 Jinja 兼容性和配置自动装配仍未实现。
+
+复现需要 Node 26.9、Rust/Cargo（本次 1.89.0）、Linux C 链接工具和
+依赖下载能力；可通过 CARGO 指定 cargo，默认优先使用项目缓存中的
+工具链，再使用 PATH。工具链、构建产物和 Python 参考包均不纳入 Git：
+
+```sh
+node host/scripts/build-template.ts
+node host/scripts/ensure-jinja-reference.ts
+node host/bench/native-template-check.ts
+node host/bench/native-template.ts
+```
+
+独立候选检查通过 7 组 Jinja2 模板差分与 42,744 组逐位浮点舍入案例，
+另覆盖整数溢出、失败恢复、关闭、语法错误、UTF-16、fuel 和参数上限。
+默认主机测试尚不自动构建此候选，必须显式运行上述检查。
+
+同机 Node v26.9.0 / Rust 1.89.0 / Linux x64，Shelly 原始模板每轮
+3,000 次渲染，2 轮预热、7 轮计时：原生中位/p95 为
+26.971 / 27.219 ms，Jinja2 为 32.911 / 33.252 ms，中位减少约 18%。
+两端均核对输出，模板预编译，不包含 MQTT、SensorStore 或实际打印；
+不能将该结果外推为目标板或整机打印速度通过。未退役 Python 文件，
+未切换生产入口，全量迁移目标仍未完成。
+
+本阶段类型检查、空白检查与完整 1,426 项主机测试通过，无失败或跳过；
+上述原生候选专项差分也已独立通过。
