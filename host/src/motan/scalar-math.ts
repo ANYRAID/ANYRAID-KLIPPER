@@ -7,13 +7,17 @@ function validate(data:MotanScalarSeries):void{
  for(const value of data)if(typeof value!=='bigint'&&typeof value!=='boolean'&&(typeof value!=='number'||!Number.isFinite(value)))throw new Error('Motan arithmetic requires numeric scalars');
 }
 function checked(value:number):number{if(!Number.isFinite(value))throw new Error('Motan derived result exceeds finite range');return value;}
-function binary(a:MotanScalar,b:MotanScalar,plus:boolean):number|bigint{
+function mixedBinary(a:MotanScalar,b:MotanScalar,plus:boolean,typedNumbers:boolean):number{
+ if(!typedNumbers)throw new Error('Ambiguous mixed Motan integer/Number arithmetic');
+ const first=checked(Number(a)),second=checked(Number(b));
+ return checked(plus?first+second:first-second);
+}
+function binary(a:MotanScalar,b:MotanScalar,plus:boolean,typedNumbers=false):number|bigint{
  if(typeof a==='boolean')a=typeof b==='number'?Number(a):(a?1n:0n);if(typeof b==='boolean')b=typeof a==='number'?Number(b):(b?1n:0n);
  if(typeof a==='bigint'&&typeof b==='bigint')return plus?a+b:a-b;
- // JSON decoding currently retains only wide integer tokens as BigInt. A
- // Number paired with BigInt may have been either an int or float token; do
- // not guess and erase a low-order bit. Typed-token propagation is pending.
- if(typeof a==='bigint'||typeof b==='bigint')throw new Error('Ambiguous mixed Motan integer/Number arithmetic');
+ // Legacy Number values may be integer tokens. Convert mixed operands only
+ // when the caller guarantees that Number means a genuine float.
+ if(typeof a==='bigint'||typeof b==='bigint')return mixedBinary(a,b,plus,typedNumbers);
  return checked(plus?(a as number)+(b as number):(a as number)-(b as number));
 }
 function numeric(data:MotanScalarSeries):data is Float64Array|readonly number[]{return data instanceof Float64Array||data.every(value=>typeof value==='number');}
@@ -67,7 +71,7 @@ export function motanScalarIntegral(data:MotanScalarSeries,segmentTime:number,re
  if(numeric(data)&&(reference===undefined||numeric(reference)))return motanIntegral(data,segmentTime,reference,halfLife);
  let offset=scalarMean(data,typedNumbers),total=0,sourceWeight=1,referenceWeight=0;
  if(reference){const first=reference[0],last=reference.at(-1)!;
-  const difference=typedNumbers&&(typeof first==='number'||typeof last==='number')?checked(checked(Number(last))-checked(Number(first))):binary(last,first,false);
+  const difference=binary(last,first,false,typedNumbers);
   offset=checked(offset-checked(Number(difference))/(data.length*segmentTime));total=checked(Number(first));
   if(halfLife)sourceWeight=Math.exp(Math.log(.5)*segmentTime/halfLife);referenceWeight=1-sourceWeight;
  }
@@ -135,26 +139,27 @@ export function motanScalarNorm2(series:readonly MotanScalarSeries[],maxBytes=64
  return result;
 }
 /** Integer subtraction happens before conversion and multiplication. */
-export function motanScalarDerivative(data:MotanScalarSeries,segmentTime:number):Float64Array{
+export function motanScalarDerivative(data:MotanScalarSeries,segmentTime:number,typedNumbers=false):Float64Array{
+ if(typeof typedNumbers!=='boolean')throw new Error('Invalid Motan derivative type mode');
  if(data instanceof Float64Array)return motanDerivative(data,segmentTime);
  validate(data);if(numeric(data))return motanDerivative(data,segmentTime);
  if(!Number.isFinite(segmentTime)||segmentTime<=0||data.length<2)throw new Error('Invalid Motan scalar derivative samples or segment');
  const result=new Float64Array(data.length),inverse=1/segmentTime;
- for(let i=1;i<data.length;i++)result[i]=checked(checked(Number(binary(data[i],data[i-1],false)))*inverse);
+ for(let i=1;i<data.length;i++)result[i]=checked(checked(Number(binary(data[i],data[i-1],false,typedNumbers)))*inverse);
  result[0]=result[1];return result;
 }
 /** Deviation and unscaled sums retain exact integer results for downstream
  * derivatives. CoreXY converts only after the exact add/subtract, like Python. */
-export function motanScalarCombine(first:MotanScalarSeries,second:MotanScalarSeries,kind:MotanCombination,maxBytes=64*1024**2):Float64Array|readonly MotanScalar[]{
- if(!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3||!['deviation','corexy_x','corexy_y','kin_x','kin_y'].includes(kind))throw new Error('Invalid Motan scalar combination or budget');
+export function motanScalarCombine(first:MotanScalarSeries,second:MotanScalarSeries,kind:MotanCombination,maxBytes=64*1024**2,typedNumbers=false):Float64Array|readonly MotanScalar[]{
+ if(typeof typedNumbers!=='boolean'||!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3||!['deviation','corexy_x','corexy_y','kin_x','kin_y'].includes(kind))throw new Error('Invalid Motan scalar combination or budget');
  const length=Math.min(first.length,second.length);
  if(length*8>maxBytes)throw new Error('Motan scalar result memory limit');
  if(first instanceof Float64Array&&second instanceof Float64Array)return motanCombine(first,second,kind);
  validate(first);validate(second);
  if(numeric(first)&&numeric(second))return motanCombine(first,second,kind);
  const plus=kind==='corexy_x'||kind==='kin_x',half=kind==='corexy_x'||kind==='corexy_y';
- if(half){const result=new Float64Array(length);for(let i=0;i<length;i++)result[i]=checked(.5*checked(Number(binary(first[i],second[i],plus))));return result;}
+ if(half){const result=new Float64Array(length);for(let i=0;i<length;i++)result[i]=checked(.5*checked(Number(binary(first[i],second[i],plus,typedNumbers))));return result;}
  const result:MotanScalar[]=new Array(length);let bytes=0;
- for(let i=0;i<length;i++){const value=binary(first[i],second[i],plus);bytes+=motanScalarBytes(value);if(bytes>maxBytes)throw new Error('Motan scalar result memory limit');result[i]=value;}
+ for(let i=0;i<length;i++){const value=binary(first[i],second[i],plus,typedNumbers);bytes+=motanScalarBytes(value);if(bytes>maxBytes)throw new Error('Motan scalar result memory limit');result[i]=value;}
  return Object.freeze(result);
 }

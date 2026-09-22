@@ -13,8 +13,9 @@ const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   -h, --help           Show help
 Scalar columns and integer derivative/deviation/CoreXY/norm2/smooth/integral/SOS are supported.
 Structured status objects still need the legacy exporter.
-Mixed integral/SOS inputs require --preserve-number-types.
-SOS integers must fit NumPy int64/uint64; mixed add/subtract remains limited.
+Mixed arithmetic requires known input types (--preserve-number-types for status).
+Unannotated raw sensor columns still reject ambiguous mixed arithmetic.
+SOS integers must fit NumPy int64/uint64; see migration notes.
 Stdout may be partial on failure; see migration notes.
 Limits: 1 million samples, 64 MiB accounted table budget, 256 MiB CSV, 60 s analysis.
 `;

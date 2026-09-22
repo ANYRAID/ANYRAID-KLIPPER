@@ -246,7 +246,8 @@
     "bench:motan-scalar-norm": "node bench/motan-scalar-norm.ts",
     "bench:motan-scalar-smooth": "node bench/motan-scalar-smooth.ts",
     "bench:motan-scalar-integral": "node bench/motan-scalar-integral.ts",
-    "bench:motan-scalar-sos": "node bench/motan-scalar-sos.ts"
+    "bench:motan-scalar-sos": "node bench/motan-scalar-sos.ts",
+    "bench:motan-mixed-arithmetic": "node bench/motan-mixed-arithmetic.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
