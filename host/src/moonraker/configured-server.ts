@@ -1,3 +1,6 @@
+import {MqttStatusRuntime} from './mqtt-status-runtime.ts';
+import {readMqttStatusOptions} from './mqtt-status.ts';
+import type {StatusView} from './subscription-status.ts';
 import {MqttSensors} from './mqtt-sensors.ts';
 import {MqttMacroPublisher} from './mqtt-macros.ts';
 import {registerMqttPublish,registerMqttSubscribe} from './mqtt-api.ts';
@@ -95,6 +98,7 @@ export class ConfiguredMoonraker {
  #gcodeStore:GcodeStore|undefined;
  #temperatureStore:TemperatureStoreRuntime|undefined;
  #database:DatabaseStore|undefined;#historyRuntime:HistoryRuntime|undefined;#historyNotifications=notificationMetrics();
+ #mqttStatus:MqttStatusRuntime|undefined;
  #mqttMacros:MqttMacroPublisher|undefined;
  #sensorTransport:MqttSensors|undefined;
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
@@ -119,7 +123,7 @@ export class ConfiguredMoonraker {
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   if(options.temperatureStore)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
   this.#sensorTransport=options.sensorTransport;this.#sensors=options.sensors;const releaseSensors=this.#sensors?registerSensors(this.endpoints,this.#sensors):()=>{};
-  if(this.#sensorTransport)this.#mqttMacros=new MqttMacroPublisher(this.#sensorTransport,this.#sensorTransport.instanceName);
+  if(this.#sensorTransport){this.#mqttMacros=new MqttMacroPublisher(this.#sensorTransport,this.#sensorTransport.instanceName);this.#mqttStatus=new MqttStatusRuntime(this.#sensorTransport,readMqttStatusOptions(reader));}
   const releaseMqtt=this.#sensorTransport?registerMqttPublish(this.endpoints,this.#sensorTransport):()=>{};
   const releaseMqttSubscribe=this.#sensorTransport?registerMqttSubscribe(this.endpoints,this.#sensorTransport):()=>{};
   this.#database=options.database;const releaseDatabase=this.#database?registerDatabase(this.endpoints,this.#database):()=>{};
@@ -180,9 +184,9 @@ export class ConfiguredMoonraker {
   this.#lastAttachment={path,options:{...options,...options.remoteMethods?{remoteMethods:{...options.remoteMethods}}:{}}};
   if(options.trackJobState)this.#jobState??=new JobState();
   let routedEndpoints:readonly string[]|undefined,routedInitialization=false;
-  const runtime=new KlippyLifecycle({...options,...this.#mqttMacros?{remoteMethods:{...options.remoteMethods,publish_mqtt_topic:this.#mqttMacros.invoke}}:{},maintenanceGate:this.maintenanceGate,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onJobChange:change=>{if(!this.#stopping)this.#historyRuntime?.observe(change);options.onJobChange?.(change);},onGcodeCommand:script=>{this.#gcodeStore?.record(script,'command');options.onGcodeCommand?.(script);},onGcode:(response,signal)=>{this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
+  const runtime=new KlippyLifecycle({...options,...this.#mqttMacros?{remoteMethods:{...options.remoteMethods,publish_mqtt_topic:this.#mqttMacros.invoke}}:{},maintenanceGate:this.maintenanceGate,onRemoteMethodsReady:()=>this.#agentMethods.publishPending(runtime),version:this.#base.version,onJobChange:change=>{if(!this.#stopping)this.#historyRuntime?.observe(change);options.onJobChange?.(change);},onGcodeCommand:script=>{this.#gcodeStore?.record(script,'command');options.onGcodeCommand?.(script);},onGcode:(response,signal)=>{this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);return options.onGcode?.(response,signal);},onStatus:(status,time,signal)=>{this.#mqttStatus?.send(status as StatusView,time);return options.onStatus?.(status,time,signal);},onSubscriptionStatus:(id,status,time)=>{this.#subscriptions?.deliver(id,status,time);options.onSubscriptionStatus?.(id,status,time);},onSnapshot:snapshot=>{
    if(!snapshot.connected)this.#subscriptions?.close();
-   if(snapshot.initialized&&snapshot.state==='ready')this.#temperatureStore?.ready(runtime);
+   if(snapshot.initialized&&snapshot.state==='ready'){this.#temperatureStore?.ready(runtime);this.#mqttStatus?.ready(runtime);}
    if(routedEndpoints!==snapshot.endpoints||routedInitialization!==snapshot.initialized){
    const exposed=new Set(snapshot.endpoints.filter(name=>!['list_endpoints','gcode/subscribe_output','register_remote_method','objects/subscribe'].includes(name))),added=new Map<string,()=>void>();
    if(snapshot.initialized&&snapshot.endpoints.includes('objects/subscribe'))exposed.add('objects/subscribe');
@@ -231,6 +235,7 @@ export class ConfiguredMoonraker {
  #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
+ get mqttStatus(){return this.#mqttStatus?.status??null;}
  get mqttMacroStatus(){return this.#mqttMacros?.status??null;}
  get sensorTransportStatus(){return this.#sensorTransport?.status??null;}
  get sensorStatus(){return this.#sensors?{...this.#sensors.status,samples:this.#sensorSamples,error:this.#sensorError,notifications:{...this.#sensorNotifications}}:null;}
@@ -307,6 +312,6 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#stopping=true;clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();this.#printApi.close();this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();this.#printApi.close();this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }

@@ -1,10 +1,11 @@
+import {componentSubscriptions} from './component-subscriptions.ts';
 import {ApiError,type Json} from './rpc.ts';
 import {TemperatureStore} from './temperature-store.ts';
 import type {KlippyLifecycle} from './klippy-lifecycle.ts';
 import type {StatusView} from './subscription-status.ts';
 const object=(v:unknown):v is Record<string,Json>=>!!v&&typeof v==='object'&&!Array.isArray(v);
 const names=(v:unknown):string[]=>{if(v===undefined)return [];if(!Array.isArray(v)||v.length>4096||v.some(n=>typeof n!=='string'||!n||n.length>256||n.includes('\0')))throw new ApiError(502,'Invalid temperature sensor list');return v as string[];};
-const owner=-1;
+const owner=componentSubscriptions.temperatureStore;
 /** Server-owned timer; a disconnected cache carries the last value as upstream
  * does. Each ready connection generation discovers and subscribes afresh. */
 export class TemperatureStoreRuntime {

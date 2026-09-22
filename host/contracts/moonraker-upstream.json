@@ -113,7 +113,7 @@
       "name": "mqtt",
       "tier": "optional",
       "status": "partial",
-      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. mqtt-macros.ts registers generation-scoped publish_mqtt_topic with instance prefixes, bounded nonblocking jobs and failure metrics. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. Production broker, complete configuration/template wiring, incoming MQTT RPC, status publication and real macro/print acceptance remain incomplete."
+      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. mqtt-macros.ts registers generation-scoped publish_mqtt_topic with instance prefixes, bounded nonblocking jobs and failure metrics. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. mqtt-status.ts and mqtt-status-runtime.ts now wire filtered combined/split retained printer status, timed latest-field aggregation, bounded nonblocking batches and Klippy/broker generation fencing; differential and real loopback tests plus bench/mqtt-status.ts cover this path. Production broker, presence/will, complete configuration/template wiring, incoming MQTT RPC and real macro/print acceptance remain incomplete."
     },
     {
       "name": "notifier",
