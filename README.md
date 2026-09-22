@@ -41,3 +41,10 @@ ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
 `node host/scripts/build-can-query.ts`；示例见
 [Bootloaders](docs/Bootloaders.md)。旧 Katapult Python 工具已退役，差分参考保存为固定契约数据。
 写入失败不会自动重放或启动未验证的固件，物理板卡验收仍未完成。
+
+A64/AR100 的 SRAM 维护入口已改为 `node scripts/flash-ar100.ts`；先运行
+`node host/scripts/build-ar100-flash.ts` 构建固定地址的原生映射模块。
+支持固件写入、`--bl31`、`--halt` 和单独的 `--reset`，执行前须停止
+打印及其他 AR100 管理者。新入口仅允许 Allwinner A64 设备树和真实
+`/dev/mem`，写入后读回验证；当前只通过文件映射替身测试，尚未完成
+A64 板卡验收，详见[迁移说明](docs/Node_Host_Migration.md)。

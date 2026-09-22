@@ -6,7 +6,7 @@
     "node": ">=26.9 <27"
   },
   "scripts": {
-    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts && node scripts/build-can-query.ts",
+    "build:native": "node scripts/build-native.ts && node scripts/build-stepcompress.ts && node scripts/build-serialqueue.ts && node scripts/build-unix-peer.ts && node scripts/build-sealed-file.ts && node scripts/build-can-query.ts && node scripts/build-ar100-flash.ts && node scripts/build-ar100-flash.ts --testing",
     "test:can-vcan": "node scripts/test-can-vcan.ts",
     "test:native-sanitized": "node scripts/test-native-sanitized.ts",
     "pretest": "npm run build:native",
@@ -219,7 +219,9 @@
     "bench:diagnostic-pdf": "node bench/diagnostic-pdf.ts",
     "bench:print-state-stream": "node bench/print-state-stream.ts",
     "bench:native-database-maintenance": "node bench/native-database-maintenance.ts",
-    "bench:native-print-uploads": "node bench/native-print-uploads.ts"
+    "bench:native-print-uploads": "node bench/native-print-uploads.ts",
+    "build:ar100-flash": "node scripts/build-ar100-flash.ts",
+    "bench:flash-ar100": "node bench/flash-ar100.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
