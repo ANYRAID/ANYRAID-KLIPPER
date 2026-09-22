@@ -34,6 +34,7 @@ def configure(options):
  obj=types.SimpleNamespace();scope=dict(self=obj,config=Config(options),pathlib=pathlib,Optional=Optional,MQTT_PROTOCOLS={p:p for p in ['v3.1','v3.1.1','v5']})
  exec(code,scope)
  result=dict(host=obj.address,port=obj.port,tls=obj.tls_enabled,defaultQos=obj.qos)
+ if obj.protocol!='v3.1.1':result['protocol']=obj.protocol
  if obj.user_name is not None:result['username']=obj.user_name
  if obj.password is not None:result['password']=obj.password
  if scope['client_id']:result['clientId']=scope['client_id']

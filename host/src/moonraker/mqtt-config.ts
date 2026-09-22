@@ -6,7 +6,7 @@ import {homedir} from 'node:os';
 import {isAbsolute} from 'node:path';
 import {ConfigurationError} from './config-source.ts';
 import type {ConfigurationReader} from './config-reader.ts';
-import type {MqttSensorOptions} from './mqtt-sensors.ts';
+import type {MqttSensorOptions,MqttProtocol} from './mqtt-sensors.ts';
 const strip=(value:string)=>value.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
 export interface MqttConfigurationContext {
  cwd?:string;home?:string;
@@ -35,7 +35,7 @@ async function passwordFile(source:string,context:MqttConfigurationContext):Prom
   return strip(new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes.subarray(0,length)).replace(/\r\n?/g,'\n'));
  }finally{await file.close();}
 }
-/** Reads connection options only. Unsupported MQTT versions fail explicitly;
+/** Reads connection options only. Invalid MQTT versions fail explicitly;
  * status publication, API transport and instance topics remain separate work. */
 export async function readMqttSensorOptions(reader:ConfigurationReader,context:MqttConfigurationContext={}):Promise<MqttSensorOptions>{
  const section=reader.section('mqtt');
@@ -46,9 +46,9 @@ export async function readMqttSensorOptions(reader:ConfigurationReader,context:M
   // Upstream reads the file even when a later template overrides its value.
   let password=path===null?undefined:await passwordFile(path,context);
   if(template!==null)password=await credential(template,context);
-  if(section.get('mqtt_protocol',{defaultValue:'v3.1.1'})!=='v3.1.1')throw new ConfigurationError('MQTT protocol is not supported by this transport');
+  const protocol=section.get('mqtt_protocol',{defaultValue:'v3.1.1'});if(!['v3.1','v3.1.1','v5'].includes(protocol))throw new ConfigurationError('Invalid MQTT protocol');
   const defaultQos=section.getInt('default_qos',{defaultValue:0,minval:0,maxval:2}) as 0|1|2,clientId=section.get('client_id',{defaultValue:''});
   if(!host||host.length>253||/[\s/\0]/u.test(host)||!clientId.isWellFormed()||Buffer.byteLength(clientId)>65535)throw new ConfigurationError('Invalid MQTT connection options');
-  return {host,port,tls,defaultQos,...username!==undefined?{username}:{},...password!==undefined?{password}:{},...clientId?{clientId}:{}};
+  return {host,port,tls,defaultQos,...protocol!=='v3.1.1'?{protocol:protocol as MqttProtocol}:{},...username!==undefined?{username}:{},...password!==undefined?{password}:{},...clientId?{clientId}:{}};
  }catch{reader.error('mqtt');throw new ConfigurationError('[mqtt]: Unable to load connection configuration');}
 }

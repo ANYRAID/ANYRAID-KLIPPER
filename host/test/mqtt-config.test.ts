@@ -13,7 +13,7 @@ test('MQTT connection configuration matches pinned upstream defaults and passwor
  const dir=await mkdtemp(join(tmpdir(),'mqtt-config-'));
  try{
   const path=join(dir,'credential');await writeFile(path,'\u0085 local-test-value \n');
-  const fixtures:Record<string,string>[]=[{address:'localhost'},{address:'localhost',enable_tls:'yes'},{address:'localhost',port:'٨٨٨٣',default_qos:'٢',client_id:'test-client',username:' user ',password:' value '},{address:'localhost',password_file:path},{address:'localhost',password_file:path,password:' override '},{address:'localhost',username:'',password:''}];
+  const fixtures:Record<string,string>[]=[{address:'localhost'},{address:'localhost',mqtt_protocol:'v3.1'},{address:'localhost',mqtt_protocol:'v5'},{address:'localhost',enable_tls:'yes'},{address:'localhost',port:'٨٨٨٣',default_qos:'٢',client_id:'test-client',username:' user ',password:' value '},{address:'localhost',password_file:path},{address:'localhost',password_file:path,password:' override '},{address:'localhost',username:'',password:''}];
   const child=spawnSync('python3',['-c',mqttConfigurationOracle()+`\nprint(json.dumps([configure(c) for c in json.loads(${JSON.stringify(JSON.stringify(fixtures))})]))`],{encoding:'utf8'});assert.equal(child.status,0,child.stderr);const expected=JSON.parse(child.stdout);
   for(let i=0;i<fixtures.length;i++)assert.deepEqual(await readMqttSensorOptions(reader(fixtures[i])),expected[i]);
   assert.equal((await readMqttSensorOptions(reader({address:'localhost',password_file:'~/credential'}),{home:dir})).password,'local-test-value');
@@ -26,7 +26,7 @@ test('MQTT config rejects malformed, unsupported and oversized inputs without di
  const dir=await mkdtemp(join(tmpdir(),'mqtt-config-'));
  try{
   const tooLarge=join(dir,'large'),invalid=join(dir,'invalid');await writeFile(tooLarge,'x'.repeat(65536));await writeFile(invalid,Buffer.from([0xff]));await mkdir(join(dir,'folder'));
-  for(const options of [{port:'0'},{default_qos:'3'},{enable_tls:'maybe'},{mqtt_protocol:'v5'},{mqtt_protocol:'v3.1'},{username:'{secret}'},{password:'{secret}'},{password_file:join(dir,'missing'),password:'override'},{password_file:tooLarge},{password_file:invalid},{password_file:join(dir,'folder')},{address:'bad host'}] as Record<string,string>[]){
+  for(const options of [{port:'0'},{default_qos:'3'},{enable_tls:'maybe'},{mqtt_protocol:'v6'},{mqtt_protocol:'MQTTv311'},{username:'{secret}'},{password:'{secret}'},{password_file:join(dir,'missing'),password:'override'},{password_file:tooLarge},{password_file:invalid},{password_file:join(dir,'folder')},{address:'bad host'}] as Record<string,string>[]){
    const config=reader({address:'localhost',password:'sensitive-test-marker',...options});await assert.rejects(readMqttSensorOptions(config),error=>error instanceof Error&&error.message==='[mqtt]: Unable to load connection configuration'&&!String(error).includes('sensitive-test-marker'));assert.equal(config.parsed().mqtt.__CONFIG_ERROR__,true);
   }
  }finally{await rm(dir,{recursive:true,force:true});}
