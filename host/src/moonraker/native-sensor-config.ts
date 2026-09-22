@@ -7,6 +7,12 @@ import {SensorMessages} from './sensor-messages.ts';
 import {SensorStore} from './sensors.ts';
 import {NativeTemplateCandidate} from './native-template.ts';
 import {MqttSensors,type MqttSensorOptions} from './mqtt-sensors.ts';
+import {readMqttSensorOptions,type MqttConfigurationContext} from './mqtt-config.ts';
+
+/** Explicit candidate entry using both [mqtt] and [sensor ...] configuration. */
+export async function configureNativeSensorsFromConfig(reader:ConfigurationReader,trackingEnabled:(excludePaused:boolean)=>boolean,context:MqttConfigurationContext={}){
+ return configureNativeSensors(reader,trackingEnabled,await readMqttSensorOptions(reader,context));
+}
 
 export class NativeSensorMessages extends SensorMessages {
  readonly #template:NativeTemplateCandidate;

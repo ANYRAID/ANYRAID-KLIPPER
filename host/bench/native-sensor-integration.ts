@@ -6,7 +6,7 @@ import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {WebSocket} from 'ws';
-import {configureNativeSensors,NativeSensorMessages} from '../src/moonraker/native-sensor-config.ts';
+import {configureNativeSensors,configureNativeSensorsFromConfig,NativeSensorMessages} from '../src/moonraker/native-sensor-config.ts';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
 import {ConfigurationSource,loadConfiguration} from '../src/moonraker/config-source.ts';
 import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
@@ -22,10 +22,12 @@ test('configured native template carries MQTT values through authorized HTTP and
  let resources:ReturnType<typeof configureNativeSensors>|undefined,service:ConfiguredMoonraker|undefined,socket:WebSocket|undefined;
  try{
   const path=join(directory,'main.conf');await writeFile(path,`[server]\nhost=127.0.0.1\nport=0\n[sensor room]\ntype=MQTT\nstate_topic=room\nstate_response_template=${source}\nhistory_field_t=parameter=t\n  strategy=basic\n  precision=2\n  init_tracker=true\n`);
-  const reader=new ConfigurationReader(await loadConfiguration(path));resources=configureNativeSensors(reader,()=>true,{host:'127.0.0.1',port:peer.port});
+  const {appendFile}=await import('node:fs/promises');await appendFile(path,`\n[mqtt]\naddress=127.0.0.1\nport=${peer.port}\nusername=test-user\npassword=test-password\ndefault_qos=2\nclient_id=sensor-test\n`);
+  const reader=new ConfigurationReader(await loadConfiguration(path));resources=await configureNativeSensorsFromConfig(reader,()=>true);
   assert.equal(resources.sensorTransport.status.started,false);assert.equal(peer.packets.length,0);
   service=await ConfiguredMoonraker.load(path,{authorize,authorizeNotification:authorize,information,sensors:resources.sensors,sensorTransport:resources.sensorTransport});
   const address=await service.start(),url=`http://127.0.0.1:${address.port}`;
+  const connect=peer.packets.find(p=>p.cmd==='connect');assert.equal(connect?.cmd,'connect');if(connect?.cmd==='connect'){assert.equal(connect.clientId,'sensor-test');assert.equal(connect.username,'test-user');assert.equal(connect.password?.toString(),'test-password');}assert.equal(peer.subscriptions[0].qos,2);
   socket=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(socket,'open');
   const notification=once(socket,'message',{signal:AbortSignal.timeout(4000)});peer.publish('room','{"t":2.675}');
   assert.deepEqual(JSON.parse((await notification)[0].toString()),{jsonrpc:'2.0',method:'notify_sensor_update',params:[{room:{t:2.67}}]});

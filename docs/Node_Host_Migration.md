@@ -12361,3 +12361,43 @@ node host/bench/native-template-round.ts
 为 15.686 / 16.119 ms，Jinja2 为 45.073 / 45.164 ms。该负载包含
 JSON 和舍入，模板预编译，不包含网络、存储或打印；不推导实机速度。
 整数范围仍限 i128、输出安全整数受限，完整 Jinja 兼容性仍未证明。
+
+### MQTT 连接配置读取与原生候选装配
+
+`readMqttSensorOptions` 读取 `[mqtt]` 的 address、port、enable_tls、
+username、password_file、password、mqtt_protocol、default_qos 和
+client_id。TLS 开启后的默认端口仍为上游规定的 1883；空客户端 ID
+交由现有 MQTT 传输生成。密码文件先读取，随后 password 模板覆盖，
+即使提供了覆盖值，缺失文件仍报错。固定上游 mqtt.py 源码及 SHA-256
+保存于 `host/contracts/moonraker-mqtt.json`，参考测试执行实际构造器的
+连接配置语句，组件/模板 getter 以受控替身提供。
+
+用户名和密码支持显式注入同步或异步模板渲染器；没有渲染器时拒绝
+含模板定界符的凭据，不把未展开的内容发送给 broker。密码文件支持
+绝对路径、调用方工作目录下的相对路径和当前用户 `~/`，暂不支持
+命名用户展开。文件必须是普通文件、有效 UTF-8 且不超过 65,535 字节，
+读取有界并保留 Python 的 BOM、通用换行转换与 strip 语义。失败对外
+返回固定错误，避免将凭据内容或渲染器异常带入诊断。
+
+`configureNativeSensorsFromConfig` 显式装配同一 reader 的 `[mqtt]`
+和 `[sensor ...]` 配置。真实本地 MQTT 集成测试核对 CONNECT 用户名、
+密码、客户端 ID 和 SUBSCRIBE QoS，随后验证原生模板到 HTTP/WebSocket
+及断线恢复。该入口仍是候选入口，尚未在生产加载器默认启用。
+目前连接只支持 MQTT 3.1.1，v3.1/v5 明确失败；状态发布、MQTT RPC、
+instance_name 等其余组件配置没有伪装成已消费或已实现。
+
+`node host/bench/mqtt-config.ts` 在 Node v26.9.0 上测量已解析配置的
+连接选项读取，每轮 1,000 次，2 轮预热、7 轮计时并核对输出：
+
+| 负载 | Node 中位/p95 ms | Python 中位/p95 ms |
+| --- | ---: | ---: |
+| 字面量凭据 | 2.964 / 3.528 | 4.571 / 4.587 |
+| 密码文件 | 69.122 / 72.395 | 22.311 / 22.360 |
+
+密码文件路径较慢约 3.1 倍，单次约 0.069 ms；它仅在配置加载时执行，
+不进入逐帧传感器或打印运动路径。Node 包含异步文件调用、类型/大小
+与编码校验，Python 参考以替身 getter 执行固定构造器语句；该基准
+不包括 INI 解析、网络连接、模板编译或打印，不能作为整机吞吐证明。
+
+本阶段类型检查、空白检查、完整 1,428 项默认主机回归及两项独立原生
+链路测试全部通过。未连接生产 broker、未退役 Python、未进行实机验收。
