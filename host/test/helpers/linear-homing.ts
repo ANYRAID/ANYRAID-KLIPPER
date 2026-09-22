@@ -5,7 +5,7 @@ import {StepHistory} from '../../src/motion/step-history.ts';
 export function homingPass(kind:'hit'|'miss'|'stuck'='hit'):HomingPass{
  const clock=kind==='stuck'?0n:10n,history=new StepHistory(0n,0n);history.append({history:new BigInt64Array([1n,20n,0n,20n,1n,0n]),position:20n},20n);
  const single={hitClock:kind==='miss'?null:clock,reasons:[kind==='miss'?3:1],positions:[{member:0,oid:1,raw:12,position:12n,observedClock:20n}]};
- return {stop:{hitClock:null,groups:[single],memberOffsets:[0],reasons:single.reasons,positions:single.positions},histories:[{member:0,oid:1,history}],triggerClocks:[[clock]]};
+ return {movingSteppers:[{member:0,oid:1}],stop:{hitClock:null,groups:[single],memberOffsets:[0],reasons:single.reasons,positions:single.positions},histories:[{member:0,oid:1,history}],triggerClocks:[[clock]]};
 }
 export function linearHomingFixture(options:{pass?:(attempt:number,signal:AbortSignal)=>Promise<HomingPass>;retractDistance?:number;timeoutMs?:number}={}){
  const kin=new LinearKinematics({kind:'corexy',ranges:[[0,200],[0,200],[0,200]],maxVelocity:300,maxAccel:3000,maxZVelocity:20,maxZAccel:100});

@@ -31,6 +31,7 @@ export class LinearHomingSeek {
    const prepared=await prepareHomingTrajectory(g,o.kinematics,target,speed,axis,signal),plan=planHomingGroups(g,o.emitters,prepared,o.groups);
    // Capture target motor coordinates while the old native solvers are alive.
    const actuators=plan.emitters.map(e=>{const b=g.motion.bindings.find(b=>b.id===e.id)!,route=routes.find(r=>r.id===e.queueId);if(!route)throw new Error('Missing homing queue route');const p=route.extrusionAxis===undefined?prepared.endPosition.slice(0,3):[prepared.endPosition[route.extrusionAxis],0,0];return {id:b.id,member:e.member,oid:b.oid,commanded:b.stepper.coordinatePosition(p[0],p[1],p[2]),stepDistance:b.position.state.stepDistance,extra:route.extrusionAxis!==undefined};});
+   const movingSteppers=Object.freeze(actuators.filter(a=>!a.extra&&a.commanded!==g.motion.bindings.find(b=>b.id===a.id)!.stepper.coordinatePosition(...prepared.startPosition.slice(0,3) as [number,number,number])).map(a=>Object.freeze({member:a.member,oid:a.oid})));
    let halt:readonly number[]|undefined;
    executor=new HomingMoveExecution({...plan,coordinator:g.coordinator,bindings:g.motion.bindings,startTime:prepared.startTime,endTime:prepared.endTime,timeoutMs,locate:readback=>{
     for(const a of actuators)if(a.extra){const offset=readback.offsets.find(p=>p.member===a.member&&p.oid===a.oid);if(!offset||offset.triggerOffset!==0n||offset.haltOffset!==0n)throw new Error('Unexpected extra-axis movement during homing');}
@@ -41,7 +42,7 @@ export class LinearHomingSeek {
    const result=await executor.run(signal);motion=result.motion;signal.throwIfAborted();if(!halt)throw new Error('Missing homing halt coordinates');
    motion=plan.restorePhysicalMembers(motion);
    const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt});
-   signal.throwIfAborted();return Object.freeze({...result,motion,generation:next,position:halt});
+   signal.throwIfAborted();return Object.freeze({...result,movingSteppers,motion,generation:next,position:halt});
   }catch(error){
    const errors:unknown[]=[error];this.#cleanupPending=true;
    const cleanup=g.drain.stop(error).catch(e=>{this.#cleanupError=e;throw e;}).finally(()=>{this.#cleanupPending=false;});void cleanup.catch(()=>{});

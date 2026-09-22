@@ -12,6 +12,8 @@ export interface LinearHomingRail {
  readonly endstops:readonly string[];
 }
 export interface HomingPass {
+ /** Motors commanded to move, excluding idle actuators retained for recovery. */
+ readonly movingSteppers:readonly {readonly member:number;readonly oid:number}[];
  readonly stop:HomingStopSetResult;readonly histories:readonly HomingHistoryBinding[];
  readonly triggerClocks:readonly (readonly bigint[])[];
 }
@@ -80,7 +82,9 @@ export class LinearHomingCommand {
    if(pass.stop.groups.length!==rail.endstops.length)throw new Error('Homing endstop coverage mismatch');
    for(const [i,g] of pass.stop.groups.entries())if(g.hitClock===null)throw new HomingCommandError('no_trigger',rail.endstops[i]);
    const offsets=homingSetPositionOffsets(pass.stop,pass.histories,pass.triggerClocks);
-   if(second)for(const p of offsets)if(p.start===p.trigger){let group=pass.stop.memberOffsets.length-1;while(group>0&&pass.stop.memberOffsets[group]>p.member)group--;throw new HomingCommandError('still_triggered',rail.endstops[group]);}
+   const moving=new Set(pass.movingSteppers.map(p=>`${p.member}:${p.oid}`));
+   if(!moving.size||moving.size!==pass.movingSteppers.length||pass.movingSteppers.some(p=>!offsets.some(o=>o.member===p.member&&o.oid===p.oid)))throw new Error('Invalid moving homing steppers');
+   if(second)for(const p of offsets)if(moving.has(`${p.member}:${p.oid}`)&&p.start===p.trigger){let group=pass.stop.memberOffsets.length-1;while(group>0&&pass.stop.memberOffsets[group]>p.member)group--;throw new HomingCommandError('still_triggered',rail.endstops[group]);}
   };
   try{
    check();this.#kin.clearHoming(selected);await run(this.#port.drain(s));
