@@ -109,6 +109,7 @@ export class SerialSession {
   },stop:cause=>this.stop(cause)};
   this.#commandQueueIds.set(result,queue);return Object.freeze(result);
  }
+ assertCommandQueue(queue:TimedCommandQueue):void{this.assertActive();if(!this.#configuration||!this.#commandQueueIds.has(queue))throw new Error('Configured owned command queue required');}
  /** Query on an owned peripheral FIFO. Route ownership, ACK/response freshness,
   * timeout and cancellation use the same shared query manager as normal queries. */
  queryOnQueue(queue:TimedCommandQueue,payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions&{minClock?:bigint;reqClock?:bigint}={}):Promise<TimedResponse>{

@@ -34,6 +34,7 @@ export class EndstopProtocol {
   this.commands=Object.freeze([`config_endstop oid=${oid} pin=${pin.pin} pull_up=${pin.pullup}`]);
   this.restart=Object.freeze([`endstop_home oid=${oid} clock=0 sample_ticks=0 sample_count=0 rest_ticks=0 pin_value=0 trsync_oid=0 trigger_reason=0`]);
  }
+ assertDictionary(dictionary:MessageDictionary):void{for(const format of Object.values(endstopFormats))if(dictionary.lookup(format).id!==this.#dictionary.lookup(format).id)throw new Error('Firmware dictionary mismatch');if(Number(dictionary.constant('CLOCK_FREQ'))!==this.#frequency)throw new Error('Firmware frequency mismatch');}
  home(options:EndstopTiming,clockAt:(time:number)=>bigint):EndstopSampling{
   const {printTime,sampleTime,sampleCount,restTime,trsyncOid,triggered=true}=options;
   if(!Number.isFinite(printTime)||printTime<0||!Number.isFinite(sampleTime)||sampleTime<=0||!Number.isFinite(restTime)||restTime<=0||!Number.isFinite(printTime+restTime)||printTime+restTime<=printTime||!integer(sampleCount,1,255)||!integer(trsyncOid,0,254)||trsyncOid===this.oid||typeof triggered!=='boolean')throw new RangeError('Invalid endstop sampling');

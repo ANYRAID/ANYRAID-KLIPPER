@@ -38,6 +38,7 @@ export class TriggerSyncProtocol {
   this.commands=Object.freeze([`config_trsync oid=${oid}`]);
   this.restart=Object.freeze([`trsync_start oid=${oid} report_clock=0 report_ticks=0 expire_reason=0`]);
  }
+ assertDictionary(dictionary:MessageDictionary):void{for(const format of Object.values(trsyncFormats))if(dictionary.lookup(format).id!==this.#dictionary.lookup(format).id)throw new Error('Firmware dictionary mismatch');if(Number(dictionary.constant('CLOCK_FREQ'))!==this.#frequency)throw new Error('Firmware frequency mismatch');}
  start(startClock:bigint,stepperOids:readonly number[],expireTimeout:number,reportOffset=0):TriggerPlan{
   validClock(startClock);
   if(!Array.isArray(stepperOids)||stepperOids.length<1||stepperOids.length>254||stepperOids.some(oid=>!uint(oid,254)||oid===this.oid)||new Set(stepperOids).size!==stepperOids.length)throw new RangeError('Invalid trsync stepper OIDs');
