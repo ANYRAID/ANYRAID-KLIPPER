@@ -72,3 +72,15 @@ test('multi-MCU renewal uses peer progress across distinct clock origins',async(
   await until(()=>a.messages.length>0);assert.equal(a.messages[0].parameters.clock,1350000);
  }finally{group.close();await a.close();await b.close();}
 });
+test('late live reports never rewind an established timeout or reopen a triggered group',async()=>{
+ const f=await fixture(),group=NativeSerialQueue.createTriggerDispatch([f.binding]);
+ try{group.start();f.pair.peer.write(report(1,0,1100000));await until(()=>f.messages.length===1);
+  assert.equal(f.messages[0].parameters.clock,1350000);
+  f.pair.peer.write(encodeFrame(2,dictionary.encode('trsync_state',{oid:8,can_trigger:1,trigger_reason:0,clock:1050000})));
+  await delay(120);assert.equal(f.messages.length,1,'stale clock must not enqueue an earlier timeout');
+  f.pair.peer.write(encodeFrame(2,dictionary.encode('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:1150000})));
+  await until(()=>f.messages.length===2);assert.equal(f.messages[1].name,'trsync_trigger');
+  f.pair.peer.write(encodeFrame(3,dictionary.encode('trsync_state',{oid:8,can_trigger:1,trigger_reason:0,clock:1300000})));
+  await delay(120);assert.equal(f.messages.length,2,'late live report must not reopen a stopped group');
+ }finally{group.close();await f.close();}
+});
