@@ -7,6 +7,7 @@ import {MotanSensorSampler,motanAngleScale,type SensorBlock,type SensorSelection
 import {MotanPhaseSampler,motanPhaseConfig} from './phase-samples.ts';
 import {MotanStallguardSampler,MotanStatusFieldSampler} from './diagnostic-samples.ts';
 import {parsePythonFloat} from '../moonraker/config-reader.ts';
+import {setImmediate as yieldImmediate} from 'node:timers/promises';
 export const motanDatasetTypes=Object.freeze(['accelerometer','adxl345','angle','ldc1612','loadcell','stallguard','status','step_phase','stepq','trapq']);
 export interface DatasetLabel {name:string;label:string;units:string;}
 export interface MotanManagerOptions {start?:number;reader?:MotanReadOptions;dispatch?:DispatchOptions;maxIndexEntries?:number;}
@@ -48,5 +49,38 @@ export class MotanLogManager {
   if(subscription)this.#dispatch.addHandler(name,subscription);const info=Object.freeze({name,label,units});this.#datasets.set(name,{info,sample});return info;
  }
  async sample(time:number):Promise<Readonly<Record<string,unknown>>>{this.#check();if(!Number.isFinite(time)||time<this.#last||this.#busy||!this.#datasets.size)throw new Error('Invalid or concurrent Motan manager sample');this.#started=true;this.#last=time;this.#busy=true;try{const values:Record<string,unknown>=Object.create(null);for(const [name,dataset] of this.#datasets){this.#check();values[name]=await dataset.sample(time);}this.#check();return Object.freeze(values);}catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}finally{this.#busy=false;}}
+ /** Numeric analysis batch. Preserve time-major subscription consumption while
+  * avoiding one result object, freeze and outer promise per sample. */
+ async sampleNumeric(times:readonly number[]|Float64Array,maxNumericBytes=64*1024**2,names?:readonly string[]):Promise<Readonly<Record<string,Float64Array>>>{
+  this.#check();
+  if(this.#busy||!this.#datasets.size)throw new Error('Invalid or concurrent Motan manager sample');
+  if(names!==undefined&&(!Array.isArray(names)||names.length>127))throw new Error('Invalid Motan numeric batch datasets');
+  const selected=new Set(names??this.#datasets.keys());
+  if([...selected].some(name=>!this.#datasets.has(name)))throw new Error('Unknown Motan numeric batch dataset');
+  if((!Array.isArray(times)&&!(times instanceof Float64Array))||times.length>2000000
+    ||!Number.isSafeInteger(maxNumericBytes)||maxNumericBytes<1||maxNumericBytes>512*1024**2
+    ||times.length*(selected.size+1)*8>maxNumericBytes)throw new Error('Motan numeric batch memory or sample limit');
+  // Validate exactly the values copied, including caller-owned shared buffers.
+  const timeline=new Float64Array(times.length);let previous=this.#last;
+  for(let i=0;i<timeline.length;i++){const time=times[i];if(typeof time!=='number'||!Number.isFinite(time)||time<previous)throw new Error('Motan numeric batch requires sequential nondecreasing times');timeline[i]=previous=time;}
+  const result:Record<string,Float64Array>=Object.create(null);
+  const datasets=Array.from(this.#datasets,([name,dataset])=>({name,dataset,
+   values:selected.has(name)?result[name]=new Float64Array(timeline.length):undefined}));
+  if(!timeline.length)return Object.freeze(result);
+  this.#busy=true;this.#started=true;
+  try{
+   for(let i=0;i<timeline.length;i++){
+    this.#last=timeline[i];
+    for(const entry of datasets){
+     this.#check();const value=await entry.dataset.sample(timeline[i]);this.#check();
+     if(!entry.values)continue;
+     if(typeof value!=='number'||!Number.isFinite(value))throw new Error(`Motan numeric analysis cannot represent ${entry.name} at sample ${i}`);
+     entry.values[i]=value;
+    }
+    if((i+1)%256===0&&i+1<timeline.length){await yieldImmediate();this.#check();}
+   }
+   return Object.freeze(result);
+  }catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}finally{this.#busy=false;}
+ }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#dispatch.close();this.#datasets.clear();this.#tracker=undefined;this.#closing=this.#reader.close();return this.#closing;}
 }

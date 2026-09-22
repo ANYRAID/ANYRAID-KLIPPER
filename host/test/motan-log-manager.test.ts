@@ -7,6 +7,55 @@ import {gzipSync} from 'node:zlib';
 import {MotanLogManager,splitMotanName,splitMotanParameters} from '../src/motan/log-manager.ts';
 import {managerFixture,managerDatasets} from './helpers/motan-manager-fixture.ts';
 import {managerOracle} from './helpers/motan-manager-oracle.ts';
+test('Motan numeric batches preserve time-major sampling and snapshot times without exporting unselected datasets',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'motan-batch-')),prefix=join(dir,'capture');
+ try{await managerFixture(prefix);const row=await MotanLogManager.open(prefix),batch=await MotanLogManager.open(prefix);
+  try{for(const name of managerDatasets){row.addDataset(name);batch.addDataset(name);}
+   const names=managerDatasets.filter(name=>!name.startsWith('stallguard('));
+   const times=[10.75,11.25,12.75,13.25,14],expected=[];
+   for(const time of times)expected.push(await row.sample(time));
+   const pending=batch.sampleNumeric(times,1024**2,names);times.fill(-100);
+   const result=await pending;assert.deepEqual(Object.keys(result),names);
+   for(const name of names)assert.deepEqual(Array.from(result[name]),expected.map(values=>values[name]));
+   assert.ok(Object.isFrozen(result));await assert.rejects(batch.sample(13),/concurrent/);
+  }finally{await row.close();await batch.close();}
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('Motan numeric batches validate budgets and all times before consuming records',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'motan-batch-limits-')),prefix=join(dir,'capture');
+ try{await managerFixture(prefix);const manager=await MotanLogManager.open(prefix);
+  try{manager.addDataset('accelerometer(a,x)');
+   await assert.rejects(manager.sampleNumeric([11,10]),/nondecreasing/);
+   await assert.rejects(manager.sampleNumeric([11,NaN]),/nondecreasing/);
+   await assert.rejects(manager.sampleNumeric([11],15),/memory/);
+   await assert.rejects(manager.sampleNumeric([11],1024,['missing']),/Unknown/);
+   assert.equal(manager.status.started,false);
+   assert.equal((await manager.sampleNumeric([]))['accelerometer(a,x)'].length,0);
+   assert.equal(manager.status.started,false);
+   assert.equal((await manager.sampleNumeric([11,11]))['accelerometer(a,x)'].length,2);
+  }finally{await manager.close();}
+  const failing=await MotanLogManager.open(prefix);try{
+   failing.addDataset('stallguard(stepper_x,sg_result)');
+   await assert.rejects(failing.sampleNumeric([20]),/cannot represent/);
+   await assert.rejects(failing.sample(20),/cannot represent/);
+  }finally{await failing.close();}
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
+test('Motan numeric batch yields to owner close and excludes concurrent operations',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'motan-batch-close-')),prefix=join(dir,'capture');
+ try{await managerFixture(prefix);const manager=await MotanLogManager.open(prefix);
+  try{manager.addDataset('accelerometer(a,x)');await manager.sample(10.75);
+   const pending=manager.sampleNumeric(Array.from({length:1000},(_,i)=>10.8+i*.0001)).catch(error=>error);
+   await assert.rejects(manager.sample(10.8),/concurrent/);
+   await assert.rejects(manager.sampleNumeric([10.8]),/concurrent/);
+   assert.throws(()=>manager.addDataset('accelerometer(a,y)'),/before/);
+   let yielded=false;const closed=new Promise<void>((resolve,reject)=>setImmediate(()=>{
+    yielded=true;manager.close().then(resolve,reject);
+   }));
+   assert.match(String(await pending),/closed/);await closed;assert.equal(yielded,true);
+  }finally{await manager.close();}
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
 test('Motan manager resolves every dataset family and labels against original Python on actual gzip/index files',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'motan-manager-')),prefix=join(dir,'capture');try{await managerFixture(prefix);for(const [start,times] of [[0,[10.75,11.25,12.75,13.25,14]],[4,[14,14.5]]] as [number,number[]][]){const expected=managerOracle(prefix,start,managerDatasets,times),manager=await MotanLogManager.open(prefix,{start});try{assert.equal(manager.startTime,expected.start);assert.equal(manager.initialStartTime,10);assert.equal((manager.initialStatus.toolhead as {estimated_print_time:number}).estimated_print_time,10);for(const name of managerDatasets){const info=manager.addDataset(name);assert.deepEqual({label:info.label,units:info.units},expected.labels[name]);assert.equal(manager.addDataset(name),info);}const values=[];for(const time of times)values.push({...await manager.sample(time)});assert.deepEqual(values,expected.values);assert.throws(()=>manager.addDataset('status(new)'),/before/);}finally{await manager.close();}}}finally{await rm(dir,{recursive:true,force:true});}
 });
