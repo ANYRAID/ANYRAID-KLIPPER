@@ -119,6 +119,18 @@ fn round_filter(
     if !["common", "ceil", "floor"].contains(&method) {
         return Err(err("Invalid rounding method"));
     }
+    // Python bool implements integer rounding, with an int result for common.
+    let value = if value.kind() == ValueKind::Bool {
+        Value::from(if value.is_true() { 1i128 } else { 0i128 })
+    } else {
+        value
+    };
+    // For nonnegative integral precision, Python computes the integer product
+    // and ceil/floor exactly before dividing. Converting before multiplication
+    // introduces a rounding error near 2^53 and overflows at large precision.
+    if method != "common" && value.is_integer() && p >= 0 {
+        return Ok(Value::from(numeric(value)?));
+    }
     if method == "common" && value.is_integer() {
         if p >= 0 {
             return Ok(value);
