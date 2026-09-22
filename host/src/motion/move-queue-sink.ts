@@ -34,9 +34,10 @@ export class MoveQueueSink implements MotionSink {
   if(this.#stopPromise)return this.#stopPromise;this.#stopped=true;
   this.#stopPromise=Promise.allSettled(this.#mcus.map(m=>Promise.resolve().then(()=>m.config.transport.stop(cause)))).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'MCU stop failures');});return this.#stopPromise;
  }
- /** Caller keeps every affected MCU stopped/reset-required. Fence every member
-  * before awaiting any one; success also waits for the active history/commit
-  * callback to finish. A fault stops the entire group, with no replacement. */
+ /** Fence every member before awaiting any one; success also waits for the
+  * active history/commit callback. The owner must confirm physical stop and
+  * retirement before resetting clocks or emitting replacement motion; this
+  * delivery fence alone does not stop motors. Faults stop the entire group. */
  retire(signal:AbortSignal):Promise<void>{
   if(this.#retirement)return this.#retirement;
   if(this.#stopped||this.#mcus.some(m=>typeof m.config.transport.retire!=='function'))return Promise.reject(new Error('Motion sink cannot retire'));

@@ -1,3 +1,4 @@
+import {MotionRetiredError} from '../motion/retired.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 import {SerialSession,type SerialSessionOptions,type TimedCommandQueue} from '../protocol/serial-session.ts';
 import {connectUART,type UARTOptions} from '../protocol/uart.ts';
@@ -72,7 +73,23 @@ export class MCUGroup {
  /** Bind the motion sink to whole-group health and stop propagation. */
  motionQueue(id:string,emitters:readonly string[],clockAt:(printTime:number)=>bigint):MCUQueueConfig{
   const queue=this.session(id).motionQueue(id,emitters,clockAt);
-  return {...queue,transport:{send:async packets=>{try{this.assertActive();await queue.transport.send(packets);this.assertActive();}catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU motion and group stop failed');}throw error;}},stop:cause=>this.stop(cause)}};
+  let retired=false,retirement:Promise<void>|undefined;
+  return {...queue,transport:{send:async packets=>{
+   try{this.assertActive();await queue.transport.send(packets);this.assertActive();}
+   catch(error){
+    // An expected old-generation fence must not stop a healthy replacement.
+    // Real transport/health failures still propagate to every MCU.
+    if(retired&&error instanceof MotionRetiredError){this.assertActive();throw error;}
+    try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU motion and group stop failed');}throw error;
+   }
+  },stop:cause=>this.stop(cause),retire:signal=>{
+   if(retirement)return retirement;retired=true;
+   // Invoke the session fence before returning to the producer. Physical stop
+   // remains the owner's responsibility before reset/replacement motion.
+   retirement=(async()=>{try{this.assertActive();await queue.transport.retire!(signal);signal.throwIfAborted();this.assertActive();}
+   catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'MCU retirement and group stop failed');}throw error;}})();
+   return retirement;
+  }}};
  }
  /** Snapshot barrier after the producer has flushed all motion. Concurrent new
   * sends are not fenced here and are not covered by this boundary. Firmware

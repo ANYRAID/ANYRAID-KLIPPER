@@ -14,3 +14,15 @@ test('concurrent drains are rejected and one deadline covers the complete operat
 
 test('deadline rejects an unresponsive history hook and late completion cannot send packets',async()=>{let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});await fixture(async(d,g,c,q,fw,end)=>{await assert.rejects(d.drain(end,new Map([[q,[1,0,0] as const]]),new AbortController().signal,20),/timed out/);assert.equal(g.status.state,'stopped');assert.equal(c.status.failed,true);assert.equal(fw.motion.length,0);release();await new Promise<void>(r=>setImmediate(r));assert.equal(fw.motion.length,0);},()=>gate);});
 test('streaming commit shares cancellation deadline and fences an unresponsive history hook',async()=>{let release!:()=>void;const gate=new Promise<void>(r=>{release=r;});await fixture(async(d,g,c,q,fw,end)=>{const pending=d.advanceSource(end,new AbortController().signal,20),rejected=assert.rejects(pending,/timed out/);await assert.rejects(d.drain(end,new Map([[q,[1,0,0] as const]]),new AbortController().signal),/already active/);await rejected;assert.equal(g.status.state,'stopped');assert.equal(c.status.failed,true);assert.equal(fw.motion.length,0);release();await new Promise<void>(r=>setImmediate(r));assert.equal(fw.motion.length,0);},()=>gate);});
+
+test('drained native coordinator retires through the MCU group and releases its motion lease',async()=>fixture(async(d,g,c,q,fw,end)=>{
+ const signal=new AbortController().signal;
+ const result=await d.drain(end,new Map([[q,[1,0,0] as const]]),signal,3000);
+ assert(g.session('m').clock.sync.lastClock>result.targets.m);
+ await c.retire(signal);assert.equal(c.status.retired,true);assert.equal(c.status.failed,false);g.assertActive();
+ const s=g.session('m'),replacement=g.motionQueue('m',['x'],()=>0n).transport;
+ await replacement.send([{id:'x',data:Buffer.from(s.dictionary.encode('set_next_step_dir',{oid:3,dir:0})),minClock:0n,reqClock:0n}]);
+ await replacement.retire!(signal);assert.equal(fw.motion.at(-1)?.parameters.dir,0);g.assertActive();
+ // A transport lease is released here; physical stop/reset is still required
+ // before a caller can change coordinates and emit replacement step commands.
+}));

@@ -46,3 +46,45 @@ test('a slow safety acknowledgement cannot delay stopping peer host queues',asyn
 test('group health guard still stops every MCU on invalidated clock',async()=>{
  const f=await fixture(),group=new MCUGroup(f.entries);try{await group.start(signal());f.sessions[0].clock.sync.invalidate();assert.throws(()=>group.assertActive(),/expired/);await group.stop();assert.deepEqual(f.stops,[1,1]);assert.ok(f.sessions.every(s=>s.status.state==='closed'));}finally{await group.stop();await f.close();}
 });
+
+test('group retirement preserves healthy peers and cannot revoke a replacement lease',async()=>{
+ const f=await fixture(),g=new MCUGroup(f.entries);
+ try{
+  await g.start(signal());for(const s of f.sessions)await s.configure({oidCount:4,commands:[]},signal());
+  const s=f.sessions[0],old=g.motionQueue('mcu0',['x'],()=>0n).transport;
+  const packet=(dir:number,clock=0n)=>({id:'x',data:Buffer.from(s.dictionary.encode('set_next_step_dir',{oid:3,dir})),minClock:clock,reqClock:clock});
+  await old.send([packet(1,s.clock.sync.getClock(serialClock.now()+.15))]);
+  const retired=old.retire!(signal());assert.strictEqual(old.retire!(signal()),retired);
+  assert.throws(()=>g.motionQueue('mcu0',['x'],()=>0n),/unbound/);
+  await assert.rejects(old.send([packet(0)]),/retired/);await retired;
+  assert.deepEqual(f.stops,[0,0]);assert.equal(f.firmwares[0].motion.length,1);
+  const next=g.motionQueue('mcu0',['x'],()=>0n).transport;
+  await old.retire!(signal());await assert.rejects(old.send([packet(1)]),/retired/);
+  await next.send([packet(0)]);await next.retire!(signal());
+  assert.deepEqual(f.firmwares[0].motion.map(m=>m.parameters.dir),[1,0]);
+  g.assertActive();assert.deepEqual(f.stops,[0,0]);
+ }finally{await g.stop();await f.close();}
+});
+test('group retirement fences a backpressured suffix without treating it as device failure',async()=>{
+ const f=await fixture(),g=new MCUGroup(f.entries);
+ try{
+  await g.start(signal());const s=f.sessions[0];await s.configure({oidCount:4,commands:[]},signal());
+  const old=g.motionQueue('mcu0',['x'],()=>0n).transport,tick=s.clock.sync.getClock(serialClock.now()+.2);
+  const p={id:'x',data:Buffer.from(s.dictionary.encode('set_next_step_dir',{oid:3,dir:1})),minClock:tick,reqClock:tick};
+  const rejected=assert.rejects(old.send(Array(5000).fill(p)),/retired/);
+  const retired=old.retire!(signal());await rejected;await retired;
+  assert(f.firmwares[0].motion.length>=3900&&f.firmwares[0].motion.length<=3968);
+  g.assertActive();assert.deepEqual(f.stops,[0,0]);await g.motionQueue('mcu0',['x'],()=>0n).transport.retire!(signal());
+ }finally{await g.stop();await f.close();}
+});
+test('cancelling group retirement stops every member and forbids replacement',async()=>{
+ const f=await fixture(),g=new MCUGroup(f.entries);
+ try{
+  await g.start(signal());const s=f.sessions[0];await s.configure({oidCount:4,commands:[]},signal());
+  const old=g.motionQueue('mcu0',['x'],()=>0n).transport,tick=s.clock.sync.getClock(serialClock.now()+10);
+  await old.send([{id:'x',data:Buffer.from(s.dictionary.encode('set_next_step_dir',{oid:3,dir:1})),minClock:tick,reqClock:tick}]);
+  const abort=new AbortController(),pending=old.retire!(abort.signal),rejected=assert.rejects(pending,/cancel retirement/);
+  abort.abort(new Error('cancel retirement'));await rejected;await g.stop();
+  assert.deepEqual(f.stops,[1,1]);assert.equal(f.firmwares[0].motion.length,0);assert.throws(()=>g.motionQueue('mcu0',['x'],()=>0n),/not ready/);
+ }finally{await g.stop();await f.close();}
+});
