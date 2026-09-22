@@ -682,6 +682,10 @@ static double
 command_event(struct serialqueue *sq, double eventtime)
 {
     pthread_mutex_lock(&sq->lock);
+    // Commands may have been enqueued after the reactor sampled eventtime.
+    // Refresh under the queue lock so response provenance cannot predate the
+    // request whose bytes are about to be selected for transmission.
+    eventtime = get_monotonic();
     uint8_t buf[MESSAGE_MAX * MAX_PENDING_BLOCKS];
     int buflen = 0;
     double waketime;

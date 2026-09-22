@@ -48,7 +48,7 @@ export class QueryConnection implements ClockConnection {
    p.response=structuredClone(reply);p.notify?.();return true;
   }catch(error){this.#fail(error);throw error;}
  }
- async query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={}):Promise<TimedResponse>{
+ async query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={},sender:(payload:Uint8Array,signal:AbortSignal)=>Promise<void>=(p,s)=>this.#transport.send(p,s)):Promise<TimedResponse>{
   signal.throwIfAborted();if(this.#closed)throw new Error('Query connection closed');
   const route=key(responseName,options.oid),timeout=options.timeout??5,retries=options.retries??0;
   if(!payload.length||payload.length>MAX_PAYLOAD||!Number.isFinite(timeout)||timeout<=0||timeout>60||!Number.isInteger(retries)||retries<0||retries>5)throw new RangeError('Invalid query limits');
@@ -61,7 +61,7 @@ export class QueryConnection implements ClockConnection {
   try{
    for(let attempt=0;;attempt++){
     this.#check(p);
-    await this.#cancellable(()=>this.#transport.send(command.slice(),p.controller.signal),p);
+    await this.#cancellable(()=>sender(command.slice(),p.controller.signal),p);
     this.#check(p);if(p.response)return p.response;
     if(attempt===retries){
      // ACK confirms command delivery, not that its response has arrived. A

@@ -1,3 +1,4 @@
+import {trsyncFormats,type TriggerSyncProtocol,type TriggerPlan} from '../inputs/trsync.ts';
 import {firmwareFault} from './firmware-fault.ts';
 import {configureMCU,type MCUConfigPlan,type ConfiguredMCU} from './mcu-config.ts';
 import type {ScheduledPacket} from '../motion/move-queue.ts';
@@ -39,6 +40,7 @@ export class SerialSession {
  #motionTimer:ReturnType<typeof setTimeout>|undefined;#motionExpiry=Infinity;#motionPending=0;
  #configuration:ConfiguredMCU|undefined;#configuring=false;
  #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
+ #commandQueueIds=new WeakMap<TimedCommandQueue,number>();
  #nextCommandQueue=2;#outputPending=0;
  #subscriptions=new Map<string,Map<number,ResponseSubscription>>();#subscriptionCount=0;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
@@ -97,7 +99,7 @@ export class SerialSession {
  commandQueue():TimedCommandQueue{
   this.assertActive();if(!this.#configuration||this.#nextCommandQueue>=128)throw new Error('Configured MCU and an available command queue are required');
   const queue=this.#nextCommandQueue++;
-  return {send:(payload,min,req,signal)=>{
+  const result:TimedCommandQueue={send:(payload,min,req,signal)=>{
    try{this.assertActive();if(this.#configuring||this.#outputPending>=64)throw new Error('Scheduled command capacity exceeded');if(typeof min!=='bigint'||typeof req!=='bigint'||min<0n||req<min||req>=0x7fffffffffffffffn)throw new RangeError('Invalid scheduled command clocks');
     const now=serialClock.now(),release=req>min+(3n<<29n)?req-(3n<<29n):min;
     const ready=release===0n?now:this.clock.sync.systemTime(release),requested=req===0n?now:this.clock.sync.systemTime(req);
@@ -105,6 +107,28 @@ export class SerialSession {
     return this.#send(payload,signal,{queue,min,req,deadline:Math.max(now,ready,requested)+5});
    }catch(error){return Promise.reject(error);}
   },stop:cause=>this.stop(cause)};
+  this.#commandQueueIds.set(result,queue);return Object.freeze(result);
+ }
+ /** Query on an owned peripheral FIFO. Route ownership, ACK/response freshness,
+  * timeout and cancellation use the same shared query manager as normal queries. */
+ queryOnQueue(queue:TimedCommandQueue,payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions&{minClock?:bigint;reqClock?:bigint}={}):Promise<TimedResponse>{
+  if(!this.#commandQueueIds.has(queue))return Promise.reject(new Error('Command queue belongs to another session'));
+  if(this.#state!=='ready'||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
+  if(options.oid!==undefined&&this.#subscriptions.get(responseName)?.has(options.oid))return Promise.reject(new Error('Response route is subscribed'));
+  try{this.clock.assertActive();}catch(error){return Promise.reject(error);}
+  const min=options.minClock??0n,req=options.reqClock??min;
+  return this.#queries.query(payload,responseName,signal,options,(p,s)=>queue.send(p,min,req,s));
+ }
+ /** Native group creation does not arm firmware. Send each start plan on its
+  * supplied FIFO, then start the group before enabling endstop sampling. */
+ static createTriggerDispatch(members:readonly {session:SerialSession;queue:TimedCommandQueue;protocol:TriggerSyncProtocol;plan:TriggerPlan}[]){
+  if(!Array.isArray(members)||!members.length||members.length>16)throw new RangeError('Invalid trigger sessions');
+  return NativeSerialQueue.createTriggerDispatch(members.map(({session,queue,protocol,plan})=>{
+   session.assertActive();const commandQueue=session.#commandQueueIds.get(queue);
+   if(!session.#configuration||commandQueue===undefined)throw new Error('Trigger dispatch requires an owned configured command queue');
+   for(const name of ['timeout','trigger','state'] as const)if((session.#dictionary.lookup(trsyncFormats[name]).id>>>0)!==protocol.tags[name])throw new Error('Trigger dictionary does not match session');
+   return {queue:session.#queue,commandQueue,oid:protocol.oid,tags:protocol.tags,plan};
+  }));
  }
  async configure(plan:MCUConfigPlan,signal:AbortSignal):Promise<ConfiguredMCU>{
   if(this.#state!=='ready'||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
