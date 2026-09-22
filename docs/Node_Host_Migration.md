@@ -12590,3 +12590,43 @@ json.loads/JSONDecodeError/text decode，Node 另含精度与结构检查，
 
 本阶段类型与空白检查、完整 1,458 项主机回归通过，无失败或跳过。
 没有退役 Python 文件或改变生产打印入口。
+
+### Klippy 宏的 MQTT 远程发布
+
+ConfiguredMoonraker 持有 MQTT 传输时，每次 Klippy 初始化注册
+`publish_mqtt_topic`，重连自动重新注册，不保存或重放旧调用。
+实例名配置 instance_name 默认本机 hostname；use_prefix 为 true 时
+按上游拼接实例名与移除前导斜杠后的主题。实例名拒绝通配符、NUL、
+无效 Unicode 和超长字节，配置差分已覆盖默认及显式名称。
+
+`MqttMacroPublisher` 将发布放入最多 32 个独立任务，回调立即返回，
+不会占据 Klippy callback 的超时等待。同步异常、broker 失败和容量
+拒绝均被记录为计数，不抛到会关闭 Klippy 的回调层；任务结合当前
+Klippy 连接代次及服务器的取消信号。断开旧代次或关闭服务会取消
+未完成发布，并清理 MQTT 出站状态。
+
+`mqttMacroStatus` 暴露收到、完成、失败、拒绝、取消和在途数量，不
+保存主题、载荷或底层私密错误。该方法仍是单向远程回调；完成仅具有
+所选 MQTT QoS 的确认含义，不是设备执行或运动/加热互锁确认。布尔
+选项要求实际布尔值，qos 支持有效整数、布尔及缺省/null，不复刻
+任意 Python 对象的真假转换；数字字面类型限制沿用既有 RPC 边界。
+
+内置方法名在 Klippy 尚未连接时也对外部 agent 保留，防止抢占；显式
+Klippy 附加选项同名注册会失败。新增四项回归验证前缀、载荷、容量、
+错误隔离、取消，以及真实 Unix Klippy ↔ MQTT 链路：agent 抢占被拒，
+MQTT 失败不切断 Klippy，等待 PUBACK 时仍能接收打印机状态，重连重新
+注册但不重放旧发布。没有实际执行 G-code 宏或物理打印。
+
+`node host/bench/mqtt-macros.ts`：Node v26.9.0，每轮 256 个 Unix
+回调，窗口 32，2 轮预热、7 轮计时，交替直接传输回调和宏适配器。
+直接中位/p95 为 42.820 / 42.932 ms，适配器为 42.955 / 43.036 ms，
+同时核对 broker 载荷与失败/拒绝计数。包含 Unix 解帧与 MQTT QoS 0
+回环传输，不包含 G-code 求值、TLS、目标板调度或打印。
+
+实例名加入后复测配置加载：每轮 1,000 次，Node 字面量凭据中位/p95
+3.697 / 4.227 ms，Python 为 5.227 / 5.257 ms；密码文件路径 Node
+71.772 / 81.153 ms，Python 23.218 / 23.487 ms。文件读取仍较慢，
+仅发生在配置加载阶段，不进入上述宏调用热路径。
+
+类型与空白检查、完整 1,462 项主机回归通过，无失败或跳过。MQTT
+组件仍为 partial，入站 RPC、状态发布、完整生产配置和实机验收未完成。

@@ -2,7 +2,7 @@
 // Original Copyright (C) 2021 Eric Callahan.
 import {open} from 'node:fs/promises';
 import {constants} from 'node:fs';
-import {homedir} from 'node:os';
+import {homedir,hostname} from 'node:os';
 import {isAbsolute} from 'node:path';
 import {ConfigurationError} from './config-source.ts';
 import type {ConfigurationReader} from './config-reader.ts';
@@ -47,8 +47,9 @@ export async function readMqttSensorOptions(reader:ConfigurationReader,context:M
   let password=path===null?undefined:await passwordFile(path,context);
   if(template!==null)password=await credential(template,context);
   const protocol=section.get('mqtt_protocol',{defaultValue:'v3.1.1'});if(!['v3.1','v3.1.1','v5'].includes(protocol))throw new ConfigurationError('Invalid MQTT protocol');
+  const instanceName=section.get('instance_name',{defaultValue:hostname()});if(!instanceName.isWellFormed()||Buffer.byteLength(instanceName)>65535||/[+#\0]/u.test(instanceName))throw new ConfigurationError('Invalid MQTT instance name');
   const defaultQos=section.getInt('default_qos',{defaultValue:0,minval:0,maxval:2}) as 0|1|2,clientId=section.get('client_id',{defaultValue:''});
   if(!host||host.length>253||/[\s/\0]/u.test(host)||!clientId.isWellFormed()||Buffer.byteLength(clientId)>65535)throw new ConfigurationError('Invalid MQTT connection options');
-  return {host,port,tls,defaultQos,...protocol!=='v3.1.1'?{protocol:protocol as MqttProtocol}:{},...username!==undefined?{username}:{},...password!==undefined?{password}:{},...clientId?{clientId}:{}};
+  return {host,port,tls,defaultQos,instanceName,...protocol!=='v3.1.1'?{protocol:protocol as MqttProtocol}:{},...username!==undefined?{username}:{},...password!==undefined?{password}:{},...clientId?{clientId}:{}};
  }catch{reader.error('mqtt');throw new ConfigurationError('[mqtt]: Unable to load connection configuration');}
 }

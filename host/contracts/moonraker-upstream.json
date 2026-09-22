@@ -113,7 +113,7 @@
       "name": "mqtt",
       "tier": "optional",
       "status": "partial",
-      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. Production broker, complete configuration/template wiring, incoming MQTT RPC, status publication and publish_mqtt_topic remain incomplete."
+      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. mqtt-macros.ts registers generation-scoped publish_mqtt_topic with instance prefixes, bounded nonblocking jobs and failure metrics. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. Production broker, complete configuration/template wiring, incoming MQTT RPC, status publication and real macro/print acceptance remain incomplete."
     },
     {
       "name": "notifier",
@@ -878,7 +878,8 @@
       "line": 443,
       "method": "register_remote_method",
       "targetExpression": "\"publish_mqtt_topic\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-macros.ts; configured-mqtt-macros.test.ts; bench/mqtt-macros.ts. Registers on each Klippy generation; broker failures do not disconnect Klippy and old pending publications are cancelled. Strict option types and existing Number lexical limitations differ from unrestricted Python; real G-code/hardware acceptance remains open."
     },
     {
       "file": "moonraker/components/notifier.py",

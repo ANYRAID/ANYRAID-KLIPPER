@@ -1,5 +1,6 @@
 import {MqttClient,type IClientOptions} from 'mqtt';
 import {connect as tcpConnect,isIP} from 'node:net';
+import {hostname} from 'node:os';
 import {connect as tlsConnect} from 'node:tls';
 import {Duplex,Transform,type TransformCallback} from 'node:stream';
 import type {SensorStore} from './sensors.ts';
@@ -11,7 +12,7 @@ const receiverOwners=new WeakSet<SensorMessages>();
 export interface MqttSensorBinding {topic:string;qos?:QoS|null;receiver:SensorMessages;}
 export type MqttProtocol='v3.1'|'v3.1.1'|'v5';
 export interface MqttPublishOptions {qos?:QoS;retain?:boolean;timeoutMs?:number;signal?:AbortSignal;}
-export interface MqttSensorOptions {protocol?:MqttProtocol;host:string;port?:number;tls?:boolean;ca?:string;username?:string;password?:string;clientId?:string;defaultQos?:QoS;reconnectMs?:number;timeoutMs?:number;maxPacketBytes?:number;}
+export interface MqttSensorOptions {instanceName?:string;protocol?:MqttProtocol;host:string;port?:number;tls?:boolean;ca?:string;username?:string;password?:string;clientId?:string;defaultQos?:QoS;reconnectMs?:number;timeoutMs?:number;maxPacketBytes?:number;}
 /** MQTT Remaining Length guard before MQTT.js buffering/parsing. */
 export class MqttPacketLimit extends Transform {
  readonly #max:number;#phase=0;#length=0;#multiplier=1;#digits=0;#remaining=0;
@@ -37,12 +38,14 @@ function bounded(value:number,min:number,max:number){if(!Number.isSafeInteger(va
  * Reconnect builds a fresh subscription
  * generation, and close fences receivers before destroying the transport. */
 export class MqttSensors {
+ readonly instanceName:string;
  readonly #waiters:MqttMessageWaiters;readonly #client:MqttClient;readonly #topics=new Map<string,{qos:QoS;receivers:SensorMessages[]}>();readonly #timeout:number;readonly #defaultQos:QoS;readonly #publishes=new Set<(error:Error)=>void>();
  #closed=false;#started=false;#connected=false;#ready=false;#generation=0;#connections=0;#messages=0;#failure:string|null=null;
  #starting:Promise<void>|undefined;#resolve:(()=>void)|undefined;#reject:((error:Error)=>void)|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#closing:Promise<void>|undefined;
  constructor(options:MqttSensorOptions,bindings:readonly MqttSensorBinding[]){
   if(!options||typeof options.host!=='string'||!options.host||options.host.length>253||/[\s/\0]/u.test(options.host)||!Array.isArray(bindings)||bindings.length>32)throw new ApiError(400,'Invalid MQTT sensor options');
   if(options.ca!==undefined&&!options.tls||options.tls!==undefined&&typeof options.tls!=='boolean'||[options.ca,options.username,options.password,options.clientId].some(value=>value!==undefined&&(typeof value!=='string'||!value.isWellFormed()||Buffer.byteLength(value)>65535)))throw new ApiError(400,'Invalid MQTT connection option');
+  this.instanceName=options.instanceName??hostname();if(typeof this.instanceName!=='string'||!this.instanceName.isWellFormed()||Buffer.byteLength(this.instanceName)>65535||/[+#\0]/u.test(this.instanceName))throw new ApiError(400,'Invalid MQTT instance name');
   const protocol=options.protocol??'v3.1.1';if(!['v3.1','v3.1.1','v5'].includes(protocol))throw new ApiError(400,'Invalid MQTT protocol');
   const port=bounded(options.port??(options.tls?8883:1883),1,65535),qos=bounded(options.defaultQos??0,0,2) as QoS,reconnect=bounded(options.reconnectMs??1000,10,60000),max=bounded(options.maxPacketBytes??131072,2,16777216);this.#timeout=bounded(options.timeoutMs??10000,10,120000);this.#defaultQos=qos as QoS;
   const receivers=new Set<SensorMessages>();

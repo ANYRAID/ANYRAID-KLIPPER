@@ -9,14 +9,14 @@ interface Registration {name:string;client:number;owner:AbortSignal;remove:()=>v
 export class AgentMethods {
  #metrics={received:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0};
  #release:()=>void;#owner=new AbortController();#records=new Map<string,Registration>();#network:MoonrakerNetwork;
- constructor(registry:EndpointRegistry,network:MoonrakerNetwork,runtime:()=>KlippyLifecycle|undefined){
+ constructor(registry:EndpointRegistry,network:MoonrakerNetwork,runtime:()=>KlippyLifecycle|undefined,reserved:ReadonlySet<string>=new Set()){
   this.#network=network;
   this.#release=registry.register({endpoint:'/server/connection/register_remote_method',methods:['POST'],transports:['websocket']},async(params,_verb,context)=>{
    const id=context.connectionId,client=id===undefined?undefined:network.getClient(id);
    if(!client)throw new ApiError(400,'No connection detected');
    if(client.identity?.type!=='agent')throw new ApiError(400,"Only connections of the 'agent' type can register remote methods");
    const name=params.method_name,klippy=runtime();
-   if(typeof name!=='string'||!name||name.length>256||name.includes('\0')||name.startsWith('__mr_')||['process_status_update','process_gcode_response'].includes(name)||this.#records.has(name)||klippy?.remoteMethods.configured.includes(name))throw new ApiError(400,'Invalid or duplicate remote method');
+   if(typeof name!=='string'||!name||name.length>256||name.includes('\0')||name.startsWith('__mr_')||['process_status_update','process_gcode_response'].includes(name)||this.#records.has(name)||reserved.has(name)||klippy?.remoteMethods.configured.includes(name))throw new ApiError(400,'Invalid or duplicate remote method');
    if(this.#records.size>=256)throw new ApiError(429,'Agent remote method capacity exceeded');
    if(!network.status.clientCalls)throw new ApiError(503,'Client call authorization is required');
    context.signal.throwIfAborted();const owner=AbortSignal.any([network.connectionSignal(client.id),this.#owner.signal]);owner.throwIfAborted();
