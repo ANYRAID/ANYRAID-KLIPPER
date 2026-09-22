@@ -58,3 +58,14 @@ test('invalid constructor ownership frees dispatches without stopping healthy se
   const move=new HomingMoveExecution(x.options);move.dispose();await assert.rejects(move.run(signal()),/disposed/);assert.equal(x.f.stops,0);
  }finally{await x.close();}
 });
+
+test('active homing pins the initial history through readback and releases it after retirement',async()=>{
+ const x=await nativeHomingFixture();let result:Awaited<ReturnType<HomingMoveExecution['run']>>|undefined,timer:ReturnType<typeof setTimeout>|undefined;
+ try{
+  const history=x.history[0],before=history.status;using move=new HomingMoveExecution(x.options);
+  timer=setTimeout(()=>x.hit(0),(x.lead+.025)*1000);const pending=move.run(signal());
+  assert.equal(history.pruneBefore(before.throughClock),0);assert.equal(history.status.fromClock,before.fromClock);
+  result=await pending;assert.equal(result.offsets[0].trigger,20n);assert.equal(result.offsets[0].overshoot,3n);
+  const end=history.status.throughClock;history.pruneBefore(end);assert.equal(history.status.fromClock,end);
+ }finally{clearTimeout(timer);result?.motion.dispose();await x.close();}
+});

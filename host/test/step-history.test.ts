@@ -42,3 +42,33 @@ test('maximum supported history batch does not depend on function argument limit
  const rows=200000,data=new BigInt64Array(rows*6);for(let i=0;i<rows;i++){const clock=BigInt(i+1);data.set([clock,clock,BigInt(i),1n,1n,0n],(rows-i-1)*6);}
  const h=new StepHistory(0n,0n,rows);h.append({history:data,position:BigInt(rows)},BigInt(rows));assert.equal(h.at(123456n),123456n);assert.equal(h.status.rows,rows);
 });
+
+test('pruning preserves every remaining exact pulse and gap across signed quadratic rows',()=>{
+ for(const sign of [-1n,1n])for(const add of [-2n,0n,2n]){
+  const first=(1n<<54n)+100n,b=batch(first,17n,20n*sign,100n,add),next=batch(b.last+100n,b.position,-10n*sign,100n,0n);
+  for(let offset=0n;offset<=next.last-first+30n;offset+=13n){
+   const original=new StepHistory(first-1n,17n),trimmed=new StepHistory(first-1n,17n);for(const h of [original,trimmed]){h.append(b,b.last);h.append(next,next.last+30n);}
+   const cutoff=first+offset;trimmed.pruneBefore(cutoff);assert.throws(()=>trimmed.at(cutoff-1n),/outside/);
+   for(let t=cutoff;t<=next.last+30n;t+=7n)assert.equal(trimmed.at(t),original.at(t));
+   if(cutoff<=next.last)assert.equal(trimmed.at(next.last),original.at(next.last));
+  }
+ }
+});
+test('pruning reclaims capacity, keeps markers and append continuity, and rejects invalid cutoffs atomically',()=>{
+ const h=new StepHistory(0n,0n,2);h.append(batch(10n,0n,3n,10n,0n),35n);h.append(batch(40n,3n,-3n,10n,0n),65n);
+ assert.equal(h.pruneBefore(30n),1);assert.equal(h.at(30n),3n);h.append(batch(70n,0n,1n,10n,0n),80n);assert.equal(h.at(70n),1n);
+ assert.equal(h.pruneBefore(80n),2);assert.equal(h.status.rows,0);assert.equal(h.at(80n),1n);
+ h.append({history:new BigInt64Array([80n,80n,1n,0n,0n,0n]),position:1n},90n);assert.equal(h.pruneBefore(90n),1);
+ const before=h.status;for(const cutoff of [89n,91n,-1n])assert.throws(()=>h.pruneBefore(cutoff));assert.deepEqual(h.status,before);
+ assert.throws(()=>h.append(batch(90n,1n,1n,10n,0n),100n));h.append(batch(91n,1n,-1n,10n,0n),100n);assert.equal(h.at(91n),0n);
+});
+test('nested pins preserve homing baseline and release idempotently without bypassing capacity',()=>{
+ const h=new StepHistory(0n,0n,1);h.append(batch(10n,0n,3n,10n,0n),40n);const a=h.pin(),b=h.pin();
+ assert.equal(h.pruneBefore(40n),0);a();a();assert.equal(h.pruneBefore(40n),0);assert.equal(h.at(0n),0n);
+ assert.throws(()=>h.append(batch(50n,3n,1n,10n,0n),60n),/capacity/);b();assert.equal(h.pruneBefore(40n),1);assert.equal(h.at(40n),3n);
+});
+test('rolling history compaction survives many times its bounded capacity',()=>{
+ const h=new StepHistory(0n,0n,2048);
+ for(let i=1;i<=20000;i++){const t=BigInt(i);if(i>1500)h.pruneBefore(t-1500n);h.append(batch(t,t-1n,1n,1n,0n),t);assert.equal(h.at(t),t);assert(h.status.rows<=1500);if(i>1500)assert.equal(h.at(t-1500n),t-1500n);}
+ assert.equal(h.status.lastPlannedPosition,20000n);
+});

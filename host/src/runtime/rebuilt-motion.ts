@@ -40,7 +40,13 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   check();
   const byId=new Map(bindings.map(b=>[b.id,b]));
   const sink=new MoveQueueSink(grouped.map((owned,i)=>group.motionQueue(routes[i],owned.map(b=>b.id),t=>owned[0].stepper.clockAt(t))),async outputs=>{
-   for(const output of outputs){const b=byId.get(output.id);if(!b)throw new Error('Unknown rebuilt history output');b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}
+   for(const output of outputs){const b=byId.get(output.id);if(!b)throw new Error('Unknown rebuilt history output');const state=b.history.status,observed=members[b.member].session.clock.sync.lastClock;
+    // Retain thirty seconds behind sampled MCU time, never estimated host time.
+    // Homing pins prevent this normal-stream policy from dropping its baseline.
+    const horizon=observed-BigInt(Math.ceil(b.stepper.calibration.frequency*30));
+    const cutoff=horizon<state.throughClock?horizon:state.throughClock;
+    if(cutoff>state.fromClock)b.history.pruneBefore(cutoff);
+    b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}
   },motion.printTime);
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);

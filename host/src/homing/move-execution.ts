@@ -75,9 +75,10 @@ export class HomingMoveExecution {
   const local=new AbortController(),s=AbortSignal.any([signal,local.signal]),sessions=[...new Set(this.#members.map(m=>m.session))];let cleanup:Promise<void>|undefined,motion:Awaited<ReturnType<HomingSetRecovery['recover']>>['motion']|undefined;
   const stop=(error:unknown)=>{if(cleanup)return cleanup;this.#cleanupPending=true;cleanup=Promise.allSettled([this.#set.stop(error),this.#o.coordinator.shutdown(error),...sessions.map(session=>session.stop(error))]).then(results=>{this.#cleanupErrors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(this.#cleanupErrors.length)throw new AggregateError(this.#cleanupErrors,'Homing move safety failures');}).finally(()=>{this.#cleanupPending=false;});void cleanup.catch(()=>{});return cleanup;};
   const abort=()=>{void stop(s.reason);};s.addEventListener('abort',abort,{once:true});const timer=setTimeout(()=>local.abort(new Error('Homing move timed out')),this.#o.timeoutMs!);
+  const releaseHistory:(()=>void)[]=[];
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);s.throwIfAborted();return result;};
   try{
-   s.throwIfAborted();this.#checkMappings();await run(this.#set.arm(s));
+   s.throwIfAborted();for(const h of this.#o.histories)releaseHistory.push(h.history.pin());this.#checkMappings();await run(this.#set.arm(s));
    const drip=await run(this.#drip.run(this.#o.startTime,this.#o.endTime,s,this.#o.timeoutMs));
    this.#checkMappings();await run(this.#recovery.recover(s).then(result=>{if(s.aborted){result.motion.dispose();throw s.reason;}motion=result.motion;return result;}));
    for(const session of sessions)session.assertActive();s.throwIfAborted();if(!this.#readback)throw new Error('Missing homing readback');
@@ -85,7 +86,7 @@ export class HomingMoveExecution {
   }catch(error){
    local.abort(error);const errors:unknown[]=[error];try{motion?.dispose();}catch(disposal){errors.push(disposal);}const deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new Error('Homing move cleanup timed out')),5000);
    try{await observeRetirement(stop(error),deadline.signal);}catch(cleanupError){errors.push(cleanupError);}finally{clearTimeout(timer);}if(errors.length>1)throw new AggregateError(errors,'Homing move and cleanup failed');throw error;
-  }finally{this.#finished=true;clearTimeout(timer);s.removeEventListener('abort',abort);}
+  }finally{for(const release of releaseHistory)release();this.#finished=true;clearTimeout(timer);s.removeEventListener('abort',abort);}
  }
  /** Release unused native dispatch resources; an active pass must be cancelled
   * via its run signal so that physical safety cleanup cannot be skipped. */
