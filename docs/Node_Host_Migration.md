@@ -16136,3 +16136,58 @@ NEED_RESET；完整 G28、触发坐标还原、MCU 时钟恢复和新旧运行
 替代及完整产品运行路径仍未完成。
 补充的排空、流式窗口、运动历史、时钟边界、move-slot 调度及
 planned source 上层回归共 46 项通过。
+
+### 停止确认、退役、重建与 MCU 时钟恢复的联合编排
+
+`HomingRecovery` 在准备归零时创建，预检协调器完整绑定、MCU
+与 stepper OID 覆盖、方向反转和命令字典。恢复时先同步封闭旧
+协调器，再并行等待传输退役和 HomingStopConfirmation；只有
+两者都完成才调用同步坐标重建回调并建立新原生队列。所有成员
+重置命令先编码完成，再按每个 MCU 原有控制 FIFO 顺序发送
+`reset_step_clock clock=0` 并等待 ACK。发布结果前重新检查每个
+会话的健康，以及新生成基准是否仍晚于对应 MCU 当前时钟。
+任何回读、坐标、重建、重置或时钟失败都会停止全部成员，不
+发布可用的新运动组；已创建的新原生对象在失败时释放。
+
+恢复操作只执行一次，重复调用共享第一次 Promise 和取消归属。
+一个超时覆盖正常恢复阶段；失败清理另有相同长度的有界等待，
+迟到的设备停止错误和仍未完成的清理可从 status 读取。用户须
+在调用前停止源生产者、独占相关会话，并在 arm 阶段把所有受
+影响步进器注册到 trsync。该接口不代替 arm，也不授予轴归零
+权限；坐标回调仍须按触发点/overshoot 语义还原工具头坐标。
+完整 G28 和消费级操作入口继续待接线。
+
+专用 5 项测试使用原生串口队列及协议替身：双 MCU 正常恢复、
+旧对象失效、回读/坐标失败不重置、第一台收到 reset 时另一台
+断连、绑定预检不产生 I/O、超时和新生成起点过期。成功用例
+逐个确认回读步数与新压缩器一致、reset 在位置回读之后且只
+发送一次；失败不发布新对象。替身不模拟实际 stepper_stop、
+SF_NEED_RESET 和物理限位，仍需固件/板卡及实际打印验收。
+
+`node host/bench/homing-recovery.ts` 对同一组双 MCU 替身交替
+执行直接组合调用和完整编排，包含退役、停止/回读、重建及
+reset ACK；每轮 20 次，3 次预热/11 次测量，每次核对新压缩器
+位置。Node 26.9.0 本机每 20 次操作中位/p95：直接组合调用
+11.127 / 18.802 ms，完整编排 11.315 / 14.172 ms，中位额外
+开销约 1.7%，通过最多增加 50% 的门禁。计时不含实际归零运动、
+原生触发分发组的 arm/release 或目标硬件，不构成打印速度结论。
+
+首轮完整 UBSan 279 项通过，ASan 278/279：既有
+serial-clock-provenance 独立 C 测试再次出现 DEADLYSIGNAL，日志
+保留于 `host/node_modules/.cache/homing-recovery-sanitized.log`。
+将相同 C 源码临时加入 main 入口 stderr 标记，去掉子进程的
+LD_PRELOAD，保留 address,undefined 与 abort_on_error，默认
+PIE/非 PIE 各重复 100 次：默认 PIE 30 次未到达入口标记并出现
+DEADLYSIGNAL，随后由执行超时终止；非 PIE 100 次全部成功。
+readelf 分别确认 DYN/EXEC，ldd 确认非 PIE 仍链接 libasan 和
+libubsan。此证据定位到本机 PIE 检测程序启动阶段，未证明更
+底层地址布局冲突的具体机制。
+
+仅将该 Linux ASan 独立 C 回归程序以 `-no-pie` 链接；不关闭
+ASan/UBSan，不修改 Node 原生模块构建或其检测强度。诊断脚本
+保留在忽略目录 `host/node_modules/.cache/asan-clock-investigation.mjs`。
+该调整不代表此前其他 Node/Python signal 11 问题已解决。
+
+修正后的完整 UBSan、ASan 各 279 项通过；最终类型、空白和
+差异检查通过。没有推送、PR、部署或硬件打印验收，全面 Python
+替代、完整 Moonraker 和消费级操作入口目标继续进行。

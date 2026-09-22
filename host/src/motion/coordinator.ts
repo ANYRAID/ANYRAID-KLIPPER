@@ -49,6 +49,7 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
+ usesBindings(bindings:readonly MotionBinding[]):boolean{return bindings.length===this.#bindings.length&&new Set(bindings.map(b=>b.id)).size===bindings.length&&bindings.every(b=>this.#bindings.some(owned=>owned.id===b.id&&owned.queue===b.queue&&owned.stepper===b.stepper));}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy||this.#bounded,failed:this.#failed,retired:this.#retired,fault:this.#fault};}
  /** Freeze this generation permanently. The owner must already keep affected
   * MCU steppers stopped/reset-required. Success permits native queue disposal. */
