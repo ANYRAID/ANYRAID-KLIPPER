@@ -220,6 +220,7 @@
   "devDependencies": {
     "@types/node": "^26.6.2",
     "@types/ws": "8.18.1",
+    "minijinja-js": "2.24.0",
     "mqtt-packet": "9.0.2",
     "typescript": "^7.0.2"
   },

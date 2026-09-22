@@ -12135,3 +12135,60 @@ CA 后建立明文连接。原有 `rejectUnauthorized: true` 保持强制验证�
 
 本阶段类型、空白检查和完整 1,424 项测试通过，无失败或跳过。
 未退役新的 Python 文件，未执行真实打印或生产部署。
+
+### 模板引擎候选评估：MiniJinja JS 暂不接入
+
+为继续迁移真实模板执行，新增可复现的 `host/bench/template-candidate.ts`
+门禁，开发依赖锁定 `minijinja-js@2.24.0`。它没有被生产代码导入，
+没有代替现有渲染器。参考环境为 Jinja2 3.1.6，采用 Moonraker 的
+`Environment('{%', '%}', '{', '}')`、do 扩展与 fromjson；该评估不包含
+secrets、日志、完整扩展/异步环境。MiniJinja 侧启用 Python 方法兼容，
+fromjson 经现有安全 JSON 解析器桥接。
+
+复现命令（Node 26 在 PATH 中）：
+
+```sh
+node host/scripts/ensure-jinja-reference.ts
+node host/bench/template-candidate.ts
+node host/bench/template-candidate.ts --require-compatible
+```
+
+准备脚本下载固定 Jinja2/MarkupSafe wheel 并核对预置 SHA-256，仅解压
+到忽略的 `host/node_modules/.cache/jinja-reference`，不依赖 pip/venv，
+不修改系统 Python。当前基准在 Linux x86_64/Python 3.12 验证。普通
+评估命令输出结果；`--require-compatible` 当前必须返回 1，不能将它
+记作兼容门禁通过。既有完整主机测试与此候选门禁是两件事。
+
+实际 12 项表达式检查中 7 项一致、5 项不一致：
+
+| 项目 | Python Jinja2 | MiniJinja JS 候选 |
+| --- | --- | --- |
+| `2.675\|round(2)` | 2.67 | 2.68 |
+| `(-2.675)\|round(2)` | -2.67 | -2.68 |
+| JSON `1.0` 的浮点类型 | 保留 | 经 JS 桥接后变成整数类型 |
+| JS 回调收到 `1.0` 时的类型 | float | 只能依据 Number 外观误判为 integer |
+| Unicode 数字 `١_٢.５` 的 float 转换 | 12.5 | 抛错 |
+
+另有直接语法缺口：`{value}` 不会被 MiniJinja JS 当作表达式渲染。
+门禁为表达式显式提供各自定界符，性能样例也显式转换了固定 Shelly
+示例的定界符；没有把正则替换发布为生产模板转换器。异常案例目前
+比较成功/失败，不证明错误类型、消息或所有模板行为等价。
+
+性能同样不支持直接替换：Node v26.9.0，2 轮预热、7 轮计时，每轮
+3,000 次预编译 Shelly 模板渲染，含 JSON 解析和四次数值回调，逐轮
+核对读数一致。MiniJinja JS 中位/p95 为 43.231 / 45.383 ms，Python
+为 33.583 / 33.751 ms，中位慢约 28.7%。这不含 MQTT/存储，也不是
+原生 Rust 绑定的性能结果。
+
+由此确定后续接入必须先解决：JSON 与回调跨语言边界保留数值类型、
+Python 舍入/转换语义、自定义定界符及调用开销。不能仅因为一般模板
+或文档示例能运行，就把它用于运动数值或历史统计。可用原生桥接或
+经过完整验证的类型适配实现这些要求，但目前均未完成。
+
+参考：[MiniJinja JS 官方说明](https://github.com/mitsuhiko/minijinja/tree/main/minijinja-js)
+明确说明 JS 绑定仍具有限制；[Nunjucks 官方说明](https://mozilla.github.io/nunjucks/api.html#installjinjacompat)
+也未承诺完整 Python/Jinja 兼容，不能凭名称相似替换。
+
+本阶段准备脚本、类型检查、空白检查及既有 1,424 项主机测试通过；
+候选兼容门禁返回 1（不通过），这是本阶段的实际结论。未切换生产
+模板执行路径，未退役 Python 文件，全量迁移目标保持未完成。
