@@ -1,5 +1,5 @@
 // GPL-3.0-or-later. Preserve Python integer arithmetic before float scaling.
-import {motanDerivative,motanCombine,motanNorm2,type MotanCombination} from './derived-math.ts';
+import {motanDerivative,motanCombine,motanNorm2,motanSmooth,type MotanCombination} from './derived-math.ts';
 import {motanScalarBytes,type MotanScalar} from './table.ts';
 export type MotanScalarSeries=Float64Array|readonly MotanScalar[];
 function validate(data:MotanScalarSeries):void{
@@ -18,6 +18,32 @@ function binary(a:MotanScalar,b:MotanScalar,plus:boolean):number|bigint{
 }
 function numeric(data:MotanScalarSeries):data is Float64Array|readonly number[]{return data instanceof Float64Array||data.every(value=>typeof value==='number');}
 const squareOverflow=1n<<512n;
+const floatOverflow=1n<<1024n;
+/** Integer weighting precedes conversion; accumulation is sequential float
+ * addition, including the original asymmetric weights at truncated edges. */
+export function motanScalarSmooth(data:MotanScalarSeries,segmentTime:number,smoothTime=.01,maxBytes=64*1024**2):Float64Array{
+ if(!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3)throw new Error('Invalid Motan scalar smoothing budget');
+ if(data.length*8>maxBytes)throw new Error('Motan scalar result memory limit');
+ if(data instanceof Float64Array)return motanSmooth(data,segmentTime,smoothTime);
+ validate(data);if(numeric(data))return motanSmooth(data,segmentTime,smoothTime);
+ if(!Number.isFinite(segmentTime)||segmentTime<=0||!Number.isFinite(smoothTime)||smoothTime<0)throw new Error('Invalid Motan smoothing time or segment');
+ const value=.5*smoothTime/segmentTime,floor=Math.floor(value),half=value-floor===.5?(floor%2?floor+1:floor):Math.round(value);
+ if(!Number.isSafeInteger(half)||half<1||half>1000000||data.length*2*half>50000000)throw new Error('Motan smoothing resolution or work limit exceeded');
+ const result=new Float64Array(data.length),inverse=1/(half*(half+1));
+ for(let i=0;i<data.length;i++){
+  const begin=Math.max(0,i-half),end=Math.min(data.length,i+half);let total=0;
+  for(let j=begin,k=0;j<end;j++,k++){
+   const weight=Math.min(k+1,2*half-k),sample=data[j];let weighted:number;
+   if(typeof sample==='bigint'){
+    if(sample>=floatOverflow||sample<=-floatOverflow)throw new Error('Motan derived result exceeds finite range');
+    weighted=checked(Number(sample*BigInt(weight)));
+   }else weighted=checked(Number(sample)*weight);
+   total=checked(total+weighted);
+  }
+  result[i]=checked(total*inverse);
+ }
+ return result;
+}
 /** Python squares each integer exactly, then adds each square to a floating
  * accumulator in source order. Do not convert before squaring or sum integers
  * before conversion: either changes the rounding compared with the source. */

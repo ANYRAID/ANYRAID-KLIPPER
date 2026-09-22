@@ -6,7 +6,7 @@ import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from 
 import {motanNotch,motanButterworth} from './sos-design.ts';
 import {motanSOSFilter} from './sos-filter.ts';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
-import {motanScalarDerivative,motanScalarCombine,motanScalarNorm2,type MotanScalarSeries} from './scalar-math.ts';
+import {motanScalarDerivative,motanScalarCombine,motanScalarNorm2,motanScalarSmooth,type MotanScalarSeries} from './scalar-math.ts';
 import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
 import {fixedDecimal} from '../math/python-decimal.ts';
 const strip=(s:string)=>s.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
@@ -43,7 +43,7 @@ export class MotanAnalyzer {
      label=`SOS ${description} (${label})`;
     }
     else if(kind==='deviation'){const ref=dependency(params[1]);generate=data=>motanCombine(data[source.key],data[ref.key],'deviation');generateTable=(data,maxBytes)=>motanScalarCombine(data[source.key],data[ref.key],'deviation',maxBytes);if(units!==ref.node.info.units){label='Deviation';units='Unknown';}else{label+=' deviation';const [first,...rest]=units.split('\n');units=[first,'Deviation',...rest].join('\n');}}
-    else if(kind==='smooth'){const time=params[1]===undefined?.01:parsePythonFloat(params[1]);if(!Number.isFinite(time)||time<0)throw new Error('Invalid Motan smoothing time');generate=data=>motanSmooth(data[source.key],this.#segment,time);label='Smoothed '+label;}
+    else if(kind==='smooth'){const time=params[1]===undefined?.01:parsePythonFloat(params[1]);if(!Number.isFinite(time)||time<0)throw new Error('Invalid Motan smoothing time');generate=data=>motanSmooth(data[source.key],this.#segment,time);generateTable=(data,maxBytes)=>motanScalarSmooth(data[source.key],this.#segment,time,maxBytes);label='Smoothed '+label;}
     else{const integral=kind==='integral';let replacements:[string,string][]|undefined;if(integral){if(units.includes('(mm/s)'))replacements=[['Velocity','Position'],['(mm/s)','(mm)']];else if(units.includes('(mm/s^2)'))replacements=[['Acceleration','Velocity'],['(mm/s^2)','(mm/s)']];const ref=params[1]===undefined?undefined:dependency(params[1]),halfLife=params[2]===undefined?.015:parsePythonFloat(params[2]);if(!Number.isFinite(halfLife)||halfLife<0)throw new Error('Invalid Motan integral half-life');generate=data=>motanIntegral(data[source.key],this.#segment,ref?data[ref.key]:undefined,halfLife);}else{if(units.includes('(mm)'))replacements=[['Position','Velocity'],['(mm)','(mm/s)']];else if(units.includes('(mm/s)'))replacements=[['Velocity','Acceleration'],['(mm/s)','(mm/s^2)']];generate=data=>motanDerivative(data[source.key],this.#segment);generateTable=data=>motanScalarDerivative(data[source.key],this.#segment);}
      if(replacements){for(const [old,next] of replacements){label=label.replaceAll(old,next).replaceAll(old.toLowerCase(),next.toLowerCase());units=units.replaceAll(old,next).replaceAll(old.toLowerCase(),next.toLowerCase());}}else{label=integral?'Integral':'Derivative of '+label;units='Unknown';}
     }
