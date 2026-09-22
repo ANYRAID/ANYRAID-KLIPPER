@@ -56,7 +56,7 @@ test('GC and environment shutdown keep attached native queues alive until solver
  const source=`import {TrapQueue} from ${JSON.stringify(url)};
  const steppers=[];for(let i=0;i<20;i++){const q=new TrapQueue();q.appendRaw(new Float64Array(${JSON.stringify([...move])}));steppers.push(q.createStepper(${JSON.stringify(settings)},'x',.01));}
  global.gc();for(const s of steppers){s.generate(2);if(s.flush().position!==900n)throw new Error('lifetime failure');}console.log('done');`;
- const p=spawnSync(process.execPath,['--expose-gc','--input-type=module','-e',source],{encoding:'utf8',timeout:30000});assert.equal(p.status,0,p.stderr);assert.equal(p.stdout.trim(),'done');
+ const p=spawnSync(process.execPath,['--expose-gc','--input-type=module','-e',source],{encoding:'utf8',timeout:30000});assert.equal(p.status,0,JSON.stringify({signal:p.signal,error:p.error?.message,stdout:p.stdout,stderr:p.stderr}));assert.equal(p.stdout.trim(),'done');
 });
 test('coordinate and solver tolerance guards reject unrepresentable steps before native iteration',()=>{
  using queue=new TrapQueue();queue.appendRaw(move);

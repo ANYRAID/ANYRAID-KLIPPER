@@ -43,10 +43,10 @@ export class LinearKinematics {
     force[index]=positiveDirection?endstop-1.5*(endstop-low):endstop+1.5*(high-endstop);
     if(!Number.isFinite(force[index]))throw new RangeError('Homing geometry overflow');return {force,home};
   }
-  /** Privileged single-axis retreat after a confirmed homing stop. Does not
+  /** Privileged single-axis seek/retreat from a controlled homing origin. Does not
    * grant homed authority or relax ordinary move admission. Extra axes stay
    * fixed; the destination must lie inside the configured physical range. */
-  planHomingRetract(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
+  planHomingAxisMove(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
     axis(index);const c=this.#config,move=new Move(motionLimits(c.maxVelocity,c.maxAccel),start,end,speed);
     if(!move.isKinematic||!move.axesD[index]||move.axesD.some((d,i)=>i!==index&&d!==0))throw new RangeError('Homing retract must move one linear axis only');
     const [low,high]=this.#ranges[index];if(move.endPos[index]<low||move.endPos[index]>high)throw new KinematicError('out_of_range');
