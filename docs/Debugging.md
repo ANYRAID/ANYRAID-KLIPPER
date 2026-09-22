@@ -178,13 +178,21 @@ npm --prefix ~/klipper/host ci
 node ~/klipper/scripts/graphstats.ts /tmp/klippy.log -o loadgraph.png
 ```
 
-The Node tool supports SVG, PNG, JPEG, WebP, TIFF, and JSON curve data. Use
+PDF export is shared by the Node diagnostic graph tools, including static
+mesh plots and spectrograms. It embeds DejaVu Sans fonts and preserves SVG
+paths and clipping; spectrogram cells remain an embedded raster. It creates
+one page with the same aspect ratio as the SVG (stacked panels stay together).
+Labels outside the bundled font's glyph coverage fail explicitly; use SVG or
+PNG when system font fallback is needed. PDF is an offline operation and can
+block its CLI process while encoding; never run it in a printer control loop.
+
+The Node tool supports PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON curve data. Use
 `-s` for system load, `-f` for MCU frequency, `-m` to select an MCU, or
 `-t heater_bed,extruder` for temperatures. An output filename is required;
 run `node ~/klipper/scripts/graphstats.ts --help` for the options.
 
 The original Python tool is still required for its interactive window and
-other export formats such as PDF/EPS. For that tool, install the
+other export formats such as EPS. For that tool, install the
 "matplotlib" package:
 
 ```
@@ -217,7 +225,7 @@ It uses the same installed host dependencies and export formats as the
 Node load graph tool. The horizontal axis is elapsed seconds. This is a
 diagnostic simulation, not a calibration command or a hardware validation.
 The original `graph_extruder.py` remains available for its interactive
-Matplotlib window and PDF/EPS export.
+Matplotlib window and EPS export.
 
 ## Generating input shaper simulation graphs
 
@@ -231,11 +239,11 @@ node ~/klipper/scripts/graph_shaper.ts --shaper zvd --shaper_freq 45 --system_fr
 
 Use `--damping_ratio`, `--test_damping_ratios` (comma separated), and
 `--system_damping_ratio` to adjust damping. Run with `--help` for defaults.
-The output formats are SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
+The output formats are PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
 an array of two panels, each with its plot data and horizontal axis label.
 The simulation does not configure a printer or measure physical resonance.
 The original `graph_shaper.py` remains available for an interactive
-Matplotlib window and PDF/EPS export.
+Matplotlib window and EPS export.
 
 ## Generating temperature sensor graphs
 
@@ -252,7 +260,7 @@ The default output contains ADC and absolute ADC change per degree curves;
 sensors this is a formula-derived equivalent, not their physical resistance.
 `-s` selects comma-separated sensor names, `-p` changes the pullup resistance,
 and `-v` changes ADC voltage. `--help` lists the 16 supported built-in sensors.
-The available file formats are SVG, PNG, JPEG, WebP, TIFF, and JSON panels.
+The available file formats are PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON panels.
 These curves do not establish sensor accuracy or a safe heater temperature
 range. The legacy Python script currently references a removed thermistor
 registration function; its interactive window is not replaced by this tool.
@@ -296,7 +304,7 @@ jerk options. The default remains legacy `ei`.
 These are offline diagnostic experiments, not production planner settings.
 The legacy formulas are distinct from the current production definitions
 used by `graph_shaper.ts`. The Python script remains as a differential
-reference and for its interactive window and PDF/EPS output.
+reference and for its interactive window and EPS output.
 
 ## Generating accelerometer and frequency graphs
 
@@ -312,7 +320,7 @@ Raw mode plots all three axes after subtracting each axis mean. Frequency
 mode accepts raw samples or processed PSD files; a single XYZ spectrum shows
 the total and three axes, while multiple datasets are shown separately.
 Selecting an axis requires that axis to exist in every dataset. Previously
-normalized files retain their values. Supported outputs are SVG, PNG,
+normalized files retain their values. Supported outputs are PDF, SVG, PNG,
 JPEG, WebP, TIFF, and JSON panels. Long curve names and offsets are retained
 in JSON and SVG titles even when the visible legend is shortened.
 Frequency CSV export is also available:
@@ -350,7 +358,7 @@ The image frequency limit is 0.01..100000 Hz. SVG embeds the complete cell
 raster; display resolution can combine cells, while JSON/CSV retain the
 numerical matrix. A single time frame occupies one half-window interval.
 The palette and layout differ from Matplotlib. Interactive windows and
-PDF/EPS still require the original Python tool. These offline graphs do not measure print quality or configure
+EPS still require the original Python tool. These offline graphs do not measure print quality or configure
 the printer.
 
 ## Offline input shaper calibration with Node.js 26
@@ -369,7 +377,7 @@ options. Without output paths, the command prints the recommendation only.
 Fitting runs in a cancellable Worker with a ten-minute timeout; it never
 applies the recommendation to the printer.
 
-`-o` supports SVG, PNG, JPEG, WebP, TIFF and JSON plot panels. `--report`
+`-o` supports PDF, SVG, PNG, JPEG, WebP, TIFF and JSON plot panels. `--report`
 contains fitted metrics and full response arrays, while `-c` exports
 normalized spectra and responses interpolated at the exported frequencies.
 CSV keeps full double precision; its text differs from the old rounded

@@ -89,6 +89,9 @@ server.connection.identify 与扩展 list/request/send_event 为部分实现。�
 原生队列构建需要 Linux C 编译器及 Node 开发头文件。默认使用 Node 可执行
 文件所在发行目录的 `include/node`；系统安装可用 `NODE_INCLUDE` 指定。
 `npm test` 会先构建原生模块；此构建入口不使用 node-gyp 或 Python。
+PDF 回归需要 Poppler 的 `pdfinfo`、`pdffonts`、`pdftotext` 和 `pdftoppm`，
+Debian/Ubuntu 可安装 `poppler-utils`；CI 同步安装。PDF 运行时仅使用 Node
+依赖和仓库内字体，不调用 Poppler 或 Python。
 
 ```sh
 cd host
@@ -12974,3 +12977,77 @@ HTTP/MQTT 用例还验证未授权紧急停止没有效果，授权 MQTT 紧急�
 
 本阶段未推送、合并、部署或连接物理打印机。原生完整生产装配、控制
 命令持久化回执、全部 Python 替代和实机验收继续保持未完成。
+
+### 共享诊断 PDF 导出（2026-09-22）
+
+Node 诊断导出器新增 `.pdf`，覆盖 graphstats、温度、挤出机、整形器、
+运动、加速度、频谱热图、静态网床和 calibrate_shaper 图像输出。
+命令参数仍由各工具解析；例如
+`node scripts/graph_temp_sensor.ts -o sensors.pdf`。Debugging 文档及所有
+相关 CLI 帮助同步更新。原 Python 绘图工具的交互窗口、EPS、网床动画
+等仍未全部迁移，本阶段不删除原文件，当前跟踪 Python 文件仍为 204 个。
+
+使用锁定的 PDFKit 0.20.2、SVG-to-PDFKit 0.1.8 和 fontkit 2.0.4。
+[PDFKit 文档](https://pdfkit.org/docs/getting_started.html)及
+[SVG 转换器说明](https://github.com/alafr/SVG-to-PDFKit)用于核对接口。
+只在请求 PDF 时动态加载；转换已有 SVG，不重新计算传感器或运动公式，
+保留每个曲线点、独立裁剪和现有 SVG 的三位小数显示坐标。PDF 单页采用
+SVG 宽高作为 point 单位，多面板纵向排列；不声称复刻 Matplotlib 页尺寸
+或像素。曲线为矢量路径；频谱矩阵沿用内嵌 PNG，文本、坐标和色标独立。
+
+随仓库分发未经修改的 DejaVu Sans 普通与粗体，来源、哈希和完整许可在
+`host/assets/fonts/`。导出前检查可见文本字形，缺字明确失败，例如本字体
+未覆盖的中文；通用 CJK 和自定义 PDF 字体仍待实现。SVG/PNG 的系统字体
+回退不受影响。外部 SVG/图像引用被拒绝，只允许工具生成的内嵌 PNG；
+转换警告作为失败处理，不静默生成缺内容的报告。此入口只接收本项目
+生成的 SVG，不是通用不可信 SVG 上传解析器。
+
+沿用自身临时文件及同目录原子 rename；已有输出在预取消、缺字、维度
+越界和转换失败时保持原样。输入 SVG 和输出 PDF 上限均为 64 MiB，
+页面任一边不超过 14400 point、面积不超过 16 Mi 点；这些限制不等于
+硬 RSS 限制。PDFKit 编码是同步离线计算，取消须等当前 JavaScript 调用
+归还后才能被观察；禁止从打印控制回调直接执行。没有给 PDF 编码声称
+实时调度或安全停止保证，也没有将它加入打印、MCU 或温控循环。
+
+新增五项 PDF 回归，使用 Poppler 实际解析文字、嵌入字体、页面尺寸并
+渲染温度双图、频谱矩阵、网床路径与曲面。验证两个面板均有曲线、温度
+曲线不是栅格图、频谱矩阵正确着色、数学字符可读、外部引用和缺字拒绝、
+取消/失败不覆盖旧文件且不遗留临时文件。原温度逐点差分、其他导出及
+全部主机测试继续通过。已目视检查温度双图、运动三图和频谱热图。
+
+本机 Node 26.9.0、Python 3.12.13、Matplotlib 3.10.7、NumPy 2.5.3，
+`npm --prefix host run bench:diagnostic-pdf`，两次预热/七次测量：
+
+| 预计算曲线导出 | 点数 | Node PDF 中位 / p95 | Python PDF 中位 / p95 | Node PNG 中位 / p95 |
+| --- | --- | --- | --- | --- |
+| 温度 ADC 双图 | 11168 | 103.816 / 115.954 ms | 256.064 / 290.654 ms | 44.009 / 44.911 ms |
+| 温度电阻图 | 5600 | 64.495 / 84.475 ms | 143.921 / 171.838 ms | 18.368 / 20.640 ms |
+| 旧运动三图 | 74830 | 412.452 / 431.987 ms | 368.031 / 405.110 ms | 108.331 / 110.780 ms |
+
+两边接收完全相同的预计算面板数据，均不简化路径；Node 包含 SVG 生成、
+字体嵌入、编码及文件原子替换，Python 包含 Matplotlib figure 创建、绘图
+及保存。布局不同，不是原 Python CLI 的逐像素或完整运行耗时比较。
+不含进程启动、传感器/运动计算。密集运动 PDF 中位耗时比参考慢约 12%，
+属于已知离线导出开销，未将其报告为性能通过或真实打印不退化的证明。
+
+PDF 参考仅安装到忽略的测试缓存。复现安装命令（CPython 3.12 Linux x64，
+需要可用 pip；这些包不会进入 Node 运行时）：
+
+```sh
+python3 -m pip install --target host/node_modules/.cache/pdf-reference \
+  --only-binary=:all: --no-deps --require-hashes \
+  -r host/bench/diagnostic-pdf-reference-requirements.txt
+npm --prefix host run bench:diagnostic-pdf
+```
+
+可用 `PDF_REFERENCE_PYTHON` 指定对照解释器。完整 wheel 版本及 SHA-256
+在 requirements 文件中固定。原温度基准独立复测：ADC 计算 Node
+1.024 / 1.341 ms、Python 12.856 / 12.911 ms；电阻计算 Node
+0.925 / 1.042 ms、Python 11.603 / 11.620 ms。最大缩放误差
+3.7631e-15，低于原 1e-9 门限；保留原注册适配器边界，不称为旧 CLI
+直接可运行，也不代表传感器物理精度或真实打印性能。
+
+完整原生构建及回归 **1499 项通过**，类型及项目空白检查通过。
+本阶段没有推送、合并、部署或连接物理打印机。完整 Moonraker 装配、
+消费者打印生命周期剩余工作、全部 Python 退役及目标板/实机验收继续
+保持未完成。

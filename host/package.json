@@ -215,10 +215,14 @@
     "bench:database-restore": "node bench/database-restore.ts",
     "test:katapult-vcan": "node scripts/test-katapult-vcan.ts",
     "test:katapult-startup-vcan": "node scripts/test-katapult-startup-vcan.ts",
-    "test:katapult-cli-vcan": "node scripts/test-katapult-cli-vcan.ts"
+    "test:katapult-cli-vcan": "node scripts/test-katapult-cli-vcan.ts",
+    "bench:diagnostic-pdf": "node bench/diagnostic-pdf.ts"
   },
   "devDependencies": {
+    "@types/fontkit": "2.0.9",
     "@types/node": "^26.6.2",
+    "@types/pdfkit": "0.17.6",
+    "@types/svg-to-pdfkit": "0.1.4",
     "@types/ws": "8.18.1",
     "minijinja-js": "2.24.0",
     "mqtt-packet": "9.0.2",
@@ -226,9 +230,12 @@
   },
   "dependencies": {
     "fft.js": "4.0.4",
+    "fontkit": "2.0.4",
     "mqtt": "5.16.0",
+    "pdfkit": "0.20.2",
     "qoijs": "1.0.0",
     "sharp": "0.35.4",
+    "svg-to-pdfkit": "0.1.8",
     "ws": "8.21.3"
   }
 }

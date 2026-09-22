@@ -18,6 +18,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install PDF regression reader and renderer
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Check source whitespace with Node
         working-directory: .
         run: ./scripts/check_whitespace.sh

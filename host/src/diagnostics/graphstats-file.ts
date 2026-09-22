@@ -19,8 +19,8 @@ export async function writeStatsPanels(panels:readonly StatsPanel[],filename:str
  await writePlotDocument(panels,()=>renderStatsPanels(panels),filename,signal);
 }
 export async function writePlotDocument(document:unknown,render:()=>string|Promise<string>,filename:string,signal:AbortSignal):Promise<void>{
- const extension=extname(filename).toLowerCase();if(!['.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extension))throw new Error('Supported outputs: SVG, PNG, JPEG, WebP, TIFF and JSON');signal.throwIfAborted();let bytes:Buffer;
- if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(await render());if(extension==='.svg')bytes=svg;else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
+ const extension=extname(filename).toLowerCase();if(!['.pdf','.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extension))throw new Error('Supported outputs: PDF, SVG, PNG, JPEG, WebP, TIFF and JSON');signal.throwIfAborted();let bytes:Buffer;
+ if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(await render());if(extension==='.svg')bytes=svg;else if(extension==='.pdf'){const {diagnosticPdf}=await import('./diagnostic-pdf.ts');bytes=await diagnosticPdf(svg.toString('utf8'),signal);}else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
  await writeDiagnosticBytes(bytes,filename,signal);
 }
 export async function writeDiagnosticText(text:string,filename:string,signal:AbortSignal):Promise<void>{signal.throwIfAborted();if(Buffer.byteLength(text)>64*1024**2)throw new RangeError('Diagnostic output limit exceeded');await writeDiagnosticBytes(Buffer.from(text),filename,signal);}
