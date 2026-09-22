@@ -1,5 +1,5 @@
 // GPL-3.0-or-later. Preserve Python integer arithmetic before float scaling.
-import {motanDerivative,motanCombine,type MotanCombination} from './derived-math.ts';
+import {motanDerivative,motanCombine,motanNorm2,type MotanCombination} from './derived-math.ts';
 import {motanScalarBytes,type MotanScalar} from './table.ts';
 export type MotanScalarSeries=Float64Array|readonly MotanScalar[];
 function validate(data:MotanScalarSeries):void{
@@ -17,6 +17,37 @@ function binary(a:MotanScalar,b:MotanScalar,plus:boolean):number|bigint{
  return checked(plus?(a as number)+(b as number):(a as number)-(b as number));
 }
 function numeric(data:MotanScalarSeries):data is Float64Array|readonly number[]{return data instanceof Float64Array||data.every(value=>typeof value==='number');}
+const squareOverflow=1n<<512n;
+/** Python squares each integer exactly, then adds each square to a floating
+ * accumulator in source order. Do not convert before squaring or sum integers
+ * before conversion: either changes the rounding compared with the source. */
+export function motanScalarNorm2(series:readonly MotanScalarSeries[],maxBytes=64*1024**2):Float64Array{
+ if(!Array.isArray(series)||series.length<2||series.length>3)throw new Error('Motan norm requires two or three datasets');
+ if(!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3)throw new Error('Invalid Motan scalar norm budget');
+ if(series.every(data=>data instanceof Float64Array)){
+  if(series[0].length*8>maxBytes)throw new Error('Motan scalar result memory limit');
+  return motanNorm2(series);
+ }
+ for(const data of series)validate(data);
+ const length=series[0].length;if(series.some(data=>data.length<length))throw new Error('Motan norm source is shorter than first dataset');
+ if(length*8>maxBytes)throw new Error('Motan scalar result memory limit');
+ if(series.every(numeric))return motanNorm2(series);
+ const result=new Float64Array(length);
+ for(let i=0;i<length;i++){
+  let total=0;
+  for(const data of series){const value=data[i];let square:number;
+   if(typeof value==='bigint'){
+    // Such a square cannot convert to a finite double. Reject before allocating
+    // an arbitrarily large product supplied by a direct caller.
+    if(value>=squareOverflow||value<=-squareOverflow)throw new Error('Motan derived result exceeds finite range');
+    square=checked(Number(value*value));
+   }else{const number=Number(value);square=checked(number*number);}
+   total=checked(total+square);
+  }
+  result[i]=Math.sqrt(total);
+ }
+ return result;
+}
 /** Integer subtraction happens before conversion and multiplication. */
 export function motanScalarDerivative(data:MotanScalarSeries,segmentTime:number):Float64Array{
  if(data instanceof Float64Array)return motanDerivative(data,segmentTime);
