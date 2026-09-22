@@ -40,11 +40,26 @@ export class MotanLogWriter {
  /** Batch only records with no index boundary between them. ETX bytes and order
   * are identical to single writes; avoids one zlib work request per tiny frame. */
  addRecords(records:readonly Uint8Array[]):Promise<void>{
+  return this.#addRecords(records,false) as Promise<void>;
+ }
+ /** Publish a restart boundary for this batch in one serialized operation. */
+ addRecordsAndFlush(records:readonly Uint8Array[]):Promise<number>{
+  return this.#addRecords(records,true) as Promise<number>;
+ }
+ #addRecords(records:readonly Uint8Array[],flush:boolean):Promise<void|number>{
   if(!Array.isArray(records)||!records.length||records.length>1024)return Promise.reject(new Error('Invalid Motan batch count'));
   let size=0;for(const data of records){if(!(data instanceof Uint8Array)||data.byteLength>this.#maxRecord||data.includes(3))return Promise.reject(new Error('Invalid Motan record size or delimiter'));size+=data.byteLength+1;if(size>this.#maxBytes-this.#pendingBytes)return Promise.reject(new Error('Motan writer capacity exceeded'));}
   if(this.#pending>=this.#maxPending||this.#closed||this.#failure!==undefined)return Promise.reject(this.#failure??new Error('Motan writer closed or capacity exceeded'));
   const record=Buffer.allocUnsafe(size);let at=0;for(const data of records){record.set(data,at);at+=data.byteLength;record[at++]=3;}
-  return this.#enqueue(record.length,async()=>{if(!Number.isSafeInteger(this.#raw+record.length))throw new Error('Motan raw offset exceeds safe integer range');this.#start();await new Promise<void>((resolve,reject)=>this.#gzip!.write(record,error=>error?reject(error):resolve()));await this.#writes;if(this.#failure!==undefined)throw this.#failure;this.#raw+=record.length;});
+  return this.#enqueue(record.length,async()=>{if(!Number.isSafeInteger(this.#raw+record.length))throw new Error('Motan raw offset exceeds safe integer range');this.#start();
+   const written=new Promise<void>((resolve,reject)=>this.#gzip!.write(record,error=>error?reject(error):resolve()));
+   // Queue FULL_FLUSH immediately after the input. The stream preserves order;
+   // both callbacks and all resulting disk writes must finish before publishing.
+   if(flush)await Promise.all([written,new Promise<void>((resolve,reject)=>this.#gzip!.flush(constants.Z_FULL_FLUSH,(error?:Error)=>error?reject(error):resolve()))]);
+   else await written;
+   await this.#writes;if(this.#failure!==undefined)throw this.#failure;this.#raw+=record.length;
+   if(flush)return this.#position;
+  });
  }
  flush():Promise<number>{return this.#enqueue(0,async()=>{
   if(!this.#gzip)return this.#position;
