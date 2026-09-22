@@ -237,6 +237,11 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
     h->started=1;h->path_position=position;h->link.generated=until;h->pending+=estimate;h->total+=estimate;
     napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
 }
+static napi_value commanded_position(napi_env env,napi_callback_info info){
+ size_t argc=1;napi_value args[1];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=1)REJECT("Expected handle");
+ struct handle *h=get(env,args[0],0);if(!h)return NULL;if(!h->sk)REJECT("No attached solver");
+ napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
+}
 static napi_value initialize_position(napi_env env,napi_callback_info info){
  size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, clock and position");struct handle *h=get(env,args[0],0);if(!h)return NULL;
  uint64_t clock;int64_t position;bool exact_clock=false,exact_position=false;
@@ -253,8 +258,9 @@ static napi_value init(napi_env env,napi_value exports) {
       {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"schedulePressureAdvance",NULL,schedule_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
+      {"commandedPosition",NULL,commanded_position,NULL,NULL,NULL,napi_default,NULL},
       {"initializePosition",NULL,initialize_position,NULL,NULL,NULL,napi_default,NULL},{"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,12,methods));return exports;
+    CHECK(napi_define_properties(env,exports,13,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
