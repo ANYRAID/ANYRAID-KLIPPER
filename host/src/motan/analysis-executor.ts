@@ -4,6 +4,7 @@ import type {MotanAnalysis} from './analyzer.ts';
 
 export interface MotanAnalysisRequest {
   output?:'numeric'|'table';
+  preserveNumberTypes?:boolean;
   prefix:string;
   datasets:readonly string[];
   segmentTime?:number;
@@ -15,9 +16,9 @@ export interface MotanAnalysisRequest {
 export interface MotanAnalysisControl {signal?:AbortSignal;timeoutMs?:number;}
 
 function snapshot(request:MotanAnalysisRequest):MotanAnalysisRequest {
-  const {output='numeric',prefix,segmentTime=.0001,duration=5,start=0,maxSamples=1000000,
+  const {output='numeric',preserveNumberTypes=false,prefix,segmentTime=.0001,duration=5,start=0,maxSamples=1000000,
     maxNumericBytes=64*1024**2}=request;
-  if(!['numeric','table'].includes(output)||typeof prefix!=='string'||!prefix.length||prefix.length>4096||prefix.includes('\0')
+  if(typeof preserveNumberTypes!=='boolean'||preserveNumberTypes&&output!=='table'||!['numeric','table'].includes(output)||typeof prefix!=='string'||!prefix.length||prefix.length>4096||prefix.includes('\0')
      ||!Array.isArray(request.datasets)||!request.datasets.length||request.datasets.length>256)
     throw new Error('Invalid Motan analysis request');
   const datasets=[...request.datasets];
@@ -28,7 +29,7 @@ function snapshot(request:MotanAnalysisRequest):MotanAnalysisRequest {
      ||!Number.isFinite(start)||!Number.isSafeInteger(maxSamples)||maxSamples<1||maxSamples>2000000
      ||!Number.isSafeInteger(maxNumericBytes)||maxNumericBytes<1||maxNumericBytes>512*1024**2)
     throw new Error('Invalid Motan analysis request limits');
-  return {output,prefix,datasets,segmentTime,duration,start,maxSamples,maxNumericBytes};
+  return {output,preserveNumberTypes,prefix,datasets,segmentTime,duration,start,maxSamples,maxNumericBytes};
 }
 
 function receive(result:MotanTable,maxBytes:number,table:boolean):MotanTable {

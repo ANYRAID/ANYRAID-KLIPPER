@@ -5,21 +5,23 @@ import {createGunzip,createInflateRaw,constants as zlibConstants,type Gunzip,typ
 import {pipeline} from 'node:stream/promises';
 import {ConsoleFrames} from '../diagnostics/webhook-console.ts';
 import {parseMotanJson} from './capture.ts';
-export interface MotanReadOptions {maxFileBytes?:number;maxDecodedBytes?:number;maxRecordBytes?:number;allowIncomplete?:boolean;signal?:AbortSignal;}
+export interface MotanReadOptions {preserveNumberTypes?:boolean;maxFileBytes?:number;maxDecodedBytes?:number;maxRecordBytes?:number;allowIncomplete?:boolean;signal?:AbortSignal;}
 export type MotanMessage=Record<string,unknown>;
 /** A fixed initial file extent, with bounded streaming decompression. Offset 0
  * selects gzip; positive positions must be writer-provided full-flush offsets. */
 export class MotanLogReader {
+ readonly #preserveNumberTypes:boolean;
  readonly #sizes=new WeakMap<MotanMessage,number>();
  readonly #file:FileHandle;readonly #size:number;readonly #maxDecoded:number;readonly #recordLimit:number;readonly #partial:boolean;readonly #signal:AbortSignal|undefined;
  #seeking=false;#position=0;#decoded=0;#generation=0;#closed=false;#eof=false;#failure:unknown;
  #reading:Promise<unknown>|undefined;#source:Readable|undefined;#inflate:Gunzip|InflateRaw|undefined;#pump:Promise<void>|undefined;#iterator:AsyncIterator<Buffer>|undefined;
  #frames:ConsoleFrames;#queue:Buffer[]=[];#at=0;#pending:Promise<MotanMessage[]>|undefined;#closing:Promise<void>|undefined;#messages=0;#ignoredTail=0;
  readonly #abort=()=>{void this.close().catch(()=>{});};
- private constructor(file:FileHandle,size:number,options:MotanReadOptions){this.#file=file;this.#size=size;this.#maxDecoded=options.maxDecodedBytes??4*1024**3;this.#recordLimit=options.maxRecordBytes??1024**2;this.#partial=options.allowIncomplete??false;this.#signal=options.signal;this.#frames=new ConsoleFrames(3,this.#recordLimit);this.#signal?.addEventListener('abort',this.#abort,{once:true});}
+ private constructor(file:FileHandle,size:number,options:MotanReadOptions){this.#preserveNumberTypes=options.preserveNumberTypes??false;this.#file=file;this.#size=size;this.#maxDecoded=options.maxDecodedBytes??4*1024**3;this.#recordLimit=options.maxRecordBytes??1024**2;this.#partial=options.allowIncomplete??false;this.#signal=options.signal;this.#frames=new ConsoleFrames(3,this.#recordLimit);this.#signal?.addEventListener('abort',this.#abort,{once:true});}
  static async open(path:string,options:MotanReadOptions={}):Promise<MotanLogReader>{
+  options={...options};
   const fileMax=options.maxFileBytes??512*1024**2,decoded=options.maxDecodedBytes??4*1024**3,record=options.maxRecordBytes??1024**2;
-  if(!Number.isSafeInteger(fileMax)||fileMax<0||fileMax>1024**4||!Number.isSafeInteger(decoded)||decoded<1||decoded>1024**4||!Number.isSafeInteger(record)||record<1||record>64*1024**2||options.allowIncomplete!==undefined&&typeof options.allowIncomplete!=='boolean')throw new Error('Invalid Motan reader limits');options.signal?.throwIfAborted();
+  if(!Number.isSafeInteger(fileMax)||fileMax<0||fileMax>1024**4||!Number.isSafeInteger(decoded)||decoded<1||decoded>1024**4||!Number.isSafeInteger(record)||record<1||record>64*1024**2||options.preserveNumberTypes!==undefined&&typeof options.preserveNumberTypes!=='boolean'||options.allowIncomplete!==undefined&&typeof options.allowIncomplete!=='boolean')throw new Error('Invalid Motan reader limits');options.signal?.throwIfAborted();
   const file=await open(path,constants.O_RDONLY|constants.O_NONBLOCK);try{const stat=await file.stat();if(!stat.isFile()||!Number.isSafeInteger(stat.size)||stat.size>fileMax)throw new Error('Motan input must be a bounded regular file');options.signal?.throwIfAborted();return new MotanLogReader(file,stat.size,options);}catch(error){await file.close();throw error;}
  }
  /** Original encoded record size; conservative queue accounting avoids reserialization. */
@@ -39,7 +41,7 @@ export class MotanLogReader {
   try{if(this.#at<this.#queue.length)return this.#decode(this.#queue[this.#at++]);return this.#eof?null:undefined;}
   catch(error){this.#failure??=error;this.#source?.destroy();this.#inflate?.destroy();throw error;}
  }
- #decode(raw:Buffer):MotanMessage{const value=parseMotanJson(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);this.#messages++;return value as MotanMessage;}
+ #decode(raw:Buffer):MotanMessage{const value=parseMotanJson(raw,this.#preserveNumberTypes);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);this.#messages++;return value as MotanMessage;}
  pullMessage():Promise<MotanMessage|null>{return this.pullMessages(1).then(values=>values[0]??null);}
  pullMessages(limit=256):Promise<MotanMessage[]>{
   try{this.#check();if(this.#pending||this.#seeking)throw new Error('Concurrent Motan reads are not supported');if(!Number.isSafeInteger(limit)||limit<1||limit>1024)throw new Error('Invalid Motan read batch size');}catch(error){return Promise.reject(error);}

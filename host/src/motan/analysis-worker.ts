@@ -4,7 +4,7 @@ import {MotanAnalyzer} from './analyzer.ts';
 import type {MotanAnalysisRequest} from './analysis-executor.ts';
 
 async function analyze(request:MotanAnalysisRequest){
-  const manager=await MotanLogManager.open(request.prefix,{start:request.start});
+  const manager=await MotanLogManager.open(request.prefix,{start:request.start,reader:{preserveNumberTypes:request.preserveNumberTypes}});
   try{
     parentPort!.postMessage({type:'analyzing'});
     const analyzer=new MotanAnalyzer(manager,request.segmentTime!,{

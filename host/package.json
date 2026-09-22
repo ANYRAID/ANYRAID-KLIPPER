@@ -240,7 +240,8 @@
     "bench:motan-butterworth-design": "node bench/motan-butterworth-design.ts",
     "bench:motan-analysis-executor": "node bench/motan-analysis-executor.ts",
     "bench:motan-csv-export": "node bench/motan-csv-export.ts",
-    "bench:motan-scalar-math": "node bench/motan-scalar-math.ts"
+    "bench:motan-scalar-math": "node bench/motan-scalar-math.ts",
+    "bench:motan-number-types": "node bench/motan-number-types.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

@@ -1,3 +1,4 @@
+import {parseTypedMotanJson} from './number-types.ts';
 import {parseRequestJson,JsonNumberError} from '../moonraker/json.ts';
 // GPL-3.0-or-later. Native Motan capture state machine, based on data_logger.py.
 import {MotanLogWriter} from './log-writer.ts';
@@ -6,10 +7,25 @@ type ObjectValue=Record<string,unknown>;
 const object=(value:unknown):ObjectValue=>{if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Expected Motan JSON object');return value as ObjectValue;};
 const rawJson=(JSON as unknown as {rawJSON:(text:string)=>unknown}).rawJSON;
 const decoder=new TextDecoder('utf-8',{fatal:true});
-export function parseMotanJson(data:Uint8Array):unknown{
- const text=decoder.decode(data);try{return parseRequestJson(text);}catch(error){if(!(error instanceof JsonNumberError))throw error;}
- return JSON.parse(text,(_key,value,context?:{source?:string})=>{if(typeof value!=='number')return value;if(!Number.isFinite(value))throw new Error('Non-finite Motan number');if(context?.source&&/^-?\d+$/.test(context.source)&&!Number.isSafeInteger(value))return BigInt(context.source);return value;});
+function statusRecord(value:unknown):boolean{return value!==null&&typeof value==='object'&&!Array.isArray(value)&&((value as ObjectValue).q==='status'||Object.hasOwn(value,'status'));}
+export function parseMotanJson(data:Uint8Array,preserveNumberTypes=false):unknown{
+ const text=decoder.decode(data);let result:unknown;
+ try{result=parseRequestJson(text);}catch(error){
+  if(!(error instanceof JsonNumberError))throw error;
+  result=JSON.parse(text,(_key,value,context?:{source?:string})=>{
+   if(typeof value!=='number')return value;
+   if(context?.source&&/^-?\d+$/.test(context.source)&&!Number.isSafeInteger(value)&&(preserveNumberTypes||Number.isFinite(value))){
+    if(preserveNumberTypes&&context.source.length-(context.source[0]==='-'?1:0)>4300)throw new Error('Motan integer digit limit');
+    return BigInt(context.source);
+   }
+   if(!Number.isFinite(value))throw new Error('Non-finite Motan number');return value;
+  });
+ }
+ // The opt-in reader profile types status columns, not interpolated sensor
+ // arrays. Avoid a reviver and metadata on unrelated high-volume records.
+ return preserveNumberTypes&&statusRecord(result)?parseTypedMotanJson(text):result;
 }
+
 export function encodeMotanJson(value:unknown):Buffer{return Buffer.from(JSON.stringify(value,(_key,v)=>typeof v==='bigint'?rawJson(String(v)):typeof v==='number'&&Object.is(v,-0)?rawJson('-0.0'):v));}
 export interface MotanWriters {log:Pick<MotanLogWriter,'addRecords'|'flush'>;index:Pick<MotanLogWriter,'addRecords'>;}
 /** One sequential accept caller. Flushes pending raw frames before publishing

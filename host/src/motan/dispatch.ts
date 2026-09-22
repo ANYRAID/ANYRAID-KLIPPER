@@ -1,3 +1,4 @@
+import {cloneMotanJson,mergeMotanObjects,copyMotanStatusRoot} from './number-types.ts';
 // GPL-3.0-or-later. Based on readlog.py, copyright (C) 2021 Kevin O'Connor.
 import {encodeMotanJson} from './capture.ts';
 import type {MotanMessage} from './log-reader.ts';
@@ -50,7 +51,7 @@ export interface StatusSnapshot {status:MotanObject;nextTime:number;}
 /** Copy-on-write status snapshots remain stable after subsequent updates. */
 export class MotanStatusTracker {
  readonly #source:(time:number)=>Promise<MotanObject|null>;readonly #maxStatusBytes:number;readonly #fieldSizes=new Map<string,Map<string,{prefix:number;bytes:number}>>();#bytes=2;#status:MotanObject;#update:MotanObject={};#nextTime=0;#last=-Infinity;#busy=false;#failure:Error|undefined;
- constructor(initial:MotanObject,source:(time:number)=>Promise<MotanObject|null>,maxStatusBytes=4*1024**2){if(!Number.isSafeInteger(maxStatusBytes)||maxStatusBytes<1||maxStatusBytes>64*1024**2)throw new Error('Invalid Motan status size limit');this.#maxStatusBytes=maxStatusBytes;const copy=structuredClone(motanObject(initial));this.#validate(copy);freezeJson(copy);for(const [key,value] of Object.entries(copy))this.#account(key,motanObject(value));this.#bound();this.#status=copy;this.#source=source;}
+ constructor(initial:MotanObject,source:(time:number)=>Promise<MotanObject|null>,maxStatusBytes=4*1024**2){if(!Number.isSafeInteger(maxStatusBytes)||maxStatusBytes<1||maxStatusBytes>64*1024**2)throw new Error('Invalid Motan status size limit');this.#maxStatusBytes=maxStatusBytes;const copy=cloneMotanJson(motanObject(initial));this.#validate(copy);freezeJson(copy);for(const [key,value] of Object.entries(copy))this.#account(key,motanObject(value));this.#bound();this.#status=copy;this.#source=source;}
  #bound(){if(this.#bytes>this.#maxStatusBytes)throw new Error('Motan status size limit exceeded');}
  #account(key:string,update:MotanObject):void{
   let fields=this.#fieldSizes.get(key);if(!fields){this.#bytes+=Buffer.byteLength(JSON.stringify(key))+3+(this.#fieldSizes.size?1:0);fields=new Map();this.#fieldSizes.set(key,fields);}
@@ -61,7 +62,7 @@ export class MotanStatusTracker {
  #validate(status:MotanObject){for(const value of Object.values(status))motanObject(value);}
  async sample(time:number):Promise<StatusSnapshot>{
   if(this.#failure)throw this.#failure;if(!Number.isFinite(time)||time<this.#last||this.#busy)throw new Error('Motan status samples require sequential nondecreasing times');this.#busy=true;this.#last=time;
-  try{let reads=0;while(time>=this.#nextTime){if(Object.keys(this.#update).length){const next={...this.#status} as Record<string,unknown>;for(const [key,value] of Object.entries(this.#update)){const update=motanObject(value),previous=Object.hasOwn(this.#status,key)?motanObject(this.#status[key]):{};Object.defineProperty(next,key,{value:Object.freeze({...previous,...update}),enumerable:true,configurable:true,writable:true});this.#account(key,update);}this.#bound();this.#status=Object.freeze(next);}
+  try{let reads=0;while(time>=this.#nextTime){if(Object.keys(this.#update).length){const next=copyMotanStatusRoot(this.#status,this.#update);for(const [key,value] of Object.entries(this.#update)){const update=motanObject(value),previous=Object.hasOwn(this.#status,key)?motanObject(this.#status[key]):{};Object.defineProperty(next,key,{value:Object.freeze(mergeMotanObjects(previous,update)),enumerable:true,configurable:true,writable:true});this.#account(key,update);}this.#bound();this.#status=Object.freeze(next);}
     if(++reads>4096)throw new Error('Motan status update limit exceeded');const message=await this.#source(time);if(message===null){this.#nextTime=time+.1;if(!(this.#nextTime>time))throw new Error('Motan time cannot represent EOF lookahead');this.#update={};break;}
     const update=motanObject(message.status);this.#validate(update);freezeJson(update);const nextTime=motanObject(update.toolhead??{}).estimated_print_time??0;if(typeof nextTime!=='number'||!Number.isFinite(nextTime))throw new Error('Invalid Motan status time');this.#update=update;this.#nextTime=nextTime;
    }return {status:this.#status,nextTime:this.#nextTime};

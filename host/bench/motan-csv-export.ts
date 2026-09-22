@@ -14,9 +14,10 @@ try{
  for(const mixed of [false,true])for(const duration of [.02,20]){
   const columns=mixed?[...numericColumns,'status(export_fields.text)','status(export_fields.wide)','status(export_fields.empty)','status(export_fields.yes)']:numericColumns;
   const outputs:string[]=[];
-  for(const mode of ['python','node'] as const){
+  for(const mode of ['python','node','node-typed'] as const){
    const command=mode==='python'?(process.env.MOTAN_SCIPY_PYTHON??'python3'):process.execPath;
    const args=[join(root,`scripts/motan/data_export.${mode==='python'?'py':'ts'}`),prefix,'-c',JSON.stringify(columns),'--segment-time','.001','-d',String(duration)];
+   if(mode==='node-typed')args.push('--preserve-number-types');
    const ms:number[]=[];let output='';
    for(let i=0;i<9;i++){
     const start=performance.now(),current=execFileSync(command,args,{encoding:'utf8',env:mode==='python'?scipyReferenceEnvironment():process.env,maxBuffer:32*1024**2,timeout:30000}),elapsed=performance.now()-start;
@@ -30,8 +31,8 @@ x=json.load(sys.stdin)
 def decode(text):
  rows=list(csv.reader(io.StringIO(text,newline='')))
  return rows[0],[[struct.pack('>d',float(v)) if i<=8 else v for i,v in enumerate(row)] for row in rows[1:]]
-a,b=map(decode,x)
-assert a==b
+decoded=list(map(decode,x));a=decoded[0]
+assert all(a==b for b in decoded[1:])
 print(json.dumps(dict(numeric_bits_and_scalar_text_exact=True,rows=len(a[1]))))`],{input:JSON.stringify(outputs),encoding:'utf8',maxBuffer:32*1024**2});
   console.log(result.trim());
  }
