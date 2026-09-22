@@ -19,6 +19,7 @@
     "bench/**/*.ts",
     "scripts/**/*.ts",
     "../scripts/*.mts",
-    "../scripts/*.ts"
+    "../scripts/*.ts",
+    "../scripts/motan/*.ts"
   ]
 }

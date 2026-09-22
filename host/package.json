@@ -222,7 +222,8 @@
     "bench:native-print-uploads": "node bench/native-print-uploads.ts",
     "build:ar100-flash": "node scripts/build-ar100-flash.ts",
     "bench:flash-ar100": "node bench/flash-ar100.ts",
-    "bench:motan-log-writer": "node bench/motan-log-writer.ts"
+    "bench:motan-log-writer": "node bench/motan-log-writer.ts",
+    "bench:motan-capture": "node bench/motan-capture.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

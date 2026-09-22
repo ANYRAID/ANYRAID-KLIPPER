@@ -106,7 +106,7 @@ later analyzed. To use this feature, Klipper must be started with the
 
 Data logging is enabled with the `data_logger.py` tool. For example:
 ```
-~/klipper/scripts/motan/data_logger.py /tmp/klippy_uds mylog -s '*'
+node ~/klipper/scripts/motan/data_logger.ts /tmp/klippy_uds mylog -s '*'
 ```
 
 This command will connect to the Klipper API Server, subscribe to
