@@ -15,17 +15,19 @@ const numericEdges=new RegExp(`^[${whitespace.replace('\\x1c-\\x1f','')}]+|[${wh
 // Unicode 15 Nd zeros, matching the reference Python 3.12 decimal conversion.
 const decimalZeros=[0x30,0x660,0x6f0,0x7c0,0x966,0x9e6,0xa66,0xae6,0xb66,0xbe6,0xc66,0xce6,0xd66,0xde6,0xe50,0xed0,0xf20,0x1040,0x1090,0x17e0,0x1810,0x1946,0x19d0,0x1a80,0x1a90,0x1b50,0x1bb0,0x1c40,0x1c50,0xa620,0xa8d0,0xa900,0xa9d0,0xa9f0,0xaa50,0xabf0,0xff10,0x104a0,0x10d30,0x11066,0x110f0,0x11136,0x111d0,0x112f0,0x11450,0x114d0,0x11650,0x116c0,0x11730,0x118e0,0x11950,0x11c50,0x11d50,0x11da0,0x11f50,0x16a60,0x16ac0,0x16b50,0x1d7ce,0x1d7d8,0x1d7e2,0x1d7ec,0x1d7f6,0x1e140,0x1e2f0,0x1e4f0,0x1e950,0x1fbf0];
 const decimalMap=new Map<string,string>();for(const zero of decimalZeros)for(let i=0;i<10;i++)decimalMap.set(String.fromCodePoint(zero+i),String(i));
-function numericText(value:string):string{value=value.replace(numericEdges,'');return /[^\x00-\x7f]/.test(value)?[...value].map(c=>decimalMap.get(c)??c).join(''):value;}
+function numericText(value:string):string{value=value.replace(numericEdges,'');if(!/[^\x00-\x7f]/.test(value))return value;let result='';for(const character of value)result+=decimalMap.get(character)??character;return result;}
 const digits='[0-9](?:_?[0-9])*';
 const integer=new RegExp(`^[+-]?${digits}$`),floating=new RegExp(`^[+-]?(?:${digits}(?:\\.(?:${digits})?)?|\\.${digits})(?:[eE][+-]?${digits})?$`);
-function convert(type:ListType,value:string):string|number{
+function convert(type:ListType,value:string,allowNonfinite=false):string|number{
  if(type==='string')return value;
- const token=numericText(value);if(!(type==='int'?integer:floating).test(token))throw new ConfigurationError(`Invalid ${type} configuration value`);
- const number=Number(token.replaceAll('_',''));if(!Number.isFinite(number)||type==='int'&&!Number.isSafeInteger(number))throw new ConfigurationError('Configuration number exceeds finite/safe integer range');
+ const token=numericText(value);if(type==='float'&&allowNonfinite&&/^[+-]?(?:inf(?:inity)?|nan)$/i.test(token))return /nan/i.test(token)?NaN:token.startsWith('-')?-Infinity:Infinity;if(!(type==='int'?integer:floating).test(token))throw new ConfigurationError(`Invalid ${type} configuration value`);
+ const number=Number(token.replaceAll('_',''));if(!allowNonfinite&&!Number.isFinite(number)||type==='int'&&!Number.isSafeInteger(number))throw new ConfigurationError('Configuration number exceeds finite/safe integer range');
  return type==='int'&&number===0?0:number;
 }
 /** Parse nested dictionary integers using the same Python-compatible lexical rules. */
 export function parseConfigurationInteger(value:string):number{return convert('int',value) as number;}
+/** Python float string conversion for template filters; callers reject nonfinite values at their own boundary. */
+export function parsePythonFloat(value:string):number{if(plainFloat.test(value))return Number(value);return convert('float',value,true) as number;}
 const plainFloat=/^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/;
 export function parseConfigurationFloat(value:string):number{if(plainFloat.test(value)){const number=Number(value);if(Number.isFinite(number))return number;}return convert('float',value) as number;}
 const booleans=new Map<string,boolean>([['1',true],['yes',true],['true',true],['on',true],['0',false],['no',false],['false',false],['off',false]]);

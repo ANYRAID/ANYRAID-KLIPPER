@@ -4,6 +4,7 @@ import {spawnSync} from 'node:child_process';
 import {performance} from 'node:perf_hooks';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
+import {templateFloat,templateRoundFloat} from '../src/moonraker/template-numbers.ts';
 import {parseRequestJson} from '../src/moonraker/json.ts';
 const cases=[
  {name:'integer literal',expression:'1 is integer'},
@@ -15,6 +16,7 @@ const cases=[
  {name:'JSON float type',expression:'(payload|fromjson).f is float'},
  {name:'callback float type',expression:'kind(1.0)'},
  {name:'Unicode float conversion',expression:'"١_٢.５"|float'},
+ {name:'round result float type',expression:'(1.0|round(0)) is float'},
  {name:'negative floor division',expression:'(-5)//2'},
  {name:'Python dictionary method',expression:'(payload|fromjson).keys()|list|length'},
  {name:'undefined attribute',expression:'missing.child.value'},
@@ -46,13 +48,13 @@ for run in range(9):
 print(json.dumps(dict(version=jinja2.__version__,results=results,times=times,measurements=measurements)))
 `],{encoding:'utf8',timeout:120000});assert.equal(child.status,0,'Jinja2 oracle unavailable: '+child.stderr);const reference=JSON.parse(child.stdout);
 assert.equal(reference.results[2].rendered,'2.67');assert.equal(reference.results[6].rendered,'True');assert.equal(reference.results[8].rendered,'12.5');
-const env=new Environment();env.enablePyCompat();env.fuel=100000;env.addFilter('fromjson',parseRequestJson);
+const env=new Environment();env.enablePyCompat();env.fuel=100000;env.addFilter('fromjson',parseRequestJson);const adapted=process.argv.includes('--numeric-adapter');if(adapted){env.addFilter('float',templateFloat);env.addFilter('round',templateRoundFloat);}
 try{
  const results=cases.map((test,index)=>{let actual:unknown;try{actual={ok:true,rendered:env.renderStr('{{'+test.expression+'}}',{payload,kind:(value:unknown)=>typeof value==='number'?(Number.isInteger(value)?'integer':'float'):typeof value}).trim()};}catch{actual={ok:false};}return {...test,python:reference.results[index],candidate:actual,equivalent:JSON.stringify(actual)===JSON.stringify(reference.results[index])};});
  const measurements:Record<string,number>={},times:number[]=[];env.addTemplate('sensor',nodeTemplate);const context={payload,set_result:(name:string,value:number)=>{measurements[name]=value;return null;}};
  for(let run=0;run<9;run++){const start=performance.now();for(let i=0;i<3000;i++)env.renderTemplate('sensor',context);if(run>=2)times.push(performance.now()-start);assert.deepEqual(measurements,reference.measurements);}
  const directSyntax=env.renderStr('{value}',{value:12})==='12';const summary=(v:number[])=>{v.sort((a,b)=>a-b);return {medianMs:v[3],p95Ms:v[6]};};
  const compatible=directSyntax&&results.every(result=>result.equivalent);
- console.log(JSON.stringify({node:process.version,candidate:'minijinja-js@2.24.0',python:'Jinja2@'+reference.version,productionEnabled:false,compatible,directMoonrakerSyntax:directSyntax,results,performance:{renders:3000,warmup:2,samples:7,scope:'Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding',node:summary(times),python:summary(reference.times)}},null,2));
+ console.log(JSON.stringify({node:process.version,candidate:'minijinja-js@2.24.0',python:'Jinja2@'+reference.version,productionEnabled:false,numericAdapter:adapted,compatible,directMoonrakerSyntax:directSyntax,results,performance:{renders:3000,warmup:2,samples:7,scope:'Explicitly adapted Shelly template; JSON decode and four numeric callbacks; no MQTT, storage or native typed binding',node:summary(times),python:summary(reference.times)}},null,2));
  if(process.argv.includes('--require-compatible')&&!compatible)process.exitCode=1;
 }finally{env.free();}
