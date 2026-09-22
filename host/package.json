@@ -230,7 +230,8 @@
     "bench:json-numeric-prefilter": "node bench/json-numeric-prefilter.ts",
     "bench:motan-sensor-samples": "node bench/motan-sensor-samples.ts",
     "bench:motan-diagnostic-samples": "node bench/motan-diagnostic-samples.ts",
-    "bench:motan-phase-samples": "node bench/motan-phase-samples.ts"
+    "bench:motan-phase-samples": "node bench/motan-phase-samples.ts",
+    "bench:motan-log-manager": "node bench/motan-log-manager.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
