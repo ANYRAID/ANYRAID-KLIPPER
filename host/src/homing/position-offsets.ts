@@ -18,3 +18,21 @@ export function homingPositionOffsets(result:HomingStopResult,bindings:readonly 
  });
  return Object.freeze(positions);
 }
+
+import type {HomingStopSetResult} from './stop-set.ts';
+/** Independent switches have independent trigger times, even on the same MCU.
+ * Each row of triggerClocks is mapped within that group's MCU domains. */
+export function homingSetPositionOffsets(result:HomingStopSetResult,bindings:readonly HomingHistoryBinding[],triggerClocks:readonly (readonly bigint[])[]){
+ if(result.hitClock!==null||!result.groups.length||result.groups.length!==result.memberOffsets.length||triggerClocks.length!==result.groups.length||bindings.length!==result.positions.length)throw new Error('Invalid independent homing history');
+ let member=0,position=0;
+ const offsets:ReturnType<typeof homingPositionOffsets>[number][]=[];
+ for(const [i,group] of result.groups.entries()){
+  if(result.memberOffsets[i]!==member||group.reasons.some((r,j)=>result.reasons[member+j]!==r))throw new Error('Invalid homing member mapping');
+  for(const p of group.positions){const flat=result.positions[position++];if(!flat||flat.member!==member+p.member||flat.oid!==p.oid||flat.raw!==p.raw||flat.position!==p.position||flat.observedClock!==p.observedClock)throw new Error('Inconsistent independent homing position');}
+  const local=bindings.filter(b=>b.member>=member&&b.member<member+group.reasons.length).map(b=>({...b,member:b.member-member}));
+  offsets.push(...homingPositionOffsets(group,local,triggerClocks[i]).map(p=>Object.freeze({...p,member:member+p.member})));
+  member+=group.reasons.length;
+ }
+ if(member!==result.reasons.length||position!==result.positions.length)throw new Error('Incomplete independent homing mapping');
+ return Object.freeze(offsets);
+}

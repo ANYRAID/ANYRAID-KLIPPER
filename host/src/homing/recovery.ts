@@ -1,33 +1,39 @@
+import {HomingStopSetConfirmation,type HomingStopGroup,type HomingStopSetResult} from './stop-set.ts';
 import {HomingStopConfirmation,type HomingMember,type HomingStopResult} from './stop-confirmation.ts';
 import {rebuildStoppedMotion,type StoppedEmitter,type StoppedQueue} from './rebuild-motion.ts';
 import type {MotionCoordinator,MotionBinding} from '../motion/coordinator.ts';
 import type {EndstopProtocol,EndstopSampling} from '../inputs/endstop.ts';
 import {observeRetirement} from '../motion/retired.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
-export interface HomingRecoveryOptions {
- members:readonly HomingMember[];primary:number;endstop:EndstopProtocol;sampling:EndstopSampling;
- release:()=>void;coordinator:MotionCoordinator;bindings:readonly MotionBinding[];
+interface RecoveryOptions<T extends HomingStopResult> {
+ coordinator:MotionCoordinator;bindings:readonly MotionBinding[];
  emitters:readonly StoppedEmitter[];
  /** Synchronous coordinate reconstruction after both delivery and readback.
   * Must preserve trigger/overshoot semantics and choose a future print time.
   * This callback does not grant homing authority. */
- locate:(result:HomingStopResult)=>{queues:readonly StoppedQueue[];printTime:number};
+ locate:(result:T)=>{queues:readonly StoppedQueue[];printTime:number};
  timeoutMs?:number;
+}
+export interface HomingRecoveryOptions extends RecoveryOptions<HomingStopResult> {
+ members:readonly HomingMember[];primary:number;endstop:EndstopProtocol;sampling:EndstopSampling;release:()=>void;
+}
+export interface HomingSetRecoveryOptions extends RecoveryOptions<HomingStopSetResult> {
+ groups:readonly HomingStopGroup[];release:()=>void;
 }
 /** Construct before arming. Caller owns the armed trigger group and must have
  * registered every affected stepper, stopped source producers, and retained
  * trigger history. No unrelated producer may use these MCU routes meanwhile.
  * One-shot recovery does not implement arming, G28 or homed-axis authorization. */
-export class HomingRecovery {
- #members:readonly HomingMember[];#stop:HomingStopConfirmation;#coordinator:MotionCoordinator;
- #bindings:readonly MotionBinding[];#emitters:readonly StoppedEmitter[];#locate:HomingRecoveryOptions['locate'];#timeout:number;
- #promise:Promise<{stop:HomingStopResult;motion:ReturnType<typeof rebuildStoppedMotion>}>|undefined;
+class Recovery<T extends HomingStopResult> {
+ #members:readonly HomingMember[];#stop:{finish(signal:AbortSignal):Promise<T>};#coordinator:MotionCoordinator;
+ #bindings:readonly MotionBinding[];#emitters:readonly StoppedEmitter[];#locate:RecoveryOptions<T>['locate'];#timeout:number;
+ #promise:Promise<{stop:T;motion:ReturnType<typeof rebuildStoppedMotion>}>|undefined;
  #fault:unknown;#cleanupPending=false;#cleanupErrors:unknown[]=[];
- constructor(o:HomingRecoveryOptions){
+ constructor(o:RecoveryOptions<T>,members:readonly HomingMember[],stop:{finish(signal:AbortSignal):Promise<T>}){
   const timeout=o.timeoutMs??5000;
   if(!Number.isFinite(timeout)||timeout<1||timeout>60000||typeof o.locate!=='function'||!o.coordinator.usesBindings(o.bindings)||o.coordinator.status.retired||o.coordinator.status.failed||o.emitters.length!==o.bindings.length)throw new Error('Invalid homing recovery ownership');
-  this.#members=o.members.map(m=>({...m,steppers:m.steppers.map(s=>({...s}))}));
-  this.#stop=new HomingStopConfirmation(this.#members,o.primary,o.endstop,o.sampling,o.release,timeout);
+  this.#members=members.map(m=>({...m,steppers:m.steppers.map(s=>({...s}))}));
+  this.#stop=stop;
   const ids=new Set<string>(),keys=new Set<string>();
   for(const e of o.emitters){const m=this.#members[e.member],s=m?.steppers.find(s=>s.oid===e.settings.oid),key=`${e.member}:${e.settings.oid}`;
    if(!o.bindings.some(b=>b.id===e.id)||ids.has(e.id)||keys.has(key)||!s||s.inverted!==!!e.settings.invertDirection||e.settings.queueStepTag!==m.session.dictionary.lookup('queue_step oid=%c interval=%u count=%hu add=%hi').id||e.settings.directionTag!==m.session.dictionary.lookup('set_next_step_dir oid=%c dir=%c').id)throw new Error('Invalid homing recovery emitter');ids.add(e.id);keys.add(key);
@@ -66,4 +72,13 @@ export class HomingRecovery {
    if(errors.length>1)throw new AggregateError(errors,'Homing recovery and cleanup failed');throw error;
   }finally{clearTimeout(timer);signal.removeEventListener('abort',cancel);}
  }
+}
+
+export class HomingRecovery extends Recovery<HomingStopResult> {
+ constructor(o:HomingRecoveryOptions){super(o,o.members,new HomingStopConfirmation(o.members,o.primary,o.endstop,o.sampling,o.release,o.timeoutMs??5000));}
+}
+/** Independent endstops share one retirement and rebuild/reset transaction.
+ * Emitter member indices refer to the group-concatenated member list. */
+export class HomingSetRecovery extends Recovery<HomingStopSetResult> {
+ constructor(o:HomingSetRecoveryOptions){const stop=new HomingStopSetConfirmation(o.groups,o.release,o.timeoutMs??5000);super(o,stop.members,stop);}
 }

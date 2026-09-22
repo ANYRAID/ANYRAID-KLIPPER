@@ -32,7 +32,7 @@ export function rebuildStoppedMotion(result:HomingStopResult,old:readonly Motion
  const endpoints=new Map(queues.map(q=>[q.id,q.position]));
  if(endpoints.size!==queues.length||queues.some(q=>!validId(q.id)||!Array.isArray(q.position)||q.position.length!==3||!q.position.every(Number.isFinite)))throw new RangeError('Invalid stopped queue endpoints');
  const observations=new Map(result.positions.map(p=>[`${p.member}:${p.oid}`,p]));
- if(observations.size!==result.positions.length||result.reasons.length<1||result.reasons.length>16||result.reasons.some(r=>r!==1&&r!==2&&r!==3))throw new Error('Invalid stopped position coverage');
+ if(observations.size!==result.positions.length||result.reasons.length<1||result.reasons.length>128||result.reasons.some(r=>r!==1&&r!==2&&r!==3))throw new Error('Invalid stopped position coverage');
  // Reject stale/disposed source handles before allocating replacements.
  for(const b of old)if(!Number.isFinite(b.stepper.generatedTime))throw new Error('Invalid retired generation state');
  const usedIds=new Set<string>(),usedQueues=new Set<string>(),usedPositions=new Set<string>();

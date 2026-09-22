@@ -51,6 +51,7 @@ export class SerialSession {
  #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
  #commandQueueIds=new WeakMap<TimedCommandQueue,number>();
  #nextCommandQueue=2;#outputPending=0;
+ #closeObservers=new Set<(cause:unknown)=>void>();
  #subscriptions=new Map<string,Map<number,ResponseSubscription>>();#subscriptionCount=0;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
@@ -73,6 +74,12 @@ export class SerialSession {
   const routes=this.#subscriptions.get(name);if(routes?.has(oid)||this.#subscriptionCount>=512)throw new Error('Response subscription duplicate or capacity exceeded');
   const owned={receive:handler.receive.bind(handler),closed:handler.closed.bind(handler)},map=routes??new Map<number,ResponseSubscription>();if(!routes)this.#subscriptions.set(name,map);map.set(oid,owned);this.#subscriptionCount++;
   return ()=>{if(this.#subscriptions.get(name)!==map||map.get(oid)!==owned)return;map.delete(oid);this.#subscriptionCount--;if(!map.size)this.#subscriptions.delete(name);};
+ }
+ /** Observe session closure without occupying a response OID. Unsubscribe
+  * when the owning operation ends; callbacks run after native queue closure. */
+ observeClose(handler:(cause:unknown)=>void):()=>void{
+  this.assertActive();if(typeof handler!=='function'||this.#closeObservers.size>=128)throw new Error('Invalid serial close observer');
+  const owned=(cause:unknown)=>handler(cause);this.#closeObservers.add(owned);return ()=>{this.#closeObservers.delete(owned);};
  }
  /** Wait for ACKs of messages accepted before this call. Later sends do not
   * extend the snapshot. This is delivery, not MCU execution or physical stop.
@@ -272,6 +279,8 @@ export class SerialSession {
   void this.#queries.stop(cause).catch(()=>{});void this.#clock?.stop(cause).catch(()=>{});
   const subscribers=[...this.#subscriptions.values()].flatMap(routes=>[...routes.values()]);this.#subscriptions.clear();this.#subscriptionCount=0;
   for(const subscriber of subscribers)try{subscriber.closed(cause);}catch(error){cleanupError=cleanupError===undefined?error:new AggregateError([cleanupError,error],'Serial subscription cleanup failed');}
+  const observers=[...this.#closeObservers];this.#closeObservers.clear();
+  for(const notify of observers)try{notify(cause);}catch(error){cleanupError=cleanupError===undefined?error:new AggregateError([cleanupError,error],'Serial close observer failed');}
   return this.#stopPromise;
  }
 }

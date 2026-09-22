@@ -17,10 +17,10 @@ export interface HomingStopResult {
  * its native group. Readback deliberately leaves MCU SF_NEED_RESET set: resetting
  * clocks or granting homing requires a separate native/host reconciliation. */
 export class HomingStopConfirmation {
- #members:readonly HomingMember[];#primary:number;#endstop:EndstopProtocol;#sampling:EndstopSampling;#release:()=>void;#timeout:number;
+ #members:readonly HomingMember[];#primary:number;#endstop:EndstopProtocol;#sampling:EndstopSampling;#release:()=>void;#timeout:number;#failure:(cause:unknown)=>void;
  #promise:Promise<HomingStopResult>|undefined;#cleanup:Promise<PromiseSettledResult<void>[]>|undefined;#cleanupPending=false;#cleanupErrors:unknown[]=[];#fault:unknown;
- constructor(members:readonly HomingMember[],primary:number,endstop:EndstopProtocol,sampling:EndstopSampling,release:()=>void,timeoutMs=5000){
-  if(!Array.isArray(members)||members.length<1||members.length>16||new Set(members.map(m=>m.session)).size!==members.length||!Number.isInteger(primary)||primary<0||primary>=members.length||typeof release!=='function'||!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>60000)throw new RangeError('Invalid homing stop configuration');
+ constructor(members:readonly HomingMember[],primary:number,endstop:EndstopProtocol,sampling:EndstopSampling,release:()=>void,timeoutMs=5000,onFailure:(cause:unknown)=>void=()=>{}){
+  if(!Array.isArray(members)||members.length<1||members.length>16||new Set(members.map(m=>m.session)).size!==members.length||!Number.isInteger(primary)||primary<0||primary>=members.length||typeof release!=='function'||typeof onFailure!=='function'||!Number.isFinite(timeoutMs)||timeoutMs<1||timeoutMs>60000)throw new RangeError('Invalid homing stop configuration');
   this.#members=members.map(m=>{
    m.session.assertCommandQueue(m.queue);m.trigger.assertDictionary(m.session.dictionary);
    if(!Array.isArray(m.steppers)||!m.steppers.length||m.steppers.length>254||new Set(m.steppers.map((s:HomingMember['steppers'][number])=>s.oid)).size!==m.steppers.length||m.steppers.some((s:HomingMember['steppers'][number])=>!Number.isInteger(s.oid)||s.oid<0||s.oid>254||s.oid===m.trigger.oid||typeof s.inverted!=='boolean'))throw new RangeError('Invalid homing steppers');
@@ -29,7 +29,7 @@ export class HomingStopConfirmation {
   });
   if(typeof sampling.reqClock!=='bigint'||sampling.reqClock<0n||typeof sampling.restTicks!=='bigint'||sampling.restTicks<=0n||sampling.restTicks>0x7fffffffn||endstop.oid===members[primary].trigger.oid||members[primary].steppers.some((s:HomingMember['steppers'][number])=>s.oid===endstop.oid))throw new RangeError('Invalid homing endstop');
   endstop.assertDictionary(members[primary].session.dictionary);
-  this.#primary=primary;this.#endstop=endstop;this.#sampling={...sampling,payload:sampling.payload.slice()};this.#release=release;this.#timeout=timeoutMs;
+  this.#primary=primary;this.#endstop=endstop;this.#sampling={...sampling,payload:sampling.payload.slice()};this.#release=release;this.#timeout=timeoutMs;this.#failure=onFailure;
  }
  get status(){return {started:!!this.#promise,fault:this.#fault,cleanupPending:this.#cleanupPending,cleanupErrors:[...this.#cleanupErrors]};}
  /** One owner and one completion attempt. Repeated calls share the result;
@@ -69,7 +69,7 @@ export class HomingStopConfirmation {
    s.throwIfAborted();for(const m of this.#members)m.session.assertActive();return Object.freeze({hitClock,reasons:Object.freeze(reasons),positions:Object.freeze(positions)});
   }catch(error){
    this.#fault=error;controller.abort(error);
-   const errors:unknown[]=[error];if(!released)try{released=true;this.#release();}catch(cleanup){errors.push(cleanup);}
+   const errors:unknown[]=[error];try{this.#failure(error);}catch(notification){errors.push(notification);}if(!released)try{released=true;this.#release();}catch(cleanup){errors.push(cleanup);}
    this.#cleanupPending=true;this.#cleanup=Promise.allSettled(this.#members.map(m=>m.session.stop(error))).then(results=>{this.#cleanupErrors=results.filter(r=>r.status==='rejected').map(r=>r.reason);return results;}).finally(()=>{this.#cleanupPending=false;});
    let cleanupTimer:ReturnType<typeof setTimeout>|undefined;
    try{const results=await Promise.race([this.#cleanup,new Promise<never>((_,reject)=>{cleanupTimer=setTimeout(()=>reject(new Error('Homing device stop confirmation timed out')),this.#timeout);})]);for(const r of results)if(r.status==='rejected')errors.push(r.reason);}
