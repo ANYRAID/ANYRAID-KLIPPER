@@ -12290,3 +12290,41 @@ node host/bench/native-template.ts
 
 本阶段类型检查、空白检查与完整 1,426 项主机测试通过，无失败或跳过；
 上述原生候选专项差分也已独立通过。
+
+### 原生传感器配置装配与完整消息路径
+
+`configureNativeSensors(reader, trackingEnabled, mqttOptions)` 将传感器
+配置、历史字段、原生模板和 MQTT 绑定装配为一个尚未连接的候选实例。
+它读取既有 sensor 节；MQTT 连接参数仍由调用方明确提供，没有接管
+完整 mqtt 组件配置。返回 sensors、fields、sources、receivers、
+sensorTransport 和 close；调用方可将 sensors 与 sensorTransport
+交给 ConfiguredMoonraker 管理。装配失败释放已编译模板和新建存储，
+不会打开网络连接；创建成功但尚未转交时由调用方负责 close。
+
+`NativeSensorMessages` 随接收器关闭释放原生模板，因此服务器启动失败、
+MQTT 关闭和正常停机均沿既有所有权链回收资源，重复关闭安全。显式
+装配入口仍不代表生产配置加载器默认启用此候选，也没有新增打印控制。
+
+独立验证命令（需先按上一节构建原生模块和准备 Jinja 参考）：
+
+```sh
+node --test host/bench/native-sensor-integration.ts
+node host/bench/native-sensor-messages.ts
+```
+
+两项集成测试覆盖真实配置文件 → 原生模板 → 本地 TCP MQTT → SensorStore
+与历史字段 → 授权 HTTP/WebSocket；包括 2.675 舍入到 2.67、超限整数
+拒绝时保留上一帧、后续恢复、断线清空与重订阅、负数舍入、模板语法
+失败、订阅失败和关闭后拒绝消息。这里的 MQTT 对端是测试协议端，
+不是生产 broker；此前 TLS 验证不等同于本测试已覆盖真实部署证书。
+
+整体消息基准在 Node v26.9.0 / Linux x64 上以四参数 JSON 模板加
+average 历史字段执行每轮 10,000 帧，2 轮预热、7 轮计时，逐轮核对
+传感器与历史结果。Node/Rust 中位/p95 为 108.833 / 109.413 ms，
+实际 Python sensor 方法加 Jinja2 为 151.845 / 155.432 ms，中位减少
+约 28%。包含字节解码、模板、类型传递、存储与统计，不包含 MQTT 网络、
+定时采样或打印调度，不能证明目标打印机的实时性能。
+
+本阶段类型、空白检查与 1,426 项默认主机回归全部通过，候选两项
+集成检查单独通过。仓库仍有 204 个跟踪中的 Python 文件，尚未退役
+本阶段对应 Python 模块；完整模板接口、生产配置接线和实机验收未完成。
