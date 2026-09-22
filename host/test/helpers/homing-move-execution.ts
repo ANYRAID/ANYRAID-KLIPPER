@@ -1,3 +1,4 @@
+import {homingEndstopSampling} from '../../src/homing/endstop-rate.ts';
 import {recoveryFixture} from './homing-recovery.ts';
 import {serialClock} from '../../src/protocol/serial-queue.ts';
 import {homingToolheadPositions} from '../../src/homing/toolhead-position.ts';
@@ -15,7 +16,7 @@ export async function nativeHomingFixture(count=1,independent=false,frequencies:
  const groups:ArmedHomingGroup[]=[];
  const make=(indices:number[])=>{
   const starts=indices.map(i=>f.options.bindings[i].stepper.clockAt(startTime)),stepper=f.options.bindings[indices[0]].stepper;
-  const sampling=f.options.endstop.home({printTime:startTime,sampleTime:.000015,sampleCount:4,restTime:.001,trsyncOid:8},t=>stepper.clockAt(t));
+  const sampling=homingEndstopSampling(f.options.endstop,stepper,8,startTime,[0,0,0],[3,0,0],10,indices.map(i=>({stepper:f.options.bindings[i].stepper,stepDistance:.01})));
   groups.push({members:indices.map(i=>f.options.members[i]),primary:0,endstop:f.options.endstop,sampling,startClocks:starts,expireTimeout:.25});
  };
  if(independent)for(let i=0;i<count;i++)make([i]);else make(Array.from({length:count},(_,i)=>i));

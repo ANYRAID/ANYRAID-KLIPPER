@@ -242,6 +242,13 @@ static napi_value commanded_position(napi_env env,napi_callback_info info){
  struct handle *h=get(env,args[0],0);if(!h)return NULL;if(!h->sk)REJECT("No attached solver");
  napi_value result;CHECK(napi_create_double(env,itersolve_get_commanded_pos(h->sk),&result));return result;
 }
+static napi_value coordinate_position(napi_env env,napi_callback_info info){
+ size_t argc=4;napi_value args[4];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=4)REJECT("Expected handle and XYZ coordinates");
+ struct handle *h=get(env,args[0],0);if(!h)return NULL;if(!h->sk)REJECT("No attached solver");
+ double xyz[3];for(int i=0;i<3;i++){CHECK(napi_get_value_double(env,args[i+1],&xyz[i]));if(!isfinite(xyz[i]))REJECT("Invalid actuator coordinate");}
+ double position=itersolve_calc_position_from_coord(h->sk,xyz[0],xyz[1],xyz[2]);if(!isfinite(position))REJECT("Unreachable actuator coordinate");
+ napi_value result;CHECK(napi_create_double(env,position,&result));return result;
+}
 static napi_value initialize_position(napi_env env,napi_callback_info info){
  size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, clock and position");struct handle *h=get(env,args[0],0);if(!h)return NULL;
  uint64_t clock;int64_t position;bool exact_clock=false,exact_position=false;
@@ -259,8 +266,9 @@ static napi_value init(napi_env env,napi_value exports) {
       {"schedulePressureAdvance",NULL,schedule_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"configureShapers",NULL,configure_shapers,NULL,NULL,NULL,napi_default,NULL},{"windows",NULL,shaper_windows,NULL,NULL,NULL,napi_default,NULL},
       {"commandedPosition",NULL,commanded_position,NULL,NULL,NULL,napi_default,NULL},
+      {"coordinatePosition",NULL,coordinate_position,NULL,NULL,NULL,napi_default,NULL},
       {"initializePosition",NULL,initialize_position,NULL,NULL,NULL,napi_default,NULL},{"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,13,methods));return exports;
+    CHECK(napi_define_properties(env,exports,14,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

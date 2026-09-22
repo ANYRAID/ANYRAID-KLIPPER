@@ -16757,3 +16757,39 @@ CPU 中位为 2.866/3.344 ms，p95 为 5.355/5.149 ms。通过耗时
 最终 UBSan、ASan 各 373 项通过，普通运动学 4 项回归通过。
 全面迁移、完整归零/打印驱动装配、Moonraker 产品入口及实机
 验收仍在进行。本轮未推送、创建 PR、合并或部署。
+
+### 限位采样间隔使用原生电机行程
+
+HomingMove._calc_endstop_rate 的采样间隔取决于参与该限位的
+最大电机步数，而不是直接把 XYZ 路径长度除以某个轴步距。
+新增只读 StepCompressor.coordinatePosition，通过 Node-API
+调用原有 itersolve_calc_position_from_coord，复用同一套
+Cartesian/CoreXY/CoreXZ/Delta 原生正向运动学。它不生成步数、
+不改变 commanded position、生成时间或时钟校准；缺少求解器、
+非有限坐标和不可达 Delta 坐标明确拒绝。
+
+新增 endstopRestTime，使用原 Python 的距离、时间、最大电机
+步数运算顺序，不对电机步数取整，保留无参与电机位移时的
+1 ms 间隔。homingEndstopSampling 采用原有 15 us、连续 4 次
+匹配的去抖参数，经主 MCU 校准映射得到 rest_ticks。接口面向
+XYZ 运动学电机，调用方仍需确认限位成员与坐标系的真实对应，
+不把挤出坐标当作 XYZ 坐标传入。
+
+原生归零执行夹具已经使用该计算代替固定 rest_time，覆盖
+实际触发、回读、未命中及耦合 MCU 时钟映射。新增 4 项测试
+覆盖全部现有原生求解器投影、不改变原状态、最快耦合电机、
+零步数回退、非法输入/关闭句柄/不可达坐标，以及协议中的
+sample_ticks、sample_count 和 rest_ticks。
+
+`node host/bench/endstop-rate.ts` 从原 homing.py 提取实际函数
+AST，对 4,000 组正反向与耦合电机行程进行差分，最大绝对误差
+为 0。Node 26.9.0，3 次预热、11 次测量，TS 中位/p95 为
+4.539/6.713 ms，通过 4,000 次计算中位低于 100 ms 的桌面预算。
+原 Python 算式中位/p95 为 5.814/6.112 ms；TS 测量包含每次
+原生坐标投影，Python 参考使用预先投影的坐标快照，没有计入
+CFFI，因此不把两者比例宣称为完整归零速度提升。Python 仅用于
+开发差分参考，新运行路径不调用 Python。
+
+最终 UBSan、ASan 各 377 项通过，类型与空白检查通过。完整
+寻位轨迹准备、G28 驱动装配、Python 打印入口替换和实机
+运动精度/吞吐验收仍未完成；本轮未推送、创建 PR、合并或部署。
