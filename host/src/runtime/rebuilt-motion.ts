@@ -36,7 +36,8 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   });
   if(o.routes.length!==motion.queues.length||new Set(o.routes.map(r=>r.queue)).size!==o.routes.length)throw new Error('Rebuilt source queue coverage differs');
   for(const r of o.routes){const q=motion.queues.find(q=>q.queue===r.queue),p=r.extrusionAxis===undefined?o.position.slice(0,3):[o.position[r.extrusionAxis],0,0];if(!q||q.position.some((v,i)=>v!==p[i]))throw new Error('Rebuilt source coordinate differs from recovery');}
-  const check=()=>{group.assertActive();const now=serialClock.now();for(const [i,owned] of grouped.entries())if(owned[0].stepper.clockAt(motion.printTime)<=members[i].session.clock.sync.getClock(now))throw new Error('Rebuilt motion baseline expired before binding');};
+  const calibrations=bindings.map(b=>b.stepper.calibration);
+  const check=()=>{group.assertActive();for(const [i,b] of bindings.entries()){const current=b.stepper.calibration,saved=calibrations[i];if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Rebuilt motion calibration changed before start');}const now=serialClock.now();for(const [i,owned] of grouped.entries())if(owned[0].stepper.clockAt(motion.printTime)<=members[i].session.clock.sync.getClock(now))throw new Error('Rebuilt motion baseline expired before binding');};
   check();
   const byId=new Map(bindings.map(b=>[b.id,b]));
   const sink=new MoveQueueSink(grouped.map((owned,i)=>group.motionQueue(routes[i],owned.map(b=>b.id),t=>owned[0].stepper.clockAt(t))),async outputs=>{
@@ -51,7 +52,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position);
-  check();return Object.freeze({motion,sink,coordinator,drain,source});
+  check();return Object.freeze({motion,sink,coordinator,drain,source,assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

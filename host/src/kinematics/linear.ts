@@ -1,6 +1,6 @@
 // Cartesian/CoreXY/CoreXZ admission and homing geometry from klippy/kinematics/*.py.
 // Copyright (C) 2016-2021 Kevin O'Connor, 2020 Maks Zolin. GPL-3.0-or-later.
-import type {Move} from '../motion/lookahead.ts';
+import {Move,motionLimits} from '../motion/lookahead.ts';
 export type Axis=0|1|2;
 export type Range=readonly [number,number];
 export interface LinearConfig {
@@ -42,6 +42,16 @@ export class LinearKinematics {
     const home:(number|null)[]=[null,null,null,null];home[index]=endstop;const force=[...home];
     force[index]=positiveDirection?endstop-1.5*(endstop-low):endstop+1.5*(high-endstop);
     if(!Number.isFinite(force[index]))throw new RangeError('Homing geometry overflow');return {force,home};
+  }
+  /** Privileged single-axis retreat after a confirmed homing stop. Does not
+   * grant homed authority or relax ordinary move admission. Extra axes stay
+   * fixed; the destination must lie inside the configured physical range. */
+  planHomingRetract(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
+    axis(index);const c=this.#config,move=new Move(motionLimits(c.maxVelocity,c.maxAccel),start,end,speed);
+    if(!move.isKinematic||!move.axesD[index]||move.axesD.some((d,i)=>i!==index&&d!==0))throw new RangeError('Homing retract must move one linear axis only');
+    const [low,high]=this.#ranges[index];if(move.endPos[index]<low||move.endPos[index]>high)throw new KinematicError('out_of_range');
+    if(index===2)move.limitSpeed(c.maxZVelocity,c.maxZAccel);
+    return move;
   }
   #checkEndstops(move:Move):void {
     for(let i=0;i<3;i++) {
