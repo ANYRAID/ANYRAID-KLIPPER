@@ -15548,3 +15548,71 @@ Python 此项只有 JSON 解析编码，没有额外的 Node 消息验证和
 本次单轮通过不代表此前 Python/SciPy 偶发 SIGSEGV 已被修复。
 TypeScript 类型检查、空白及差异检查通过，未运行项目全部测试、
 目标硬件打印、远程集成、推送、PR 合并或部署。
+
+### Motan CSV 预编译入口与启动性能（2026-09-23）
+
+本轮将优化目标放到已确认的 TS/Amaro 启动成本。临时实验对比
+直接 TS、`NODE_COMPILE_CACHE` 和预编译 JS：零行导出中位分别
+174.607、77.739、83.538 ms；两万行分别 219.131、120.382、
+124.414 ms。缓存一项使用已生成的热缓存，不能当作首次启动
+性能。最终实现提供明确构建入口，运行时无需 TS 转换，也不
+默认修改用户的全局缓存或环境变量。
+
+安装 host 依赖并使用 Node 26.9 或更高的 26.x 后：
+
+```sh
+npm --prefix host run build:motan
+node host/build/motan/scripts/motan/data_export.js capture \
+  -c '["status(toolhead.position)"]' --preserve-number-types -o motion.csv
+```
+
+`host/tsconfig.motan.json` 只编译 CSV CLI、analysis worker 及其
+可达依赖，启用类型错误阻止输出和相对导入扩展名重写。worker
+URL 不属于 TypeScript 的模块导入重写范围，因此 executor 按
+自身 `.js` 或源码形式选择同格式 worker。源码 TS 入口继续
+支持调试，参数和输出不变；JS 运行仍保留独立 worker 的堆限制、
+超时、取消、文件句柄追踪和关闭等待，没有为缩短耗时移除隔离。
+
+构建先在同一父目录的临时目录完成类型检查与输出，再发布到
+`host/build/motan`。输出包含 JSON 契约、GPL COPYING、SciPy
+许可和 `complex.js` 依赖声明；默认位置使用已安装的 host 依赖。
+`build-info.json` 记录 Node/TypeScript 版本和每个产物的 SHA-256。
+同一输入与工具版本的重复构建逐字节一致。构建锁拒绝并发发布，
+编译失败保留旧产物；不覆盖缺少构建标记的用户目录。若发布恢复
+本身失败，保留旧目录和锁供恢复。
+
+目录发布用两次 rename，必须在没有导出任务使用该目标目录时
+执行；它不是在线发布切换或断电持久化保证。产物不纳入 Git，
+修改源码后须重新构建，运行时不会自动检测源码新鲜度。构建不
+执行 Python，也不安装依赖、推送或部署。
+
+新增两项集成检查：用 `--no-experimental-strip-types` 且 PATH
+不含 Python 运行编译后的 CLI/worker，列表/帮助、零行、结构化
+列、相位、导数和 SOS 的输出与源码入口逐字节一致；验证超时、
+取消、失败后重新分析和 close；核对产物哈希、JSON/许可、重复
+构建、故意类型错误保留旧产物、锁与非本工具目录保护。
+
+新增 `npm --prefix host run bench:motan-compiled-export`。正式
+基准禁用 V8/TS compile cache，每次启动新的进程和 worker，包含
+解压、采样、CSV 与 stdout；未清空 OS 文件缓存，3 次预热/15 次
+交替测量。一次构建约 195 ms，作为开发/安装步骤，不计入导出。
+Node 26.9.0 / Python 3.12.13，中位 / p95：
+
+| 场景 | TS 源码入口 | 预编译 JS | Python |
+| --- | --- | --- | --- |
+| 零行启动 | 174.447 / 180.494 ms | 82.984 / 86.995 ms | 39.733 / 40.591 ms |
+| 两万行普通标量 | 212.071 / 220.722 ms | 117.842 / 120.671 ms | 65.571 / 66.469 ms |
+| 两万行列表/字典 | 235.307 / 257.076 ms | 136.988 / 143.008 ms | 172.574 / 175.021 ms |
+
+新旧 Node 输出逐字节相同；Python 结构化文本完全相同，时间值
+比较 Float64 位模式，普通数值比较数值。结构化场景预编译后比
+TS 入口中位降低约 42%，比 Python 快约 21%；普通标量仍慢于
+Python，零行启动也有差距。此结果只证明本桌面场景的改善，不
+代表全部高频路径、数字键解析/索引或目标打印硬件的性能达标。
+
+最终完整 Motan 138 项本次全部通过（约 55.3 秒），日志为
+`host/node_modules/.cache/motan-compiled-suite.log`；显式独立
+CPython 用于 SciPy 参考，该次通过不消除此前偶发崩溃的未决
+根因。类型、空白、差异检查通过；最终 npm 构建和禁用 TS 的
+默认 JS 入口冒烟通过。未重跑项目所有测试、进行远程集成、
+PR 合并、部署或实际打印验收；完整迁移目标继续保持未完成。

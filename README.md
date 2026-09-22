@@ -57,8 +57,11 @@ Motan 运动数据采集入口已切换为
 输出文件必须不存在，重复采集请使用新前缀。Motan 后续分析和绘图
 尚未全部迁移，性能与剩余范围见迁移说明。
 
-Motan 数值 CSV 可使用
-`node scripts/motan/data_export.ts capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
+Motan CSV 推荐使用预编译入口以减少启动开销。安装 `host/` 依赖后，
+先运行 `npm --prefix host run build:motan`，再执行
+`node host/build/motan/scripts/motan/data_export.js capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
+修改源码后需要重新构建；请在没有导出任务使用该目录时构建。
+调试时仍可直接运行 `node scripts/motan/data_export.ts`，参数相同。
 新入口无需 Python，支持取消、完整文件原子替换及文本/布尔/null/BigInt
 原始列，以及整数导数、偏差、CoreXY、norm2、平滑、积分和 SOS 计算。
 SOS 整数须在 NumPy int64/uint64 范围内。增加 `--preserve-number-types`

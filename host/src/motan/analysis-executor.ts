@@ -86,7 +86,9 @@ export class MotanAnalysisExecutor {
     let worker:Worker|undefined,timer:ReturnType<typeof setTimeout>|undefined,abort:(()=>void)|undefined;
     this.#phase='starting';
     try{
-      worker=new Worker(new URL('./analysis-worker.ts',import.meta.url),{
+      // TypeScript rewrites module specifiers, but not URLs to worker files.
+      // Keep source runs and the precompiled distribution on the same format.
+      worker=new Worker(new URL(import.meta.url.endsWith('.js')?'./analysis-worker.js':'./analysis-worker.ts',import.meta.url),{
         workerData:request,trackUnmanagedFds:true,resourceLimits:{maxOldGenerationSizeMb:256},
       });
       return await new Promise<MotanTable>((resolve,reject)=>{
