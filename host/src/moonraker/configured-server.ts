@@ -250,7 +250,18 @@ export class ConfiguredMoonraker {
   this.#supervisor=supervisor;supervisor.start();
  }
  get databaseRestoreStatus(){return {...this.#databaseRestart,state:this.#database?.status.restoreState??null};}
- #requireDatabaseIdle(){const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');}
+ #requireDatabaseIdle(){
+  if(this.#stopping)throw new ApiError(503,'Server is stopping');
+  if(this.#printApi instanceof ProductPrintApi){
+   // The caller already holds the shared gate. Its controller probe checks
+   // active actions, journal writes, restoration and latched faults as well.
+   const status=this.#printApi.status;
+   if(status.closed)throw new ApiError(503,'Native printer is closed');
+   if(!['idle','completed','cancelled'].includes(status.state)||status.pending_device_actions||status.safe_stop_pending)throw new ApiError(409,'Native printer is not idle for database maintenance');
+   return;
+  }
+  const runtime=this.#klippy;if(!runtime?.snapshot.connected||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')throw new ApiError(503,'Printer state is unavailable for database maintenance');const state=runtime.cachedStatus.print_stats?.state;if(state==='printing'||state==='paused')throw new ApiError(409,'Database maintenance is unavailable while printing or paused');if(!['standby','complete','cancelled','error'].includes(state as string))throw new ApiError(503,'Print state is unavailable for database maintenance');
+ }
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
  get printNotifications(){return {...this.#printNotifications};}

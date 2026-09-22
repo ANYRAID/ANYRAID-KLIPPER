@@ -217,7 +217,8 @@
     "test:katapult-startup-vcan": "node scripts/test-katapult-startup-vcan.ts",
     "test:katapult-cli-vcan": "node scripts/test-katapult-cli-vcan.ts",
     "bench:diagnostic-pdf": "node bench/diagnostic-pdf.ts",
-    "bench:print-state-stream": "node bench/print-state-stream.ts"
+    "bench:print-state-stream": "node bench/print-state-stream.ts",
+    "bench:native-database-maintenance": "node bench/native-database-maintenance.ts"
   },
   "devDependencies": {
     "@types/fontkit": "2.0.9",
