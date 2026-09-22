@@ -5,6 +5,7 @@ import {Duplex,Transform,type TransformCallback} from 'node:stream';
 import type {SensorStore} from './sensors.ts';
 import {SensorMessages} from './sensor-messages.ts';
 import {ApiError} from './rpc.ts';
+import {MqttMessageWaiters,type MqttWaitOptions} from './mqtt-waiters.ts';
 type QoS=0|1|2;
 const receiverOwners=new WeakSet<SensorMessages>();
 export interface MqttSensorBinding {topic:string;qos?:QoS|null;receiver:SensorMessages;}
@@ -32,10 +33,11 @@ export class MqttPacketLimit extends Transform {
 }
 function bounded(value:number,min:number,max:number){if(!Number.isSafeInteger(value)||value<min||value>max)throw new ApiError(400,'Invalid MQTT numeric option');return value;}
 /** Dedicated sensor MQTT 3.1/3.1.1/5 connection. No status publication or RPC transport.
- * All bindings are fixed before connect; reconnect builds a fresh subscription
+ * Sensor bindings are fixed; one-shot waits are bounded and generation scoped.
+ * Reconnect builds a fresh subscription
  * generation, and close fences receivers before destroying the transport. */
 export class MqttSensors {
- readonly #client:MqttClient;readonly #topics=new Map<string,{qos:QoS;receivers:SensorMessages[]}>();readonly #timeout:number;readonly #defaultQos:QoS;readonly #publishes=new Set<(error:Error)=>void>();
+ readonly #waiters:MqttMessageWaiters;readonly #client:MqttClient;readonly #topics=new Map<string,{qos:QoS;receivers:SensorMessages[]}>();readonly #timeout:number;readonly #defaultQos:QoS;readonly #publishes=new Set<(error:Error)=>void>();
  #closed=false;#started=false;#connected=false;#ready=false;#generation=0;#connections=0;#messages=0;#failure:string|null=null;
  #starting:Promise<void>|undefined;#resolve:(()=>void)|undefined;#reject:((error:Error)=>void)|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#closing:Promise<void>|undefined;
  constructor(options:MqttSensorOptions,bindings:readonly MqttSensorBinding[]){
@@ -56,15 +58,17 @@ export class MqttSensors {
    const guard=new MqttPacketLimit(max),stream=new Duplex({read(){guard.resume();},write(chunk,encoding,done){socket.write(chunk,encoding,done);},writev(chunks,done){socket.write(Buffer.concat(chunks.map(item=>item.chunk as Buffer)),done);},final(done){socket.end(done);},destroy(error,done){socket.destroy();guard.destroy();done(error);}});
    guard.on('data',chunk=>{if(!stream.push(chunk))guard.pause();});guard.on('end',()=>stream.push(null));guard.on('error',error=>stream.destroy(error));socket.on('error',error=>stream.destroy(error));socket.on('close',()=>stream.destroy());socket.pipe(guard);return stream;
   },clientOptions);
+  this.#waiters=new MqttMessageWaiters(this.#client,this.#topics,()=>!this.#closed&&this.#ready&&this.#client.connected&&!this.#client.stream.destroyed,this.#defaultQos,this.#timeout);
   this.#client.on('error',()=>{this.#failure='MQTT transport error';});
-  this.#client.on('close',()=>{this.#failPublishes(new ApiError(503,'MQTT disconnected; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;for(const group of this.#topics.values())for(const receiver of group.receivers)receiver.disconnect();});
+  this.#client.on('close',()=>{this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT disconnected; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;for(const group of this.#topics.values())for(const receiver of group.receivers)receiver.disconnect();});
   this.#client.on('connect',()=>{if(this.#closed)return;const generation=++this.#generation;this.#connected=true;this.#connections++;this.#ready=false;const subscriptions=Object.fromEntries([...this.#topics].map(([topic,group])=>[topic,{qos:group.qos}]));
    if(!this.#topics.size){this.#subscribed(generation);return;}
    this.#client.subscribe(subscriptions,(error,grants)=>{if(this.#closed||generation!==this.#generation)return;if(error||!grants||grants.length!==this.#topics.size||grants.some(grant=>grant.qos>2)){this.#failure='MQTT subscription rejected';return;}this.#subscribed(generation);});
   });
-  this.#client.on('message',(topic,payload)=>{if(this.#closed||!this.#connected)return;const group=this.#topics.get(topic);if(!group)return;this.#messages++;for(const receiver of group.receivers)receiver.receive(payload);});
+  this.#client.on('message',(topic,payload)=>{if(this.#closed||!this.#connected)return;const temporary=this.#waiters.receive(topic,payload),group=this.#topics.get(topic);if(!group&&!temporary)return;this.#messages++;if(group)for(const receiver of group.receivers)receiver.receive(payload);});
   for(const receiver of receivers)receiverOwners.add(receiver);
  }
+ waitForMessage(topic:string,options:MqttWaitOptions={}):Promise<Buffer>{return this.#waiters.wait(topic,options);}
  #failPublishes(error:Error):void{for(const fail of [...this.#publishes])fail(error);}
  /** QoS 0 resolves on local write, QoS 1/2 on protocol acknowledgment. Failure
   * cannot undo bytes already delivered. No offline queue or reconnect replay. */
@@ -88,7 +92,7 @@ export class MqttSensors {
    const fail=(error:Error)=>finish(error),abort=()=>finish(new ApiError(499,'MQTT publish cancelled; delivery may be unknown'));
    const timer=setTimeout(()=>finish(new ApiError(504,'MQTT publish timed out; delivery may be unknown')),timeout);
    this.#publishes.add(fail);options.signal?.addEventListener('abort',abort,{once:true});
-   // The pinned client drains store processing before connect; fixed
+   // The pinned client drains store processing before connect; bounded
    // subscriptions and at most 32 publishes leave packet IDs available.
    // Allocation is synchronous here, so capture the ID before yielding.
    try{this.#client.publish(topic,bytes,{qos,retain},error=>finish(error?new ApiError(503,'MQTT publish failed; delivery may be unknown'):undefined));if(qos)messageId=this.#client.getLastMessageId();}
@@ -97,9 +101,9 @@ export class MqttSensors {
  }
  #subscribed(generation:number){if(this.#closed||generation!==this.#generation)return;this.#ready=true;this.#failure=null;clearTimeout(this.#timer);this.#resolve?.();this.#resolve=undefined;this.#reject=undefined;}
  owns(store:SensorStore):boolean{return [...this.#topics.values()].every(group=>group.receivers.every(receiver=>receiver.owns(store)));}
- get status(){return {started:this.#started,closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,failure:this.#failure};}
+ get status(){return {started:this.#started,closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,waiting:this.#waiters.count,failure:this.#failure};}
  start():Promise<void>{if(this.#closed)return Promise.reject(new Error('MQTT sensors are closed'));if(this.#starting)return this.#starting;
   this.#starting=new Promise<void>((resolve,reject)=>{this.#resolve=resolve;this.#reject=reject;this.#timer=setTimeout(()=>{this.#failure='MQTT startup timed out';reject(new Error(this.#failure));void this.close();},this.#timeout);this.#started=true;this.#client.connect();});return this.#starting;
  }
- close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#failPublishes(new ApiError(503,'MQTT closed; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;clearTimeout(this.#timer);this.#reject?.(new Error('MQTT sensors closed during startup'));this.#resolve=undefined;this.#reject=undefined;for(const group of this.#topics.values())for(const receiver of group.receivers){receiver.disconnect();receiver.close();}this.#closing=this.#started?this.#client.endAsync(true):Promise.resolve();return this.#closing;}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT closed; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;clearTimeout(this.#timer);this.#reject?.(new Error('MQTT sensors closed during startup'));this.#resolve=undefined;this.#reject=undefined;for(const group of this.#topics.values())for(const receiver of group.receivers){receiver.disconnect();receiver.close();}this.#closing=this.#started?this.#client.endAsync(true):Promise.resolve();return this.#closing;}
 }
