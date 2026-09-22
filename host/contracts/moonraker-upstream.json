@@ -91,7 +91,8 @@
     {
       "name": "klippy_apis",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "print-api.ts and print-api tests/benchmark implement guarded legacy print controls. Explicit ProductPrintApi native mode replaces start/pause/resume/cancel with durable admission and request-bound controls, plus status/reset; configured-product-print.test.ts covers HTTP/WebSocket/MQTT, and product-print-api.ts benchmark measures worker-journal admission. Native mode requires request identity, expiry, opaque authorized file IDs and a shared device maintenance owner, and cannot attach Klippy or legacy history hooks. Complete native object/status/history integration, production assembly and physical printing remain incomplete."
     },
     {
       "name": "klippy_connection",
@@ -686,28 +687,32 @@
       "line": 56,
       "method": "register_endpoint",
       "targetExpression": "\"/printer/print/pause\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
     },
     {
       "file": "moonraker/components/klippy_apis.py",
       "line": 59,
       "method": "register_endpoint",
       "targetExpression": "\"/printer/print/resume\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
     },
     {
       "file": "moonraker/components/klippy_apis.py",
       "line": 62,
       "method": "register_endpoint",
       "targetExpression": "\"/printer/print/cancel\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
     },
     {
       "file": "moonraker/components/klippy_apis.py",
       "line": 65,
       "method": "register_endpoint",
       "targetExpression": "\"/printer/print/start\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
     },
     {
       "file": "moonraker/components/klippy_apis.py",

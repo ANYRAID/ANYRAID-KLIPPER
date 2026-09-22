@@ -68,6 +68,7 @@ export interface PrintControllerOptions {
 interface PrintRecord {
   request: Readonly<StartPrint>;
   started: Promise<void>;
+  admitted: Promise<void>;
   completed?: Promise<void>;
 }
 // A journal represents one persistent printer owner within this process.
@@ -107,6 +108,10 @@ export class PrintController {
   #history = new Map<string, PrintRecord>();
   #historyLimit: number;
   #lastReset: string | undefined;
+  /** Read durable request metadata without replaying or changing device state. */
+  requestRecord(requestId:string):Promise<JournalRecord|null>{return this.#journal?this.#journal.get(requestId):Promise.resolve(null);}
+  get durable():boolean{return !!this.#journal;}
+  usesMaintenanceGate(gate:MaintenanceGate):boolean{return this.#maintenanceGate===gate;}
   get rememberedRequests(): number {
     return this.#history.size;
   }
@@ -219,6 +224,12 @@ export class PrintController {
       throw error;
     }
   }
+  /** Resolves after durable reservation and expiry checks, before waiting for
+   * preparation. The controller owns the operation after caller disconnect. */
+  admit(input:StartPrint):Promise<void>{
+    const started=this.start(input),record=this.#history.get(input?.requestId);
+    return record?.started===started?record.admitted:started;
+  }
   start(input: StartPrint): Promise<void> {
     if(this.#faultStop)return Promise.reject(new Error('Printer fault requires device reinitialization',{cause:this.#faultCause}));
     // Validate all user parameters before acquiring a device or causing effects.
@@ -270,6 +281,7 @@ export class PrintController {
       bed: input.bed,
       ...(expiresAt===undefined?{}:{expiresAt}),
     });
+    const admission=Promise.withResolvers<void>();void admission.promise.catch(()=>{});
     this.#startPromise = this.#run(
       'start',
       'preparing',
@@ -285,6 +297,7 @@ export class PrintController {
         // Durable reservation must finish before the first device effect. A
         // wall-clock rollback cannot extend the original admission budget.
         if(expiresAt!==undefined&&(Date.now()>=expiresAt||performance.now()-admittedAt>=remaining))throw new Error('Print request expired before admission');
+        admission.resolve();
         await this.#device.prepare(this.#start!, signal);
         signal.throwIfAborted();
         await this.#device.start(this.#start!.fileId, signal);
@@ -292,10 +305,11 @@ export class PrintController {
         await this.#persist('started');
       },
     );
-    void this.#startPromise.then(releaseActivity,releaseActivity);
+    void this.#startPromise.then(releaseActivity,error=>{admission.reject(error);releaseActivity();});
     this.#history.set(input.requestId, {
       request: this.#start,
       started: this.#startPromise,
+      admitted: admission.promise,
     });
     return this.#startPromise;
   }
