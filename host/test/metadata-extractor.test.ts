@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,open,rm} from 'node:fs/promises';
-import {fstatSync} from 'node:fs';
+import {fstatSync,readdirSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -22,7 +22,10 @@ test('worker file and output limits fail without leaking descriptors or poisonin
  const f=await fixture();try{for(const options of [{maxFileBytes:1},{maxOutputBytes:1}]){const extractor=await MetadataExtractor.open(options);try{const source=await open(f.path,'r'),fd=source.fd;await assert.rejects(extractor.extract(source,new AbortController().signal),/limit|budget/i);assert.throws(()=>fstatSync(fd),/EBADF/);assert.equal(extractor.closed,false);}finally{await extractor.close();}}}finally{await f.close();}
 });
 test('timeout fences the instance and termination releases active and queued sources',async()=>{
- const f=await fixture('G1 Z.2 X1\n'.repeat(200000)),extractor=await MetadataExtractor.open({timeoutMs:1});try{const a=await open(f.path,'r'),b=await open(f.path,'r'),fds=[a.fd,b.fd];const results=await Promise.allSettled([extractor.extract(a,new AbortController().signal),extractor.extract(b,new AbortController().signal)]);assert.ok(results.every(r=>r.status==='rejected'));assert.equal(extractor.closed,true);await extractor.close();for(const fd of fds)assert.throws(()=>fstatSync(fd),/EBADF/);}finally{await extractor.close();await f.close();}
+ const f=await fixture('G1 Z.2 X1\n'.repeat(200000)),extractor=await MetadataExtractor.open({timeoutMs:1});try{const a=await open(f.path,'r'),b=await open(f.path,'r'),identity=fstatSync(a.fd,{bigint:true});const requests=[extractor.extract(a,new AbortController().signal),extractor.extract(b,new AbortController().signal)];assert.equal(a.fd,-1);assert.equal(b.fd,-1);const results=await Promise.allSettled(requests);assert.ok(results.every(r=>r.status==='rejected'));assert.equal(extractor.closed,true);await extractor.close();
+ // Descriptor numbers can be reused by concurrent runtime I/O. Check that no
+ // descriptor still owns this source inode, including transferred/queued ones.
+ for(const name of readdirSync('/proc/self/fd')){let stat;try{stat=fstatSync(Number(name),{bigint:true});}catch(error){if((error as NodeJS.ErrnoException).code==='EBADF')continue;throw error;}assert.ok(stat.dev!==identity.dev||stat.ino!==identity.ino,'Metadata source remains open after worker termination');}}finally{await extractor.close();await f.close();}
 });
 test('cache tickets reject stale scans and failure does not invalidate a newer result',async()=>{
  const f=await fixture(),extractor=await MetadataExtractor.open(),store=new FileMetadataStore();try{const source=await open(f.path,'r');const old=scanMetadataFields(extractor,store,'file.gcode',source,new AbortController().signal),newer=store.begin('file.gcode');store.commit(newer,{size:777});assert.equal(await old,false);assert.equal(store.metadata('file.gcode').size,777);
