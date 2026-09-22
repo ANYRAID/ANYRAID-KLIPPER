@@ -2,10 +2,12 @@ import {Socket} from 'node:net';
 import {closeSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import type {ReleaseEstimate} from '../timing/clock-sync.ts';
+import type {TriggerPlan} from '../inputs/trsync.ts';
 import type {ClockScheduler} from '../timing/clock-runtime.ts';
 export interface SerialEvent {data:Uint8Array;sentTime:number;receiveTime:number;notifyId:bigint}
 export interface SerialPacket {data:Uint8Array;min:bigint;req:bigint}
 interface Native {
+ createTrigger(members:readonly (readonly unknown[])[]):object;startTrigger(handle:object):void;closeTrigger(handle:object):void;
  wakeFd(handle:object):number;create(fd:number,canClientId?:number):object;close(handle:object):void;
  send(handle:object,payload:Uint8Array,minClock:bigint,reqClock:bigint,notifyId:bigint,queue:number):void;
  sendBatch(handle:object,packed:Uint8Array,firstId:bigint,queue:number,deadline:number):void;
@@ -24,6 +26,12 @@ export const serialClock:ClockScheduler={now:()=>native.now(),schedule(callback,
  * drain is nonblocking. close cancels host traffic, NOT already queued MCU moves. */
 export class NativeSerialQueue {
  #handle:object;#closed=false;#id=0n;#wake:Socket|undefined;
+ /** Retains native queue handles until close. Configure clocks and prepare all
+  * MCU start plans first; use the same commandQueue when sending those plans. */
+ static createTriggerDispatch(members:readonly TriggerDispatchMember[]):NativeTriggerDispatch {
+  if(!Array.isArray(members)||members.length<1||members.length>16)throw new RangeError('Invalid trigger dispatch members');
+  return new NativeTriggerDispatch(native.createTrigger(members.map(m=>[m.queue.#handle,m.commandQueue,m.oid,m.tags.timeout,m.tags.trigger,m.tags.state,m.plan.startClock,m.plan.expireClock,m.plan.expireTicks,m.plan.minExtendTicks])));
+ }
  constructor(fd:number,canClientId?:number){this.#handle=canClientId===undefined?native.create(fd):native.create(fd,canClientId);}
  /** Zero leaves the corresponding native setting unchanged. */
  configure(baud:number,receiveWindow:number):void{native.configure(this.#handle,baud,receiveWindow);}
@@ -56,5 +64,17 @@ export class NativeSerialQueue {
   socket.on('close',()=>{if(!this.#closed)fail(new Error('Serial wake channel closed'));});
  }
  close():void{if(!this.#closed){this.#closed=true;try{native.close(this.#handle);}finally{this.#wake?.destroy();this.#wake=undefined;}}}
+ [Symbol.dispose]():void{this.close();}
+}
+
+export interface TriggerDispatchMember {readonly queue:NativeSerialQueue;readonly commandQueue:number;readonly oid:number;readonly tags:Readonly<{timeout:number;trigger:number;state:number}>;readonly plan:TriggerPlan;}
+/** One-shot native fastreader group. Closing unregisters callbacks; it does not
+ * stop queued MCU movement. The homing owner must issue and confirm MCU stops.
+ * Closing any member queue invalidates the entire group. */
+export class NativeTriggerDispatch {
+ #handle:object;
+ constructor(handle:object){this.#handle=handle;}
+ start():void{native.startTrigger(this.#handle);}
+ close():void{native.closeTrigger(this.#handle);}
  [Symbol.dispose]():void{this.close();}
 }

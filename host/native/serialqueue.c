@@ -16,13 +16,16 @@ napi_status can_transport_exports(napi_env,napi_value);
 #define CHECK(x) do {if((x)!=napi_ok){napi_throw_error(env,NULL,"Node-API failure");return NULL;}}while(0)
 #define REJECT(s) do {napi_throw_range_error(env,NULL,s);return NULL;}while(0)
 static const napi_type_tag tag={0x4179726169645351ULL,0x3236303932303031ULL};
-struct handle {struct serialqueue *sq;struct command_queue *cq[128];int fd,wake[2];uint64_t last_id;unsigned pending;};
-static void release(struct handle *h){if(h->sq){serialqueue_set_wake_fd(h->sq,-1);serialqueue_exit(h->sq);serialqueue_free(h->sq);h->sq=NULL;for(int i=0;i<128;i++){serialqueue_free_commandqueue(h->cq[i]);h->cq[i]=NULL;}close(h->fd);if(h->wake[0]>=0){close(h->wake[0]);close(h->wake[1]);h->wake[0]=h->wake[1]=-1;}}}
+struct dispatch_handle;
+static void release_dispatch(struct dispatch_handle *);
+struct handle {struct dispatch_handle *dispatches[32];struct serialqueue *sq;struct command_queue *cq[128];int fd,wake[2];uint64_t last_id;unsigned pending;};
+static void release(struct handle *h){if(h->sq){for(int i=0;i<32;i++)if(h->dispatches[i])release_dispatch(h->dispatches[i]);serialqueue_set_wake_fd(h->sq,-1);serialqueue_exit(h->sq);serialqueue_free(h->sq);h->sq=NULL;for(int i=0;i<128;i++){serialqueue_free_commandqueue(h->cq[i]);h->cq[i]=NULL;}close(h->fd);if(h->wake[0]>=0){close(h->wake[0]);close(h->wake[1]);h->wake[0]=h->wake[1]=-1;}}}
 static void cleanup(napi_env env,void *data,void *hint){(void)env;(void)hint;struct handle *h=data;release(h);free(h);}
 static struct handle *get(napi_env env,napi_value obj){bool match=false;struct handle *h=NULL;if(napi_check_object_type_tag(env,obj,&tag,&match)!=napi_ok||!match||napi_unwrap(env,obj,(void**)&h)!=napi_ok||!h||!h->sq){napi_throw_error(env,NULL,"Invalid or closed serial queue");return NULL;}return h;}
 static int number(napi_env env,napi_value v,double *d){return napi_get_value_double(env,v,d)==napi_ok&&isfinite(*d);}
 static int integer(napi_env env,napi_value v,uint64_t *d){bool exact=false;return napi_get_value_bigint_uint64(env,v,d,&exact)==napi_ok&&exact;}
 static napi_value nothing(napi_env env){napi_value v;napi_get_undefined(env,&v);return v;}
+#include "trdispatch.inc"
 static napi_value create(napi_env env,napi_callback_info info){
  size_t n=2;napi_value a[2];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));double fd,client=0;
  if((n!=1&&n!=2)||!number(env,a[0],&fd)||fd<0||fd>0x7fffffff||floor(fd)!=fd)REJECT("Invalid serial file descriptor");
@@ -83,10 +86,11 @@ static napi_value pull(napi_env env,napi_callback_info info){
  CHECK(napi_create_double(env,p.sent_time,&v));CHECK(napi_set_named_property(env,obj,"sentTime",v));CHECK(napi_create_double(env,p.receive_time,&v));CHECK(napi_set_named_property(env,obj,"receiveTime",v));CHECK(napi_create_bigint_uint64(env,p.notify_id,&v));CHECK(napi_set_named_property(env,obj,"notifyId",v));return obj;
 }
 static napi_value configure(napi_env env,napi_callback_info info){size_t n=3;napi_value a[3];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=3)REJECT("Expected queue, frequency and receive window");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,window;if(!number(env,a[1],&freq)||freq<0||freq>1e9||!number(env,a[2],&window)||(window!=0&&window<64)||window>65536||floor(window)!=window)REJECT("Invalid serial configuration");if(freq)serialqueue_set_wire_frequency(h->sq,freq);if(window)serialqueue_set_receive_window(h->sq,(int)window);return nothing(env);}
-static napi_value estimate(napi_env env,napi_callback_info info){size_t n=4;napi_value a[4];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=4)REJECT("Expected clock estimate");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,time;uint64_t clock;if(!number(env,a[1],&freq)||freq<=0||freq>1e9||!number(env,a[2],&time)||time<0||!integer(env,a[3],&clock)||clock>MAX_CLOCK)REJECT("Invalid serial clock estimate");serialqueue_set_clock_est(h->sq,freq,time,clock);return nothing(env);}
+static napi_value estimate(napi_env env,napi_callback_info info){size_t n=4;napi_value a[4];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=4)REJECT("Expected clock estimate");struct handle *h=get(env,a[0]);if(!h)return NULL;double freq,time;uint64_t clock;if(!number(env,a[1],&freq)||freq<=0||freq>1e9||!number(env,a[2],&time)||time<0||!integer(env,a[3],&clock)||clock>MAX_CLOCK)REJECT("Invalid serial clock estimate");for(int i=0;i<32;i++)if(h->dispatches[i]&&clock>4503599627370495ULL)REJECT("Trigger dispatch clock precision exceeded");serialqueue_set_clock_est(h->sq,freq,time,clock);return nothing(env);}
 static napi_value now(napi_env env,napi_callback_info info){(void)info;napi_value v;CHECK(napi_create_double(env,get_monotonic(),&v));return v;}
 static napi_value stats(napi_env env,napi_callback_info info){size_t n=1;napi_value a[1];CHECK(napi_get_cb_info(env,info,&n,a,NULL,NULL));if(n!=1)REJECT("Expected queue");struct handle *h=get(env,a[0]);if(!h)return NULL;char buf[4096];serialqueue_get_stats(h->sq,buf,sizeof(buf));napi_value v;CHECK(napi_create_string_utf8(env,buf,NAPI_AUTO_LENGTH,&v));return v;}
 static napi_value init(napi_env env,napi_value exports){CHECK(uart_exports(env,exports));CHECK(can_transport_exports(env,exports));napi_property_descriptor d[]={
+ {"createTrigger",NULL,create_dispatch,NULL,NULL,NULL,napi_default,NULL},{"startTrigger",NULL,start_dispatch,NULL,NULL,NULL,napi_default,NULL},{"closeTrigger",NULL,close_dispatch,NULL,NULL,NULL,napi_default,NULL},
  {"sendBatch",NULL,send_batch,NULL,NULL,NULL,napi_default,NULL},
  {"wakeFd",NULL,wake_fd,NULL,NULL,NULL,napi_default,NULL},{"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_queue,NULL,NULL,NULL,napi_default,NULL},{"send",NULL,send_queue,NULL,NULL,NULL,napi_default,NULL},{"pull",NULL,pull,NULL,NULL,NULL,napi_default,NULL},{"configure",NULL,configure,NULL,NULL,NULL,napi_default,NULL},{"estimate",NULL,estimate,NULL,NULL,NULL,napi_default,NULL},{"now",NULL,now,NULL,NULL,NULL,napi_default,NULL},{"stats",NULL,stats,NULL,NULL,NULL,napi_default,NULL}};CHECK(napi_define_properties(env,exports,sizeof(d)/sizeof(d[0]),d));return exports;}
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)
