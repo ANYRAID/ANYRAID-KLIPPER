@@ -40,6 +40,7 @@ function bounded(value:number,min:number,max:number){if(!Number.isSafeInteger(va
 export class MqttSensors {
  readonly instanceName:string;
  readonly #waiters:MqttMessageWaiters;readonly #client:MqttClient;readonly #topics=new Map<string,{qos:QoS;receivers:SensorMessages[]}>();readonly #timeout:number;readonly #defaultQos:QoS;readonly #publishes=new Set<(error:Error)=>void>();
+ #rpcReceiver:((payload:Buffer,retained:boolean,signal:AbortSignal)=>void)|undefined;#rpcTopic:string|undefined;#rpcGeneration=new AbortController();
  #presence=false;#presenceOnline=false;#presenceFailures=0;
  #closed=false;#started=false;#connected=false;#ready=false;#generation=0;#connections=0;#messages=0;#failure:string|null=null;
  #starting:Promise<void>|undefined;#resolve:(()=>void)|undefined;#reject:((error:Error)=>void)|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#closing:Promise<void>|undefined;
@@ -64,12 +65,12 @@ export class MqttSensors {
   },clientOptions);
   this.#waiters=new MqttMessageWaiters(this.#client,this.#topics,()=>!this.#closed&&this.#ready&&this.#client.connected&&!this.#client.stream.destroyed,this.#defaultQos,this.#timeout);
   this.#client.on('error',()=>{this.#failure='MQTT transport error';});
-  this.#client.on('close',()=>{this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT disconnected; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;this.#presenceOnline=false;for(const group of this.#topics.values())for(const receiver of group.receivers)receiver.disconnect();});
-  this.#client.on('connect',()=>{if(this.#closed)return;const generation=++this.#generation;this.#connected=true;this.#connections++;this.#ready=false;const subscriptions=Object.fromEntries([...this.#topics].map(([topic,group])=>[topic,{qos:group.qos}]));
+  this.#client.on('close',()=>{this.#rpcGeneration.abort();this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT disconnected; delivery may be unknown'));this.#generation++;this.#connected=false;this.#ready=false;this.#presenceOnline=false;for(const group of this.#topics.values())for(const receiver of group.receivers)receiver.disconnect();});
+  this.#client.on('connect',()=>{if(this.#closed)return;this.#rpcGeneration.abort();this.#rpcGeneration=new AbortController();const generation=++this.#generation;this.#connected=true;this.#connections++;this.#ready=false;const subscriptions=Object.fromEntries([...this.#topics].map(([topic,group])=>[topic,{qos:group.qos}]));
    if(!this.#topics.size){this.#subscribed(generation);return;}
    this.#client.subscribe(subscriptions,(error,grants)=>{if(this.#closed||generation!==this.#generation)return;if(error||!grants||grants.length!==this.#topics.size||grants.some(grant=>grant.qos>2)){this.#failure='MQTT subscription rejected';return;}this.#subscribed(generation);});
   });
-  this.#client.on('message',(topic,payload)=>{if(this.#closed||!this.#connected)return;const temporary=this.#waiters.receive(topic,payload),group=this.#topics.get(topic);if(!group&&!temporary)return;this.#messages++;if(group)for(const receiver of group.receivers)receiver.receive(payload);});
+  this.#client.on('message',(topic,payload,packet)=>{if(this.#closed||!this.#connected)return;const temporary=this.#waiters.receive(topic,payload),group=this.#topics.get(topic);if(!group&&!temporary)return;this.#messages++;if(topic===this.#rpcTopic)try{this.#rpcReceiver?.(payload,packet.retain,this.#rpcGeneration.signal);}catch{this.#failure='MQTT RPC receiver error';}if(group)for(const receiver of group.receivers)receiver.receive(payload);});
   for(const receiver of receivers)receiverOwners.add(receiver);
  }
  /** The server enables presence before ownership/start. Standalone sensor
@@ -78,6 +79,13 @@ export class MqttSensors {
   if(this.#started||this.#closed)throw new ApiError(409,'MQTT presence must be enabled before start');
   const topic=this.instanceName+'/moonraker/status';if(Buffer.byteLength(topic)>65535)throw new ApiError(400,'MQTT presence topic exceeds byte limit');
   this.#client.options.will={topic,payload:Buffer.from('{"server":"offline"}'),qos:this.#defaultQos,retain:true};this.#presence=true;
+ }
+ bindRpc(receiver:(payload:Buffer,retained:boolean,signal:AbortSignal)=>void,qos:QoS):void{
+  if(this.#started||this.#closed||this.#rpcReceiver||typeof receiver!=='function')throw new ApiError(409,'MQTT RPC must bind once before start');
+  const topic=this.instanceName+'/moonraker/api/request';if(Buffer.byteLength(topic)>65535)throw new ApiError(400,'MQTT RPC topic exceeds byte limit');
+  const effective=(bounded(qos,0,2)||this.#defaultQos) as QoS,previous=this.#topics.get(topic);
+  if(previous)previous.qos=Math.max(previous.qos,effective) as QoS;else this.#topics.set(topic,{qos:effective,receivers:[]});
+  this.#rpcReceiver=receiver;this.#rpcTopic=topic;
  }
  waitForMessage(topic:string,options:MqttWaitOptions={}):Promise<Buffer>{return this.#waiters.wait(topic,options);}
  #failPublishes(error:Error):void{for(const fail of [...this.#publishes])fail(error);}
@@ -112,7 +120,7 @@ export class MqttSensors {
  }
  #subscribed(generation:number){if(this.#closed||generation!==this.#generation)return;this.#ready=true;this.#failure=null;clearTimeout(this.#timer);this.#resolve?.();this.#resolve=undefined;this.#reject=undefined;if(this.#presence)void this.publish(this.instanceName+'/moonraker/status','{"server":"online"}',{retain:true}).then(()=>{if(!this.#closed&&generation===this.#generation)this.#presenceOnline=true;},()=>{if(!this.#closed&&generation===this.#generation)this.#presenceFailures++;});}
  owns(store:SensorStore):boolean{return [...this.#topics.values()].every(group=>group.receivers.every(receiver=>receiver.owns(store)));}
- get status(){return {started:this.#started,closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,waiting:this.#waiters.count,failure:this.#failure,presence:{enabled:this.#presence,online:this.#presenceOnline,failures:this.#presenceFailures}};}
+ get status(){return {started:this.#started,closed:this.#closed,connected:this.#connected,ready:this.#ready,connections:this.#connections,messages:this.#messages,waiting:this.#waiters.count,rpcBound:!!this.#rpcReceiver,failure:this.#failure,presence:{enabled:this.#presence,online:this.#presenceOnline,failures:this.#presenceFailures}};}
  start():Promise<void>{if(this.#closed)return Promise.reject(new Error('MQTT sensors are closed'));if(this.#starting)return this.#starting;
   this.#starting=new Promise<void>((resolve,reject)=>{this.#resolve=resolve;this.#reject=reject;this.#timer=setTimeout(()=>{this.#failure='MQTT startup timed out';reject(new Error(this.#failure));void this.close();},this.#timeout);this.#started=true;this.#client.connect();});return this.#starting;
  }
@@ -122,7 +130,7 @@ export class MqttSensors {
  }
  close():Promise<void>{
   if(this.#closing)return this.#closing;
-  this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT closed; delivery may be unknown'));
+  this.#rpcGeneration.abort();this.#waiters.disconnect();this.#failPublishes(new ApiError(503,'MQTT closed; delivery may be unknown'));
   // Start the final retained write while this generation is still writable.
   // Reject public writes immediately after; no retry or reconnect is allowed.
   this.#client.options.reconnectPeriod=0;
