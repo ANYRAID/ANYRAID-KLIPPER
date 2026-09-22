@@ -44,13 +44,30 @@ function initialState(sos: MotanSOS): Float64Array {
 function pass(data: Float64Array, sos: MotanSOS, state: Float64Array,
               reverse: boolean): void {
   const endpoint = reverse ? data[data.length - 1] : data[0];
-  // Section-major processing retains each sample's direct-form-II operation
-  // order while keeping the two delay elements in scalar registers.
+  // Pair adjacent sections to reduce buffer traffic while keeping each
+  // section's recurrence and arithmetic order unchanged.
   for (let section = 0; section < sos.length; section++) {
     const [b0, b1, b2, , a1, a2] = sos[section];
     let z0 = state[2 * section] * endpoint;
     let z1 = state[2 * section + 1] * endpoint;
-    if (reverse) {
+    if (section + 1 < sos.length) {
+      const [c0, c1, c2, , d1, d2] = sos[section + 1];
+      let w0 = state[2 * section + 2] * endpoint;
+      let w1 = state[2 * section + 3] * endpoint;
+      const step = reverse ? -1 : 1, end = reverse ? -1 : data.length;
+      for (let i = reverse ? data.length - 1 : 0; i !== end; i += step) {
+        const x = data[i], y = b0 * x + z0;
+        z0 = (b1 * x - a1 * y) + z1;
+        z1 = b2 * x - a2 * y;
+        const next = c0 * y + w0;
+        w0 = (c1 * y - d1 * next) + w1;
+        w1 = c2 * y - d2 * next;
+        data[i] = next;
+      }
+      if (!Number.isFinite(w0) || !Number.isFinite(w1))
+        throw new Error('Motan SOS state exceeds finite range');
+      section++;
+    } else if (reverse) {
       for (let i = data.length - 1; i >= 0; i--) {
         const x = data[i], y = b0 * x + z0;
         z0 = (b1 * x - a1 * y) + z1;
