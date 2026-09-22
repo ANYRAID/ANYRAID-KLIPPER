@@ -14,10 +14,10 @@ test('Configured MQTT status subscribes each Klippy generation and handles statu
  try{
   const path=join(dir,'main.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0\n[mqtt]\nstatus_objects=webhooks=state_message\npublish_split_status=true');
   service=await ConfiguredMoonraker.load(path,{sensors,sensorTransport,authorize:()=>{},information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]}});await service.start();await service.attachKlippy(klippy.path);
-  await until(()=>peer.packets.some(p=>p.cmd==='publish'));const first:any=peer.packets.find(p=>p.cmd==='publish');assert.equal(first.topic,'printer/klipper/state/webhooks/state_message');assert.equal(first.retain,true);assert.deepEqual(JSON.parse(first.payload.toString()),{eventtime:1,value:'ready'});
-  klippy.send('process_status_update',{eventtime:5,status:{webhooks:{state:'ready',state_message:'printing while broker waits'}}});await until(()=>service!.klippy?.stateMessage==='printing while broker waits');assert.equal(peer.packets.filter(p=>p.cmd==='publish').length,1);
-  klippy.drop();await until(()=>service!.mqttStatus?.initialized===false);await service.reconnectKlippy();await until(()=>peer.packets.filter(p=>p.cmd==='publish').length===2);
-  assert.equal(peer.packets.filter(p=>p.cmd==='publish').some((p:any)=>p.payload.toString().includes('printing while broker waits')),false);
+  await until(()=>peer.packets.some(p=>p.cmd==='publish'&&!p.topic.endsWith('/moonraker/status')));const first:any=peer.packets.find(p=>p.cmd==='publish'&&!p.topic.endsWith('/moonraker/status'));assert.equal(first.topic,'printer/klipper/state/webhooks/state_message');assert.equal(first.retain,true);assert.deepEqual(JSON.parse(first.payload.toString()),{eventtime:1,value:'ready'});
+  klippy.send('process_status_update',{eventtime:5,status:{webhooks:{state:'ready',state_message:'printing while broker waits'}}});await until(()=>service!.klippy?.stateMessage==='printing while broker waits');assert.equal(peer.packets.filter(p=>p.cmd==='publish').filter(p=>!p.topic.endsWith('/moonraker/status')).length,1);
+  klippy.drop();await until(()=>service!.mqttStatus?.initialized===false);await service.reconnectKlippy();await until(()=>peer.packets.filter(p=>p.cmd==='publish').filter(p=>!p.topic.endsWith('/moonraker/status')).length===2);
+  assert.equal(peer.packets.filter(p=>p.cmd==='publish').filter(p=>!p.topic.endsWith('/moonraker/status')).some((p:any)=>p.payload.toString().includes('printing while broker waits')),false);
   assert.ok(klippy.requests.filter(r=>r.method==='objects/subscribe').length>=4);assert.equal(service.mqttStatus?.initializationFailed,false);
  }finally{await service?.close();await sensorTransport.close();sensors.close();await peer.close();await klippy.close();await rm(dir,{recursive:true,force:true});}
 });

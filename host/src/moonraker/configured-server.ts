@@ -147,7 +147,7 @@ export class ConfiguredMoonraker {
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
   if(this.#sensors)sensorOwners.add(this.#sensors);
-  if(this.#sensorTransport)mqttSensorOwners.add(this.#sensorTransport);
+  if(this.#sensorTransport){this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(options.sensorTransport!==undefined&&(!(options.sensorTransport instanceof MqttSensors)||!options.sensors||!options.sensorTransport.owns(options.sensors)||options.sensorTransport.status.closed||options.sensorTransport.status.started||mqttSensorOwners.has(options.sensorTransport)))throw new ConfigurationError('Invalid or already owned sensor transport');

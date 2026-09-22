@@ -19,13 +19,13 @@ async function fixture(ackPublishes:boolean,run:(service:ConfiguredMoonraker,url
 }
 const post=(url:string,body:unknown,authorized=true)=>fetch(url+'/server/mqtt/publish',{method:'POST',headers:{'content-type':'application/json',...(authorized?{'x-api-key':'test'}:{})},body:JSON.stringify(body)});
 test('authorized HTTP and WebSocket publish reach MQTT with acknowledgment and are removed on close',()=>fixture(true,async(service,url,peer)=>{
- assert.equal((await post(url,{topic:'room',payload:'denied'},false)).status,401);assert.equal(peer.packets.filter(p=>p.cmd==='publish').length,0);
+ assert.equal((await post(url,{topic:'room',payload:'denied'},false)).status,401);assert.equal(peer.packets.filter(p=>p.cmd==='publish').filter(p=>!p.topic.endsWith('/moonraker/status')).length,0);
  const response=await post(url,{topic:'room',payload:{t:2.675},qos:1,retain:true});assert.equal(response.status,200);assert.deepEqual(await response.json(),{result:{topic:'room'}});
- const packet=peer.packets.find(p=>p.cmd==='publish');assert.ok(packet?.cmd==='publish');assert.deepEqual(JSON.parse(packet.payload.toString()),{t:2.675});assert.equal(packet.retain,true);
- const socket=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});try{await once(socket,'open');const reply=once(socket,'message',{signal:AbortSignal.timeout(3000)});socket.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'server.mqtt.publish',params:{topic:'room',payload:false,qos:2}}));assert.deepEqual(JSON.parse((await reply)[0].toString()),{jsonrpc:'2.0',result:{topic:'room'},id:2});assert.equal(peer.packets.filter(p=>p.cmd==='publish').at(-1)!.payload.toString(),'false');}finally{socket.terminate();}
+ const packet=peer.packets.find(p=>p.cmd==='publish'&&!p.topic.endsWith('/moonraker/status'));assert.ok(packet?.cmd==='publish');assert.deepEqual(JSON.parse(packet.payload.toString()),{t:2.675});assert.equal(packet.retain,true);
+ const socket=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});try{await once(socket,'open');const reply=once(socket,'message',{signal:AbortSignal.timeout(3000)});socket.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'server.mqtt.publish',params:{topic:'room',payload:false,qos:2}}));assert.deepEqual(JSON.parse((await reply)[0].toString()),{jsonrpc:'2.0',result:{topic:'room'},id:2});assert.equal(peer.packets.filter(p=>p.cmd==='publish').filter(p=>!p.topic.endsWith('/moonraker/status')).at(-1)!.payload.toString(),'false');}finally{socket.terminate();}
  assert.equal((await post(url,{topic:'room/#',payload:'invalid'})).status,400);assert.equal((await post(url,{topic:'room',payload:'x'.repeat(65537)})).status,413);
 }));
 test('HTTP publish timeout reports uncertainty and a later request still succeeds',()=>fixture(false,async(_service,url,peer)=>{
  const response=await post(url,{topic:'room',payload:'unknown',qos:1,timeout:0.02});assert.equal(response.status,504);assert.match(JSON.stringify(await response.json()),/delivery may be unknown/);
- const recovery=await post(url,{topic:'room',payload:'next',qos:0});assert.equal(recovery.status,200);await recovery.json();assert.ok(peer.packets.some(p=>p.cmd==='publish'&&p.payload.toString()==='unknown'));
+ const recovery=await post(url,{topic:'room',payload:'next',qos:0});assert.equal(recovery.status,200);await recovery.json();const end=Date.now()+3000;while(!peer.packets.some(p=>p.cmd==='publish'&&p.payload.toString()==='unknown')){assert.ok(Date.now()<end);await new Promise(r=>setTimeout(r,5));}
 }));
