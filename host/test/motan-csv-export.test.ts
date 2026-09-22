@@ -65,7 +65,7 @@ print(json.dumps([decode(s) for s in x]))`],{input:JSON.stringify([legacy,stdout
   assert.deepEqual(decoded[1],decoded[0]);
   await writeFile(output,'keep');
   assert.throws(()=>execFileSync(process.execPath,[cli,prefix,'-o',output,'-c',"__import__('os').system('false')"],{env,stdio:'pipe'}));
-  assert.throws(()=>execFileSync(process.execPath,[cli,prefix,'-o',output,'-c',"['status(configfile.settings.printer.kinematics)']",'-d','.01'],{env,stdio:'pipe'}),/cannot represent/);
+  assert.throws(()=>execFileSync(process.execPath,[cli,prefix,'-o',output,'-c',"['status(configfile.settings.printer)']",'-d','.01'],{env,stdio:'pipe'}),/finite scalar/);
   assert.equal(await readFile(output,'utf8'),'keep');
   assert.throws(()=>execFileSync(process.execPath,[...args,'-s','Infinity'],{env,stdio:'pipe'}));
  }finally{await rm(dir,{recursive:true,force:true});}

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// GPL-3.0-or-later. Numeric Motan CSV export; no Python runtime required.
+// GPL-3.0-or-later. Scalar Motan CSV export; no Python runtime required.
 import {parseArgs} from 'node:util';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
@@ -8,15 +8,15 @@ import {parsePythonFloat} from '../../host/src/moonraker/config-reader.ts';
 import {MotanAnalysisExecutor} from '../../host/src/motan/analysis-executor.ts';
 import {motanCsvChunks,writeMotanCsv} from '../../host/src/motan/csv-export.ts';
 const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
-  -c, --columns LIST   Nonempty Python literal or JSON list of numeric datasets
+  -c, --columns LIST   Nonempty Python literal or JSON list of datasets
   -o, --output FILE    CSV file (atomically replaced); default stdout
   -s, --skip SEC       Start offset (default 0)
   -d, --duration SEC   Analysis duration (default 5)
   --segment-time SEC  Sampling interval (default 0.000100)
   -h, --help           Show help
-Numeric datasets only. Text, null and integer status values requiring BigInt
-still require the legacy exporter. Stdout may be partial on failure.
-Limits: 1 million samples, 64 MiB numeric budget, 256 MiB CSV, 60 s analysis.
+Scalar columns supported; structured status objects and BigInt derived
+calculations still require the legacy exporter. Stdout may be partial on failure.
+Limits: 1 million samples, 64 MiB accounted table budget, 256 MiB CSV, 60 s analysis.
 `;
 const controller=new AbortController(),executor=new MotanAnalysisExecutor();
 const stop=()=>controller.abort(new Error('Motan CSV export cancelled'));
@@ -28,7 +28,7 @@ try{
   if(positionals.length!==1||!values.columns||values.columns.length>65536)throw new Error(help);
   const columns=parseLiteral(values.columns);
   if(!Array.isArray(columns)||!columns.length||columns.length>256||columns.some(name=>typeof name!=='string'))throw new Error('Columns must be a list of dataset names');
-  const names=columns as string[],result=await executor.analyze({prefix:positionals[0],datasets:names,
+  const names=columns as string[],result=await executor.analyze({prefix:positionals[0],datasets:names,output:'table',
    start:values.skip===undefined?0:parsePythonFloat(values.skip),duration:values.duration===undefined?5:parsePythonFloat(values.duration),
    segmentTime:values['segment-time']===undefined?.0001:parsePythonFloat(values['segment-time']),
   },{signal:controller.signal});

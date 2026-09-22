@@ -5,6 +5,8 @@ import {parsePythonFloat,parseConfigurationInteger} from '../moonraker/config-re
 import {motanDerivative,motanIntegral,motanNorm2,motanSmooth,motanCombine} from './derived-math.ts';
 import {motanNotch,motanButterworth} from './sos-design.ts';
 import {motanSOSFilter} from './sos-filter.ts';
+import {setImmediate as yieldImmediate} from 'node:timers/promises';
+import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
 import {fixedDecimal} from '../math/python-decimal.ts';
 const strip=(s:string)=>s.replace(/^[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+|[\t\n\v\f\r\x1c-\x1f \x85\xa0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$/g,'');
 interface Node {info:DatasetLabel;generate?:(data:Record<string,Float64Array>)=>Float64Array;}
@@ -56,4 +58,46 @@ export class MotanAnalyzer {
    for(const [name,node] of this.#nodes)if(node.generate)data[name]=node.generate(data);return {times,datasets:Object.freeze(data),labels:Object.freeze(labels)};
   }catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}
  }
+ /** Mixed scalar export. Numeric dependencies are checked on first use, so a
+  * BigInt column is never silently narrowed just because another column is derived. */
+ async generateTable(duration=5):Promise<MotanTable>{
+  this.#check();if(!Number.isFinite(duration)||duration<0||!this.#nodes.size)throw new Error('Invalid Motan analysis duration or datasets');this.#started=true;
+  try{
+   const start=this.#manager.startTime,end=start+duration,absolute:number[]=[];
+   if(!Number.isFinite(end))throw new Error('Motan analysis time exceeds finite range');
+   const raw=[...this.#nodes].filter(([,node])=>!node.generate);
+   // Reserve raw reference slots plus possible numeric dependency copies.
+   const reserved=(count:number)=>this.#numericBytes(count)+raw.length*count*8;
+   for(let t=start;t<end;){const next=t+this.#segment;if(!(next>t))throw new Error('Motan segment cannot advance the time axis');
+    if(absolute.length>=this.#samples)throw new Error('Motan analysis sample limit');
+    if(reserved(absolute.length+1)>this.#bytes)throw new Error('Motan table memory limit');absolute.push(t=next);
+   }
+   const times=Float64Array.from(absolute,time=>time-this.#manager.initialStartTime);
+   const data:Record<string,Float64Array|MotanScalar[]>=Object.create(null),labels:Record<string,DatasetLabel>=Object.create(null);
+   for(const [name,node]of this.#nodes){labels[name]=node.info;if(!node.generate)data[name]=new Array<MotanScalar>(times.length);}
+   let bytes=reserved(times.length);
+   for(let i=0;i<absolute.length;i++){
+    const row=await this.#manager.sample(absolute[i]);
+    for(const [name]of raw){const value=row[name];bytes+=motanScalarBytes(value)-8;
+     if(bytes>this.#bytes)throw new Error('Motan table memory limit');(data[name] as MotanScalar[])[i]=value as MotanScalar;}
+    if((i+1)%256===0)await yieldImmediate();
+   }
+   const numeric:Record<string,Float64Array>=Object.create(null);
+   const dependencies=new Proxy(numeric,{get:(target,key)=>{
+    if(typeof key!=='string')return undefined;if(Object.hasOwn(target,key))return target[key];
+    const values=data[key];if(!values)throw new Error('Unknown Motan numeric dependency');
+    if(values instanceof Float64Array)return target[key]=values;
+    const result=new Float64Array(values.length);
+    for(let i=0;i<values.length;i++){const value=values[i];if(typeof value!=='number'||!Number.isFinite(value))throw new Error('Motan derived analysis requires finite Number values: '+key);result[i]=value;}
+    return target[key]=result;
+   }});
+   for(const [name,node]of this.#nodes)if(node.generate)data[name]=node.generate(dependencies);
+   for(const [name,values]of Object.entries(data))if(Array.isArray(values)){
+    if(values.every(value=>typeof value==='number'))data[name]=numeric[name]??Float64Array.from(values as number[]);
+    else Object.freeze(values);
+   }
+   return {times,datasets:Object.freeze(data),labels:Object.freeze(labels)};
+  }catch(error){this.#failure=error instanceof Error?error:new Error(String(error));throw this.#failure;}
+ }
+
 }

@@ -8,10 +8,11 @@ import assert from 'node:assert/strict';
 import {managerFixture} from '../test/helpers/motan-manager-fixture.ts';
 import {scipyReferenceEnvironment} from '../test/helpers/motan-sos-oracle.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),dir=await mkdtemp(join(tmpdir(),'motan-csv-bench-')),prefix=join(dir,'log');
-const columns=['trapq(toolhead,x)','derivative(trapq(toolhead,x))','kin(stepper_x)','kin(stepper_y)','accelerometer(a,x)','status(heater.temperature)','trapq(toolhead,x)','deviation(kin(stepper_x),trapq(toolhead,x))'];
+const numericColumns=['trapq(toolhead,x)','derivative(trapq(toolhead,x))','kin(stepper_x)','kin(stepper_y)','accelerometer(a,x)','status(heater.temperature)','trapq(toolhead,x)','deviation(kin(stepper_x),trapq(toolhead,x))'];
 try{
- await managerFixture(prefix,10);
- for(const duration of [.02,20]){
+ await managerFixture(prefix,10,'corexy',{text:'逗号, "引号"\r\n换行',wide:9007199254740993123456789n,empty:null,yes:true});
+ for(const mixed of [false,true])for(const duration of [.02,20]){
+  const columns=mixed?[...numericColumns,'status(export_fields.text)','status(export_fields.wide)','status(export_fields.empty)','status(export_fields.yes)']:numericColumns;
   const outputs:string[]=[];
   for(const mode of ['python','node'] as const){
    const command=mode==='python'?(process.env.MOTAN_SCIPY_PYTHON??'python3'):process.execPath;
@@ -22,16 +23,16 @@ try{
     if(i)assert.equal(current,output);output=current;if(i>=2)ms.push(elapsed);
    }
    ms.sort((a,b)=>a-b);outputs.push(output);
-   console.log(JSON.stringify({node:process.version,mode,duration,columns:columns.length,bytes:Buffer.byteLength(output),elapsedMs:{median:ms[3],p95:ms[6]},includes:'process startup, analysis, CSV and stdout pipe'}));
+   console.log(JSON.stringify({node:process.version,mode,mixed,duration,columns:columns.length,bytes:Buffer.byteLength(output),elapsedMs:{median:ms[3],p95:ms[6]},includes:'process startup, analysis, CSV and stdout pipe'}));
   }
   const result=execFileSync(process.env.MOTAN_SCIPY_PYTHON??'python3',['-c',`import csv,io,json,sys,struct
 x=json.load(sys.stdin)
 def decode(text):
  rows=list(csv.reader(io.StringIO(text,newline='')))
- return rows[0],[[struct.pack('>d',float(v)) for v in row] for row in rows[1:]]
+ return rows[0],[[struct.pack('>d',float(v)) if i<=8 else v for i,v in enumerate(row)] for row in rows[1:]]
 a,b=map(decode,x)
 assert a==b
-print(json.dumps(dict(numeric_bits_exact=True,rows=len(a[1]))))`],{input:JSON.stringify(outputs),encoding:'utf8',maxBuffer:32*1024**2});
+print(json.dumps(dict(numeric_bits_and_scalar_text_exact=True,rows=len(a[1]))))`],{input:JSON.stringify(outputs),encoding:'utf8',maxBuffer:32*1024**2});
   console.log(result.trim());
  }
 }finally{await rm(dir,{recursive:true,force:true});}

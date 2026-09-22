@@ -4,7 +4,7 @@ import {setImmediate as yieldImmediate} from 'node:timers/promises';
 import {open,rename,rm} from 'node:fs/promises';
 import {dirname,basename,join} from 'node:path';
 import {randomUUID} from 'node:crypto';
-import type {MotanAnalysis} from './analyzer.ts';
+import {motanScalarBytes,type MotanScalar,type MotanTable} from './table.ts';
 
 export interface MotanCsvOptions {signal?:AbortSignal;maxOutputBytes?:number;}
 const quote=(value:string)=>/[",\r\n]/.test(value)?'"'+value.replaceAll('"','""')+'"':value;
@@ -12,9 +12,13 @@ const numberText=(value:number)=>{
  if(!Number.isFinite(value))throw new Error('Motan CSV requires finite numeric values');
  return Object.is(value,-0)?'-0':String(value);
 };
+function scalarText(value:MotanScalar):string{
+ motanScalarBytes(value);
+ return value===null?'':typeof value==='boolean'?(value?'True':'False'):typeof value==='number'?numberText(value):quote(String(value));
+}
 /** Caller owns and must not mutate the numeric analysis until iteration finishes.
  * Column order and duplicates are preserved; only a chunk and one row are built. */
-export async function* motanCsvChunks(analysis:MotanAnalysis,columns:readonly string[],options:MotanCsvOptions={}):AsyncGenerator<Buffer>{
+export async function* motanCsvChunks(analysis:MotanTable,columns:readonly string[],options:MotanCsvOptions={}):AsyncGenerator<Buffer>{
  const signal=options.signal,max=options.maxOutputBytes??256*1024**2;
  signal?.throwIfAborted();
  if(!Array.isArray(columns)||!columns.length||columns.length>256
@@ -24,7 +28,7 @@ export async function* motanCsvChunks(analysis:MotanAnalysis,columns:readonly st
  const selected=columns.map(name=>{
   const label=analysis.labels[name],values=analysis.datasets[name];
   if(typeof name!=='string'||!Object.hasOwn(analysis.datasets,name)||!Object.hasOwn(analysis.labels,name)
-     ||!(values instanceof Float64Array)||values.length!==analysis.times.length
+     ||(!(values instanceof Float64Array)&&!Array.isArray(values))||values.length!==analysis.times.length
      ||!label||typeof label.label!=='string'||typeof label.units!=='string'
      ||label.label.length>16384||label.units.length>16384)
    throw new Error('Invalid Motan CSV column');
@@ -37,7 +41,7 @@ export async function* motanCsvChunks(analysis:MotanAnalysis,columns:readonly st
  if(pending.length>=65536){yield Buffer.from(pending);pending='';}
  for(let i=0;i<analysis.times.length;i++){
   signal?.throwIfAborted();
-  append([numberText(analysis.times[i]),...selected.map(({values})=>numberText(values[i]))].join(',')+'\r\n');
+  append([numberText(analysis.times[i]),...selected.map(({values})=>scalarText(values[i]))].join(',')+'\r\n');
   if(pending.length>=65536){yield Buffer.from(pending);pending='';}
   if((i+1)%256===0){await yieldImmediate();signal?.throwIfAborted();}
  }
@@ -45,7 +49,7 @@ export async function* motanCsvChunks(analysis:MotanAnalysis,columns:readonly st
 }
 /** Publish only a complete export. Existing output survives validation, I/O or
  * cancellation failure before rename. Atomic rename is not a power-loss fsync. */
-export async function writeMotanCsv(analysis:MotanAnalysis,columns:readonly string[],filename:string,options:MotanCsvOptions={}):Promise<void>{
+export async function writeMotanCsv(analysis:MotanTable,columns:readonly string[],filename:string,options:MotanCsvOptions={}):Promise<void>{
  options.signal?.throwIfAborted();
  const temp=join(dirname(filename),`.${basename(filename)}.${randomUUID()}.tmp`);let owned=false;
  try{
