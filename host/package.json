@@ -225,7 +225,8 @@
     "bench:motan-log-writer": "node bench/motan-log-writer.ts",
     "bench:motan-capture": "node bench/motan-capture.ts",
     "bench:motan-log-reader": "node bench/motan-log-reader.ts",
-    "bench:motan-motion-samples": "node bench/motan-motion-samples.ts"
+    "bench:motan-motion-samples": "node bench/motan-motion-samples.ts",
+    "bench:motan-dispatch": "node bench/motan-dispatch.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

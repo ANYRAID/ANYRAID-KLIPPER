@@ -10,6 +10,7 @@ export type MotanMessage=Record<string,unknown>;
 /** A fixed initial file extent, with bounded streaming decompression. Offset 0
  * selects gzip; positive positions must be writer-provided full-flush offsets. */
 export class MotanLogReader {
+ readonly #sizes=new WeakMap<MotanMessage,number>();
  readonly #file:FileHandle;readonly #size:number;readonly #maxDecoded:number;readonly #recordLimit:number;readonly #partial:boolean;readonly #signal:AbortSignal|undefined;
  #seeking=false;#position=0;#decoded=0;#generation=0;#closed=false;#eof=false;#failure:unknown;
  #reading:Promise<unknown>|undefined;#source:Readable|undefined;#inflate:Gunzip|InflateRaw|undefined;#pump:Promise<void>|undefined;#iterator:AsyncIterator<Buffer>|undefined;
@@ -21,6 +22,8 @@ export class MotanLogReader {
   if(!Number.isSafeInteger(fileMax)||fileMax<0||fileMax>1024**4||!Number.isSafeInteger(decoded)||decoded<1||decoded>1024**4||!Number.isSafeInteger(record)||record<1||record>64*1024**2||options.allowIncomplete!==undefined&&typeof options.allowIncomplete!=='boolean')throw new Error('Invalid Motan reader limits');options.signal?.throwIfAborted();
   const file=await open(path,constants.O_RDONLY|constants.O_NONBLOCK);try{const stat=await file.stat();if(!stat.isFile()||!Number.isSafeInteger(stat.size)||stat.size>fileMax)throw new Error('Motan input must be a bounded regular file');options.signal?.throwIfAborted();return new MotanLogReader(file,stat.size,options);}catch(error){await file.close();throw error;}
  }
+ /** Original encoded record size; conservative queue accounting avoids reserialization. */
+ encodedSize(message:MotanMessage):number|undefined{return this.#sizes.get(message);}
  get status(){return {closed:this.#closed,eof:this.#eof,fileSize:this.#size,startOffset:this.#position,decodedBytes:this.#decoded,messages:this.#messages,ignoredTailBytes:this.#ignoredTail,failed:this.#failure!==undefined};}
  #check():void{this.#signal?.throwIfAborted();if(this.#closed)throw new Error('Motan reader is closed');if(this.#failure!==undefined)throw this.#failure;}
  #start():void{
@@ -37,7 +40,7 @@ export class MotanLogReader {
  }
  async #read(limit:number):Promise<MotanMessage[]>{
   try{this.#start();const result:MotanMessage[]=[];let bytes=0;
-   while(result.length<limit){this.#check();if(this.#at<this.#queue.length){const raw=this.#queue[this.#at];if(result.length&&bytes+raw.length>4*1024**2)break;this.#at++;bytes+=raw.length;const value=parseMotanJson(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');result.push(value as MotanMessage);this.#messages++;continue;}
+   while(result.length<limit){this.#check();if(this.#at<this.#queue.length){const raw=this.#queue[this.#at];if(result.length&&bytes+raw.length>4*1024**2)break;this.#at++;bytes+=raw.length;const value=parseMotanJson(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);result.push(value as MotanMessage);this.#messages++;continue;}
     this.#queue=[];this.#at=0;if(this.#eof)break;const next=await this.#iterator!.next();this.#check();
     if(next.done){await this.#pump;this.#eof=true;if(this.#frames.pending){if(!this.#partial)throw new Error('Motan log ends with an incomplete record');this.#ignoredTail=this.#frames.pending;this.#frames=new ConsoleFrames(3,this.#recordLimit);}break;}
     this.#decoded+=next.value.length;if(this.#decoded>this.#maxDecoded)throw new Error('Motan decompression limit exceeded');this.#queue=this.#frames.push(next.value);

@@ -1,0 +1,17 @@
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {gzipSync} from 'node:zlib';
+import {performance,monitorEventLoopDelay} from 'node:perf_hooks';
+import assert from 'node:assert/strict';
+import {MotanLogReader} from '../src/motan/log-reader.ts';
+import {MotanDispatcher,MotanStatusTracker} from '../src/motan/dispatch.ts';
+const source=execFileSync('git',['show','2c7ba578:scripts/motan/readlog.py']),hash=createHash('sha256').update(source).digest('hex');assert.equal(hash,'f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2');
+const stats=(values:number[])=>{values.sort((a,b)=>a-b);return {median:values[3],p95:values[6]};};
+const dir=await mkdtemp(join(tmpdir(),'motan-dispatch-bench-'));try{console.log(JSON.stringify({node:process.version,hash,warmup:2,measured:7}));for(const [rounds,rows] of [[10000,1],[256,1000]]){
+ const prefix=join(dir,`${rounds}-${rows}`),records=[];for(let i=0;i<rounds;i++){records.push(JSON.stringify({q:'status',params:{status:{toolhead:{estimated_print_time:i},heater:{temperature:20+i%10}}}}));for(const q of ['x','y'])records.push(JSON.stringify({q,params:{seq:i,data:Array.from({length:rows},(_,j)=>[i+j/1000,Math.sin(i+j),Math.cos(i-j)])}}));}await writeFile(prefix+'.json.gz',gzipSync(records.join('\x03')+'\x03'));
+ const script=`import sys,time,json\nscope={}\nexec(${JSON.stringify(source.toString())},scope)\ndef run():\n d=scope['JsonDispatcher'](sys.argv[1])\n for name,sub in [('s','status'),('x','x'),('y','y'),('x2','x')]: d.add_handler(name,sub)\n class Manager:\n  def get_jdispatch(self): return d\n tracker=scope['TrackStatus'](Manager(),'s',{})\n checksum=0\n try:\n  for i in range(int(sys.argv[2])):\n   status,nt=tracker.pull_status(i+.25);checksum+=status['heater']['temperature']\n   for name in ['x','y','x2']:\n    p=d.pull_msg(i+.25,name);checksum+=p['seq']+len(p['data'])\n  assert d.pull_msg(1e9,'x') is None\n finally: d.log_reader.file.close()\n return checksum\nms=[]\nfor i in range(9):\n start=time.perf_counter();checksum=run();elapsed=(time.perf_counter()-start)*1000\n if i>=2: ms.append(elapsed)\nprint(json.dumps(dict(ms=ms,checksum=checksum)))`;
+ const py=JSON.parse(execFileSync('python3',['-c',script,prefix,String(rounds)],{encoding:'utf8'})) as {ms:number[];checksum:number};const times=[],lag=monitorEventLoopDelay({resolution:1});lag.enable();for(let run=0;run<9;run++){const start=performance.now(),reader=await MotanLogReader.open(prefix+'.json.gz'),dispatch=new MotanDispatcher(reader);let checksum=0;try{for(const [name,q] of [['s','status'],['x','x'],['y','y'],['x2','x']])dispatch.addHandler(name,q);const tracker=new MotanStatusTracker({},time=>dispatch.pull(time,'s'));for(let i=0;i<rounds;i++){const {status}=await tracker.sample(i+.25);checksum+=(status.heater as {temperature:number}).temperature;for(const name of ['x','y','x2']){const p=(await dispatch.pull(i+.25,name))!;checksum+=(p.seq as number)+(p.data as unknown[]).length;}}assert.equal(await dispatch.pull(1e9,'x'),null);assert.equal(dispatch.status.endOfData,true);}finally{dispatch.close();await reader.close();}const elapsed=performance.now()-start;assert.equal(checksum,py.checksum);if(run>=2)times.push(elapsed);}lag.disable();console.log(JSON.stringify({rounds,rows,node:stats(times),python:stats(py.ms),maxEventLoopMs:lag.max/1e6,checksum:py.checksum}));}
+}finally{await rm(dir,{recursive:true,force:true});}
