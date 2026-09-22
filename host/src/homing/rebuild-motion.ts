@@ -14,7 +14,7 @@ export interface StoppedEmitter {
  readonly pressureAdvance?:{advance:number;smoothTime:number};
 }
 export interface RebuiltBinding extends MotionBinding {
- readonly member:number;readonly position:StepperPosition;readonly history:StepHistory;
+ readonly member:number;readonly oid:number;readonly inverted:boolean;readonly position:StepperPosition;readonly history:StepHistory;
 }
 /** Host-only reconciliation after stop confirmation. The owner MUST already
  * fence source producers, coordinator and transport commits. This synchronous
@@ -59,10 +59,10 @@ export function rebuildStoppedMotion(result:HomingStopResult,old:readonly Motion
     if(e.pressureAdvance)stepper.configurePressureAdvance(e.pressureAdvance.advance,e.pressureAdvance.smoothTime);
     position.align(p.position,stepper.commandedPosition);stepper.initializePosition(p.observedClock,p.position);
     if(stepper.generatedTime!==printTime)throw new Error('Inconsistent stopped generation baseline');
-    bindings.push(Object.freeze({id:e.id,member:e.member,queue,stepper,position,history:new StepHistory(p.observedClock,p.position)}));
+    bindings.push(Object.freeze({id:e.id,member:e.member,oid:e.settings.oid,inverted:!!e.settings.invertDirection,queue,stepper,position,history:new StepHistory(p.observedClock,p.position)}));
    }catch(error){stepper.dispose();throw error;}
   }
   for(const b of old)b.stepper.dispose();for(const q of oldQueues)q.dispose();
  }catch(error){dispose();throw error;}
- return Object.freeze({printTime,bindings:Object.freeze(bindings),dispose,[Symbol.dispose]:dispose});
+ return Object.freeze({printTime,queues:Object.freeze(queues.map(q=>Object.freeze({id:q.id,queue:prepared.get(q.id)!,position:Object.freeze([...q.position])}))),bindings:Object.freeze(bindings),dispose,[Symbol.dispose]:dispose});
 }
