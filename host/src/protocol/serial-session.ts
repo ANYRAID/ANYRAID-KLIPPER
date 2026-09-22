@@ -32,9 +32,10 @@ export interface TimedCommandQueue {
 interface ControlAck {motion?:false;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
 export interface RetirableMotionTransport extends ScheduledTransport {
  /** Permanently fence this transport, discard its not-yet-accepted tail, then
-  * await firmware delivery of already accepted commands. Owner must keep the
-  * affected MCU steppers stopped/reset-required throughout this operation.
-  * Only after success can the session bind a replacement transport. */
+  * await firmware delivery of already accepted commands. Owner must establish
+  * an MCU stop/reset-required boundary and await BOTH it and this retirement
+  * before resetting or sending replacement motion. Accepted commands may execute
+  * until stopped. Success permits binding a replacement transport. */
  retire(signal:AbortSignal):Promise<void>;
 }
 interface MotionLease {retired:boolean;pending:Promise<void>|undefined;retirement:Promise<void>|undefined}

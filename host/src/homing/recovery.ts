@@ -1,3 +1,4 @@
+import {MotionStopConfirmation} from '../motion/stop-confirmation.ts';
 import {HomingStopSetConfirmation,type HomingStopGroup,type HomingStopSetResult} from './stop-set.ts';
 import {HomingStopConfirmation,type HomingMember,type HomingStopResult} from './stop-confirmation.ts';
 import {rebuildStoppedMotion,type StoppedEmitter,type StoppedQueue} from './rebuild-motion.ts';
@@ -81,4 +82,21 @@ export class HomingRecovery extends Recovery<HomingStopResult> {
  * Emitter member indices refer to the group-concatenated member list. */
 export class HomingSetRecovery extends Recovery<HomingStopSetResult> {
  constructor(o:HomingSetRecoveryOptions){const stop=new HomingStopSetConfirmation(o.groups,o.release,o.timeoutMs??5000);super(o,stop.members,stop);}
+}
+
+export interface CoordinateRebaseOptions extends RecoveryOptions<HomingStopResult> {
+ members:readonly HomingMember[];
+}
+/** Privileged coordinate rebase after normal motion has drained. Explicitly
+ * stops all listed MCU steppers, fences the old generation, reads counters and
+ * rebuilds at locate's forced coordinates before resetting clocks. Does not
+ * move motors to those coordinates or grant any homed-axis permission. */
+export class CoordinateRebase extends Recovery<HomingStopResult> {
+ constructor(o:CoordinateRebaseOptions){
+  const mappings=o.bindings.map(b=>{const emitter=o.emitters.find(e=>e.id===b.id);if(!emitter)throw new Error('Missing coordinate rebase emitter');return {stepper:b.stepper,member:emitter.member,offset:emitter.settings.timeOffset,frequency:emitter.settings.frequency};});
+  const check=()=>{const members=new Map<number,{offset:number;frequency:number}>();for(const m of mappings){const actual=m.stepper.calibration,previous=members.get(m.member);if(actual.offset!==m.offset||actual.frequency!==m.frequency||previous&&(previous.offset!==m.offset||previous.frequency!==m.frequency))throw new Error('Coordinate rebase clock calibration differs');members.set(m.member,actual);}};
+  check();const locate=o.locate;
+  super({...o,locate:stop=>{check();return locate(stop);}},o.members,new MotionStopConfirmation(o.members,o.timeoutMs??5000));
+ }
+
 }

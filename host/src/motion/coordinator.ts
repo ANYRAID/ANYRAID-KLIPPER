@@ -51,8 +51,10 @@ export class MotionCoordinator {
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
  usesBindings(bindings:readonly MotionBinding[]):boolean{return bindings.length===this.#bindings.length&&new Set(bindings.map(b=>b.id)).size===bindings.length&&bindings.every(b=>this.#bindings.some(owned=>owned.id===b.id&&owned.queue===b.queue&&owned.stepper===b.stepper));}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy||this.#bounded,failed:this.#failed,retired:this.#retired,fault:this.#fault};}
- /** Freeze this generation permanently. The owner must already keep affected
-  * MCU steppers stopped/reset-required. Success permits native queue disposal. */
+ /** Freeze this generation permanently. The owner must establish the affected
+  * MCU stop/reset-required boundary before any replacement commands. Accepted
+  * commands may execute until that stop; resetting requires BOTH confirmation
+  * and retirement. Success permits native queue disposal. */
  retire(signal:AbortSignal):Promise<void>{
   if(this.#retirement)return this.#retirement;
   if(this.#failed||!this.#sink.retire)return Promise.reject(new Error('Motion coordinator cannot retire'));
