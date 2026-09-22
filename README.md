@@ -60,8 +60,9 @@ Motan 数值 CSV 可使用
 `node scripts/motan/data_export.ts capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
 新入口无需 Python，支持取消、完整文件原子替换及文本/布尔/null/BigInt
 原始列，以及整数导数、偏差和 CoreXY 计算。结构化状态对象、其余整数
-派生算子及数据集列表尚待迁移，旧 CSV 入口暂时保留。性能与格式边界
-见迁移说明。
+派生算子尚待迁移，旧 CSV 入口暂时保留。使用
+`node scripts/motan/data_export.ts --list-datasets` 可直接列出数据集语法，
+不需要日志文件。性能与格式边界见迁移说明。
 
 需要区分状态列中的 JSON 整数 `1` 与浮点 `1.0` 时，可显式增加
 `--preserve-number-types`。该模式能保留类型到状态采样与整数偏差计算，
