@@ -10,10 +10,11 @@ type Action='start'|'pause'|'resume'|'cancel'|'reset'|'status'|'emergency_stop';
  * file_id and controls. File acquisition independently authorizes/seals data. */
 export class ProductPrintApi {
  readonly #controller:PrintController;#closed=false;#closing:Promise<void>|undefined;
+ readonly #gate:MaintenanceGate;
  readonly #observers=new AbortController();
  constructor(controller:PrintController,gate:MaintenanceGate){
   if(!(controller instanceof PrintController)||!controller.durable||!controller.usesMaintenanceGate(gate)||owners.has(controller))throw new ApiError(400,'Native printing requires an unowned durable controller and shared maintenance gate');
-  this.#controller=controller;owners.add(controller);
+  this.#controller=controller;this.#gate=gate;owners.add(controller);
  }
  get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',state:controller.state,state_token:controller.stateToken,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
  /** Internal live state view; network authorization remains the server's job. */
@@ -57,7 +58,7 @@ export class ProductPrintApi {
   });
   return {request_id:params.request_id??null,accepted:true,current:this.status};
  }
- close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#observers.abort();const attempt=this.#controller.cancel();this.#closing=attempt;void attempt.catch(()=>{if(this.#closing===attempt)this.#closing=undefined;});return attempt;}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#gate.invalidate();this.#observers.abort();const attempt=this.#controller.cancel();this.#closing=attempt;void attempt.catch(()=>{if(this.#closing===attempt)this.#closing=undefined;});return attempt;}
 }
 export function registerProductPrintApi(registry:EndpointRegistry,api:ProductPrintApi):()=>void{
  const releases:(()=>void)[]=[];try{for(const action of ['start','pause','resume','cancel','reset','status'] as const)releases.push(registry.register({endpoint:'/printer/print/'+action,methods:[action==='status'?'GET':'POST']},(params,_verb,context)=>api.call(action,params,context)));releases.push(registry.register({endpoint:'/printer/emergency_stop',methods:['POST']},(params,_verb,context)=>api.call('emergency_stop',params,context)));}catch(error){for(const release of releases.reverse())release();throw error;}
