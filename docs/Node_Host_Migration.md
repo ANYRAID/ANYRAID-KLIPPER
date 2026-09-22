@@ -15689,3 +15689,35 @@ ASan 229/230：失败位于 CAN 夹具的编译器子进程，继承 Node
 类型、空白和差异检查通过。正常、UBSan 和 ASan 结果不包含
 真实打印或目标 MCU 截止时间验证。未执行项目全套非原生测试、
 推送、PR 合并或部署，完整 Python 替代目标保持进行中。
+
+### 限位开关协议与采样时钟基础
+
+新增 `host/src/inputs/endstop.ts`，接入原 MCU 的 `config_endstop`、
+`endstop_home`、`endstop_query_state` 和 `endstop_state`。配置及
+重启清理命令可合入 `configureMCU` 的计划；支持上拉、下拉和反相。
+启动命令保留原采样次数、采样 tick、端点映射得到的 rest tick、
+触发极性和 ENDSTOP_HIT 原因。完整调度时钟使用 BigInt，仅线上
+时钟取低 32 位；拒绝零 tick、倒退和超出固件调度范围的参数。
+
+限位触发时刻采用固件保存的 `nextwake - rest_ticks`，代表第一
+次匹配采样，而非最后一次去抖采样；不以停止后的 GPIO 电平推断
+触发成功。`hitClock` 只供上层在确认本次 trsync ENDSTOP_HIT 后
+调用，本模块不授予归零或位置有效性。
+
+运行 `node host/bench/endstop.ts`，直接抽取并执行仓库原 Python
+`MCU_endstop`，1000 组采样参数的完整命令字段、编码字节、扩展
+时钟和 `home_wait` 还原时间一致，涵盖多次 32 位回绕。
+4 项新增测试另覆盖超过 JS 安全整数的 BigInt 时钟、非法响应、
+无关 OID、停止命令和错误调度参数。连同 ADC、引脚及 MCU 配置
+回归共 23 项通过；类型、空白和差异检查通过。
+
+Node 26.9.0、本机 3 次预热/11 次测量，每批 100000 次：已解码
+限位响应校验及极性处理，中位 1.107 ms / p95 1.159 ms；原 Python
+`query_endstop` 使用模拟 query/clock，中位 38.288 ms / p95
+38.353 ms。两者边界不同，Python 包含模拟查询和时钟调用，不能
+将其比值当成完整模块或打印加速比。当前结果仅约束新增响应处理
+成本；不包含串口、固件去抖、触发分发、真实停止延迟和目标板调度。
+
+trsync 原生触发同步、耦合步进器注册、归零状态机、步数回读与
+`G28` 注册仍待接线；现有 Python 打印入口及 `MCU_endstop` 保留。
+没有执行真实限位/归零、打印验收、推送、PR 或部署。
