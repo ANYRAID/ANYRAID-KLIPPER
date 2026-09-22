@@ -8,12 +8,12 @@ const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   -s, --skip SEC       Start offset (default 0)
   -d, --duration SEC   Analysis duration (default 5)
   --segment-time SEC  Sampling interval (default 0.000100)
-  --preserve-number-types  Preserve integer tokens in status/Stallguard (opt-in)
+  --preserve-number-types  Preserve status/Stallguard/phase number types (opt-in)
   -l, --list-datasets  List dataset syntax without opening a capture
   -h, --help           Show help
 Scalar columns and integer derivative/deviation/CoreXY/norm2/smooth/integral/SOS are supported.
 Structured status objects still need the legacy exporter.
-Mixed arithmetic requires known input types (--preserve-number-types for status/Stallguard).
+Mixed arithmetic requires known input types (typed status/Stallguard/phase).
 Unannotated raw sensor columns still reject ambiguous mixed arithmetic.
 SOS integers must fit NumPy int64/uint64; see migration notes.
 Stdout may be partial on failure; see migration notes.

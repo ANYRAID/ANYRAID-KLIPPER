@@ -248,7 +248,8 @@
     "bench:motan-scalar-integral": "node bench/motan-scalar-integral.ts",
     "bench:motan-scalar-sos": "node bench/motan-scalar-sos.ts",
     "bench:motan-mixed-arithmetic": "node bench/motan-mixed-arithmetic.ts",
-    "bench:motan-stallguard-types": "node bench/motan-stallguard-types.ts"
+    "bench:motan-stallguard-types": "node bench/motan-stallguard-types.ts",
+    "bench:motan-typed-phase": "node bench/motan-typed-phase.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

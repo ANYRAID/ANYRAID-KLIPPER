@@ -65,8 +65,8 @@ SOS 整数须在 NumPy int64/uint64 范围内。结构化状态对象尚待迁�
 `node scripts/motan/data_export.ts --list-datasets` 可直接列出数据集语法，
 不需要日志文件。性能与格式边界见迁移说明。
 
-需要区分状态列或 Stallguard 列中的 JSON 整数 `1` 与浮点 `1.0` 时，
-可显式增加 `--preserve-number-types`。该模式支持这些列及已知浮点
+需要保留状态、Stallguard 或相位列的整数/浮点来源时，可显式增加
+`--preserve-number-types`。该模式支持这些列及已知浮点
 派生结果之间明确整数/浮点混合的偏差、CoreXY、导数和积分等计算。
 其余原始传感器列尚未完整保留类型来源，涉及这些列的不明确混合
 运算仍会拒绝。

@@ -42,9 +42,9 @@ export class MotanLogReader {
   try{if(this.#at<this.#queue.length)return this.#decode(this.#queue[this.#at++]);return this.#eof?null:undefined;}
   catch(error){this.#failure??=error;this.#source?.destroy();this.#inflate?.destroy();throw error;}
  }
- // Raw Stallguard columns retain their token kinds. Keep this reader-only:
+ // Raw Stallguard and stepq fields retain their token kinds. Keep this reader-only:
  // capture stores the original bytes and needs metadata only for status.
- #decode(raw:Buffer):MotanMessage{let value=parseMotanJson(raw,this.#preserveNumberTypes);if(this.#preserveNumberTypes&&value&&typeof value==='object'&&typeof (value as MotanMessage).q==='string'&&((value as MotanMessage).q as string).startsWith('stallguard:'))value=parseTypedMotanJson(raw.toString('utf8'));if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);this.#messages++;return value as MotanMessage;}
+ #decode(raw:Buffer):MotanMessage{let value=parseMotanJson(raw,this.#preserveNumberTypes);if(this.#preserveNumberTypes&&value&&typeof value==='object'&&typeof (value as MotanMessage).q==='string'&&/^(?:stallguard|stepq):/.test((value as MotanMessage).q as string))value=parseTypedMotanJson(raw.toString('utf8'));if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);this.#messages++;return value as MotanMessage;}
  pullMessage():Promise<MotanMessage|null>{return this.pullMessages(1).then(values=>values[0]??null);}
  pullMessages(limit=256):Promise<MotanMessage[]>{
   try{this.#check();if(this.#pending||this.#seeking)throw new Error('Concurrent Motan reads are not supported');if(!Number.isSafeInteger(limit)||limit<1||limit>1024)throw new Error('Invalid Motan read batch size');}catch(error){return Promise.reject(error);}

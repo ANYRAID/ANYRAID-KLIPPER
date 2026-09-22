@@ -64,11 +64,13 @@ test('status type mode does not misclassify unannotated raw integer datasets as 
   const root=fileURLToPath(new URL('../../',import.meta.url));
   const python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(raw),'-d','.02','--segment-time','.01'],{encoding:'utf8',timeout:10000});
   const first=python.split('\r\n')[1].split(',');assert.equal(BigInt(first[1]),wide-36n);assert.equal(BigInt(first[2]),wide-100n);
-  for(const name of raw.slice(0,1))await assert.rejects(executor.analyze({prefix,datasets:[name],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01}),/Ambiguous/);
+  const phaseResult=await executor.analyze({prefix,datasets:[raw[0]],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01});
+  assert.ok(Array.from(phaseResult.datasets[raw[0]]).every(value=>value===wide-36n));
+  await assert.rejects(executor.analyze({prefix,datasets:[`deviation(${status},kin(stepper_x))`],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01}),/Ambiguous/);
   const stallguard=await executor.analyze({prefix,datasets:[raw[1]],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01});
   assert.ok(Array.from(stallguard.datasets[raw[1]]).every(value=>value===wide-100n));
-  // A derivative is known to produce floats even when its raw input is not
-  // annotated. That information survives the DAG and permits safe mixing.
+  // A derivative produces floats from the newly typed integer phase input.
+  // That information survives the DAG and permits safe mixing.
   const derived=`deviation(${status},derivative(${phase}))`,result=await executor.analyze({prefix,datasets:[derived],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01});
   assert.ok(result.datasets[derived] instanceof Float64Array);assert.ok(Array.from(result.datasets[derived]).every(value=>value===Number(wide)));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}
