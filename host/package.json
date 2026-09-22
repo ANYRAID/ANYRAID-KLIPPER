@@ -221,7 +221,8 @@
     "bench:native-database-maintenance": "node bench/native-database-maintenance.ts",
     "bench:native-print-uploads": "node bench/native-print-uploads.ts",
     "build:ar100-flash": "node scripts/build-ar100-flash.ts",
-    "bench:flash-ar100": "node bench/flash-ar100.ts"
+    "bench:flash-ar100": "node bench/flash-ar100.ts",
+    "bench:motan-log-writer": "node bench/motan-log-writer.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
