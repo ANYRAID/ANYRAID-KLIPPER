@@ -10,7 +10,10 @@ test('actual CAN Node-API implementation handles transport success, failures and
  const temporary=mkdtempSync(resolve(tmpdir(),'can-native-')),addon=resolve(temporary,'transport.node'),source=fileURLToPath(new URL('fixtures/can-query-transport.c',import.meta.url));
  try{
   const sanitizer=process.env.ANYRAID_CAN_QUERY_ADDON?.endsWith('-asan.node')?'address,undefined':process.env.ANYRAID_CAN_QUERY_ADDON?.endsWith('-ubsan.node')?'undefined':undefined;
-  const compiled=spawnSync(process.env.CC??'cc',['-shared','-fPIC','-O2','-Wall','-Wextra','-Werror','-DNAPI_VERSION=8',`-I${process.env.NODE_INCLUDE??resolve(dirname(process.execPath),'../include/node')}`,source,...sanitizer?[`-fsanitize=${sanitizer}`,'-fno-sanitize-recover=all']:[],'-o',addon],{encoding:'utf8',timeout:60000});assert.equal(compiled.status,0,compiled.stderr);
+  // LD_PRELOAD instruments the Node driver, not the compiler/linker processes.
+  // Keep -fsanitize on the fixture and retain the original env for its execution.
+  const compilerEnv={...process.env};if(sanitizer)delete compilerEnv.LD_PRELOAD;
+  const compiled=spawnSync(process.env.CC??'cc',['-shared','-fPIC','-O2','-Wall','-Wextra','-Werror','-DNAPI_VERSION=8',`-I${process.env.NODE_INCLUDE??resolve(dirname(process.execPath),'../include/node')}`,source,...sanitizer?[`-fsanitize=${sanitizer}`,'-fno-sanitize-recover=all']:[],'-o',addon],{encoding:'utf8',timeout:60000,env:compilerEnv});assert.equal(compiled.status,0,compiled.stderr);
   const driver=String.raw`
 const assert=require('node:assert/strict'),n=require(process.argv[1]);
 (async()=>{

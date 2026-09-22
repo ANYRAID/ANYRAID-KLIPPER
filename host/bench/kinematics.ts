@@ -17,7 +17,7 @@ const config:LinearConfig={kind:'cartesian',ranges:[[0,200],[0,200],[0,250]],max
 const python=String.raw`
 import ast,sys,json,time,math,types,pathlib
 root=pathlib.Path(sys.argv[1]);data=json.load(open(sys.argv[2]))
-for file,name in [('toolhead.py','Move'),('kinematics/cartesian.py','CartKinematics'),('kinematics/corexy.py','CoreXYKinematics')]:
+for file,name in [('toolhead.py','Move'),('kinematics/cartesian.py','CartKinematics'),('kinematics/corexy.py','CoreXYKinematics'),('kinematics/corexz.py','CoreXZKinematics')]:
  text=(root/file).read_text();node=next(n for n in ast.parse(text).body if isinstance(n,ast.ClassDef) and n.name==name);exec(ast.get_source_segment(text,node),globals())
 toolhead=types.SimpleNamespace(max_velocity=300.,max_accel=3000.,junction_deviation=25*(math.sqrt(2)-1)/3000,mcr_pseudo_accel=1500.,printer=types.SimpleNamespace(command_error=ValueError))
 def run(cls):
@@ -29,21 +29,24 @@ def run(cls):
   except ValueError as e:error='unhomed' if str(e).startswith('Must home') else 'out_of_range'
   out.append([error,m.max_cruise_v2,m.accel,m.min_move_t,m.delta_v2,m.mcr_delta_v2])
  return out
-results=[run(CartKinematics),run(CoreXYKinematics)]
-for _ in range(3):run(CartKinematics)
-times=[]
-for _ in range(11):
- start=time.perf_counter();run(CartKinematics);times.append((time.perf_counter()-start)*1000)
-print(json.dumps({'results':results,'times':sorted(times)}))
+classes=[('cartesian',CartKinematics),('corexy',CoreXYKinematics),('corexz',CoreXZKinematics)]
+results=[run(cls) for _,cls in classes];times={}
+for name,cls in classes:
+ for _ in range(3):run(cls)
+ samples=[]
+ for _ in range(11):
+  start=time.perf_counter();run(cls);samples.append((time.perf_counter()-start)*1000)
+ times[name]=sorted(samples)
+print(json.dumps({'results':results,'times':times}))
 `;
-const dir=mkdtempSync(join(tmpdir(),'anyraid-kinematics-'));let oracle:{results:([string|null,number,number,number,number,number])[][];times:number[]};
+const dir=mkdtempSync(join(tmpdir(),'anyraid-kinematics-'));let oracle:{results:([string|null,number,number,number,number,number])[][];times:Record<string,number[]>};
 try {
  const input=join(dir,'input.json');writeFileSync(input,JSON.stringify(points));
  const p=spawnSync(process.env.PYTHON??'python3',['-c',python,fileURLToPath(new URL('../../klippy',import.meta.url)),input],{encoding:'utf8',timeout:60000,maxBuffer:16*1024*1024});
  if(p.status!==0)throw new Error(p.stderr||String(p.error));oracle=JSON.parse(p.stdout);
 }finally{rmSync(dir,{recursive:true,force:true});}
 const limits=motionLimits(300,3000);
-function run(kind:'cartesian'|'corexy') {
+function run(kind:LinearConfig['kind']) {
  const k=new LinearKinematics({...config,kind});
  return points.map(p=>{
   k.clearHoming([0,1,2]);k.markHomed(([0,1,2] as Axis[]).filter(a=>p.mask&(1<<a)));
@@ -53,7 +56,7 @@ function run(kind:'cartesian'|'corexy') {
  });
 }
 let maxSpeedError=0,maxSquaredRelativeError=0;
-for(const [index,kind] of (['cartesian','corexy'] as const).entries()) {
+for(const [index,kind] of (['cartesian','corexy','corexz'] as const).entries()) {
  const actual=run(kind),expected=oracle.results[index];
  for(let i=0;i<actual.length;i++) {
   assert.equal(actual[i][0],expected[i][0]);assert.deepEqual(actual[i].slice(2),expected[i].slice(2));
@@ -65,7 +68,10 @@ for(const [index,kind] of (['cartesian','corexy'] as const).entries()) {
  }
 }
 assert.ok(maxSpeedError<=1e-12);
-for(let i=0;i<3;i++)run('cartesian');const times=[];
-for(let i=0;i<11;i++){const start=performance.now();run('cartesian');times.push(performance.now()-start);}times.sort((a,b)=>a-b);
-console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,cases:points.length*2,decisionsExact:true,otherFieldsExact:true,maxSpeedError,maxSquaredRelativeError,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5]},null,2));
-assert.ok(times[5]<=oracle.times[5],'Linear kinematics regressed against Python');
+for(const kind of ['cartesian','corexy','corexz'] as const){
+ for(let i=0;i<3;i++)run(kind);const times=[];
+ for(let i=0;i<11;i++){const start=performance.now();run(kind);times.push(performance.now()-start);}times.sort((a,b)=>a-b);
+ const reference=oracle.times[kind];
+ console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,kind,cases:points.length,decisionsExact:true,otherFieldsExact:true,maxSpeedError,maxSquaredRelativeError,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:reference[5],pythonP95Ms:reference[10],speedup:reference[5]/times[5]},null,2));
+ assert.ok(times[5]<=reference[5],'Linear kinematics regressed against Python');
+}

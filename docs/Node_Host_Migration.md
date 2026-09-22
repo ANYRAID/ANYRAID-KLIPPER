@@ -15616,3 +15616,76 @@ CPython 用于 SciPy 参考，该次通过不消除此前偶发崩溃的未决
 根因。类型、空白、差异检查通过；最终 npm 构建和禁用 TS 的
 默认 JS 入口冒烟通过。未重跑项目所有测试、进行远程集成、
 PR 合并、部署或实际打印验收；完整迁移目标继续保持未完成。
+
+### CoreXZ 运动准入和原生步进绑定（2026-09-23）
+
+`LinearKinematics` 增加 `kind:'corexz'`，使用原 Python
+`CoreXZKinematics.calc_position` 的运算顺序：
+`x = 0.5 * (a + c)`、`y = b`、`z = 0.5 * (a - c)`。
+归零权限、范围检查、归零接近位置、Z 分量速度/加速度限制复用
+原本与 Cartesian/CoreXY 相同的规则，非有限或溢出坐标拒绝。
+
+`TrapQueue.createStepper` / `StepCompressor` 增加 `corexz+` 和
+`corexz-`，分别映射原 `kin_corexz.c` 的 X+Z、X-Z 求解器；Y
+仍用 `y`。构建脚本链接该原 C 文件，没有重写步进插值、量化、
+压缩或 MCU 固件算法。原生模式编号 0–6 保持不变，7/8 为新增
+模式。生成前的速度上界改为对应 X/Z 分量之和，避免 Z-only
+运动漏过步数容量或 MCU 时钟分辨率检查。输入整形继续使用
+原 C shaper 和既有步进历史/生命周期约束。
+
+新增四项 CoreXZ 测试：正反向与混合 X/Z 轨迹的整段/分段生成、
+输入整形、起始坐标、Z-only 双电机反向、Y-only 无脉冲、步数
+预算、时钟分辨率、归零准入和坐标溢出。与原 CoreXY 求解器在
+Y/Z 轴置换后的输出比较，逐条消息、min/req clock、完整有符号
+历史和位置均一致，不只比较最终位置。轨迹测试使用可精确表达
+的相段时长；最初 `.1 + .8 + .1` 的拼接被队列正确拒绝为浮点
+时间重叠，修正夹具后通过，未放宽队列时间校验。
+
+扩展 `bench:kinematics`，分别使用原 Python Cartesian/CoreXY/
+CoreXZ 类对照各 10000 条运动。拒绝决定、加速度、时间和增量
+字段一致；速度平方继续使用既有的一相对舍入单位门限，最大
+相对差 `2.1252e-16`，开方速度差为 0，没有增加容差。
+Node 26.9.0 / 系统 Python 3.12.13、Ryzen 5 3500X，3 次预热/
+11 次测量，中位 / p95：
+
+| 准入类型 | Node | Python |
+| --- | --- | --- |
+| Cartesian | 14.681 / 17.255 ms | 31.421 / 37.532 ms |
+| CoreXY | 13.991 / 16.574 ms | 31.604 / 36.135 ms |
+| CoreXZ | 13.444 / 20.897 ms | 31.555 / 36.532 ms |
+
+`bench:step-solver` 现有八组独立原 C/Python-CFFI 对照，新增
+CoreXZ 双电机和 2^32 / 2^40 起始时钟；消息字节、64 位时钟、
+历史和位置全部相同。参考使用系统 Python 3.12.13、CFFI 2.1.1、
+pycparser 2.23，固定轮子校验后仅解压到忽略的
+`host/node_modules/.cache/cffi-reference`。运行基准时通过
+`PYTHONPATH` 指向该目录，或自行通过既有 `PYTHON` 配置提供
+CFFI 环境；Node 运行/构建不依赖它。每组 1000 段，包含队列
+填充、求解、压缩和结果提取，3 次预热/11 次测量：
+
+| 求解类型 | Node 中位 / p95 | Python/CFFI 中位 / p95 |
+| --- | --- | --- |
+| Cartesian X | 5.636 / 6.116 ms | 8.261 / 13.158 ms |
+| CoreXY + | 5.016 / 5.373 ms | 7.527 / 7.639 ms |
+| CoreXZ + | 5.521 / 5.910 ms | 7.627 / 12.194 ms |
+| CoreXZ - | 5.274 / 6.107 ms | 7.603 / 7.709 ms |
+
+这证明本机运动准入及 Node-API 边界的性能和输出保真，不能把
+约 1.38–1.44 倍的求解基准速度比解释为实际打印速度提升。
+配置到机型的完整装配、X/Z 耦合限位开关注册、真实归零及板卡
+打印验收仍未接线完成，Python `corexz.py` 和实际打印入口继续
+保留；没有宣称 CoreXZ 打印机已可直接切换 Node 主机。
+
+CoreXZ 已加入固定原生 sanitizer 清单。首轮 UBSan 230 项通过，
+ASan 229/230：失败位于 CAN 夹具的编译器子进程，继承 Node
+测试所需的 `LD_PRELOAD` 后出现 ASan DEADLYSIGNAL。修正测试
+工具的环境范围，仅在编译器子进程去除该预加载；夹具仍用
+`-fsanitize` 编译，实际 Node 驱动和 CLI 保留原 ASan 运行环境。
+修正后完整 UBSan 和 ASan 各 230 项全部通过，未减少测试或取消
+运行时插桩。保留首轮失败日志及修正后的
+`host/node_modules/.cache/corexz-native-sanitized-fixed.log`。
+
+普通构建采用同一原生清单加线性运动准入测试，234 项通过；
+类型、空白和差异检查通过。正常、UBSan 和 ASan 结果不包含
+真实打印或目标 MCU 截止时间验证。未执行项目全套非原生测试、
+推送、PR 合并或部署，完整 Python 替代目标保持进行中。
