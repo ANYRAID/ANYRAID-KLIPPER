@@ -7,7 +7,7 @@ import {createServer,type Socket} from 'node:net';
 import {once} from 'node:events';
 import {execFileSync} from 'node:child_process';
 import {gunzipSync} from 'node:zlib';
-import {parseTypedMotanJson,cloneMotanJson,mergeMotanObjects,assignMotanObject,MotanNumberMetadataError} from '../src/motan/number-types.ts';
+import {parseTypedMotanJson,cloneMotanJson,mergeMotanObjects,assignMotanObject,MotanNumberMetadataError,motanObjectKeys} from '../src/motan/number-types.ts';
 import {encodeMotanJson,MotanCapture} from '../src/motan/capture.ts';
 import {captureMotan} from '../src/motan/data-logger.ts';
 import {MotanLogManager} from '../src/motan/log-manager.ts';
@@ -19,7 +19,7 @@ def shape(v):
  if type(v)==int: return ['int',str(v)]
  if type(v)==float: return ['float',struct.pack('>d',v).hex()]
  if type(v)==list: return [shape(i) for i in v]
- if type(v)==dict: return {k:shape(i) for k,i in v.items()}
+ if type(v)==dict: return ['dict',[[k,shape(i)] for k,i in v.items()]]
  return v
 print(json.dumps([shape(json.loads(s)) for s in x]))`;
 function pythonShapes(texts:string[]):unknown[]{return JSON.parse(execFileSync('python3',['-c',shapeScript],{input:JSON.stringify(texts),encoding:'utf8'}));}
@@ -41,8 +41,8 @@ test('Motan serialization retains integer versus float kind and exact Float64 bi
 });
 test('real capture preserves status numeric kinds in initial and delta indexes and typed seek sampling',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'motan-capture-types-')),socketPath=join(dir,'socket'),prefix=join(dir,'capture'),raw:Buffer[]=[];
- const initial='{"toolhead":{"estimated_print_time":10.0},"configfile":{"settings":{"printer":{"kinematics":"cartesian"}}},"motion_report":{"trapq":[],"steppers":[]},"sensor":{"integer":1,"floating":1.0,"zero":-0,"negative":-0.0,"exponent":1e0,"large":1e20,"wide":9007199254740993,"nest":{"a":[1,1.0,1e0]}}}';
- const changes=['{"toolhead":{"estimated_print_time":12.0},"sensor":{"integer":1.0,"floating":1}}','{"toolhead":{"estimated_print_time":16.0},"sensor":{"integer":2.0,"zero":0.0,"large":1e21}}'];
+ const initial='{"toolhead":{"estimated_print_time":10.0},"configfile":{"settings":{"printer":{"kinematics":"cartesian"}}},"motion_report":{"trapq":[],"steppers":[]},"sensor":{"integer":1,"floating":1.0,"zero":-0,"negative":-0.0,"exponent":1e0,"large":1e20,"wide":9007199254740993,"nest":{"2":"two","1":"one","a":[1,1.0,1e0]},"2":"initial","1":"initial"}}';
+ const changes=['{"toolhead":{"estimated_print_time":12.0},"sensor":{"integer":1.0,"floating":1,"4":"four","3":"three","2":"updated"}}','{"toolhead":{"estimated_print_time":16.0},"sensor":{"integer":2.0,"zero":0.0,"large":1e21}}'];
  let peer:Socket|undefined;
  const server=createServer(socket=>{peer=socket;const frames=new ConsoleFrames(3);socket.on('data',chunk=>{
   for(const frame of frames.push(Buffer.from(chunk))){const request=JSON.parse(frame.toString());
@@ -67,7 +67,7 @@ print('exact')`)],{input:JSON.stringify({initial,changes,indexes}),encoding:'utf
   assert.equal(comparison.trim(),'exact');
   const manager=await MotanLogManager.open(prefix,{start:7,reader:{preserveNumberTypes:true}});
   try{
-   assert.ok(manager.filePosition>0);const names=['integer','floating','zero','negative','exponent','large','wide'];
+   assert.ok(manager.filePosition>0);assert.deepEqual(motanObjectKeys((manager.startStatus.sensor as Record<string,unknown>).nest as object),['2','1','a']);assert.deepEqual(motanObjectKeys(manager.startStatus.sensor as object).filter(k=>/^\d+$/.test(k)),['2','1','4','3']);const names=['integer','floating','zero','negative','exponent','large','wide'];
    for(const name of names)manager.addDataset(`status(sensor.${name})`);
    const values=await manager.sample(17);
    assert.equal(values['status(sensor.integer)'],2);assert.equal(values['status(sensor.floating)'],1n);

@@ -4,9 +4,63 @@
 export class MotanNumberMetadataError extends Error {}
 const integers=new WeakMap<object,Map<string,number>>(),floats=new WeakMap<object,Map<string,number>>(),trees=new WeakSet<object>();
 const object=(value:unknown):value is Record<string,unknown>=>value!==null&&typeof value==='object';
+const orders=new WeakMap<object,readonly string[]>();
+type OrderNode=Map<string,OrderNode>|OrderNode[]|null;
+/** JSON.parse has already validated syntax. Keep duplicate keys in their first
+ * position, but use the last value's shape, as Python json.loads does. */
+function readOrders(text:string):OrderNode{
+ let pos=0,count=0;
+ const space=()=>{while(pos<text.length&&text.charCodeAt(pos)<=32)pos++;};
+ const string=()=>{const start=pos++;while(pos<text.length){const c=text[pos++];if(c==='"')break;if(c==='\\')pos++;}return text.slice(start,pos);};
+ const read=(depth:number):OrderNode=>{
+  if(depth>64)throw new MotanNumberMetadataError('Motan key metadata nesting limit');
+  if(++count>65536)throw new MotanNumberMetadataError('Motan key metadata limit');
+  space();const c=text[pos];
+  if(c==='{'||c==='['){
+   const result:Map<string,OrderNode>|OrderNode[]=c==='{'?new Map():[];pos++;space();
+   const end=c==='{'?'}':']';
+   while(text[pos]!==end){
+    if(result instanceof Map){const key=JSON.parse(string()) as string;space();pos++;result.set(key,read(depth+1));}
+    else result.push(read(depth+1));
+    space();if(text[pos]!==',')break;pos++;space();
+   }
+   pos++;return result;
+  }
+  if(c==='"')string();else while(pos<text.length){const code=text.charCodeAt(pos);if(code<=32||code===44||code===93||code===125)break;pos++;}
+  return null;
+ };
+ return read(0);
+}
+function attachOrders(value:unknown,node:OrderNode):void{
+ if(!object(value)||node===null)return;
+ if(node instanceof Map){
+  const keys=[...node.keys()];
+  // Only array-index property names have special ECMAScript enumeration.
+  // Named ancestors need clone ancestry, but no serialization proxy.
+  if(keys.some(key=>{const n=Number(key);return Number.isInteger(n)&&n>=0&&n<4294967295&&String(n)===key;})){
+   orders.set(value,Object.freeze(keys));trees.add(value);
+  }
+  for(const [key,child]of node){attachOrders(value[key],child);if(object(value[key])&&trees.has(value[key]))trees.add(value);}
+ }else for(let i=0;i<node.length;i++){const child=value[String(i)];attachOrders(child,node[i]!);if(object(child)&&trees.has(child))trees.add(value);}
+}
+export function hasMotanObjectOrder(value:object):boolean{return orders.has(value);}
+export function motanObjectKeys(value:object):readonly string[]{
+ const keys=orders.get(value);if(!keys)return Object.keys(value);
+ if(Object.keys(value).length!==keys.length||keys.some(key=>!Object.prototype.propertyIsEnumerable.call(value,key)))throw new MotanNumberMetadataError('Mutated Motan key order');
+ return keys;
+}
+function mergedOrder(first:object,second:object):readonly string[]|undefined{
+ if(!orders.has(first)&&!orders.has(second))return undefined;
+ return Object.freeze([...new Set([...motanObjectKeys(first),...motanObjectKeys(second)])]);
+}
+/** Call before installing the update's fields. The owner must synchronously
+ * finish the assignment before exposing the object to readers. */
+export function mergeMotanKeyOrder(target:object,update:object):void{
+ const keys=mergedOrder(target,update);if(keys){orders.set(target,keys);trees.add(target);}
+}
 export function parseTypedMotanJson(text:string):unknown{
  let count=0;
- return JSON.parse(text,function(this:Record<string,unknown>,key:string,value:unknown,context?:{source?:string}){
+ const result:unknown=JSON.parse(text,function(this:Record<string,unknown>,key:string,value:unknown,context?:{source?:string}){
   if(typeof value==='number'){
    const source=context?.source;
    if(source&&/^-?\d+$/.test(source)){
@@ -22,6 +76,10 @@ export function parseTypedMotanJson(text:string):unknown{
   }else if(object(value)&&trees.has(value))trees.add(this);
   return value;
  });
+ // Ordinary named status fields cannot be reordered by ECMAScript. Escapes
+ // may spell an integer key; inspect those too. Values can cause false hits.
+ if(/"(?:[0-9]|\\)/.test(text))attachOrders(result,readOrders(text));
+ return result;
 }
 /** Only a token proven to be an integer is promoted. A changed tracked value
  * fails rather than applying stale metadata to a caller mutation. */
@@ -34,6 +92,7 @@ export function motanTypedValue(container:Record<string,unknown>,key:string):unk
 function copyTypes(source:Record<string,unknown>,target:Record<string,unknown>,depth:number):void{
  if(depth>64)throw new Error('Motan numeric metadata nesting limit');
  if(!trees.has(source))return;trees.add(target);
+ if(orders.has(source))orders.set(target,Object.freeze([...motanObjectKeys(source)]));
  for(const registry of [integers,floats]){const fields=registry.get(source);if(fields)registry.set(target,new Map(fields));}
  for(const key of Object.keys(source)){const child=source[key];if(object(child)&&trees.has(child))copyTypes(child,target[key] as Record<string,unknown>,depth+1);}
 }
@@ -44,6 +103,7 @@ export function cloneMotanJson<T extends object>(source:T):T{
  * by float, text, null, or an untracked value. Nested trees keep their owners. */
 export function mergeMotanObjects(first:Readonly<Record<string,unknown>>,second:Readonly<Record<string,unknown>>):Record<string,unknown>{
  const result={...first,...second};
+ const keys=mergedOrder(first,second);if(keys)orders.set(result,keys);
  if(!trees.has(first)&&!trees.has(second))return result;
  trees.add(result);
  for(const registry of [integers,floats]){const fields=new Map(registry.get(first));
@@ -57,12 +117,13 @@ export function mergeMotanObjects(first:Readonly<Record<string,unknown>>,second:
  * caller installs merged child objects. Include metadata ancestry of updates
  * even when the previous snapshot contained no integer tokens. */
 export function copyMotanStatusRoot(first:Readonly<Record<string,unknown>>,update:Readonly<Record<string,unknown>>):Record<string,unknown>{
- const result={...first};if(trees.has(first)||trees.has(update))trees.add(result);return result;
+ const result={...first};const keys=mergedOrder(first,update);if(keys)orders.set(result,keys);if(trees.has(first)||trees.has(update))trees.add(result);return result;
 }
 
 /** Assign into a capture-owned object without copying all retained fields.
  * Never use this on the immutable snapshots maintained by status readers. */
 export function assignMotanObject(target:Record<string,unknown>,update:Readonly<Record<string,unknown>>):void{
+ mergeMotanKeyOrder(target,update);
  for(const [key,value]of Object.entries(update)){
   Object.defineProperty(target,key,{value,writable:true,enumerable:true,configurable:true});
   for(const registry of [integers,floats]){

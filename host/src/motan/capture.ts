@@ -1,4 +1,4 @@
-import {parseTypedMotanJson,assignMotanObject,motanNumberToken,MotanNumberMetadataError} from './number-types.ts';
+import {parseTypedMotanJson,assignMotanObject,motanNumberToken,MotanNumberMetadataError,hasMotanObjectOrder,motanObjectKeys,mergeMotanKeyOrder} from './number-types.ts';
 import {parseRequestJson,JsonNumberError} from '../moonraker/json.ts';
 // GPL-3.0-or-later. Native Motan capture state machine, based on data_logger.py.
 import {MotanLogWriter} from './log-writer.ts';
@@ -26,11 +26,20 @@ export function parseMotanJson(data:Uint8Array,preserveNumberTypes=false):unknow
  return preserveNumberTypes&&statusRecord(result)?parseTypedMotanJson(text):result;
 }
 
-export function encodeMotanJson(value:unknown):Buffer{return Buffer.from(JSON.stringify(value,function(this:Record<string,unknown>,key:string,v:unknown){
+export function encodeMotanJson(value:unknown):Buffer{
+ let proxies:WeakMap<object,object>|undefined,owners:WeakMap<object,Record<string,unknown>>|undefined;
+ return Buffer.from(JSON.stringify(value,function(this:Record<string,unknown>,key:string,v:unknown){
  if(typeof v==='bigint')return rawJson(String(v));
- if(typeof v==='number'){const token=motanNumberToken(this,key,v);if(token!==undefined)return rawJson(token);if(Object.is(v,-0))return rawJson('-0.0');}
+ if(typeof v==='number'){const token=motanNumberToken(owners?.get(this)??this,key,v);if(token!==undefined)return rawJson(token);if(Object.is(v,-0))return rawJson('-0.0');}
+ if(v!==null&&typeof v==='object'&&hasMotanObjectOrder(v)){
+  proxies??=new WeakMap();owners??=new WeakMap();let proxy=proxies.get(v);if(!proxy){
+   proxy=new Proxy(v,{ownKeys(target){const keys=motanObjectKeys(target),seen=new Set<PropertyKey>(keys);return [...keys,...Reflect.ownKeys(target).filter(k=>!seen.has(k))];}});
+   proxies.set(v,proxy);owners.set(proxy,v as Record<string,unknown>);
+  }return proxy;
+ }
  return v;
-}));}
+ }));
+}
 export interface MotanWriters {log:Pick<MotanLogWriter,'addRecords'|'flush'>&Partial<Pick<MotanLogWriter,'addRecordsAndFlush'>>;index:Pick<MotanLogWriter,'addRecords'>;}
 /** One sequential accept caller. Flushes pending raw frames before publishing
  * each original index boundary, then batches remaining frames from the chunk. */
@@ -47,7 +56,7 @@ export class MotanCapture {
  async #drain():Promise<void>{if(this.#records.length){await this.#writers.log.addRecords(this.#records);this.#records=[];this.#recordBytes=0;}}
  async #drainIndexes():Promise<void>{if(this.#indexRecords.length){await this.#writers.index.addRecords(this.#indexRecords);this.#indexRecords=[];this.#indexBytes=0;}}
  async #index():Promise<void>{let position:number;if(this.#records.length&&this.#writers.log.addRecordsAndFlush){position=await this.#writers.log.addRecordsAndFlush(this.#records);this.#records=[];this.#recordBytes=0;}else{await this.#drain();position=await this.#writers.log.flush();}const db={status:this.#status,...this.#subscriptions?{subscriptions:this.#subscriptions}:{},file_position:position},encoded=encodeMotanJson(db);if(encoded.length>1024*1024)throw new Error('Motan index snapshot limit exceeded');if(this.#indexBytes+encoded.length+1>1024*1024||this.#indexRecords.length>=256)await this.#drainIndexes();this.#indexRecords.push(encoded);this.#indexBytes+=encoded.length+1;this.#status=Object.create(null);this.#subscriptions=undefined;this.#indexes++;}
- #merge(update:ObjectValue):void{for(const [key,value] of Object.entries(update)){const current=Object.hasOwn(this.#status,key)?object(this.#status[key]):Object.create(null);assignMotanObject(current,object(value));this.#status[key]=current;}if(encodeMotanJson(this.#status).length>1024*1024)throw new Error('Motan status snapshot limit exceeded');}
+ #merge(update:ObjectValue):void{mergeMotanKeyOrder(this.#status,update);for(const [key,value] of Object.entries(update)){const current=Object.hasOwn(this.#status,key)?object(this.#status[key]):Object.create(null);assignMotanObject(current,object(value));this.#status[key]=current;}if(encodeMotanJson(this.#status).length>1024*1024)throw new Error('Motan status snapshot limit exceeded');}
  async accept(frames:readonly Buffer[]):Promise<void>{
   if(!this.#initialized||this.#busy||this.#ended)throw new Error('Invalid Motan capture state');this.#busy=true;
   try{for(const raw of frames){if(raw.length>1024*1024)throw new Error('Motan frame limit exceeded');let message:ObjectValue;try{message=object(parseMotanJson(raw,true));}catch(error){if(error instanceof MotanNumberMetadataError||error instanceof RangeError)throw error;this.#output('ERROR: Unable to parse line\n');continue;}

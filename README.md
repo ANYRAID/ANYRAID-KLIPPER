@@ -52,7 +52,8 @@ A64 板卡验收，详见[迁移说明](docs/Node_Host_Migration.md)。
 Motan 运动数据采集入口已切换为
 `node scripts/motan/data_logger.ts /tmp/klippy_uds mylog -s '*'`，保留原
 `.json.gz`/`.index.gz` 格式并使用批量压缩；需要 Node.js 26，采集过程
-不调用 Python。新采集的初始和增量索引保留状态数字的整数/浮点类型。
+不调用 Python。新采集的初始和增量索引保留状态数字的整数/浮点类型
+及 JSON 对象键的源顺序（包括数字形式的键）。
 输出文件必须不存在，重复采集请使用新前缀。Motan 后续分析和绘图
 尚未全部迁移，性能与剩余范围见迁移说明。
 
