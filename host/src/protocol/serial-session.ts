@@ -1,5 +1,6 @@
 import {trsyncFormats,type TriggerSyncProtocol,type TriggerPlan} from '../inputs/trsync.ts';
 import {firmwareFault} from './firmware-fault.ts';
+import {MotionRetiredError} from '../motion/retired.ts';
 import {configureMCU,type MCUConfigPlan,type ConfiguredMCU} from './mcu-config.ts';
 import type {ScheduledPacket} from '../motion/move-queue.ts';
 import type {ScheduledTransport,MCUQueueConfig} from '../motion/move-queue-sink.ts';
@@ -29,6 +30,14 @@ export interface TimedCommandQueue {
  stop(cause:unknown):Promise<void>;
 }
 interface ControlAck {motion?:false;deadline:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
+export interface RetirableMotionTransport extends ScheduledTransport {
+ /** Permanently fence this transport, discard its not-yet-accepted tail, then
+  * await firmware delivery of already accepted commands. Owner must keep the
+  * affected MCU steppers stopped/reset-required throughout this operation.
+  * Only after success can the session bind a replacement transport. */
+ retire(signal:AbortSignal):Promise<void>;
+}
+interface MotionLease {retired:boolean;pending:Promise<void>|undefined;retirement:Promise<void>|undefined}
 type Ack=ControlAck|{motion:true;deadline:number};
 interface AckWait {boundary:bigint;remaining:number;resolve:()=>void;reject:(error:unknown)=>void;cleanup:()=>void}
 /** Owns bootstrap, ACK dispatch and clock sampling on one preconfigured Linux
@@ -145,12 +154,32 @@ export class SerialSession {
  }
  /** One ordered motion queue per MCU, matching steppersync's single cq.
   * Resolve after native acceptance; firmware ACKs remain tracked in background. */
- motionTransport(emitterIds:readonly string[]):ScheduledTransport{
+ motionTransport(emitterIds:readonly string[]):RetirableMotionTransport{
   if(this.#state!=='ready'||this.#motionBound||!this.#configuration||this.#configuration.moveSlots<1)throw new Error('Motion transport requires an unbound ready session with configured move slots');
   if(!emitterIds.length||emitterIds.length>128||new Set(emitterIds).size!==emitterIds.length||emitterIds.some(id=>!/^[A-Za-z0-9_.:-]{1,128}$/.test(id)))throw new Error('Invalid motion emitter binding');
-  this.#motionBound=true;const ids=new Set(emitterIds);return {send:packets=>this.#motion(packets,ids),stop:cause=>this.stop(cause)};
+  this.#motionBound=true;const ids=new Set(emitterIds),lease:MotionLease={retired:false,pending:undefined,retirement:undefined};
+  return Object.freeze({send:(packets:readonly ScheduledPacket[])=>{
+   if(lease.retired)return Promise.reject(new MotionRetiredError());
+   if(lease.pending)return Promise.reject(new Error('Motion send already in progress'));
+   const sent=this.#motion(packets,ids,lease);lease.pending=sent;
+   void sent.then(()=>{lease.pending=undefined;},()=>{lease.pending=undefined;});return sent;
+  },stop:(cause:unknown)=>this.stop(cause),retire:(signal:AbortSignal)=>{
+   if(lease.retirement)return lease.retirement;
+   lease.retired=true;for(const wake of this.#space)wake();this.#space.clear();
+   lease.retirement=this.#retireMotion(lease,signal);return lease.retirement;
+  }});
  }
- async #motion(packets:readonly ScheduledPacket[],ids:ReadonlySet<string>):Promise<void>{
+ async #retireMotion(lease:MotionLease,signal:AbortSignal):Promise<void>{
+  try{
+   signal.throwIfAborted();this.assertActive();
+   try{await lease.pending;}catch(error){if(!(error instanceof MotionRetiredError))throw error;}
+   // No old send can enqueue after the fence, so this delivery snapshot covers
+   // every accepted prefix. Do not clear native ACK accounting or replay it.
+   await this.waitForAcknowledgements(signal);signal.throwIfAborted();this.assertActive();
+   this.#motionBound=false;
+  }catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion retirement and device stop failed');}throw error;}
+ }
+ async #motion(packets:readonly ScheduledPacket[],ids:ReadonlySet<string>,lease:MotionLease):Promise<void>{
   if(this.#motionBusy)throw new Error('Motion send already in progress');this.#motionBusy=true;
   try{
    if(this.#state!=='ready')throw new Error('Motion session is not ready');this.clock.assertActive();
@@ -168,6 +197,7 @@ export class SerialSession {
    }
    let index=0;
    while(index<staged.length){
+    if(lease.retired)throw new MotionRetiredError();
     this.#assertOpen();this.clock.assertActive();
     // Reserve 128 native slots for clock/control queries even under backpressure.
     const capacity=3968-this.#pending.size;
@@ -184,7 +214,7 @@ export class SerialSession {
     index=end;
    }
    this.#assertOpen();this.clock.assertActive();
-  }catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion send and stop failed');}throw error;}
+  }catch(error){if(error instanceof MotionRetiredError&&lease.retired)throw error;try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Motion send and stop failed');}throw error;}
   finally{this.#motionBusy=false;}
  }
  #motionDone(){if(--this.#motionPending===0){clearTimeout(this.#motionTimer);this.#motionTimer=undefined;this.#motionExpiry=Infinity;}}
