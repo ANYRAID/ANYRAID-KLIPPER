@@ -1,3 +1,4 @@
+import {randomUUID} from 'node:crypto';
 import {MaintenanceGate} from './maintenance-gate.ts';
 import type { PrintJournal, JournalRecord } from './print-journal.ts';
 import { printDeadline } from './print-deadline.ts';
@@ -97,7 +98,7 @@ export class PrintController {
   fault(cause:unknown):Promise<void>{
     if(this.#faultStop)return this.#faultStop;
     const deferred=Promise.withResolvers<void>();this.#faultStop=deferred.promise;
-    this.#eofPending=undefined;this.#faultCause=cause;this.#state='failed';
+    this.#eofPending=undefined;this.#faultCause=cause;this.#changeState('failed');
     this.#abort?.abort(cause);
     void Promise.resolve().then(()=>printDeadline(this.#ensureStopped(),'safe stop',this.#deadlines.stopMs)).then(deferred.resolve,deferred.reject);
     return deferred.promise;
@@ -131,6 +132,9 @@ export class PrintController {
   }
   #limits: PrintLimits;
   #state: PrintState = 'idle';
+  readonly #stateEpoch=randomUUID();#stateRevision=0n;#stateToken=this.#stateEpoch+':0';
+  get stateToken():string{return this.#stateToken;}
+  #changeState(state:PrintState):void{if(this.#state===state)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);}
   #active: Promise<void> | undefined;
   #abort: AbortController | undefined;
   #cancel: Promise<void> | undefined;
@@ -214,7 +218,7 @@ export class PrintController {
           throw new Error('Cannot adopt a live print journal');
         controller.#journalRecord = record;
         controller.#start = Object.freeze({ ...record.request });
-        controller.#state = 'interrupted';
+        controller.#changeState('interrupted');
       }
       controller.#restoringMetadata=false;return controller;
     } catch (error) {
@@ -385,7 +389,7 @@ export class PrintController {
     )
       throw new Error('Cannot reset before durable terminal acknowledgement');
     this.#journalRecord = undefined;this.#operationError=undefined;
-    this.#state = 'idle';
+    this.#changeState('idle');
     this.#lastReset = requestId;
     this.#start = undefined;
     this.#startPromise = undefined;
@@ -401,7 +405,7 @@ export class PrintController {
       this.#state === 'completed'
     )
       return Promise.resolve();
-    this.#eofPending=undefined;this.#state = 'cancelling';
+    this.#eofPending=undefined;this.#changeState('cancelling');
     const active = this.#active;
     const cancellation = (async () => {
       await Promise.resolve();
@@ -432,9 +436,9 @@ export class PrintController {
           'cancel',
           this.#deadlines.stopMs,
         );
-        this.#state = 'cancelled';
+        this.#changeState('cancelled');
       } catch (error) {
-        this.#state = 'failed';
+        this.#changeState('failed');
         throw error;
       }
     })();
@@ -519,7 +523,7 @@ export class PrintController {
     success: PrintState,
     action: (signal: AbortSignal) => Promise<void>,
   ): Promise<void> {
-    this.#state = transient;
+    this.#changeState(transient);
     const abort = new AbortController();
     this.#abort = abort;
     this.#active = (async () => {
@@ -540,11 +544,11 @@ export class PrintController {
           (error) => abort.abort(error),
         );
         abort.signal.throwIfAborted();
-        this.#state = success;
+        this.#changeState(success);
       } catch (error) {
         if (this.#state !== 'cancelling') {
           this.#operationError??=error;
-          this.#state = 'failed';
+          this.#changeState('failed');
           try {
             await printDeadline(
               this.#ensureStopped(),
