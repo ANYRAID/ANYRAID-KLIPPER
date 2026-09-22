@@ -3,7 +3,7 @@ import {createServer as createTlsServer} from 'node:tls';
 import {once} from 'node:events';
 import {parser,generate,type Packet} from 'mqtt-packet';
 /** Minimal TCP MQTT protocol peer. Negotiates framing from CONNECT; not a broker. */
-export async function mqttPeer({reject=false,rejectConnection=false,tls}:{reject?:boolean;rejectConnection?:boolean;tls?:{key:string;cert:string}}={}){
+export async function mqttPeer({reject=false,rejectConnection=false,ackPublishes=true,ackCompletions=true,publishReasonCode=0,tls}:{reject?:boolean;rejectConnection?:boolean;ackPublishes?:boolean;ackCompletions?:boolean;publishReasonCode?:number;tls?:{key:string;cert:string}}={}){
  const sockets=new Set<Socket>(),packets:Packet[]=[],subscriptions:{topic:string;qos:number}[]=[],versions=new Map<Socket,3|4|5>();
  const connections=new Set<Socket>();
  const send=(socket:Socket,packet:Packet)=>socket.write(generate(packet,{protocolVersion:versions.get(socket)??4}));
@@ -17,7 +17,9 @@ export async function mqttPeer({reject=false,rejectConnection=false,tls}:{reject
     send(socket,{cmd:'connack',returnCode:rejectConnection?5:0,reasonCode:rejectConnection?135:0,sessionPresent:false});
    }else if(packet.cmd==='subscribe'){
     subscriptions.push(...packet.subscriptions);send(socket,{cmd:'suback',messageId:packet.messageId,granted:packet.subscriptions.map(s=>reject?128:s.qos)});
-   }else if(packet.cmd==='pubrec')send(socket,{cmd:'pubrel',messageId:packet.messageId});
+   }else if(packet.cmd==='publish'&&ackPublishes&&packet.qos)send(socket,{cmd:packet.qos===1?'puback':'pubrec',messageId:packet.messageId,reasonCode:publishReasonCode});
+   else if(packet.cmd==='pubrel'&&ackPublishes&&ackCompletions)send(socket,{cmd:'pubcomp',messageId:packet.messageId,reasonCode:publishReasonCode});
+   else if(packet.cmd==='pubrec')send(socket,{cmd:'pubrel',messageId:packet.messageId});
    else if(packet.cmd==='pingreq')send(socket,{cmd:'pingresp'});
   });
  };
