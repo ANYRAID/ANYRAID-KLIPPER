@@ -8,7 +8,7 @@ import {MotionCoordinator} from '../../src/motion/coordinator.ts';
 import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
 import type {HomingRecoveryOptions} from '../../src/homing/recovery.ts';
 const signal=()=>new AbortController().signal;
-export async function recoveryFixture(count=2,safety?:()=>Promise<void>){
+export async function recoveryFixture(count=2,safety?:()=>Promise<void>,retainHistory:ConstructorParameters<typeof MoveQueueSink>[1]=async()=>{}){
  const fs:Awaited<ReturnType<typeof serialFirmware>>[]=[],sessions:SerialSession[]=[],members:HomingRecoveryOptions['members'][number][]=[],emitters:HomingRecoveryOptions['emitters'][number][]=[],bindings:HomingRecoveryOptions['bindings'][number][]=[];let stops=0,releases=0;
  const q=new TrapQueue();let endstop!:EndstopProtocol;
  for(let i=0;i<count;i++){
@@ -19,7 +19,7 @@ export async function recoveryFixture(count=2,safety?:()=>Promise<void>){
  }
  const start=sessions[0].clock.sync.getClock(serialClock.now()),sampling=endstop.home({printTime:Number(start)/1e6,sampleTime:.000015,sampleCount:4,restTime:.001,trsyncOid:8},t=>BigInt(Math.trunc(t*1e6)));
  fs[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(start+sampling.restTicks)});
- const sink=new MoveQueueSink(sessions.map((s,i)=>s.motionQueue(`m${i}`,[`s${i}`],t=>bindings[i].stepper.clockAt(t))),async()=>{}),coordinator=new MotionCoordinator(bindings,sink);
+ const sink=new MoveQueueSink(sessions.map((s,i)=>s.motionQueue(`m${i}`,[`s${i}`],t=>bindings[i].stepper.clockAt(t))),retainHistory),coordinator=new MotionCoordinator(bindings,sink);
  const options:HomingRecoveryOptions={members,primary:0,endstop,sampling,release(){releases++;},coordinator,bindings,emitters,locate:()=>({queues:[{id:'xyz',position:[10,0,0]}],printTime:Math.max(...sessions.map(s=>Number(s.clock.sync.getClock(serialClock.now()))/1e6))+1})};
  return {fs,sessions,options,get stops(){return stops;},get releases(){return releases;},async close(){for(const b of bindings)b.stepper.dispose();q.dispose();for(const s of sessions)await s.stop().catch(()=>{});for(const fw of fs)await fw.close();}};
 }

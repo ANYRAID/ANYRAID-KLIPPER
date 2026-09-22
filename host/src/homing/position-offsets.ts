@@ -7,6 +7,9 @@ export interface HomingHistoryBinding {readonly member:number;readonly oid:numbe
  * Produces deltas only; resetting native queues and granting homing are separate. */
 export function homingPositionOffsets(result:HomingStopResult,bindings:readonly HomingHistoryBinding[],triggerClocks:readonly bigint[]){
  if(result.hitClock===null)throw new Error('Homing did not trigger');
+ return positionOffsets(result,bindings,triggerClocks);
+}
+function positionOffsets(result:HomingStopResult,bindings:readonly HomingHistoryBinding[],triggerClocks:readonly bigint[]){
  if(bindings.length!==result.positions.length||!bindings.length||triggerClocks.length!==result.reasons.length)throw new Error('Incomplete homing history');
  const byKey=new Map<string,StepHistory>();
  for(const b of bindings){if(!Number.isInteger(b.member)||b.member<0||b.member>=triggerClocks.length||!Number.isInteger(b.oid)||b.oid<0||b.oid>254||!(b.history instanceof StepHistory))throw new Error('Invalid homing history binding');const key=`${b.member}:${b.oid}`;if(byKey.has(key))throw new Error('Duplicate homing history');byKey.set(key,b.history);}
@@ -23,6 +26,15 @@ import type {HomingStopSetResult} from './stop-set.ts';
 /** Independent switches have independent trigger times, even on the same MCU.
  * Each row of triggerClocks is mapped within that group's MCU domains. */
 export function homingSetPositionOffsets(result:HomingStopSetResult,bindings:readonly HomingHistoryBinding[],triggerClocks:readonly (readonly bigint[])[]){
+ return setOffsets(result,bindings,triggerClocks,true);
+}
+/** Recovery only: missing-hit groups use caller-provided end-of-movement clocks.
+ * These reference positions are not endstop hits or homed-axis authority. */
+export function homingSetRecoveryOffsets(result:HomingStopSetResult,bindings:readonly HomingHistoryBinding[],referenceClocks:readonly (readonly bigint[])[]){
+ const offsets=setOffsets(result,bindings,referenceClocks,false);
+ return Object.freeze({offsets,missingHits:Object.freeze(result.groups.flatMap((g,i)=>g.hitClock===null?[i]:[]))});
+}
+function setOffsets(result:HomingStopSetResult,bindings:readonly HomingHistoryBinding[],triggerClocks:readonly (readonly bigint[])[],requireHit:boolean){
  if(result.hitClock!==null||!result.groups.length||result.groups.length!==result.memberOffsets.length||triggerClocks.length!==result.groups.length||bindings.length!==result.positions.length)throw new Error('Invalid independent homing history');
  let member=0,position=0;
  const offsets:ReturnType<typeof homingPositionOffsets>[number][]=[];
@@ -30,7 +42,7 @@ export function homingSetPositionOffsets(result:HomingStopSetResult,bindings:rea
   if(result.memberOffsets[i]!==member||group.reasons.some((r,j)=>result.reasons[member+j]!==r))throw new Error('Invalid homing member mapping');
   for(const p of group.positions){const flat=result.positions[position++];if(!flat||flat.member!==member+p.member||flat.oid!==p.oid||flat.raw!==p.raw||flat.position!==p.position||flat.observedClock!==p.observedClock)throw new Error('Inconsistent independent homing position');}
   const local=bindings.filter(b=>b.member>=member&&b.member<member+group.reasons.length).map(b=>({...b,member:b.member-member}));
-  offsets.push(...homingPositionOffsets(group,local,triggerClocks[i]).map(p=>Object.freeze({...p,member:member+p.member})));
+  offsets.push(...(requireHit?homingPositionOffsets:positionOffsets)(group,local,triggerClocks[i]).map(p=>Object.freeze({...p,member:member+p.member})));
   member+=group.reasons.length;
  }
  if(member!==result.reasons.length||position!==result.positions.length)throw new Error('Incomplete independent homing mapping');

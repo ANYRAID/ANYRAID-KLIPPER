@@ -22,6 +22,9 @@ export class StepCompressor {
   /** Validate without mutating; used to update an MCU's whole stepper group. */
   validateClockCalibration(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,false);}
   calibrateClock(offset:number,frequency:number):void{native.calibrateClock(this.#handle,offset,frequency,true);this.#offset=offset;this.#frequency=frequency;}
+  /** Snapshot of the active host-to-MCU mapping; callers must reject drift
+   * when preserving a homing generation across readback and reconstruction. */
+  get calibration():Readonly<{offset:number;frequency:number}>{if(this.#closed)throw new Error('Step compressor is closed');return Object.freeze({offset:this.#offset,frequency:this.#frequency});}
   /** Same rounding as original C clock_from_time; usable by MoveQueueSink. */
   clockAt(printTime:number):bigint{const raw=(printTime-this.#offset)*this.#frequency,rounded=Math.floor(raw+.5);if(this.#closed||!Number.isFinite(printTime)||!Number.isSafeInteger(rounded)||raw<0)throw new RangeError('Invalid print-time clock');return BigInt(rounded);}
   /** Convert an observed MCU clock using this emitter's current calibration. */

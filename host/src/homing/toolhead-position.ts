@@ -32,7 +32,7 @@ export function homingToolheadPositions(o:HomingCoordinates){
  const reference=[...o.reference],inverse=o.calculate;
  const offsets=new Map<string,Offset>();
  for(const p of o.offsets){const key=`${p.member}:${p.oid}`;
-  if(!Number.isInteger(p.member)||p.member<0||p.member>=16||!Number.isInteger(p.oid)||p.oid<0||p.oid>254||offsets.has(key)||![p.start,p.trigger,p.halt,p.triggerOffset,p.haltOffset,p.overshoot].every(v=>typeof v==='bigint')||p.trigger-p.start!==p.triggerOffset||p.halt-p.start!==p.haltOffset||p.halt-p.trigger!==p.overshoot)throw new RangeError('Invalid homing step offsets');
+  if(!Number.isInteger(p.member)||p.member<0||p.member>=128||!Number.isInteger(p.oid)||p.oid<0||p.oid>254||offsets.has(key)||![p.start,p.trigger,p.halt,p.triggerOffset,p.haltOffset,p.overshoot].every(v=>typeof v==='bigint')||p.trigger-p.start!==p.triggerOffset||p.halt-p.start!==p.haltOffset||p.halt-p.trigger!==p.overshoot)throw new RangeError('Invalid homing step offsets');
   offsets.set(key,{...p});
  }
  if(!offsets.size)throw new RangeError('Missing homing step offsets');

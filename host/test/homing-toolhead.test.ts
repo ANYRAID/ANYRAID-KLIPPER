@@ -44,3 +44,8 @@ test('trigger history and overshoot reconstruct the actual recovery queue origin
   assert.equal(motion.bindings[0].stepper.commandedPosition,10.02);assert.equal(motion.bindings[0].stepper.flush().position,105n);assert.equal(f.stops,0);
  }finally{motion?.dispose();await f.close();}
 });
+test('independent groups may use logical member indices through 127 without losing step precision',()=>{
+ const offset={member:127,oid:1,start:0n,trigger:10n,halt:11n,triggerOffset:10n,haltOffset:11n,overshoot:1n};
+ const options={mode:'home' as const,reference:[10,0,0,7],actuators:[{id:'x',member:127,oid:1,commanded:10,stepDistance:.01}],offsets:[offset],calculate:(p:ReadonlyMap<string,number>)=>[p.get('x')!,0,0]};
+ assert.equal(homingToolheadPositions(options).halt[0],10.01);assert.throws(()=>homingToolheadPositions({...options,offsets:[{...offset,member:128}]}));
+});
