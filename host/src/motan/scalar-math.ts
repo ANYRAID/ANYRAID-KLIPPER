@@ -1,5 +1,5 @@
 // GPL-3.0-or-later. Preserve Python integer arithmetic before float scaling.
-import {motanDerivative,motanCombine,motanNorm2,motanSmooth,type MotanCombination} from './derived-math.ts';
+import {motanDerivative,motanCombine,motanNorm2,motanSmooth,motanIntegral,type MotanCombination} from './derived-math.ts';
 import {motanScalarBytes,type MotanScalar} from './table.ts';
 export type MotanScalarSeries=Float64Array|readonly MotanScalar[];
 function validate(data:MotanScalarSeries):void{
@@ -19,6 +19,66 @@ function binary(a:MotanScalar,b:MotanScalar,plus:boolean):number|bigint{
 function numeric(data:MotanScalarSeries):data is Float64Array|readonly number[]{return data instanceof Float64Array||data.every(value=>typeof value==='number');}
 const squareOverflow=1n<<512n;
 const floatOverflow=1n<<1024n;
+const longMin=-(1n<<63n),longMax=(1n<<63n)-1n;
+/** One rounding of integer sum / positive sample count. The denominator is at
+ * most two million, so a nonzero quotient cannot be subnormal. */
+function integerMean(sum:bigint,count:number):number{
+ if(sum===0n)return 0;const negative=sum<0n;let numerator=negative?-sum:sum,denominator=BigInt(count);
+ let exponent=numerator.toString(2).length-denominator.toString(2).length;
+ if(exponent>=0?numerator<(denominator<<BigInt(exponent)):(numerator<<BigInt(-exponent))<denominator)exponent--;
+ if(exponent>1023)throw new Error('Motan derived result exceeds finite range');
+ const shift=exponent-52;if(shift>=0)denominator<<=BigInt(shift);else numerator<<=BigInt(-shift);
+ let quotient=numerator/denominator;const remainder=numerator%denominator;
+ if(remainder*2n>denominator||remainder*2n===denominator&&(quotient&1n)!==0n)quotient++;
+ return checked((negative?-1:1)*Number(quotient)*2**shift);
+}
+/** CPython 3.12, 64-bit C long: the first overflow exits the integer fast
+ * loop permanently. In the float fast loop, only float terms compensate;
+ * small ints add directly and a wide int flushes compensation and exits.
+ * https://github.com/python/cpython/blob/v3.12.13/Python/bltinmodule.c */
+function scalarMean(data:MotanScalarSeries,typed:boolean):number{
+ let integer=0n,high=0,low=0,floating=false,fast=true;
+ const hasNumber=data.some(value=>typeof value==='number');
+ for(const value of data){
+  if(typeof value!=='number'){
+   if(hasNumber&&!typed)throw new Error('Ambiguous mixed Motan integer/Number sum');
+   const item=typeof value==='boolean'?(value?1n:0n):value as bigint;
+   if(!floating){const next=integer+item;if(item<longMin||item>longMax||next<longMin||next>longMax)fast=false;integer=next;continue;}
+   if(fast&&(item<longMin||item>longMax)){if(low&&Number.isFinite(low))high=checked(high+low);low=0;fast=false;}
+   high=checked(high+checked(Number(item)));continue;
+  }
+  if(!floating){high=checked(checked(Number(integer))+value);floating=true;continue;}
+  const next=checked(high+value);
+  if(fast)low+=Math.abs(high)>=Math.abs(value)?(high-next)+value:(value-next)+high;
+  high=next;
+ }
+ if(!floating)return integerMean(integer,data.length);
+ if(fast&&low&&Number.isFinite(low))high=checked(high+low);
+ return checked(high/data.length);
+}
+/** Inputs are explicit int/bool/float when typedNumbers is true. Legacy
+ * ambiguous mixed sums remain rejected instead of guessing token kinds. */
+export function motanScalarIntegral(data:MotanScalarSeries,segmentTime:number,reference?:MotanScalarSeries,halfLife=.015,maxBytes=64*1024**2,typedNumbers=false):Float64Array{
+ if(!Number.isSafeInteger(maxBytes)||maxBytes<0||maxBytes>1024**3||typeof typedNumbers!=='boolean')throw new Error('Invalid Motan scalar integral budget or types');
+ if(data.length*8>maxBytes)throw new Error('Motan scalar result memory limit');
+ if(data instanceof Float64Array&&(reference===undefined||reference instanceof Float64Array))return motanIntegral(data,segmentTime,reference,halfLife);
+ validate(data);if(reference)validate(reference);
+ if(!data.length||!Number.isFinite(segmentTime)||segmentTime<=0||!Number.isFinite(halfLife)||halfLife<0||reference&&reference.length!==data.length)throw new Error('Invalid Motan scalar integral samples, reference or time');
+ if(numeric(data)&&(reference===undefined||numeric(reference)))return motanIntegral(data,segmentTime,reference,halfLife);
+ let offset=scalarMean(data,typedNumbers),total=0,sourceWeight=1,referenceWeight=0;
+ if(reference){const first=reference[0],last=reference.at(-1)!;
+  const difference=typedNumbers&&(typeof first==='number'||typeof last==='number')?checked(checked(Number(last))-checked(Number(first))):binary(last,first,false);
+  offset=checked(offset-checked(Number(difference))/(data.length*segmentTime));total=checked(Number(first));
+  if(halfLife)sourceWeight=Math.exp(Math.log(.5)*segmentTime/halfLife);referenceWeight=1-sourceWeight;
+ }
+ const result=new Float64Array(data.length);
+ for(let i=0;i<data.length;i++){
+  total=checked(total+checked((checked(Number(data[i]))-offset)*segmentTime));
+  if(reference)total=checked(sourceWeight*total+referenceWeight*checked(Number(reference[i])));
+  result[i]=total;
+ }
+ return result;
+}
 /** Integer weighting precedes conversion; accumulation is sequential float
  * addition, including the original asymmetric weights at truncated edges. */
 export function motanScalarSmooth(data:MotanScalarSeries,segmentTime:number,smoothTime=.01,maxBytes=64*1024**2):Float64Array{

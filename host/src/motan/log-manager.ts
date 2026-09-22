@@ -22,6 +22,7 @@ interface Dataset {info:DatasetLabel;sample:(time:number)=>Promise<unknown>;}
 /** One immutable index window per owner. Reopen to seek or change datasets after sampling. */
 export class MotanLogManager {
  readonly initialStatus:Readonly<Record<string,unknown>>;readonly startStatus:Readonly<Record<string,unknown>>;readonly initialStartTime:number;readonly startTime:number;readonly filePosition:number;
+ get preserveNumberTypes():boolean{return this.#preserveNumberTypes;}
  readonly #preserveNumberTypes:boolean;readonly #reader:MotanLogReader;readonly #dispatch:MotanDispatcher;readonly #subscriptions:Record<string,unknown>;readonly #datasets=new Map<string,Dataset>();#tracker:MotanStatusTracker|undefined;#started=false;#busy=false;#closed=false;#last=-Infinity;#failure:Error|undefined;#closing:Promise<void>|undefined;
  private constructor(reader:MotanLogReader,initial:Record<string,unknown>,start:Record<string,unknown>,subscriptions:Record<string,unknown>,startTime:number,filePosition:number,dispatch?:DispatchOptions,preserveNumberTypes=false){this.#preserveNumberTypes=preserveNumberTypes;this.#reader=reader;this.#dispatch=new MotanDispatcher(reader,dispatch);this.initialStatus=initial;this.startStatus=start;this.initialStartTime=clock(initial);this.startTime=startTime;this.filePosition=filePosition;this.#subscriptions=subscriptions;}
  static async open(prefix:string,options:MotanManagerOptions={}):Promise<MotanLogManager>{
