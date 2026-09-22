@@ -33,6 +33,13 @@ export class MotanLogReader {
   this.#source=Readable.from(chunks(),{objectMode:false,highWaterMark:65536});this.#inflate=this.#position===0?createGunzip(settings):createInflateRaw(settings);
   this.#pump=pipeline(this.#source,this.#inflate);void this.#pump.catch(error=>{if(generation===this.#generation)this.#failure??=error;});this.#iterator=this.#inflate[Symbol.asyncIterator]();
  }
+ /** Consume only an already buffered frame; undefined requests asynchronous I/O. */
+ pullReadyMessage():MotanMessage|null|undefined{
+  this.#check();if(this.#pending||this.#seeking)throw new Error('Concurrent Motan reads are not supported');
+  try{if(this.#at<this.#queue.length)return this.#decode(this.#queue[this.#at++]);return this.#eof?null:undefined;}
+  catch(error){this.#failure??=error;this.#source?.destroy();this.#inflate?.destroy();throw error;}
+ }
+ #decode(raw:Buffer):MotanMessage{const value=parseMotanJson(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);this.#messages++;return value as MotanMessage;}
  pullMessage():Promise<MotanMessage|null>{return this.pullMessages(1).then(values=>values[0]??null);}
  pullMessages(limit=256):Promise<MotanMessage[]>{
   try{this.#check();if(this.#pending||this.#seeking)throw new Error('Concurrent Motan reads are not supported');if(!Number.isSafeInteger(limit)||limit<1||limit>1024)throw new Error('Invalid Motan read batch size');}catch(error){return Promise.reject(error);}
@@ -40,7 +47,7 @@ export class MotanLogReader {
  }
  async #read(limit:number):Promise<MotanMessage[]>{
   try{this.#start();const result:MotanMessage[]=[];let bytes=0;
-   while(result.length<limit){this.#check();if(this.#at<this.#queue.length){const raw=this.#queue[this.#at];if(result.length&&bytes+raw.length>4*1024**2)break;this.#at++;bytes+=raw.length;const value=parseMotanJson(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw new Error('Motan message must be a JSON object');this.#sizes.set(value as MotanMessage,raw.length);result.push(value as MotanMessage);this.#messages++;continue;}
+   while(result.length<limit){this.#check();if(this.#at<this.#queue.length){const raw=this.#queue[this.#at];if(result.length&&bytes+raw.length>4*1024**2)break;this.#at++;bytes+=raw.length;result.push(this.#decode(raw));continue;}
     this.#queue=[];this.#at=0;if(this.#eof)break;const next=await this.#iterator!.next();this.#check();
     if(next.done){await this.#pump;this.#eof=true;if(this.#frames.pending){if(!this.#partial)throw new Error('Motan log ends with an incomplete record');this.#ignoredTail=this.#frames.pending;this.#frames=new ConsoleFrames(3,this.#recordLimit);}break;}
     this.#decoded+=next.value.length;if(this.#decoded>this.#maxDecoded)throw new Error('Motan decompression limit exceeded');this.#queue=this.#frames.push(next.value);

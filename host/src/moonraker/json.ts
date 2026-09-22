@@ -2,7 +2,10 @@
  * may contain a large integer or exponent, inspect numeric tokens before the
  * parsed value can leave this boundary. Never scan digits inside strings. */
 export class JsonNumberError extends Error {}
-const needsNumberCheck=/\d{16}|[eE][+-]?\d{3,}/;
+// Only the integer part can require exact-integer inspection. Long fractional
+// tails are normal coordinates; requiring a JSON value boundary avoids scanning
+// an entire sensor array solely because it contains a 17-digit fraction.
+const needsNumberCheck=/(?:^|[\s,:\[])-?\d{16}|[eE][+-]?\d{3,}/;
 export function parseRequestJson(text:string):unknown{
  // Native validation happens first, so the scan only handles valid JSON and
  // does not implement a second JSON grammar or recursive object traversal.

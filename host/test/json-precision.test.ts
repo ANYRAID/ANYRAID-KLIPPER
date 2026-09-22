@@ -32,3 +32,12 @@ test('source scanning handles escaped quotes, slash runs, numeric keys and disca
  assert.throws(()=>parseRequestJson('{"clock":9007199254740993,}'),SyntaxError);
  const long=JSON.stringify({text:'\\"9007199254740993'.repeat(10000)});assert.deepEqual(parseRequestJson(long),JSON.parse(long));
 });
+test('numeric prefilter retains dangerous values at every JSON boundary among long fractional tails',()=>{
+ const floating=['0.123456789012345678901234567890','-123.12345678901234567890','9007199254740993.0','1e99','1e-99'];for(const n of floating)assert.deepEqual(parseRequestJson(`[${n},${n}]`),JSON.parse(`[${n},${n}]`));
+ const unsafe=['9007199254740992','-9007199254740993','9'.repeat(400)+'.0','9'.repeat(210)+'e99','1e00000309'];for(const number of unsafe)for(const source of [number,` \n\t${number}\r `,`[${number}]`,`[0,\n${number}]`,`{"x":${number}}`,`{"x":\t${number}}`,`{"x":${number},"x":0}`])assert.throws(()=>parseRequestJson(source),JsonNumberError);
+ const prefix=Array.from({length:1000},(_,i)=>`${i}.12345678901234567`).join(',');assert.throws(()=>parseRequestJson(`[${prefix},9007199254740993]`),JsonNumberError);assert.deepEqual(parseRequestJson(`[${prefix}," :9007199254740993"]`),JSON.parse(`[${prefix}," :9007199254740993"]`));
+});
+test('numeric prefilter matches the pinned previous parser across generated numeric syntax and string contexts',async()=>{
+ const {oldJsonParser}=await import('./helpers/json-prefilter-reference.ts'),old=await oldJsonParser();let seed=0x729a19;const random=(max:number)=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed%max;};const evaluate=(parser:(s:string)=>unknown,text:string)=>{try{return {value:parser(text)};}catch(error){return {error:(error as Error).constructor.name};}};
+ for(let i=0;i<2500;i++){const lengths=[1,15,16,17,209,210,308,309,400],length=lengths[random(lengths.length)];let n=(random(2)?'-':'')+String(1+random(9));for(let j=1;j<length;j++)n+=random(10);if(random(2))n+='.'+String(random(10)).repeat(1+random(50));if(random(2))n+=(random(2)?'e':'E')+['','+','-'][random(3)]+['0','99','100','308','309','999','00000309'][random(7)];const string=JSON.stringify(`escaped \\" :${n}`),texts=[` \n${n}\t`,`${string}`,`[${string},${n},0.1234567890123456789]`,`{"k":${n},"k":0}`];for(const text of texts)assert.deepEqual(evaluate(parseRequestJson,text),evaluate(old,text),text.slice(0,80));}
+});
