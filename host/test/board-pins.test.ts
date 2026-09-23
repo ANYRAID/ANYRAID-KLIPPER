@@ -7,6 +7,18 @@ import {applyConfiguredBoardPins} from '../src/config/board-pins.ts';
 import {compileConfiguredHardware} from '../src/config/hardware.ts';
 import {hardwareFixture,hardwareReader,hardwareLayout,hardwareClocks} from './helpers/configured-hardware.ts';
 const reader=(s:Record<string,Record<string,string>>)=>new ConfigurationReader(new ConfigurationSource('/board.cfg',s,[]),null);
+test('malformed alias pairs cannot publish aliases after empty fields are discarded',()=>{
+ for(const malformed of ['STEP==PA0','=STEP=PA0','STEP=PA0=','STEP=','=PA0','STEP= =PA0']){
+  const pins=new PrinterPins<object>();pins.register('mcu',{});pins.register('aux',{});
+  assert.throws(()=>applyConfiguredBoardPins(reader({board_pins:{mcu:'mcu, aux',aliases:'DIR=PA1',aliases_extra:malformed}}),pins),/Malformed board alias/,malformed);
+  for(const id of ['mcu','aux'])assert.deepEqual(pins.resolver(id).resolve(['c pin=DIR','c pin=STEP']),['c pin=DIR','c pin=STEP']);
+ }
+});
+test('empty outer comma entries remain valid board configuration',()=>{
+ const pins=new PrinterPins<object>();pins.register('mcu',{});
+ applyConfiguredBoardPins(reader({board_pins:{aliases:', STEP = PA0, , DIR = PA1, '}}),pins);
+ assert.deepEqual(pins.resolver('mcu').resolve(['c pin=STEP','c pin=DIR']),['c pin=PA0','c pin=PA1']);
+});
 test('board aliases support prefixed lists, multiple MCUs and logical power reservations',()=>{
  const pins=new PrinterPins<object>();pins.register('mcu',{});pins.register('aux',{});
  applyConfiguredBoardPins(reader({'board_pins':{mcu:'mcu, aux',aliases:'STEP=PA0, POWER=<5V>',aliases_extra:'DIR=PA1'},'board_pins extension':{aliases:'MOTOR=STEP'}}),pins);
