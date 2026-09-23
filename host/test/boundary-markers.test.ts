@@ -9,7 +9,19 @@ import {idleMotionFixture} from './helpers/idle-motion.ts';
 import {rebuiltFixture} from './helpers/rebuilt-motion.ts';
 import {bindRebuiltMotion} from '../src/runtime/rebuilt-motion.ts';
 import {RebuiltMotionStreamer} from '../src/runtime/motion-streamer.ts';
+import {PlannedMotionSource} from '../src/motion/planned-motion-source.ts';
 const signal=()=>new AbortController().signal;
+test('oversized drain owns suffix marker arrays before its first native await',async()=>{
+ class SmallSource extends PlannedMotionSource{constructor(...args:ConstructorParameters<typeof PlannedMotionSource>){super(args[0],args[1],args[2],args[3],2);}}
+ const f=idleMotionFixture(false,SmallSource),gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();
+ try{
+  const q=new LookAheadQueue(),ids=[44];for(let i=0;i<4;i++){const m=new Move(motionLimits(100,1000),[50+i,0,0,2],[51+i,0,0,2],10);if(i===3)m.endMarkers=ids;q.add(m);}
+  const seen:number[][]=[],append=f.xyz.appendPlanned.bind(f.xyz);f.xyz.appendPlanned=(...args)=>{for(const m of args[0])if(m.endMarkers)seen.push([...m.endMarkers]);return append(...args);};
+  const advance=f.coordinator.advanceSource.bind(f.coordinator);let first=true;f.coordinator.advanceSource=async(...args)=>{if(first){first=false;entered.resolve();await gate.promise;}return advance(...args);};
+  const pending=f.source.drain(q.flush(),signal());await entered.promise;ids[0]=99;gate.resolve();await pending;
+  assert.deepEqual(seen,[[44]]);assert.deepEqual(f.positions,{x:500n,e:20n});assert.equal(f.stops,0);
+ }finally{gate.resolve();f.close();}
+});
 function path(){const q=new LookAheadQueue(),limits=motionLimits(100,10,5,0);let previous=[0,0,0,0];for(const [i,x] of [16,100].entries()){const end=[x,0,0,x/10],m=new Move(limits,previous,end,10);markMoveEnd(m,i+1);q.add(m);previous=end;}return q.flush();}
 test('brake keeps only crossed endpoint markers and resume retains future markers exactly once',()=>{
  const moves=path(),stop=planPathStop(moves,2);assert.equal(stop.brake.length,2);

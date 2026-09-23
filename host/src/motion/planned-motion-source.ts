@@ -126,7 +126,7 @@ export class PlannedMotionSource {
    else {
     // Snapshot before the first await. Later caller edits cannot change a suffix
     // after its prefix has already reached a native queue or device.
-    const owned=moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined})) as Move[];
+    const owned=moves.map(m=>Object.setPrototypeOf(ownMove(m),Object.getPrototypeOf(m))) as Move[];
     this.#validate(owned,false,100000);remaining();
     let offset=0;
     while(offset<owned.length){

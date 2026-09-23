@@ -36,6 +36,7 @@ export class ScheduledCoolingFan {
   this.#output=output;this.#enable=enable;this.#max=max;this.#kick=kick;this.#below=below;this.#interval=interval;this.#capacity=capacity;
  }
  get status(){return {phase:this.#phase,busy:this.#busy,speed:this.#requested,scheduledPower:this.#value,pending:this.#queue.length,nextTime:this.#queue.length?Math.max(this.#queue[0].time,this.#next):null,fault:this.#fault,observerErrors:this.#notice.errors};}
+ get capacity():number{return this.#capacity;}
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  #check(signal:AbortSignal){signal.throwIfAborted();if(this.#phase==='stopped')throw new Error('Cooling fan stopped',{cause:this.#fault});}
  async #reset(signal:AbortSignal){
