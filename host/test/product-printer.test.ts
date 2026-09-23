@@ -58,3 +58,15 @@ test('native product persists completion only after real motion and heater-off a
   clearInterval(timer);timer=undefined;await printer.close();
  }finally{watch.abort();if(timer)clearInterval(timer);await owner?.close();await f.dispose();}
 });
+test('native product close waits beyond cancel deadline for an uncooperative preparation and durable retirement',async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();let owner:Awaited<ReturnType<typeof connectProductPrinter>>|undefined,closing:Promise<void>|undefined;
+ f.options.print.lifecycle.prepare=async()=>{entered.resolve();await release.promise;};
+ try{
+  const file=join(f.dir,'job.gcode');await writeFile(file,'G1 X1\n');f.options.print.open=async()=>GCodeFileReader.adopt(await open(file,'r'));
+  owner=await connectProductPrinter(f.reader,f.connections,'mcu',f.layout,f.options,{...f.product,deadlines:{stopMs:10}},f.signal);
+  const started=owner.controller.start(request),rejected=assert.rejects(started);await entered.promise;
+  let settled=false;closing=owner.close().finally(()=>{settled=true;});await rejected;await new Promise(resolve=>setTimeout(resolve,30));
+  assert.equal(settled,false);assert.equal((await f.journal.get('job'))?.state,'reserved');release.resolve();await closing;
+  assert.equal(owner.controller.pendingDeviceActions,0);assert.equal((await f.journal.get('job'))?.state,'cancelled');assert.deepEqual(f.stops,[1,1]);
+ }finally{release.resolve();await closing?.catch(()=>{});await owner?.close().catch(()=>{});await f.dispose();}
+});

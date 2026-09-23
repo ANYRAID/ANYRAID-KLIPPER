@@ -27,7 +27,7 @@ export async function connectProductPrinter(reader:ConfigurationReader,connectio
   const owned=controller;
   const close=():Promise<void>=>{
    if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;maintenanceGate.invalidate();
-   const jobs=[owned.cancel(),printer.close()];
+   const jobs=[owned.retire(),printer.close()];
    void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product printer cleanup failed'));else done.resolve();});return closing;
   };
   return Object.freeze({...printer,controller:owned,maintenanceGate,close});

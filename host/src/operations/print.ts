@@ -77,6 +77,31 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #retirement:Promise<void>|undefined;
+  /** Permanent owner shutdown. Unlike cancel's observation deadline, completion
+   * proves that accepted actions, safety cleanup and journal writes retired.
+   * Keep the external journal open until this promise settles. */
+  retire():Promise<void>{
+    if(this.#retirement)return this.#retirement;
+    const done=Promise.withResolvers<void>();this.#retirement=done.promise;
+    this.#maintenanceGate?.invalidate();
+    this.#eofPending=undefined;const errors=this.#detachDevice();
+    for(const observer of [...this.#stateObservers])void observer.return();
+    const cancelled=this.#cancelOwned();void cancelled.catch(()=>{});
+    void (async()=>{
+      // cancel publishes its underlying task on the next microtask. Retain
+      // that task, not its possibly timed-out user-facing observation promise.
+      await Promise.resolve();
+      const cancellation=this.#cancelTask?.promise??cancelled;
+      const safety=this.#ensureStopped(),active=this.#active,fault=this.#faultStop;
+      const [cancelResult,stopResult]=await Promise.allSettled([cancellation,safety,active,fault]);
+      for(const result of [cancelResult,stopResult])if(result.status==='rejected')errors.push(result.reason);
+      // User-visible cancellation/fault observations may still update state.
+      await Promise.allSettled([cancelled,this.#faultStop]);
+      if(errors.length)throw new AggregateError([...new Set(errors)],'Print retirement failed');
+    })().then(done.resolve,done.reject);
+    return done.promise;
+  }
   #maintenanceGate:MaintenanceGate|undefined;#removeMaintenanceProbe:(()=>void)|undefined;#restoringMetadata=false;
   #deviceSubscriptions:(()=>void)[]=[];
   #detachDevice():unknown[]{
@@ -97,6 +122,7 @@ export class PrintController {
   get failure():unknown{return this.#faultCause??this.#operationError;}
   /** Latch an asynchronous device fault and await the same safety cleanup. */
   fault(cause:unknown):Promise<void>{
+    if(this.#retirement)return this.#retirement;
     if(this.#faultStop)return this.#faultStop;
     const deferred=Promise.withResolvers<void>();this.#faultStop=deferred.promise;
     this.#eofPending=undefined;this.#faultCause=cause;this.#changeState('failed');
@@ -139,6 +165,7 @@ export class PrintController {
   get stateObservers():number{return this.#stateObservers.size;}
   /** Bounded live state feed. Slow readers get the latest unread state. */
   watchState(signal:AbortSignal):AsyncIterableIterator<import('./print-state-stream.ts').PrintStateChange>{
+    if(this.#retirement)throw new Error('Print controller retired');
     signal.throwIfAborted();if(this.#stateObservers.size>=64)throw new Error('Print state observer capacity exceeded');
     const stream=new PrintStateStream(Object.freeze({state:this.#state,stateToken:this.#stateToken}),signal,()=>this.#stateObservers.delete(stream));
     this.#stateObservers.add(stream);return stream;
@@ -244,6 +271,7 @@ export class PrintController {
     return record?.started===started?record.admitted:started;
   }
   start(input: StartPrint): Promise<void> {
+    if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
     if(this.#faultStop)return Promise.reject(new Error('Printer fault requires device reinitialization',{cause:this.#faultCause}));
     // Validate all user parameters before acquiring a device or causing effects.
     if (
@@ -327,6 +355,7 @@ export class PrintController {
     return this.#startPromise;
   }
   pause(): Promise<void> {
+    if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
     if (this.#state === 'paused') return Promise.resolve();
     if (this.#state === 'pausing') return this.#active!;
     if (this.#state !== 'printing' || this.#active)
@@ -336,6 +365,7 @@ export class PrintController {
     );
   }
   resume(): Promise<void> {
+    if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
     if (this.#state === 'resuming') return this.#active!;
     if (this.#state !== 'paused' || this.#active)
       return Promise.reject(new Error(`Cannot resume while ${this.#state}`));
@@ -345,6 +375,7 @@ export class PrintController {
   }
   /** Trusted job completion path; the adapter must independently verify EOF. */
   complete(requestId: string): Promise<void> {
+    if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
     if (
       typeof requestId !== 'string' ||
       !/^[A-Za-z0-9_-]{1,128}$/.test(requestId)
@@ -373,6 +404,7 @@ export class PrintController {
   }
   /** Acknowledges a terminal job locally; does not execute any device action. */
   reset(requestId: string): void {
+    if(this.#retirement)throw new Error('Print controller retired');
     if (
       typeof requestId !== 'string' ||
       !/^[A-Za-z0-9_-]{1,128}$/.test(requestId)
@@ -406,7 +438,8 @@ export class PrintController {
     this.#cancelTask = undefined;
     // Never evict idempotency history silently: a late request must not reprint.
   }
-  cancel(): Promise<void> {
+  cancel():Promise<void>{return this.#retirement??this.#cancelOwned();}
+  #cancelOwned(): Promise<void> {
     if (this.#cancel) return this.#cancel;
     if (
       this.#state === 'idle' ||

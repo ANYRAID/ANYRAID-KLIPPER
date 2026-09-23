@@ -35,9 +35,10 @@ for(const address of [false,true]) {
   tests.push('test/heating-clock-calibration.test.ts');
   tests.push('test/paused-clock-calibration.test.ts');
   tests.push('test/homing-clock-calibration.test.ts');
+  tests.push('test/print-retirement.test.ts','test/product-host.test.ts');
   // Physically paced long cases start together in their own batch. Keep the
   // same 60-second deadline and all other assignments; no test is omitted.
-  const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts']);
+  const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts','test/product-host.test.ts']);
   for(let batch=0;batch<2;batch++)run(['--test','--test-reporter=tap',...tests.filter((file,i)=>i%2===batch&&!longMotion.has(file))],env);
   run(['--test','--test-reporter=tap',...longMotion],env);
 }
