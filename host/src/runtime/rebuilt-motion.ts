@@ -1,5 +1,6 @@
 import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
 import {SecondarySync} from '../timing/secondary-sync.ts';
+import {CalibrationCadence} from '../timing/calibration-cadence.ts';
 import {MCUGroup} from './mcu-group.ts';
 import type {HomingMember} from '../homing/stop-confirmation.ts';
 import type {rebuildStoppedMotion} from '../homing/rebuild-motion.ts';
@@ -13,6 +14,7 @@ import {snapshotPrintClock} from '../timing/print-clock.ts';
 import type {MotorEnable} from '../outputs/motor-enable.ts';
 type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{readonly status:{pending:number;busy:boolean;stopped:boolean};register(value:number):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
+const clockCadences=new WeakMap<SecondarySync,CalibrationCadence>();
 interface OutputContext {timeline?:PrintClockTimeline;target:ClockedBoundaryOutput;group:MCUGroup;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;owner:symbol|undefined;}
 /** Opaque, one-use handoff. Only releaseBoundaryOutput can create a valid token. */
 export interface BoundaryOutputTransfer {readonly kind:'boundary-output-transfer';}
@@ -155,7 +157,17 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  const maintainClocks=(generationLimit:number)=>{
+   assertClockCalibration();const status=coordinator.status;if(status.busy||status.failed||status.retired||source.status.busy)throw new Error('Clock maintenance requires idle generation ownership');
+   if(!Number.isFinite(generationLimit)||generationLimit<status.generatedTime)throw new RangeError('Invalid clock maintenance horizon');
+   const now=serialClock.now();let retired=false,attempted=0,updated=0;
+   for(const owner of clockTimelines??[]){const sync=owner.synchronizer;if(!sync)continue;let cadence=clockCadences.get(sync);if(!cadence){cadence=new CalibrationCadence();clockCadences.set(sync,cadence);}
+    const result=cadence.run(now,()=>{if(!retired){retireClockHistory();retired=true;}return routes.includes(owner.id)?calibrateMotionClock(owner.id,generationLimit):calibrateAuxiliaryClock(owner.id);});
+    if(result!==undefined){attempted++;if(result)updated++;}
+   }
+   return {attempted,updated};
+  };
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,maintainClocks,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

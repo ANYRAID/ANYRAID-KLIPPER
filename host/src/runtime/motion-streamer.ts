@@ -100,6 +100,7 @@ export class RebuiltMotionStreamer {
      remaining();this.#leadCheck();const clocks=this.#clocks();
      const until=Math.min(source.status.sourceTime,Math.min(...clocks.map(c=>c.time))+this.#high+this.#future+.003);
      if(until<this.#g.coordinator.status.generatedTime)throw new Error('Streaming clock horizon regressed');
+     this.#g.maintainClocks(Math.max(this.#g.coordinator.status.generatedTime,until-this.#future-.001));remaining();
      await source.flushThrough(until,signal,remaining());remaining();this.#leadCheck();
      if(source.status.sourceTime-this.#future-.001<=this.#g.coordinator.status.generatedTime)continue;
      const target=this.#g.coordinator.status.committedTime-this.#low;

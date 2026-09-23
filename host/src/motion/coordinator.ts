@@ -160,7 +160,7 @@ export class MotionCoordinator {
   if(!Number.isFinite(sourceUntil)||sourceUntil<this.#generated||sourceUntil>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0)throw new RangeError('Invalid source horizon');
   let future=0;for(const b of this.#bindings)future=Math.max(future,b.stepper.scanWindow.future);
   const generation=sourceUntil-future-.001,flush=generation-.002;
-  if(generation<=this.#generated||flush<this.#committed)return false;
+  if(generation<this.#generated||flush<this.#committed||generation===this.#generated&&flush===this.#committed)return false;
   if(sourceUntil-generation<future||generation-flush<.001||clearHistoryTime>flush)throw new RangeError('Unrepresentable streaming horizon');
   if(maxWindowSeconds===undefined)await this.advanceWindow(generation,flush,clearHistoryTime);else await this.advanceBounded(generation,clearHistoryTime,flush,maxWindowSeconds,historyClock);return true;
  }

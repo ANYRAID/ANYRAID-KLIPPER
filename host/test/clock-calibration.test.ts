@@ -5,6 +5,15 @@ import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const settings={frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6};
+test('source flush commits an already generated calibration boundary without duplicating packets',async()=>{
+ for(const bounded of [false,true]){
+  using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,2,0,0,0,0,1,0,0,1,1,0]));using s=q.createStepper(settings,'x',.01);let commits=0;
+  const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){commits++;},async stop(){}});await c.advanceWindow(1,.95);
+  const sourceUntil=1.006,generated=sourceUntil-.001;c.generateCalibrationBoundary(generated);assert.equal(commits,1);
+  assert.equal(await c.advanceSource(sourceUntil,0,bounded?.25:undefined),true);assert.equal(c.status.generatedTime,generated);assert.equal(c.status.committedTime,generated-.002);assert.equal(commits,2);
+  assert.equal(await c.advanceSource(sourceUntil,0,bounded?.25:undefined),false);assert.equal(commits,2);await c.shutdown();
+ }
+});
 test('calibration boundary generation is synchronous, bounded and never flushes packets',async()=>{
  using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,2,0,0,0,0,1,0,0,1,1,0]));using s=q.createStepper(settings,'x',.01);let commits=0;
  const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){commits++;},async stop(){}});await c.advanceWindow(1,.95);const before=c.status,count=commits;
