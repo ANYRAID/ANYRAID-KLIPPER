@@ -26,7 +26,10 @@ export class NativeLinearGCode {
   owners.add(port);
   this.#clockTimer=setInterval(()=>{
    if(this.#closed)return;
-   void this.dispatch.runWhenIdle(async s=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(s);},this.#clockAbort.signal).catch(error=>{if(!this.#closed)void port.motorOff(error).catch(()=>{});});
+   void (async()=>{
+    if(port.pausedClockMaintenanceDue)await port.maintainPausedClocks(this.#clockAbort.signal);
+    else await this.dispatch.runWhenIdle(async s=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(s);},this.#clockAbort.signal);
+   })().catch(error=>{if(!this.#closed)void port.motorOff(error).catch(()=>{});});
   },250);this.#clockTimer.unref();
  }
  #stopClockMaintenance(){clearInterval(this.#clockTimer);this.#clockTimer=undefined;this.#clockAbort.abort(new Error('Clock maintenance closed'));}

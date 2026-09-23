@@ -27,6 +27,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
  #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
+ #pausedClock:Promise<{attempted:number;updated:number}>|undefined;
  #notice=new StopNotice();#unsubscribeGroup:(()=>void)|undefined;
  #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
@@ -39,7 +40,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
  #newAdmission(position:readonly number[]){return createGuardedBedMeshPort({mesh:null,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
- get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
+ get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausedClockMaintenance:this.#pausedClock!==undefined,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
@@ -93,13 +94,35 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  maintainIdleClocks(signal:AbortSignal):Promise<{attempted:number;updated:number}>{
   this.#check(signal);const state=this.#g.source.status;
   if(this.#admission.pending||state.pendingBoundaries||state.seeded&&!state.paused)throw new Error('Idle clock maintenance requires stationary ownership');
-  return this.#operate('clock',signal,async s=>{
+  return this.#operate('clock',signal,s=>this.#maintainStationaryClocks(s));
+ }
+ async #maintainStationaryClocks(s:AbortSignal){
    if(!this.#g.clockTimelines?.some(c=>c.synchronizer))return {attempted:0,updated:0};
    await this.#prepareIdleBoundary(s,.01);
    const future=Math.max(...this.#g.motion.bindings.map(b=>b.stepper.scanWindow.future));
    const result=this.#g.maintainClocks(this.#g.source.status.sourceTime-future-.001);
    await this.#g.source.drain([],s);this.#check(s);return result;
-  });
+ }
+ get pausedClockMaintenanceDue():boolean{
+  return !this.#failed&&this.#pauseReady&&!this.#resuming&&!this.#pausedBusy&&!this.#pausedClock&&(this.#pauseMode==='stationary'||this.#streamer.status.pause==='paused')&&this.#g.source.status.paused&&this.#g.clockMaintenanceDue();
+ }
+ /** The held stream remains parked. Parking/resume owners join this barrier
+  * before touching the source; modal coordinates and retained moves stay put. */
+ maintainPausedClocks(signal:AbortSignal):Promise<{attempted:number;updated:number}>{
+  this.#check(signal);
+  if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pausedClock||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused)throw new Error('Paused clock maintenance requires stationary ownership');
+  const done=Promise.withResolvers<{attempted:number;updated:number}>();this.#pausedClock=done.promise;void done.promise.catch(()=>{});
+  const local=AbortSignal.any([signal,this.#abort.signal]),abort=()=>{void this.motorOff(local.reason).catch(()=>{});};local.addEventListener('abort',abort,{once:true});
+  void (async()=>{
+   try{this.#check(local);return await this.#maintainStationaryClocks(local);}
+   catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Paused clock maintenance and stop failed');}throw error;}
+   finally{local.removeEventListener('abort',abort);this.#pausedClock=undefined;}
+  })().then(done.resolve,done.reject);return done.promise;
+ }
+ async #awaitPausedClock(signal:AbortSignal):Promise<void>{
+  const pending=this.#pausedClock;if(!pending)return;
+  const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
+  try{await pending;this.#check(signal);}finally{signal.removeEventListener('abort',abort);}
  }
  get idleClockMaintenanceDue():boolean{
   if(this.#failed||this.#busy||this.#pause||this.#resuming||this.#pausedBusy||this.#admission.pending)return false;
@@ -114,6 +137,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  async heaterBoundary(signal:AbortSignal):Promise<void>{
   this.#check(signal);
   if(!this.#pause){await this.drain(signal);return;}
+  if(this.#pausedClock)await this.#awaitPausedClock(signal);
   if(!this.#pauseReady||this.#resuming||this.#pausedBusy||!this.#g.source.status.paused||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused')throw new Error('Native heater boundary is not stationary');
  }
 
@@ -161,7 +185,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   * retained print endpoint or G-code modal coordinates. Each leg is guarded,
   * paced and drained; the product owner supplies the safe parking/return path. */
  validatePausedPath(legs:readonly PausedMove[]):void{
-  this.assertActive();if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused)throw new Error('Native stream is not available for paused motion');
+  this.assertActive();if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused&&!this.#pausedClock)throw new Error('Native stream is not available for paused motion');
   if(!Array.isArray(legs)||legs.length>64)throw new RangeError('Invalid paused motion path');
   const admission=this.#newAdmission(this.#g.source.status.position);
   for(const leg of legs){admission.move(leg.position,leg.speed);admission.flush();}
@@ -172,6 +196,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const target=[...position];this.#pausedBusy=true;const idle=Promise.withResolvers<void>();this.#pausedIdle=idle.promise;
   const combined=AbortSignal.any([signal,this.#abort.signal]),abort=()=>{void this.motorOff(combined.reason).catch(()=>{});};combined.addEventListener('abort',abort,{once:true});
   try{
+   if(this.#pausedClock)await this.#awaitPausedClock(combined);
    this.#check(combined);if(!this.#g.source.status.paused)throw new Error('Paused source is not drained');
    const admission=this.#newAdmission(this.#g.source.status.position);admission.move(target,speed);const moves=admission.flush();
    if(moves.length){await new RebuiltMotionStreamer(this.#g).append(moves,combined);this.#check(combined);await this.#g.source.drain([],combined);}
@@ -182,6 +207,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Resolves after live guards and fresh motion lead are established, before
   * the held flush/drain completes its retained trajectory. */
  async resumeStream(signal:AbortSignal):Promise<void>{
+  if(this.#pausedClock)await this.#awaitPausedClock(signal);
   this.#check(signal);if(!this.#pauseReady||this.#resuming)throw new Error('Native stream is not paused');
   if(this.#pausedBusy)throw new Error('Paused motion is busy');
   const current=this.#g.source.status;if(!current.paused||!this.#pausePosition||current.position.length!==this.#pausePosition.length||current.position.some((v,i)=>v!==this.#pausePosition![i]))throw new Error('Must return to the drained pause position before resuming');
@@ -232,7 +258,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    const errors:unknown[]=[];
    try{await this.motorOff(new Error('Native motion port disposed'));}catch(error){errors.push(error);}
    // Both operations settle their idle promises in finally, even on stop error.
-   await Promise.all([this.#idle,this.#pausedIdle]);
+   await Promise.all([this.#idle,this.#pausedIdle,this.#pausedClock?.catch(()=>{})]);
    try{this.#unsubscribeGroup?.();this.#g.motion.dispose();}catch(error){errors.push(error);}
    if(errors.length===1)throw errors[0];
    if(errors.length)throw new AggregateError(errors,'Native motion disposal failed');
