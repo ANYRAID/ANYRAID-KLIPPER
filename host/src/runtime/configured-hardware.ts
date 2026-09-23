@@ -7,12 +7,14 @@ import {AsyncPrinterHeaters} from '../thermal/async-heaters.ts';
 import {GenerationPWMOutput} from '../outputs/generation-pwm.ts';
 import {ScheduledCoolingFan} from '../outputs/fan.ts';
 import {MotorEnable} from '../outputs/motor-enable.ts';
+import {compileConfiguredMotionEmitters,type ConfiguredMotionRequest} from '../config/motion-emitters.ts';
 const owners=new WeakSet<MCUGroup>();
 export interface HardwareStartupOptions {
  /** The future motion owner must provide its admission barrier here. */
  beforeTarget:(signal:AbortSignal)=>void|Promise<void>;
  heaterGcodeIds?:Readonly<Record<string,string>>;
  timeoutMs?:number;
+ motion?:readonly ConfiguredMotionRequest[];
 }
 /** Own an already connected MCU group for the rest of its lifetime. Planning
  * errors have no IO effects; after transfer every failure stops all devices.
@@ -24,6 +26,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const timeout=options.timeoutMs??10000;
  if(owners.has(group)||typeof options.beforeTarget!=='function'||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
+ const emitters=options.motion?compileConfiguredMotionEmitters(reader,plan,options.motion):undefined;
  if(Object.keys(ids).some(name=>!plan.heaters.some(h=>h.section===name)))throw new Error('Unknown heater G-code mapping');
  const heaters=new AsyncPrinterHeaters(options.beforeTarget),analog:ReturnType<typeof attachConfiguredAnalogHeater>[]=[];
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
@@ -51,7 +54,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const f of plan.fans){const runtime=new ScheduledCoolingFan(output(f.output),f.config,f.enable?output(f.enable):undefined);fans.push({section:f.section,runtime});await runtime.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of analog){a.sensor.activate();active();}
   state='ready';
-  return Object.freeze({plan,heaters,analog:Object.freeze(analog),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
+  return Object.freeze({plan,emitters,heaters,analog:Object.freeze(analog),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
  }catch(error){try{await close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Hardware startup and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',cancelled);}
 }

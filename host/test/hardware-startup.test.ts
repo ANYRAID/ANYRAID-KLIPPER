@@ -10,8 +10,8 @@ test('hardware owner configures all MCUs before outputs and publishes started he
  const f=await hardwareStartupFixture(),controller=new AbortController();
  try{
   const aux=f.group.session('aux'),configure=aux.configure.bind(aux);aux.configure=async(...args)=>{assert.equal(f.group.session('mcu').status.configured,true);assert(!f.firmware.flatMap(fw=>fw.outputs).some(o=>o.name.startsWith('reset_')));return configure(...args);};
-  const owner=await startConfiguredHardware(hardwareReader(),f.group,f.clocks,hardwareLayout,{beforeTarget(){},heaterGcodeIds:{extruder:'T'}},controller.signal);
-  assert.equal(owner.status.state,'ready');assert.equal(owner.heaters.status.started,true);assert.equal(owner.analog[0].sensor.status.active,true);assert.equal(owner.analog[0].outputStatus?.defaultConfirmed,true);assert.equal(owner.fans[0].runtime.status.phase,'ready');assert.equal(owner.motorEnable?.status.lines[0].enabled,false);
+  const owner=await startConfiguredHardware(hardwareReader(),f.group,f.clocks,hardwareLayout,{beforeTarget(){},heaterGcodeIds:{extruder:'T'},motion:[{emitter:'x',queueId:'xyz',mode:'x'}]},controller.signal);
+  assert.equal(owner.emitters![0].settings.oid,owner.plan.steppers[0].compressor.oid);assert.equal(owner.emitters![0].member,0);assert.equal(owner.status.state,'ready');assert.equal(owner.heaters.status.started,true);assert.equal(owner.analog[0].sensor.status.active,true);assert.equal(owner.analog[0].outputStatus?.defaultConfirmed,true);assert.equal(owner.fans[0].runtime.status.phase,'ready');assert.equal(owner.motorEnable?.status.lines[0].enabled,false);
   assert.equal(owner.heaters.report(),'T:0.0 /0.0');controller.abort();assert.equal(owner.status.state,'ready');
   const closing=owner.close();assert.equal(owner.close(),closing);await closing;assert.equal(owner.status.state,'stopped');assert.deepEqual(f.stops,[1,1]);assert.equal(owner.analog[0].sensor.status.closed,true);assert.equal(owner.heaters.status.stopConfirmed,true);assert.equal(owner.fans[0].runtime.status.phase,'stopped');assert.equal(owner.motorEnable?.status.stopped,true);
  }finally{await f.close();}
