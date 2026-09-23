@@ -1,0 +1,34 @@
+import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
+import type {ConfiguredPrinterOptions} from './configured-printer.ts';
+import {ConfiguredMoonraker,type ConfiguredServerOptions} from '../moonraker/configured-server.ts';
+import type {ConfigurationReader} from '../moonraker/config-reader.ts';
+import type {MCUConnection} from './mcu-group.ts';
+import type {HardwareLayout} from '../config/hardware.ts';
+export interface ProductServiceOptions {
+ configPath:string;
+ server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'>;
+}
+/** Start native hardware, durable print control and the authorized Moonraker
+ * listener as one owner. Journal remains external; server component ownership
+ * follows ConfiguredMoonraker.load. No automatic reconnect or print replay. */
+export async function startProductService(reader:ConfigurationReader,connections:readonly MCUConnection[],primaryId:string,layout:HardwareLayout,printerOptions:ConfiguredPrinterOptions,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal){
+ signal.throwIfAborted();const configPath=options.configPath,serverOptions={...options.server};
+ const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
+ let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;
+ const close=():Promise<void>=>{
+  if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
+  const jobs:Promise<void>[]=[];for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
+ };
+ // Loading can still return an owner after cancellation. Only trigger printer
+ // stop here; the sequential catch below closes any late server before rejecting.
+ const aborted=()=>{void printer.close().catch(()=>{});void server?.close().catch(()=>{});};signal.addEventListener('abort',aborted,{once:true});
+ try{
+  signal.throwIfAborted();
+  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,maintenanceGate:printer.maintenanceGate});
+  signal.throwIfAborted();printer.group.assertActive();
+  const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
+  return Object.freeze({printer,server,address,close});
+ }catch(error){try{await close();}catch(cleanup){throw new AggregateError([error,cleanup],'Product service startup and cleanup failed',{cause:error});}throw error;}
+ finally{signal.removeEventListener('abort',aborted);}
+}
