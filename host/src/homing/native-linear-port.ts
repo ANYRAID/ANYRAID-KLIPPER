@@ -1,3 +1,4 @@
+import {StopNotice} from '../runtime/stop-notice.ts';
 import type {LinearHomingPort,HomingPass} from './linear-command.ts';
 import {LinearHomingSeek,type LinearSeekOptions} from './linear-seek.ts';
 import {HomingRetractExecution} from './retract-execution.ts';
@@ -25,14 +26,17 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
  #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
+ #notice=new StopNotice();#unsubscribeGroup:(()=>void)|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
-  this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();
+  this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
  }
+ subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
+ #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
  #newAdmission(position:readonly number[]){return createGuardedBedMeshPort({mesh:null,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
- get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
+ get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
@@ -137,7 +141,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   finally{this.#resuming=false;signal.removeEventListener('abort',abort);}
  }
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
-  this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;
+  this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,async s=>{
@@ -165,7 +169,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  motorOff(cause:unknown):Promise<void>{
   if(this.#stop)return this.#stop;this.#failed=true;this.#fault=cause;this.#phase='stopped';this.#admission.shutdown(cause);this.#o.kinematics.clearHoming([0,1,2]);
   const stopped=Promise.withResolvers<void>();this.#stop=stopped.promise;this.#abort.abort(cause);
-  void this.#g.drain.stop(cause).then(stopped.resolve,stopped.reject);return this.#stop;
+  void this.#g.drain.stop(cause).then(stopped.resolve,stopped.reject);this.#notice.emit(cause);return this.#stop;
  }
- async dispose(){try{await this.motorOff(new Error('Native motion port disposed'));await Promise.all([this.#idle,this.#pausedIdle]);}finally{if(!this.#busy&&!this.#pausedBusy)this.#g.motion.dispose();}}
+ async dispose(){try{await this.motorOff(new Error('Native motion port disposed'));await Promise.all([this.#idle,this.#pausedIdle]);}finally{this.#unsubscribeGroup?.();if(!this.#busy&&!this.#pausedBusy)this.#g.motion.dispose();}}
 }

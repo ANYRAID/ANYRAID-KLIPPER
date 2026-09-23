@@ -1,3 +1,4 @@
+import {StopNotice} from './stop-notice.ts';
 import {MotionRetiredError} from '../motion/retired.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 import {SerialSession,type SerialSessionOptions,type TimedCommandQueue} from '../protocol/serial-session.ts';
@@ -20,14 +21,21 @@ export class MCUGroup {
  #entries:readonly MCUConnection[];#sessions=new Map<string,SerialSession>();#attempted=new Set<string>();
  #safety=new Map<string,Promise<void>>();#pending:Promise<void>[]=[];#lateStopErrors:unknown[]=[];
  #abort=new AbortController();#state:'idle'|'connecting'|'ready'|'stopping'|'stopped'|'failed'='idle';
+ #notice=new StopNotice();
  #fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(entries:readonly MCUConnection[]){
   if(!entries.length||entries.length>16||new Set(entries.map(e=>e.id)).size!==entries.length||entries.some(e=>!/^[A-Za-z0-9_.:-]{1,128}$/.test(e.id)||typeof e.connect!=='function'||typeof e.stopDevice!=='function'))throw new Error('Invalid MCU group');
   this.#entries=entries.map(e=>({...e}));
  }
- get status(){return {state:this.#state,fault:this.#fault,stopError:this.#stopError,devices:this.#entries.map(e=>({id:e.id,attempted:this.#attempted.has(e.id),state:this.#sessions.get(e.id)?.status.state??'unavailable'}))};}
+ get status(){return {state:this.#state,fault:this.#fault,stopError:this.#stopError,observerErrors:this.#notice.errors,devices:this.#entries.map(e=>({id:e.id,attempted:this.#attempted.has(e.id),state:this.#sessions.get(e.id)?.status.state??'unavailable'}))};}
+ subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  #safe(entry:MCUConnection,cause:unknown):Promise<void>{
-  let job=this.#safety.get(entry.id);if(!job){job=Promise.resolve().then(()=>entry.stopDevice(cause));this.#safety.set(entry.id,job);}return job;
+  let job=this.#safety.get(entry.id);if(!job){
+   const done=Promise.withResolvers<void>();job=done.promise;this.#safety.set(entry.id,job);
+   // Publish ownership before a reentrant callback, and initiate physical
+   // safety before notifying observers. Its acknowledgement remains async.
+   try{Promise.resolve(entry.stopDevice(cause)).then(done.resolve,done.reject);}catch(error){done.reject(error);}
+  }return job;
  }
  async #connect(entry:MCUConnection):Promise<void>{
   // Allow start() to publish every pending task before a synchronous fault.
@@ -120,6 +128,6 @@ export class MCUGroup {
    const errors=[...results.filter(r=>r.status==='rejected').map(r=>r.reason),...this.#lateStopErrors];
    if(errors.length){this.#state='failed';this.#stopError=new AggregateError(errors,'MCU group stop failed');deferred.reject(this.#stopError);}
    else{this.#state='stopped';deferred.resolve();}
-  });return this.#stopPromise;
+  });this.#notice.emit(cause);return this.#stopPromise;
  }
 }

@@ -88,3 +88,11 @@ test('cancelling group retirement stops every member and forbids replacement',as
   assert.deepEqual(f.stops,[1,1]);assert.equal(f.firmwares[0].motion.length,0);assert.throws(()=>g.motionQueue('mcu0',['x'],()=>0n),/not ready/);
  }finally{await g.stop();await f.close();}
 });
+test('group stop invalidates observers before slow safety completes without awaiting reentrant observers',async()=>{
+ const gate=Promise.withResolvers<void>(),f=await fixture(async()=>gate.promise),group=new MCUGroup(f.entries),cause=new Error('observer stop');let notified=0;
+ try{
+  await group.start(signal());group.subscribeStop(reason=>{assert.equal(reason,cause);assert.deepEqual(f.stops,[1,1]);notified++;return group.stop(reason);});group.subscribeStop(()=>{throw new Error('observer failed');});
+  let done=false;const stopping=group.stop(cause).then(()=>{done=true;});assert.equal(notified,1);await delay(10);assert.equal(done,false);assert.deepEqual(f.stops,[1,1]);assert.equal(group.status.observerErrors.length,1);
+  gate.resolve();await stopping;assert.equal(group.status.state,'stopped');group.subscribeStop(reason=>assert.equal(reason,cause));assert.equal(notified,1);
+ }finally{gate.resolve();await group.stop();await f.close();}
+});
