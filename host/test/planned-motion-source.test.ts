@@ -13,7 +13,7 @@ import {BedMeshMovePort} from '../src/motion/bed-mesh-port.ts';
 import {BedMeshProfileBinding} from '../src/motion/bed-mesh-profile-binding.ts';
 import {GCodeMove} from '../src/gcode/move.ts';
 import {inputShaper} from '../src/motion/shaper.ts';
-import {motionLimits} from '../src/motion/lookahead.ts';
+import {motionLimits,LookAheadQueue} from '../src/motion/lookahead.ts';
 const mesh=(z:number)=>new BedMesh({min_x:0,max_x:20,min_y:0,max_y:20,x_count:2,y_count:2,mesh_x_pps:0,mesh_y_pps:0,algo:'direct',tension:.2},[[z,z],[z,z]]);
 async function fixture(run:(f:{source:PlannedMotionSource;port:BedMeshMovePort;binding:BedMeshProfileBinding;gcode:GCodeMove;group:MCUGroup;fw:Awaited<ReturnType<typeof serialFirmware>>;xyz:TrapQueue;extrusion:TrapQueue})=>Promise<void>,maxBufferedMoves=65536,filters=false,retainHistory:()=>Promise<void>=async()=>{}){
  const fw=await serialFirmware(),signal=new AbortController().signal;let session!:SerialSession;const group=new MCUGroup([{id:'m',async connect(s,stopDevice){session=new SerialSession(fw.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){}}]);
@@ -79,3 +79,14 @@ test('an invalid suffix is detected before any prefix of an oversized drain is s
 test('one deadline spans all capacity-driven streaming commits',async()=>{let commits=0;await fixture(async f=>{
  for(let i=1;i<=9;i++)f.gcode.execute('G1',{X:i,E:i/10,F:600});await assert.rejects(f.source.drain(f.port.flush(),new AbortController().signal,25),/timed out/);assert.ok(commits>=1&&commits<=3);assert.equal(f.source.status.failed,true);assert.equal(f.group.status.state,'stopped');
 },3,false,async()=>{commits++;await new Promise(r=>setTimeout(r,12));});});
+test('source brake reaches firmware-time drain before resume on the live group adapter',async()=>fixture(async f=>{
+ const s=new AbortController().signal,start=f.source.status.sourceTime;f.gcode.execute('G1',{X:10,E:1,F:600});f.source.append(f.port.flush());
+ const stop=await f.source.brakeAt(start+.03,s);assert.equal(f.source.status.paused,false);assert.equal(f.fw.motion.length,0);await f.source.drain([],s);
+ assert.equal(f.source.status.paused,true);assert(Math.abs(f.source.status.position[0]-.3)<1e-10);assert(Math.abs(f.source.status.position[3]-.03)<1e-10);assert.equal(f.group.status.state,'ready');
+ const steps=()=>f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0);assert.equal(steps(),30);
+ f.source.resumeAt(Math.max(f.source.status.sourceTime,Number(f.group.session('m').clock.sync.lastClock)/1e6+.1));const q=new LookAheadQueue();q.addBatch(stop.remainder);await f.source.drain(q.flush(),s);assert.equal(steps(),1000);assert.equal(f.source.status.position[0],10);
+},65536,true));
+test('partial future rewrite failure reaches the independent MCU group stop',async()=>fixture(async f=>{
+ const start=f.source.status.sourceTime;f.gcode.execute('G1',{X:10,E:1,F:600});f.source.append(f.port.flush());f.extrusion.replaceFuturePlanned=()=>{throw new Error('E future replacement fault');};
+ await assert.rejects(f.source.brakeAt(start+.03,new AbortController().signal),/E future replacement fault/);assert.equal(f.group.status.state,'stopped');assert.equal(f.source.status.failed,true);assert.equal(f.fw.motion.length,0);assert.equal(f.source.status.position[0],10);
+}));

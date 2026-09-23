@@ -19,3 +19,5 @@ for(let i=0;i<16;i++)for(const mode of i%2?['source','direct'] as const:['direct
 }
 for(const values of Object.values(timings))values.sort((a,b)=>a-b);
 console.log(JSON.stringify({node:process.version,moves:10000,sourceMedianMs:timings.source[5],sourceP95Ms:timings.source[10],directMedianMs:timings.direct[5],directP95Ms:timings.direct[10],scope:'Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison.'},null,2));
+assert(timings.source[5]<20,'Owned source admission exceeds 20ms per 10000 moves');
+assert(timings.source[5]<=timings.direct[5]*2.5,'Owned source admission exceeds 2.5 times direct native append');

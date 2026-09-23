@@ -1,6 +1,7 @@
 import {MotionRetiredError,observeRetirement} from './retired.ts';
 import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
 import type {TrapQueue} from './trap-queue.ts';
+import type {Move} from './lookahead.ts';
 export interface MotionBinding {id:string;queue:TrapQueue;stepper:StepCompressor}
 export interface MotionOutput extends CompressedSteps {id:string}
 export interface MotionBatch {sequence:number;from:number;until:number;generatedUntil?:number;outputs:readonly MotionOutput[]}
@@ -49,6 +50,26 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
+ /** Fenced source-owner transaction. No generation or packet submission can
+  * interleave. A partial native rewrite is terminal, never a recoverable retry. */
+ async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[]):Promise<number>{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot replace future');
+  if(!this.usesQueues(routes.map(r=>r.queue))||!Number.isFinite(time)||time>=1e15||position.length<4||!position.every(Number.isFinite))throw new RangeError('Invalid future replacement ownership');
+  this.#beginWork();this.#busy=true;
+  try{
+   for(const guard of this.#guards)guard.assertActive();
+   for(const b of this.#bindings)if(time<=b.stepper.generatedTime+b.stepper.scanWindow.future)throw new RangeError('Replacement overlaps generated filter dependencies');
+   let end:number|undefined;
+   for(const r of routes){
+    let next:number;if(moves.length)next=r.queue.replaceFuturePlanned(moves,time,r.extrusionAxis,true);
+    else{const p=r.extrusionAxis===undefined?position.slice(0,3):[position[r.extrusionAxis],0,0];next=time+.001;r.queue.replaceFutureRaw(time,new Float64Array([time,0,next-time,0,...p,0,0,0,0,0,0]));}
+    if(end!==undefined&&next!==end)throw new Error('Replaced queue timelines differ');end=next;
+   }
+   for(const guard of this.#guards)guard.assertActive();if(this.#failed)throw this.#fault;
+   return end!;
+  }catch(error){try{await this.shutdown(error);}catch{/* Retained with original failure. */}throw this.#fault;}
+  finally{this.#busy=false;this.#endWork();}
+ }
  usesBindings(bindings:readonly MotionBinding[]):boolean{return bindings.length===this.#bindings.length&&new Set(bindings.map(b=>b.id)).size===bindings.length&&bindings.every(b=>this.#bindings.some(owned=>owned.id===b.id&&owned.queue===b.queue&&owned.stepper===b.stepper));}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy||this.#bounded,failed:this.#failed,retired:this.#retired,fault:this.#fault};}
  /** Freeze this generation permanently. The owner must establish the affected

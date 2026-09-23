@@ -1,7 +1,14 @@
 import {performance} from 'node:perf_hooks';
-import type {Move} from './lookahead.ts';
+import {Move} from './lookahead.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import {CoordinatedMotionDrain} from './coordinated-drain.ts';
+import {planPathStop,type PathStop} from './path-stop.ts';
+type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
+// Snapshot data on the hot path; hydrate planner methods only when braking.
+const ownMove=(m:Move):MotionSnapshot=>({
+ limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],
+ distance:m.distance,isKinematic:m.isKinematic,junctionDeviation:m.junctionDeviation,accel:m.accel,minMoveT:m.minMoveT,maxStartV2:m.maxStartV2,maxCruiseV2:m.maxCruiseV2,deltaV2:m.deltaV2,nextJunctionV2:m.nextJunctionV2,maxMcrStartV2:m.maxMcrStartV2,mcrDeltaV2:m.mcrDeltaV2,profile:m.profile?{...m.profile}:undefined,
+});
 /** Append can retry after flushing; terminal drain errors still stop devices. */
 export class MotionSourceCapacityError extends RangeError {}
 export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
@@ -12,24 +19,27 @@ export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
 export class PlannedMotionSource {
  readonly #routes:readonly PlannedQueue[];readonly #drain:CoordinatedMotionDrain;
  readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
+ readonly #starts:Float64Array;readonly #moves:(MotionSnapshot|undefined)[];#braking=false;
  #position:number[];#time:number;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536){
   if(!Number.isSafeInteger(maxBufferedMoves)||maxBufferedMoves<1||maxBufferedMoves>65536)throw new RangeError('Invalid source capacity');
   this.#ends=new Float64Array(maxBufferedMoves);
+  this.#starts=new Float64Array(maxBufferedMoves);this.#moves=new Array(maxBufferedMoves);
   if(!Number.isFinite(startTime)||startTime<0||startTime>=1e15||!Array.isArray(position)||position.length<4||!position.every(Number.isFinite)||!drain.usesQueues(routes.map(r=>r.queue)))throw new RangeError('Invalid planned source ownership or baseline');
   const axes=new Set<number>();let xyz=0;
   for(const r of routes){if(r.extrusionAxis===undefined)xyz++;else if(!Number.isInteger(r.extrusionAxis)||r.extrusionAxis<3||r.extrusionAxis>=position.length||axes.has(r.extrusionAxis))throw new RangeError('Invalid planned source extrusion route');else axes.add(r.extrusionAxis);}
   if(xyz!==1||axes.size!==position.length-3)throw new RangeError('Planned source requires XYZ and every extra axis');
   this.#routes=routes.map(r=>({...r}));this.#drain=drain;this.#time=startTime;this.#position=[...position];
  }
- get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,failed:this.#failed,fault:this.#fault};}
- #release():void{const cutoff=this.#drain.finalizedSourceTime;while(this.#count&&this.#ends[this.#head]<=cutoff){this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
+ get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,braking:this.#braking,failed:this.#failed,fault:this.#fault};}
+ #release():void{const cutoff=this.#drain.finalizedSourceTime;while(this.#count&&this.#ends[this.#head]<=cutoff){this.#moves[this.#head]=undefined;this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
  #capacity(moves:readonly Move[]):void{if(Array.isArray(moves)&&moves.length>this.#ends.length-this.#count)throw new MotionSourceCapacityError('Planned source capacity exceeded; flush before retrying');}
  #check():void{if(this.#retired)throw new Error('Planned source producer retired');if(this.#failed)throw new Error('Planned motion source failed',{cause:this.#fault});if(this.#busy)throw new Error('Planned motion source busy');}
- async #stop(error:unknown):Promise<void>{this.#failed=true;this.#fault??=error;try{await this.#drain.stop(error);}catch(stop){this.#fault=new AggregateError([error,stop],'Planned source and stop failed');} }
+ async #stop(error:unknown):Promise<void>{this.#failed=true;this.#fault??=error;this.#moves.fill(undefined);try{await this.#drain.stop(error);}catch(stop){this.#fault=new AggregateError([error,stop],'Planned source and stop failed');} }
  #validate(moves:readonly Move[],storeEnds:boolean,limit=65536){
   if(!Array.isArray(moves)||moves.length>limit)throw new RangeError('Invalid planned source batch');
   if(this.#paused&&moves.length)throw new Error('Resume planned motion with a fresh print time first');
+  if(this.#braking&&moves.length)throw new Error('Drain the braking source before admitting more motion');
   let position=this.#position,time=this.#time,staged=0;
   // Validate the entire batch before any queue mutation. Input objects are used
   // synchronously, so callers cannot mutate them between queue appends.
@@ -43,8 +53,9 @@ export class PlannedMotionSource {
   this.#seeded=true;this.#idleFrom=undefined;
  }
  #append(moves:readonly Move[]):void{
-  const {position,time}=this.#validate(moves,true);this.#seed();
+  const {position,time}=this.#validate(moves,true),owned=moves.map(ownMove);this.#seed();
   for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
+  let start=this.#time;for(let i=0;i<owned.length;i++){const slot=(this.#head+this.#count+i)%this.#ends.length;this.#moves[slot]=owned[i];this.#starts[slot]=start;start=this.#ends[slot];}
   this.#position=[...position];this.#time=time;this.#count+=moves.length;
  }
  /** Transfer an unused generation to a privileged producer. This only fences
@@ -52,6 +63,23 @@ export class PlannedMotionSource {
  retireProducer():void{this.#check();if(this.#count||this.#paused||this.#seeded)throw new Error('Only an unused planned source may transfer');this.#retired=true;}
  /** Validate a complete owned stream before any prefix is submitted. */
  validateBatch(moves:readonly Move[]):void{this.#check();this.#validate(moves,false,100000);}
+ /** Replace the owned suffix with a controlled brake. Completion only changes
+  * source queues; caller must pace/flush and drain before claiming paused. */
+ async brakeAt(printTime:number,signal:AbortSignal,timeoutMs=30000):Promise<PathStop>{
+  this.#check();signal.throwIfAborted();this.#busy=true;
+  try{
+   if(this.#paused||this.#braking||!this.#seeded||!Number.isFinite(printTime)||printTime>=this.#time)throw new RangeError('Invalid braking source state or horizon');
+   let offset=0;while(offset<this.#count&&this.#ends[(this.#head+offset)%this.#ends.length]<=printTime)offset++;
+   if(offset===this.#count)throw new RangeError('Braking anchor is outside owned path');
+   const slot=(this.#head+offset)%this.#ends.length,start=this.#starts[slot];if(printTime<start)throw new RangeError('Braking anchor precedes owned path');
+   const path:Move[]=[];for(let i=offset;i<this.#count;i++)path.push(Object.setPrototypeOf(this.#moves[(this.#head+i)%this.#ends.length]!,Move.prototype));
+   const result=planPathStop(path,printTime-start),owned=result.brake.map(m=>Object.setPrototypeOf(ownMove(m),Move.prototype) as Move);
+   const end=await this.#drain.replaceFuture(printTime,owned,this.#routes,result.position,signal,timeoutMs);signal.throwIfAborted();
+   this.#moves.fill(undefined);this.#head=0;this.#count=owned.length;let time=printTime;
+   for(let i=0;i<owned.length;i++){const m=owned[i],p=m.profile!;this.#starts[i]=time;time=((time+p.accelT)+p.cruiseT)+p.decelT;this.#ends[i]=time;this.#moves[i]=m;}
+   this.#position=[...result.position];this.#time=end;this.#braking=true;return result;
+  }catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
+ }
  /** Append earlier lookahead flushes without losing the final drain endpoint. */
  append(moves:readonly Move[]):void{this.#check();this.#capacity(moves);try{this.#append(moves);}catch(error){void this.#stop(error);throw error;}}
  /** Delay an unused source without changing its coordinates or MCU mapping.
@@ -100,7 +128,7 @@ export class PlannedMotionSource {
     }
    }
    const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
-   const result=await this.#drain.drain(this.#time,positions,signal,remaining());remaining();this.#time=result.sourceUntil;this.#paused=true;this.#release();
+   const result=await this.#drain.drain(this.#time,positions,signal,remaining());remaining();this.#time=result.sourceUntil;this.#paused=true;this.#braking=false;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}
   finally{this.#busy=false;}
  }

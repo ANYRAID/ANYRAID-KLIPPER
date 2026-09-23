@@ -3,6 +3,7 @@ import {MotionCoordinator} from './coordinator.ts';
 import {MoveQueueSink} from './move-queue-sink.ts';
 import {MCUGroup} from '../runtime/mcu-group.ts';
 import type {TrapQueue} from './trap-queue.ts';
+import type {Move} from './lookahead.ts';
 /** Producer must remain fenced through completion and use sourceUntil for the
  * next source segment. Routes must be built from this group's motion queues.
  * Drain completion confirms firmware-time passage, never mechanical position.
@@ -15,6 +16,9 @@ export class CoordinatedMotionDrain {
  get finalizedSourceTime():number{return this.#coordinator.finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
+ async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[],signal:AbortSignal,timeoutMs=30000):Promise<number>{
+  return this.#operate(signal,timeoutMs,async({run,check})=>{const end=await run(this.#coordinator.replaceFuture(time,moves,routes,position));check();return end;});
+ }
  async advanceIdleSource(sourceUntil:number,signal:AbortSignal,timeoutMs=30000):Promise<boolean>{
   return this.#operate(signal,timeoutMs,async({run,check})=>{const advanced=await run(this.#coordinator.advanceIdleSource(sourceUntil,Math.min(this.#historyCutoff(),this.#coordinator.status.generatedTime)));check();return advanced;});
  }
