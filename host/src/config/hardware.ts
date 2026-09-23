@@ -1,5 +1,5 @@
 import {applyConfiguredBoardPins} from './board-pins.ts';
-import {snapshotPrintClock} from '../timing/print-clock.ts';
+import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
 // Cold-start hardware assembly. GPL-3.0-or-later.
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUGroup} from '../runtime/mcu-group.ts';
@@ -29,16 +29,18 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const devices=group.status.devices,mcus=new Map(devices.map(({id})=>{const session=group.session(id);if(session.status.configured)throw new Error('Hardware assembly requires unconfigured MCU sessions');return [id,{chip:session,dictionary:session.dictionary}] as const;}));
  const pins=new PrinterPins<ReturnType<MCUGroup['session']>>();
  for(const [id,mcu] of mcus){pins.register(id,mcu.chip);if(!clocks.has(id))throw new Error(`Missing hardware clock: ${id}`);}
+ // Fresh timelines belong to this assembly; failed plans cannot mutate callers.
+ const sharedClocks=new Map([...mcus.keys()].map(id=>{const mapping=clocks.get(id)!;return [id,{currentPrintTime:mapping.currentPrintTime,calibration:{...mapping.calibration},timeline:new PrintClockTimeline(mapping.calibration)}] as const;}));
  applyConfiguredBoardPins(reader,pins);
  const boards=layout.boards??[];if(new Set(boards.map(b=>b.mcu)).size!==boards.length)throw new Error('Duplicate hardware board mapping');
  for(const board of boards){const resolver=pins.resolver(board.mcu);for(const [name,pin] of Object.entries(board.aliases??{}))resolver.alias(name,pin);for(const pin of board.reserved??[])resolver.reserve(pin,'machine');}
  if(new Set(layout.steppers.map(s=>s.emitter)).size!==layout.steppers.length)throw new Error('Duplicate hardware emitter');
  // Strip external OID overrides: one deterministic allocator owns this plan.
  const steppers=layout.steppers.length?compileConfiguredSteppers(reader,pins,mcus,layout.steppers.map(s=>({section:s.section,unitsInRadians:s.unitsInRadians,requestBothEdges:s.requestBothEdges}))):Object.freeze([]);
- const motors=steppers.length?compileConfiguredMotorEnables(reader,pins,group,steppers.map((s,i)=>({section:s.section,emitter:layout.steppers[i].emitter,mcu:s.mcu,leadTime:layout.steppers[i].enableLeadTime,calibration:clocks.get(s.mcu)!.calibration}))):Object.freeze({lines:Object.freeze([]),alwaysOn:Object.freeze([])});
+ const motors=steppers.length?compileConfiguredMotorEnables(reader,pins,group,steppers.map((s,i)=>({section:s.section,emitter:layout.steppers[i].emitter,mcu:s.mcu,leadTime:layout.steppers[i].enableLeadTime,calibration:sharedClocks.get(s.mcu)!.calibration,timeline:sharedClocks.get(s.mcu)!.timeline}))):Object.freeze({lines:Object.freeze([]),alwaysOn:Object.freeze([])});
  const homing=layout.homing.length?compileConfiguredHoming(reader,pins,mcus,layout.homing.map(h=>({section:h.section,triggers:h.mcus.map(mcu=>({mcu}))}))):Object.freeze([]);
- const fans=layout.fans.length?compileConfiguredCoolingFans(reader,pins,mcus,clocks,layout.fans.map(f=>({section:f.section,minimumScheduleTime:f.minimumScheduleTime,capacity:f.capacity}))):Object.freeze([]);
- const heaters=layout.heaters.length?compileConfiguredAnalogHeaters(reader,pins,mcus,clocks,layout.heaters.map(h=>({section:h.section}))):Object.freeze([]);
+ const fans=layout.fans.length?compileConfiguredCoolingFans(reader,pins,mcus,sharedClocks,layout.fans.map(f=>({section:f.section,minimumScheduleTime:f.minimumScheduleTime,capacity:f.capacity}))):Object.freeze([]);
+ const heaters=layout.heaters.length?compileConfiguredAnalogHeaters(reader,pins,mcus,sharedClocks,layout.heaters.map(h=>({section:h.section}))):Object.freeze([]);
  const pending=new Map(devices.map(({id})=>[id,{commands:[] as string[],restart:[] as string[],init:[] as string[],reservedMoves:0}]));
  const add=(mcu:string,part:{commands:readonly string[];restart?:readonly string[];init?:readonly string[];reservedMoves?:number})=>{const p=pending.get(mcu)!;p.commands.push(...part.commands);p.restart.push(...part.restart??[]);p.init.push(...part.init??[]);p.reservedMoves+=part.reservedMoves??0;};
  for(const s of steppers)add(s.mcu,{commands:[s.config],restart:[s.restart]});
@@ -49,7 +51,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const configurations=Object.freeze(devices.map(({id},physicalMember)=>{
   const resources=mcuOids(pins).finalize(id),p=pending.get(id)!;
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
-  return Object.freeze({mcu:id,physicalMember,clock:snapshotPrintClock(clocks.get(id)!.calibration),session:mcus.get(id)!.chip,resources,plan});
+  return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,session:mcus.get(id)!.chip,resources,plan});
  }));
  return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters});
 }

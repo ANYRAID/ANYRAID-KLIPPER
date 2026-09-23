@@ -3,6 +3,12 @@ import type {MotionCoordinator} from '../motion/coordinator.ts';
 type Clock=ReturnType<typeof snapshotPrintClock>;
 type Segment={tick:bigint;time:number;clock:Clock};
 export interface ClockHistoryLease {advance(tick:bigint):void;release():void;}
+/** A read-only conversion view; reservations belong to actual runtime writers. */
+export function readPrintClock(calibration:Readonly<{offset:number;frequency:number}>,timeline?:PrintClockTimeline){
+ const fixed=snapshotPrintClock(calibration);if(!timeline)return fixed;
+ const current=timeline.status.calibration;if(current.offset!==fixed.offset||current.frequency!==fixed.frequency)throw new Error('Shared clock calibration differs');
+ return Object.freeze({get offset(){return timeline.status.calibration.offset;},get frequency(){return timeline.status.calibration.frequency;},clockAt:(time:number)=>timeline.clockAt(time),printTimeAtClock:(tick:bigint)=>timeline.printTimeAtClock(tick)});
+}
 /** Piecewise clock mappings for future scheduling and delayed MCU samples.
  * Updates anchor at an exact MCU tick, preserving continuity. Caller must put
  * the boundary after all committed output and motion; this class owns no IO.

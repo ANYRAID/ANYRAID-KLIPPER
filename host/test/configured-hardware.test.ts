@@ -61,3 +61,10 @@ test('native two-MCU startup configures collected stepper, shared resources and 
   await heater.stop();
  }finally{await group.stop();await Promise.all(firmware.map(f=>f.close()));}
 });
+test('hardware assembly shares one private timeline per MCU across peripheral plans',()=>{
+ const f=hardwareFixture(),clocks=hardwareClocks(),plan=compileConfiguredHardware(hardwareReader(),f.group,clocks,hardwareLayout),main=plan.configurations.find(c=>c.mcu==='mcu')!.timeline,aux=plan.configurations.find(c=>c.mcu==='aux')!.timeline;
+ assert.notEqual(main,aux);assert.equal(plan.motors.lines[0].timeline,main);assert.equal(plan.fans[0].output.timeline,aux);assert.equal(plan.fans[0].enable!.timeline,aux);assert.equal(plan.heaters[0].output.timeline,aux);assert.equal(plan.heaters[0].sensor.timeline,aux);
+ clocks.get('aux')!.calibration.frequency=2e6;assert.equal(aux.status.calibration.frequency,1e6);aux.append(5000000n,1000100);
+ for(const clock of [plan.fans[0].output.clock,plan.heaters[0].output.clock,plan.heaters[0].sensor.clock])assert.equal(clock.clockAt(6),aux.clockAt(6));assert.equal(main.clockAt(6),6000000n);
+ const other=compileConfiguredHardware(hardwareReader(),f.group,hardwareClocks(),hardwareLayout);assert.notEqual(other.configurations[0].timeline,plan.configurations[0].timeline);
+});

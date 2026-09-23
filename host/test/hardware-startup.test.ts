@@ -57,3 +57,11 @@ test('subscription registration failure after ownership transfer closes both MCU
   assert.deepEqual(f.stops,[1,1]);assert.equal(f.firmware[0].stepperConfigs.length,0);assert.equal(f.firmware[1].outputs.length,0);
  }finally{await f.close();}
 });
+test('assembled sensor and PWM reserve the shared timeline and release ADC history on close',async()=>{
+ const f=await hardwareStartupFixture();try{
+  const owner=await startConfiguredHardware(hardwareReader(),f.group,f.clocks,hardwareLayout,{beforeTarget(){}},f.signal),aux=owner.plan.configurations.find(c=>c.mcu==='aux')!.timeline;
+  assert(aux.status.reservedThrough>=owner.plan.heaters[0].sensor.adc.initialClock);assert(aux.status.reservedThrough>=owner.plan.fans[0].output.pwm.initialClock);
+  const boundary=aux.status.reservedThrough+10000000n;aux.append(boundary,1000100);aux.retireBefore(boundary);assert.equal(aux.status.fromClock,0n);
+  await owner.close();aux.retireBefore(boundary);assert.equal(aux.status.fromClock,boundary);assert.equal(owner.analog[0].sensor.status.closed,true);assert.deepEqual(f.stops,[1,1]);
+ }finally{await f.close();}
+});

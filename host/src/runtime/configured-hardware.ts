@@ -60,7 +60,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
-  const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
+  const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
   for(const f of plan.fans){const runtime=new ScheduledCoolingFan(output(f.output),f.config,f.enable?output(f.enable):undefined);fans.push({section:f.section,runtime});await runtime.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of analog){a.sensor.activate();active();}
   state='ready';
