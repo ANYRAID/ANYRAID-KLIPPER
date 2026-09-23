@@ -1,3 +1,4 @@
+import {snapshotPrintClock} from '../src/timing/print-clock.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -15,7 +16,7 @@ async function fixture(filtered=false,kickStartTime=0){
  const f=await rebuiltFixture(false,false,true);
  try{
   const group=f.options.group,stepper=f.options.motion.bindings[0].stepper,session=group.session('m');
-  const pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),t=>stepper.clockAt(t),c=>stepper.printTimeAtClock(c)),fan=new ScheduledCoolingFan(pwm,{kickStartTime,minimumScheduleTime:.001});await fan.start(signal());const timeline=new FanBoundaryTimeline(fan);
+  const mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),mapping.clockAt,mapping.printTimeAtClock),fan=new ScheduledCoolingFan(pwm,{kickStartTime,minimumScheduleTime:.001});await fan.start(signal());const timeline=new FanBoundaryTimeline(fan);
   const g=await bindRebuiltMotion({...f.options,boundaryOutput:{output:timeline,member:0}});
   if(filtered){g.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});g.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
   return {f,g,fan,timeline,pwm,stream:new RebuiltMotionStreamer(g),writes:()=>f.fw.outputs.filter(m=>m.name==='queue_pwm_out_generation'),close:async()=>{await f.close();await timeline.stop();}};

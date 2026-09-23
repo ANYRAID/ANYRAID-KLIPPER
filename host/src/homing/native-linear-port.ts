@@ -161,19 +161,18 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,async s=>{
-   if(this.hasCoolingFan)throw new Error('Boundary output transfer is required before coordinate rebase');
    await this.#drain(s);const g=this.#g,routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
     if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
+    const boundaryTransfer=g.releaseBoundaryOutput();
     motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters:this.#o.emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
-    this.#check(s);const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target});this.#adopt(next,target,s);
+    this.#check(s);const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
   });
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
-   if(this.hasCoolingFan)throw new Error('Boundary output transfer is required before homing');
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:this.#o.groupsByAxis[axis]}).run(target,speed,axis,s);
    try{this.#adopt(result.generation,result.position,s);return result;}catch(error){result.motion.dispose();throw error;}
   });

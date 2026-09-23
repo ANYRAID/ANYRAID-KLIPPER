@@ -28,6 +28,7 @@ export class LinearHomingSeek {
    const expected=o.kinematics.kind==='cartesian'?['x','y','z']:o.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
    if(new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>o.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Linear homing rail solvers differ from kinematics');
    const routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
+   const boundaryTransfer=g.releaseBoundaryOutput();
    const prepared=await prepareHomingTrajectory(g,o.kinematics,target,speed,axis,signal),plan=planHomingGroups(g,o.emitters,prepared,o.groups);
    // Capture target motor coordinates while the old native solvers are alive.
    const actuators=plan.emitters.map(e=>{const b=g.motion.bindings.find(b=>b.id===e.id)!,route=routes.find(r=>r.id===e.queueId);if(!route)throw new Error('Missing homing queue route');const p=route.extrusionAxis===undefined?prepared.endPosition.slice(0,3):[prepared.endPosition[route.extrusionAxis],0,0];return {id:b.id,member:e.member,oid:b.oid,commanded:b.stepper.coordinatePosition(p[0],p[1],p[2]),stepDistance:b.position.state.stepDistance,extra:route.extrusionAxis!==undefined};});
@@ -41,7 +42,7 @@ export class LinearHomingSeek {
    }});
    const result=await executor.run(signal);motion=result.motion;signal.throwIfAborted();if(!halt)throw new Error('Missing homing halt coordinates');
    motion=plan.restorePhysicalMembers(motion);
-   const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt});
+   const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer});
    signal.throwIfAborted();return Object.freeze({...result,movingSteppers,motion,generation:next,position:halt});
   }catch(error){
    const errors:unknown[]=[error];this.#cleanupPending=true;

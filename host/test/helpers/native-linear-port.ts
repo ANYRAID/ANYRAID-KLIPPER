@@ -1,3 +1,4 @@
+import {snapshotPrintClock} from '../../src/timing/print-clock.ts';
 import assert from 'node:assert/strict';
 import {NativeLinearHomingPort} from '../../src/homing/native-linear-port.ts';
 import {LinearHomingCommand} from '../../src/homing/linear-command.ts';
@@ -16,7 +17,7 @@ const signal=()=>new AbortController().signal;
 export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig){
  const f=await rebuiltFixture(false,true,fanConfig!==undefined);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
  try{
-  if(fanConfig){const group=f.options.group,s=group.session('m'),stepper=f.options.motion.bindings[0].stepper,pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue('m'),group.commandQueue('m'),t=>stepper.clockAt(t),c=>stepper.printTimeAtClock(c));fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
+  if(fanConfig){const group=f.options.group,s=group.session('m'),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue('m'),group.commandQueue('m'),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
   const generation=await bindRebuiltMotion({...f.options,...timeline?{boundaryOutput:{output:timeline,member:0}}:{}}),kinematics=new LinearKinematics({kind:'cartesian',ranges:[[0,52],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:5,maxZAccel:100});
   if(filtered){generation.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});generation.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
   const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];

@@ -1,3 +1,4 @@
+import {snapshotPrintClock} from '../src/timing/print-clock.ts';
 import assert from 'node:assert/strict';
 import {performance} from 'node:perf_hooks';
 import {rebuiltFixture} from '../test/helpers/rebuilt-motion.ts';
@@ -14,7 +15,7 @@ const times:number[][]=[[],[]],cpu:number[][]=[[],[]];let reference:Record<strin
 for(let run=0;run<14;run++)for(const bound of run%2?[1,0]:[0,1]){
  const f=await rebuiltFixture(false,false,true),signal=new AbortController().signal;let timeline:FanBoundaryTimeline|undefined;
  try{
-  const group=f.options.group,b=f.options.motion.bindings[0],session=group.session('m'),pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),t=>b.stepper.clockAt(t),c=>b.stepper.printTimeAtClock(c));
+  const group=f.options.group,b=f.options.motion.bindings[0],session=group.session('m'),mapping=snapshotPrintClock(b.stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),mapping.clockAt,mapping.printTimeAtClock);
   const fan=new ScheduledCoolingFan(pwm,{kickStartTime:0,minimumScheduleTime:.001});await fan.start(signal);timeline=new FanBoundaryTimeline(fan);
   const g=await bindRebuiltMotion({...f.options,...bound?{boundaryOutput:{output:timeline,member:0}}:{}}),[x,e]=g.motion.bindings;
   x.stepper.configureShapers({x:inputShaper('mzv',40,.1)});e.stepper.configurePressureAdvance(.05,.04);

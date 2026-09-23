@@ -20,7 +20,7 @@ export class MotionCoordinator {
  #guards:readonly {assertActive():void}[];
  #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#bounded=false;#fault:unknown;#failed=false;
  #stopPromise:Promise<void>|undefined;
- #retired=false;#retirement:Promise<void>|undefined;#idle=Promise.resolve();#resolveIdle:(()=>void)|undefined;
+ #retired=false;#retirementComplete=false;#retirement:Promise<void>|undefined;#idle=Promise.resolve();#resolveIdle:(()=>void)|undefined;
  #beginWork(){if(!this.#busy&&!this.#bounded)this.#idle=new Promise(resolve=>{this.#resolveIdle=resolve;});}
  #endWork(){if(!this.#busy&&!this.#bounded){this.#resolveIdle?.();this.#resolveIdle=undefined;}}
  #finalizedSourceTime=0;#generated:number;#committed:number;#baseline:number;#sequence=0;#maxBytes:number;
@@ -72,6 +72,8 @@ export class MotionCoordinator {
  }
  usesBindings(bindings:readonly MotionBinding[]):boolean{return bindings.length===this.#bindings.length&&new Set(bindings.map(b=>b.id)).size===bindings.length&&bindings.every(b=>this.#bindings.some(owned=>owned.id===b.id&&owned.queue===b.queue&&owned.stepper===b.stepper));}
  get status(){return {generatedTime:this.#generated,committedTime:this.#committed,busy:this.#busy||this.#bounded,failed:this.#failed,retired:this.#retired,fault:this.#fault};}
+ /** Retirement requested is not sufficient: accepted commits must settle. */
+ get retirementComplete():boolean{return this.#retirementComplete&&!this.#failed;}
  /** Freeze this generation permanently. The owner must establish the affected
   * MCU stop/reset-required boundary before any replacement commands. Accepted
   * commands may execute until that stop; resetting requires BOTH confirmation
@@ -81,7 +83,7 @@ export class MotionCoordinator {
   if(this.#failed||!this.#sink.retire)return Promise.reject(new Error('Motion coordinator cannot retire'));
   this.#retired=true;
   this.#retirement=(async()=>{
-   try{await observeRetirement(this.#sink.retire!(signal),signal);await observeRetirement(this.#idle,signal);if(this.#failed)throw this.#fault;for(const guard of this.#guards)guard.assertActive();}
+   try{await observeRetirement(this.#sink.retire!(signal),signal);await observeRetirement(this.#idle,signal);if(this.#failed)throw this.#fault;for(const guard of this.#guards)guard.assertActive();this.#retirementComplete=true;}
    catch(error){try{await this.shutdown(error);}catch{/* Both failures remain in status. */}throw this.#fault;}
   })();return this.#retirement;
  }

@@ -18,9 +18,9 @@ test('retirement fences all MCU routes synchronously and waits for retained hist
  const transport=()=>({async send(){sent++;},async stop(){stops++;},async retire(){retired++;}});
  using f=fixture(()=>held.promise,[transport(),transport()]);const advance=f.c.advance(1.5),rejected=assert.rejects(advance,MotionRetiredError);
  const retirement=f.c.retire(signal());assert.equal(retired,2);assert.strictEqual(f.c.retire(signal()),retirement);assert.equal(f.c.status.retired,true);
- let complete=false;void retirement.then(()=>{complete=true;});await Promise.resolve();await Promise.resolve();assert.equal(complete,false);
+ let complete=false;void retirement.then(()=>{complete=true;});await Promise.resolve();await Promise.resolve();assert.equal(complete,false);assert.equal(f.c.retirementComplete,false);
  await assert.rejects(f.c.advance(1.6),MotionRetiredError);held.resolve();await rejected;await retirement;
- assert.equal(f.c.status.busy,false);assert.equal(f.c.status.failed,false);assert.equal(f.c.status.committedTime,0);assert.equal(sent,0);assert.equal(stops,0);
+ assert.equal(f.c.status.busy,false);assert.equal(f.c.status.failed,false);assert.equal(f.c.retirementComplete,true);assert.equal(f.c.status.committedTime,0);assert.equal(sent,0);assert.equal(stops,0);
 });
 test('retirement cancels a current sender and prevents later MCU sends and bounded windows',async()=>{
  const sending=barrier(),started=barrier();let second=0,stops=0;
@@ -32,7 +32,7 @@ test('a history fault racing retirement fails the group rather than being hidden
  const held=barrier();let stops=0;
  using f=fixture(()=>held.promise,[{async send(){assert.fail();},async stop(){stops++;},async retire(){}}]);
  const advancing=f.c.advance(1.5),badAdvance=assert.rejects(advancing,/disk failure/),retiring=f.c.retire(signal()),badRetire=assert.rejects(retiring,/disk failure/);
- held.reject(new Error('disk failure'));await Promise.all([badAdvance,badRetire]);assert.equal(stops,1);assert.equal(f.c.status.failed,true);
+ held.reject(new Error('disk failure'));await Promise.all([badAdvance,badRetire]);assert.equal(stops,1);assert.equal(f.c.status.failed,true);assert.equal(f.c.retirementComplete,false);
 });
 test('one retirement failure stops every member even if another fails synchronously',async()=>{
  let stops=0,retirements=0;

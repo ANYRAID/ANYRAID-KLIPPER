@@ -58,6 +58,12 @@ export class PlannedMotionSource {
   if(this.#count){const m=this.#moves[(this.#head+this.#count-1)%this.#ends.length]!;m.endMarkers=copyEndMarkers([...m.endMarkers??[],id]);}
   else{if(this.#seeded&&!this.#paused)throw new Error('Stationary boundary requires an unused or drained source');this.#idleMarkers=copyEndMarkers([...this.#idleMarkers,id])!;}
  }
+ /** Release only a completely quiescent output lane. The generation owner
+  * must fence admission and authorize the receiving MCU/calibration itself. */
+ detachBoundaryOutput():void{
+  this.#check();if(!this.#output||this.#count||this.#idleMarkers.length||this.#stationary.length||this.#braking||this.#seeded&&!this.#paused)throw new Error('Boundary output transfer requires an unused or drained source');
+  this.#output=undefined;this.#deliver=this.#deliverRolling=this.#deliverFinal=undefined;
+ }
  /** Current buffered plan only. Read before release; braking/rebase invalidates
   * old times. This snapshot neither dispatches nor acknowledges output events. */
  boundarySchedule():readonly {id:number;time:number}[]{
