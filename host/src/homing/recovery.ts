@@ -6,6 +6,7 @@ import type {MotionCoordinator,MotionBinding} from '../motion/coordinator.ts';
 import type {EndstopProtocol,EndstopSampling} from '../inputs/endstop.ts';
 import {observeRetirement} from '../motion/retired.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
+import {recoveryEmitters} from './recovery-emitters.ts';
 interface RecoveryOptions<T extends HomingStopResult> {
  coordinator:MotionCoordinator;bindings:readonly MotionBinding[];
  emitters:readonly StoppedEmitter[];
@@ -56,7 +57,7 @@ class Recovery<T extends HomingStopResult> {
    const retirement=this.#coordinator.retire(s),confirmation=this.#stop.finish(s);
    const [,stop]=await Promise.all([observeRetirement(retirement,s),confirmation]);s.throwIfAborted();
    const located=this.#locate(stop);s.throwIfAborted();
-   motion=rebuildStoppedMotion(stop,this.#bindings,located.queues,this.#emitters,located.printTime);
+   motion=rebuildStoppedMotion(stop,this.#bindings,located.queues,recoveryEmitters(this.#bindings,this.#emitters),located.printTime);
    const resets=this.#members.map(m=>m.steppers.map(step=>m.session.dictionary.encode('reset_step_clock',{oid:step.oid,clock:0})));
    for(const m of this.#members)m.session.assertActive();
    await Promise.all(this.#members.map(async(m,i)=>{for(const payload of resets[i]){s.throwIfAborted();await m.queue.send(payload,0n,0n,s);}}));

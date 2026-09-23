@@ -1,6 +1,7 @@
 import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import {LinearKinematics,type Axis} from '../kinematics/linear.ts';
 import {LookAheadQueue} from '../motion/lookahead.ts';
+import {stationaryRows} from '../motion/stationary.ts';
 /** Transfer an unused recovered generation to HomingMoveExecution's exclusive
  * drip producer. Success prepares native source data and history coverage only;
  * no step generation, trigger arming or homing authority is issued here. */
@@ -24,13 +25,14 @@ export async function prepareHomingTrajectory(g:Awaited<ReturnType<typeof bindRe
   g.source.retireProducer();
   for(const r of routes){
    const start=r.extrusionAxis===undefined?state.position.slice(0,3):[state.position[r.extrusionAxis],0,0],end=r.extrusionAxis===undefined?move.endPos.slice(0,3):[move.endPos[r.extrusionAxis],0,0];
-   r.queue.appendRaw(new Float64Array([startTime,0,movementStart-startTime,0,...start,0,0,0,0,0,0]));
+   r.queue.appendRaw(stationaryRows(startTime,movementStart,start));
    if(r.queue.appendPlanned(moves,movementStart,r.extrusionAxis,true)!==nominalEnd)throw new Error('Homing source timelines differ');
-   r.queue.appendRaw(new Float64Array([nominalEnd,0,sourceUntil-nominalEnd,0,...end,0,0,0,0,0,0]));
+   r.queue.appendRaw(stationaryRows(nominalEnd,sourceUntil,end));
   }
   // Recovery's known constant position covers the initial stationary baseline.
   // The native initialization marker remains queued and is archived on flush.
   for(const {binding:b,clock} of histories)b.history.append({history:new BigInt64Array(),position:b.history.status.lastPlannedPosition},clock);
-  return Object.freeze({startTime,movementStart,nominalEnd,endTime,sourceUntil,startPosition:Object.freeze([...state.position]),endPosition:Object.freeze([...move.endPos]),speed});
+  const prepareWindow=g.handoffHomingClocks(endTime,sourceUntil);
+  return Object.freeze({startTime,movementStart,nominalEnd,endTime,sourceUntil,startPosition:Object.freeze([...state.position]),endPosition:Object.freeze([...move.endPos]),speed,prepareWindow});
  }catch(error){try{await g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Homing preparation and stop failed');}throw error;}
 }

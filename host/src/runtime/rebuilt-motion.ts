@@ -138,37 +138,48 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   };
   const drain=new CoordinatedMotionDrain(coordinator,sink,group,.25,auxiliaryMCUs);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
-  const calibrateMotionClock=(id:string,generationLimit:number):boolean=>{
+  const calibrateMotion=(id:string,generationLimit:number,homingSource?:number):boolean=>{
    assertClockCalibration();const status=coordinator.status,state=source.status,member=routes.indexOf(id);
-   if(status.failed||status.retired||status.busy||state.failed||state.retired||state.busy)throw new Error('Motion calibration requires idle generation ownership');
+   if(status.failed||status.retired||status.busy||state.failed||state.busy||(homingSource===undefined?state.retired:!state.retired))throw new Error('Motion calibration requires idle generation ownership');
    if(member<0)throw new Error('Motion calibration requires a motion MCU');
    const owner=clockTimelines?.find(c=>c.id===id),sync=owner?.synchronizer;if(!owner||!sync)throw new Error('Motion MCU has no owned synchronizer');
    if(!Number.isFinite(generationLimit)||generationLimit<status.generatedTime)throw new RangeError('Invalid motion calibration limit');
-   if(!state.seeded||state.paused)return false;
-   const future=Math.max(...bindings.map(b=>b.stepper.scanWindow.future)),limit=Math.min(generationLimit,state.sourceTime-future-.001,status.generatedTime+.01);
+   if(homingSource===undefined&&(!state.seeded||state.paused))return false;
+   const future=Math.max(...bindings.map(b=>b.stepper.scanWindow.future)),limit=Math.min(generationLimit,(homingSource??state.sourceTime)-future-.001,status.generatedTime+.01);
    if(limit<=status.generatedTime)return false;
    const now=serialClock.now(),local=group.session(id).clock.sync;if(owner.timeline.clockAt(status.generatedTime)<=local.getClock(now))return false;
    const candidate=sync.propose(status.generatedTime,now),plan=sync.planShared(candidate,owner.timeline,coordinator,limit);if(!plan||plan.time-status.generatedTime>.01)return false;
    coordinator.generateCalibrationBoundary(plan.time);if(plan.tick<=local.getClock(serialClock.now()))return false;
    sync.applyShared(candidate,owner.timeline,coordinator,grouped[member].map(b=>b.id));return true;
   };
+  const calibrateMotionClock=(id:string,generationLimit:number)=>calibrateMotion(id,generationLimit);
   const releaseBoundaryOutput=():BoundaryOutputTransfer|undefined=>{
    if(!context)return;checkMapping();const status=context.target.status;
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  const maintainClocks=(generationLimit:number)=>{
-   assertClockCalibration();const status=coordinator.status;if(status.busy||status.failed||status.retired||source.status.busy)throw new Error('Clock maintenance requires idle generation ownership');
+  const maintain=(generationLimit:number,homingSource?:number)=>{
+   const status=coordinator.status;if(status.busy||status.failed||status.retired||source.status.busy)throw new Error('Clock maintenance requires idle generation ownership');assertClockCalibration();
    if(!Number.isFinite(generationLimit)||generationLimit<status.generatedTime)throw new RangeError('Invalid clock maintenance horizon');
    const now=serialClock.now();let retired=false,attempted=0,updated=0;
    for(const owner of clockTimelines??[]){const sync=owner.synchronizer;if(!sync)continue;let cadence=clockCadences.get(sync);if(!cadence){cadence=new CalibrationCadence();clockCadences.set(sync,cadence);}
-    const result=cadence.run(now,()=>{if(!retired){retireClockHistory();retired=true;}return routes.includes(owner.id)?calibrateMotionClock(owner.id,generationLimit):calibrateAuxiliaryClock(owner.id);});
+    const result=cadence.run(now,()=>{if(!retired){retireClockHistory();retired=true;}return routes.includes(owner.id)?calibrateMotion(owner.id,generationLimit,homingSource):calibrateAuxiliaryClock(owner.id);});
     if(result!==undefined){attempted++;if(result)updated++;}
    }
    return {attempted,updated};
   };
+  const maintainClocks=(generationLimit:number)=>maintain(generationLimit);
+  let homingClockOwner=false;
+  /** Privileged handoff after prepareHomingTrajectory has queued all padding.
+   * The returned synchronous owner can only use that captured source horizon. */
+  const handoffHomingClocks=(endTime:number,sourceUntil:number)=>{
+   assertClockCalibration();const state=source.status,status=coordinator.status,future=Math.max(...bindings.map(b=>b.stepper.scanWindow.future));
+   if(homingClockOwner||!state.retired||state.seeded||state.paused||state.bufferedMoves||state.sourceTime!==motion.printTime||state.failed||state.busy||status.failed||status.retired||status.busy||status.generatedTime!==motion.printTime||status.committedTime!==motion.printTime||!Number.isFinite(endTime)||!Number.isFinite(sourceUntil)||endTime<=motion.printTime||sourceUntil>=1e12||sourceUntil<=endTime||sourceUntil-endTime<future)throw new Error('Invalid homing clock handoff');
+   homingClockOwner=true;
+   return (until:number)=>{if(!Number.isFinite(until)||until>endTime)throw new RangeError('Homing clock window exceeds prepared source');return maintain(until,sourceUntil);};
+  };
   const clockMaintenanceDue=()=>{const now=serialClock.now();return clockTimelines?.some(c=>c.synchronizer&&(clockCadences.get(c.synchronizer)?.due(now)??true))??false;};
-  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,maintainClocks,clockMaintenanceDue,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,maintainClocks,handoffHomingClocks,clockMaintenanceDue,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

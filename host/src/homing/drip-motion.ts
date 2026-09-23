@@ -8,6 +8,9 @@ export interface DripClock {
  /** Conservative current print time across every participating MCU. Must check
   * clock health on each call; host wall time alone is not a motion clock. */
  estimatedPrintTime():number;
+ /** Exclusive synchronous maintenance, bounded by the next drip window.
+  * May generate a calibration prefix, but must not publish or await IO. */
+ prepareWindow?(until:number):void;
 }
 export interface DripResult {readonly reason:'triggered'|'exhausted';readonly generatedUntil:number;}
 /** Exclusive, single-use producer for an already queued homing trajectory.
@@ -62,6 +65,12 @@ export class DripMotion {
     const delay=until-now-.1;
     if(delay>0){await pause(delay);continue;}
     const next=Math.min(until+.05,end);if(next<=until)throw new RangeError('Unrepresentable drip segment');
+    const committed=this.#coordinator.status.committedTime;
+    const maintenance:unknown=this.#clock.prepareWindow?.(next);
+    if(maintenance!==undefined){if(maintenance instanceof Promise)void maintenance.catch(()=>{});throw new Error('Drip maintenance must be synchronous and return no value');}
+    const prepared=this.#coordinator.status;
+    if(prepared.generatedTime<until||prepared.generatedTime>next||prepared.committedTime!==committed)throw new Error('Drip maintenance exceeded its generation ownership');
+    until=prepared.generatedTime;check();
     // Retain all trapq history. Native compressed history is archived by sink.
     // At the trajectory endpoint flush the final direction-filter tail too.
     const flush=next===end?end:Math.max(this.#coordinator.status.committedTime,next-.002);

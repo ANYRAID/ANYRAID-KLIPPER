@@ -20,6 +20,17 @@ async function fixture(commit:(batch:Readonly<MotionBatch>)=>Promise<void>=async
  return {q,stepper,c,batches,get stops(){return stops;},[Symbol.dispose](){stepper.dispose();q.dispose();}};
 }
 const signal=()=>new AbortController().signal;
+test('synchronous calibration prefix stays inside the drip window and flushes an equal endpoint',async()=>{
+ using f=await fixture();const t=triggers();let calls=0;
+ const result=await new DripMotion(f.c,t.value,{estimatedPrintTime:()=>2,prepareWindow:until=>{calls++;f.c.generateCalibrationBoundary(until);}}).run(1,1.005,signal());
+ assert.equal(result.reason,'exhausted');assert.equal(calls,1);assert.equal(f.c.status.committedTime,1.005);assert.equal(f.batches.length,1);assert.equal(f.batches[0].outputs[0].position,5n);assert.equal(f.stops,0);
+});
+test('maintenance that exceeds its window or yields fails closed before publication',async()=>{
+ for(const asynchronous of [false,true]){using f=await fixture();const t=triggers();
+  await assert.rejects(new DripMotion(f.c,t.value,{estimatedPrintTime:()=>2,prepareWindow:asynchronous?async()=>{}:()=>{f.c.generateCalibrationBoundary(1.009);}}).run(1,1.005,signal()),/synchronous|exceeded/);
+  assert.equal(f.batches.length,0);assert.equal(f.stops,1);assert.equal(t.stops,1);
+ }
+});
 test('drip limits native generation to 50ms segments and stops at completion, preserving compressed history',async()=>{
  const t=triggers();let count=0;
  using f=await fixture(async b=>{if(b.generatedUntil!>1&&++count===2)t.resolve();});
