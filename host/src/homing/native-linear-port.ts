@@ -91,6 +91,14 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,async s=>{const state=this.#g.source.status;if(!this.#admission.pending&&state.pendingBoundaries&&(state.paused||!state.seeded)){await this.#drain(s);return;}await this.#streamer.append(this.#admission.flush(true),s);});}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
+ /** A confirmed paused stop already crossed the MCU boundary. Heating may be
+  * adjusted there without resuming the retained trajectory or parking moves. */
+ async heaterBoundary(signal:AbortSignal):Promise<void>{
+  this.#check(signal);
+  if(!this.#pause){await this.drain(signal);return;}
+  if(!this.#pauseReady||this.#resuming||this.#pausedBusy||!this.#g.source.status.paused||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused')throw new Error('Native heater boundary is not stationary');
+ }
+
  /** Product pause after file admission is fenced. A boundary-owned stream
   * remains internal; later checkpoints await its suffix before taking over. */
  pause(signal:AbortSignal):Promise<StreamPause>{

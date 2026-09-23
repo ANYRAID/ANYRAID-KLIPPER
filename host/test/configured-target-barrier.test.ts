@@ -32,3 +32,18 @@ test('cancelling a target during motion drain stops hardware without applying he
   assert.equal(f.hardware.analog[0].runtime.status.target,0);assert.equal(port.status.failed,true);assert.deepEqual(f.stops,[1,1]);assert(!f.firmware[1].outputs.some(o=>o.name==='queue_digital_out_generation'&&Number(o.parameters.on_ticks)>0));
  }finally{await f.hardware.close();await f.close();}
 });
+test('confirmed pause permits heater targets without resuming or adding motion',async()=>{
+ const f=await initialLinearFixture();try{
+  const {port,kinematics}=f.initial.createLinearPort(f.reader,f.settings);kinematics.markHomed([0]);port.move([1,0,0,0],10);await port.pause(f.signal);await sample(f);
+  const before=f.firmware[0].motion.length,steps=f.initial.generation.motion.bindings[0].history.status.lastPlannedPosition,mode=port.status.pauseMode;
+  await f.hardware.heaters.setTarget('extruder',200,f.signal);assert.equal(f.hardware.analog[0].runtime.status.target,200);assert.equal(port.status.pauseMode,mode);assert.equal(f.initial.generation.source.status.paused,true);assert.equal(f.firmware[0].motion.length,before);assert.equal(f.initial.generation.motion.bindings[0].history.status.lastPlannedPosition,steps);
+  await port.resumeStream(f.signal);assert.equal(port.status.failed,false);
+ }finally{await f.hardware.close();await f.close();}
+});
+test('parking travel during pause cannot authorize a heater target boundary',async()=>{
+ const f=await initialLinearFixture();try{
+  const {port,kinematics}=f.initial.createLinearPort(f.reader,f.settings);kinematics.markHomed([0]);await port.pause(f.signal);await sample(f);
+  const moving=port.movePaused([1,0,0,0],10,f.signal);await assert.rejects(f.hardware.heaters.setTarget('extruder',200,f.signal),/not stationary/);assert.equal(f.hardware.analog[0].runtime.status.target,0);
+  await moving;await f.hardware.heaters.setTarget('extruder',200,f.signal);assert.equal(f.hardware.analog[0].runtime.status.target,200);assert.equal(port.status.failed,false);assert.equal(f.initial.generation.source.status.paused,true);
+ }finally{await f.hardware.close();await f.close();}
+});

@@ -35,7 +35,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   local.abort(cause);let generation:Awaited<ReturnType<typeof bindRebuiltMotion>>|undefined;
   if(pending)try{generation=await pending;}catch{/* failed binding owns its cleanup */}
   try{if(port)await port.dispose();else if(generation)await generation.coordinator.shutdown(cause);}finally{motion?.dispose();}
- },signal=>{if(!port)throw new Error('Configured linear motion target barrier is not ready');return port.drain(signal);});
+ },signal=>{if(!port)throw new Error('Configured linear motion target barrier is not ready');return port.heaterBoundary(signal);});
  const abort=()=>{local.abort(signal.reason);void hardware.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
  const timer=setTimeout(()=>{const error=new Error('Initial motion startup timed out');local.abort(error);void hardware.close(error).catch(()=>{});},timeout);
  const active=()=>{signal.throwIfAborted();local.signal.throwIfAborted();group.assertActive();};
