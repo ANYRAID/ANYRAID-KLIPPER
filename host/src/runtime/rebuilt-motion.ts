@@ -109,7 +109,8 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    for(const output of outputs){const b=byId.get(output.id);if(!b)throw new Error('Unknown rebuilt history output');const state=b.history.status,observed=members[b.member].session.clock.sync.lastClock;
     // Retain thirty seconds behind sampled MCU time, never estimated host time.
     // Homing pins prevent this normal-stream policy from dropping its baseline.
-    const horizon=observed-BigInt(Math.ceil(b.stepper.calibration.frequency*30));
+    const timeline=timelineFor(routes[b.member]);
+    const horizon=timeline?timeline.historyCutoff(observed,30)??state.fromClock:observed-BigInt(Math.ceil(b.stepper.calibration.frequency*30));
     const cutoff=horizon<state.throughClock?horizon:state.throughClock;
     if(cutoff>state.fromClock)b.history.pruneBefore(cutoff);
     b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}

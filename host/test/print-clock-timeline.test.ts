@@ -3,6 +3,27 @@ import assert from 'node:assert/strict';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 import {snapshotPrintClock} from '../src/timing/print-clock.ts';
 import {StepCompressor} from '../src/motion/step-compressor.ts';
+import {StepHistory} from '../src/motion/step-history.ts';
+test('retention crosses calibration boundaries without losing thirty seconds of pulses',()=>{
+ const clock=new PrintClockTimeline({offset:0,frequency:1e6});clock.append(100000000n,900000);
+ const observed=109000000n,cutoff=clock.historyCutoff(observed,30)!;
+ assert.equal(cutoff,80000000n);assert.equal(observed-BigInt(clock.status.calibration.frequency*30),82000000n);
+ const history=new StepHistory(0n,0n);history.append({history:new BigInt64Array([81000000n,81000000n,0n,1n,0n,0n]),position:1n},observed);
+ const release=history.pin();history.pruneBefore(cutoff);assert.equal(history.status.fromClock,0n);release();
+ history.pruneBefore(cutoff);assert.equal(history.status.rows,1);assert.equal(history.at(80999999n),0n);assert.equal(history.at(81000000n),1n);
+ assert.equal(clock.historyCutoff(90000000n,30),60000000n);
+});
+test('retention rounds down and does not extrapolate before retained clock mappings',()=>{
+ const clock=new PrintClockTimeline({offset:0,frequency:1e6});clock.append(100000000n,1000100);
+ for(const observed of [100000001n,110000001n,150000001n]){
+  const target=clock.printTimeAtClock(observed)-30,cutoff=clock.historyCutoff(observed,30)!;
+  assert(clock.printTimeAtClock(cutoff)<=target);assert(clock.printTimeAtClock(cutoff+1n)>target);
+ }
+ assert.equal(clock.historyCutoff(10000000n,30),undefined);
+ clock.retireBefore(100000000n);assert.equal(clock.historyCutoff(110000000n,30),undefined);
+ for(const seconds of [-1,Infinity,NaN])assert.throws(()=>clock.historyCutoff(110000000n,seconds));
+ assert.throws(()=>clock.historyCutoff(99999999n,30));
+});
 test('successive calibration segments match native positive half-up rounding',()=>{
  const timeline=new PrintClockTimeline({offset:0,frequency:48e6});
  for(let i=1;i<=50;i++){

@@ -43,6 +43,15 @@ export class PrintClockTimeline {
   if(typeof tick!=='bigint'||tick<this.#segments[0].tick||tick>BigInt(Number.MAX_SAFE_INTEGER))throw new RangeError('MCU tick outside retained clock history');
   return this.#segments[this.#index(s=>tick<s.tick)].clock.printTimeAtClock(tick);
  }
+ /** Conservative retention watermark in elapsed print seconds. If the target
+  * predates available mappings, leave history intact instead of extrapolating. */
+ historyCutoff(observed:bigint,seconds:number):bigint|undefined{
+  if(!Number.isFinite(seconds)||seconds<0)throw new RangeError('Invalid history retention duration');
+  const time=this.printTimeAtClock(observed),target=time-seconds;
+  if(seconds>0&&target>=time)throw new RangeError('History duration below print-time resolution');
+  if(target<this.#segments[0].time)return undefined;
+  const tick=this.clockAt(target);return this.printTimeAtClock(tick)>target?tick-1n:tick;
+ }
  /** No mutation on validation failure. Capacity exhaustion requires explicit
   * consumer retirement, never automatic loss of ADC/history timestamps. */
  append(tick:bigint,frequency:number):void{
