@@ -41,3 +41,21 @@ test('braking preserves committed and anchor endpoints while retiming only an un
   await f.timeline.deliver([{id:c,time:5}],5,signal());assert.deepEqual(f.writes,[[1,.25],[2,.5],[5,.75]]);assert.equal(f.resets,1);f.timeline.retireThrough(5);assert.equal(f.timeline.status.pending,0);
  }finally{await f.timeline.stop();}
 });
+test('tail settlement finishes a kick without consuming unresolved resumed-path requests',async()=>{
+ const f=await fixture(.5),a=f.timeline.register(.25),b=f.timeline.register(.5);try{
+  await f.timeline.deliver([{id:a,time:1}],1,signal());assert.equal(await f.timeline.settleScheduled(signal()),1.5);assert.deepEqual(f.writes,[[1,1],[1.5,.25]]);assert.equal(f.timeline.status.pending,2);
+  f.timeline.retireThrough(1.49);assert.equal(f.timeline.status.pending,2);f.timeline.retireThrough(1.5);assert.equal(f.timeline.status.pending,1);await f.timeline.deliver([{id:b,time:2}],2,signal());assert.deepEqual(f.writes.at(-1),[2,.5]);
+ }finally{await f.timeline.stop();}
+});
+test('settlement fences admission and replacement until the delayed output ACK completes',async()=>{
+ const f=await fixture(.1),id=f.timeline.register(.5);await f.timeline.deliver([{id,time:1}],1,signal());const gate=Promise.withResolvers<void>();f.output.setPWM=()=>gate.promise;
+ const pending=f.timeline.settleScheduled(signal());assert.equal(f.timeline.status.busy,true);assert.throws(()=>f.timeline.register(0),/busy/);await assert.rejects(f.timeline.deliver([],2,signal()),/busy/);await assert.rejects(f.timeline.replace([],signal()),/busy/);assert.throws(()=>f.timeline.retireThrough(2));assert.throws(()=>f.timeline.invalidateAfter(2));
+ gate.resolve();assert.equal(await pending,1.1);assert.equal(f.timeline.status.busy,false);await f.timeline.stop();
+});
+test('settlement rejects resolved future requests without advancing their clock',async()=>{
+ const f=await fixture(.5),a=f.timeline.register(.25),b=f.timeline.register(.5);try{await f.timeline.deliver([{id:a,time:1},{id:b,time:1.1}],1,signal());await assert.rejects(f.timeline.settleScheduled(signal()),/all resolved/);assert.deepEqual(f.writes,[[1,1]]);assert.equal(f.timeline.status.horizon,1);assert.equal(f.timeline.status.stopped,false);}finally{await f.timeline.stop();}
+});
+test('late tail success after stop cannot re-open the timeline or retain requests',async()=>{
+ const f=await fixture(.1),id=f.timeline.register(.5);await f.timeline.deliver([{id,time:1}],1,signal());const gate=Promise.withResolvers<void>();f.output.setPWM=()=>gate.promise;
+ const pending=f.timeline.settleScheduled(signal()),rejected=assert.rejects(pending);await f.timeline.stop(new Error('cancel tail'));gate.resolve();await rejected;assert.equal(f.timeline.status.pending,0);assert.equal(f.timeline.status.busy,false);assert.throws(()=>f.timeline.register(.5),/stopped/);
+});

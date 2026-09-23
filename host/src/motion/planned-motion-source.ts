@@ -17,6 +17,8 @@ export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
 export interface SourceBoundaryOutput {
  deliver(boundaries:readonly {id:number;time:number}[],horizon:number,signal:AbortSignal):Promise<void>;
  invalidateAfter(time:number):void;
+ /** Finish already scheduled tails and await the output MCU clock. */
+ settle(signal:AbortSignal):Promise<void>;
  stop(cause:unknown):Promise<void>;
 }
 /** Exclusive source writer for coordinated XYZ and extra-axis trap queues.
@@ -28,7 +30,7 @@ export class PlannedMotionSource {
  readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
  readonly #starts:Float64Array;readonly #moves:(MotionSnapshot|undefined)[];#braking=false;
  #position:number[];#time:number;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
- #output:SourceBoundaryOutput|undefined;#deliver:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverRolling:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;
+ #output:SourceBoundaryOutput|undefined;#deliver:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverRolling:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverFinal:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536,output?:SourceBoundaryOutput){
   if(!Number.isSafeInteger(maxBufferedMoves)||maxBufferedMoves<1||maxBufferedMoves>65536)throw new RangeError('Invalid source capacity');
   this.#ends=new Float64Array(maxBufferedMoves);
@@ -44,6 +46,7 @@ export class PlannedMotionSource {
    // otherwise dense output ACKs can consume all motion lead. Resolve the full
    // snapshot now so source retirement cannot lose the unsent endpoint suffix.
    this.#deliverRolling=(horizon,signal)=>this.#deliver!(Math.max(0,horizon-.1),signal);
+   this.#deliverFinal=async(horizon,signal)=>{await this.#deliver!(horizon,signal);signal.throwIfAborted();await output.settle(signal);};
   }
  }
  get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,braking:this.#braking,failed:this.#failed,fault:this.#fault};}
@@ -152,7 +155,7 @@ export class PlannedMotionSource {
     }
    }
    const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
-   const result=await this.#drain.drain(this.#time,positions,signal,remaining(),this.#deliver);remaining();this.#time=result.sourceUntil;this.#paused=true;this.#braking=false;this.#release();
+   const result=await this.#drain.drain(this.#time,positions,signal,remaining(),this.#deliverFinal);remaining();this.#time=result.sourceUntil;this.#paused=true;this.#braking=false;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}
   finally{this.#busy=false;}
  }

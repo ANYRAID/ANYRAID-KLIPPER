@@ -11,11 +11,11 @@ import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
 import {markMoveEnd} from '../src/motion/boundary-markers.ts';
 import {inputShaper} from '../src/motion/shaper.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(filtered=false){
+async function fixture(filtered=false,kickStartTime=0){
  const f=await rebuiltFixture(false,false,true);
  try{
   const group=f.options.group,stepper=f.options.motion.bindings[0].stepper,session=group.session('m');
-  const pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),t=>stepper.clockAt(t),c=>stepper.printTimeAtClock(c)),fan=new ScheduledCoolingFan(pwm,{kickStartTime:0,minimumScheduleTime:.001});await fan.start(signal());const timeline=new FanBoundaryTimeline(fan);
+  const pwm=new GenerationPWMOutput(f.fanPlan!,session.dictionary,group.commandQueue('m'),group.commandQueue('m'),t=>stepper.clockAt(t),c=>stepper.printTimeAtClock(c)),fan=new ScheduledCoolingFan(pwm,{kickStartTime,minimumScheduleTime:.001});await fan.start(signal());const timeline=new FanBoundaryTimeline(fan);
   const g=await bindRebuiltMotion({...f.options,boundaryOutput:{output:timeline,member:0}});
   if(filtered){g.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});g.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
   return {f,g,fan,timeline,pwm,stream:new RebuiltMotionStreamer(g),writes:()=>f.fw.outputs.filter(m=>m.name==='queue_pwm_out_generation'),close:async()=>{await f.close();await timeline.stop();}};
@@ -56,5 +56,18 @@ test('dense fan endpoints preserve rolling motion lead without changing PWM time
  const t=await fixture(true);try{
   const q=new LookAheadQueue();for(let i=0;i<10;i++){const m=new Move(motionLimits(100,1000),[50+i*.2,0,0,2],[50+(i+1)*.2,0,0,2],10);markMoveEnd(m,t.timeline.register(i%2?.5:.25));q.add(m);}
   const moves=q.flush();await t.stream.append(moves,signal());const end=t.g.source.status.sourceTime;await t.g.source.drain([],signal());assert.equal(t.writes().length,10);assert.deepEqual(t.writes().map(m=>m.parameters.value),Array.from({length:10},(_,i)=>i%2?128:64));assert.equal(Number(t.writes().at(-1)!.parameters.clock),Number(BigInt.asUintN(32,t.g.motion.bindings[0].stepper.clockAt(end))));assert.equal(t.g.motion.bindings[0].history.status.lastPlannedPosition,300n);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+for(const filtered of [false,true])test(`drain waits for the final kick tail MCU tick and subsequent motion gets fresh time (filtered=${filtered})`,async()=>{
+ const t=await fixture(filtered,.15);try{
+  await t.stream.append(path(t.timeline.register(.5)),signal());const endpoint=t.g.source.status.sourceTime,stepper=t.g.motion.bindings[0].stepper;
+  await t.g.source.drain([],signal());assert.deepEqual(t.writes().map(m=>m.parameters.value),[255,128]);const tail=stepper.clockAt(endpoint+.15);assert.equal(Number(t.writes()[1].parameters.clock),Number(BigInt.asUintN(32,tail)));assert(t.g.members[0].session.clock.sync.lastClock>tail);assert.equal(t.fan.status.pending,0);assert.equal(t.timeline.status.pending,0);
+  const q=new LookAheadQueue(),m=new Move(motionLimits(100,1000),[52,0,0,2.1],[53,0,0,2.1],10);markMoveEnd(m,t.timeline.register(.25));q.add(m);await t.stream.append(q.flush(),signal());const end=t.g.source.status.sourceTime;assert(end>endpoint+.15);await t.g.source.drain([],signal());assert.deepEqual(t.writes().map(m=>m.parameters.value),[255,128,64]);assert.equal(t.g.motion.bindings[0].history.status.lastPlannedPosition,400n);assert.equal(t.g.motion.bindings[1].history.status.lastPlannedPosition,30n);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('cancellation while awaiting tail MCU time cannot publish a completed drain',async()=>{
+ const t=await fixture(false,.5),cancel=new AbortController(),entered=Promise.withResolvers<void>();try{
+  await t.stream.append(path(t.timeline.register(.5)),signal());const settle=t.timeline.settleScheduled.bind(t.timeline);t.timeline.settleScheduled=async s=>{const until=await settle(s);entered.resolve();return until;};
+  const pending=t.g.source.drain([],cancel.signal),rejected=assert.rejects(pending,/cancel tail clock/);await entered.promise;cancel.abort(new Error('cancel tail clock'));await rejected;assert.equal(t.g.source.status.paused,false);assert.equal(t.g.source.status.failed,true);assert.equal(t.timeline.status.stopped,true);assert.equal(t.f.stops,1);
  }finally{await t.close();}
 });

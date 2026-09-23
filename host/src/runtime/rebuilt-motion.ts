@@ -6,7 +6,8 @@ import {MoveQueueSink} from '../motion/move-queue-sink.ts';
 import {CoordinatedMotionDrain} from '../motion/coordinated-drain.ts';
 import {PlannedMotionSource,type PlannedQueue,type SourceBoundaryOutput} from '../motion/planned-motion-source.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
-type ClockedBoundaryOutput=SourceBoundaryOutput&{retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
+import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
+type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
 export interface RebuiltMotionOptions {
  group:MCUGroup;
@@ -65,11 +66,19 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    offGroup=group.subscribeStop(cause=>{void target.stop(cause).catch(()=>{});offGroup();offOutput();});
    offOutput=target.subscribeStop(cause=>{void group.stop(cause).catch(()=>{});});
    const binding=grouped[member][0],mapping={...binding.stepper.calibration};
-   output={deliver:async(boundaries,horizon,signal)=>{
+   const checkMapping=()=>{
     group.assertActive();const current=binding.stepper.calibration;
     if(current.offset!==mapping.offset||current.frequency!==mapping.frequency)throw new Error('Boundary output clock calibration changed');
+   };
+   output={deliver:async(boundaries,horizon,signal)=>{
+    checkMapping();
     target.retireThrough(binding.stepper.printTimeAtClock(members[member].session.clock.sync.lastClock));
     await target.deliver(boundaries,horizon,signal);group.assertActive();
+   },settle:async signal=>{
+    checkMapping();const horizon=await target.settleScheduled(signal);signal.throwIfAborted();checkMapping();
+    if(!Number.isFinite(horizon)||horizon<0)throw new Error('Invalid boundary output settlement horizon');
+    await waitForMcuClocks([{clock:members[member].session.clock,tick:binding.stepper.clockAt(horizon)}],signal);
+    signal.throwIfAborted();checkMapping();target.retireThrough(binding.stepper.printTimeAtClock(members[member].session.clock.sync.lastClock));
    },invalidateAfter:time=>target.invalidateAfter(time),stop:cause=>target.stop(cause)};
   }
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
