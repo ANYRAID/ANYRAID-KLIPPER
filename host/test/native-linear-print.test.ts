@@ -11,7 +11,8 @@ test('assembled thermal file print waits for native drain and both heater off ac
   const deadline=performance.now()+3000;while(f.resetCounts.some(n=>n<2)){assert(performance.now()<deadline);await new Promise(resolve=>setTimeout(resolve,2));}
   assert.equal(finished,false);assert.equal(f.outputFinishes,1);assert(f.reports.some(s=>s.includes('T:220.0 /200.0')&&s.includes('B:80.0 /60.0')));
   assert.deepEqual(new Map(f.t.generation.motion.bindings.map(b=>[b.id,b.history.status.lastPlannedPosition])),new Map([['x',200n],['e',21n],['y',0n],['z',0n]]));
-  f.off.resolve();await completion;assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.outputStops,0);
+  const reports=f.reports.length;let queried=false;const query=f.gcode.dispatch.execute('M105').then(()=>{queried=true;});await new Promise<void>(r=>setImmediate(r));assert.equal(queried,false);assert.equal(f.reports.length,reports);
+  f.off.resolve();await completion;await query;assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.outputStops,0);assert(f.reports.at(-1)!.includes('/0.0'));
  }finally{f.off.resolve();await owner.close();await f.close();}
 });
 test('heater fault cancels an active file command and invalidates native motion without another command',async()=>{
@@ -94,4 +95,28 @@ test('cancelling native startup homing stops the group before any heating begins
   while(!f.t.f.fw.outputs.some(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0)){assert(performance.now()<deadline,'startup homing did not arm');await new Promise(r=>setTimeout(r,2));}
   await owner.device.stop();await failed;assert.equal(f.t.kinematics.status.homedAxes,'');assert.equal(f.t.port.status.failed,true);assert.equal(f.t.f.stops,1);assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.outputFinishes,0);
  }finally{await owner.close();await h.close();}
+});
+for(const stop of [false,true])test(`completion retains dispatch during output acknowledgement (stop=${stop})`,async()=>{
+ const f=await nativePrintFixture(undefined,false,true),entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>(),finish=f.options.lifecycle.finishOutputs;f.options.motorCompletion='release';f.options.lifecycle.finishOutputs=async(id,s)=>{await finish(id,s);entered.resolve();await gate.promise;};const owner=await createNativeLinearPrint(f.options);
+ try{
+  const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());await owner.device.prepare(request,signal());await owner.device.start('file',signal());await eof.promise;
+  const completion=owner.device.finish('job',signal()),result=stop?assert.rejects(completion):completion;await entered.promise;
+  const before=f.reports.length;let queried=false;const query=f.gcode.dispatch.execute('M105').then(()=>{queried=true;}),queryResult=stop?assert.rejects(query,/invalidated|stopped|closed/i):query;
+  await new Promise<void>(r=>setImmediate(r));assert.equal(queried,false);assert.equal(f.reports.length,before);assert.deepEqual(f.t.f.fw.outputs.filter(m=>m.name==='queue_digital_out').map(m=>m.parameters.on_ticks),[0]);
+  if(stop)await owner.device.stop();gate.resolve();await result;await queryResult;assert.equal(queried,!stop);assert.equal(f.t.port.status.failed,stop);assert.equal(f.heaters.getTemperature('extruder').target,0);
+ }finally{gate.resolve();await owner.close();await f.close();}
+});
+test('completion waits for a prior command to retire before draining or finishing outputs',async()=>{
+ const f=await nativePrintFixture(),entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>();f.gcode.dispatch.register('WAIT',async()=>{entered.resolve();await gate.promise;});const owner=await createNativeLinearPrint(f.options);
+ try{
+  const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());await owner.device.prepare(request,signal());await owner.device.start('file',signal());await eof.promise;
+  const command=f.gcode.dispatch.execute('WAIT');await entered.promise;const completion=owner.device.finish('job',signal());await new Promise<void>(r=>setImmediate(r));assert.equal(f.outputFinishes,0);assert.deepEqual(f.resetCounts,[1,1]);gate.resolve();await command;await completion;assert.equal(f.outputFinishes,1);assert.deepEqual(f.resetCounts,[2,2]);assert.equal(f.t.port.status.failed,false);
+ }finally{gate.resolve();await owner.close();await f.close();}
+});
+test('failed final output acknowledgement stops native motion and heaters and invalidates queued work',async()=>{
+ const f=await nativePrintFixture(),gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();f.options.lifecycle.finishOutputs=async()=>{entered.resolve();await gate.promise;throw new Error('final output failed');};const owner=await createNativeLinearPrint(f.options);
+ try{
+  const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());await owner.device.prepare(request,signal());await owner.device.start('file',signal());await eof.promise;
+  const completion=owner.device.finish('job',signal()),failed=assert.rejects(completion,/final output failed/);await entered.promise;const queued=f.gcode.dispatch.execute('M105'),invalidated=assert.rejects(queued,/invalidated/);gate.resolve();await failed;await invalidated;await owner.device.stop();assert.equal(f.t.port.status.failed,true);assert.equal(f.t.f.stops,1);assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.outputStops,1);
+ }finally{gate.resolve();await owner.close();await f.close();}
 });

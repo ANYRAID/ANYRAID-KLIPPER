@@ -1,5 +1,6 @@
 import type {PrintDevice,StartPrint} from './print.ts';
 import {AsyncPrinterHeaters} from '../thermal/async-heaters.ts';
+export type PrintCompletionAdmission=(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal)=>Promise<void>;
 /** The underlying device owns file/EOF validation and motion/output safety.
  * It must not independently set heater targets or replay heater macros. */
 export class ThermalPrintDevice implements PrintDevice {
@@ -7,7 +8,9 @@ export class ThermalPrintDevice implements PrintDevice {
  #device:PrintDevice;#heaters:AsyncPrinterHeaters;#nozzle:string;#bed:string;
  #prepared=false;#job:Readonly<StartPrint>|undefined;#epoch=0;#actions=new Set<AbortController>();
  #stopping:Promise<void>|undefined;#fault:unknown;
- constructor(device:PrintDevice,heaters:AsyncPrinterHeaters,mapping:{nozzle:string;bed:string}){
+ #completion:PrintCompletionAdmission;
+ constructor(device:PrintDevice,heaters:AsyncPrinterHeaters,mapping:{nozzle:string;bed:string},completion:PrintCompletionAdmission=(work,signal)=>work(signal)){
+  if(typeof completion!=='function')throw new TypeError('Invalid print completion admission');this.#completion=completion;
   for(const method of ['prepare','start','pause','resume','finish','stop'] as const)if(typeof device?.[method]!=='function')throw new TypeError('Incomplete print motion adapter');
   const names=heaters.status.available_heaters.map(name=>name.trim().split(/\s+/).at(-1));
   if(!names.includes(mapping.nozzle)||!names.includes(mapping.bed)||mapping.nozzle===mapping.bed||heaters.status.closed)throw new Error('Invalid print heater mapping');
@@ -57,8 +60,12 @@ export class ThermalPrintDevice implements PrintDevice {
  resume(signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{await this.#stable(local);guard();await this.#device.resume(local);});}
  finish(requestId:string,signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{
   if(!this.#job||this.#job.requestId!==requestId)throw new Error('Print completion does not match prepared job');
-  // Underlying finish must verify EOF and drain motion before heating is disabled.
-  await this.#device.finish(requestId,local);guard();await this.#heaters.turnOffAll();guard();this.#job=undefined;
+  await this.#completion(async owned=>{
+   guard();owned.throwIfAborted();if(!this.#job||this.#job.requestId!==requestId)throw new Error('Print completion does not match prepared job');
+   // Retain admission through EOF validation, native drain, output completion,
+   // and both heater-off acknowledgements. Safety stop bypasses admission.
+   await this.#device.finish(requestId,owned);guard();owned.throwIfAborted();await this.#heaters.turnOffAll();guard();owned.throwIfAborted();this.#job=undefined;
+  },local);
  });}
  stop():Promise<void>{
   if(this.#stopping)return this.#stopping;
