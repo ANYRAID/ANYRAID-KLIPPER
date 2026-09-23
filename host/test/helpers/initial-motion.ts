@@ -20,7 +20,7 @@ export async function initialMotionFixture(reverse=false,full=false){
   }
   const reader=new ConfigurationReader(new ConfigurationSource('/initial.cfg',sections,[]),null);
   const extra=(full?['y','z']:[]).map(axis=>({section:`stepper_${axis}`,emitter:axis,enableLeadTime:.001}));
-  const hardware=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]},{beforeTarget(){},motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]},f.signal);
+  const hardware=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]},{motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]},f.signal);
   return {...f,hardware,reader};
  }catch(error){await f.close();throw error;}
 }

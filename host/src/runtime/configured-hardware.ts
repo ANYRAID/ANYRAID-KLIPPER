@@ -9,14 +9,14 @@ import {ScheduledCoolingFan} from '../outputs/fan.ts';
 import {MotorEnable} from '../outputs/motor-enable.ts';
 import {compileConfiguredMotionEmitters,type ConfiguredMotionRequest} from '../config/motion-emitters.ts';
 const owners=new WeakSet<MCUGroup>();
-const hardwareOwners=new WeakMap<object,{group:MCUGroup;claimed:boolean;cleanup:Set<(cause:unknown)=>Promise<void>>}>();
+const hardwareOwners=new WeakMap<object,{group:MCUGroup;claimed:boolean;beforeTarget?:(signal:AbortSignal)=>Promise<void>;cleanup:Set<(cause:unknown)=>Promise<void>>}>();
 /** Internal single-use motion handoff; cleanup must not await hardware.close(). */
-export function claimConfiguredMotion(hardware:Awaited<ReturnType<typeof startConfiguredHardware>>,cleanup:(cause:unknown)=>Promise<void>){
- const owner=hardwareOwners.get(hardware);if(!owner||owner.claimed||hardware.status.state!=='ready'||!hardware.emitters?.length||typeof cleanup!=='function')throw new Error('Invalid or reused configured motion owner');owner.group.assertActive();owner.claimed=true;owner.cleanup.add(cleanup);return owner.group;
+export function claimConfiguredMotion(hardware:Awaited<ReturnType<typeof startConfiguredHardware>>,cleanup:(cause:unknown)=>Promise<void>,beforeTarget:(signal:AbortSignal)=>Promise<void>){
+ const owner=hardwareOwners.get(hardware);if(!owner||owner.claimed||hardware.status.state!=='ready'||!hardware.emitters?.length||typeof cleanup!=='function'||typeof beforeTarget!=='function')throw new Error('Invalid or reused configured motion owner');owner.group.assertActive();owner.claimed=true;owner.beforeTarget=beforeTarget;owner.cleanup.add(cleanup);return owner.group;
 }
 export interface HardwareStartupOptions {
- /** The future motion owner must provide its admission barrier here. */
- beforeTarget:(signal:AbortSignal)=>void|Promise<void>;
+ /** Additional caller ordering; required only without managed motion. */
+ beforeTarget?:(signal:AbortSignal)=>void|Promise<void>;
  heaterGcodeIds?:Readonly<Record<string,string>>;
  timeoutMs?:number;
  motion?:readonly ConfiguredMotionRequest[];
@@ -29,11 +29,15 @@ export interface HardwareStartupOptions {
 export async function startConfiguredHardware(reader:ConfigurationReader,group:MCUGroup,clocks:ReadonlyMap<string,FanClock>,layout:HardwareLayout,options:HardwareStartupOptions,signal:AbortSignal){
  signal.throwIfAborted();group.assertActive();
  const timeout=options.timeoutMs??10000;
- if(owners.has(group)||typeof options.beforeTarget!=='function'||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
+ if(owners.has(group)||(typeof options.beforeTarget!=='function'&&!(options.beforeTarget===undefined&&options.motion?.length))||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
  const emitters=options.motion?compileConfiguredMotionEmitters(reader,plan,options.motion):undefined;
  if(Object.keys(ids).some(name=>!plan.heaters.some(h=>h.section===name)))throw new Error('Unknown heater G-code mapping');
- const heaters=new AsyncPrinterHeaters(options.beforeTarget),analog:ReturnType<typeof attachConfiguredAnalogHeater>[]=[];
+ let readyHardware:object|undefined;
+ const heaters=new AsyncPrinterHeaters(async signal=>{
+  await options.beforeTarget?.(signal);signal.throwIfAborted();
+  if(emitters){const barrier=readyHardware&&hardwareOwners.get(readyHardware)?.beforeTarget;if(!barrier)throw new Error('Configured motion target barrier is not ready');await barrier(signal);}
+ }),analog:ReturnType<typeof attachConfiguredAnalogHeater>[]=[];
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
  let motorEnable:MotorEnable|undefined,state:'starting'|'ready'|'stopping'|'stopped'|'failed'='starting',fault:unknown,stopError:unknown,closing:Promise<void>|undefined,detach=()=>{};
@@ -61,7 +65,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   await heaters.start(abort.signal);active();for(const a of analog){a.sensor.activate();active();}
   state='ready';
   const result=Object.freeze({plan,emitters,heaters,analog:Object.freeze(analog),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
-  hardwareOwners.set(result,{group,claimed:false,cleanup});return result;
+  hardwareOwners.set(result,{group,claimed:false,cleanup});readyHardware=result;return result;
  }catch(error){try{await close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Hardware startup and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',cancelled);}
 }
