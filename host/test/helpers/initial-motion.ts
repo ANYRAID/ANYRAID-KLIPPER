@@ -2,9 +2,9 @@ import {hardwareStartupFixture} from './hardware-startup.ts';
 import {hardwareLayout} from './configured-hardware.ts';
 import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
-import {startConfiguredHardware} from '../../src/runtime/configured-hardware.ts';
+import {startConfiguredHardware,type HardwareStartupOptions} from '../../src/runtime/configured-hardware.ts';
 export const initialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}]};
-export async function initialMotionFixture(reverse=false,full=false,bed=false){
+export async function initialMotionSetup(reverse=false,full=false,bed=false){
  const f=await hardwareStartupFixture(false,reverse,true);
  try{
   const sections:Record<string,Record<string,string>>={
@@ -21,7 +21,12 @@ export async function initialMotionFixture(reverse=false,full=false,bed=false){
   if(bed)sections.heater_bed={heater_pin:'aux:PA4',sensor_pin:'aux:PA5',sensor_type:'Generic 3950',min_temp:'0',max_temp:'130',control:'watermark'};
   const reader=new ConfigurationReader(new ConfigurationSource('/initial.cfg',sections,[]),null);
   const extra=(full?['y','z']:[]).map(axis=>({section:`stepper_${axis}`,emitter:axis,enableLeadTime:.001}));
-  const hardware=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,heaters:[...hardwareLayout.heaters,...bed?[{section:'heater_bed'}]:[]],homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]},{heaterGcodeIds:bed?{extruder:'T',heater_bed:'B'}:undefined,motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]},f.signal);
-  return {...f,hardware,reader};
+  const layout={...hardwareLayout,heaters:[...hardwareLayout.heaters,...bed?[{section:'heater_bed'}]:[]],homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]};
+  const hardwareOptions:HardwareStartupOptions={heaterGcodeIds:bed?{extruder:'T',heater_bed:'B'}:undefined,motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]};
+  return {...f,reader,layout,hardwareOptions};
  }catch(error){await f.close();throw error;}
+}
+
+export async function initialMotionFixture(reverse=false,full=false,bed=false){
+ const f=await initialMotionSetup(reverse,full,bed);try{const hardware=await startConfiguredHardware(f.reader,f.group,f.clocks,f.layout,f.hardwareOptions,f.signal);return {...f,hardware};}catch(error){await f.close();throw error;}
 }
