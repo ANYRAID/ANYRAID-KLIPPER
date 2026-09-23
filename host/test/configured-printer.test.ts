@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
 import {configuredPrinterFixture} from './helpers/configured-printer.ts';
-import {startConfiguredPrinter} from '../src/runtime/configured-printer.ts';
+import {startConfiguredPrinter,startClockedPrinter} from '../src/runtime/configured-printer.ts';
 for(const reverse of [false,true])test(`unified printer startup owns configured hardware and print adapters (${reverse})`,async()=>{
  const f=await configuredPrinterFixture(reverse),controller=new AbortController();try{
   const pending=startConfiguredPrinter(f.reader,f.group,f.clocks,f.layout,f.options,controller.signal);
@@ -24,5 +24,11 @@ test('unified startup cancellation during counter read cannot publish a printer'
 test('missing motion descriptors are rejected before MCU configuration',async()=>{
  const f=await configuredPrinterFixture();try{
   f.options.hardware.motion=undefined;await assert.rejects(startConfiguredPrinter(f.reader,f.group,f.clocks,f.layout,f.options,f.signal),/requires motion/);assert.deepEqual(f.stops,[0,0]);assert.equal(f.group.session('mcu').status.configured,false);
+ }finally{await f.close();}
+});
+test('clocked startup derives every hardware mapping from connected sessions',async()=>{
+ const f=await configuredPrinterFixture(true);try{
+  const printer=await startClockedPrinter(f.reader,f.group,'mcu',f.layout,f.options,f.signal);
+  assert.equal(printer.hardware.status.state,'ready');assert.equal(printer.linear.kinematics.status.homedAxes,'');assert.equal(f.firmware[0].motion.length,0);await printer.close();assert.deepEqual(f.stops,[1,1]);
  }finally{await f.close();}
 });

@@ -1,3 +1,4 @@
+import {captureGroupPrintClocks} from '../timing/group-print-clocks.ts';
 import {startConfiguredHardware,type HardwareStartupOptions} from './configured-hardware.ts';
 import {initializeConfiguredMotion,type InitialMotionOptions,type ConfiguredPrintOptions} from './initial-motion.ts';
 import {readLinearMotionConfiguration} from '../config/linear-motion.ts';
@@ -31,4 +32,10 @@ export async function startConfiguredPrinter(reader:ConfigurationReader,group:MC
   return Object.freeze({hardware,initial,linear,print,close:hardware.close});
  }catch(error){try{await hardware?.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured printer startup and cleanup failed',{cause:error});}throw error;}
  finally{signal.removeEventListener('abort',cancelled);}
+}
+
+/** Capture actual connected clocks instead of requiring caller-built mappings. */
+export function startClockedPrinter(reader:ConfigurationReader,group:MCUGroup,primaryId:string,layout:HardwareLayout,options:ConfiguredPrinterOptions,signal:AbortSignal){
+ signal.throwIfAborted();
+ return startConfiguredPrinter(reader,group,captureGroupPrintClocks(group,primaryId),layout,options,signal);
 }
