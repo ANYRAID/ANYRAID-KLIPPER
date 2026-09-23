@@ -8,7 +8,9 @@ import {fileURLToPath} from 'node:url';
 import {createRequire} from 'node:module';
 import {setTimeout as delay} from 'node:timers/promises';
 import {serialFirmware} from '../test/helpers/serial-firmware.ts';
-import {connectCAN} from '../src/protocol/can.ts';
+import {configuredMCUConnections} from '../src/runtime/configured-mcu-connections.ts';
+import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
+import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {mcuDumpChunks,serialMcuDumpReader} from '../src/diagnostics/mcu-dump.ts';
 import {NativeSerialQueue,type SerialEvent} from '../src/protocol/serial-queue.ts';
 import {encodeFrame} from '../src/protocol/codec.ts';
@@ -58,7 +60,8 @@ async function inside(peer:string,serialPeer:string,firmwareBridge:string){
     try{const child=spawn(process.execPath,[resolve(host,'../scripts/dump_mcu.ts'),'-c','vcan-test','-s','0xfffffff8','-l','8','11aa22bb33cc',file]);let output='',error='';child.stdout.on('data',b=>output+=b);child.stderr.on('data',b=>error+=b);const timer=setTimeout(()=>child.kill('SIGKILL'),5000);try{const code=await new Promise((resolve,reject)=>{child.once('error',reject);child.once('close',resolve);});assert.equal(code,0,error);assert.match(output,/MCU Dump Complete/);assert.deepEqual(readFileSync(file),Buffer.from('98badcfe98badcfe','hex'));assert.equal((diagnostic.match(/ASSIGNED/g)||[]).length,1);}finally{clearTimeout(timer);}}finally{rmSync(dir,{recursive:true,force:true});}
     continue;
    }
-   const connecting=connectCAN('vcan-test','11aa22bb33cc',{async stopDevice(){stops++;},timeoutMs:mode==='timeout'?30:60000},cancellation.signal);
+   const connector=configuredMCUConnections(new ConfigurationReader(new ConfigurationSource('/vcan.cfg',{mcu:{canbus_uuid:'11aa22bb33cc',canbus_interface:'vcan-test'}},[]),null),new Map([['mcu',{transport:'can' as const,nodeId:64,timeoutMs:mode==='timeout'?30:60000,async stopDevice(){stops++;}}]]))[0];
+   const connecting=connector.connect(cancellation.signal,connector.stopDevice);
    if(mode==='match'){const session=await connecting;try{assert.equal(session.status.state,'ready');assert.equal(session.status.configured,false);session.clock.assertActive();const chunks=[];for await(const chunk of mcuDumpChunks(serialMcuDumpReader(session),{start:0xfffffff8,length:8},new AbortController().signal))chunks.push(chunk);assert.deepEqual(Buffer.concat(chunks),Buffer.from('98badcfe98badcfe','hex'));const payload=session.dictionary.encode('get_canbus_id',{}),admission:number[]=[],roundTrip:number[]=[];for(let i=0;i<106;i++){const start=performance.now(),pending=session.query(payload,'canbus_id',new AbortController().signal),accepted=performance.now()-start;const reply=await pending;assert.equal(reply.message.parameters.canbus_nodeid,64);if(i>=5){admission.push(accepted);roundTrip.push(performance.now()-start);}}const stats=(values:number[])=>{values.sort((a,b)=>a-b);return {medianMs:values[50],p95Ms:values[95]};};console.log(JSON.stringify({canQueryTiming:{warmups:5,samples:101,admission:stats(admission),roundTrip:stats(roundTrip),scope:'Virtual CAN with explicit 3ms peer waits, simulated firmware and real native queue; excludes device hardware and print throughput. Admission is synchronous query-call duration, not firmware execution.'}}));}finally{await session.stop();}}
    else await assert.rejects(connecting,mode==='cancel'?/CAN bootstrap cancelled/:mode==='timeout'?/timeout/i:/identity mismatch/);
    assert.equal(stops,1);assert.equal((diagnostic.match(/ASSIGNED/g)||[]).length,1);
