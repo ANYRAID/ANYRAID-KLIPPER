@@ -42,6 +42,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
+ markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
  #check(signal:AbortSignal){signal.throwIfAborted();this.assertActive();}
  #futureTime(){const now=serialClock.now();return Math.max(...this.#g.members.map((m,i)=>this.#g.motion.bindings.find(b=>b.member===i)!.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;}
  async #operate<T>(phase:string,signal:AbortSignal,work:(signal:AbortSignal)=>Promise<T>):Promise<T>{

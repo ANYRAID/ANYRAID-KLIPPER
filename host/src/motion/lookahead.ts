@@ -20,6 +20,8 @@ export function motionLimits(maxVelocity:number,maxAccel:number,squareCornerVelo
 }
 /** Planner primitive. Kinematic and extrusion safety checks must precede queue admission. */
 export class Move {
+  /** Opaque output ids anchored to this exact endpoint, never callback closures. */
+  declare endMarkers?:readonly number[];
   readonly limits:MotionLimits;
   readonly startPos:number[];
   readonly endPos:number[];

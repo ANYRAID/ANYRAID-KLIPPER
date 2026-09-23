@@ -4,6 +4,7 @@ import {BedMesh} from './bed-mesh.ts';
 import {BedMeshFade,type BedMeshFadeConfig} from './bed-mesh-fade.ts';
 import {splitBedMeshMove} from './bed-mesh-split.ts';
 import {Move,LookAheadQueue,type MotionLimits} from './lookahead.ts';
+import {markMoveEnd,validateEndMarkers} from './boundary-markers.ts';
 export interface BedMeshPortOptions {
  mesh:BedMesh|null;fade?:BedMeshFade;fadeConfig?:BedMeshFadeConfig;physicalPosition:readonly number[];limits:MotionLimits;
  /** Required synchronous kinematic/extrusion checks; may limit speed/acceleration.
@@ -45,6 +46,9 @@ export class BedMeshMovePort implements MovePort {
  get plannedPosition():readonly number[]{return [...this.#physical];}
  get pending():number{return this.#queue.length;}
  get flushDue():boolean{return this.#flushDue;}
+ /** Attach after all mesh splits, without flushing or changing junction speed.
+  * false means the runtime must handle an already-submitted/idle boundary. */
+ markPendingBoundary(id:number):boolean{this.#idle();const last=this.#queue.last;if(!last){validateEndMarkers([id]);return false;}markMoveEnd(last,id);return true;}
  move(position:readonly number[],speed:number):void{
   this.#idle();if(!Array.isArray(position)||position.length!==4||!position.every(Number.isFinite)||!Number.isFinite(speed)||speed<=0)throw new RangeError('Invalid mesh motion');
   const target=[...position];this.#busy=true;

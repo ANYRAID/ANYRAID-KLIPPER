@@ -3,9 +3,11 @@ import {Move} from './lookahead.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import {CoordinatedMotionDrain} from './coordinated-drain.ts';
 import {planPathStop,type PathStop} from './path-stop.ts';
+import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
 type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
 // Snapshot data on the hot path; hydrate planner methods only when braking.
 const ownMove=(m:Move):MotionSnapshot=>({
+ endMarkers:copyEndMarkers(m.endMarkers),
  limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],
  distance:m.distance,isKinematic:m.isKinematic,junctionDeviation:m.junctionDeviation,accel:m.accel,minMoveT:m.minMoveT,maxStartV2:m.maxStartV2,maxCruiseV2:m.maxCruiseV2,deltaV2:m.deltaV2,nextJunctionV2:m.nextJunctionV2,maxMcrStartV2:m.maxMcrStartV2,mcrDeltaV2:m.mcrDeltaV2,profile:m.profile?{...m.profile}:undefined,
 });
@@ -32,6 +34,12 @@ export class PlannedMotionSource {
   this.#routes=routes.map(r=>({...r}));this.#drain=drain;this.#time=startTime;this.#position=[...position];
  }
  get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,braking:this.#braking,failed:this.#failed,fault:this.#fault};}
+ /** Current buffered plan only. Read before release; braking/rebase invalidates
+  * old times. This snapshot neither dispatches nor acknowledges output events. */
+ boundarySchedule():readonly {id:number;time:number}[]{
+  this.#check();const result:{id:number;time:number}[]=[];
+  for(let i=0;i<this.#count;i++){const slot=(this.#head+i)%this.#ends.length;for(const id of this.#moves[slot]?.endMarkers??[])result.push(Object.freeze({id,time:this.#ends[slot]}));}return Object.freeze(result);
+ }
  #release():void{const cutoff=this.#drain.finalizedSourceTime;while(this.#count&&this.#ends[this.#head]<=cutoff){this.#moves[this.#head]=undefined;this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
  #capacity(moves:readonly Move[]):void{if(Array.isArray(moves)&&moves.length>this.#ends.length-this.#count)throw new MotionSourceCapacityError('Planned source capacity exceeded; flush before retrying');}
  #check():void{if(this.#retired)throw new Error('Planned source producer retired');if(this.#failed)throw new Error('Planned motion source failed',{cause:this.#fault});if(this.#busy)throw new Error('Planned motion source busy');}
@@ -43,7 +51,7 @@ export class PlannedMotionSource {
   let position=this.#position,time=this.#time,staged=0;
   // Validate the entire batch before any queue mutation. Input objects are used
   // synchronously, so callers cannot mutate them between queue appends.
-  for(const m of moves as readonly Move[]){const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
+  for(const m of moves as readonly Move[]){validateEndMarkers(m.endMarkers);const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
   return {position,time};
  }
  #seed():void{

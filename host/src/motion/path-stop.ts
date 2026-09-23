@@ -1,4 +1,5 @@
 import {Move} from './lookahead.ts';
+import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
 
 export interface PathStop {
  /** Host path coordinates, not measured or reconstructed MCU positions. */
@@ -10,10 +11,10 @@ export interface PathStop {
  remainder:Move[];
 }
 const close=(a:number,b:number)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=128*Number.EPSILON*Math.max(1,Math.abs(a),Math.abs(b));
-function copy(m:Move,start:readonly number[]=m.startPos,end:readonly number[]=m.endPos,distance=m.distance):Move {
+function copy(m:Move,start:readonly number[]=m.startPos,end:readonly number[]=m.endPos,distance=m.distance,endsAtBoundary=true):Move {
  // Preserve an admitted segment's direction and limits even for sub-nanometre
  // fragments: the ordinary Move constructor intentionally treats those as E-only.
- return Object.assign(Object.create(Move.prototype),m,{limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...start],endPos:[...end],axesD:end.map((v,i)=>v-start[i]),axesR:[...m.axesR],distance,minMoveT:distance/Math.sqrt(m.maxCruiseV2),deltaV2:2*distance*m.accel,mcrDeltaV2:Math.min(2*distance*m.limits.mcrPseudoAccel,2*distance*m.accel),maxStartV2:0,maxMcrStartV2:0,profile:undefined});
+ return Object.assign(Object.create(Move.prototype),m,{endMarkers:endsAtBoundary?copyEndMarkers(m.endMarkers):undefined,limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...start],endPos:[...end],axesD:end.map((v,i)=>v-start[i]),axesR:[...m.axesR],distance,minMoveT:distance/Math.sqrt(m.maxCruiseV2),deltaV2:2*distance*m.accel,mcrDeltaV2:Math.min(2*distance*m.limits.mcrPseudoAccel,2*distance*m.accel),maxStartV2:0,maxMcrStartV2:0,profile:undefined});
 }
 function point(m:Move,distance:number):number[]{
  if(distance===0)return [...m.startPos];if(distance===m.distance)return [...m.endPos];
@@ -24,6 +25,7 @@ export function validateStopPath(moves:readonly Move[]):void {
  if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid stop path');
  let previous:Move|undefined;
  for(const m of moves){
+  validateEndMarkers(m.endMarkers);
   const p=m.profile;
   if(!m.limits||![m.limits.maxVelocity,m.limits.maxAccel,m.limits.mcrPseudoAccel,m.limits.junctionDeviation].every(Number.isFinite)||m.limits.maxVelocity<=0||m.limits.maxAccel<=0||m.limits.mcrPseudoAccel<=0||m.limits.mcrPseudoAccel>m.limits.maxAccel||m.limits.junctionDeviation<0)throw new RangeError('Invalid stop path limits');
   if(!(m instanceof Move)||!p||m.startPos.length<4||m.endPos.length!==m.startPos.length||m.axesR.length!==m.startPos.length||![...m.startPos,...m.endPos,...m.axesR,m.distance,m.accel,m.maxCruiseV2].every(Number.isFinite)||m.distance<=0||m.accel<=0||m.maxCruiseV2<=0||![p.startV,p.cruiseV,p.endV,p.accelT,p.cruiseT,p.decelT].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV<=0||p.cruiseV<p.startV||p.cruiseV<p.endV||!close(p.cruiseV-p.startV,m.accel*p.accelT)||!close(p.cruiseV-p.endV,m.accel*p.decelT)||!close(m.distance,(p.startV+p.cruiseV)*p.accelT/2+p.cruiseV*p.cruiseT+(p.cruiseV+p.endV)*p.decelT/2)||p.cruiseV**2>m.maxCruiseV2&&!close(p.cruiseV**2,m.maxCruiseV2))throw new RangeError('Invalid planned stop segment');
@@ -62,7 +64,7 @@ export function planPathStop(moves:readonly Move[],elapsed:number):PathStop {
   const atEnd=Math.abs(needed-available)<=32*Number.EPSILON*Math.max(m.distance,needed,available);
   const travel=atEnd?available:Math.min(needed,available),end=travel===available?[...m.endPos]:point(m,distance+travel),endVelocity=needed<=available||atEnd?0:Math.sqrt(Math.max(0,velocity**2-2*m.accel*travel));
   if(end.every((v,i)=>v===position[i]))throw new RangeError('Stop displacement below coordinate resolution');
-  const segment=copy(m,position,end,travel);
+  const segment=copy(m,position,end,travel,travel===available);
   if(velocity**2>m.maxCruiseV2&&!close(velocity**2,m.maxCruiseV2))throw new RangeError(`Stop speed exceeds admitted segment limit: ${velocity**2} > ${m.maxCruiseV2}`);
   // Avoid squaring/square-root round trips at junctions. The accepted source
   // profile may already be one ULP above the squared velocity limit.

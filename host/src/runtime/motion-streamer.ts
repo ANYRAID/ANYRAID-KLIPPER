@@ -1,6 +1,7 @@
 import {setTimeout as delay} from 'node:timers/promises';
 import {performance} from 'node:perf_hooks';
 import type {bindRebuiltMotion} from './rebuilt-motion.ts';
+import {copyEndMarkers} from '../motion/boundary-markers.ts';
 import {LookAheadQueue,type Move} from '../motion/lookahead.ts';
 import {validateStopPath} from '../motion/path-stop.ts';
 import {isPromise} from 'node:util/types';
@@ -9,7 +10,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 type Generation=Awaited<ReturnType<typeof bindRebuiltMotion>>;
 export interface StreamPause {readonly position:readonly number[];readonly sourceTime:number;}
-const own=(moves:readonly Move[]):Move[]=>moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined}));
+const own=(moves:readonly Move[]):Move[]=>moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{endMarkers:copyEndMarkers(m.endMarkers),limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined}));
 type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Move[];phase:'requested'|'braking'|'paused'|'resuming';validate?:((move:Move)=>void);resumption?:ReturnType<typeof Promise.withResolvers<void>>};
 /** Exclusive, paced producer. Completion means a rolling prefix was accepted,
  * not physical completion. The owner still drains final lookahead and maintains
