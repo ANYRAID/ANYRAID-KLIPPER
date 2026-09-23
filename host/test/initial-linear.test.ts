@@ -6,6 +6,21 @@ import {LinearHomingCommand} from '../src/homing/linear-command.ts';
 import {GCodeMove} from '../src/gcode/move.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {setTimeout as delay} from 'node:timers/promises';
+import {RebuiltMotionStreamer} from '../src/runtime/motion-streamer.ts';
+import {LookAheadQueue,Move,motionLimits} from '../src/motion/lookahead.ts';
+test('configured motor enables continue through a shared in-stream calibration',async()=>{
+ const f=await initialLinearFixture();try{
+  const g=f.initial.generation,clock=g.clockTimelines!.find(c=>c.id==='mcu')!.timeline,original=g.source.flushThrough.bind(g.source);let updated=false;
+  g.source.flushThrough=async(until,...args)=>{
+   const result=await original(until,...args);if(!updated){
+    const limit=g.source.status.sourceTime-Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future))-.001,plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
+    await g.coordinator.advanceWindow(plan.time,g.coordinator.status.committedTime);clock.calibrateMotion(plan.tick,1000100,g.coordinator,g.motion.bindings.map(b=>b.id));g.assertMotorCalibration();updated=true;
+   }return result;
+  };
+  const q=new LookAheadQueue();q.add(new Move(motionLimits(100,1000),[0,0,0,0],[20,0,0,0],20));await new RebuiltMotionStreamer(g).append(q.flush(),f.signal);await g.source.drain([],f.signal);
+  assert(updated);assert.equal(g.motion.bindings.find(b=>b.id==='x')!.history.status.lastPlannedPosition,1600n);assert.deepEqual(f.stops,[0,0]);
+ }finally{await f.hardware.close();await f.close();}
+});
 for(const reverse of [false,true])test(`configured linear handoff homes and closes replacement generations, auxiliary first=${reverse}`,async()=>{
  const created:ReturnType<TrapQueue['createStepper']>[]=[],original=TrapQueue.prototype.createStepper;
  TrapQueue.prototype.createStepper=function(...args){const stepper=original.apply(this,args);created.push(stepper);return stepper;};

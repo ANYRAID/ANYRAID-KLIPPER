@@ -7,6 +7,29 @@ import {LookAheadQueue,Move,motionLimits} from '../src/motion/lookahead.ts';
 import {inputShaper} from '../src/motion/shaper.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {rebuiltFixture} from './helpers/rebuilt-motion.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+test('paced stream accepts a shared calibration between windows and retains old sampled time',async()=>{
+ const f=await rebuiltFixture(),clock=new PrintClockTimeline({offset:0,frequency:1e6});try{
+  const g=await bindRebuiltMotion({...f.options,clockTimelines:[{id:'m',timeline:clock}]}),stream=new RebuiltMotionStreamer(g),original=g.source.flushThrough.bind(g.source);let updated=false;
+  g.source.flushThrough=async(until,...args)=>{
+   const result=await original(until,...args);if(!updated){
+    const limit=g.source.status.sourceTime-Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future))-.001;
+    const plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
+    await g.coordinator.advanceWindow(plan.time,g.coordinator.status.committedTime);
+    const old=g.members[0].session.clock.sync.lastClock,before=clock.printTimeAtClock(old);
+    clock.calibrateMotion(plan.tick,1000100,g.coordinator,g.motion.bindings.map(b=>b.id));updated=true;
+    assert.equal(g.clockMembers[0].stepper.printTimeAtClock(old),before);g.assertClockCalibration();
+   }return result;
+  };
+  await stream.append(trajectory(),signal());await g.source.drain([],signal());assert(updated);assert.equal(g.motion.bindings[0].history.status.lastPlannedPosition,2100n);assert.equal(f.stops,0);await g.coordinator.shutdown();
+ }finally{await f.close();}
+});
+for(const shared of [false,true])test(`stream rejects a native-only calibration (shared=${shared})`,async()=>{
+ const f=await rebuiltFixture();try{
+  const g=await bindRebuiltMotion({...f.options,clockTimelines:shared?[{id:'m',timeline:new PrintClockTimeline({offset:0,frequency:1e6})}]:undefined}),stream=new RebuiltMotionStreamer(g),before=f.fw.motion.length;
+  g.coordinator.calibrateClock(['x'],0,1000001);await assert.rejects(stream.append(trajectory(),signal()),/calibration changed/);assert.equal(f.fw.motion.length,before);assert.equal(f.stops,1);
+ }finally{await f.close();}
+});
 const signal=()=>new AbortController().signal;
 function trajectory(start=50,count=20){const q=new LookAheadQueue();for(let i=0;i<count;i++)q.add(new Move(motionLimits(100,1000),[start+i,0,0,2],[start+i+1,0,0,2],20));return q.flush();}
 async function fixture(shaped=false){const f=await rebuiltFixture();try{const g=await bindRebuiltMotion(f.options);if(shaped)g.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});return {f,g,stream:new RebuiltMotionStreamer(g),close:()=>f.close()};}catch(error){await f.close();throw error;}}

@@ -17,11 +17,11 @@ type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Mo
  * timely command input; an expired generation deadline stops all MCUs. */
 export class RebuiltMotionStreamer {
  #g:Generation;#busy=false;#acceptPause=false;#start:number;#future:number;
- #mapping:{offset:number;frequency:number}[];#windows:{future:number;past:number}[];
+ #windows:{future:number;past:number}[];
  #pause:PauseRequest|undefined;#wake:(()=>void)|undefined;#end:{position:readonly number[];velocity:number};
  readonly #lead=.2;readonly #high=.5;readonly #low=.3;readonly #minimum=.025;
  constructor(g:Generation){
-  this.#g=g;this.#start=g.source.status.sourceTime;this.#future=Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future));this.#mapping=g.motion.bindings.map(b=>({...b.stepper.calibration}));this.#windows=g.motion.bindings.map(b=>({...b.stepper.scanWindow}));
+  this.#g=g;this.#start=g.source.status.sourceTime;this.#future=Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future));this.#windows=g.motion.bindings.map(b=>({...b.stepper.scanWindow}));
   this.#end={position:g.source.status.position,velocity:0};
  }
  get status(){return {busy:this.#busy,pause:this.#pause?.phase??'none',sourceTime:this.#g.source.status.sourceTime,committedTime:this.#g.coordinator.status.committedTime};}
@@ -47,7 +47,7 @@ export class RebuiltMotionStreamer {
  async #waitResume(signal:AbortSignal,ms:number):Promise<void>{
   await new Promise<void>((resolve,reject)=>{let timer:ReturnType<typeof setTimeout>;const finish=(error?:unknown)=>{clearTimeout(timer);signal.removeEventListener('abort',abort);this.#wake=undefined;error===undefined?resolve():reject(error);},abort=()=>finish(signal.reason);this.#wake=()=>finish();timer=setTimeout(()=>finish(),ms);signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
  }
- #check(signal:AbortSignal){signal.throwIfAborted();this.#g.group.assertActive();for(const [i,b] of this.#g.motion.bindings.entries()){const c=b.stepper.calibration,old=this.#mapping[i];if(c.offset!==old.offset||c.frequency!==old.frequency)throw new Error('Streaming clock calibration changed');const w=b.stepper.scanWindow,saved=this.#windows[i];if(w.future!==saved.future||w.past!==saved.past)throw new Error('Streaming filter window changed');}}
+ #check(signal:AbortSignal){signal.throwIfAborted();this.#g.assertClockCalibration();for(const [i,b] of this.#g.motion.bindings.entries()){const w=b.stepper.scanWindow,saved=this.#windows[i];if(w.future!==saved.future||w.past!==saved.past)throw new Error('Streaming filter window changed');}}
  #clocks(){const now=serialClock.now();return this.#g.clockMembers.map(m=>({member:m,stepper:m.stepper,time:m.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))}));}
  #leadCheck(){if(Math.max(...this.#clocks().map(c=>c.time))+this.#minimum>Math.max(this.#start,this.#g.coordinator.status.committedTime))throw new Error('Streaming motion lead exhausted');}
  /** Each I/O wait remains bounded by 30 seconds. A whole-transaction deadline
@@ -107,7 +107,7 @@ export class RebuiltMotionStreamer {
      // the target is due avoids repeated query traffic while it is in the future.
      const waitMs=Math.max(0,(target-Math.min(...this.#clocks().map(c=>c.time)))*1000);
      if(waitMs)try{await delay(Math.min(waitMs,remaining()),undefined,{signal});}catch(error){signal.throwIfAborted();throw error;}remaining();
-     await waitForMcuClocks(clocks.map(c=>({clock:c.member.session.clock,tick:c.stepper.clockAt(target)})),signal,{timeoutSeconds:remaining()/1000,pollSeconds:.025});remaining();
+     await waitForMcuClocks(clocks.map(c=>({clock:c.member.session.clock,tick:c.member.timeline?c.member.timeline.reserve(target):c.stepper.clockAt(target)})),signal,{timeoutSeconds:remaining()/1000,pollSeconds:.025});remaining();
     }
    };
    let flushEmpty=!owned.length;
