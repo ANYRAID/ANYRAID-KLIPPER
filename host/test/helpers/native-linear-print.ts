@@ -8,8 +8,8 @@ import {AsyncHeaterRuntime} from '../../src/thermal/async-runtime.ts';
 import {BangBangControl} from '../../src/thermal/control.ts';
 import {GCodeFileReader} from '../../src/gcode/file-reader.ts';
 import type {NativeLinearPrintOptions} from '../../src/operations/native-linear-print.ts';
-export async function nativePrintFixture(script='M105\nG1 X51 E2.01 F600\n',holdOff=false,motorPower:boolean|'always'|'mixed'=false){
- const t=await nativeLinearFixture(0,()=>true,false,undefined,motorPower),dir=await mkdtemp(join(tmpdir(),'native-print-')),path=join(dir,'job.gcode'),reports:string[]=[],resetCounts=[0,0],off=Promise.withResolvers<void>(),runtimes:AsyncHeaterRuntime[]=[];
+export async function nativePrintFixture(script='M105\nG1 X51 E2.01 F600\n',holdOff=false,motorPower:boolean|'always'|'mixed'=false,synchronized=false){
+ const t=await nativeLinearFixture(0,()=>true,false,undefined,motorPower,synchronized,synchronized),dir=await mkdtemp(join(tmpdir(),'native-print-')),path=join(dir,'job.gcode'),reports:string[]=[],resetCounts=[0,0],off=Promise.withResolvers<void>(),runtimes:AsyncHeaterRuntime[]=[];
  const gcode=new NativeLinearGCode(t.port,t.kinematics,[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance:0,retractSpeed:10,secondSpeed:5,endstops:['test']})),m=>reports.push(m));
  const heaters=new AsyncPrinterHeaters(s=>t.port.drain(s));let outputStops=0,outputFinishes=0;
  for(const [i,name] of ['extruder','bed'].entries()){

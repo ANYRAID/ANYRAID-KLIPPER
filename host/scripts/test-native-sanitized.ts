@@ -32,6 +32,7 @@ for(const address of [false,true]) {
   tests.push('test/periodic-clock-calibration.test.ts');
   tests.push('test/idle-clock-calibration.test.ts');
   tests.push('test/idle-clock-scheduler.test.ts');
+  tests.push('test/heating-clock-calibration.test.ts');
   // The paced 32-second case must not start behind the worker pool's short
   // files. Keep its own batch and the same 60-second deadline. All other files
   // retain their batch assignment; every file still runs exactly once.

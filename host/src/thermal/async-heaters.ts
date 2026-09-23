@@ -5,6 +5,7 @@ import {AsyncHeaterRuntime} from './async-runtime.ts';
 import {bindHeaterCommands} from './heater-commands.ts';
 import type {TemperatureSensor,StandardHeaterCommands} from './heaters.ts';
 import {waitForTemperature,waitForTemperatureCondition,type WaitTemperature,type TemperatureWaitTimer} from './temperature-wait.ts';
+import {withTemperatureCheckpoints} from './wait-checkpoints.ts';
 interface SensorEntry {sensor:TemperatureSensor;gcodeId?:string;}
 interface Entry {name:string;heater:AsyncHeaterRuntime;gcodeId?:string;}
 /** Owns configured heater lifecycles. The supplied barrier orders target changes
@@ -81,32 +82,38 @@ export class AsyncPrinterHeaters {
   if(this.#closed||generation!==this.#generation)throw new GCodeError('Heater target invalidated by shutdown or turn off');
   try{await Promise.all(entries.map(({heater,target})=>this.#target(heater,target,signal)));signal.throwIfAborted();}catch(error){try{await this.shutdown('Heater target command failed');}catch(stopError){throw new AggregateError([error,stopError],'Heater target and shutdown failed',{cause:error});}throw error;}
  }
- async wait(name:string,minimum:number|undefined,maximum:number|undefined,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
+ async wait(name:string,minimum:number|undefined,maximum:number|undefined,signal:AbortSignal,report:()=>void=()=>{},checkpoint?:(signal:AbortSignal)=>Promise<void>):Promise<void>{
   if(minimum===undefined&&maximum===undefined||minimum!==undefined&&!Number.isFinite(minimum)||maximum!==undefined&&!Number.isFinite(maximum)||(maximum??Infinity)<=(minimum??-Infinity))throw new GCodeError('Invalid temperature wait range');
   const sensor=this.#entries.get(name)?.heater??this.#sensors.get(name)?.sensor;
   if(!sensor)throw new GCodeError(`Unknown temperature sensor '${name}'`);
-  await this.#observe(signal,local=>waitForTemperature({minimum,maximum,timeoutSeconds:this.#waitTimeout,signal:local,read:()=>sensor.getTemperature(),report,timer:this.#waitTimer}));
+  if(checkpoint){
+   if(!this.#started||this.#starting||this.#closed||this.#off!==undefined)throw new GCodeError('Heater registry is not active');
+   signal.throwIfAborted();await this.#barrier(signal);signal.throwIfAborted();
+  }
+  await this.#observe(signal,local=>waitForTemperature({minimum,maximum,timeoutSeconds:this.#waitTimeout,signal:local,read:()=>sensor.getTemperature(),report,timer:this.#waitTimer}),checkpoint);
  }
- async waitUntilStable(name:string,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
+ async waitUntilStable(name:string,signal:AbortSignal,report:()=>void=()=>{},checkpoint?:(signal:AbortSignal)=>Promise<void>):Promise<void>{
   const heater=this.#entries.get(name)?.heater;if(!heater)throw new GCodeError(`Unknown heater '${name}'`);
-  await this.#observe(signal,local=>waitForTemperatureCondition({timeoutSeconds:this.#waitTimeout,signal:local,read:()=>heater.getTemperature(),ready:()=>!heater.isBusy(),report,timer:this.#waitTimer}));
+  await this.#observe(signal,local=>waitForTemperatureCondition({timeoutSeconds:this.#waitTimeout,signal:local,read:()=>heater.getTemperature(),ready:()=>!heater.isBusy(),report,timer:this.#waitTimer}),checkpoint);
  }
- async #observe(signal:AbortSignal,run:(signal:AbortSignal)=>Promise<void>):Promise<void>{
+ async #observe(signal:AbortSignal,run:(signal:AbortSignal)=>Promise<void>,checkpoint?:(signal:AbortSignal)=>Promise<void>):Promise<void>{
   if(!this.#started||this.#starting||this.#closed||this.#off!==undefined)throw new GCodeError('Heater registry is not active');
   signal.throwIfAborted();
   if(this.#waits.size>=64)throw new GCodeError('Too many temperature waits');
   const controller=new AbortController(),abort=()=>controller.abort(signal.reason);
   signal.addEventListener('abort',abort,{once:true});this.#waits.add(controller);
-  try{await run(controller.signal);}
-  catch(error){if(!controller.signal.aborted)try{await this.shutdown('Temperature wait failed');}catch(stopError){throw new AggregateError([error,stopError],'Temperature wait and shutdown failed',{cause:error});}throw error;}
+  let safety:Promise<void>|undefined;
+  const guarded=(work:(signal:AbortSignal)=>Promise<void>)=>async(local:AbortSignal)=>{try{await work(local);}catch(error){if(!local.aborted){safety??=this.shutdown('Temperature wait failed');void safety.catch(()=>{});}throw error;}};
+  try{await (checkpoint?withTemperatureCheckpoints(guarded(run),guarded(checkpoint),controller.signal,this.#waitTimer):run(controller.signal));}
+  catch(error){if(safety||!controller.signal.aborted)try{await (safety??this.shutdown('Temperature wait failed'));}catch(stopError){throw new AggregateError([error,stopError],'Temperature wait and shutdown failed',{cause:error});}throw error;}
   finally{signal.removeEventListener('abort',abort);this.#waits.delete(controller);}
  }
- async setTemperature(name:string,target:number,wait:boolean,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
+ async setTemperature(name:string,target:number,wait:boolean,signal:AbortSignal,report:()=>void=()=>{},checkpoint?:(signal:AbortSignal)=>Promise<void>):Promise<void>{
   const generation=this.#generation;
   await this.setTarget(name,target,signal);
   if(wait&&target!==0){
    signal.throwIfAborted();if(generation!==this.#generation||this.#closed)throw new GCodeError('Heater wait invalidated by shutdown or turn off');
-   await this.waitUntilStable(name,signal,report);
+   await this.waitUntilStable(name,signal,report,checkpoint);
   }
  }
  #abortWaits(reason:string):void{for(const wait of this.#waits)wait.abort(new GCodeError(reason));}
@@ -155,9 +162,14 @@ export class AsyncPrinterHeaters {
   });
   return deferred.promise;
  }
- attach(dispatch:GCodeDispatch,standard:StandardHeaterCommands={}):void{
+ attach(dispatch:GCodeDispatch,standard:StandardHeaterCommands={},checkpoint?:(signal:AbortSignal)=>Promise<void>):void{
   if(this.#closed||this.#dispatches.size>=64)throw new Error('Heater registry is closed or has too many dispatchers');
-  bindHeaterCommands(this,name=>this.#entries.has(name),dispatch,standard);
+  if(checkpoint!==undefined&&typeof checkpoint!=='function')throw new TypeError('Invalid temperature wait checkpoint');
+  bindHeaterCommands(checkpoint?{
+   report:()=>this.report(),setTarget:(...args:Parameters<AsyncPrinterHeaters['setTarget']>)=>this.setTarget(...args),turnOffAll:()=>this.turnOffAll(),
+   setTemperature:(name,target,wait,signal,report)=>this.setTemperature(name,target,wait,signal,report,checkpoint),
+   wait:(name,minimum,maximum,signal,report)=>this.wait(name,minimum,maximum,signal,report,checkpoint),
+  }:this,name=>this.#entries.has(name),dispatch,standard);
   this.#dispatches.add(dispatch);
  }
 }
