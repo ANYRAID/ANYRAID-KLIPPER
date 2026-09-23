@@ -10,12 +10,12 @@ import {bindRebuiltMotion} from '../src/runtime/rebuilt-motion.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {rebuiltFixture} from './helpers/rebuilt-motion.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(retractDistance=0){
+async function fixture(retractDistance=0,canExtrude=()=>false){
  const f=await rebuiltFixture(false,true);
  try{
   const generation=await bindRebuiltMotion(f.options),kinematics=new LinearKinematics({kind:'cartesian',ranges:[[0,52],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:5,maxZAccel:100});
   const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
-  const port=new NativeLinearHomingPort({generation,kinematics,emitters:f.emitters,kinematicIds:['x','y','z'],groupsByAxis:[groups,groups,groups],limits:motionLimits(100,1000),extrusion:new ExtrusionGuard({nozzleDiameter:.4,filamentDiameter:1.75,maxCrossSection:1,maxVelocity:30,maxAccel:100,maxDistance:50,instantCornerVelocity:1}),canExtrude:()=>false});
+  const port=new NativeLinearHomingPort({generation,kinematics,emitters:f.emitters,kinematicIds:['x','y','z'],groupsByAxis:[groups,groups,groups],limits:motionLimits(100,1000),extrusion:new ExtrusionGuard({nozzleDiameter:.4,filamentDiameter:1.75,maxCrossSection:1,maxVelocity:30,maxAccel:100,maxDistance:50,instantCornerVelocity:1}),canExtrude});
   const coordinates=new GCodeMove(port),rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance,retractSpeed:10,secondSpeed:5,endstops:['test']}));
   const command=new LinearHomingCommand(kinematics,coordinates,port,rails,5000);
   return {f,port,kinematics,coordinates,command,async close(){await port.dispose();await f.close();}};
@@ -93,4 +93,34 @@ test('a partial file pause drains only admitted native steps and resumes the suf
   assert.equal(admitted,1);assert.equal(steps(),50);assert.equal(execution.status.position,0);assert.deepEqual(t.port.position(),[50.5,0,0,2]);
   await d.execute('M110');execution.resume();await done;await t.port.drain(signal());assert.equal(admitted,2);assert.equal(steps(),100);assert.deepEqual(t.port.position(),[51,0,0,2]);assert.equal(t.f.stops,0);
  }finally{gate.resolve();await execution?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
+});
+async function streamStarted(t:Awaited<ReturnType<typeof fixture>>){
+ const {setTimeout:delay}=await import('node:timers/promises'),deadline=performance.now()+3000;
+ while(!t.f.fw.motion.some(m=>m.name==='queue_step')){assert(performance.now()<deadline,'native stream did not start');await delay(2);}
+}
+for(const lazy of [false,true])test(`native port transfers its closing tail and acknowledges guarded resume (lazy=${lazy})`,async()=>{
+ const t=await fixture();try{
+  t.kinematics.markHomed([0]);for(let i=1;i<=40;i++)t.port.move([50+i/40,0,0,2],.5);
+  let completed=false;const running=(lazy?t.port.flush(signal()):t.port.drain(signal())).then(()=>{completed=true;});await streamStarted(t);
+  const paused=t.port.pauseStream(signal());assert.equal(paused,t.port.pauseStream(signal()));const stop=await paused;
+  assert(stop.position[0]>50&&stop.position[0]<51);assert.equal(t.port.status.pendingMoves,0);assert.equal(completed,false);assert.deepEqual(t.port.position(),[51,0,0,2]);
+  assert.throws(()=>t.port.move([51.5,0,0,2],1),/busy/);await assert.rejects(t.port.forcePosition([51,0,0,2],signal()),/busy/);
+  const packets=t.f.fw.motion.length;await new Promise(r=>setTimeout(r,100));assert.equal(t.f.fw.motion.length,packets);
+  await t.port.resumeStream(signal());assert.equal(completed,false);await running;await t.port.drain(signal());
+  assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0),100);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('native resume rejects a cooled extruder and cannot publish any retained suffix',async()=>{
+ let hot=true;const t=await fixture(0,()=>hot);try{
+  t.kinematics.markHomed([0]);t.port.move([51,0,0,2.02],.5);const running=t.port.drain(signal()),rejected=assert.rejects(running,/temperature|stopped/);
+  await streamStarted(t);await t.port.pauseStream(signal());const packets=t.f.fw.motion.length;hot=false;
+  await assert.rejects(t.port.resumeStream(signal()),/temperature/);await rejected;assert.equal(t.f.fw.motion.length,packets);assert.equal(t.f.stops,1);assert.equal(t.kinematics.status.homedAxes,'');
+ }finally{await t.close();}
+});
+test('native pause cancellation stops the held stream and revokes homing',async()=>{
+ const t=await fixture(),cancel=new AbortController();try{
+  t.kinematics.markHomed([0]);t.port.move([51,0,0,2],.5);const running=t.port.drain(signal()),rejected=assert.rejects(running,/cancel native pause|stopped|ready/);await streamStarted(t);
+  const pause=t.port.pauseStream(cancel.signal),failed=assert.rejects(pause,/cancel native pause|stopped|ready/);cancel.abort(new Error('cancel native pause'));await failed;await rejected;
+  assert.equal(t.f.stops,1);assert.equal(t.kinematics.status.homedAxes,'');
+ }finally{await t.close();}
 });

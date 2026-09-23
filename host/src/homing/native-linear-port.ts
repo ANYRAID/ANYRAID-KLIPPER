@@ -3,11 +3,11 @@ import {LinearHomingSeek,type LinearSeekOptions} from './linear-seek.ts';
 import {HomingRetractExecution} from './retract-execution.ts';
 import {CoordinateRebase} from './recovery.ts';
 import {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
-import {createGuardedBedMeshPort} from '../motion/guarded-bed-mesh-port.ts';
+import {createGuardedBedMeshPort,createMotionValidator} from '../motion/guarded-bed-mesh-port.ts';
 import type {ExtrusionGuard} from '../motion/extrusion.ts';
 import type {MotionLimits} from '../motion/lookahead.ts';
 import type {Axis} from '../kinematics/linear.ts';
-import {RebuiltMotionStreamer} from '../runtime/motion-streamer.ts';
+import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
@@ -21,6 +21,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
 export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #streamer:RebuiltMotionStreamer;
+ #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
@@ -52,6 +53,34 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,s=>this.#streamer.append(this.#admission.flush(true),s));}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
+ /** Interrupt an active rolling flush/drain without releasing its exclusive
+  * ownership. The result is a drained planned stop, not measured coordinates.
+  * The caller must fence further file admission before requesting this pause. */
+ pauseStream(signal:AbortSignal):Promise<StreamPause>{
+  try{
+   this.#check(signal);if(this.#resuming)throw new Error('Native motion stream is resuming');if(this.#pause)return this.#pause;
+   if(!this.#busy||!['stream','drain'].includes(this.#phase)||!this.#streamer.status.busy)throw new Error('No active native stream to pause');
+   const done=Promise.withResolvers<StreamPause>();this.#pause=done.promise;void done.promise.catch(()=>{});
+   const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
+   void (async()=>{
+    try{
+     // Transfer only once; this closes a lazy prefix at rest. The original
+     // admission endpoint remains the end of the retained print trajectory.
+     const stopped=await this.#streamer.requestPause(this.#admission.flush());this.#check(signal);this.#pauseReady=true;done.resolve(stopped);
+    }catch(error){try{await this.motorOff(error);}catch(stop){error=new AggregateError([error,stop],'Native pause and stop failed');}done.reject(error);}
+    finally{signal.removeEventListener('abort',abort);}
+   })();return done.promise;
+  }catch(error){return Promise.reject(error);}
+ }
+ /** Resolves after live guards and fresh motion lead are established, before
+  * the held flush/drain completes its retained trajectory. */
+ async resumeStream(signal:AbortSignal):Promise<void>{
+  this.#check(signal);if(!this.#pauseReady||this.#resuming)throw new Error('Native stream is not paused');this.#resuming=true;
+  const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
+  try{await this.#streamer.resume(createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;}
+  catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Native resume and stop failed');}throw error;}
+  finally{this.#resuming=false;signal.removeEventListener('abort',abort);}
+ }
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
   this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;
  }

@@ -10,7 +10,7 @@ import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 type Generation=Awaited<ReturnType<typeof bindRebuiltMotion>>;
 export interface StreamPause {readonly position:readonly number[];readonly sourceTime:number;}
 const own=(moves:readonly Move[]):Move[]=>moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined}));
-type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Move[];phase:'requested'|'braking'|'paused'|'resuming';validate?:((move:Move)=>void)};
+type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Move[];phase:'requested'|'braking'|'paused'|'resuming';validate?:((move:Move)=>void);resumption?:ReturnType<typeof Promise.withResolvers<void>>};
 /** Exclusive, paced producer. Completion means a rolling prefix was accepted,
  * not physical completion. The owner still drains final lookahead and maintains
  * timely command input; an expired generation deadline stops all MCUs. */
@@ -39,9 +39,9 @@ export class RebuiltMotionStreamer {
  }
  /** Revalidate each retained segment synchronously (including live extrusion
   * permission). Validation may lower limits; replanning follows before sending. */
- resume(validate:(move:Move)=>void):void{
+ resume(validate:(move:Move)=>void):Promise<void>{
   if(this.#pause?.phase!=='paused'||this.#pause.validate||typeof validate!=='function')throw new Error('Motion stream is not awaiting resume validation');
-  this.#pause.validate=validate;this.#wake?.();
+  const done=Promise.withResolvers<void>();void done.promise.catch(()=>{});this.#pause.resumption=done;this.#pause.validate=validate;this.#wake?.();return done.promise;
  }
  async #waitResume(signal:AbortSignal,ms:number):Promise<void>{
   await new Promise<void>((resolve,reject)=>{let timer:ReturnType<typeof setTimeout>;const finish=(error?:unknown)=>{clearTimeout(timer);signal.removeEventListener('abort',abort);this.#wake=undefined;error===undefined?resolve():reject(error);},abort=()=>finish(signal.reason);this.#wake=()=>finish();timer=setTimeout(()=>finish(),ms);signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
@@ -90,7 +90,7 @@ export class RebuiltMotionStreamer {
     restart.addBatch(own(retained));owned=restart.flush();offset=0;
     validateStopPath(owned);if(owned.length&&owned[0].profile!.startV!==0)throw new Error('Resume path must start at rest');
     prepareStart();source.validateBatch(owned);if(owned.length)await source.prepareIdle(signal,remaining());remaining();
-    this.#end={position:owned.length?[...owned.at(-1)!.endPos]:source.status.position,velocity:0};this.#pause=undefined;return true;
+    this.#end={position:owned.length?[...owned.at(-1)!.endPos]:source.status.position,velocity:0};this.#pause=undefined;request.resumption?.resolve();return true;
    };
    const flush=async(allowPause=true)=>{
     while(true){
@@ -116,7 +116,7 @@ export class RebuiltMotionStreamer {
     if(!available){await flush();if(!source.status.availableMoves)throw new MotionSourceCapacityError('Streaming capacity cannot cover native filter tail');continue;}
     const count=Math.min(available,owned.length-offset);source.append(owned.slice(offset,offset+count));offset+=count;await flush();
    }
-  }catch(error){this.#acceptPause=false;this.#pause?.reject(error);try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Motion stream and stop failed');}throw error;}
+  }catch(error){this.#acceptPause=false;this.#pause?.reject(error);this.#pause?.resumption?.reject(error);try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Motion stream and stop failed');}throw error;}
   finally{this.#acceptPause=false;this.#busy=false;this.#pause=undefined;this.#wake=undefined;}
  }
 }
