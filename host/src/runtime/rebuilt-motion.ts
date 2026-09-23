@@ -38,6 +38,7 @@ export interface RebuiltMotionOptions {
 export async function bindRebuiltMotion(o:RebuiltMotionOptions){
  const {group,motion}=o;
  let ownedOutput:ClockedBoundaryOutput|undefined;
+ let ownedCoordinator:MotionCoordinator|undefined;
  try{
   group.assertActive();
   const ids=group.status.devices.map(d=>d.id),members=o.members.map(m=>Object.freeze({...m,steppers:Object.freeze(m.steppers.map(s=>Object.freeze({...s})))}));
@@ -114,7 +115,8 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
     b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}
    if(o.motorEnable){assertMotorCalibration();await o.motorEnable.beforeSteps(outputs);}
   },motion.printTime);
-  const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
+  const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group],clockTimelines?new Map(bindings.map(b=>[b.id,timelineFor(routes[b.member])!])):undefined);
+  ownedCoordinator=coordinator;
   const drain=new CoordinatedMotionDrain(coordinator,sink,group,.25,auxiliaryMCUs);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
   const releaseBoundaryOutput=():BoundaryOutputTransfer|undefined=>{
@@ -128,6 +130,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   // Close native transports before releasing solver handles. No new producer
   // has received these objects, so there cannot be an active native commit.
   try{await group.stop(error);}catch(stop){errors.push(stop);}
+  if(ownedCoordinator)try{await ownedCoordinator.shutdown(error);}catch(stop){errors.push(stop);}
   if(ownedOutput)try{await ownedOutput.stop(error);}catch(stop){errors.push(stop);}
   try{motion.dispose();}catch(disposal){errors.push(disposal);}
   if(errors.length>1)throw new AggregateError(errors,'Rebuilt motion binding and cleanup failed');throw error;

@@ -5,6 +5,26 @@ import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const settings={frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6};
+test('motion history cutoff uses retained calibration instead of the latest affine mapping',async()=>{
+ using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,101,0,0,0,0,0,0,0,0,0,0]));using s=q.createStepper(settings,'x',.01);
+ const clock=new PrintClockTimeline({offset:0,frequency:1e6}),c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},1024,0,[],new Map([['x',clock]]));
+ await c.advanceWindow(100,99.95);clock.calibrateMotion(100000000n,1000100,c,['x']);
+ assert.notEqual(s.printTimeAtClock(90000000n),90);assert.equal(c.historyCutoff({x:90000000n}),59.999);clock.retireBefore(100000000n);assert.equal(clock.status.fromClock,0n);
+ const tick=clock.clockAt(140);assert.equal(c.historyCutoff({x:tick}),109.999);clock.retireBefore(tick);assert.equal(clock.status.fromClock,100000000n);
+ await c.shutdown();
+});
+test('motion clock history remains pinned until asynchronous retirement settles',async()=>{
+ using q=new TrapQueue();using s=q.createStepper(settings,'x',.01);const held=Promise.withResolvers<void>(),clock=new PrintClockTimeline({offset:0,frequency:1e6});
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){},retire:()=>held.promise},1024,0,[],new Map([['x',clock]]));
+ clock.append(1000000n,1000100);const retired=c.retire(new AbortController().signal);clock.retireBefore(2000000n);assert.equal(clock.status.fromClock,0n);
+ held.resolve();await retired;clock.retireBefore(2000000n);assert.equal(clock.status.fromClock,1000000n);
+});
+test('partial history lease acquisition is rolled back if a later timeline is full',async()=>{
+ using q=new TrapQueue();using x=q.createStepper(settings,'x',.01),y=q.createStepper({...settings,oid:4},'y',.01);
+ const a=new PrintClockTimeline({offset:0,frequency:1e6}),b=new PrintClockTimeline({offset:0,frequency:1e6}),leases=Array.from({length:1024},()=>b.retain());
+ assert.throws(()=>new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'y',queue:q,stepper:y}],{async commit(){},async stop(){}},1024,0,[],new Map([['x',a],['y',b]])),/reader limit/);
+ a.append(1000000n,1e6);a.retireBefore(1000000n);assert.equal(a.status.fromClock,1000000n);for(const lease of leases)lease.release();
+});
 test('shared clock calibration publishes motion and peripheral mappings at the generated boundary',async()=>{
  using q=new TrapQueue();q.appendRaw(new Float64Array([1,.1,.8,.1,0,0,0,1,0,0,0,10,100]));using x=q.createStepper(settings,'x',.01),z=q.createStepper({...settings,oid:4},'z',.01);
  const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'z',queue:q,stepper:z}],{async commit(){},async stop(){}}),clock=new PrintClockTimeline({offset:0,frequency:1e6});

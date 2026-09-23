@@ -1,4 +1,5 @@
 import {MotionRetiredError,observeRetirement} from './retired.ts';
+import {PrintClockTimeline,type ClockHistoryLease} from '../timing/print-clock-timeline.ts';
 import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
@@ -18,13 +19,16 @@ export interface MotionSink {
  * move-slot scheduler, clock calibration, serial transport or hardware watchdog. */
 export class MotionCoordinator {
  #guards:readonly {assertActive():void}[];
+ #historyClocks:ReadonlyMap<string,PrintClockTimeline>|undefined;
+ #historyLeases=new Map<PrintClockTimeline,{lease:ClockHistoryLease;tick:bigint}>();
+ #releaseHistory(){for(const {lease} of this.#historyLeases.values())lease.release();this.#historyLeases.clear();}
  #bindings:readonly MotionBinding[];#sink:MotionSink;#busy=false;#bounded=false;#fault:unknown;#failed=false;
  #stopPromise:Promise<void>|undefined;
  #retired=false;#retirementComplete=false;#retirement:Promise<void>|undefined;#idle=Promise.resolve();#resolveIdle:(()=>void)|undefined;
  #beginWork(){if(!this.#busy&&!this.#bounded)this.#idle=new Promise(resolve=>{this.#resolveIdle=resolve;});}
  #endWork(){if(!this.#busy&&!this.#bounded){this.#resolveIdle?.();this.#resolveIdle=undefined;}}
  #finalizedSourceTime=0;#generated:number;#committed:number;#baseline:number;#sequence=0;#maxBytes:number;
- constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[]){
+ constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[],historyClocks?:ReadonlyMap<string,PrintClockTimeline>){
   if(!bindings.length||bindings.length>128||!Number.isSafeInteger(maxBatchBytes)||maxBatchBytes<1)throw new RangeError('Invalid motion coordinator limits');
   const ids=new Set<string>(),steppers=new Set<StepCompressor>();
   for(const b of bindings){
@@ -36,6 +40,11 @@ export class MotionCoordinator {
   if(bindings.some(b=>b.stepper.generatedTime!==time))throw new Error('Steppers must match the declared committed baseline');
   this.#guards=[...clockHealth];
   this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=this.#baseline=time;this.#maxBytes=maxBatchBytes;
+  if(historyClocks){
+   if(historyClocks.size!==bindings.length||bindings.some(b=>{const clock=historyClocks.get(b.id);if(!(clock instanceof PrintClockTimeline))return true;const a=clock.status.calibration,c=b.stepper.calibration;return a.offset!==c.offset||a.frequency!==c.frequency;}))throw new Error('Motion history clocks must cover matching emitters');
+   this.#historyClocks=new Map(historyClocks);
+   try{for(const clock of new Set(historyClocks.values())){const tick=clock.status.fromClock;this.#historyLeases.set(clock,{lease:clock.retain(tick),tick});}}catch(error){this.#releaseHistory();throw error;}
+  }
  }
  /** Retain 30 seconds behind the slowest observed emitter, plus 1 ms margin.
   * Observations must come from the same MCU routes and current generation. */
@@ -43,8 +52,10 @@ export class MotionCoordinator {
   if(this.#retired)throw new MotionRetiredError();if(this.#failed)throw new Error('Motion coordinator is faulted');const entries=Object.entries(clocks);
   if(entries.length!==this.#bindings.length||this.#bindings.some(b=>!Object.hasOwn(clocks,b.id)))throw new RangeError('History clocks must cover all emitters');
   for(const guard of this.#guards)guard.assertActive();let time=Infinity;
-  for(const b of this.#bindings)time=Math.min(time,b.stepper.printTimeAtClock(clocks[b.id]));
-  const boundary=time-30,cutoff=Math.max(0,boundary-.001);if(cutoff>0&&cutoff>=boundary)throw new RangeError('History margin below print-time resolution');return cutoff;
+  for(const b of this.#bindings)time=Math.min(time,(this.#historyClocks?.get(b.id)??b.stepper).printTimeAtClock(clocks[b.id]));
+  const boundary=time-30,cutoff=Math.max(0,boundary-.001);if(cutoff>0&&cutoff>=boundary)throw new RangeError('History margin below print-time resolution');
+  for(const [clock,retained] of this.#historyLeases){if(cutoff<=clock.printTimeAtClock(retained.tick))continue;const mapped=clock.clockAt(cutoff),tick=clock.printTimeAtClock(mapped)>cutoff?mapped-1n:mapped;retained.lease.advance(tick);retained.tick=tick;}
+  return cutoff;
  }
  /** Common lower bound actually finalized in every source queue. */
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
@@ -83,14 +94,14 @@ export class MotionCoordinator {
   if(this.#failed||!this.#sink.retire)return Promise.reject(new Error('Motion coordinator cannot retire'));
   this.#retired=true;
   this.#retirement=(async()=>{
-   try{await observeRetirement(this.#sink.retire!(signal),signal);await observeRetirement(this.#idle,signal);if(this.#failed)throw this.#fault;for(const guard of this.#guards)guard.assertActive();this.#retirementComplete=true;}
+   try{await observeRetirement(this.#sink.retire!(signal),signal);await observeRetirement(this.#idle,signal);if(this.#failed)throw this.#fault;for(const guard of this.#guards)guard.assertActive();this.#retirementComplete=true;this.#releaseHistory();}
    catch(error){try{await this.shutdown(error);}catch{/* Both failures remain in status. */}throw this.#fault;}
   })();return this.#retirement;
  }
  shutdown(cause:unknown=new Error('Motion shutdown requested')):Promise<void>{
   if(this.#stopPromise)return this.#stopPromise;
   this.#failed=true;this.#fault=cause;
-  this.#stopPromise=Promise.resolve().then(()=>this.#sink.stop(cause)).catch(stopError=>{this.#fault=new AggregateError([cause,stopError],'Motion failure and device stop failure');throw this.#fault;});
+  this.#stopPromise=Promise.resolve().then(()=>this.#sink.stop(cause)).catch(stopError=>{this.#fault=new AggregateError([cause,stopError],'Motion failure and device stop failure');throw this.#fault;}).finally(()=>this.#releaseHistory());
   return this.#stopPromise;
  }
  /** Caller selects every emitter belonging to the calibrated MCU. No awaits
