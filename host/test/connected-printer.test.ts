@@ -13,7 +13,7 @@ for(const reverse of [false,true])test(`connector owner reaches configured print
 });
 test('connector owner cleans connected peers after configuration preflight fails',async()=>{
  const f=await configuredPrinterFixture(false,false);try{
-  f.layout.heaters.push({section:'missing_heater'});
+  f.layout={...f.layout,heaters:[...f.layout.heaters,{section:'missing_heater'}]};
   await assert.rejects(connectConfiguredPrinter(f.reader,f.connections,'mcu',f.layout,f.options,f.signal));assert.deepEqual(f.stops,[1,1]);assert.equal(f.firmware[0].motion.length,0);
  }finally{await f.close();}
 });
