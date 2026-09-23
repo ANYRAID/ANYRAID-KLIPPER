@@ -15,7 +15,7 @@ function motorConfigFixture(){
 }
 test('shared physical enable aliases use one exclusive GPIO and one global OID after stepper',()=>{
  const f=motorConfigFixture();compileConfiguredSteppers(f.reader(),f.pins,f.mcus,[{section:'stepper_x'}]);
- const plans=compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests);assert.equal(plans.length,1);assert.equal(plans[0].config.oid,1);assert.deepEqual(plans[0].emitters,['x','y']);assert.equal(plans[0].config.reservedMoves,1);assert.match(plans[0].config.config,/pin=PA3 value=1 default_value=1 max_duration=0/);assert.equal(f.pins.claimedPins.length,3);
+ const plans=compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests).lines;assert.equal(plans.length,1);assert.equal(plans[0].config.oid,1);assert.deepEqual(plans[0].emitters,['x','y']);assert.equal(plans[0].config.reservedMoves,1);assert.match(plans[0].config.config,/pin=PA3 value=1 default_value=1 max_duration=0/);assert.equal(f.pins.claimedPins.length,3);
  assert.equal(mcuOids(f.pins).finalize('mcu').oidCount,2);assert.throws(()=>f.pins.lookup('PA3_ALIAS'),/used multiple times|exclusively/);
 });
 test('conflicting shared polarity and timing fail before any resource is published',()=>{
@@ -26,21 +26,21 @@ test('conflicting shared polarity and timing fail before any resource is publish
 test('a later reserved line rolls back all enable pins and OIDs and permits correction',()=>{
  const f=motorConfigFixture();f.pins.resolver('mcu').reserve('PA4','machine');
  assert.throws(()=>compileConfiguredMotorEnables(f.reader('PA3','PA4'),f.pins,f.group,f.requests),/reserved/);assert.equal(f.pins.claimedPins.length,0);assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount,0);
- const plans=compileConfiguredMotorEnables(f.reader('PA3','PA5'),f.pins,f.group,f.requests);assert.deepEqual(plans.map(p=>p.config.oid),[0,1]);assert.equal(f.pins.claimedPins.length,2);
+ const plans=compileConfiguredMotorEnables(f.reader('PA3','PA5'),f.pins,f.group,f.requests).lines;assert.deepEqual(plans.map(p=>p.config.oid),[0,1]);assert.equal(f.pins.claimedPins.length,2);
 });
 test('enable plans cannot steal step GPIOs and failed claims do not consume OIDs',()=>{
  const f=motorConfigFixture();compileConfiguredSteppers(f.reader(),f.pins,f.mcus,[{section:'stepper_x'}]);
  assert.throws(()=>compileConfiguredMotorEnables(f.reader('PA0','PA3'),f.pins,f.group,f.requests),/used multiple times|exclusively/);assert.equal(f.pins.claimedPins.length,2);assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount,1);
- assert.equal(compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests)[0].config.oid,1);
+ assert.equal(compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests).lines[0].config.oid,1);
 });
 test('board aliases resolve before encoding and shared enable owners cannot be extended later',()=>{
- const f=motorConfigFixture();f.pins.resolver('mcu').alias('ENABLE','PA3');const plans=compileConfiguredMotorEnables(f.reader('!ENABLE','!PA3_ALIAS'),f.pins,f.group,f.requests);assert.equal(plans.length,1);assert.match(plans[0].config.config,/pin=PA3 /);
+ const f=motorConfigFixture();f.pins.resolver('mcu').alias('ENABLE','PA3');const plans=compileConfiguredMotorEnables(f.reader('!ENABLE','!PA3_ALIAS'),f.pins,f.group,f.requests).lines;assert.equal(plans.length,1);assert.match(plans[0].config.config,/pin=PA3 /);
  assert.throws(()=>compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests),/Duplicate/);assert.equal(f.pins.claimedPins.length,1);
 });
-test('wrong MCU, duplicate emitters, missing enable pin and invalid timing are explicit failures',()=>{
+test('wrong MCU, duplicate emitters and invalid timing fail while missing enable pins become always-on',()=>{
  const f=motorConfigFixture();f.requests[1].mcu='aux';assert.throws(()=>compileConfiguredMotorEnables(f.reader(),f.pins,f.group,f.requests),/differs from motor MCU/);f.requests[1].mcu='mcu';
  assert.throws(()=>compileConfiguredMotorEnables(f.reader(),f.pins,f.group,[f.requests[0],{...f.requests[1],emitter:'x'}]),/batch/);
  assert.throws(()=>compileConfiguredMotorEnables(f.reader(),f.pins,f.group,[{...f.requests[0],leadTime:NaN}]),/timing/);
- const missing=new ConfigurationReader(new ConfigurationSource('/missing.cfg',{stepper_x:{}},[]),null);assert.throws(()=>compileConfiguredMotorEnables(missing,f.pins,f.group,[f.requests[0]]),/always-on/);
+ const missing=new ConfigurationReader(new ConfigurationSource('/missing.cfg',{stepper_x:{}},[]),null);assert.equal(compileConfiguredMotorEnables(missing,f.pins,f.group,[f.requests[0]]).alwaysOn.length,1);
  assert.equal(f.pins.claimedPins.length,0);assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount,0);
 });

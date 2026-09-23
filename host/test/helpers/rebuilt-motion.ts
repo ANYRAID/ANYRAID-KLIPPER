@@ -17,7 +17,7 @@ import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
 import {CoordinateRebase} from '../../src/homing/recovery.ts';
 import {serialClock} from '../../src/protocol/serial-queue.ts';
 import {compilePWM} from '../../src/outputs/pwm.ts';
-export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower=false){
+export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false){
  const fw=await serialFirmware(undefined,{triggerSync:true}),signal=new AbortController().signal;let stops=0;
  const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]);
  const xyz=new TrapQueue(),extrusion=new TrapQueue();let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
@@ -29,11 +29,12 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   const pins=new PrinterPins<object>();pins.register('m',chip);
   // Legacy fixture objects retain their fixed IDs until their builders migrate.
   mcuOids(pins).claim(Array.from({length:motorPower||dual?10:9},(_,oid)=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
-  const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,{enable_pin:'!m:PA3'}])),[]),null);
-  const motorPlan=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}})))[0]:undefined;
+  const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,motorPower==='always'||motorPower==='mixed'&&id==='e'?{} as Record<string,string>:{enable_pin:'!m:PA3'}])),[]),null);
+  const motorPlans=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}}))):undefined;
+  const motorPlan=motorPlans?.lines[0];
   const motorOidCount=mcuOids(pins).finalize('m').oidCount;
   await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...dual?[...secondTrigger.commands,...secondEndstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
-  const motorEnable=motorPlan?new MotorEnable(group,[motorPlan]):undefined;
+  const motorEnable=motorPlans?new MotorEnable(group,motorPlans.lines,motorPlans.alwaysOn):undefined;
   const distance=readStepperDistance(new ConfigurationReader(new ConfigurationSource('/stepper.cfg',{stepper_x:{rotation_distance:'1',microsteps:'1',full_steps_per_rotation:'100'}},[]),null).section('stepper_x'));
   const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};
   const x=xyz.createStepper({...settings,oid:3},'x',distance.stepDistance),e=extrusion.createStepper({...settings,oid:4},'extruder',distance.stepDistance);

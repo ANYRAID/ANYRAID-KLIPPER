@@ -20,7 +20,7 @@ export interface NativeLinearPrintOptions {
 export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
  const {gcode,port,heaters,lifecycle,motorCompletion}=o;
  if(!(gcode instanceof NativeLinearGCode)||!(port instanceof NativeLinearHomingPort)||!(heaters instanceof AsyncPrinterHeaters)||!gcode.usesPort(port)||owners.has(gcode)||typeof o.open!=='function')throw new Error('Invalid native print ownership');
- if(!['hold','release'].includes(motorCompletion)||motorCompletion==='release'&&!port.hasMotorEnable)throw new Error('Invalid native print motor completion policy');
+ if(!['hold','release'].includes(motorCompletion)||motorCompletion==='release'&&!port.canReleaseMotors)throw new Error('Invalid native print motor completion policy');
  const policy=o.startupHoming;
  if(!policy||!['home','require_homed'].includes(policy.mode)||!Array.isArray(policy.axes)||!policy.axes.length||policy.axes.length>3||new Set(policy.axes).size!==policy.axes.length||policy.axes.some(a=>!Number.isInteger(a)||a<0||a>2))throw new Error('Invalid print homing policy');
  const startupHoming:PrintHomingPolicy={mode:policy.mode,axes:[...policy.axes]};

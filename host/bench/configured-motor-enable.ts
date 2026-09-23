@@ -11,7 +11,7 @@ for(let run=0;run<14;run++){
  const start=performance.now(),used=process.cpuUsage();
  for(let i=0;i<500;i++){
   const f=stepperBatchFixture(),session={dictionary:f.dictionary},group={session:()=>session} as unknown as MCUGroup;
-  const plans=compileConfiguredMotorEnables(reader,f.pins,group,requests);assert.equal(plans.length,1);assert.equal(plans[0].emitters.length,2);assert.equal(f.pins.claimedPins.length,1);assert.equal(mcuOids(f.pins).finalize('mcu').oidCount,1);
+  const plans=compileConfiguredMotorEnables(reader,f.pins,group,requests).lines;assert.equal(plans.length,1);assert.equal(plans[0].emitters.length,2);assert.equal(f.pins.claimedPins.length,1);assert.equal(mcuOids(f.pins).finalize('mcu').oidCount,1);
  }
  const elapsed=(performance.now()-start)/500,usage=process.cpuUsage(used);if(run>=3){wall.push(elapsed);cpu.push((usage.user+usage.system)/500000);}
 }

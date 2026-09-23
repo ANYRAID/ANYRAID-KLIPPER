@@ -12,7 +12,7 @@ import {GenerationPWMOutput} from '../../src/outputs/generation-pwm.ts';
 import {ScheduledCoolingFan,type FanConfig} from '../../src/outputs/fan.ts';
 import {FanBoundaryTimeline} from '../../src/outputs/fan-boundaries.ts';
 const signal=()=>new AbortController().signal;
-export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower=false){
+export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false){
  const f=await rebuiltFixture(false,true,fanConfig!==undefined,motorPower);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
  try{
   if(fanConfig){const group=f.options.group,s=group.session('m'),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue('m'),group.commandQueue('m'),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}

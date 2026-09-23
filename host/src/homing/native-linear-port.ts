@@ -46,7 +46,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
  get hasCoolingFan():boolean{return this.#g.boundaryOutput!==undefined;}
  get hasMotorEnable():boolean{return this.#g.motorEnable!==undefined;}
- releaseMotors(signal:AbortSignal):Promise<void>{return this.#operate('release',signal,async s=>{
+ get canReleaseMotors():boolean{return this.#g.motorEnable?.canReleaseAll??false;}
+ releaseMotors(signal:AbortSignal):Promise<void>{if(this.#g.motorEnable&&!this.canReleaseMotors)return Promise.reject(new Error('Always-on motors cannot be released by software'));return this.#operate('release',signal,async s=>{
   const power=this.#g.motorEnable;if(!power)throw new Error('Motor enables are not configured');
   await this.#drain(s);this.#g.assertMotorCalibration();this.#o.kinematics.clearHoming([0,1,2]);
   await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
