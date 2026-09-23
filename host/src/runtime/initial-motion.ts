@@ -1,3 +1,4 @@
+import {compileLinearHoming,type ConfiguredLinearHoming} from '../config/linear-homing.ts';
 import {createNativeLinearPrint,type NativeLinearPrintOptions} from '../operations/native-linear-print.ts';
 import {NativeLinearGCode} from './native-linear-gcode.ts';
 import type {DispatchHooks} from '../gcode/dispatch.ts';
@@ -59,13 +60,14 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   const generation=await pending;active();
   // Only a pristine initial source may be transferred. The port becomes the
   // lifetime owner of every later rebase/homing generation, not just this one.
-  const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>)=>{
+  const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>|ConfiguredLinearHoming)=>{
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
    const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
    const heaterIndex=plan.heaters.findIndex(h=>h.section===section),heater=hardware.analog[heaterIndex]?.runtime;
    if(!heater)throw new Error('Linear motion requires its configured extruder heater');
-   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
+   const resolved='homing' in settings?compileLinearHoming(plan,generation,settings):settings;
+   const result=createConfiguredNativeLinearPort(reader,{...resolved,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
    const createPrint=async(options:ConfiguredPrintOptions)=>{
     group.assertActive();if(printPending)throw new Error('Configured print already owned');
     const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';

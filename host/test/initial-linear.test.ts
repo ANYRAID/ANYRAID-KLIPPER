@@ -11,9 +11,9 @@ for(const reverse of [false,true])test(`configured linear handoff homes and clos
  TrapQueue.prototype.createStepper=function(...args){const stepper=original.apply(this,args);created.push(stepper);return stepper;};
  let timer:ReturnType<typeof setInterval>|undefined;
  const f=await initialLinearFixture(reverse);try{
-  const {port,kinematics,rails}=f.initial.createLinearPort(f.reader,f.settings);
+  const {port,kinematics,rails}=f.initial.createLinearPort(f.reader,f.configuredSettings);
   assert.equal(kinematics.status.homedAxes,'');assert.throws(()=>port.move([1,0,0,0],10),/home/i);assert.throws(()=>port.move([0,0,0,1],10),/temperature/);
-  assert.throws(()=>f.initial.createLinearPort(f.reader,f.settings),/owned/);
+  assert.throws(()=>f.initial.createLinearPort(f.reader,f.configuredSettings),/owned/);
   const h=f.hardware.plan.homing[0];let sent=false;
   timer=setInterval(()=>{
    const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;
@@ -31,17 +31,17 @@ for(const reverse of [false,true])test(`configured linear handoff homes and clos
 test('invalid linear semantics may be corrected before the single handoff',async()=>{
  const f=await initialLinearFixture();try{
   assert.throws(()=>f.initial.createLinearPort(f.reader,{...f.settings,kinematicIds:['y','x','z']}),/solvers/);assert.deepEqual(f.stops,[0,0]);
-  const {port}=f.initial.createLinearPort(f.reader,f.settings);await f.hardware.close();assert.equal(port.status.failed,true);
+  const {port}=f.initial.createLinearPort(f.reader,f.configuredSettings);await f.hardware.close();assert.equal(port.status.failed,true);
  }finally{await f.close();}
 });
 test('a source already seeded by another producer cannot be handed to the linear port',async()=>{
  const f=await initialLinearFixture();try{
-  f.initial.generation.source.append([]);assert.throws(()=>f.initial.createLinearPort(f.reader,f.settings),/used/);assert.deepEqual(f.stops,[0,0]);await f.hardware.close();
+  f.initial.generation.source.append([]);assert.throws(()=>f.initial.createLinearPort(f.reader,f.configuredSettings),/used/);assert.deepEqual(f.stops,[0,0]);await f.hardware.close();
  }finally{await f.close();}
 });
 test('hardware close cancels and waits for an in-flight coordinate replacement',async()=>{
  const f=await initialLinearFixture();try{
-  const {port}=f.initial.createLinearPort(f.reader,f.settings),before=f.firmware[0].outputs.filter(o=>o.name==='stepper_stop_on_trigger').length;
+  const {port}=f.initial.createLinearPort(f.reader,f.configuredSettings),before=f.firmware[0].outputs.filter(o=>o.name==='stepper_stop_on_trigger').length;
   f.firmware[0].ignore('stepper_get_position');const pending=port.forcePosition([1,0,0,0],f.signal),rejected=assert.rejects(pending);
   const deadline=performance.now()+2000;while(f.firmware[0].outputs.filter(o=>o.name==='stepper_stop_on_trigger').length===before){assert(performance.now()<deadline);await delay(2);}
   await f.hardware.close();await rejected;assert.equal(port.status.busy,false);assert.equal(port.status.failed,true);assert.equal(f.hardware.status.state,'stopped');assert.deepEqual(f.stops,[1,1]);

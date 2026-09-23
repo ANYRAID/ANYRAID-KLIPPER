@@ -1,11 +1,12 @@
 import {initialMotionFixture,initialMotionOptions} from './initial-motion.ts';
 import {initializeConfiguredMotion} from '../../src/runtime/initial-motion.ts';
-import type {ConfiguredLinearHardware} from '../../src/config/linear-motion.ts';
+import {compileLinearHoming,type ConfiguredLinearHoming} from '../../src/config/linear-homing.ts';
 export async function initialLinearFixture(reverse=false,bed=false){
  const f=await initialMotionFixture(reverse,true,bed);try{
   const initial=await initializeConfiguredMotion(f.hardware,{...initialMotionOptions,fanSection:'fan'},f.signal);
-  const groups=f.hardware.plan.homing.map(h=>[{members:[{physicalMember:0,trigger:h.triggers[0].protocol,emitters:initial.emitters.map(e=>e.id)}],primary:0,endstop:h.endstop,expireTimeout:.25}]);
-  const settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>={kinematicIds:['x','y','z'],groupsByAxis:groups as unknown as ConfiguredLinearHardware['groupsByAxis'],endstopNames:[['x'],['y'],['z']]};
-  return {...f,initial,settings};
+  const homing=f.hardware.plan.homing.map(h=>[{section:h.section,emitters:initial.emitters.map(e=>e.id)}]);
+  const configuredSettings:ConfiguredLinearHoming={kinematicIds:['x','y','z'],homing:homing as unknown as ConfiguredLinearHoming['homing']};
+  const settings=compileLinearHoming(f.hardware.plan,initial.generation,configuredSettings);
+  return {...f,initial,settings,configuredSettings};
  }catch(error){await f.close();throw error;}
 }
