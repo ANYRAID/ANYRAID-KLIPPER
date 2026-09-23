@@ -15,3 +15,12 @@ test('configuration resolves aliases before CRC and rejects firmware-reserved pi
  assert.equal((await configureMCU(d,transport,{oidCount:1,commands:['config_stepper oid=0 step_pin=STEP'],pins},new AbortController().signal)).crc,crc);assert.equal(writes,3);
  reads=writes=0;pins.alias('DEBUG','PB1');await assert.rejects(configureMCU(d,transport,{oidCount:1,commands:['config_stepper oid=0 step_pin=DEBUG'],pins},new AbortController().signal),/reserved/);assert.equal(reads,0);assert.equal(writes,0);
 });
+test('batch acquisition rolls back all new pins and preserves existing owner identities',()=>{
+ const p=new PrinterPins<object>();p.register('mcu',{});const existing=p.lookup('PA0');assert.throws(()=>p.lookupBatch([{description:'PA1'},{description:'PA0'}]),/multiple/);assert.deepEqual(p.claimedPins,[existing]);assert.equal(p.lookup('PA1').pin,'PA1');
+});
+test('batch aliases are validated without publishing failed resolver state',()=>{
+ const p=new PrinterPins<object>();p.register('mcu',{});p.resolver('mcu').alias('STEP','PA0');assert.throws(()=>p.lookupBatch([{description:'STEP'},{description:'PA0'}]),/alias|multiple/);assert.equal(p.claimedPins.length,0);assert.equal(p.lookupBatch([{description:'PA0'}])[0].pin,'PA0');
+});
+test('exclusive batch claims override multi-use while ordinary compatible sharing retains identity',()=>{
+ const p=new PrinterPins<object>();p.register('mcu',{});const old=p.lookup('!PA0',{canInvert:true,shareType:'enable'});p.allowMultiUse('PA0');assert.throws(()=>p.lookupBatch([{description:'!PA0',options:{canInvert:true},exclusive:true}]),/multiple/);assert.equal(p.lookupBatch([{description:'!PA0',options:{canInvert:true,shareType:'enable'}}])[0],old);
+});

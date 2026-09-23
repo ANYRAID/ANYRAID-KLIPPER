@@ -5,6 +5,7 @@ export class PinResolver {
  #aliases=new Map<string,string>();#reserved=new Map<string,string>();#active=new Map<string,string>();#validate:boolean;
  constructor(validateAliases=true){this.#validate=validateAliases;}
  clone():PinResolver{const result=new PinResolver(this.#validate);result.#aliases=new Map(this.#aliases);result.#reserved=new Map(this.#reserved);result.#active=new Map(this.#active);return result;}
+ get reservedPins():readonly string[]{return Object.freeze([...this.#reserved.keys()].map(pin=>this.#aliases.get(pin)??pin));}
  reserve(pin:string,owner:string):void{if(!valid(pin)||!owner||owner.length>256)throw new PinError('Invalid pin reservation');const previous=this.#reserved.get(pin);if(previous!==undefined&&previous!==owner)throw new PinError(`Pin ${pin} reserved for ${previous}`);this.#reserved.set(pin,owner);}
  alias(alias:string,pin:string):void{
   if(!valid(alias)||!valid(pin))throw new PinError('Invalid pin alias');const previous=this.#aliases.get(alias);
@@ -24,12 +25,14 @@ export class PinResolver {
  }
 }
 export interface PinOptions {canInvert?:boolean;canPullup?:boolean;shareType?:string}
+export interface PinRequest {description:string;options?:PinOptions;exclusive?:boolean}
 export interface PinBinding<T> {readonly chip:T;readonly chipName:string;readonly pin:string;readonly invert:0|1;readonly pullup:-1|0|1;readonly shareType?:string}
 /** Registration and ownership only. Actuator-specific setup belongs to the chip. */
 export class PrinterPins<T> {
  #chips=new Map<string,T>();#resolvers=new Map<string,PinResolver>();#active=new Map<string,PinBinding<T>>();#multi=new Set<string>();
  register(name:string,chip:T):void{name=name.trim();if(!valid(name)||this.#chips.has(name))throw new PinError('Invalid or duplicate chip name');this.#chips.set(name,chip);this.#resolvers.set(name,new PinResolver());}
  resolver(name:string):PinResolver{const resolver=this.#resolvers.get(name);if(!resolver)throw new PinError(`Unknown chip ${name}`);return resolver;}
+ get claimedPins():readonly PinBinding<T>[] {return Object.freeze([...this.#active.values()]);}
  parse(description:string,options:PinOptions={}):PinBinding<T>{
   let text=description.trim(),pullup: -1|0|1=0,invert:0|1=0;
   if(options.canPullup&&(text[0]==='^'||text[0]==='~')){pullup=text[0]==='^'?1:-1;text=text.slice(1).trim();}
@@ -42,6 +45,20 @@ export class PrinterPins<T> {
   const binding=this.parse(description,options),key=`${binding.chipName}:${binding.pin}`,previous=this.#active.get(key);
   if(previous){if(!this.#multi.has(key)){if(options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}return previous;}
   this.#active.set(key,binding);return binding;
+ }
+ /** Atomic multi-pin acquisition. Existing owners survive failed validation.
+  * Alias resolution uses copies, so no resolver state is published on failure. */
+ lookupBatch(requests:readonly PinRequest[]):readonly PinBinding<T>[] {
+  if(!requests.length||requests.length>512)throw new PinError('Invalid pin batch size');
+  const active=new Map(this.#active),physical=new Map<string,PinBinding<T>>(),resolvers=new Map([...this.#resolvers].map(([name,r])=>[name,r.clone()]));
+  const key=(p:PinBinding<T>)=>`${p.chipName}:${resolvers.get(p.chipName)!.resolve([`claim pin=${p.pin}`])[0].slice(10)}`;
+  for(const p of active.values()){const k=key(p);if(physical.has(k)&&physical.get(k)!==p)throw new PinError('Existing pin aliases overlap');physical.set(k,p);}
+  const result=requests.map(request=>{
+   const options=request.options??{},binding=this.parse(request.description,options),raw=`${binding.chipName}:${binding.pin}`,canonical=key(binding),previous=physical.get(canonical);
+   if(previous){if(request.exclusive||!this.#multi.has(raw)){if(request.exclusive||options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}return previous;}
+   active.set(raw,binding);physical.set(canonical,binding);return binding;
+  });
+  this.#active=active;return Object.freeze(result);
  }
  allowMultiUse(description:string):void{const p=this.parse(description);this.#multi.add(`${p.chipName}:${p.pin}`);}
  resetSharing(binding:PinBinding<T>):void{const key=`${binding.chipName}:${binding.pin}`;if(this.#active.get(key)!==binding)throw new PinError('Unknown pin binding');this.#active.delete(key);}

@@ -30,3 +30,41 @@ export function compileConfiguredStepper<T>(reader:ConfigurationReader,name:stri
  const compiled=compileStepper(chip,dictionary,{...bindings,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation,...pulse===null?{}:{pulseDuration:pulse}});
  return Object.freeze({...compiled,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});
 }
+
+import {PrinterPins,type PinRequest} from '../protocol/pins.ts';
+import {decodeInteger} from '../protocol/codec.ts';
+export interface StepperSectionRequest {section:string;oid:number;unitsInRadians?:boolean;requestBothEdges?:boolean}
+export interface StepperMCU<T> {chip:T;dictionary:MessageDictionary}
+const batchOwners=new WeakMap<object,{pins:Set<string>;oids:Set<string>}>();
+function physicalStepPins(dictionary:MessageDictionary,config:string):number[]{
+ dictionary.lookup('config_stepper oid=%c step_pin=%c dir_pin=%c invert_step=%c step_pulse_ticks=%u');
+ const encoded=dictionary.encodeCommand(config);let offset=0;const numbers:number[]=[];
+ for(let i=0;i<4;i++){const {value,next}=decodeInteger(encoded,offset);numbers.push(value);offset=next;}return numbers.slice(2);
+}
+/** Compile a whole stepper set before claiming any step/dir pins. No MCU IO.
+ * OIDs must come from the machine's global allocator; this catches duplication
+ * among this builder's plans, not OIDs owned by other actuator builders. */
+export function compileConfiguredSteppers<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,requests:readonly StepperSectionRequest[]){
+ if(!requests.length||requests.length>128||new Set(requests.map(r=>r.section)).size!==requests.length)throw new Error('Invalid stepper section batch');
+ const prior=batchOwners.get(pins),physical=new Set(prior?.pins),oids=new Set(prior?.oids),reserved=new Set<string>(),claims:PinRequest[]=[],resolvers=new Map<string,ReturnType<PrinterPins<T>['resolver']>>();
+ for(const binding of pins.claimedPins){
+  const mcu=mcus.get(binding.chipName);if(!mcu)continue;if(mcu.chip!==binding.chip)throw new Error('Existing pin differs from MCU ownership');
+  const [config]=pins.resolver(binding.chipName).clone().resolve([`config_stepper oid=0 step_pin=${binding.pin} dir_pin=${binding.pin} invert_step=0 step_pulse_ticks=0`]);
+  physical.add(`${binding.chipName}:${physicalStepPins(mcu.dictionary,config)[0]}`);
+ }
+ const plans=requests.map(request=>{
+  const section=reader.section(request.section),stepText=section.get('step_pin'),directionText=section.get('dir_pin'),step=pins.parse(stepText,{canInvert:true}),direction=pins.parse(directionText,{canInvert:true}),mcu=mcus.get(step.chipName);
+  if(!mcu||mcu.chip!==step.chip||direction.chipName!==step.chipName||direction.chip!==step.chip)throw new Error('Configured stepper pins differ from MCU ownership');
+  const compiled=compileConfiguredStepper(reader,request.section,mcu.chip,mcu.dictionary,{oid:request.oid,step,direction,requestBothEdges:request.requestBothEdges},request.unitsInRadians??false),oidKey=`${step.chipName}:${request.oid}`;
+  if(oids.has(oidKey))throw new Error('Duplicate configured stepper OID');oids.add(oidKey);
+  let resolver=resolvers.get(step.chipName);if(!resolver){resolver=pins.resolver(step.chipName).clone();for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const pin of value.split(','))if(pin.trim())resolver.reserve(pin.trim(),name.slice(13));}resolvers.set(step.chipName,resolver);}
+  for(const pin of resolver.reservedPins)reserved.add(`${step.chipName}:${physicalStepPins(mcu.dictionary,`config_stepper oid=0 step_pin=${pin} dir_pin=${pin} invert_step=0 step_pulse_ticks=0`)[0]}`);
+  const [config,restart]=resolver.resolve([compiled.config,compiled.restart]);mcu.dictionary.encodeCommand(restart);
+  // Config's first fields are tag, oid, step_pin and dir_pin. Decode wire IDs,
+  // rather than comparing spellings: firmware may expose aliases for one GPIO.
+  for(const pin of physicalStepPins(mcu.dictionary,config)){const key=`${step.chipName}:${pin}`;if(reserved.has(key))throw new Error('Firmware or machine reserved physical stepper pin');if(physical.has(key))throw new Error('Duplicate physical stepper pin');physical.add(key);}
+  claims.push({description:stepText,options:{canInvert:true},exclusive:true},{description:directionText,options:{canInvert:true},exclusive:true});
+  return Object.freeze({section:request.section,mcu:step.chipName,step,direction,...compiled,config,restart});
+ });
+ const acquired=pins.lookupBatch(claims);batchOwners.set(pins,{pins:physical,oids});return Object.freeze(plans.map((plan,i)=>Object.freeze({...plan,step:acquired[2*i],direction:acquired[2*i+1]})));
+}
