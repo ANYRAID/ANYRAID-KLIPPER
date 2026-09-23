@@ -4,6 +4,22 @@ import {ConfiguredMoonraker,type ConfiguredServerOptions} from '../moonraker/con
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUConnection} from './mcu-group.ts';
 import type {HardwareLayout} from '../config/hardware.ts';
+import {planLinearPrinter,type LinearPrinterPolicy} from '../config/linear-printer.ts';
+import {configuredMCUConnections,type MCUMachinePolicy} from './configured-mcu-connections.ts';
+export interface ConfiguredProductServiceOptions extends ProductServiceOptions {
+ machine:Omit<LinearPrinterPolicy,'mcus'>;
+ hardware?:Omit<ConfiguredPrinterOptions['hardware'],'motion'>;
+ print:ConfiguredPrinterOptions['print'];
+}
+/** Configuration-driven native service. Physical stop, file access, lifecycle,
+ * authorization and durable journal policies remain explicit machine inputs. */
+export function startConfiguredProductService(reader:ConfigurationReader,policies:ReadonlyMap<string,MCUMachinePolicy>,product:ProductPrinterOptions,options:ConfiguredProductServiceOptions,signal:AbortSignal){
+ signal.throwIfAborted();
+ const connections=configuredMCUConnections(reader,policies);
+ const plan=planLinearPrinter(reader,{...options.machine,mcus:connections.map(c=>c.id)});
+ const printerOptions:ConfiguredPrinterOptions={hardware:{...options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear,print:options.print};
+ return startProductService(reader,connections,'mcu',plan.layout,printerOptions,product,options,signal);
+}
 export interface ProductServiceOptions {
  configPath:string;
  server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'>;

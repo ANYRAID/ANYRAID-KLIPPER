@@ -19823,3 +19823,36 @@ UBSan/ASan 各通过 869 项（433/436 两批）。本次未修改运动求解�
 p95 为 0.55537965/0.59905304 ms；CPU 中位为 0.57105/0.58044 ms，
 p95 为 0.96546/0.79596 ms。通过原定性能门限；这是配置阶段测量，
 不代表实际打印吞吐或硬件验收。全面 Python 替代目标仍未完成。
+
+### 配置驱动的原生产品服务入口
+
+`startConfiguredProductService` 接受打印机 ConfigurationReader、每个 MCU
+的显式 MCUMachinePolicy、持久化产品控制选项和服务选项，自动连接
+`configuredMCUConnections`、`planLinearPrinter` 与 `startProductService`。
+调用者不再手工构造连接、运动描述符、硬件布局及归零分组。主时钟使用
+必需的 mcu；不支持的拓扑在打开设备前拒绝。MCU 传输支持范围沿用
+UART/CAN/字符设备工厂，运动学范围沿用单挤出机线性规划器。
+
+服务选项的 machine 提供 enableLeadTime/fanMinimumScheduleTime；print
+提供已有的文件访问、停车、归零和类型化生命周期策略；hardware 可提供
+加热器 G-code 名称、启动超时与目标温度屏障；configPath/server 提供
+Moonraker 配置文件及鉴权等服务依赖。独立物理停止回调、外部日志和
+MaintenanceGate 的所有权约定保持显式。返回值与 startProductService
+相同，成功后使用 close 管理完整生命周期，不会自动归零或重放打印。
+
+新增两项测试使用真实 PTY 与模拟固件，覆盖双 UART 到原生硬件、持久化
+控制器和鉴权 HTTP 状态查询的完整启动、无运动/未归零状态、幂等关闭、
+两 MCU 停止，以及不支持拓扑的配置前拒绝。服务定向测试六项通过，
+Node.js 26.9.0 类型检查通过，完整 UBSan/ASan 各通过 871 项
+（435/436 两批）。实际 CAN/字符设备在本轮未重复集成到服务测试。
+
+独立 configured-product-service 基准交替运行预生成布局与配置驱动
+入口，三次预热、十一次采样；计时包括实际 PTY UART 连接、原生装配、
+控制器恢复和 HTTP 监听启动。墙钟中位为 501.380428/502.648448 ms，
+p95 为 508.168279/508.452063 ms；CPU 中位为 31.324/29.379 ms，
+p95 为 56.853/44.530 ms。通过预设墙钟中位不超过对照 1.1 倍加
+10 ms、p95 不超过 1.2 倍加 10 ms、CPU 中位不超过 1.5 倍加 5 ms。
+不包含夹具、打开日志、关闭或物理打印，不能代表实际打印吞吐。
+
+该入口是应用启动 API，尚非部署用 CLI；动态校准、生产启动配置、
+其余 Python/Moonraker 替代和实机打印验收仍待完成。
