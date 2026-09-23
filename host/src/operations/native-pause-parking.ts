@@ -3,7 +3,7 @@ export interface PauseParkingConfig {
  parkXY:readonly [number,number];retract:number;lift:number;
  travelSpeed:number;liftSpeed:number;retractSpeed:number;
 }
-type ParkingPort=Pick<NativeLinearHomingPort,'pauseStream'|'validatePausedPath'|'movePaused'|'resumeStream'|'motorOff'>;
+type ParkingPort=Pick<NativeLinearHomingPort,'pause'|'validatePausedPath'|'movePaused'|'resumeStream'|'motorOff'>;
 /** Configured product operation, without submitting macros or changing print
  * modal coordinates. The machine configuration owns collision-free parking
  * coordinates and lift distance; all legs still pass live motion guards. */
@@ -21,7 +21,7 @@ export class NativePauseParking {
   this.#phase='pausing';const done=Promise.withResolvers<void>();this.#pause=done.promise;
   void (async()=>{
    try{
-    const stopped=await this.#port.pauseStream(signal);signal.throwIfAborted();const p=[...stopped.position],c=this.#config;
+    const stopped=await this.#port.pause(signal);signal.throwIfAborted();const p=[...stopped.position],c=this.#config;
     const retracted=[p[0],p[1],p[2],p[3]-c.retract],lifted=[p[0],p[1],p[2]+c.lift,retracted[3]],parked=[...c.parkXY,lifted[2],retracted[3]];
     const outward:PausedMove[]=[{position:retracted,speed:c.retractSpeed},{position:lifted,speed:c.liftSpeed},{position:parked,speed:c.travelSpeed}];
     this.#return=[{position:lifted,speed:c.travelSpeed},{position:retracted,speed:c.liftSpeed},{position:p,speed:c.retractSpeed}];

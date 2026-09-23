@@ -1,28 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {NativeLinearHomingPort} from '../src/homing/native-linear-port.ts';
-import {LinearHomingCommand} from '../src/homing/linear-command.ts';
-import {LinearKinematics} from '../src/kinematics/linear.ts';
-import {GCodeMove} from '../src/gcode/move.ts';
-import {ExtrusionGuard} from '../src/motion/extrusion.ts';
-import {inputShaper} from '../src/motion/shaper.ts';
-import {motionLimits} from '../src/motion/lookahead.ts';
-import {bindRebuiltMotion} from '../src/runtime/rebuilt-motion.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
-import {rebuiltFixture} from './helpers/rebuilt-motion.ts';
+import {nativeLinearFixture as fixture,nativeStreamStarted as streamStarted} from './helpers/native-linear-port.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(retractDistance=0,canExtrude=()=>false,filtered=false){
- const f=await rebuiltFixture(false,true);
- try{
-  const generation=await bindRebuiltMotion(f.options),kinematics=new LinearKinematics({kind:'cartesian',ranges:[[0,52],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:5,maxZAccel:100});
-  if(filtered){generation.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});generation.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
-  const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
-  const port=new NativeLinearHomingPort({generation,kinematics,emitters:f.emitters,kinematicIds:['x','y','z'],groupsByAxis:[groups,groups,groups],limits:motionLimits(100,1000),extrusion:new ExtrusionGuard({nozzleDiameter:.4,filamentDiameter:1.75,maxCrossSection:1,maxVelocity:30,maxAccel:100,maxDistance:50,instantCornerVelocity:1}),canExtrude});
-  const coordinates=new GCodeMove(port),rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance,retractSpeed:10,secondSpeed:5,endstops:['test']}));
-  const command=new LinearHomingCommand(kinematics,coordinates,port,rails,5000);
-  return {f,generation,port,kinematics,coordinates,command,async close(){await port.dispose();await f.close();}};
- }catch(error){await f.close();throw error;}
-}
+import {serialClock} from '../src/protocol/serial-queue.ts';
 test('real G28 port rebases, seeks, grants homing and drains subsequent guarded motion',async()=>{
  const t=await fixture();let sent=false;
  const timer=setInterval(()=>{
@@ -96,10 +76,6 @@ test('a partial file pause drains only admitted native steps and resumes the suf
   await d.execute('M110');execution.resume();await done;await t.port.drain(signal());assert.equal(admitted,2);assert.equal(steps(),100);assert.deepEqual(t.port.position(),[51,0,0,2]);assert.equal(t.f.stops,0);
  }finally{gate.resolve();await execution?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
 });
-async function streamStarted(t:Awaited<ReturnType<typeof fixture>>){
- const {setTimeout:delay}=await import('node:timers/promises'),deadline=performance.now()+3000;
- while(!t.f.fw.motion.some(m=>m.name==='queue_step')){assert(performance.now()<deadline,'native stream did not start');await delay(2);}
-}
 for(const lazy of [false,true])test(`native port transfers its closing tail and acknowledges guarded resume (lazy=${lazy})`,async()=>{
  const t=await fixture();try{
   t.kinematics.markHomed([0]);for(let i=1;i<=40;i++)t.port.move([50+i/40,0,0,2],.5);
@@ -133,34 +109,14 @@ for(const park of [false,true])test(`file device pauses and resumes active nativ
   t.kinematics.markHomed([0,1,2]);const {GCodeDispatch}=await import('../src/gcode/dispatch.ts'),{GCodeFileReader}=await import('../src/gcode/file-reader.ts'),{FilePrintDevice}=await import('../src/operations/file-print-device.ts');const seen:string[]=[];let held=false,ordinary=0;
   const dispatch=new GCodeDispatch({output(){},shutdown:reason=>{void t.port.motorOff(new Error(reason));},checkpoint:s=>t.port.flush(s),drain:s=>t.port.drain(s)});
   dispatch.register('G1',c=>{seen.push(c.params.X);t.coordinates.execute('G1',c.params);});
-  const {NativePauseParking}=await import('../src/operations/native-pause-parking.ts'),parking=new NativePauseParking(t.port,{parkXY:[51.5,.2],retract:0,lift:.2,travelSpeed:10,liftSpeed:5,retractSpeed:5});
+  const {bindNativeFileMotion}=await import('../src/operations/native-file-motion.ts');
   const path=join(dir,'test.gcode');await writeFile(path,Array.from({length:512},(_,i)=>`G1 X${50+(i+1)/512} F12\n`).join(''));
-  device=new FilePrintDevice({prepare:async()=>dispatch.setReady(true),start:async()=>{},pause:async s=>{ordinary++;await t.port.drain(s);},pauseCheckpoint:async s=>{if(park)await parking.pause(s);else await t.port.pauseStream(s);held=true;},resume:async s=>{if(held){if(park)await parking.resume(s);else await t.port.resumeStream(s);held=false;}},finish:async(_id,s)=>t.port.drain(s),stop:()=>t.port.motorOff(new Error('file device stopped'))},dispatch,async()=>GCodeFileReader.adopt(await open(path,'r')));
+  const direct={prepare:async()=>dispatch.setReady(true),start:async()=>{},pause:async (s:AbortSignal)=>{ordinary++;await t.port.drain(s);},pauseCheckpoint:async (s:AbortSignal)=>{await t.port.pauseStream(s);held=true;},resume:async (s:AbortSignal)=>{if(held){await t.port.resumeStream(s);held=false;}},finish:async(_id:string,s:AbortSignal)=>t.port.drain(s),stop:()=>t.port.motorOff(new Error('file device stopped'))};
+  const motion=park?bindNativeFileMotion(t.port,{parkXY:[51.5,.2],retract:0,lift:.2,travelSpeed:10,liftSpeed:5,retractSpeed:5},{prepare:direct.prepare,start:direct.start,finishOutputs:async()=>{},stopOutputs:async()=>{}}):direct;
+  device=new FilePrintDevice(motion,dispatch,async()=>GCodeFileReader.adopt(await open(path,'r')));
   const eof=Promise.withResolvers<void>();device.subscribeEOF(()=>eof.resolve());await device.prepare({version:1,requestId:'test',fileId:'file',nozzle:200,bed:60},signal());await device.start('file',signal());await streamStarted(t);
   const start=performance.now();await device.pause(signal());assert(performance.now()-start<(park?3000:1800));assert.equal(device.status.file?.phase,'paused');assert.equal(device.status.file?.checkpointHeld,true);assert.equal(ordinary,0);assert.equal(device.status.file?.position,0);assert(seen.length>0&&seen.length<512);
   const count=seen.length,packets=t.f.fw.motion.length;await new Promise(r=>setTimeout(r,100));assert.equal(seen.length,count);assert.equal(t.f.fw.motion.length,packets);
   await device.resume(signal());await eof.promise;await device.finish('test',signal());assert.equal(seen.length,512);assert.equal(new Set(seen).size,512);assert.equal(t.generation.motion.bindings.find(b=>b.id==='x')!.history.status.lastPlannedPosition,200n);assert.equal(t.generation.motion.bindings.find(b=>b.id==='y')!.history.status.lastPlannedPosition,0n);assert.equal(t.generation.motion.bindings.find(b=>b.id==='z')!.history.status.lastPlannedPosition,0n);assert.equal(t.f.stops,0);
  }finally{await device?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
-});
-for(const filtered of [false,true])test(`paused native travel returns exactly before the original print suffix resumes (filtered=${filtered})`,async()=>{
- const t=await fixture(0,()=>true,filtered);try{
-  t.kinematics.markHomed([0,1,2]);t.coordinates.execute('G1',{X:'51',E:'2.02',F:'30'});let finished=false;const running=t.port.drain(signal()).then(()=>{finished=true;});await streamStarted(t);
-  const stop=await t.port.pauseStream(signal()),p=[...stop.position],modal=structuredClone(t.coordinates.state);
-  await t.port.movePaused([p[0],p[1],p[2]+.2,p[3]-.01],5,signal());
-  const parked=[51.5,.2,p[2]+.2,p[3]-.01],parking=t.port.movePaused(parked,10,signal());
-  await assert.rejects(t.port.resumeStream(signal()),/Paused motion is busy/);await assert.rejects(t.port.movePaused(p,10,signal()),/busy/);await parking;
-  assert.equal(finished,false);assert.deepEqual(t.generation.source.status.position,parked);assert.deepEqual(t.port.position(),[51,0,0,2.02]);assert.deepEqual(t.coordinates.state,modal);assert.deepEqual(t.port.status.pausePosition,p);
-  await assert.rejects(t.port.resumeStream(signal()),/return to the drained pause position/);assert.equal(t.f.stops,0);
-  await t.port.movePaused([p[0],p[1],p[2]+.2,p[3]-.01],10,signal());await t.port.movePaused(p,5,signal());
-  assert.deepEqual(t.generation.source.status.position,p);await t.port.resumeStream(signal());await running;
-  const positions=new Map(t.generation.motion.bindings.map(b=>[b.id,b.history.status.lastPlannedPosition]));assert.deepEqual(positions,new Map([['x',200n],['e',22n],['y',0n],['z',0n]]));assert.equal(t.f.stops,0);assert.equal(t.port.status.pausePosition,undefined);
- }finally{await t.close();}
-});
-for(const dispose of [false,true])test(`paused travel ${dispose?'disposal waits both motion owners':'cancellation aborts both motion owners'}`,async()=>{
- const t=await fixture(),cancel=new AbortController();try{
-  t.kinematics.markHomed([0]);t.port.move([51,0,0,2],.5);const running=t.port.drain(signal()),failed=assert.rejects(running);await streamStarted(t);await t.port.pauseStream(signal());
-  const parking=t.port.movePaused([51.5,0,0,2],.1,cancel.signal),rejected=assert.rejects(parking);assert.equal(t.port.status.pausedMotion,true);
-  if(dispose)await t.port.dispose();else cancel.abort(new Error('cancel parking'));
-  await rejected;await failed;assert.equal(t.port.status.pausedMotion,false);assert.equal(t.port.status.busy,false);assert.equal(t.f.stops,1);assert.equal(t.kinematics.status.homedAxes,'');
- }finally{await t.close();}
 });

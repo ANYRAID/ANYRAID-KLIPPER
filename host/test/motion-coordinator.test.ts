@@ -47,3 +47,10 @@ test('native coordinated motion reaches the MCU slot scheduler with retained ste
  const sink=new MoveQueueSink([{id:'main',emitters:['x','y'],moveSlots:8,clockAt:t=>x.clockAt(t),transport:{async send(messages){assert(histories>0);packets+=messages.length;for(const p of messages)ids.add(p.id);},async stop(){assert.fail('unexpected stop');}}}],async outputs=>{histories+=outputs.reduce((sum,o)=>sum+o.history.length,0);});
  const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'y',queue:q,stepper:y}],sink);await c.advanceWindow(1.5,1.45);c.calibrateClock(['x','y'],0,1000100);await c.advanceWindow(2.1,2.05);await c.advance(2.1);assert(packets>0);assert.deepEqual(ids,new Set(['x','y']));assert.equal(c.status.committedTime,2.1);
 });
+test('short first filtered window retains reset history until its safe cutoff reaches the baseline',async()=>{
+ using q=new TrapQueue();q.setPosition(1,0,0,0);using x=q.createStepper(settings,'x',.01);x.initializePosition(1000000n,0n);x.configureShapers({x:{amplitudes:[1,1],times:[0,.04]}});
+ q.appendRaw(new Float64Array([1,0,.5,0,0,0,0,0,0,0,0,0,0]));let stopped=0,commits=0;
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:x}],{async commit(batch){commits++;assert.equal(batch.outputs[0].position,0n);},async stop(){stopped++;}},16*1024*1024,1);
+ await c.advance(1.005);assert(x.scanWindow.safeFinalizeTime!<1);assert.equal(c.finalizedSourceTime,0);assert.equal(stopped,0);
+ await c.advance(1.1);assert(c.finalizedSourceTime>1);assert.equal(commits,2);assert.equal(stopped,0);
+});

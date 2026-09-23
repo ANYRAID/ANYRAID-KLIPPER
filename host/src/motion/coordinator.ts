@@ -23,7 +23,7 @@ export class MotionCoordinator {
  #retired=false;#retirement:Promise<void>|undefined;#idle=Promise.resolve();#resolveIdle:(()=>void)|undefined;
  #beginWork(){if(!this.#busy&&!this.#bounded)this.#idle=new Promise(resolve=>{this.#resolveIdle=resolve;});}
  #endWork(){if(!this.#busy&&!this.#bounded){this.#resolveIdle?.();this.#resolveIdle=undefined;}}
- #finalizedSourceTime=0;#generated:number;#committed:number;#sequence=0;#maxBytes:number;
+ #finalizedSourceTime=0;#generated:number;#committed:number;#baseline:number;#sequence=0;#maxBytes:number;
  constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[]){
   if(!bindings.length||bindings.length>128||!Number.isSafeInteger(maxBatchBytes)||maxBatchBytes<1)throw new RangeError('Invalid motion coordinator limits');
   const ids=new Set<string>(),steppers=new Set<StepCompressor>();
@@ -35,7 +35,7 @@ export class MotionCoordinator {
   const time=initialCommittedTime;
   if(bindings.some(b=>b.stepper.generatedTime!==time))throw new Error('Steppers must match the declared committed baseline');
   this.#guards=[...clockHealth];
-  this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=time;this.#maxBytes=maxBatchBytes;
+  this.#bindings=bindings.map(b=>({...b}));this.#sink=sink;this.#generated=this.#committed=this.#baseline=time;this.#maxBytes=maxBatchBytes;
  }
  /** Retain 30 seconds behind the slowest observed emitter, plus 1 ms margin.
   * Observations must come from the same MCU routes and current generation. */
@@ -213,7 +213,10 @@ export class MotionCoordinator {
    for(const b of this.#bindings){const time=b.stepper.scanWindow.safeFinalizeTime,old=cutoffs.get(b.queue);
     cutoffs.set(b.queue,old===null||time===null?null:old===undefined?time:Math.min(old,time));}
    let complete=true,finalized=Infinity;
-   for(const [queue,time] of cutoffs){if(time===null){complete=false;continue;}queue.finalize(time,Math.min(time,clearHistoryTime));finalized=Math.min(finalized,time);}
+   // A short first window may still retain convolution history before the
+   // reset baseline. Keep that queue untouched; never rewind native cleanup
+   // or clamp cleanup forward into a solver's retained dependency window.
+   for(const [queue,time] of cutoffs){if(time===null||time<this.#baseline){complete=false;continue;}queue.finalize(time,Math.min(time,clearHistoryTime));finalized=Math.min(finalized,time);}
    if(complete)this.#finalizedSourceTime=Math.max(this.#finalizedSourceTime,finalized);
   }catch(error){
    if(error instanceof MotionRetiredError&&this.#retired&&!this.#failed)throw error;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {NativePauseParking,type PauseParkingConfig} from '../src/operations/native-pause-parking.ts';
 const config:PauseParkingConfig={parkXY:[5,6],retract:1,lift:2,travelSpeed:30,liftSpeed:5,retractSpeed:10},signal=()=>new AbortController().signal;
-function fixture(){const moves:number[][]=[],checks:number[][][]=[],events:string[]=[];const port={pauseStream:async()=>({position:[10,20,30,40],sourceTime:1}),validatePausedPath(legs:readonly {position:readonly number[];speed:number}[]){checks.push(legs.map(l=>[...l.position]));},movePaused:async(p:readonly number[])=>{moves.push([...p]);},resumeStream:async()=>{events.push('resume');},motorOff:async()=>{events.push('stop');}};return {port,moves,checks,events};}
+function fixture(){const moves:number[][]=[],checks:number[][][]=[],events:string[]=[];const port={pause:async()=>({position:[10,20,30,40],sourceTime:1}),validatePausedPath(legs:readonly {position:readonly number[];speed:number}[]){checks.push(legs.map(l=>[...l.position]));},movePaused:async(p:readonly number[])=>{moves.push([...p]);},resumeStream:async()=>{events.push('resume');},motorOff:async()=>{events.push('stop');}};return {port,moves,checks,events};}
 test('configured parking preflights round trip and preserves ordered lift/return/extrusion stages',async()=>{
  const f=fixture(),c=structuredClone(config),parking=new NativePauseParking(f.port,c);c.parkXY=[99,99];const paused=parking.pause(signal());assert.equal(paused,parking.pause(signal()));await paused;
  assert.deepEqual(f.moves,[[10,20,30,39],[10,20,32,39],[5,6,32,39]]);assert.equal(f.checks[0].length,6);assert.equal(parking.status.phase,'parked');await parking.resume(signal());

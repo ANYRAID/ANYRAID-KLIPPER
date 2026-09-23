@@ -23,6 +23,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #streamer:RebuiltMotionStreamer;
  #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
+ #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
@@ -31,20 +32,25 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();
  }
  #newAdmission(position:readonly number[]){return createGuardedBedMeshPort({mesh:null,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
- get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pausedMotion:this.#pausedBusy,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
+ get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
- move(position:readonly number[],speed:number){this.assertActive();if(this.#busy)throw new Error('Native motion port busy');this.#admission.move(position,speed);}
+ move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
  #check(signal:AbortSignal){signal.throwIfAborted();this.assertActive();}
  #futureTime(){const now=serialClock.now();return Math.max(...this.#g.members.map((m,i)=>this.#g.motion.bindings.find(b=>b.member===i)!.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;}
  async #operate<T>(phase:string,signal:AbortSignal,work:(signal:AbortSignal)=>Promise<T>):Promise<T>{
-  this.assertActive();if(this.#busy)throw new Error('Native motion port busy');this.#busy=true;this.#phase=phase;
+  this.assertActive();if(this.#pause)throw new Error('Native motion port busy or paused');
+  if(this.#ownedPauseRun){
+   const prior=this.#ownedPauseRun,abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();
+   try{await prior;signal.throwIfAborted();this.assertActive();}finally{signal.removeEventListener('abort',abort);}
+  }
+  if(this.#busy||this.#pause)throw new Error('Native motion port busy or paused');this.#busy=true;this.#phase=phase;
   const idle=Promise.withResolvers<void>();this.#idle=idle.promise;const combined=AbortSignal.any([signal,this.#abort.signal]);
   const abort=()=>{void this.motorOff(combined.reason).catch(()=>{});};combined.addEventListener('abort',abort,{once:true});
   try{this.#check(combined);const result=await work(combined);this.#check(combined);return result;}
   catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Native motion operation and stop failed');}throw error;}
-  finally{combined.removeEventListener('abort',abort);this.#busy=false;this.#phase=this.#failed?'stopped':'idle';idle.resolve();}
+  finally{combined.removeEventListener('abort',abort);this.#ownedPauseRun=undefined;this.#busy=false;this.#phase=this.#failed?'stopped':'idle';idle.resolve();}
  }
  async #drain(signal:AbortSignal){
   this.#check(signal);const moves=this.#admission.flush();
@@ -55,6 +61,28 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,s=>this.#streamer.append(this.#admission.flush(true),s));}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
+ /** Product pause after file admission is fenced. A boundary-owned stream
+  * remains internal; later checkpoints await its suffix before taking over. */
+ pause(signal:AbortSignal):Promise<StreamPause>{
+  try{
+   this.#check(signal);if(this.#resuming)throw new Error('Native motion stream is resuming');if(this.#pause)return this.#pause;
+   if(this.#busy)return this.pauseStream(signal);
+   const state=this.#g.source.status;
+   if(this.#admission.pending||state.seeded&&!state.paused){
+    const running=this.#operate('stream',this.#abort.signal,s=>this.#streamer.append(this.#admission.flush(),s));void running.catch(()=>{});
+    const paused=this.pauseStream(signal);if(this.#pause){this.#pauseMode='owned';this.#ownedPauseRun=running;}return paused;
+   }
+   this.#pauseMode='stationary';
+   const paused=this.#operate('pause',signal,async s=>{
+    if(!this.#g.source.status.paused){
+     const padding=Math.max(.001,...this.#g.motion.bindings.flatMap(b=>[b.stepper.scanWindow.future,b.stepper.scanWindow.past]));
+     this.#g.source.startAt(Math.max(state.sourceTime,this.#futureTime()+padding));await this.#g.source.prepareIdle(s);this.#check(s);await this.#g.source.drain([],s);
+    }
+    this.#check(s);const current=this.#g.source.status,stopped=Object.freeze({position:Object.freeze([...current.position]),sourceTime:current.sourceTime});
+    this.#pausePosition=stopped.position;this.#pauseReady=true;return stopped;
+   });this.#pause=paused;void paused.catch(()=>{});return paused;
+  }catch(error){return Promise.reject(error);}
+ }
  /** Interrupt an active rolling flush/drain without releasing its exclusive
   * ownership. The result is a drained planned stop, not measured coordinates.
   * The caller must fence further file admission before requesting this pause. */
@@ -62,7 +90,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   try{
    this.#check(signal);if(this.#resuming)throw new Error('Native motion stream is resuming');if(this.#pause)return this.#pause;
    if(!this.#busy||!['stream','drain'].includes(this.#phase)||!this.#streamer.status.busy)throw new Error('No active native stream to pause');
-   const done=Promise.withResolvers<StreamPause>();this.#pause=done.promise;void done.promise.catch(()=>{});
+   const done=Promise.withResolvers<StreamPause>();this.#pause=done.promise;this.#pauseMode='held';void done.promise.catch(()=>{});
    const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
    void (async()=>{
     try{
@@ -78,13 +106,13 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   * retained print endpoint or G-code modal coordinates. Each leg is guarded,
   * paced and drained; the product owner supplies the safe parking/return path. */
  validatePausedPath(legs:readonly PausedMove[]):void{
-  this.assertActive();if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused)throw new Error('Native stream is not available for paused motion');
+  this.assertActive();if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused)throw new Error('Native stream is not available for paused motion');
   if(!Array.isArray(legs)||legs.length>64)throw new RangeError('Invalid paused motion path');
   const admission=this.#newAdmission(this.#g.source.status.position);
   for(const leg of legs){admission.move(leg.position,leg.speed);admission.flush();}
  }
  async movePaused(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>{
-  this.#check(signal);if(!this.#pauseReady||this.#resuming||this.#streamer.status.pause!=='paused')throw new Error('Native stream is not paused');
+  this.#check(signal);if(!this.#pauseReady||this.#resuming||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused')throw new Error('Native stream is not paused');
   if(this.#pausedBusy)throw new Error('Paused motion is busy');
   const target=[...position];this.#pausedBusy=true;const idle=Promise.withResolvers<void>();this.#pausedIdle=idle.promise;
   const combined=AbortSignal.any([signal,this.#abort.signal]),abort=()=>{void this.motorOff(combined.reason).catch(()=>{});};combined.addEventListener('abort',abort,{once:true});
@@ -104,7 +132,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const current=this.#g.source.status;if(!current.paused||!this.#pausePosition||current.position.length!==this.#pausePosition.length||current.position.some((v,i)=>v!==this.#pausePosition![i]))throw new Error('Must return to the drained pause position before resuming');
   this.#resuming=true;
   const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
-  try{await this.#streamer.resume(createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;this.#pausePosition=undefined;}
+  try{if(this.#pauseMode!=='stationary')await this.#streamer.resume(createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;this.#pausePosition=undefined;this.#pauseMode=undefined;}
   catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Native resume and stop failed');}throw error;}
   finally{this.#resuming=false;signal.removeEventListener('abort',abort);}
  }
