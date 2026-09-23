@@ -5,6 +5,16 @@ import {AsyncHeaterRuntime} from '../src/thermal/async-runtime.ts';
 import {BangBangControl} from '../src/thermal/control.ts';
 import {GCodeDispatch} from '../src/gcode/dispatch.ts';
 const signal=()=>new AbortController().signal,flush=()=>new Promise(resolve=>setImmediate(resolve));
+test('target batch validates every entry before one motion barrier and cannot heat after turn off',async()=>{
+ const a=heater(),b=heater(),gate=Promise.withResolvers<void>();let barriers=0;
+ const group=new AsyncPrinterHeaters(()=>{barriers++;return gate.promise;});group.register('a',a.runtime);group.register('b',b.runtime);await group.start();
+ try{
+  await assert.rejects(group.setTargets([{name:'a',target:200},{name:'b',target:400}],signal()),/range/);assert.equal(barriers,0);assert.equal(a.runtime.status.target,0);
+  await assert.rejects(group.setTargets([{name:'a',target:200},{name:'a',target:100}],signal()),/batch/);assert.equal(barriers,0);
+  const pending=group.setTargets([{name:'a',target:200},{name:'b',target:60}],signal()),failed=assert.rejects(pending,/invalidated/);assert.equal(barriers,1);
+  const off=group.turnOffAll();gate.resolve();await failed;a.resets[1].resolve();b.resets[1].resolve();await off;assert.equal(a.runtime.status.target,0);assert.equal(b.runtime.status.target,0);
+ }finally{gate.resolve();await group.shutdown();}
+});
 function heater(options:{startup?:boolean;stop?:boolean}={}){
  const resets:ReturnType<typeof Promise.withResolvers<void>>[]=[],stop=Promise.withResolvers<void>();let stops=0;
  const runtime=new AsyncHeaterRuntime({minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3},new BangBangControl(1),{configuration:{cycleTime:.1,maximumDuration:3,initialPower:0,defaultPower:0},reset(){const job=Promise.withResolvers<void>();resets.push(job);if(resets.length===1&&!options.startup)job.resolve();return job.promise;},setPWM:async()=>{},stop(reason){stops++;for(const reset of resets)reset.reject(reason);if(!options.stop)stop.resolve();return stop.promise;}},()=>({system:1,print:1}),{},()=>()=>{});

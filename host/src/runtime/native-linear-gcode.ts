@@ -21,5 +21,6 @@ export class NativeLinearGCode {
   owners.add(port);
  }
  enable():void{if(this.#closed)throw new Error('Native G-code closed');this.#port.assertActive();this.dispatch.setReady(true);}
+ usesPort(port:NativeLinearHomingPort):boolean{return this.#port===port;}
  async close():Promise<void>{this.#closed=true;this.dispatch.emergencyStop('Native G-code closed');try{await this.#port.dispose();}finally{this.#off();}}
 }

@@ -64,6 +64,23 @@ export class AsyncPrinterHeaters {
   if(this.#closed||generation!==this.#generation)throw new GCodeError('Heater target invalidated by shutdown or turn off');
   try{await this.#target(entry.heater,target,signal);signal.throwIfAborted();}catch(error){try{await this.shutdown('Heater target command failed');}catch(stopError){throw new AggregateError([error,stopError],'Heater target and shutdown failed',{cause:error});}throw error;}
  }
+ /** Validate the whole group, then cross one motion boundary before starting
+  * independent heater targets. Preparation must not race two native drains. */
+ async setTargets(targets:readonly {name:string;target:number}[],signal:AbortSignal):Promise<void>{
+  signal.throwIfAborted();
+  if(!targets.length||targets.length>64||new Set(targets.map(t=>t.name)).size!==targets.length)throw new GCodeError('Invalid heater target batch');
+  const entries=targets.map(({name,target})=>{
+   const entry=this.#entries.get(name);if(!entry)throw new GCodeError(`Unknown heater '${name}'`);
+   const {minimum,maximum}=entry.heater.limits;
+   if(!Number.isFinite(target)||target<0||target!==0&&(target<minimum||target>maximum))throw new GCodeError('Requested temperature out of range');
+   return {heater:entry.heater,target};
+  });
+  if(!this.#started||this.#starting||this.#closed||this.#off!==undefined)throw new GCodeError('Heater registry is not active');
+  const generation=this.#generation;
+  await this.#barrier(signal);signal.throwIfAborted();
+  if(this.#closed||generation!==this.#generation)throw new GCodeError('Heater target invalidated by shutdown or turn off');
+  try{await Promise.all(entries.map(({heater,target})=>this.#target(heater,target,signal)));signal.throwIfAborted();}catch(error){try{await this.shutdown('Heater target command failed');}catch(stopError){throw new AggregateError([error,stopError],'Heater target and shutdown failed',{cause:error});}throw error;}
+ }
  async wait(name:string,minimum:number|undefined,maximum:number|undefined,signal:AbortSignal,report:()=>void=()=>{}):Promise<void>{
   if(minimum===undefined&&maximum===undefined||minimum!==undefined&&!Number.isFinite(minimum)||maximum!==undefined&&!Number.isFinite(maximum)||(maximum??Infinity)<=(minimum??-Infinity))throw new GCodeError('Invalid temperature wait range');
   const sensor=this.#entries.get(name)?.heater??this.#sensors.get(name)?.sensor;

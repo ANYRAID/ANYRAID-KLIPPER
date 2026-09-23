@@ -40,9 +40,7 @@ export class ThermalPrintDevice implements PrintDevice {
    if(this.#job)throw new Error('A print is already prepared');
    const job=Object.freeze({...request});this.#job=job;
    await this.#device.prepare(job,local);guard();
-   // Start both target operations before waiting, without leaving rejections unobserved.
-   const targets=await Promise.allSettled([this.#heaters.setTarget(this.#nozzle,job.nozzle,local),this.#heaters.setTarget(this.#bed,job.bed,local)]);
-   for(const target of targets)if(target.status==='rejected')throw target.reason;
+   await this.#heaters.setTargets([{name:this.#nozzle,target:job.nozzle},{name:this.#bed,target:job.bed}],local);
    guard();await this.#stable(local);guard();this.#prepared=true;
   });
  }
