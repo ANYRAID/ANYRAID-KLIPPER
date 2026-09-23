@@ -71,3 +71,9 @@ test('cancellation while awaiting tail MCU time cannot publish a completed drain
   const pending=t.g.source.drain([],cancel.signal),rejected=assert.rejects(pending,/cancel tail clock/);await entered.promise;cancel.abort(new Error('cancel tail clock'));await rejected;assert.equal(t.g.source.status.paused,false);assert.equal(t.g.source.status.failed,true);assert.equal(t.timeline.status.stopped,true);assert.equal(t.f.stops,1);
  }finally{await t.close();}
 });
+test('a boundary added after rolling submission uses the owned source endpoint without new geometry',async()=>{
+ const t=await fixture(true);try{
+  const q=new LookAheadQueue();q.add(new Move(motionLimits(100,1000),[50,0,0,2],[52,0,0,2],10));await t.stream.append(q.flush(),signal());const end=t.g.source.status.sourceTime,count=t.g.source.status.bufferedMoves;t.g.source.markBoundary(t.timeline.register(.5));assert.equal(t.g.source.status.bufferedMoves,count);assert.equal(t.g.source.status.sourceTime,end);
+  await t.g.source.drain([],signal());assert.equal(t.writes().length,1);assert.equal(Number(t.writes()[0].parameters.clock),Number(BigInt.asUintN(32,t.g.motion.bindings[0].stepper.clockAt(end))));assert.equal(t.g.motion.bindings[0].history.status.lastPlannedPosition,300n);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});

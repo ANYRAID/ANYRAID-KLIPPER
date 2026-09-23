@@ -30,6 +30,7 @@ export class PlannedMotionSource {
  readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
  readonly #starts:Float64Array;readonly #moves:(MotionSnapshot|undefined)[];#braking=false;
  #position:number[];#time:number;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
+ #idleMarkers:readonly number[]=[];#stationary:{id:number;time:number}[]=[];
  #output:SourceBoundaryOutput|undefined;#deliver:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverRolling:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverFinal:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536,output?:SourceBoundaryOutput){
   if(!Number.isSafeInteger(maxBufferedMoves)||maxBufferedMoves<1||maxBufferedMoves>65536)throw new RangeError('Invalid source capacity');
@@ -49,23 +50,30 @@ export class PlannedMotionSource {
    this.#deliverFinal=async(horizon,signal)=>{await this.#deliver!(horizon,signal);signal.throwIfAborted();await output.settle(signal);};
   }
  }
- get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,braking:this.#braking,failed:this.#failed,fault:this.#fault};}
+ get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,pendingBoundaries:this.#idleMarkers.length+this.#stationary.length,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,braking:this.#braking,failed:this.#failed,fault:this.#fault};}
+ /** An idle request is anchored only when fresh start/resume time is seeded.
+  * It never fabricates a zero-length Move or grants a motion permission. */
+ markBoundary(id:number):void{
+  this.#check();if(!this.#output||this.#braking)throw new Error('Source boundary output unavailable');
+  if(this.#count){const m=this.#moves[(this.#head+this.#count-1)%this.#ends.length]!;m.endMarkers=copyEndMarkers([...m.endMarkers??[],id]);}
+  else{if(this.#seeded&&!this.#paused)throw new Error('Stationary boundary requires an unused or drained source');this.#idleMarkers=copyEndMarkers([...this.#idleMarkers,id])!;}
+ }
  /** Current buffered plan only. Read before release; braking/rebase invalidates
   * old times. This snapshot neither dispatches nor acknowledges output events. */
  boundarySchedule():readonly {id:number;time:number}[]{
   this.#check();return this.#schedule();
  }
  #schedule():readonly {id:number;time:number}[]{
-  const result:{id:number;time:number}[]=[];
+  const result:{id:number;time:number}[]=this.#stationary.map(b=>Object.freeze({...b}));
   for(let i=0;i<this.#count;i++){const slot=(this.#head+i)%this.#ends.length;for(const id of this.#moves[slot]?.endMarkers??[])result.push(Object.freeze({id,time:this.#ends[slot]}));}return Object.freeze(result);
  }
- #release():void{const cutoff=this.#drain.finalizedSourceTime;while(this.#count&&this.#ends[this.#head]<=cutoff){this.#moves[this.#head]=undefined;this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
+ #release():void{const cutoff=this.#drain.finalizedSourceTime;if(this.#stationary.length)this.#stationary=this.#stationary.filter(b=>b.time>cutoff);while(this.#count&&this.#ends[this.#head]<=cutoff){this.#moves[this.#head]=undefined;this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
  #capacity(moves:readonly Move[]):void{if(Array.isArray(moves)&&moves.length>this.#ends.length-this.#count)throw new MotionSourceCapacityError('Planned source capacity exceeded; flush before retrying');}
  #check():void{if(this.#retired)throw new Error('Planned source producer retired');if(this.#failed)throw new Error('Planned motion source failed',{cause:this.#fault});if(this.#busy)throw new Error('Planned motion source busy');}
- async #stop(error:unknown):Promise<void>{this.#failed=true;this.#fault??=error;this.#moves.fill(undefined);const jobs:Promise<void>[]=[];for(const stop of [()=>this.#drain.stop(error),...this.#output?[()=>this.#output!.stop(error)]:[]])try{jobs.push(stop());}catch(cause){jobs.push(Promise.reject(cause));}const results=await Promise.allSettled(jobs),errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)this.#fault=new AggregateError([error,...errors],'Planned source and stop failed');}
+ async #stop(error:unknown):Promise<void>{this.#failed=true;this.#fault??=error;this.#moves.fill(undefined);this.#idleMarkers=[];this.#stationary=[];const jobs:Promise<void>[]=[];for(const stop of [()=>this.#drain.stop(error),...this.#output?[()=>this.#output!.stop(error)]:[]])try{jobs.push(stop());}catch(cause){jobs.push(Promise.reject(cause));}const results=await Promise.allSettled(jobs),errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)this.#fault=new AggregateError([error,...errors],'Planned source and stop failed');}
  #validate(moves:readonly Move[],storeEnds:boolean,limit=65536){
   if(!Array.isArray(moves)||moves.length>limit)throw new RangeError('Invalid planned source batch');
-  if(this.#paused&&moves.length)throw new Error('Resume planned motion with a fresh print time first');
+  if(this.#paused&&(moves.length||this.#idleMarkers.length))throw new Error('Resume planned motion with a fresh print time first');
   if(this.#braking&&moves.length)throw new Error('Drain the braking source before admitting more motion');
   let position=this.#position,time=this.#time,staged=0;
   // Validate the entire batch before any queue mutation. Input objects are used
@@ -77,6 +85,7 @@ export class PlannedMotionSource {
   const from=this.#seeded?this.#idleFrom:this.#drain.generatedTime;if(from===undefined)return;
   if(!Number.isFinite(from)||from>this.#time)throw new RangeError('Invalid source generation baseline');
   if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(new Float64Array([from,0,this.#time-from,0,...p,0,0,0,0,0,0]));}
+  if(this.#idleMarkers.length){this.#stationary.push(...this.#idleMarkers.map(id=>({id,time:this.#time})));this.#idleMarkers=[];}
   this.#seeded=true;this.#idleFrom=undefined;
  }
  #append(moves:readonly Move[]):void{

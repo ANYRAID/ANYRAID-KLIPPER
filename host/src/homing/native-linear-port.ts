@@ -43,6 +43,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  position(){return this.#admission.plannedPosition;}
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
+ get hasCoolingFan():boolean{return this.#g.boundaryOutput!==undefined;}
+ queueCoolingFan(value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
+  const output=this.#g.boundaryOutput;if(!output)throw new Error('Cooling fan is not configured');
+  const id=output.register(value);if(!this.#admission.markPendingBoundary(id))this.#g.source.markBoundary(id);
+ });}
  #check(signal:AbortSignal){signal.throwIfAborted();this.assertActive();}
  #futureTime(){const now=serialClock.now();return Math.max(...this.#g.members.map((m,i)=>this.#g.motion.bindings.find(b=>b.member===i)!.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;}
  async #operate<T>(phase:string,signal:AbortSignal,work:(signal:AbortSignal)=>Promise<T>):Promise<T>{
@@ -60,12 +65,22 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  async #drain(signal:AbortSignal){
   this.#check(signal);const moves=this.#admission.flush();
-  const state=this.#g.source.status;if(!moves.length&&(state.paused||!state.seeded))return;
+  const state=this.#g.source.status;if(!moves.length&&(state.paused||!state.seeded)){
+   if(!state.pendingBoundaries)return;await this.#prepareIdleBoundary(signal);
+   // This interval is known stationary. Do not run an empty rolling stream:
+   // its filter-tail stop condition is intended for actual motion coverage.
+   await this.#g.source.drain([],signal);this.#check(signal);return;
+  }
   await this.#streamer.append(moves,signal);this.#check(signal);
   await this.#g.source.drain([],signal);this.#check(signal);
  }
+ async #prepareIdleBoundary(signal:AbortSignal){
+  const source=this.#g.source,state=source.status,padding=Math.max(.001,...this.#g.motion.bindings.flatMap(b=>[b.stepper.scanWindow.future,b.stepper.scanWindow.past]));
+  const time=Math.max(state.sourceTime+padding+.001,this.#futureTime()+padding);if(state.paused)source.resumeAt(time);else source.startAt(time);
+  await source.prepareIdle(signal);this.#check(signal);
+ }
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
- flush(signal:AbortSignal){return this.#operate('stream',signal,s=>this.#streamer.append(this.#admission.flush(true),s));}
+ flush(signal:AbortSignal){return this.#operate('stream',signal,async s=>{const state=this.#g.source.status;if(!this.#admission.pending&&state.pendingBoundaries&&(state.paused||!state.seeded)){await this.#drain(s);return;}await this.#streamer.append(this.#admission.flush(true),s);});}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
  /** Product pause after file admission is fenced. A boundary-owned stream
   * remains internal; later checkpoints await its suffix before taking over. */
@@ -80,9 +95,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    }
    this.#pauseMode='stationary';
    const paused=this.#operate('pause',signal,async s=>{
-    if(!this.#g.source.status.paused){
-     const padding=Math.max(.001,...this.#g.motion.bindings.flatMap(b=>[b.stepper.scanWindow.future,b.stepper.scanWindow.past]));
-     this.#g.source.startAt(Math.max(state.sourceTime,this.#futureTime()+padding));await this.#g.source.prepareIdle(s);this.#check(s);await this.#g.source.drain([],s);
+    if(!this.#g.source.status.paused||this.#g.source.status.pendingBoundaries){
+     await this.#prepareIdleBoundary(s);await this.#g.source.drain([],s);
     }
     this.#check(s);const current=this.#g.source.status,stopped=Object.freeze({position:Object.freeze([...current.position]),sourceTime:current.sourceTime});
     this.#pausePosition=stopped.position;this.#pauseReady=true;return stopped;
@@ -147,6 +161,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,async s=>{
+   if(this.hasCoolingFan)throw new Error('Boundary output transfer is required before coordinate rebase');
    await this.#drain(s);const g=this.#g,routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
@@ -158,6 +173,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
+   if(this.hasCoolingFan)throw new Error('Boundary output transfer is required before homing');
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:this.#o.groupsByAxis[axis]}).run(target,speed,axis,s);
    try{this.#adopt(result.generation,result.position,s);return result;}catch(error){result.motion.dispose();throw error;}
   });

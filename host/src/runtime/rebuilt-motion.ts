@@ -7,7 +7,7 @@ import {CoordinatedMotionDrain} from '../motion/coordinated-drain.ts';
 import {PlannedMotionSource,type PlannedQueue,type SourceBoundaryOutput} from '../motion/planned-motion-source.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
-type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
+type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{register(value:number):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
 export interface RebuiltMotionOptions {
  group:MCUGroup;
@@ -82,7 +82,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    },invalidateAfter:time=>target.invalidateAfter(time),stop:cause=>target.stop(cause)};
   }
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
-  check();return Object.freeze({group,motion,sink,coordinator,drain,source,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,motion,sink,coordinator,drain,source,boundaryOutput:ownedOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
