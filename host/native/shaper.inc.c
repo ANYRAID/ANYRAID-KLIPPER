@@ -33,7 +33,7 @@ static napi_value configure_shapers(napi_env env,napi_callback_info info) {
        ||wrapped->gen_steps_pre_active<0||wrapped->gen_steps_post_active<0){free(wrapped);REJECT("Invalid shaper scan window");}
     itersolve_set_trapq(wrapped,h->queue->q,base->step_dist);
     if(h->orig_sk)free(h->sk);else h->orig_sk=h->sk;
-    h->sk=wrapped;h->link.retention=wrapped->gen_steps_post_active;
+    h->sk=wrapped;h->link.retention=wrapped->gen_steps_post_active;h->link.future=wrapped->gen_steps_pre_active;
     for(int i=0;i<3;i++)h->gain[i]=gain[i];
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
@@ -144,7 +144,7 @@ static napi_value configure_pressure_advance(napi_env env,napi_callback_info inf
     itersolve_set_position(sk,h->path_position,0,0);itersolve_set_trapq(sk,h->queue->q,h->sk->step_dist);
     sk->last_flush_time=h->sk->last_flush_time;sk->last_move_time=h->sk->last_move_time;
     extruder_set_pressure_advance(sk,0,advance,smooth);
-    free_solver(h->sk,5);h->sk=sk;h->pressure_advance=advance;h->pa_count=1;h->pa_times[0]=0;h->pa_values[0]=advance;h->pa_last_time=0;h->link.retention=sk->gen_steps_post_active;
+    free_solver(h->sk,5);h->sk=sk;h->pressure_advance=advance;h->pa_count=1;h->pa_times[0]=0;h->pa_values[0]=advance;h->pa_last_time=0;h->link.retention=sk->gen_steps_post_active;h->link.future=sk->gen_steps_pre_active;
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 

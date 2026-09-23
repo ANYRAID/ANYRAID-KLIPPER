@@ -5,6 +5,7 @@ import type {Move} from './lookahead.ts';
 interface NativeTrapQueue {
   create():object;
   append(handle:object,rows:Float64Array):void;
+  replaceFuture(handle:object,time:number,rows:Float64Array):void;
   extract(handle:object,capacity:number,start:number,end:number):Float64Array;
   finalize(handle:object,time:number,history:number):void;
   setPosition(handle:object,time:number,x:number,y:number,z:number):void;
@@ -24,7 +25,18 @@ export class TrapQueue {
   }
   /** Packed rows: time, accelT, cruiseT, decelT, xyz, xyzRatio, startV, cruiseV, accel. */
   appendRaw(rows:Float64Array):void {native.append(this.#handle,rows);}
+  /** Privileged source rewrite after every attached solver's generated future
+   * dependency. Validates the complete batch before mutation, retains history.
+   * Caller owns coordinate continuity and synchronized changes to other queues. */
+  replaceFutureRaw(time:number,rows:Float64Array):void {native.replaceFuture(this.#handle,time,rows);}
   appendPlanned(moves:readonly Move[],startTime:number,extrusionAxis?:number,coverIdle=false):number {
+    return this.#writePlanned(moves,startTime,extrusionAxis,coverIdle,false);
+  }
+  /** Same privileged dependency and ownership rules as replaceFutureRaw. */
+  replaceFuturePlanned(moves:readonly Move[],startTime:number,extrusionAxis?:number,coverIdle=false):number {
+    return this.#writePlanned(moves,startTime,extrusionAxis,coverIdle,true);
+  }
+  #writePlanned(moves:readonly Move[],startTime:number,extrusionAxis:number|undefined,coverIdle:boolean,replace:boolean):number {
     if(typeof coverIdle!=='boolean')throw new TypeError('Invalid idle coverage option');
     if(!Number.isFinite(startTime)||startTime<0) throw new RangeError('Invalid print time');
     if(moves.length>65536) throw new RangeError('Motion batch too large');
@@ -47,7 +59,7 @@ export class TrapQueue {
       time=((time+p.accelT)+p.cruiseT)+p.decelT;
       if(!Number.isFinite(time)||time>=1e15) throw new RangeError('Print time overflow');
     }
-    native.append(this.#handle,rows.subarray(0,count*13));return time;
+    const data=rows.subarray(0,count*13);if(replace)native.replaceFuture(this.#handle,startTime,data);else native.append(this.#handle,data);return time;
   }
   /** Rows of 10 doubles in reverse chronology, matching pull_move in trapq.h. */
   extract(capacity:number,start:number,end:number):Float64Array {return native.extract(this.#handle,capacity,start,end);}
