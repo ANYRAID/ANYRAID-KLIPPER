@@ -83,10 +83,23 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   await this.#streamer.append(moves,signal);this.#check(signal);
   await this.#g.source.drain([],signal);this.#check(signal);
  }
- async #prepareIdleBoundary(signal:AbortSignal){
+ async #prepareIdleBoundary(signal:AbortSignal,calibrationReserve=0){
   const source=this.#g.source,state=source.status,padding=Math.max(.001,...this.#g.motion.bindings.flatMap(b=>[b.stepper.scanWindow.future,b.stepper.scanWindow.past]));
-  const time=Math.max(state.sourceTime+padding+.001,this.#futureTime()+padding);if(state.paused)source.resumeAt(time);else source.startAt(time);
-  await source.prepareIdle(signal);this.#check(signal);
+  const time=Math.max(state.sourceTime+padding+.001+calibrationReserve,this.#futureTime()+padding+calibrationReserve);if(state.paused)source.resumeAt(time);else source.startAt(time);
+  await source.prepareIdle(signal,30000,calibrationReserve);this.#check(signal);
+ }
+ /** Exclusive stationary checkpoint for the product scheduler. No implicit
+  * flushing of pending user motion or output, and no homing permission gain. */
+ maintainIdleClocks(signal:AbortSignal):Promise<{attempted:number;updated:number}>{
+  this.#check(signal);const state=this.#g.source.status;
+  if(this.#admission.pending||state.pendingBoundaries||state.seeded&&!state.paused)throw new Error('Idle clock maintenance requires stationary ownership');
+  return this.#operate('clock',signal,async s=>{
+   if(!this.#g.clockTimelines?.some(c=>c.synchronizer))return {attempted:0,updated:0};
+   await this.#prepareIdleBoundary(s,.01);
+   const future=Math.max(...this.#g.motion.bindings.map(b=>b.stepper.scanWindow.future));
+   const result=this.#g.maintainClocks(this.#g.source.status.sourceTime-future-.001);
+   await this.#g.source.drain([],s);this.#check(s);return result;
+  });
  }
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,async s=>{const state=this.#g.source.status;if(!this.#admission.pending&&state.pendingBoundaries&&(state.paused||!state.seeded)){await this.#drain(s);return;}await this.#streamer.append(this.#admission.flush(true),s);});}

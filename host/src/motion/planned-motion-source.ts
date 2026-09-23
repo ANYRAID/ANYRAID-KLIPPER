@@ -131,11 +131,15 @@ export class PlannedMotionSource {
   * supplied time must include the scheduler's current MCU lead requirement. */
  resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#idleFrom=this.#time;this.#time=printTime;this.#paused=false;}
  /** Consume known stationary startup/resume coverage in one native transaction.
-  * A source that already owns active motion is never eligible for this path. */
- async prepareIdle(signal:AbortSignal,timeoutMs=30000):Promise<boolean>{
-  this.#check();signal.throwIfAborted();if(this.#seeded&&this.#idleFrom===undefined)return false;
+  * A source that already owns active motion is never eligible for this path.
+  * Optionally retain up to 10 ms of generated headroom for a synchronous
+  * calibration; all stationary source data remains available to the solver. */
+ async prepareIdle(signal:AbortSignal,timeoutMs=30000,calibrationReserve=0):Promise<boolean>{
+  this.#check();signal.throwIfAborted();
+  if(!Number.isFinite(calibrationReserve)||calibrationReserve<0||calibrationReserve>.01||this.#time-calibrationReserve<this.#drain.generatedTime)throw new RangeError('Invalid idle calibration reserve');
+  if(this.#seeded&&this.#idleFrom===undefined)return false;
   if(this.#count||this.#paused)throw new Error('Idle preparation requires an unused or resumed source');this.#busy=true;
-  try{this.#seed();return await this.#drain.advanceIdleSource(this.#time,signal,timeoutMs);}
+  try{this.#seed();return await this.#drain.advanceIdleSource(this.#time-calibrationReserve,signal,timeoutMs);}
   catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  /** Rolling commit; preserves the tail needed by shaping/pressure advance.
