@@ -8,6 +8,19 @@ import {motionLimits} from '../src/motion/lookahead.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const signal=()=>new AbortController().signal;
+test('sampled clock retirement respects idle motion and delayed sensor leases',async()=>{
+ const f=await rebuiltFixture(false,false,false,false,true),main=new PrintClockTimeline({offset:0,frequency:1e6}),aux=new PrintClockTimeline({offset:0,frequency:1e6}),sampled:object[]=[];
+ try{
+  const g=await bindRebuiltMotion({...f.options,clockTimelines:[{id:'m',timeline:main},{id:'a',timeline:aux}]}),sensor=aux.retain();
+  for(let i=1;i<=64;i++)for(const clock of [main,aux])clock.append(BigInt(i)*1000000n,1e6);
+  g.retireClockHistory();assert.equal(aux.status.fromClock,0n);
+  for(const id of ['m','a']){const sync=g.group.session(id).clock.sync;Object.defineProperty(sync,'lastClock',{configurable:true,get:()=>70000000n});sampled.push(sync);}
+  g.coordinator.historyCutoff({x:70000000n,e:70000000n});g.retireClockHistory();assert.equal(aux.status.fromClock,0n);
+  assert(main.status.fromClock<=main.clockAt(g.coordinator.status.generatedTime));sensor.release();g.retireClockHistory();assert.equal(aux.status.fromClock,40000000n);
+  assert.throws(()=>aux.printTimeAtClock(39999999n),/retained/);assert.equal(aux.printTimeAtClock(40000000n),40);
+  await g.coordinator.shutdown();assert.throws(()=>g.retireClockHistory(),/not ready/);
+ }finally{for(const sync of sampled)Reflect.deleteProperty(sync,'lastClock');await f.close();}
+});
 test('shared generation clocks require complete distinct MCU ownership',async()=>{
  for(const mode of ['missing','shared','mismatch']){
   const f=await rebuiltFixture(false,false,false,false,true);try{

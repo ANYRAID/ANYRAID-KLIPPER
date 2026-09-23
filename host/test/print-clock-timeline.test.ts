@@ -4,6 +4,15 @@ import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 import {snapshotPrintClock} from '../src/timing/print-clock.ts';
 import {StepCompressor} from '../src/motion/step-compressor.ts';
 import {StepHistory} from '../src/motion/step-history.ts';
+test('thousands of observed retirements remain bounded while delayed readers preserve their segment',()=>{
+ const clock=new PrintClockTimeline({offset:0,frequency:1e6},64),reader=clock.retain();
+ for(let i=1;i<=5000;i++){
+  clock.append(BigInt(i)*1000000n,1e6);reader.advance(BigInt(Math.max(0,i-40))*1000000n);
+  const cutoff=clock.historyCutoff(BigInt(i)*1000000n,30);if(cutoff!==undefined)clock.retireBefore(cutoff);
+  assert(clock.status.segments<=41);assert.equal(clock.printTimeAtClock(BigInt(Math.max(0,i-40))*1000000n),Math.max(0,i-40));
+ }
+ reader.release();clock.retireBefore(clock.historyCutoff(5000000000n,30)!);assert.equal(clock.status.fromClock,4970000000n);assert.equal(clock.status.segments,31);
+});
 test('calibration planning respects future anchors, reservations, capacity and input limits',()=>{
  const clock=new PrintClockTimeline({offset:0,frequency:1e6},2);clock.reserve(2);
  assert.equal(clock.planCalibration(1.000000123,2,1000100),undefined);

@@ -121,6 +121,12 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   },motion.printTime);
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group,{assertActive:assertClockCalibration}],clockTimelines?new Map(bindings.map(b=>[b.id,timelineFor(routes[b.member])!])):undefined);
   ownedCoordinator=coordinator;
+  const retireClockHistory=():void=>{
+   group.assertActive();if(coordinator.status.failed||coordinator.status.retired)throw new Error('Clock retirement requires active motion ownership');
+   // Only sampled MCU clocks establish retention, never host extrapolation.
+   // Timeline leases may retain additional motion or delayed ADC history.
+   for(const owner of clockTimelines??[]){const clock=group.session(owner.id).clock;clock.assertActive();const cutoff=owner.timeline.historyCutoff(clock.sync.lastClock,30);if(cutoff!==undefined)owner.timeline.retireBefore(cutoff);}
+  };
   const calibrateAuxiliaryClock=(id:string):boolean=>{
    group.assertActive();if(coordinator.status.failed||coordinator.status.retired)throw new Error('Auxiliary calibration requires active motion ownership');
    if(!auxiliaryMCUs.some(a=>a.id===id))throw new Error('Peripheral calibration requires an auxiliary MCU');
@@ -149,7 +155,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,calibrateAuxiliaryClock,calibrateMotionClock,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

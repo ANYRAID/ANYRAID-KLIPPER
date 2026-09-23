@@ -54,7 +54,8 @@ export class MotionCoordinator {
   for(const guard of this.#guards)guard.assertActive();let time=Infinity;
   for(const b of this.#bindings)time=Math.min(time,(this.#historyClocks?.get(b.id)??b.stepper).printTimeAtClock(clocks[b.id]));
   const boundary=time-30,cutoff=Math.max(0,boundary-.001);if(cutoff>0&&cutoff>=boundary)throw new RangeError('History margin below print-time resolution');
-  for(const [clock,retained] of this.#historyLeases){if(cutoff<=clock.printTimeAtClock(retained.tick))continue;const mapped=clock.clockAt(cutoff),tick=clock.printTimeAtClock(mapped)>cutoff?mapped-1n:mapped;retained.lease.advance(tick);retained.tick=tick;}
+  const retainUntil=Math.min(cutoff,this.#generated);
+  for(const [clock,retained] of this.#historyLeases){if(retainUntil<=clock.printTimeAtClock(retained.tick))continue;const mapped=clock.clockAt(retainUntil),tick=clock.printTimeAtClock(mapped)>retainUntil?mapped-1n:mapped;retained.lease.advance(tick);retained.tick=tick;}
   return cutoff;
  }
  /** Common lower bound actually finalized in every source queue. */

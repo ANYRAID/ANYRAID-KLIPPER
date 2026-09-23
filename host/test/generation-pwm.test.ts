@@ -19,6 +19,13 @@ function setup(hardware=false){
  const data=make(),control=make(),output=new GenerationPWMOutput(plan,dictionary,data.queue,control.queue,t=>BigInt(Math.trunc(t*1000)),c=>Number(c)/1000);
  return {plan,dictionary,data,control,output};
 }
+test('software PWM aligns and resets after its original last-write mapping is retired',async()=>{
+ const f=setup(),clock=new PrintClockTimeline({offset:0,frequency:1000}),output=GenerationPWMOutput.withClock(f.plan,f.dictionary,f.data.queue,f.control.queue,clock);
+ const reset=output.reset(signal());f.control.calls[0].resolve();await reset;const first=output.setPWM(2,.5,signal());f.data.calls[0].resolve();await first;
+ for(let i=3;i<=100;i++)clock.append(BigInt(i)*1000n,1000);clock.retireBefore(clock.historyCutoff(100000n,30)!);assert.equal(clock.status.fromClock,70000n);
+ const time=output.nextAlignedPrintTime(100.025);assert(time>=100.025);const next=output.setPWM(time,.25,signal());f.data.calls[1].resolve();await next;
+ const again=output.reset(signal());f.control.calls[1].resolve();await again;const last=output.setPWM(101,.5,signal());f.data.calls[2].resolve();await last;await output.stop();
+});
 for(const hardware of [false,true])test(`calibrated ${hardware?'hardware':'software'} PWM fences queued ticks and retains historical mapping after reset`,async()=>{
  const f=setup(hardware),clock=new PrintClockTimeline({offset:0,frequency:1000}),output=GenerationPWMOutput.withClock(f.plan,f.dictionary,f.data.queue,f.control.queue,clock);
  assert.equal(clock.status.reservedThrough,f.plan.initialClock);assert.throws(()=>clock.append(f.plan.initialClock,1100),/reserved/);
