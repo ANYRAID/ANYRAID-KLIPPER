@@ -7,7 +7,21 @@ import {serialClock} from '../src/protocol/serial-queue.ts';
 import {MCUGroup} from '../src/runtime/mcu-group.ts';
 import {SerialSession} from '../src/protocol/serial-session.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const signal=()=>new AbortController().signal,fixture=()=>nativeLinearFixture(0,()=>true,true,{kickStartTime:0,minimumScheduleTime:.001},true);
+test('calibrated enable spans a clock boundary and reserves pulses through release guards',async()=>{
+ const fw=await serialFirmware(),group=new MCUGroup([{id:'m',async connect(s:AbortSignal,stopDevice:(cause:unknown)=>Promise<void>){const session=new SerialSession(fw.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){}}]);
+ try{
+  await group.start(signal());const chip={},timeline=new PrintClockTimeline({offset:0,frequency:1e6}),plan=compileMotorEnable(group,{mcu:'m',chip,pin:{chip,chipName:'m',pin:'PA3',invert:0,pullup:0},oid:0,emitters:['x'],leadTime:.01,calibration:{offset:0,frequency:1e6},timeline});
+  await plan.session.configure({oidCount:1,commands:[plan.config.config],restart:[plan.config.restart],reservedMoves:plan.config.reservedMoves},signal());const power=new MotorEnable(group,[plan]);
+  const boundary=plan.session.clock.sync.getClock(serialClock.now())+200000n;timeline.append(boundary,1000100);const first=boundary+5000n,last=first+1000n;
+  const target=timeline.printTimeAtClock(first)-.01;let expected=timeline.clockAt(target);if(timeline.printTimeAtClock(expected)>target)expected--;
+  await power.beforeSteps([{id:'x',messages:[],position:2n,history:new BigInt64Array([first,last,0n,2n,1000n,0n])}]);
+  const enabled=fw.outputs.find(o=>o.name==='queue_digital_out');assert(enabled);assert.equal(BigInt(Number(enabled.parameters.clock)),expected);assert(expected<boundary);assert.equal(timeline.status.reservedThrough,last);
+  assert.throws(()=>timeline.append(last,1e6),/reserved/);power.assertBindings(group,[{id:'x',mcu:'m',calibration:timeline.status.calibration}],timeline.printTimeAtClock(last));
+  await power.disableAll(timeline.printTimeAtClock(last),signal());assert.equal(power.status.lines[0].enabled,false);assert(timeline.status.reservedThrough>last);assert.equal(fw.outputs.filter(o=>o.name==='queue_digital_out').length,2);
+ }finally{await group.stop();await fw.close();}
+});
 test('shared driver enable is ACKed before steps and scheduled before the earliest filtered pulse',async()=>{
  const t=await fixture();try{
   const enable=()=>t.f.fw.outputs.filter(m=>m.name==='queue_digital_out'&&m.parameters.oid===10);assert.equal(enable().length,0);await t.port.queueCoolingFan(.5,signal());await t.port.drain(signal());assert.equal(enable().length,0);
