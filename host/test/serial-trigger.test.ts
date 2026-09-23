@@ -6,9 +6,9 @@ import {TriggerSyncProtocol,trsyncFormats} from '../src/inputs/trsync.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(){const firmware=await serialFirmware(undefined,{triggerSync:true});let stops=0;const session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}});
+async function fixture(){const firmware=await serialFirmware(undefined,{triggerSync:true});let stops=0;const unmatched:unknown[]=[];const session=new SerialSession(firmware.fd,{onMessage(response){if(response.message.name==='trsync_state'){unmatched.push(response);if(unmatched.length>8)unmatched.shift();}},async stopDevice(){stops++;}});
  await session.initialize(signal());const protocol=new TriggerSyncProtocol(session.dictionary,8);await session.configure({oidCount:9,commands:protocol.commands,restart:protocol.restart},signal());const queue=session.commandQueue();
- return {firmware,session,protocol,queue,get stops(){return stops;},async close(){await session.stop().catch(()=>{});await firmware.close();}};
+ return {firmware,session,protocol,queue,unmatched,get stops(){return stops;},async close(){await session.stop().catch(()=>{});await firmware.close();}};
 }
 async function until(f:()=>boolean){const end=performance.now()+1500;while(!f()){if(performance.now()>end)throw new Error('Session trigger timeout');await delay(2);}}
 test('query stays behind earlier scheduled commands on its owned FIFO',async()=>{
@@ -44,7 +44,7 @@ test('consecutive queries keep response provenance newer than their request',asy
  const f=await fixture();try{
   for(let i=0;i<10000;i++){
    const before=serialClock.now(),payload=f.protocol.trigger(2);
-   const response=await(i%2?f.session.queryOnQueue(f.queue,payload,'trsync_state',signal(),{oid:8}):f.session.query(payload,'trsync_state',signal(),{oid:8}));
+   const response=await(i%2?f.session.queryOnQueue(f.queue,payload,'trsync_state',signal(),{oid:8}):f.session.query(payload,'trsync_state',signal(),{oid:8})).catch(cause=>{throw new Error(JSON.stringify({iteration:i,before,now:serialClock.now(),frames:f.firmware.frames,requests:f.firmware.outputs.filter(m=>m.name==='trsync_trigger').length,unmatched:f.unmatched,status:f.session.status}),{cause});});
    assert.ok(response.sentTime===0||response.sentTime>=before,`response predates request ${i}`);
   }
   assert.equal(f.stops,0);

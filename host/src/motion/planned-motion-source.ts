@@ -22,7 +22,7 @@ export class PlannedMotionSource {
   if(xyz!==1||axes.size!==position.length-3)throw new RangeError('Planned source requires XYZ and every extra axis');
   this.#routes=routes.map(r=>({...r}));this.#drain=drain;this.#time=startTime;this.#position=[...position];
  }
- get status(){return {retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,failed:this.#failed,fault:this.#fault};}
+ get status(){return {seeded:this.#seeded,retired:this.#retired,bufferedMoves:this.#count,availableMoves:this.#ends.length-this.#count,sourceTime:this.#time,position:[...this.#position],busy:this.#busy,paused:this.#paused,failed:this.#failed,fault:this.#fault};}
  #release():void{const cutoff=this.#drain.finalizedSourceTime;while(this.#count&&this.#ends[this.#head]<=cutoff){this.#head=(this.#head+1)%this.#ends.length;this.#count--;}}
  #capacity(moves:readonly Move[]):void{if(Array.isArray(moves)&&moves.length>this.#ends.length-this.#count)throw new MotionSourceCapacityError('Planned source capacity exceeded; flush before retrying');}
  #check():void{if(this.#retired)throw new Error('Planned source producer retired');if(this.#failed)throw new Error('Planned motion source failed',{cause:this.#fault});if(this.#busy)throw new Error('Planned motion source busy');}
@@ -50,16 +50,26 @@ export class PlannedMotionSource {
  /** Transfer an unused generation to a privileged producer. This only fences
   * this source writer; the new owner must still arm/stop the physical MCU. */
  retireProducer():void{this.#check();if(this.#count||this.#paused||this.#seeded)throw new Error('Only an unused planned source may transfer');this.#retired=true;}
+ /** Validate a complete owned stream before any prefix is submitted. */
+ validateBatch(moves:readonly Move[]):void{this.#check();this.#validate(moves,false,100000);}
  /** Append earlier lookahead flushes without losing the final drain endpoint. */
  append(moves:readonly Move[]):void{this.#check();this.#capacity(moves);try{this.#append(moves);}catch(error){void this.#stop(error);throw error;}}
+ /** Delay an unused source without changing its coordinates or MCU mapping.
+  * Native generation covers the intervening stationary startup interval. */
+ startAt(printTime:number):void{this.#check();if(this.#seeded||this.#count||this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid unused source start time');this.#time=printTime;}
  /** Call after a successful drain, before producing subsequent motion. The
   * supplied time must include the scheduler's current MCU lead requirement. */
  resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#time=printTime;this.#paused=false;}
  /** Rolling commit; preserves the tail needed by shaping/pressure advance.
   * Success means transport acceptance, not completed physical movement. */
  async flush(signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
-  this.#check();signal.throwIfAborted();if(this.#paused)throw new Error('Planned source is paused');this.#busy=true;
-  try{this.#seed();const result=await this.#drain.advanceSource(this.#time,signal,timeoutMs,clearHistoryTime);this.#release();return result;}
+  return this.flushThrough(this.#time,signal,timeoutMs,clearHistoryTime);
+ }
+ /** Commit only a prefix of already appended source, preserving native filter tails. */
+ async flushThrough(sourceUntil:number,signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
+  this.#check();signal.throwIfAborted();if(this.#paused)throw new Error('Planned source is paused');
+  if(!Number.isFinite(sourceUntil)||sourceUntil<this.#drain.generatedTime||sourceUntil>this.#time)throw new RangeError('Invalid planned source commit horizon');this.#busy=true;
+  try{this.#seed();const result=await this.#drain.advanceSource(sourceUntil,signal,timeoutMs,clearHistoryTime);this.#release();return result;}
   catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  async drain(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{

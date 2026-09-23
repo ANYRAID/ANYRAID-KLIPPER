@@ -5,7 +5,7 @@ import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-test('stale reactor event time cannot stamp a newly queued request in the past',()=>{
+test('reactor and concurrent enqueue races cannot stamp a new request in the past',()=>{
  const root=fileURLToPath(new URL('../../',import.meta.url)),helper=join(root,'klippy/chelper'),dir=mkdtempSync(join(tmpdir(),'serial-clock-'));
  try{
   const executable=join(dir,'check'),addon=process.env.ANYRAID_SERIALQUEUE_ADDON??'',sanitizer=addon.endsWith('-asan.node')?'address,undefined':addon.endsWith('-ubsan.node')?'undefined':undefined;

@@ -27,7 +27,7 @@ export class GCodeFileExecution {
     this.#inflight=(async()=>{
      const batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();
      if(!batch){eof=true;return;}
-     await this.#dispatch.execute(batch.script);this.#abort.signal.throwIfAborted();this.#reader.commit(batch);
+     await this.#dispatch.execute(batch.script,{boundary:'checkpoint'});this.#abort.signal.throwIfAborted();this.#reader.commit(batch);
     })();
     try{await this.#inflight;}finally{this.#inflight=undefined;}
     if(eof)break;

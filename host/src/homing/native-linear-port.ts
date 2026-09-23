@@ -7,6 +7,7 @@ import {createGuardedBedMeshPort} from '../motion/guarded-bed-mesh-port.ts';
 import type {ExtrusionGuard} from '../motion/extrusion.ts';
 import type {MotionLimits} from '../motion/lookahead.ts';
 import type {Axis} from '../kinematics/linear.ts';
+import {RebuiltMotionStreamer} from '../runtime/motion-streamer.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
@@ -14,18 +15,20 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
 }
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
  * MCU/actuator ownership and a live thermal guard. Ordinary moves are admitted
- * to lookahead; drain submits them and waits for MCU time. Continuous streaming,
- * mesh lifecycle and product startup remain separate runtime responsibilities. */
+ * to lookahead; flush paces a rolling prefix and drain waits for MCU time.
+ * The runtime must arrange timely checkpoints and final drain. Mesh lifecycle
+ * and product startup remain separate runtime responsibilities. */
 export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
+ #streamer:RebuiltMotionStreamer;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
-  this.#g=o.generation;this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();
+  this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();
  }
  #newAdmission(position:readonly number[]){return createGuardedBedMeshPort({mesh:null,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
- get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,pendingMoves:this.#admission.pending};}
+ get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,pendingMoves:this.#admission.pending,stream:this.#streamer.status};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
@@ -42,12 +45,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  async #drain(signal:AbortSignal){
   this.#check(signal);const moves=this.#admission.flush();
-  if(this.#g.source.status.paused){if(!moves.length)return;this.#g.source.resumeAt(Math.max(this.#g.source.status.sourceTime,this.#futureTime()));}
-  await this.#g.source.drain(moves,signal);this.#check(signal);
+  const state=this.#g.source.status;if(!moves.length&&(state.paused||!state.seeded))return;
+  await this.#streamer.append(moves,signal);this.#check(signal);
+  await this.#g.source.drain([],signal);this.#check(signal);
  }
+ /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
+ flush(signal:AbortSignal){return this.#operate('stream',signal,s=>this.#streamer.append(this.#admission.flush(true),s));}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
-  this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#admission=admission;
+  this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,async s=>{

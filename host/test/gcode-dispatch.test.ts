@@ -46,3 +46,13 @@ test('long synchronous scripts yield to emergency input before their tail',async
  const job=d.execute(Array(1000).fill('G1 X1').join('\n'));setImmediate(()=>d.emergencyStop());
  await assert.rejects(job);assert.ok(moves>0&&moves<1000);
 });
+test('stream checkpoint failure shuts down and invalidates queued scripts',async()=>{
+ const shutdown:string[]=[],error=new Error('stream failure');let moved=0;
+ const d=new GCodeDispatch({output(){},shutdown:r=>shutdown.push(r),async checkpoint(){throw error;}});d.register('G1',()=>{moved++;});d.setReady(true);
+ const active=d.execute(Array(256).fill('G1').join('\n')),queued=d.execute('G1');await assert.rejects(active,e=>e===error);await assert.rejects(queued,/invalidated/);assert(moved<256);assert.deepEqual(shutdown,['Motion checkpoint failed']);
+});
+test('final drain receives emergency cancellation and blocks queued commands',async()=>{
+ let moved=0,entered!:()=>void;const ready=new Promise<void>(r=>{entered=r;});
+ const d=new GCodeDispatch({output(){},shutdown(){},drain:s=>new Promise<void>((resolve,reject)=>{entered();s.addEventListener('abort',()=>reject(s.reason),{once:true});})});d.register('G1',()=>{moved++;});d.setReady(true);
+ const active=d.execute('G1'),queued=d.execute('G1');await ready;d.emergencyStop('cancel final drain');await assert.rejects(active,/cancel final drain/);await assert.rejects(queued,/invalidated/);assert.equal(moved,1);
+});

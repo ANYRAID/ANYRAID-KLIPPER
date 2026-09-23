@@ -683,8 +683,8 @@ command_event(struct serialqueue *sq, double eventtime)
 {
     pthread_mutex_lock(&sq->lock);
     // Commands may have been enqueued after the reactor sampled eventtime.
-    // Refresh under the queue lock so response provenance cannot predate the
-    // request whose bytes are about to be selected for transmission.
+    // Refresh the scheduling estimate under the queue lock. Packet provenance
+    // is refreshed again below after importing concurrently queued requests.
     eventtime = get_monotonic();
     uint8_t buf[MESSAGE_MAX * MAX_PENDING_BLOCKS];
     int buflen = 0;
@@ -693,6 +693,10 @@ command_event(struct serialqueue *sq, double eventtime)
         waketime = check_send_command(sq, buflen, eventtime);
         if (waketime != PR_NOW)
             break;
+        // check_send_command imports requests under transmit_requests.lock,
+        // which differs from sq->lock. A producer can enqueue after the sample
+        // above, so stamp each packet only after selecting its ready messages.
+        eventtime = get_monotonic();
         buflen += build_and_send_command(sq, &buf[buflen], buflen, eventtime);
         if (buflen + MESSAGE_MAX > sizeof(buf))
             break;

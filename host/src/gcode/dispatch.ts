@@ -11,7 +11,9 @@ export type Handler=(command:CommandContext)=>void|Promise<void>;
 interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;}
 export interface DispatchHooks {
   output(message:string):void;
-  drain?():Promise<void>;
+  drain?(signal:AbortSignal):Promise<void>;
+  /** Stream a bounded prefix without forcing a final zero-velocity boundary. */
+  checkpoint?(signal:AbortSignal):Promise<void>;
   shutdown(reason:string):void;
   commandError?():void;
 }
@@ -33,7 +35,7 @@ export class GCodeDispatch {
     finally{this.#stopping=false;}
   }
   /** Serial scripts reject at the first command error; acknowledged input continues. */
-  execute(script:string,options:{acknowledge?:boolean}={}):Promise<void> {
+  execute(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'}={}):Promise<void> {
     if(script.length>1048576||this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
     const lines=script.split('\n').map(line=>line.endsWith('\r')?line.slice(0,-1):line);
     if(lines.length>16384)return Promise.reject(new GCodeError('G-code line count limit'));
@@ -41,17 +43,18 @@ export class GCodeDispatch {
     const generation=this.#generation;
     const job=this.#tail.then(()=>{
       if(generation!==this.#generation)throw new GCodeError('Script invalidated by shutdown');
-      return this.#run(lines,options.acknowledge??false);
+      return this.#run(lines,options.acknowledge??false,options.boundary??'drain');
     });
     this.#tail=job.catch(()=>{}).finally(()=>{this.#pending--;});return job;
   }
-  async #run(lines:string[],needAck:boolean):Promise<void> {
+  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint'):Promise<void> {
     const controller=new AbortController();this.#active=controller;
     try {
       let count=0;
       for(const line of lines) {
         if(count++&&count%128===0) {
-          await this.#hooks.drain?.();
+          try{if(this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);}
+          catch(error){this.emergencyStop('Motion checkpoint failed');throw error;}
           await new Promise<void>(resolve=>setImmediate(resolve));
         }
         controller.signal.throwIfAborted();let acknowledged=false;
@@ -88,7 +91,8 @@ export class GCodeDispatch {
         }
         ack();
       }
-      await this.#hooks.drain?.();controller.signal.throwIfAborted();
+      try{if(boundary==='checkpoint'&&this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}
+      catch(error){this.emergencyStop('Motion drain failed');throw error;}
     }finally{if(this.#active===controller)this.#active=undefined;}
   }
 }

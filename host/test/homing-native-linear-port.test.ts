@@ -60,3 +60,23 @@ for(const stuck of [false,true])test(`two-pass native G28 ${stuck?'rejects an im
  },1);
  try{if(stuck){await assert.rejects(t.command.home([0],signal()),/still triggered/);assert.equal(t.kinematics.status.homedAxes,'');assert.equal(t.f.stops,1);}else{await t.command.home([0],signal());assert.equal(t.kinematics.status.homedAxes,'x');assert(Math.abs(t.port.position()[0]-51)<1e-12);assert.equal(t.f.stops,0);}assert.equal(hits,2);}finally{clearInterval(timer);await t.close();}
 });
+test('G-code checkpoints stream native motion and reserve final drain for script completion',async()=>{
+ const t=await fixture();try{
+  t.kinematics.markHomed([0]);const {GCodeDispatch}=await import('../src/gcode/dispatch.ts');let checkpoints=0,drains=0,streamed=false;
+  const d=new GCodeDispatch({output(){},shutdown(reason){void t.port.motorOff(new Error(reason));},async checkpoint(s){await t.port.flush(s);checkpoints++;streamed ||= t.f.fw.motion.some(m=>m.name==='queue_step');},async drain(){drains++;await t.port.drain(signal());}});
+  d.register('G1',c=>t.coordinates.execute('G1',c.params));d.setReady(true);
+  await d.execute(Array.from({length:512},(_,i)=>`G1 X${50+(i+1)/512} F60`).join('\n'));
+  assert(checkpoints>=3);assert(streamed);assert.equal(drains,1);assert.deepEqual(t.port.position(),[51,0,0,2]);assert.equal(t.f.stops,0);
+  assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0),100);
+ }finally{await t.close();}
+});
+test('file batches preserve streaming lookahead until the print owner requests final drain',async()=>{
+ const t=await fixture(),{mkdtemp,open,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');const dir=await mkdtemp(join(tmpdir(),'native-file-stream-'));
+ try{
+  t.kinematics.markHomed([0]);const {GCodeDispatch}=await import('../src/gcode/dispatch.ts'),{GCodeFileReader}=await import('../src/gcode/file-reader.ts'),{GCodeFileExecution}=await import('../src/gcode/file-execution.ts');let checkpoints=0,drains=0;
+  const d=new GCodeDispatch({output(){},shutdown(reason){void t.port.motorOff(new Error(reason));},async checkpoint(s){await t.port.flush(s);checkpoints++;},async drain(s){drains++;await t.port.drain(s);}});d.register('G1',c=>t.coordinates.execute('G1',c.params));d.setReady(true);
+  const path=join(dir,'test.gcode');await writeFile(path,Array.from({length:512},(_,i)=>`G1 X${50+(i+1)/512} F60\n`).join(''));const execution=new GCodeFileExecution(await GCodeFileReader.adopt(await open(path,'r')),d);
+  await execution.start();assert.equal(execution.status.phase,'eof');assert.equal(drains,0);assert(checkpoints>=4);assert(t.port.status.pendingMoves>0);assert(t.f.fw.motion.some(m=>m.name==='queue_step'));
+  await t.port.drain(signal());assert.equal(t.port.status.pendingMoves,0);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0),100);assert.equal(t.f.stops,0);
+ }finally{await t.close();await rm(dir,{recursive:true,force:true});}
+});
