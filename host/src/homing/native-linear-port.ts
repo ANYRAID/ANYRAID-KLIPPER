@@ -184,7 +184,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
     const emitters=recoveryEmitters(g.motion.bindings,this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
     motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
-    this.#check(s);const next=await bindRebuiltMotion({group:g.group,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
+    this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
   });
  }

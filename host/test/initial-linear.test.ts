@@ -64,3 +64,13 @@ test('owned port reads live configured ADC temperature and ignores caller permis
   assert.throws(()=>port.move([0,0,0,.2],2),/temperature/);assert.deepEqual(port.position(),[0,0,0,.1]);
  }finally{if(timer)clearInterval(timer);await f.hardware.close();await f.close();}
 });
+test('configured coordinate replacement retains shared clocks and the auxiliary output owner',async()=>{
+ const f=await initialLinearFixture();try{
+  const g=f.initial.generation,aux=f.hardware.plan.configurations.find(c=>c.mcu==='aux')!.timeline;
+  assert.equal(g.clockTimelines!.find(c=>c.id==='aux')!.timeline,aux);assert.equal(g.auxiliaryMCUs[0].timeline,aux);
+  const {port}=f.initial.createLinearPort(f.reader,f.configuredSettings),boundary=aux.status.reservedThrough+10000000n;aux.append(boundary,1000100);
+  const view=g.clockMembers.find(c=>c.mcu==='aux')!;assert.equal(view.stepper.clockAt(aux.printTimeAtClock(boundary)+1),aux.clockAt(aux.printTimeAtClock(boundary)+1));
+  await port.forcePosition([0,0,0,0],f.signal);await port.queueCoolingFan(.5,f.signal);await port.drain(f.signal);
+  assert.equal(f.firmware[1].outputs.filter(o=>o.name==='queue_digital_out_generation'&&Number(o.parameters.on_ticks)>0).length>0,true);assert.deepEqual(f.stops,[0,0]);await f.hardware.close();
+ }finally{await f.hardware.close();await f.close();}
+});

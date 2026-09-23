@@ -6,7 +6,16 @@ import {bindRebuiltMotion} from '../src/runtime/rebuilt-motion.ts';
 import {BedMeshMovePort} from '../src/motion/bed-mesh-port.ts';
 import {motionLimits} from '../src/motion/lookahead.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const signal=()=>new AbortController().signal;
+test('shared generation clocks require complete distinct MCU ownership',async()=>{
+ for(const mode of ['missing','shared','mismatch']){
+  const f=await rebuiltFixture(false,false,false,false,true);try{
+   const main=new PrintClockTimeline({offset:0,frequency:mode==='mismatch'?999999:1e6}),aux=new PrintClockTimeline({offset:0,frequency:1e6}),clockTimelines=mode==='missing'?[{id:'m',timeline:main}]:[{id:'m',timeline:main},{id:'a',timeline:mode==='shared'?main:aux}];
+   await assert.rejects(bindRebuiltMotion({...f.options,clockTimelines}),/Shared clocks|shared MCU calibration/);assert.equal(f.stops,2);
+  }finally{await f.close();}
+ }
+});
 test('motion drain covers auxiliary MCU time without allocating fake emitters or queues',async()=>{
  const f=await rebuiltFixture(false,false,false,false,true);try{
   const g=await bindRebuiltMotion(f.options),port=new BedMeshMovePort({mesh:null,physicalPosition:f.options.position,limits:motionLimits(100,1000),validate(){}});

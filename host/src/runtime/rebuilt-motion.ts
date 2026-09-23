@@ -1,3 +1,4 @@
+import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
 import {MCUGroup} from './mcu-group.ts';
 import type {HomingMember} from '../homing/stop-confirmation.ts';
 import type {rebuildStoppedMotion} from '../homing/rebuild-motion.ts';
@@ -11,12 +12,13 @@ import {snapshotPrintClock} from '../timing/print-clock.ts';
 import type {MotorEnable} from '../outputs/motor-enable.ts';
 type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{readonly status:{pending:number;busy:boolean;stopped:boolean};register(value:number):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
-interface OutputContext {target:ClockedBoundaryOutput;group:MCUGroup;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;owner:symbol|undefined;}
+interface OutputContext {timeline?:PrintClockTimeline;target:ClockedBoundaryOutput;group:MCUGroup;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;owner:symbol|undefined;}
 /** Opaque, one-use handoff. Only releaseBoundaryOutput can create a valid token. */
 export interface BoundaryOutputTransfer {readonly kind:'boundary-output-transfer';}
 const transfers=new WeakMap<BoundaryOutputTransfer,{context:OutputContext;coordinator:MotionCoordinator}>();
 export interface RebuiltMotionOptions {
  group:MCUGroup;
+ clockTimelines?:readonly {id:string;timeline:PrintClockTimeline}[];
  /** Exact physical members used by the successful stop/recovery transaction. */
  members:readonly HomingMember[];
  /** Explicit non-motion controllers. They remain in group safety and clocks. */
@@ -39,7 +41,10 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
  try{
   group.assertActive();
   const ids=group.status.devices.map(d=>d.id),members=o.members.map(m=>Object.freeze({...m,steppers:Object.freeze(m.steppers.map(s=>Object.freeze({...s})))}));
-  const auxiliaryMCUs=Object.freeze((o.auxiliaryMCUs??[]).map(a=>{const c=snapshotPrintClock(a.calibration);return Object.freeze({id:a.id,calibration:Object.freeze({offset:c.offset,frequency:c.frequency})});}));
+  const clockTimelines=o.clockTimelines===undefined?undefined:Object.freeze(o.clockTimelines.map(c=>Object.freeze({...c})));
+  if(clockTimelines&&(clockTimelines.length!==ids.length||new Set(clockTimelines.map(c=>c.id)).size!==ids.length||new Set(clockTimelines.map(c=>c.timeline)).size!==ids.length||clockTimelines.some(c=>!ids.includes(c.id)||!(c.timeline instanceof PrintClockTimeline))))throw new Error('Shared clocks must cover each MCU with a distinct timeline');
+  const timelineFor=(id:string)=>clockTimelines?.find(c=>c.id===id)?.timeline;
+  const auxiliaryMCUs=Object.freeze((o.auxiliaryMCUs??[]).map(a=>{const timeline=timelineFor(a.id)??a.timeline,c=snapshotPrintClock(timeline?.status.calibration??a.calibration),saved=Object.freeze({offset:c.offset,frequency:c.frequency});return Object.freeze({id:a.id,timeline,get calibration(){return timeline?.status.calibration??saved;}});}));
   if(ids.length!==members.length+auxiliaryMCUs.length||new Set(members.map(m=>m.session)).size!==members.length)throw new Error('Rebuilt motion requires every physical MCU');
   const routes=members.map(m=>{const id=ids.find(id=>group.session(id)===m.session);if(!id)throw new Error('Rebuilt member does not belong to MCU group');m.session.assertCommandQueue(m.queue);return id;});
   const covered=[...routes,...auxiliaryMCUs.map(a=>a.id)];if(new Set(covered).size!==covered.length||covered.some(id=>!ids.includes(id)))throw new Error('Invalid auxiliary MCU coverage');for(const a of auxiliaryMCUs)group.session(a.id).configuration;
@@ -48,11 +53,11 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const grouped=members.map((m,i)=>{
    const owned=bindings.filter(b=>b.member===i);
    if(!owned.length||owned.length!==m.steppers.length||new Set(owned.map(b=>b.oid)).size!==owned.length||owned.some(b=>!m.steppers.some(s=>s.oid===b.oid&&s.inverted===b.inverted)))throw new Error('Incomplete rebuilt MCU bindings');
-   const calibration=owned[0].stepper.calibration;
+   const calibration=owned[0].stepper.calibration,shared=timelineFor(routes[i])?.status.calibration;if(shared&&(calibration.offset!==shared.offset||calibration.frequency!==shared.frequency))throw new Error('Motion differs from shared MCU calibration');
    if(owned.some(b=>b.stepper.calibration.offset!==calibration.offset||b.stepper.calibration.frequency!==calibration.frequency))throw new Error('Rebuilt MCU clocks differ');
    return owned;
   });
-  const clockMembers=Object.freeze([...members.map((m,i)=>Object.freeze({mcu:routes[i],session:m.session,stepper:grouped[i][0].stepper,calibration:()=>grouped[i][0].stepper.calibration})),...auxiliaryMCUs.map(a=>Object.freeze({mcu:a.id,session:group.session(a.id),stepper:snapshotPrintClock(a.calibration),calibration:()=>a.calibration}))]);
+  const clockMembers=Object.freeze([...members.map((m,i)=>Object.freeze({mcu:routes[i],timeline:timelineFor(routes[i]),session:m.session,stepper:grouped[i][0].stepper,calibration:()=>grouped[i][0].stepper.calibration})),...auxiliaryMCUs.map(a=>Object.freeze({mcu:a.id,timeline:a.timeline,session:group.session(a.id),stepper:readPrintClock(a.calibration,a.timeline),calibration:()=>a.calibration}))]);
   if(o.routes.length!==motion.queues.length||new Set(o.routes.map(r=>r.queue)).size!==o.routes.length)throw new Error('Rebuilt source queue coverage differs');
   for(const r of o.routes){const q=motion.queues.find(q=>q.queue===r.queue),p=r.extrusionAxis===undefined?o.position.slice(0,3):[o.position[r.extrusionAxis],0,0];if(!q||q.position.some((v,i)=>v!==p[i]))throw new Error('Rebuilt source coordinate differs from recovery');}
   const calibrations=bindings.map(b=>b.stepper.calibration);
@@ -67,14 +72,14 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(o.boundaryTransfer){
     const transfer=transfers.get(o.boundaryTransfer);if(!transfer)throw new Error('Invalid or consumed boundary output transfer');
     context=transfer.context;ownedOutput=context.target;member=clockMembers.findIndex(m=>m.session===context!.session);
-    if(context.group!==group||context.owner!==undefined||member<0||!transfer.coordinator.retirementComplete)throw new Error('Boundary output transfer requires retired motion on the same MCU group');
+    if(context.timeline!==clockMembers[member]?.timeline||context.group!==group||context.owner!==undefined||member<0||!transfer.coordinator.retirementComplete)throw new Error('Boundary output transfer requires retired motion on the same MCU group');
     const next=clockMembers[member].calibration();if(next.offset!==context.clock.offset||next.frequency!==context.clock.frequency)throw new Error('Boundary output transfer clock mapping differs');
     transfers.delete(o.boundaryTransfer);
    }else{
     const selector=o.boundaryOutput!,target=selector.output;member='member' in selector?selector.member:clockMembers.findIndex(m=>m.mcu===selector.mcu);
     if('member' in selector&&!members[member])throw new Error('Invalid boundary output MCU or ownership');
     if(!Number.isInteger(member)||!clockMembers[member]||outputOwners.has(target)||target.status.stopped||target.status.busy)throw new Error('Invalid boundary output MCU or ownership');
-    outputOwners.add(target);ownedOutput=target;context={target,group,session:clockMembers[member].session,clock:snapshotPrintClock(clockMembers[member].calibration()),owner:undefined};
+    outputOwners.add(target);ownedOutput=target;context={target,group,session:clockMembers[member].session,clock:readPrintClock(clockMembers[member].calibration(),clockMembers[member].timeline),timeline:clockMembers[member].timeline,owner:undefined};
     let offGroup=()=>{},offOutput=()=>{};
     offGroup=group.subscribeStop(cause=>{void target.stop(cause).catch(()=>{});offGroup();offOutput();});
     offOutput=target.subscribeStop(cause=>{void group.stop(cause).catch(()=>{});});
@@ -117,7 +122,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertMotorCalibration,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertMotorCalibration,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

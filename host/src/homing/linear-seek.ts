@@ -43,7 +43,7 @@ export class LinearHomingSeek {
    }});
    const result=await executor.run(signal);motion=result.motion;signal.throwIfAborted();if(!halt)throw new Error('Missing homing halt coordinates');
    motion=plan.restorePhysicalMembers(motion);
-   const next=await bindRebuiltMotion({group:g.group,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer,motorEnable:g.motorEnable});
+   const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer,motorEnable:g.motorEnable});
    signal.throwIfAborted();return Object.freeze({...result,movingSteppers,motion,generation:next,position:halt});
   }catch(error){
    const errors:unknown[]=[error];this.#cleanupPending=true;
