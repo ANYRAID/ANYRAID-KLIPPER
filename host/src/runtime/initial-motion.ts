@@ -1,3 +1,5 @@
+import {createConfiguredNativeLinearPort,type ConfiguredLinearHardware} from '../config/linear-motion.ts';
+import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {claimConfiguredMotion,type startConfiguredHardware} from './configured-hardware.ts';
 import {MotionStopConfirmation} from '../motion/stop-confirmation.ts';
 import {createStoppedMotion} from '../homing/rebuild-motion.ts';
@@ -27,11 +29,12 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
  const fan=options.fanSection===undefined?undefined:hardware.fans.find(f=>f.section===options.fanSection),fanPlan=plan.fans.find(f=>f.section===options.fanSection);if(options.fanSection!==undefined&&(!fan||!fanPlan))throw new Error('Unknown initial motion fan');
  const auxiliaryMCUs=plan.configurations.filter(c=>!devices.includes(c)).map(c=>Object.freeze({id:c.mcu,calibration:Object.freeze({offset:c.clock.offset,frequency:c.clock.frequency})}));
  const emitters=Object.freeze(descriptors.map(e=>Object.freeze({...e,member:devices.findIndex(c=>c.physicalMember===e.member)}))),local=new AbortController();
+ let port:ReturnType<typeof createConfiguredNativeLinearPort>['port']|undefined;
  let motion:ReturnType<typeof createStoppedMotion>|undefined,pending:ReturnType<typeof bindRebuiltMotion>|undefined;
  const group=claimConfiguredMotion(hardware,async cause=>{
   local.abort(cause);let generation:Awaited<ReturnType<typeof bindRebuiltMotion>>|undefined;
   if(pending)try{generation=await pending;}catch{/* failed binding owns its cleanup */}
-  try{if(generation)await generation.coordinator.shutdown(cause);}finally{motion?.dispose();}
+  try{if(port)await port.dispose();else if(generation)await generation.coordinator.shutdown(cause);}finally{motion?.dispose();}
  });
  const abort=()=>{local.abort(signal.reason);void hardware.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
  const timer=setTimeout(()=>{const error=new Error('Initial motion startup timed out');local.abort(error);void hardware.close(error).catch(()=>{});},timeout);
@@ -46,7 +49,14 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   const timeline=fan?new FanBoundaryTimeline(fan.runtime):undefined;
   pending=bindRebuiltMotion({group,members,auxiliaryMCUs,motion,motorEnable:hardware.motorEnable,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position,...timeline?{boundaryOutput:{output:timeline,mcu:fanPlan!.output.mcu}}:{}});
   const generation=await pending;active();
-  return Object.freeze({generation,emitters,stopped,close:hardware.close});
+  // Only a pristine initial source may be transferred. The port becomes the
+  // lifetime owner of every later rebase/homing generation, not just this one.
+  const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'>)=>{
+   group.assertActive();const state=generation.source.status;
+   if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
+   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters});port=result.port;return result;
+  };
+  return Object.freeze({generation,emitters,stopped,createLinearPort,close:hardware.close});
  }catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Initial motion and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',abort);}
 }
