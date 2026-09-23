@@ -51,6 +51,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   if(o.routes.length!==motion.queues.length||new Set(o.routes.map(r=>r.queue)).size!==o.routes.length)throw new Error('Rebuilt source queue coverage differs');
   for(const r of o.routes){const q=motion.queues.find(q=>q.queue===r.queue),p=r.extrusionAxis===undefined?o.position.slice(0,3):[o.position[r.extrusionAxis],0,0];if(!q||q.position.some((v,i)=>v!==p[i]))throw new Error('Rebuilt source coordinate differs from recovery');}
   const calibrations=bindings.map(b=>b.stepper.calibration);
+  const assertMotorCalibration=()=>{if(!o.motorEnable)return;group.assertActive();for(const [i,b] of bindings.entries()){const current=b.stepper.calibration,saved=calibrations[i];if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Motor enable clock calibration changed');}};
   const check=()=>{group.assertActive();for(const [i,b] of bindings.entries()){const current=b.stepper.calibration,saved=calibrations[i];if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Rebuilt motion calibration changed before start');}const now=serialClock.now();for(const [i,owned] of grouped.entries())if(owned[0].stepper.clockAt(motion.printTime)<=members[i].session.clock.sync.getClock(now))throw new Error('Rebuilt motion baseline expired before binding');};
   check();
   o.motorEnable?.assertBindings(group,bindings.map(b=>({id:b.id,mcu:routes[b.member],calibration:b.stepper.calibration})),motion.printTime);
@@ -100,7 +101,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
     const cutoff=horizon<state.throughClock?horizon:state.throughClock;
     if(cutoff>state.fromClock)b.history.pruneBefore(cutoff);
     b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}
-   if(o.motorEnable)await o.motorEnable.beforeSteps(outputs);
+   if(o.motorEnable){assertMotorCalibration();await o.motorEnable.beforeSteps(outputs);}
   },motion.printTime);
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
@@ -110,7 +111,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertMotorCalibration,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

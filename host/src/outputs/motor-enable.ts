@@ -4,6 +4,7 @@ import {snapshotPrintClock} from '../timing/print-clock.ts';
 import type {MotionOutput} from '../motion/coordinator.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {decodeInteger} from '../protocol/codec.ts';
+import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 const compiledPlans=new WeakSet<object>();
 export interface MotorEnableLine<T=unknown> {
  mcu:string;emitters:readonly string[];chip:T;pin:DigitalConfig<T>['pin'];oid:number;
@@ -46,6 +47,22 @@ export class MotorEnable {
   if(group!==this.#group||bindings.length!==this.#byEmitter.size||new Set(bindings.map(b=>b.id)).size!==bindings.length)throw new Error('Motor enable binding coverage differs');
   for(const b of bindings){const i=this.#byEmitter.get(b.id),line=i===undefined?undefined:this.#lines[i],p=line?.plan;if(!p||p.mcu!==b.mcu||p.clock.offset!==b.calibration.offset||p.clock.frequency!==b.calibration.frequency)throw new Error('Motor enable physical MCU or clock differs');if(line!.readyAt!==undefined&&p.clock.clockAt(printTime)<line!.readyAt)throw new Error('Rebuilt motion precedes scheduled motor readiness');}
   this.#group.assertActive();this.#abort.signal.throwIfAborted();
+ }
+ /** Normal all-motor release. Caller must fence admission and complete motion
+  * drain first. Preserve the original 100 ms guard on each side of disable. */
+ async disableAll(printTime:number,signal:AbortSignal):Promise<void>{
+  this.#group.assertActive();if(this.#busy)throw new Error('Motor enable operation already active');this.#busy=true;
+  const local=AbortSignal.any([signal,this.#abort.signal]);
+  try{
+   local.throwIfAborted();if(!Number.isFinite(printTime)||printTime<0)throw new RangeError('Invalid motor release boundary');
+   const active=this.#lines.filter(l=>l.enabled);if(!active.length)return;
+   const requests=active.map(line=>{const p=line.plan,now=p.session.clock.sync.getClock(serialClock.now()),boundary=p.clock.clockAt(printTime),last=line.output.status.lastClock,base=now>boundary?now:boundary,latest=base>last?base:last,guard=BigInt(Math.ceil(.1*p.clock.frequency)),tick=latest+guard,time=p.clock.printTimeAtClock(tick);if(p.clock.clockAt(time)!==tick)throw new Error('Motor release clock is not exactly representable');return {line,time,after:tick+guard};});
+   await Promise.all(requests.map(({line,time})=>line.output.setDigital(time,false,local)));
+   local.throwIfAborted();this.#group.assertActive();
+   await waitForMcuClocks(requests.map(({line,after})=>({clock:line.plan.session.clock,tick:after})),local);
+   local.throwIfAborted();this.#group.assertActive();for(const {line} of requests){line.enabled=false;line.readyAt=undefined;}
+  }catch(error){try{await this.#group.stop(error);}catch(stop){throw new AggregateError([error,stop],'Motor release and group stop failed');}throw error;}
+  finally{this.#busy=false;}
  }
  /** Called inside the sink's history/commit ownership, before any step packet
   * is accepted by transport. Idle initialization records never enable motors. */

@@ -45,6 +45,12 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
  get hasCoolingFan():boolean{return this.#g.boundaryOutput!==undefined;}
+ get hasMotorEnable():boolean{return this.#g.motorEnable!==undefined;}
+ releaseMotors(signal:AbortSignal):Promise<void>{return this.#operate('release',signal,async s=>{
+  const power=this.#g.motorEnable;if(!power)throw new Error('Motor enables are not configured');
+  await this.#drain(s);this.#g.assertMotorCalibration();this.#o.kinematics.clearHoming([0,1,2]);
+  await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
+ });}
  queueCoolingFan(value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
   const output=this.#g.boundaryOutput;if(!output)throw new Error('Cooling fan is not configured');
   const id=output.register(value);if(!this.#admission.markPendingBoundary(id))this.#g.source.markBoundary(id);
