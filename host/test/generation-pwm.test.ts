@@ -60,6 +60,29 @@ test('independent control queue and firmware capability are mandatory before any
  const empty=new MessageDictionary();empty.identify(Buffer.from(JSON.stringify({commands:{},responses:{},config:{}})),false);
  assert.throws(()=>new GenerationPWMOutput(f.plan,empty,f.data.queue,f.control.queue,()=>0n,()=>0));assert.equal(f.data.calls.length,0);assert.equal(f.control.calls.length,0);
 });
+test('stop initiates both safety queues synchronously and awaits accepted data after safety ACK',async()=>{
+ const f=setup(),initial=f.output.reset(signal());f.control.calls[0].resolve();await initial;
+ const write=f.output.setPWM(2,.5,signal()),rejected=assert.rejects(write,/cancel/),events:string[]=[],reason=new Error('cancel');let reentrant:Promise<void>|undefined;
+ f.data.queue.stop=()=>{events.push('data');reentrant=f.output.stop(reason);return Promise.resolve();};f.control.queue.stop=async()=>{events.push('control');};
+ let finished=false;const stopping=f.output.stop(reason);void stopping.then(()=>{finished=true;});assert.deepEqual(events,['data','control']);assert.equal(reentrant,stopping);await flush();assert.equal(finished,false);assert.equal(f.output.status.pendingWrites,1);
+ f.data.calls[0].resolve();await stopping;await rejected;assert.equal(f.output.status.pendingWrites,0);assert.equal(f.output.status.phase,'failed');
+});
+test('stop waits for late reset transport settlement without waiting cyclically on reset',async()=>{
+ for(const success of [true,false]){
+  const f=setup(),reset=f.output.reset(signal()),rejected=assert.rejects(reset),events:string[]=[];
+  f.data.queue.stop=async()=>{events.push('data');};f.control.queue.stop=async()=>{events.push('control');};
+  let finished=false;const stopping=f.output.stop(new Error('cancel'));void stopping.then(()=>{finished=true;});assert.deepEqual(events,['data','control']);await flush();assert.equal(finished,false);
+  if(success)f.control.calls[0].resolve();else f.control.calls[0].reject(new Error('late reset failure'));
+  await stopping;await rejected;assert.equal(f.output.status.phase,'failed');assert.equal(f.output.status.defaultConfirmed,false);
+ }
+});
+test('synchronous safety failure still starts the other queue and retains the send settlement fence',async()=>{
+ const f=setup(),initial=f.output.reset(signal());f.control.calls[0].resolve();await initial;
+ const write=f.output.setPWM(2,.5,signal()),rejected=assert.rejects(write),events:string[]=[];
+ f.data.queue.stop=()=>{events.push('data');throw new Error('safety failed');};f.control.queue.stop=async()=>{events.push('control');};
+ let finished=false;const stopping=f.output.stop();void stopping.catch(()=>{finished=true;});const stopped=assert.rejects(stopping,/safety stop failed/);assert.deepEqual(events,['data','control']);await flush();assert.equal(finished,false);
+ f.data.calls[0].reject(new Error('late send failed'));await stopped;await rejected;assert.match(String(f.output.status.stopError),/safety stop failed/);
+});
 test('native serial control FIFO resets while stale-generation PWM remains delayed',async()=>{
  const {serialFirmware}=await import('./helpers/serial-firmware.ts');
  const {SerialSession}=await import('../src/protocol/serial-session.ts');

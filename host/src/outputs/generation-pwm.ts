@@ -9,7 +9,7 @@ export class GenerationPWMOutput {
  #config:CompiledPWM;#dictionary:MessageDictionary;#data:TimedCommandQueue;#control:TimedCommandQueue;
  #clockAt:(time:number)=>bigint;#printAt:(clock:bigint)=>number;#writer:PWMOutput|undefined;
  #phase:'idle'|'resetting'|'ready'|'failed'='idle';#generation=0;#offConfirmed=false;
- #pending=new Set<Promise<void>>();#reset:Promise<void>|undefined;#stop:Promise<void>|undefined;#fault:unknown;#stopError:unknown;
+ #pending=new Set<Promise<void>>();#controls=new Set<Promise<void>>();#reset:Promise<void>|undefined;#stop:Promise<void>|undefined;#fault:unknown;#stopError:unknown;
  constructor(config:CompiledPWM,dictionary:MessageDictionary,data:TimedCommandQueue,control:TimedCommandQueue,clockAt:(time:number)=>bigint,printAt:(clock:bigint)=>number){
   if(data===control)throw new Error('PWM reset requires an independent control queue');
   dictionary.lookup(config.hardware?'reset_pwm_out_generation oid=%c generation=%u':'reset_digital_out_generation oid=%c generation=%u');
@@ -56,7 +56,11 @@ export class GenerationPWMOutput {
   const finish=()=>{signal.removeEventListener('abort',abort);if(this.#reset===deferred.promise)this.#reset=undefined;};
   void (async()=>{
    const payload=this.#dictionary.encode(this.#config.hardware?'reset_pwm_out_generation':'reset_digital_out_generation',{oid:this.#config.oid,generation});
-   await this.#control.send(payload,0n,0n,signal);
+   // Track the raw transport transaction, never #reset itself: a reset error
+   // waits for stop(), so waiting for #reset from stop() would form a cycle.
+   const sent=Promise.withResolvers<void>();this.#controls.add(sent.promise);
+   try{Promise.resolve(this.#control.send(payload,0n,0n,signal)).then(sent.resolve,sent.reject);}catch(error){sent.reject(error);}
+   try{await sent.promise;}finally{this.#controls.delete(sent.promise);}
    this.#assertNotFailed();
    this.#offConfirmed=true;
    const settled=await Promise.allSettled(old);signal.throwIfAborted();
@@ -74,7 +78,14 @@ export class GenerationPWMOutput {
  stop(cause:unknown=new Error('PWM output stopped')):Promise<void>{
   if(this.#stop)return this.#stop;
   const deferred=Promise.withResolvers<void>();this.#stop=deferred.promise;this.#phase='failed';this.#fault=cause;this.#writer=undefined;
-  void Promise.allSettled([Promise.resolve().then(()=>this.#data.stop(cause)),Promise.resolve().then(()=>this.#control.stop(cause))]).then(results=>{
+  const pending=[...this.#pending,...this.#controls],jobs:Promise<void>[]=[];
+  // Initiate both independent safety paths before returning to observers.
+  // Publish #stop first so a reentrant caller sees this same completion fence.
+  for(const queue of [this.#data,this.#control])try{jobs.push(Promise.resolve(queue.stop(cause)));}catch(error){jobs.push(Promise.reject(error));}
+  void Promise.allSettled(jobs).then(async results=>{
+   // Transport cancellation belongs to each caller's write/reset result. Stop
+   // reports safety errors, but cannot finish before accepted sends settle.
+   await Promise.allSettled(pending);
    const errors=results.filter(result=>result.status==='rejected').map(result=>result.reason);
    if(errors.length){this.#stopError=new AggregateError(errors,'PWM safety stop failed');deferred.reject(this.#stopError);}else deferred.resolve();
   });
