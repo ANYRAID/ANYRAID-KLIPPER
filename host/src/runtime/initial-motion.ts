@@ -1,3 +1,6 @@
+import {createNativeLinearPrint,type NativeLinearPrintOptions} from '../operations/native-linear-print.ts';
+import {NativeLinearGCode} from './native-linear-gcode.ts';
+import type {DispatchHooks} from '../gcode/dispatch.ts';
 import {createConfiguredNativeLinearPort,type ConfiguredLinearHardware} from '../config/linear-motion.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {claimConfiguredMotion,type startConfiguredHardware} from './configured-hardware.ts';
@@ -6,6 +9,9 @@ import {createStoppedMotion} from '../homing/rebuild-motion.ts';
 import {bindRebuiltMotion} from './rebuilt-motion.ts';
 import {FanBoundaryTimeline} from '../outputs/fan-boundaries.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
+/** Machine policy and authorized file opening remain caller-owned. Lifecycle
+ * stopOutputs must not await the containing hardware/print owner's close(). */
+export interface ConfiguredPrintOptions extends Omit<NativeLinearPrintOptions,'gcode'|'port'|'heaters'|'mapping'> {output:DispatchHooks['output'];bedHeater?:string;homingTimeoutMs?:number;}
 export interface InitialMotionOptions {
  /** Host coordinate origin only. Physical counters come from MCU readback. */
  position:readonly number[];
@@ -29,12 +35,14 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
  const fan=options.fanSection===undefined?undefined:hardware.fans.find(f=>f.section===options.fanSection),fanPlan=plan.fans.find(f=>f.section===options.fanSection);if(options.fanSection!==undefined&&(!fan||!fanPlan))throw new Error('Unknown initial motion fan');
  const auxiliaryMCUs=plan.configurations.filter(c=>!devices.includes(c)).map(c=>Object.freeze({id:c.mcu,calibration:Object.freeze({offset:c.clock.offset,frequency:c.clock.frequency})}));
  const emitters=Object.freeze(descriptors.map(e=>Object.freeze({...e,member:devices.findIndex(c=>c.physicalMember===e.member)}))),local=new AbortController();
+ let printPending:ReturnType<typeof createNativeLinearPrint>|undefined;
  let port:ReturnType<typeof createConfiguredNativeLinearPort>['port']|undefined;
  let motion:ReturnType<typeof createStoppedMotion>|undefined,pending:ReturnType<typeof bindRebuiltMotion>|undefined;
  const group=claimConfiguredMotion(hardware,async cause=>{
   local.abort(cause);let generation:Awaited<ReturnType<typeof bindRebuiltMotion>>|undefined;
   if(pending)try{generation=await pending;}catch{/* failed binding owns its cleanup */}
-  try{if(port)await port.dispose();else if(generation)await generation.coordinator.shutdown(cause);}finally{motion?.dispose();}
+  let print:Awaited<ReturnType<typeof createNativeLinearPrint>>|undefined;if(printPending)try{print=await printPending;}catch{/* print assembly owns its failed cleanup */}
+  try{if(print)await print.close();else if(port)await port.dispose();else if(generation)await generation.coordinator.shutdown(cause);}finally{motion?.dispose();}
  },signal=>{if(!port)throw new Error('Configured linear motion target barrier is not ready');return port.heaterBoundary(signal);});
  const abort=()=>{local.abort(signal.reason);void hardware.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
  const timer=setTimeout(()=>{const error=new Error('Initial motion startup timed out');local.abort(error);void hardware.close(error).catch(()=>{});},timeout);
@@ -57,7 +65,16 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
    const heaterIndex=plan.heaters.findIndex(h=>h.section===section),heater=hardware.analog[heaterIndex]?.runtime;
    if(!heater)throw new Error('Linear motion requires its configured extruder heater');
-   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;return result;
+   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
+   const createPrint=async(options:ConfiguredPrintOptions)=>{
+    group.assertActive();if(printPending)throw new Error('Configured print already owned');
+    const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
+    if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
+    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs);
+    printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed}});
+    try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured print and cleanup failed',{cause:error});}throw error;}
+   };
+   return Object.freeze({...result,createPrint});
   };
   return Object.freeze({generation,emitters,stopped,createLinearPort,close:hardware.close});
  }catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Initial motion and cleanup failed',{cause:error});}throw error;}

@@ -4,7 +4,7 @@ import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {startConfiguredHardware} from '../../src/runtime/configured-hardware.ts';
 export const initialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}]};
-export async function initialMotionFixture(reverse=false,full=false){
+export async function initialMotionFixture(reverse=false,full=false,bed=false){
  const f=await hardwareStartupFixture(false,reverse,true);
  try{
   const sections:Record<string,Record<string,string>>={
@@ -18,9 +18,10 @@ export async function initialMotionFixture(reverse=false,full=false){
    for(const axis of ['x','y','z'])Object.assign(sections[`stepper_${axis}`],{position_max:'200',position_endstop:'0',homing_retract_dist:'0'});
    Object.assign(sections.extruder,{nozzle_diameter:'.4',filament_diameter:'1.75'});
   }
+  if(bed)sections.heater_bed={heater_pin:'aux:PA4',sensor_pin:'aux:PA5',sensor_type:'Generic 3950',min_temp:'0',max_temp:'130',control:'watermark'};
   const reader=new ConfigurationReader(new ConfigurationSource('/initial.cfg',sections,[]),null);
   const extra=(full?['y','z']:[]).map(axis=>({section:`stepper_${axis}`,emitter:axis,enableLeadTime:.001}));
-  const hardware=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]},{motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]},f.signal);
+  const hardware=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,heaters:[...hardwareLayout.heaters,...bed?[{section:'heater_bed'}]:[]],homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]},{heaterGcodeIds:bed?{extruder:'T',heater_bed:'B'}:undefined,motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]},f.signal);
   return {...f,hardware,reader};
  }catch(error){await f.close();throw error;}
 }
