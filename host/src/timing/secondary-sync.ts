@@ -1,6 +1,7 @@
 // Secondary MCU calibration model from klippy/clocksync.py, GPL-3.0-or-later.
 import {ClockSync} from './clock-sync.ts';
 import type {MotionCoordinator} from '../motion/coordinator.ts';
+import type {PrintClockTimeline} from './print-clock-timeline.ts';
 export interface SecondaryCalibration {readonly offset:number;readonly frequency:number;readonly syncTime:number}
 const LIMIT=BigInt(Number.MAX_SAFE_INTEGER);
 function exact(clock:bigint):number{if(clock<0n||clock>LIMIT)throw new RangeError('Secondary clock exceeds exact native scheduling range');return Number(clock);}
@@ -10,6 +11,7 @@ function time(value:number):void{if(!Number.isFinite(value)||value<0)throw new R
 export class SecondarySync {
  #main:ClockSync;#local:ClockSync;#offset:number;#frequency:number;#syncTime=0;#revision=0;
  #proposals=new WeakMap<object,{revision:number;main:number;local:number}>();
+ #applying=false;
  constructor(main:ClockSync,local:ClockSync,eventTime:number){
   time(eventTime);if(main===local)throw new Error('Secondary MCU must differ from primary');this.#main=main;this.#local=local;
   this.#frequency=local.nominalFrequency;
@@ -20,6 +22,7 @@ export class SecondarySync {
  printTimeToClock(printTime:number):bigint{time(printTime);const clock=Math.trunc((printTime-this.#offset)*this.#frequency);if(!Number.isSafeInteger(clock)||clock<0)throw new RangeError('Invalid secondary print clock');return BigInt(clock);}
  clockToPrintTime(clock:bigint):number{const value=exact(clock)/this.#frequency+this.#offset;if(!Number.isFinite(value))throw new RangeError('Secondary time overflow');return value;}
  propose(printTime:number,eventTime:number):Readonly<SecondaryCalibration>{
+  if(this.#applying)throw new Error('Secondary calibration transaction is active');
   time(printTime);time(eventTime);if(!this.#main.active||!this.#local.active)throw new Error('MCU clock synchronization is inactive');
   const main=this.#main.estimate,serClock=exact(main.origin)+main.clockOffset;
   const estimatedClock=(eventTime-main.sampleTime)*main.frequency+serClock;
@@ -34,10 +37,31 @@ export class SecondarySync {
   if(!Number.isFinite(offset)||!Number.isFinite(frequency)||frequency<=0||frequency>1e9)throw new RangeError('Invalid secondary clock adjustment');
   const result=Object.freeze({offset,frequency,syncTime:second});this.#proposals.set(result,{revision:this.#revision,main:this.#main.revision,local:this.#local.revision});return result;
  }
- apply(candidate:Readonly<SecondaryCalibration>,coordinator:Pick<MotionCoordinator,'calibrateClock'>,ids:readonly string[]):void{
+ #validate(candidate:Readonly<SecondaryCalibration>):void{
+  if(this.#applying)throw new Error('Secondary calibration transaction is active');
   const token=this.#proposals.get(candidate);
   if(!token||token.revision!==this.#revision||token.main!==this.#main.revision||token.local!==this.#local.revision||!this.#main.active||!this.#local.active)throw new Error('Stale or foreign secondary calibration');
-  coordinator.calibrateClock(ids,candidate.offset,candidate.frequency);
-  this.#offset=candidate.offset;this.#frequency=candidate.frequency;this.#syncTime=candidate.syncTime;this.#revision++;
+ }
+ /** Publish the estimated slope at the generated boundary, preserving the
+  * shared domain's continuity rather than copying a separately rounded offset.
+  * Reservations and exact-boundary validation run before any owner changes. */
+ applyShared(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,coordinator:MotionCoordinator,ids:readonly string[]):void{
+  this.#validate(candidate);
+  const current=timeline.status.calibration;
+  if(current.offset!==this.#offset||current.frequency!==this.#frequency)throw new Error('Secondary and shared clock mappings differ');
+  const tick=timeline.clockAt(coordinator.status.generatedTime);
+  this.#applying=true;
+  try{
+   timeline.calibrateMotion(tick,candidate.frequency,coordinator,ids);
+   const applied=timeline.status.calibration;
+   this.#offset=applied.offset;this.#frequency=applied.frequency;this.#syncTime=candidate.syncTime;this.#revision++;
+  }finally{this.#applying=false;}
+ }
+ apply(candidate:Readonly<SecondaryCalibration>,coordinator:Pick<MotionCoordinator,'calibrateClock'>,ids:readonly string[]):void{
+  this.#validate(candidate);
+  this.#applying=true;
+  try{coordinator.calibrateClock(ids,candidate.offset,candidate.frequency);
+   this.#offset=candidate.offset;this.#frequency=candidate.frequency;this.#syncTime=candidate.syncTime;this.#revision++;
+  }finally{this.#applying=false;}
  }
 }

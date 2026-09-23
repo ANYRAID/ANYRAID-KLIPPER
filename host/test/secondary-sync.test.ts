@@ -4,6 +4,13 @@ import {ClockSync} from '../src/timing/clock-sync.ts';
 import {SecondarySync} from '../src/timing/secondary-sync.ts';
 const accept={calibrateClock(){}};
 function clocks(){return {main:new ClockSync(1e6,1000000n,10),local:new ClockSync(2e6,10000000n,10)};}
+test('secondary publication blocks reentrant proposals and applies, and releases the guard on failure',()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,p=sync.propose(2,10.5);
+ assert.throws(()=>sync.apply(p,{calibrateClock(){sync.apply(p,accept,['x']);}},['x']),/transaction/);
+ assert.deepEqual(sync.mapping,initial);
+ assert.throws(()=>sync.apply(p,{calibrateClock(){sync.propose(2,10.5);}},['x']),/transaction/);
+ assert.deepEqual(sync.mapping,initial);sync.apply(p,accept,['x']);assert.deepEqual(sync.mapping,p);
+});
 test('secondary mapping aligns different MCU origins and frequencies',()=>{
  const {main,local}=clocks(),s=new SecondarySync(main,local,10);
  assert.equal(s.printTimeToClock(1),10000000n);assert.equal(s.clockToPrintTime(10000000n),1);
@@ -27,6 +34,32 @@ test('inactive clocks and unrepresentable native ranges fail without changing th
 });
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+test('shared secondary calibration keeps native and peripheral clocks identical after drift',async()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,clock=new PrintClockTimeline(initial);
+ using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1.1,0,1,0,0,0,0,1,0,0,1,1,0]));
+ using s=q.createStepper({frequency:initial.frequency,timeOffset:initial.offset,initialClock:10000000n,oid:3,maxError:0,queueStepTag:5,directionTag:6},'x',.01);
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},16*1024*1024,1,[],new Map([['x',clock]]));
+ await c.advanceWindow(1.5,1.45);
+ main.accept({clock32:1400000,sentTime:10.4,receiveTime:10.402},true);local.accept({clock32:10799920,sentTime:10.4,receiveTime:10.402},true);
+ const p=sync.propose(1.5,10.405),oldTick=clock.clockAt(1.4);sync.applyShared(p,clock,c,['x']);
+ assert.notEqual(sync.mapping.frequency,initial.frequency);assert.deepEqual(s.calibration,clock.status.calibration);
+ assert.deepEqual(sync.mapping,{...s.calibration,syncTime:p.syncTime});assert.equal(clock.clockAt(1.4),oldTick);
+ for(const t of [1.5,1.6,2])assert.equal(s.clockAt(t),clock.clockAt(t));
+ assert.throws(()=>sync.applyShared(p,clock,c,['x']),/Stale/);
+ await c.advanceWindow(2.1,2.05);await c.advance(2.1);assert.equal(s.flush().position,100n);await c.shutdown();
+});
+test('shared secondary rejection preserves the proposal and all active mappings',async()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,clock=new PrintClockTimeline(initial);
+ using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1,0,2,0,0,0,0,0,0,0,0,0,0]));
+ using s=q.createStepper({frequency:initial.frequency,timeOffset:initial.offset,initialClock:10000000n,oid:3,maxError:0,queueStepTag:5,directionTag:6},'x',.01);
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},1024,1);
+ await c.advanceWindow(1.5,1.45);const p=sync.propose(1.5,10.4),before=clock.status;
+ assert.throws(()=>sync.applyShared(p,new PrintClockTimeline({offset:0,frequency:1e6}),c,['x']),/differ/);
+ assert.throws(()=>sync.applyShared(p,clock,c,['missing']),/Unknown/);assert.deepEqual(clock.status,before);assert.deepEqual(sync.mapping,initial);assert.deepEqual(s.calibration,before.calibration);
+ clock.reserve(1.5);assert.throws(()=>sync.applyShared(p,clock,c,['x']),/reserved/);assert.deepEqual(sync.mapping,initial);
+ await c.advanceWindow(2,1.95);sync.applyShared(p,clock,c,['x']);assert.equal(clock.status.segments,2);assert.equal(sync.mapping.syncTime,p.syncTime);await c.shutdown();
+});
 test('secondary estimate applies to a live coordinated stepper without changing its endpoint',async()=>{
  const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping;
  using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1.1,0,1,0,0,0,0,1,0,0,1,1,0]));
