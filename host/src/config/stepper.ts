@@ -33,7 +33,8 @@ export function compileConfiguredStepper<T>(reader:ConfigurationReader,name:stri
 
 import {PrinterPins,type PinRequest,type PhysicalPinMap} from '../protocol/pins.ts';
 import {decodeInteger} from '../protocol/codec.ts';
-export interface StepperSectionRequest {section:string;oid:number;unitsInRadians?:boolean;requestBothEdges?:boolean}
+import {mcuOids} from '../protocol/mcu-oids.ts';
+export interface StepperSectionRequest {section:string;oid?:number;unitsInRadians?:boolean;requestBothEdges?:boolean}
 export interface StepperMCU<T> {chip:T;dictionary:MessageDictionary}
 const batchOwners=new WeakMap<object,{pins:Set<string>;oids:Set<string>}>();
 function physicalStepPins(dictionary:MessageDictionary,config:string):number[]{
@@ -42,10 +43,14 @@ function physicalStepPins(dictionary:MessageDictionary,config:string):number[]{
  for(let i=0;i<4;i++){const {value,next}=decodeInteger(encoded,offset);numbers.push(value);offset=next;}return numbers.slice(2);
 }
 /** Compile a whole stepper set before claiming any step/dir pins. No MCU IO.
- * OIDs must come from the machine's global allocator; this catches duplication
- * among this builder's plans, not OIDs owned by other actuator builders. */
+ * OIDs default to automatic allocation in the hardware owner's shared registry.
+ * Explicit IDs are supported for legacy assembly, with the same ownership rules. */
 export function compileConfiguredSteppers<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,requests:readonly StepperSectionRequest[]){
  if(!requests.length||requests.length>128||new Set(requests.map(r=>r.section)).size!==requests.length)throw new Error('Invalid stepper section batch');
+ const copied=requests.map(r=>({...r}));
+ return mcuOids(pins).claim(copied.map(r=>({mcu:pins.parse(reader.section(r.section).get('step_pin'),{canInvert:true}).chipName,owner:r.section,oid:r.oid})),oids=>compileStepperBatch(reader,pins,mcus,copied.map((r,i)=>({...r,oid:oids[i]}))));
+}
+function compileStepperBatch<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,requests:readonly (StepperSectionRequest&{oid:number})[]){
  const prior=batchOwners.get(pins),physical=new Set(prior?.pins),oids=new Set(prior?.oids),reserved=new Set<string>(),claims:PinRequest[]=[],resolvers=new Map<string,ReturnType<PrinterPins<T>['resolver']>>(),wireMaps=new Map<string,PhysicalPinMap>();
  for(const binding of pins.claimedPins){
   const mcu=mcus.get(binding.chipName);if(!mcu)continue;if(mcu.chip!==binding.chip)throw new Error('Existing pin differs from MCU ownership');
