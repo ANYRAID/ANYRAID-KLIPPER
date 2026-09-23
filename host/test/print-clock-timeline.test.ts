@@ -4,6 +4,13 @@ import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 import {snapshotPrintClock} from '../src/timing/print-clock.ts';
 import {StepCompressor} from '../src/motion/step-compressor.ts';
 import {StepHistory} from '../src/motion/step-history.ts';
+test('calibration planning respects future anchors, reservations, capacity and input limits',()=>{
+ const clock=new PrintClockTimeline({offset:0,frequency:1e6},2);clock.reserve(2);
+ assert.equal(clock.planCalibration(1.000000123,2,1000100),undefined);
+ const plan=clock.planCalibration(1.000000123,2.001,1000100)!;assert(plan.tick>2000000n);assert(plan.time>2&&plan.time<=2.001);assert.equal(clock.status.segments,1);
+ clock.append(plan.tick,1000100);assert.equal(clock.planCalibration(plan.time,3,1e6),undefined);
+ for(const [after,until,frequency] of [[NaN,3,1e6],[1,Infinity,1e6],[2,1,1e6],[1,2,0],[1,2,NaN]])assert.throws(()=>clock.planCalibration(after,until,frequency));
+});
 test('retention crosses calibration boundaries without losing thirty seconds of pulses',()=>{
  const clock=new PrintClockTimeline({offset:0,frequency:1e6});clock.append(100000000n,900000);
  const observed=109000000n,cutoff=clock.historyCutoff(observed,30)!;

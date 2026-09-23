@@ -42,13 +42,21 @@ export class SecondarySync {
   const token=this.#proposals.get(candidate);
   if(!token||token.revision!==this.#revision||token.main!==this.#main.revision||token.local!==this.#local.revision||!this.#main.active||!this.#local.active)throw new Error('Stale or foreign secondary calibration');
  }
+ /** Caller supplies a safe generation limit after accounting for every native
+  * filter's future source coverage. This only plans; it does not generate. */
+ planShared(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,coordinator:MotionCoordinator,generationLimit:number){
+  this.#validate(candidate);this.#matches(timeline);
+  return timeline.planCalibration(coordinator.status.generatedTime,generationLimit,candidate.frequency);
+ }
+ #matches(timeline:PrintClockTimeline):void{
+  const current=timeline.status.calibration;
+  if(current.offset!==this.#offset||current.frequency!==this.#frequency)throw new Error('Secondary and shared clock mappings differ');
+ }
  /** Publish the estimated slope at the generated boundary, preserving the
   * shared domain's continuity rather than copying a separately rounded offset.
   * Reservations and exact-boundary validation run before any owner changes. */
  applyShared(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,coordinator:MotionCoordinator,ids:readonly string[]):void{
-  this.#validate(candidate);
-  const current=timeline.status.calibration;
-  if(current.offset!==this.#offset||current.frequency!==this.#frequency)throw new Error('Secondary and shared clock mappings differ');
+  this.#validate(candidate);this.#matches(timeline);
   const tick=timeline.clockAt(coordinator.status.generatedTime);
   this.#applying=true;
   try{

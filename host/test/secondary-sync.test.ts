@@ -35,6 +35,22 @@ test('inactive clocks and unrepresentable native ranges fail without changing th
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+test('fractional generation advances to a planned exact anchor and rechecks later output reservations',async()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,clock=new PrintClockTimeline(initial);
+ using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1,0,2,0,0,0,0,0,0,0,0,0,0]));
+ using s=q.createStepper({frequency:initial.frequency,timeOffset:initial.offset,initialClock:10000000n,oid:3,maxError:0,queueStepTag:5,directionTag:6},'x',.01);
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},1024,1);
+ const fractional=1.500000123;await c.advanceWindow(fractional,1.45);
+ main.accept({clock32:1400000,sentTime:10.4,receiveTime:10.402},true);local.accept({clock32:10799920,sentTime:10.4,receiveTime:10.402},true);
+ const p=sync.propose(fractional,10.405),before=clock.status;
+ assert.throws(()=>sync.applyShared(p,clock,c,['x']),/boundary/);
+ assert.equal(sync.planShared(p,clock,c,fractional+1e-9),undefined);
+ const plan=sync.planShared(p,clock,c,1.51)!;assert(plan);assert(Object.isFrozen(plan));assert(plan.time>fractional&&plan.time<=1.51);assert.deepEqual(clock.status,before);
+ await c.advanceWindow(plan.time,1.45);clock.reserveClock(plan.tick);
+ assert.throws(()=>sync.applyShared(p,clock,c,['x']),/reserved/);assert.deepEqual(sync.mapping,initial);
+ const retry=sync.planShared(p,clock,c,1.51)!;assert(retry.tick>plan.tick);await c.advanceWindow(retry.time,1.45);sync.applyShared(p,clock,c,['x']);
+ assert.equal(s.clockAt(retry.time),retry.tick);assert.deepEqual(s.calibration,clock.status.calibration);assert.equal(clock.printTimeAtClock(retry.tick),retry.time);assert.equal(clock.clockAt(1.4),10800000n);await c.shutdown();
+});
 test('shared secondary calibration keeps native and peripheral clocks identical after drift',async()=>{
  const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,clock=new PrintClockTimeline(initial);
  using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1.1,0,1,0,0,0,0,1,0,0,1,1,0]));

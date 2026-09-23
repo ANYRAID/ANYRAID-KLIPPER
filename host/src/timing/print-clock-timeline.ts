@@ -52,6 +52,24 @@ export class PrintClockTimeline {
   if(target<this.#segments[0].time)return undefined;
   const tick=this.clockAt(target);return this.printTimeAtClock(tick)>target?tick-1n:tick;
  }
+ /** Find a future exact tick anchor inside caller-supplied source coverage.
+  * Planning neither reserves output nor changes calibration. The caller must
+  * generate through the returned time and revalidate on publication. */
+ planCalibration(after:number,until:number,frequency:number):Readonly<{tick:bigint;time:number}>|undefined{
+  this.#writable();snapshotPrintClock({offset:0,frequency});
+  if(!Number.isFinite(after)||!Number.isFinite(until)||until<=after)throw new RangeError('Invalid calibration planning interval');
+  let tick=this.clockAt(after)+1n;
+  const last=this.#segments.at(-1)!;if(tick<=last.tick)tick=last.tick+1n;if(tick<=this.#reservedThrough)tick=this.#reservedThrough+1n;
+  if(this.#segments.length>=this.#capacity)return undefined;
+  // Bound search work even when floating-point resolution cannot represent a
+  // usable boundary. No tolerance or movement of the requested upper bound.
+  for(let i=0;i<128&&tick<=BigInt(Number.MAX_SAFE_INTEGER);i++,tick++){
+   const time=last.clock.printTimeAtClock(tick);if(time>until)return undefined;
+   if(time<=after)continue;const next=this.#anchored(tick,frequency);
+   if(next)return Object.freeze({tick,time:next.time});
+  }
+  return undefined;
+ }
  /** No mutation on validation failure. Capacity exhaustion requires explicit
   * consumer retirement, never automatic loss of ADC/history timestamps. */
  append(tick:bigint,frequency:number):void{
@@ -67,8 +85,12 @@ export class PrintClockTimeline {
  #candidate(tick:bigint,frequency:number):Segment{
   const last=this.#segments.at(-1)!;
   if(typeof tick!=='bigint'||tick<=last.tick||tick<=this.#reservedThrough||tick>BigInt(Number.MAX_SAFE_INTEGER)||this.#segments.length>=this.#capacity)throw new RangeError('Invalid clock boundary, reserved output or exhausted history');
+  const next=this.#anchored(tick,frequency);if(!next)throw new RangeError('Clock boundary exceeds exact mapping resolution');return next;
+ }
+ #anchored(tick:bigint,frequency:number):Segment|undefined{
+  const last=this.#segments.at(-1)!;
   const time=last.clock.printTimeAtClock(tick),clock=snapshotPrintClock({offset:time-Number(tick)/frequency,frequency});
-  if(time<=last.time||clock.clockAt(time)!==tick||clock.printTimeAtClock(tick)!==time)throw new RangeError('Clock boundary exceeds exact mapping resolution');
+  if(time<=last.time||last.clock.clockAt(time)!==tick||clock.clockAt(time)!==tick||clock.printTimeAtClock(tick)!==time)return undefined;
   return {tick,time,clock};
  }
  /** Retain the segment containing this watermark, including its earlier tail. */
