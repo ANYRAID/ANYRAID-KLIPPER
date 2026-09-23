@@ -1,3 +1,4 @@
+import {compileConfiguredCoolingFans} from '../../src/config/cooling-fan.ts';
 import {compileConfiguredHoming} from '../../src/config/homing.ts';
 import {compileConfiguredMotorEnables} from '../../src/config/motor-enable.ts';
 import {PrinterPins} from '../../src/protocol/pins.ts';
@@ -15,7 +16,6 @@ import {MotionCoordinator} from '../../src/motion/coordinator.ts';
 import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
 import {CoordinateRebase} from '../../src/homing/recovery.ts';
 import {serialClock} from '../../src/protocol/serial-queue.ts';
-import {compilePWM} from '../../src/outputs/pwm.ts';
 export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false){
  const fw=await serialFirmware(undefined,{triggerSync:true}),signal=new AbortController().signal;let stops=0;
  const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]);
@@ -23,12 +23,14 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
  try{
   await group.start(signal);const s=group.session('m'),chip={},pins=new PrinterPins<object>();pins.register('m',chip);
   // Reserve only legacy stepper/fan objects and compatibility gaps.
-  const legacyIds=[0,1,2,3,4,5,...dual?[]:[6],...motorPower&&!dual?[9]:[]];
+  const legacyIds=[...partFan?[]:[0],1,2,3,4,5,...dual?[]:[6],...motorPower&&!dual?[9]:[]];
   mcuOids(pins).claim(legacyIds.map(oid=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
   const homingReader=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{primary:{endstop_pin:'^m:PA0'},secondary:{endstop_pin:'^m:PA1'}},[]),null);
   const homing=compileConfiguredHoming(homingReader,pins,new Map([['m',{chip,dictionary:s.dictionary}]]),[{section:'primary',oid:7,triggers:[{mcu:'m',oid:8}]},...dual?[{section:'secondary',oid:6,triggers:[{mcu:'m',oid:9}]}]:[]]);
   const {endstop}=homing[0],trigger=homing[0].triggers[0].protocol,secondary=homing[1];
-  const fanPlan=partFan?compilePWM(chip,s.dictionary,{oid:0,pin:{chip,chipName:'m',pin:'PA2',invert:0,pullup:0},hardware:true,cycleTime:.01,maxDuration:0,currentPrintTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6},time=>BigInt(Math.trunc(time*1e6))):undefined;
+  const fanReader=new ConfigurationReader(new ConfigurationSource('/fan.cfg',{fan:{pin:'m:PA2',hardware_pwm:'true'}},[]),null);
+  const configuredFan=partFan?compileConfiguredCoolingFans(fanReader,pins,new Map([['m',{chip,dictionary:s.dictionary}]]),new Map([['m',{currentPrintTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6,calibration:{offset:0,frequency:1e6}}]]),[{section:'fan',minimumScheduleTime:.001}])[0]:undefined;
+  const fanPlan=configuredFan?.output.pwm;
   const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,motorPower==='always'||motorPower==='mixed'&&id==='e'?{} as Record<string,string>:{enable_pin:'!m:PA3'}])),[]),null);
   const motorPlans=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}}))):undefined;
   const motorPlan=motorPlans?.lines[0];
