@@ -7,9 +7,10 @@ export class GCodeFileExecution {
  #phase:'ready'|'running'|'pausing'|'paused'|'eof'|'stopping'|'stopped'|'failed'='ready';
  #task:Promise<void>|undefined;#inflight:Promise<void>|undefined;#pause:Promise<void>|undefined;
  #stop:Promise<void>|undefined;#paused=false;#wake:ReturnType<typeof Promise.withResolvers<void>>|undefined;
+ #checkpoint=false;#checkpointHeld=false;
  #fault:unknown;#errors:unknown[]=[];#fenced=false;
  constructor(reader:GCodeFileReader,dispatch:GCodeDispatch){if(reader.status.closed||reader.status.pending||reader.status.eof||reader.status.fault||reader.status.position!==0||reader.status.readOffset!==0)throw new Error('File reader must be fresh with no outstanding batch');this.#reader=reader;this.#dispatch=dispatch;}
- get status(){return {...this.#reader.status,phase:this.#phase,fault:this.#fault,cleanupErrors:[...this.#errors]};}
+ get status(){return {...this.#reader.status,phase:this.#phase,checkpointHeld:this.#checkpointHeld&&this.#checkpoint,fault:this.#fault,cleanupErrors:[...this.#errors]};}
  start():Promise<void>{
   if(this.#task)return this.#task;if(this.#phase!=='ready')return Promise.reject(new Error('File execution cannot restart'));
   this.#phase='running';this.#task=Promise.resolve().then(()=>this.#run());void this.#task.catch(()=>{});return this.#task;
@@ -29,7 +30,7 @@ export class GCodeFileExecution {
     let eof=false;
     this.#inflight=(async()=>{
      if(!batch){batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();if(!batch){eof=true;return;}offset=0;}
-     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused);
+     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused,active=>{this.#checkpoint=active;});
      this.#abort.signal.throwIfAborted();offset+=completed;
      if(offset===batch.lines){this.#reader.commit(batch);batch=null;}
     })();
@@ -45,19 +46,26 @@ export class GCodeFileExecution {
    if(this.#errors.length)throw new AggregateError([error,...this.#errors],'File execution and cleanup failed',{cause:error});throw error;
   }
  }
- pause():Promise<void>{
+ /** An interrupt hook must confirm a stopped active checkpoint. The original
+  * command dispatch remains owned until resume; it cannot run parking G-code. */
+ pause(interruptCheckpoint?:()=>Promise<void>):Promise<void>{
+  if(interruptCheckpoint!==undefined&&typeof interruptCheckpoint!=='function')return Promise.reject(new TypeError('Invalid checkpoint interrupt hook'));
   if(!['running','pausing','paused'].includes(this.#phase))return Promise.reject(new Error('File execution is not running'));
   if(this.#pause)return this.#pause;
   if(this.#phase!=='running')return Promise.reject(new Error('File execution is not running'));
   const deferred=Promise.withResolvers<void>();this.#pause=deferred.promise;this.#paused=true;this.#phase='pausing';
-  void Promise.resolve(this.#inflight).then(()=>{
+  const held=this.#checkpoint&&interruptCheckpoint!==undefined;
+  const aborted=()=>deferred.reject(this.#abort.signal.reason);this.#abort.signal.addEventListener('abort',aborted,{once:true});
+  let wait:Promise<void>;
+  try{wait=held?Promise.resolve(interruptCheckpoint!()):Promise.resolve(this.#inflight);}catch(error){wait=Promise.reject(error);}
+  void wait.then(()=>{
    if(this.#stop||this.#fault){deferred.reject(this.#fault??new Error('File execution stopped'));return;}
-   if(this.#phase!=='eof')this.#phase='paused';deferred.resolve();
-  },deferred.reject);return deferred.promise;
+   this.#checkpointHeld=held;if(this.#phase!=='eof')this.#phase='paused';deferred.resolve();
+  },error=>{if(held&&!this.#stop){this.#fault=error;this.#phase='failed';this.#fence(error);}deferred.reject(error);}).finally(()=>this.#abort.signal.removeEventListener('abort',aborted));return deferred.promise;
  }
  resume():void{
   if(this.#phase!=='paused')throw new Error('File execution is not paused');
-  this.#paused=false;this.#pause=undefined;this.#phase='running';this.#wake?.resolve();
+  this.#paused=false;this.#checkpointHeld=false;this.#pause=undefined;this.#phase='running';this.#wake?.resolve();
  }
  stop(cause:unknown=new Error('File execution stopped')):Promise<void>{
   if(this.#stop)return this.#stop;

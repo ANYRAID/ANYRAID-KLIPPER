@@ -6,6 +6,9 @@ export interface FilePrintMotion {
  prepare(request:Readonly<StartPrint>,signal:AbortSignal):Promise<void>;
  start(signal:AbortSignal):Promise<void>;
  pause(signal:AbortSignal):Promise<void>;
+ /** Stop an active checkpoint while retaining its dispatch ownership. Must not
+  * enqueue G-code. resume must release this retained motion before returning. */
+ pauseCheckpoint?(signal:AbortSignal):Promise<void>;
  resume(signal:AbortSignal):Promise<void>;
  /** Drain all admitted motion and acknowledge final non-thermal safe outputs. */
  finish(requestId:string,signal:AbortSignal):Promise<void>;
@@ -21,6 +24,7 @@ export class FilePrintDevice implements PrintDevice {
  #faultListeners=new Set<(cause:unknown)=>void>();#eofListeners=new Set<(requestId:string)=>void>();
  constructor(motion:FilePrintMotion,dispatch:GCodeDispatch,open:(fileId:string,signal:AbortSignal)=>Promise<GCodeFileReader>){
   for(const name of ['prepare','start','pause','resume','finish','stop'] as const)if(typeof motion?.[name]!=='function')throw new TypeError('Incomplete file motion adapter');
+  if(motion.pauseCheckpoint!==undefined&&typeof motion.pauseCheckpoint!=='function')throw new TypeError('Invalid file checkpoint pause adapter');
   if(typeof open!=='function')throw new TypeError('Missing authorized file acquisition');this.#motion=motion;this.#dispatch=dispatch;this.#open=open;
   motion.subscribeFault?.(cause=>this.#fail(cause));
  }
@@ -58,7 +62,8 @@ export class FilePrintDevice implements PrintDevice {
  }
  async pause(signal:AbortSignal):Promise<void>{
   this.#guard(signal);const epoch=this.#epoch,execution=this.#execution;if(!execution||!this.#started)throw new Error('No active file print');
-  if(execution.status.phase!=='eof')await execution.pause();this.#guard(signal,epoch);await this.#motion.pause(signal);this.#guard(signal,epoch);
+  if(execution.status.phase!=='eof')await execution.pause(this.#motion.pauseCheckpoint?()=>this.#motion.pauseCheckpoint!(signal):undefined);this.#guard(signal,epoch);
+  if(!execution.status.checkpointHeld)await this.#motion.pause(signal);this.#guard(signal,epoch);
  }
  async resume(signal:AbortSignal):Promise<void>{
   this.#guard(signal);const epoch=this.#epoch,execution=this.#execution;if(!execution||!this.#started)throw new Error('No active file print');

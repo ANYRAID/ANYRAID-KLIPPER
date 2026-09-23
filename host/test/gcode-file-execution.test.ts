@@ -7,9 +7,9 @@ import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 import {GCodeFileExecution} from '../src/gcode/file-execution.ts';
 import {GCodeDispatch,GCodeError,type CommandContext} from '../src/gcode/dispatch.ts';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-async function fixture(script:string,handler:(command:CommandContext)=>void|Promise<void>,onStop:()=>void=()=>{},batchLines=1){
+async function fixture(script:string,handler:(command:CommandContext)=>void|Promise<void>,onStop:()=>void=()=>{},batchLines=1,checkpoint?:(signal:AbortSignal)=>Promise<void>){
  const directory=await mkdtemp(join(tmpdir(),'file-execution-')),path=join(directory,'file.gcode');await writeFile(path,script);const reader=await GCodeFileReader.adopt(await open(path,'r'),{batchLines});let stops=0;
- const dispatch=new GCodeDispatch({output(){},shutdown(){stops++;onStop();}});dispatch.register('G1',handler);dispatch.setReady(true);const execution=new GCodeFileExecution(reader,dispatch);
+ const dispatch=new GCodeDispatch({checkpoint,output(){},shutdown(){stops++;onStop();}});dispatch.register('G1',handler);dispatch.setReady(true);const execution=new GCodeFileExecution(reader,dispatch);
  return {reader,execution,dispatch,get stops(){return stops;},async close(){try{await execution.stop();}finally{await rm(directory,{recursive:true,force:true});}}};
 }
 test('EOF resolves only after all commands and successful commits; no normal emergency stop',async()=>{
@@ -67,4 +67,30 @@ test('stop from a partial batch never replays or commits its admitted prefix',as
  const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>();let moves=0;
  const f=await fixture('G1 X1\nG1 X2\n',async()=>{moves++;entered.resolve();await gate.promise;},()=>{},128);
  try{const done=f.execution.start(),rejected=assert.rejects(done);await entered.promise;const paused=f.execution.pause();gate.resolve();await paused;await f.execution.stop();await rejected;assert.equal(moves,1);assert.equal(f.execution.status.position,0);assert.equal(f.execution.status.phase,'stopped');}finally{gate.resolve();await f.close();}
+});
+for(const periodic of [false,true])test(`held checkpoint pause fences commands and resumes without replay (periodic=${periodic})`,async()=>{
+ const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>(),seen:number[]=[];let checks=0,interrupts=0;
+ const count=periodic?256:1,script=Array.from({length:count},(_,i)=>`G1 X${i}\n`).join('');
+ const f=await fixture(script,c=>{seen.push(Number(c.params.X));},()=>{},128,async()=>{if(++checks===1){entered.resolve();await gate.promise;}});
+ try{
+  const done=f.execution.start();await entered.promise;const pause=f.execution.pause(async()=>{interrupts++;});assert.equal(interrupts,1);await pause;
+  const accepted=seen.length;assert.equal(f.execution.status.checkpointHeld,true);assert.equal(f.execution.status.position,0);await flush();assert.equal(seen.length,accepted);
+  let other=false;const queued=f.dispatch.execute('M110').then(()=>{other=true;});await flush();assert.equal(other,false);
+  f.execution.resume();gate.resolve();await done;await queued;assert.deepEqual(seen,Array.from({length:count},(_,i)=>i));assert.equal(f.stops,0);
+ }finally{gate.resolve();await f.close();}
+});
+for(const fail of [false,true])test(`checkpoint pause ${fail?'failure aborts dispatch':'stop rejects an uncooperative interrupt without late publication'}`,async()=>{
+ const entered=Promise.withResolvers<void>(),interrupt=Promise.withResolvers<void>();
+ const f=await fixture('G1 X1\nG1 X2\n',()=>{},()=>{},128,async signal=>{entered.resolve();await new Promise<void>((_resolve,reject)=>{signal.addEventListener('abort',()=>reject(signal.reason),{once:true});});});
+ try{
+  const done=f.execution.start(),failed=assert.rejects(done);await entered.promise;
+  const pause=f.execution.pause(()=>interrupt.promise),rejected=assert.rejects(pause,fail?/interrupt failed/:/file stopped/);
+  if(fail)interrupt.reject(new Error('interrupt failed'));else await f.execution.stop(new Error('file stopped'));
+  await rejected;await failed;interrupt.resolve();await flush();assert.notEqual(f.execution.status.phase,'paused');assert.equal(f.execution.status.checkpointHeld,false);assert.equal(f.execution.status.position,0);assert.equal(f.stops,1);
+ }finally{interrupt.resolve();await f.close();}
+});
+test('stopping a confirmed checkpoint pause clears actual dispatch ownership',async()=>{
+ const entered=Promise.withResolvers<void>();
+ const f=await fixture('G1 X1\n',()=>{},()=>{},128,async signal=>{entered.resolve();await new Promise<void>((_resolve,reject)=>signal.addEventListener('abort',()=>reject(signal.reason),{once:true}));});
+ try{const done=f.execution.start(),failed=assert.rejects(done);await entered.promise;await f.execution.pause(async()=>{});assert.equal(f.execution.status.checkpointHeld,true);await f.execution.stop();await failed;assert.equal(f.execution.status.checkpointHeld,false);assert.equal(f.execution.status.phase,'stopped');}finally{await f.close();}
 });

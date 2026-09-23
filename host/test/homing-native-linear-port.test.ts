@@ -124,3 +124,18 @@ test('native pause cancellation stops the held stream and revokes homing',async(
   assert.equal(t.f.stops,1);assert.equal(t.kinematics.status.homedAxes,'');
  }finally{await t.close();}
 });
+test('file device confirms an active native checkpoint pause without waiting for its retained suffix',async()=>{
+ const t=await fixture(),{mkdtemp,open,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');const dir=await mkdtemp(join(tmpdir(),'native-product-pause-'));
+ let device:import('../src/operations/file-print-device.ts').FilePrintDevice|undefined;
+ try{
+  t.kinematics.markHomed([0]);const {GCodeDispatch}=await import('../src/gcode/dispatch.ts'),{GCodeFileReader}=await import('../src/gcode/file-reader.ts'),{FilePrintDevice}=await import('../src/operations/file-print-device.ts');const seen:string[]=[];let held=false,ordinary=0;
+  const dispatch=new GCodeDispatch({output(){},shutdown:reason=>{void t.port.motorOff(new Error(reason));},checkpoint:s=>t.port.flush(s),drain:s=>t.port.drain(s)});
+  dispatch.register('G1',c=>{seen.push(c.params.X);t.coordinates.execute('G1',c.params);});
+  const path=join(dir,'test.gcode');await writeFile(path,Array.from({length:512},(_,i)=>`G1 X${50+(i+1)/512} F12\n`).join(''));
+  device=new FilePrintDevice({prepare:async()=>dispatch.setReady(true),start:async()=>{},pause:async s=>{ordinary++;await t.port.drain(s);},pauseCheckpoint:async s=>{await t.port.pauseStream(s);held=true;},resume:async s=>{if(held){await t.port.resumeStream(s);held=false;}},finish:async(_id,s)=>t.port.drain(s),stop:()=>t.port.motorOff(new Error('file device stopped'))},dispatch,async()=>GCodeFileReader.adopt(await open(path,'r')));
+  const eof=Promise.withResolvers<void>();device.subscribeEOF(()=>eof.resolve());await device.prepare({version:1,requestId:'test',fileId:'file',nozzle:200,bed:60},signal());await device.start('file',signal());await streamStarted(t);
+  const start=performance.now();await device.pause(signal());assert(performance.now()-start<1800);assert.equal(device.status.file?.phase,'paused');assert.equal(device.status.file?.checkpointHeld,true);assert.equal(ordinary,0);assert.equal(device.status.file?.position,0);assert(seen.length>0&&seen.length<512);
+  const count=seen.length,packets=t.f.fw.motion.length;await new Promise(r=>setTimeout(r,100));assert.equal(seen.length,count);assert.equal(t.f.fw.motion.length,packets);
+  await device.resume(signal());await eof.promise;await device.finish('test',signal());assert.equal(seen.length,512);assert.equal(new Set(seen).size,512);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0),100);assert.equal(t.f.stops,0);
+ }finally{await device?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
+});

@@ -39,12 +39,14 @@ export class GCodeDispatch {
     return this.#enqueue(script,options).then(()=>{});
   }
   /** Yield before the next command without draining or discarding the suffix.
-   * The owner must retain the script and drain admitted motion before parking. */
-  executePrefix(script:string,shouldContinue:()=>boolean):Promise<number> {
-    if(typeof shouldContinue!=='function')return Promise.reject(new TypeError('Missing prefix admission predicate'));
-    return this.#enqueue(script,{boundary:'checkpoint'},shouldContinue);
+   * The owner must retain the script and drain admitted motion before parking.
+   * onCheckpoint brackets the awaited motion hook, not ordinary handlers;
+   * an interrupted hook continues owning dispatch until it actually settles. */
+  executePrefix(script:string,shouldContinue:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
+    if(typeof shouldContinue!=='function'||onCheckpoint!==undefined&&typeof onCheckpoint!=='function')return Promise.reject(new TypeError('Invalid prefix admission callbacks'));
+    return this.#enqueue(script,{boundary:'checkpoint'},shouldContinue,onCheckpoint);
   }
-  #enqueue(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'},shouldContinue?:()=>boolean):Promise<number> {
+  #enqueue(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'},shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
     if(script.length>1048576||this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
     const lines=script.split('\n').map(line=>line.endsWith('\r')?line.slice(0,-1):line);
     if(lines.length>16384)return Promise.reject(new GCodeError('G-code line count limit'));
@@ -52,19 +54,20 @@ export class GCodeDispatch {
     const generation=this.#generation;
     const job=this.#tail.then(()=>{
       if(generation!==this.#generation)throw new GCodeError('Script invalidated by shutdown');
-      return this.#run(lines,options.acknowledge??false,options.boundary??'drain',shouldContinue);
+      return this.#run(lines,options.acknowledge??false,options.boundary??'drain',shouldContinue,onCheckpoint);
     });
     this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
   }
-  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint',shouldContinue?:()=>boolean):Promise<number> {
+  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint',shouldContinue?:()=>boolean,onCheckpoint?:(active:boolean)=>void):Promise<number> {
     const controller=new AbortController();this.#active=controller;
     try {
       let count=0,completed=0;
       for(const line of lines) {
         controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
         if(count++&&count%128===0) {
-          try{if(this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);}
-          catch(error){this.emergencyStop('Motion checkpoint failed');throw error;}
+          try{onCheckpoint?.(true);if(this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);}
+          catch(error){if(!controller.signal.aborted)this.emergencyStop('Motion checkpoint failed');throw error;}
+          finally{onCheckpoint?.(false);}
           await new Promise<void>(resolve=>setImmediate(resolve));
           controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
         }
@@ -103,8 +106,9 @@ export class GCodeDispatch {
         ack();completed++;
       }
       controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
-      try{if(boundary==='checkpoint'&&this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}
-      catch(error){this.emergencyStop('Motion drain failed');throw error;}
+      try{onCheckpoint?.(true);if(boundary==='checkpoint'&&this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}
+      catch(error){if(!controller.signal.aborted)this.emergencyStop('Motion drain failed');throw error;}
+      finally{onCheckpoint?.(false);}
       return completed;
     }finally{if(this.#active===controller)this.#active=undefined;}
   }
