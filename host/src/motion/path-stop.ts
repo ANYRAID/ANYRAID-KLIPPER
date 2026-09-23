@@ -20,7 +20,7 @@ function point(m:Move,distance:number):number[]{
  return m.startPos.map((v,i)=>v+m.axesR[i]*distance);
 }
 function suffix(moves:readonly Move[],index:number,first?:Move):Move[]{const result=first?[first]:[];for(let i=index;i<moves.length;i++)result.push(copy(moves[i]));return result;}
-function validate(moves:readonly Move[]):void {
+export function validateStopPath(moves:readonly Move[]):void {
  if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid stop path');
  let previous:Move|undefined;
  for(const m of moves){
@@ -38,7 +38,7 @@ function validate(moves:readonly Move[]):void {
  * A runtime must choose an anchor beyond generated/filter dependencies, own
  * the full braking suffix, and revalidate heater/kinematic limits on resume. */
 export function planPathStop(moves:readonly Move[],elapsed:number):PathStop {
- validate(moves);if(!moves.length||!Number.isFinite(elapsed)||elapsed<0)throw new RangeError('Invalid stop anchor');
+ validateStopPath(moves);if(!moves.length||!Number.isFinite(elapsed)||elapsed<0)throw new RangeError('Invalid stop anchor');
  let index=0,time=elapsed;
  while(index<moves.length){const p=moves[index].profile!,duration=p.accelT+p.cruiseT+p.decelT;if(time<duration)break;time-=duration;index++;}
  if(index===moves.length){if(time!==0||moves.at(-1)!.profile!.endV!==0)throw new RangeError('Stop anchor has no braking coverage');const position=[...moves.at(-1)!.endPos];return {anchor:[...position],position,velocity:0,brake:[],remainder:[]};}
