@@ -8,6 +8,7 @@ import {PlannedMotionSource,type PlannedQueue,type SourceBoundaryOutput} from '.
 import {serialClock} from '../protocol/serial-queue.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 import {snapshotPrintClock} from '../timing/print-clock.ts';
+import type {MotorEnable} from '../outputs/motor-enable.ts';
 type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{readonly status:{pending:number;busy:boolean;stopped:boolean};register(value:number):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
 interface OutputContext {target:ClockedBoundaryOutput;group:MCUGroup;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;owner:symbol|undefined;}
@@ -24,6 +25,7 @@ export interface RebuiltMotionOptions {
  /** Dedicated output with the same print-time calibration as this MCU member. */
  boundaryOutput?:{output:ClockedBoundaryOutput;member:number};
  boundaryTransfer?:BoundaryOutputTransfer;
+ motorEnable?:MotorEnable;
 }
 /** Adopt the output of a completed recovery (including reset ACKs) into real
  * group transports, history retention, generation and MCU-time drain. Caller
@@ -51,6 +53,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const calibrations=bindings.map(b=>b.stepper.calibration);
   const check=()=>{group.assertActive();for(const [i,b] of bindings.entries()){const current=b.stepper.calibration,saved=calibrations[i];if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Rebuilt motion calibration changed before start');}const now=serialClock.now();for(const [i,owned] of grouped.entries())if(owned[0].stepper.clockAt(motion.printTime)<=members[i].session.clock.sync.getClock(now))throw new Error('Rebuilt motion baseline expired before binding');};
   check();
+  o.motorEnable?.assertBindings(group,bindings.map(b=>({id:b.id,mcu:routes[b.member],calibration:b.stepper.calibration})),motion.printTime);
   let output:SourceBoundaryOutput|undefined,context:OutputContext|undefined,capability:ClockedBoundaryOutput|undefined;const owner=Symbol('boundary output owner');let checkMapping=()=>{};
   if(o.boundaryOutput&&o.boundaryTransfer)throw new Error('Choose initial output or output transfer');
   if(o.boundaryOutput||o.boundaryTransfer){
@@ -97,6 +100,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
     const cutoff=horizon<state.throughClock?horizon:state.throughClock;
     if(cutoff>state.fromClock)b.history.pruneBefore(cutoff);
     b.history.append(output,b.stepper.clockAt(b.stepper.generatedTime));}
+   if(o.motorEnable)await o.motorEnable.beforeSteps(outputs);
   },motion.printTime);
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
@@ -106,7 +110,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,motion,sink,coordinator,drain,source,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
