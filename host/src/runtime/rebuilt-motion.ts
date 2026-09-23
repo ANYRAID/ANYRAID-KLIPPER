@@ -4,8 +4,10 @@ import type {rebuildStoppedMotion} from '../homing/rebuild-motion.ts';
 import {MotionCoordinator} from '../motion/coordinator.ts';
 import {MoveQueueSink} from '../motion/move-queue-sink.ts';
 import {CoordinatedMotionDrain} from '../motion/coordinated-drain.ts';
-import {PlannedMotionSource,type PlannedQueue} from '../motion/planned-motion-source.ts';
+import {PlannedMotionSource,type PlannedQueue,type SourceBoundaryOutput} from '../motion/planned-motion-source.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
+type ClockedBoundaryOutput=SourceBoundaryOutput&{retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
+const outputOwners=new WeakSet<ClockedBoundaryOutput>();
 export interface RebuiltMotionOptions {
  group:MCUGroup;
  /** Exact physical members used by the successful stop/recovery transaction. */
@@ -13,6 +15,8 @@ export interface RebuiltMotionOptions {
  motion:ReturnType<typeof rebuildStoppedMotion>;
  routes:readonly PlannedQueue[];
  position:readonly number[];
+ /** Dedicated output with the same print-time calibration as this MCU member. */
+ boundaryOutput?:{output:ClockedBoundaryOutput;member:number};
 }
 /** Adopt the output of a completed recovery (including reset ACKs) into real
  * group transports, history retention, generation and MCU-time drain. Caller
@@ -20,6 +24,7 @@ export interface RebuiltMotionOptions {
  * Does not perform stop/reset itself, authorize homing or admit G-code. */
 export async function bindRebuiltMotion(o:RebuiltMotionOptions){
  const {group,motion}=o;
+ let ownedOutput:ClockedBoundaryOutput|undefined;
  try{
   group.assertActive();
   const ids=group.status.devices.map(d=>d.id),members=o.members.map(m=>Object.freeze({...m,steppers:Object.freeze(m.steppers.map(s=>Object.freeze({...s})))}));
@@ -51,13 +56,30 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   },motion.printTime);
   const coordinator=new MotionCoordinator(bindings,sink,16*1024*1024,motion.printTime,[group]);
   const drain=new CoordinatedMotionDrain(coordinator,sink,group);
-  const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position);
+  let output:SourceBoundaryOutput|undefined;
+  if(o.boundaryOutput){
+   const {output:target,member}=o.boundaryOutput;
+   if(!Number.isInteger(member)||!members[member]||outputOwners.has(target))throw new Error('Invalid boundary output MCU or ownership');
+   outputOwners.add(target);ownedOutput=target;
+   let offGroup=()=>{},offOutput=()=>{};
+   offGroup=group.subscribeStop(cause=>{void target.stop(cause).catch(()=>{});offGroup();offOutput();});
+   offOutput=target.subscribeStop(cause=>{void group.stop(cause).catch(()=>{});});
+   const binding=grouped[member][0],mapping={...binding.stepper.calibration};
+   output={deliver:async(boundaries,horizon,signal)=>{
+    group.assertActive();const current=binding.stepper.calibration;
+    if(current.offset!==mapping.offset||current.frequency!==mapping.frequency)throw new Error('Boundary output clock calibration changed');
+    target.retireThrough(binding.stepper.printTimeAtClock(members[member].session.clock.sync.lastClock));
+    await target.deliver(boundaries,horizon,signal);group.assertActive();
+   },invalidateAfter:time=>target.invalidateAfter(time),stop:cause=>target.stop(cause)};
+  }
+  const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
   check();return Object.freeze({group,motion,sink,coordinator,drain,source,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
   // has received these objects, so there cannot be an active native commit.
   try{await group.stop(error);}catch(stop){errors.push(stop);}
+  if(ownedOutput)try{await ownedOutput.stop(error);}catch(stop){errors.push(stop);}
   try{motion.dispose();}catch(disposal){errors.push(disposal);}
   if(errors.length>1)throw new AggregateError(errors,'Rebuilt motion binding and cleanup failed');throw error;
  }

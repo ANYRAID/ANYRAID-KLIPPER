@@ -53,6 +53,14 @@ export class FanBoundaryTimeline {
   this.#active();if(this.#busy||!Number.isFinite(time)||time<this.#clock)throw new Error('Invalid fan clock retirement');
   this.#clock=time;for(const [id,r] of this.#entries){if(r.submittedThrough===undefined||r.submittedThrough>time)break;this.#entries.delete(id);this.#retired=id;}
  }
+ /** Motion may replan only beyond the output submission horizon. Preserve
+  * the committed prefix and pending kick repeats; forget unsent suffix times. */
+ invalidateAfter(time:number):void{
+  this.#active();if(this.#busy||!Number.isFinite(time)||time<=Math.max(this.#horizon,this.#clock))throw new Error('Fan replan overlaps submitted horizon');
+  for(const r of this.#entries.values())if(r.time!==undefined&&r.time>time&&r.queued)throw new Error('Fan replan overlaps queued request');
+  this.#resolvedId=0;this.#resolvedTime=this.#horizon;
+  for(const [id,r] of this.#entries){if(r.time!==undefined&&r.time>time)r.time=undefined;else if(r.time!==undefined){this.#resolvedId=id;this.#resolvedTime=Math.max(this.#resolvedTime,r.time);}}
+ }
  /** Caller supplies the full retained marker set after motion ownership has
   * been fenced. Output remains zero until fresh boundary times are delivered;
   * this method does not infer a pause/parking cooling policy or resume motion. */

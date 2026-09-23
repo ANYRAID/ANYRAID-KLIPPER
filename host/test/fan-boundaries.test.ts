@@ -35,3 +35,9 @@ test('stop during reset cannot resurrect retained requests on late success',asyn
 test('timeline rejects duplicate owners, capacity overflow and sparse retained sets',async()=>{
  const f=await fixture();try{assert.throws(()=>new FanBoundaryTimeline(f.fan),/ownership/);for(let i=0;i<4;i++)f.timeline.register(i/4);assert.throws(()=>f.timeline.register(1),/capacity/);await assert.rejects(f.timeline.replace(new Array(1),signal()),/retained/);assert.equal(f.resets,1);}finally{await f.timeline.stop();}
 });
+test('braking preserves committed and anchor endpoints while retiming only an unsent suffix',async()=>{
+ const f=await fixture(),a=f.timeline.register(.25),b=f.timeline.register(.5),c=f.timeline.register(.75);
+ try{await f.timeline.deliver([{id:a,time:1},{id:b,time:2},{id:c,time:3}],1.1,signal());assert.throws(()=>f.timeline.invalidateAfter(1.1),/overlaps/);f.timeline.invalidateAfter(2);
+  await f.timeline.deliver([{id:c,time:5}],5,signal());assert.deepEqual(f.writes,[[1,.25],[2,.5],[5,.75]]);assert.equal(f.resets,1);f.timeline.retireThrough(5);assert.equal(f.timeline.status.pending,0);
+ }finally{await f.timeline.stop();}
+});
