@@ -1,7 +1,10 @@
+import {compileConfiguredMotorEnables} from '../../src/config/motor-enable.ts';
+import {PrinterPins} from '../../src/protocol/pins.ts';
+import {mcuOids} from '../../src/protocol/mcu-oids.ts';
 import {readStepperDistance} from '../../src/config/stepper.ts';
 import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
-import {compileMotorEnable,MotorEnable} from '../../src/outputs/motor-enable.ts';
+import {MotorEnable} from '../../src/outputs/motor-enable.ts';
 import {EndstopProtocol} from '../../src/inputs/endstop.ts';
 import type {StoppedEmitter} from '../../src/homing/rebuild-motion.ts';
 import {MCUGroup} from '../../src/runtime/mcu-group.ts';
@@ -23,8 +26,13 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   const chip={},endstop=new EndstopProtocol(chip,s.dictionary,7,{chip,chipName:'m',pin:'PA0',invert:0,pullup:1});
   const secondTrigger=new TriggerSyncProtocol(s.dictionary,9),secondEndstop=new EndstopProtocol(chip,s.dictionary,6,{chip,chipName:'m',pin:'PA1',invert:0,pullup:1});
   const fanPlan=partFan?compilePWM(chip,s.dictionary,{oid:0,pin:{chip,chipName:'m',pin:'PA2',invert:0,pullup:0},hardware:true,cycleTime:.01,maxDuration:0,currentPrintTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6},time=>BigInt(Math.trunc(time*1e6))):undefined;
-  const motorPlan=motorPower?compileMotorEnable(group,{mcu:'m',emitters:['x','e',...dual?['x2']:[],...complete?['y','z']:[]],chip,pin:{chip,chipName:'m',pin:'PA3',invert:1,pullup:0},oid:10,leadTime:.001,calibration:{offset:0,frequency:1e6}}):undefined;
-  await s.configure({oidCount:motorPower?11:dual?10:9,commands:[...trigger.commands,...endstop.commands,...dual?[...secondTrigger.commands,...secondEndstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
+  const pins=new PrinterPins<object>();pins.register('m',chip);
+  // Legacy fixture objects retain their fixed IDs until their builders migrate.
+  mcuOids(pins).claim(Array.from({length:motorPower||dual?10:9},(_,oid)=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
+  const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,{enable_pin:'!m:PA3'}])),[]),null);
+  const motorPlan=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}})))[0]:undefined;
+  const motorOidCount=mcuOids(pins).finalize('m').oidCount;
+  await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...dual?[...secondTrigger.commands,...secondEndstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
   const motorEnable=motorPlan?new MotorEnable(group,[motorPlan]):undefined;
   const distance=readStepperDistance(new ConfigurationReader(new ConfigurationSource('/stepper.cfg',{stepper_x:{rotation_distance:'1',microsteps:'1',full_steps_per_rotation:'100'}},[]),null).section('stepper_x'));
   const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};
