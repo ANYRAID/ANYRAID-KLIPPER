@@ -53,6 +53,15 @@ export class SecondarySync {
   this.#validate(candidate);this.#matches(timeline);
   return timeline.planCalibration(coordinator.status.generatedTime,generationLimit,candidate.frequency);
  }
+ /** Only for an MCU with no motion emitters; runtime ownership must enforce it. */
+ planPeripheral(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,after:number,until:number){
+  this.#validate(candidate);this.#matches(timeline);return timeline.planCalibration(after,until,candidate.frequency);
+ }
+ applyPeripheral(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,tick:bigint):void{
+  this.#validate(candidate);this.#matches(timeline);this.#applying=true;
+  try{timeline.append(tick,candidate.frequency);const applied=timeline.status.calibration;this.#offset=applied.offset;this.#frequency=applied.frequency;this.#syncTime=candidate.syncTime;this.#revision++;}
+  finally{this.#applying=false;}
+ }
  #matches(timeline:PrintClockTimeline):void{
   const current=timeline.status.calibration;
   if(current.offset!==this.#offset||current.frequency!==this.#frequency)throw new Error('Secondary and shared clock mappings differ');

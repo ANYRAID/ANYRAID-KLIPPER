@@ -10,7 +10,9 @@ for(const reverse of [false,true])test(`connector owner reaches configured print
   printer=await pending;assert.equal(printer.group.status.state,'ready');assert.equal(printer.hardware.status.state,'ready');assert.equal(printer.linear.kinematics.status.homedAxes,'');assert.deepEqual(printer.linear.port.position(),[0,0,0,0]);
   assert.equal(f.firmware[0].motion.length,0);
   const aux=printer.hardware.plan.configurations.find(c=>c.mcu==='aux')!,sync=aux.synchronizer!;assert(sync);assert(sync.usesClocks(printer.group.session('mcu').clock.sync,printer.group.session('aux').clock.sync));assert.equal(printer.initial.generation.clockTimelines!.find(c=>c.id==='aux')!.synchronizer,sync);assert.equal(printer.hardware.plan.configurations.find(c=>c.mcu==='mcu')!.synchronizer,undefined);
+  const g=printer.initial.generation,segments=aux.timeline.status.segments;assert.throws(()=>g.calibrateAuxiliaryClock('mcu'),/auxiliary MCU/);assert(g.calibrateAuxiliaryClock('aux'));assert.equal(aux.timeline.status.segments,segments+1);assert.deepEqual(aux.timeline.status.calibration,{offset:sync.mapping.offset,frequency:sync.mapping.frequency});
   await printer.linear.port.forcePosition([1,0,0,0],f.signal);assert.deepEqual(printer.linear.port.position(),[1,0,0,0]);assert.equal(aux.synchronizer,sync);
+  assert.throws(()=>g.calibrateAuxiliaryClock('aux'),/active motion ownership/);
   await printer.close();assert.equal(printer.group.status.state,'stopped');assert.deepEqual(f.stops,[1,1]);
  }finally{await printer?.close();await f.close();}
 });

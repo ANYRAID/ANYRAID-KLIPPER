@@ -43,6 +43,19 @@ test('inactive clocks and unrepresentable native ranges fail without changing th
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+test('peripheral-only calibration preserves delayed samples and publishes the applied mapping',()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),clock=new PrintClockTimeline(sync.mapping),old=clock.clockAt(1.4);
+ main.accept({clock32:1400000,sentTime:10.4,receiveTime:10.402},true);local.accept({clock32:10799920,sentTime:10.4,receiveTime:10.402},true);
+ const p=sync.propose(1.5,10.405),plan=sync.planPeripheral(p,clock,1.5,1.6)!;assert(plan);sync.applyPeripheral(p,clock,plan.tick);
+ assert.equal(clock.clockAt(1.4),old);assert.equal(clock.printTimeAtClock(old),1.4000000000000004);assert.deepEqual(sync.mapping,{...clock.status.calibration,syncTime:p.syncTime});assert.equal(clock.printTimeAtClock(plan.tick),plan.time);
+ assert.throws(()=>sync.applyPeripheral(p,clock,plan.tick+1n),/Stale/);
+});
+test('peripheral reservations and stale samples cannot partially publish calibration',()=>{
+ const {main,local}=clocks(),sync=new SecondarySync(main,local,10),clock=new PrintClockTimeline(sync.mapping),before=sync.mapping,p=sync.propose(1.5,10.4),plan=sync.planPeripheral(p,clock,1.5,1.6)!;
+ clock.reserveClock(plan.tick);const status=clock.status;assert.throws(()=>sync.applyPeripheral(p,clock,plan.tick),/reserved/);assert.deepEqual(clock.status,status);assert.deepEqual(sync.mapping,before);
+ local.accept({clock32:12000000,sentTime:11,receiveTime:11.002},true);assert.throws(()=>sync.planPeripheral(p,clock,2,3),/Stale/);assert.throws(()=>sync.applyPeripheral(p,clock,plan.tick+1n),/Stale/);assert.deepEqual(clock.status,status);
+ const fresh=sync.propose(2,11),next=sync.planPeripheral(fresh,clock,2,3)!;sync.applyPeripheral(fresh,clock,next.tick);assert.equal(clock.status.segments,2);
+});
 test('fractional generation advances to a planned exact anchor and rechecks later output reservations',async()=>{
  const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,clock=new PrintClockTimeline(initial);
  using q=new TrapQueue();q.setPosition(1,0,0,0);q.appendRaw(new Float64Array([1,0,2,0,0,0,0,0,0,0,0,0,0]));
