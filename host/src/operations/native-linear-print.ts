@@ -9,14 +9,17 @@ const owners=new WeakSet<NativeLinearGCode>();
 export interface NativeLinearPrintOptions {
  gcode:NativeLinearGCode;port:NativeLinearHomingPort;heaters:AsyncPrinterHeaters;
  mapping:{nozzle:string;bed:string};parking:PauseParkingConfig;lifecycle:NativeFileLifecycle;
+ /** Machine policy after final output acknowledgement; never a file macro. */
+ motorCompletion:'hold'|'release';
  open:ConstructorParameters<typeof FilePrintDevice>[2];
 }
 /** Transfers these dedicated owners after validation. Machine configuration,
  * the live extrusion-temperature guard and authorized sealed files must already
  * be wired. Failed assembly closes the transferred motion/heater/output owners. */
 export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
- const {gcode,port,heaters,lifecycle}=o;
+ const {gcode,port,heaters,lifecycle,motorCompletion}=o;
  if(!(gcode instanceof NativeLinearGCode)||!(port instanceof NativeLinearHomingPort)||!(heaters instanceof AsyncPrinterHeaters)||!gcode.usesPort(port)||owners.has(gcode)||typeof o.open!=='function')throw new Error('Invalid native print ownership');
+ if(!['hold','release'].includes(motorCompletion)||motorCompletion==='release'&&!port.hasMotorEnable)throw new Error('Invalid native print motor completion policy');
  const names=heaters.status.available_heaters.map(name=>name.trim().split(/\s+/).at(-1));
  if(!heaters.status.started||heaters.status.closed||!names.includes(o.mapping.nozzle)||!names.includes(o.mapping.bed)||o.mapping.nozzle===o.mapping.bed)throw new Error('Native print heaters are not ready or mapped');
  for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof lifecycle[key]!=='function')throw new Error('Incomplete native print lifecycle');
@@ -35,7 +38,10 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
   });return closing;
  };
  try{
-  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:async(request,signal)=>{await lifecycle.prepare(request,signal);signal.throwIfAborted();gcode.enable();}});
+  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:async(request,signal)=>{await lifecycle.prepare(request,signal);signal.throwIfAborted();gcode.enable();},finishOutputs:async(id,signal)=>{
+   await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
+   if(motorCompletion==='release')await port.releaseMotors(signal);
+  }});
   const file=new FilePrintDevice(motion,gcode.dispatch,o.open);device=new ThermalPrintDevice(file,heaters,{...o.mapping});
   heaters.attach(gcode.dispatch,{bed:o.mapping.bed,extruders:[o.mapping.nozzle]});
   return {device,file,gcode,close};
