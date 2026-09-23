@@ -48,7 +48,7 @@ export class RebuiltMotionStreamer {
   await new Promise<void>((resolve,reject)=>{let timer:ReturnType<typeof setTimeout>;const finish=(error?:unknown)=>{clearTimeout(timer);signal.removeEventListener('abort',abort);this.#wake=undefined;error===undefined?resolve():reject(error);},abort=()=>finish(signal.reason);this.#wake=()=>finish();timer=setTimeout(()=>finish(),ms);signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();});
  }
  #check(signal:AbortSignal){signal.throwIfAborted();this.#g.group.assertActive();for(const [i,b] of this.#g.motion.bindings.entries()){const c=b.stepper.calibration,old=this.#mapping[i];if(c.offset!==old.offset||c.frequency!==old.frequency)throw new Error('Streaming clock calibration changed');const w=b.stepper.scanWindow,saved=this.#windows[i];if(w.future!==saved.future||w.past!==saved.past)throw new Error('Streaming filter window changed');}}
- #clocks(){const now=serialClock.now();return this.#g.members.map((m,i)=>{const b=this.#g.motion.bindings.find(b=>b.member===i)!;return {member:m,stepper:b.stepper,time:b.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))};});}
+ #clocks(){const now=serialClock.now();return this.#g.clockMembers.map(m=>({member:m,stepper:m.stepper,time:m.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))}));}
  #leadCheck(){if(Math.max(...this.#clocks().map(c=>c.time))+this.#minimum>Math.max(this.#start,this.#g.coordinator.status.committedTime))throw new Error('Streaming motion lead exhausted');}
  /** Each I/O wait remains bounded by 30 seconds. A whole-transaction deadline
   * is optional because valid motion may itself last longer than 30 seconds. */

@@ -38,12 +38,12 @@ export class LinearHomingSeek {
    executor=new HomingMoveExecution({...plan,coordinator:g.coordinator,bindings:g.motion.bindings,startTime:prepared.startTime,endTime:prepared.endTime,timeoutMs,locate:readback=>{
     for(const a of actuators)if(a.extra){const offset=readback.offsets.find(p=>p.member===a.member&&p.oid===a.oid);if(!offset||offset.triggerOffset!==0n||offset.haltOffset!==0n)throw new Error('Unexpected extra-axis movement during homing');}
     halt=homingToolheadPositions({mode:'home',actuators,offsets:readback.offsets,reference:prepared.endPosition,calculate:positions=>o.kinematics.calcPosition(o.kinematicIds.map(id=>positions.get(id)!))}).halt;
-    const now=serialClock.now(),printTime=Math.max(...g.members.map((m,i)=>g.motion.bindings.find(b=>b.member===i)!.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;
+    const now=serialClock.now(),printTime=Math.max(...g.clockMembers.map(m=>m.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;
     return {queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?halt!.slice(0,3):[halt![r.extrusionAxis],0,0]) as [number,number,number]})),printTime};
    }});
    const result=await executor.run(signal);motion=result.motion;signal.throwIfAborted();if(!halt)throw new Error('Missing homing halt coordinates');
    motion=plan.restorePhysicalMembers(motion);
-   const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer,motorEnable:g.motorEnable});
+   const next=await bindRebuiltMotion({group:g.group,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer,motorEnable:g.motorEnable});
    signal.throwIfAborted();return Object.freeze({...result,movingSteppers,motion,generation:next,position:halt});
   }catch(error){
    const errors:unknown[]=[error];this.#cleanupPending=true;

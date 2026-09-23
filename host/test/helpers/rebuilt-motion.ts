@@ -16,26 +16,27 @@ import {MotionCoordinator} from '../../src/motion/coordinator.ts';
 import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
 import {CoordinateRebase} from '../../src/homing/recovery.ts';
 import {serialClock} from '../../src/protocol/serial-queue.ts';
-export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false){
- const fw=await serialFirmware(undefined,{triggerSync:true}),signal=new AbortController().signal;let stops=0;
- const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]);
+export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false,auxiliary=false){
+ const fw=await serialFirmware(undefined,{triggerSync:true}),auxFw=auxiliary?await serialFirmware():undefined,signal=new AbortController().signal;let stops=0;
+ const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}},...auxFw?[{id:'a',async connect(signal:AbortSignal,stopDevice:(cause:unknown)=>Promise<void>){const s=new SerialSession(auxFw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]:[]]);
  const xyz=new TrapQueue(),extrusion=new TrapQueue();let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
  try{
-  await group.start(signal);const s=group.session('m'),chip={},pins=new PrinterPins<object>();pins.register('m',chip);
+  await group.start(signal);const s=group.session('m'),chip={},pins=new PrinterPins<object>();pins.register('m',chip);const auxChip={};if(auxFw)pins.register('a',auxChip);const fanMCU=auxFw?'a':'m',fanSession=group.session(fanMCU),fanChip=auxFw?auxChip:chip;
   // Reserve only legacy stepper/fan objects and compatibility gaps.
   const legacyIds=[...partFan?[]:[0],1,2,3,4,5,...dual?[]:[6],...motorPower&&!dual?[9]:[]];
   mcuOids(pins).claim(legacyIds.map(oid=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
   const homingReader=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{primary:{endstop_pin:'^m:PA0'},secondary:{endstop_pin:'^m:PA1'}},[]),null);
   const homing=compileConfiguredHoming(homingReader,pins,new Map([['m',{chip,dictionary:s.dictionary}]]),[{section:'primary',oid:7,triggers:[{mcu:'m',oid:8}]},...dual?[{section:'secondary',oid:6,triggers:[{mcu:'m',oid:9}]}]:[]]);
   const {endstop}=homing[0],trigger=homing[0].triggers[0].protocol,secondary=homing[1];
-  const fanReader=new ConfigurationReader(new ConfigurationSource('/fan.cfg',{fan:{pin:'m:PA2',hardware_pwm:'true'}},[]),null);
-  const configuredFan=partFan?compileConfiguredCoolingFans(fanReader,pins,new Map([['m',{chip,dictionary:s.dictionary}]]),new Map([['m',{currentPrintTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6,calibration:{offset:0,frequency:1e6}}]]),[{section:'fan',minimumScheduleTime:.001}])[0]:undefined;
+  const fanReader=new ConfigurationReader(new ConfigurationSource('/fan.cfg',{fan:{pin:fanMCU+':PA2',hardware_pwm:'true'}},[]),null);
+  const configuredFan=partFan?compileConfiguredCoolingFans(fanReader,pins,new Map([[fanMCU,{chip:fanChip,dictionary:fanSession.dictionary}]]),new Map([[fanMCU,{currentPrintTime:Number(fanSession.clock.sync.getClock(serialClock.now()))/1e6,calibration:{offset:0,frequency:1e6}}]]),[{section:'fan',minimumScheduleTime:.001}])[0]:undefined;
   const fanPlan=configuredFan?.output.pwm;
   const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,motorPower==='always'||motorPower==='mixed'&&id==='e'?{} as Record<string,string>:{enable_pin:'!m:PA3'}])),[]),null);
   const motorPlans=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}}))):undefined;
   const motorPlan=motorPlans?.lines[0];
-  const motorOidCount=mcuOids(pins).finalize('m').oidCount;
-  await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...secondary?[...secondary.triggers[0].protocol.commands,...secondary.endstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
+  const motorOidCount=mcuOids(pins).finalize('m').oidCount,primaryFan=auxFw?undefined:fanPlan;
+  await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...secondary?[...secondary.triggers[0].protocol.commands,...secondary.endstop.commands]:[],...primaryFan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:primaryFan?.init,restart:[...primaryFan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(primaryFan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
+  if(auxFw)await fanSession.configure({oidCount:mcuOids(pins).finalize('a').oidCount,commands:fanPlan?.commands??[],restart:fanPlan?.restart,init:fanPlan?.init,reservedMoves:fanPlan?.reservedMoves??0},signal);
   const motorEnable=motorPlans?new MotorEnable(group,motorPlans.lines,motorPlans.alwaysOn):undefined;
   const distance=readStepperDistance(new ConfigurationReader(new ConfigurationSource('/stepper.cfg',{stepper_x:{rotation_distance:'1',microsteps:'1',full_steps_per_rotation:'100'}},[]),null).section('stepper_x'));
   const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};
@@ -49,7 +50,7 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   if(dual){members[0].steppers.push({oid:5,inverted:false});emitters.push({id:'x2',queueId:'xyz',member:0,settings:{...settings,oid:5},mode:'x',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(5,300);}
   if(complete)for(const [id,oid] of [['y',1],['z',2]] as const){members[0].steppers.push({oid,inverted:false});emitters.push({id,queueId:'xyz',member:0,settings:{...settings,oid},mode:id,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(oid,0);}
   const result=await new CoordinateRebase({coordinator,bindings,members,emitters,locate:()=>({queues:[{id:'xyz',position:[50,0,0]},{id:'e',position:[2,0,0]}],printTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6+.2})}).recover(signal);
-  motion=result.motion;const options={group,members,motion,motorEnable,routes:[{queue:motion.bindings[0].queue},{queue:motion.bindings[1].queue,extrusionAxis:3}],position:[50,0,0,2]};
-  return {options,fw,emitters,endstop,get secondTrigger(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.triggers[0].protocol;},get secondEndstop(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.endstop;},fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();}};
+  motion=result.motion;const options={group,members,motion,motorEnable,auxiliaryMCUs:auxFw?[{id:'a',calibration:{offset:0,frequency:1e6}}]:[],routes:[{queue:motion.bindings[0].queue},{queue:motion.bindings[1].queue,extrusionAxis:3}],position:[50,0,0,2]};
+  return {options,fw,auxFw,fanMCU,emitters,endstop,get secondTrigger(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.triggers[0].protocol;},get secondEndstop(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.endstop;},fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();await auxFw?.close();}};
  }catch(error){await group.stop().catch(()=>{});motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();throw error;}
 }

@@ -1,16 +1,26 @@
+import {snapshotPrintClock} from '../timing/print-clock.ts';
 import {performance} from 'node:perf_hooks';
 import {MotionCoordinator} from './coordinator.ts';
 import {MoveQueueSink} from './move-queue-sink.ts';
 import {MCUGroup} from '../runtime/mcu-group.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
+/** Explicit devices without motion queues; clock passage is still required. */
+export interface AuxiliaryMCUClock {id:string;calibration:Readonly<{offset:number;frequency:number}>}
 /** Producer must remain fenced through completion and use sourceUntil for the
  * next source segment. Routes must be built from this group's motion queues.
  * Drain completion confirms firmware-time passage, never mechanical position.
  * Streaming advance only commits the safe prefix; it does not await execution. */
 export class CoordinatedMotionDrain {
  readonly #coordinator:MotionCoordinator;readonly #sink:MoveQueueSink;readonly #group:MCUGroup;#clockSources:ReturnType<MoveQueueSink['clockSources']>;#maxWindow:number;#busy=false;
- constructor(coordinator:MotionCoordinator,sink:MoveQueueSink,group:MCUGroup,maxGenerationWindow=.25){if(!Number.isFinite(maxGenerationWindow)||maxGenerationWindow<.01||maxGenerationWindow>1)throw new RangeError('Invalid generation window');this.#maxWindow=maxGenerationWindow;if(!coordinator.usesSink(sink))throw new Error('Motion drain sink does not belong to coordinator');this.#clockSources=sink.clockSources();this.#coordinator=coordinator;this.#sink=sink;this.#group=group;}
+ #auxiliary:readonly {id:string;clock:ReturnType<typeof snapshotPrintClock>}[];
+ constructor(coordinator:MotionCoordinator,sink:MoveQueueSink,group:MCUGroup,maxGenerationWindow=.25,auxiliary:readonly AuxiliaryMCUClock[]=[]){
+  if(!Number.isFinite(maxGenerationWindow)||maxGenerationWindow<.01||maxGenerationWindow>1)throw new RangeError('Invalid generation window');this.#maxWindow=maxGenerationWindow;if(!coordinator.usesSink(sink))throw new Error('Motion drain sink does not belong to coordinator');this.#clockSources=sink.clockSources();this.#coordinator=coordinator;this.#sink=sink;this.#group=group;
+  this.#auxiliary=auxiliary.map(a=>({id:a.id,clock:snapshotPrintClock(a.calibration)}));
+  const ids=[...this.#clockSources.map(c=>c.id),...this.#auxiliary.map(c=>c.id)],devices=group.status.devices;
+  if(new Set(ids).size!==ids.length||ids.length!==devices.length||ids.some(id=>!devices.some(d=>d.id===id)))throw new Error('Motion and auxiliary clocks must cover every MCU exactly once');
+  for(const a of this.#auxiliary)group.session(a.id).configuration;
+ }
  #historyCutoff():number{this.#group.assertActive();const clocks:Record<string,bigint>=Object.create(null);for(const route of this.#clockSources){const clock=this.#group.session(route.id).clock;clock.assertActive();const tick=clock.sync.lastClock;for(const id of route.emitters)clocks[id]=tick;}return this.#coordinator.historyCutoff(clocks);}
  get generatedTime():number{return this.#coordinator.status.generatedTime;}
  get committedTime():number{return this.#coordinator.status.committedTime;}
@@ -30,7 +40,7 @@ export class CoordinatedMotionDrain {
   return this.#operate(signal,timeoutMs,async({run,check,combined,deadline})=>{
    const result=await run(this.#coordinator.drain(lastMoveTime,positions,this.#maxWindow,()=>this.#historyCutoff()));check();
    if(afterCommit){await run(afterCommit(result.generatedUntil,combined));check();}
-   const targets=this.#sink.motionClockTargets(result.clocks);
+   const targets=Object.freeze({...this.#sink.motionClockTargets(result.clocks),...Object.fromEntries(this.#auxiliary.map(a=>[a.id,a.clock.clockAt(result.generatedUntil)]))});
    await run(this.#group.waitForMotionClocks(targets,combined,Math.max(1,Math.ceil(deadline-performance.now()))));check();
    return Object.freeze({...result,targets});
   });

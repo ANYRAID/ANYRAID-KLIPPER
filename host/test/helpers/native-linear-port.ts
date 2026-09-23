@@ -12,11 +12,11 @@ import {GenerationPWMOutput} from '../../src/outputs/generation-pwm.ts';
 import {ScheduledCoolingFan,type FanConfig} from '../../src/outputs/fan.ts';
 import {FanBoundaryTimeline} from '../../src/outputs/fan-boundaries.ts';
 const signal=()=>new AbortController().signal;
-export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false){
- const f=await rebuiltFixture(false,true,fanConfig!==undefined,motorPower);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
+export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false,auxiliary=false){
+ const f=await rebuiltFixture(false,true,fanConfig!==undefined,motorPower,auxiliary);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
  try{
-  if(fanConfig){const group=f.options.group,s=group.session('m'),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue('m'),group.commandQueue('m'),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
-  const generation=await bindRebuiltMotion({...f.options,...timeline?{boundaryOutput:{output:timeline,member:0}}:{}});
+  if(fanConfig){const group=f.options.group,s=group.session(f.fanMCU),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue(f.fanMCU),group.commandQueue(f.fanMCU),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
+  const generation=await bindRebuiltMotion({...f.options,...timeline?{boundaryOutput:{output:timeline,mcu:f.fanMCU}}:{}});
   if(filtered){generation.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});generation.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
   const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
   const reader=linearMotionReader(Object.fromEntries(['stepper_x','stepper_y','stepper_z'].map(name=>[name,{homing_retract_dist:String(retractDistance)}])));
