@@ -28,6 +28,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
  #notice=new StopNotice();#unsubscribeGroup:(()=>void)|undefined;
+ #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
@@ -196,5 +197,20 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const stopped=Promise.withResolvers<void>();this.#stop=stopped.promise;this.#abort.abort(cause);
   void this.#g.drain.stop(cause).then(stopped.resolve,stopped.reject);this.#notice.emit(cause);return this.#stop;
  }
- async dispose(){try{await this.motorOff(new Error('Native motion port disposed'));await Promise.all([this.#idle,this.#pausedIdle]);}finally{this.#unsubscribeGroup?.();if(!this.#busy&&!this.#pausedBusy)this.#g.motion.dispose();}}
+ /** Stop failure must not bypass in-flight owners or leak their final generation.
+  * Publish before motorOff: group observers can re-enter shutdown synchronously. */
+ dispose():Promise<void>{
+  if(this.#disposal)return this.#disposal;
+  const done=Promise.withResolvers<void>();this.#disposal=done.promise;
+  void (async()=>{
+   const errors:unknown[]=[];
+   try{await this.motorOff(new Error('Native motion port disposed'));}catch(error){errors.push(error);}
+   // Both operations settle their idle promises in finally, even on stop error.
+   await Promise.all([this.#idle,this.#pausedIdle]);
+   try{this.#unsubscribeGroup?.();this.#g.motion.dispose();}catch(error){errors.push(error);}
+   if(errors.length===1)throw errors[0];
+   if(errors.length)throw new AggregateError(errors,'Native motion disposal failed');
+  })().then(done.resolve,done.reject);
+  return done.promise;
+ }
 }
