@@ -3,6 +3,7 @@
 #include <asm/termbits.h>
 #include <sys/ioctl.h>
 #include <sys/file.h>
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
@@ -40,4 +41,16 @@ static napi_value touch_usb(napi_env env,napi_callback_info info){
  const char *operation;if(usb_bootloader_touch(path,&operation))return fail(env,operation);
  napi_get_undefined(env,&result);return result;
 }
-napi_status uart_exports(napi_env env,napi_value exports){napi_property_descriptor d[]={{"touchUSBBootloader",NULL,touch_usb,NULL,NULL,NULL,napi_default,NULL},{"openUART",NULL,open_uart,NULL,NULL,NULL,napi_default,NULL},{"setUARTBaud",NULL,set_baud,NULL,NULL,NULL,napi_default,NULL}};return napi_define_properties(env,exports,3,d);}
+static napi_value open_pipe(napi_env env,napi_callback_info info){
+ size_t n=1,len=0;napi_value a[1],result;char path[4096];
+ if(napi_get_cb_info(env,info,&n,a,NULL,NULL)!=napi_ok||n!=1||napi_get_value_string_utf8(env,a[0],NULL,0,&len)!=napi_ok||!len||len>=sizeof(path)){napi_throw_type_error(env,NULL,"Invalid pipe path");return NULL;}
+ if(napi_get_value_string_utf8(env,a[0],path,sizeof(path),&len)!=napi_ok||strlen(path)!=len||path[0]!='/'){napi_throw_type_error(env,NULL,"Pipe path must be absolute without NUL");return NULL;}
+ int fd=open(path,O_RDWR|O_NOCTTY|O_NONBLOCK|O_CLOEXEC);if(fd<0)return fail(env,"Open pipe");
+ struct stat state;const char *operation="Inspect pipe";
+ if(fstat(fd,&state))goto error;
+ if(!S_ISCHR(state.st_mode)){errno=ENODEV;goto error;}
+ operation="Lock pipe";if(flock(fd,LOCK_EX|LOCK_NB))goto error;
+ if(napi_create_int32(env,fd,&result)!=napi_ok){close(fd);napi_throw_error(env,NULL,"Node-API failure");return NULL;}return result;
+ error:{int saved=errno;close(fd);errno=saved;return fail(env,operation);}
+}
+napi_status uart_exports(napi_env env,napi_value exports){napi_property_descriptor d[]={{"openPipe",NULL,open_pipe,NULL,NULL,NULL,napi_default,NULL},{"touchUSBBootloader",NULL,touch_usb,NULL,NULL,NULL,napi_default,NULL},{"openUART",NULL,open_uart,NULL,NULL,NULL,napi_default,NULL},{"setUARTBaud",NULL,set_baud,NULL,NULL,NULL,napi_default,NULL}};return napi_define_properties(env,exports,4,d);}
