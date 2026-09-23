@@ -6,7 +6,7 @@ import type {ConfiguredLinearHoming} from '../config/linear-homing.ts';
 import type {HardwareLayout} from '../config/hardware.ts';
 import type {FanClock} from '../config/cooling-fan.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
-import type {MCUGroup} from './mcu-group.ts';
+import {MCUGroup,type MCUConnection} from './mcu-group.ts';
 export interface ConfiguredPrinterOptions {
  hardware:HardwareStartupOptions;
  motion:InitialMotionOptions;
@@ -20,7 +20,7 @@ export async function startConfiguredPrinter(reader:ConfigurationReader,group:MC
  signal.throwIfAborted();group.assertActive();
  if(!options.hardware.motion?.length)throw new Error('Configured printer requires motion descriptors');
  readLinearMotionConfiguration(reader);
- const settings:ConfiguredPrinterOptions={hardware:{...options.hardware,motion:structuredClone(options.hardware.motion),heaterGcodeIds:{...options.hardware.heaterGcodeIds}},motion:structuredClone(options.motion),linear:structuredClone(options.linear),print:{...options.print,parking:{...options.print.parking,parkXY:[...options.print.parking.parkXY]},startupHoming:{...options.print.startupHoming,axes:[...options.print.startupHoming.axes]},lifecycle:{...options.print.lifecycle}}};
+ const settings=snapshotOptions(options);
  let hardware:Awaited<ReturnType<typeof startConfiguredHardware>>|undefined;
  const cancelled=()=>{void hardware?.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',cancelled,{once:true});
  const active=()=>{signal.throwIfAborted();group.assertActive();if(hardware&&hardware.status.state!=='ready')throw new Error('Configured printer stopped during startup');};
@@ -38,4 +38,27 @@ export async function startConfiguredPrinter(reader:ConfigurationReader,group:MC
 export function startClockedPrinter(reader:ConfigurationReader,group:MCUGroup,primaryId:string,layout:HardwareLayout,options:ConfiguredPrinterOptions,signal:AbortSignal){
  signal.throwIfAborted();
  return startConfiguredPrinter(reader,group,captureGroupPrintClocks(group,primaryId),layout,options,signal);
+}
+
+function snapshotOptions(options:ConfiguredPrinterOptions):ConfiguredPrinterOptions{return {hardware:{...options.hardware,motion:structuredClone(options.hardware.motion),heaterGcodeIds:{...options.hardware.heaterGcodeIds}},motion:structuredClone(options.motion),linear:structuredClone(options.linear),print:{...options.print,parking:{...options.print.parking,parkXY:[...options.print.parking.parkXY]},startupHoming:{...options.print.startupHoming,axes:[...options.print.startupHoming.axes]},lifecycle:{...options.print.lifecycle}}};}
+
+/** Own connectors from acquisition through print shutdown. Connections must meet
+ * MCUConnection's cancellation and independent safety contract (e.g. uartMCU).
+ * This is single-use; a disconnect never reconnects or replays motion. */
+export async function connectConfiguredPrinter(reader:ConfigurationReader,connections:readonly MCUConnection[],primaryId:string,layout:HardwareLayout,options:ConfiguredPrinterOptions,signal:AbortSignal){
+ signal.throwIfAborted();
+ if(!connections.some(c=>c.id===primaryId))throw new Error('Primary MCU is not declared');
+ if(!options.hardware.motion?.length)throw new Error('Configured printer requires motion descriptors');
+ readLinearMotionConfiguration(reader);
+ const settings=snapshotOptions(options),savedLayout=structuredClone(layout),group=new MCUGroup(connections);
+ let printer:Awaited<ReturnType<typeof startClockedPrinter>>|undefined;
+ try{
+  await group.start(signal);signal.throwIfAborted();
+  printer=await startClockedPrinter(reader,group,primaryId,savedLayout,settings,signal);
+  signal.throwIfAborted();group.assertActive();
+  return Object.freeze({...printer,group});
+ }catch(error){
+  const results=await Promise.allSettled([group.stop(error),printer?.close(error)]),errors=results.filter(r=>r.status==='rejected').map(r=>r.reason).filter(e=>e!==error);
+  if(errors.length)throw new AggregateError([error,...errors],'Printer connection and cleanup failed',{cause:error});throw error;
+ }
 }

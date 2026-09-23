@@ -4,8 +4,8 @@ import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {startConfiguredHardware,type HardwareStartupOptions} from '../../src/runtime/configured-hardware.ts';
 export const initialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}]};
-export async function initialMotionSetup(reverse=false,full=false,bed=false){
- const f=await hardwareStartupFixture(false,reverse,true);
+export async function initialMotionSetup(reverse=false,full=false,bed=false,autostart=true){
+ const f=await hardwareStartupFixture(false,reverse,true,autostart);
  try{
   const sections:Record<string,Record<string,string>>={
    stepper_x:{step_pin:'STEP',dir_pin:'PA1',rotation_distance:'40',microsteps:'16',enable_pin:'!PA2',endstop_pin:'^PA3'},
