@@ -101,7 +101,14 @@ export class MotionCoordinator {
   const bindings=ids.map(id=>{const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');return b;});
   try{for(const guard of this.#guards)guard.assertActive();}catch(error){void this.shutdown(error).catch(()=>{});throw error;}
   for(const b of bindings)b.stepper.validateClockCalibration(offset,frequency);
-  for(const b of bindings)b.stepper.calibrateClock(offset,frequency);
+  try{for(const b of bindings)b.stepper.calibrateClock(offset,frequency);}catch(error){void this.shutdown(error).catch(()=>{});throw error;}
+ }
+ /** Synchronous shared-timeline transaction. No unsolved interval may use the
+  * new affine mapping before its effective boundary. */
+ calibrateClockAtBoundary(ids:readonly string[],previous:Readonly<{offset:number;frequency:number}>,next:Readonly<{offset:number;frequency:number}>,time:number):void{
+  if(!Number.isFinite(time)||time!==this.#generated)throw new Error('Calibration requires the generated motion boundary');
+  for(const id of ids){const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');const old=b.stepper.calibration;if(b.stepper.generatedTime!==time||old.offset!==previous.offset||old.frequency!==previous.frequency)throw new Error('Motion and shared clock mappings differ');}
+  this.calibrateClock(ids,next.offset,next.frequency);
  }
  /** Close a producer-stopped motion boundary with stationary convolution data.
   * positions must give each bound queue's exact endpoint at lastMoveTime; no
