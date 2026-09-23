@@ -31,7 +31,11 @@ for(const address of [false,true]) {
   tests.push('test/print-clock-timeline.test.ts');
   tests.push('test/periodic-clock-calibration.test.ts');
   tests.push('test/idle-clock-calibration.test.ts');
-  // Bound concurrent test-process startup without omitting checks or raising
-  // the per-batch deadline. Every file belongs to exactly one batch.
-  for(let batch=0;batch<2;batch++)run(['--test','--test-reporter=tap',...tests.filter((_,i)=>i%2===batch)],env);
+  tests.push('test/idle-clock-scheduler.test.ts');
+  // The paced 32-second case must not start behind the worker pool's short
+  // files. Keep its own batch and the same 60-second deadline. All other files
+  // retain their batch assignment; every file still runs exactly once.
+  const longMotion='test/motion-streamer.test.ts';
+  for(let batch=0;batch<2;batch++)run(['--test','--test-reporter=tap',...tests.filter((file,i)=>i%2===batch&&file!==longMotion)],env);
+  run(['--test','--test-reporter=tap',longMotion],env);
 }

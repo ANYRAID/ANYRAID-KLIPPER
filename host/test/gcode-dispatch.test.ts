@@ -78,3 +78,10 @@ test('machine action failure fences queued scripts and emergency stop aborts act
  const action=d.runExclusive(s=>new Promise<void>((_resolve,reject)=>{s.addEventListener('abort',()=>reject(s.reason),{once:true});entered.resolve();}),new AbortController().signal),failed=assert.rejects(action);
  await entered.promise;const queued=d.execute('M110'),invalidated=assert.rejects(queued,/invalidated/);d.emergencyStop('external MCU stop');await failed;await invalidated;assert.deepEqual(shutdown,['external MCU stop']);
 });
+test('idle machine work skips occupied admission without accumulating deferred actions',async()=>{
+ const {d,shutdown}=setup(),signal=new AbortController().signal,gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();let calls=0;
+ const active=d.runExclusive(async()=>{entered.resolve();await gate.promise;},signal);await entered.promise;
+ for(let i=0;i<100;i++)assert.equal(await d.runWhenIdle(async()=>{calls++;},signal),false);
+ gate.resolve();await active;await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(calls,0);
+ assert.equal(await d.runWhenIdle(async()=>{calls++;},signal),true);assert.equal(calls,1);assert.equal(shutdown.length,0);
+});

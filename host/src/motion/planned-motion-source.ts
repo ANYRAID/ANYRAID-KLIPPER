@@ -4,6 +4,7 @@ import type {TrapQueue} from './trap-queue.ts';
 import {CoordinatedMotionDrain} from './coordinated-drain.ts';
 import {planPathStop,type PathStop} from './path-stop.ts';
 import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
+import {stationaryRows} from './stationary.ts';
 type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
 // Snapshot data on the hot path; hydrate planner methods only when braking.
 const ownMove=(m:Move):MotionSnapshot=>({
@@ -90,7 +91,7 @@ export class PlannedMotionSource {
  #seed():void{
   const from=this.#seeded?this.#idleFrom:this.#drain.generatedTime;if(from===undefined)return;
   if(!Number.isFinite(from)||from>this.#time)throw new RangeError('Invalid source generation baseline');
-  if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(new Float64Array([from,0,this.#time-from,0,...p,0,0,0,0,0,0]));}
+  if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(stationaryRows(from,this.#time,p));}
   if(this.#idleMarkers.length){this.#stationary.push(...this.#idleMarkers.map(id=>({id,time:this.#time})));this.#idleMarkers=[];}
   this.#seeded=true;this.#idleFrom=undefined;
  }

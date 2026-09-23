@@ -101,6 +101,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    await this.#g.source.drain([],s);this.#check(s);return result;
   });
  }
+ get idleClockMaintenanceDue():boolean{
+  if(this.#failed||this.#busy||this.#pause||this.#resuming||this.#pausedBusy||this.#admission.pending)return false;
+  const state=this.#g.source.status;
+  return !state.busy&&!state.pendingBoundaries&&(!state.seeded||state.paused)&&this.#g.clockMaintenanceDue();
+ }
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,async s=>{const state=this.#g.source.status;if(!this.#admission.pending&&state.pendingBoundaries&&(state.paused||!state.seeded)){await this.#drain(s);return;}await this.#streamer.append(this.#admission.flush(true),s);});}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}

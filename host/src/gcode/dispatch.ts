@@ -56,6 +56,13 @@ export class GCodeDispatch {
     });
     this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
   }
+  /** Opportunistic lifecycle work never queues behind scripts or other actions.
+   * Once admitted it owns the same cancellation and retirement barrier. */
+  runWhenIdle(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal):Promise<boolean>{
+    if(typeof work!=='function'||!(signal instanceof AbortSignal))return Promise.reject(new TypeError('Invalid idle machine action'));
+    if(this.#pending)return Promise.resolve(false);
+    return this.runExclusive(work,signal).then(()=>true);
+  }
   /** Yield before the next command without draining or discarding the suffix.
    * The owner must retain the script and drain admitted motion before parking.
    * onCheckpoint brackets the awaited motion hook, not ordinary handlers;

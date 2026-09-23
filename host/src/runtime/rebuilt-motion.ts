@@ -167,7 +167,8 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    }
    return {attempted,updated};
   };
-  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,maintainClocks,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  const clockMaintenanceDue=()=>{const now=serialClock.now();return clockTimelines?.some(c=>c.synchronizer&&(clockCadences.get(c.synchronizer)?.due(now)??true))??false;};
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,retireClockHistory,calibrateAuxiliaryClock,calibrateMotionClock,maintainClocks,clockMaintenanceDue,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer
