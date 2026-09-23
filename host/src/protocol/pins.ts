@@ -2,11 +2,20 @@
 export class PinError extends Error {}
 function valid(pin:string){return typeof pin==='string'&&pin.length>0&&pin.length<=128&&!/[\s^~!:]/u.test(pin);}
 export class PinResolver {
- #aliases=new Map<string,string>();#reserved=new Map<string,string>();#active=new Map<string,string>();#validate:boolean;
+ #logicalReservations=new Set<string>();#aliases=new Map<string,string>();#reserved=new Map<string,string>();#active=new Map<string,string>();#validate:boolean;
  constructor(validateAliases=true){this.#validate=validateAliases;}
- clone():PinResolver{const result=new PinResolver(this.#validate);result.#aliases=new Map(this.#aliases);result.#reserved=new Map(this.#reserved);result.#active=new Map(this.#active);return result;}
+ clone():PinResolver{const result=new PinResolver(this.#validate);result.#logicalReservations=new Set(this.#logicalReservations);result.#aliases=new Map(this.#aliases);result.#reserved=new Map(this.#reserved);result.#active=new Map(this.#active);return result;}
  get reservedPins():readonly string[]{return Object.freeze([...this.#reserved.keys()].map(pin=>this.#aliases.get(pin)??pin));}
  reserve(pin:string,owner:string):void{if(!valid(pin)||!owner||owner.length>256)throw new PinError('Invalid pin reservation');const previous=this.#reserved.get(pin);if(previous!==undefined&&previous!==owner)throw new PinError(`Pin ${pin} reserved for ${previous}`);this.#reserved.set(pin,owner);}
+ /** Non-GPIO board labels remain forbidden by name, without requiring a firmware enumeration. */
+ reserveLogical(pin:string,owner:string):void{this.reserve(pin,owner);this.#logicalReservations.add(pin);}
+ physicalReservations(enumeration:Readonly<Record<string,number>>):number[]{
+  const result:number[]=[];for(const pin of this.#reserved.keys()){
+   const resolved=this.#aliases.get(pin)??pin,id=enumeration[resolved];
+   if(id===undefined){if(this.#logicalReservations.has(pin))continue;throw new PinError('Unknown reserved physical pin');}
+   result.push(id);
+  }return result;
+ }
  alias(alias:string,pin:string):void{
   if(!valid(alias)||!valid(pin))throw new PinError('Invalid pin alias');const previous=this.#aliases.get(alias);
   if(previous!==undefined&&previous!==pin)throw new PinError(`Alias ${alias} already mapped to ${previous}`);

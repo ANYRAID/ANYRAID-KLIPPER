@@ -8,6 +8,7 @@ export async function initialMotionSetup(reverse=false,full=false,bed=false,auto
  const f=await hardwareStartupFixture(false,reverse,true,autostart);
  try{
   const sections:Record<string,Record<string,string>>={
+   board_pins:{aliases:'STEP=PA0, POWER=<5V>'},
    stepper_x:{step_pin:'STEP',dir_pin:'PA1',rotation_distance:'40',microsteps:'16',enable_pin:'!PA2',endstop_pin:'^PA3'},
    fan:{pin:'aux:PA0',enable_pin:'aux:PA3'},
    extruder:{step_pin:'PA4',dir_pin:'PA5',enable_pin:'!PA6',rotation_distance:'40',microsteps:'16',heater_pin:'aux:PA1',sensor_pin:'aux:PA2',sensor_type:'Generic 3950',min_temp:'0',max_temp:'300',control:'watermark'},
@@ -21,7 +22,7 @@ export async function initialMotionSetup(reverse=false,full=false,bed=false,auto
   if(bed)sections.heater_bed={heater_pin:'aux:PA4',sensor_pin:'aux:PA5',sensor_type:'Generic 3950',min_temp:'0',max_temp:'130',control:'watermark'};
   const reader=new ConfigurationReader(new ConfigurationSource('/initial.cfg',sections,[]),null);
   const extra=(full?['y','z']:[]).map(axis=>({section:`stepper_${axis}`,emitter:axis,enableLeadTime:.001}));
-  const layout={...hardwareLayout,heaters:[...hardwareLayout.heaters,...bed?[{section:'heater_bed'}]:[]],homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]};
+  const layout={...hardwareLayout,boards:[],heaters:[...hardwareLayout.heaters,...bed?[{section:'heater_bed'}]:[]],homing:full?['x','y','z'].map(axis=>({section:`stepper_${axis}`,mcus:['mcu']})):hardwareLayout.homing,steppers:[...hardwareLayout.steppers,...extra,{section:'extruder',emitter:'e',enableLeadTime:.001}]};
   const hardwareOptions:HardwareStartupOptions={heaterGcodeIds:bed?{extruder:'T',heater_bed:'B'}:undefined,motion:[{emitter:'x',queueId:'xyz',mode:'x'},...extra.map(e=>({emitter:e.emitter,queueId:'xyz',mode:e.emitter as 'y'|'z'})),{emitter:'e',queueId:'e',mode:'extruder'}]};
   return {...f,reader,layout,hardwareOptions};
  }catch(error){await f.close();throw error;}

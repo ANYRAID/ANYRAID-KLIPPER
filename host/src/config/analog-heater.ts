@@ -30,7 +30,7 @@ export function compileConfiguredAnalogHeaters<T>(reader:ConfigurationReader,pin
   if(!mcu||mcu.chip!==pin.chip||!mapping)throw new Error('Analog heater MCU or clock ownership differs');
   const clock=snapshotPrintClock(mapping.calibration),resolver=pins.resolver(pin.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}
-  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.reservedPins.map(p=>{const id=enumeration[p];if(id===undefined)throw new Error('Unknown reserved heater pin');return id;});maps.set(pin.chipName,{pins:enumeration,reserved});
+  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.physicalReservations(enumeration);maps.set(pin.chipName,{pins:enumeration,reserved});
   return {description,pin:Object.freeze({...pin,pin:resolved}),mcu,clock,currentPrintTime:mapping.currentPrintTime,oid:role==='pwm'?h.request.pwmOid:h.request.adcOid,owner:`heater:${h.request.section}:${role}`};
  }));
  return mcuOids(pins).claim(outputs.map(o=>({mcu:o.pin.chipName,owner:o.owner,oid:o.oid})),oids=>{

@@ -1,3 +1,4 @@
+import {applyConfiguredBoardPins} from './board-pins.ts';
 import {snapshotPrintClock} from '../timing/print-clock.ts';
 // Cold-start hardware assembly. GPL-3.0-or-later.
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -28,6 +29,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const devices=group.status.devices,mcus=new Map(devices.map(({id})=>{const session=group.session(id);if(session.status.configured)throw new Error('Hardware assembly requires unconfigured MCU sessions');return [id,{chip:session,dictionary:session.dictionary}] as const;}));
  const pins=new PrinterPins<ReturnType<MCUGroup['session']>>();
  for(const [id,mcu] of mcus){pins.register(id,mcu.chip);if(!clocks.has(id))throw new Error(`Missing hardware clock: ${id}`);}
+ applyConfiguredBoardPins(reader,pins);
  const boards=layout.boards??[];if(new Set(boards.map(b=>b.mcu)).size!==boards.length)throw new Error('Duplicate hardware board mapping');
  for(const board of boards){const resolver=pins.resolver(board.mcu);for(const [name,pin] of Object.entries(board.aliases??{}))resolver.alias(name,pin);for(const pin of board.reserved??[])resolver.reserve(pin,'machine');}
  if(new Set(layout.steppers.map(s=>s.emitter)).size!==layout.steppers.length)throw new Error('Duplicate hardware emitter');

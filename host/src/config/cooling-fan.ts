@@ -27,7 +27,7 @@ export function compileConfiguredCoolingFans<T>(reader:ConfigurationReader,pins:
   const clock=snapshotPrintClock(mapping.calibration);
   const resolver=pins.resolver(pin.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}
-  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.reservedPins.map(p=>{const id=enumeration[p];if(id===undefined)throw new Error('Unknown reserved cooling fan pin');return id;});maps.set(pin.chipName,{pins:enumeration,reserved});
+  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.physicalReservations(enumeration);maps.set(pin.chipName,{pins:enumeration,reserved});
   return {...output,pin:Object.freeze({...pin,pin:resolved}),mcu,clock,currentPrintTime:mapping.currentPrintTime,cycleTime:output.role==='enable'?.01:f.cycleTime,owner:`fan:${f.request.section}:${output.role}`};
  }));
  return mcuOids(pins).claim(outputs.map(o=>({mcu:o.pin.chipName,owner:o.owner,oid:o.oid})),oids=>{

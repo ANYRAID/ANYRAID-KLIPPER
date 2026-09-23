@@ -25,7 +25,7 @@ export function compileConfiguredMotorEnables<T>(reader:ConfigurationReader,pins
   const dictionary=group.session(request.mcu).dictionary,resolver=pins.resolver(request.mcu).clone(),enumeration=dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const pin of value.split(','))if(pin.trim())resolver.reserve(pin.trim(),name.slice(13));}
   const resolved=resolver.resolve([`claim pin=${parsed.pin}`])[0].slice(10),physical=enumeration[resolved];if(physical===undefined)throw new Error('Unknown motor enable physical pin');
-  const reserved=resolver.reservedPins.map(pin=>{const id=enumeration[pin];if(id===undefined)throw new Error('Unknown reserved motor enable pin');return id;});
+  const reserved=resolver.physicalReservations(enumeration);
   maps.set(request.mcu,{pins:enumeration,reserved});
   const clock=snapshotPrintClock(request.calibration),calibration=Object.freeze({offset:clock.offset,frequency:clock.frequency}),key=`${request.mcu}:${physical}`,prior=lines.get(key);
   if(prior){if(prior.pin.invert!==parsed.invert||prior.leadTime!==request.leadTime||prior.calibration.offset!==calibration.offset||prior.calibration.frequency!==calibration.frequency)throw new Error('Shared motor enable polarity or timing differs');prior.emitters.push(request.emitter);}

@@ -24,7 +24,7 @@ export function compileConfiguredHoming<T>(reader:ConfigurationReader,pins:Print
   for(const t of members)getMCU(t.mcu);
   const resolver=pins.resolver(pin.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}
-  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.reservedPins.map(p=>{const id=enumeration[p];if(id===undefined)throw new Error('Unknown reserved endstop pin');return id;});
+  const resolved=resolver.resolve([`claim pin=${pin.pin}`])[0].slice(10),reserved=resolver.physicalReservations(enumeration);
   maps.set(pin.chipName,{pins:enumeration,reserved});
   const offset=oids.length;oids.push({mcu:pin.chipName,owner:`endstop:${request.section}`,oid:request.oid},...members.map(t=>({mcu:t.mcu,owner:`trsync:${request.section}`,oid:t.oid})));
   return {section:request.section,description,pin,resolved,mcu,members,offset};

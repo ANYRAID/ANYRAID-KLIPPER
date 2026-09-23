@@ -63,8 +63,8 @@ function compileStepperBatch<T>(reader:ConfigurationReader,pins:PrinterPins<T>,m
   const compiled=compileConfiguredStepper(reader,request.section,mcu.chip,mcu.dictionary,{oid:request.oid,step,direction,requestBothEdges:request.requestBothEdges},request.unitsInRadians??false),oidKey=`${step.chipName}:${request.oid}`;
   if(oids.has(oidKey))throw new Error('Duplicate configured stepper OID');oids.add(oidKey);
   let resolver=resolvers.get(step.chipName);if(!resolver){resolver=pins.resolver(step.chipName).clone();for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const pin of value.split(','))if(pin.trim())resolver.reserve(pin.trim(),name.slice(13));}resolvers.set(step.chipName,resolver);}
-  for(const pin of resolver.reservedPins)reserved.add(`${step.chipName}:${physicalStepPins(mcu.dictionary,`config_stepper oid=0 step_pin=${pin} dir_pin=${pin} invert_step=0 step_pulse_ticks=0`)[0]}`);
-  wireMaps.set(step.chipName,{pins:mcu.dictionary.pinEnumeration,reserved:resolver.reservedPins.map(pin=>physicalStepPins(mcu.dictionary,`config_stepper oid=0 step_pin=${pin} dir_pin=${pin} invert_step=0 step_pulse_ticks=0`)[0])});
+  for(const pin of resolver.physicalReservations(mcu.dictionary.pinEnumeration))reserved.add(`${step.chipName}:${pin}`);
+  wireMaps.set(step.chipName,{pins:mcu.dictionary.pinEnumeration,reserved:resolver.physicalReservations(mcu.dictionary.pinEnumeration)});
   const [config,restart]=resolver.resolve([compiled.config,compiled.restart]);mcu.dictionary.encodeCommand(restart);
   // Config's first fields are tag, oid, step_pin and dir_pin. Decode wire IDs,
   // rather than comparing spellings: firmware may expose aliases for one GPIO.
