@@ -41,7 +41,7 @@ export class ThermalPrintDevice implements PrintDevice {
  prepare(request:Readonly<StartPrint>,signal:AbortSignal):Promise<void>{
   return this.#run(signal,async(local,guard)=>{
    if(this.#job)throw new Error('A print is already prepared');
-   const job=Object.freeze({...request});this.#job=job;
+   const job=Object.freeze({...request});this.#prepared=false;this.#job=job;
    await this.#device.prepare(job,local);guard();
    await this.#heaters.setTargets([{name:this.#nozzle,target:job.nozzle},{name:this.#bed,target:job.bed}],local);
    guard();await this.#stable(local);guard();this.#prepared=true;
@@ -64,7 +64,7 @@ export class ThermalPrintDevice implements PrintDevice {
    guard();owned.throwIfAborted();if(!this.#job||this.#job.requestId!==requestId)throw new Error('Print completion does not match prepared job');
    // Retain admission through EOF validation, native drain, output completion,
    // and both heater-off acknowledgements. Safety stop bypasses admission.
-   await this.#device.finish(requestId,owned);guard();owned.throwIfAborted();await this.#heaters.turnOffAll();guard();owned.throwIfAborted();this.#job=undefined;
+   await this.#device.finish(requestId,owned);guard();owned.throwIfAborted();await this.#heaters.turnOffAll();guard();owned.throwIfAborted();this.#prepared=false;this.#job=undefined;
   },local);
  });}
  stop():Promise<void>{

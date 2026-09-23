@@ -66,3 +66,14 @@ test('underlying motion fault propagates through thermal adapter and shuts down 
  assert.equal(f.controller.state,'failed');assert.equal(f.controller.failure,cause);assert.equal(f.resets[0].length,2);assert.equal(f.resets[1].length,2);
  f.resets[0][1].resolve();f.resets[1][1].resolve();f.motionStop.resolve();await f.controller.fault(cause);await f.group.shutdown();
 });
+test('a completed job cannot lend thermal readiness to the next preparing job',async()=>{
+ const f=await fixture(),signal=new AbortController().signal,held=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();let preparing:Promise<void>|undefined;
+ try{
+  await f.device.prepare(request,signal);await f.device.start('file',signal);f.drain.resolve();
+  const finished=f.device.finish('job',signal);await flush();f.resets[0][1].resolve();f.resets[1][1].resolve();await finished;
+  const wait=f.group.waitUntilStable.bind(f.group);f.group.waitUntilStable=async(...args)=>{await wait(...args);entered.resolve();await held.promise;};
+  preparing=f.device.prepare({...request,requestId:'second',fileId:'next-file'},signal);await entered.promise;
+  await assert.rejects(f.device.start('next-file',signal),/prepared/);assert.equal(f.events.filter(e=>e==='start').length,1);
+  held.resolve();await preparing;await f.device.start('next-file',signal);assert.equal(f.events.filter(e=>e==='start').length,2);
+ }finally{held.resolve();await preparing?.catch(()=>{});f.motionStop.resolve();await f.group.shutdown();}
+});
