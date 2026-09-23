@@ -35,3 +35,12 @@ test('an unused or fully drained source starts with fresh lead after an idle del
 test('changed filter windows cannot invalidate a running producer scheduling contract',async()=>{
  const t=await fixture();try{t.g.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});const before=t.f.fw.motion.length;await assert.rejects(t.stream.append(trajectory(),signal()),/filter window changed/);assert.equal(t.f.fw.motion.length,before);assert.equal(t.f.stops,1);}finally{await t.close();}
 });
+test('an explicit stream transaction deadline remains enforced while clocks are healthy',async()=>{
+ const t=await fixture();try{await assert.rejects(t.stream.append(trajectory(),signal(),50),/timed out/);assert.equal(t.f.stops,1);assert(t.g.motion.bindings[0].history.status.lastPlannedPosition<2100n);}finally{await t.close();}
+});
+test('a healthy 32-second move is not mistaken for an I/O stall',{timeout:45000},async()=>{
+ const t=await fixture();try{
+  const q=new LookAheadQueue();q.add(new Move(motionLimits(100,1000),[50,0,0,2],[70,0,0,2],.625));const started=performance.now();
+  await t.stream.append(q.flush(),signal());assert(performance.now()-started>30000);await t.g.source.drain([],signal());assert.equal(t.g.motion.bindings[0].history.status.lastPlannedPosition,2100n);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});

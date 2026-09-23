@@ -11,7 +11,7 @@ export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
  * class does not infer a safe print time from host wall time. */
 export class PlannedMotionSource {
  readonly #routes:readonly PlannedQueue[];readonly #drain:CoordinatedMotionDrain;
- readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;
+ readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
  #position:number[];#time:number;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536){
   if(!Number.isSafeInteger(maxBufferedMoves)||maxBufferedMoves<1||maxBufferedMoves>65536)throw new RangeError('Invalid source capacity');
@@ -37,10 +37,10 @@ export class PlannedMotionSource {
   return {position,time};
  }
  #seed():void{
-  if(this.#seeded)return;const from=this.#drain.generatedTime;
+  const from=this.#seeded?this.#idleFrom:this.#drain.generatedTime;if(from===undefined)return;
   if(!Number.isFinite(from)||from>this.#time)throw new RangeError('Invalid source generation baseline');
   if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(new Float64Array([from,0,this.#time-from,0,...p,0,0,0,0,0,0]));}
-  this.#seeded=true;
+  this.#seeded=true;this.#idleFrom=undefined;
  }
  #append(moves:readonly Move[]):void{
   const {position,time}=this.#validate(moves,true);this.#seed();
@@ -59,7 +59,15 @@ export class PlannedMotionSource {
  startAt(printTime:number):void{this.#check();if(this.#seeded||this.#count||this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid unused source start time');this.#time=printTime;}
  /** Call after a successful drain, before producing subsequent motion. The
   * supplied time must include the scheduler's current MCU lead requirement. */
- resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#time=printTime;this.#paused=false;}
+ resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#idleFrom=this.#time;this.#time=printTime;this.#paused=false;}
+ /** Consume known stationary startup/resume coverage in one native transaction.
+  * A source that already owns active motion is never eligible for this path. */
+ async prepareIdle(signal:AbortSignal,timeoutMs=30000):Promise<boolean>{
+  this.#check();signal.throwIfAborted();if(this.#seeded&&this.#idleFrom===undefined)return false;
+  if(this.#count||this.#paused)throw new Error('Idle preparation requires an unused or resumed source');this.#busy=true;
+  try{this.#seed();return await this.#drain.advanceIdleSource(this.#time,signal,timeoutMs);}
+  catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
+ }
  /** Rolling commit; preserves the tail needed by shaping/pressure advance.
   * Success means transport acceptance, not completed physical movement. */
  async flush(signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{

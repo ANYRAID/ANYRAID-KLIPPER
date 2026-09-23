@@ -15,6 +15,9 @@ export class CoordinatedMotionDrain {
  get finalizedSourceTime():number{return this.#coordinator.finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
+ async advanceIdleSource(sourceUntil:number,signal:AbortSignal,timeoutMs=30000):Promise<boolean>{
+  return this.#operate(signal,timeoutMs,async({run,check})=>{const advanced=await run(this.#coordinator.advanceIdleSource(sourceUntil,Math.min(this.#historyCutoff(),this.#coordinator.status.generatedTime)));check();return advanced;});
+ }
  async advanceSource(sourceUntil:number,signal:AbortSignal,timeoutMs=30000,clearHistoryTime=0):Promise<boolean>{
   return this.#operate(signal,timeoutMs,async({run,check})=>{const advanced=await run(this.#coordinator.advanceSource(sourceUntil,clearHistoryTime,this.#maxWindow,()=>Math.min(this.#historyCutoff(),clearHistoryTime>0?clearHistoryTime:Infinity)));check();return advanced;});
  }

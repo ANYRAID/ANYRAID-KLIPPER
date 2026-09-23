@@ -111,6 +111,19 @@ export class MotionCoordinator {
   if(sourceUntil-generation<future||generation-flush<.001||clearHistoryTime>flush)throw new RangeError('Unrepresentable streaming horizon');
   if(maxWindowSeconds===undefined)await this.advanceWindow(generation,flush,clearHistoryTime);else await this.advanceBounded(generation,clearHistoryTime,flush,maxWindowSeconds,historyClock);return true;
  }
+ /** Advance a source interval that the exclusive producer declares idle.
+  * Flush every generated pulse into a private batch and reject any motion
+  * before commit; never use this shortcut to skip real queued trajectories. */
+ async advanceIdleSource(sourceUntil:number,clearHistoryTime=0):Promise<boolean>{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot advance idle source');
+  if(!Number.isFinite(sourceUntil)||sourceUntil<this.#generated||sourceUntil>=1e15||!Number.isFinite(clearHistoryTime)||clearHistoryTime<0)throw new RangeError('Invalid idle source horizon');
+  let future=0,past=0;for(const b of this.#bindings){const w=b.stepper.scanWindow;future=Math.max(future,w.future);past=Math.max(past,w.past);}
+  // Short startup padding still needs the first ordinary generation window;
+  // finalizing before the existing baseline would discard filter history.
+  const until=sourceUntil-future-.001;if(until-this.#generated<=past+.001)return false;
+  if(sourceUntil-until<future||clearHistoryTime>until)throw new RangeError('Unrepresentable idle source horizon');
+  await this.#advance(until,clearHistoryTime,until,true);return true;
+ }
  /** Rolling generation keeps at least the original 1 ms step-direction filter horizon. */
  advanceWindow(generationUntil:number,flushUntil:number,clearHistoryTime=0):Promise<void>{
   if(!Number.isFinite(flushUntil)||generationUntil<flushUntil+.001)return Promise.reject(new RangeError('Generation must lead flush by at least 1 ms'));
@@ -145,7 +158,7 @@ export class MotionCoordinator {
    if(this.#committed<flushUntil)await this.#advance(until,history(flushUntil),flushUntil);
   }catch(error){if(error instanceof MotionRetiredError&&this.#retired&&!this.#failed)throw error;try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}finally{this.#bounded=false;this.#endWork();}
  }
- async #advance(until:number,clearHistoryTime=0,flushUntil=until):Promise<void>{
+ async #advance(until:number,clearHistoryTime=0,flushUntil=until,idle=false):Promise<void>{
   if(this.#failed)throw new Error('Motion coordinator is faulted',{cause:this.#fault});
   if(this.#retired)throw new MotionRetiredError();
   if(this.#busy)throw new Error('Motion batch already in progress');
@@ -161,7 +174,9 @@ export class MotionCoordinator {
    if(flushUntil===this.#committed)return;
    const outputs:MotionOutput[]=[];let bytes=0;
    for(const b of this.#bindings){
-    const out=b.stepper.flushThrough(flushUntil);bytes+=out.history.byteLength;
+    const out=b.stepper.flushThrough(flushUntil);
+    if(idle&&out.history.some((value,index)=>index%6===3&&value!==0n))throw new Error('Idle advance contains step motion');
+    bytes+=out.history.byteLength;
     for(const p of out.messages)bytes+=p.data.length+32;
     if(bytes>this.#maxBytes)throw new RangeError('Motion output exceeds batch budget');
     outputs.push({...out,id:b.id});

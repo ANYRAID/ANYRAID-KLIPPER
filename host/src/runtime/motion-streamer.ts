@@ -20,11 +20,13 @@ export class RebuiltMotionStreamer {
  #check(signal:AbortSignal){signal.throwIfAborted();this.#g.group.assertActive();for(const [i,b] of this.#g.motion.bindings.entries()){const c=b.stepper.calibration,old=this.#mapping[i];if(c.offset!==old.offset||c.frequency!==old.frequency)throw new Error('Streaming clock calibration changed');const w=b.stepper.scanWindow,saved=this.#windows[i];if(w.future!==saved.future||w.past!==saved.past)throw new Error('Streaming filter window changed');}}
  #clocks(){const now=serialClock.now();return this.#g.members.map((m,i)=>{const b=this.#g.motion.bindings.find(b=>b.member===i)!;return {member:m,stepper:b.stepper,time:b.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))};});}
  #leadCheck(){if(Math.max(...this.#clocks().map(c=>c.time))+this.#minimum>Math.max(this.#start,this.#g.coordinator.status.committedTime))throw new Error('Streaming motion lead exhausted');}
- async append(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
+ /** Each I/O wait remains bounded by 30 seconds. A whole-transaction deadline
+  * is optional because valid motion may itself last longer than 30 seconds. */
+ async append(moves:readonly Move[],signal:AbortSignal,timeoutMs?:number):Promise<void>{
   if(this.#busy)throw new Error('Motion streamer busy');this.#busy=true;
   try{
-   this.#check(signal);if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000||!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid streaming batch or timeout');
-   const deadline=performance.now()+timeoutMs,remaining=()=>{this.#check(signal);const value=Math.ceil(deadline-performance.now());if(value<=0)throw new Error('Motion streaming timed out');return value;};
+   this.#check(signal);if(timeoutMs!==undefined&&(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)||!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid streaming batch or timeout');
+   const deadline=timeoutMs===undefined?Infinity:performance.now()+timeoutMs,remaining=()=>{this.#check(signal);const value=Math.ceil(deadline-performance.now());if(value<=0)throw new Error('Motion streaming timed out');return Math.min(30000,value);};
    // Own the suffix before pacing can yield to a caller that mutates its batch.
    const owned=moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined})) as Move[];
    const source=this.#g.source,initial=source.status;
@@ -35,7 +37,7 @@ export class RebuiltMotionStreamer {
     this.#start=start-this.#future;
     if(initial.paused)source.resumeAt(start);else source.startAt(start);
    }
-   source.validateBatch(owned);
+   source.validateBatch(owned);await source.prepareIdle(signal,remaining());remaining();
    const flush=async()=>{
     while(source.status.sourceTime-this.#future-.001>this.#g.coordinator.status.generatedTime){
      remaining();this.#leadCheck();const clocks=this.#clocks();
