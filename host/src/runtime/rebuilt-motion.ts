@@ -130,12 +130,26 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   };
   const drain=new CoordinatedMotionDrain(coordinator,sink,group,.25,auxiliaryMCUs);
   const source=new PlannedMotionSource(o.routes,drain,motion.printTime,o.position,65536,output);
+  const calibrateMotionClock=(id:string,generationLimit:number):boolean=>{
+   assertClockCalibration();const status=coordinator.status,state=source.status,member=routes.indexOf(id);
+   if(status.failed||status.retired||status.busy||state.failed||state.retired||state.busy)throw new Error('Motion calibration requires idle generation ownership');
+   if(member<0)throw new Error('Motion calibration requires a motion MCU');
+   const owner=clockTimelines?.find(c=>c.id===id),sync=owner?.synchronizer;if(!owner||!sync)throw new Error('Motion MCU has no owned synchronizer');
+   if(!Number.isFinite(generationLimit)||generationLimit<status.generatedTime)throw new RangeError('Invalid motion calibration limit');
+   if(!state.seeded||state.paused)return false;
+   const future=Math.max(...bindings.map(b=>b.stepper.scanWindow.future)),limit=Math.min(generationLimit,state.sourceTime-future-.001,status.generatedTime+.01);
+   if(limit<=status.generatedTime)return false;
+   const now=serialClock.now(),local=group.session(id).clock.sync;if(owner.timeline.clockAt(status.generatedTime)<=local.getClock(now))return false;
+   const candidate=sync.propose(status.generatedTime,now),plan=sync.planShared(candidate,owner.timeline,coordinator,limit);if(!plan||plan.time-status.generatedTime>.01)return false;
+   coordinator.generateCalibrationBoundary(plan.time);if(plan.tick<=local.getClock(serialClock.now()))return false;
+   sync.applyShared(candidate,owner.timeline,coordinator,grouped[member].map(b=>b.id));return true;
+  };
   const releaseBoundaryOutput=():BoundaryOutputTransfer|undefined=>{
    if(!context)return;checkMapping();const status=context.target.status;
    if(status.pending||status.busy||status.stopped)throw new Error('Boundary output transfer requires settled requests');
    source.detachBoundaryOutput();context.owner=undefined;const token=Object.freeze({kind:'boundary-output-transfer' as const});transfers.set(token,{context,coordinator});return token;
   };
-  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,calibrateAuxiliaryClock,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
+  check();return Object.freeze({group,clockTimelines,auxiliaryMCUs,clockMembers,motion,sink,coordinator,drain,source,motorEnable:o.motorEnable,assertClockCalibration,assertMotorCalibration,calibrateAuxiliaryClock,calibrateMotionClock,boundaryOutput:capability,releaseBoundaryOutput,members:Object.freeze(members),routes:Object.freeze(o.routes.map(r=>Object.freeze({...r}))),assertFutureBaseline:check});
  }catch(error){
   const errors:unknown[]=[error];
   // Close native transports before releasing solver handles. No new producer

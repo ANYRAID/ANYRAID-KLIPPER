@@ -8,6 +8,29 @@ import {inputShaper} from '../src/motion/shaper.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {rebuiltFixture} from './helpers/rebuilt-motion.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+import {SecondarySync} from '../src/timing/secondary-sync.ts';
+test('owned motion calibration selects all MCU emitters within retained source and pacing limits',async()=>{
+ const f=await rebuiltFixture(false,false,false,false,true),clock=new PrintClockTimeline({offset:0,frequency:1e6});try{
+  const sync=new SecondarySync(f.options.group.session('a').clock.sync,f.options.group.session('m').clock.sync,0,{offset:0,frequency:1e6,syncTime:0});
+  const g=await bindRebuiltMotion({...f.options,clockTimelines:[{id:'m',timeline:clock,synchronizer:sync},{id:'a',timeline:new PrintClockTimeline({offset:0,frequency:1e6})}]}),stream=new RebuiltMotionStreamer(g),original=g.source.flushThrough.bind(g.source);let updated=false;
+  assert.equal(g.calibrateMotionClock('m',g.coordinator.status.generatedTime+1),false);assert.throws(()=>g.calibrateMotionClock('a',10),/motion MCU/);
+  g.source.flushThrough=async(until,...args)=>{
+   const result=await original(until,...args);if(!updated){const before=g.coordinator.status;
+    assert.equal(g.calibrateMotionClock('m',before.generatedTime),false);
+    const local=g.group.session('m').clock.sync,getClock=local.getClock,generate=g.coordinator.generateCalibrationBoundary,oldMapping=clock.status.calibration;
+    try{
+     local.getClock=()=>clock.clockAt(before.generatedTime+.1);assert.equal(g.calibrateMotionClock('m',before.generatedTime+.005),false);assert.equal(g.coordinator.status.generatedTime,before.generatedTime);local.getClock=getClock;
+     g.coordinator.generateCalibrationBoundary=until=>{generate.call(g.coordinator,until);local.getClock=()=>clock.clockAt(until+.1);};
+     assert.equal(g.calibrateMotionClock('m',before.generatedTime+.005),false);assert.deepEqual(clock.status.calibration,oldMapping);
+    }finally{local.getClock=getClock;g.coordinator.generateCalibrationBoundary=generate;}
+    assert(g.calibrateMotionClock('m',before.generatedTime+.005));updated=true;
+    assert(g.coordinator.status.generatedTime<=before.generatedTime+.005);assert.equal(g.coordinator.status.committedTime,before.committedTime);
+    for(const b of g.motion.bindings)assert.deepEqual(b.stepper.calibration,clock.status.calibration);
+   }return result;
+  };
+  await stream.append(trajectory(),signal());await g.source.drain([],signal());assert(updated);assert.equal(g.motion.bindings[0].history.status.lastPlannedPosition,2100n);assert.equal(f.stops,0);await g.coordinator.shutdown();
+ }finally{await f.close();}
+});
 test('paced stream accepts a shared calibration between windows and retains old sampled time',async()=>{
  const f=await rebuiltFixture(),clock=new PrintClockTimeline({offset:0,frequency:1e6});try{
   const g=await bindRebuiltMotion({...f.options,clockTimelines:[{id:'m',timeline:clock}]}),stream=new RebuiltMotionStreamer(g),original=g.source.flushThrough.bind(g.source);let updated=false;

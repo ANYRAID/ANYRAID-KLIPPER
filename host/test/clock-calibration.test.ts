@@ -5,6 +5,13 @@ import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const settings={frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6};
+test('calibration boundary generation is synchronous, bounded and never flushes packets',async()=>{
+ using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,2,0,0,0,0,1,0,0,1,1,0]));using s=q.createStepper(settings,'x',.01);let commits=0;
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){commits++;},async stop(){}});await c.advanceWindow(1,.95);const before=c.status,count=commits;
+ assert.equal(c.generateCalibrationBoundary(1.001),undefined);assert.equal(c.status.generatedTime,1.001);assert.equal(c.status.committedTime,before.committedTime);assert.equal(s.generatedTime,1.001);assert.equal(commits,count);
+ for(const until of [NaN,Infinity,1,1.1])assert.throws(()=>c.generateCalibrationBoundary(until));assert.equal(c.status.generatedTime,1.001);
+ await c.advance(2);assert.equal(s.flush().position,200n);await c.shutdown();assert.throws(()=>c.generateCalibrationBoundary(2.001),/healthy/);
+});
 test('motion history cutoff uses retained calibration instead of the latest affine mapping',async()=>{
  using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,101,0,0,0,0,0,0,0,0,0,0]));using s=q.createStepper(settings,'x',.01);
  const clock=new PrintClockTimeline({offset:0,frequency:1e6}),c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},1024,0,[],new Map([['x',clock]]));
@@ -65,5 +72,5 @@ test('a calibration group validates all steppers before updating any mapping',as
 test('calibration cannot race a pending commit and closed steppers reject clock conversion',async()=>{
  using q=new TrapQueue();q.appendRaw(new Float64Array([1,0,1,0,0,0,0,1,0,0,1,1,0]));using s=q.createStepper(settings,'x',.01);let release!:()=>void;
  const c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{commit:()=>new Promise<void>(r=>{release=r;}),async stop(){}});
- const pending=c.advanceWindow(1.5,1.45);assert.throws(()=>c.calibrateClock(['x'],0,1000100),/idle/);release();await pending;s.dispose();assert.throws(()=>s.clockAt(2));
+ const pending=c.advanceWindow(1.5,1.45);assert.throws(()=>c.calibrateClock(['x'],0,1000100),/idle/);assert.throws(()=>c.generateCalibrationBoundary(1.501),/idle/);release();await pending;s.dispose();assert.throws(()=>s.clockAt(2));
 });

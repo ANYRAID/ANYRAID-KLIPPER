@@ -121,6 +121,17 @@ export class MotionCoordinator {
   for(const id of ids){const b=this.#bindings.find(b=>b.id===id);if(!b)throw new Error('Unknown calibration emitter');const old=b.stepper.calibration;if(b.stepper.generatedTime!==time||old.offset!==previous.offset||old.frequency!==previous.frequency)throw new Error('Motion and shared clock mappings differ');}
   this.calibrateClock(ids,next.offset,next.frequency);
  }
+ /** Extend native generation without flushing or yielding. Caller proves
+  * source coverage and immediately publishes calibration in the same stack.
+  * At most 10 ms of extra work; a partial native failure is terminal. */
+ generateCalibrationBoundary(until:number):void{
+  if(this.#retired||this.#busy||this.#bounded||this.#failed)throw new Error('Calibration generation requires an idle healthy coordinator');
+  if(!Number.isFinite(until)||until<=this.#generated||until-this.#generated>.01||until>=1e15)throw new RangeError('Invalid calibration generation boundary');
+  this.#beginWork();this.#busy=true;
+  try{for(const guard of this.#guards)guard.assertActive();for(const b of this.#bindings)b.stepper.generate(until);this.#generated=until;for(const guard of this.#guards)guard.assertActive();}
+  catch(error){void this.shutdown(error).catch(()=>{});throw error;}
+  finally{this.#busy=false;this.#endWork();}
+ }
  /** Close a producer-stopped motion boundary with stationary convolution data.
   * positions must give each bound queue's exact endpoint at lastMoveTime; no
   * later source motion may already be appended. Failure after padding is terminal.
