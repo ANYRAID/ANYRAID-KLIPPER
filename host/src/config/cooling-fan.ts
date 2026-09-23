@@ -5,7 +5,8 @@ import {mcuOids} from '../protocol/mcu-oids.ts';
 import type {StepperMCU} from './stepper.ts';
 import {compilePWM} from '../outputs/pwm.ts';
 import {readPrintClock,type PrintClockTimeline} from '../timing/print-clock-timeline.ts';
-export interface FanClock {currentPrintTime:number;timeline?:PrintClockTimeline;calibration:Readonly<{offset:number;frequency:number}>}
+import type {SecondarySync} from '../timing/secondary-sync.ts';
+export interface FanClock {currentPrintTime:number;timeline?:PrintClockTimeline;synchronizer?:SecondarySync;calibration:Readonly<{offset:number;frequency:number}>}
 export interface CoolingFanRequest {section:string;oid?:number;enableOid?:number;minimumScheduleTime:number;capacity?:number}
 /** Cold-start planning only. Generation-capable firmware is required so a
  * normal finish can cancel accepted future output writes, not merely append 0. */

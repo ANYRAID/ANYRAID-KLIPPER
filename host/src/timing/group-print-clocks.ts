@@ -13,10 +13,10 @@ export function captureGroupPrintClocks(group:MCUGroup,primaryId:string,eventTim
  for(const {id} of group.status.devices){
   const local=group.session(id).clock.sync;
   if(!primary.active||!local.active)throw new Error('Cannot capture inactive MCU clocks');
-  const calibration=id===primaryId?{offset:0,frequency:primary.nominalFrequency}:new SecondarySync(primary,local,eventTime).mapping;
+  const synchronizer=id===primaryId?undefined:new SecondarySync(primary,local,eventTime),calibration=synchronizer?.mapping??{offset:0,frequency:primary.nominalFrequency};
   const mapping=snapshotPrintClock(calibration),currentPrintTime=mapping.printTimeAtClock(local.getClock(eventTime));
   if(currentPrintTime<0)throw new RangeError('Invalid captured print time');
-  result.set(id,Object.freeze({currentPrintTime,calibration:Object.freeze({offset:mapping.offset,frequency:mapping.frequency})}));
+  result.set(id,Object.freeze({currentPrintTime,synchronizer,calibration:Object.freeze({offset:mapping.offset,frequency:mapping.frequency})}));
  }
  group.assertActive();return result;
 }

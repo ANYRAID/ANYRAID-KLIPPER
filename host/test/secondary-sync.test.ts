@@ -4,6 +4,14 @@ import {ClockSync} from '../src/timing/clock-sync.ts';
 import {SecondarySync} from '../src/timing/secondary-sync.ts';
 const accept={calibrateClock(){}};
 function clocks(){return {main:new ClockSync(1e6,1000000n,10),local:new ClockSync(2e6,10000000n,10)};}
+test('forked synchronizers retain physical clocks but isolate proposals and mapping state',()=>{
+ const {main,local}=clocks(),s=new SecondarySync(main,local,10),copy=s.fork(),before=s.mapping;
+ assert.notEqual(copy,s);assert.deepEqual(copy.mapping,before);assert(copy.usesClocks(main,local));assert(!copy.usesClocks(local,main));
+ const p=s.propose(2,10.5);assert.throws(()=>copy.apply(p,accept,['x']),/foreign/);
+ copy.apply(copy.propose(2,10.5),accept,['x']);assert.notEqual(copy.mapping.syncTime,before.syncTime);assert.deepEqual(s.mapping,before);
+ s.apply(p,accept,['x']);assert.deepEqual(s.mapping,copy.mapping);
+ for(const initial of [{offset:NaN,frequency:2e6,syncTime:5},{offset:-4,frequency:0,syncTime:5},{offset:-4,frequency:2e6,syncTime:-1}])assert.throws(()=>new SecondarySync(main,local,0,initial));
+});
 test('secondary publication blocks reentrant proposals and applies, and releases the guard on failure',()=>{
  const {main,local}=clocks(),sync=new SecondarySync(main,local,10),initial=sync.mapping,p=sync.propose(2,10.5);
  assert.throws(()=>sync.apply(p,{calibrateClock(){sync.apply(p,accept,['x']);}},['x']),/transaction/);

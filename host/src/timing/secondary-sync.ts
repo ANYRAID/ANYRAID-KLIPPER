@@ -1,5 +1,6 @@
 // Secondary MCU calibration model from klippy/clocksync.py, GPL-3.0-or-later.
 import {ClockSync} from './clock-sync.ts';
+import {snapshotPrintClock} from './print-clock.ts';
 import type {MotionCoordinator} from '../motion/coordinator.ts';
 import type {PrintClockTimeline} from './print-clock-timeline.ts';
 export interface SecondaryCalibration {readonly offset:number;readonly frequency:number;readonly syncTime:number}
@@ -12,13 +13,17 @@ export class SecondarySync {
  #main:ClockSync;#local:ClockSync;#offset:number;#frequency:number;#syncTime=0;#revision=0;
  #proposals=new WeakMap<object,{revision:number;main:number;local:number}>();
  #applying=false;
- constructor(main:ClockSync,local:ClockSync,eventTime:number){
+ constructor(main:ClockSync,local:ClockSync,eventTime:number,initial?:Readonly<SecondaryCalibration>){
   time(eventTime);if(main===local)throw new Error('Secondary MCU must differ from primary');this.#main=main;this.#local=local;
+  if(initial){const mapping=snapshotPrintClock(initial);time(initial.syncTime);this.#offset=mapping.offset;this.#frequency=mapping.frequency;this.#syncTime=initial.syncTime;return;}
   this.#frequency=local.nominalFrequency;
   this.#offset=exact(main.getClock(eventTime))/main.nominalFrequency-exact(local.getClock(eventTime))/local.nominalFrequency;
   const first=this.propose(0,eventTime);this.#offset=first.offset;this.#frequency=first.frequency;this.#syncTime=first.syncTime;this.#revision++;
  }
  get mapping():SecondaryCalibration{return {offset:this.#offset,frequency:this.#frequency,syncTime:this.#syncTime};}
+ /** Independent proposal/revision state, retaining the same physical clocks. */
+ fork():SecondarySync{if(this.#applying)throw new Error('Secondary calibration transaction is active');return new SecondarySync(this.#main,this.#local,0,this.mapping);}
+ usesClocks(main:ClockSync,local:ClockSync):boolean{return main===this.#main&&local===this.#local;}
  printTimeToClock(printTime:number):bigint{time(printTime);const clock=Math.trunc((printTime-this.#offset)*this.#frequency);if(!Number.isSafeInteger(clock)||clock<0)throw new RangeError('Invalid secondary print clock');return BigInt(clock);}
  clockToPrintTime(clock:bigint):number{const value=exact(clock)/this.#frequency+this.#offset;if(!Number.isFinite(value))throw new RangeError('Secondary time overflow');return value;}
  propose(printTime:number,eventTime:number):Readonly<SecondaryCalibration>{

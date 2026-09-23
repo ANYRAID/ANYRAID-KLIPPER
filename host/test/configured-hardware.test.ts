@@ -9,6 +9,16 @@ import {SerialSession} from '../src/protocol/serial-session.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 import {attachConfiguredAnalogHeater} from '../src/config/analog-heater.ts';
+import {ClockSync} from '../src/timing/clock-sync.ts';
+import {captureGroupPrintClocks} from '../src/timing/group-print-clocks.ts';
+test('hardware plans own isolated synchronizers and reject foreign or mismatched clock sources',()=>{
+ const f=hardwareFixture();for(const [i,s] of [...f.sessions.values()].entries())Object.assign(s,{clock:{sync:new ClockSync(1e6,BigInt(1+i*2)*1000000n,10)}});
+ const captured=captureGroupPrintClocks(f.group,'mcu',10),a=compileConfiguredHardware(hardwareReader(),f.group,captured,hardwareLayout),b=compileConfiguredHardware(hardwareReader(),f.group,captured,hardwareLayout),input=captured.get('aux')!.synchronizer!,one=a.configurations.find(c=>c.mcu==='aux')!.synchronizer!,two=b.configurations.find(c=>c.mcu==='aux')!.synchronizer!;
+ assert.notEqual(one,input);assert.notEqual(one,two);assert.deepEqual(one.mapping,input.mapping);
+ one.apply(one.propose(2,10.5),{calibrateClock(){}},['x']);assert.notEqual(one.mapping.syncTime,input.mapping.syncTime);assert.deepEqual(two.mapping,input.mapping);
+ const bad=new Map(captured);bad.set('aux',{...captured.get('aux')!,calibration:{offset:0,frequency:1e6}});assert.throws(()=>compileConfiguredHardware(hardwareReader(),f.group,bad,hardwareLayout),/synchronizer/);
+ Object.assign(f.sessions.get('aux')!,{clock:{sync:new ClockSync(1e6,3000000n,10)}});assert.throws(()=>compileConfiguredHardware(hardwareReader(),f.group,captured,hardwareLayout),/synchronizer/);
+});
 test('hardware assembly collects every device and partitions OIDs and move reservations by MCU',()=>{
  const f=hardwareFixture(),p=compileConfiguredHardware(hardwareReader(),f.group,hardwareClocks(),hardwareLayout),[main,aux]=p.configurations;
  assert.equal(main.plan.oidCount,4);assert.equal(aux.plan.oidCount,5);assert.equal(main.plan.reservedMoves,1);assert.equal(aux.plan.reservedMoves,3);

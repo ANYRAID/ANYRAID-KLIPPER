@@ -14,7 +14,8 @@ for(const reverse of [false,true])test(`captured group clocks align distinct ori
  assert.equal(captured.size,2);assert.equal(captured.get('main')!.currentPrintTime,1);assert.equal(captured.get('aux')!.currentPrintTime,1);
  assert.equal(captured.get('main')!.calibration.frequency,1e6);assert.equal(captured.get('aux')!.calibration.frequency,2e6);
  assert.equal(snapshotPrintClock(captured.get('aux')!.calibration).clockAt(2),12000000n);
- const before=structuredClone(captured.get('aux'));f.clocks.get('aux')!.accept({clock32:12000000,sentTime:11,receiveTime:11.002},true);assert.deepEqual(captured.get('aux'),before);assert(Object.isFrozen(captured.get('aux')!.calibration));
+ const aux=captured.get('aux')!,before={...aux.calibration},sync=aux.synchronizer!;assert(sync.usesClocks(f.clocks.get('main')!,f.clocks.get('aux')!));assert.equal(captured.get('main')!.synchronizer,undefined);
+ f.clocks.get('aux')!.accept({clock32:12000000,sentTime:11,receiveTime:11.002},true);assert.deepEqual(aux.calibration,before);assert.equal(aux.synchronizer,sync);assert(Object.isFrozen(aux.calibration));
 });
 test('capture rejects inactive, unknown and inexact clocks',()=>{
  const f=fixture();assert.throws(()=>captureGroupPrintClocks(f.group,'missing',10),/Unknown/);assert.throws(()=>captureGroupPrintClocks(f.group,'main',NaN),/time/);

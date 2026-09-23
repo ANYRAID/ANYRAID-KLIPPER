@@ -1,5 +1,6 @@
 import {applyConfiguredBoardPins} from './board-pins.ts';
 import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
+import {SecondarySync} from '../timing/secondary-sync.ts';
 // Cold-start hardware assembly. GPL-3.0-or-later.
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUGroup} from '../runtime/mcu-group.ts';
@@ -30,7 +31,9 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const pins=new PrinterPins<ReturnType<MCUGroup['session']>>();
  for(const [id,mcu] of mcus){pins.register(id,mcu.chip);if(!clocks.has(id))throw new Error(`Missing hardware clock: ${id}`);}
  // Fresh timelines belong to this assembly; failed plans cannot mutate callers.
- const sharedClocks=new Map([...mcus.keys()].map(id=>{const mapping=clocks.get(id)!;return [id,{currentPrintTime:mapping.currentPrintTime,calibration:{...mapping.calibration},timeline:new PrintClockTimeline(mapping.calibration)}] as const;}));
+ const sharedClocks=new Map([...mcus.keys()].map(id=>{const mapping=clocks.get(id)!,sync=mapping.synchronizer;
+  if(sync){const c=sync.mapping;if(!(sync instanceof SecondarySync)||c.offset!==mapping.calibration.offset||c.frequency!==mapping.calibration.frequency||!devices.some(d=>d.id!==id&&sync.usesClocks(group.session(d.id).clock.sync,group.session(id).clock.sync)))throw new Error('Secondary synchronizer differs from physical hardware clock');}
+  return [id,{currentPrintTime:mapping.currentPrintTime,calibration:{...mapping.calibration},timeline:new PrintClockTimeline(mapping.calibration),synchronizer:sync?.fork()}] as const;}));
  applyConfiguredBoardPins(reader,pins);
  const boards=layout.boards??[];if(new Set(boards.map(b=>b.mcu)).size!==boards.length)throw new Error('Duplicate hardware board mapping');
  for(const board of boards){const resolver=pins.resolver(board.mcu);for(const [name,pin] of Object.entries(board.aliases??{}))resolver.alias(name,pin);for(const pin of board.reserved??[])resolver.reserve(pin,'machine');}
@@ -51,7 +54,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const configurations=Object.freeze(devices.map(({id},physicalMember)=>{
   const resources=mcuOids(pins).finalize(id),p=pending.get(id)!;
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
-  return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,session:mcus.get(id)!.chip,resources,plan});
+  return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
  return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters});
 }

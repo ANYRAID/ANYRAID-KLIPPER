@@ -1,4 +1,5 @@
 import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
+import {SecondarySync} from '../timing/secondary-sync.ts';
 import {MCUGroup} from './mcu-group.ts';
 import type {HomingMember} from '../homing/stop-confirmation.ts';
 import type {rebuildStoppedMotion} from '../homing/rebuild-motion.ts';
@@ -18,7 +19,7 @@ export interface BoundaryOutputTransfer {readonly kind:'boundary-output-transfer
 const transfers=new WeakMap<BoundaryOutputTransfer,{context:OutputContext;coordinator:MotionCoordinator}>();
 export interface RebuiltMotionOptions {
  group:MCUGroup;
- clockTimelines?:readonly {id:string;timeline:PrintClockTimeline}[];
+ clockTimelines?:readonly {id:string;timeline:PrintClockTimeline;synchronizer?:SecondarySync}[];
  /** Exact physical members used by the successful stop/recovery transaction. */
  members:readonly HomingMember[];
  /** Explicit non-motion controllers. They remain in group safety and clocks. */
@@ -45,6 +46,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   const clockTimelines=o.clockTimelines===undefined?undefined:Object.freeze(o.clockTimelines.map(c=>Object.freeze({...c})));
   if(clockTimelines&&(clockTimelines.length!==ids.length||new Set(clockTimelines.map(c=>c.id)).size!==ids.length||new Set(clockTimelines.map(c=>c.timeline)).size!==ids.length||clockTimelines.some(c=>!ids.includes(c.id)||!(c.timeline instanceof PrintClockTimeline))))throw new Error('Shared clocks must cover each MCU with a distinct timeline');
   const timelineFor=(id:string)=>clockTimelines?.find(c=>c.id===id)?.timeline;
+  for(const c of clockTimelines??[]){const sync=c.synchronizer;if(!sync)continue;const mapping=c.timeline.status.calibration,current=sync.mapping;if(!(sync instanceof SecondarySync)||current.offset!==mapping.offset||current.frequency!==mapping.frequency||!ids.some(id=>id!==c.id&&sync.usesClocks(group.session(id).clock.sync,group.session(c.id).clock.sync)))throw new Error('Shared synchronizer differs from MCU timeline');}
   const auxiliaryMCUs=Object.freeze((o.auxiliaryMCUs??[]).map(a=>{const timeline=timelineFor(a.id)??a.timeline,c=snapshotPrintClock(timeline?.status.calibration??a.calibration),saved=Object.freeze({offset:c.offset,frequency:c.frequency});return Object.freeze({id:a.id,timeline,get calibration(){return timeline?.status.calibration??saved;}});}));
   if(ids.length!==members.length+auxiliaryMCUs.length||new Set(members.map(m=>m.session)).size!==members.length)throw new Error('Rebuilt motion requires every physical MCU');
   const routes=members.map(m=>{const id=ids.find(id=>group.session(id)===m.session);if(!id)throw new Error('Rebuilt member does not belong to MCU group');m.session.assertCommandQueue(m.queue);return id;});
