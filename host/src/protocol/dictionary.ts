@@ -67,6 +67,16 @@ export class MessageDictionary {
   }
   get rawIdentify():Uint8Array {return this.#raw.slice();}
   get constants():Readonly<Record<string,unknown>>{return structuredClone(this.#config);}
+  /** Snapshot the common wire GPIO namespace. A shared ownership registry may
+   * not combine commands whose pin parameters use different numeric identities. */
+  get pinEnumeration():Readonly<Record<string,number>> {
+    const pins=this.#enumerations.get('pin');if(!pins)throw new ProtocolError('Missing firmware pin enumeration');
+    for(const message of this.#byName.values())for(const p of message.parameters)if(p.name==='pin'||p.name.endsWith('_pin')){
+      if(p.enumeration===pins)continue;
+      if(!p.enumeration||p.enumeration.size!==pins.size||[...pins].some(([name,value])=>(p.enumeration!.get(name)??NaN)!==value))throw new ProtocolError('Inconsistent firmware pin enumeration');
+    }
+    return Object.freeze(Object.fromEntries([...pins].map(([name,value])=>[name,value>>>0])));
+  }
   hasConstant(name:string):boolean{return Object.hasOwn(this.#config,name);}
   constant(name:string):unknown {
     if(!Object.hasOwn(this.#config,name)) throw new ProtocolError(`Missing firmware constant: ${name}`);
