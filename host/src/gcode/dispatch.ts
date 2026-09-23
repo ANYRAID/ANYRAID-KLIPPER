@@ -10,6 +10,8 @@ export interface CommandContext extends ParsedCommand {
 export type Handler=(command:CommandContext)=>void|Promise<void>;
 interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;}
 export interface DispatchHooks {
+  /** Native product files must not silently skip unimplemented commands. */
+  unknownCommand?:'ignore'|'shutdown';
   output(message:string):void;
   drain?(signal:AbortSignal):Promise<void>;
   /** Stream a bounded prefix without forcing a final zero-velocity boundary. */
@@ -86,15 +88,18 @@ export class GCodeDispatch {
           }
           const context:CommandContext={...parsed,signal:controller.signal,rawParameters:()=>rawParameters(parsed),
             respondRaw:message=>this.#hooks.output(message),respondInfo:message=>this.#hooks.output('// '+message.trim().split('\n').map(s=>s.trim()).join('\n// ')),ack};
-          if(!registration&&parsed.command==='M105')ack('T:0');
-          else if(!registration&&parsed.command==='M21'){}
+          if(!registration&&parsed.command==='M105'&&this.#hooks.unknownCommand!=='shutdown')ack('T:0');
+          else if(!registration&&parsed.command==='M21'&&this.#hooks.unknownCommand!=='shutdown'){}
           else {
             if(!this.#ready&&!registration?.whenNotReady)throw new GCodeError(this.#reason);
             if(registration) {
               if(registration.extended)try{context.params=extendedParameters(parsed);}catch{throw new GCodeError(`Malformed command '${parsed.commandline}'`);}
               const result=registration.handler(context);if(result)await result;
               controller.signal.throwIfAborted();
-            } else if(parsed.command)context.respondInfo(`Unknown command:"${parsed.command}"`);
+            } else if(parsed.command){
+              if(this.#hooks.unknownCommand==='shutdown'){const reason=`Unsupported command: ${parsed.command}`;this.emergencyStop(reason);throw new GCodeError(reason);}
+              context.respondInfo(`Unknown command:"${parsed.command}"`);
+            }
           }
         }catch(error) {
           const expected=error instanceof GCodeError;
