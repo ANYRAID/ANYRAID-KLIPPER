@@ -1,3 +1,6 @@
+import {readStepperDistance} from '../../src/config/stepper.ts';
+import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
+import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {compileMotorEnable,MotorEnable} from '../../src/outputs/motor-enable.ts';
 import {EndstopProtocol} from '../../src/inputs/endstop.ts';
 import type {StoppedEmitter} from '../../src/homing/rebuild-motion.ts';
@@ -23,16 +26,17 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   const motorPlan=motorPower?compileMotorEnable(group,{mcu:'m',emitters:['x','e',...dual?['x2']:[],...complete?['y','z']:[]],chip,pin:{chip,chipName:'m',pin:'PA3',invert:1,pullup:0},oid:10,leadTime:.001,calibration:{offset:0,frequency:1e6}}):undefined;
   await s.configure({oidCount:motorPower?11:dual?10:9,commands:[...trigger.commands,...endstop.commands,...dual?[...secondTrigger.commands,...secondEndstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
   const motorEnable=motorPlan?new MotorEnable(group,[motorPlan]):undefined;
+  const distance=readStepperDistance(new ConfigurationReader(new ConfigurationSource('/stepper.cfg',{stepper_x:{rotation_distance:'1',microsteps:'1',full_steps_per_rotation:'100'}},[]),null).section('stepper_x'));
   const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};
-  const x=xyz.createStepper({...settings,oid:3},'x',.01),e=extrusion.createStepper({...settings,oid:4},'extruder',.01);
-  const bindings=[{id:'x',queue:xyz,stepper:x},{id:'e',queue:extrusion,stepper:e}];if(dual)bindings.push({id:'x2',queue:xyz,stepper:xyz.createStepper({...settings,oid:5},'x',.01)});
-  if(complete)for(const [id,oid] of [['y',1],['z',2]] as const)bindings.push({id,queue:xyz,stepper:xyz.createStepper({...settings,oid},id,.01)});
+  const x=xyz.createStepper({...settings,oid:3},'x',distance.stepDistance),e=extrusion.createStepper({...settings,oid:4},'extruder',distance.stepDistance);
+  const bindings=[{id:'x',queue:xyz,stepper:x},{id:'e',queue:extrusion,stepper:e}];if(dual)bindings.push({id:'x2',queue:xyz,stepper:xyz.createStepper({...settings,oid:5},'x',distance.stepDistance)});
+  if(complete)for(const [id,oid] of [['y',1],['z',2]] as const)bindings.push({id,queue:xyz,stepper:xyz.createStepper({...settings,oid},id,distance.stepDistance)});
   const sink=new MoveQueueSink([group.motionQueue('m',bindings.map(b=>b.id),t=>x.clockAt(t))],async()=>{}),coordinator=new MotionCoordinator(bindings,sink);
   const members=[{session:s,queue:s.commandQueue(),trigger,steppers:[{oid:3,inverted:false},{oid:4,inverted:false}]}];
   fw.setTriggerReason(2);fw.setStepperPosition(3,100);fw.setStepperPosition(4,20);
-  const emitters:StoppedEmitter[]=[{id:'x',queueId:'xyz',member:0,settings:{...settings,oid:3},mode:'x',rotationDistance:1,stepsPerRotation:100},{id:'e',queueId:'e',member:0,settings:{...settings,oid:4},mode:'extruder',rotationDistance:1,stepsPerRotation:100}];
-  if(dual){members[0].steppers.push({oid:5,inverted:false});emitters.push({id:'x2',queueId:'xyz',member:0,settings:{...settings,oid:5},mode:'x',rotationDistance:1,stepsPerRotation:100});fw.setStepperPosition(5,300);}
-  if(complete)for(const [id,oid] of [['y',1],['z',2]] as const){members[0].steppers.push({oid,inverted:false});emitters.push({id,queueId:'xyz',member:0,settings:{...settings,oid},mode:id,rotationDistance:1,stepsPerRotation:100});fw.setStepperPosition(oid,0);}
+  const emitters:StoppedEmitter[]=[{id:'x',queueId:'xyz',member:0,settings:{...settings,oid:3},mode:'x',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation},{id:'e',queueId:'e',member:0,settings:{...settings,oid:4},mode:'extruder',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation}];
+  if(dual){members[0].steppers.push({oid:5,inverted:false});emitters.push({id:'x2',queueId:'xyz',member:0,settings:{...settings,oid:5},mode:'x',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(5,300);}
+  if(complete)for(const [id,oid] of [['y',1],['z',2]] as const){members[0].steppers.push({oid,inverted:false});emitters.push({id,queueId:'xyz',member:0,settings:{...settings,oid},mode:id,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(oid,0);}
   const result=await new CoordinateRebase({coordinator,bindings,members,emitters,locate:()=>({queues:[{id:'xyz',position:[50,0,0]},{id:'e',position:[2,0,0]}],printTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6+.2})}).recover(signal);
   motion=result.motion;const options={group,members,motion,motorEnable,routes:[{queue:motion.bindings[0].queue},{queue:motion.bindings[1].queue,extrusionAxis:3}],position:[50,0,0,2]};
   return {options,fw,emitters,endstop,secondTrigger,secondEndstop,fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();}};
