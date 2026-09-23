@@ -36,6 +36,16 @@ test('file EOF automatically completes only after motion drain and heater reset 
 test('empty file EOF cannot bypass startup persistence boundary or lose completion event',async()=>{
  const f=await fixture('');try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.controller.state,'finishing');f.finish.resolve();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await until(()=>f.controller.state==='completed');}finally{await f.close();}
 });
+test('product pause drains and parks after the current command without executing its batch suffix',async()=>{
+ const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>(),seen:string[]=[];
+ const f=await fixture('G1 X1\nG1 X2\nG1 X3\n',async c=>{seen.push(c.params.X);if(c.params.X==='1'){entered.resolve();await gate.promise;}});
+ f.motion.pause=async()=>{f.events.push('pause-drain');await f.dispatch.execute('M110');f.events.push('parked');};
+ try{
+  await f.controller.start(request);await entered.promise;const pause=f.controller.pause();gate.resolve();await pause;
+  assert.equal(f.controller.state,'paused');assert.deepEqual(seen,['1']);assert.equal(f.device.status.file?.position,0);assert.ok(f.events.includes('parked'));
+  await f.controller.resume();await until(()=>f.events.includes('drain'));assert.deepEqual(seen,['1','2','3']);assert.equal(f.controller.state,'finishing');
+ }finally{gate.resolve();await f.close();}
+});
 test('cancellation before EOF aborts command and never invokes normal finish',async()=>{
  const entered=Promise.withResolvers<void>();let moves=0;const f=await fixture('G1 X1\nG1 X2\n',command=>{moves++;entered.resolve();return new Promise((_resolve,reject)=>command.signal.addEventListener('abort',()=>reject(command.signal.reason),{once:true}));});
  try{await f.controller.start(request);await entered.promise;const cancel=f.controller.cancel();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await cancel;assert.equal(f.controller.state,'cancelled');assert.equal(moves,1);assert.equal(f.events.includes('drain'),false);assert.equal(f.device.status.file?.position,0);}finally{await f.close();}

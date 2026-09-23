@@ -36,6 +36,15 @@ export class GCodeDispatch {
   }
   /** Serial scripts reject at the first command error; acknowledged input continues. */
   execute(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'}={}):Promise<void> {
+    return this.#enqueue(script,options).then(()=>{});
+  }
+  /** Yield before the next command without draining or discarding the suffix.
+   * The owner must retain the script and drain admitted motion before parking. */
+  executePrefix(script:string,shouldContinue:()=>boolean):Promise<number> {
+    if(typeof shouldContinue!=='function')return Promise.reject(new TypeError('Missing prefix admission predicate'));
+    return this.#enqueue(script,{boundary:'checkpoint'},shouldContinue);
+  }
+  #enqueue(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'},shouldContinue?:()=>boolean):Promise<number> {
     if(script.length>1048576||this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
     const lines=script.split('\n').map(line=>line.endsWith('\r')?line.slice(0,-1):line);
     if(lines.length>16384)return Promise.reject(new GCodeError('G-code line count limit'));
@@ -43,21 +52,23 @@ export class GCodeDispatch {
     const generation=this.#generation;
     const job=this.#tail.then(()=>{
       if(generation!==this.#generation)throw new GCodeError('Script invalidated by shutdown');
-      return this.#run(lines,options.acknowledge??false,options.boundary??'drain');
+      return this.#run(lines,options.acknowledge??false,options.boundary??'drain',shouldContinue);
     });
-    this.#tail=job.catch(()=>{}).finally(()=>{this.#pending--;});return job;
+    this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
   }
-  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint'):Promise<void> {
+  async #run(lines:string[],needAck:boolean,boundary:'drain'|'checkpoint',shouldContinue?:()=>boolean):Promise<number> {
     const controller=new AbortController();this.#active=controller;
     try {
-      let count=0;
+      let count=0,completed=0;
       for(const line of lines) {
+        controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
         if(count++&&count%128===0) {
           try{if(this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);}
           catch(error){this.emergencyStop('Motion checkpoint failed');throw error;}
           await new Promise<void>(resolve=>setImmediate(resolve));
+          controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
         }
-        controller.signal.throwIfAborted();let acknowledged=false;
+        let acknowledged=false;
         const ack=(message?:string):boolean=>{
           if(!needAck||acknowledged)return false;
           acknowledged=true;this.#hooks.output(message?'ok '+message:'ok');return true;
@@ -89,10 +100,12 @@ export class GCodeDispatch {
           this.#hooks.output('!! '+message.split('\n')[0].trim());this.#hooks.commandError?.();
           if(!needAck||controller.signal.aborted)throw error;
         }
-        ack();
+        ack();completed++;
       }
+      controller.signal.throwIfAborted();if(shouldContinue&&!shouldContinue())return completed;
       try{if(boundary==='checkpoint'&&this.#hooks.checkpoint)await this.#hooks.checkpoint(controller.signal);else await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}
       catch(error){this.emergencyStop('Motion drain failed');throw error;}
+      return completed;
     }finally{if(this.#active===controller)this.#active=undefined;}
   }
 }

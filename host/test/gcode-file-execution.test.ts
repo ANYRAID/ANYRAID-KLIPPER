@@ -7,10 +7,10 @@ import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 import {GCodeFileExecution} from '../src/gcode/file-execution.ts';
 import {GCodeDispatch,GCodeError,type CommandContext} from '../src/gcode/dispatch.ts';
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
-async function fixture(script:string,handler:(command:CommandContext)=>void|Promise<void>,onStop:()=>void=()=>{}){
- const directory=await mkdtemp(join(tmpdir(),'file-execution-')),path=join(directory,'file.gcode');await writeFile(path,script);const reader=await GCodeFileReader.adopt(await open(path,'r'),{batchLines:1});let stops=0;
+async function fixture(script:string,handler:(command:CommandContext)=>void|Promise<void>,onStop:()=>void=()=>{},batchLines=1){
+ const directory=await mkdtemp(join(tmpdir(),'file-execution-')),path=join(directory,'file.gcode');await writeFile(path,script);const reader=await GCodeFileReader.adopt(await open(path,'r'),{batchLines});let stops=0;
  const dispatch=new GCodeDispatch({output(){},shutdown(){stops++;onStop();}});dispatch.register('G1',handler);dispatch.setReady(true);const execution=new GCodeFileExecution(reader,dispatch);
- return {reader,execution,get stops(){return stops;},async close(){try{await execution.stop();}finally{await rm(directory,{recursive:true,force:true});}}};
+ return {reader,execution,dispatch,get stops(){return stops;},async close(){try{await execution.stop();}finally{await rm(directory,{recursive:true,force:true});}}};
 }
 test('EOF resolves only after all commands and successful commits; no normal emergency stop',async()=>{
  const gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>(),moves:string[]=[];
@@ -43,4 +43,28 @@ test('stop waits for an uncooperative handler and never commits its late result'
 test('shutdown hook failure is retained while the file descriptor still closes',async()=>{
  const f=await fixture('G1 X1\n',()=>{throw new GCodeError('command failed');},()=>{throw new Error('shutdown failed');});
  try{await assert.rejects(f.execution.start(),AggregateError);assert.equal(f.execution.status.closed,true);assert.equal(f.execution.status.cleanupErrors.length,1);await assert.rejects(f.execution.stop(),AggregateError);}finally{await f.close().catch(()=>{});}
+});
+
+test('pause yields a partial 128-line batch, releases dispatch and resumes each suffix exactly once',async()=>{
+ const script=Array.from({length:128},(_,i)=>`G1 X${i}\n`).join(''),seen:number[]=[];
+ let entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>();
+ const f=await fixture(script,async c=>{const n=Number(c.params.X);seen.push(n);if(n===0||n===64){entered.resolve();await gate.promise;}},()=>{},128);
+ try{
+  const done=f.execution.start();
+  for(const boundary of [0,64]){
+   await entered.promise;const paused=f.execution.pause();gate.resolve();await paused;
+   assert.equal(f.execution.status.phase,'paused');assert.equal(f.execution.status.position,0);assert.equal(f.execution.status.pending,true);
+   assert.deepEqual(seen,Array.from({length:boundary+1},(_,i)=>i));
+   // Parking/control commands can use the dispatcher after file admission yields.
+   await f.dispatch.execute('M110');assert.equal(f.stops,0);
+   entered=Promise.withResolvers<void>();gate=Promise.withResolvers<void>();f.execution.resume();
+  }
+  await done;assert.deepEqual(seen,Array.from({length:128},(_,i)=>i));assert.equal(f.execution.status.position,Buffer.byteLength(script));assert.equal(f.execution.status.phase,'eof');
+ }finally{gate.resolve();await f.close();}
+});
+
+test('stop from a partial batch never replays or commits its admitted prefix',async()=>{
+ const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>();let moves=0;
+ const f=await fixture('G1 X1\nG1 X2\n',async()=>{moves++;entered.resolve();await gate.promise;},()=>{},128);
+ try{const done=f.execution.start(),rejected=assert.rejects(done);await entered.promise;const paused=f.execution.pause();gate.resolve();await paused;await f.execution.stop();await rejected;assert.equal(moves,1);assert.equal(f.execution.status.position,0);assert.equal(f.execution.status.phase,'stopped');}finally{gate.resolve();await f.close();}
 });

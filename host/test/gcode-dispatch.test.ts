@@ -2,6 +2,14 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {GCodeDispatch,GCodeError} from '../src/gcode/dispatch.ts';
 function setup(){const output:string[]=[],shutdown:string[]=[];const d=new GCodeDispatch({output:m=>output.push(m),shutdown:r=>shutdown.push(r)});return {d,output,shutdown};}
+test('prefix yield reports command boundaries without checkpointing an interrupted batch',async()=>{
+ let keep=true,checks=0,drains=0;const seen:string[]=[];
+ const d=new GCodeDispatch({output(){},shutdown(){assert.fail('unexpected shutdown');},async checkpoint(){checks++;},async drain(){drains++;}});
+ d.setReady(true);d.register('G1',c=>{seen.push(c.params.X);keep=false;});
+ assert.equal(await d.executePrefix('G1 X1\nG1 X2',()=>keep),1);assert.deepEqual(seen,['1']);assert.equal(checks,0);assert.equal(drains,0);
+ assert.equal(await d.executePrefix('G1 X2',()=>false),0);await d.execute('M110');assert.equal(drains,1);
+ keep=true;assert.equal(await d.executePrefix('M110',()=>keep),1);assert.equal(checks,1);
+});
 test('readiness, extended registration and acknowledgements follow command completion',async()=>{
  const {d,output}=setup();let value='';d.register('SET_TEST',c=>{value=c.params.NAME;c.ack('done');});
  await assert.rejects(d.execute('SET_TEST NAME=x'),/not ready/);d.setReady(true);

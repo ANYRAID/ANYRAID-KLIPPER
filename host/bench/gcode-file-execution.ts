@@ -20,4 +20,5 @@ try{
  }
  const stats=(a:number[])=>{a.sort((x,y)=>x-y);return {medianMs:a[5],p95Ms:a[10]};};
  console.log(JSON.stringify({node:process.version,warmups:2,runs:11,lines,bytes:Buffer.byteLength(data),baseline:stats(times[0]),execution:stats(times[1]),extraNanosecondsPerLine:(times[1][5]-times[0][5])*1e6/lines,scope:'Same reader, parser, batch size and event-loop yields; mock G1 arithmetic; no motion device or print-speed claim'},null,2));
+ assert(times[1][5]<=times[0][5]*1.15+2,'File ownership and pause admission exceed the 15% plus 2ms desktop budget');
 }finally{await rm(directory,{recursive:true,force:true});}

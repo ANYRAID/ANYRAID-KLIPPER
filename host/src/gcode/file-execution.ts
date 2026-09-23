@@ -1,5 +1,5 @@
 import {GCodeDispatch} from './dispatch.ts';
-import {GCodeFileReader} from './file-reader.ts';
+import {GCodeFileReader,type GCodeFileBatch} from './file-reader.ts';
 /** Single-owner file admission. EOF means commands consumed, never motion drained.
  * Dispatcher shutdown must be wired to the independent device safety path. */
 export class GCodeFileExecution {
@@ -20,14 +20,18 @@ export class GCodeFileExecution {
  }
  async #run():Promise<void>{
   try{
+   // Keep a paused suffix in this live owner only. The committed reader offset
+   // advances after the whole batch, never as a crash-resume motion position.
+   let batch:GCodeFileBatch|null=null,offset=0;
    while(true){
     this.#abort.signal.throwIfAborted();
     if(this.#paused){this.#wake=Promise.withResolvers<void>();await this.#wake.promise;this.#wake=undefined;continue;}
     let eof=false;
     this.#inflight=(async()=>{
-     const batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();
-     if(!batch){eof=true;return;}
-     await this.#dispatch.execute(batch.script,{boundary:'checkpoint'});this.#abort.signal.throwIfAborted();this.#reader.commit(batch);
+     if(!batch){batch=await this.#reader.next(this.#abort.signal);this.#abort.signal.throwIfAborted();if(!batch){eof=true;return;}offset=0;}
+     const completed=await this.#dispatch.executePrefix(offset?batch.script.split('\n').slice(offset).join('\n'):batch.script,()=>!this.#paused);
+     this.#abort.signal.throwIfAborted();offset+=completed;
+     if(offset===batch.lines){this.#reader.commit(batch);batch=null;}
     })();
     try{await this.#inflight;}finally{this.#inflight=undefined;}
     if(eof)break;

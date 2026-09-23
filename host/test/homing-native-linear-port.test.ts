@@ -80,3 +80,17 @@ test('file batches preserve streaming lookahead until the print owner requests f
   await t.port.drain(signal());assert.equal(t.port.status.pendingMoves,0);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0),100);assert.equal(t.f.stops,0);
  }finally{await t.close();await rm(dir,{recursive:true,force:true});}
 });
+test('a partial file pause drains only admitted native steps and resumes the suffix without replay',async()=>{
+ const t=await fixture(),{mkdtemp,open,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');const dir=await mkdtemp(join(tmpdir(),'native-file-pause-'));
+ const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>();let execution:import('../src/gcode/file-execution.ts').GCodeFileExecution|undefined;
+ try{
+  t.kinematics.markHomed([0]);const {GCodeDispatch}=await import('../src/gcode/dispatch.ts'),{GCodeFileReader}=await import('../src/gcode/file-reader.ts'),{GCodeFileExecution}=await import('../src/gcode/file-execution.ts');let admitted=0;
+  const d=new GCodeDispatch({output(){},shutdown(reason){void t.port.motorOff(new Error(reason));},checkpoint:s=>t.port.flush(s),drain:s=>t.port.drain(s)});
+  d.register('G1',async c=>{t.coordinates.execute('G1',c.params);if(++admitted===1){entered.resolve();await gate.promise;}});d.setReady(true);
+  const path=join(dir,'test.gcode');await writeFile(path,'G1 X50.5 F60\nG1 X51 F60\n');execution=new GCodeFileExecution(await GCodeFileReader.adopt(await open(path,'r')),d);
+  const done=execution.start();await entered.promise;const paused=execution.pause();gate.resolve();await paused;await t.port.drain(signal());
+  const steps=()=>t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((n,m)=>n+Number(m.parameters.count),0);
+  assert.equal(admitted,1);assert.equal(steps(),50);assert.equal(execution.status.position,0);assert.deepEqual(t.port.position(),[50.5,0,0,2]);
+  await d.execute('M110');execution.resume();await done;await t.port.drain(signal());assert.equal(admitted,2);assert.equal(steps(),100);assert.deepEqual(t.port.position(),[51,0,0,2]);assert.equal(t.f.stops,0);
+ }finally{gate.resolve();await execution?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
+});
