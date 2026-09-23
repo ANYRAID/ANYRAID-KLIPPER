@@ -24,7 +24,7 @@ export class ADCTemperature {
  }
  get fault():unknown{return this.#cause;}
  get stopError():unknown{return this.#stopError;}
- receive(samples:readonly (readonly [number,number])[]):void {
+ receive(samples:readonly (readonly [number,number])[],completedAt?:number):void {
   if(this.#failed)throw new Error('ADC temperature sensor is stopped');
   let phase:ADCFaultCode='invalid-batch';
   // Retain only the attempted report; malformed input must not implicate a prior valid sample.
@@ -35,13 +35,15 @@ export class ADCTemperature {
    this.#time=Number.isFinite(time)?time:null;this.#value=Number.isFinite(value)?value:null;
    phase='invalid-time';
    if(!Number.isFinite(time)||time<0)throw new RangeError('Invalid ADC sample time');
+   const completion=completedAt??time+s.sampleCount*s.sampleTime;
+   if(!Number.isFinite(completion)||completion<time)throw new RangeError('Invalid ADC completion time');
    phase='out-of-range';
    if(!Number.isFinite(value)||value<s.minimum||value>s.maximum)throw new RangeError('ADC sample outside configured range');
    phase='conversion';
    const temperature=this.#converter.temperature(value);
    if(!Number.isFinite(temperature))throw new RangeError('ADC temperature conversion is not finite');
    this.#temperature=temperature;
-   phase='callback';this.#callback(time+s.sampleCount*s.sampleTime,temperature);
+   phase='callback';this.#callback(completion,temperature);
   }catch(error){
    this.#failed=true;this.#code=phase;this.#cause=error;
    try{this.#fault(`ADC temperature sensor failed: ${phase}`);}catch(stopError){this.#stopError=stopError;throw new AggregateError([error,stopError],'ADC sample and shutdown failed',{cause:error});}

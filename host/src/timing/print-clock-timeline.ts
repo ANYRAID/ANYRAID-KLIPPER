@@ -1,12 +1,19 @@
 import {snapshotPrintClock} from './print-clock.ts';
 type Clock=ReturnType<typeof snapshotPrintClock>;
 type Segment={tick:bigint;time:number;clock:Clock};
+export interface ClockHistoryLease {advance(tick:bigint):void;release():void;}
 /** Piecewise clock mappings for future scheduling and delayed MCU samples.
  * Updates anchor at an exact MCU tick, preserving continuity. Caller must put
  * the boundary after all committed output and motion; this class owns no IO.
  * Retire only after every timestamp consumer has released older samples. */
 export class PrintClockTimeline {
  #segments:Segment[];#capacity:number;#reservedThrough=0n;
+ #readers=new Map<symbol,bigint>();
+ retain(tick=this.#segments[0].tick):ClockHistoryLease{
+  this.printTimeAtClock(tick);if(this.#readers.size>=1024)throw new Error('Clock history reader limit exceeded');
+  const id=Symbol();this.#readers.set(id,tick);
+  return Object.freeze({advance:(next:bigint)=>{const prior=this.#readers.get(id);if(prior===undefined)throw new Error('Clock history lease released');this.printTimeAtClock(next);if(next<prior)throw new RangeError('Clock history reader cannot rewind');this.#readers.set(id,next);},release:()=>{this.#readers.delete(id);}});
+ }
  constructor(calibration:Readonly<{offset:number;frequency:number}>,capacity=1024){
   if(!Number.isSafeInteger(capacity)||capacity<2||capacity>65536)throw new RangeError('Invalid clock history capacity');
   const clock=snapshotPrintClock(calibration);this.#segments=[{tick:0n,time:clock.printTimeAtClock(0n),clock}];this.#capacity=capacity;
@@ -38,6 +45,7 @@ export class PrintClockTimeline {
  /** Retain the segment containing this watermark, including its earlier tail. */
  retireBefore(tick:bigint):void{
   if(typeof tick!=='bigint'||tick<this.#segments[0].tick||tick>BigInt(Number.MAX_SAFE_INTEGER))throw new RangeError('Invalid clock history watermark');
+  for(const retained of this.#readers.values())if(retained<tick)tick=retained;
   const index=this.#index(s=>tick<s.tick);if(index>0)this.#segments.splice(0,index);
  }
 }

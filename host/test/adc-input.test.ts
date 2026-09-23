@@ -5,8 +5,21 @@ import {MessageDictionary} from '../src/protocol/dictionary.ts';
 import {SerialSession} from '../src/protocol/serial-session.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 function setup(legacy=false){const d=new MessageDictionary();d.identify(Buffer.from(JSON.stringify({commands:{'config_analog_in oid=%c pin=%u':27,[legacy?legacyADCQuery:batchADCQuery]:28},responses:{[legacy?'analog_in_state oid=%c next_clock=%u value=%hu':'analog_in_state oid=%c next_clock=%u values=%*s']:29},config:{CLOCK_FREQ:1e6,ADC_MAX:4095}})),false);const chip={},pin={chip,chipName:'mcu',pin:'PA0',invert:0 as const,pullup:0 as const};return {d,chip,base:{oid:3,pin,currentPrintTime:1,reportTime:.3,sampleTime:.001,sampleCount:8},clock:(t:number)=>BigInt(Math.trunc(t*1e6))};}
 const message=(next:number,values:number[],oid=3)=>({name:'analog_in_state',parameters:{oid,next_clock:next,values:Buffer.from(values.flatMap(v=>[v&255,v>>8]))}});
+test('ADC batch crossing calibration reads each historical segment and holds the consumer watermark',()=>{
+ const x=setup(),c=compileADC(x.chip,x.d,{...x.base,batchCount:3},x.clock),clock=new PrintClockTimeline({offset:0,frequency:1e6});let samples:readonly ADCSample[]=[];
+ const input=ADCInput.withClock(c,BigInt,clock,s=>{samples=s;});clock.append(1200000n,1100000);clock.retireBefore(1800000n);assert.equal(clock.status.fromClock,0n);
+ input.receive(message(1800000,[0,16380,32760]));assert.deepEqual(samples,[[.9,0],[1.2,.5],[clock.printTimeAtClock(1500000n),1]]);
+ assert(samples[2][0]<1.5);clock.retireBefore(1800000n);assert.equal(clock.status.fromClock,1200000n);
+ input.close();assert.throws(()=>input.receive(message(2700000,[0,0,0])),/faulted/);
+});
+test('slow ADC consumer retains history until close or fault releases its lease',()=>{
+ const x=setup(),c=compileADC(x.chip,x.d,x.base,x.clock),clock=new PrintClockTimeline({offset:0,frequency:1e6}),slow=ADCInput.withClock(c,BigInt,clock,()=>{}),fast=ADCInput.withClock(c,BigInt,clock,()=>{});
+ clock.append(1000000n,1000100);clock.append(2000000n,999900);fast.receive(message(2700000,[1]));clock.retireBefore(2500000n);assert.equal(clock.status.fromClock,0n);
+ assert.throws(()=>slow.receive(message(2700000,[65535])));clock.retireBefore(2500000n);assert.equal(clock.status.fromClock,2000000n);fast.close();slow.close();
+});
 test('ADC config uses original query slots, thresholds and legacy capability selection',()=>{
  const x=setup(true),c=compileADC(x.chip,x.d,{...x.base,minimum:.123,maximum:.789,rangeCheckCount:4},x.clock);assert.equal(c.legacy,true);assert.deepEqual(c.commands,['config_analog_in oid=3 pin=PA0']);assert.deepEqual(c.init,['query_analog_in oid=3 clock=2030000 sample_ticks=1000 sample_count=8 rest_ticks=300000 min_value=4029 max_value=25848 range_check_count=4']);assert.throws(()=>compileADC(x.chip,x.d,{...x.base,batchCount:2},x.clock),/mismatched/);
 });

@@ -9,10 +9,23 @@ import {serialClock} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 import {SerialADCTemperature,type SensorTimer} from '../src/thermal/serial-adc.ts';
 import {Thermistor} from '../src/thermal/thermistor.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const format='analog_in_state oid=%c next_clock=%u values=%*s';
 const signal=()=>new AbortController().signal;
 async function until(check:()=>boolean){const end=Date.now()+1500;while(!check()){if(Date.now()>end)throw new Error('Condition timed out');await delay(2);}}
 async function pair(){const fw=await serialFirmware();let stops=0;const s=new SerialSession(fw.fd,{async stopDevice(){stops++;}});await s.initialize(signal());return {fw,s,get stops(){return stops;},async close(){await s.stop().catch(()=>{});await fw.close();}};}
+test('native ADC history survives delayed delivery and releases on session shutdown',async()=>{
+ const p=await pair(),clock=new PrintClockTimeline({offset:0,frequency:1e6}),chip={},readings:number[]=[],converter=new Thermistor(4700,0,{point:[25,100000],beta:3950});
+ try{
+  const sensor=SerialADCTemperature.withClock(p.s,chip,{oid:3,pin:{chip,chipName:'mcu',pin:'PA0',invert:0,pullup:0},minimum:0,maximum:300,currentPrintTime:clock.printTimeAtClock(p.s.clock.sync.getClock(serialClock.now()))},converter,clock,{sample(time){readings.push(time);},shutdown(){}});
+  assert.equal(clock.status.reservedThrough,sensor.plan.initialClock);const boundary=clock.status.reservedThrough+100000n;clock.append(boundary,1000100);
+  clock.retireBefore(boundary);assert.equal(clock.status.fromClock,0n);
+  await p.s.configure({oidCount:4,commands:sensor.plan.commands,init:sensor.plan.init},signal());sensor.activate();
+  const now=p.s.clock.sync.getClock(serialClock.now()),next=now+292000n,raw=Math.round(converter.adc(150)*32760);
+  p.fw.emit('analog_in_state',{oid:3,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});await until(()=>readings.length===1);assert.equal(readings[0],clock.printTimeAtClock(next-292000n));
+  clock.retireBefore(boundary);assert.equal(clock.status.fromClock,0n);await p.s.stop();clock.retireBefore(boundary);assert.equal(clock.status.fromClock,boundary);assert.equal(sensor.status.closed,true);
+ }finally{await p.close();}
+});
 test('response subscriptions are exclusive, isolate OIDs, detach and close all consumers despite cleanup failure',async()=>{
  const p=await pair();let a=0,b=0,closed=0;try{
   const pending=p.s.query(p.s.dictionary.encode('stepper_get_position',{oid:5}),'stepper_position',signal(),{oid:5});assert.throws(()=>p.s.subscribeResponse('stepper_position oid=%c pos=%i',5,{receive(){},closed(){}}),/idle route/);await pending;
