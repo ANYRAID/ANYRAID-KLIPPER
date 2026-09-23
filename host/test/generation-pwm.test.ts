@@ -5,6 +5,7 @@ import {compilePWM} from '../src/outputs/pwm.ts';
 import {MessageDictionary} from '../src/protocol/dictionary.ts';
 import {encodeFrame} from '../src/protocol/codec.ts';
 import type {TimedCommandQueue} from '../src/protocol/serial-session.ts';
+import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const signal=()=>new AbortController().signal;
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 function setup(hardware=false){
@@ -18,6 +19,27 @@ function setup(hardware=false){
  const data=make(),control=make(),output=new GenerationPWMOutput(plan,dictionary,data.queue,control.queue,t=>BigInt(Math.trunc(t*1000)),c=>Number(c)/1000);
  return {plan,dictionary,data,control,output};
 }
+for(const hardware of [false,true])test(`calibrated ${hardware?'hardware':'software'} PWM fences queued ticks and retains historical mapping after reset`,async()=>{
+ const f=setup(hardware),clock=new PrintClockTimeline({offset:0,frequency:1000}),output=GenerationPWMOutput.withClock(f.plan,f.dictionary,f.data.queue,f.control.queue,clock);
+ assert.equal(clock.status.reservedThrough,f.plan.initialClock);assert.throws(()=>clock.append(f.plan.initialClock,1100),/reserved/);
+ const reset=output.reset(signal());f.control.calls[0].resolve();await reset;
+ const first=output.setPWM(2,.25,signal());assert.equal(f.data.calls[0].req,2000n);assert.equal(clock.status.reservedThrough,2000n);
+ assert.throws(()=>clock.append(2000n,1100),/reserved/);clock.append(2100n,1100);
+ assert.equal(clock.printTimeAtClock(2000n),2);assert.equal(f.data.calls[0].message.parameters.clock,2000);
+ const next=output.setPWM(3.1,.5,signal());assert.equal(f.data.calls[1].req,3200n);assert.equal(f.data.calls[1].min,2000n);
+ f.data.calls[0].resolve();f.data.calls[1].resolve();await Promise.all([first,next]);
+ const again=output.reset(signal());f.control.calls[1].resolve();await again;
+ assert.equal(clock.status.reservedThrough,3200n);assert.throws(()=>clock.append(3000n,1000),/reserved/);
+ await output.stop();
+});
+test('multiple PWM writers share the furthest reserved clock and calibration mapping',async()=>{
+ const a=setup(true),b=setup(true),clock=new PrintClockTimeline({offset:0,frequency:1000}),outputs=[a,b].map(f=>GenerationPWMOutput.withClock(f.plan,f.dictionary,f.data.queue,f.control.queue,clock));
+ const resets=outputs.map(o=>o.reset(signal()));a.control.calls[0].resolve();b.control.calls[0].resolve();await Promise.all(resets);
+ const first=outputs[0].setPWM(4,.5,signal()),second=outputs[1].setPWM(2,.5,signal());assert.equal(clock.status.reservedThrough,4000n);
+ assert.throws(()=>clock.append(3500n,1100),/reserved/);clock.append(4100n,1100);
+ const later=outputs[1].setPWM(5.1,.5,signal());assert.equal(b.data.calls[1].req,5200n);
+ a.data.calls[0].resolve();b.data.calls[0].resolve();b.data.calls[1].resolve();await Promise.all([first,second,later]);await Promise.all(outputs.map(o=>o.stop()));
+});
 for(const hardware of [false,true])test(`${hardware?'hardware':'software'} PWM reset confirms safe default, drains old writes and advances generation`,async()=>{
  const f=setup(hardware);assert.deepEqual(f.output.configuration,{cycleTime:.1,maximumDuration:2,initialPower:0,defaultPower:0});await assert.rejects(f.output.setPWM(2,.5,signal()),/not ready/);
  const initial=f.output.reset(signal());assert.equal(f.control.calls[0].min,0n);assert.equal(f.control.calls[0].req,0n);f.control.calls[0].resolve();await initial;

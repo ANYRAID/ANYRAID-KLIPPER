@@ -1,11 +1,18 @@
 import {PWMOutput,type CompiledPWM} from './pwm.ts';
 import {MessageDictionary} from '../protocol/dictionary.ts';
 import type {TimedCommandQueue} from '../protocol/serial-session.ts';
+import {PrintClockTimeline} from '../timing/print-clock-timeline.ts';
 export class PWMGenerationSuperseded extends Error {}
 /** Requires distinct timed-output and immediate-control FIFOs on the same MCU.
  * reset() confirms the firmware reset AND drains old host sends before reuse.
  * Firmware acknowledgement is not electrical feedback from the pin. */
 export class GenerationPWMOutput {
+ /** Share one timeline across all outputs on this MCU. Alignment lookups also
+  * reserve conservatively; queued writes keep their original wire ticks. */
+ static withClock(config:CompiledPWM,dictionary:MessageDictionary,data:TimedCommandQueue,control:TimedCommandQueue,clock:PrintClockTimeline):GenerationPWMOutput{
+  const output=new GenerationPWMOutput(config,dictionary,data,control,time=>clock.reserve(time),tick=>clock.printTimeAtClock(tick));
+  clock.reserveClock(config.initialClock);return output;
+ }
  #config:CompiledPWM;#dictionary:MessageDictionary;#data:TimedCommandQueue;#control:TimedCommandQueue;
  #clockAt:(time:number)=>bigint;#printAt:(clock:bigint)=>number;#writer:PWMOutput|undefined;
  #phase:'idle'|'resetting'|'ready'|'failed'='idle';#generation=0;#offConfirmed=false;
