@@ -13,9 +13,11 @@ const solverModes={x:0,y:1,z:2,'corexy+':3,'corexy-':4,extruder:5,'corexz+':7,'c
 interface Native {coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
+export interface MotionFilterSettings {shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
 export class StepCompressor {
   #handle:object;#closed=false;#offset:number;#frequency:number;
+  #filters:MotionFilterSettings={};#pressureSettledAt:number|undefined;
   constructor(s:StepCompressorSettings){this.#offset=s.timeOffset;this.#frequency=s.frequency;this.#handle=native.create(new Float64Array([s.frequency,s.timeOffset,s.oid,s.maxError,s.queueStepTag,s.directionTag,s.invertDirection?1:0]),s.initialClock??0n);}
   /** Startup only: seed observed MCU position without resetting step clocks. */
   initializePosition(clock:bigint,position:bigint):void{native.initializePosition(this.#handle,clock,position);}
@@ -35,9 +37,16 @@ export class StepCompressor {
     native.attachSolver(this.#handle,queue,new Float64Array([delta&&mode.kind==='delta'?6:solverModes[mode as keyof typeof solverModes],stepDistance,...position,...(delta?[mode.armLength,mode.towerX,mode.towerY]:[])]));
   }
   /** Configure an E-only queue before generation. Zero advance disables smoothing. */
-  configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);}
+  configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}
   /** Schedule a positive coefficient at a future source-phase boundary; smooth time stays fixed. */
-  schedulePressureAdvance(printTime:number,advance:number):void{native.schedulePressureAdvance(this.#handle,printTime,advance);}
+  schedulePressureAdvance(printTime:number,advance:number):void{native.schedulePressureAdvance(this.#handle,printTime,advance);const prior=this.#filters.pressureAdvance!;if(advance!==prior.advance){this.#filters.pressureAdvance={advance,smoothTime:prior.smoothTime};this.#pressureSettledAt=printTime+prior.smoothTime*.5;}}
+  /** Snapshot only settled parameters. A new constant-position generation
+   * cannot inherit a pending time-domain transition without its old path. */
+  recoveryFilters():MotionFilterSettings{
+    if(this.#closed)throw new Error('Step compressor is closed');
+    if(this.#pressureSettledAt!==undefined&&this.generatedTime<this.#pressureSettledAt)throw new Error('Pressure advance transition must settle before recovery');
+    return structuredClone(this.#filters);
+  }
   /** Atomically replace XYZ shapers before any generation; omitted axes are disabled. */
   configureShapers(shapers:Partial<Record<'x'|'y'|'z',Shaper>>):void {
     if(Object.keys(shapers).some(k=>!['x','y','z'].includes(k)))throw new RangeError('Unknown shaper axis');
@@ -47,6 +56,7 @@ export class StepCompressor {
       packed[axis*21]=shaper.times.length;packed.set(shaper.amplitudes,axis*21+1);packed.set(shaper.times,axis*21+11);
     }
     native.configureShapers(this.#handle,packed);
+    this.#filters.shapers=Object.fromEntries((['x','y','z'] as const).map((name,axis)=>{const n=packed[axis*21];return [name,{amplitudes:Array.from(packed.slice(axis*21+1,axis*21+1+n)),times:Array.from(packed.slice(axis*21+11,axis*21+11+n))}];}));
   }
   /** Read-only original native kinematic projection; does not change the
    * commanded coordinate, generation frontier, clock or physical counter. */

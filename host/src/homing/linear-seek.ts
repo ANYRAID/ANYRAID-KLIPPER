@@ -7,6 +7,7 @@ import {HomingMoveExecution} from './move-execution.ts';
 import {homingToolheadPositions} from './toolhead-position.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {observeRetirement} from '../motion/retired.ts';
+import {recoveryEmitters} from './recovery-emitters.ts';
 export interface LinearSeekOptions {
  generation:Awaited<ReturnType<typeof bindRebuiltMotion>>;kinematics:LinearKinematics;
  emitters:readonly StoppedEmitter[];groups:readonly HomingGroupConfig[];
@@ -28,8 +29,8 @@ export class LinearHomingSeek {
    const expected=o.kinematics.kind==='cartesian'?['x','y','z']:o.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
    if(new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>o.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Linear homing rail solvers differ from kinematics');
    const routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
-   const boundaryTransfer=g.releaseBoundaryOutput();
-   const prepared=await prepareHomingTrajectory(g,o.kinematics,target,speed,axis,signal),plan=planHomingGroups(g,o.emitters,prepared,o.groups);
+   const emitters=recoveryEmitters(g.motion.bindings,o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
+   const prepared=await prepareHomingTrajectory(g,o.kinematics,target,speed,axis,signal),plan=planHomingGroups(g,emitters,prepared,o.groups);
    // Capture target motor coordinates while the old native solvers are alive.
    const actuators=plan.emitters.map(e=>{const b=g.motion.bindings.find(b=>b.id===e.id)!,route=routes.find(r=>r.id===e.queueId);if(!route)throw new Error('Missing homing queue route');const p=route.extrusionAxis===undefined?prepared.endPosition.slice(0,3):[prepared.endPosition[route.extrusionAxis],0,0];return {id:b.id,member:e.member,oid:b.oid,commanded:b.stepper.coordinatePosition(p[0],p[1],p[2]),stepDistance:b.position.state.stepDistance,extra:route.extrusionAxis!==undefined};});
    const movingSteppers=Object.freeze(actuators.filter(a=>!a.extra&&a.commanded!==g.motion.bindings.find(b=>b.id===a.id)!.stepper.coordinatePosition(...prepared.startPosition.slice(0,3) as [number,number,number])).map(a=>Object.freeze({member:a.member,oid:a.oid})));

@@ -10,6 +10,7 @@ import type {MotionLimits} from '../motion/lookahead.ts';
 import type {Axis} from '../kinematics/linear.ts';
 import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
+import {recoveryEmitters} from './recovery-emitters.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
@@ -165,8 +166,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
     if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
-    const boundaryTransfer=g.releaseBoundaryOutput();
-    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters:this.#o.emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
+    const emitters=recoveryEmitters(g.motion.bindings,this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
+    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
     this.#check(s);const next=await bindRebuiltMotion({group:g.group,members:g.members,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
   });
