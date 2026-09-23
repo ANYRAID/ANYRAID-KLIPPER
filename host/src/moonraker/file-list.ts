@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import {boundedJsonBytes} from './json-size.ts';
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
@@ -17,7 +18,7 @@ interface Pending {cancel:Int32Array;finish:(error:unknown,value?:unknown)=>void
  * no capability to open or mutate a pathname later; authorization is separate. */
 export class FileListing {
  #worker:Worker;#roots:readonly Readonly<FileRoot>[]=[];#pending=new Map<number,Pending>();#next=0;#closed=false;#closing:Promise<void>|undefined;#options:Required<FileListingOptions>;
- private constructor(options:Required<FileListingOptions>){this.#options=options;this.#worker=new Worker(new URL('./file-list-worker.ts',import.meta.url),{workerData:options,execArgv:[]});}
+ private constructor(options:Required<FileListingOptions>){this.#options=options;this.#worker=new Worker(workerEntry('./file-list-worker.ts',import.meta.url),{workerData:options,execArgv:[]});}
  static async open(input:FileListingOptions):Promise<FileListing>{
   const path=(value:unknown)=>typeof value==='string'&&value.isWellFormed()&&isAbsolute(value)&&!value.includes('\0')&&Buffer.byteLength(value)<=4096;
   if(!input||!Array.isArray(input.roots)||input.roots.length>64||input.roots.some(r=>!r||typeof r.name!=='string'||!(/^[A-Za-z0-9_-]{1,64}$/).test(r.name)||!path(r.path)||typeof r.writable!=='boolean')||new Set(input.roots.map(r=>r.name)).size!==input.roots.length)throw new TypeError('Invalid file roots');

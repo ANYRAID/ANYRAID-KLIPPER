@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import { isAbsolute } from 'node:path';
 import { Worker } from 'node:worker_threads';
 import {
@@ -38,7 +39,7 @@ export class PrintJournal {
   }
   private constructor(options: JournalOptions) {
     this.#worker = new Worker(
-      new URL('./print-journal-worker.ts', import.meta.url),
+      workerEntry('./print-journal-worker.ts',import.meta.url),
       { workerData: options, execArgv: [] },
     );
     let ready!: (info: JournalInfo) => void, failed!: (error: unknown) => void;

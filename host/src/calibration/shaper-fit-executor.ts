@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import {Worker} from 'node:worker_threads';
 import type {ShaperDataset,FitOptions,ShaperFit} from './shaper-fit.ts';
 /** One active fitting job, with explicit buffer ownership and bounded termination. */
@@ -17,7 +18,7 @@ export class ShaperFitExecutor {
     if(samples>4_000_000)throw new RangeError('Fit input budget exceeded');
     this.#busy=true;let worker:Worker|undefined,timer:ReturnType<typeof setTimeout>|undefined,abort:(()=>void)|undefined;
     try {
-      worker=new Worker(new URL('./shaper-fit-worker.ts',import.meta.url),{workerData:{datasets,options},transferList:[...buffers],resourceLimits:{maxOldGenerationSizeMb:256}});
+      worker=new Worker(workerEntry('./shaper-fit-worker.ts',import.meta.url),{workerData:{datasets,options},transferList:[...buffers],resourceLimits:{maxOldGenerationSizeMb:256}});
       return await new Promise<ShaperFit>((resolve,reject)=>{
         worker!.once('message',message=>message.ok?resolve(message.result):reject(new Error(message.error)));
         worker!.once('error',reject);worker!.once('exit',code=>reject(new Error(`Shaper worker exited before returning: ${code}`)));

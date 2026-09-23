@@ -254,7 +254,9 @@
     "bench:motan-key-order": "node bench/motan-key-order.ts",
     "bench:motan-structured-table": "node bench/motan-structured-table.ts",
     "build:motan": "node scripts/build-motan.ts",
-    "bench:motan-compiled-export": "node bench/motan-compiled-export.ts"
+    "bench:motan-compiled-export": "node bench/motan-compiled-export.ts",
+    "build:product-host": "node scripts/build-product-host.ts",
+    "bench:product-build": "node bench/product-build.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

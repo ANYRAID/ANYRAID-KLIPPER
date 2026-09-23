@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import type {SqlOperation,SqlResult} from './database-sql.ts';
 import {tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
 import {deserialize} from 'node:v8';
@@ -21,7 +22,7 @@ export class DatabaseStore {
  #restoreState:'ready'|'restored'|'restore-failed'='ready';
  #bytes=0;#next=0;#closed=false;#closing:Promise<void>|undefined;
  private constructor(options:ResolvedDatabaseOptions){
-  this.#options=options;this.#worker=new Worker(new URL('./database-worker.ts',import.meta.url),{workerData:options,execArgv:[]});
+  this.#options=options;this.#worker=new Worker(workerEntry('./database-worker.ts',import.meta.url),{workerData:options,execArgv:[]});
   let ready!:()=>void,failed!:(e:unknown)=>void;this.#ready=new Promise((resolve,reject)=>{ready=resolve;failed=reject;});
   const fail=(e:unknown)=>{this.#closed=true;failed(e);for(const pending of this.#pending.values())pending.reject(e);this.#pending.clear();this.#bytes=0;};
   this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}if(message.readCache)this.#readCache=message.readCache;if(message.restoreState)this.#restoreState=message.restoreState;const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else{try{pending.resolve(message.encoded?deserialize(message.encoded):message.value);}catch{pending.reject(new ApiError(503,'Invalid database worker response'));}}});

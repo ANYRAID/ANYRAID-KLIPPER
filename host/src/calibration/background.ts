@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import { Worker } from 'node:worker_threads';
 import type { Spectrum } from './spectrum.ts';
 /** Single-flight executor: calibration cannot silently accumulate CPU/memory jobs. */
@@ -17,7 +18,7 @@ export class SpectrumExecutor {
     let timer:ReturnType<typeof setTimeout>|undefined;
     let abort:(()=>void)|undefined;
     try {
-      worker=new Worker(new URL('./spectrum-worker.ts',import.meta.url),{workerData:{name,samples},transferList:[samples.buffer],resourceLimits:{maxOldGenerationSizeMb:256}});
+      worker=new Worker(workerEntry('./spectrum-worker.ts',import.meta.url),{workerData:{name,samples},transferList:[samples.buffer],resourceLimits:{maxOldGenerationSizeMb:256}});
       return await new Promise<Spectrum|null>((resolve,reject) => {
         worker!.once('message',message => message.ok ? resolve(message.result) : reject(new Error(message.error)));
         worker!.once('error',reject);

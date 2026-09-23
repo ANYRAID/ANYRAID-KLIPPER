@@ -1,10 +1,10 @@
 import {isAbsolute} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import type {ProductHostFactory} from './product-host.ts';
-export const productHostHelp='Usage: node scripts/product-host.ts --profile /absolute/path/machine.ts\nRuns a trusted machine integration module exporting createProductHostProfile(signal).\nSIGINT/SIGTERM stop admission and await hardware, operations and dependency cleanup.\n';
+export const productHostHelp='Usage: node scripts/product-host.ts --profile /absolute/path/machine.ts\nCompiled: node scripts/product-host.js --profile /absolute/path/machine.mjs\nRuns a trusted machine integration module exporting createProductHostProfile(signal).\nSIGINT/SIGTERM stop admission and await hardware, operations and dependency cleanup.\n';
 export function parseProductHostArgs(args:readonly string[]):{profile:string}|undefined{
  if(args.length===1&&(args[0]==='--help'||args[0]==='-h'))return;
- if(args.length!==2||args[0]!=='--profile'||!isAbsolute(args[1])||/[\0\r\n]/u.test(args[1])||!/[.](?:ts|mts|mjs)$/u.test(args[1]))throw new Error('Expected --profile with an absolute .ts, .mts or .mjs module path');
+ if(args.length!==2||args[0]!=='--profile'||!isAbsolute(args[1])||/[\0\r\n]/u.test(args[1])||!/[.](?:ts|mts|js|mjs)$/u.test(args[1]))throw new Error('Expected --profile with an absolute .ts, .mts, .js or .mjs module path');
  return {profile:args[1]};
 }
 /** Parse help before loading native addons or machine code. Profile imports are

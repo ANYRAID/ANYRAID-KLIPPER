@@ -7,7 +7,7 @@ node scripts/product-host.ts --help
 node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 ```
 
-`--profile` 必须是本机 `.ts`、`.mts` 或 `.mjs` 模块的绝对路径。
+`--profile` 必须是本机 `.ts`、`.mts`、`.js` 或 `.mjs` 模块的绝对路径。
 帮助和参数错误不会加载机器模块或原生插件。运行主机前仍须安装
 `host` 依赖并完成 `npm --prefix host run build:native`，运行环境和
 迁移范围见 [迁移说明](Node_Host_Migration.md)。
@@ -15,6 +15,48 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 这是显式机器集成入口。仓库未提供可直接套用到任意打印机的生产
 机器模块，也未将默认 Python 服务切换到此命令。声明式配置装配、
 目标机部署、其余设备支持和实机验收仍需继续完成。
+
+## 编译后的运行包
+
+在已经安装开发依赖的仓库内，使用目标运行环境对应的 Node.js 26.9+
+26.x 构建原生插件，再生成 JavaScript 主机包：
+
+```sh
+npm --prefix host run build:native
+npm --prefix host run build:product-host
+cd host/build/product-host
+npm ci --omit=dev --ignore-scripts
+node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyraid/machine.mjs
+```
+
+运行包包含主机 JS、后台 worker/子进程、JSON 数值与 Unicode 契约、
+字体及许可证、生产依赖清单与锁文件，以及现有原生插件。依赖需要
+单独安装；构建命令本身不会下载依赖或重建插件。可在命令末尾通过
+`-- /绝对路径/输出目录` 指定构建目录。
+
+`build-info.json` 记录 Node、TypeScript、平台、架构、模块 ABI 及各
+产物的 SHA-256。相同输入可生成相同清单；它不是签名，也不能证明
+事先存在的原生插件对应哪份源码。跨架构、平台或 ABI 使用前必须
+在目标环境重新构建插件并验证。可选的 `template.node` 仅在构建目录
+已有时复制，不因此启用实验性模板实现。
+
+编译运行时的机器模块应使用 `.mjs`，或明确配置为 ESM 的 `.js`，并从
+同一运行包导入类与组件。不得把源码 `.ts` 类实例与编译版混用。
+采用 JS 机器模块后，主机及其后台任务无需 TypeScript 运行时解析，
+也不调用 Python。仓库中的其他工具和固件辅助程序不因此全部成为
+独立部署包的一部分。
+
+输出目录只能存放可重建产物，机器模块、配置、日志和打印数据放在
+目录外。构建先写入临时目录，编译或插件校验失败时保留旧包；通过
+生成标记识别旧包，并拒绝覆盖无标记目录或并发构建。成功构建会整体
+替换旧目录（包括其中另外安装的 node_modules），随后重新安装依赖。
+此机制用于离线产物生成，不是运行中服务的更新、断电事务或生产发布
+协议；实际切换仍按项目发布和实机验证流程执行。
+
+`npm --prefix host run bench:product-build` 比较源码与编译包的冷启动及
+后台任务，逐项核对数学输出。编译产物测试另行禁用 TypeScript 解析
+并清空外部程序 PATH，覆盖数值计算、持久化、缩略图、原生步进、PDF
+字体资源和双 UART 主机启停。测试 UART 对端为模拟 MCU。
 
 ## 机器模块契约
 

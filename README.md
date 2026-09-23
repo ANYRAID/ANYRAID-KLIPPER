@@ -31,6 +31,8 @@ Node 主机已接通线性打印机自动配置、原生步进与归零组件、
 启动。机器集成模块必须显式提供物理停止、鉴权、文件授权、类型化打印
 生命周期及资源清理；进程接管启动、监听与退出，详见
 [Node 主机启动说明](docs/Node_Host_Startup.md)。这不会自动切换现有部署。
+也可通过 `npm --prefix host run build:product-host` 生成 JavaScript
+运行包；原生插件构建、生产依赖安装与机器模块要求见同一启动说明。
 
 本分支的固件构建现需 Node.js 26（`node` 可在 PATH 中找到，或通过
 `make NODE=/绝对路径/node` 指定）。构建生成器不需要安装 npm 依赖；

@@ -1,3 +1,4 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
 import {Worker} from 'node:worker_threads';
 import type {FileHandle} from 'node:fs/promises';
 import {ApiError,type Json} from './rpc.ts';
@@ -9,7 +10,7 @@ interface Pending {cancel:Int32Array;finish:(error:unknown,value?:MetadataExtrac
  * whole instance; create a new instance explicitly after handling the fault. */
 export class MetadataExtractor {
  #worker:Worker;#pending=new Map<number,Pending>();#next=0;#closed=false;#closing:Promise<void>|undefined;#options:Required<MetadataExtractorOptions>;
- private constructor(options:Required<MetadataExtractorOptions>){this.#options=options;this.#worker=new Worker(new URL('./metadata-extractor-worker.ts',import.meta.url),{workerData:options,execArgv:[],resourceLimits:{maxOldGenerationSizeMb:128,maxYoungGenerationSizeMb:16,stackSizeMb:4}});}
+ private constructor(options:Required<MetadataExtractorOptions>){this.#options=options;this.#worker=new Worker(workerEntry('./metadata-extractor-worker.ts',import.meta.url),{workerData:options,execArgv:[],resourceLimits:{maxOldGenerationSizeMb:128,maxYoungGenerationSizeMb:16,stackSizeMb:4}});}
  static async open(input:MetadataExtractorOptions={}):Promise<MetadataExtractor>{
   const options={maxPending:input.maxPending??4,timeoutMs:input.timeoutMs??5000,maxFileBytes:input.maxFileBytes??16*1024**3,maxOutputBytes:input.maxOutputBytes??256*1024};
   for(const [name,max,min] of [['maxPending',64,1],['timeoutMs',60000,1],['maxFileBytes',1024**4,0],['maxOutputBytes',1024**2,1]] as const)if(!Number.isSafeInteger(options[name])||options[name]<min||options[name]>max)throw new RangeError('Invalid metadata extraction capacity');
