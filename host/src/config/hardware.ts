@@ -1,3 +1,4 @@
+import {snapshotPrintClock} from '../timing/print-clock.ts';
 // Cold-start hardware assembly. GPL-3.0-or-later.
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUGroup} from '../runtime/mcu-group.ts';
@@ -46,7 +47,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const configurations=Object.freeze(devices.map(({id},physicalMember)=>{
   const resources=mcuOids(pins).finalize(id),p=pending.get(id)!;
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
-  return Object.freeze({mcu:id,physicalMember,session:mcus.get(id)!.chip,resources,plan});
+  return Object.freeze({mcu:id,physicalMember,clock:snapshotPrintClock(clocks.get(id)!.calibration),session:mcus.get(id)!.chip,resources,plan});
  }));
  return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters});
 }
