@@ -51,10 +51,13 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   const generation=await pending;active();
   // Only a pristine initial source may be transferred. The port becomes the
   // lifetime owner of every later rebase/homing generation, not just this one.
-  const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'>)=>{
+  const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>)=>{
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
-   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters});port=result.port;return result;
+   const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
+   const heaterIndex=plan.heaters.findIndex(h=>h.section===section),heater=hardware.analog[heaterIndex]?.runtime;
+   if(!heater)throw new Error('Linear motion requires its configured extruder heater');
+   const result=createConfiguredNativeLinearPort(reader,{...settings,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;return result;
   };
   return Object.freeze({generation,emitters,stopped,createLinearPort,close:hardware.close});
  }catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Initial motion and cleanup failed',{cause:error});}throw error;}

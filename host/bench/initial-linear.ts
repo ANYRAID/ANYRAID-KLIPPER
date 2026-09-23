@@ -5,7 +5,7 @@ const values={manual:[] as number[],owned:[] as number[]};
 for(let run=0;run<14;run++)for(const mode of (run%2?['manual','owned']:['owned','manual']) as ('manual'|'owned')[]){
  const f=await initialLinearFixture(!!(run%2));let port:ReturnType<typeof createConfiguredNativeLinearPort>['port']|undefined;
  try{
-  const start=performance.now(),result=mode==='owned'?f.initial.createLinearPort(f.reader,f.settings):createConfiguredNativeLinearPort(f.reader,{...f.settings,generation:f.initial.generation,emitters:f.initial.emitters});
+  const start=performance.now(),result=mode==='owned'?f.initial.createLinearPort(f.reader,f.settings):createConfiguredNativeLinearPort(f.reader,{...f.settings,canExtrude:()=>f.hardware.analog[0].runtime.canExtrude(),generation:f.initial.generation,emitters:f.initial.emitters});
   const elapsed=performance.now()-start;port=result.port;
   assert.equal(result.kinematics.status.homedAxes,'');assert.deepEqual(port.position(),[0,0,0,0]);assert.throws(()=>port!.move([1,0,0,0],10),/home/i);assert.equal(f.firmware[0].motion.length,0);
   if(run>=3)values[mode].push(elapsed);

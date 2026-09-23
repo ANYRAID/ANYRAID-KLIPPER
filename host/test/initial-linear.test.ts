@@ -48,3 +48,19 @@ test('hardware close cancels and waits for an in-flight coordinate replacement',
   for(const b of f.initial.generation.motion.bindings)assert.throws(()=>b.stepper.calibration,/closed/);
  }finally{await f.hardware.close();await f.close();}
 });
+test('owned port reads live configured ADC temperature and ignores caller permission overrides',async()=>{
+ const f=await initialLinearFixture();let timer:ReturnType<typeof setInterval>|undefined;
+ try{
+  const {port}=f.initial.createLinearPort(f.reader,{...f.settings,canExtrude:()=>true} as typeof f.settings);
+  assert.throws(()=>port.move([0,0,0,1],2),/temperature/);
+  const plan=f.hardware.plan.heaters[0],runtime=f.hardware.analog[0].runtime,session=f.group.session(plan.sensor.mcu);let temperature=220;
+  const emit=()=>{const raw=Math.round(plan.configuration.converter.adc(temperature)*plan.sensor.adc.maximumSum),next=session.clock.sync.getClock(serialClock.now())+292000n;f.firmware[1].emit('analog_in_state',{oid:plan.sensor.adc.oid,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});};
+  timer=setInterval(emit,50);emit();const warmDeadline=performance.now()+4000;
+  while(!runtime.canExtrude()){assert(performance.now()<warmDeadline,'fresh ADC samples did not enable extrusion');await delay(10);}
+  port.move([0,0,0,.1],2);await port.drain(f.signal);
+  const e=f.hardware.plan.steppers.find(s=>s.emitter==='e')!;
+  assert.equal(f.firmware[0].motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===e.compressor.oid).reduce((n,m)=>n+Number(m.parameters.count),0),8);
+  temperature=25;const coolDeadline=performance.now()+4000;while(runtime.canExtrude()){assert(performance.now()<coolDeadline,'cooling did not revoke extrusion');await delay(10);}
+  assert.throws(()=>port.move([0,0,0,.2],2),/temperature/);assert.deepEqual(port.position(),[0,0,0,.1]);
+ }finally{if(timer)clearInterval(timer);await f.hardware.close();await f.close();}
+});
