@@ -1,4 +1,4 @@
-import {NativeLinearGCode} from '../runtime/native-linear-gcode.ts';
+import {NativeLinearGCode,type PrintHomingPolicy} from '../runtime/native-linear-gcode.ts';
 import {NativeLinearHomingPort} from '../homing/native-linear-port.ts';
 import {AsyncPrinterHeaters} from '../thermal/async-heaters.ts';
 import {bindNativeFileMotion,type NativeFileLifecycle} from './native-file-motion.ts';
@@ -11,6 +11,7 @@ export interface NativeLinearPrintOptions {
  mapping:{nozzle:string;bed:string};parking:PauseParkingConfig;lifecycle:NativeFileLifecycle;
  /** Machine policy after final output acknowledgement; never a file macro. */
  motorCompletion:'hold'|'release';
+ startupHoming:PrintHomingPolicy;
  open:ConstructorParameters<typeof FilePrintDevice>[2];
 }
 /** Transfers these dedicated owners after validation. Machine configuration,
@@ -20,6 +21,9 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
  const {gcode,port,heaters,lifecycle,motorCompletion}=o;
  if(!(gcode instanceof NativeLinearGCode)||!(port instanceof NativeLinearHomingPort)||!(heaters instanceof AsyncPrinterHeaters)||!gcode.usesPort(port)||owners.has(gcode)||typeof o.open!=='function')throw new Error('Invalid native print ownership');
  if(!['hold','release'].includes(motorCompletion)||motorCompletion==='release'&&!port.hasMotorEnable)throw new Error('Invalid native print motor completion policy');
+ const policy=o.startupHoming;
+ if(!policy||!['home','require_homed'].includes(policy.mode)||!Array.isArray(policy.axes)||!policy.axes.length||policy.axes.length>3||new Set(policy.axes).size!==policy.axes.length||policy.axes.some(a=>!Number.isInteger(a)||a<0||a>2))throw new Error('Invalid print homing policy');
+ const startupHoming:PrintHomingPolicy={mode:policy.mode,axes:[...policy.axes]};
  const names=heaters.status.available_heaters.map(name=>name.trim().split(/\s+/).at(-1));
  if(!heaters.status.started||heaters.status.closed||!names.includes(o.mapping.nozzle)||!names.includes(o.mapping.bed)||o.mapping.nozzle===o.mapping.bed)throw new Error('Native print heaters are not ready or mapped');
  for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof lifecycle[key]!=='function')throw new Error('Incomplete native print lifecycle');
@@ -38,7 +42,7 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
   });return closing;
  };
  try{
-  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:async(request,signal)=>{await lifecycle.prepare(request,signal);signal.throwIfAborted();gcode.enable();},finishOutputs:async(id,signal)=>{
+  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:(request,signal)=>gcode.prepareForPrint(startupHoming,s=>lifecycle.prepare(request,s),signal),finishOutputs:async(id,signal)=>{
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
   }});

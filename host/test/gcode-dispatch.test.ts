@@ -64,3 +64,17 @@ test('final drain receives emergency cancellation and blocks queued commands',as
  const d=new GCodeDispatch({output(){},shutdown(){},drain:s=>new Promise<void>((resolve,reject)=>{entered();s.addEventListener('abort',()=>reject(s.reason),{once:true});})});d.register('G1',()=>{moved++;});d.setReady(true);
  const active=d.execute('G1'),queued=d.execute('G1');await ready;d.emergencyStop('cancel final drain');await assert.rejects(active,/cancel final drain/);await assert.rejects(queued,/invalidated/);assert.equal(moved,1);
 });
+test('machine actions share script admission and retain ownership through cancellation retirement',async()=>{
+ const {d,shutdown}=setup(),gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>(),cancel=new AbortController(),events:string[]=[];d.setReady(true);d.register('G1',()=>{events.push('script');});
+ const action=d.runExclusive(async s=>{events.push('action');entered.resolve();await gate.promise;s.throwIfAborted();},cancel.signal),failed=assert.rejects(action);
+ await entered.promise;const queued=d.execute('G1'),invalidated=assert.rejects(queued,/invalidated/);cancel.abort(new Error('cancel prepare'));await new Promise<void>(r=>setImmediate(r));assert.deepEqual(events,['action']);gate.resolve();await failed;await invalidated;assert.equal(shutdown.length,1);
+});
+test('queued cancelled machine work never runs and leaves the prior script healthy',async()=>{
+ const {d,shutdown}=setup(),gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>(),cancel=new AbortController();d.setReady(true);d.register('G1',async()=>{entered.resolve();await gate.promise;});
+ const script=d.execute('G1');await entered.promise;const action=d.runExclusive(async()=>assert.fail('cancelled queued work ran'),cancel.signal),failed=assert.rejects(action);cancel.abort();gate.resolve();await script;await failed;await d.execute('M110');assert.equal(shutdown.length,0);
+});
+test('machine action failure fences queued scripts and emergency stop aborts active work',async()=>{
+ const {d,shutdown}=setup(),entered=Promise.withResolvers<void>();d.setReady(true);
+ const action=d.runExclusive(s=>new Promise<void>((_resolve,reject)=>{s.addEventListener('abort',()=>reject(s.reason),{once:true});entered.resolve();}),new AbortController().signal),failed=assert.rejects(action);
+ await entered.promise;const queued=d.execute('M110'),invalidated=assert.rejects(queued,/invalidated/);d.emergencyStop('external MCU stop');await failed;await invalidated;assert.deepEqual(shutdown,['external MCU stop']);
+});

@@ -40,6 +40,22 @@ export class GCodeDispatch {
   execute(script:string,options:{acknowledge?:boolean;boundary?:'drain'|'checkpoint'}={}):Promise<void> {
     return this.#enqueue(script,options).then(()=>{});
   }
+  /** Trusted machine lifecycle work shares admission with scripts. The callback
+   * owns its motion barriers and must never recursively enqueue dispatch work.
+   * Retain ownership until it settles, including after cancellation. */
+  runExclusive(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal):Promise<void> {
+    if(typeof work!=='function'||!(signal instanceof AbortSignal))return Promise.reject(new TypeError('Invalid machine action'));
+    if(this.#pending>=64)return Promise.reject(new GCodeError('G-code admission limit'));
+    this.#pending++;const generation=this.#generation;
+    const job=this.#tail.then(async()=>{
+      signal.throwIfAborted();if(generation!==this.#generation)throw new GCodeError('Machine action invalidated by shutdown');
+      const controller=new AbortController(),local=AbortSignal.any([signal,controller.signal]);this.#active=controller;
+      try{await work(local);local.throwIfAborted();}
+      catch(error){if(generation===this.#generation)this.emergencyStop('Machine action failed');throw error;}
+      finally{if(this.#active===controller)this.#active=undefined;}
+    });
+    this.#tail=job.then(()=>{},()=>{}).finally(()=>{this.#pending--;});return job;
+  }
   /** Yield before the next command without draining or discarding the suffix.
    * The owner must retain the script and drain admitted motion before parking.
    * onCheckpoint brackets the awaited motion hook, not ordinary handlers;

@@ -68,3 +68,30 @@ for(const cancel of [false,true])test(`file completion waits for motor off ACK a
   assert.equal(finished,!cancel);assert.equal(f.t.port.status.failed,cancel);assert.equal(f.outputStops,cancel?1:0);assert.equal(f.heaters.getTemperature('extruder').target,0);
  }finally{gate.resolve();DigitalOutput.prototype.setDigital=original;await owner.close();await f.close();}
 });
+test('typed startup homes through native trigger recovery before heating and file movement',async()=>{
+ const {nativePrintHomingFixture}=await import('./helpers/native-print-homing.ts'),h=await nativePrintHomingFixture(),f=h.f,owner=await createNativeLinearPrint(f.options);
+ try{
+  f.options.startupHoming.axes=[]; // Already-assembled policy owns its snapshot.
+  assert.equal(f.t.kinematics.status.homedAxes,'');await owner.device.prepare(request,signal());assert.equal(h.hits,1);assert.equal(f.t.kinematics.status.homedAxes,'x');assert.equal(f.t.port.position()[0],51);
+  const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());owner.device.subscribeFault(e=>eof.reject(e));await owner.device.start('file',signal());await eof.promise;await owner.device.finish('job',signal());
+  assert.equal(f.t.port.position()[0],51.5);assert.equal(f.t.port.status.failed,false);assert.equal(f.t.f.stops,0);
+ }finally{await owner.close();await h.close();}
+});
+test('required homing authority is checked before starting heaters',async()=>{
+ const f=await nativePrintFixture();f.options.lifecycle.prepare=async()=>{};const owner=await createNativeLinearPrint(f.options);
+ try{await assert.rejects(owner.device.prepare(request,signal()),/requires homed axes/);assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.t.f.fw.motion.length,0);assert.equal(f.t.port.status.failed,true);}
+ finally{await owner.close();await f.close();}
+});
+test('invalid startup homing configuration rejects before taking device ownership',async()=>{
+ const f=await nativePrintFixture();try{
+  for(const policy of [undefined,{mode:'home',axes:[]},{mode:'home',axes:[0,0]},{mode:'home',axes:[3]}]){f.options.startupHoming=policy as never;await assert.rejects(createNativeLinearPrint(f.options),/homing policy/);assert.equal(f.t.port.status.failed,false);assert.equal(f.heaters.status.closed,false);}
+ }finally{await f.close();}
+});
+test('cancelling native startup homing stops the group before any heating begins',async()=>{
+ const {nativePrintHomingFixture}=await import('./helpers/native-print-homing.ts'),h=await nativePrintHomingFixture(),f=h.f;h.stopTriggers();const owner=await createNativeLinearPrint(f.options);
+ try{
+  const prepare=owner.device.prepare(request,signal()),failed=assert.rejects(prepare),deadline=performance.now()+3000;
+  while(!f.t.f.fw.outputs.some(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0)){assert(performance.now()<deadline,'startup homing did not arm');await new Promise(r=>setTimeout(r,2));}
+  await owner.device.stop();await failed;assert.equal(f.t.kinematics.status.homedAxes,'');assert.equal(f.t.port.status.failed,true);assert.equal(f.t.f.stops,1);assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.outputFinishes,0);
+ }finally{await owner.close();await h.close();}
+});

@@ -18,6 +18,6 @@ export async function nativePrintFixture(script='M105\nG1 X51 E2.01 F600\n',hold
  }
  try{await heaters.start();runtimes[0].sample(1,220);runtimes[1].sample(1,80);await writeFile(path,script);}
  catch(error){await gcode.close();await heaters.shutdown();await t.close();await rm(dir,{recursive:true,force:true});throw error;}
- const options:NativeLinearPrintOptions={gcode,port:t.port,heaters,motorCompletion:'hold',mapping:{nozzle:'extruder',bed:'bed'},parking:{parkXY:[50,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{t.kinematics.markHomed([0,1,2]);},start:async()=>{},finishOutputs:async()=>{outputFinishes++;},stopOutputs:async()=>{outputStops++;}},open:async()=>GCodeFileReader.adopt(await open(path,'r'))};
+ const options:NativeLinearPrintOptions={gcode,port:t.port,heaters,motorCompletion:'hold',startupHoming:{mode:'require_homed',axes:[0,1,2]},mapping:{nozzle:'extruder',bed:'bed'},parking:{parkXY:[50,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{t.kinematics.markHomed([0,1,2]);},start:async()=>{},finishOutputs:async()=>{outputFinishes++;},stopOutputs:async()=>{outputStops++;}},open:async()=>GCodeFileReader.adopt(await open(path,'r'))};
  return {t,gcode,heaters,runtimes,reports,resetCounts,off,options,get outputStops(){return outputStops;},get outputFinishes(){return outputFinishes;},async close(){off.resolve();await gcode.close();await heaters.shutdown();await t.close();await rm(dir,{recursive:true,force:true});}};
 }
