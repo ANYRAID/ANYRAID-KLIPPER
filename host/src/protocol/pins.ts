@@ -34,6 +34,7 @@ export class PrinterPins<T> {
  #chips=new Map<string,T>();#resolvers=new Map<string,PinResolver>();#active=new Map<string,PinBinding<T>>();#multi=new Set<string>();
  #wire=new Map<string,PhysicalPins>();#held=new WeakMap<PinBinding<T>,string>();#exclusive=new WeakSet<PinBinding<T>>();
  register(name:string,chip:T):void{name=name.trim();if(!valid(name)||this.#chips.has(name))throw new PinError('Invalid or duplicate chip name');if([...this.#wire.keys()].some(n=>this.#chips.get(n)===chip))throw new PinError('Mapped physical chip already has a name');this.#chips.set(name,chip);this.#resolvers.set(name,new PinResolver());}
+ chip(name:string):T{if(!this.#chips.has(name))throw new PinError(`Unknown chip ${name}`);return this.#chips.get(name)!;}
  resolver(name:string):PinResolver{const resolver=this.#resolvers.get(name);if(!resolver)throw new PinError(`Unknown chip ${name}`);return resolver;}
  get claimedPins():readonly PinBinding<T>[] {return Object.freeze([...this.#active.values()]);}
  parse(description:string,options:PinOptions={}):PinBinding<T>{

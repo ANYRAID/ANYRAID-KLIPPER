@@ -1,3 +1,4 @@
+import {compileConfiguredHoming} from '../../src/config/homing.ts';
 import {compileConfiguredMotorEnables} from '../../src/config/motor-enable.ts';
 import {PrinterPins} from '../../src/protocol/pins.ts';
 import {mcuOids} from '../../src/protocol/mcu-oids.ts';
@@ -5,12 +6,10 @@ import {readStepperDistance} from '../../src/config/stepper.ts';
 import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {MotorEnable} from '../../src/outputs/motor-enable.ts';
-import {EndstopProtocol} from '../../src/inputs/endstop.ts';
 import type {StoppedEmitter} from '../../src/homing/rebuild-motion.ts';
 import {MCUGroup} from '../../src/runtime/mcu-group.ts';
 import {SerialSession} from '../../src/protocol/serial-session.ts';
 import {serialFirmware} from './serial-firmware.ts';
-import {TriggerSyncProtocol} from '../../src/inputs/trsync.ts';
 import {TrapQueue} from '../../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../../src/motion/coordinator.ts';
 import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
@@ -22,18 +21,19 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
  const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]);
  const xyz=new TrapQueue(),extrusion=new TrapQueue();let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
  try{
-  await group.start(signal);const s=group.session('m'),trigger=new TriggerSyncProtocol(s.dictionary,8);
-  const chip={},endstop=new EndstopProtocol(chip,s.dictionary,7,{chip,chipName:'m',pin:'PA0',invert:0,pullup:1});
-  const secondTrigger=new TriggerSyncProtocol(s.dictionary,9),secondEndstop=new EndstopProtocol(chip,s.dictionary,6,{chip,chipName:'m',pin:'PA1',invert:0,pullup:1});
+  await group.start(signal);const s=group.session('m'),chip={},pins=new PrinterPins<object>();pins.register('m',chip);
+  // Reserve only legacy stepper/fan objects and compatibility gaps.
+  const legacyIds=[0,1,2,3,4,5,...dual?[]:[6],...motorPower&&!dual?[9]:[]];
+  mcuOids(pins).claim(legacyIds.map(oid=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
+  const homingReader=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{primary:{endstop_pin:'^m:PA0'},secondary:{endstop_pin:'^m:PA1'}},[]),null);
+  const homing=compileConfiguredHoming(homingReader,pins,new Map([['m',{chip,dictionary:s.dictionary}]]),[{section:'primary',oid:7,triggers:[{mcu:'m',oid:8}]},...dual?[{section:'secondary',oid:6,triggers:[{mcu:'m',oid:9}]}]:[]]);
+  const {endstop}=homing[0],trigger=homing[0].triggers[0].protocol,secondary=homing[1];
   const fanPlan=partFan?compilePWM(chip,s.dictionary,{oid:0,pin:{chip,chipName:'m',pin:'PA2',invert:0,pullup:0},hardware:true,cycleTime:.01,maxDuration:0,currentPrintTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6},time=>BigInt(Math.trunc(time*1e6))):undefined;
-  const pins=new PrinterPins<object>();pins.register('m',chip);
-  // Legacy fixture objects retain their fixed IDs until their builders migrate.
-  mcuOids(pins).claim(Array.from({length:motorPower||dual?10:9},(_,oid)=>({mcu:'m',owner:'fixture:'+oid,oid})),()=>null);
   const motorIds=['x','e',...dual?['x2']:[],...complete?['y','z']:[]],motorReader=new ConfigurationReader(new ConfigurationSource('/motors.cfg',Object.fromEntries(motorIds.map(id=>[id,motorPower==='always'||motorPower==='mixed'&&id==='e'?{} as Record<string,string>:{enable_pin:'!m:PA3'}])),[]),null);
   const motorPlans=motorPower?compileConfiguredMotorEnables(motorReader,pins,group,motorIds.map(id=>({section:id,emitter:id,mcu:'m',leadTime:.001,calibration:{offset:0,frequency:1e6}}))):undefined;
   const motorPlan=motorPlans?.lines[0];
   const motorOidCount=mcuOids(pins).finalize('m').oidCount;
-  await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...dual?[...secondTrigger.commands,...secondEndstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
+  await s.configure({oidCount:motorOidCount,commands:[...trigger.commands,...endstop.commands,...secondary?[...secondary.triggers[0].protocol.commands,...secondary.endstop.commands]:[],...fanPlan?.commands??[],...motorPlan?[motorPlan.config.config]:[]],init:fanPlan?.init,restart:[...fanPlan?.restart??[],...motorPlan?[motorPlan.config.restart]:[]],reservedMoves:(fanPlan?.reservedMoves??0)+(motorPlan?.config.reservedMoves??0)},signal);
   const motorEnable=motorPlans?new MotorEnable(group,motorPlans.lines,motorPlans.alwaysOn):undefined;
   const distance=readStepperDistance(new ConfigurationReader(new ConfigurationSource('/stepper.cfg',{stepper_x:{rotation_distance:'1',microsteps:'1',full_steps_per_rotation:'100'}},[]),null).section('stepper_x'));
   const settings={frequency:1e6,timeOffset:0,maxError:0,queueStepTag:8,directionTag:9};
@@ -48,6 +48,6 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   if(complete)for(const [id,oid] of [['y',1],['z',2]] as const){members[0].steppers.push({oid,inverted:false});emitters.push({id,queueId:'xyz',member:0,settings:{...settings,oid},mode:id,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(oid,0);}
   const result=await new CoordinateRebase({coordinator,bindings,members,emitters,locate:()=>({queues:[{id:'xyz',position:[50,0,0]},{id:'e',position:[2,0,0]}],printTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6+.2})}).recover(signal);
   motion=result.motion;const options={group,members,motion,motorEnable,routes:[{queue:motion.bindings[0].queue},{queue:motion.bindings[1].queue,extrusionAxis:3}],position:[50,0,0,2]};
-  return {options,fw,emitters,endstop,secondTrigger,secondEndstop,fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();}};
+  return {options,fw,emitters,endstop,get secondTrigger(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.triggers[0].protocol;},get secondEndstop(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.endstop;},fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();}};
  }catch(error){await group.stop().catch(()=>{});motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();throw error;}
 }
