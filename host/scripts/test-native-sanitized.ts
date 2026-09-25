@@ -44,6 +44,7 @@ for(const address of [false,true]) {
   tests.push('test/arcs.test.ts');
   tests.push('test/velocity-limits.test.ts');
   tests.push('test/retraction.test.ts');
+  tests.push('test/display-status.test.ts');
   // Physically paced long cases start together in their own batch. Keep the
   // same 60-second deadline and all other assignments; no test is omitted.
   const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts','test/product-host.test.ts','test/product-machine.test.ts','test/native-host-status.test.ts','test/native-objects.test.ts','test/gcode-move.test.ts','test/async-heater-runtime.test.ts','test/native-subscriptions.test.ts','test/print-layer-info.test.ts','test/dwell.test.ts','test/arcs.test.ts']);

@@ -1,6 +1,7 @@
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
 import {FirmwareRetraction,type RetractionSettings} from '../gcode/retraction.ts';
+import {DisplayStatus} from '../gcode/display-status.ts';
 import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 import {GCodeArcs} from '../gcode/arcs.ts';
 import {bindVelocityCommands} from '../gcode/velocity-limits.ts';
@@ -17,6 +18,7 @@ export interface PrintHomingPolicy {mode:'home'|'require_homed';axes:readonly Ax
 export class NativeLinearGCode {
  readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand;
  readonly layers=new PrintLayerInfo();
+ readonly display=new DisplayStatus();
  readonly retraction:FirmwareRetraction|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
@@ -30,6 +32,7 @@ export class NativeLinearGCode {
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
   this.layers.register(this.dispatch);
+  this.display.register(this.dispatch);
   this.retraction?.register(this.dispatch,this.coordinates);
   bindVelocityCommands(this.dispatch,port);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));

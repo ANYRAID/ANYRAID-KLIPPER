@@ -95,6 +95,8 @@ test('native object queries expose actual coordinate state and configured sensor
   owner=await startProductService(reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test'};
   const listing=await fetch(base+'/printer/objects/list',{headers}),names=(await listing.json() as any).result.objects;for(const name of ['native_host','toolhead','gcode_move','heaters','extruder','heater_bed','fan','virtual_sdcard','print_stats'])assert(names.includes(name));
   const retractResponse=await fetch(base+'/printer/objects/query?firmware_retraction',{headers});assert.deepEqual((await retractResponse.json() as any).result.status.firmware_retraction,{retract_length:.25,retract_speed:20,unretract_extra_length:0,unretract_speed:10});assert(names.includes('firmware_retraction'));
+  owner.printer.print.gcode.display.setMessage('打印中');owner.printer.print.gcode.display.updateProgress({P:'37.5'});
+  const displayResponse=await fetch(base+'/printer/objects/query?display_status',{headers});assert.deepEqual((await displayResponse.json() as any).result.status.display_status,{progress:.375,message:'打印中'});assert(names.includes('display_status'));
   // Populate the coordinate model without granting public G-code admission.
   owner.printer.print.gcode.coordinates.execute('G92',{X:1.005,E:2.675});owner.printer.print.gcode.coordinates.execute('M220',{S:150});
   owner.printer.linear.port.updateVelocityLimits({maxVelocity:42,maxAccel:123,squareCornerVelocity:2,minCruiseRatio:.25});
@@ -110,8 +112,9 @@ test('native WebSocket subscriptions deliver real deltas and disconnect after no
   owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);
   ws=new WebSocket(`ws://127.0.0.1:${owner.address.port}/websocket`,{headers:{'x-api-key':'test'}});await once(ws,'open');
   const receive=()=>once(ws!,'message',{signal:AbortSignal.timeout(3000)}).then(([data])=>JSON.parse(String(data)));
-  let reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{gcode_move:['speed_factor'],native_host:['ready']}}}));const initial=await reply;assert.deepEqual(initial.result.status,{gcode_move:{speed_factor:1},native_host:{ready:true}});
+  let reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{gcode_move:['speed_factor'],native_host:['ready'],display_status:['message','progress']}}}));const initial=await reply;assert.deepEqual(initial.result.status,{gcode_move:{speed_factor:1},native_host:{ready:true},display_status:{message:null,progress:0}});
   reply=receive();owner.printer.print.gcode.coordinates.execute('M220',{S:150});const update=await reply;assert.equal(update.method,'notify_status_update');assert.deepEqual(update.params[0],{gcode_move:{speed_factor:1.5}});assert(update.params[1]>initial.result.eventtime);
+  reply=receive();owner.printer.print.gcode.display.setMessage('准备完成');owner.printer.print.gcode.display.updateProgress({P:'25'});const display=await reply;assert.deepEqual(display.params[0],{display_status:{message:'准备完成',progress:.25}});
   allowed=false;const closed=once(ws,'close',{signal:AbortSignal.timeout(3000)});owner.printer.print.gcode.coordinates.execute('M220',{S:175});await closed;assert(f.firmware.every(f=>f.motion.length===0));
  }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
