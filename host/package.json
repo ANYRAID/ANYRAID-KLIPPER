@@ -268,7 +268,8 @@
     "bench:velocity-limits": "node bench/velocity-limits.ts",
     "bench:retraction": "node bench/retraction.ts",
     "bench:display-status": "node bench/display-status.ts",
-    "bench:interactive-plot": "node bench/interactive-plot.ts"
+    "bench:interactive-plot": "node bench/interactive-plot.ts",
+    "bench:pressure-advance-settings": "node bench/pressure-advance-settings.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
