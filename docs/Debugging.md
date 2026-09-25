@@ -224,8 +224,11 @@ node ~/klipper/scripts/graph_extruder.ts -o extruder.png
 It uses the same installed host dependencies and export formats as the
 Node load graph tool. The horizontal axis is elapsed seconds. This is a
 diagnostic simulation, not a calibration command or a hardware validation.
-The original `graph_extruder.py` remains available for its interactive
-Matplotlib window and EPS export.
+The Python entry point has been retired. Use `.html` for an interactive
+document with zoom and curve controls, or `.svg` / `.pdf` for vector output.
+An explicit output filename is required; the tool no longer opens a
+Matplotlib window or exports EPS. The calculation and its regression tests
+do not require Python or Matplotlib.
 
 ## Generating input shaper simulation graphs
 

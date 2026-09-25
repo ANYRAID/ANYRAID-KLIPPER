@@ -1,23 +1,14 @@
-import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+// Fixed original Python results, captured before script retirement; no Python runtime.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import type {StatsPlot} from '../src/diagnostics/graphstats.ts';
-const source=String.raw`
-import sys,types,runpy,json,time
-state={}
-class Stub:
- def __getattr__(self,n): return lambda *a,**k:None
-class Axis(Stub):
- def set_title(self,v): state['title']=v
- def set_ylabel(self,v): state['axes']=[v]
- def plot(self,t,v,*a,**kw):
-  state['curves'].append(dict(label=kw['label'],axis=0,style='line',times=t.copy(),values=v.copy()));return [None]
-def subplots(**kw):
- state.clear();state.update(curves=[]);return Stub(),Axis()
-m=types.ModuleType('matplotlib');m.pyplot=types.SimpleNamespace(subplots=subplots);m.font_manager=types.SimpleNamespace(FontProperties=Stub);sys.modules['matplotlib']=m
-r=runpy.run_path(sys.argv[1]);runs=int(sys.argv[2]);samples=[]
-for i in range(runs):
- start=time.perf_counter();r['plot_motion']();samples.append((time.perf_counter()-start)*1000)
-p=r['gen_positions']();raw=r['calc_pa_raw'](p)
-print(json.dumps(dict(plot=state,positions=p,raw=raw,smooth=r['calc_pa'](p),samples=samples),allow_nan=False))
-`;
-export function extruderReference(runs=1):{plot:StatsPlot;positions:number[];raw:number[];smooth:number[];samples:number[]}{return JSON.parse(execFileSync('/usr/bin/python3',['-c',source,fileURLToPath(new URL('../../scripts/graph_extruder.py',import.meta.url)),String(runs)],{encoding:'utf8',maxBuffer:32*1024**2}));}
+type Timing={medianMs:number;p95Ms:number};
+export const extruderManifest=JSON.parse(readFileSync(new URL('../contracts/extruder-retirement.json',import.meta.url),'utf8')) as {dataSha256:string;compressedSha256:string;uncompressedBytes:number;compressedBytes:number;before:{nodeCompute:Timing;pythonCompute:Timing;nodePngExport:Timing}};
+const compressed=readFileSync(new URL('../contracts/extruder-retirement.json.gz',import.meta.url));
+const hash=(data:Uint8Array)=>createHash('sha256').update(data).digest('hex');
+assert.equal(hash(compressed),extruderManifest.compressedSha256);assert.equal(compressed.length,extruderManifest.compressedBytes);
+const bytes=gunzipSync(compressed,{maxOutputLength:8*1024**2});assert.equal(hash(bytes),extruderManifest.dataSha256);assert.equal(bytes.length,extruderManifest.uncompressedBytes);
+const reference=JSON.parse(bytes.toString('utf8')) as {plot:StatsPlot;positions:number[];raw:number[];smooth:number[];samples:number[];smoothCases:Record<string,number[]>};
+export function extruderReference(){return reference;}

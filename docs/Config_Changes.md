@@ -8,6 +8,11 @@ All dates in this document are approximate.
 
 ## Changes
 
+20260926: 挤出机压力提前示意图的 `scripts/graph_extruder.py` 已退役，
+改用 `node scripts/graph_extruder.ts -o 输出文件`。必须指定输出；
+交互查看使用 HTML，矢量输出使用 SVG/PDF，不再提供 Matplotlib
+窗口或 EPS。工具采用固定模拟运动，不修改打印机压力提前设置。
+
 20260926: `scripts/graph_accelerometer.py` 已退役，改用
 `node scripts/graph_accelerometer.ts -o 输出文件 输入.csv`。支持原始
 三轴曲线、多文件频率比较、谱图及完整精度 CSV/JSON；`-c` 保留为

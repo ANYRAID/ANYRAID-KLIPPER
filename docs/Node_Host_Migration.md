@@ -21981,3 +21981,45 @@ PATH 和不存在的 PYTHON；真实 PNG 已检查三轴完整图例及啁啾谱
 `/tmp/spectrogram-plot-retirement-after.json`。
 这些是本机离线数值及性能验证，未修改原生运动算法、未重跑原生
 消毒器全套测试、未切换生产入口，也不代表实机打印验收。
+
+### 挤出机压力提前示意图 Python 入口退役
+
+删除 `scripts/graph_extruder.py`，Git 跟踪的 Python 文件由 199
+减少到 198。`node scripts/graph_extruder.ts -o 输出文件` 保持固定
+运动示例和三条速度曲线，不接受机器参数，也不设置真实压力提前。
+交互查看使用独立 HTML，矢量输出使用 SVG/PDF；不再打开旧
+Matplotlib 窗口或输出 EPS。迁移方式已同步到 Debugging 和配置
+变更说明。此次未改变 TypeScript 数值算法及实际打印运动链路。
+
+在源提交 `d4615f06` 上直接执行未修改的原脚本，使用已有记录式
+Matplotlib 适配器捕获完整曲线；额外执行原 `calc_weighted(raw, s)`，
+保存 0.0002、0.001、0.04、0.1 秒窗口的全部结果。共 8934 个
+位置样本，绘图保留 7934 点。参考数值保存在
+`host/contracts/extruder-retirement.json.gz`，同名 JSON 清单记录
+原脚本及捕获适配器哈希、源提交、Python 版本、CPU 和删除前基准。
+加载参考先验证压缩/解压长度和 SHA-256，再在 8 MiB 解压上限内
+解析。测试及基准只读取固定数据，不再启动 Python。
+
+原位置绝对误差门限 `1e-14` mm，原始及平滑 PA 位置 `1e-12` mm，
+速度 `2e-8` mm/s，完整时间数组要求相等。默认曲线本机测得误差
+均为零，四组平滑窗口也通过位置门限。此结论仅覆盖固定示例及
+这些窗口，不推导任意机器运动的精度保证。
+
+Node v26.9.0，5 次预热、11 次采样，计算和 PNG 输出分别计时。
+删除前 Node 计算中位/P95 为 5.544564/6.760502 ms，删除后为
+5.366270/6.510419 ms；固定参考捕获中的历史 Python 为
+253.629342/256.679713 ms。PNG 输出由删除前
+26.783018/31.762247 ms 变为 27.671204/28.467301 ms。
+没有本轮算法加速声明。基准门禁比较删除前 Node：计算中位
+1.25 倍加 2 ms、P95 1.5 倍加 2 ms，输出中位 1.25 倍加
+10 ms、P95 1.5 倍加 20 ms，全部通过。计算排除进程启动、IPC
+和图像编码，PNG 单独包含 SVG、sharp 和原子文件替换。
+
+13 项相关测试、类型及项目空白检查通过。CLI 子进程设置空 PATH
+及不存在的 PYTHON，验证 JSON、SVG、PNG、HTML、PDF、JPEG、WebP
+和 TIFF；PDF 文本验证完整图例，共享交互组件覆盖缩放、复位和曲线
+开关。实际 PNG 已检查曲线、负速度区间和时间刻度。
+日志为 `/tmp/extruder-retirement-tests.log`、
+`/tmp/extruder-retirement-before.json` 和
+`/tmp/extruder-retirement-after.json`。这是离线诊断入口退役，未重跑
+原生消毒器全套检查，未切换生产入口、未进行实机验收。
