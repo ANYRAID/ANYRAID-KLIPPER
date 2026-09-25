@@ -2,6 +2,7 @@ import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts'
 import {GCodeMove} from '../gcode/move.ts';
 import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 import {GCodeArcs} from '../gcode/arcs.ts';
+import {bindVelocityCommands} from '../gcode/velocity-limits.ts';
 import {parseConfigurationFloat} from '../moonraker/config-reader.ts';
 import {LinearHomingCommand,type LinearHomingRail} from '../homing/linear-command.ts';
 import type {NativeLinearHomingPort} from '../homing/native-linear-port.ts';
@@ -26,6 +27,7 @@ export class NativeLinearGCode {
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
   this.layers.register(this.dispatch);
+  bindVelocityCommands(this.dispatch,port);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));
   this.dispatch.register('G4',c=>{let seconds=0;try{if(Object.hasOwn(c.params,'P'))seconds=parseConfigurationFloat(c.params.P)/1000;if(!Number.isFinite(seconds)||seconds<0||seconds>3600)throw new Error();}catch{throw new GCodeError('Invalid G4 P duration');}return port.dwell(seconds,c.signal);},{checkpoint:true});
   if(port.hasCoolingFan)bindCoolingFanCommands(this.dispatch,(value,signal)=>port.queueCoolingFan(value,signal));

@@ -25,6 +25,9 @@ export class LinearKinematics {
     this.#ranges=[range(config.ranges[0]),range(config.ranges[1]),range(config.ranges[2])];this.#config={...config,ranges:this.#ranges};
   }
   get kind():LinearConfig['kind']{return this.#config.kind;}
+  /** Dynamic toolhead ceilings also apply to privileged homing moves; the
+   * independently configured Z limits and homing authority remain intact. */
+  setMotionLimits(maxVelocity:number,maxAccel:number):void {if(![maxVelocity,maxAccel].every(v=>Number.isFinite(v)&&v>0))throw new RangeError('Invalid dynamic motion limits');this.#config={...this.#config,maxVelocity,maxAccel};}
   get status():{homedAxes:string;axisMinimum:number[];axisMaximum:number[]} {
     return {homedAxes:this.#limits.map((v,i)=>v?'xyz'[i]:'').join(''),axisMinimum:this.#ranges.map(r=>r[0]),axisMaximum:this.#ranges.map(r=>r[1])};
   }

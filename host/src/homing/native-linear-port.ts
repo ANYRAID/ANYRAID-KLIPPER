@@ -8,6 +8,7 @@ import {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import {createGuardedBedMeshPort,createMotionValidator} from '../motion/guarded-bed-mesh-port.ts';
 import type {ExtrusionGuard} from '../motion/extrusion.ts';
 import type {MotionLimits} from '../motion/lookahead.ts';
+import {VelocityLimits,VelocityUpdateUnavailable,type VelocitySettings,type VelocityUpdate} from '../motion/velocity-limits.ts';
 import type {Axis} from '../kinematics/linear.ts';
 import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
@@ -15,6 +16,7 @@ import {recoveryEmitters} from './recovery-emitters.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
+ velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
 export interface PausedMove {position:readonly number[];speed:number;}
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
@@ -25,6 +27,7 @@ export interface PausedMove {position:readonly number[];speed:number;}
 export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #streamer:RebuiltMotionStreamer;
+ #velocity:VelocityLimits;
  #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
  #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
@@ -34,6 +37,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
+  this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
   this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
  }
@@ -46,6 +50,12 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.plannedPosition;}
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
+ get velocitySettings(){return this.#velocity.state;}
+ get velocityStatus(){return this.#velocity.objectStatus;}
+ updateVelocityLimits(patch:VelocityUpdate):void {
+  this.assertActive();if(this.#pause||this.#resuming||this.#busy)throw new VelocityUpdateUnavailable();
+  this.#velocity.update(patch,limits=>{this.#admission.setMotionLimits(limits);this.#o.kinematics.setMotionLimits(limits.maxVelocity,limits.maxAccel);this.#o.limits=limits;});
+ }
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
  get hasCoolingFan():boolean{return this.#g.boundaryOutput!==undefined;}
  get hasMotorEnable():boolean{return this.#g.motorEnable!==undefined;}

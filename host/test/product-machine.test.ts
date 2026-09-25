@@ -21,7 +21,10 @@ test('machine data reads are bounded, UTF-8 strict, abortable and do not block o
  const dir=await mkdtemp(join(tmpdir(),'machine-read-'));try{
   await assert.rejects(readProductMachine(dir,signal()),/regular file/);const path=join(dir,'config');await writeFile(path,Buffer.alloc(65537,32));await assert.rejects(readProductMachine(path,signal()),/65536/);
   await writeFile(path,Buffer.from([0xff]));await assert.rejects(readProductMachine(path,signal()));await assert.rejects(readProductMachine(path,AbortSignal.abort(new Error('cancelled'))),/cancelled/);
-  const fifo=join(dir,'fifo');execFileSync('mkfifo',[fifo]);await assert.rejects(readProductMachine(fifo,signal()),/regular file/);
+  // Only the Node/native process is instrumented. Do not preload its ASan
+  // runtime into the unrelated system utility (same boundary as the PTY build).
+  const utilityEnv={...process.env};delete utilityEnv.LD_PRELOAD;delete utilityEnv.ASAN_OPTIONS;
+  const fifo=join(dir,'fifo');execFileSync('mkfifo',[fifo],{env:utilityEnv});await assert.rejects(readProductMachine(fifo,signal()),/regular file/);
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 test('profile preflight rejects topology and network errors before adapter or journal acquisition',async()=>{

@@ -11,7 +11,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   ['gcode_move',()=>printer.print.gcode.coordinates.objectStatus],
   ['virtual_sdcard',()=>printer.print.file.objectStatus],
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers)],
-  ['toolhead',()=>{const k=printer.linear.kinematics.status,l=printer.linear.limits;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.position()],extruder:'extruder',max_velocity:l.maxVelocity,max_accel:l.maxAccel};}],
+  ['toolhead',()=>{const k=printer.linear.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.position()],extruder:'extruder',...printer.linear.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
  for(const [i,heater] of printer.hardware.plan.heaters.entries())readers.set(heater.section,()=>printer.hardware.analog[i].runtime.objectStatus);

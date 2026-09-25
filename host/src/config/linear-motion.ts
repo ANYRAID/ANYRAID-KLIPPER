@@ -12,7 +12,8 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  const printer=reader.section('printer'),kind=printer.get('kinematics');
  if(kind!=='cartesian'&&kind!=='corexy'&&kind!=='corexz')throw new Error('Unsupported linear kinematics');
  const maxVelocity=printer.getFloat('max_velocity',{above:0}),maxAccel=printer.getFloat('max_accel',{above:0});
- const limits=motionLimits(maxVelocity,maxAccel,printer.getFloat('square_corner_velocity',{defaultValue:5,minval:0}),printer.getFloat('minimum_cruise_ratio',{defaultValue:.5,minval:0,below:1}));
+ const velocitySettings=Object.freeze({squareCornerVelocity:printer.getFloat('square_corner_velocity',{defaultValue:5,minval:0}),minCruiseRatio:printer.getFloat('minimum_cruise_ratio',{defaultValue:.5,minval:0,below:1})});
+ const limits=motionLimits(maxVelocity,maxAccel,velocitySettings.squareCornerVelocity,velocitySettings.minCruiseRatio);
  if(!Number.isFinite(limits.junctionDeviation)||!Number.isFinite(limits.mcrPseudoAccel))throw new Error('Motion limit arithmetic overflow');
  const ranges:Range[]=[],rails:Omit<LinearHomingRail,'endstops'>[]=[];
  for(const name of ['stepper_x','stepper_y','stepper_z']){
@@ -31,7 +32,7 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  // Extrude-only defaults use the DEFAULT cross section, even when the configured
  // maximum cross section is overridden. Preserve Python's numerical contract.
  const extrusion=new ExtrusionGuard({nozzleDiameter,filamentDiameter,maxCrossSection:extruder.getFloat('max_extrude_cross_section',{defaultValue:defaultCrossSection,above:0}),maxVelocity:extruder.getFloat('max_extrude_only_velocity',{defaultValue:maxVelocity*defaultRatio,above:0}),maxAccel:extruder.getFloat('max_extrude_only_accel',{defaultValue:maxAccel*defaultRatio,above:0}),maxDistance:extruder.getFloat('max_extrude_only_distance',{defaultValue:50,minval:0}),instantCornerVelocity:extruder.getFloat('instantaneous_corner_velocity',{defaultValue:1,minval:0})});
- return {kinematics,limits:Object.freeze(limits),extrusion,rails:Object.freeze(rails)};
+ return {kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
 }
 export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};
 /** Validate machine semantics and solver identity before constructing the port.

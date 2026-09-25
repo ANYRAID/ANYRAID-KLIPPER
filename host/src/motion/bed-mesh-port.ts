@@ -46,6 +46,11 @@ export class BedMeshMovePort implements MovePort {
  get plannedPosition():readonly number[]{return [...this.#physical];}
  get pending():number{return this.#queue.length;}
  get flushDue():boolean{return this.#flushDue;}
+ /** Replace future limits without flushing lookahead or mutating queued moves.
+  * This owner retains its extrusion junction callbacks. */
+ setMotionLimits(limits:MotionLimits):void {
+  this.#idle();const next={...limits,extraAxes:this.#limits.extraAxes};new Move(next,this.#physical,this.#physical,1);this.#limits=next;
+ }
  /** Attach after all mesh splits, without flushing or changing junction speed.
   * false means the runtime must handle an already-submitted/idle boundary. */
  markPendingBoundary(id:number):boolean{this.#idle();const last=this.#queue.last;if(!last){validateEndMarkers([id]);return false;}markMoveEnd(last,id);return true;}
