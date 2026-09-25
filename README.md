@@ -21,6 +21,11 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
+离线输入整形校准已改为 `node scripts/calibrate_shaper.ts`，旧 Python
+脚本已退役。安装 `host` 依赖后可输出完整精度 CSV、拟合报告和
+HTML/PDF/图像，无需 NumPy 或 Matplotlib；不自动修改打印机配置。
+使用方法见 [共振测量](docs/Measuring_Resonances.md)。
+
 Node 主机已接通线性打印机自动配置、原生步进与归零组件、持久化打印
 控制器和鉴权 Moonraker 服务。设备层采用每 MCU 共享时间轴；版本化
 机器配置已接入，机型适配及实机验收仍待完成。运动流、普通空闲、

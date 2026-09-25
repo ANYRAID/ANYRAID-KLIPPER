@@ -8,6 +8,13 @@ All dates in this document are approximate.
 
 ## Changes
 
+20260926: 离线 `scripts/calibrate_shaper.py` 已退役，改用
+`node scripts/calibrate_shaper.ts`，需要 Node.js 26.9+（26.x）和 host
+依赖。输出支持 CSV、JSON 报告、HTML、PDF 及图像；不指定输出时仅
+打印建议，不打开 Matplotlib 窗口。参数与示例见
+[Measuring Resonances](Measuring_Resonances.md)。打印机内的 Python
+测量入口尚未退役，此变更不代表整机迁移完成。
+
 20260922: ANYRAID 的 `lib/katapult/flashtool.py` 已由 Node.js 26
 `scripts/katapult.ts` 替代。手动调用方式见 [Bootloaders](Bootloaders.md)。
 默认查询不再隐式清空所有 Katapult 节点 ID；总线维护时可显式使用

@@ -12,6 +12,7 @@ export function calibrationCsv(datasets:NamedSpectrum[],fit:ShaperFit,maxFrequen
 }
 export function calibrationPlot(datasets:NamedSpectrum[],fit:ShaperFit,maxFrequency:number):StatsPanel{
  const best=fit.best,max=Math.min(maxFrequency,best.frequencies.at(-1)!),panel=accelerometerPlots([{kind:'psd',datasets}],{maxFrequency:max})[0];panel.plot.title=`Recommended shaper: ${best.name.toUpperCase()} @ ${best.frequency.toFixed(1)} Hz`;panel.plot.axes=['Normalized power spectral density','Shaper vibration reduction (ratio)'];
+ panel.fullLegend=true;
  const after=new Array<number>(best.frequencies.length).fill(0);
  for(const d of datasets){const end=d.frequencies.findIndex(f=>f>max),n=end<0?d.frequencies.length:end;if(!n)throw new RangeError('No plot frequencies');for(let i=0;i<after.length;i++)after[i]=Math.max(after[i],interp(best.frequencies[i],d.frequencies.subarray(0,n),d.psd.subarray(0,n)));}
  for(let i=0;i<after.length;i++)after[i]*=best.values[i];

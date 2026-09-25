@@ -470,9 +470,17 @@ if you desire to average the results. Averaging results can be useful, for
 example, if resonance tests were done at multiple test points. Delete the extra
 CSV files if you do not desire to average them.
 ```
-~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
-~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
+node ~/klipper/scripts/calibrate_shaper.ts /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
+node ~/klipper/scripts/calibrate_shaper.ts /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
 ```
+The offline calibration tool requires Node.js 26.9 or newer in the 26.x
+series and the dependencies installed with `npm --prefix ~/klipper/host install`.
+It does not require Python, NumPy or Matplotlib. The earlier Python installation
+instructions still apply to the legacy printer-side resonance measurement code.
+Use `-o result.html` for a standalone interactive chart or `-o result.pdf` for
+a vector document. Without output arguments the tool prints its recommendation;
+it does not open a GUI or modify printer configuration.
+
 This script will generate the charts `/tmp/shaper_calibrate_x.png` and
 `/tmp/shaper_calibrate_y.png` with frequency responses. You will also get the
 suggested frequencies for each input shaper, as well as which input shaper is
@@ -572,7 +580,7 @@ will use the correct accelerometer for each axis.
 ### Max smoothing
 
 Keep in mind that the input shaper can create some smoothing in parts.
-Automatic tuning of the input shaper performed by `calibrate_shaper.py`
+Automatic tuning of the input shaper performed by `calibrate_shaper.ts`
 script or `SHAPER_CALIBRATE` command tries not to exacerbate the smoothing,
 but at the same time they try to minimize the resulting vibrations.
 Sometimes they can make a sub-optimal choice of the shaper frequency, or
@@ -608,7 +616,7 @@ In the example above the suggested shaper parameters are not bad, but what if
 you want to get less smoothing on the X axis? You can try to limit the maximum
 shaper smoothing using the following command:
 ```
-~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png --max_smoothing=0.2
+node ~/klipper/scripts/calibrate_shaper.ts /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png --max_smoothing=0.2
 ```
 which limits the smoothing to 0.2 score. Now you can get the following result:
 
@@ -683,10 +691,10 @@ limits will not be applied automatically.
 Keep in mind that the maximum acceleration without too much smoothing depends
 on the `square_corner_velocity`. The general recommendation is not to change
 it from its default value 5.0, and this is the value used by default by the
-`calibrate_shaper.py` script. If you did change it though, you should inform
+`calibrate_shaper.ts` script. If you did change it though, you should inform
 the script about it by passing `--square_corner_velocity=...` parameter, e.g.
 ```
-~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png --square_corner_velocity=10.0
+node ~/klipper/scripts/calibrate_shaper.ts /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png --square_corner_velocity=10.0
 ```
 so that it can calculate the maximum acceleration recommendations correctly.
 Note that the `SHAPER_CALIBRATE` command already takes the configured
@@ -740,7 +748,7 @@ SHAPER_CALIBRATE AXIS=Z
 ```
 and proceed from there accordingly how you would for other axes.
 For example, after `TEST_RESONANCES` command you can run
-`calibrate_shaper.py` script and get shaper recommendations and
+`calibrate_shaper.ts` script and get shaper recommendations and
 the chart of resonance response:
 
 ![Resonances](img/calibrate-z.png)
@@ -930,7 +938,7 @@ write the output file. Refer to [G-Codes](G-Codes.md#adxl345) for more
 details.
 
 The data can be processed later by the following scripts:
-`scripts/graph_accelerometer.py` and `scripts/calibrate_shaper.py`. Both
+`scripts/graph_accelerometer.py` and `scripts/calibrate_shaper.ts`. Both
 of them accept one or several raw csv files as the input depending on the
 mode. The graph_accelerometer.py script supports several modes of operation:
 

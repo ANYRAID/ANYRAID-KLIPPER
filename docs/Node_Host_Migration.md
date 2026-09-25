@@ -21879,3 +21879,56 @@ Node v26.9.0，3 次预热、11 次采样，每次 1000 项：
 
 暂停外部调参已接通，通用脚本入口、其余 Moonraker 产品能力、剩余
 Python 退役、宏生命周期的整体替代和实机打印验收仍需继续推进。
+
+### 离线整形校准 Python 入口退役
+
+删除 `scripts/calibrate_shaper.py`，用户入口统一为
+`node scripts/calibrate_shaper.ts`。共振测量及补偿文档已更新；旧版本
+变更历史保留原名称。打印机内的 `shaper_calibrate.py` 和测量运行时
+仍供旧生产入口使用，不在本次删除范围内。Git 跟踪的 Python 文件
+由 201 减少到 200；全项目无 Python 的目标仍未完成。
+
+退役前直接执行未修改的原脚本及 NumPy，固定 8192/65536 点原始采样、
+轴向 PSD、已归一化 PSD、多数据集五类结果，以及五类整形器的完整
+拟合指标和响应数组。参考保存在
+`host/contracts/calibration-retirement.json`；记录源提交、三个原文件
+SHA-256、Python/NumPy 版本、CPU 和原始耗时。输入由
+`calibration-fixtures.ts` 生成并逐项核验 UTF-8 SHA-256。数据来源是
+原 Python 执行结果，不是 TypeScript 自身输出。退役后的两个基准
+不再启动 Python，并明确标注历史性能参考。
+
+参考保留原 CSV 供审计；单数据集旧 CSV 用输入行索引访问 0.2 Hz
+整形响应网格，会在输入为 0.9 Hz 等网格时错配频率。Node 继续沿用
+已实现的按频率插值修正。回归对照完整原拟合数组验证响应，并按旧
+科学计数法舍入误差验证 PSD，不恢复旧 CSV 索引错误。
+
+修复 CLI 帮助虽声明 HTML/PDF、实际扩展名检查却拒绝二者的问题。
+实际 PDF 渲染发现三列图例截断平滑度及最大加速度；校准图改为完整
+单列图例，长标签换行，其余图表维持原布局。最终 PDF 已渲染复查，
+各曲线指标可读；测试验证 PDF 文本包含完整 `sm` 和 `accel` 信息。
+HTML 是独立交互文档，不依赖在线脚本。未指定输出时仅打印建议，
+不打开 GUI、不修改打印机配置。
+
+Node v26.9.0、AMD Ryzen 5 3500X，5 次预热、11 次采样。删除前完整
+CLI 的 Node 中位/P95 为 183.890162/187.086351 ms，Python 为
+320.723164/351.523146 ms；删除后最终 Node 为
+184.377787/188.461270 ms，推荐均为 `ei @ 50.0 Hz`。
+基准包含进程/Worker 启动、解析、拟合和 CSV，排除图像编码与打印时序。
+门限为历史 Python 中位 1.25 倍加 20 ms、P95 1.5 倍加 20 ms。
+
+五类离线输入的最终 Node 中位分别为 5.989920、45.190290、
+0.612772、0.485630、0.384108 ms；历史 Python 分别为
+7.880682、58.525708、1.027626、1.243551、1.020886 ms。
+最大数值差 `1.4210854715202004e-13`。首次旧基准中小型轴向 PSD
+曾测得约 3.11 ms，当前约 0.61 ms；解析算法本轮没有改变，不能将
+两次运行差异称为算法优化。离线解析门限为历史中位 1.25 倍加 5 ms、
+P95 1.5 倍加 5 ms，小表容差不适用于打印热路径。
+
+最终 31 项相关回归、类型及空白检查通过。无 Python 测试将 CLI 的
+PATH 指向空目录并设置不存在的 PYTHON，覆盖拟合报告、CSV 和
+HTML/PDF；拟合仍在 Worker 内执行并通过取消/超时清理测试。
+日志位于 `/tmp/calibration-retirement-final-tests.log`、
+`/tmp/calibrate-cli-retirement-before.json`、
+`/tmp/calibration-retirement-after-parse.json` 和
+`/tmp/calibration-retirement-final-cli.json`。本次没有修改原生运动
+算法或切换生产打印入口；这些离线结果不代替目标板和实机验收。

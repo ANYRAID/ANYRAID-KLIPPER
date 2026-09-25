@@ -497,7 +497,7 @@ users can modify the default parameters of the MZV input shaper and try other
 variations that may work better for their specific printers (with these
 non-default variations specified as, e.g. `mzv(n=3,t=0.8)` or `mzv(n=5,t=1.1)`
 in the `[input_shaper]` section or as a parameter to `SET_INPUT_SHAPER` command,
-as well as in a parameter to `~/klipper/scripts/calibrate_shaper.py` script,
+as well as in a parameter to `node ~/klipper/scripts/calibrate_shaper.ts` script,
 e.g. as `--shapers='2hump_ei,3hump_ei,mzv(n=6,t=1.0)'`. These custom parameters
 of the shapers are supported by `~/klipper/scripts/graph_shaper.py` scripts via
 e.g. `--shaper='mzv(n=3,t=0.6666666666)'` parameter.
