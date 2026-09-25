@@ -7,8 +7,19 @@ import {initialLinearFixture} from './helpers/initial-linear.ts';
 import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import type {ConfiguredPrintOptions} from '../src/runtime/initial-motion.ts';
+import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
+import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 const request={version:1 as const,requestId:'configured-job',fileId:'file',nozzle:200,bed:60};
 const assemblyOptions=():ConfiguredPrintOptions=>({output(){},motorCompletion:'hold',startupHoming:{mode:'require_homed',axes:[0,1,2]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},open:async()=>{throw new Error('Unexpected file open');}});
+test('configured arc resolution reaches the native print owner without consuming a failed handoff',async()=>{
+ const f=await initialLinearFixture(false,true);try{
+  const reader=(resolution:string)=>new ConfigurationReader(new ConfigurationSource('/arc.cfg',{...f.reader.source.original,gcode_arcs:{resolution}},[]),null);
+  assert.throws(()=>f.initial.createLinearPort(reader('0'),f.settings));assert.deepEqual(f.stops,[0,0]);
+  const linear=f.initial.createLinearPort(reader('.25'),f.settings),owner=await linear.createPrint(assemblyOptions());linear.kinematics.markHomed([0,1,2]);owner.gcode.enable();
+  const coordinates=owner.gcode.coordinates,execute=coordinates.execute.bind(coordinates);let segments=0;coordinates.execute=(command,params)=>{if(command==='G1')segments++;execute(command,params);};
+  await owner.gcode.dispatch.execute('G2 X2 I1 F600');assert.equal(segments,12);assert.deepEqual(coordinates.state.position,[2,0,0,0]);assert.equal(linear.port.status.failed,false);await owner.close();
+ }finally{await f.hardware.close();await f.close();}
+});
 for(const interrupt of [false,true])test(`configured hardware owns ADC heaters and file lifetime (interrupt=${interrupt})`,async()=>{
  const f=await initialLinearFixture(true,true),dir=await mkdtemp(join(tmpdir(),'configured-print-')),path=join(dir,'job.gcode');let timer:ReturnType<typeof setInterval>|undefined,finished=0,stopped=0;
  try{

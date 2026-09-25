@@ -263,7 +263,8 @@
     "bench:native-subscriptions": "node bench/native-subscriptions.ts",
     "bench:native-file-progress": "node bench/native-file-progress.ts",
     "bench:print-layer-info": "node bench/print-layer-info.ts",
-    "bench:dwell": "node bench/dwell.ts"
+    "bench:dwell": "node bench/dwell.ts",
+    "bench:arcs": "node bench/arcs.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
