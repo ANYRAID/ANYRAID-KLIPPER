@@ -97,10 +97,26 @@ export class MotionCoordinator {
   finally{this.#busy=false;this.#endWork();}
  }
  #schedulePressure(changes:readonly TimedPressureBoundary[]):void{
+  const staged=this.#stagePressure(changes);
+  if(this.#pressurePrefix(staged)!==staged.length)throw new RangeError('Pressure history capacity requires generation before scheduling');
+  for(const c of staged)c.stepper.schedulePressureAdvance(c.time,c.advance);
+ }
+ /** Query before appending source geometry. Capacity is advisory until the
+  * exclusive owner applies the unchanged batch without yielding. */
+ pressureBoundaryPrefix(changes:readonly TimedPressureBoundary[]):number{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot inspect pressure admission');
+  for(const guard of this.#guards)guard.assertActive();return this.#pressurePrefix(this.#stagePressure(changes));
+ }
+ #stagePressure(changes:readonly TimedPressureBoundary[]){
   if(!Array.isArray(changes)||changes.length>65536)throw new RangeError('Invalid scheduled pressure batch');
   const previous=new Map<string,number>();
   const staged=changes.map(c=>{const b=this.#bindings.find(b=>b.id===c.stepper);if(!b||!b.stepper.pressureAdvanceEnabled||!Number.isFinite(c.advance)||c.advance<=0||!Number.isFinite(c.time)||c.time>=1e15||c.time<=Math.max(previous.get(c.stepper)??-Infinity,b.stepper.generatedTime+b.stepper.scanWindow.future))throw new RangeError('Invalid pressure endpoint or emitter');previous.set(c.stepper,c.time);return {stepper:b.stepper,time:c.time,advance:c.advance};});
-  for(const c of staged)c.stepper.schedulePressureAdvance(c.time,c.advance);
+  return staged;
+ }
+ #pressurePrefix(staged:readonly {stepper:StepCompressor;time:number;advance:number}[]):number{
+  const groups=new Map<StepCompressor,{indices:number[];changes:{time:number;advance:number}[]}>();
+  for(const [i,c] of staged.entries()){let group=groups.get(c.stepper);if(!group){group={indices:[],changes:[]};groups.set(c.stepper,group);}group.indices.push(i);group.changes.push(c);}
+  let prefix=staged.length;for(const [stepper,group] of groups){const accepted=stepper.pressureSchedulePrefix(group.changes);if(accepted<group.changes.length)prefix=Math.min(prefix,group.indices[accepted]!);}return prefix;
  }
  /** Fenced source-owner transaction. No generation or packet submission can
   * interleave. A partial native rewrite is terminal, never a recoverable retry. */

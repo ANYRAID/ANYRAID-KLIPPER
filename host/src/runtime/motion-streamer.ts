@@ -93,7 +93,7 @@ export class RebuiltMotionStreamer {
     if(owned.length+request.tail.length>100000||source.status.bufferedMoves+owned.length-offset+request.tail.length>100000)throw new RangeError('Pause path capacity exceeded');
     owned=owned.concat(request.tail);source.validateBatch(owned.slice(offset));
     const cut=Math.max(this.#g.coordinator.status.generatedTime+this.#future+.01,Math.max(...this.#clocks().map(c=>c.time))+this.#lead+this.#future+.01,this.#start+this.#future+.01);
-    while(offset<owned.length&&source.status.availableMoves){const count=Math.min(source.status.availableMoves,owned.length-offset);source.append(owned.slice(offset,offset+count));offset+=count;}
+    while(offset<owned.length&&source.status.availableMoves){const offered=owned.slice(offset,offset+source.status.availableMoves),count=source.pressureAppendCapacity(offered);if(!count)break;source.append(offered.slice(0,count));offset+=count;}
     if(cut>=source.status.sourceTime&&offset<owned.length)throw new MotionSourceCapacityError('Pause capacity cannot cover the braking anchor');
     let retained:Move[]=[];
     if(cut<source.status.sourceTime){const stop=await source.brakeAt(cut,signal,remaining());retained=stop.remainder.concat(owned.slice(offset));}
@@ -142,7 +142,9 @@ export class RebuiltMotionStreamer {
     if(offset===owned.length){flushEmpty=false;await flush();continue;}
     this.#leadCheck();const available=source.status.availableMoves;
     if(!available){await flush();if(!source.status.availableMoves)throw new MotionSourceCapacityError('Streaming capacity cannot cover native filter tail');continue;}
-    const count=Math.min(available,owned.length-offset);source.append(owned.slice(offset,offset+count));offset+=count;await flush();
+    const offered=owned.slice(offset,offset+Math.min(available,owned.length-offset)),count=source.pressureAppendCapacity(offered);
+    if(!count){const before=this.#g.coordinator.status.generatedTime,previous=owned;await flush();if(owned===previous&&this.#g.coordinator.status.generatedTime===before)throw new MotionSourceCapacityError('Pressure history cannot cover the solver lookahead window');continue;}
+    source.append(offered.slice(0,count));offset+=count;await flush();
    }
   }catch(error){this.#acceptPause=false;this.#pause?.reject(error);this.#pause?.resumption?.reject(error);try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Motion stream and stop failed');}throw error;}
   finally{this.#acceptPause=false;this.#busy=false;this.#pause=undefined;this.#wake=undefined;}

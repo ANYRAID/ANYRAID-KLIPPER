@@ -149,7 +149,21 @@ export class PlannedMotionSource {
   }catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  /** Append earlier lookahead flushes without losing the final drain endpoint. */
- append(moves:readonly Move[]):void{this.#check();this.#capacity(moves);try{this.#append(moves);}catch(error){void this.#stop(error);throw error;}}
+ append(moves:readonly Move[]):void{
+  this.#check();this.#capacity(moves);let capacity:number;
+  try{capacity=this.#pressureCapacity(moves);}catch(error){void this.#stop(error);throw error;}
+  if(capacity<moves.length)throw new MotionSourceCapacityError('Pressure history capacity requires generation before appending');
+  try{this.#append(moves);}catch(error){void this.#stop(error);throw error;}
+ }
+ /** Complete moves only: a multi-emitter endpoint cannot be partly admitted. */
+ pressureAppendCapacity(moves:readonly Move[]):number{this.#check();return this.#pressureCapacity(moves);}
+ #pressureCapacity(moves:readonly Move[]):number{
+  if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid pressure source batch');
+  if(!this.#idlePressure.length&&!moves.some(m=>m.pressureBoundaries?.length))return moves.length;
+  const changes=[...this.#idlePressure.map(c=>({...c,time:this.#time})),...pressureBoundarySchedule(moves,this.#time)];
+  const accepted=this.#drain.pressureBoundaryPrefix(changes);if(accepted<this.#idlePressure.length)return 0;
+  let count=this.#idlePressure.length;for(let i=0;i<moves.length;i++){count+=moves[i]!.pressureBoundaries?.length??0;if(count>accepted)return i;}return moves.length;
+ }
  /** Delay an unused source without changing its coordinates or MCU mapping.
   * Native generation covers the intervening stationary startup interval. */
  startAt(printTime:number):void{this.#check();if(this.#seeded||this.#count||this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid unused source start time');this.#time=printTime;}
@@ -203,7 +217,7 @@ export class PlannedMotionSource {
    if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid motion drain timeout');
    const deadline=performance.now()+timeoutMs,remaining=()=>{signal.throwIfAborted();const ms=Math.ceil(deadline-performance.now());if(ms<=0)throw new Error('Planned source drain timed out');return ms;};
    if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid planned drain batch');
-   if(moves.length<=this.#ends.length-this.#count)this.#append(moves);
+   if(moves.length<=this.#ends.length-this.#count&&this.#pressureCapacity(moves)===moves.length)this.#append(moves);
    else {
     // Snapshot before the first await. Later caller edits cannot change a suffix
     // after its prefix has already reached a native queue or device.
@@ -211,8 +225,8 @@ export class PlannedMotionSource {
     this.#validate(owned,false,100000);remaining();
     let offset=0;
     while(offset<owned.length){
-     const available=this.#ends.length-this.#count;
-     if(!available){await this.#drain.advanceSource(this.#time,signal,remaining(),0,this.#deliverRolling);this.#release();remaining();if(this.#count===this.#ends.length)throw new MotionSourceCapacityError('Source capacity cannot cover the solver lookahead window');continue;}
+     const available=Math.min(this.#ends.length-this.#count,this.#pressureCapacity(owned.slice(offset,offset+this.#ends.length-this.#count)));
+     if(!available){const before=this.#drain.generatedTime;await this.#drain.advanceSource(this.#time,signal,remaining(),0,this.#deliverRolling);this.#release();remaining();if(this.#drain.generatedTime===before)throw new MotionSourceCapacityError('Source capacity cannot cover the solver lookahead window');continue;}
      const count=Math.min(available,owned.length-offset);this.#append(owned.slice(offset,offset+count));offset+=count;remaining();
     }
    }

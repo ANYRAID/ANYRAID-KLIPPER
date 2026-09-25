@@ -6,6 +6,7 @@ import {fileURLToPath} from 'node:url';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
+import {Move,motionLimits} from '../src/motion/lookahead.ts';
 const settings={frequency:1e6,timeOffset:0,oid:3,maxError:25,queueStepTag:5,directionTag:6};
 const fixtures=Array.from({length:8},(_,kind)=>{
  const initialClock=kind===7?2**32:0,advance=[.02,0,.05,.2,.05,.02,.05,.05][kind],smooth=[.04,.04,.02,.2,0,.04,.2,.04][kind];let time=initialClock/1e6+1,x=0;
@@ -14,6 +15,17 @@ const fixtures=Array.from({length:8},(_,kind)=>{
  rows.push(time,0,.3,0,x,0,0,0,0,0,0,0,0);return {change:undefined as {advance:number;smooth:number}|undefined,initialClock,advance,smooth,rows,end:time+.15,prefix:initialClock/1e6+1.3,updates:advance&&smooth?[[initialClock/1e6+1.1,advance*1.25],[initialClock/1e6+1.6,advance*1.5]]:[]};
 });
 for(const [advance,smooth,nextAdvance,nextSmooth] of [[0,.04,.1,.04],[.05,.04,0,.04],[.05,.04,.1,.2],[.05,.2,.1,.02],[.05,.04,.1,0],[.05,0,.1,.04],[0,.04,.1,0],[.05,.04,.05,.2]]){const base=fixtures[0],x=base.rows.at(-9)!;fixtures.push({...base,advance,smooth,updates:[],prefix:2.15,end:3.15,change:{advance:nextAdvance,smooth:nextSmooth},rows:[...base.rows,2.5,.125,.25,.125,x,0,0,1,1,0,0,8,64,3,0,.3,0,x+3,0,0,0,0,0,0,0,0]});}
+// Compare corrected degenerate profiles to the original C queue containing
+// the tiny opposite phase. Keep separate inputs so this is not a self-oracle.
+const correctedRows=new Map<number,number[]>();
+for(const [a,b,peak] of [[43.34400000000189,63.344000000002175,63.34400000000218],[1.0000000000010694,21.00000000000135,21.00000000000135],[10.80000000000216,30.80000000000244,30.80000000000244]])for(const reverse of [false,true])for(const smooth of [0,.04,.2]){
+ const m=new Move(motionLimits(100,100,5,0),[53.4,0,0,2.34],[53.5,0,0,2.35],10),start=reverse?b:a,end=reverse?a:b;
+ m.setJunction(start,peak,end);const p=m.profile!,v0=Math.sqrt(start),vc=Math.sqrt(peak),v1=Math.sqrt(end),ad=(peak-start)*.005,dd=(peak-end)*.005;
+ const original=[ad/((v0+vc)*.5),Math.max(0,m.distance-ad-dd)/vc,dd/((v1+vc)*.5)],corrected=[p.accelT,p.cruiseT,p.decelT],time=2.420914943955805;
+ const oldEnd=((time+original[0])+original[1])+original[2],newEnd=((time+corrected[0])+corrected[1])+corrected[2];assert.equal(newEnd,oldEnd);
+ const rows=(phase:number[],startV:number,cruiseV:number)=>[0,0,time,0,0,0,0,0,0,0,0,0,0,time,...phase,0,0,0,1,1,0,startV,cruiseV,100,oldEnd,0,.3,0,m.distance,0,0,0,0,0,0,0,0];
+ correctedRows.set(fixtures.length,rows(corrected,p.startV,p.cruiseV));fixtures.push({...fixtures[0],smooth,rows:rows(original,v0,vc),end:oldEnd+.15,updates:smooth?fixtures[0].updates:[]});
+}
 const root=fileURLToPath(new URL('../../',import.meta.url)),dir=mkdtempSync(join(tmpdir(),'anyraid-pressure-advance-'));
 const python=String.raw`
 import cffi,json,sys,time
@@ -76,7 +88,7 @@ try{
  const lib=join(dir,'stepcompress.so'),input=join(dir,'fixtures.json');writeFileSync(input,JSON.stringify(fixtures));
  const cc=spawnSync(process.env.CC??'cc',['-O2','-shared','-fPIC',...['stepcompress.c','msgblock.c','pyhelper.c','itersolve.c','kin_extruder.c','trapq.c'].map(p=>join(root,'klippy/chelper',p)),'-lm','-o',lib],{encoding:'utf8',timeout:30000});assert.equal(cc.status,0,cc.stderr);
  const p=spawnSync(process.env.PYTHON??'python3',['-c',python,lib,input,join(root,'klippy')],{encoding:'utf8',timeout:60000,maxBuffer:32*1024*1024});assert.equal(p.status,0,p.stderr||String(p.error));const oracle=JSON.parse(p.stdout);
- const arrays=fixtures.map(f=>new Float64Array(f.rows));
+ const arrays=fixtures.map((f,i)=>new Float64Array(correctedRows.get(i)??f.rows));
  const run=(i:number,cancel=false,revise=false)=>{using q=new TrapQueue();q.appendRaw(arrays[i]);using c=q.createStepper({...settings,initialClock:BigInt(fixtures[i].initialClock)},'extruder',.01);c.configurePressureAdvance(fixtures[i].advance,fixtures[i].smooth);for(const [t,a] of fixtures[i].updates)c.schedulePressureAdvance(t,a);if(cancel)c.schedulePressureAdvance(fixtures[i].initialClock/1e6+1.8,fixtures[i].advance*2);c.generate(fixtures[i].prefix);if(fixtures[i].change){const change=fixtures[i].change!;c.reconfigurePressureAdvance(change.advance,change.smooth);}if(revise){const [t,a]=fixtures[i].updates.at(-1)!;c.setPressureAdvanceAtTail(t,a*2);c.setPressureAdvanceAtTail(t,a);}if(cancel)c.cancelPressureAdvanceAfter(fixtures[i].initialClock/1e6+1.7);c.generate(fixtures[i].end);const r=c.flush();return {messages:r.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...r.history].map(String),position:String(r.position)};};
  fixtures.forEach((_,i)=>{const result=run(i);assert.equal(result.history.length,oracle.results[i].history.length,`Fixture ${i} history length`);assert.deepEqual(result,oracle.results[i]);});
  let cancellationFixtures=0;for(let i=0;i<fixtures.length;i++)if(fixtures[i].advance&&fixtures[i].smooth&&!fixtures[i].change){assert.deepEqual(run(i,true),oracle.results[i]);assert.deepEqual(run(i,false,true),oracle.results[i]);cancellationFixtures++;}
@@ -93,5 +105,5 @@ try{
  assert(pairTimes[5]<50);assert(pairTimes[10]<100);
  const tailTimes:number[]=[];for(let sample=0;sample<14;sample++){const t=performance.now();for(let i=0;i<pairs;i++){pairStepper.setPressureAdvanceAtTail(1.7,.2);pairStepper.setPressureAdvanceAtTail(1.7,fixtures[0].advance*1.5);}if(sample>=3)tailTimes.push((performance.now()-t)*1000/pairs);}tailTimes.sort((a,b)=>a-b);assert(tailTimes[5]<50);assert(tailTimes[10]<100);
  pairStepper.generate(fixtures[0].end);const pairResult=pairStepper.flush();assert.deepEqual({messages:pairResult.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...pairResult.history].map(String),position:String(pairResult.position)},oracle.results[0]);
- console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,fixtures:fixtures.length,packetAndHistoryExact:true,cancellationFixtures,moves:1000,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5],cancelledPathMedianMs:cancelledTimes[5],cancelledPathP95Ms:cancelledTimes[10],scheduleCancelPairMedianUs:pairTimes[5],scheduleCancelPairP95Us:pairTimes[10],tailRevisionFixtures:cancellationFixtures,tailRevisionPairMedianUs:tailTimes[5],tailRevisionPairP95Us:tailTimes[10],windowFixtures:fixtures.filter(f=>f.change).length,windowNodeMedianMs:windowTimes[5],windowNodeP95Ms:windowTimes[10],windowPythonMedianMs:oracle.windowTimes[5],windowPythonP95Ms:oracle.windowTimes[10],pairsPerSample:pairs},null,2));
+ console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,fixtures:fixtures.length,degenerateProfileFixtures:correctedRows.size,packetAndHistoryExact:true,cancellationFixtures,moves:1000,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5],cancelledPathMedianMs:cancelledTimes[5],cancelledPathP95Ms:cancelledTimes[10],scheduleCancelPairMedianUs:pairTimes[5],scheduleCancelPairP95Us:pairTimes[10],tailRevisionFixtures:cancellationFixtures,tailRevisionPairMedianUs:tailTimes[5],tailRevisionPairP95Us:tailTimes[10],windowFixtures:fixtures.filter(f=>f.change).length,windowNodeMedianMs:windowTimes[5],windowNodeP95Ms:windowTimes[10],windowPythonMedianMs:oracle.windowTimes[5],windowPythonP95Ms:oracle.windowTimes[10],pairsPerSample:pairs},null,2));
 }finally{rmSync(dir,{recursive:true,force:true});}

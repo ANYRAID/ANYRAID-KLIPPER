@@ -90,3 +90,33 @@ test('brake ownership excludes concurrent producers and cancellation cannot publ
   assert.equal(f.source.status.failed,true);assert.deepEqual(f.source.status.position,before.position);assert.equal(f.source.status.sourceTime,before.sourceTime);assert.equal(f.stops,1);assert.equal(f.commits,0);
  }finally{f.close();}
 });
+function manyPressureMoves(){
+ const q=new LookAheadQueue(),limits=motionLimits(100,100,5,0);
+ for(let i=0;i<200;i++)q.add(new Move(limits,[50+i,0,0,2+i*.1],[51+i,0,0,2+(i+1)*.1],10));
+ const result=q.flush();for(let i=0;i<result.length;i++)markPressureBoundary(result[i],{stepper:'e',advance:i%2?.05:.1});return result;
+}
+test('source pressure capacity refuses a whole synchronous batch before queue mutation and permits retry',async()=>{
+ const f=idleMotionFixture(true);try{
+  f.source.startAt(1);const m=manyPressureMoves(),before=f.equeue.extract(1000,0,100);
+  assert.equal(f.source.pressureAppendCapacity(m),127);assert.throws(()=>f.source.append(m),/capacity/);
+  assert.deepEqual(f.equeue.extract(1000,0,100),before);assert.equal(f.source.status.failed,false);assert.equal(f.source.status.sourceTime,1);assert.equal(f.source.status.bufferedMoves,0);
+  f.source.append(m.slice(0,127));await f.source.flushThrough(f.source.status.sourceTime,signal());await f.source.drain(m.slice(127),signal());assert.equal(f.stops,0);
+ }finally{f.close();}
+});
+test('source drain splits pressure history and preserves exact pulse clocks against small batches',async()=>{
+ async function trace(batch:boolean){const f=idleMotionFixture(true);try{f.source.startAt(1);const m=manyPressureMoves();if(batch)await f.source.drain(m,signal());else{for(let i=0;i<m.length;i+=20){f.source.append(m.slice(i,i+20));await f.source.flushThrough(f.source.status.sourceTime,signal());}await f.source.drain([],signal());}assert.equal(f.stops,0);for(const ticks of Object.values(f.ticks))ticks.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);return {ticks:f.ticks,positions:f.positions,filters:f.e.recoveryFilters()};}finally{f.close();}}
+ assert.deepEqual(await trace(true),await trace(false));
+});
+test('dense pressure paths resume from varied deterministic braking anchors without degenerate phases',async()=>{
+ for(let sample=0;sample<20;sample++){
+  const f=idleMotionFixture(true);try{
+   const q=new LookAheadQueue(),limits=motionLimits(100,100,5,0);
+   for(let i=0;i<200;i++)q.add(new Move(limits,[50+i*.1,0,0,2+i*.01],[50+(i+1)*.1,0,0,2+(i+1)*.01],10));
+   const m=q.flush();for(let i=0;i<m.length;i++)markPressureBoundary(m[i],{stepper:'e',advance:i%2?.05:.1});
+   f.source.startAt(1);f.source.append(m.slice(0,100));await f.source.flushThrough(1.1,signal());
+   const stopped=await f.source.brakeAt(1.131+sample*.0317,signal());await f.source.drain([],signal());f.source.resumeAt(4);
+   const resumed=new LookAheadQueue();resumed.addBatch(stopped.remainder.concat(m.slice(100)));await f.source.drain(resumed.flush(),signal());
+   assert.deepEqual(f.positions,{x:2100n,e:220n});assert.equal(f.stops,0);assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});
+  }finally{f.close();}
+ }
+});

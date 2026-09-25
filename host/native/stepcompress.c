@@ -264,6 +264,7 @@ static napi_value init(napi_env env,napi_value exports) {
       {"attachSolver",NULL,attach_solver,NULL,NULL,NULL,napi_default,NULL},{"generate",NULL,generate_steps,NULL,NULL,NULL,napi_default,NULL},
       {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"schedulePressureAdvance",NULL,schedule_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
+      {"pressureSchedulePrefix",NULL,pressure_schedule_prefix,NULL,NULL,NULL,napi_default,NULL},
       {"setPressureAdvanceAtTail",NULL,set_pressure_advance_at_tail,NULL,NULL,NULL,napi_default,NULL},
       {"reconfigurePressureAdvance",NULL,reconfigure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
       {"cancelPressureAdvanceAfter",NULL,cancel_pressure_advance_after,NULL,NULL,NULL,napi_default,NULL},
@@ -272,6 +273,6 @@ static napi_value init(napi_env env,napi_value exports) {
       {"coordinatePosition",NULL,coordinate_position,NULL,NULL,NULL,napi_default,NULL},
       {"initializePosition",NULL,initialize_position,NULL,NULL,NULL,napi_default,NULL},{"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,17,methods));return exports;
+    CHECK(napi_define_properties(env,exports,18,methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

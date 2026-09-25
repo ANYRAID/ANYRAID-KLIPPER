@@ -190,6 +190,27 @@ static size_t pressure_history_drop(struct handle *h) {
     return drop;
 }
 
+// Read-only admission estimate for a sequential fixed-window batch. Preserve
+// the same retained source-phase base and no-op coalescing as the setter.
+static napi_value pressure_schedule_prefix(napi_env env,napi_callback_info info) {
+    size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and pressure schedule");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||h->sk->gen_steps_pre_active<=0||!h->pa_count)REJECT("Pressure admission requires an enabled fixed smoothing window");
+    napi_typedarray_type type;size_t length,offset;void *data;napi_value buffer;
+    CHECK(napi_get_typedarray_info(env,args[1],&type,&length,&data,&buffer,&offset));
+    if(type!=napi_float64_array||length%2||length>131072||(!data&&length))REJECT("Invalid pressure admission batch");
+    double *values=data,last=h->pa_last_time,value=h->pa_values[h->pa_count-1];
+    size_t count=h->pa_count-pressure_history_drop(h),accepted=0;
+    for(size_t i=0;i<length;i+=2){
+        double time=values[i],advance=values[i+1];
+        if(!isfinite(time)||time>=1e15||time<=last||time<=h->link.generated+h->sk->gen_steps_pre_active||!isfinite(advance)||advance<=0)REJECT("Invalid pressure admission endpoint");
+        if(advance!=value)count++;
+        if(count<=128)accepted=i/2+1;
+        last=time;value=advance;
+    }
+    napi_value result;CHECK(napi_create_uint32(env,(uint32_t)accepted,&result));return result;
+}
+
 // Coalesce the newest ungenerated source endpoint only. Earlier updates may
 // already own later source phases and must not be overwritten through this API.
 static napi_value set_pressure_advance_at_tail(napi_env env,napi_callback_info info) {

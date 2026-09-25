@@ -141,3 +141,28 @@ test('small generation increments after window growth preserve monotonic queue c
  await c.advance(1.5);const prior=cleanup.at(-1)!;c.reconfigurePressureWindows(1.5,[{stepper:'e',advance:.1,smoothTime:.2}]);
  await c.advance(1.51);assert.equal(cleanup.at(-1),prior);await c.advance(1.7);assert(cleanup.at(-1)!>prior);await c.advance(3.1);assert.equal(s.flush().position,800n);assert.equal(stops,0);for(let i=1;i<cleanup.length;i++)assert(cleanup[i]!>=cleanup[i-1]!);
 });
+test('pressure admission is non-mutating, coalesces no-ops and validates overflow suffixes',()=>{
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);
+ const changes=Array.from({length:140},(_,i)=>({time:1+i*.001,advance:i%2?.05:.1}));
+ assert.equal(s.pressureSchedulePrefix(changes),127);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});
+ assert.throws(()=>s.pressureSchedulePrefix([...changes,{time:NaN,advance:.2}]));
+ for(const c of changes.slice(0,127))s.schedulePressureAdvance(c.time,c.advance);
+ assert.equal(s.pressureSchedulePrefix([{time:1.8,advance:.1},{time:1.9,advance:.2}]),1);
+ assert.equal(s.pressureSchedulePrefix([{time:1.8,advance:.2}]),0);
+ s.schedulePressureAdvance(1.7,.1);assert.throws(()=>s.schedulePressureAdvance(1.8,.2),/Too many pending/);
+});
+test('pressure admission frees retired phase history without consuming the queried endpoint',()=>{
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);
+ for(let i=0;i<127;i++)s.schedulePressureAdvance(1+i*.001,i%2?.05:.1);
+ assert.equal(s.pressureSchedulePrefix([{time:2.5,advance:.2}]),0);
+ s.generate(2.1);assert.equal(s.pressureSchedulePrefix([{time:2.5,advance:.2}]),1);s.schedulePressureAdvance(2.3,.2);
+});
+test('coordinator preflights every pressure emitter before applying any endpoint',()=>{
+ using a=new TrapQueue();using b=new TrapQueue();using x=a.createStepper(settings,'extruder',.01);using y=b.createStepper({...settings,oid:4},'extruder',.01);x.configurePressureAdvance(.05,.04);y.configurePressureAdvance(.05,.04);
+ for(let i=0;i<127;i++)y.schedulePressureAdvance(1+i*.001,i%2?.05:.1);
+ const c=new MotionCoordinator([{id:'a',queue:a,stepper:x},{id:'b',queue:b,stepper:y}],{async commit(){},async stop(){}});
+ const changes=[{stepper:'a',time:2,advance:.2},{stepper:'b',time:2,advance:.2}];
+ assert.equal(c.pressureBoundaryPrefix(changes),1);assert.equal(c.status.failed,false);
+ let calls=0;const set=x.schedulePressureAdvance.bind(x);x.schedulePressureAdvance=(t,v)=>{calls++;set(t,v);};
+ assert.throws(()=>c.schedulePressureBoundaries(changes),/capacity/);assert.equal(calls,0);assert.deepEqual(x.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});
+});

@@ -104,7 +104,17 @@ export class Move {
     const accelD=(cruiseV2-startV2)*halfInverse,decelD=(cruiseV2-endV2)*halfInverse;
     const cruiseD=this.distance-accelD-decelD;
     if(cruiseD< -16*Number.EPSILON*Math.max(1,this.distance)) throw new RangeError('Trapezoid exceeds move length');
+    // The peak's midpoint arithmetic can round one ULP above a reachable
+    // endpoint, inventing a tiny opposite phase or cruise. Compare represented
+    // velocities: adjacent squared values can have the very same square root.
+    // No tolerance or absolute-time clamp is involved, and endpoint speeds stay.
     const startV=Math.sqrt(startV2),cruiseV=Math.sqrt(cruiseV2),endV=Math.sqrt(endV2);
+    const triangular=cruiseV2===(startV2+(endV2+this.deltaV2))*.5;
+    if(startV2<endV2&&(Math.sqrt(startV2+this.deltaV2)===endV||triangular&&cruiseV2===endV2)||endV2<startV2&&(Math.sqrt(endV2+this.deltaV2)===startV||triangular&&cruiseV2===startV2)){
+      const duration=this.distance/((startV+endV)*.5);
+      if(!Number.isFinite(duration))throw new RangeError('Nonfinite move duration');
+      this.profile={startV,cruiseV:Math.max(startV,endV),endV,accelT:startV2<endV2?duration:0,cruiseT:0,decelT:startV2>endV2?duration:0};return;
+    }
     const accelT=accelD/((startV+cruiseV)*.5),cruiseT=Math.max(0,cruiseD)/cruiseV,decelT=decelD/((endV+cruiseV)*.5);
     if(![accelT,cruiseT,decelT].every(Number.isFinite)) throw new RangeError('Nonfinite move duration');
     this.profile={startV,cruiseV,endV,accelT,cruiseT,decelT};

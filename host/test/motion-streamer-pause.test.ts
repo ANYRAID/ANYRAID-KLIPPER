@@ -55,3 +55,16 @@ test('failed append rejects new pause requests while asynchronous stop cleanup i
  }finally{release.resolve();await rejected;await t.close();}
  assert.equal(t.stream.status.busy,false);assert.equal(t.f.stops,1);
 });
+test('pressure history backpressure preserves a dense owned path across pause and resume',async()=>{
+ const t=await fixture(true);try{
+  const q=new LookAheadQueue(),limits=motionLimits(100,100,5,0);
+  for(let i=0;i<200;i++)q.add(new Move(limits,[50+i*.1,0,0,2+i*.01],[50+(i+1)*.1,0,0,2+(i+1)*.01],10));
+  const moves=q.flush();for(let i=0;i<moves.length;i++)moves[i].pressureBoundaries=[{stepper:t.g.motion.bindings[1].id,advance:i%2?.05:.1}];
+  const running=t.stream.append(moves,signal());await started(t);const stopped=await t.stream.requestPause();assert(stopped.position[0]>50&&stopped.position[0]<70);
+  // The stream owns both the geometry and parameter suffix across the await.
+  moves.at(-1)!.endPos[0]=999;moves.at(-1)!.pressureBoundaries=[{stepper:t.g.motion.bindings[1].id,advance:.4}];
+  t.stream.resume(()=>{});await running;await t.g.source.drain([],signal());
+  assert.equal(t.g.source.status.position[0],70);assert.equal(t.g.motion.bindings[0].history.status.lastPlannedPosition,2100n);assert.equal(t.g.motion.bindings[1].history.status.lastPlannedPosition,220n);
+  assert.deepEqual(t.g.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});

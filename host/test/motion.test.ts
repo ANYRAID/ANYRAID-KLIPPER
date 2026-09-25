@@ -74,3 +74,19 @@ test('distance preserves compensated-sum rounding used by the Python 3.12 oracle
   const move=new Move(limits,[0,0,0,0],[1.01,.001,.0003,0],100);
   assert.equal(move.distance,1.0100005396038163);
 });
+test('exactly reachable endpoints do not acquire an opposite sub-resolution phase from midpoint rounding',()=>{
+ for(const reverse of [false,true]){
+  const m=new Move(motionLimits(100,100,5,0),[53.4,0,0,2.34],[53.5,0,0,2.35],10),a=43.34400000000189,b=63.344000000002175,peak=63.34400000000218;
+  assert.equal(a+m.deltaV2,b);m.setJunction(reverse?b:a,peak,reverse?a:b);check(m);
+  assert.equal(m.profile!.cruiseT,0);assert.equal(reverse?m.profile!.accelT:m.profile!.decelT,0);
+  assert.equal(m.profile!.startV,Math.sqrt(reverse?b:a));assert.equal(m.profile!.endV,Math.sqrt(reverse?a:b));
+  assert.equal(m.profile!.cruiseV,Math.sqrt(b));assert((reverse?m.profile!.decelT:m.profile!.accelT)>0);
+ }
+});
+test('reachable velocity and endpoint-limited triangles do not acquire a residual cruise',()=>{
+ for(const [a,b] of [[1.0000000000010694,21.00000000000135],[10.80000000000216,30.80000000000244]])for(const reverse of [false,true]){
+  const m=new Move(motionLimits(100,100,5,0),[53.4,0,0,2.34],[53.5,0,0,2.35],10);m.setJunction(reverse?b:a,b,reverse?a:b);check(m);
+  assert.equal(m.profile!.cruiseT,0);assert.equal(reverse?m.profile!.accelT:m.profile!.decelT,0);assert.equal(m.profile!.startV,Math.sqrt(reverse?b:a));assert.equal(m.profile!.endV,Math.sqrt(reverse?a:b));
+ }
+ const m=new Move(motionLimits(100,100,5,0),[0,0,0,0],[.1,0,0,.01],10);m.setJunction(0,20-4e-9,20-4e-9);assert(m.profile!.cruiseT>0,'A real short cruise is preserved');check(m);
+});
