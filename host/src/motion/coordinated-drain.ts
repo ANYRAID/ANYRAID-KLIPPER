@@ -28,6 +28,7 @@ export class CoordinatedMotionDrain {
  get committedTime():number{return this.#coordinator.status.committedTime;}
  get finalizedSourceTime():number{return this.#coordinator.finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
+ setPressureAdvanceAtTail(change:TimedPressureBoundary):void{if(this.#busy)throw new Error('Motion drain already active');this.#group.assertActive();this.#coordinator.setPressureAdvanceAtTail(change);}
  schedulePressureBoundaries(changes:readonly TimedPressureBoundary[]):void{if(this.#busy)throw new Error('Motion drain already active');this.#group.assertActive();this.#coordinator.schedulePressureBoundaries(changes);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
  async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[],signal:AbortSignal,timeoutMs=30000,beforeReplace?:(signal:AbortSignal)=>Promise<void>):Promise<number>{

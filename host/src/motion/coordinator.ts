@@ -63,6 +63,14 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
+ /** The source owner may revise its newest endpoint, never an older event. */
+ setPressureAdvanceAtTail(change:TimedPressureBoundary):void{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot update pressure tail');
+  this.#beginWork();this.#busy=true;
+  try{for(const guard of this.#guards)guard.assertActive();const b=this.#bindings.find(b=>b.id===change.stepper);if(!b||!b.stepper.pressureAdvanceEnabled)throw new RangeError('Invalid pressure tail emitter');b.stepper.setPressureAdvanceAtTail(change.time,change.advance);}
+  catch(error){void this.shutdown(error).catch(()=>{});throw error;}
+  finally{this.#busy=false;this.#endWork();}
+ }
  /** Synchronous source transaction; a partial native update is terminal. */
  schedulePressureBoundaries(changes:readonly TimedPressureBoundary[]):void{
   if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot schedule pressure');

@@ -10,7 +10,7 @@ export interface CompressedSteps {
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'corexz+'|'corexz-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
 const solverModes={x:0,y:1,z:2,'corexy+':3,'corexy-':4,extruder:5,'corexz+':7,'corexz-':8} as const;
-interface Native {cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {setPressureAdvanceAtTail(handle:object,time:number,advance:number):Float64Array;cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 export interface MotionFilterSettings {shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
@@ -49,6 +49,11 @@ export class StepCompressor {
   cancelPressureAdvanceAfter(printTime:number):void{
     const [advance,activeTime]=native.cancelPressureAdvanceAfter(this.#handle,printTime),prior=this.#filters.pressureAdvance!;
     this.#filters.pressureAdvance={advance,smoothTime:prior.smoothTime};this.#pressureSettledAt=activeTime?activeTime+prior.smoothTime*.5:undefined;
+  }
+  /** Replace or append the newest ungenerated fixed-window endpoint. */
+  setPressureAdvanceAtTail(printTime:number,advance:number):void{
+    const [accepted,activeTime]=native.setPressureAdvanceAtTail(this.#handle,printTime,advance),prior=this.#filters.pressureAdvance!;
+    this.#filters.pressureAdvance={advance:accepted,smoothTime:prior.smoothTime};this.#pressureSettledAt=activeTime?activeTime+prior.smoothTime*.5:undefined;
   }
   /** Snapshot only settled parameters. A new constant-position generation
    * cannot inherit a pending time-domain transition without its old path. */

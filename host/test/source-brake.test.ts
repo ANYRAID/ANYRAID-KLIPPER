@@ -6,6 +6,13 @@ import {markPressureBoundary,pressureBoundarySchedule} from '../src/motion/press
 import {dwellMove} from '../src/motion/dwell.ts';
 import {planPathStop} from '../src/motion/path-stop.ts';
 const signal=()=>new AbortController().signal;
+test('already-planned pressure tail coalesces without commits and follows the resumed endpoint',async()=>{
+ async function trace(tail:boolean){const f=idleMotionFixture(true);try{const m=moves();if(!tail)markPressureBoundary(m[0],{stepper:'e',advance:.1});f.source.startAt(1);f.source.append(m);const sourceTime=f.source.status.sourceTime;if(tail){f.source.markTailPressureBoundary({stepper:'e',advance:.08});f.source.markTailPressureBoundary({stepper:'e',advance:.1});assert.equal(f.source.status.sourceTime,sourceTime);assert.equal(f.commits,0);}await f.source.flushThrough(1.4,signal());const stop=await f.source.brakeAt(1.6,signal());await f.source.drain([],signal());assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});f.source.resumeAt(3);const q=new LookAheadQueue();q.addBatch(stop.remainder);await f.source.drain(q.flush(),signal());return {ticks:f.ticks,positions:f.positions,filters:f.e.recoveryFilters(),stops:f.stops};}finally{f.close();}}
+ assert.deepEqual(await trace(true),await trace(false));
+});
+test('tail update failure stops the source and cannot publish or retry metadata',async()=>{
+ const f=idleMotionFixture(true);try{assert.throws(()=>f.source.markTailPressureBoundary({stepper:'e',advance:.1}),/buffered/);f.source.startAt(1);f.source.append(moves());const before=f.source.status,cause=new Error('tail update failed');f.e.setPressureAdvanceAtTail=()=>{throw cause;};assert.throws(()=>f.source.markTailPressureBoundary({stepper:'e',advance:.1}),e=>e===cause);await new Promise(resolve=>setImmediate(resolve));assert.equal(f.source.status.failed,true);assert.equal(f.source.status.sourceTime,before.sourceTime);assert.equal(f.commits,0);assert.equal(f.stops,1);assert.throws(()=>f.source.markTailPressureBoundary({stepper:'e',advance:.1}),/failed/);}finally{f.close();}
+});
 test('pressure endpoints follow braking and resumed geometry before native generation',async()=>{
  async function trace(marked:boolean){const f=idleMotionFixture(true);try{
   const q=new LookAheadQueue(),limits=motionLimits(100,100,5,0);q.add(new Move(limits,[50,0,0,2],[50.2,0,0,2.02],10));q.add(new Move(limits,[50.2,0,0,2.02],[60,0,0,3],10));const planned=q.flush();

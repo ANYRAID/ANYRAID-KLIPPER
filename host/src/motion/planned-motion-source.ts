@@ -70,6 +70,17 @@ export class PlannedMotionSource {
   if(this.#count||this.#braking||this.#seeded&&!this.#paused&&this.#idleFrom===undefined)throw new Error('Idle pressure requires an unused or drained source');
   this.#idlePressure=copyPressureBoundaries([...this.#idlePressure.filter(c=>c.stepper!==change.stepper),change])!;
  }
+ /** Update the last already-planned endpoint without flushing or changing
+  * junction speeds. Native history and owned geometry publish together. */
+ markTailPressureBoundary(change:PressureBoundary):void{
+  this.#check();validatePressureBoundaries([change]);
+  if(!this.#count||this.#paused||this.#braking)throw new Error('Pressure tail requires buffered active motion');
+  const move=this.#moves[(this.#head+this.#count-1)%this.#ends.length]!,next=copyPressureBoundaries([...move.pressureBoundaries?.filter(c=>c.stepper!==change.stepper)??[],change]);
+  this.#busy=true;
+  try{this.#drain.setPressureAdvanceAtTail({...change,time:this.#time});move.pressureBoundaries=next;}
+  catch(error){void this.#stop(error);throw error;}
+  finally{this.#busy=false;}
+ }
  /** Release only a completely quiescent output lane. The generation owner
   * must fence admission and authorize the receiving MCU/calibration itself. */
  detachBoundaryOutput():void{

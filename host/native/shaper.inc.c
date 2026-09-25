@@ -148,6 +148,42 @@ static napi_value configure_pressure_advance(napi_env env,napi_callback_info inf
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 
+static size_t pressure_history_drop(struct handle *h) {
+    double cutoff=h->link.generated-h->link.retention,oldest=0;
+    trapq_check_sentinels(h->queue->q);struct move *m;
+    list_for_each_entry(m,&h->queue->q->moves,node) {
+        if(m->print_time>cutoff)break;
+        if(m->move_t>0&&m->print_time+m->move_t>=cutoff){oldest=m->print_time;break;}
+    }
+    size_t drop=0;while(drop+1<h->pa_count&&h->pa_times[drop+1]<oldest)drop++;
+    return drop;
+}
+
+// Coalesce the newest ungenerated source endpoint only. Earlier updates may
+// already own later source phases and must not be overwritten through this API.
+static napi_value set_pressure_advance_at_tail(napi_env env,napi_callback_info info) {
+    size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, tail time and advance");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||h->sk->gen_steps_pre_active<=0||!h->pa_count)REJECT("Pressure tail update requires an enabled fixed smoothing window");
+    double time,advance;CHECK(napi_get_value_double(env,args[1],&time));CHECK(napi_get_value_double(env,args[2],&advance));
+    if(!isfinite(time)||time>=1e15||time<h->pa_last_time||time<=h->link.generated+h->sk->gen_steps_pre_active||!isfinite(advance)||advance<=0)REJECT("Invalid ungenerated pressure tail update");
+    size_t drop=pressure_history_drop(h),keep=h->pa_count;
+    while(keep&&h->pa_times[keep-1]>=time)keep--;
+    if(keep<=drop)REJECT("Pressure tail update loses retained history");
+    int changed=advance!=h->pa_values[keep-1];size_t count=keep-drop;
+    if(count+(size_t)changed>128)REJECT("Too many pending pressure updates; generate motion before scheduling more");
+    napi_value buffer,result;double *values;CHECK(napi_create_arraybuffer(env,2*sizeof(double),(void**)&values,&buffer));CHECK(napi_create_typedarray(env,napi_float64_array,2,buffer,0,&result));
+    values[0]=advance;values[1]=changed?time:h->pa_times[keep-1];
+    struct stepper_kinematics *replacement=extruder_stepper_alloc();
+    for(size_t i=drop;i<keep;i++)extruder_set_pressure_advance(replacement,h->pa_times[i],h->pa_values[i],2*h->link.retention);
+    if(changed)extruder_set_pressure_advance(replacement,time,advance,2*h->link.retention);
+    *replacement=*h->sk;free_solver(h->sk,5);h->sk=replacement;
+    if(drop){memmove(h->pa_times,h->pa_times+drop,count*sizeof(double));memmove(h->pa_values,h->pa_values+drop,count*sizeof(double));}
+    h->pa_count=count;if(changed){h->pa_times[count]=time;h->pa_values[h->pa_count++]=advance;}
+    h->pa_last_time=time;h->pressure_advance=0;for(size_t i=0;i<h->pa_count;i++)h->pressure_advance=fmax(h->pressure_advance,h->pa_values[i]);
+    return result;
+}
+
 static napi_value schedule_pressure_advance(napi_env env,napi_callback_info info) {
     size_t argc=3;napi_value args[3];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=3)REJECT("Expected handle, activation time and advance");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;

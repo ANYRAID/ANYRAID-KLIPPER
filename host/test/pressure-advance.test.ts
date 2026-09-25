@@ -86,3 +86,21 @@ test('pressure cancellation preserves coefficients of a retained long source pha
 test('pressure cancellation cannot be applied to unconfigured, disabled, wrong-mode or closed solvers',()=>{
  using q=new TrapQueue();using s=q.createStepper(settings,'extruder',.01);assert.throws(()=>s.cancelPressureAdvanceAfter(1));s.configurePressureAdvance(.1,0);assert.throws(()=>s.cancelPressureAdvanceAfter(1));using x=q.createStepper(settings,'x',.01);assert.throws(()=>x.cancelPressureAdvanceAfter(1));s.dispose();assert.throws(()=>s.cancelPressureAdvanceAfter(1),/closed/);
 });
+test('tail revisions preserve generated pulses and equal a single final scheduled coefficient',()=>{
+ function trace(revise:boolean){using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.5,revise?.2:.1);s.generate(1.4);const prefix=s.flush();if(revise){for(let i=0;i<300;i++)s.setPressureAdvanceAtTail(1.5,i%2?.3:.05);s.setPressureAdvanceAtTail(1.5,.1);}s.generate(2.1);return {prefix,tail:s.flush(),filters:s.recoveryFilters()};}
+ assert.deepEqual(trace(true),trace(false));
+});
+test('tail revision rejects old times and generated convolution without changing accepted filters',()=>{
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.8,.1);s.generate(1.4);const position=s.commandedPosition;
+ for(const [time,advance] of [[1.7,.2],[1.42,.2],[1.8,0],[1.8,NaN],[Infinity,.2]])assert.throws(()=>s.setPressureAdvanceAtTail(time,advance));assert.equal(s.commandedPosition,position);assert.throws(()=>s.recoveryFilters(),/settle/);s.setPressureAdvanceAtTail(1.8,.05);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});s.schedulePressureAdvance(1.9,.08);
+});
+test('tail replacement reuses full history capacity and coalesces no-op records',()=>{
+ using q=new TrapQueue();using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.01,.04);for(let i=1;i<128;i++)s.schedulePressureAdvance(i*.1,i%2?.02:.01);assert.throws(()=>s.setPressureAdvanceAtTail(12.8,.03),/Too many/);s.setPressureAdvanceAtTail(127*.1,.03);s.setPressureAdvanceAtTail(127*.1,.01);s.setPressureAdvanceAtTail(12.8,.04);assert.throws(()=>s.setPressureAdvanceAtTail(12.7,.1),/tail/);
+});
+test('tail revisions prune consumed short phases while preserving native generation continuity',()=>{
+ using q=new TrapQueue();const rows:number[]=[],ends:number[]=[];let time=1;for(let i=0;i<200;i++){rows.push(time,0,.1,0,i*.1,0,0,1,1,0,1,1,0);time+=.1;ends.push(time);}rows.push(time,0,.2,0,20,0,0,0,0,0,0,0,0);q.appendRaw(new Float64Array(rows));using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.01,.04);
+ for(const [i,t] of ends.entries()){s.setPressureAdvanceAtTail(t,i%2?.02:.01);s.generate(t-.04);s.flush();}s.generate(time+.1);s.flush();assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.02,smoothTime:.04}});
+});
+test('tail updates reject unconfigured, disabled, wrong-mode and closed emitters',()=>{
+ using q=new TrapQueue();using e=q.createStepper(settings,'extruder',.01);assert.throws(()=>e.setPressureAdvanceAtTail(1,.1),/enabled/);e.configurePressureAdvance(.1,0);assert.throws(()=>e.setPressureAdvanceAtTail(1,.2),/enabled/);using x=q.createStepper({...settings,oid:4},'x',.01);assert.throws(()=>x.setPressureAdvanceAtTail(1,.1),/enabled/);e.dispose();assert.throws(()=>e.setPressureAdvanceAtTail(1,.1),/closed/);
+});
