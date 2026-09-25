@@ -180,12 +180,13 @@ export class MotionCoordinator {
   * positions must give each bound queue's exact endpoint at lastMoveTime; no
   * later source motion may already be appended. Failure after padding is terminal.
   * Returned clocks still require transport ACK and MCU-time observation. */
- async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,maxWindowSeconds?:number,historyClock?:()=>number):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
+ async drain(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,maxWindowSeconds?:number,historyClock?:()=>number,reservedPressureHalfWindow=0):Promise<{readonly clocks:Readonly<Record<string,bigint>>;readonly generatedUntil:number;readonly sourceUntil:number}>{
   if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot drain');
   if(historyClock!==undefined&&maxWindowSeconds===undefined)throw new RangeError('History clock requires bounded generation');
+  if(!Number.isFinite(reservedPressureHalfWindow)||reservedPressureHalfWindow<0||reservedPressureHalfWindow>.1)throw new RangeError('Invalid reserved pressure window');
   const queues=new Set(this.#bindings.map(b=>b.queue));
   if(!Number.isFinite(lastMoveTime)||lastMoveTime<this.#generated||lastMoveTime>=1e15||positions.size!==queues.size||[...positions].some(([q,p])=>!queues.has(q)||!Array.isArray(p)||p.length!==3||!p.every(Number.isFinite)))throw new RangeError('Invalid motion drain endpoints');
-  let past=0,future=0;for(const b of this.#bindings){const w=b.stepper.scanWindow;past=Math.max(past,w.past);future=Math.max(future,w.future);}
+  let past=reservedPressureHalfWindow,future=reservedPressureHalfWindow;for(const b of this.#bindings){const w=b.stepper.scanWindow;past=Math.max(past,w.past);future=Math.max(future,w.future);}
   const until=lastMoveTime+past+.001,sourceUntil=until+future+.001;
   if(!Number.isFinite(sourceUntil)||sourceUntil>=1e15||until<=lastMoveTime||sourceUntil<=until||sourceUntil-until<future)throw new RangeError('Unrepresentable motion drain horizon');
   const clocks:Record<string,bigint>=Object.create(null);for(const b of this.#bindings)clocks[b.id]=b.stepper.clockAt(until);

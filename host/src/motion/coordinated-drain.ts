@@ -7,6 +7,7 @@ import {MCUGroup} from '../runtime/mcu-group.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
 import type {TimedPressureBoundary} from './pressure-boundaries.ts';
+import {pressureAdvanceSettings} from './pressure-advance-settings.ts';
 /** Explicit devices without motion queues; clock passage is still required. */
 export interface AuxiliaryMCUClock {id:string;timeline?:PrintClockTimeline;calibration:Readonly<{offset:number;frequency:number}>}
 /** Producer must remain fenced through completion and use sourceUntil for the
@@ -47,6 +48,20 @@ export class CoordinatedMotionDrain {
    const targets=Object.freeze({...this.#sink.motionClockTargets(result.clocks),...Object.fromEntries(this.#auxiliary.map(a=>[a.id,a.timeline?a.timeline.reserve(result.generatedUntil):a.clock.clockAt(result.generatedUntil)]))});
    await run(this.#group.waitForMotionClocks(targets,combined,Math.max(1,Math.ceil(deadline-performance.now()))));check();
    return Object.freeze({...result,targets});
+  });
+ }
+ /** Producer owns a stopped source tail. Submit its generated steps and change
+  * windows without waiting for MCU execution. Continue source at sourceUntil.
+  * afterCommit delivers timeline outputs; it must not imply a physical drain. */
+ async reconfigurePressureWindows(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,changes:readonly {stepper:string;advance:number;smoothTime:number}[],signal:AbortSignal,timeoutMs=30000,afterCommit?:(horizon:number,signal:AbortSignal)=>Promise<void>){
+  if(!Array.isArray(changes)||!changes.length||changes.length>128||new Set(changes.map(c=>c.stepper)).size!==changes.length)throw new RangeError('Invalid pressure window changes');
+  const owned=changes.map(c=>Object.freeze({stepper:c.stepper,...pressureAdvanceSettings(c.advance,c.smoothTime)}));
+  const reserve=Math.max(.001,...owned.map(c=>c.advance?c.smoothTime*.5:0));
+  return this.#operate(signal,timeoutMs,async({run,check,combined})=>{
+   const result=await run(this.#coordinator.drain(lastMoveTime,positions,this.#maxWindow,()=>this.#historyCutoff(),reserve));check();
+   this.#coordinator.reconfigurePressureWindows(result.generatedUntil,owned);
+   if(afterCommit){await run(afterCommit(result.generatedUntil,combined));check();}
+   return result;
   });
  }
  async #operate<T>(signal:AbortSignal,timeoutMs:number,work:(context:{run:<R>(work:Promise<R>)=>Promise<R>;check:()=>void;combined:AbortSignal;deadline:number})=>Promise<T>):Promise<T>{
