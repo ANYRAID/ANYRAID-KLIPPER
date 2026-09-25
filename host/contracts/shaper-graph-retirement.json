@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "sourceCommit": "4cbf4737557163399a1256024bb6caf7e68b27b9",
+  "sources": {
+    "scripts/graph_shaper.py": "39bba9188fe90559e9ca2e1716b78b02703469bcd99be475729d7194a12f0aef",
+    "klippy/extras/shaper_defs.py": "1d8627c8864f6ff683a160fece2197e00b1d4acb12bdd1d743a6a73b6b3f05fe",
+    "klippy/mathutil.py": "d91cf5738ba98bbd7ed685c76bb199ca35f0a1d12d7082fb88a9b08b641384dc"
+  },
+  "captureAdapterSha256": "02d8cde366e05e20cffc5b2a706e9a7a491e873003d89f6209d53b681317d9df",
+  "python": "Python 3.12.13",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "dataSha256": "adf3c425f4244dab6a942dd0b3a0a470bbfbb2f76b89082a721314a46c892fcf",
+  "compressedSha256": "1abfc84db2be91d66e8e2bb08046148fcf8359b5578f26548a4b37559171030e",
+  "uncompressedBytes": 7581769,
+  "compressedBytes": 2850919,
+  "before": {
+    "node": "v26.9.0",
+    "cases": 6,
+    "warmups": 5,
+    "runs": 11,
+    "nodeCompute": {
+      "medianMs": 12.290435999999772,
+      "p95Ms": 15.613238999999794
+    },
+    "pythonCompute": {
+      "medianMs": 103.33837295183912,
+      "p95Ms": 104.83321000356227
+    },
+    "maxError": {
+      "frequencyHz": 0,
+      "response": 3.608224830031759e-16,
+      "timeSeconds": 6.938893903907228e-18,
+      "step": 6.661338147750939e-16
+    },
+    "scope": "Six original shaper frequency and step simulations. Startup/IPC, rendering and CLI excluded. Python times summed by batch index across cases. Desktop diagnostic only."
+  },
+  "exportBefore": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "medianMs": 8.671638999999999,
+        "p95Ms": 9.310775000000007
+      },
+      {
+        "format": "png",
+        "medianMs": 42.435303999999974,
+        "p95Ms": 43.64294499999994
+      }
+    ],
+    "scope": "Default MZV simulation, both SVG panels, optional PNG encoding and atomic replacement. Decode verification outside timing. No Python renderer, process startup or hardware comparison."
+  },
+  "scope": "Original unmodified graph_shaper functions and shaper definitions, no Matplotlib rendering. Complete frequency and step arrays for every case. Historical timings exclude startup and IPC."
+}

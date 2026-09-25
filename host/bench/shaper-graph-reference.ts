@@ -1,22 +1,17 @@
-import {execFileSync} from 'node:child_process';
-import {fileURLToPath} from 'node:url';
+// Hash-verified original Python data, captured before diagnostic retirement.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import type {ShaperSimulationOptions} from '../src/diagnostics/graph-shaper.ts';
-const source=String.raw`
-import sys,types,runpy,json,time
-sys.modules['matplotlib']=types.ModuleType('matplotlib')
-r=runpy.run_path(sys.argv[1]);request=json.load(sys.stdin);outputs=[]
-for options in request['cases']:
- def run():
-  hz=options.get('frequency',50);dr=options.get('damping',.1);tests=options.get('testDamping',[.075,.1,.15])
-  shaper=r['shaper_defs'].init_shaper(options.get('shaper','mzv').lower(),hz,dr);r['shift_pulses'](shaper)
-  freqs,response,legend=r['gen_shaper_response'](shaper,hz,tests)
-  times,step,step_legend=r['gen_shaped_step_function'](shaper,hz,options.get('systemFrequency',60),options.get('systemDamping',.15))
-  return dict(freqs=freqs,response=response,times=times,step=step)
- timings=[]
- for i in range(request['runs']):
-  start=time.perf_counter();result=run();timings.append((time.perf_counter()-start)*1000)
- outputs.append(dict(result=result,timings=timings))
-print(json.dumps(outputs,allow_nan=False))
-`;
 export interface ReferenceResult {result:{freqs:number[];response:number[][];times:number[];step:number[][]};timings:number[];}
-export function shaperGraphReference(cases:ShaperSimulationOptions[],runs=1):ReferenceResult[]{return JSON.parse(execFileSync('/usr/bin/python3',['-c',source,fileURLToPath(new URL('../../scripts/graph_shaper.py',import.meta.url))],{input:JSON.stringify({cases,runs}),encoding:'utf8',maxBuffer:64*1024**2}));}
+type Timing={medianMs:number;p95Ms:number};
+export const shaperGraphManifest=JSON.parse(readFileSync(new URL('../contracts/shaper-graph-retirement.json',import.meta.url),'utf8')) as {dataSha256:string;compressedSha256:string;uncompressedBytes:number;compressedBytes:number;before:{nodeCompute:Timing};exportBefore:{results:({format:string}&Timing)[]}};
+const hash=(bytes:Uint8Array)=>createHash('sha256').update(bytes).digest('hex'),compressed=readFileSync(new URL('../contracts/shaper-graph-retirement.json.gz',import.meta.url));
+assert.equal(hash(compressed),shaperGraphManifest.compressedSha256);assert.equal(compressed.length,shaperGraphManifest.compressedBytes);
+const bytes=gunzipSync(compressed,{maxOutputLength:16*1024**2});assert.equal(hash(bytes),shaperGraphManifest.dataSha256);assert.equal(bytes.length,shaperGraphManifest.uncompressedBytes);
+const data=JSON.parse(bytes.toString('utf8')) as {cases:ShaperSimulationOptions[];references:ReferenceResult[]};
+assert.equal(data.cases.length,data.references.length);
+const key=(c:ShaperSimulationOptions)=>JSON.stringify(Object.entries(c).filter(([,v])=>v!==undefined).sort(([a],[b])=>a.localeCompare(b)));
+const references=new Map(data.cases.map((c,i)=>[key(c),data.references[i]]));
+export function shaperGraphReference(cases:ShaperSimulationOptions[]):ReferenceResult[]{return cases.map(c=>{const result=references.get(key(c));assert.ok(result,'No original Python reference for this simulation case');return result;});}

@@ -242,11 +242,13 @@ node ~/klipper/scripts/graph_shaper.ts --shaper zvd --shaper_freq 45 --system_fr
 
 Use `--damping_ratio`, `--test_damping_ratios` (comma separated), and
 `--system_damping_ratio` to adjust damping. Run with `--help` for defaults.
-The output formats are PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
+The output formats are HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
 an array of two panels, each with its plot data and horizontal axis label.
 The simulation does not configure a printer or measure physical resonance.
-The original `graph_shaper.py` remains available for an interactive
-Matplotlib window and EPS export.
+The Python entry point has been retired. Specify an output filename; use
+HTML for interactive zoom and curve controls or SVG/PDF for vector output.
+The tool no longer opens a Matplotlib window or exports EPS. Its calculation,
+regression tests and benchmarks do not require Python or Matplotlib.
 
 ## Generating temperature sensor graphs
 
