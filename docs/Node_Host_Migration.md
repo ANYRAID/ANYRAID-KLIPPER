@@ -21439,3 +21439,47 @@ coredumpctl，进程 core 上限为零；尚无可定位调用栈。不能将两
 带 ASan 初始化诊断日志的定向复查中，coordinated-drain、step-history、
 mcu-oids 三文件共 26 项通过，日志 `/tmp/window-drain-targeted-asan.log`；
 此结果不替代失败的完整门禁。最终类型、空白与差异检查通过。
+
+### 无项目模块的 Node 启动故障复现
+
+为调查上述完整 ASan 门禁失败，新增诊断脚本
+`node host/scripts/diagnose-node-asan.ts`。默认 `--case strip --runs 200
+--workers 8`；也支持 `--case empty`（只有 console.log）和
+`--case history`（现有步进历史测试）。每个子进程最多 10 秒，最多
+8 个并发，首次失败后停止增加任务，等待已经启动的任务结束；输出
+预算每进程 1 MiB。结果保存到独立临时目录，含节点/ASan/插件 SHA-256、
+生成的最小脚本、退出信号与标准输出。失败返回非零，不自动重试。
+
+`--node /绝对路径/node` 用于隔离版本对照；`--asan off` 可运行无 ASan
+的最小案例（不允许用于 history）。脚本清除继承的 NODE_OPTIONS 与
+ANYRAID 插件路径；empty/strip 均不加载项目插件。诊断不改变现有
+完整检查、产品运行参数、测试并发分组或超时。
+
+最终脚本的选定证据保存在
+[运行时诊断摘要](diagnostics/node26-startup-failures.json)：
+
+| Node | 案例 | ASan | 实际运行数 | 失败 |
+| --- | --- | --- | --- | --- |
+| 26.9.0 | 内置 TS 转换，200 个函数重复 40 次 | 开启 | 97 | 1 次 SIGTRAP，V8 unreachable code |
+| 26.10.0 | 相同内置 TS 转换 | 开启 | 48 | 1 次 SIGSEGV |
+| 26.9.0 | 空进程 | 开启 | 131 | 1 次 SIGSEGV |
+| 26.9.0 | 空进程 | 关闭 | 500 | 0 |
+
+这些数字包含失败时已启动的并发任务，不是失败概率估计。此前空进程
+200 次、最小测试 200 次均通过，说明成功样本不能证明间歇故障消失。
+26.9.0 本地程序与缓存压缩包中的程序哈希一致；26.10.0 从
+[官方发布](https://nodejs.org/en/blog/release/v26.10.0)下载并通过对应
+SHASUMS256 校验，仅放在临时目录，没有替换当前项目运行时。
+
+另以 `--segv exclusive` 保留 ASan 信号处理权，捕获到了 V8 Scavenger
+线程的崩溃栈；此选项只用于诊断，因为它可能阻止 V8 处理自身使用的
+信号。`--wasm-bounds inline` 是另一项隔离对照：按
+[Node CLI 文档](https://nodejs.org/api/cli.html#--disable-wasm-trap-handler)
+改用显式 WebAssembly 边界检查，并非去掉边界检查。该方式也捕获了
+V8 WebAssembly 后台编译栈中的失败，未作为产品参数或验收绕行办法。
+
+当前已证明：本机至少有一种启动崩溃不需要项目代码、TypeScript 或
+原生插件参与。尚未证明完整测试的所有崩溃与最小案例同源，也未证明
+根因属于 Node、ASan、操作系统还是硬件。此前运动数据瞬时异常仍未
+定位。完整 ASan 门禁保持未通过；本阶段只交付可重复的诊断及证据，
+不据此合并、部署或声称运动精度问题已排除。
