@@ -8,6 +8,11 @@ All dates in this document are approximate.
 
 ## Changes
 
+20260926: 运动模拟的 `scripts/graph_motion.py` 已退役，改用
+`node scripts/graph_motion.ts -o 输出文件`。实验滤波、加速度阶数、
+限跃度及旧整形器通过命令行选择，无需编辑源码。交互输出使用
+HTML，矢量输出使用 SVG/PDF，不再提供 Matplotlib 窗口或 EPS。
+
 20260926: 输入整形模拟的 `scripts/graph_shaper.py` 已退役，改用
 `node scripts/graph_shaper.ts -o 输出文件`。原整形器、频率及阻尼参数
 仍可通过命令行指定；交互输出使用 HTML，矢量输出使用 SVG/PDF，

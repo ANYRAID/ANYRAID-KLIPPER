@@ -310,8 +310,11 @@ jerk options. The default remains legacy `ei`.
 
 These are offline diagnostic experiments, not production planner settings.
 The legacy formulas are distinct from the current production definitions
-used by `graph_shaper.ts`. The Python script remains as a differential
-reference and for its interactive window and EPS output.
+used by `graph_shaper.ts`. The Python entry point has been retired; full
+original numerical references are stored as compressed data for regression
+tests and benchmarks. Specify an output filename. Use HTML for interactive
+viewing or SVG/PDF for vector output; Matplotlib windows and EPS output
+are no longer provided. Python is not required to run this tool or its tests.
 
 ## Generating accelerometer and frequency graphs
 

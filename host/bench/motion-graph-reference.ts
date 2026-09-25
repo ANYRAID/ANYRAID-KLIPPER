@@ -1,30 +1,24 @@
-import {execFileSync} from 'node:child_process';
+// Fixed original Python results; lossless binary64 arrays, no Python execution.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import type {MotionProfileOptions} from '../src/diagnostics/graph-motion.ts';
 import type {MotionFilter} from '../src/diagnostics/motion-filters.ts';
-import {fileURLToPath} from 'node:url';
-const source=String.raw`
-import sys,types,runpy,json,time
-panels=[]
-class Stub:
- def __getattr__(self,n): return lambda *a,**k:None
-class Axis(Stub):
- def __init__(self):self.panel={'curves':[]};panels.append(self.panel)
- def plot(self,x,y,*a,**kw):self.panel['curves'].append(dict(times=x,values=y))
- def set_ylim(self,v):self.panel['range']=v
- def set_ylabel(self,v):self.panel['axis']=v
-def subplots(**kw):
- panels.clear();return Stub(),[Axis() for _ in range(kw['nrows'])]
-m=types.ModuleType('matplotlib');m.pyplot=types.SimpleNamespace(subplots=subplots);m.font_manager=types.SimpleNamespace(FontProperties=Stub);sys.modules['matplotlib']=m
-r=runpy.run_path(sys.argv[1]);samples=[]
-profile=json.loads(sys.argv[5]);g=r['plot_motion'].__globals__;g['get_acc_pos']=r['get_acc_pos_ao'+str(profile.get('order',2))]
-if profile.get('jerkLimit'):g['get_acc']=r['get_accel_jerk_limit']
-if profile.get('legacyShaper'):
- g['gen_updated_position']=lambda p:r['calc_shaper'](r['get_'+profile['legacyShaper']+'_shaper'](),p)
-if sys.argv[3]:
- name=sys.argv[3];smooth=float(sys.argv[4]);fn=r['calc_'+name]
- r['plot_motion'].__globals__['gen_updated_position']=lambda p:fn(p) if name=='spring_raw' else fn(p,smooth)
-for i in range(int(sys.argv[2])):
- start=time.perf_counter();r['plot_motion']();samples.append((time.perf_counter()-start)*1000)
-print(json.dumps(dict(panels=panels,samples=samples,positions=r['gen_positions'](),pulses=r['get_'+profile.get('legacyShaper','ei')+'_shaper']()[:2]),allow_nan=False))
-`;
-export function motionGraphReference(runs=1,filter?:MotionFilter,smoothTime=(2/3)/40,profile:MotionProfileOptions={}):{pulses:[number[],number[]];positions:number[];panels:{curves:{times:number[];values:number[]}[];axis:string;range?:[number,number]}[];samples:number[]}{return JSON.parse(execFileSync('/usr/bin/python3',['-c',source,fileURLToPath(new URL('../../scripts/graph_motion.py',import.meta.url)),String(runs),filter??'',String(smoothTime),JSON.stringify(profile)],{encoding:'utf8',maxBuffer:32*1024**2}));}
+import {motionReferenceKey} from '../contracts/motion-graph-fixtures.ts';
+interface Timing {medianMs:number;p95Ms:number;}
+interface Panel {curves:{times:string;values:string}[];axis:string;range?:[number,number];}
+interface Entry {key:string;samples:number[];pulses:[string,string];positions:string;panels:Panel[];}
+interface Result {filter?:string;order?:number;jerkLimit?:boolean;legacyShaper?:string;node:Timing;}
+export const motionManifest=JSON.parse(readFileSync(new URL('../contracts/motion-retirement.json',import.meta.url),'utf8')) as {entries:Entry[];arrays:Record<string,{length:number;compressedBytes:number;compressedSha256:string}>;before:{default:{nodeCompute:Timing;nodePngExport:Timing};filters:{results:Result[]};profile:{results:Result[]};legacy:{results:Result[]}}};
+const entries=new Map(motionManifest.entries.map(e=>[e.key,e])),cache=new Map<string,number[]>(),hash=(b:Uint8Array)=>createHash('sha256').update(b).digest('hex');
+function array(id:string):number[]{
+ const prior=cache.get(id);if(prior)return prior;assert.match(id,/^[a-f0-9]{64}$/);const spec=motionManifest.arrays[id];assert.ok(spec);assert.ok(Number.isInteger(spec.length)&&spec.length>=0&&spec.length<=100000);
+ const compressed=readFileSync(new URL('../contracts/motion-retirement/'+id+'.f64.gz',import.meta.url));assert.equal(compressed.length,spec.compressedBytes);assert.equal(hash(compressed),spec.compressedSha256);
+ const bytes=gunzipSync(compressed,{maxOutputLength:800000});assert.equal(bytes.length,spec.length*8);assert.equal(hash(bytes),id);const result=Array.from({length:spec.length},(_,i)=>bytes.readDoubleLE(i*8));assert.ok(result.every(Number.isFinite));cache.set(id,result);return result;
+}
+export function motionGraphReference(filter?:MotionFilter,smoothTime=(2/3)/40,profile:MotionProfileOptions={}){
+ const ref=entries.get(motionReferenceKey({filter,smoothTime,profile}));assert.ok(ref,'No original Python reference for this motion configuration');
+ return {samples:ref.samples,pulses:[array(ref.pulses[0]),array(ref.pulses[1])] as [number[],number[]],positions:array(ref.positions),panels:ref.panels.map(p=>({...p,curves:p.curves.map(c=>({times:array(c.times),values:array(c.values)}))}))};
+}
+export function assertMotionTiming(current:Timing,before:Timing,output=false){assert.ok(current.medianMs<=before.medianMs*1.25+(output?10:2),`Median regression ${current.medianMs} vs ${before.medianMs}`);assert.ok(current.p95Ms<=before.p95Ms*1.5+(output?20:5),`P95 regression ${current.p95Ms} vs ${before.p95Ms}`);}
