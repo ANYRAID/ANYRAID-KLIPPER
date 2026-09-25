@@ -6,6 +6,7 @@ import {MoveQueueSink} from './move-queue-sink.ts';
 import {MCUGroup} from '../runtime/mcu-group.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
+import type {TimedPressureBoundary} from './pressure-boundaries.ts';
 /** Explicit devices without motion queues; clock passage is still required. */
 export interface AuxiliaryMCUClock {id:string;timeline?:PrintClockTimeline;calibration:Readonly<{offset:number;frequency:number}>}
 /** Producer must remain fenced through completion and use sourceUntil for the
@@ -27,6 +28,7 @@ export class CoordinatedMotionDrain {
  get committedTime():number{return this.#coordinator.status.committedTime;}
  get finalizedSourceTime():number{return this.#coordinator.finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{return this.#coordinator.usesQueues(queues);}
+ schedulePressureBoundaries(changes:readonly TimedPressureBoundary[]):void{if(this.#busy)throw new Error('Motion drain already active');this.#group.assertActive();this.#coordinator.schedulePressureBoundaries(changes);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
  async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[],signal:AbortSignal,timeoutMs=30000,beforeReplace?:(signal:AbortSignal)=>Promise<void>):Promise<number>{
   return this.#operate(signal,timeoutMs,async({run,check,combined})=>{if(beforeReplace){await run(beforeReplace(combined));check();}const end=await run(this.#coordinator.replaceFuture(time,moves,routes,position));check();return end;});

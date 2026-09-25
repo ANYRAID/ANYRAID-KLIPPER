@@ -3,6 +3,7 @@ import {PrintClockTimeline,type ClockHistoryLease} from '../timing/print-clock-t
 import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
+import {pressureBoundarySchedule,type TimedPressureBoundary} from './pressure-boundaries.ts';
 export interface MotionBinding {id:string;queue:TrapQueue;stepper:StepCompressor}
 export interface MotionOutput extends CompressedSteps {id:string}
 export interface MotionBatch {sequence:number;from:number;until:number;generatedUntil?:number;outputs:readonly MotionOutput[]}
@@ -62,6 +63,20 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
+ /** Synchronous source transaction; a partial native update is terminal. */
+ schedulePressureBoundaries(changes:readonly TimedPressureBoundary[]):void{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot schedule pressure');
+  this.#beginWork();this.#busy=true;
+  try{for(const guard of this.#guards)guard.assertActive();this.#schedulePressure(changes);}
+  catch(error){void this.shutdown(error).catch(()=>{});throw error;}
+  finally{this.#busy=false;this.#endWork();}
+ }
+ #schedulePressure(changes:readonly TimedPressureBoundary[]):void{
+  if(!Array.isArray(changes)||changes.length>65536)throw new RangeError('Invalid scheduled pressure batch');
+  const previous=new Map<string,number>();
+  const staged=changes.map(c=>{const b=this.#bindings.find(b=>b.id===c.stepper);if(!b||!b.stepper.pressureAdvanceEnabled||!Number.isFinite(c.advance)||c.advance<=0||!Number.isFinite(c.time)||c.time>=1e15||c.time<=Math.max(previous.get(c.stepper)??-Infinity,b.stepper.generatedTime+b.stepper.scanWindow.future))throw new RangeError('Invalid pressure endpoint or emitter');previous.set(c.stepper,c.time);return {stepper:b.stepper,time:c.time,advance:c.advance};});
+  for(const c of staged)c.stepper.schedulePressureAdvance(c.time,c.advance);
+ }
  /** Fenced source-owner transaction. No generation or packet submission can
   * interleave. A partial native rewrite is terminal, never a recoverable retry. */
  async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[]):Promise<number>{
@@ -82,6 +97,7 @@ export class MotionCoordinator {
     if(end!==undefined&&next!==end)throw new Error('Replaced queue timelines differ');end=next;
    }
    for(const guard of this.#guards)guard.assertActive();if(this.#failed)throw this.#fault;
+   if(moves.some(m=>m.pressureBoundaries?.length))this.#schedulePressure(pressureBoundarySchedule(moves,time));
    return end!;
   }catch(error){try{await this.shutdown(error);}catch{/* Retained with original failure. */}throw this.#fault;}
   finally{this.#busy=false;this.#endWork();}

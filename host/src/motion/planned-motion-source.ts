@@ -6,10 +6,11 @@ import {CoordinatedMotionDrain} from './coordinated-drain.ts';
 import {planPathStop,type PathStop} from './path-stop.ts';
 import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
 import {stationaryRows} from './stationary.ts';
+import {copyPressureBoundaries,validatePressureBoundaries,pressureBoundarySchedule} from './pressure-boundaries.ts';
 type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
 // Snapshot data on the hot path; hydrate planner methods only when braking.
 const ownMove=(m:Move):MotionSnapshot=>({
- dwellSeconds:m.dwellSeconds,endMarkers:copyEndMarkers(m.endMarkers),
+ dwellSeconds:m.dwellSeconds,endMarkers:copyEndMarkers(m.endMarkers),pressureBoundaries:copyPressureBoundaries(m.pressureBoundaries),
  limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],
  distance:m.distance,isKinematic:m.isKinematic,junctionDeviation:m.junctionDeviation,accel:m.accel,minMoveT:m.minMoveT,maxStartV2:m.maxStartV2,maxCruiseV2:m.maxCruiseV2,deltaV2:m.deltaV2,nextJunctionV2:m.nextJunctionV2,maxMcrStartV2:m.maxMcrStartV2,mcrDeltaV2:m.mcrDeltaV2,profile:m.profile?{...m.profile}:undefined,
 });
@@ -86,7 +87,7 @@ export class PlannedMotionSource {
   let position=this.#position,time=this.#time,staged=0,velocity=this.#endVelocity,afterDwell=this.#dwellEnd;
   // Validate the entire batch before any queue mutation. Input objects are used
   // synchronously, so callers cannot mutate them between queue appends.
-  for(const m of moves as readonly Move[]){validateEndMarkers(m.endMarkers);const p=m.profile;if(m.dwellSeconds!==undefined){validateDwell(m);if(velocity!==0)throw new RangeError('Dwell must begin at rest');}if(afterDwell&&p?.startV!==0)throw new RangeError('Motion after dwell must start at rest');if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0&&m.dwellSeconds===undefined||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');const prior=time;time=((time+p.accelT)+p.cruiseT)+p.decelT;if(m.dwellSeconds!==undefined&&time<=prior)throw new RangeError('Unrepresentable dwell endpoint');velocity=p.endV;afterDwell=m.dwellSeconds!==undefined;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
+  for(const m of moves as readonly Move[]){validateEndMarkers(m.endMarkers);validatePressureBoundaries(m.pressureBoundaries);const p=m.profile;if(m.dwellSeconds!==undefined){validateDwell(m);if(velocity!==0)throw new RangeError('Dwell must begin at rest');}if(afterDwell&&p?.startV!==0)throw new RangeError('Motion after dwell must start at rest');if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0&&m.dwellSeconds===undefined||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');const prior=time;time=((time+p.accelT)+p.cruiseT)+p.decelT;if(m.dwellSeconds!==undefined&&time<=prior)throw new RangeError('Unrepresentable dwell endpoint');velocity=p.endV;afterDwell=m.dwellSeconds!==undefined;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
   return {position,time};
  }
  #seed():void{
@@ -97,8 +98,9 @@ export class PlannedMotionSource {
   this.#seeded=true;this.#idleFrom=undefined;
  }
  #append(moves:readonly Move[]):void{
-  const {position,time}=this.#validate(moves,true),owned=moves.map(ownMove);this.#seed();
+  const {position,time}=this.#validate(moves,true),owned=moves.map(ownMove),pressure=moves.some(m=>m.pressureBoundaries?.length)?pressureBoundarySchedule(moves,this.#time):[];this.#seed();
   for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
+  if(pressure.length)this.#drain.schedulePressureBoundaries(pressure);
   let start=this.#time;for(let i=0;i<owned.length;i++){const slot=(this.#head+this.#count+i)%this.#ends.length;this.#moves[slot]=owned[i];this.#starts[slot]=start;start=this.#ends[slot];}
   this.#position=[...position];this.#time=time;this.#count+=moves.length;if(moves.length){this.#endVelocity=moves.at(-1)!.profile!.endV;this.#dwellEnd=moves.at(-1)!.dwellSeconds!==undefined;}
  }

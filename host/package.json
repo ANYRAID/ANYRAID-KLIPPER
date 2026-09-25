@@ -203,6 +203,7 @@
     "bench:motion-clock-targets": "node bench/motion-clock-targets.ts",
     "bench:coordinated-drain": "node bench/coordinated-drain.ts",
     "bench:planned-motion-source": "node bench/planned-motion-source.ts",
+    "bench:source-brake": "node bench/source-brake.ts",
     "bench:motion-stream": "node bench/motion-stream.ts",
     "bench:planned-drain": "node bench/planned-drain.ts",
     "bench:motion-history": "node bench/motion-history.ts",

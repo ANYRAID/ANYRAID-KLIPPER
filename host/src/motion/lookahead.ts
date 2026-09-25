@@ -1,4 +1,5 @@
 import {spatialDistance} from './distance.ts';
+import type {PressureBoundary} from './pressure-boundaries.ts';
 // Port of Move and LookAheadQueue from klippy/toolhead.py.
 // Copyright (C) 2016-2025 Kevin O'Connor. GPL-3.0-or-later.
 export interface MotionLimits {
@@ -24,6 +25,7 @@ export class Move {
   declare readonly dwellSeconds?:number;
   /** Opaque output ids anchored to this exact endpoint, never callback closures. */
   declare endMarkers?:readonly number[];
+  declare pressureBoundaries?:readonly PressureBoundary[];
   readonly limits:MotionLimits;
   readonly startPos:number[];
   readonly endPos:number[];

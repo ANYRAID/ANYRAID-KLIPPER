@@ -1,6 +1,7 @@
 import {Move} from './lookahead.ts';
 import {dwellMove,validateDwell} from './dwell.ts';
 import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
+import {copyPressureBoundaries,validatePressureBoundaries} from './pressure-boundaries.ts';
 
 export interface PathStop {
  /** Host path coordinates, not measured or reconstructed MCU positions. */
@@ -13,10 +14,10 @@ export interface PathStop {
 }
 const close=(a:number,b:number)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=128*Number.EPSILON*Math.max(1,Math.abs(a),Math.abs(b));
 function copy(m:Move,start:readonly number[]=m.startPos,end:readonly number[]=m.endPos,distance=m.distance,endsAtBoundary=true):Move {
- if(m.dwellSeconds!==undefined){const result=dwellMove(m.limits,start,m.dwellSeconds);result.endMarkers=endsAtBoundary?copyEndMarkers(m.endMarkers):undefined;return result;}
+ if(m.dwellSeconds!==undefined){const result=dwellMove(m.limits,start,m.dwellSeconds);result.endMarkers=endsAtBoundary?copyEndMarkers(m.endMarkers):undefined;result.pressureBoundaries=endsAtBoundary?copyPressureBoundaries(m.pressureBoundaries):undefined;return result;}
  // Preserve an admitted segment's direction and limits even for sub-nanometre
  // fragments: the ordinary Move constructor intentionally treats those as E-only.
- return Object.assign(Object.create(Move.prototype),m,{endMarkers:endsAtBoundary?copyEndMarkers(m.endMarkers):undefined,limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...start],endPos:[...end],axesD:end.map((v,i)=>v-start[i]),axesR:[...m.axesR],distance,minMoveT:distance/Math.sqrt(m.maxCruiseV2),deltaV2:2*distance*m.accel,mcrDeltaV2:Math.min(2*distance*m.limits.mcrPseudoAccel,2*distance*m.accel),maxStartV2:0,maxMcrStartV2:0,profile:undefined});
+ return Object.assign(Object.create(Move.prototype),m,{pressureBoundaries:endsAtBoundary?copyPressureBoundaries(m.pressureBoundaries):undefined,endMarkers:endsAtBoundary?copyEndMarkers(m.endMarkers):undefined,limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...start],endPos:[...end],axesD:end.map((v,i)=>v-start[i]),axesR:[...m.axesR],distance,minMoveT:distance/Math.sqrt(m.maxCruiseV2),deltaV2:2*distance*m.accel,mcrDeltaV2:Math.min(2*distance*m.limits.mcrPseudoAccel,2*distance*m.accel),maxStartV2:0,maxMcrStartV2:0,profile:undefined});
 }
 function point(m:Move,distance:number):number[]{
  if(distance===0)return [...m.startPos];if(distance===m.distance)return [...m.endPos];
@@ -27,7 +28,7 @@ export function validateStopPath(moves:readonly Move[]):void {
  if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid stop path');
  let previous:Move|undefined;
  for(const m of moves as readonly Move[]){
-  validateEndMarkers(m.endMarkers);
+  validateEndMarkers(m.endMarkers);validatePressureBoundaries(m.pressureBoundaries);
   const p=m.profile;
   if(!m.limits||![m.limits.maxVelocity,m.limits.maxAccel,m.limits.mcrPseudoAccel,m.limits.junctionDeviation].every(Number.isFinite)||m.limits.maxVelocity<=0||m.limits.maxAccel<=0||m.limits.mcrPseudoAccel<=0||m.limits.mcrPseudoAccel>m.limits.maxAccel||m.limits.junctionDeviation<0)throw new RangeError('Invalid stop path limits');
   if(m.dwellSeconds!==undefined){validateDwell(m);if(previous&&(previous.endPos.length!==m.startPos.length||m.startPos.some((v,i)=>v!==previous!.endPos[i])||previous.profile!.endV!==0))throw new RangeError('Discontinuous dwell boundary');previous=m;continue;}
@@ -48,7 +49,7 @@ export function planPathStop(moves:readonly Move[],elapsed:number):PathStop {
  while(index<moves.length){const p=moves[index].profile!,duration=p.accelT+p.cruiseT+p.decelT;if(time<duration)break;time-=duration;index++;}
  if(index===moves.length){if(time!==0||moves.at(-1)!.profile!.endV!==0)throw new RangeError('Stop anchor has no braking coverage');const position=[...moves.at(-1)!.endPos];return {anchor:[...position],position,velocity:0,brake:[],remainder:[]};}
   const first=moves[index],p=first.profile!;
- if(first.dwellSeconds!==undefined){const remaining=first.dwellSeconds-time,rest=dwellMove(first.limits,first.startPos,remaining);rest.endMarkers=copyEndMarkers(first.endMarkers);return {anchor:[...first.startPos],position:[...first.startPos],velocity:0,brake:[],remainder:suffix(moves,index+1,rest)};}
+ if(first.dwellSeconds!==undefined){const remaining=first.dwellSeconds-time,rest=dwellMove(first.limits,first.startPos,remaining);rest.endMarkers=copyEndMarkers(first.endMarkers);rest.pressureBoundaries=copyPressureBoundaries(first.pressureBoundaries);return {anchor:[...first.startPos],position:[...first.startPos],velocity:0,brake:[],remainder:suffix(moves,index+1,rest)};}
  let distance:number,velocity:number;
  if(time<p.accelT){velocity=p.startV+first.accel*time;distance=(p.startV+velocity)*time/2;}
  else if(time<p.accelT+p.cruiseT){velocity=p.cruiseV;distance=(p.startV+p.cruiseV)*p.accelT/2+p.cruiseV*(time-p.accelT);}
