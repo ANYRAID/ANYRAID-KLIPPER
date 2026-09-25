@@ -66,3 +66,23 @@ test('an empty queue does not retire future pressure changes through the tail se
  for(let i=1;i<128;i++)s.schedulePressureAdvance(i*.1,i%2?.02:.01);
  assert.throws(()=>s.schedulePressureAdvance(12.8,.03),/Too many pending/);
 });
+test('cancelling ungenerated pressure updates preserves queued pulses and matches never-scheduled reference',()=>{
+ function trace(cancelled:boolean){using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.05,.1);if(cancelled)s.schedulePressureAdvance(1.8,.2);s.generate(1.4);const prefix=s.flush();if(cancelled){assert.throws(()=>s.recoveryFilters(),/settle/);s.cancelPressureAdvanceAfter(1.5);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.1,smoothTime:.04}});}s.schedulePressureAdvance(1.7,.15);s.generate(2.1);return {prefix,tail:s.flush(),filters:s.recoveryFilters()};}
+ assert.deepEqual(trace(true),trace(false));
+});
+test('pressure cancellation rejects generated convolution and preserves state after errors',()=>{
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.8,.2);s.generate(1.4);
+ const before=s.commandedPosition,window=s.scanWindow;for(const time of [1.4,1.42,NaN,Infinity,-1,1e15])assert.throws(()=>s.cancelPressureAdvanceAfter(time));assert.equal(s.commandedPosition,before);assert.deepEqual(s.scanWindow,window);assert.throws(()=>s.recoveryFilters(),/settle/);
+ s.cancelPressureAdvanceAfter(1.5);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});s.generate(2.1);assert.equal(s.flush().position,900n);
+});
+test('pressure cancellation retains exact cutoff updates, releases capacity and remains bounded across retries',()=>{
+ using q=new TrapQueue();q.appendRaw(extrusion());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.schedulePressureAdvance(1.5,.1);s.schedulePressureAdvance(1.8,.2);s.cancelPressureAdvanceAfter(1.5);assert.throws(()=>s.recoveryFilters(),/settle/);assert.throws(()=>s.schedulePressureAdvance(1.5,.3));
+ for(let i=0;i<300;i++){s.schedulePressureAdvance(1.8,.2);s.cancelPressureAdvanceAfter(1.5);}s.generate(2.1);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.1,smoothTime:.04}});assert.equal(s.flush().position,900n);
+ using empty=new TrapQueue();using e=empty.createStepper({...settings,oid:4},'extruder',.01);e.configurePressureAdvance(.01,.04);for(let i=1;i<128;i++)e.schedulePressureAdvance(i*.1,i%2?.02:.01);assert.throws(()=>e.schedulePressureAdvance(12.8,.03),/Too many/);e.cancelPressureAdvanceAfter(.5);e.schedulePressureAdvance(1,.03);
+});
+test('pressure cancellation preserves coefficients of a retained long source phase after history pruning',()=>{
+ function trace(cancelled:boolean){using q=new TrapQueue();q.appendRaw(new Float64Array([1,0,10,0,0,0,0,1,1,0,1,1,0,11,0,.2,0,10,0,0,0,0,0,0,0,0]));using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.01,.04);s.schedulePressureAdvance(.5,.02);s.schedulePressureAdvance(2,.03);s.generate(5);const prefix=s.flush();s.schedulePressureAdvance(7,.04);if(cancelled){s.schedulePressureAdvance(9,.1);s.cancelPressureAdvanceAfter(8);}s.generate(11.1);return {prefix,tail:s.flush()};}assert.deepEqual(trace(true),trace(false));
+});
+test('pressure cancellation cannot be applied to unconfigured, disabled, wrong-mode or closed solvers',()=>{
+ using q=new TrapQueue();using s=q.createStepper(settings,'extruder',.01);assert.throws(()=>s.cancelPressureAdvanceAfter(1));s.configurePressureAdvance(.1,0);assert.throws(()=>s.cancelPressureAdvanceAfter(1));using x=q.createStepper(settings,'x',.01);assert.throws(()=>x.cancelPressureAdvanceAfter(1));s.dispose();assert.throws(()=>s.cancelPressureAdvanceAfter(1),/closed/);
+});

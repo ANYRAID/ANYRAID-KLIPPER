@@ -10,7 +10,7 @@ export interface CompressedSteps {
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'corexz+'|'corexz-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
 const solverModes={x:0,y:1,z:2,'corexy+':3,'corexy-':4,extruder:5,'corexz+':7,'corexz-':8} as const;
-interface Native {coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 export interface MotionFilterSettings {shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
@@ -40,6 +40,13 @@ export class StepCompressor {
   configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}
   /** Schedule a positive coefficient at a future source-phase boundary; smooth time stays fixed. */
   schedulePressureAdvance(printTime:number,advance:number):void{native.schedulePressureAdvance(this.#handle,printTime,advance);const prior=this.#filters.pressureAdvance!;if(advance!==prior.advance){this.#filters.pressureAdvance={advance,smoothTime:prior.smoothTime};this.#pressureSettledAt=printTime+prior.smoothTime*.5;}}
+  /** Remove only updates strictly beyond an ungenerated source cutoff. The
+   * caller must fence source admission and coordinate path replacement itself.
+   * No queue, motor clock or generated pulse is reset by this operation. */
+  cancelPressureAdvanceAfter(printTime:number):void{
+    const [advance,activeTime]=native.cancelPressureAdvanceAfter(this.#handle,printTime),prior=this.#filters.pressureAdvance!;
+    this.#filters.pressureAdvance={advance,smoothTime:prior.smoothTime};this.#pressureSettledAt=activeTime?activeTime+prior.smoothTime*.5:undefined;
+  }
   /** Snapshot only settled parameters. A new constant-position generation
    * cannot inherit a pending time-domain transition without its old path. */
   recoveryFilters():MotionFilterSettings{

@@ -11,7 +11,7 @@ const fixtures=Array.from({length:8},(_,kind)=>{
  const initialClock=kind===7?2**32:0,advance=[.02,0,.05,.2,.05,.02,.05,.05][kind],smooth=[.04,.04,.02,.2,0,.04,.2,.04][kind];let time=initialClock/1e6+1,x=0;
  const rows:number[]=[];
  for(let i=0;i<1000;i++){const sign=i%4<2?1:-1,eligible=kind===5?0:sign>0?1:0;rows.push(time,.0001,.0008,.0001,x,0,0,1,eligible,0,0,sign*10,sign*100000);x+=sign*.009;time=((time+.0001)+.0008)+.0001;}
- rows.push(time,0,.3,0,x,0,0,0,0,0,0,0,0);return {initialClock,advance,smooth,rows,end:time+.15};
+ rows.push(time,0,.3,0,x,0,0,0,0,0,0,0,0);return {initialClock,advance,smooth,rows,end:time+.15,prefix:initialClock/1e6+1.3,updates:advance&&smooth?[[initialClock/1e6+1.1,advance*1.25],[initialClock/1e6+1.6,advance*1.5]]:[]};
 });
 const root=fileURLToPath(new URL('../../',import.meta.url)),dir=mkdtempSync(join(tmpdir(),'anyraid-pressure-advance-'));
 const python=String.raw`
@@ -42,10 +42,12 @@ def run(f,capture=True):
  queue=ffi.new('struct list_head *');root=ffi.addressof(queue,'root');root.next=root.prev=root
  sc=lib.stepcompress_alloc(queue);q=lib.trapq_alloc();sk=lib.extruder_stepper_alloc()
  lib.itersolve_set_position(sk,0,0,0);lib.extruder_set_pressure_advance(sk,0,f['advance'],f['smooth'] if f['advance'] else 0)
+ for t,a in f['updates']:lib.extruder_set_pressure_advance(sk,t,a,f['smooth'])
  try:
   lib.stepcompress_fill(sc,3,25,5,6);lib.stepcompress_set_time(sc,0,1e6);assert lib.stepcompress_reset(sc,f['initialClock'])==0
   for row in f['rows']:lib.trapq_append(q,*row)
   lib.itersolve_set_trapq(sk,q,.01);lib.trapq_check_sentinels(q)
+  assert lib.itersolve_generate_steps(sk,sc,f['prefix'])==0
   assert lib.itersolve_generate_steps(sk,sc,f['end'])==0
   assert lib.stepcompress_flush(sc,MAX)==0
   messages=[];node=root.next
@@ -69,8 +71,19 @@ try{
  const cc=spawnSync(process.env.CC??'cc',['-O2','-shared','-fPIC',...['stepcompress.c','msgblock.c','pyhelper.c','itersolve.c','kin_extruder.c','trapq.c'].map(p=>join(root,'klippy/chelper',p)),'-lm','-o',lib],{encoding:'utf8',timeout:30000});assert.equal(cc.status,0,cc.stderr);
  const p=spawnSync(process.env.PYTHON??'python3',['-c',python,lib,input,join(root,'klippy')],{encoding:'utf8',timeout:60000,maxBuffer:32*1024*1024});assert.equal(p.status,0,p.stderr||String(p.error));const oracle=JSON.parse(p.stdout);
  const arrays=fixtures.map(f=>new Float64Array(f.rows));
- const run=(i:number)=>{using q=new TrapQueue();q.appendRaw(arrays[i]);using c=q.createStepper({...settings,initialClock:BigInt(fixtures[i].initialClock)},'extruder',.01);c.configurePressureAdvance(fixtures[i].advance,fixtures[i].smooth);c.generate(fixtures[i].end);const r=c.flush();return {messages:r.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...r.history].map(String),position:String(r.position)};};
+ const run=(i:number,cancel=false)=>{using q=new TrapQueue();q.appendRaw(arrays[i]);using c=q.createStepper({...settings,initialClock:BigInt(fixtures[i].initialClock)},'extruder',.01);c.configurePressureAdvance(fixtures[i].advance,fixtures[i].smooth);for(const [t,a] of fixtures[i].updates)c.schedulePressureAdvance(t,a);if(cancel)c.schedulePressureAdvance(fixtures[i].initialClock/1e6+1.8,fixtures[i].advance*2);c.generate(fixtures[i].prefix);if(cancel)c.cancelPressureAdvanceAfter(fixtures[i].initialClock/1e6+1.7);c.generate(fixtures[i].end);const r=c.flush();return {messages:r.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...r.history].map(String),position:String(r.position)};};
  fixtures.forEach((_,i)=>{const result=run(i);assert.equal(result.history.length,oracle.results[i].history.length,`Fixture ${i} history length`);assert.deepEqual(result,oracle.results[i]);});
+ let cancellationFixtures=0;for(let i=0;i<fixtures.length;i++)if(fixtures[i].advance&&fixtures[i].smooth){assert.deepEqual(run(i,true),oracle.results[i]);cancellationFixtures++;}
  for(let i=0;i<3;i++)run(0);const times=[];for(let i=0;i<11;i++){const t=performance.now();run(0);times.push(performance.now()-t);}times.sort((a,b)=>a-b);
- console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,fixtures:fixtures.length,packetAndHistoryExact:true,moves:1000,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5]},null,2));
+ assert(times[5]<=oracle.times[5]*1.25+2);assert(times[10]<=oracle.times[10]*1.5+2);
+ const cancelledTimes:number[]=[];for(let i=0;i<14;i++){const t=performance.now();run(0,true);if(i>=3)cancelledTimes.push(performance.now()-t);}cancelledTimes.sort((a,b)=>a-b);
+ assert(cancelledTimes[5]<=times[5]*1.25+2);assert(cancelledTimes[10]<=times[10]*1.5+2);
+ // Measure a real retained solver after prefix generation; each pair rebuilds
+ // its private parameter list without discarding generated or queued steps.
+ using pairQueue=new TrapQueue();pairQueue.appendRaw(arrays[0]);using pairStepper=pairQueue.createStepper(settings,'extruder',.01);
+ pairStepper.configurePressureAdvance(fixtures[0].advance,fixtures[0].smooth);for(const [t,a] of fixtures[0].updates)pairStepper.schedulePressureAdvance(t,a);pairStepper.generate(fixtures[0].prefix);
+ const pairTimes:number[]=[],pairs=10000;for(let sample=0;sample<14;sample++){const t=performance.now();for(let i=0;i<pairs;i++){pairStepper.schedulePressureAdvance(1.8,.2);pairStepper.cancelPressureAdvanceAfter(1.7);}if(sample>=3)pairTimes.push((performance.now()-t)*1000/pairs);}pairTimes.sort((a,b)=>a-b);
+ assert(pairTimes[5]<50);assert(pairTimes[10]<100);
+ pairStepper.generate(fixtures[0].end);const pairResult=pairStepper.flush();assert.deepEqual({messages:pairResult.messages.map(m=>[m.data.toString('hex'),String(m.minClock),String(m.reqClock)]),history:[...pairResult.history].map(String),position:String(pairResult.position)},oracle.results[0]);
+ console.log(JSON.stringify({node:process.version,cpu:cpus()[0].model,fixtures:fixtures.length,packetAndHistoryExact:true,cancellationFixtures,moves:1000,nodeMedianMs:times[5],nodeP95Ms:times[10],pythonMedianMs:oracle.times[5],pythonP95Ms:oracle.times[10],speedup:oracle.times[5]/times[5],cancelledPathMedianMs:cancelledTimes[5],cancelledPathP95Ms:cancelledTimes[10],scheduleCancelPairMedianUs:pairTimes[5],scheduleCancelPairP95Us:pairTimes[10],pairsPerSample:pairs},null,2));
 }finally{rmSync(dir,{recursive:true,force:true});}

@@ -176,3 +176,30 @@ static napi_value schedule_pressure_advance(napi_env env,napi_callback_info info
     for(size_t i=0;i<h->pa_count;i++)h->pressure_advance=fmax(h->pressure_advance,h->pa_values[i]);
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
+
+// Discard only parameters beyond a caller-owned source cutoff. Rebuild the
+// private PA list using the unmodified core API while preserving every field
+// of the live iterative solver and the existing step compressor/message queue.
+static napi_value cancel_pressure_advance_after(napi_env env,napi_callback_info info) {
+    size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected handle and pressure cancellation cutoff");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||h->sk->gen_steps_pre_active<=0||!h->pa_count)REJECT("Pressure cancellation requires an enabled fixed smoothing window");
+    double time;CHECK(napi_get_value_double(env,args[1],&time));
+    if(!isfinite(time)||time>=1e15||time<=h->link.generated+h->sk->gen_steps_pre_active)REJECT("Pressure cancellation overlaps generated lookahead");
+    size_t keep=h->pa_count;while(keep&&h->pa_times[keep-1]>time)keep--;
+    if(!keep)REJECT("Pressure cancellation loses retained history");
+    napi_value buffer,result;double *values;CHECK(napi_create_arraybuffer(env,2*sizeof(double),(void**)&values,&buffer));
+    CHECK(napi_create_typedarray(env,napi_float64_array,2,buffer,0,&result));
+    values[0]=h->pa_values[keep-1];values[1]=h->pa_times[keep-1];
+    if(keep<h->pa_count){
+        struct stepper_kinematics *replacement=extruder_stepper_alloc();
+        // Replay with the new solver's zero flush time so the core cannot
+        // discard a coefficient still needed by a retained long source phase.
+        for(size_t i=0;i<keep;i++)extruder_set_pressure_advance(replacement,h->pa_times[i],h->pa_values[i],2*h->link.retention);
+        *replacement=*h->sk;
+        free_solver(h->sk,5);h->sk=replacement;h->pa_count=keep;
+        h->pressure_advance=0;for(size_t i=0;i<keep;i++)h->pressure_advance=fmax(h->pressure_advance,h->pa_values[i]);
+    }
+    h->pa_last_time=fmin(h->pa_last_time,time);
+    return result;
+}
