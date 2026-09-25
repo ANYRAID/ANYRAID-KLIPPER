@@ -259,7 +259,8 @@
     "bench:product-build": "node bench/product-build.ts",
     "bench:product-machine": "node bench/product-machine.ts",
     "bench:native-host-status": "node bench/native-host-status.ts",
-    "bench:native-objects": "node bench/native-objects.ts"
+    "bench:native-objects": "node bench/native-objects.ts",
+    "bench:native-subscriptions": "node bench/native-subscriptions.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

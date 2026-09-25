@@ -39,6 +39,13 @@ export function mergeSubscriptions(subscriptions:Iterable<SubscriptionFilter>):S
 /** Python JSON equality: booleans compare numerically, -0 equals 0, mapping
  * insertion order is irrelevant; arrays remain ordered. Values are validated. */
 function equal(a:Json,b:Json):boolean{if(a===b)return true;if(typeof a==='boolean'&&typeof b==='number'||typeof a==='number'&&typeof b==='boolean')return Number(a)===Number(b);if(Array.isArray(a)&&Array.isArray(b))return a.length===b.length&&a.every((v,i)=>equal(v,b[i]));if(record(a)&&record(b)){const keys=Object.keys(a);return keys.length===Object.keys(b).length&&keys.every(k=>Object.hasOwn(b,k)&&equal(a[k],b[k]));}return false;}
+/** Klippy subscription comparisons use missing previous values as None.
+ * Both inputs and all shared output values have immutable ownership. */
+export function statusDifference(current:StatusView,previous:StatusView):StatusView{
+ requirePrepared(current);requirePrepared(previous);const changes:Record<string,Readonly<Record<string,Json>>>={};
+ for(const [object,fields] of Object.entries(current)){const before=Object.hasOwn(previous,object)?previous[object]:{},delta:Record<string,Json>={};for(const [field,value] of Object.entries(fields))if(!equal(value,Object.hasOwn(before,field)?before[field]:null))put(delta,field,value);if(Object.keys(delta).length)put(changes,object,Object.freeze(delta));}
+ return owned(changes);
+}
 interface Entry {fields:Readonly<Record<string,Json>>;costs:ReadonlyMap<string,number>;bytes:number;}
 export interface StatusCacheLimits {objects?:number;fields?:number;bytes?:number;}
 function limit(value:number|undefined,fallback:number,max:number){const n=value??fallback;if(!Number.isSafeInteger(n)||n<1||n>max)throw new ApiError(400,'Invalid status cache limit');return n;}

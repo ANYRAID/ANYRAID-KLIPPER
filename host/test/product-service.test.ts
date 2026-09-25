@@ -1,4 +1,6 @@
 import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
+import {once} from 'node:events';
+import {WebSocket} from 'ws';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm,writeFile} from 'node:fs/promises';
@@ -96,4 +98,16 @@ test('native object queries expose actual coordinate state and configured sensor
   const response=await fetch(base+'/printer/objects/query?gcode_move&toolhead=homed_axes,position,axis_minimum&extruder&heaters&missing=absent',{headers}),result=(await response.json() as any).result;
   assert(Number.isFinite(result.eventtime));assert.equal(result.status.gcode_move.speed_factor,1.5);assert.equal(result.status.gcode_move.speed,1500);assert.equal(result.status.gcode_move.gcode_position[0],1.005);assert.equal(result.status.toolhead.homed_axes,'');assert.deepEqual(result.status.toolhead.position,owner.printer.linear.port.position());assert.equal(result.status.toolhead.axis_minimum.length,4);assert.deepEqual(result.status.extruder,owner.printer.hardware.analog[0].runtime.objectStatus);assert(result.status.heaters.available_heaters.includes('extruder'));assert.deepEqual(result.status.missing,{absent:null});assert(f.firmware.every(f=>f.motion.length===0));
  }finally{await owner?.close();await f.dispose();}
+});
+test('native WebSocket subscriptions deliver real deltas and disconnect after notification authorization loss',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined,allowed=true;
+ f.serviceOptions.server.authorizeNotification=()=>{if(!allowed)throw new ApiError(401,'Revoked');};
+ try{
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);
+  ws=new WebSocket(`ws://127.0.0.1:${owner.address.port}/websocket`,{headers:{'x-api-key':'test'}});await once(ws,'open');
+  const receive=()=>once(ws!,'message',{signal:AbortSignal.timeout(3000)}).then(([data])=>JSON.parse(String(data)));
+  let reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{gcode_move:['speed_factor'],native_host:['ready']}}}));const initial=await reply;assert.deepEqual(initial.result.status,{gcode_move:{speed_factor:1},native_host:{ready:true}});
+  reply=receive();owner.printer.print.gcode.coordinates.execute('M220',{S:150});const update=await reply;assert.equal(update.method,'notify_status_update');assert.deepEqual(update.params[0],{gcode_move:{speed_factor:1.5}});assert(update.params[1]>initial.result.eventtime);
+  allowed=false;const closed=once(ws,'close',{signal:AbortSignal.timeout(3000)});owner.printer.print.gcode.coordinates.execute('M220',{S:175});await closed;assert(f.firmware.every(f=>f.motion.length===0));
+ }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
