@@ -147,3 +147,45 @@ test('window failure after native acceptance stops the port without publishing n
   assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});assert.equal(t.port.status.failed,true);assert.equal(t.f.stops,1);
  }finally{await t.close();}
 });
+test('fixed-window pressure requests attach to pending geometry without flushing and publish owned settings',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  t.kinematics.markHomed([0]);t.port.move([51,0,0,2.1],10);const before=t.f.fw.motion.length,request={advance:.1,smoothTime:.04};
+  const pending=t.port.setPressureAdvance('e',request,signal());request.advance=.4;await pending;
+  for(let i=0;i<300;i++)await t.port.setPressureAdvance('e',{advance:i%2?.1:.08,smoothTime:.04},signal());
+  assert.equal(t.port.status.pendingMoves,1);assert.equal(t.f.fw.motion.length,before);assert.equal(t.generation.source.status.seeded,false);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.04});assert(Object.isFrozen(t.port.pressureAdvanceSettings('e')));
+  assert.deepEqual(t.generation.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});
+  t.port.move([52,0,0,2.2],10);await t.port.drain(signal());assert.deepEqual(t.generation.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.1,smoothTime:.04}});assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('pressure requests use idle, native tail and stationary window endpoints',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  t.kinematics.markHomed([0]);await t.port.setPressureAdvance('e',{advance:.08,smoothTime:.04},signal());await t.port.setPressureAdvance('e',{advance:.1,smoothTime:.04},signal());assert.equal(t.generation.source.status.pendingBoundaries,1);assert.equal(t.f.fw.motion.length,0);
+  t.port.move([51,0,0,2.1],10);await t.port.dwell(.05,signal());assert(t.generation.source.status.bufferedMoves>0);const time=t.generation.source.status.sourceTime;
+  await t.port.setPressureAdvance('e',{advance:.12,smoothTime:.04},signal());assert.equal(t.generation.source.status.sourceTime,time);await t.port.drain(signal());
+  await t.port.setPressureAdvance('e',{advance:.15,smoothTime:.2},signal());assert.equal(t.generation.source.status.bufferedMoves,0);
+  const stationary=t.generation.source.status.sourceTime;await t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal());assert.equal(t.generation.source.status.sourceTime,stationary);await t.port.drain(signal());
+  assert.deepEqual(t.generation.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.2,smoothTime:.2}});assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('zero-window pressure intent is retained without motion and enables through the window barrier',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  await t.port.setPressureAdvance('e',{advance:.05,smoothTime:0},signal());const time=t.generation.source.status.sourceTime,count=t.f.fw.motion.length;
+  await t.port.setPressureAdvance('e',{advance:.2,smoothTime:0},signal());assert.equal(t.generation.source.status.sourceTime,time);assert.equal(t.f.fw.motion.length,count);assert.equal(t.generation.motion.bindings[1].stepper.scanWindow.future,0);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.2,smoothTime:0});
+  await t.port.setPressureAdvance('e',{advance:.2,smoothTime:.04},signal());assert.deepEqual(t.generation.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.2,smoothTime:.04}});
+  await t.port.setPressureAdvance('e',{advance:0,smoothTime:.04},signal());const end=t.generation.source.status.sourceTime;await t.port.setPressureAdvance('e',{advance:0,smoothTime:.2},signal());assert.equal(t.generation.source.status.sourceTime,end);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:0,smoothTime:.2});assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('pressure prevalidation is harmless and a partial boundary failure stops without publishing new intent',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  assert.throws(()=>t.port.setPressureAdvance('missing',{advance:.1,smoothTime:.04},signal()),/Unknown/);assert.throws(()=>t.port.setPressureAdvance('e',{advance:NaN,smoothTime:.04},signal()));assert.equal(t.f.stops,0);
+  const cause=new Error('pressure boundary publication failed'),mark=t.generation.source.markPressureBoundary.bind(t.generation.source);t.generation.source.markPressureBoundary=change=>{mark(change);throw cause;};
+  await assert.rejects(t.port.setPressureAdvance('e',{advance:.1,smoothTime:.04},signal()),e=>e===cause);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});assert.equal(t.port.status.failed,true);assert.equal(t.f.stops,1);
+ }finally{await t.close();}
+});
+test('pressure requests respect active window, paused and cancelled ownership boundaries',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  const pending=t.port.setPressureAdvance('e',{advance:.1,smoothTime:.2},signal());await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal()),/busy/);await pending;assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,0);
+  await t.port.pause(signal());const before=t.f.fw.motion.length;await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal()),/paused/);assert.equal(t.f.fw.motion.length,before);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,0);await t.port.resumeStream(signal());
+  const abort=new AbortController(),cause=new Error('cancel pressure request');abort.abort(cause);await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},abort.signal),e=>e===cause);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,1);
+ }finally{await t.close();}
+});

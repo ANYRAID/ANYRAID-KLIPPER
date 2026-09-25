@@ -57,18 +57,35 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  get velocityStatus(){return this.#velocity.objectStatus;}
  /** Accepted configuration, not the coefficient currently executing on MCU. */
  pressureAdvanceSettings(id:string):Readonly<PressureAdvanceSettings>{const state=this.#pressure.get(id);if(!state)throw new RangeError('Unknown pressure advance emitter');return state;}
+ /** Serialize requested settings with the path owner. Same-window updates
+  * attach to the latest endpoint without flushing lookahead or stopping motion. */
+ setPressureAdvance(id:string,next:PressureAdvanceSettings,signal:AbortSignal):Promise<void>{
+  this.pressureAdvanceSettings(id);const owned=pressureAdvanceSettings(next.advance,next.smoothTime);
+  return this.#operate('pressure',signal,async s=>{
+   const change=planPressureAdvance(this.pressureAdvanceSettings(id),owned);
+   if(change.kind==='window-change'){await this.#applyPressureWindows([{stepper:id,...owned}],s);return;}
+   if(change.nextWindow>0&&change.previous.advance!==owned.advance){
+    const boundary={stepper:id,advance:owned.advance};
+    if(!this.#admission.markPendingPressureBoundary(boundary))this.#g.source.markPressureBoundary(boundary);
+   }
+   // An effective zero window has no compensation to schedule. Retain the
+   // requested settings here; a later enable still crosses a native barrier.
+   this.#check(s);this.#pressure.set(id,owned);
+  });
+ }
  /** Window changes close lookahead to rest. Fixed-window coefficient updates
   * require geometric endpoint admission and must not use this slower path. */
  reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal):Promise<void>{
   const owned=copyPressureWindowChanges(changes);
   for(const c of owned)if(planPressureAdvance(this.pressureAdvanceSettings(c.stepper),c).kind!=='window-change')throw new RangeError('Pressure coefficient update requires endpoint admission');
-  return this.#operate('pressure-window',signal,async s=>{
+  return this.#operate('pressure-window',signal,s=>this.#applyPressureWindows(owned,s));
+ }
+ async #applyPressureWindows(owned:readonly PressureWindowChange[],s:AbortSignal):Promise<void>{
    const moves=this.#admission.flush();
    if(moves.length)await this.#streamer.append(moves,s);
    else{const state=this.#g.source.status;if(state.paused||!state.seeded)await this.#prepareIdleBoundary(s);}
    this.#check(s);await this.#streamer.reconfigurePressureWindows(owned,s);this.#check(s);
    for(const c of owned)this.#pressure.set(c.stepper,pressureAdvanceSettings(c.advance,c.smoothTime));
-  });
  }
  updateVelocityLimits(patch:VelocityUpdate):void {
   this.assertActive();if(this.#pause||this.#resuming||this.#busy)throw new VelocityUpdateUnavailable();

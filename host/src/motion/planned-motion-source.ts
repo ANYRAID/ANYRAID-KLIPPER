@@ -82,6 +82,18 @@ export class PlannedMotionSource {
   catch(error){void this.#stop(error);throw error;}
   finally{this.#busy=false;}
  }
+ /** Active stationary coverage (for example after a window barrier) has no
+  * geometric move to own the endpoint. Its existing native tail owns it. */
+ markPressureBoundary(change:PressureBoundary):void{
+  this.#check();validatePressureBoundaries([change]);
+  if(this.#count){this.markTailPressureBoundary(change);return;}
+  if(!this.#seeded||this.#paused||this.#idleFrom!==undefined){this.markIdlePressureBoundary(change);return;}
+  if(this.#braking)throw new Error('Pressure boundary cannot change a braking source');
+  this.#busy=true;
+  try{this.#drain.setPressureAdvanceAtTail({...change,time:this.#time});}
+  catch(error){void this.#stop(error);throw error;}
+  finally{this.#busy=false;}
+ }
  /** Release only a completely quiescent output lane. The generation owner
   * must fence admission and authorize the receiving MCU/calibration itself. */
  detachBoundaryOutput():void{
