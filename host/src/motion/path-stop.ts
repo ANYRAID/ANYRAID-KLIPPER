@@ -1,4 +1,5 @@
 import {Move} from './lookahead.ts';
+import {dwellMove,validateDwell} from './dwell.ts';
 import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
 
 export interface PathStop {
@@ -12,6 +13,7 @@ export interface PathStop {
 }
 const close=(a:number,b:number)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=128*Number.EPSILON*Math.max(1,Math.abs(a),Math.abs(b));
 function copy(m:Move,start:readonly number[]=m.startPos,end:readonly number[]=m.endPos,distance=m.distance,endsAtBoundary=true):Move {
+ if(m.dwellSeconds!==undefined){const result=dwellMove(m.limits,start,m.dwellSeconds);result.endMarkers=endsAtBoundary?copyEndMarkers(m.endMarkers):undefined;return result;}
  // Preserve an admitted segment's direction and limits even for sub-nanometre
  // fragments: the ordinary Move constructor intentionally treats those as E-only.
  return Object.assign(Object.create(Move.prototype),m,{endMarkers:endsAtBoundary?copyEndMarkers(m.endMarkers):undefined,limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...start],endPos:[...end],axesD:end.map((v,i)=>v-start[i]),axesR:[...m.axesR],distance,minMoveT:distance/Math.sqrt(m.maxCruiseV2),deltaV2:2*distance*m.accel,mcrDeltaV2:Math.min(2*distance*m.limits.mcrPseudoAccel,2*distance*m.accel),maxStartV2:0,maxMcrStartV2:0,profile:undefined});
@@ -24,10 +26,11 @@ function suffix(moves:readonly Move[],index:number,first?:Move):Move[]{const res
 export function validateStopPath(moves:readonly Move[]):void {
  if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid stop path');
  let previous:Move|undefined;
- for(const m of moves){
+ for(const m of moves as readonly Move[]){
   validateEndMarkers(m.endMarkers);
   const p=m.profile;
   if(!m.limits||![m.limits.maxVelocity,m.limits.maxAccel,m.limits.mcrPseudoAccel,m.limits.junctionDeviation].every(Number.isFinite)||m.limits.maxVelocity<=0||m.limits.maxAccel<=0||m.limits.mcrPseudoAccel<=0||m.limits.mcrPseudoAccel>m.limits.maxAccel||m.limits.junctionDeviation<0)throw new RangeError('Invalid stop path limits');
+  if(m.dwellSeconds!==undefined){validateDwell(m);if(previous&&(previous.endPos.length!==m.startPos.length||m.startPos.some((v,i)=>v!==previous!.endPos[i])||previous.profile!.endV!==0))throw new RangeError('Discontinuous dwell boundary');previous=m;continue;}
   if(!(m instanceof Move)||!p||m.startPos.length<4||m.endPos.length!==m.startPos.length||m.axesR.length!==m.startPos.length||![...m.startPos,...m.endPos,...m.axesR,m.distance,m.accel,m.maxCruiseV2].every(Number.isFinite)||m.distance<=0||m.accel<=0||m.maxCruiseV2<=0||![p.startV,p.cruiseV,p.endV,p.accelT,p.cruiseT,p.decelT].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV<=0||p.cruiseV<p.startV||p.cruiseV<p.endV||!close(p.cruiseV-p.startV,m.accel*p.accelT)||!close(p.cruiseV-p.endV,m.accel*p.decelT)||!close(m.distance,(p.startV+p.cruiseV)*p.accelT/2+p.cruiseV*p.cruiseT+(p.cruiseV+p.endV)*p.decelT/2)||p.cruiseV**2>m.maxCruiseV2&&!close(p.cruiseV**2,m.maxCruiseV2))throw new RangeError('Invalid planned stop segment');
   if(m.endPos.some((v,i)=>!close(v-m.startPos[i],m.axesR[i]*m.distance)))throw new RangeError('Inconsistent stop geometry');
   if(previous&&(previous.endPos.length!==m.startPos.length||m.startPos.some((v,i)=>v!==previous!.endPos[i])||!close(previous.profile!.endV,p.startV)))throw new RangeError('Discontinuous stop path');
@@ -44,7 +47,8 @@ export function planPathStop(moves:readonly Move[],elapsed:number):PathStop {
  let index=0,time=elapsed;
  while(index<moves.length){const p=moves[index].profile!,duration=p.accelT+p.cruiseT+p.decelT;if(time<duration)break;time-=duration;index++;}
  if(index===moves.length){if(time!==0||moves.at(-1)!.profile!.endV!==0)throw new RangeError('Stop anchor has no braking coverage');const position=[...moves.at(-1)!.endPos];return {anchor:[...position],position,velocity:0,brake:[],remainder:[]};}
- const first=moves[index],p=first.profile!;
+  const first=moves[index],p=first.profile!;
+ if(first.dwellSeconds!==undefined){const remaining=first.dwellSeconds-time,rest=dwellMove(first.limits,first.startPos,remaining);rest.endMarkers=copyEndMarkers(first.endMarkers);return {anchor:[...first.startPos],position:[...first.startPos],velocity:0,brake:[],remainder:suffix(moves,index+1,rest)};}
  let distance:number,velocity:number;
  if(time<p.accelT){velocity=p.startV+first.accel*time;distance=(p.startV+velocity)*time/2;}
  else if(time<p.accelT+p.cruiseT){velocity=p.cruiseV;distance=(p.startV+p.cruiseV)*p.accelT/2+p.cruiseV*(time-p.accelT);}

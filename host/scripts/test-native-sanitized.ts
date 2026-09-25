@@ -40,9 +40,10 @@ for(const address of [false,true]) {
   tests.push('test/native-host-status.test.ts');
   tests.push('test/native-objects.test.ts','test/gcode-move.test.ts','test/async-heater-runtime.test.ts');
   tests.push('test/native-subscriptions.test.ts','test/print-layer-info.test.ts');
+  tests.push('test/dwell.test.ts');
   // Physically paced long cases start together in their own batch. Keep the
   // same 60-second deadline and all other assignments; no test is omitted.
-  const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts','test/product-host.test.ts','test/product-machine.test.ts','test/native-host-status.test.ts','test/native-objects.test.ts','test/gcode-move.test.ts','test/async-heater-runtime.test.ts','test/native-subscriptions.test.ts','test/print-layer-info.test.ts']);
+  const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts','test/product-host.test.ts','test/product-machine.test.ts','test/native-host-status.test.ts','test/native-objects.test.ts','test/gcode-move.test.ts','test/async-heater-runtime.test.ts','test/native-subscriptions.test.ts','test/print-layer-info.test.ts','test/dwell.test.ts']);
   for(let batch=0;batch<2;batch++)run(['--test','--test-reporter=tap',...tests.filter((file,i)=>i%2===batch&&!longMotion.has(file))],env);
   run(['--test','--test-reporter=tap',...longMotion],env);
 }

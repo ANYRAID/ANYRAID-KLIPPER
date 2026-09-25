@@ -20,6 +20,8 @@ export function motionLimits(maxVelocity:number,maxAccel:number,squareCornerVelo
 }
 /** Planner primitive. Kinematic and extrusion safety checks must precede queue admission. */
 export class Move {
+  /** Explicit stationary source duration, never a geometric zero-length move. */
+  declare readonly dwellSeconds?:number;
   /** Opaque output ids anchored to this exact endpoint, never callback closures. */
   declare endMarkers?:readonly number[];
   readonly limits:MotionLimits;
@@ -121,6 +123,7 @@ export class LookAheadQueue {
   }
   add(move:Move):boolean {
     this.#assertIdle();
+    if(move.dwellSeconds!==undefined)throw new Error('Plan dwell with explicit stop boundaries');
     if(!move.distance) return false;
     if(this.#queue.length) move.calcJunction(this.#queue[this.#queue.length-1]);
     this.#queue.push(move);this.#members.set(move,(this.#members.get(move)??0)+1);
@@ -135,7 +138,7 @@ export class LookAheadQueue {
     this.#assertIdle();
     if(!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid lookahead batch');
     const seen=new Set<Move>(),staged:Move[]=[];
-    for(const move of moves){if(!(move instanceof Move)||this.#members.has(move)||seen.has(move))throw new RangeError('Duplicate or invalid batch move');seen.add(move);if(move.distance)staged.push(move);}
+    for(const move of moves){if(!(move instanceof Move)||move.dwellSeconds!==undefined||this.#members.has(move)||seen.has(move))throw new RangeError('Duplicate or invalid batch move');seen.add(move);if(move.distance)staged.push(move);}
     const original=staged.map(move=>[move.maxStartV2,move.maxMcrStartV2]);
     const length=this.#queue.length;let previous=this.last,remaining=this.#junctionFlush;
     this.#admitting=true;

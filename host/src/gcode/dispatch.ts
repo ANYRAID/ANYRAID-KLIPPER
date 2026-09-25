@@ -8,7 +8,7 @@ export interface CommandContext extends ParsedCommand {
   ack(message?:string):boolean;
 }
 export type Handler=(command:CommandContext)=>void|Promise<void>;
-interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;}
+interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;checkpoint:boolean;}
 export interface DispatchHooks {
   /** Native product files must not silently skip unimplemented commands. */
   unknownCommand?:'ignore'|'shutdown';
@@ -26,9 +26,9 @@ export class GCodeDispatch {
   #hooks:DispatchHooks;#stopping=false;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
   hasCommand(name:string):boolean {return this.#handlers.has(name);}
-  register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean}={}):void {
+  register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean}={}):void {
     if(!/^[A-Z_][A-Z0-9_]*$/.test(name)||this.#handlers.has(name))throw new Error('Invalid or duplicate command registration');
-    this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false});
+    this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false,checkpoint:options.checkpoint??false});
   }
   setReady(ready:boolean,reason='Printer is not ready'):void {this.#ready=ready;this.#reason=reason;}
   emergencyStop(reason='Shutdown due to M112 command'):void {
@@ -117,7 +117,7 @@ export class GCodeDispatch {
             if(!this.#ready&&!registration?.whenNotReady)throw new GCodeError(this.#reason);
             if(registration) {
               if(registration.extended)try{context.params=extendedParameters(parsed);}catch{throw new GCodeError(`Malformed command '${parsed.commandline}'`);}
-              const result=registration.handler(context);if(result)await result;
+              try{if(registration.checkpoint)onCheckpoint?.(true);const result=registration.handler(context);if(result)await result;}finally{if(registration.checkpoint)onCheckpoint?.(false);}
               controller.signal.throwIfAborted();
             } else if(parsed.command){
               if(this.#hooks.unknownCommand==='shutdown'){const reason=`Unsupported command: ${parsed.command}`;this.emergencyStop(reason);throw new GCodeError(reason);}

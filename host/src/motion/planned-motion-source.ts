@@ -1,3 +1,4 @@
+import {validateDwell} from './dwell.ts';
 import {performance} from 'node:perf_hooks';
 import {Move} from './lookahead.ts';
 import type {TrapQueue} from './trap-queue.ts';
@@ -8,7 +9,7 @@ import {stationaryRows} from './stationary.ts';
 type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
 // Snapshot data on the hot path; hydrate planner methods only when braking.
 const ownMove=(m:Move):MotionSnapshot=>({
- endMarkers:copyEndMarkers(m.endMarkers),
+ dwellSeconds:m.dwellSeconds,endMarkers:copyEndMarkers(m.endMarkers),
  limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],
  distance:m.distance,isKinematic:m.isKinematic,junctionDeviation:m.junctionDeviation,accel:m.accel,minMoveT:m.minMoveT,maxStartV2:m.maxStartV2,maxCruiseV2:m.maxCruiseV2,deltaV2:m.deltaV2,nextJunctionV2:m.nextJunctionV2,maxMcrStartV2:m.maxMcrStartV2,mcrDeltaV2:m.mcrDeltaV2,profile:m.profile?{...m.profile}:undefined,
 });
@@ -30,7 +31,7 @@ export class PlannedMotionSource {
  readonly #routes:readonly PlannedQueue[];readonly #drain:CoordinatedMotionDrain;
  readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
  readonly #starts:Float64Array;readonly #moves:(MotionSnapshot|undefined)[];#braking=false;
- #position:number[];#time:number;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
+ #position:number[];#time:number;#endVelocity=0;#dwellEnd=false;#retired=false;#busy=false;#paused=false;#failed=false;#fault:unknown;
  #idleMarkers:readonly number[]=[];#stationary:{id:number;time:number}[]=[];
  #output:SourceBoundaryOutput|undefined;#deliver:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverRolling:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;#deliverFinal:((horizon:number,signal:AbortSignal)=>Promise<void>)|undefined;
  constructor(routes:readonly PlannedQueue[],drain:CoordinatedMotionDrain,startTime:number,position:readonly number[],maxBufferedMoves=65536,output?:SourceBoundaryOutput){
@@ -82,10 +83,10 @@ export class PlannedMotionSource {
   if(!Array.isArray(moves)||moves.length>limit)throw new RangeError('Invalid planned source batch');
   if(this.#paused&&(moves.length||this.#idleMarkers.length))throw new Error('Resume planned motion with a fresh print time first');
   if(this.#braking&&moves.length)throw new Error('Drain the braking source before admitting more motion');
-  let position=this.#position,time=this.#time,staged=0;
+  let position=this.#position,time=this.#time,staged=0,velocity=this.#endVelocity,afterDwell=this.#dwellEnd;
   // Validate the entire batch before any queue mutation. Input objects are used
   // synchronously, so callers cannot mutate them between queue appends.
-  for(const m of moves as readonly Move[]){validateEndMarkers(m.endMarkers);const p=m.profile;if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');time=((time+p.accelT)+p.cruiseT)+p.decelT;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
+  for(const m of moves as readonly Move[]){validateEndMarkers(m.endMarkers);const p=m.profile;if(m.dwellSeconds!==undefined){validateDwell(m);if(velocity!==0)throw new RangeError('Dwell must begin at rest');}if(afterDwell&&p?.startV!==0)throw new RangeError('Motion after dwell must start at rest');if(!p||m.startPos.length!==position.length||m.endPos.length!==position.length||m.startPos.some((v,i)=>v!==position[i])||!m.endPos.every(Number.isFinite)||![p.accelT,p.cruiseT,p.decelT,p.startV,p.cruiseV,p.endV,m.accel].every(v=>Number.isFinite(v)&&v>=0)||p.cruiseV===0&&m.dwellSeconds===undefined||m.accel===0)throw new RangeError('Invalid or discontinuous planned motion');const prior=time;time=((time+p.accelT)+p.cruiseT)+p.decelT;if(m.dwellSeconds!==undefined&&time<=prior)throw new RangeError('Unrepresentable dwell endpoint');velocity=p.endV;afterDwell=m.dwellSeconds!==undefined;if(!Number.isFinite(time)||time>=1e15)throw new RangeError('Planned source time overflow');position=m.endPos;if(storeEnds)this.#ends[(this.#head+this.#count+staged++)%this.#ends.length]=time;}
   return {position,time};
  }
  #seed():void{
@@ -99,7 +100,7 @@ export class PlannedMotionSource {
   const {position,time}=this.#validate(moves,true),owned=moves.map(ownMove);this.#seed();
   for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
   let start=this.#time;for(let i=0;i<owned.length;i++){const slot=(this.#head+this.#count+i)%this.#ends.length;this.#moves[slot]=owned[i];this.#starts[slot]=start;start=this.#ends[slot];}
-  this.#position=[...position];this.#time=time;this.#count+=moves.length;
+  this.#position=[...position];this.#time=time;this.#count+=moves.length;if(moves.length){this.#endVelocity=moves.at(-1)!.profile!.endV;this.#dwellEnd=moves.at(-1)!.dwellSeconds!==undefined;}
  }
  /** Transfer an unused generation to a privileged producer. This only fences
   * this source writer; the new owner must still arm/stop the physical MCU. */
@@ -120,7 +121,7 @@ export class PlannedMotionSource {
    const end=await this.#drain.replaceFuture(printTime,owned,this.#routes,result.position,signal,timeoutMs,this.#output?async s=>{await this.#deliverRolling!(this.#drain.committedTime,s);s.throwIfAborted();this.#output!.invalidateAfter(printTime);}:undefined);signal.throwIfAborted();
    this.#moves.fill(undefined);this.#head=0;this.#count=owned.length;let time=printTime;
    for(let i=0;i<owned.length;i++){const m=owned[i],p=m.profile!;this.#starts[i]=time;time=((time+p.accelT)+p.cruiseT)+p.decelT;this.#ends[i]=time;this.#moves[i]=m;}
-   this.#position=[...result.position];this.#time=end;this.#braking=true;return result;
+   this.#position=[...result.position];this.#time=end;this.#endVelocity=0;this.#dwellEnd=false;this.#braking=true;return result;
   }catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  /** Append earlier lookahead flushes without losing the final drain endpoint. */
@@ -175,7 +176,7 @@ export class PlannedMotionSource {
     }
    }
    const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
-   const result=await this.#drain.drain(this.#time,positions,signal,remaining(),this.#deliverFinal);remaining();this.#time=result.sourceUntil;this.#paused=true;this.#braking=false;this.#release();
+   const result=await this.#drain.drain(this.#time,positions,signal,remaining(),this.#deliverFinal);remaining();this.#time=result.sourceUntil;this.#paused=true;this.#endVelocity=0;this.#dwellEnd=false;this.#braking=false;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}
   finally{this.#busy=false;}
  }

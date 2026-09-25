@@ -1,4 +1,5 @@
 import {StopNotice} from '../runtime/stop-notice.ts';
+import {dwellMove} from '../motion/dwell.ts';
 import type {LinearHomingPort,HomingPass} from './linear-command.ts';
 import {LinearHomingSeek,type LinearSeekOptions} from './linear-seek.ts';
 import {HomingRetractExecution} from './retract-execution.ts';
@@ -132,6 +133,12 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  /** Lazy lookahead commit, with MCU-time pacing but no forced stop boundary. */
  flush(signal:AbortSignal){return this.#operate('stream',signal,async s=>{const state=this.#g.source.status;if(!this.#admission.pending&&state.pendingBoundaries&&(state.paused||!state.seeded)){await this.#drain(s);return;}await this.#streamer.append(this.#admission.flush(true),s);});}
  drain(signal:AbortSignal){return this.#operate('drain',signal,s=>this.#drain(s));}
+ /** A zero-velocity trajectory interval, paced by the same native streamer.
+  * No host sleep or physical drain is inserted between adjacent source rows. */
+ dwell(seconds:number,signal:AbortSignal){
+  if(!Number.isFinite(seconds)||seconds<0||seconds>3600)return Promise.reject(new RangeError('Invalid dwell duration'));
+  return this.#operate('stream',signal,s=>{const moves=this.#admission.flush();if(seconds)moves.push(dwellMove(this.#o.limits,this.#admission.plannedPosition,seconds));return this.#streamer.append(moves,s);});
+ }
  /** A confirmed paused stop already crossed the MCU boundary. Heating may be
   * adjusted there without resuming the retained trajectory or parking moves. */
  async heaterBoundary(signal:AbortSignal):Promise<void>{

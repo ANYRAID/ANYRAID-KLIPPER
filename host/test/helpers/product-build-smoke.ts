@@ -15,6 +15,8 @@ import {ThumbnailProcessor} from './host/src/moonraker/thumbnail-process.js';
 import {SpectrumExecutor} from './host/src/calibration/background.js';
 import {ShaperFitExecutor} from './host/src/calibration/shaper-fit-executor.js';
 import {TrapQueue} from './host/src/motion/trap-queue.js';
+import {dwellMove} from './host/src/motion/dwell.js';
+import {motionLimits} from './host/src/motion/lookahead.js';
 import {diagnosticPdf} from './host/src/diagnostics/diagnostic-pdf.js';
 const dir=${JSON.stringify(work)},signal=new AbortController().signal;
 const journal=await PrintJournal.open({path:dir+'/journal.db',deviceId:'printer'});
@@ -33,6 +35,7 @@ const dataset=()=>({frequencies:Float64Array.from({length:128},(_,i)=>i*2),psd:F
 const fit=await new ShaperFitExecutor().fit([dataset()],{shapers:['mzv','ei'],frequencies:[35,40,45,50]});
 using queue=new TrapQueue();queue.appendRaw(new Float64Array([1,0,1,0,0,0,0,1,0,0,10,10,0]));
 using stepper=queue.createStepper({frequency:1e6,timeOffset:0,oid:1,maxError:0,queueStepTag:5,directionTag:6},'x',.01);stepper.generate(2);assert.equal(stepper.flush().position,1000n);
+using hold=new TrapQueue();assert.equal(hold.appendPlanned([dwellMove(motionLimits(100,1000),[0,0,0,0],.25)],1,undefined,true),1.25);using held=hold.createStepper({frequency:1e6,timeOffset:0,oid:2,maxError:0,queueStepTag:5,directionTag:6},'x',.01);held.generate(1.25);assert.equal(held.flush().position,0n);
 const pdf=await diagnosticPdf('<svg width="100" height="40" xmlns="http://www.w3.org/2000/svg"><text x="2" y="20">Build</text></svg>',signal);assert.equal(pdf.subarray(0,4).toString(),'%PDF');
 console.log(JSON.stringify({spectrum,fit,steps:'1000'}));
 `);return path;

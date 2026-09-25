@@ -1,8 +1,9 @@
+import {replanWithDwells,validateDwell} from '../motion/dwell.ts';
 import {setTimeout as delay} from 'node:timers/promises';
 import {performance} from 'node:perf_hooks';
 import type {bindRebuiltMotion} from './rebuilt-motion.ts';
 import {copyEndMarkers} from '../motion/boundary-markers.ts';
-import {LookAheadQueue,type Move} from '../motion/lookahead.ts';
+import {type Move} from '../motion/lookahead.ts';
 import {validateStopPath} from '../motion/path-stop.ts';
 import {isPromise} from 'node:util/types';
 import {MotionSourceCapacityError} from '../motion/planned-motion-source.ts';
@@ -81,14 +82,15 @@ export class RebuiltMotionStreamer {
     await flush(false);remaining();await source.drain([],signal,remaining());remaining();
     request.phase='paused';request.resolve(Object.freeze({position:Object.freeze([...source.status.position]),sourceTime:source.status.sourceTime}));
     while(!request.validate){await this.#waitResume(signal,Math.min(100,remaining()));remaining();}
-    request.phase='resuming';const restart=new LookAheadQueue();
+    request.phase='resuming';
     for(const m of retained){
+     if(m.dwellSeconds!==undefined){validateDwell(m);continue;}
      const geometry=[...m.startPos,...m.endPos,...m.axesD,...m.axesR,m.distance,Number(m.isKinematic)],accel=m.accel,speed=m.maxCruiseV2;
      m.profile=undefined;m.maxStartV2=0;m.maxMcrStartV2=0;const result:unknown=request.validate(m);if(result!==undefined){if(isPromise(result))void result.catch(()=>{});throw new Error('Resume validation must complete synchronously');}
      const after=[...m.startPos,...m.endPos,...m.axesD,...m.axesR,m.distance,Number(m.isKinematic)];
      if(after.length!==geometry.length||after.some((v,i)=>v!==geometry[i])||m.accel>accel||m.maxCruiseV2>speed)throw new Error('Resume validation changed geometry or raised limits');
     }
-    restart.addBatch(own(retained));owned=restart.flush();offset=0;
+    owned=replanWithDwells(own(retained));offset=0;
     validateStopPath(owned);if(owned.length&&owned[0].profile!.startV!==0)throw new Error('Resume path must start at rest');
     prepareStart();source.validateBatch(owned);if(owned.length)await source.prepareIdle(signal,remaining());remaining();
     this.#end={position:owned.length?[...owned.at(-1)!.endPos]:source.status.position,velocity:0};this.#pause=undefined;request.resumption?.resolve();return true;
