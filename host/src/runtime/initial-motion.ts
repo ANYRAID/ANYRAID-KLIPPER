@@ -75,7 +75,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
     group.assertActive();if(printPending)throw new Error('Configured print already owned');
     const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
     if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
-    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction);
+    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction,{stepper:extruders[0].id,name:section!});
     printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed}});
     try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured print and cleanup failed',{cause:error});}throw error;}
    };

@@ -343,12 +343,20 @@ virtual_sdcard 文件进度。新任务在串行准备阶段清除旧显示数�
 窗口为零；将来启用时需要重新验证。配置文件仍要求平滑时间大于零，
 与命令参数允许零的规则不同。
 
-`SET_PRESSURE_ADVANCE` 的类型化参数转换已实现，尚未注册到原生
-产品入口。机器集成可使用 `NativeLinearHomingPort.setPressureAdvance`
+配置打印入口现已注册 `SET_PRESSURE_ADVANCE`，绑定配置中的实际
+挤出机名称和原生发射器 id。打印文件命令经过独占 G-code 调度器，
+使用下述连续参数接纳及窗口屏障。Moonraker 挤出机对象保留温度字段，
+并通过查询和订阅发布 `pressure_advance`、`smooth_time`。
+机器集成可在持有运动所有权时使用 `NativeLinearHomingPort.setPressureAdvance`
 提交挤出机绑定 id、`{advance, smoothTime}` 和取消信号；使用
 `pressureAdvanceSettings(id)` 读取最后接纳的请求配置。这不是当前
 MCU 正在执行的系数。参数验证及复制在接纳前完成，部分失败停止端口，
 不会发布未接纳的请求。
+
+原生服务尚无通用 `/printer/gcode/script` 写入入口。持有打印检查点的
+暂停可能保留 G-code 调度器所有权，因此不能将排队脚本视为已经在
+暂停期间调参。下述暂停支持目前由原生端口提供，外部类型化调参仍需
+结合打印状态、鉴权和维护锁接入；不要绕过调度器直接与空闲维护竞争。
 
 固定窗口更新附着到床网格拆分后的最后前瞻段、已规划源尾端或空闲
 边界，不强制刷新前瞻，不改变衔接速度。重复终点请求合并；历史容量

@@ -10,6 +10,29 @@ import {bindNativeFileMotion} from '../src/operations/native-file-motion.ts';
 import {FilePrintDevice} from '../src/operations/file-print-device.ts';
 import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 const rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance:0,retractSpeed:10,secondSpeed:5,endstops:['test']}));
+test('native pressure command owns its binding and preserves exact final motion through window changes',async()=>{
+ const t=await nativeLinearFixture(0,()=>true,true),reports:string[]=[],binding={stepper:'e',name:'extruder'};
+ const g=new NativeLinearGCode(t.port,t.kinematics,rails,m=>reports.push(m),5000,1,undefined,binding);
+ try{
+  binding.stepper='wrong';binding.name='wrong';t.kinematics.markHomed([0]);g.enable();
+  await g.dispatch.execute('SET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0.1\nG1 X51 E2.1 F600\nSET_PRESSURE_ADVANCE ADVANCE=0.2 SMOOTH_TIME=0.08\nG1 X52 E2.2\nSET_PRESSURE_ADVANCE ADVANCE=0');
+  assert.deepEqual(g.pressureAdvance!.pressureAdvance,{advance:0,smoothTime:.08});
+  assert.equal(g.pressureAdvance!.name,'extruder');assert.equal(reports.filter(r=>r.includes('pressure_advance:')).length,3);
+  assert.equal(t.generation.motion.bindings.find(b=>b.id==='x')!.history.status.lastPlannedPosition,300n);
+  assert.equal(t.generation.motion.bindings.find(b=>b.id==='e')!.history.status.lastPlannedPosition,40n);
+  assert.equal(t.port.status.failed,false);
+ }finally{await g.close();await t.close();}
+});
+test('invalid pressure binding does not consume native dispatch ownership',async()=>{
+ const t=await nativeLinearFixture(0,()=>true,true);let g:NativeLinearGCode|undefined;
+ try{
+  assert.throws(()=>new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,{stepper:'missing',name:'extruder'}));
+  assert.throws(()=>new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,{stepper:'e',name:''}));
+  g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,{stepper:'e',name:'extruder'});g.enable();
+  await assert.rejects(g.dispatch.execute('SET_PRESSURE_ADVANCE EXTRUDER=wrong ADVANCE=0.2\nG1 X51'),/Unknown pressure advance extruder/);
+  assert.deepEqual(g.pressureAdvance!.pressureAdvance,{advance:.05,smoothTime:.04});assert.equal(t.f.fw.motion.length,0);
+ }finally{await g?.close();await t.close();}
+});
 test('native G-code assembly owns G28 and modal motion through exact step output',async()=>{
  const t=await nativeLinearFixture(),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000);let sent=false;
  const timer=setInterval(()=>{

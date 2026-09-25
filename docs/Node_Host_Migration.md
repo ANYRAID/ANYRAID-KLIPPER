@@ -21792,3 +21792,51 @@ Node v26.9.0，3 次预热、11 次采样：
 Node 启动信号失败的原因没有因本轮通过而得到解释；该问题仍保留
 在已有诊断记录中。产品命令、状态映射、其余 Python 退役和实机
 验收继续推进。
+
+### 配置打印接入压力命令与 Moonraker 对象
+
+`initializeConfiguredMotion` 将配置挤出机的 section 和发射器 id
+传给 `NativeLinearGCode`，注册 `SET_PRESSURE_ADVANCE`。绑定在构造
+时复制、校验，不受调用者后续修改影响；无效绑定不消耗调度器所有权。
+命令使用现有参数转换及端口事务，在接纳后才报告新值。窗口变化的
+打印路径测试检查最终 X/E 原生位置，错误挤出机名不执行后续运动。
+配置打印文件回归还覆盖命令响应与终态步数。
+
+Moonraker 挤出机对象在原温度状态上增加 `pressure_advance` 和
+`smooth_time`，每次查询读取最后接纳的请求，关闭压力时仍保留请求的
+平滑时间。床加热器不获得这些字段；toolhead 使用同一绑定的挤出机名。
+HTTP 查询、WebSocket 变化通知及通知鉴权撤销均通过真实服务测试。
+该状态不表示 MCU 此刻执行的压力系数。
+
+首次完整检查的 UBSan 1113 项通过，ASan 首批中新增订阅测试直接调用
+底层接口，与空闲时钟维护竞争，报 `Native motion port busy or paused`。
+修正测试，使调参经过实际命令调度器，保留原有底层互斥检查；没有
+放宽忙状态或在端口中添加重试。最终完整 UBSan、ASan 各 1113 项
+全部通过（513 + 521 + 79），日志
+`/tmp/pressure-command-sanitized-final.log`；首次日志保留在
+`/tmp/pressure-command-sanitized.log`。此前 Node 偶发启动信号失败
+的原因仍未解决，本轮通过不构成该问题的修复证明。
+
+Node v26.9.0，3 次预热、11 次采样，独立顺序运行：
+
+- `node host/bench/pressure-command.ts`：每次实际命令解析、串行调度、
+  端口接纳、检查点和响应的中位/P95 为 33.965157/39.723958 μs，
+  通过 150/300 μs 门限；压力关闭以隔离命令开销，14000 次更新
+  不增加原生步进包或源前沿，不能据此推算实际打印速度。
+- `node host/bench/native-pressure-advance.ts`：连续固定窗口端口
+  更新为 6.456279/8.819198 μs，通过原有 50/100 μs 门限，
+  没有前瞻刷新或额外步进包。
+- `node host/bench/source-pressure-window.ts`：201 段全部脉冲与
+  显式参考一致；源事务中位/P95 为 11.508042/12.750807 ms，
+  显式参考为 11.499901/14.718951 ms，通过现有相对门限。
+
+基准日志为 `/tmp/pressure-command-bench.log`、
+`/tmp/pressure-command-active-bench.log` 和
+`/tmp/pressure-command-window-bench.log`。这些是本机及模拟 MCU
+验证，实机验收仍待完成。
+
+原生服务尚无通用 `/printer/gcode/script` 写入入口；暂停可能持有
+文件检查点及调度器所有权，排队命令不能冒充暂停中已完成的调参。
+后续需要把暂停调参接入带打印状态、鉴权与维护互斥的类型化外部操作。
+其余 Python 退役、完整 Moonraker 产品接入及消费级宏生命周期仍属于
+总目标，当前变更没有切换现有生产打印入口。

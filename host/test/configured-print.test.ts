@@ -23,7 +23,7 @@ test('configured arc resolution reaches the native print owner without consuming
 for(const interrupt of [false,true])test(`configured hardware owns ADC heaters and file lifetime (interrupt=${interrupt})`,async()=>{
  const f=await initialLinearFixture(true,true),dir=await mkdtemp(join(tmpdir(),'configured-print-')),path=join(dir,'job.gcode');let timer:ReturnType<typeof setInterval>|undefined,finished=0,stopped=0;
  try{
-  await writeFile(path,interrupt?'WAIT\nG1 X1 E0.1 F600\n':'M105\nG1 X1 E0.1 F600\n');const linear=f.initial.createLinearPort(f.reader,f.settings),reports:string[]=[],h=f.hardware.plan.homing[0];let triggered=false;
+  await writeFile(path,interrupt?'WAIT\nG1 X1 E0.1 F600\n':'M105\nSET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0 SMOOTH_TIME=0.12\nG1 X1 E0.1 F600\n');const linear=f.initial.createLinearPort(f.reader,f.settings),reports:string[]=[],h=f.hardware.plan.homing[0];let triggered=false;
   timer=setInterval(()=>{
    for(const [i,plan] of f.hardware.plan.heaters.entries()){
     const session=f.initial.generation.clockMembers.find(m=>m.mcu===plan.sensor.mcu)!.session,raw=Math.round(plan.configuration.converter.adc(i?80:220)*plan.sensor.adc.maximumSum),next=session.clock.sync.getClock(serialClock.now())+292000n;
@@ -40,6 +40,7 @@ for(const interrupt of [false,true])test(`configured hardware owns ADC heaters a
   const before=f.firmware[0].motion.length;await owner.device.start('file',f.signal);
   if(interrupt){await entered.promise;clearInterval(timer);timer=undefined;await f.hardware.close();assert.equal(owner.file.status.file?.closed,true);assert.equal(finished,0);assert.equal(stopped,1);assert.equal(f.firmware[0].motion.length,before);assert.deepEqual(f.stops,[1,1]);for(const binding of f.hardware.analog)assert.equal(binding.runtime.status.target,0);return;}
   await eof.promise;await owner.device.finish(request.requestId,f.signal);
+  assert.deepEqual(owner.gcode.pressureAdvance!.pressureAdvance,{advance:0,smoothTime:.12});assert(reports.some(r=>r.includes('pressure_advance_smooth_time: 0.120000')));
   const motion=f.firmware[0].motion.slice(before);for(const [id,steps] of [['x',80],['e',8]] as const){const oid=f.hardware.plan.steppers.find(s=>s.emitter===id)!.compressor.oid;assert.equal(motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===oid).reduce((n,m)=>n+Number(m.parameters.count),0),steps);}
   assert.equal(finished,1);assert.equal(stopped,0);assert.equal(owner.file.status.file?.closed,true);assert(reports.some(r=>r.includes('T:')&&r.includes('B:')));
   for(const binding of f.hardware.analog){assert.equal(binding.runtime.status.target,0);assert.equal(binding.outputStatus?.defaultConfirmed,true);}

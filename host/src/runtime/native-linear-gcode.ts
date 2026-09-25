@@ -5,6 +5,7 @@ import {DisplayStatus} from '../gcode/display-status.ts';
 import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 import {GCodeArcs} from '../gcode/arcs.ts';
 import {bindVelocityCommands} from '../gcode/velocity-limits.ts';
+import {bindPressureAdvanceCommand,type PressureAdvancePort} from '../gcode/pressure-advance.ts';
 import {parseConfigurationFloat} from '../moonraker/config-reader.ts';
 import {LinearHomingCommand,type LinearHomingRail} from '../homing/linear-command.ts';
 import type {NativeLinearHomingPort} from '../homing/native-linear-port.ts';
@@ -20,9 +21,16 @@ export class NativeLinearGCode {
  readonly layers=new PrintLayerInfo();
  readonly display=new DisplayStatus();
  readonly retraction:FirmwareRetraction|undefined;
+ readonly pressureAdvance:PressureAdvancePort|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string}){
+  if(pressureBinding){
+   const {stepper,name}=pressureBinding;
+   if(typeof name!=='string'||!name.trim()||name.length>256||name.includes('\0'))throw new Error('Invalid pressure advance object name');
+   port.pressureAdvanceSettings(stepper);
+   this.pressureAdvance=Object.freeze({name,get pressureAdvance(){return port.pressureAdvanceSettings(stepper);},applyPressureAdvance:(change,signal)=>port.setPressureAdvance(stepper,change.next,signal)} satisfies PressureAdvancePort);
+  }
   const arcs=new GCodeArcs(arcResolution);
   this.retraction=retraction?new FirmwareRetraction(retraction):undefined;
   if(owners.has(port)||!port.usesKinematics(kinematics)||typeof output!=='function')throw new Error('Invalid native G-code ownership');
@@ -35,6 +43,7 @@ export class NativeLinearGCode {
   this.display.register(this.dispatch);
   this.retraction?.register(this.dispatch,this.coordinates);
   bindVelocityCommands(this.dispatch,port);
+  if(this.pressureAdvance)bindPressureAdvanceCommand(this.dispatch,this.pressureAdvance);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));
   this.dispatch.register('G4',c=>{let seconds=0;try{if(Object.hasOwn(c.params,'P'))seconds=parseConfigurationFloat(c.params.P)/1000;if(!Number.isFinite(seconds)||seconds<0||seconds>3600)throw new Error();}catch{throw new GCodeError('Invalid G4 P duration');}return port.dwell(seconds,c.signal);},{checkpoint:true});
   if(port.hasCoolingFan)bindCoolingFanCommands(this.dispatch,(value,signal)=>port.queueCoolingFan(value,signal));
