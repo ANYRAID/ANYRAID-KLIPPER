@@ -823,9 +823,9 @@ To check the belt tension on CoreXY printers, execute
 TEST_RESONANCES AXIS=1,1 OUTPUT=raw_data
 TEST_RESONANCES AXIS=1,-1 OUTPUT=raw_data
 ```
-and use `graph_accelerometer.py` to process the generated files, e.g.
+and use `graph_accelerometer.ts` to process the generated files, e.g.
 ```
-~/klipper/scripts/graph_accelerometer.py -c /tmp/raw_data_axis*.csv -o /tmp/resonances.png
+node ~/klipper/scripts/graph_accelerometer.ts -c /tmp/raw_data_axis*.csv -o /tmp/resonances.png
 ```
 which will generate `/tmp/resonances.png` comparing the resonances.
 
@@ -838,7 +838,7 @@ TEST_RESONANCES AXIS=0.866025404,-0.5 OUTPUT=raw_data
 ```
 and then use the same command
 ```
-~/klipper/scripts/graph_accelerometer.py -c /tmp/raw_data_axis*.csv -o /tmp/resonances.png
+node ~/klipper/scripts/graph_accelerometer.ts -c /tmp/raw_data_axis*.csv -o /tmp/resonances.png
 ```
 to generate `/tmp/resonances.png` comparing the resonances.
 
@@ -938,16 +938,16 @@ write the output file. Refer to [G-Codes](G-Codes.md#adxl345) for more
 details.
 
 The data can be processed later by the following scripts:
-`scripts/graph_accelerometer.py` and `scripts/calibrate_shaper.ts`. Both
+`scripts/graph_accelerometer.ts` and `scripts/calibrate_shaper.ts`. Both
 of them accept one or several raw csv files as the input depending on the
-mode. The graph_accelerometer.py script supports several modes of operation:
+mode. The graph_accelerometer.ts script supports several modes of operation:
 
-* plotting raw accelerometer data (use `-r` parameter), only 1 input is
-  supported;
-* plotting a frequency response (no extra parameters required), if multiple
-  inputs are specified, the average frequency response is computed;
-* comparison of the frequency response between several inputs (use `-c`
-  parameter); you can additionally specify which accelerometer axis to
+* plotting raw accelerometer data (use `-r` parameter), with up to 16 inputs
+  shown on the three axis panels;
+* plotting a frequency response (no extra parameters required); multiple
+  inputs are shown separately on common axes;
+* comparison of the frequency response between several inputs (`-c` is an
+  optional compatibility flag); you can additionally specify which axis to
     consider via `-a x`, `-a y` or `-a z` parameter (if none specified,
     the sum of vibrations for all axes is used);
 * plotting the spectrogram (use `-s` parameter), only 1 input is supported;
@@ -955,17 +955,22 @@ mode. The graph_accelerometer.py script supports several modes of operation:
   `-a x`, `-a y` or `-a z` parameter (if none specified, the sum of vibrations
   for all axes is used).
 
-Note that graph_accelerometer.py script supports only the raw_data\*.csv files
-and not resonances\*.csv or calibration_data\*.csv files.
+Run the tool with Node.js 26.9+ (26.x), after installing the host dependencies.
+An explicit `-o` output is required; no Matplotlib window is opened. Frequency
+plots accept raw samples and processed PSD files. Raw plots and spectrograms
+require raw samples. A per-axis selection requires corresponding axis data.
+Use HTML for a standalone interactive plot, PDF or an image for sharing, or
+JSON/CSV for full-precision data. Spectrogram CSV includes every frequency
+regardless of `-f`; this limit controls its graphical display only.
 
 For example,
 ```
-~/klipper/scripts/graph_accelerometer.py /tmp/raw_data_x_*.csv -o /tmp/resonances_x.png -c -a z
+node ~/klipper/scripts/graph_accelerometer.ts /tmp/raw_data_x_*.csv -o /tmp/resonances_x.png -c -a z
 ```
 will plot the comparison of several `/tmp/raw_data_x_*.csv` files for Z axis to
 `/tmp/resonances_x.png` file.
 
-The shaper_calibrate.py script accepts 1 or several inputs and can run automatic
+The calibrate_shaper.ts script accepts 1 or several inputs and can run automatic
 tuning of the input shaper and suggest the best parameters that work well for
 all provided inputs. It prints the suggested parameters to the console, and can
 additionally generate the chart if `-o output.png` parameter is provided, or

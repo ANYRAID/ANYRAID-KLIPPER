@@ -21932,3 +21932,52 @@ HTML/PDF；拟合仍在 Worker 内执行并通过取消/超时清理测试。
 `/tmp/calibration-retirement-after-parse.json` 和
 `/tmp/calibration-retirement-final-cli.json`。本次没有修改原生运动
 算法或切换生产打印入口；这些离线结果不代替目标板和实机验收。
+
+### 加速度计图表 Python 入口退役
+
+删除 `scripts/graph_accelerometer.py`，入口统一为
+`node scripts/graph_accelerometer.ts`，Git 跟踪的 Python 文件由 200
+减少到 199。原始波形、频谱、多文件比较、分轴和谱图均已覆盖；
+`-c/--compare` 保留兼容，多个数据集分别绘制，不进行平均。
+轴名和频率范围在所有输出分支写文件前验证，非法参数不覆盖已有
+CSV。谱图 CSV 保留全部频率及 binary64 精度，`-f` 只限制图形范围。
+原始波形及多文件频谱使用完整换行图例，保留文件名和均值偏移。
+
+退役前从原脚本及 NumPy/Matplotlib 捕获原始曲线、六组完整谱图矩阵、
+旧格式 CSV 和性能数据。`host/contracts/accelerometer-retirement.json`
+记录源提交 `8e9bdbb75d1953169832c028709b8162e0aaa783`、原文件哈希、
+环境和历史计时；同名 `.json.gz` 保存数值参考，不含 Python 实现。
+测试先核验压缩和解压数据长度及 SHA-256，再核验确定性输入哈希。
+曲线和矩阵逐元素门限为 `1e-9 + abs(reference) * 1e-10`；
+原始曲线最大差约 `1.78e-15`，频谱约 `5.46e-12`，谱图约
+`7.73e-12`。新 CSV 往返误差为零，旧 CSV 按原格式舍入精度比较。
+
+四个基准已移除 Python 启动依赖，删除后以 Node v26.9.0、5 次预热、
+11 次采样逐个运行，均通过既定门限。原始波形计算中位/P95 为
+0.190813/0.324815 ms，频谱为 1.042486/1.141688 ms。
+65536 点谱图为 5.971854/6.378361 ms，历史 Python 为
+7.027149/8.102738 ms；8192 点全轴样本中位 1.330191 ms，
+慢于历史 Python 的 0.862654 ms，不能宣称所有计算都有加速。
+计算门限为历史中位 1.25 倍加 2 ms、P95 1.5 倍加 2 ms，
+仅适用于离线工具，不作为打印热路径标准。
+
+257×255 矩阵 CSV 序列化中位/P95 为 7.541239/8.405083 ms，
+历史 Python 为 29.575169/29.827732 ms。全精度输出为 1225708
+字节，旧舍入输出为 855957 字节。8192 点谱图含 FFT 和 900×600
+PNG 编码为 21.571741/23.897997 ms，历史 Matplotlib 为
+77.573367/107.306862 ms；配色及布局不同，不主张像素等价。
+原始波形 PNG 编码为 222.602477/224.519267 ms，与删除前
+Node 的 221.752870/226.784216 ms 接近，图像编码仍是主要耗时。
+图像门限采用中位 1.25 倍加 10 ms、P95 1.5 倍加 20 ms；
+波形/频谱比较删除前 Node，谱图比较历史 Python。
+
+最终 29 项相关回归及类型检查通过，涵盖固定原实现数值、CLI、
+CSV、PDF、交互输出及已有整形校准退役回归。CLI 子进程使用空
+PATH 和不存在的 PYTHON；真实 PNG 已检查三轴完整图例及啁啾谱图。
+验证日志为 `/tmp/accelerometer-retirement-final-tests.log`，四份
+最终基准为 `/tmp/graph-accelerometer-retirement-after.json`、
+`/tmp/spectrogram-retirement-after.json`、
+`/tmp/spectrogram-csv-retirement-after.json` 和
+`/tmp/spectrogram-plot-retirement-after.json`。
+这些是本机离线数值及性能验证，未修改原生运动算法、未重跑原生
+消毒器全套测试、未切换生产入口，也不代表实机打印验收。

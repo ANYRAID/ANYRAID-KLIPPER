@@ -26,6 +26,11 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 HTML/PDF/图像，无需 NumPy 或 Matplotlib；不自动修改打印机配置。
 使用方法见 [共振测量](docs/Measuring_Resonances.md)。
 
+加速度计原始曲线、频率比较及谱图统一使用
+`node scripts/graph_accelerometer.ts -o 输出文件 输入.csv`，旧 Python
+图表脚本已退役。支持多文件比较、各轴选择及完整精度 CSV/JSON；
+需显式指定输出文件，图表计算不会直接控制打印机。
+
 Node 主机已接通线性打印机自动配置、原生步进与归零组件、持久化打印
 控制器和鉴权 Moonraker 服务。设备层采用每 MCU 共享时间轴；版本化
 机器配置已接入，机型适配及实机验收仍待完成。运动流、普通空闲、

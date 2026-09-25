@@ -8,6 +8,12 @@ All dates in this document are approximate.
 
 ## Changes
 
+20260926: `scripts/graph_accelerometer.py` 已退役，改用
+`node scripts/graph_accelerometer.ts -o 输出文件 输入.csv`。支持原始
+三轴曲线、多文件频率比较、谱图及完整精度 CSV/JSON；`-c` 保留为
+显式比较的兼容参数。输入数值及轴名称在写入前校验，不再打开
+Matplotlib 窗口。使用说明见 [Measuring Resonances](Measuring_Resonances.md)。
+
 20260926: 离线 `scripts/calibrate_shaper.py` 已退役，改用
 `node scripts/calibrate_shaper.ts`，需要 Node.js 26.9+（26.x）和 host
 依赖。输出支持 CSV、JSON 报告、HTML、PDF 及图像；不指定输出时仅

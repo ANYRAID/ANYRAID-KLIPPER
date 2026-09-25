@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "sourceCommit": "8e9bdbb75d1953169832c028709b8162e0aaa783",
+  "sources": {
+    "scripts/graph_accelerometer.py": "8ca6c0a045f2ec1367896b3c672a8c9ed636d5ebb36395f1b308be6b5413710d",
+    "klippy/extras/shaper_calibrate.py": "695d35f2d1f261109cbed3a8185a900bcce75f7cef1740920fec8a338701138c",
+    "klippy/extras/shaper_defs.py": "1d8627c8864f6ff683a160fece2197e00b1d4acb12bdd1d743a6a73b6b3f05fe"
+  },
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "dataSha256": "a6010ae707715238538300b85f8e56beab594fb58dd852859c7c806a0869afe2",
+  "compressedSha256": "ea18032227e03026784c03539effdf7f38627da3017a716b961eab74bf169a28",
+  "uncompressedBytes": 3479160,
+  "compressedBytes": 1124246,
+  "reports": {
+    "graph-accelerometer": {
+      "node": "v26.9.0",
+      "samples": 8192,
+      "warmups": 5,
+      "runs": 11,
+      "reports": [
+        {
+          "raw": true,
+          "node": {
+            "medianMs": 0.18133299999999508,
+            "p95Ms": 0.6212610000000041
+          },
+          "python": {
+            "medianMs": 0.6272810278460383,
+            "p95Ms": 0.6394609808921814
+          },
+          "pngExport": {
+            "medianMs": 221.7528699999998,
+            "p95Ms": 226.78421600000001
+          },
+          "maxError": 1.7763568394002505e-15
+        },
+        {
+          "raw": false,
+          "node": {
+            "medianMs": 1.0740779999996448,
+            "p95Ms": 2.3409200000005512
+          },
+          "python": {
+            "medianMs": 1.2051399680785835,
+            "p95Ms": 1.2182110222056508
+          },
+          "pngExport": {
+            "medianMs": 9.84115699999984,
+            "p95Ms": 12.08025600000019
+          },
+          "maxError": 5.4569682106375694e-12
+        }
+      ],
+      "scope": "Raw graph centering or FFT plus frequency curves from parsed input. Original Python plot functions with recording Matplotlib. File parsing/startup/IPC excluded; Node PNG export separate."
+    },
+    "spectrogram": [
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 64,
+        "rate": 1000,
+        "axis": "all",
+        "fftSize": 512,
+        "frames": 1,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 0.19573299999996152,
+          "p95Ms": 0.342995999999971
+        },
+        "pythonCompute": {
+          "medianMs": 0.5554790259338915,
+          "p95Ms": 0.5826299893669784
+        },
+        "maxAbsoluteError": 2.4424906541753444e-15,
+        "maxScaledError": 9.095161048534373e-16,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      },
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 512,
+        "rate": 1000,
+        "axis": "x",
+        "fftSize": 512,
+        "frames": 1,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 0.2155040000000099,
+          "p95Ms": 0.25207399999999325
+        },
+        "pythonCompute": {
+          "medianMs": 0.3202559892088175,
+          "p95Ms": 0.33608597004786134
+        },
+        "maxAbsoluteError": 3.637978807091713e-12,
+        "maxScaledError": 2.6030719930199504e-15,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      },
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 8192,
+        "rate": 3200,
+        "axis": "all",
+        "fftSize": 2048,
+        "frames": 7,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 0.7881830000001173,
+          "p95Ms": 1.426014000000123
+        },
+        "pythonCompute": {
+          "medianMs": 0.8626540075056255,
+          "p95Ms": 0.8808650309219956
+        },
+        "maxAbsoluteError": 7.275957614183426e-12,
+        "maxScaledError": 2.7358232244810772e-15,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      },
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 65536,
+        "rate": 3200,
+        "axis": "all",
+        "fftSize": 2048,
+        "frames": 63,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 5.919260000000122,
+          "p95Ms": 6.056822999999895
+        },
+        "pythonCompute": {
+          "medianMs": 7.0271489676088095,
+          "p95Ms": 8.102738007437438
+        },
+        "maxAbsoluteError": 7.73070496506989e-12,
+        "maxScaledError": 1.1600236304348393e-14,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      },
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 4096,
+        "rate": 997,
+        "axis": "y",
+        "fftSize": 512,
+        "frames": 15,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 0.3617859999999382,
+          "p95Ms": 0.6181899999999132
+        },
+        "pythonCompute": {
+          "medianMs": 0.34538598265498877,
+          "p95Ms": 0.36079599522054195
+        },
+        "maxAbsoluteError": 7.958078640513122e-13,
+        "maxScaledError": 4.192882028549224e-15,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      },
+      {
+        "node": "v26.9.0",
+        "python": "3.12.13",
+        "numpy": "2.5.3",
+        "matplotlib": "3.10.7",
+        "n": 4096,
+        "rate": 1000,
+        "axis": "z",
+        "fftSize": 512,
+        "frames": 15,
+        "warmups": 5,
+        "runs": 11,
+        "nodeCompute": {
+          "medianMs": 0.16440300000022035,
+          "p95Ms": 0.1745229999996809
+        },
+        "pythonCompute": {
+          "medianMs": 0.34561502980068326,
+          "p95Ms": 0.3620369825512171
+        },
+        "maxAbsoluteError": 3.552713678800501e-15,
+        "maxScaledError": 7.105427357601e-16,
+        "scope": "Original calc_specgram with actual matplotlib.mlab; parsed Float64 input; allocation, validation and FFT included, file IO/startup/IPC excluded."
+      }
+    ],
+    "spectrogram-plot": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "numpy": "2.5.3",
+      "matplotlib": "3.10.7",
+      "samples": 8192,
+      "warmups": 5,
+      "runs": 11,
+      "nodePng": {
+        "medianMs": 21.52763499999992,
+        "p95Ms": 23.063442000000123
+      },
+      "pythonPng": {
+        "medianMs": 77.5733669870533,
+        "p95Ms": 107.30686195893213
+      },
+      "scope": "Parsed samples through FFT, heatmap and 900x600 PNG file. Node atomic replace included. Different palettes/layouts; no pixel equivalence claim. Startup/IPC/input IO excluded."
+    },
+    "spectrogram-csv": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "numpy": "2.5.3",
+      "frames": 255,
+      "bins": 257,
+      "warmups": 5,
+      "runs": 11,
+      "nodeSerialize": {
+        "medianMs": 7.4150789999999915,
+        "p95Ms": 9.820568999999978
+      },
+      "pythonSerialize": {
+        "medianMs": 29.575168970040977,
+        "p95Ms": 29.827732010744512
+      },
+      "nodeBytes": 1225708,
+      "pythonBytes": 855957,
+      "maxRoundTripError": 0,
+      "maxOriginalRounding": 0.049984375000008185,
+      "scope": "Validate and serialize existing matrix. Python original write_specgram uses StringIO and rounded text; Node preserves doubles. FFT, disk, startup and IPC excluded."
+    }
+  }
+}

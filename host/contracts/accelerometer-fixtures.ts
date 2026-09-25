@@ -1,0 +1,6 @@
+// Fixed input recipes for the retired GPL-3.0-or-later accelerometer tool.
+export function graphAccelerationFixture(){return Array.from({length:8192},(_,i)=>`${i/3200},${3+200*Math.sin(2*Math.PI*43*i/3200)},${100*Math.cos(2*Math.PI*67*i/3200)},${50*Math.sin(2*Math.PI*123*i/3200)}`).join('\n');}
+export function spectrogramFixture(n:number,rate:number){const raw=new Float64Array(n*4);for(let i=0;i<n;i++){raw[i*4]=17+i/rate;raw[i*4+1]=100*Math.sin(2*Math.PI*43*i/rate)+3;raw[i*4+2]=40*Math.cos(2*Math.PI*67*i/rate)-7;raw[i*4+3]=i%2?2:-2;}return raw;}
+export function chirpFixture(){const raw=new Float64Array(8192*4);for(let i=0;i<8192;i++){const t=i/1000;raw[i*4]=t;raw[i*4+1]=100*Math.sin(2*Math.PI*(20*t+5*t*t));raw[i*4+2]=30*Math.sin(2*Math.PI*120*t);}return raw;}
+export function accelerationBytes(raw:Float64Array){const bytes=Buffer.alloc(raw.byteLength);raw.forEach((v,i)=>bytes.writeDoubleLE(v,i*8));return bytes;}
+export function spectrogramCsvFixture(){const frames=255,frequencies=Float64Array.from({length:257},(_,i)=>i*1000.123/512),times=Float64Array.from({length:frames},(_,i)=>(256+i*256)/1000.123),power=Float64Array.from({length:257*frames},(_,i)=>1e-7+(Math.sin(i*.01)+1)*127.123456789);return {frequencies,times,power,frames,fftSize:512,sampleRate:1000.123};}
