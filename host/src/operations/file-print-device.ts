@@ -29,6 +29,7 @@ export class FilePrintDevice implements PrintDevice {
   motion.subscribeFault?.(cause=>this.#fail(cause));
  }
  get status(){return {requestId:this.#job?.requestId,file:this.#execution?.status,stopping:this.#stopping!==undefined,fault:this.#fault};}
+ get objectStatus(){const execution=this.#execution;if(!execution||this.#stopping||['stopping','stopped'].includes(execution.status.phase))return {progress:0,is_active:false,file_position:0,file_size:0};return execution.objectStatus;}
  subscribeEOF(listener:(requestId:string)=>void):()=>void{
   if(typeof listener!=='function'||this.#eofListeners.has(listener)||this.#eofListeners.size>=64)throw new Error('Invalid file EOF subscription');this.#eofListeners.add(listener);return ()=>{this.#eofListeners.delete(listener);};
  }
@@ -45,7 +46,7 @@ export class FilePrintDevice implements PrintDevice {
  #guard(signal:AbortSignal,epoch=this.#epoch):void{signal.throwIfAborted();if(epoch!==this.#epoch||this.#stopping||this.#fault)throw this.#fault??new Error('File print action invalidated');}
  async prepare(request:Readonly<StartPrint>,signal:AbortSignal):Promise<void>{
   this.#guard(signal);if(this.#job)throw new Error('File print is already prepared');
-  const job=Object.freeze({...request}),epoch=this.#epoch;this.#job=job;this.#started=false;this.#prepared=false;
+  const job=Object.freeze({...request}),epoch=this.#epoch;this.#job=job;this.#execution=undefined;this.#started=false;this.#prepared=false;
   const reader=await this.#open(job.fileId,signal);
   try{this.#guard(signal,epoch);this.#execution=new GCodeFileExecution(reader,this.#dispatch);}
   catch(error){try{await reader.close();}catch(closeError){throw new AggregateError([error,closeError],'File acquisition cleanup failed',{cause:error});}throw error;}

@@ -17,6 +17,15 @@ test('EOF resolves only after all commands and successful commits; no normal eme
  const f=await fixture('G1 X1\nG1 X2\n',async command=>{moves.push(command.params.X);if(moves.length===2){entered.resolve();await gate.promise;}});
  try{const done=f.execution.start();assert.equal(done,f.execution.start());await entered.promise;assert.equal(f.execution.status.position,6);assert.equal(f.execution.status.eof,false);gate.resolve();await done;assert.deepEqual(moves,['1','2']);assert.equal(f.execution.status.phase,'eof');assert.equal(f.execution.status.position,12);assert.equal(f.execution.status.closed,true);assert.equal(f.stops,0);}finally{await f.close();}
 });
+test('file object progress counts committed UTF-8 bytes and holds a partial batch through pause',async()=>{
+ const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>(),script='G1 X1 ; 温度\r\nG1 X2\r\n';let count=0;
+ const f=await fixture(script,async()=>{if(++count===1){entered.resolve();await gate.promise;}},()=>{},2);
+ try{
+  assert.deepEqual(f.execution.objectStatus,{progress:0,is_active:false,file_position:0,file_size:Buffer.byteLength(script)});
+  const done=f.execution.start();await entered.promise;const pausing=f.execution.pause();assert.equal(f.execution.objectStatus.is_active,true);gate.resolve();await pausing;assert.equal(f.execution.objectStatus.is_active,false);assert.equal(f.execution.objectStatus.file_position,0);assert(f.reader.status.readOffset>0);
+  f.execution.resume();await done;assert.deepEqual(f.execution.objectStatus,{progress:1,is_active:false,file_position:Buffer.byteLength(script),file_size:Buffer.byteLength(script)});
+ }finally{gate.resolve();await f.close();}
+});
 test('pause waits current batch then prevents admission until explicit resume',async()=>{
  const gate=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();let moves=0;
  const f=await fixture('G1 X1\nG1 X2\n',async()=>{moves++;if(moves===1){entered.resolve();await gate.promise;}});

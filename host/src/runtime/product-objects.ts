@@ -8,6 +8,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
  const readers=new Map<string,NativeObjectReader>([
   ['native_host',()=>readNativeHostStatus(nativeHost)],
   ['gcode_move',()=>printer.print.gcode.coordinates.objectStatus],
+  ['virtual_sdcard',()=>printer.print.file.objectStatus],
   ['toolhead',()=>{const k=printer.linear.kinematics.status,l=printer.linear.limits;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.position()],extruder:'extruder',max_velocity:l.maxVelocity,max_accel:l.maxAccel};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);

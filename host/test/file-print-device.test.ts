@@ -30,11 +30,21 @@ async function fixture(script='G1 X1\n',handler:(command:CommandContext)=>void|P
  return {group,resets,events,finish,motion,device,thermal,controller,dispatch,path,async close(){finish.resolve();for(const list of resets)for(const reset of list)reset.resolve();await group.shutdown().catch(()=>{});await thermal.stop().catch(()=>{});await store.close();await rm(directory,{recursive:true,force:true});}};
 }
 test('file EOF automatically completes only after motion drain and heater reset ACKs',async()=>{
- const f=await fixture();try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.controller.state,'finishing');assert.equal(f.device.status.file?.eof,true);assert.equal(f.resets[0].length,1);
+ const f=await fixture();try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.controller.state,'finishing');assert.equal(f.device.status.file?.eof,true);assert.equal(f.device.objectStatus.progress,1);assert.equal(f.device.objectStatus.is_active,false);assert.equal(f.resets[0].length,1);
  f.finish.resolve();await until(()=>f.resets[1].length===2);assert.equal(f.controller.state,'finishing');f.resets[0][1].resolve();f.resets[1][1].resolve();await until(()=>f.controller.state==='completed');assert.deepEqual(f.events.slice(0,4),['prepare','start','drain','drained']);}finally{await f.close();}
 });
+test('public file progress clears for a pending replacement and on cancellation but retains completed EOF',async()=>{
+ const f=await fixture(),second=Promise.withResolvers<GCodeFileReader>(),signal=new AbortController().signal;let opens=0;
+ const device=new FilePrintDevice(f.motion,f.dispatch,async()=>++opens===1?GCodeFileReader.adopt(await open(f.path,'r')):second.promise);
+ try{
+  assert.deepEqual(device.objectStatus,{progress:0,is_active:false,file_position:0,file_size:0});await device.prepare(request,signal);assert.equal(device.objectStatus.file_size,6);await device.start('file',signal);await until(()=>device.status.file?.phase==='eof');assert.equal(device.objectStatus.progress,1);assert.equal(device.objectStatus.is_active,false);
+  f.finish.resolve();await device.finish('job',signal);assert.equal(device.objectStatus.progress,1);
+  const preparing=device.prepare({...request,requestId:'next'},signal);assert.equal(device.status.file,undefined);assert.deepEqual(device.objectStatus,{progress:0,is_active:false,file_position:0,file_size:0});second.resolve(await GCodeFileReader.adopt(await open(f.path,'r')));await preparing;assert.equal(device.objectStatus.file_size,6);
+  await device.stop();assert.deepEqual(device.objectStatus,{progress:0,is_active:false,file_position:0,file_size:0});
+ }finally{await device.stop();await f.close();}
+});
 test('empty file EOF cannot bypass startup persistence boundary or lose completion event',async()=>{
- const f=await fixture('');try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.controller.state,'finishing');f.finish.resolve();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await until(()=>f.controller.state==='completed');}finally{await f.close();}
+ const f=await fixture('');try{await f.controller.start(request);await until(()=>f.events.includes('drain'));assert.equal(f.device.objectStatus.progress,0);assert.equal(f.device.objectStatus.file_size,0);assert.equal(f.controller.state,'finishing');f.finish.resolve();await until(()=>f.resets[1].length===2);for(const resets of f.resets)resets[1].resolve();await until(()=>f.controller.state==='completed');}finally{await f.close();}
 });
 test('product pause drains and parks after the current command without executing its batch suffix',async()=>{
  const entered=Promise.withResolvers<void>(),gate=Promise.withResolvers<void>(),seen:string[]=[];

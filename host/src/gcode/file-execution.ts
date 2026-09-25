@@ -11,6 +11,9 @@ export class GCodeFileExecution {
  #fault:unknown;#errors:unknown[]=[];#fenced=false;
  constructor(reader:GCodeFileReader,dispatch:GCodeDispatch){if(reader.status.closed||reader.status.pending||reader.status.eof||reader.status.fault||reader.status.position!==0||reader.status.readOffset!==0)throw new Error('File reader must be fresh with no outstanding batch');this.#reader=reader;this.#dispatch=dispatch;}
  get status(){return {...this.#reader.status,phase:this.#phase,checkpointHeld:this.#checkpointHeld&&this.#checkpoint,fault:this.#fault,cleanupErrors:[...this.#errors]};}
+ /** File admission progress, not physical completion or a restart checkpoint.
+  * Only whole successfully dispatched batches advance the byte position. */
+ get objectStatus(){const s=this.#reader.status;return {progress:s.size?s.position/s.size:0,is_active:this.#phase==='running'||this.#phase==='pausing',file_position:s.position,file_size:s.size};}
  start():Promise<void>{
   if(this.#task)return this.#task;if(this.#phase!=='ready')return Promise.reject(new Error('File execution cannot restart'));
   this.#phase='running';this.#task=Promise.resolve().then(()=>this.#run());void this.#task.catch(()=>{});return this.#task;
