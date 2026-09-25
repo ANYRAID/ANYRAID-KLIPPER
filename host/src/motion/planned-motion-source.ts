@@ -6,6 +6,7 @@ import {CoordinatedMotionDrain} from './coordinated-drain.ts';
 import {planPathStop,type PathStop} from './path-stop.ts';
 import {copyEndMarkers,validateEndMarkers} from './boundary-markers.ts';
 import {stationaryRows} from './stationary.ts';
+import {copyPressureWindowChanges,type PressureWindowChange} from './pressure-advance-settings.ts';
 import {copyPressureBoundaries,validatePressureBoundaries,pressureBoundarySchedule,type PressureBoundary} from './pressure-boundaries.ts';
 type MotionSnapshot=Omit<Move,'limitSpeed'|'limitNextJunctionSpeed'|'calcJunction'|'setJunction'>;
 // Snapshot data on the hot path; hydrate planner methods only when braking.
@@ -178,6 +179,23 @@ export class PlannedMotionSource {
   if(!Number.isFinite(sourceUntil)||sourceUntil<this.#drain.generatedTime||sourceUntil>this.#time)throw new RangeError('Invalid planned source commit horizon');this.#busy=true;
   try{this.#seed();const result=await this.#drain.advanceSource(sourceUntil,signal,timeoutMs,clearHistoryTime,this.#deliverRolling);this.#release();return result;}
   catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
+ }
+ /** Caller has flushed lookahead to rest and owns admission until completion.
+  * Padding advances source time, but does not grant a physical paused state. */
+ async reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
+  this.#check();signal.throwIfAborted();
+  const owned=copyPressureWindowChanges(changes);
+  if(this.#paused||this.#braking||this.#endVelocity!==0)throw new Error('Pressure window boundary requires an active source ending at rest');
+  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid pressure window timeout');
+  this.#busy=true;
+  try{
+   this.#seed();
+   const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
+   const result=await this.#drain.reconfigurePressureWindows(this.#time,positions,owned,signal,timeoutMs,this.#deliverRolling);signal.throwIfAborted();
+   this.#time=result.sourceUntil;this.#endVelocity=0;
+   // The stationary padding, like a dwell, requires a zero-speed next junction.
+   this.#dwellEnd=true;this.#release();
+  }catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}
  }
  async drain(moves:readonly Move[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
   this.#check();signal.throwIfAborted();this.#busy=true;

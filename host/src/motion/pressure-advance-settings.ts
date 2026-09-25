@@ -1,6 +1,13 @@
 // Parameter/window rules from klippy/kinematics/extruder.py, GPL-3.0-or-later.
 // Copyright (C) 2016-2025 Kevin O'Connor.
 export interface PressureAdvanceSettings {advance:number;smoothTime:number;}
+export interface PressureWindowChange extends PressureAdvanceSettings {stepper:string;}
+/** Immutable admission snapshot before source padding or asynchronous work. */
+export function copyPressureWindowChanges(changes:readonly PressureWindowChange[]):readonly Readonly<PressureWindowChange>[]{
+ if(!Array.isArray(changes)||!changes.length||changes.length>128)throw new RangeError('Invalid pressure window changes');
+ const ids=new Set<string>();
+ return Object.freeze(changes.map(c=>{if(!c||typeof c.stepper!=='string'||! /^[A-Za-z0-9_.:-]{1,128}$/.test(c.stepper)||ids.has(c.stepper))throw new RangeError('Invalid pressure window emitter');ids.add(c.stepper);return Object.freeze({stepper:c.stepper,...pressureAdvanceSettings(c.advance,c.smoothTime)});}));
+}
 export interface PressureAdvanceChange {
  readonly previous:Readonly<PressureAdvanceSettings>;
  readonly next:Readonly<PressureAdvanceSettings>;

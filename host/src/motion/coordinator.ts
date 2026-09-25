@@ -4,6 +4,7 @@ import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
 import type {TrapQueue} from './trap-queue.ts';
 import type {Move} from './lookahead.ts';
 import {pressureBoundarySchedule,type TimedPressureBoundary} from './pressure-boundaries.ts';
+import {stationaryRows} from './stationary.ts';
 export interface MotionBinding {id:string;queue:TrapQueue;stepper:StepCompressor}
 export interface MotionOutput extends CompressedSteps {id:string}
 export interface MotionBatch {sequence:number;from:number;until:number;generatedUntil?:number;outputs:readonly MotionOutput[]}
@@ -192,7 +193,7 @@ export class MotionCoordinator {
   const clocks:Record<string,bigint>=Object.create(null);for(const b of this.#bindings)clocks[b.id]=b.stepper.clockAt(until);
   try{
    for(const guard of this.#guards)guard.assertActive();
-   for(const q of queues){const p=positions.get(q)!;q.appendRaw(new Float64Array([lastMoveTime,0,sourceUntil-lastMoveTime,0,...p,0,0,0,0,0,0]));}
+   for(const q of queues)q.appendRaw(stationaryRows(lastMoveTime,sourceUntil,positions.get(q)!));
    if(maxWindowSeconds===undefined)await this.advance(until);else await this.advanceBounded(until,0,until,maxWindowSeconds,historyClock);return Object.freeze({clocks:Object.freeze(clocks),generatedUntil:until,sourceUntil});
   }catch(error){if(error instanceof MotionRetiredError&&this.#retired&&!this.#failed)throw error;try{await this.shutdown(error);}catch{/* Original and stop failures remain in status. */}throw this.#fault;}
  }
