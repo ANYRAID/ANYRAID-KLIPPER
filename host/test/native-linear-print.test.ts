@@ -6,7 +6,7 @@ const signal=()=>new AbortController().signal,request={version:1 as const,reques
 test('assembled thermal file print waits for native drain and both heater off acknowledgements',async()=>{
  const f=await nativePrintFixture(undefined,true),owner=await createNativeLinearPrint(f.options);
  try{
-  const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());await owner.device.prepare(request,signal());await owner.device.start('file',signal());await eof.promise;
+  f.gcode.layers.reset('old');f.gcode.layers.update({TOTAL_LAYER:'20',CURRENT_LAYER:'10'});const eof=Promise.withResolvers<void>();owner.device.subscribeEOF(()=>eof.resolve());await owner.device.prepare(request,signal());assert.equal(f.gcode.layers.requestId,'job');assert.deepEqual(f.gcode.layers.status,{total_layer:null,current_layer:null});await owner.device.start('file',signal());await eof.promise;
   let finished=false;const completion=owner.device.finish('job',signal()).then(()=>{finished=true;});
   const deadline=performance.now()+3000;while(f.resetCounts.some(n=>n<2)){assert(performance.now()<deadline);await new Promise(resolve=>setTimeout(resolve,2));}
   assert.equal(finished,false);assert.equal(f.outputFinishes,1);assert(f.reports.some(s=>s.includes('T:220.0 /200.0')&&s.includes('B:80.0 /60.0')));
@@ -14,6 +14,14 @@ test('assembled thermal file print waits for native drain and both heater off ac
   const reports=f.reports.length;let queried=false;const query=f.gcode.dispatch.execute('M105').then(()=>{queried=true;});await new Promise<void>(r=>setImmediate(r));assert.equal(queried,false);assert.equal(f.reports.length,reports);
   f.off.resolve();await completion;await query;assert.equal(f.heaters.getTemperature('extruder').target,0);assert.equal(f.heaters.getTemperature('bed').target,0);assert.equal(f.outputStops,0);assert(f.reports.at(-1)!.includes('/0.0'));
  }finally{f.off.resolve();await owner.close();await f.close();}
+});
+test('new task layer reset waits for prior dispatch ownership and discards queued old metadata',async()=>{
+ const f=await nativePrintFixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();f.gcode.dispatch.register('WAIT_LAYER',async()=>{entered.resolve();await release.promise;});const owner=await createNativeLinearPrint(f.options);let pending:Promise<void>|undefined,older:Promise<void>|undefined;
+ try{
+  f.gcode.layers.reset('old');f.gcode.layers.update({TOTAL_LAYER:'20',CURRENT_LAYER:'10'});f.gcode.enable();older=f.gcode.dispatch.execute('WAIT_LAYER\nSET_PRINT_STATS_INFO CURRENT_LAYER=9');void older.catch(()=>{});await entered.promise;
+  pending=owner.device.prepare(request,signal());void pending.catch(()=>{});const end=performance.now()+3000;while(!owner.file.status.file){assert(performance.now()<end);await new Promise<void>(resolve=>setImmediate(resolve));}
+  assert.equal(f.gcode.layers.requestId,'old');assert.equal(f.gcode.layers.status.current_layer,10);release.resolve();await older;await pending;assert.equal(f.gcode.layers.requestId,'job');assert.deepEqual(f.gcode.layers.status,{total_layer:null,current_layer:null});assert.equal(f.t.f.fw.motion.length,0);
+ }finally{release.resolve();await owner.close();await Promise.allSettled([pending,older]);await f.close();}
 });
 test('heater fault cancels an active file command and invalidates native motion without another command',async()=>{
  const f=await nativePrintFixture('WAIT\nG1 X51\n'),entered=Promise.withResolvers<void>();f.gcode.dispatch.register('WAIT',c=>new Promise<void>((resolve,reject)=>{c.signal.addEventListener('abort',()=>reject(c.signal.reason),{once:true});entered.resolve();}));const owner=await createNativeLinearPrint(f.options);

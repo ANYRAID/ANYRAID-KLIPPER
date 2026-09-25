@@ -42,7 +42,7 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
   });return closing;
  };
  try{
-  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:(request,signal)=>gcode.prepareForPrint(startupHoming,s=>lifecycle.prepare(request,s),signal),finishOutputs:async(id,signal)=>{
+  const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:(request,signal)=>gcode.prepareForPrint(startupHoming,s=>{gcode.layers.reset(request.requestId);return lifecycle.prepare(request,s);},signal),finishOutputs:async(id,signal)=>{
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
   }});

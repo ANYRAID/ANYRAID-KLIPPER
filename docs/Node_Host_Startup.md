@@ -227,13 +227,27 @@ JSON-RPC 方法为 `printer.objects.query`，参数示例：
   进度。is_active 表示文件命令正在运行或等待暂停，不是物理运动反馈。
   EOF 后保留已提交位置；空文件进度为零；取消及新文件打开期间清零。
   这里没有公开底层封存文件的路径，file_path 尚未接线。
+- `print_stats`：state、message、info.total_layer、info.current_layer。
+  状态来自类型化打印控制器；层数来自同一任务的切片命令。准备、运行、
+  暂停过程和收尾映射为 printing；暂停及恢复等待映射为 paused；只有
+  完成确认后才报告 complete，取消确认后才报告 cancelled。取消等待
+  暂映射 printing，具体过渡状态继续读取 native_host.print_state。
+  interrupted/failed 映射 error，消息使用固定公开文本，不暴露内部异常。
+
+原生文件支持 `SET_PRINT_STATS_INFO TOTAL_LAYER=100 CURRENT_LAYER=1`。
+层数只作元数据，不触发移动、宏或生命周期操作；命令仍受现有 G-code
+就绪与串行准入控制。值为非负安全整数，CURRENT_LAYER 超过总层数时
+截到总层数，TOTAL_LAYER=0 清空两项。字段省略和总层数变化沿用 Python
+规则。新任务准备取得串行命令所有权后清空层数并绑定 requestId，先前
+排队的旧命令不能污染新任务。新任务打开文件或准备
+尚未完成绑定期间，状态对象不会返回上一任务的层数。
 
 文件进度达到 1 仅表示命令提交完毕。运动排空、输出停止确认和持久化
 完成仍由类型化打印控制器判断；必须结合打印状态确认完成，不能用
 file_position 自动续打，也不能用 is_active=false 判断设备已安全停止。
 
 对象目录仅列出实际绑定对象。暂未接线的 toolhead 时间/停顿字段、
-挤出机额外字段和 print_stats 仍需继续实现，不伪造零值。
+挤出机额外字段及 print_stats 的文件名、耗材与时长仍需继续实现，不伪造零值。
 查询最多 4096 个对象、16384 个显式字段，响应预算 1 MiB（保守保留
 外层编码空间）；超限会拒绝。无效状态来源、时钟倒退或读取失败不
 返回部分结果。读取状态不改变 G-code 准入、归零或温控保护。

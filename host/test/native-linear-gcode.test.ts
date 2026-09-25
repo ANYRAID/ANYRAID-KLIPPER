@@ -47,9 +47,9 @@ for(const unsupported of [false,true])test(`assembled file owner ${unsupported?'
  const device=new FilePrintDevice(motion,g.dispatch,async()=>GCodeFileReader.adopt(await open(path,'r'))),done=Promise.withResolvers<void>();
  device.subscribeEOF(()=>done.resolve());device.subscribeFault(()=>done.resolve());
  try{
-  t.kinematics.markHomed([0]);await writeFile(path,unsupported?'M104 S200\nG1 X51 F600\n':'G91\n'+Array.from({length:256},()=> 'G1 X0.00390625 F60\n').join('')+'G90\n');
+  t.kinematics.markHomed([0]);await writeFile(path,unsupported?'M104 S200\nG1 X51 F600\n':'SET_PRINT_STATS_INFO TOTAL_LAYER=100\nG91\n'+Array.from({length:256},()=> 'G1 X0.00390625 F60\n').join('')+'G90\nSET_PRINT_STATS_INFO CURRENT_LAYER=99\n');
   const signal=new AbortController().signal;await device.prepare({version:1,requestId:'job',fileId:'file',nozzle:0,bed:0},signal);await device.start('file',signal);await done.promise;
   if(unsupported){await device.stop();assert(device.status.fault);assert.equal(device.status.file?.closed,true);assert.equal(t.f.fw.motion.length,0);assert.equal(finished,0);assert.equal(stops,1);}
-  else{assert.equal(device.status.file?.phase,'eof');await device.finish('job',signal);assert.equal(finished,1);assert.equal(stops,0);assert.deepEqual(g.coordinates.state.position,[51,0,0,2]);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((sum,m)=>sum+Number(m.parameters.count),0),100);}
+  else{assert.deepEqual(g.layers.status,{total_layer:100,current_layer:99});assert.equal(device.status.file?.phase,'eof');await device.finish('job',signal);assert.equal(finished,1);assert.equal(stops,0);assert.deepEqual(g.coordinates.state.position,[51,0,0,2]);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===3).reduce((sum,m)=>sum+Number(m.parameters.count),0),100);}
  }finally{await device.stop();await g.close();await t.close();await rm(dir,{recursive:true,force:true});}
 });

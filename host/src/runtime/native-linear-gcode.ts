@@ -1,5 +1,6 @@
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
+import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 import {LinearHomingCommand,type LinearHomingRail} from '../homing/linear-command.ts';
 import type {NativeLinearHomingPort} from '../homing/native-linear-port.ts';
 import type {LinearKinematics,Axis} from '../kinematics/linear.ts';
@@ -11,6 +12,7 @@ export interface PrintHomingPolicy {mode:'home'|'require_homed';axes:readonly Ax
  * Readiness permits G28, but never grants homing or bypasses thermal guards. */
 export class NativeLinearGCode {
  readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand;
+ readonly layers=new PrintLayerInfo();
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
  constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000){
@@ -20,6 +22,7 @@ export class NativeLinearGCode {
   this.dispatch=new GCodeDispatch({output,unknownCommand:'shutdown',checkpoint:s=>port.flush(s),drain:s=>port.drain(s),shutdown:reason=>{void port.motorOff(new Error(reason)).catch(()=>{});}});
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
+  this.layers.register(this.dispatch);
   if(port.hasCoolingFan)bindCoolingFanCommands(this.dispatch,(value,signal)=>port.queueCoolingFan(value,signal));
   if(port.hasMotorEnable)for(const name of ['M18','M84'])this.dispatch.register(name,c=>{if(c.params.M!==name.slice(1)||Object.keys(c.params).some(key=>!['M','N','*'].includes(key)))throw new GCodeError('M18/M84 releases all motors; parameters are unsupported');if(!port.canReleaseMotors)throw new GCodeError('Always-on motors cannot be released by software');return port.releaseMotors(c.signal);});
   this.#off=port.subscribeStop(()=>{this.#closed=true;this.#stopClockMaintenance();this.dispatch.emergencyStop('Native motion stopped');});
