@@ -262,8 +262,10 @@ sensors this is a formula-derived equivalent, not their physical resistance.
 and `-v` changes ADC voltage. `--help` lists the 16 supported built-in sensors.
 The available file formats are PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON panels.
 These curves do not establish sensor accuracy or a safe heater temperature
-range. The legacy Python script currently references a removed thermistor
-registration function; its interactive window is not replaced by this tool.
+range. The legacy Python script and its broken sensor registration entry
+have been retired. This tool requires an explicit output file; it does not
+provide the old Matplotlib interactive window. Regression tests use complete
+frozen Python reference curves without launching Python.
 
 ## Generating the legacy motion demonstration
 
