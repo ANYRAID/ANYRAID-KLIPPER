@@ -170,7 +170,7 @@ export class PrintController {
     const stream=new PrintStateStream(Object.freeze({state:this.#state,stateToken:this.#stateToken}),signal,()=>this.#stateObservers.delete(stream));
     this.#stateObservers.add(stream);return stream;
   }
-  #changeState(state:PrintState):void{if(this.#state===state)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}}
+  #changeState(state:PrintState,renew=false):void{if(this.#state===state&&!renew)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}}
   #active: Promise<void> | undefined;
   #abort: AbortController | undefined;
   #cancel: Promise<void> | undefined;
@@ -373,6 +373,18 @@ export class PrintController {
       this.#device.resume(signal),
     );
   }
+  /** Trusted typed machine action after confirmed pause. The callback must use
+   * the paused device owner, never the dispatch held by the paused file.
+   * Admission and completion invalidate stale controls without leaving paused.
+   * Cancellation/retirement retain the action through normal safety cleanup. */
+  adjustPaused(action:(signal:AbortSignal)=>Promise<void>):Promise<void>{
+    if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
+    if(typeof action!=='function')return Promise.reject(new TypeError('Invalid paused action'));
+    if(this.#state!=='paused'||this.#active)return Promise.reject(new Error('Paused action requires an idle confirmed pause'));
+    let release:(()=>void)|undefined;try{release=this.#maintenanceGate?.activity();}catch(error){return Promise.reject(error);}
+    const pending=this.#run('adjust','paused','paused',action);
+    void pending.then(()=>release?.(),()=>release?.());return pending;
+  }
   /** Trusted job completion path; the adapter must independently verify EOF. */
   complete(requestId: string): Promise<void> {
     if(this.#retirement)return Promise.reject(new Error('Print controller retired'));
@@ -560,12 +572,12 @@ export class PrintController {
     return safety;
   }
   #run(
-    operation: 'start' | 'pause' | 'resume' | 'finish',
+    operation: 'start' | 'pause' | 'resume' | 'finish' | 'adjust',
     transient: PrintState,
     success: PrintState,
     action: (signal: AbortSignal) => Promise<void>,
   ): Promise<void> {
-    this.#changeState(transient);
+    this.#changeState(transient,operation==='adjust');
     const abort = new AbortController();
     this.#abort = abort;
     this.#active = (async () => {
@@ -581,12 +593,12 @@ export class PrintController {
         await printDeadline(
           pending,
           operation,
-          this.#deadlines[(operation + 'Ms') as keyof PrintDeadlines],
+          this.#deadlines[operation==='adjust'?'pauseMs':(operation + 'Ms') as keyof PrintDeadlines],
           abort.signal,
           (error) => abort.abort(error),
         );
         abort.signal.throwIfAborted();
-        this.#changeState(success);
+        this.#changeState(success,operation==='adjust');
       } catch (error) {
         if (this.#state !== 'cancelling') {
           this.#operationError??=error;

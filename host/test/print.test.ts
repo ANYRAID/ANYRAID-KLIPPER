@@ -37,6 +37,27 @@ function fixture(overrides: Partial<PrintDevice> = {}) {
     controller: new PrintController(device, { maxNozzle: 280, maxBed: 110 }),
   };
 }
+test('paused adjustment invalidates control tokens and owns resume, cancellation and retirement',async()=>{
+ const {controller,calls}=fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();
+ await assert.rejects(controller.adjustPaused(async()=>{}),/confirmed pause/);
+ await controller.start(request);await controller.pause();const before=controller.stateToken;
+ const pending=controller.adjustPaused(async signal=>{entered.resolve();await release.promise;signal.throwIfAborted();});
+ assert.notEqual(controller.stateToken,before);const admitted=controller.stateToken;
+ await entered.promise;assert.equal(controller.pendingDeviceActions,1);await assert.rejects(controller.resume(),/Cannot resume/);await assert.rejects(controller.adjustPaused(async()=>{}),/confirmed pause/);
+ release.resolve();await pending;assert.equal(controller.state,'paused');assert.notEqual(controller.stateToken,admitted);
+ const late=Promise.withResolvers<void>(),began=Promise.withResolvers<void>();let signal:AbortSignal|undefined;
+ const next=controller.adjustPaused(async s=>{signal=s;began.resolve();await late.promise;s.throwIfAborted();}),rejected=assert.rejects(next,/cancelled/);
+ await began.promise;let retired=false;const retirement=controller.retire().then(()=>{retired=true;});await Promise.resolve();assert(signal!.aborted);assert.equal(retired,false);late.resolve();await rejected;await retirement;assert.equal(controller.pendingDeviceActions,0);assert(calls.filter(c=>c==='stop').length>=2);
+});
+test('paused adjustment timeout aborts but retains the late action until safe retirement',async()=>{
+ let stops=0,signal:AbortSignal|undefined;const late=Promise.withResolvers<void>();
+ const device:PrintDevice={async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){stops++;}};
+ const controller=new PrintController(device,{maxNozzle:300,maxBed:120},{pauseMs:10,stopMs:10});
+ await controller.start(request);await controller.pause();
+ const pending=controller.adjustPaused(async s=>{signal=s;await late.promise;});
+ await assert.rejects(pending,/operation and safe stop failed/);assert(signal!.aborted);assert.equal(controller.state,'failed');assert.equal(controller.pendingDeviceActions,1);assert(stops>=1);
+ let retired=false;const closing=controller.retire().then(()=>{retired=true;});await Promise.resolve();assert.equal(retired,false);late.resolve();await closing;assert.equal(controller.pendingDeviceActions,0);assert(stops>=2);
+});
 test('versioned requests validate temperatures and opaque file IDs before side effects', async () => {
   const { calls, controller } = fixture();
   for (const invalid of [

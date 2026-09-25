@@ -4,6 +4,7 @@ import type {NativeHostStatusSource} from './native-host-status.ts';
 import {NativePrintUploads,registerNativeFileInfo} from './native-print-uploads.ts';
 import {ProductPrintApi,registerProductPrintApi} from './product-print-api.ts';
 import type {PrintController} from '../operations/print.ts';
+import type {PressureAdvancePort} from '../gcode/pressure-advance.ts';
 import {MqttRpc,type MqttAuthorization} from './mqtt-rpc.ts';
 import {MqttStatusRuntime} from './mqtt-status-runtime.ts';
 import {readMqttStatusOptions} from './mqtt-status.ts';
@@ -57,6 +58,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  maintenanceGate?:MaintenanceGate;
  /** Native device owner; replaces legacy print routes and excludes Klippy attachment. */
  productPrint?:PrintController;
+ productPressure?:PressureAdvancePort;
  /** Live native owner snapshot; never a replacement for Klippy state. */
  nativeHost?:NativeHostStatusSource;
  nativeObjects?:NativeObjects;
@@ -156,7 +158,7 @@ export class ConfiguredMoonraker {
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
   this.#nativeUploads=options.nativeUploads;const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads):()=>{};
-  this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
+  this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
   const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
   const releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):()=>{};
@@ -185,6 +187,7 @@ export class ConfiguredMoonraker {
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
   if(options.nativeObjects!==undefined&&(!(options.nativeObjects instanceof NativeObjects)||!options.productPrint))throw new ConfigurationError('Native objects require a native print owner');
+  if(options.productPressure!==undefined&&!options.productPrint)throw new ConfigurationError('Native pressure control requires a native print owner');
   if(options.nativeHost!==undefined&&(typeof options.nativeHost!=='function'||!options.productPrint))throw new ConfigurationError('Native host status requires a native print owner');
   if(options.sensorTransport!==undefined&&(!(options.sensorTransport instanceof MqttSensors)||!options.sensors||!options.sensorTransport.owns(options.sensors)||options.sensorTransport.status.closed||options.sensorTransport.status.started||options.sensorTransport.status.rpcBound||mqttSensorOwners.has(options.sensorTransport)))throw new ConfigurationError('Invalid or already owned sensor transport');
   if(options.sensors!==undefined&&(!(options.sensors instanceof SensorStore)||options.sensors.status.closed||sensorOwners.has(options.sensors)))throw new ConfigurationError('Invalid or already owned sensor store');

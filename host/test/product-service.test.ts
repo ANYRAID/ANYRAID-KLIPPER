@@ -3,7 +3,9 @@ import {once} from 'node:events';
 import {WebSocket} from 'ws';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,open} from 'node:fs/promises';
+import {setTimeout as delay} from 'node:timers/promises';
+import {GCodeFileReader} from '../src/gcode/file-reader.ts';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createServer} from 'node:net';
@@ -22,6 +24,27 @@ async function fixture(){
  const product={journal,maintenanceGate,limits:{maxNozzle:300,maxBed:130}};const serviceOptions:ProductServiceOptions={configPath,server:{information:{connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize:(_method,_params,context)=>{if(context.request.headers['x-api-key']!=='test')throw new ApiError(401,'Denied');return {username:'operator'};}}};
  return {...f,dir,journal,product,serviceOptions,async dispose(){await f.close();await journal.close();await rm(dir,{recursive:true,force:true});}};
 }
+test('authorized HTTP pressure tuning completes while a paused native file retains its dispatch',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
+ try{
+  const path=join(f.dir,'pressure.gcode');await writeFile(path,Array.from({length:256},(_,i)=>`G1 X${(i+1)/100} F60\n`).join(''));
+  f.options.print.startupHoming={mode:'require_homed',axes:[0]};f.options.print.open=async()=>GCodeFileReader.adopt(await open(path,'r'));
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);owner.printer.linear.kinematics.markHomed([0]);
+  const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test','content-type':'application/json'},controller=owner.printer.controller;
+  const post=async(action:string,body:unknown,authorized=true)=>{const response=await fetch(base+'/printer/print/'+action,{method:'POST',headers:authorized?headers:{'content-type':'application/json'},body:JSON.stringify(body)});const result=await response.json() as any;return {status:response.status,result};};
+  const request={version:1 as const,requestId:'pressure-job',fileId:'file',nozzle:0,bed:0};await controller.start(request);
+  const deadline=performance.now()+5000;while(!f.firmware[0].motion.some(m=>m.name==='queue_step')){assert(performance.now()<deadline);await delay(2);}
+  const paused=await post('pause',{request_id:request.requestId,state_token:controller.stateToken});assert.equal(paused.status,200);assert.equal(controller.state,'paused');assert.equal(owner.printer.print.file.status.file?.checkpointHeld,true);
+  const settings={version:1,request_id:request.requestId,state_token:controller.stateToken,extruder:'extruder',advance:.1,smooth_time:.08},before=controller.stateToken;
+  assert.equal((await post('pressure_advance',settings,false)).status,401);assert.equal(controller.stateToken,before);
+  const changed=await post('pressure_advance',settings);assert.equal(changed.status,200,JSON.stringify(changed.result));assert.equal(controller.state,'paused');assert.notEqual(controller.stateToken,before);assert.equal(owner.printer.print.file.status.file?.checkpointHeld,true);
+  assert.equal((await post('pressure_advance',settings)).status,409);
+  const response=await fetch(base+'/printer/objects/query?extruder=pressure_advance,smooth_time',{headers});assert.deepEqual((await response.json() as any).result.status.extruder,{pressure_advance:.1,smooth_time:.08});
+  const resumed=await post('resume',{request_id:request.requestId,state_token:controller.stateToken});assert.equal(resumed.status,200,JSON.stringify(resumed.result));
+  const finish=performance.now()+10000;while(String(controller.state)!=='completed'){assert(controller.failure===undefined,String(controller.failure));assert(performance.now()<finish);await delay(5);}
+  assert.deepEqual(owner.printer.linear.port.position(),[2.56,0,0,0]);assert.deepEqual(owner.printer.print.gcode.pressureAdvance!.pressureAdvance,{advance:.1,smoothTime:.08});
+ }finally{await owner?.close();await f.dispose();}
+});
 test('configuration-driven product service opens real UARTs and owns the complete shutdown',async()=>{
  const f=await fixture(),transport=await productTransports(f.reader);let owner:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined;
  try{

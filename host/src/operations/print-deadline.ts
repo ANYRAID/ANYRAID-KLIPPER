@@ -1,5 +1,5 @@
 export type PrintOperation =
-  'start' | 'pause' | 'resume' | 'finish' | 'safe stop' | 'cancel';
+  'start' | 'pause' | 'resume' | 'finish' | 'safe stop' | 'cancel' | 'adjust';
 export class PrintTimeoutError extends Error {
   readonly operation: PrintOperation;
   readonly timeoutMs: number;
