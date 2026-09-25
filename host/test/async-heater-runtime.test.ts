@@ -97,3 +97,10 @@ test('reentrant stop while creating protection timer cancels the newly returned 
  const f=fixture();let cancelled=0;const runtime=new AsyncHeaterRuntime(config,new BangBangControl(1),f.output,()=>({system:1,print:1}),{},()=>{void runtime.shutdown();return ()=>{cancelled++;};});
  const start=runtime.start(),result=assert.rejects(start,/stopped/);f.resets[0].resolve();f.stopped.resolve();await result;assert.equal(cancelled,1);assert.equal(runtime.status.phase,'stopped');
 });
+test('heater object reports rounded sample and scheduled power until output stop is confirmed',async()=>{
+ const f=fixture(),starting=f.runtime.start();f.resets[0].resolve();await starting;
+ try{
+  f.runtime.sample(1,2.675);assert.deepEqual(f.runtime.objectStatus,{temperature:2.67,target:0,power:0});await f.runtime.setTarget(200);f.runtime.sample(1.1,2.675);assert.equal(f.runtime.objectStatus.power,1);assert.equal(f.runtime.objectStatus.target,200);
+  const stop=f.runtime.shutdown();assert.equal(f.runtime.objectStatus.target,0);assert.equal(f.runtime.objectStatus.power,1);f.stopped.resolve();await stop;assert.equal(f.runtime.objectStatus.power,0);
+ }finally{f.stopped.resolve();await f.runtime.shutdown();}
+});

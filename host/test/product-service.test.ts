@@ -86,3 +86,14 @@ test('native server information follows physical stop while cleanup acknowledgem
   held.resolve();await stopping;info=await read();assert.equal(info.native_host.ready,false);assert.equal(info.native_host.group_state,'stopped');assert.deepEqual(f.stops,[1,1]);
  }finally{held.resolve();await stopping?.catch(()=>{});await owner?.close();await f.dispose();}
 });
+test('native object queries expose actual coordinate state and configured sensors without movement',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
+ try{
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test'};
+  const listing=await fetch(base+'/printer/objects/list',{headers}),names=(await listing.json() as any).result.objects;for(const name of ['native_host','toolhead','gcode_move','heaters','extruder','heater_bed','fan'])assert(names.includes(name));
+  // Populate the coordinate model without granting public G-code admission.
+  owner.printer.print.gcode.coordinates.execute('G92',{X:1.005,E:2.675});owner.printer.print.gcode.coordinates.execute('M220',{S:150});
+  const response=await fetch(base+'/printer/objects/query?gcode_move&toolhead=homed_axes,position,axis_minimum&extruder&heaters&missing=absent',{headers}),result=(await response.json() as any).result;
+  assert(Number.isFinite(result.eventtime));assert.equal(result.status.gcode_move.speed_factor,1.5);assert.equal(result.status.gcode_move.speed,1500);assert.equal(result.status.gcode_move.gcode_position[0],1.005);assert.equal(result.status.toolhead.homed_axes,'');assert.deepEqual(result.status.toolhead.position,owner.printer.linear.port.position());assert.equal(result.status.toolhead.axis_minimum.length,4);assert.deepEqual(result.status.extruder,owner.printer.hardware.analog[0].runtime.objectStatus);assert(result.status.heaters.available_heaters.includes('extruder'));assert.deepEqual(result.status.missing,{absent:null});assert(f.firmware.every(f=>f.motion.length===0));
+ }finally{await owner?.close();await f.dispose();}
+});

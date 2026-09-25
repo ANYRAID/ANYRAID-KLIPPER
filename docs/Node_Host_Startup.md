@@ -191,6 +191,43 @@ NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契�
 `klippy_connected` 和 `klippy_state` 继续描述 Klippy，不因原生主机
 就绪而伪造 Python 连接。已有打印状态通知仍使用 notify_print_state_changed。
 
+原生服务还提供 `/printer/objects/list` 与 `/printer/objects/query`，支持
+鉴权 REST 和 JSON-RPC（包括 WebSocket）；字段选择格式沿用 Moonraker：
+
+```text
+/printer/objects/query?gcode_move=position,speed&extruder=temperature,target,power
+```
+
+JSON-RPC 方法为 `printer.objects.query`，参数示例：
+
+```json
+{"objects":{"gcode_move":["position","speed"],"extruder":null}}
+```
+
+结果为 `{eventtime, status}`。eventtime 使用与串口相同的主机单调时钟，
+单位秒；不是 Unix 时间。null 选择对象全部已实现字段，空数组选择
+空对象。未知对象返回 `{}`，显式请求的缺失字段返回 null。每个请求
+只读取指定的对象，返回值与源对象隔离，不缓存旧结果或发起设备操作。
+
+目前已绑定：
+
+- `native_host`：上述主机状态。
+- `gcode_move`：坐标模式、速度倍率、进料速度、挤出倍率、归零偏移、
+  指令位置、G-code 位置及轴映射。speed 沿用上游 mm/min；位置不取整。
+- `toolhead`：指令位置、归零轴、四分量坐标边界、当前挤出机名称、
+  max_velocity 和 max_accel。位置是队列规划位置，不是编码器反馈。
+- `heaters`：当前已装配加热器、传感器和监控器列表。
+- 各加热器配置节（例如 extruder、heater_bed）：最近平滑温度按 Python
+  兼容规则显示两位小数，target 保持原值，power 为最后调度的功率；
+  独立停止确认后显示零。查询不会刷新 ADC，数值不是电气反馈。
+- 各风扇配置节：speed 为已请求速度；当前没有转速计所有者，rpm 为 null。
+
+对象目录仅列出实际绑定对象。暂未接线的 toolhead 时间/停顿字段、
+挤出机额外字段、print_stats 和对象订阅仍需继续实现，不伪造零值。
+查询最多 4096 个对象、16384 个显式字段，响应预算 1 MiB（保守保留
+外层编码空间）；超限会拒绝。无效状态来源、时钟倒退或读取失败不
+返回部分结果。读取状态不改变 G-code 准入、归零或温控保护。
+
 SIGINT/SIGTERM 取消正在进行的启动，或结束已经就绪的服务。退出先
 停止服务与打印所有者，再释放外部依赖。不会为快速退出直接调用
 `process.exit()`，也不会因为重复信号跳过清理。已就绪后的正常信号退出返回 0；

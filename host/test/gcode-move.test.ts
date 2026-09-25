@@ -62,3 +62,9 @@ test('coordinate commands feed lookahead and actual XYZ/extruder C queues consis
     assert.ok(Math.abs(e[4]+(e[2]+.5*e[3]*e[1])*e[1]-3)<1e-12);
   } finally {xyz.dispose();extruder.dispose();}
 });
+test('object status preserves coordinate frames, feed units and extra-axis mapping without moving',()=>{
+ const {engine,moves}=setup();engine.execute('G92',{X:1.005,E:2.675});engine.execute('M220',{S:150});engine.execute('M83');
+ const status=engine.objectStatus;assert.equal(status.speed_factor,1.5);assert.equal(status.speed,1500);assert.equal(status.absolute_extrude,false);assert.deepEqual(status.position,[0,0,0,0]);assert.deepEqual(status.gcode_position,[1.005,0,0,2.675]);assert.deepEqual(status.axis_map,{X:0,Y:1,Z:2,E:3});assert.equal(moves.length,0);
+ status.position[0]=55;status.axis_map.X=9;assert.equal(engine.objectStatus.position[0],0);assert.equal(engine.objectStatus.axis_map.X,0);
+ const extra=new GCodeMove({position:()=>[0,0,0,0,1.005],move(){assert.fail('No movement');}});extra.updateExtraAxes({U:4});assert.equal(extra.objectStatus.axis_map.U,4);assert.equal(extra.objectStatus.position[4],1.005);
+});

@@ -1,3 +1,4 @@
+import {fixedDecimal} from '../math/python-decimal.ts';
 import {TemperatureState,type TemperatureConfig} from './state.ts';
 import {HeaterPWM,PIDControl,BangBangControl} from './control.ts';
 import {HeaterCheck,type HeaterCheckConfig} from './verify.ts';
@@ -26,6 +27,8 @@ export class AsyncHeaterRuntime {
   this.#state=new TemperatureState(config);this.#pwm=new HeaterPWM(config.maxPower,config.reportDelay);this.#check=new HeaterCheck(verification);
   this.#control=control;this.#output=output;this.#clock=clock;this.#timer=schedule;
  }
+ /** Report the last smoothed sample and scheduled power, not electrical feedback. */
+ get objectStatus(){const state=this.#state.state;return {temperature:Number(fixedDecimal(state.smoothedTemperature,2)),target:state.target,power:this.#outputStopped?0:this.#pwm.scheduledPower};}
  get limits(){return this.#state.limits;}
  get status(){return {...this.#state.state,phase:this.#phase,started:this.#everStarted,stopped:this.#stop!==undefined,cause:this.#cause,outputStopConfirmed:this.#outputStopped,pendingWrites:this.#writes.size,shutdownErrors:[...this.#errors]};}
  #now():ThermalClock{

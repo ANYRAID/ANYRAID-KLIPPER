@@ -50,6 +50,7 @@ export class HeaterPWM {
  #max:number;#delay:number;#validUntil=-999;#lastHeartbeat=-Infinity;#lastSample=0;
  #next=0;#value=0;#stopped=false;
  constructor(maxPower:number,reportDelay:number){power(maxPower);if(!positive(reportDelay)||reportDelay>=1)throw new RangeError('Invalid heater report delay');this.#max=maxPower;this.#delay=reportDelay;}
+ get scheduledPower():number{return this.#value;}
  heartbeat(estimatedPrintTime:number):void {
   if(this.#stopped)throw new Error('Heater PWM is shut down');
   if(!Number.isFinite(estimatedPrintTime)||estimatedPrintTime<0||estimatedPrintTime<this.#lastHeartbeat)throw new RangeError('Invalid heater heartbeat');

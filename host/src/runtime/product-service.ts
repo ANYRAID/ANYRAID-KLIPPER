@@ -1,3 +1,4 @@
+import {productObjects} from './product-objects.ts';
 import type {NativeHostSnapshot} from '../moonraker/native-host-status.ts';
 import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
 import type {ConfiguredPrinterOptions} from './configured-printer.ts';
@@ -23,7 +24,7 @@ export function startConfiguredProductService(reader:ConfigurationReader,policie
 }
 export interface ProductServiceOptions {
  configPath:string;
- server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'|'nativeHost'>;
+ server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'|'nativeHost'|'nativeObjects'>;
 }
 /** Start native hardware, durable print control and the authorized Moonraker
  * listener as one owner. Journal remains external; server component ownership
@@ -43,7 +44,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  const aborted=()=>{void printer.close().catch(()=>{});void server?.close().catch(()=>{});};signal.addEventListener('abort',aborted,{once:true});
  try{
   signal.throwIfAborted();
-  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,maintenanceGate:printer.maintenanceGate,nativeHost});
+  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,maintenanceGate:printer.maintenanceGate,nativeHost,nativeObjects:productObjects(printer,nativeHost)});
   signal.throwIfAborted();printer.group.assertActive();
   const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
   return Object.freeze({printer,server,address,close});

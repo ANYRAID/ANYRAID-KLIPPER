@@ -32,6 +32,8 @@ export class GCodeMove {
     this.#state={absoluteCoordinates:true,absoluteExtrude:true,base:position.map(()=>0),position,homing:[0,0,0,0],speed:25,speedFactor:1/60,extrudeFactor:1};
   }
   get state():CoordinateState {return copy(this.#state);}
+  /** Read-only Klippy object view; commanded coordinates are not motor feedback. */
+  get objectStatus(){const s=this.#state;return {speed_factor:s.speedFactor*60,speed:s.speed/s.speedFactor,extrude_factor:s.extrudeFactor,absolute_coordinates:s.absoluteCoordinates,absolute_extrude:s.absoluteExtrude,homing_origin:[...s.homing],position:[...s.position],gcode_position:this.gcodePosition,axis_map:Object.fromEntries(this.#axes)};}
   get gcodePosition():number[] {
     const s=this.#state,p=s.position.map((v,i)=>v-s.base[i]);p[3]/=s.extrudeFactor;return p;
   }
