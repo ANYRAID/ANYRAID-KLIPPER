@@ -13,8 +13,9 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 迁移范围见 [迁移说明](Node_Host_Migration.md)。
 
 这是显式机器集成入口。仓库未提供可直接套用到任意打印机的生产
-机器模块，也未将默认 Python 服务切换到此命令。声明式配置装配、
-目标机部署、其余设备支持和实机验收仍需继续完成。
+机器模块，也未将默认 Python 服务切换到此命令。下面的声明式配置
+可以装配已支持的线性机器；机型适配、目标机部署、其余设备支持和
+实机验收仍需继续完成。
 
 ## 编译后的运行包
 
@@ -59,6 +60,80 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 字体资源和双 UART 主机启停。测试 UART 对端为模拟 MCU。
 
 ## 机器模块契约
+
+### 声明式机器配置
+
+可信机器模块可以使用 `loadProductMachineProfile` 管理配置、打印日志
+和资源清理。编译运行包的模块示例：
+
+```js
+import {loadProductMachineProfile} from '/opt/anyraid/host/src/runtime/product-machine-profile.js';
+import {createMachineBindings} from './board-adapter.mjs';
+
+export function createProductHostProfile(signal) {
+  return loadProductMachineProfile('/etc/anyraid/machine.json', createMachineBindings, signal);
+}
+```
+
+`board-adapter.mjs` 是机型集成实现，不是仓库提供的通用驱动。
+JSON 只保存数据，例如以下结构（坐标、速度和温度须按机型确定）：
+
+```json
+{
+  "version": 1,
+  "deviceId": "printer-01",
+  "printerConfig": "/etc/anyraid/printer.cfg",
+  "moonrakerConfig": "/etc/anyraid/moonraker.conf",
+  "journalPath": "/var/lib/anyraid/jobs.db",
+  "mcus": {
+    "mcu": {"transport": "uart", "rts": true, "leaveBootloader": false}
+  },
+  "machine": {"enableLeadTime": 0.001, "fanMinimumScheduleTime": 0.001},
+  "limits": {"maxNozzle": 300, "maxBed": 130},
+  "print": {
+    "motorCompletion": "hold",
+    "startupHoming": {"mode": "home", "axes": [0, 1, 2]},
+    "parking": {
+      "parkXY": [0, 0], "retract": 0, "lift": 0,
+      "travelSpeed": 10, "liftSpeed": 5, "retractSpeed": 5
+    }
+  }
+}
+```
+
+根节点与每层对象都拒绝未知字段。路径必须为绝对路径，JSON 文件须为
+不超过 64 KiB 的 UTF-8 普通文件；非有限数、重复归零轴、负停车距离、
+无效速度和超时都会失败。CAN 策略使用 `transport: "can"`、`nodeId`
+及 `timeoutMs`；管道策略只有 `transport: "pipe"`。`mcus` 必须精确
+覆盖 printer.cfg 中的所有 MCU，传输种类一致，同一 CAN 接口不能重复
+分配节点 ID。读取配置和规划阶段不连接传输，也不产生运动许可。
+
+可选字段包括 `deadlines` 的 startMs/pauseMs/resumeMs/stopMs/finishMs，
+`hardware` 的 timeoutMs/heaterGcodeIds，以及 `print` 的 bedHeater 和
+homingTimeoutMs。省略时沿用各组件的默认值。数值保持 Number 精度，
+不进行单位转换或取整；仍由实际运动、温控和硬件装配层校验设备约束。
+
+`createMachineBindings(configuration, signal, maintenanceGate)` 返回：
+
+- `stops`：逐 MCU 的独立物理停止函数 Map，不能依赖同一个主机停止流程。
+- `print`：类型化 lifecycle、授权 sealed-file 的 open 和 G-code output。
+- `server`：Moonraker 组件、真实信息快照及显式 authorize 等策略。
+- `release()`：释放适配器取得的资源；部分创建失败由工厂自行清理。
+
+传给适配器的 configuration 是独立副本，不能通过修改它覆盖已选定的
+停车、归零或温度策略。maintenanceGate 与最终打印控制器共用，供
+NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契约。
+配置结构、网络监听参数、MCU 覆盖和线性拓扑通过后才调用适配器；
+适配器完整性通过后再打开日志。硬件字典及运行状态相关校验仍在连接
+和装配阶段执行。Moonraker 在服务装配时重新读取配置，当前不是多个
+配置文件的原子快照或热重载机制。
+
+适配器返回后即转移清理责任，包含返回时已取消的情况。装配失败会
+关闭适配器和已取得的日志，保留原始错误与清理错误；正常退出在真实
+打印退场后清理。release 重复调用复用同一个结果，日志最终关闭。
+此入口不提供空的物理停止或默认鉴权，也不恢复历史打印动作。
+
+### 完整手工模块
 
 模块导出 `createProductHostProfile(signal)`，返回
 [ProductHostProfile](../host/src/runtime/product-host.ts) 对象。配置模块
