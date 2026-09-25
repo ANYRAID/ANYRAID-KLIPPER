@@ -63,6 +63,21 @@ export class MotionCoordinator {
  get finalizedSourceTime():number{return this.#finalizedSourceTime;}
  usesQueues(queues:readonly TrapQueue[]):boolean{const owned=new Set(this.#bindings.map(b=>b.queue));return queues.length===owned.size&&new Set(queues).size===owned.size&&queues.every(q=>owned.has(q));}
  usesSink(sink:MotionSink):boolean{return this.#sink===sink;}
+ /** Change scan windows only at the fully submitted generation frontier.
+  * Source owners must supply stationary coverage for both old/new windows;
+  * transport acceptance is required here, physical MCU completion is not. */
+ reconfigurePressureWindows(time:number,changes:readonly {stepper:string;advance:number;smoothTime:number}[]):void{
+  if(this.#retired||this.#failed||this.#busy||this.#bounded||time!==this.#generated||this.#committed!==this.#generated)throw new Error('Pressure window change requires a submitted generation boundary');
+  this.#beginWork();this.#busy=true;
+  try{
+   for(const guard of this.#guards)guard.assertActive();
+   if(!Array.isArray(changes)||!changes.length||changes.length>128||new Set(changes.map(c=>c.stepper)).size!==changes.length)throw new RangeError('Invalid pressure window group');
+   const staged=changes.map(c=>{const b=this.#bindings.find(b=>b.id===c.stepper);if(!b||b.stepper.generatedTime!==time)throw new RangeError('Invalid pressure window emitter');return {stepper:b.stepper,advance:c.advance,smoothTime:c.smoothTime};});
+   for(const c of staged)c.stepper.validatePressureAdvanceWindow(c.advance,c.smoothTime);
+   for(const c of staged)c.stepper.reconfigurePressureAdvance(c.advance,c.smoothTime);
+  }catch(error){void this.shutdown(error).catch(()=>{});throw error;}
+  finally{this.#busy=false;this.#endWork();}
+ }
  /** The source owner may revise its newest endpoint, never an older event. */
  setPressureAdvanceAtTail(change:TimedPressureBoundary):void{
   if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot update pressure tail');

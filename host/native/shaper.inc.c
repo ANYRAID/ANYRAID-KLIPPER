@@ -148,6 +148,37 @@ static napi_value configure_pressure_advance(napi_env env,napi_callback_info inf
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 
+// Runtime window barrier: the owner has generated old motion to a stationary
+// boundary and provided explicit retained/future coverage for both windows.
+// Validation can run for every emitter before any member is changed.
+static napi_value reconfigure_pressure_advance(napi_env env,napi_callback_info info) {
+    size_t argc=4;napi_value args[4];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=4)REJECT("Expected handle, advance, smooth time and apply flag");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode!=5||!h->started||!h->pa_count)REJECT("Pressure window barrier requires a generated extruder");
+    double advance,smooth;bool apply;CHECK(napi_get_value_double(env,args[1],&advance));CHECK(napi_get_value_double(env,args[2],&smooth));CHECK(napi_get_value_bool(env,args[3],&apply));
+    if(!isfinite(advance)||advance<0||!isfinite(smooth)||smooth<0||smooth>.2)REJECT("Invalid pressure advance settings");
+    if(!advance)smooth=0;
+    double half=smooth*.5;
+    if(smooth&&!isfinite(1./(half*half)))REJECT("Pressure smoothing exceeds numeric resolution");
+    double time=h->link.generated,span=fmax(.001,fmax(half,h->link.retention)),low=time-span,high=time+span;
+    if(h->pa_last_time>time||low<0||!(low<time&&high>time)||high>h->queue->end)REJECT("Pressure window barrier lacks settled parameters or source coverage");
+    trapq_check_sentinels(h->queue->q);
+    struct move *head=list_first_entry(&h->queue->q->moves,struct move,node),*tail=list_last_entry(&h->queue->q->moves,struct move,node),*m;
+    double covered=low,position=0;int seen=0;
+    list_for_each_entry(m,&h->queue->q->moves,node){
+        if(m==head||m==tail)continue;
+        double end=m->print_time+m->move_t;if(end<=low)continue;if(m->print_time>=high)break;
+        if(m->print_time>covered||m->start_v||m->half_accel||!isfinite(m->start_pos.x)||(seen&&position!=m->start_pos.x))REJECT("Pressure window barrier requires continuous stationary coverage");
+        position=m->start_pos.x;seen=1;covered=fmax(covered,end);
+    }
+    if(!seen||covered<high||fabs(position-h->path_position)>h->sk->step_dist*.5*1.000002)REJECT("Pressure window barrier lacks retained stationary coverage");
+    napi_value result;CHECK(napi_get_undefined(env,&result));if(!apply)return result;
+    extruder_set_pressure_advance(h->sk,0.,advance,smooth);
+    h->link.retention=h->sk->gen_steps_post_active;h->link.future=h->sk->gen_steps_pre_active;
+    h->pressure_advance=advance;h->pa_count=1;h->pa_times[0]=0;h->pa_values[0]=advance;h->pa_last_time=0;
+    return result;
+}
+
 static size_t pressure_history_drop(struct handle *h) {
     double cutoff=h->link.generated-h->link.retention,oldest=0;
     trapq_check_sentinels(h->queue->q);struct move *m;

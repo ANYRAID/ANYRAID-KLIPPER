@@ -10,7 +10,7 @@ export interface CompressedSteps {
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'corexz+'|'corexz-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
 const solverModes={x:0,y:1,z:2,'corexy+':3,'corexy-':4,extruder:5,'corexz+':7,'corexz-':8} as const;
-interface Native {setPressureAdvanceAtTail(handle:object,time:number,advance:number):Float64Array;cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {reconfigurePressureAdvance(handle:object,advance:number,smoothTime:number,apply:boolean):void;setPressureAdvanceAtTail(handle:object,time:number,advance:number):Float64Array;cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
 export interface MotionFilterSettings {shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
@@ -38,6 +38,12 @@ export class StepCompressor {
   }
   /** Configure an E-only queue before generation. Zero advance disables smoothing. */
   configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}
+  /** Preflight a generated stationary barrier without changing native state. */
+  validatePressureAdvanceWindow(advance:number,smoothTime:number):void{native.reconfigurePressureAdvance(this.#handle,advance,smoothTime,false);}
+  /** Runtime-only window switch at a proven stationary generation barrier.
+   * Caller owns group serialization; this neither waits for MCU execution nor
+   * resets the compressor, coordinates or motor counters. */
+  reconfigurePressureAdvance(advance:number,smoothTime:number):void{native.reconfigurePressureAdvance(this.#handle,advance,smoothTime,true);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}
   /** Whether this emitter owns a nonzero pressure convolution window. This
    * describes filter capability, not the coefficient active at the MCU now. */
   get pressureAdvanceEnabled():boolean{if(this.#closed)throw new Error('Step compressor is closed');const p=this.#filters.pressureAdvance;return !!p&&p.advance>0&&p.smoothTime>0;}

@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import assert from 'node:assert/strict';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
@@ -103,4 +104,33 @@ test('tail revisions prune consumed short phases while preserving native generat
 });
 test('tail updates reject unconfigured, disabled, wrong-mode and closed emitters',()=>{
  using q=new TrapQueue();using e=q.createStepper(settings,'extruder',.01);assert.throws(()=>e.setPressureAdvanceAtTail(1,.1),/enabled/);e.configurePressureAdvance(.1,0);assert.throws(()=>e.setPressureAdvanceAtTail(1,.2),/enabled/);using x=q.createStepper({...settings,oid:4},'x',.01);assert.throws(()=>x.setPressureAdvanceAtTail(1,.1),/enabled/);e.dispose();assert.throws(()=>e.setPressureAdvanceAtTail(1,.1),/closed/);
+});
+function windowPath(){return new Float64Array([1,.125,0,.125,0,0,0,1,1,0,0,8,64,1.25,0,.75,0,1,0,0,0,0,0,0,0,0,2,.125,.75,.125,1,0,0,1,1,0,0,8,64,3,0,.3,0,8,0,0,0,0,0,0,0,0]);}
+test('runtime pressure windows grow, shrink, disable and re-enable without resetting generated counters',()=>{
+ using q=new TrapQueue();q.appendRaw(windowPath());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);s.generate(1.5);const prefix=s.flush(),position=s.commandedPosition,time=s.generatedTime;
+ for(const [advance,smoothTime] of [[.1,.2],[.08,.02],[0,.04],[.1,0],[.05,.04]]){const before=s.scanWindow;s.validatePressureAdvanceWindow(advance,smoothTime);assert.deepEqual(s.scanWindow,before);s.reconfigurePressureAdvance(advance,smoothTime);assert.equal(s.generatedTime,time);assert.equal(s.commandedPosition,position);assert.equal(s.scanWindow.future,advance?smoothTime*.5:0);assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance,smoothTime}});}
+ assert.equal(prefix.position,100n);s.generate(3.1);assert.equal(s.flush().position,800n);
+});
+test('runtime pressure barrier rejects movement, absent coverage and future updates atomically',()=>{
+ for(const which of ['motion','coverage','future'] as const){using q=new TrapQueue();q.appendRaw(windowPath());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);if(which==='future')s.schedulePressureAdvance(2.5,.1);s.generate(which==='motion'?1.1:which==='coverage'?3.27:1.5);const before=s.scanWindow,position=s.commandedPosition;
+  assert.throws(()=>s.reconfigurePressureAdvance(.1,.2),/barrier/);assert.deepEqual(s.scanWindow,before);assert.equal(s.commandedPosition,position);
+ }
+});
+test('runtime pressure barrier refuses missing retained padding and numeric underflow',()=>{
+ using q=new TrapQueue();q.appendRaw(windowPath());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);assert.throws(()=>s.reconfigurePressureAdvance(.1,.2),/generated/);s.generate(1.5);
+ for(const smooth of [Number.MIN_VALUE,1e-200,NaN,.3])assert.throws(()=>s.reconfigurePressureAdvance(.1,smooth));assert.deepEqual(s.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});
+ q.finalize(1.47,0);s.validatePressureAdvanceWindow(.1,.2); // The long stationary phase remains retained whole.
+ s.reconfigurePressureAdvance(.1,.2);assert.equal(s.scanWindow.past,.1);
+ using split=new TrapQueue();const path=Array.from(windowPath());path.splice(13,13,1.25,0,.2,0,1,0,0,0,0,0,0,0,0,1.45,0,.55,0,1,0,0,0,0,0,0,0,0);split.appendRaw(new Float64Array(path));using other=split.createStepper({...settings,oid:4},'extruder',.01);other.configurePressureAdvance(.05,.04);other.generate(1.5);split.finalize(1.47,0);assert.throws(()=>other.reconfigurePressureAdvance(.1,.2),/stationary coverage/);assert.equal(other.scanWindow.past,.02);
+});
+test('coordinator preflights every pressure window before changing any emitter',async()=>{
+ for(const invalid of [false,true]){using a=new TrapQueue();using b=new TrapQueue();a.appendRaw(windowPath());b.appendRaw(windowPath());using x=a.createStepper(settings,'extruder',.01);using y=b.createStepper({...settings,oid:4},'extruder',.01);for(const s of [x,y])s.configurePressureAdvance(.05,.04);let commits=0,stops=0;const owner=new MotionCoordinator([{id:'a',queue:a,stepper:x},{id:'b',queue:b,stepper:y}],{async commit(){commits++;},async stop(){stops++;}});await owner.advance(1.5);
+  const changes=[{stepper:'a',advance:0,smoothTime:.04},{stepper:'b',advance:.1,smoothTime:invalid?.3:.2}];if(invalid){assert.throws(()=>owner.reconfigurePressureWindows(1.5,changes));await new Promise(resolve=>setImmediate(resolve));assert.equal(x.scanWindow.future,.02);assert.equal(y.scanWindow.future,.02);assert.equal(stops,1);}else{owner.reconfigurePressureWindows(1.5,changes);assert.equal(commits,1);assert.equal(x.scanWindow.future,0);assert.equal(y.scanWindow.future,.1);await owner.advance(3.1);assert.equal(stops,0);}
+ }
+});
+test('coordinator refuses a window switch before generated steps are fully submitted',async()=>{
+ using q=new TrapQueue();q.appendRaw(windowPath());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);const owner=new MotionCoordinator([{id:'e',queue:q,stepper:s}],{async commit(){},async stop(){}});await owner.advance(1.5,0,1.49);assert.throws(()=>owner.reconfigurePressureWindows(1.5,[{stepper:'e',advance:.1,smoothTime:.2}]),/submitted/);assert.equal(s.scanWindow.future,.02);
+});
+test('partial pressure window application stops all emitters and disallows another generation',async()=>{
+ using a=new TrapQueue();using b=new TrapQueue();a.appendRaw(windowPath());b.appendRaw(windowPath());using x=a.createStepper(settings,'extruder',.01);using y=b.createStepper({...settings,oid:4},'extruder',.01);for(const s of [x,y])s.configurePressureAdvance(.05,.04);let stops=0;const owner=new MotionCoordinator([{id:'a',queue:a,stepper:x},{id:'b',queue:b,stepper:y}],{async commit(){},async stop(){stops++;}});await owner.advance(1.5);const cause=new Error('second window application failed');y.reconfigurePressureAdvance=()=>{throw cause;};assert.throws(()=>owner.reconfigurePressureWindows(1.5,[{stepper:'a',advance:.1,smoothTime:.2},{stepper:'b',advance:0,smoothTime:.04}]),e=>e===cause);await new Promise(resolve=>setImmediate(resolve));assert.equal(x.scanWindow.future,.1);assert.equal(y.scanWindow.future,.02);assert.equal(stops,1);assert.equal(owner.status.failed,true);await assert.rejects(owner.advance(2));
 });
