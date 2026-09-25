@@ -53,12 +53,16 @@ export class CoordinatedMotionDrain {
  }
  /** Producer owns a stopped source tail. Submit its generated steps and change
   * windows without waiting for MCU execution. Continue source at sourceUntil.
-  * afterCommit delivers timeline outputs; it must not imply a physical drain. */
- async reconfigurePressureWindows(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,changes:readonly {stepper:string;advance:number;smoothTime:number}[],signal:AbortSignal,timeoutMs=30000,afterCommit?:(horizon:number,signal:AbortSignal)=>Promise<void>){
+  * afterCommit notifies the owner and must not imply a physical drain.
+  * Reuse requires the producer still owns its reserved stationary generation;
+  * native validation of the submitted boundary and coverage remains mandatory. */
+ async reconfigurePressureWindows(lastMoveTime:number,positions:ReadonlyMap<TrapQueue,readonly [number,number,number]>,changes:readonly {stepper:string;advance:number;smoothTime:number}[],signal:AbortSignal,timeoutMs=30000,afterCommit?:(horizon:number,signal:AbortSignal)=>Promise<void>,reuseBoundary=false,reservedHalfWindow=0){
   const owned=copyPressureWindowChanges(changes);
-  const reserve=Math.max(.001,...owned.map(c=>c.advance?c.smoothTime*.5:0));
+  if(typeof reuseBoundary!=='boolean'||!Number.isFinite(reservedHalfWindow)||reservedHalfWindow<0||reservedHalfWindow>.1)throw new RangeError('Invalid pressure boundary reservation');
+  if(reuseBoundary&&(!Number.isFinite(lastMoveTime)||lastMoveTime<this.#coordinator.status.generatedTime||lastMoveTime>=1e15))throw new RangeError('Invalid reused pressure source horizon');
+  const reserve=Math.max(.001,reservedHalfWindow,...owned.map(c=>c.advance?c.smoothTime*.5:0));
   return this.#operate(signal,timeoutMs,async({run,check,combined})=>{
-   const result=await run(this.#coordinator.drain(lastMoveTime,positions,this.#maxWindow,()=>this.#historyCutoff(),reserve));check();
+   const result=reuseBoundary?{generatedUntil:this.#coordinator.status.generatedTime,sourceUntil:lastMoveTime}:await run(this.#coordinator.drain(lastMoveTime,positions,this.#maxWindow,()=>this.#historyCutoff(),reserve));check();
    this.#coordinator.reconfigurePressureWindows(result.generatedUntil,owned);
    if(afterCommit){await run(afterCommit(result.generatedUntil,combined));check();}
    return result;

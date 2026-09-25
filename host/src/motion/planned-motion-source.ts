@@ -1,4 +1,5 @@
 import {validateDwell} from './dwell.ts';
+import {isPromise} from 'node:util/types';
 import {performance} from 'node:perf_hooks';
 import {Move} from './lookahead.ts';
 import type {TrapQueue} from './trap-queue.ts';
@@ -30,6 +31,7 @@ export interface SourceBoundaryOutput {
  * The owner must schedule print time ahead of every participating MCU; this
  * class does not infer a safe print time from host wall time. */
 export class PlannedMotionSource {
+ #pausedPressureBoundary:number|undefined;
  readonly #routes:readonly PlannedQueue[];readonly #drain:CoordinatedMotionDrain;
  readonly #ends:Float64Array;#head=0;#count=0;#seeded=false;#idleFrom:number|undefined;
  readonly #starts:Float64Array;readonly #moves:(MotionSnapshot|undefined)[];#braking=false;
@@ -181,7 +183,7 @@ export class PlannedMotionSource {
  startAt(printTime:number):void{this.#check();if(this.#seeded||this.#count||this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid unused source start time');this.#time=printTime;}
  /** Call after a successful drain, before producing subsequent motion. The
   * supplied time must include the scheduler's current MCU lead requirement. */
- resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#idleFrom=this.#time;this.#time=printTime;this.#paused=false;}
+ resumeAt(printTime:number):void{this.#check();if(!this.#paused||!Number.isFinite(printTime)||printTime<this.#time||printTime>=1e15)throw new RangeError('Invalid planned source resume time');this.#idleFrom=this.#time;this.#time=printTime;this.#paused=false;this.#pausedPressureBoundary=undefined;}
  /** Consume known stationary startup/resume coverage in one native transaction.
   * A source that already owns active motion is never eligible for this path.
   * Optionally retain up to 10 ms of generated headroom for a synchronous
@@ -209,16 +211,30 @@ export class PlannedMotionSource {
  /** Caller has flushed lookahead to rest and owns admission until completion.
   * Padding advances source time, but does not grant a physical paused state. */
  async reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
+  return this.#reconfigurePressureWindows(changes,signal,timeoutMs,false);
+ }
+ /** A confirmed drain remains paused while stationary coverage is extended.
+  * Refresh the suspended owner's scan windows before completion can await. */
+ async reconfigurePausedPressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000,afterCommit?:()=>void):Promise<void>{
+  return this.#reconfigurePressureWindows(changes,signal,timeoutMs,true,afterCommit);
+ }
+ async #reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs:number,paused:boolean,afterCommit?:()=>void):Promise<void>{
   this.#check();signal.throwIfAborted();
   const owned=copyPressureWindowChanges(changes);
-  if(this.#paused||this.#braking||this.#endVelocity!==0)throw new Error('Pressure window boundary requires an active source ending at rest');
+  if(this.#paused!==paused||this.#braking||this.#endVelocity!==0||paused&&(!this.#seeded||this.#count))throw new Error(paused?'Pressure window boundary requires a drained paused source':'Pressure window boundary requires an active source ending at rest');
+  if(afterCommit!==undefined&&typeof afterCommit!=='function')throw new TypeError('Invalid pressure window observer');
   if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new RangeError('Invalid pressure window timeout');
   this.#busy=true;
   try{
    this.#seed();
    const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
-   const result=await this.#drain.reconfigurePressureWindows(this.#time,positions,owned,signal,timeoutMs,this.#deliverRolling);signal.throwIfAborted();
+   const deliver=afterCommit?async(horizon:number,s:AbortSignal)=>{const result:unknown=afterCommit();if(result!==undefined){if(isPromise(result))void result.catch(()=>{});throw new Error('Pressure window observer must be synchronous');}if(!paused)await this.#deliverRolling?.(horizon,s);}:paused?undefined:this.#deliverRolling;
+   // Reserve the maximum supported window once per stationary generation.
+   // Slider updates can then reuse this boundary without pushing resume ahead.
+   const reuse=paused&&this.#pausedPressureBoundary===this.#drain.generatedTime;
+   const result=await this.#drain.reconfigurePressureWindows(this.#time,positions,owned,signal,timeoutMs,deliver,reuse,paused?.1:0);signal.throwIfAborted();
    this.#time=result.sourceUntil;this.#endVelocity=0;
+   if(paused){const ids=new Set(owned.map(c=>c.stepper));this.#idlePressure=this.#idlePressure.filter(c=>!ids.has(c.stepper));this.#pausedPressureBoundary=result.generatedUntil;}
    // The stationary padding, like a dwell, requires a zero-speed next junction.
    this.#dwellEnd=true;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}finally{this.#busy=false;}

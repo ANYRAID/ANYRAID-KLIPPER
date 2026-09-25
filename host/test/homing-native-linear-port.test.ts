@@ -185,7 +185,33 @@ test('pressure prevalidation is harmless and a partial boundary failure stops wi
 test('pressure requests respect active window, paused and cancelled ownership boundaries',async()=>{
  const t=await fixture(0,()=>true,true);try{
   const pending=t.port.setPressureAdvance('e',{advance:.1,smoothTime:.2},signal());await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal()),/busy/);await pending;assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,0);
-  await t.port.pause(signal());const before=t.f.fw.motion.length;await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal()),/paused/);assert.equal(t.f.fw.motion.length,before);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,0);await t.port.resumeStream(signal());
-  const abort=new AbortController(),cause=new Error('cancel pressure request');abort.abort(cause);await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},abort.signal),e=>e===cause);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert.equal(t.f.stops,1);
+  await t.port.pause(signal());const before=t.f.fw.motion.length;await t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal());assert.equal(t.f.fw.motion.length,before);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.2,smoothTime:.2});assert.equal(t.f.stops,0);await t.port.resumeStream(signal());
+  const abort=new AbortController(),cause=new Error('cancel pressure request');abort.abort(cause);await assert.rejects(t.port.setPressureAdvance('e',{advance:.3,smoothTime:.2},abort.signal),e=>e===cause);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.2,smoothTime:.2});assert.equal(t.f.stops,1);
+ }finally{await t.close();}
+});
+test('paused tuning overrides retained pressure events and reuses stationary coverage across repeated windows',async()=>{
+ const t=await fixture(0,()=>true,true,{minimumScheduleTime:.01,kickStartTime:0});try{
+  t.kinematics.markHomed([0]);t.port.move([51,0,0,2.1],1);await t.port.setPressureAdvance('e',{advance:.1,smoothTime:.04},signal());t.port.move([52,0,0,2.2],1);await t.port.setPressureAdvance('e',{advance:.15,smoothTime:.04},signal());await t.port.queueCoolingFan(.5,signal());
+  const running=t.port.drain(signal());void running.catch(()=>{});await streamStarted(t);await t.port.pauseStream(signal());const position=[...t.port.status.pausePosition!];
+  await t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal());const time=t.generation.source.status.sourceTime,generated=t.generation.coordinator.status.generatedTime,packets=t.f.fw.motion.length;
+  for(let i=0;i<30;i++)await t.port.setPressureAdvance('e',{advance:i%3? .3:0,smoothTime:i%2?.02:.2},signal());
+  await t.port.setPressureAdvance('e',{advance:.25,smoothTime:.04},signal());assert.equal(t.generation.source.status.sourceTime,time);assert.equal(t.generation.coordinator.status.generatedTime,generated);assert.equal(t.f.fw.motion.length,packets);assert.equal(t.generation.source.status.paused,true);assert.deepEqual(t.port.status.pausePosition,position);
+  await t.port.resumeStream(signal());await running;assert.deepEqual(t.port.position(),[52,0,0,2.2]);assert.deepEqual(t.generation.motion.bindings[1].stepper.recoveryFilters(),{pressureAdvance:{advance:.25,smoothTime:.04}});assert.equal(t.generation.motion.bindings[0].history.status.lastPlannedPosition,300n);assert.equal(t.generation.motion.bindings[1].history.status.lastPlannedPosition,40n);assert.equal(t.fan!.status.speed,.5);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('paused pressure refresh precedes asynchronous completion and fences resume until publication',async()=>{
+ const t=await fixture(0,()=>true,true),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();let pending:Promise<void>|undefined;
+ try{
+  t.kinematics.markHomed([0]);t.port.move([52,0,0,2.2],1);let finished=false;const running=t.port.drain(signal()).then(()=>{finished=true;});void running.catch(()=>{});await streamStarted(t);await t.port.pauseStream(signal());
+  const apply=t.generation.drain.reconfigurePressureWindows.bind(t.generation.drain);t.generation.drain.reconfigurePressureWindows=(...args)=>{const after=args[5];args[5]=async(h,s)=>{await after?.(h,s);entered.resolve();await release.promise;};return apply(...args);};
+  pending=t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal());void pending.catch(()=>{});await entered.promise;assert.equal(t.generation.motion.bindings[1].stepper.scanWindow.future,.1);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});
+  await assert.rejects(t.port.resumeStream(signal()),/busy/);await assert.rejects(t.port.setPressureAdvance('e',{advance:.3,smoothTime:.2},signal()),/busy/);await new Promise(r=>setTimeout(r,150));assert.equal(finished,false);assert.equal(t.f.stops,0);
+  release.resolve();await pending;assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.2,smoothTime:.2});await t.port.resumeStream(signal());await running;assert.equal(t.f.stops,0);
+ }finally{release.resolve();await pending?.catch(()=>{});await t.close();}
+});
+test('failed paused pressure transaction stops while retaining prior public configuration',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  await t.port.pause(signal());const original=t.generation.source.reconfigurePausedPressureWindows.bind(t.generation.source),cause=new Error('paused pressure completion failed');t.generation.source.reconfigurePausedPressureWindows=async(...args)=>{await original(...args);throw cause;};
+  await assert.rejects(t.port.setPressureAdvance('e',{advance:.2,smoothTime:.2},signal()),e=>e===cause);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});assert.equal(t.port.status.failed,true);assert.equal(t.f.stops,1);
  }finally{await t.close();}
 });

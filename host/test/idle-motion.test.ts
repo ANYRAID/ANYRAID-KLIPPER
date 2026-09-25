@@ -112,3 +112,15 @@ test('window padding preserves the exact source endpoint across subtraction roun
   await f.source.drain(idleTestMove(),signal());assert.deepEqual(f.positions,{x:200n,e:30n});assert.equal(f.stops,0);
  }finally{f.close();}
 });
+test('paused pressure barriers replace deferred intent and reuse one stationary generation',async()=>{
+ const f=idleMotionFixture(true);try{
+  await assert.rejects(f.source.reconfigurePausedPressureWindows([{stepper:'e',advance:.1,smoothTime:.2}],signal()),/paused source/);assert.equal(f.stops,0);
+  f.source.startAt(1);await f.source.drain(idleTestMove(),signal());f.source.markIdlePressureBoundary({stepper:'e',advance:.12});
+  await f.source.reconfigurePausedPressureWindows([{stepper:'e',advance:.2,smoothTime:.2}],signal());assert.equal(f.source.status.pendingBoundaries,0);const time=f.source.status.sourceTime,generated=f.coordinator.status.generatedTime;
+  for(const smoothTime of [0,.02,.2,.04])await f.source.reconfigurePausedPressureWindows([{stepper:'e',advance:.3,smoothTime}],signal());
+  assert.equal(f.source.status.paused,true);assert.equal(f.source.status.sourceTime,time);assert.equal(f.coordinator.status.generatedTime,generated);f.source.resumeAt(3);await f.source.drain([],signal());assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.3,smoothTime:.04}});assert.equal(f.stops,0);
+ }finally{f.close();}
+});
+test('an asynchronous paused window observer fails terminally after native acceptance',async()=>{
+ const f=idleMotionFixture(true);try{f.source.startAt(1);await f.source.drain(idleTestMove(),signal());await assert.rejects(f.source.reconfigurePausedPressureWindows([{stepper:'e',advance:.1,smoothTime:.2}],signal(),30000,async()=>{}),/must be synchronous/);assert.equal(f.source.status.failed,true);assert.equal(f.stops,1);}finally{f.close();}
+});

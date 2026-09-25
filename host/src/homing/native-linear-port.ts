@@ -61,6 +61,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   * attach to the latest endpoint without flushing lookahead or stopping motion. */
  setPressureAdvance(id:string,next:PressureAdvanceSettings,signal:AbortSignal):Promise<void>{
   this.pressureAdvanceSettings(id);const owned=pressureAdvanceSettings(next.advance,next.smoothTime);
+  if(this.#pause)return this.#setPausedPressure(id,owned,signal);
   return this.#operate('pressure',signal,async s=>{
    const change=planPressureAdvance(this.pressureAdvanceSettings(id),owned);
    if(change.kind==='window-change'){await this.#applyPressureWindows([{stepper:id,...owned}],s);return;}
@@ -72,6 +73,17 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    // requested settings here; a later enable still crosses a native barrier.
    this.#check(s);this.#pressure.set(id,owned);
   });
+ }
+ async #setPausedPressure(id:string,owned:Readonly<PressureAdvanceSettings>,signal:AbortSignal):Promise<void>{
+  this.#check(signal);
+  if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused')throw new Error('Native pressure boundary is not paused or is busy');
+  this.#pausedBusy=true;const idle=Promise.withResolvers<void>();this.#pausedIdle=idle.promise;
+  const combined=AbortSignal.any([signal,this.#abort.signal]),abort=()=>{void this.motorOff(combined.reason).catch(()=>{});};combined.addEventListener('abort',abort,{once:true});
+  try{
+   if(this.#pausedClock)await this.#awaitPausedClock(combined);this.#check(combined);
+   await this.#streamer.reconfigurePausedPressureWindows([{stepper:id,...owned}],combined);this.#check(combined);this.#pressure.set(id,owned);
+  }catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Paused pressure operation and stop failed');}throw error;}
+  finally{combined.removeEventListener('abort',abort);this.#pausedBusy=false;idle.resolve();}
  }
  /** Window changes close lookahead to rest. Fixed-window coefficient updates
   * require geometric endpoint admission and must not use this slower path. */

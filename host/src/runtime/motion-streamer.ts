@@ -14,7 +14,7 @@ import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 type Generation=Awaited<ReturnType<typeof bindRebuiltMotion>>;
 export interface StreamPause {readonly position:readonly number[];readonly sourceTime:number;}
 const own=(moves:readonly Move[]):Move[]=>moves.map(m=>Object.assign(Object.create(Object.getPrototypeOf(m)),m,{pressureBoundaries:copyPressureBoundaries(m.pressureBoundaries),endMarkers:copyEndMarkers(m.endMarkers),limits:{...m.limits,extraAxes:m.limits.extraAxes?[...m.limits.extraAxes]:undefined},startPos:[...m.startPos],endPos:[...m.endPos],axesD:[...m.axesD],axesR:[...m.axesR],profile:m.profile?{...m.profile}:undefined}));
-type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Move[];phase:'requested'|'braking'|'paused'|'resuming';validate?:((move:Move)=>void);resumption?:ReturnType<typeof Promise.withResolvers<void>>};
+type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Move[];phase:'requested'|'braking'|'paused'|'resuming';validate?:((move:Move)=>void);resumption?:ReturnType<typeof Promise.withResolvers<void>>;pressureOverrides?:Set<string>};
 /** Exclusive, paced producer. Completion means a rolling prefix was accepted,
  * not physical completion. The owner still drains final lookahead and maintains
  * timely command input; an expired generation deadline stops all MCUs. */
@@ -22,6 +22,7 @@ export class RebuiltMotionStreamer {
  #g:Generation;#busy=false;#acceptPause=false;#start:number;#future:number;
  #windows:{future:number;past:number}[];
  #windowFrontier:number|undefined;
+ #pressureBusy=false;
  #pause:PauseRequest|undefined;#wake:(()=>void)|undefined;#end:{position:readonly number[];velocity:number};
  readonly #lead=.2;readonly #high=.5;readonly #low=.3;readonly #minimum=.025;
  constructor(g:Generation){
@@ -32,7 +33,7 @@ export class RebuiltMotionStreamer {
  /** The exclusive owner has submitted all lookahead through a resting tail.
   * Refresh cached convolution requirements only after the source accepts them. */
  async reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
-  if(this.#busy||this.#pause)throw new Error('Motion streamer busy');
+  if(this.#busy||this.#pause||this.#pressureBusy)throw new Error('Motion streamer busy');
   const owned=copyPressureWindowChanges(changes);this.#busy=true;
   try{
    this.#check(signal);await this.#g.source.reconfigurePressureWindows(owned,signal,timeoutMs);
@@ -43,6 +44,19 @@ export class RebuiltMotionStreamer {
    this.#end={position:this.#g.source.status.position,velocity:0};
   }catch(error){try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Pressure window stream and stop failed');}throw error;}
   finally{this.#busy=false;}
+ }
+ /** Paused tuning supersedes older, still-owned parameter events for the
+  * selected emitters. Geometry and unrelated endpoint events remain intact. */
+ async reconfigurePausedPressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
+  if(this.#pressureBusy||this.#busy&&this.#pause?.phase!=='paused'||this.#pause&&this.#pause.phase!=='paused'||!this.#g.source.status.paused)throw new Error('Motion streamer is not available for paused pressure');
+  const owned=copyPressureWindowChanges(changes);this.#pressureBusy=true;
+  try{
+   this.#check(signal);await this.#g.source.reconfigurePausedPressureWindows(owned,signal,timeoutMs,()=>{
+    this.#windows=this.#g.motion.bindings.map(b=>({...b.stepper.scanWindow}));this.#future=Math.max(...this.#windows.map(w=>w.future));this.#windowFrontier=this.#g.coordinator.status.generatedTime;
+   });this.#check(signal);
+   if(this.#pause){this.#pause.pressureOverrides??=new Set();for(const c of owned)this.#pause.pressureOverrides.add(c.stepper);}
+  }catch(error){try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Paused pressure update and stop failed');}throw error;}
+  finally{this.#pressureBusy=false;}
  }
  /** Caller must transfer the remaining lookahead tail, ending at rest. The
   * active append stays pending until explicit resume and suffix submission. */
@@ -60,6 +74,7 @@ export class RebuiltMotionStreamer {
  /** Revalidate each retained segment synchronously (including live extrusion
   * permission). Validation may lower limits; replanning follows before sending. */
  resume(validate:(move:Move)=>void):Promise<void>{
+  if(this.#pressureBusy)return Promise.reject(new Error('Paused pressure update is busy'));
   if(this.#pause?.phase!=='paused'||this.#pause.validate||typeof validate!=='function')throw new Error('Motion stream is not awaiting resume validation');
   const done=Promise.withResolvers<void>();void done.promise.catch(()=>{});this.#pause.resumption=done;this.#pause.validate=validate;this.#wake?.();return done.promise;
  }
@@ -72,7 +87,7 @@ export class RebuiltMotionStreamer {
  /** Each I/O wait remains bounded by 30 seconds. A whole-transaction deadline
   * is optional because valid motion may itself last longer than 30 seconds. */
  async append(moves:readonly Move[],signal:AbortSignal,timeoutMs?:number):Promise<void>{
-  if(this.#busy)throw new Error('Motion streamer busy');this.#busy=true;
+  if(this.#busy||this.#pressureBusy)throw new Error('Motion streamer busy');this.#busy=true;
   try{
    this.#check(signal);if(timeoutMs!==undefined&&(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)||!Array.isArray(moves)||moves.length>100000)throw new RangeError('Invalid streaming batch or timeout');
    const deadline=timeoutMs===undefined?Infinity:performance.now()+timeoutMs,remaining=()=>{this.#check(signal);const value=Math.ceil(deadline-performance.now());if(value<=0)throw new Error('Motion streaming timed out');return Math.min(30000,value);};
@@ -101,6 +116,7 @@ export class RebuiltMotionStreamer {
     request.phase='paused';request.resolve(Object.freeze({position:Object.freeze([...source.status.position]),sourceTime:source.status.sourceTime}));
     while(!request.validate){await this.#waitResume(signal,Math.min(100,remaining()));remaining();}
     request.phase='resuming';
+    if(request.pressureOverrides)for(const m of retained)m.pressureBoundaries=copyPressureBoundaries(m.pressureBoundaries?.filter(c=>!request.pressureOverrides!.has(c.stepper)));
     for(const m of retained){
      if(m.dwellSeconds!==undefined){validateDwell(m);continue;}
      const geometry=[...m.startPos,...m.endPos,...m.axesD,...m.axesR,m.distance,Number(m.isKinematic)],accel=m.accel,speed=m.maxCruiseV2;
