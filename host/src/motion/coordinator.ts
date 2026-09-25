@@ -71,6 +71,10 @@ export class MotionCoordinator {
   try{
    for(const guard of this.#guards)guard.assertActive();
    for(const b of this.#bindings)if(time<=b.stepper.generatedTime+b.stepper.scanWindow.future)throw new RangeError('Replacement overlaps generated filter dependencies');
+   // Parameter history belongs to the source being replaced. Fence all
+   // emitters first, then remove its discarded suffix before generating any
+   // brake phase. A failure after one mutation retires the whole group below.
+   for(const b of this.#bindings)if(b.stepper.pressureAdvanceEnabled)b.stepper.cancelPressureAdvanceAfter(time);
    let end:number|undefined;
    for(const r of routes){
     let next:number;if(moves.length)next=r.queue.replaceFuturePlanned(moves,time,r.extrusionAxis,true);

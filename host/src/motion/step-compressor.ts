@@ -38,6 +38,9 @@ export class StepCompressor {
   }
   /** Configure an E-only queue before generation. Zero advance disables smoothing. */
   configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}
+  /** Whether this emitter owns a nonzero pressure convolution window. This
+   * describes filter capability, not the coefficient active at the MCU now. */
+  get pressureAdvanceEnabled():boolean{if(this.#closed)throw new Error('Step compressor is closed');const p=this.#filters.pressureAdvance;return !!p&&p.advance>0&&p.smoothTime>0;}
   /** Schedule a positive coefficient at a future source-phase boundary; smooth time stays fixed. */
   schedulePressureAdvance(printTime:number,advance:number):void{native.schedulePressureAdvance(this.#handle,printTime,advance);const prior=this.#filters.pressureAdvance!;if(advance!==prior.advance){this.#filters.pressureAdvance={advance,smoothTime:prior.smoothTime};this.#pressureSettledAt=printTime+prior.smoothTime*.5;}}
   /** Remove only updates strictly beyond an ungenerated source cutoff. The
