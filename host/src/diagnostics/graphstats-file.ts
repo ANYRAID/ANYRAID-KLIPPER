@@ -3,6 +3,7 @@ import {open,rename,rm} from 'node:fs/promises';
 import {dirname,basename,join,extname} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import sharp from 'sharp';
+import {renderInteractivePlot} from './interactive-plot.ts';
 import {StatsLogParser,type StatsSample,type StatsPlot} from './graphstats.ts';
 import {renderStatsSvg,renderStatsPanels,type PlotXAxis,type StatsPanel} from './stats-svg.ts';
 export async function readStatsFile(filename:string,mcu:string|undefined,signal:AbortSignal):Promise<readonly StatsSample[]>{
@@ -19,8 +20,8 @@ export async function writeStatsPanels(panels:readonly StatsPanel[],filename:str
  await writePlotDocument(panels,()=>renderStatsPanels(panels),filename,signal);
 }
 export async function writePlotDocument(document:unknown,render:()=>string|Promise<string>,filename:string,signal:AbortSignal):Promise<void>{
- const extension=extname(filename).toLowerCase();if(!['.pdf','.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extension))throw new Error('Supported outputs: PDF, SVG, PNG, JPEG, WebP, TIFF and JSON');signal.throwIfAborted();let bytes:Buffer;
- if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(await render());if(extension==='.svg')bytes=svg;else if(extension==='.pdf'){const {diagnosticPdf}=await import('./diagnostic-pdf.ts');bytes=await diagnosticPdf(svg.toString('utf8'),signal);}else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
+ const extension=extname(filename).toLowerCase();if(!['.html','.pdf','.svg','.png','.jpg','.jpeg','.webp','.tif','.tiff','.json'].includes(extension))throw new Error('Supported outputs: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF and JSON');signal.throwIfAborted();let bytes:Buffer;
+ if(extension==='.json')bytes=Buffer.from(JSON.stringify(document));else{const svg=Buffer.from(await render());if(extension==='.html')bytes=Buffer.from(renderInteractivePlot(svg.toString('utf8')));else if(extension==='.svg')bytes=svg;else if(extension==='.pdf'){const {diagnosticPdf}=await import('./diagnostic-pdf.ts');bytes=await diagnosticPdf(svg.toString('utf8'),signal);}else{const image=sharp(svg,{limitInputPixels:16*1024**2});bytes=await (extension==='.png'?image.png():extension==='.webp'?image.webp():['.tif','.tiff'].includes(extension)?image.tiff():image.jpeg()).toBuffer();}}
  await writeDiagnosticBytes(bytes,filename,signal);
 }
 export async function writeDiagnosticText(text:string,filename:string,signal:AbortSignal):Promise<void>{signal.throwIfAborted();if(Buffer.byteLength(text)>64*1024**2)throw new RangeError('Diagnostic output limit exceeded');await writeDiagnosticBytes(Buffer.from(text),filename,signal);}

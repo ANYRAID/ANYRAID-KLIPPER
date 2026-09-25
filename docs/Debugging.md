@@ -535,3 +535,33 @@ CAN controllers and target-board timing still require hardware validation.
 The former `scripts/dump_mcu.py` entry has been removed. Use the Node
 command above; its runtime and numerical reference benchmark no longer
 require Python.
+
+## Local interactive diagnostic documents
+
+The Node plotting tools also accept `-o plot.html`. Open the resulting file
+locally; it contains its SVG, styles and interaction code and needs no CDN,
+server or Python process. For example:
+
+```
+node ~/klipper/scripts/graph_temp_sensor.ts -s "Generic 3950,PT1000" -o sensors.html
+```
+
+Use the zoom buttons, Ctrl + mouse wheel, or keyboard + / - to zoom. Drag to
+pan; arrow keys also pan when the plot is focused, and 0 or Reset view restores
+the original view. Standard line/point panels provide per-curve checkboxes
+identified by panel title and complete sensor/series name. Mesh surfaces and
+spectrograms support view navigation without per-curve controls. Every exported
+point remains in the SVG; hiding a curve does not change its values or rescale
+the axes.
+
+HTML uses the same atomic output replacement and cancellation handling as the
+other formats. It rejects active SVG constructs and external image references;
+spectrogram images are embedded PNG data. A content security policy permits
+only the generated interaction script by its SHA-256 hash.
+
+This is an initial replacement for basic plot navigation, not full Matplotlib
+feature parity (for example, live animation and data picking are not provided).
+Logic, export and numeric regression tests pass. Real browser rendering and
+input acceptance remain pending: the available browser tool refused local file
+URLs under its URL security policy. Do not interpret simulated DOM tests as
+browser acceptance.
