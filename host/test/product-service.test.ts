@@ -91,8 +91,10 @@ test('native server information follows physical stop while cleanup acknowledgem
 test('native object queries expose actual coordinate state and configured sensors without movement',async()=>{
  const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
  try{
-  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test'};
+  const reader=new ConfigurationReader(new ConfigurationSource('/retraction-service.cfg',{...f.reader.source.original,firmware_retraction:{retract_length:'.25'}},[]),null);
+  owner=await startProductService(reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test'};
   const listing=await fetch(base+'/printer/objects/list',{headers}),names=(await listing.json() as any).result.objects;for(const name of ['native_host','toolhead','gcode_move','heaters','extruder','heater_bed','fan','virtual_sdcard','print_stats'])assert(names.includes(name));
+  const retractResponse=await fetch(base+'/printer/objects/query?firmware_retraction',{headers});assert.deepEqual((await retractResponse.json() as any).result.status.firmware_retraction,{retract_length:.25,retract_speed:20,unretract_extra_length:0,unretract_speed:10});assert(names.includes('firmware_retraction'));
   // Populate the coordinate model without granting public G-code admission.
   owner.printer.print.gcode.coordinates.execute('G92',{X:1.005,E:2.675});owner.printer.print.gcode.coordinates.execute('M220',{S:150});
   owner.printer.linear.port.updateVelocityLimits({maxVelocity:42,maxAccel:123,squareCornerVelocity:2,minCruiseRatio:.25});

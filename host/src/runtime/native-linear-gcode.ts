@@ -1,5 +1,6 @@
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
+import {FirmwareRetraction,type RetractionSettings} from '../gcode/retraction.ts';
 import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 import {GCodeArcs} from '../gcode/arcs.ts';
 import {bindVelocityCommands} from '../gcode/velocity-limits.ts';
@@ -16,10 +17,12 @@ export interface PrintHomingPolicy {mode:'home'|'require_homed';axes:readonly Ax
 export class NativeLinearGCode {
  readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand;
  readonly layers=new PrintLayerInfo();
+ readonly retraction:FirmwareRetraction|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings){
   const arcs=new GCodeArcs(arcResolution);
+  this.retraction=retraction?new FirmwareRetraction(retraction):undefined;
   if(owners.has(port)||!port.usesKinematics(kinematics)||typeof output!=='function')throw new Error('Invalid native G-code ownership');
   port.assertActive();this.#port=port;this.#kinematics=kinematics;this.coordinates=new GCodeMove(port);
   this.homing=new LinearHomingCommand(kinematics,this.coordinates,port,rails,homingTimeoutMs);
@@ -27,6 +30,7 @@ export class NativeLinearGCode {
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
   this.layers.register(this.dispatch);
+  this.retraction?.register(this.dispatch,this.coordinates);
   bindVelocityCommands(this.dispatch,port);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));
   this.dispatch.register('G4',c=>{let seconds=0;try{if(Object.hasOwn(c.params,'P'))seconds=parseConfigurationFloat(c.params.P)/1000;if(!Number.isFinite(seconds)||seconds<0||seconds>3600)throw new Error();}catch{throw new GCodeError('Invalid G4 P duration');}return port.dwell(seconds,c.signal);},{checkpoint:true});

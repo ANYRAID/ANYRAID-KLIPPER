@@ -1,4 +1,5 @@
 import {compileLinearHoming,type ConfiguredLinearHoming} from '../config/linear-homing.ts';
+import {readRetraction} from '../config/retraction.ts';
 import {readArcResolution} from '../config/arcs.ts';
 import {createNativeLinearPrint,type NativeLinearPrintOptions} from '../operations/native-linear-print.ts';
 import {NativeLinearGCode} from './native-linear-gcode.ts';
@@ -62,7 +63,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   // Only a pristine initial source may be transferred. The port becomes the
   // lifetime owner of every later rebase/homing generation, not just this one.
   const createLinearPort=(reader:ConfigurationReader,settings:Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>|ConfiguredLinearHoming)=>{
-   const arcResolution=readArcResolution(reader);
+   const arcResolution=readArcResolution(reader),retraction=readRetraction(reader);
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
    const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
@@ -74,7 +75,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
     group.assertActive();if(printPending)throw new Error('Configured print already owned');
     const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
     if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
-    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution);
+    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction);
     printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed}});
     try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured print and cleanup failed',{cause:error});}throw error;}
    };

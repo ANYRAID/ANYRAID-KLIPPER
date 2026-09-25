@@ -314,3 +314,12 @@ SIGINT/SIGTERM 取消正在进行的启动，或结束已经就绪的服务。�
 目前 CLI 测试使用真实子进程、PTY、模拟 MCU 和鉴权 HTTP，覆盖双
 MCU 启动、SIGINT/SIGTERM 关闭、断连故障、迟到工厂结果和清理失败。
 这不替代机器独立停止路径、断电行为及实际打印验收。
+
+配置包含 `[firmware_retraction]` 时，原生入口启用 `G10`、`G11`、
+`SET_RETRACTION`、`GET_RETRACTION`，并提供 `firmware_retraction` 对象的
+四项实时参数。`retract_length` 和 `unretract_extra_length` 默认 0，
+不得为负；`retract_speed` 默认 20、`unretract_speed` 默认 10（mm/s），
+两者至少为 1。运行时参数更新不写回配置，成功更新会清除回抽标志。
+重复 G10 或 G11 不重复运动；回抽保留当前坐标模式、G-code E 原点、
+进给速度及倍率，运动仍受温控、挤出长度和速度保护约束。实现使用
+类型化同步运动准入，不创建或覆盖 `_retract_state` 宏状态。

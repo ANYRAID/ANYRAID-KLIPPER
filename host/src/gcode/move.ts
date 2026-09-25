@@ -38,6 +38,16 @@ export class GCodeMove {
     const s=this.#state,p=s.position.map((v,i)=>v-s.base[i]);p[3]/=s.extrudeFactor;return p;
   }
   usesPort(port:MovePort):boolean {return this.#port===port;}
+  /** Relative E admission with SAVE/G91/G1/RESTORE semantics, without macro
+   * storage or intermediate modal changes. Preserve the original E origin
+   * adjustment operation order for floating point parity. */
+  temporaryExtrusion(length:number,feedRate:number):void {
+    const s=copy(this.#state),previous=s.position[3];
+    s.position[3]+=length*s.extrudeFactor;s.base[3]+=s.position[3]-previous;
+    const speed=feedRate*s.speedFactor;
+    if(![length,feedRate,s.position[3],s.base[3],speed].every(Number.isFinite)||feedRate<=0||speed<=0)throw new RangeError('Temporary extrusion overflow');
+    this.#port.move([...s.position],speed);this.#state=s;
+  }
   /** Bind transformed position/motion functions before dispatching movement. */
   setPort(port:MovePort):MovePort {const previous=this.#port;this.#port=port;return previous;}
   resetPosition():void {
