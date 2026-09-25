@@ -257,7 +257,8 @@
     "bench:motan-compiled-export": "node bench/motan-compiled-export.ts",
     "build:product-host": "node scripts/build-product-host.ts",
     "bench:product-build": "node bench/product-build.ts",
-    "bench:product-machine": "node bench/product-machine.ts"
+    "bench:product-machine": "node bench/product-machine.ts",
+    "bench:native-host-status": "node bench/native-host-status.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

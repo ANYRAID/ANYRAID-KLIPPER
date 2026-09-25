@@ -171,6 +171,26 @@ NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契�
 地址来自实际监听结果。就绪表示服务已启动，不表示已归零、已加热或
 获得打印运动许可；不会自动重放未完成的作业。
 
+原生产品服务的鉴权 `/server/info` 增加 `native_host`，每次请求同步
+读取当前主机所有者，字段为：
+
+- `version`：当前状态契约版本 1。
+- `group_state`、`hardware_state`：MCU 组与已装配硬件的生命周期状态。
+- `mcus`：各 MCU 的 id 与会话 state；不含串口路径或底层故障文本。
+- `print_state`、`homed_axes`：当前打印生命周期及已归零轴。
+- `closing`、`admission_closed`、`maintenance`：服务退场、永久关闭准入
+  和维护占用状态。
+- `ready`：MCU 组、所有会话及硬件均 ready，且服务未退场、准入未永久
+  关闭。它不授予新打印许可；维护占用、当前作业、归零和温度约束仍
+  必须分别满足。例如未归零的空闲主机可以 ready，但不能越过归零策略。
+
+这些值不从 HTTP 监听或机器配置中的静态信息推断。物理停止确认还在
+等待时，group_state 已变为 stopping，ready 立即为 false。读取失败或
+来源数据不合法时返回 503，不返回此前缓存的 ready，也不暴露内部
+错误。该扩展沿用 `/server/info` 鉴权，普通 Klippy 模式不添加此字段；
+`klippy_connected` 和 `klippy_state` 继续描述 Klippy，不因原生主机
+就绪而伪造 Python 连接。已有打印状态通知仍使用 notify_print_state_changed。
+
 SIGINT/SIGTERM 取消正在进行的启动，或结束已经就绪的服务。退出先
 停止服务与打印所有者，再释放外部依赖。不会为快速退出直接调用
 `process.exit()`，也不会因为重复信号跳过清理。已就绪后的正常信号退出返回 0；

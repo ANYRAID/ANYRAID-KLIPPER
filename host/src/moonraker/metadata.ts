@@ -1,3 +1,4 @@
+import {readNativeHostStatus,type NativeHostStatusSource} from './native-host-status.ts';
 // Server metadata contracts follow pinned moonraker/server.py (GPL-3.0-or-later).
 import {dirname,isAbsolute,sep,normalize} from 'node:path';
 import {ApiError,validateJson,type Json} from './rpc.ts';
@@ -46,10 +47,10 @@ export class ServerConfiguration {
  }
  read():Record<string,Json>{return this.#view;}
 }
-export function registerServerMetadata(registry:EndpointRegistry,information:ServerInformation,configuration:ServerConfiguration,connections:()=>number):()=>void{
+export function registerServerMetadata(registry:EndpointRegistry,information:ServerInformation,configuration:ServerConfiguration,connections:()=>number,nativeHost?:NativeHostStatusSource):()=>void{
  const releases:(()=>void)[]=[];
  try{
-  releases.push(registry.register({endpoint:'/server/info',methods:['GET']},params=>{const raw=Object.hasOwn(params,'raw')?params.raw:false;if(typeof raw!=='boolean'&&(typeof raw!=='string'||!['true','false'].includes(raw.toLowerCase())))throw new ApiError(400,'Unable to convert argument [raw] to boolean');return information.read(raw===true||typeof raw==='string'&&raw.toLowerCase()==='true',connections());}));
+  releases.push(registry.register({endpoint:'/server/info',methods:['GET']},params=>{const raw=Object.hasOwn(params,'raw')?params.raw:false;if(typeof raw!=='boolean'&&(typeof raw!=='string'||!['true','false'].includes(raw.toLowerCase())))throw new ApiError(400,'Unable to convert argument [raw] to boolean');const result=information.read(raw===true||typeof raw==='string'&&raw.toLowerCase()==='true',connections());return nativeHost?{...result,native_host:readNativeHostStatus(nativeHost)}:result;}));
   releases.push(registry.register({endpoint:'/server/config',methods:['GET']},()=>configuration.read()));
  }catch(error){for(const release of releases.reverse())release();throw error;}
  let closed=false;return ()=>{if(closed)return;closed=true;for(const release of releases.reverse())release();};

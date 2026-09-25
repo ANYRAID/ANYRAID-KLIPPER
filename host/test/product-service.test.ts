@@ -74,3 +74,15 @@ test('cancelled startup closes a server returned late from configuration loading
   assert.deepEqual(f.stops,[1,1]);assert.equal(f.product.maintenanceGate.status.closed,true);await assert.rejects(late!.start(),/stopping/);
  }finally{release.resolve();await late?.close();await f.dispose();}
 });
+test('native server information follows physical stop while cleanup acknowledgement is pending',async()=>{
+ const f=await fixture(),held=Promise.withResolvers<void>();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,stopping:Promise<void>|undefined;
+ try{
+  const connections=f.connections.map(c=>({...c,async stopDevice(cause:unknown){await c.stopDevice();await held.promise;}}));
+  owner=await startProductService(f.reader,connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);
+  const url=`http://127.0.0.1:${owner.address.port}/server/info`,read=async()=>{const response=await fetch(url,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);return (await response.json() as any).result;};
+  let info=await read();assert.equal(info.klippy_connected,false);assert.equal(info.klippy_state,'disconnected');assert.equal(info.native_host.ready,true);assert.equal(info.native_host.homed_axes,'');assert.equal(info.native_host.mcus.length,2);assert(info.native_host.mcus.every((m:any)=>m.state==='ready'));
+  stopping=owner.printer.group.stop(new Error('private hardware fault'));void stopping.catch(()=>{});
+  info=await read();assert.equal(info.native_host.ready,false);assert.equal(info.native_host.group_state,'stopping');assert(!JSON.stringify(info).includes('private hardware fault'));
+  held.resolve();await stopping;info=await read();assert.equal(info.native_host.ready,false);assert.equal(info.native_host.group_state,'stopped');assert.deepEqual(f.stops,[1,1]);
+ }finally{held.resolve();await stopping?.catch(()=>{});await owner?.close();await f.dispose();}
+});

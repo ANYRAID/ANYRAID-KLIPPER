@@ -1,3 +1,4 @@
+import type {NativeHostSnapshot} from '../moonraker/native-host-status.ts';
 import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
 import type {ConfiguredPrinterOptions} from './configured-printer.ts';
 import {ConfiguredMoonraker,type ConfiguredServerOptions} from '../moonraker/configured-server.ts';
@@ -22,7 +23,7 @@ export function startConfiguredProductService(reader:ConfigurationReader,policie
 }
 export interface ProductServiceOptions {
  configPath:string;
- server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'>;
+ server:Omit<ConfiguredServerOptions,'productPrint'|'maintenanceGate'|'nativeHost'>;
 }
 /** Start native hardware, durable print control and the authorized Moonraker
  * listener as one owner. Journal remains external; server component ownership
@@ -31,6 +32,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  signal.throwIfAborted();const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
  let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;
+ const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.linear.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
  const close=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
   const jobs:Promise<void>[]=[];for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
@@ -41,7 +43,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  const aborted=()=>{void printer.close().catch(()=>{});void server?.close().catch(()=>{});};signal.addEventListener('abort',aborted,{once:true});
  try{
   signal.throwIfAborted();
-  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,maintenanceGate:printer.maintenanceGate});
+  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,maintenanceGate:printer.maintenanceGate,nativeHost});
   signal.throwIfAborted();printer.group.assertActive();
   const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
   return Object.freeze({printer,server,address,close});
