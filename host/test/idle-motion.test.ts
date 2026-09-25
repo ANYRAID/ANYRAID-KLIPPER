@@ -4,6 +4,30 @@ import {idleMotionFixture,idleTestMove} from './helpers/idle-motion.ts';
 import {stationaryRows} from '../src/motion/stationary.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 const signal=()=>new AbortController().signal;
+test('idle pressure requests coalesce and bind to the final startup time without creating pulses',async()=>{
+ async function trace(queued:boolean){const f=idleMotionFixture(true);try{
+  if(queued){const change={stepper:'e',advance:.08};f.source.markIdlePressureBoundary(change);change.advance=.3;f.source.markIdlePressureBoundary({stepper:'e',advance:.1});assert.equal(f.source.status.pendingBoundaries,1);assert.throws(()=>f.source.retireProducer(),/pending pressure/);assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.05,smoothTime:.04}});}
+  f.source.startAt(1);f.source.startAt(2);if(!queued)f.e.schedulePressureAdvance(2,.1);await f.source.prepareIdle(signal());assert.equal(f.source.status.pendingBoundaries,0);assert.equal(f.ticks.e.length+f.ticks.x.length,0);assert.throws(()=>f.e.recoveryFilters(),/settle/);
+  await f.source.drain(idleTestMove(),signal());assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.1,smoothTime:.04}});return {ticks:f.ticks,positions:f.positions,stops:f.stops};
+ }finally{f.close();}}
+ assert.deepEqual(await trace(true),await trace(false));
+});
+test('idle pressure applies before the first appended motion even without separate idle preparation',async()=>{
+ async function trace(queued:boolean){const f=idleMotionFixture(true);try{f.source.startAt(1);if(queued)f.source.markIdlePressureBoundary({stepper:'e',advance:.08});else f.e.schedulePressureAdvance(1,.08);await f.source.drain(idleTestMove(),signal());assert.equal(f.source.status.pendingBoundaries,0);return {ticks:f.ticks,positions:f.positions,filters:f.e.recoveryFilters()};}finally{f.close();}}
+ assert.deepEqual(await trace(true),await trace(false));
+});
+test('drained idle pressure waits for an explicit fresh timestamp and preserves physical counters',async()=>{
+ const f=idleMotionFixture(true);try{f.source.startAt(1);await f.source.prepareIdle(signal());await f.source.drain([],signal());for(let i=1;i<=4;i++){f.source.markIdlePressureBoundary({stepper:'e',advance:.05+i*.01});assert.throws(()=>f.source.validateBatch([]),/fresh print time/);f.source.resumeAt(1+i*3600);await f.source.prepareIdle(signal());await f.source.drain([],signal());assert.equal(f.source.status.pendingBoundaries,0);assert.deepEqual(f.e.recoveryFilters(),{pressureAdvance:{advance:.05+i*.01,smoothTime:.04}});assert.deepEqual(f.positions,{x:100n,e:20n});}assert.equal(f.ticks.e.length+f.ticks.x.length,0);assert.equal(f.stops,0);}finally{f.close();}
+});
+test('active source and invalid coefficients cannot accept an idle pressure request',async()=>{
+ const f=idleMotionFixture(true);try{for(const advance of [0,-1,NaN,Infinity])assert.throws(()=>f.source.markIdlePressureBoundary({stepper:'e',advance}),/pressure/);assert.equal(f.source.status.pendingBoundaries,0);f.source.startAt(1);await f.source.prepareIdle(signal());assert.throws(()=>f.source.markIdlePressureBoundary({stepper:'e',advance:.1}),/unused or drained/);f.source.append(idleTestMove());assert.throws(()=>f.source.markIdlePressureBoundary({stepper:'e',advance:.1}),/unused or drained/);assert.equal(f.stops,0);}finally{f.close();}
+});
+test('invalid idle emitter or insufficient lead stops without moving the boundary or sending steps',async()=>{
+ for(const invalidEmitter of [false,true]){const f=idleMotionFixture(true);try{const time=invalidEmitter?1:0;f.source.startAt(time);f.source.markIdlePressureBoundary({stepper:invalidEmitter?'missing':'e',advance:.1});await assert.rejects(f.source.prepareIdle(signal()),/endpoint or emitter/);assert.equal(f.source.status.sourceTime,time);assert.equal(f.source.status.pendingBoundaries,0);assert.equal(f.source.status.failed,true);assert.equal(f.commits,0);assert.equal(f.stops,1);}finally{f.close();}}
+});
+test('idle pressure storage stays bounded and repeated requests reuse their emitter slot',()=>{
+ const f=idleMotionFixture(true);try{for(let i=0;i<64;i++)f.source.markIdlePressureBoundary({stepper:`e${i}`,advance:.08});assert.equal(f.source.status.pendingBoundaries,64);for(let i=0;i<1000;i++)f.source.markIdlePressureBoundary({stepper:'e0',advance:.1});assert.equal(f.source.status.pendingBoundaries,64);assert.throws(()=>f.source.markIdlePressureBoundary({stepper:'overflow',advance:.1}),/batch/);assert.equal(f.source.status.pendingBoundaries,64);assert.equal(f.commits,0);assert.equal(f.stops,0);}finally{f.close();}
+});
 test('repeated idle source preparation drains across a subtraction-rounding boundary',async()=>{
  const f=idleMotionFixture();try{
   const from=.0242,until=4.23456789;f.source.startAt((from-.001)-.001);await f.source.prepareIdle(signal());await f.source.drain([],signal());assert.equal(f.source.status.sourceTime,from);assert(from+(until-from)>until);
