@@ -13,6 +13,7 @@ import type {Axis} from '../kinematics/linear.ts';
 import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
+import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
@@ -28,6 +29,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #streamer:RebuiltMotionStreamer;
  #velocity:VelocityLimits;
+ #pressure=new Map<string,Readonly<PressureAdvanceSettings>>();
  #pause:Promise<StreamPause>|undefined;#pauseReady=false;#resuming=false;
  #pauseMode:'held'|'owned'|'stationary'|undefined;#ownedPauseRun:Promise<void>|undefined;
  #pausePosition:readonly number[]|undefined;#pausedBusy=false;#pausedIdle=Promise.resolve();
@@ -40,6 +42,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
   this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
+  for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
@@ -52,6 +55,21 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
  get velocitySettings(){return this.#velocity.state;}
  get velocityStatus(){return this.#velocity.objectStatus;}
+ /** Accepted configuration, not the coefficient currently executing on MCU. */
+ pressureAdvanceSettings(id:string):Readonly<PressureAdvanceSettings>{const state=this.#pressure.get(id);if(!state)throw new RangeError('Unknown pressure advance emitter');return state;}
+ /** Window changes close lookahead to rest. Fixed-window coefficient updates
+  * require geometric endpoint admission and must not use this slower path. */
+ reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal):Promise<void>{
+  const owned=copyPressureWindowChanges(changes);
+  for(const c of owned)if(planPressureAdvance(this.pressureAdvanceSettings(c.stepper),c).kind!=='window-change')throw new RangeError('Pressure coefficient update requires endpoint admission');
+  return this.#operate('pressure-window',signal,async s=>{
+   const moves=this.#admission.flush();
+   if(moves.length)await this.#streamer.append(moves,s);
+   else{const state=this.#g.source.status;if(state.paused||!state.seeded)await this.#prepareIdleBoundary(s);}
+   this.#check(s);await this.#streamer.reconfigurePressureWindows(owned,s);this.#check(s);
+   for(const c of owned)this.#pressure.set(c.stepper,pressureAdvanceSettings(c.advance,c.smoothTime));
+  });
+ }
  updateVelocityLimits(patch:VelocityUpdate):void {
   this.assertActive();if(this.#pause||this.#resuming||this.#busy)throw new VelocityUpdateUnavailable();
   this.#velocity.update(patch,limits=>{this.#admission.setMotionLimits(limits);this.#o.kinematics.setMotionLimits(limits.maxVelocity,limits.maxAccel);this.#o.limits=limits;});

@@ -3,6 +3,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {performance} from 'node:perf_hooks';
 import type {bindRebuiltMotion} from './rebuilt-motion.ts';
 import {copyPressureBoundaries} from '../motion/pressure-boundaries.ts';
+import {copyPressureWindowChanges,type PressureWindowChange} from '../motion/pressure-advance-settings.ts';
 import {copyEndMarkers} from '../motion/boundary-markers.ts';
 import {type Move} from '../motion/lookahead.ts';
 import {validateStopPath} from '../motion/path-stop.ts';
@@ -20,6 +21,7 @@ type PauseRequest=ReturnType<typeof Promise.withResolvers<StreamPause>>&{tail:Mo
 export class RebuiltMotionStreamer {
  #g:Generation;#busy=false;#acceptPause=false;#start:number;#future:number;
  #windows:{future:number;past:number}[];
+ #windowFrontier:number|undefined;
  #pause:PauseRequest|undefined;#wake:(()=>void)|undefined;#end:{position:readonly number[];velocity:number};
  readonly #lead=.2;readonly #high=.5;readonly #low=.3;readonly #minimum=.025;
  constructor(g:Generation){
@@ -27,6 +29,21 @@ export class RebuiltMotionStreamer {
   this.#end={position:g.source.status.position,velocity:0};
  }
  get status(){return {busy:this.#busy,pause:this.#pause?.phase??'none',sourceTime:this.#g.source.status.sourceTime,committedTime:this.#g.coordinator.status.committedTime};}
+ /** The exclusive owner has submitted all lookahead through a resting tail.
+  * Refresh cached convolution requirements only after the source accepts them. */
+ async reconfigurePressureWindows(changes:readonly PressureWindowChange[],signal:AbortSignal,timeoutMs=30000):Promise<void>{
+  if(this.#busy||this.#pause)throw new Error('Motion streamer busy');
+  const owned=copyPressureWindowChanges(changes);this.#busy=true;
+  try{
+   this.#check(signal);await this.#g.source.reconfigurePressureWindows(owned,signal,timeoutMs);
+   signal.throwIfAborted();this.#g.assertClockCalibration();
+   const windows=this.#g.motion.bindings.map(b=>({...b.stepper.scanWindow}));
+   this.#future=Math.max(...windows.map(w=>w.future));this.#windows=windows;
+   this.#windowFrontier=this.#g.coordinator.status.generatedTime;
+   this.#end={position:this.#g.source.status.position,velocity:0};
+  }catch(error){try{await this.#g.drain.stop(error);}catch(stop){throw new AggregateError([error,stop],'Pressure window stream and stop failed');}throw error;}
+  finally{this.#busy=false;}
+ }
  /** Caller must transfer the remaining lookahead tail, ending at rest. The
   * active append stays pending until explicit resume and suffix submission. */
  requestPause(tail:readonly Move[]=[]):Promise<StreamPause>{
@@ -96,22 +113,28 @@ export class RebuiltMotionStreamer {
     prepareStart();source.validateBatch(owned);if(owned.length)await source.prepareIdle(signal,remaining());remaining();
     this.#end={position:owned.length?[...owned.at(-1)!.endPos]:source.status.position,velocity:0};this.#pause=undefined;request.resumption?.resolve();return true;
    };
+   const waitForRoom=async()=>{
+    const clocks=this.#clocks(),target=this.#g.coordinator.status.committedTime-this.#low;
+    // Estimate only when to request a sample; observed clocks prove progress.
+    const waitMs=Math.max(0,(target-Math.min(...clocks.map(c=>c.time)))*1000);
+    if(waitMs)try{await delay(Math.min(waitMs,remaining()),undefined,{signal});}catch(error){signal.throwIfAborted();throw error;}remaining();
+    await waitForMcuClocks(clocks.map(c=>({clock:c.member.session.clock,tick:c.member.timeline?c.member.timeline.reserve(target):c.stepper.clockAt(target)})),signal,{timeoutSeconds:remaining()/1000,pollSeconds:.025});remaining();
+   };
    const flush=async(allowPause=true)=>{
     while(true){
      if(allowPause&&await pause())return;
      if(source.status.sourceTime-this.#future-.001<=this.#g.coordinator.status.generatedTime)return;
      remaining();this.#leadCheck();const clocks=this.#clocks();
      const until=Math.min(source.status.sourceTime,Math.min(...clocks.map(c=>c.time))+this.#high+this.#future+.003);
-     if(until<this.#g.coordinator.status.generatedTime)throw new Error('Streaming clock horizon regressed');
+     if(until<this.#g.coordinator.status.generatedTime){
+      if(this.#windowFrontier!==this.#g.coordinator.status.generatedTime)throw new Error('Streaming clock horizon regressed');
+      await waitForRoom();continue;
+     }
+     this.#windowFrontier=undefined;
      this.#g.maintainClocks(Math.max(this.#g.coordinator.status.generatedTime,until-this.#future-.001));remaining();
      await source.flushThrough(until,signal,remaining());remaining();this.#leadCheck();
      if(source.status.sourceTime-this.#future-.001<=this.#g.coordinator.status.generatedTime)continue;
-     const target=this.#g.coordinator.status.committedTime-this.#low;
-     // Estimate only when to ask for a sample, never completion. Sleeping until
-     // the target is due avoids repeated query traffic while it is in the future.
-     const waitMs=Math.max(0,(target-Math.min(...this.#clocks().map(c=>c.time)))*1000);
-     if(waitMs)try{await delay(Math.min(waitMs,remaining()),undefined,{signal});}catch(error){signal.throwIfAborted();throw error;}remaining();
-     await waitForMcuClocks(clocks.map(c=>({clock:c.member.session.clock,tick:c.member.timeline?c.member.timeline.reserve(target):c.stepper.clockAt(target)})),signal,{timeoutSeconds:remaining()/1000,pollSeconds:.025});remaining();
+     await waitForRoom();
     }
    };
    let flushEmpty=!owned.length;

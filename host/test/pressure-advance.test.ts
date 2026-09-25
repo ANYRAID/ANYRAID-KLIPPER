@@ -134,3 +134,10 @@ test('coordinator refuses a window switch before generated steps are fully submi
 test('partial pressure window application stops all emitters and disallows another generation',async()=>{
  using a=new TrapQueue();using b=new TrapQueue();a.appendRaw(windowPath());b.appendRaw(windowPath());using x=a.createStepper(settings,'extruder',.01);using y=b.createStepper({...settings,oid:4},'extruder',.01);for(const s of [x,y])s.configurePressureAdvance(.05,.04);let stops=0;const owner=new MotionCoordinator([{id:'a',queue:a,stepper:x},{id:'b',queue:b,stepper:y}],{async commit(){},async stop(){stops++;}});await owner.advance(1.5);const cause=new Error('second window application failed');y.reconfigurePressureAdvance=()=>{throw cause;};assert.throws(()=>owner.reconfigurePressureWindows(1.5,[{stepper:'a',advance:.1,smoothTime:.2},{stepper:'b',advance:0,smoothTime:.04}]),e=>e===cause);await new Promise(resolve=>setImmediate(resolve));assert.equal(x.scanWindow.future,.1);assert.equal(y.scanWindow.future,.02);assert.equal(stops,1);assert.equal(owner.status.failed,true);await assert.rejects(owner.advance(2));
 });
+test('small generation increments after window growth preserve monotonic queue cleanup',async()=>{
+ using q=new TrapQueue();q.appendRaw(windowPath());using s=q.createStepper(settings,'extruder',.01);s.configurePressureAdvance(.05,.04);
+ const cleanup:number[]=[],finalize=q.finalize.bind(q);q.finalize=(time,history)=>{cleanup.push(time);finalize(time,history);};let stops=0;
+ const c=new MotionCoordinator([{id:'e',queue:q,stepper:s}],{async commit(){},async stop(){stops++;}});
+ await c.advance(1.5);const prior=cleanup.at(-1)!;c.reconfigurePressureWindows(1.5,[{stepper:'e',advance:.1,smoothTime:.2}]);
+ await c.advance(1.51);assert.equal(cleanup.at(-1),prior);await c.advance(1.7);assert(cleanup.at(-1)!>prior);await c.advance(3.1);assert.equal(s.flush().position,800n);assert.equal(stops,0);for(let i=1;i<cleanup.length;i++)assert(cleanup[i]!>=cleanup[i-1]!);
+});

@@ -120,3 +120,30 @@ for(const park of [false,true])test(`file device pauses and resumes active nativ
   await device.resume(signal());await eof.promise;await device.finish('test',signal());assert.equal(seen.length,512);assert.equal(new Set(seen).size,512);assert.equal(t.generation.motion.bindings.find(b=>b.id==='x')!.history.status.lastPlannedPosition,200n);assert.equal(t.generation.motion.bindings.find(b=>b.id==='y')!.history.status.lastPlannedPosition,0n);assert.equal(t.generation.motion.bindings.find(b=>b.id==='z')!.history.status.lastPlannedPosition,0n);assert.equal(t.f.stops,0);
  }finally{await device?.stop();await t.close();await rm(dir,{recursive:true,force:true});}
 });
+
+test('native window transaction publishes accepted parameters and continues paced extrusion',async()=>{
+ const t=await fixture(0,()=>true,true);try{
+  t.kinematics.markHomed([0]);assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});
+  t.port.move([51,0,0,2.1],10);const change={stepper:'e',advance:.1,smoothTime:.2};const pending=t.port.reconfigurePressureWindows([change],signal());change.smoothTime=.3;
+  assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});assert.equal(t.port.status.phase,'pressure-window');assert.throws(()=>t.port.move([52,0,0,2.2],10),/busy/);await pending;
+  assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.2});assert(Object.isFrozen(t.port.pressureAdvanceSettings('e')));assert.equal(t.generation.source.status.paused,false);assert.equal(t.port.status.pendingMoves,0);
+  t.port.move([52,0,0,2.2],10);await t.port.flush(signal());await t.port.reconfigurePressureWindows([{stepper:'e',advance:.1,smoothTime:.02}],signal());t.port.move([51.5,0,0,2.3],10);await t.port.drain(signal());
+  assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.1,smoothTime:.02});assert.deepEqual(t.port.position(),[51.5,0,0,2.3]);assert.equal(t.generation.motion.bindings[1]!.stepper.scanWindow.future,.01);
+  await t.port.reconfigurePressureWindows([{stepper:'e',advance:0,smoothTime:.04}],signal());assert.equal(t.port.pressureAdvanceSettings('e').advance,0);await t.port.reconfigurePressureWindows([{stepper:'e',advance:.05,smoothTime:.04}],signal());assert.equal(t.generation.motion.bindings[1]!.stepper.scanWindow.future,.02);
+  for(let i=0;i<3;i++){await t.port.reconfigurePressureWindows([{stepper:'e',advance:.05,smoothTime:.2}],signal());await t.port.reconfigurePressureWindows([{stepper:'e',advance:.05,smoothTime:.02}],signal());}
+  t.port.move([51.75,0,0,2.3],10);await t.port.drain(signal());assert.equal(t.port.status.failed,false);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('window command rejects unknown and fixed-window changes without flushing pending motion',async()=>{
+ const t=await fixture(0,()=>true,true);try{t.kinematics.markHomed([0]);t.port.move([51,0,0,2.1],10);const count=t.port.status.pendingMoves;
+  assert.throws(()=>t.port.reconfigurePressureWindows([{stepper:'missing',advance:.1,smoothTime:.2}],signal()),/Unknown/);assert.throws(()=>t.port.reconfigurePressureWindows([{stepper:'e',advance:.1,smoothTime:.04}],signal()),/endpoint admission/);
+  assert.equal(t.port.status.pendingMoves,count);assert.equal(t.port.status.failed,false);assert.equal(t.f.stops,0);
+ }finally{await t.close();}
+});
+test('window failure after native acceptance stops the port without publishing new parameters',async()=>{
+ const t=await fixture(0,()=>true,true);try{const source=t.generation.source,original=source.reconfigurePressureWindows.bind(source),cause=new Error('failure after pressure window acceptance');
+  source.reconfigurePressureWindows=async(...args)=>{await original(...args);throw cause;};
+  await assert.rejects(t.port.reconfigurePressureWindows([{stepper:'e',advance:.1,smoothTime:.2}],signal()),e=>e===cause);
+  assert.deepEqual(t.port.pressureAdvanceSettings('e'),{advance:.05,smoothTime:.04});assert.equal(t.port.status.failed,true);assert.equal(t.f.stops,1);
+ }finally{await t.close();}
+});

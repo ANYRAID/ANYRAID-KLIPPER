@@ -30,6 +30,7 @@ export class MotionCoordinator {
  #beginWork(){if(!this.#busy&&!this.#bounded)this.#idle=new Promise(resolve=>{this.#resolveIdle=resolve;});}
  #endWork(){if(!this.#busy&&!this.#bounded){this.#resolveIdle?.();this.#resolveIdle=undefined;}}
  #finalizedSourceTime=0;#generated:number;#committed:number;#baseline:number;#sequence=0;#maxBytes:number;
+ #queueFinalized=new Map<TrapQueue,number>();
  constructor(bindings:readonly MotionBinding[],sink:MotionSink,maxBatchBytes=16*1024*1024,initialCommittedTime=0,clockHealth:readonly {assertActive():void}[]=[],historyClocks?:ReadonlyMap<string,PrintClockTimeline>){
   if(!bindings.length||bindings.length>128||!Number.isSafeInteger(maxBatchBytes)||maxBatchBytes<1)throw new RangeError('Invalid motion coordinator limits');
   const ids=new Set<string>(),steppers=new Set<StepCompressor>();
@@ -293,7 +294,13 @@ export class MotionCoordinator {
    // A short first window may still retain convolution history before the
    // reset baseline. Keep that queue untouched; never rewind native cleanup
    // or clamp cleanup forward into a solver's retained dependency window.
-   for(const [queue,time] of cutoffs){if(time===null||time<this.#baseline){complete=false;continue;}queue.finalize(time,Math.min(time,clearHistoryTime));finalized=Math.min(finalized,time);}
+   for(const [queue,time] of cutoffs){
+    // A validated window growth may reuse a retained stationary node while
+    // its new cutoff temporarily trails previous cleanup. Preserve that node;
+    // neither rewind cleanup nor clamp it past the new solver dependency.
+    if(time===null||time<(this.#queueFinalized.get(queue)??this.#baseline)){complete=false;continue;}
+    queue.finalize(time,Math.min(time,clearHistoryTime));this.#queueFinalized.set(queue,time);finalized=Math.min(finalized,time);
+   }
    if(complete)this.#finalizedSourceTime=Math.max(this.#finalizedSourceTime,finalized);
   }catch(error){
    if(error instanceof MotionRetiredError&&this.#retired&&!this.#failed)throw error;
