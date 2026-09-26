@@ -10,6 +10,8 @@ import {PublishedPrintFiles,PublishedFileChangedError} from '../storage/publishe
 import {PrintController} from '../operations/print.ts';
 import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 import {NativeFileMetadata} from './native-file-metadata.ts';
+import {NativePersistentMetadata} from './native-persistent-metadata.ts';
+export type NativeUploadOptions={stagingRoot?:string;maxFileBytes?:number;maxUploads?:number;maxDownloads?:number;maxDownloadBytes?:number};
 import type {ThumbnailDownload} from './thumbnail-download.ts';
 export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBinary']>>;
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
@@ -21,11 +23,11 @@ const validId=(id:unknown):id is string=>typeof id==='string'&&/^[A-Za-z0-9_-]{1
 export class NativePrintUploads {
  readonly #files:PublishedPrintFiles;readonly #gate:MaintenanceGate;readonly #root:string;readonly #max:number;readonly #capacity:number;
  readonly #abort=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #authorizing=new Set<Promise<unknown>>();
- readonly #metadata:NativeFileMetadata;
+ #metadata:NativeFileMetadata|NativePersistentMetadata;
  readonly #downloads=new Set<Promise<void>>();readonly #downloadBudget:PrintSnapshotBudget;readonly #maxDownloads:number;
  #closed=false;#published=0;
  #print:PrintController|undefined;
- constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:{stagingRoot?:string;maxFileBytes?:number;maxUploads?:number;maxDownloads?:number;maxDownloadBytes?:number}={}){
+ constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions={}){
   if(!(files instanceof PublishedPrintFiles)||!(gate instanceof MaintenanceGate))throw new Error('Invalid native upload owner');
   const max=options.maxFileBytes??Math.min(files.status.maxFileBytes,64*1024**2),capacity=options.maxUploads??2,root=options.stagingRoot??tmpdir();
   if(!(files instanceof PublishedPrintFiles)||files.status.closed||!(gate instanceof MaintenanceGate)||gate.status.closed||!isAbsolute(root)||!Number.isSafeInteger(max)||max<1||max>64*1024**2||max>files.status.maxFileBytes||!Number.isSafeInteger(capacity)||capacity<1||capacity>4)throw new Error('Invalid native upload owner or limits');
@@ -34,6 +36,10 @@ export class NativePrintUploads {
   this.#maxDownloads=downloads;this.#downloadBudget=new PrintSnapshotBudget({maxBytes:downloadBytes,maxSnapshots:downloads});
   this.#metadata=new NativeFileMetadata(files);this.#files=files;this.#gate=gate;this.#root=root;this.#max=max;this.#capacity=capacity;
  }
+ static async open(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions&{metadataRoot:string}):Promise<NativePrintUploads>{
+  const owner=new NativePrintUploads(files,gate,options);
+  try{const metadata=await NativePersistentMetadata.open(options.metadataRoot,files),previous=owner.#metadata;owner.#metadata=metadata;await previous.close();return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Native upload startup cleanup failed');}throw error;}
+ }
  get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  bindPrintController(controller:PrintController):void{if(!(controller instanceof PrintController)||!controller.usesMaintenanceGate(this.#gate)||this.#print&&this.#print!==controller)throw new Error('Invalid native file print owner');this.#print=controller;}
@@ -41,7 +47,7 @@ export class NativePrintUploads {
  observeChanges(observer:(event:Json)=>void):()=>void{
   if(this.#closed)throw new ApiError(503,'Native files closed');
   return this.#files.observeChanges(({action,file,modified})=>{
-   if(this.#closed)return;if(action==='delete_file')this.#metadata.invalidate(file.id+'.gcode');
+   if(this.#closed)return;if(action==='delete_file')void Promise.resolve(this.#metadata.invalidate(file.id+'.gcode')).catch(()=>{});
    observer({action,item:{path:file.id+'.gcode',root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256}});
   });
  }
@@ -56,7 +62,7 @@ export class NativePrintUploads {
     const {file}=await this.#files.describe(id,signal);
     await this.#authorize(context,{path:params.path,file_id:id,filename:file.name,size:file.size,sha256:file.sha256},signal,'server.files.delete_file');
     try{release=this.#print!.beginFileMutation(id);}catch{throw new ApiError(409,'Print or maintenance owns this file');}
-    await this.#files.remove(id,signal,file);this.#metadata.invalidate(id+'.gcode');
+    await this.#files.remove(id,signal,file);await this.#metadata.invalidate(id+'.gcode');
     return {item:{path:id+'.gcode',root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'};
    }catch(error){if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}finally{release?.();}
   });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
@@ -172,7 +178,7 @@ export class NativePrintUploads {
   const result=entries.map(({file,modified})=>({path:file.id+'.gcode',modified,size:file.size,permissions:this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256}));
   if(Buffer.byteLength(JSON.stringify(result))>900000)throw new ApiError(413,'Native file catalog exceeds response limit');return result;
  }
- close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.allSettled([...this.#pending,...this.#downloads,this.#metadata.close()]).then(()=>{});}
+ close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadata.close()]).then(()=>{});}
 }
 export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean}={}):()=>void{
  const release:(()=>void)[]=[];
