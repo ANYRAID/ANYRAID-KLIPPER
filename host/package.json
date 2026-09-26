@@ -281,7 +281,8 @@
     "diagnose:motion-native": "node scripts/diagnose-motion-native.ts",
     "test:product-install": "node --test --test-concurrency=1 test/product-native-build.test.ts test/product-build.test.ts acceptance/*.test.ts",
     "bench:product-print-duration": "node bench/product-print-duration.ts",
-    "bench:extrusion-accounting": "node bench/extrusion-accounting.ts"
+    "bench:extrusion-accounting": "node bench/extrusion-accounting.ts",
+    "bench:effective-print-duration": "node bench/effective-print-duration.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

@@ -29,3 +29,21 @@ test('fault cleanup cannot add consumption and missing restored history stays un
  const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){move.execute('G1',{E:9});}},{maxNozzle:300,maxBed:120},{},{extrusionAccounting:meter});
  try{await controller.start({version:1,requestId:'fault',fileId:'file',nozzle:0,bed:0});move.execute('G1',{E:2});await controller.fault(Error('fault'));await controller.cancel();assert.equal(controller.filamentUsed,2);meter.restoreUnknown();meter.setActive(true);move.execute('G1',{E:2});assert.equal(meter.filamentUsed,null);}finally{await controller.retire();}
 });
+test('print duration begins at first net-positive extrusion and is independent of query frequency',t=>{
+ let now=0,reads=0;t.mock.method(performance,'now',()=>{reads++;return now;});
+ const meter=new ExtrusionAccounting();meter.begin();now=1000;meter.accepted(0,-1,1);now=2000;meter.accepted(0,1,1);assert.equal(meter.printDuration,0);assert.equal(reads,0);
+ now=3000;meter.accepted(0,1e-7,1);assert.equal(reads,1);now=4000;meter.accepted(0,2,1);meter.accepted(0,-3,1);assert.equal(reads,1); // No per-move timestamps, no restart after a retraction.
+ now=5000;assert.equal(meter.printDuration,2);meter.setActive(false);now=9000;assert.equal(meter.printDuration,2);meter.setActive(false);meter.accepted(0,10,1);assert.equal(meter.printDuration,2);
+ meter.setActive(true);meter.setActive(true);now=12000;assert.equal(meter.printDuration,5);meter.setActive(false);now=20000;assert.equal(meter.printDuration,5);
+ meter.reset();assert.equal(meter.printDuration,0);meter.restoreUnknown();assert.equal(meter.printDuration,null);meter.begin();meter.accepted(-1e308,1e308,1);assert.equal(meter.printDuration,null);
+});
+test('paused cancellation and resume preparation never accrue effective print time',async t=>{
+ let now=0;t.mock.method(performance,'now',()=>now);const {move}=fixture();move.execute('M83');
+ const resume=Promise.withResolvers<void>(),stop=Promise.withResolvers<void>();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},resume:()=>resume.promise,async finish(){},stop:()=>stop.promise},{maxNozzle:300,maxBed:120},{},{extrusionAccounting:move.extrusionAccounting});
+ try{
+  await controller.start({version:1,requestId:'timed',fileId:'file',nozzle:0,bed:0});now=2000;assert.equal(controller.printDuration,0);move.execute('G1',{E:1});now=5000;await controller.pause();assert.equal(controller.printDuration,3);
+  const resumed=controller.resume();now=10000;assert.equal(controller.printDuration,3);resume.resolve();await resumed;now=12000;await controller.pause();assert.equal(controller.printDuration,5);
+  const cancelled=controller.cancel();now=20000;move.execute('G1',{E:10});assert.equal(controller.printDuration,5);assert.equal(controller.filamentUsed,1);stop.resolve();await cancelled;now=30000;assert.equal(controller.printDuration,5);assert.equal(controller.totalDuration,20);controller.reset('timed');assert.equal(controller.printDuration,0);
+ }finally{resume.resolve();stop.resolve();await controller.retire();}
+});

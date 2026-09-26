@@ -81,6 +81,7 @@ const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
   #extrusionAccounting:ExtrusionAccounting|undefined;
   get filamentUsed():number|null{return this.#extrusionAccounting?.filamentUsed??null;}
+  get printDuration():number|null{return this.#extrusionAccounting?.printDuration??null;}
   #retirement:Promise<void>|undefined;
   /** Permanent owner shutdown. Unlike cancel's observation deadline, completion
    * proves that accepted actions, safety cleanup and journal writes retired.
@@ -194,7 +195,9 @@ export class PrintController {
     if(state==='preparing')this.#extrusionAccounting?.begin();
     else if(state==='idle')this.#extrusionAccounting?.reset();
     else if(state==='interrupted')this.#extrusionAccounting?.restoreUnknown();
-    else this.#extrusionAccounting?.setActive(['printing','pausing','finishing','cancelling'].includes(state)&&this.#state!=='failed'&&this.#state!=='interrupted');
+    // Cancellation preserves whether motion was already active: cancelling a
+    // paused or faulted job must not restart extrusion/time accounting.
+    else if(state!=='cancelling')this.#extrusionAccounting?.setActive(['printing','pausing','finishing'].includes(state)&&this.#state!=='failed'&&this.#state!=='interrupted');
     if(state==='preparing'){this.#durationStart=performance.now();this.#duration=0;}
     else if(state==='idle'||state==='interrupted'){this.#durationStart=undefined;this.#duration=state==='idle'?0:null;}
     else if((state==='completed'||state==='cancelled'||state==='failed')&&this.#durationStart!==undefined){this.#duration=this.totalDuration;this.#durationStart=undefined;}

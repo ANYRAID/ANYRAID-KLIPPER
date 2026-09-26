@@ -1,0 +1,64 @@
+{
+  "baseline": "b71576ce",
+  "node": "v26.9.0",
+  "scope": "Native effective print duration from first accepted net extrusion excluding confirmed pauses and resume preparation",
+  "sources": {
+    "host/src/gcode/extrusion-accounting.ts": "fbf9fea7b64bf77f08ed43e1bd3a18c8d0cdef55aa3d4a2319b039c5f8ce42a1",
+    "host/src/operations/print.ts": "b180869b5ca57bc0c28c27599ba01d1f87f2d61c99ed9cec6b24f5a02184475e",
+    "host/src/runtime/product-print-status.ts": "45aab475f85ba5f889bf7288d5ac795ecb461fc788a23e5ac3028a718fee22f3",
+    "host/test/extrusion-accounting.test.ts": "4fe1a3feeb8669d0880056562d26fbaecfdc0503448e7dfcc10406b46851763d",
+    "host/test/print-duration.test.ts": "a89e7583d20fda8f56b37f6637d056b0f02058e8d413b081b033fb410a01cd1c",
+    "host/bench/effective-print-duration.ts": "201a5d4f7c9091ee0c2f422ec7b08b2333c8be0236be83f7649350875df78a87",
+    "host/acceptance/product-compiled-journey.test.ts": "0aa70e5a2194c7873c2dd359dd36c1f10fc671cad94d999a53ffd09d4ab79e6c"
+  },
+  "checks": {
+    "relatedTests": {
+      "pass": 46,
+      "fail": 0
+    },
+    "serviceAndBuild": {
+      "pass": 13,
+      "fail": 0
+    },
+    "productAcceptance": {
+      "pass": 3,
+      "fail": 1
+    },
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "baseline": "b71576ce",
+    "moves": 10000,
+    "warmups": 5,
+    "runs": 21,
+    "results": [
+      {
+        "medianMs": 4.554395999999997,
+        "p95Ms": 4.794369999999958
+      },
+      {
+        "medianMs": 4.534736000000009,
+        "p95Ms": 4.8698909999999955
+      }
+    ],
+    "ratio": 0.9956832914836594,
+    "maximumMedianRatio": 1.15,
+    "exactCoordinatesAndSpeeds": true
+  },
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.281516ms)\n✖ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (5465.366597ms)\nℹ {\"installation\":{\"durationMs\":694.9060899999995,\"dependencies\":10}}\nℹ {\"failureContext\":{\"loaded\":false,\"loadGeneration\":0,\"homed\":0,\"exitCode\":null,\"signalCode\":null,\"stderr\":\"\",\"events\":\"{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":1}\\n\"}}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19134.114148ms)\nℹ {\"installation\":{\"durationMs\":692.0806460000003,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":15.47826200000054,\"deleteRequests\":16,\"deleteP95Ms\":31.459248999999545,\"thumbnailRequests\":16,\"thumbnailP95Ms\":5.161552999999913,\"metadataRequests\":16,\"metadataP95Ms\":56.58566900000005,\"downloads\":16,\"downloadP95Ms\":10.35255799999868,\"wireCommands\":171,\"wireSteps\":3088,\"minimumStepLeadMs\":85.897,\"directoryRequests\":1966,\"directoryP99Ms\":5.6866509999999835,\"statusRequests\":8215,\"uploads\":16,\"statusP99Ms\":3.156369000000268,\"uploadP95Ms\":23.74680400000034,\"generations\":[{\"loop\":{\"p99Ms\":2.252799,\"maxMs\":13.975551},\"cpu\":{\"user\":1900278,\"system\":251263},\"rss\":245862400},{\"loop\":{\"p99Ms\":1.949695,\"maxMs\":4.665343},\"cpu\":{\"user\":1198767,\"system\":140015},\"rss\":241438720}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7933.870077ms)\nℹ tests 4\nℹ suites 0\nℹ pass 3\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 33169.822711\n\n✖ failing tests:\n\ntest at acceptance/product-compiled-journey.test.ts:23:34\n✖ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (5465.366597ms)\n  Error: POST /server/files/upload failed\n      at checkedFetch (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:20:122)\n      at async TestContext.<anonymous> (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:102:22)\n      at async Test.run (node:internal/test_runner/test:1409:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    [cause]: [TypeError [Error]: fetch failed] {\n      [cause]: Error: write EPIPE\n          at afterWriteDispatched (node:internal/stream_base_commons:159:15)\n          at writeGeneric (node:internal/stream_base_commons:150:3)\n          at Socket._writeGeneric (node:net:1262:11)\n          at Socket._write (node:net:1274:8)\n          at doWrite (node:internal/streams/writable:600:12)\n          at clearBuffer (node:internal/streams/writable:785:7)\n          at Writable.uncork (node:internal/streams/writable:533:7)\n          at AsyncWriter.write (node:internal/deps/undici/undici:8338:16)\n          at writeIterable (node:internal/deps/undici/undici:8257:23) {\n        errno: -32,\n        code: 'EPIPE',\n        syscall: 'write'\n      }\n    }\n  }\n",
+  "openFailure": {
+    "request": "POST /server/files/upload without authorization",
+    "error": "fetch failed: write EPIPE",
+    "phase": "before homing/printing, child running, stderr empty",
+    "hypothesis": "Early authorization rejection and Connection: close may race the incoming multipart body; not yet independently proven",
+    "retry": "No successful rerun substituted for the failed acceptance"
+  },
+  "limitations": [
+    "Full product acceptance did not pass this run",
+    "No physical motion-time feedback; logical accepted-command time only",
+    "Missing restored history and numeric accounting overflow report null",
+    "193 Python files and default Python entry remain; historical motion mismatch and SIGSEGV remain unresolved"
+  ]
+}
