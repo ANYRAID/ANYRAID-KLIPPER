@@ -9,6 +9,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 import {NativeFileMetadata} from './native-file-metadata.ts';
+import type {ThumbnailDownload} from './thumbnail-download.ts';
 export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBinary']>>;
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
@@ -109,6 +110,15 @@ export class NativePrintUploads {
   });
   this.#downloads.add(task);void task.then(()=>this.#downloads.delete(task),()=>this.#downloads.delete(task));return task;
  }
+ hasThumbnail(path:string):boolean{return this.#metadata.hasThumbnail(path);}
+ resolveThumbnail(path:string,context:RpcContext):Promise<ThumbnailDownload>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native thumbnails closed'));const signal=AbortSignal.any([context.signal,this.#abort.signal]);
+  const task=this.#metadata.resolveThumbnail(path,{...context,signal,authorize:(method,params)=>this.#authorize(context,{...params,...(typeof params.filename==='string'&&/^[A-Za-z0-9_-]{1,128}\.gcode$/.test(params.filename)?{file_id:params.filename.slice(0,-6)}:{})},signal,method)});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+ }
+ thumbnails(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json[]>{
+  if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
+  return this.#metadata.thumbnails(params.filename,signal);
+ }
  metadata(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Record<string,Json>>{
   if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
   return this.#metadata.metadata(params.filename,signal);
@@ -143,7 +153,7 @@ export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativeP
   release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>uploads.info(params,context.signal)));
   release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>uploads.list(params,context.signal)));
   release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>uploads.directory(params,context.signal)));
-  if(options.metadata!==false)release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>uploads.metadata(params,context.signal)));
+  if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>uploads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>uploads.thumbnails(params,context.signal)));}
   return ()=>{for(const remove of release.reverse())remove();};
  }catch(error){for(const remove of release.reverse())remove();throw error;}
 }

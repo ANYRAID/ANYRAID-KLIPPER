@@ -116,7 +116,7 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC||isUpload?['POST']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!this.#options.nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||this.#options.nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
@@ -162,7 +162,7 @@ export class MoonrakerNetwork {
      });return;
     }
     if(isThumbnail){
-     const download=await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
+     const download=isNativeThumbnail?await this.#options.nativeUploads!.resolveThumbnail(path,context):await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
      if(!Number.isSafeInteger(download.size)||download.size<1||download.size>8*maxBytes)throw new ApiError(500,'Invalid thumbnail size');
      response.setHeader('content-type',download.contentType);response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');
      if(request.method==='HEAD'&&!request.headers['if-none-match']){response.setHeader('content-length',download.size);response.end();return;}

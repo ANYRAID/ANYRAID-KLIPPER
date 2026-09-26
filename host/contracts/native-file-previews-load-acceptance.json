@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "83debcd8",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "e63e9b172d35e02a752e23842330edea1679a45b84d71658e6b55d003153f0c3",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "extendedDirectoryClients": 1,
+    "pollDelayMs": 5,
+    "uploadsPerGeneration": 8,
+    "uploadBytes": 262144,
+    "generations": 2,
+    "thumbnail": {
+      "width": 80,
+      "height": 40,
+      "format": "png"
+    },
+    "coldMetadataAndImageDownloadAfterEveryUpload": true
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3232,
+      "minimumStepLeadMs": 90.196,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.842175,
+            "maxMs": 13.262847
+          },
+          "cpu": {
+            "user": 675129,
+            "system": 83453
+          },
+          "rss": 163274752
+        },
+        {
+          "loop": {
+            "p99Ms": 1.742847,
+            "maxMs": 5.140479
+          },
+          "cpu": {
+            "user": 394407,
+            "system": 46319
+          },
+          "rss": 185253888
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.828708999997616,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.448287999999593,
+      "downloads": 16,
+      "downloadP95Ms": 6.052722000000358,
+      "wireCommands": 147,
+      "wireSteps": 3234,
+      "minimumStepLeadMs": 84.584,
+      "directoryRequests": 2133,
+      "directoryP99Ms": 3.4654050000026473,
+      "statusRequests": 8868,
+      "uploads": 16,
+      "statusP99Ms": 2.3719140000030166,
+      "uploadP95Ms": 13.983413000001747,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.982463,
+            "maxMs": 13.041663
+          },
+          "cpu": {
+            "user": 1922036,
+            "system": 226600
+          },
+          "rss": 242892800
+        },
+        {
+          "loop": {
+            "p99Ms": 1.840127,
+            "maxMs": 5.062655
+          },
+          "cpu": {
+            "user": 1071900,
+            "system": 137289
+          },
+          "rss": 267051008
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS child with simulated PTY MCU, temperature and endstops. PNG decode and miniature generation occur during printing; preview download bytes verified. Existing preview is warmed before printing. Does not prove target hardware, Python speed parity or resolve historical motion anomalies."
+}

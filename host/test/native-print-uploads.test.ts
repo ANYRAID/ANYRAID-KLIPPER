@@ -4,6 +4,7 @@ import {mkdtemp,writeFile,readdir,readFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
+import sharp from 'sharp';
 import {request as httpRequest} from 'node:http';
 import {NativePrintUploads,registerNativeFileInfo} from '../src/moonraker/native-print-uploads.ts';
 import {MoonrakerNetwork,type MoonrakerNetworkOptions} from '../src/moonraker/server.ts';
@@ -23,6 +24,37 @@ async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['
  const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize:options.authorize??(()=>{})}),address=await network.listen(),url=`http://127.0.0.1:${address.port}`;
  return {dir,gate,files,uploads,network,url,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
 }
+const thumbnailBlock=(bytes:Buffer,width=80,height=40)=>{const data=bytes.toString('base64');return `; thumbnail_png begin ${width}x${height} ${data.length}\n; ${data}\n; thumbnail_png end\nG1 X1\n`;};
+test('native thumbnail HTTP journey preserves bytes, conditional responses, per-file authorization and replacement revocation',async()=>{
+ let denied=false;const calls:Record<string,unknown>[]=[],f=await fixture({authorize:(method,params)=>{if(method==='server.files.download'){calls.push({...params});if(denied&&params.file_id==='preview')throw new ApiError(403,'Denied preview');}}});
+ try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer();
+  assert.equal((await f.post(multipart(thumbnailBlock(png),{file_id:'preview'}))).status,200);
+  const results=await Promise.all([0,1].map(async()=>{const response=await fetch(f.url+'/server/files/metadata?filename=preview.gcode');assert.equal(response.status,200);return (await response.json()).result;}));
+  assert.deepEqual(results[0],results[1],'Concurrent extraction must not revoke the other response');
+  assert.deepEqual(results[0].thumbnails.map((t:any)=>[t.width,t.height]),[[32,16],[80,40]]);
+  const thumbs=(await (await fetch(f.url+'/server/files/thumbnails?filename=preview.gcode')).json()).result;
+  assert.equal(thumbs[1].thumbnail_path,results[0].thumbnails[1].relative_path);
+  const url=f.url+'/server/files/gcodes/'+thumbs[1].thumbnail_path,response=await fetch(url);assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/png');assert.deepEqual(Buffer.from(await response.arrayBuffer()),png);
+  assert.equal(calls.at(-1)?.file_id,'preview');assert.equal(calls.at(-1)?.filename,'preview.gcode');
+  const head=await fetch(url,{method:'HEAD'});assert.equal(head.status,200);assert.equal(Number(head.headers.get('content-length')),png.length);assert.equal((await head.arrayBuffer()).byteLength,0);
+  assert.equal((await fetch(url,{headers:{'if-none-match':response.headers.get('etag')!}})).status,304);
+  denied=true;assert.equal((await fetch(url)).status,403);assert.equal(f.network.status.bufferedBytes,0);denied=false;
+  const signal=new AbortController().signal;await f.files.remove('preview',signal);
+  assert.equal((await f.post(multipart('G1 X2\n',{file_id:'preview'}))).status,200);
+  assert.equal((await fetch(url,{method:'HEAD'})).status,404);assert.equal(f.uploads.status.metadata.imageBytes,0);
+  assert.deepEqual((await (await fetch(f.url+'/server/files/thumbnails?filename=preview.gcode')).json()).result,[]);
+ }finally{await f.clean();}assert.equal(f.uploads.status.metadata.imageBundles,0);
+});
+test('malformed native thumbnail does not publish partial metadata or poison following extraction',async()=>{
+ const f=await fixture();try{
+  assert.equal((await f.post(multipart(thumbnailBlock(Buffer.from('invalid')),{file_id:'bad'}))).status,200);
+  assert.equal((await fetch(f.url+'/server/files/metadata?filename=bad.gcode')).status,422);
+  assert.equal(f.uploads.status.metadata.imageBytes,0);assert.equal(f.uploads.status.metadata.cache.entries,0);
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'red'}}).png().toBuffer();assert.equal((await f.post(multipart(thumbnailBlock(png),{file_id:'good'}))).status,200);
+  const result=await fetch(f.url+'/server/files/thumbnails?filename=good.gcode');assert.equal(result.status,200);assert.equal((await result.json()).result.length,2);
+ }finally{await f.clean();}
+});
 test('streaming native upload exceeds JSON limit and publishes exact immutable bytes with authorized receipt lookup',async()=>{
  const calls:{method:string;params:unknown}[]=[],f=await fixture({authorize:(method,params)=>{calls.push({method,params});}});
  try{const data=Buffer.alloc(2*1024**2,59),sha256=createHash('sha256').update(data).digest('hex'),response=await f.post(multipart(data,{file_id:'large',checksum:sha256,root:'gcodes'},'模型.gcode'));assert.equal(response.status,200);const result=(await response.json()).result;assert.deepEqual(result,{file:{version:1,id:'large',name:'模型.gcode',size:data.length,sha256},print_started:false,print_queued:false});assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await (await fetch(f.url+'/printer/files/info?file_id=large')).json()).result.sha256,sha256);assert.deepEqual(calls.map(c=>c.method),['server.files.upload','server.files.upload','printer.files.info']);assert.deepEqual(calls[0].params,{});assert.equal((calls[1].params as any).size,data.length);assert.deepEqual((await readdir(f.dir)).sort(),['files']);assert.equal(f.network.status.bufferedBytes,0);

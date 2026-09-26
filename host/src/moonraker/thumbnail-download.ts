@@ -5,8 +5,8 @@ export interface ThumbnailDownload {size:number;contentType:string;read():Promis
 /** Logical gcodes URLs only. Current metadata and per-source authorization are
  * both required; a bundle UUID is never an authorization credential. */
 export class ThumbnailDownloads {
- private storage:ThumbnailStorage;private metadata:FileMetadataStore;private assertAvailable:(()=>void)|undefined;
- constructor(storage:ThumbnailStorage,metadata:FileMetadataStore,assertAvailable?:()=>void){this.storage=storage;this.metadata=metadata;this.assertAvailable=assertAvailable;}
+ private storage:Pick<ThumbnailStorage,'read'>;private metadata:FileMetadataStore;private assertAvailable:(()=>void)|undefined;
+ constructor(storage:Pick<ThumbnailStorage,'read'>,metadata:FileMetadataStore,assertAvailable?:()=>void){this.storage=storage;this.metadata=metadata;this.assertAvailable=assertAvailable;}
  matches(path:string):boolean{return path.startsWith('/server/files/gcodes/');}
  async resolve(rawPath:string,context:RpcContext):Promise<ThumbnailDownload>{
   await context.authorize('server.files.download',{path:rawPath});context.signal.throwIfAborted();this.assertAvailable?.();

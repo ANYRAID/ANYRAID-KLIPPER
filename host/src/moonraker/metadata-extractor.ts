@@ -5,7 +5,7 @@ import {ApiError,type Json} from './rpc.ts';
 import {FileMetadataStore} from './file-metadata.ts';
 export interface MetadataExtraction {thumbnailData?:string;fields:Record<string,Json>;source:{dev:bigint;ino:bigint;mtimeNs:bigint;ctimeNs:bigint};objects:{hasObjects:boolean;hasM486Objects:boolean};}
 export interface MetadataExtractorOptions {maxPending?:number;timeoutMs?:number;maxFileBytes?:number;maxOutputBytes?:number;}
-export interface MetadataFieldExtraction {fields:Record<string,Json>;objects:MetadataExtraction['objects'];}
+export interface MetadataFieldExtraction {thumbnailData?:string;fields:Record<string,Json>;objects:MetadataExtraction['objects'];}
 export interface MetadataByteWindows {head:Uint8Array;tail:Uint8Array;size:number;modified:number;}
 interface Pending {cancel:Int32Array;finish:(error:unknown,value?:MetadataExtraction|MetadataFieldExtraction)=>void;dispose:()=>void;}
 /** Transfers admitted FileHandles to a serial, bounded Worker. A timeout fences the
@@ -34,9 +34,9 @@ export class MetadataExtractor {
  extract(source:FileHandle,signal:AbortSignal,includeThumbnailData=false):Promise<MetadataExtraction>{
   return this.#submit(source,undefined,signal,includeThumbnailData).then(value=>{if(!('source' in value))throw new ApiError(502,'Metadata extraction omitted source');return value;});
  }
- extractWindows(window:MetadataByteWindows,signal:AbortSignal):Promise<MetadataFieldExtraction>{
+ extractWindows(window:MetadataByteWindows,signal:AbortSignal,includeThumbnailData=false):Promise<MetadataFieldExtraction>{
   if(!window||!(window.head instanceof Uint8Array)||!(window.tail instanceof Uint8Array)||!Number.isSafeInteger(window.size)||window.size<0||window.size>this.#options.maxFileBytes||!Number.isFinite(window.modified)||window.head.byteLength!==Math.min(window.size,1024**2)||window.tail.byteLength!==Math.max(0,Math.min(window.size-1024**2,1024**2)))return Promise.reject(new TypeError('Invalid metadata byte windows'));
-  return this.#submit(undefined,window,signal,false);
+  return this.#submit(undefined,window,signal,includeThumbnailData);
  }
  #submit(source:FileHandle|undefined,window:MetadataByteWindows|undefined,signal:AbortSignal,includeThumbnailData:boolean):Promise<MetadataExtraction|MetadataFieldExtraction>{
   if(typeof includeThumbnailData!=='boolean')return Promise.reject(new TypeError('Invalid thumbnail extraction option'));
