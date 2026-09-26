@@ -24,7 +24,7 @@ test('An admitted preparation can finish after expiry; identical retries do not 
 test('A delayed durable reservation cannot admit after wall-clock rollback extends apparent validity',async t=>{
  const dir=await mkdtemp(join(tmpdir(),'print-expiry-')),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'});let now=1000;t.mock.method(Date,'now',()=>now);const calls:string[]=[],reserve=journal.reserve.bind(journal);
  t.mock.method(journal,'reserve',async(...args:Parameters<PrintJournal['reserve']>)=>{now=500;await new Promise(r=>setTimeout(r,30));return reserve(...args);});
- try{const controller=new PrintController(device(calls),limits,{}, {journal});await assert.rejects(controller.start({...request,expiresAt:1010}),/expired/);assert.deepEqual(calls,['stop']);assert.equal((await journal.get('job'))?.state,'reserved');assert.equal(controller.state,'failed');await controller.cancel();assert.equal((await journal.get('job'))?.state,'cancelled');}
+ try{const controller=new PrintController(device(calls),limits,{}, {journal});await assert.rejects(controller.start({...request,expiresAt:1010}),/expired/);assert.deepEqual(calls,['stop']);assert.equal((await journal.get('job'))?.state,'failed');assert.equal(controller.state,'failed');await controller.cancel();assert.equal((await journal.get('job'))?.state,'cancelled');}
  finally{await journal.close();await rm(dir,{recursive:true,force:true});}
 });
 test('Expiry is durable request identity and restart requires reconciliation without auto execution',async()=>{

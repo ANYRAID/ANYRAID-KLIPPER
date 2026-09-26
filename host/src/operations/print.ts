@@ -127,7 +127,7 @@ export class PrintController {
     const deferred=Promise.withResolvers<void>();this.#faultStop=deferred.promise;
     this.#eofPending=undefined;this.#faultCause=cause;this.#changeState('failed');
     this.#abort?.abort(cause);
-    void Promise.resolve().then(()=>printDeadline(this.#ensureStopped(),'safe stop',this.#deadlines.stopMs)).then(deferred.resolve,deferred.reject);
+    void Promise.resolve().then(()=>printDeadline(this.#ensureStopped(),'safe stop',this.#deadlines.stopMs)).then(()=>this.#persist('failed')).then(deferred.resolve,deferred.reject);
     return deferred.promise;
   }
   #journal: PrintJournal | undefined;
@@ -508,7 +508,7 @@ export class PrintController {
     this.#abort?.abort(new Error('Print cancelled'));
     return cancellation;
   }
-  async #persist(state: 'started' | 'completed' | 'cancelled'): Promise<void> {
+  async #persist(state: 'started' | 'completed' | 'cancelled' | 'failed'): Promise<void> {
     if (this.#journalWrite) {
       await this.#journalWrite;
       return this.#persist(state);
@@ -517,7 +517,8 @@ export class PrintController {
     if (!this.#journal || !record) return;
     // Finish may commit while cancellation waits for its underlying action.
     // Its acknowledged safe terminal result must never be overwritten.
-    if (['completed', 'cancelled'].includes(record.state)) return;
+    if (['completed', 'cancelled'].includes(record.state)||record.state===state) return;
+    if(record.state==='failed'&&state!=='cancelled')return;
     const write = this.#journal
       .transition(record.request.requestId, record.revision, state)
       .then((updated) => {
@@ -615,6 +616,7 @@ export class PrintController {
               'Print operation and safe stop failed',
             );
           }
+          await this.#persist('failed');
         }
         throw error;
       } finally {
