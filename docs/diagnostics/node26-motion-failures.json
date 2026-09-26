@@ -381,5 +381,183 @@
     "APT default cache reported a hash error once; private temporary cache allowed debug-library download. This is not proof of a shared cause.",
     "No system packages installed, no global CPU/ASLR settings changed, no production parameters changed.",
     "No precision tolerance was widened; repeated correct results never convert a first failure into success."
-  ]
+  ],
+  "optimizationControl": {
+    "repositoryBase": "269fea52",
+    "diagnosticScriptSha256": "d65f6aaabe8177ed86c950e5d5fefc37e2635c777d514979517d926749474a13",
+    "description": "Same fixture and module hashes, ASan off, no project native addons, 50-process limit and four workers for each trial. off disables Maglev and TurboFan only; baseline execution and WebAssembly are not disabled. Passing bounded samples do not establish stability.",
+    "candidateCache": {
+      "archiveSha256": "ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022",
+      "savedReleaseChecksum": "ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022  node-v26.10.0-linux-x64.tar.xz",
+      "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+    },
+    "trials": [
+      {
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "/tmp/anyraid-node-asan-umRgce/fixture.mjs"
+        ],
+        "limit": 50,
+        "workers": 4,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+        "reportPath": "/tmp/anyraid-node-asan-umRgce/report.json",
+        "runs": 50,
+        "failures": []
+      },
+      {
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "off",
+        "args": [
+          "--no-maglev",
+          "--no-turbofan",
+          "/tmp/anyraid-node-asan-f3Jsau/fixture.mjs"
+        ],
+        "limit": 50,
+        "workers": 4,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+        "reportPath": "/tmp/anyraid-node-asan-f3Jsau/report.json",
+        "runs": 28,
+        "failures": [
+          {
+            "index": 24,
+            "pid": 2349052,
+            "status": 1,
+            "signal": null,
+            "stdout": "motion:loading\nmotion:loaded\n",
+            "stderr": "file:///tmp/anyraid-node-asan-f3Jsau/fixture.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":4,\"panel\":0,\"curve\":0,\"index\":8262,\"actual\":-99.44592246178274,\"expected\":-99.44591750468135,\"error\":-0.000004957101396030339,\"xor\":\"0x17cfaea8\",\"repeated\":-99.44591750468135,\"nearby\":[-99.4056799923726,-99.42603515810333,-99.44592246178274,-99.46532627679971,-99.4842806673546],\"reference\":[-99.4056799923726,-99.42603515810333,-99.44591750468135,-99.46533123390111,-99.4842806673546]}\n    at file:///tmp/anyraid-node-asan-f3Jsau/fixture.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-f3Jsau/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-f3Jsau/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-f3Jsau/fixture.mjs:11:9\n\nNode.js v26.9.0\n"
+          }
+        ]
+      },
+      {
+        "node": "/tmp/anyraid-node2610/node-v26.10.0-linux-x64/bin/node",
+        "version": "v26.10.0",
+        "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "/tmp/anyraid-node-asan-cWZl7G/fixture.mjs"
+        ],
+        "limit": 50,
+        "workers": 4,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+        "reportPath": "/tmp/anyraid-node-asan-cWZl7G/report.json",
+        "runs": 50,
+        "failures": []
+      },
+      {
+        "node": "/tmp/anyraid-node2610/node-v26.10.0-linux-x64/bin/node",
+        "version": "v26.10.0",
+        "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "off",
+        "args": [
+          "--no-maglev",
+          "--no-turbofan",
+          "/tmp/anyraid-node-asan-Sq1vqC/fixture.mjs"
+        ],
+        "limit": 50,
+        "workers": 4,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+        "reportPath": "/tmp/anyraid-node-asan-Sq1vqC/report.json",
+        "runs": 24,
+        "failures": [
+          {
+            "index": 20,
+            "pid": 2349682,
+            "status": 1,
+            "signal": null,
+            "stdout": "motion:loading\nmotion:loaded\n",
+            "stderr": "file:///tmp/anyraid-node-asan-Sq1vqC/fixture.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":5,\"panel\":0,\"curve\":0,\"index\":6011,\"actual\":120.00001864421961,\"expected\":119.99999984197984,\"error\":0.00001880223976513662,\"xor\":\"0x3ffffb16547d0\",\"repeated\":119.99999984197984,\"nearby\":[119.99999984190879,119.99999984197984,120.00001864421961,119.99998103974008,119.99999984190879],\"reference\":[119.99999984190879,119.99999984197984,119.99999984197984,119.99999984197984,119.99999984190879]}\n    at file:///tmp/anyraid-node-asan-Sq1vqC/fixture.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-Sq1vqC/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-Sq1vqC/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-Sq1vqC/fixture.mjs:11:9\n\nNode.js v26.10.0\n"
+          }
+        ]
+      }
+    ]
+  }
 }
