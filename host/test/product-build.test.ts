@@ -23,6 +23,7 @@ test('compiled product workers, addons, assets and mathematical output run witho
   assert.equal(marker.product,'anyraid-product-host');assert.equal(marker.modules,process.versions.modules);
   for(const [path,hash] of Object.entries(marker.files)){assert(!path.endsWith('.ts'));assert.equal(createHash('sha256').update(await readFile(join(output,path))).digest('hex'),hash,path);}
   assert(marker.files['host/contracts/unicode-lower-15.json']);assert(marker.files['host/assets/fonts/LICENSE-DejaVu.txt']);assert(marker.files['package-lock.json']);assert(marker.files['host/build/serialqueue.node']);
+  const native=JSON.parse(await readFile(join(output,'host/build/native-build-info.json'),'utf8'));for(const [name,hash] of Object.entries(native.outputs))assert.equal(marker.files['host/build/'+name],hash);
   await installProductDependencies(output);
   const result=JSON.parse(execFileSync(process.execPath,[await productBuildSmoke(output,work)],{env:environment(),encoding:'utf8',timeout:15000,maxBuffer:4*1024**2}));
   const samples=Float64Array.from({length:4096*4},(_,i)=>i%4===0?Math.floor(i/4)/1024:Math.sin(2*Math.PI*64*Math.floor(i/4)/1024));
@@ -35,10 +36,11 @@ test('product publication is reproducible and preserves prior output on compiler
   await buildProductHost(output);const before=await readFile(join(output,'build-info.json'),'utf8');await buildProductHost(output);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);
   const bad=join(dir,'bad.ts'),config=join(dir,'bad.json');await writeFile(bad,'const invalid:number="text";');await writeFile(config,JSON.stringify({extends:join(root,'host/tsconfig.product-host.json'),include:[bad]}));
   await assert.rejects(buildProductHost(output,config),/TypeScript build failed/);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);
+  const cc=process.env.CC;try{process.env.CC='/missing-product-compiler';await assert.rejects(buildProductHost(output),/compiler unavailable/);assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);}finally{if(cc===undefined)delete process.env.CC;else process.env.CC=cc;}
   await assert.rejects(buildProductHost(output,undefined,join(dir,'missing')));assert.equal(await readFile(join(output,'build-info.json'),'utf8'),before);
   await mkdir(output+'.lock');await assert.rejects(buildProductHost(output),/locked/);await rm(output+'.lock',{recursive:true});
   const other=join(dir,'unowned');await mkdir(other);await writeFile(join(other,'keep'),'keep');await assert.rejects(buildProductHost(other),/unrecognized/);assert.equal(await readFile(join(other,'keep'),'utf8'),'keep');
-  assert(!(await readdir(dir)).some(name=>name.startsWith('.product-build-')||name.endsWith('.lock')));
+  assert(!(await readdir(dir)).some(name=>name.startsWith('.product-build-')||name.startsWith('.product-native-')||name.endsWith('.lock')));
  }finally{await rm(dir,{recursive:true,force:true});}
 });
 test('compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports',async()=>{
