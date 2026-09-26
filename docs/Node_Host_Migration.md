@@ -22286,3 +22286,35 @@ ShellCheck。退出码 7 的管道故障验证确认显式 bash 保留失败。
 测试日志为 `/tmp/node-motion-ci-tests.log`。远程执行结果须按具体
 GitHub Actions 运行与提交 SHA 核对；本地提交和配置检查不代表
 远程验证已执行，更不证明此前发现的瞬时数值问题已修复。
+
+### Klippy 回归编排器迁移
+
+`scripts/test_klippy.py` 已由 `scripts/test_klippy.ts` 替代，使用 Node.js
+26 内置模块，不需要 npm 数学依赖。CI 中 Python 2/3 的后端检查均
+保留，通过 `--python` 显式选择解释器；本次退役的只是编排器，
+`klippy/klippy.py` 及其 Python 依赖仍存在，不能称为无 Python 主机。
+
+旧解析器在退役前捕获了全部 37 个测试文件的 239 个 CONFIG 快照，
+保存在 `host/contracts/klippy-test-retirement.json`，并记录输入哈希。
+多 CONFIG 的历史触发时机、内联 G-code、外部文件、多个 MCU 字典
+和 SHOULD_FAIL 状态逐项对照一致。源哈希和性能边界记录在同目录
+`klippy-test-retirement-meta.json`，旧实现可由 Git 历史恢复。
+
+新编排器在执行前解析全部输入；每个案例建立独占临时目录，成功
+清理自身文件，失败保留路径供排查，`-k` 保留成功产物。它不会删除
+调用目录下其他 `_test_output*` 文件。超时（默认 120 秒，可指定
+`--timeout-ms` 为 1..600000）、信号退出、取消和启动失败一律失败，
+不能满足 SHOULD_FAIL；普通非零后端退出保持旧版预期失败语义。
+这些测试不能区分后端以普通非零退出报告的应用错误和依赖错误，
+因此 CI 仍先运行两种 Python 后端的 `--import-test`。
+
+四项测试覆盖固定契约、语法边界、子进程故障和清理、完整 CLI
+参数及带空格路径；类型检查通过。测试使用可控替身验证编排行为，
+本机真实后端导入因缺少 greenlet 失败，且未提供固件字典，因此
+尚未执行实际 Klippy 全套回归；远程 CI 也尚未执行。
+
+编排性能通过 `node host/bench/klippy-test.ts` 复测：全部文件读取与
+解析，中位 Node 1.264 ms、旧 Python 1.608 ms，P95 分别为 1.553 ms
+与 1.651 ms（5 批预热、25 批测量、顺序运行）。该工具不进入打印
+实时路径；此数据不含后端启动、运动计算和打印速度，不替代此前
+尚未解决的运动精度与运行时稳定性验收。

@@ -1,0 +1,3295 @@
+[
+  {
+    "file": "test/klippy/bed_mesh.test",
+    "sha256": "6d2d10d799f289d8c5638536d4a1331bf4d164d7464f93415cc2c154838a0abe",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/bed_mesh.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 X60 Y60 Z10",
+          "BED_MESH_CALIBRATE",
+          "G1 Z10"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/bed_screws.test",
+    "sha256": "3887076186ecf1a3faa5445ea5c4102819d1fef84f69974d0361fc38ae507864",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/bed_screws.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "BED_SCREWS_ADJUST",
+          "ACCEPT",
+          "ACCEPT",
+          "ABORT",
+          "BED_SCREWS_ADJUST",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "BED_SCREWS_ADJUST",
+          "ACCEPT",
+          "ADJUSTED",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ADJUSTED",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "ACCEPT",
+          "BED_SCREWS_ADJUST",
+          "ABORT"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/bltouch.test",
+    "sha256": "3b7bf4c3c41110afebf32a544580d416a6075738e64765c5a197728adc56b0fd",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/bltouch.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BLTOUCH_DEBUG",
+          "BLTOUCH_DEBUG COMMAND=reset",
+          "BED_MESH_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "PROBE",
+          "QUERY_PROBE",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/commands.test",
+    "sha256": "f084b160c5dd15cb7684afd83f9b05a45b8a74b780bbfd629f5f809665f27ea0",
+    "plans": [
+      {
+        "config": "$ROOT/config/example-cartesian.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "GET_POSITION",
+          "M114",
+          "STATUS",
+          "HELP",
+          "QUERY_ENDSTOPS",
+          "M115",
+          "M18",
+          "G28",
+          "SAVE_GCODE_STATE",
+          "G92 Z-5",
+          "G92 E5",
+          "SAVE_GCODE_STATE NAME=test",
+          "G1 Z-5",
+          "G91",
+          "G1 Z0",
+          "RESTORE_GCODE_STATE NAME=test",
+          "G1 Z-5",
+          "RESTORE_GCODE_STATE",
+          "G1 Z0 E0",
+          "RESTORE_GCODE_STATE MOVE=1",
+          "SET_GCODE_OFFSET Z=.1",
+          "M206 Z-.2",
+          "SET_GCODE_OFFSET Z_ADJUST=-.1",
+          "SET_VELOCITY_LIMIT ACCEL=100 VELOCITY=20 SQUARE_CORNER_VELOCITY=1 MINIMUM_CRUISE_RATIO=0",
+          "M204 S500",
+          "SET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=.001",
+          "SET_PRESSURE_ADVANCE ADVANCE=.002 SMOOTH_TIME=.001",
+          "RESTART"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/corexyuv.test",
+    "sha256": "2367225160ec53e5a479f170e3b59f653225f8b769c33881ab327d9507434cd7",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/corexyuv.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G90",
+          "G28",
+          "G1 X10 Y20 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_u",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_v",
+          "G1 X170 Y190 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_x",
+          "G1 X20 F6000",
+          "SAVE_DUAL_CARRIAGE_STATE",
+          "G1 Y150 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_y",
+          "G1 X10 Y50 F6000",
+          "RESTORE_DUAL_CARRIAGE_STATE",
+          "G1 X5",
+          "T1",
+          "G91",
+          "G1 X-10 E.2",
+          "T0",
+          "G91",
+          "G1 X20 E.2",
+          "G90",
+          "QUERY_ENDSTOPS",
+          "SET_SERVO servo=my_servo angle=160",
+          "SET_SERVO servo=my_servo angle=130",
+          "STEPPER_BUZZ STEPPER='stepper d'",
+          "STEPPER_BUZZ STEPPER=extruder",
+          "STEPPER_BUZZ STEPPER=extruder1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/delta.test",
+    "sha256": "f99ca0d332e292b3b7821f5b27a8b29cc4294e74f77afa8e72bc533712fa0cba",
+    "plans": [
+      {
+        "config": "$ROOT/config/example-delta.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 x0 y0 z15",
+          "G1 x0 y5 z15",
+          "G1 x0 y-5 z10",
+          "G1 x0 y-5 z15",
+          "G1 x2 y2 z10",
+          "G1 x2 y-10 z10.1",
+          "G1 x140 y0",
+          "G1 x145 y0",
+          "G1 x145 y5",
+          "DELTA_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "STEPPER_BUZZ STEPPER=stepper_a",
+          "STEPPER_BUZZ STEPPER=stepper_b",
+          "STEPPER_BUZZ STEPPER=stepper_c",
+          "G1 Z3 X2 Y3"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/delta_calibrate.test",
+    "sha256": "9c8d9f2f552f4d5a5c1e55cab1c7342ce9f849762ceef661258b442ec1a539be",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/delta_calibrate.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "DELTA_CALIBRATE METHOD=manual",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "DELTA_ANALYZE CENTER_DISTS=74,74,74,74,74,74",
+          "DELTA_ANALYZE OUTER_DISTS=74,74,74,74,74,74",
+          "DELTA_ANALYZE CENTER_PILLAR_WIDTHS=9,9,9",
+          "DELTA_ANALYZE OUTER_PILLAR_WIDTHS=9,9,9,9,9,9",
+          "DELTA_ANALYZE SCALE=1",
+          "DELTA_ANALYZE CALIBRATE=extended"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/dual_carriage.test",
+    "sha256": "066986125eea0cc173f86bd47c00afeda6427bf7836719ab22ca36be2e919b09",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/dual_carriage.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G90",
+          "G28",
+          "G1 X10 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=1",
+          "G1 X190 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=0",
+          "G1 X20 F6000",
+          "SAVE_DUAL_CARRIAGE_STATE",
+          "G1 X50 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=1",
+          "G1 X170 F6000",
+          "RESTORE_DUAL_CARRIAGE_STATE",
+          "G1 X5",
+          "T1",
+          "G91",
+          "G1 X-10 E.2",
+          "T0",
+          "G91",
+          "G1 X20 E.2",
+          "G90",
+          "QUERY_ENDSTOPS",
+          "SET_SERVO servo=my_servo angle=160",
+          "SET_SERVO servo=my_servo angle=130",
+          "STEPPER_BUZZ STEPPER=dual_carriage",
+          "STEPPER_BUZZ STEPPER=extruder",
+          "STEPPER_BUZZ STEPPER=extruder1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/eddy.test",
+    "sha256": "6c90396d3f419d0c946a8b4e20848500c43ed7a1f1eed81168b46a8d7b34d008",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/eddy.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BED_MESH_CALIBRATE",
+          "G1 Z2",
+          "BED_MESH_CALIBRATE METHOD=scan",
+          "G1 Z2",
+          "BED_MESH_CALIBRATE METHOD=rapid_scan",
+          "G1 Z5 X0 Y0",
+          "PROBE_EDDY_CURRENT_TAP_CALIBRATE",
+          "PROBE METHOD=tap",
+          "PROBE_EDDY_CURRENT_TAP_CALIBRATE",
+          "G1 Z5",
+          "PROBE",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/exclude_object.test",
+    "sha256": "bc1321f5b85b547c17729273b42b71afdb093a3d8b8a29a88d9d9a8f34727558",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/exclude_object.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "M83",
+          "M486 T3",
+          "M486 S0",
+          "G0 X10",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S1",
+          "G0 X11",
+          "M486 C",
+          "G1 X140 E0.5",
+          "G1 X160 E0.5",
+          "G1 X140 E0.5",
+          "G1 X160 E0.5",
+          "G1 X140 E0.5",
+          "G1 X160 E0.5",
+          "G1 X140 E0.5",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S2",
+          "G0 X13",
+          "M486 S0",
+          "G0 X10",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S1",
+          "G0 X-11",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S2",
+          "G0 X13",
+          "M486 P2",
+          "EXCLUDE_OBJECT",
+          "M486 S0",
+          "G0 X10",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S1",
+          "G0 X-11",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S2",
+          "G0 X-13",
+          "M486 U2",
+          "EXCLUDE_OBJECT",
+          "M486 S0",
+          "G0 X10",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S1",
+          "G0 X-11",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S2",
+          "G0 X13",
+          "M486 P0",
+          "M486 P1",
+          "M486 P2",
+          "EXCLUDE_OBJECT",
+          "M486 S0",
+          "G0 X-10",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S1",
+          "G0 X-11",
+          "M486 S-1",
+          "G0 X0",
+          "M486 S2",
+          "G0 X-13",
+          "M486 S66",
+          "G0 X66",
+          "M486 S-1",
+          "G0 X0",
+          "M486 P66",
+          "M486 S66",
+          "G0 X-66",
+          "M486 T3",
+          "M486 S0",
+          "G0 X10",
+          "M486 S1",
+          "G0 X11",
+          "M486 S2",
+          "G0 X13"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/extruders.test",
+    "sha256": "65a450532c241718fd6e3cc9a9f2e0582dfc509d5293ae3d79aaecdd0eea6a85",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/extruders.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G1 E5",
+          "G1 E-2",
+          "G1 E7",
+          "G28",
+          "G1 X20 Y20 Z1",
+          "G1 X25 Y25 E7.5",
+          "SET_EXTRUDER_ROTATION_DISTANCE EXTRUDER=extruder DISTANCE=33.2",
+          "G1 X30 Y30 E8.0",
+          "SET_EXTRUDER_ROTATION_DISTANCE EXTRUDER=extruder DISTANCE=-33.1",
+          "G1 X30 Y30 E8.2",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=extruder MOTION_QUEUE=",
+          "G1 X35 Y35 E8.5",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=my_extra_stepper MOTION_QUEUE=",
+          "G1 X40 Y40 E9.0",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=extruder MOTION_QUEUE=extruder",
+          "G1 X45 Y45 E9.5",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=extruder MOTION_QUEUE=",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=my_extra_stepper MOTION_QUEUE=extruder",
+          "G1 X50 Y50 E10.0",
+          "SET_PRESSURE_ADVANCE EXTRUDER=my_extra_stepper ADVANCE=0.020",
+          "G1 X55 Y55 E0",
+          "G1 X55 Y55 E0.5",
+          "G1 X60 Y60 E1.1",
+          "G1 X50 Y50",
+          "SET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0.025",
+          "G1 X55 Y55 E1.5",
+          "G1 X50 Y50",
+          "G1 X55 Y55 E2.0",
+          "G1 X50 Y50"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/gcode_arcs.test",
+    "sha256": "8a46213d0b09f93cc667dc1d4267c3aed56f7dfc8f16f45e299743e7fcf10c88",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/gcode_arcs.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G90",
+          "G1 X20 Y20 Z20",
+          "G2 X125 Y32 Z20 E1 I10.5 J10.5",
+          "G2 X20 Y20 Z10 E1 I10.5 J10.5",
+          "G2 X20 Y20 I0 J10",
+          "G2 X20 Y20 J10",
+          "G2 X20 Y20 I10 J0",
+          "G2 X20 Y20 I10",
+          "G28",
+          "G90",
+          "G1 X20 Y20 Z20",
+          "G18",
+          "G2 X125 Y20 Z32 E1 I10.5 K10.5",
+          "G2 X20 Y10 Z20 E1 I10.5 K10.5",
+          "G2 X20 Y20 I0 K10",
+          "G2 X20 Y20 K10",
+          "G2 X20 Y20 I10 K0",
+          "G2 X20 Y20 I10",
+          "G28",
+          "G90",
+          "G1 X20 Y20 Z20",
+          "G19",
+          "G2 X20 Y125 Z32 E1 J10.5 K10.5",
+          "G2 X10 Y20 Z20 E1 J10.5 K10.5",
+          "G2 X20 Y20 J0 K10",
+          "G2 X20 Y20 K10",
+          "G2 X20 Y20 J10 K0",
+          "G2 X20 Y20 J10"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/generic_cartesian.test",
+    "sha256": "171ae35b43be535b3a54925a80b642a94ab71e8bd1c18eebae260b937bd198bc",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/generic_cartesian.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_u",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=ei SHAPER_FREQ_X=50 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=80",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_x",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=ei SHAPER_FREQ_X=50 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=80",
+          "G90",
+          "G28",
+          "G1 X10 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_u",
+          "G1 X190 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_x",
+          "G1 X100 F6000",
+          "SAVE_DUAL_CARRIAGE_STATE",
+          "G1 X50 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_u",
+          "G1 X130 F6000",
+          "RESTORE_DUAL_CARRIAGE_STATE MOVE=1",
+          "G1 X5",
+          "T1",
+          "G91",
+          "G1 X-10 E.2",
+          "T0",
+          "G91",
+          "G1 X20 E.2",
+          "G90",
+          "SET_STEPPER_CARRIAGES STEPPER=dual_carriage CARRIAGES=carriage_u+carriage_y1",
+          "SET_STEPPER_CARRIAGES STEPPER=stepper_x CARRIAGES=carriage_x-carriage_y",
+          "G1 X30 E.2",
+          "G1 Z3",
+          "QUERY_ENDSTOPS",
+          "SET_SERVO servo=my_servo angle=160",
+          "SET_SERVO servo=my_servo angle=130",
+          "STEPPER_BUZZ STEPPER='stepper dual_carriage'",
+          "STEPPER_BUZZ STEPPER=extruder",
+          "STEPPER_BUZZ STEPPER=extruder1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/generic_cartesian_iqex.test",
+    "sha256": "5885b64284bb9abccf9ab4941854cd0121732bf4271251d6a22d3dbc8342d131",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/generic_cartesian_iqex.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h723.dict",
+          "extboard=$ROOT/dict/stm32h723.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G90",
+          "M83",
+          "G28",
+          "G1 X10 Y20 Z10 F6000",
+          "G1 X11 E0.1 F3000",
+          "T1",
+          "G1 X120 Y50 F6000",
+          "G1 X119 E0.1 F3000",
+          "T2",
+          "G1 X200 Y70 F6000",
+          "G1 X199 E0.1 F3000",
+          "T3",
+          "G1 X70 Y50 F6000",
+          "G1 X71 E0.1 F3000",
+          "T0",
+          "G1 X20 Y100 F6000",
+          "SAVE_DUAL_CARRIAGE_STATE",
+          "G1 Y100 F6000",
+          "T2",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry1_left",
+          "G1 X10 Y150 F6000",
+          "RESTORE_DUAL_CARRIAGE_STATE",
+          "QUERY_ENDSTOPS",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry1_left",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t3",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=ei SHAPER_FREQ_X=50 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=80",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t2",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=ei SHAPER_FREQ_X=45 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=80",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry0_left",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t1",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=mzv SHAPER_FREQ_X=50 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=70",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t0",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=zvd SHAPER_FREQ_X=55 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=70",
+          "T0",
+          "G1 X100 Y150 F6000",
+          "SET_COPY_MODE",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000",
+          "SET_MIRROR_MODE1",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000",
+          "SET_MIRROR_MODE2",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000",
+          "DISABLE_T0",
+          "G1 X12 E0.1",
+          "DISABLE_T2",
+          "G1 X13 E0.1",
+          "DISABLE_T3",
+          "G1 X14 E0.1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/generic_cartesian_itex.test",
+    "sha256": "e604c2553c06e3b49a38895b78fb646ef58648fd0c2753fa827b72ec459cdda7",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/generic_cartesian_itex.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h723.dict",
+          "extboard=$ROOT/dict/stm32h723.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G90",
+          "M83",
+          "G28",
+          "G1 X10 Y20 Z10 F6000",
+          "G1 X11 E0.1 F3000",
+          "T1",
+          "G1 X120 Y50 F6000",
+          "G1 X119 E0.1 F3000",
+          "T2",
+          "G1 X200 Y70 F6000",
+          "G1 X199 E0.1 F3000",
+          "T0",
+          "G1 X20 Y100 F6000",
+          "SAVE_DUAL_CARRIAGE_STATE",
+          "G1 Y100 F6000",
+          "T2",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry1",
+          "G1 X10 Y150 F6000",
+          "RESTORE_DUAL_CARRIAGE_STATE",
+          "QUERY_ENDSTOPS",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry1",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t2",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=ei SHAPER_FREQ_X=45 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=80",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_gantry0_left",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t1",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=mzv SHAPER_FREQ_X=50 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=70",
+          "SET_DUAL_CARRIAGE CARRIAGE=carriage_t0",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=zvd SHAPER_FREQ_X=55 SHAPER_TYPE_Y=2hump_ei SHAPER_FREQ_Y=70",
+          "T0",
+          "G1 X100 Y150 F6000",
+          "SET_COPY_MODE",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000",
+          "SET_MIRROR_MODE1",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000",
+          "SET_MIRROR_MODE2",
+          "G1 X10 Y10 F6000",
+          "G1 X11 E0.1 F3000"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/hybrid_corexy_dual_carriage.test",
+    "sha256": "5c5031487044c40420efed89117ee5ab6ec352b11291dc324227e6383b71c1e8",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/hybrid_corexy_dual_carriage.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G90",
+          "G28",
+          "G1 X10 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=1",
+          "G1 X190 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=0",
+          "G1 X20 F6000",
+          "SET_DUAL_CARRIAGE CARRIAGE=1",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=MZV SHAPER_FREQ_X=70",
+          "SET_INPUT_SHAPER SHAPER_TYPE_Y=2HUMP_EI SHAPER_FREQ_Y=50",
+          "SET_DUAL_CARRIAGE CARRIAGE=0",
+          "SET_INPUT_SHAPER SHAPER_TYPE_X=EI SHAPER_FREQ_X=60",
+          "SET_INPUT_SHAPER SHAPER_TYPE_Y=2HUMP_EI SHAPER_FREQ_Y=50",
+          "G1 X5",
+          "T1",
+          "G91",
+          "G1 X-10 E.2",
+          "T0",
+          "G91",
+          "G1 X20 E.2",
+          "G90",
+          "QUERY_ENDSTOPS",
+          "STEPPER_BUZZ STEPPER=dual_carriage",
+          "STEPPER_BUZZ STEPPER=extruder",
+          "STEPPER_BUZZ STEPPER=extruder1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/input_shaper.test",
+    "sha256": "95855d78de2c6b62bdc97d441d59a5e6d660cd06a16880000ca0b4a10657c125",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/input_shaper.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "SET_INPUT_SHAPER SHAPER_FREQ_X=22.2 DAMPING_RATIO_X=.1 SHAPER_TYPE_X='mzv(5,0.6)'",
+          "SET_INPUT_SHAPER SHAPER_FREQ_Y=33.3 DAMPING_RATIO_Y=.11 SHAPER_TYPE_Y=2hump_ei"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/led.test",
+    "sha256": "ec68396140376716e74489c9a09791e156282c3b3a360688d94064d9947c4f87",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/led.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "SET_LED LED=lled RED=0.2",
+          "SET_LED LED=lled RED=0.3 TRANSMIT=0",
+          "SET_LED LED=lled RED=0.4",
+          "SET_LED LED=lled RED=0.5 SYNC=0",
+          "SET_LED LED=nled RED=0.2",
+          "SET_LED LED=nled RED=0.3 TRANSMIT=0",
+          "SET_LED LED=nled RED=0.4",
+          "SET_LED LED=nled RED=0.5 SYNC=0",
+          "SET_LED LED=dled RED=0.2",
+          "SET_LED LED=dled RED=0.3 TRANSMIT=0",
+          "SET_LED LED=dled RED=0.4",
+          "SET_LED LED=dled RED=0.5 SYNC=0",
+          "SET_LED LED=p5led RED=0.2",
+          "SET_LED LED=p5led RED=0.3 TRANSMIT=0",
+          "SET_LED LED=p5led RED=0.4",
+          "SET_LED LED=p5led RED=0.5 SYNC=0",
+          "SET_LED LED=p6led RED=0.2",
+          "SET_LED LED=p6led RED=0.3 TRANSMIT=0",
+          "SET_LED LED=p6led RED=0.4",
+          "SET_LED LED=p6led RED=0.5 SYNC=0",
+          "SET_LED LED=nled INDEX=2 RED=0.2",
+          "SET_LED LED=nled INDEX=1 RED=0.3 TRANSMIT=0",
+          "SET_LED LED=nled INDEX=2 RED=0.4",
+          "SET_LED LED=nled INDEX=1 RED=0.5 SYNC=0",
+          "SET_LED LED=dled INDEX=2 RED=0.2",
+          "SET_LED LED=dled INDEX=1 RED=0.3 TRANSMIT=0",
+          "SET_LED LED=dled INDEX=2 RED=0.4",
+          "SET_LED LED=dled INDEX=1 RED=0.5 SYNC=0",
+          "SET_LED_TEMPLATE LED=lled TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=lled TEMPLATE=",
+          "SET_LED_TEMPLATE LED=nled TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=nled TEMPLATE=",
+          "SET_LED_TEMPLATE LED=nled INDEX=2 TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=nled TEMPLATE=",
+          "SET_LED_TEMPLATE LED=dled TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=dled TEMPLATE=",
+          "SET_LED_TEMPLATE LED=dled INDEX=2 TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=dled TEMPLATE=",
+          "SET_LED_TEMPLATE LED=p5led TEMPLATE=dtest",
+          "SET_LED_TEMPLATE LED=p6led TEMPLATE=dtest"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/linuxtest.test",
+    "sha256": "a340f42bd73365f038506822727dc8b801ddd431632f9718f085c1ce38b02d51",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/linuxtest.cfg",
+        "dictionaries": [
+          "$ROOT/dict/linuxprocess.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G4 P1000"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/load_cell.test",
+    "sha256": "51ad2b54e5f767a3e30273859560684516b48f343c2b3ad4864f08610ac667d6",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/load_cell.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BED_MESH_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "PROBE",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/macros.test",
+    "sha256": "3b23190b6ac7ea7dc6f4a6049574f1eff8e19063a684004d1f8410b241bfa650",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/macros.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "TESTIT"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/manual_stepper.test",
+    "sha256": "92bd1e103bda948ff3d014e764e34a48fc5798b595c1831dbf83ee0ded55aafb",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/manual_stepper.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "MANUAL_STEPPER STEPPER=basic_stepper ENABLE=1",
+          "MANUAL_STEPPER STEPPER=basic_stepper SET_POSITION=0",
+          "MANUAL_STEPPER STEPPER=basic_stepper MOVE=10 SPEED=10",
+          "MANUAL_STEPPER STEPPER=basic_stepper MOVE=5",
+          "MANUAL_STEPPER STEPPER=basic_stepper MOVE=12 SPEED=12 ACCEL=9000.2",
+          "MANUAL_STEPPER STEPPER=basic_stepper ENABLE=0",
+          "MANUAL_STEPPER STEPPER=basic_stepper MOVE=300 SPEED=10 ACCEL=2000",
+          "MANUAL_STEPPER STEPPER=basic_stepper MOVE=100 SPEED=10 ACCEL=2000",
+          "MANUAL_STEPPER STEPPER=homing_stepper ENABLE=1",
+          "MANUAL_STEPPER STEPPER=homing_stepper SET_POSITION=0",
+          "MANUAL_STEPPER STEPPER=homing_stepper MOVE=10 SPEED=100 ACCEL=1",
+          "MANUAL_STEPPER STEPPER=homing_stepper ENABLE=0",
+          "M84",
+          "STEPPER_BUZZ STEPPER=\"manual_stepper basic_stepper\"",
+          "STEPPER_BUZZ STEPPER=\"manual_stepper homing_stepper\"",
+          "MANUAL_STEPPER STEPPER=basic_stepper GCODE_AXIS=A",
+          "G28",
+          "G1 X20 Y20 Z10",
+          "G1 A10 X22",
+          "GET_POSITION",
+          "M114",
+          "MANUAL_STEPPER STEPPER=basic_stepper GCODE_AXIS=",
+          "G1 X15",
+          "G28",
+          "MANUAL_STEPPER STEPPER=basic_stepper GCODE_AXIS=A",
+          "G1 X20 Y20 Z10  A20"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/multi_z.test",
+    "sha256": "c61887ee81b55f10b768d855fe1bc9e927a7d522aa5961f09c48a0b38164746c",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/multi_z.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BED_TILT_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "Z_TILT_ADJUST method=manual",
+          "TESTZ Z=-.2",
+          "accept",
+          "TESTZ Z=-.3",
+          "accept",
+          "TESTZ Z=-.4",
+          "accept",
+          "TESTZ Z=-.1",
+          "accept",
+          "G1 Z2 X2 Y3",
+          "PROBE",
+          "QUERY_PROBE",
+          "PROBE_CALIBRATE",
+          "ABORT",
+          "PROBE_CALIBRATE SPEED=7.3",
+          "TESTZ Z=-.2",
+          "TESTZ Z=-.3",
+          "TESTZ Z=+.1",
+          "TESTZ Z=++",
+          "TESTZ Z=--",
+          "TESTZ Z=+",
+          "TESTZ Z=-",
+          "ACCEPT",
+          "Z_ENDSTOP_CALIBRATE",
+          "TESTZ Z=-.1",
+          "TESTZ Z=+.2",
+          "ACCEPT",
+          "MANUAL_PROBE",
+          "TESTZ Z=--",
+          "ABORT",
+          "PROBE",
+          "QUERY_PROBE",
+          "STEPPER_BUZZ STEPPER=stepper_z",
+          "STEPPER_BUZZ STEPPER=stepper_z1",
+          "STEPPER_BUZZ STEPPER=stepper_z2",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/out_of_bounds.test",
+    "sha256": "28c43d93ee21390929c53e48dfcc109f8296659b0e4d93afce8b31f924c8a268",
+    "plans": [
+      {
+        "config": "$ROOT/config/example-cartesian.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 Y9999"
+        ],
+        "shouldFail": true
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/polar.test",
+    "sha256": "dd476d3d9ca5bd8c34e9e60770121379c85fc35f12e393ed75575fe748630c1b",
+    "plans": [
+      {
+        "config": "$ROOT/config/example-polar.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "; Start by homing the printer.",
+          "G28",
+          "G90",
+          "G1 F6000",
+          "; Z / X / Y moves",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "; Delayed moves",
+          "G1 Y2",
+          "G4 P100",
+          "G1 Y1.5",
+          "M400",
+          "G1 Y1",
+          "; diagonal moves",
+          "G1 X10 Y0",
+          "G1 X1 Z2",
+          "G1 X0 Y1 Z1",
+          "; extrude only moves",
+          "G1 E1",
+          "G1 E0",
+          "; regular extrude move",
+          "G1 X10 Y0 E.01",
+          "; Multiple rotations",
+          "g1 X10 Y10",
+          "g1 X-10 Y10",
+          "g1 X-10 Y-10",
+          "g1 X10 Y-10",
+          "g1 X10 Y15",
+          "g1 X-10 Y15",
+          "g1 X-10 Y-15",
+          "g1 X10 Y-15",
+          "g1 X10 Y20",
+          "g1 X-10 Y20",
+          "g1 X-10 Y-20",
+          "g1 X10 Y-20",
+          "g1 X10 Y25",
+          "g1 X-10 Y25",
+          "g1 X-10 Y-25",
+          "g1 X10 Y-25",
+          "; Multiple rotations in reverse direction",
+          "g1 X-15 Y-25",
+          "g1 X-15 Y25",
+          "g1 X15 Y25",
+          "g1 X15 Y-25",
+          "g1 X-20 Y-25",
+          "g1 X-20 Y25",
+          "g1 X20 Y25",
+          "g1 X20 Y-25",
+          "g1 X-25 Y-25",
+          "g1 X-25 Y25",
+          "g1 X25 Y25",
+          "g1 X25 Y-25",
+          "g1 X-30 Y-25",
+          "g1 X-30 Y25",
+          "g1 X30 Y25",
+          "g1 X30 Y-25",
+          "; Moves near center - straight lines on axis",
+          "g1 X30 Y0",
+          "g1 X1 Y0",
+          "g1 X30 Y0",
+          "g1 X0 Y30",
+          "g1 X0 Y1",
+          "g1 X0 Y30",
+          "g1 X-30 Y0",
+          "g1 X-1 Y0",
+          "g1 X-30 Y0",
+          "g1 X0 Y-30",
+          "g1 X0 Y-1",
+          "g1 X0 Y-30",
+          "; Moves near center",
+          "g1 X30 Y1",
+          "g1 X-30 Y1",
+          "g1 X30 Y1",
+          "g1 X30 Y-1",
+          "g1 X-30 Y-1",
+          "g1 X30 Y-1",
+          "g1 X1 Y30",
+          "g1 X1 Y-30",
+          "g1 X1 Y30",
+          "g1 X-1 Y30",
+          "g1 X-1 Y-30",
+          "g1 X-1 Y30",
+          "g1 X30 Y5",
+          "g1 X-30 Y-1",
+          "g1 X30 Y5",
+          "g1 X5 Y30",
+          "g1 X-1 Y-30",
+          "g1 X5 Y30"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/pressure_advance.test",
+    "sha256": "8247f7f272f7db19aa332039cc77468cc027de6e31ce886b9e709961786983fe",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/pressure_advance.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "SET_PRESSURE_ADVANCE ADVANCE=0.1",
+          "G28",
+          "G1 X20 Y20 Z1 F6000",
+          "G1 E7",
+          "G1 X25 Y25 E7.5",
+          "SET_PRESSURE_ADVANCE EXTRUDER=my_extra_stepper ADVANCE=0.02",
+          "G1 X30 Y30 E8.0",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=my_extra_stepper MOTION_QUEUE=",
+          "SET_PRESSURE_ADVANCE ADVANCE=0.01",
+          "G1 X35 Y35 E8.5",
+          "SET_PRESSURE_ADVANCE EXTRUDER=my_extra_stepper ADVANCE=0.05",
+          "SET_PRESSURE_ADVANCE ADVANCE=0.05",
+          "SYNC_EXTRUDER_MOTION EXTRUDER=my_extra_stepper MOTION_QUEUE=extruder",
+          "G1 X40 Y40 E9.0",
+          "SET_PRESSURE_ADVANCE SMOOTH_TIME=0.02",
+          "SET_PRESSURE_ADVANCE EXTRUDER=my_extra_stepper SMOOTH_TIME=0.02",
+          "G1 X45 Y45 E9.5",
+          "SET_PRESSURE_ADVANCE SMOOTH_TIME=0.03 ADVANCE=0.1",
+          "SET_PRESSURE_ADVANCE EXTRUDER=my_extra_stepper SMOOTH_TIME=0.03 ADVANCE=0.1",
+          "G1 X50 Y50 E10.0"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/printers.test",
+    "sha256": "54ce97e9ea4203d7b442e2b8de457bf548dfaec212daafc2a446d0c607e6fa4f",
+    "plans": [
+      {
+        "config": "$ROOT/config/example-cartesian.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-corexy.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-corexz.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-hybrid-corexy.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-hybrid-corexz.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-delta.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-deltesian.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-rotary-delta.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/example-winch.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-einsy-rambo.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-f6.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-gt2560.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mini-rambo.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-rambo.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-ramps.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-rumba.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-ultimaker-ultimainboard-v2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/kit-zav3d-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-adimlab-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-4max-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-4maxpro-2.0-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-i3-mega-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-kossel-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-kossel-plus-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-bq-hephestos-2014.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr5pro-ht-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10-v3-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10s-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10s-pro-v2-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr20-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr20-pro-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender5plus-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-eryone-thinker-series-v2-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-flashforge-creator-pro-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-geeetech-A10T-A20T-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-hiprecy-leo-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-longer-lk4-pro-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-lulzbot-mini1-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-lulzbot-mini2-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-lulzbot-taz6-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-lulzbot-taz6-dual-v3-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-makergear-m2-2012.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-makergear-m2-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-micromake-d1-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-mtw-create-2015.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-robo3d-r2-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-seemecnc-rostock-max-v2-2015.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sovol-sv01-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sunlu-s8-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tevo-flash-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tevo-tarantula-pro-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-velleman-k8200-2013.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-velleman-k8800-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-i3-mini-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-i3-plus-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-i3-plus-mark2-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-6-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-9-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mightyboard.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1280.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-minitronics1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1280.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-melzi.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anet-a4-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anet-a8-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anet-a8-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anet-e10-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anet-e16-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10mini-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender2-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender5-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-p802e-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-p802m-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-x5s-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-x8-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-wanhao-duplicator-i3-v2.1-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega1284p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-simulavr.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega644p.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-printrboard.cfg",
+        "dictionaries": [
+          "$ROOT/dict/at90usb1286.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-printrboard-g2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8c.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-alligator-r2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-alligator-r3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-archim2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-radds.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-ruramps-v1.3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam3x8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet2-maestro.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam4s8c.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam4e8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet2-duex.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam4e8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-modix-big60-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/sam4e8e.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet3-mini.cfg",
+        "dictionaries": [
+          "$ROOT/dict/samd51p20.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet3-6hc.cfg",
+        "dictionaries": [
+          "$ROOT/dict/same70q20b.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-duet3-6xd.cfg",
+        "dictionaries": [
+          "$ROOT/dict/same70q20b.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-azteeg-x5-mini-v3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-e3-turbo.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-v1.3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-v1.4.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-sgenl.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-re-arm.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-smoothieboard.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-th3d-ezboard-lite-v1.2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/lpc176x.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-monoprice-mini-delta-2017.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f070.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-monoprice-select-mini-v2-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f070.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-cr6-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-e3-dip.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini-e3-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini-e3-v1.2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini-e3-v2.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini-mz.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-vyper-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-monoprice-select-mini-v1-2016.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sovol-sv05-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sovol-sv06-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sovol-sv06-plus-2023.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-sunlu-t3-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-creality-v4.2.7.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-creality-v4.2.10.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-cheetah-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-cheetah-v1.2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-robin-e3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-robin-nano-v1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-robin-nano-v2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-alfawise-u30-2018.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr10-smart-pro-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr30-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr6se-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-cr6se-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender2pro-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3-s1-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3-s1plus-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3-v2-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3-v2-neo-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3max-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender3pro-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender5pro-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender6-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-sermoonD1-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-sermoonV1-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-elegoo-neptune2-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-eryone-er20-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-flsun-q5-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-flsun-qqs-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-fokoos-odin5-f3-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-geeetech-301-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-kingroon-kp3s-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-longer-lk4x-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-x5sa-v6-2019.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-x5sa-pro-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-xy-2-Pro-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-twotrees-sapphire-plus-sp-5-v1-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-twotrees-sapphire-plus-sp-5-v1.1-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-twotrees-sapphire-pro-sp-3-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-voxelab-aquila-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f103-serial.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-cheetah-v2.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-artillery-genius-pro-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-artillery-sidewinder-x2-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-artillery-sidewinder-x3-plus-2024.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender5-s1-2023.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-elegoo-neptune3-pro-2023.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f401.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mellow-fly-gemini-v1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f405.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mellow-fly-gemini-v2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f405.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-e3-rrf-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-gtr.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-pro.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-flyboard.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-I3DBEEZ9.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mellow-fly-cdy-v3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mellow-fly-e3-v2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mellow-super-infinty-hv.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-monster8.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-robin-nano-v3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-prusa-buddy.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-th3d-ezboard-v2.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-biqu-b1-se-plus-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-prusa-mini-plus-2020.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f407.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-octopus-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f429.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-octopus-pro-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-s6.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-s6-v2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-fysetc-spider.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-ldo-leviathan-v1.2.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-mks-rumba32-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-ratrig-v-minion-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-tronxy-crux1-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32f446.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-octopus-max-ez.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h723.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-octopus-pro-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h723.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-biqu-bx-2021.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h743.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-3.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32h743.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-manta-m4p.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-manta-m5p.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-manta-m8p-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-manta-m8p-v1.1.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-manta-e3ez.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-mini-e3-v3.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/stm32g0b1.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-bigtreetech-skr-pico-v1.0.cfg",
+        "dictionaries": [
+          "$ROOT/dict/rp2040.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-kobra-go-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/hc32f460-serial-PA3PA2.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-anycubic-kobra-plus-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/hc32f460-serial-PA3PA2.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/printer-creality-ender2pro-hc32-2022.cfg",
+        "dictionaries": [
+          "$ROOT/dict/hc32f460-serial-PA7PA8.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-cramps.cfg",
+        "dictionaries": [
+          "$ROOT/dict/pru.dict",
+          "host=$ROOT/dict/linuxprocess.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/generic-replicape.cfg",
+        "dictionaries": [
+          "$ROOT/dict/pru.dict",
+          "host=$ROOT/dict/linuxprocess.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/sample-multi-mcu.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict",
+          "zboard=$ROOT/dict/atmega2560.dict",
+          "auxboard=$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      },
+      {
+        "config": "$ROOT/config/kit-voron2-250mm.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict",
+          "z=$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": "$ROOT/test/klippy/move.gcode",
+        "gcode": [],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/pwm.test",
+    "sha256": "dceb70e56cff292f9fd2a0189f769adc472ae4876cf25c953597b2c6a235f60b",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/pwm.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "SET_PIN PIN=hard_pwm_pin VALUE=0",
+          "SET_PIN PIN=hard_pwm_pin VALUE=0.5",
+          "SET_PIN PIN=hard_pwm_pin VALUE=0.5",
+          "SET_PIN PIN=hard_pwm_pin VALUE=0.25",
+          "SET_PIN PIN=hard_pwm_pin VALUE=1",
+          "SET_PIN PIN=soft_pwm_pin VALUE=0",
+          "SET_PIN PIN=soft_pwm_pin VALUE=0.5",
+          "SET_PIN PIN=soft_pwm_pin VALUE=1",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.5",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=1",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0 CYCLE_TIME=0.1",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=1 CYCLE_TIME=0.5",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.5 CYCLE_TIME=0.001",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.75 CYCLE_TIME=0.01",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.5 CYCLE_TIME=1",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.5 CYCLE_TIME=0.5",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.5 CYCLE_TIME=0.5",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.75 CYCLE_TIME=0.5",
+          "SET_PIN PIN=cycle_pwm_pin VALUE=0.75 CYCLE_TIME=0.75",
+          "SET_PIN PIN=test_pwm_tool VALUE=0",
+          "SET_PIN PIN=test_pwm_tool VALUE=0.5",
+          "SET_PIN PIN=test_pwm_tool VALUE=0.5",
+          "SET_PIN PIN=test_pwm_tool VALUE=0.25",
+          "SET_PIN PIN=test_pwm_tool VALUE=1"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/quad_gantry_level.test",
+    "sha256": "c4191def62f6a79e1d51b06ec8815528ef7bdc0543ceceeade91e3ddd6ba5e89",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/z_tilt.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 Z5 X10 Y10 F6000",
+          "M400",
+          "GET_POSITION",
+          "QUAD_GANTRY_LEVEL METHOD=MANUAL",
+          "G1 Z2.909972",
+          "ACCEPT",
+          "G1 Z2.924972",
+          "ACCEPT",
+          "G1 Z2.959972",
+          "ACCEPT",
+          "G1 Z2.924972",
+          "ACCEPT",
+          "G1 Z5 X10 Y10 F6000",
+          "M400",
+          "GET_POSITION",
+          "QUAD_GANTRY_LEVEL"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/rotary_delta_calibrate.test",
+    "sha256": "110bee1e53d956aa35e400f5f0acdf067f57a34a563f07d63ab69ecb2f691ac0",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/rotary_delta_calibrate.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "DELTA_ANALYZE MANUAL_HEIGHT=252",
+          "DELTA_CALIBRATE METHOD=manual",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "G1 Z0.1",
+          "ACCEPT",
+          "DELTA_ANALYZE CENTER_DISTS=74,74,74,74,74,74",
+          "DELTA_ANALYZE OUTER_DISTS=74,74,74,74,74,74",
+          "DELTA_ANALYZE CENTER_PILLAR_WIDTHS=9,9,9",
+          "DELTA_ANALYZE OUTER_PILLAR_WIDTHS=9,9,9,9,9,9",
+          "DELTA_ANALYZE SCALE=1",
+          "DELTA_ANALYZE CALIBRATE=extended"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/screws_tilt_adjust.test",
+    "sha256": "dfdf0f782bdf05c0003990a35129bb4e9a9a502b7db7ba51d9cf93f4980ea41e",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/screws_tilt_adjust.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "SCREWS_TILT_CALCULATE",
+          "SCREWS_TILT_CALCULATE MAX_DEVIATION=0.01"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/sdcard_loop.test",
+    "sha256": "dd5fcf34097ccde81b5c483419295a02be086d4cd0fe59d190f3f029818e8026",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/sdcard_loop.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "; Virtual SD card unit tests",
+          "G28",
+          "SDCARD_LOOP_DESIST",
+          "; Verify long-name functions",
+          "SDCARD_PRINT_FILE FILENAME=big.gcode"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/smart_effector.test",
+    "sha256": "5282bc2b5ce3c894d8242a54e4a2eccaaf0f8aac47b0d8c2e66fe15ee03a5853",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/smart_effector.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BED_MESH_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "SET_SMART_EFFECTOR SENSITIVITY=99",
+          "RESET_SMART_EFFECTOR SENSITIVITY=99",
+          "SET_SMART_EFFECTOR SENSITIVITY=89",
+          "PROBE",
+          "QUERY_PROBE",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/temperature.test",
+    "sha256": "2f3afb245f08073eb83a03de0cb404bad1f4ff9d066c59aebb6c697b98d12783",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/temperature.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "M104 S100",
+          "M105",
+          "M140 S60",
+          "M105",
+          "M140 S0",
+          "M109 S100",
+          "M109 S60",
+          "M105"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/tmc.test",
+    "sha256": "584bef513508e99f6995c04fe40266f6941394c89e18a905b1cef1b294b454aa",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/tmc.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "; Start by homing the printer.",
+          "G28",
+          "G90",
+          "G1 F6000",
+          "; Z / X / Y moves",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "; Test DUMP_TMC commands",
+          "DUMP_TMC STEPPER=stepper_x",
+          "DUMP_TMC STEPPER=stepper_x1",
+          "DUMP_TMC STEPPER=stepper_y",
+          "DUMP_TMC STEPPER=stepper_y1",
+          "DUMP_TMC STEPPER=stepper_z",
+          "DUMP_TMC STEPPER=stepper_z1",
+          "DUMP_TMC STEPPER=stepper_z2",
+          "; Test INIT_TMC commands",
+          "INIT_TMC STEPPER=stepper_x",
+          "INIT_TMC STEPPER=stepper_x1",
+          "INIT_TMC STEPPER=stepper_y",
+          "INIT_TMC STEPPER=stepper_y1",
+          "INIT_TMC STEPPER=stepper_z",
+          "INIT_TMC STEPPER=stepper_z1",
+          "INIT_TMC STEPPER=stepper_z2",
+          "; Test SET_TMC_CURRENT commands",
+          "SET_TMC_CURRENT STEPPER=stepper_x CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_x1 CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_y CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_y1 CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_z CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_z1 CURRENT=.7",
+          "SET_TMC_CURRENT STEPPER=stepper_z2 CURRENT=.6",
+          "; Test SET_TMC_FIELD commands",
+          "SET_TMC_FIELD STEPPER=stepper_x FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_x1 FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_y FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_y1 FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_z FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_z1 FIELD=intpol VALUE=0",
+          "SET_TMC_FIELD STEPPER=stepper_z2 FIELD=intpol VALUE=0"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/z_tilt.test",
+    "sha256": "87ca9b79bed854f54d0029f36451564f1f046ef533e7c444a2b8168f0ad3b857",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/z_tilt.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 Z5 X10 Y10 F6000",
+          "M400",
+          "GET_POSITION",
+          "Z_TILT_ADJUST METHOD=MANUAL",
+          "G1 Z2.909972",
+          "ACCEPT",
+          "G1 Z2.924972",
+          "ACCEPT",
+          "G1 Z2.959972",
+          "ACCEPT",
+          "G1 Z2.924972",
+          "ACCEPT",
+          "G1 Z5 X10 Y10 F6000",
+          "M400",
+          "GET_POSITION",
+          "Z_TILT_ADJUST"
+        ],
+        "shouldFail": false
+      }
+    ]
+  },
+  {
+    "file": "test/klippy/z_virtual_endstop.test",
+    "sha256": "4d90c03081f592b2a712f415b530fba7a782b28fd9285c1cc843a6f883f6f8c3",
+    "plans": [
+      {
+        "config": "$ROOT/test/klippy/z_virtual_endstop.cfg",
+        "dictionaries": [
+          "$ROOT/dict/atmega2560.dict"
+        ],
+        "gcodeFile": null,
+        "gcode": [
+          "G28",
+          "G1 F6000",
+          "G1 Z1",
+          "G1 X1",
+          "G1 Y1",
+          "BED_MESH_CALIBRATE",
+          "G1 Z5 X0 Y0",
+          "PROBE",
+          "QUERY_PROBE",
+          "PROBE_CALIBRATE",
+          "ABORT",
+          "PROBE_CALIBRATE SPEED=7.3",
+          "TESTZ Z=-.2",
+          "TESTZ Z=-.3",
+          "TESTZ Z=+.1",
+          "TESTZ Z=++",
+          "TESTZ Z=--",
+          "TESTZ Z=+",
+          "TESTZ Z=-",
+          "ACCEPT",
+          "G1 Z9"
+        ],
+        "shouldFail": false
+      }
+    ]
+  }
+]

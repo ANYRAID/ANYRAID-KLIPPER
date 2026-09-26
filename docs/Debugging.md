@@ -22,8 +22,16 @@ Once the data dictionaries are downloaded, use the following to run
 the regression suite:
 ```
 tar xfz klipper-dict-20??????.tar.gz
-~/klippy-env/bin/python ~/klipper/scripts/test_klippy.py -d dict/ ~/klipper/test/klippy/*.test
+node ~/klipper/scripts/test_klippy.ts --python ~/klippy-env/bin/python -d dict/ ~/klipper/test/klippy/*.test
 ```
+
+The runner requires Node.js 26. The selected Klippy backend still requires
+Python and its dependencies. Use `-t DIRECTORY` for an existing temporary
+parent directory, `-k` to retain successful artifacts, and `-v` for verbose
+backend output. Failed cases retain their isolated artifact directory.
+The default timeout is 120 seconds per case; `--timeout-ms` accepts
+1 through 600000 milliseconds. Crashes, cancellation, and timeouts always
+fail, including tests marked `SHOULD_FAIL`.
 
 ## Estimating AVR stack usage
 
