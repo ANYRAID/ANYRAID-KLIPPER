@@ -37,6 +37,14 @@ function fixture(overrides: Partial<PrintDevice> = {}) {
     controller: new PrintController(device, { maxNozzle: 280, maxBed: 110 }),
   };
 }
+test('file mutation admission excludes the same print while permitting unrelated files',async()=>{
+ const {controller}=fixture(),release=controller.beginFileMutation(request.fileId);
+ assert.throws(()=>controller.beginFileMutation(request.fileId),/unavailable/);
+ await assert.rejects(controller.start(request),/being modified/);release();release();
+ await controller.start(request);assert.throws(()=>controller.beginFileMutation(request.fileId),/owns this file/);
+ const other=controller.beginFileMutation('other');other();await controller.pause();assert.throws(()=>controller.beginFileMutation(request.fileId),/owns this file/);
+ await controller.cancel();const after=controller.beginFileMutation(request.fileId);after();
+});
 test('paused adjustment invalidates control tokens and owns resume, cancellation and retirement',async()=>{
  const {controller,calls}=fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();
  await assert.rejects(controller.adjustPaused(async()=>{}),/confirmed pause/);

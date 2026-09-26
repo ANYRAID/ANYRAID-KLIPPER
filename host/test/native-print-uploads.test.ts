@@ -19,11 +19,34 @@ import {FilePrintDevice} from '../src/operations/file-print-device.ts';
 import {GCodeDispatch} from '../src/gcode/dispatch.ts';
 const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert.ok(Date.now()<end,'Upload condition timed out');await new Promise(r=>setTimeout(r,5));}};
 const multipart=(data:string|Uint8Array='G1 X1\n',fields:Record<string,string>={},name='part.gcode')=>{const form=new FormData();form.append('file',new Blob([typeof data==='string'?data:new Uint8Array(data)]),name);for(const [key,value] of Object.entries(fields))form.append(key,value);return form;};
-async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize']}={}){
+async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize'];removal?:boolean}={}){
  const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
+ if(options.removal)uploads.bindPrintController(new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}));
  const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize:options.authorize??(()=>{})}),address=await network.listen(),url=`http://127.0.0.1:${address.port}`;
  return {dir,gate,files,uploads,network,url,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
 }
+test('native file deletion uses HTTP and RPC paths, revokes previews, reclaims storage and preserves other receipts',async()=>{
+ const f=await fixture({removal:true});try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'red'}}).png().toBuffer(),data=thumbnailBlock(png);
+  for(const id of ['first','second'])assert.equal((await f.post(multipart(data,{file_id:id}))).status,200);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=first.gcode')).json()).result,preview=f.url+'/server/files/gcodes/'+metadata.thumbnails[1].relative_path,before=f.files.status.storedBytes;
+  const response=await fetch(f.url+'/server/files/gcodes/first.gcode',{method:'DELETE'});assert.equal(response.status,200);assert.deepEqual((await response.json()).result,{item:{path:'first.gcode',root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'});
+  assert(f.files.status.storedBytes<before);assert(f.files.status.storedBytes>Buffer.byteLength(data));assert.equal(f.uploads.status.metadata.imageBytes,0);assert.equal((await fetch(preview)).status,404);assert.equal(await (await fetch(f.url+'/server/files/gcodes/second.gcode')).text(),data);
+  const deleted=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.delete_file',params:{path:'gcodes/second.gcode'}})});assert.equal((await deleted.json()).result.action,'delete_file');assert.equal(f.files.status.storedBytes,0);assert.deepEqual(await readdir(join(f.dir,'files')),[]);
+  assert.equal((await fetch(f.url+'/server/files/gcodes/first.gcode',{method:'DELETE'})).status,404);
+ }finally{await f.clean();}
+});
+test('native removal rechecks authorized content after delayed policy and cancellation does not remove a file',async()=>{
+ let blocked=false;const held=Promise.withResolvers<void>(),f=await fixture({removal:true,authorize:(method,params)=>{if(method==='server.files.delete_file'&&params.sha256){blocked=true;return held.promise;}}});
+ try{
+  assert.equal((await f.post(multipart('old',{file_id:'part'}))).status,200);const deleting=fetch(f.url+'/server/files/gcodes/part.gcode',{method:'DELETE'});await until(()=>blocked);
+  await f.files.remove('part',new AbortController().signal);const source=join(f.dir,'replacement');await writeFile(source,'new');const handle=await (await import('node:fs/promises')).open(source,'r');try{await f.files.publish('part','part.gcode',handle,new AbortController().signal);}finally{await handle.close();}
+  held.resolve();assert.equal((await deleting).status,409);assert.equal(await (await fetch(f.url+'/server/files/gcodes/part.gcode')).text(),'new');
+ }finally{held.resolve();await f.clean();}
+ const wait=Promise.withResolvers<void>(),g=await fixture({removal:true,authorize:method=>method==='server.files.delete_file'?wait.promise:undefined});try{
+  await g.post(multipart('keep',{file_id:'part'}));const abort=new AbortController(),pending=fetch(g.url+'/server/files/gcodes/part.gcode',{method:'DELETE',signal:abort.signal}).catch(()=>null);await until(()=>g.uploads.status.authorizing===1);abort.abort();await pending;await until(()=>g.uploads.status.pending===0);wait.resolve();assert.equal((await g.files.inspect('part')).size,4);
+ }finally{wait.resolve();await g.clean();}
+});
 const thumbnailBlock=(bytes:Buffer,width=80,height=40)=>{const data=bytes.toString('base64');return `; thumbnail_png begin ${width}x${height} ${data.length}\n; ${data}\n; thumbnail_png end\nG1 X1\n`;};
 test('native thumbnail HTTP journey preserves bytes, conditional responses, per-file authorization and replacement revocation',async()=>{
  let denied=false;const calls:Record<string,unknown>[]=[],f=await fixture({authorize:(method,params)=>{if(method==='server.files.download'){calls.push({...params});if(denied&&params.file_id==='preview')throw new ApiError(403,'Denied preview');}}});

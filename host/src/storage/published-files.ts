@@ -7,6 +7,7 @@ import {createSealedPrintReader,createSealedBinaryReader} from '../gcode/sealed-
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
+export class PublishedFileChangedError extends Error {}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
 /** Private flat storage. Caller authenticates/authorizes IDs; no client paths.
@@ -156,13 +157,14 @@ export class PublishedPrintFiles {
  },false,signal);}
  /** Remove the receipt durably before reclaiming its last content reference.
   * Readers already returned own sealed snapshots independent of this store. */
- remove(id:string,signal:AbortSignal):Promise<PublishedPrintFile>{return this.#run(async()=>{
+ remove(id:string,signal:AbortSignal,expected?:PublishedPrintFile):Promise<PublishedPrintFile>{return this.#run(async()=>{
   this.#id(id);signal.throwIfAborted();
   if(this.#writeFault)throw new Error('Published writes require recovery',{cause:this.#writeFault});
   const stored=this.#records.get(id);
   if(!stored)throw Object.assign(new Error('Published identifier does not exist'),{code:'ENOENT'});
   const record=await this.#record(id),receipt=await lstat(this.#path(id+'.json'));
-  if(record.sha256!==stored.sha256||record.size!==stored.size||!receipt.isFile()||receipt.size!==stored.receiptBytes)throw new Error('Published receipt changed outside store');
+  if(record.sha256!==stored.sha256||record.size!==stored.size||record.name!==stored.record.name||!receipt.isFile()||receipt.size!==stored.receiptBytes)throw new Error('Published receipt changed outside store');
+  if(expected&&(record.id!==expected.id||record.sha256!==expected.sha256||record.size!==expected.size||record.name!==expected.name))throw new PublishedFileChangedError('Authorized file changed before removal');
   const references=this.#references.get(stored.sha256);
   if(!references)throw new Error('Published content reference invariant failed');
   signal.throwIfAborted();let removed=false;

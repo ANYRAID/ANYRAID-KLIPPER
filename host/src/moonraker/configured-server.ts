@@ -160,7 +160,7 @@ export class ConfiguredMoonraker {
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
-  this.#nativeUploads=options.nativeUploads;const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles}):()=>{};
+  this.#nativeUploads=options.nativeUploads;this.#nativeUploads?.bindPrintController(options.productPrint!);const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles}):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
   const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);

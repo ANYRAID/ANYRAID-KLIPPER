@@ -22,6 +22,7 @@ export class NativeFileMetadata {
  constructor(files:PublishedPrintFiles){this.#downloads=new ThumbnailDownloads({read:(id,index,signal,maxBytes)=>this.#readImage(id,index,signal,maxBytes)},this.#cache,()=>this.#stop.signal.throwIfAborted());this.#files=files;this.#budget=new PrintSnapshotBudget({maxBytes:files.status.maxFileBytes,maxSnapshots:2});}
  get status(){return {imageBytes:this.#imageBytes,imageBundles:this.#bundles.size,pending:this.#pending.size,closed:this.#stop.signal.aborted,cache:this.#cache.status,snapshots:this.#budget.status};}
  peek(filename:string,file:PublishedPrintFile,modified:number):Readonly<Record<string,Json>>|undefined{return this.#keys.get(filename)===identity(file,modified)?this.#cache.peek(filename):undefined;}
+ invalidate(filename:string):void{this.#drop(filename);}
  #drop(filename:string):void{const id=this.#fileBundles.get(filename);if(id){const bundle=this.#bundles.get(id);if(bundle)this.#imageBytes-=bundle.bytes;this.#bundles.delete(id);this.#fileBundles.delete(filename);}this.#cache.invalidate(filename);this.#keys.delete(filename);}
  hasThumbnail(path:string):boolean{try{return !!this.#cache.thumbnailOwner(decodeURIComponent(path.slice('/server/files/gcodes/'.length)));}catch{return false;}}
  async #validateThumbnail(filename:string,snapshot:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<void>{

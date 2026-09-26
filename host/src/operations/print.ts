@@ -146,6 +146,16 @@ export class PrintController {
   get currentRequest(): Readonly<StartPrint> | undefined {
     return this.#start;
   }
+  readonly #fileMutations=new Set<string>();
+  /** Synchronous admission shared with start(): unrelated files remain mutable
+   * during printing, but a pending mutation excludes starting that same file. */
+  beginFileMutation(fileId:string):()=>void{
+    if(!/^[A-Za-z0-9_-]{1,128}$/.test(fileId))throw new Error('Invalid file identifier');
+    if(this.#retirement||this.#fileMutations.size>=64||this.#fileMutations.has(fileId))throw new Error('File mutation unavailable');
+    if(this.#start?.fileId===fileId&&(!['idle','completed','cancelled'].includes(this.#state)||this.#active||this.#pendingActions.size||this.#stopInFlight||this.#safety||this.#journalWrite||this.#cancelTask?.pending))throw new Error('Current print still owns this file');
+    const activity=this.#maintenanceGate?.activity();this.#fileMutations.add(fileId);let released=false;
+    return ()=>{if(!released){released=true;this.#fileMutations.delete(fileId);activity?.();}};
+  }
   #device: PrintDevice;
   #deadlines: PrintDeadlines;
   #pendingActions = new Set<Promise<void>>();
@@ -292,6 +302,7 @@ export class PrintController {
       input.expiresAt !== undefined && (!Number.isSafeInteger(input.expiresAt) || input.expiresAt < 0)
     )
       return Promise.reject(new RangeError('Invalid print request'));
+    if(this.#fileMutations.has(input.fileId))return Promise.reject(new Error('Print file is being modified'));
     const prior = this.#history.get(input.requestId);
     if (prior) {
       if (

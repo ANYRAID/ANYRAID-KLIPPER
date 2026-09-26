@@ -23084,3 +23084,44 @@ filename 与 file_id，UUID 本身不代表授权。
 `host/contracts/native-file-previews-performance.json`。
 该基准不包含 HTTP 或冷启动，也不是 Python 性能对照；目标控制板、
 持续最高打印速度、已知运动数值异常和进程崩溃问题仍未完成验收。
+
+## 原生文件删除与打印占用保护（2026-09-27）
+
+原生主机增加 `DELETE /server/files/gcodes/<file_id>.gcode` 和
+`server.files.delete_file` RPC（参数 path 为 `gcodes/<file_id>.gcode`）。
+共享注册器也提供 DELETE `/server/files/delete_file?path=...` 别名。
+返回 item 中的 path/root、零 size/modified、空 permissions 及
+`action: delete_file`，结构依据
+[Moonraker 文件删除接口](https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-delete)。
+该文档作为本次接口依据；仓库固定上游注册清单中的条目更新为 partial，
+不是完整 file_manager 组件完成声明。
+
+ConfiguredMoonraker 将文件层绑定到同一维护门禁的 PrintController。
+绑定后列表及目录返回 rw，允许客户端显示删除操作；文件内容仍通过
+不可变发布管理，不能覆盖同一 ID。未绑定打印所有者的独立文件层不能
+执行删除。两次鉴权分别核对逻辑路径和实际 file_id、原名、大小、摘要。
+授权等待期间若发生替换，存储删除在互斥写屏障内比较授权时的身份，
+冲突返回 409，避免误删新内容。
+
+打印控制器在同一事件循环中串行准入启动和逐文件修改。准备、打印、
+暂停及未完成清理的当前文件禁止删除；其他文件可在打印期间清理。
+删除租约期间不能新启动同一文件，且维护门禁拒绝重建；操作结束释放
+租约。删除不控制电机或加热器，也不改写历史打印回执。
+
+存储先取消发布回执并同步目录，再释放共享内容的最后一个引用并同步；
+已封存的读取快照仍有效。尚未开始的删除可取消，unlink 开始后必须
+完成持久化；客户端断开不代表已经删除或未删除，应重新查询列表。
+原生元数据与图片缓存随成功删除失效，磁盘配额与文件槽位被释放。
+
+87 项相关回归通过，覆盖 HTTP/RPC、鉴权期间替换、取消等待、共享内容
+回收、封存读者、重新打开后的恢复、打印占用与服务绑定。预编译主机
+4 项验收通过，包含准备和暂停时拒绝删除当前文件，以及打印期间
+16 个无关文件的上传、下载、首次图片解析和删除。删除 HTTP P95
+为 1.21 ms，状态查询 P99 为 3.92 ms，最小步进提前量 90.43 ms，
+事件循环最大延迟 14.01 ms；每次删除后旧图片 URL 均返回 404。
+证据：`host/contracts/native-file-delete-load-acceptance.json`。
+
+此处仅补齐原生平面 gcodes 删除流程；其他根、目录移动/复制、文件变更
+通知、统一持久化元数据仍未完成。以上性能为本机模拟 MCU 的并发负载，
+不是目标板、断电注入或持续最高打印速度验收。默认 Python 入口和已知
+运动异常的未完成状态保持不变。

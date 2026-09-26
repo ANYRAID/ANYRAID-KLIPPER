@@ -116,7 +116,7 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!this.#options.nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||this.#options.nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!this.#options.nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||this.#options.nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&this.#options.nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
@@ -138,6 +138,10 @@ export class MoonrakerNetwork {
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    if(isDownload&&request.method==='DELETE'){
+     if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
+     const result=await this.#options.nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
+    }
     if(isDownload){
      // Source copy, generator and transport each hold bounded chunks. Kernel
      // snapshot content has an independent owner quota, not this JS buffer pool.

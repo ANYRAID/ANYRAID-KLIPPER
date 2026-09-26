@@ -568,7 +568,8 @@
       "line": 138,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/delete_file\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native flat gcodes HTTP DELETE and server.files.delete_file RPC, print ownership and conditional deletion: host/src/moonraker/native-print-uploads.ts; host/test/native-print-uploads.test.ts; host/acceptance/product-compiled-journey.test.ts. Other roots and filelist change notifications remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
