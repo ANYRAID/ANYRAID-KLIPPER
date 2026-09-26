@@ -53,6 +53,10 @@ test('host CLI HTTP journey homes, prints, pauses, resumes, completes, resets an
   assert.deepEqual(objects.toolhead.position,[10,0,0,0]);assert.equal(objects.virtual_sdcard.is_active,false);
   current=await get();assert.equal((await post('reset',{request_id:'complete',state_token:current.state_token})).code,200);assert.equal((await get()).state,'idle');
   result=await post('start',request('cancel'));assert.equal(result.code,200,JSON.stringify(result.body));await wait('printing');current=await get();result=await post('cancel',{request_id:'cancel',state_token:current.state_token});assert.equal(result.code,200,JSON.stringify(result.body));await wait('cancelled');assert.equal((await f.journal.get('cancel'))?.state,'cancelled');
+  const stoppedInfo=await fetch(base+'/server/info',{headers});assert.equal(stoppedInfo.status,200);assert.equal((await stoppedInfo.json() as any).result.native_host.ready,false);
+  const cancelledRecord=await fetch(base+'/printer/print/status?request_id=cancel',{headers});assert.equal(cancelledRecord.status,200);assert.equal((await cancelledRecord.json() as any).result.record.state,'cancelled');
+  current=await get();assert.equal((await post('reset',{request_id:'cancel',state_token:current.state_token})).code,200);
+  const stepsBefore=firmware.motion.length;assert.equal((await post('start',request('requires-reinitialization'))).code,409);assert.equal(firmware.motion.length,stepsBefore);assert.equal(opened,2);
   abort.abort();await running;assert(f.released);assert.deepEqual(f.transport.stops,[1,1]);await assert.rejects(fetch(base+'/printer/print/status'));
  }catch(error){if(hostFailure)throw new AggregateError([hostFailure,error],'Host journey failed');throw error;}finally{abort.abort();await running.catch(()=>{});clearInterval(timer);for(const task of timers)clearTimeout(task);profiles.delete(dir);await f.profile.release();await rm(dir,{recursive:true,force:true});}
 });

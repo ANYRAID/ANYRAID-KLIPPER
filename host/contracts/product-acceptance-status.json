@@ -1,28 +1,15 @@
 {
   "schema": 1,
-  "implementationBase": "2246d604 plus representable-profile fix",
+  "implementationBase": "60796fb4 plus persistent API lifecycle fix",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
-  "result": "failed",
+  "result": "passed_simulated_scope",
   "tests": {
-    "passed": 1,
-    "failed": 1,
+    "passed": 2,
+    "failed": 0,
     "skipped": 0
   },
-  "verifiedBeforeFailure": [
-    "trusted profile loaded through actual CLI",
-    "dual PTY UART connection and authenticated HTTP",
-    "unauthorized start rejected without opening file or scheduling motion",
-    "authorized job admitted",
-    "three-axis native homing with simulated endstop responses",
-    "file print reaches printing state",
-    "HTTP pause and current-token resume",
-    "stale resume token rejected",
-    "first job completes and durable journal records completion",
-    "final commanded endpoint [10,0,0,0] and inactive file",
-    "reset to idle and start second job"
-  ],
-  "firstUnpassedGate": "HTTP cancel on the second printing job returns 503 Request cancelled while the host service stops",
+  "firstUnpassedGate": null,
   "capture": {
     "startPosition": 3.78,
     "endPosition": 3.79,
@@ -36,9 +23,10 @@
     "resolved": true
   },
   "pending": [
-    "cancel response and durable final state",
-    "fault journey",
+    "controlled hardware reinitialization and next print after cancellation",
     "compiled process journey",
+    "sealed upload and nonzero-temperature journey",
+    "fault injection across active printing and restoration",
     "full-load performance",
     "real hardware acceptance"
   ],
@@ -51,5 +39,27 @@
     "endV2": 100,
     "accelT": 1.776356839400252e-17,
     "printTime": 4.667461912383371
-  }
+  },
+  "verified": [
+    "trusted profile loaded through actual CLI",
+    "dual PTY UART connection and authenticated HTTP",
+    "unauthorized start rejected without opening file or scheduling motion",
+    "authorized job admitted",
+    "three-axis native homing with simulated endstop responses",
+    "file print reaches printing state",
+    "HTTP pause and current-token resume",
+    "stale resume token rejected",
+    "first job completes and durable journal records completion",
+    "final commanded endpoint [10,0,0,0] and inactive file",
+    "reset to idle and start second job",
+    "HTTP cancel returns success after durable cancellation",
+    "cancelled record and unavailable hardware remain queryable",
+    "reset does not grant stopped hardware permission; next start rejected before file open",
+    "explicit process abort closes API and releases dependencies"
+  ],
+  "additionalHostTests": [
+    "UART disconnect retains authenticated failed status and rejects print start",
+    "independent physical stop failure remains visible and shutdown reports cleanup failure",
+    "SIGINT and SIGTERM release dependencies"
+  ]
 }

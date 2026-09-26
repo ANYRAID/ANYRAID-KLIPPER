@@ -15,23 +15,23 @@ export interface ProductHostProfile {
 }
 export type ProductHostFactory=(signal:AbortSignal)=>Promise<ProductHostProfile>;
 /** One process lifetime: load -> connect -> listen -> stop -> release dependencies.
- * No reconnect, job replay, forced process exit, or implicit machine policy. */
+ * Hardware stop does not close the API: keep durable outcomes and unavailable
+ * hardware status observable until explicit process shutdown. No reconnect or replay. */
 export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void):Promise<void>{
  signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function')throw new TypeError('Invalid product host callbacks');
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
- let profile:ProductHostProfile|undefined,service:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined,off=()=>{},fault:unknown,failed=false;
+ let profile:ProductHostProfile|undefined,service:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined;
  signal.addEventListener('abort',abort,{once:true});
  try{
   profile=await factory(signal);
   if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
   signal.throwIfAborted();
   service=await startConfiguredProductService(profile.reader,profile.policies,profile.product,profile.options,signal);
-  off=service.printer.group.subscribeStop(cause=>{failed=true;fault=cause;stopped.resolve();});
   service.printer.group.assertActive();signal.throwIfAborted();ready({...service.address});
-  await stopped.promise;if(failed)throw fault;
- }catch(error){if(!signal.aborted||error!==signal.reason||failed)errors.push(error);}
+  await stopped.promise;
+ }catch(error){if(!signal.aborted||error!==signal.reason)errors.push(error);}
  finally{
-  signal.removeEventListener('abort',abort);try{off();}catch(error){errors.push(error);}
+  signal.removeEventListener('abort',abort);
   if(service)try{await service.close();}catch(error){errors.push(error);}
   if(profile&&typeof profile.release==='function')try{await profile.release();}catch(error){errors.push(error);}
  }
