@@ -569,14 +569,15 @@
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/delete_file\"",
       "status": "partial",
-      "evidence": "Native flat gcodes HTTP DELETE and server.files.delete_file RPC, print ownership and conditional deletion: host/src/moonraker/native-print-uploads.ts; host/test/native-print-uploads.test.ts; host/acceptance/product-compiled-journey.test.ts. Other roots and filelist change notifications remain incomplete."
+      "evidence": "Native flat gcodes HTTP DELETE and server.files.delete_file RPC, print ownership and conditional deletion: host/src/moonraker/native-print-uploads.ts; host/test/native-print-uploads.test.ts; host/acceptance/product-compiled-journey.test.ts. Other roots remain incomplete; native create/delete notifications now have separate partial coverage."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
       "line": 143,
       "method": "register_notification",
       "targetExpression": "\"file_manager:filelist_changed\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native gcodes durable create/delete events over authorized WebSocket fanout: host/src/storage/published-files.ts; host/src/moonraker/configured-server.ts; host/test/native-file-notifications.test.ts; host/contracts/native-file-notifications-load-acceptance.json. Other roots, filesystem watchers, move/modify/directory events and Unix transport remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",

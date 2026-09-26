@@ -16,6 +16,16 @@ function blockedSource(file:import('node:fs/promises').FileHandle){
  const source={stat:()=>file.stat({bigint:true}),read:async(buffer:Buffer,offset:number,length:number,position:number)=>{entered.resolve();await release.promise;return file.read(buffer,offset,length,position);}} as unknown as import('node:fs/promises').FileHandle;
  return {entered,release,source};
 }
+test('commit observers report durable identity and cannot turn listener exceptions into storage failure',async()=>{
+ const f=await fixture(),events:import('../src/storage/published-files.ts').PublishedFileChange[]=[];
+ const release=f.store.observeChanges(change=>{events.push(change);throw new Error('Broken internal observer');});
+ try{
+  const record=await f.store.publish('one','file',f.source,signal());assert.equal(events.length,1);assert(Object.isFrozen(events[0]));assert(Object.isFrozen(events[0].file));assert.deepEqual(events[0].file,record);assert.equal(events[0].modified,(await f.store.catalog(signal()))[0].modified);
+  await assert.rejects(f.store.publish('one','file',f.source,signal()),{code:'EEXIST'});assert.equal(events.length,1);
+  await f.store.remove('one',signal());assert.deepEqual(events.map(event=>event.action),['create_file','delete_file']);assert.equal(events[1].modified,0);assert.equal(f.store.status.storedBytes,0);assert.equal(f.store.changeObservers.failures,2);
+  release();release();assert.equal(f.store.changeObservers.count,0);await f.store.close();const reopened=await PublishedPrintFiles.open(f.root);try{assert.equal(reopened.status.publishedFiles,0);assert.equal(reopened.changeObservers.count,0);}finally{await reopened.close();}
+ }finally{release();await f.close();}
+});
 test('deleting the last reference releases bytes and a publication slot durably',async()=>{
  const f=await fixture({maxPublishedFiles:1,maxStorageBytes:2500});
  try{

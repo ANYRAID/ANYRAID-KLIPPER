@@ -38,6 +38,13 @@ export class NativePrintUploads {
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  bindPrintController(controller:PrintController):void{if(!(controller instanceof PrintController)||!controller.usesMaintenanceGate(this.#gate)||this.#print&&this.#print!==controller)throw new Error('Invalid native file print owner');this.#print=controller;}
  get canRemove():boolean{return !!this.#print&&!this.#closed;}
+ observeChanges(observer:(event:Json)=>void):()=>void{
+  if(this.#closed)throw new ApiError(503,'Native files closed');
+  return this.#files.observeChanges(({action,file,modified})=>{
+   if(this.#closed)return;if(action==='delete_file')this.#metadata.invalidate(file.id+'.gcode');
+   observer({action,item:{path:file.id+'.gcode',root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256}});
+  });
+ }
  remove(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(this.#closed||!this.#print)return Promise.reject(new ApiError(503,'Native file removal requires its print owner'));
   if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));

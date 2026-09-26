@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "9a601e8d",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "b9d8fc1c93bb3e0f223f1b695009260da8198c4d0d8ee04a0e8490419241ea2a",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "authorizedObservers": 4,
+    "deniedObservers": 1,
+    "delayedObservers": 1,
+    "delayMs": 50,
+    "notificationTimeoutMs": 20,
+    "observerReconnectOnReinitialization": true,
+    "statusClients": 4,
+    "extendedDirectoryClients": 1,
+    "pollDelayMs": 5,
+    "generations": 2,
+    "filesPerGeneration": 8,
+    "uploadBytes": 262144,
+    "sequence": [
+      "upload",
+      "raw download",
+      "cold metadata and PNG miniature",
+      "preview download",
+      "delete",
+      "old preview 404"
+    ]
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3226,
+      "minimumStepLeadMs": 90.995,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.854463,
+            "maxMs": 13.451263
+          },
+          "cpu": {
+            "user": 706562,
+            "system": 81437
+          },
+          "rss": 165806080
+        },
+        {
+          "loop": {
+            "p99Ms": 1.730559,
+            "maxMs": 5.210111
+          },
+          "cpu": {
+            "user": 403430,
+            "system": 41588
+          },
+          "rss": 183894016
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 7.558743999998114,
+      "deleteRequests": 16,
+      "deleteP95Ms": 2.0369289999980538,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.2834150000016962,
+      "metadataRequests": 16,
+      "metadataP95Ms": 9.667983999999706,
+      "downloads": 16,
+      "downloadP95Ms": 5.511884999999893,
+      "wireCommands": 147,
+      "wireSteps": 3228,
+      "minimumStepLeadMs": 84.523,
+      "directoryRequests": 2071,
+      "directoryP99Ms": 6.021295000002283,
+      "statusRequests": 8626,
+      "uploads": 16,
+      "statusP99Ms": 2.915404999999737,
+      "uploadP95Ms": 15.318710999999894,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.979391,
+            "maxMs": 15.712255
+          },
+          "cpu": {
+            "user": 1871359,
+            "system": 202221
+          },
+          "rss": 245235712
+        },
+        {
+          "loop": {
+            "p99Ms": 1.907711,
+            "maxMs": 3.954687
+          },
+          "cpu": {
+            "user": 1098271,
+            "system": 104359
+          },
+          "rss": 239251456
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS host with simulated PTY MCU, ADC and endstops. 132 deliveries = initial create to four clients plus 32 load changes to four clients; denied/delayed clients receive none. Notification latency is parent-observed time from HTTP operation initiation to WebSocket event arrival, including mutation and network. Not target hardware, durable notification replay or maximum-speed acceptance."
+}

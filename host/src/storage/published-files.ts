@@ -8,6 +8,7 @@ import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snap
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
 export class PublishedFileChangedError extends Error {}
+export interface PublishedFileChange {readonly action:'create_file'|'delete_file';readonly file:PublishedPrintFile;readonly modified:number;}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
 /** Private flat storage. Caller authenticates/authorizes IDs; no client paths.
@@ -17,6 +18,15 @@ export class PublishedPrintFiles {
  #queue:StorageOperation[]=[];#active=0;#exclusive=false;
  #root:FileHandle;#maxBytes:number;#maxOperations:number;#budget:PrintSnapshotBudget;
  #pending=new Set<Promise<unknown>>();#closed=false;#closing:Promise<void>|undefined;
+ readonly #observers=new Set<(change:PublishedFileChange)=>void>();#observerFailures=0;
+ /** Internal synchronous commit observers. Transport delivery must enqueue work
+  * without awaiting clients; an observer failure cannot undo durable storage. */
+ observeChanges(observer:(change:PublishedFileChange)=>void):()=>void{
+  if(this.#closed||typeof observer!=='function'||this.#observers.size>=8||this.#observers.has(observer))throw new Error('Published change observer unavailable');
+  this.#observers.add(observer);return ()=>{this.#observers.delete(observer);};
+ }
+ get changeObservers(){return {count:this.#observers.size,failures:this.#observerFailures};}
+ #changed(action:PublishedFileChange['action'],file:PublishedPrintFile,modified:number):void{const event=Object.freeze({action,file,modified});for(const observer of [...this.#observers]){try{observer(event);}catch{this.#observerFailures++;}}}
  private constructor(root:FileHandle,maxBytes:number,maxOperations:number,budget:PrintSnapshotBudget,maxStorage:number,maxFiles:number){this.#maxStorage=maxStorage;this.#maxFiles=maxFiles;this.#root=root;this.#maxBytes=maxBytes;this.#maxOperations=maxOperations;this.#budget=budget;}
  static async open(directory:string,options:{maxFileBytes?:number;maxOperations?:number;budget?:PrintSnapshotBudget;maxStorageBytes?:number;maxPublishedFiles?:number}={}):Promise<PublishedPrintFiles>{
   const max=options.maxFileBytes??64*1024**2,count=options.maxOperations??8,storage=options.maxStorageBytes??1024**3,files=options.maxPublishedFiles??1024;
@@ -132,7 +142,7 @@ export class PublishedPrintFiles {
    try{await link(temp,this.#path(record.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(record,signal);}
    await this.#root.sync();signal.throwIfAborted();
    receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
-   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();return record;
+   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
   }catch(error){failure=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);
    const removed=await Promise.allSettled([unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;}),unlink(receiptTemp).catch(error=>{if(error.code!=='ENOENT')throw error;})]);
@@ -178,11 +188,11 @@ export class PublishedPrintFiles {
     this.#references.delete(stored.sha256);await unlink(this.#path(stored.sha256+'.gcode'));
     await this.#root.sync();this.#storedBytes-=stored.size;
    }
-   return record;
+   this.#changed('delete_file',record,0);return record;
   }catch(error){if(removed)this.#writeFault=error;throw error;}
  },true,signal);}
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;
-  this.#closing=Promise.allSettled([...this.#pending]).then(()=>this.#root.close());return this.#closing;
+  this.#closing=Promise.allSettled([...this.#pending]).then(()=>{this.#observers.clear();return this.#root.close();});return this.#closing;
  }
 }
