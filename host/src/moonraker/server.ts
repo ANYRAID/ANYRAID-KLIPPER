@@ -116,11 +116,11 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC||isUpload?['POST']:isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isThumbnail=this.#options.thumbnails?.matches(path)??false,allowed=isRPC||isUpload?['POST']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
-  if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');}
-  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, If-None-Match'});response.end();return;}
+  if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
+  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, If-None-Match, Range, If-Range'});response.end();return;}
   if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
   if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}
@@ -138,6 +138,29 @@ export class MoonrakerNetwork {
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
     const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    if(isDownload){
+     // Source copy, generator and transport each hold bounded chunks. Kernel
+     // snapshot content has an independent owner quota, not this JS buffer pool.
+     const budget=3*65536;if(budget>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');this.#outputBytes+=budget;outputReserved=budget;
+     await this.#options.nativeUploads!.download(path,context,async(file,downloadSignal)=>{
+      const etag='"'+file.sha256+'"';response.setHeader('content-type','application/octet-stream');response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');response.setHeader('etag',etag);response.setHeader('accept-ranges','bytes');
+      const encoded=encodeURIComponent(file.record.name).replace(/['()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase());
+      response.setHeader('content-disposition',`attachment; filename="${file.record.id}.gcode"; filename*=UTF-8''${encoded}`);
+      const condition=request.headers['if-none-match'];if(condition?.split(',').some(value=>value.trim()==='*'||value.trim().replace(/^W\//,'')===etag)){response.writeHead(304);response.end();return;}
+      let start=0,end=file.size;
+      if(request.method==='GET'&&request.headers.range&&(!request.headers['if-range']||request.headers['if-range']===etag)){
+       const range=/^bytes=(\d*)-(\d*)$/.exec(request.headers.range);
+       if(range&&(range[1]||range[2])){
+        const first=range[1]?Number(range[1]):undefined,last=range[2]?Number(range[2]):undefined;
+        if(first===undefined){start=Math.max(0,file.size-(last??0));}else{start=first;if(last!==undefined)end=Math.min(file.size,last+1);}
+        if(first!==undefined&&!Number.isSafeInteger(first)||last!==undefined&&!Number.isSafeInteger(last)||start>=file.size||end<=start){response.setHeader('content-range','bytes */'+file.size);response.writeHead(416);response.end();return;}
+        response.statusCode=206;response.setHeader('content-range',`bytes ${start}-${end-1}/${file.size}`);
+       }
+      }
+      response.setHeader('content-length',end-start);if(request.method==='HEAD'){response.end();return;}
+      await pipeline(Readable.from(file.reader.chunks(downloadSignal,start,end),{objectMode:false,highWaterMark:65536}),response,{signal:downloadSignal});
+     });return;
+    }
     if(isThumbnail){
      const download=await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
      if(!Number.isSafeInteger(download.size)||download.size<1||download.size>8*maxBytes)throw new ApiError(500,'Invalid thumbnail size');

@@ -3,7 +3,7 @@ import {open,mkdir,link,unlink,opendir,lstat,type FileHandle} from 'node:fs/prom
 import {constants} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {createSealedPrintReader} from '../gcode/sealed-file.ts';
+import {createSealedPrintReader,createSealedBinaryReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
@@ -140,6 +140,13 @@ export class PublishedPrintFiles {
   this.#id(id);signal.throwIfAborted();const record=await this.#record(id);signal.throwIfAborted();
   const source=await open(this.#path(record.sha256+'.gcode'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);let snapshot:Awaited<ReturnType<typeof createSealedPrintReader>>|undefined;
   try{const stat=await source.stat();if(!stat.isFile()||stat.size!==record.size)throw new Error('Published content does not match receipt size');snapshot=await createSealedPrintReader(source,record.sha256,signal,{maxBytes:this.#maxBytes,budget:this.#budget});await source.close();return snapshot.reader;}
+  catch(error){try{await source.close();}finally{await snapshot?.reader.close();}throw error;}
+ },false,signal);}
+ /** Binary download owns an independent sealed snapshot and a separate quota. */
+ acquireBinary(id:string,signal:AbortSignal,budget:PrintSnapshotBudget){return this.#run(async()=>{
+  this.#id(id);signal.throwIfAborted();const record=await this.#record(id);signal.throwIfAborted();
+  const source=await open(this.#path(record.sha256+'.gcode'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);let snapshot:Awaited<ReturnType<typeof createSealedBinaryReader>>|undefined;
+  try{const stat=await source.stat();if(!stat.isFile()||stat.size!==record.size)throw new Error('Published content does not match receipt size');snapshot=await createSealedBinaryReader(source,record.sha256,signal,{maxBytes:this.#maxBytes,budget});await source.close();return {record,...snapshot};}
   catch(error){try{await source.close();}finally{await snapshot?.reader.close();}throw error;}
  },false,signal);}
  /** Remove the receipt durably before reclaiming its last content reference.

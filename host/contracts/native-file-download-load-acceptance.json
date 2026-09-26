@@ -1,0 +1,96 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "10947f66",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "4306eb56101f8662e739b45f35b4d6faa79d3855bd0a32ab16e526dd868ec744",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "catalogClients": 1,
+    "pollDelayMs": 5,
+    "uploadsPerGeneration": 8,
+    "downloadAfterEveryUpload": true,
+    "uploadBytes": 262144,
+    "generations": 2
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3226,
+      "minimumStepLeadMs": 89.766,
+      "catalogRequests": 0,
+      "catalogP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.777663,
+            "maxMs": 13.369343
+          },
+          "cpu": {
+            "user": 619461,
+            "system": 59610
+          },
+          "rss": 156020736
+        },
+        {
+          "loop": {
+            "p99Ms": 1.789951,
+            "maxMs": 5.300223
+          },
+          "cpu": {
+            "user": 422778,
+            "system": 33133
+          },
+          "rss": 175034368
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "downloads": 16,
+      "downloadP95Ms": 6.032537999999477,
+      "wireCommands": 149,
+      "wireSteps": 3232,
+      "minimumStepLeadMs": 87.217,
+      "catalogRequests": 1794,
+      "catalogP99Ms": 3.497730999999476,
+      "statusRequests": 7187,
+      "uploads": 16,
+      "statusP99Ms": 3.616852999999537,
+      "uploadP95Ms": 16.631373000000167,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.037759,
+            "maxMs": 13.090815
+          },
+          "cpu": {
+            "user": 1720702,
+            "system": 182285
+          },
+          "rss": 225697792
+        },
+        {
+          "loop": {
+            "p99Ms": 2.079743,
+            "maxMs": 5.119999
+          },
+          "cpu": {
+            "user": 678443,
+            "system": 74598
+          },
+          "rss": 240607232
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS child with simulated PTY MCU, temperature and endstops. Every uploaded load file is downloaded and SHA-256 checked. Separate microbenchmark covers 2/16/64 MiB files; not target hardware or sustained maximum-speed acceptance."
+}

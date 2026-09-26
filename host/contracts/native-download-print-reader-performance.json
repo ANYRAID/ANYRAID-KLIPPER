@@ -1,0 +1,32 @@
+{
+  "node": "v26.9.0",
+  "warmups": 2,
+  "runs": 11,
+  "lines": 100000,
+  "bytes": 2701000,
+  "variants": [
+    "authorizedSource",
+    "kernelSealedCopy"
+  ],
+  "setup": [
+    {
+      "medianMs": 0.030809999999974025,
+      "p95Ms": 0.048820999999975356
+    },
+    {
+      "medianMs": 3.1889249999999834,
+      "p95Ms": 4.982671000000039
+    }
+  ],
+  "read": [
+    {
+      "medianMs": 8.24001800000002,
+      "p95Ms": 8.843855999999988
+    },
+    {
+      "medianMs": 8.113655999999992,
+      "p95Ms": 8.747604999999993
+    }
+  ],
+  "scope": "Cached temporary source, SHA-256 verified copy and batched reads; no disk durability, memory-pressure or target-board timing claim"
+}

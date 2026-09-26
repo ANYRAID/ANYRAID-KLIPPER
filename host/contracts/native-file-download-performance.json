@@ -1,0 +1,67 @@
+{
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "warmups": 3,
+  "runs": 11,
+  "variants": [
+    "verifiedWholeBufferReference",
+    "sealedDownloadWithConsumerSha256"
+  ],
+  "results": [
+    {
+      "bytes": 2097152,
+      "stats": [
+        {
+          "medianMs": 2.0023900000000197,
+          "p95Ms": 14.29233099999999
+        },
+        {
+          "medianMs": 4.833332000000013,
+          "p95Ms": 6.9788230000000055
+        }
+      ],
+      "maxChunkBytes": 65536,
+      "eventLoop": {
+        "p99Ms": 2.207743,
+        "maxMs": 6.156287
+      }
+    },
+    {
+      "bytes": 16777216,
+      "stats": [
+        {
+          "medianMs": 14.573324999999954,
+          "p95Ms": 19.650000999999975
+        },
+        {
+          "medianMs": 36.821685,
+          "p95Ms": 37.258871
+        }
+      ],
+      "maxChunkBytes": 65536,
+      "eventLoop": {
+        "p99Ms": 1.602559,
+        "maxMs": 2.428927
+      }
+    },
+    {
+      "bytes": 67108864,
+      "stats": [
+        {
+          "medianMs": 74.58486399999992,
+          "p95Ms": 77.68256900000006
+        },
+        {
+          "medianMs": 150.85373100000015,
+          "p95Ms": 161.03433200000018
+        }
+      ],
+      "maxChunkBytes": 65536,
+      "eventLoop": {
+        "p99Ms": 1.596415,
+        "maxMs": 2.081791
+      }
+    }
+  ],
+  "scope": "Alternating warm local reads. Whole-buffer reference allocates the entire file; sealed download copies to quota-controlled memfd then streams 64 KiB chunks, including an extra consumer hash for validation. Excludes HTTP, target hardware and sustained load; aggregate event-loop values cover both variants."
+}

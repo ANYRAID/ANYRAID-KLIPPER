@@ -43,7 +43,7 @@
    流程完成集成和授权范围内的发布。不得为文件数下降提前删除未替代能力。
 
 第 1 项现已具备预编译包、鉴权 HTTP、模拟 MCU 的统一打印闭环验收，
-并覆盖文件列表选择与并发轮询。后续补齐原生上传文件的下载与目录/元数据
+并覆盖文件列表选择、原始文件下载与并发负载。后续补齐目录/元数据
 接口连接，同时推进第 2 项未解决的运动精度异常；实机门槛仍未执行。
 进度汇报以“可用流程新增了什么、原入口是否退役、关键门槛是否通过”为准；
 提交数、测试数及新增 TS 文件数仅作辅助，不给出无证据的整体完成百分比。
@@ -22916,3 +22916,48 @@ Moonraker 的实现，不能将比值报告为迁移加速倍数。两组证据�
 `host/contracts/native-file-catalog-performance.json` 和
 `host/contracts/native-file-catalog-load-acceptance.json`。所有结果仅限
 本机 Node 26.9、模拟 MCU；运动异常、实机长期验证和 Python 退役仍未完成。
+
+## 原生文件下载与封存传输（2026-09-27）
+
+原生上传的文件可按列表的 `path` 从
+`GET /server/files/gcodes/<file_id>.gcode` 下载；支持 HEAD、ETag、
+If-None-Match、单段 Range 及 If-Range。下载仅通过 HTTP 提供，与
+[Moonraker 文件传输接口](https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-download)
+的传输方式和 gcodes 路径一致，但当前仍只有原生不可变文件命名空间，
+不能据此宣称完整文件管理、其他根或通用客户端兼容性已完成。
+标准附件响应同时包含逻辑文件名及 UTF-8 原始文件名；允许来源的跨域
+请求可使用 Range/If-Range 并读取 ETag、Content-Disposition 等响应头。
+
+主服务在查找前授权，再以 file_id、原始文件名、大小和摘要授权；
+如果授权期间回执被替换则拒绝。返回内容之前复核摘要并封存 Linux
+memfd，之后以最多 64 KiB 的块传输，保留原始字节（包括 CRLF）。
+它复用打印快照的复制/校验内核，不经过 G-code 文本解析器；下载期间
+删除或改写存储文件不会修改已封存内容。缩略图保持原有逻辑路径解析。
+
+`NativePrintUploads` 的 `maxDownloads` 默认 2（最大 4），
+`maxDownloadBytes` 默认 64 MiB（最大 1 GiB），后者为下载快照总预算，
+按系统页取整。配额独立于打印快照：一个默认最大 64 MiB 文件可以
+下载，但此时第二个非空文件会因容量不足被拒绝。单文件超出配置预算
+返回 413，忙碌/并发超限返回 429；不将文件整体放入 JS Buffer。
+网络传输另保留每次 192 KiB 的分块缓冲预算，慢客户端一直占用快照
+及传输预算，断开、超时和服务关闭后释放。HEAD/304 也执行封存校验，
+会消耗对应配额与读取时间。默认最大上传文件可完整下载；更大导入文件
+需要显式配置预算。根目录、元数据及其他文件管理操作仍待接通。
+
+最终 59 项相关回归、类型检查通过；`test:product-acceptance` 的
+4 项统一验收通过。模拟打印期间完成 16 次上传和 16 次 256 KiB
+下载，并验证下载摘要；同时有 1,794 次目录轮询及 7,187 次状态查询。
+下载 P95 6.03 ms，最小串口步进提前量 87.22 ms，事件循环最大
+延迟 13.10 ms。证据：`host/contracts/native-file-download-load-acceptance.json`。
+
+`npm --prefix host run bench:native-file-download` 顺序交替测量整文件
+缓冲参考与封存分块下载，3 次预热、11 次测量。2/16/64 MiB 封存
+下载中位耗时分别为 4.83/36.82/150.85 ms，P95 为
+6.98/37.26/161.04 ms，含消费端额外 SHA-256 校验；整文件缓冲
+参考中位耗时为 2.00/14.57/74.58 ms。封存复制增加开销，换取
+传输期间稳定内容及有界 JS 缓冲；此参考不是 Python Moonraker 的
+性能数据，也不是网络吞吐量。基准验证最大块 65,536 字节和配额释放，
+记录见 `host/contracts/native-file-download-performance.json`。打印
+文本读取回归基准另见 `host/contracts/native-download-print-reader-performance.json`。
+这些本机结果不能替代目标板、长期高负载、运动精度异常根因和实机验收；
+默认 Python 入口仍未退役。
