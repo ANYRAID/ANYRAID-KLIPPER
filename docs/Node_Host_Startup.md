@@ -607,3 +607,9 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 一条 disconnected；客户端必须处理 WebSocket 关闭。新连接不补发旧通知，
 应先查询 server.info/printer.info 建立初始状态。启动时的 error 状态仍
 通过查询及 webhooks 状态对象描述，不伪装成 ready。
+
+原生上传所有者装配后，`print_stats.filename` 返回发布回执对应的规范
+`<fileId>.gcode` 路径；空闲或重置后为空，完成及故障状态保留当前作业名。
+未装配该所有者时不猜测自定义文件命名。`pause_resume.is_paused` 在暂停
+确认后为 true，恢复确认前仍为 true；仅发起暂停时不能声称已暂停。
+当前未提供实际累计打印时间或耗材统计，不能从文件进度推算这些字段。

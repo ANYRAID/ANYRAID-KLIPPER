@@ -41,6 +41,7 @@ export class NativePrintUploads {
   try{const metadata=await NativePersistentMetadata.open(options.metadataRoot,files),previous=owner.#metadata;owner.#metadata=metadata;await previous.close();return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Native upload startup cleanup failed');}throw error;}
  }
  get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
+ filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return fileId+'.gcode';}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  bindPrintController(controller:PrintController):void{if(!(controller instanceof PrintController)||!controller.usesMaintenanceGate(this.#gate)||this.#print&&this.#print!==controller)throw new Error('Invalid native file print owner');this.#print=controller;}
  get canRemove():boolean{return !!this.#print&&!this.#closed;}

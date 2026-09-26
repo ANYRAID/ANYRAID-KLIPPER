@@ -22,3 +22,16 @@ test('print status does not report completion or cancellation before acknowledge
   await controller.start({...request,requestId:'two'});const cancelled=controller.cancel();assert.notEqual(status().state,'cancelled');stop.resolve();await cancelled;assert.equal(status().state,'cancelled');assert.equal(status().info.current_layer,null);
  }finally{finish.resolve();stop.resolve();await controller.retire();}
 });
+
+test('published filename and pause flag follow accepted request and acknowledged controller boundaries',async()=>{
+ const {productPauseStatus}=await import('../src/runtime/product-print-status.ts'),layers=new PrintLayerInfo(),pause=Promise.withResolvers<void>(),resume=Promise.withResolvers<void>();
+ const controller=new PrintController({async prepare(){},async start(){},pause:()=>pause.promise,resume:()=>resume.promise,async finish(){},async stop(){}},{maxNozzle:300,maxBed:120});
+ const status=()=>productPrintStatus(controller,layers,id=>id+'.gcode'),paused=()=>productPauseStatus(controller.state).is_paused;
+ try{
+  assert.equal(status().filename,'');assert.equal(paused(),false);await controller.start({version:1,requestId:'first',fileId:'receipt-a',nozzle:0,bed:0});assert.equal(status().filename,'receipt-a.gcode');
+  const pausing=controller.pause();assert.equal(controller.state,'pausing');assert.equal(paused(),false);pause.resolve();await pausing;assert.equal(paused(),true);
+  const resuming=controller.resume();assert.equal(controller.state,'resuming');assert.equal(paused(),true);resume.resolve();await resuming;assert.equal(paused(),false);
+  await controller.complete('first');assert.equal(status().filename,'receipt-a.gcode');controller.reset('first');assert.equal(status().filename,'');
+  await controller.start({version:1,requestId:'second',fileId:'receipt-b',nozzle:0,bed:0});assert.equal(status().filename,'receipt-b.gcode');await controller.fault(Error('private cause'));assert.equal(status().filename,'receipt-b.gcode');assert.equal(paused(),false);assert(!status().message.includes('private'));
+ }finally{pause.resolve();resume.resolve();await controller.cancel();}
+});
