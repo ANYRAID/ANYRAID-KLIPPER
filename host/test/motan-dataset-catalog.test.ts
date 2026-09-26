@@ -5,10 +5,11 @@ import {mkdtemp,readFile,writeFile,readdir,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
+import {motanCsvReference} from './helpers/motan-csv-reference.ts';
 import {listMotanDatasets,formatMotanDatasets} from '../src/motan/dataset-catalog.ts';
-const root=fileURLToPath(new URL('../../',import.meta.url)),cli=join(root,'scripts/motan/data_export.ts'),legacy=join(root,'scripts/motan/data_export.py');
+const root=fileURLToPath(new URL('../../',import.meta.url)),cli=join(root,'scripts/motan/data_export.ts');
 test('Motan syntax catalog matches Python handler ordering, aliases, descriptions and output bytes',()=>{
- const expected=execFileSync('python3',[legacy,'--list-datasets'],{encoding:'utf8'});
+ const expected=motanCsvReference().catalog;
  assert.equal(formatMotanDatasets(),expected);
  const entries=listMotanDatasets();assert.equal(entries.length,36);assert.deepEqual(entries[0],entries[1]);
  assert.equal(Object.isFrozen(entries),true);assert.ok(entries.every(Object.isFrozen));
@@ -21,7 +22,7 @@ test('dataset listing needs no log, columns, Python, or output write and preserv
   await writeFile(output,'keep');
   for(const args of [['-l'],['--list-datasets','missing','-c','not a literal','-o',output],['-l','missing','extra']]){
    const result=execFileSync(process.execPath,[cli,...args],{encoding:'utf8',env,cwd:dir,timeout:10000});
-   assert.equal(result,execFileSync('python3',[legacy,...args],{encoding:'utf8',cwd:dir}));
+   assert.equal(result,motanCsvReference().catalog);
   }
   assert.equal(await readFile(output,'utf8'),'keep');assert.deepEqual(await readdir(dir),['keep.csv']);
   assert.match(execFileSync(process.execPath,[cli,'--help'],{encoding:'utf8',env}),/--list-datasets/);

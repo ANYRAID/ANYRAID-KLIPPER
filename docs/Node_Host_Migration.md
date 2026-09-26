@@ -22587,3 +22587,42 @@ CSV CLI 在分析前检查输出目录项，禁止输出替换同一捕获的 .j
 耗时的中位/P95 为 0.0319/0.0333 ms。参考在
 host/contracts/motan-output-path.json。这是每次导出一次的预检开销，
 不是单次尾延迟，也不包含分析、编码、写盘或打印路径。
+
+### Motan CSV 与目录回归移除 Python 运行依赖
+
+CSV 导出测试和数据集目录测试，以及对应两个基准，现读取固定原始
+Python 参考，不再启动 Python 或从 Git 历史恢复 Python 执行。参考
+host/contracts/motan-csv-reference.json.gz 保存五组完整 CSV、Python
+csv.reader 解码的列名与逐行结果及原始目录输出；数值列以 binary64
+十六进制位模式保存，其他列保留精确文本。五组共 40,063 行，覆盖
+重复列、导数、CoreXY、传感器、混合大整数/布尔/空值及中文多行文本。
+目录保留 36 条原始顺序、别名和描述。没有把当前 Node 输出作为参考。
+
+元数据记录 Python 3.12.13、三个 Python 源文件 SHA-256、输入生成器
+哈希、压缩及解压文件哈希。参考解压上限 20 MiB，原始 15,237,179
+字节压缩为 2,437,855 字节；每个 CLI 输入捕获也有独立哈希检查。
+测试专用 CSV 读取器使用全部原始 CSV 对照 Python 的解码输出，保留
+多行、双引号和空字段；极端浮点及负零还与原始内存位模式对照。
+
+复测命令（Node 26.9 或更高 26.x）：
+
+```sh
+node --test host/test/motan-csv-export.test.ts host/test/motan-dataset-catalog.test.ts host/test/motan-output-path.test.ts
+node host/bench/motan-csv-export.ts
+node host/bench/motan-csv-export.ts --compiled
+node host/bench/motan-dataset-catalog.ts
+```
+
+8 项相关测试在无外部程序 PATH 下通过，类型与格式检查通过。CSV
+基准对四组负载分别运行普通/保留类型两种模式，逐位验证全部数值及
+文本；编译模式在独立临时目录构建，计时不含构建，关闭 V8 编译缓存，
+每组 2 次预热、7 次测量。两万行数值的源码/编译/Python 中位分别
+263.724/169.341/179.128 ms；混合数据分别 333.599/252.868/214.551 ms。
+保留类型的编译结果分别为 186.793/255.508 ms。小负载编译入口约
+90 ms，Python 约 39–41 ms；目录源码入口 66.070 ms，Python 41.392 ms。
+
+完整中位/P95 见 host/contracts/motan-csv-performance.json。Python
+参考与 Node 为分别顺序采集，不能把差值认定为长期性能保证。源码
+启动及混合导出仍较慢，本轮没有认定性能全面达标，也未改变运动计算
+精度或打印实时路径。其他 Motan 类型/算子/预编译基准仍有 Python
+对照依赖；Python CSV 入口尚未退役，不以这组固定样本替代其余验收。

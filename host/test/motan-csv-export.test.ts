@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {motanCsvChunks,writeMotanCsv} from '../src/motan/csv-export.ts';
 import type {MotanAnalysis} from '../src/motan/analyzer.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment,scipyReferencePython} from './helpers/motan-sos-oracle.ts';
+import {motanCsvReference,checkMotanCsvCapture,decodedMotanCsv,csvRows} from './helpers/motan-csv-reference.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),cli=join(root,'scripts/motan/data_export.ts');
 const collect=async(analysis:MotanAnalysis,columns:string[])=>{const chunks=[];for await(const chunk of motanCsvChunks(analysis,columns))chunks.push(chunk);return Buffer.concat(chunks).toString();};
 function fixture(count=7):MotanAnalysis{
@@ -19,12 +19,10 @@ test('Motan CSV preserves numeric round trips, quoted headers and duplicate colu
  const analysis=fixture(),csv=await collect(analysis,['a','a']);
  assert.ok(csv.startsWith('Time (s),"quoted, ""sensor""\nline (mm/s)",'));
  assert.ok(csv.endsWith('\r\n'));assert.ok(csv.includes('\r\n0,-0,-0\r\n'));
- const parsed=JSON.parse(execFileSync(scipyReferencePython(),['-c',`import csv,sys,io,json,struct
-rows=list(csv.reader(io.StringIO(sys.stdin.read(),newline='')))
-print(json.dumps(dict(header=rows[0],bits=[[struct.pack('>d',float(v)).hex() for v in row] for row in rows[1:]])))`],{input:csv,encoding:'utf8'}));
- assert.deepEqual(parsed.header,['Time (s)',analysis.labels.a.label+' (mm/s)',analysis.labels.a.label+' (mm/s)']);
+ const parsed=decodedMotanCsv(csv,3);
+ assert.deepEqual(parsed[0],['Time (s)',analysis.labels.a.label+' (mm/s)',analysis.labels.a.label+' (mm/s)']);
  const bits=(n:number)=>{const b=Buffer.alloc(8);b.writeDoubleBE(n);return b.toString('hex');};
- assert.deepEqual(parsed.bits,Array.from(analysis.times,(t,i)=>[bits(t),bits(analysis.datasets.a[i]),bits(analysis.datasets.a[i])]));
+ assert.deepEqual(parsed[1],Array.from(analysis.times,(t,i)=>[bits(t),bits(analysis.datasets.a[i]),bits(analysis.datasets.a[i])]));
  const empty=fixture(0);empty.labels.a.units='Unknown';assert.equal(await collect(empty,['a']),'Time (s),"quoted, ""sensor""\nline"\r\n');
 });
 test('Motan CSV atomic output preserves prior files on failure and cancellation, removes temporary files',async()=>{
@@ -55,18 +53,19 @@ test('Motan numeric CSV CLI matches original exporter values and runs without Py
   const stdout=execFileSync(process.execPath,args,{encoding:'utf8',env,timeout:10000});
   execFileSync(process.execPath,[...args,'-o',output],{env,timeout:10000});
   assert.equal(await readFile(output,'utf8'),stdout);
-  const legacy=execFileSync(scipyReferencePython(),[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(columns),'-d','.2','--segment-time','.01'],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:15000});
-  const decoded=JSON.parse(execFileSync(scipyReferencePython(),['-c',`import sys,csv,io,json
-x=json.load(sys.stdin)
-def decode(s):
- rows=list(csv.reader(io.StringIO(s,newline='')))
- return [rows[0],[[float(v) for v in row] for row in rows[1:]]]
-print(json.dumps([decode(s) for s in x]))`],{input:JSON.stringify([legacy,stdout]),encoding:'utf8'}));
-  assert.deepEqual(decoded[1],decoded[0]);
+  const reference=motanCsvReference().cases.find(row=>row.id==='cli')!;
+  checkMotanCsvCapture(prefix,reference);assert.deepEqual(columns,reference.columns);
+  assert.deepEqual(decodedMotanCsv(stdout,reference.numeric),reference.decoded);
   await writeFile(output,'keep');
   assert.throws(()=>execFileSync(process.execPath,[cli,prefix,'-o',output,'-c',"__import__('os').system('false')"],{env,stdio:'pipe'}));
   assert.throws(()=>execFileSync(process.execPath,[cli,prefix,'-o',output,'-c',"['status(configfile.settings.printer)']",'-d','.01'],{env,stdio:'pipe'}),/finite scalar/);
   assert.equal(await readFile(output,'utf8'),'keep');
   assert.throws(()=>execFileSync(process.execPath,[...args,'-s','Infinity'],{env,stdio:'pipe'}));
  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('independent CSV decoder matches all original Python decoded records and rejects malformed quoting',()=>{
+ for(const row of motanCsvReference().cases)assert.deepEqual(decodedMotanCsv(row.csv,row.numeric),row.decoded,row.id);
+ for(const csv of ['"unclosed','"a"x','a"b','a\rb'])assert.throws(()=>csvRows(csv));
+ assert.deepEqual(csvRows('a,"b"'),[['a','b']]);
 });

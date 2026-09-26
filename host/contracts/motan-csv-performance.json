@@ -1,0 +1,262 @@
+{
+  "source": [
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "numeric-0.02",
+      "typed": false,
+      "rows": 21,
+      "bytes": 3254,
+      "medianMs": 180.1373289999999,
+      "p95Ms": 187.27014299999996,
+      "historicalPython": {
+        "medianMs": 39.13782100000003,
+        "p95Ms": 39.9964020000001
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "numeric-0.02",
+      "typed": true,
+      "rows": 21,
+      "bytes": 3254,
+      "medianMs": 181.8123169999999,
+      "p95Ms": 184.78115799999978,
+      "historicalPython": {
+        "medianMs": 39.13782100000003,
+        "p95Ms": 39.9964020000001
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "numeric-20",
+      "typed": false,
+      "rows": 20000,
+      "bytes": 2683818,
+      "medianMs": 263.7244740000001,
+      "p95Ms": 272.35087399999975,
+      "historicalPython": {
+        "medianMs": 179.12782100000004,
+        "p95Ms": 192.632116
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "numeric-20",
+      "typed": true,
+      "rows": 20000,
+      "bytes": 2683818,
+      "medianMs": 274.60069999999905,
+      "p95Ms": 289.4777830000003,
+      "historicalPython": {
+        "medianMs": 179.12782100000004,
+        "p95Ms": 192.632116
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "mixed-0.02",
+      "typed": false,
+      "rows": 21,
+      "bytes": 4635,
+      "medianMs": 183.0932550000016,
+      "p95Ms": 186.2013969999989,
+      "historicalPython": {
+        "medianMs": 41.09240499999987,
+        "p95Ms": 42.18682799999988
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "mixed-0.02",
+      "typed": true,
+      "rows": 21,
+      "bytes": 4635,
+      "medianMs": 183.51857000000018,
+      "p95Ms": 185.55593100000078,
+      "historicalPython": {
+        "medianMs": 41.09240499999987,
+        "p95Ms": 42.18682799999988
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "mixed-20",
+      "typed": false,
+      "rows": 20000,
+      "bytes": 3903918,
+      "medianMs": 333.5989669999999,
+      "p95Ms": 346.74656099999993,
+      "historicalPython": {
+        "medianMs": 214.550655,
+        "p95Ms": 222.49247299999934
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": false,
+      "id": "mixed-20",
+      "typed": true,
+      "rows": 20000,
+      "bytes": 3903918,
+      "medianMs": 344.9846380000017,
+      "p95Ms": 354.688349,
+      "historicalPython": {
+        "medianMs": 214.550655,
+        "p95Ms": 222.49247299999934
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    }
+  ],
+  "compiled": [
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "numeric-0.02",
+      "typed": false,
+      "rows": 21,
+      "bytes": 3254,
+      "medianMs": 89.509501,
+      "p95Ms": 102.07184000000007,
+      "historicalPython": {
+        "medianMs": 39.13782100000003,
+        "p95Ms": 39.9964020000001
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "numeric-0.02",
+      "typed": true,
+      "rows": 21,
+      "bytes": 3254,
+      "medianMs": 91.11400900000012,
+      "p95Ms": 144.53685300000006,
+      "historicalPython": {
+        "medianMs": 39.13782100000003,
+        "p95Ms": 39.9964020000001
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "numeric-20",
+      "typed": false,
+      "rows": 20000,
+      "bytes": 2683818,
+      "medianMs": 169.3412059999996,
+      "p95Ms": 176.14022599999998,
+      "historicalPython": {
+        "medianMs": 179.12782100000004,
+        "p95Ms": 192.632116
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "numeric-20",
+      "typed": true,
+      "rows": 20000,
+      "bytes": 2683818,
+      "medianMs": 186.79261600000063,
+      "p95Ms": 189.9149779999998,
+      "historicalPython": {
+        "medianMs": 179.12782100000004,
+        "p95Ms": 192.632116
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "mixed-0.02",
+      "typed": false,
+      "rows": 21,
+      "bytes": 4635,
+      "medianMs": 90.00907899999947,
+      "p95Ms": 98.24035300000014,
+      "historicalPython": {
+        "medianMs": 41.09240499999987,
+        "p95Ms": 42.18682799999988
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "mixed-0.02",
+      "typed": true,
+      "rows": 21,
+      "bytes": 4635,
+      "medianMs": 91.12418999999954,
+      "p95Ms": 95.621666,
+      "historicalPython": {
+        "medianMs": 41.09240499999987,
+        "p95Ms": 42.18682799999988
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "mixed-20",
+      "typed": false,
+      "rows": 20000,
+      "bytes": 3903918,
+      "medianMs": 252.8675030000013,
+      "p95Ms": 261.828125,
+      "historicalPython": {
+        "medianMs": 214.550655,
+        "p95Ms": 222.49247299999934
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    },
+    {
+      "node": "v26.9.0",
+      "compiled": true,
+      "id": "mixed-20",
+      "typed": true,
+      "rows": 20000,
+      "bytes": 3903918,
+      "medianMs": 255.50810300000012,
+      "p95Ms": 272.270853,
+      "historicalPython": {
+        "medianMs": 214.550655,
+        "p95Ms": 222.49247299999934
+      },
+      "scope": "Full startup, analysis, CSV and stdout; compile cache disabled; fixed Python reference with exact binary64/text comparison outside timer and build excluded. No print throughput claim."
+    }
+  ],
+  "catalog": {
+    "node": "v26.9.0",
+    "warmups": 2,
+    "runs": 7,
+    "bytes": 2493,
+    "historicalPython": {
+      "medianMs": 41.39223800000036,
+      "p95Ms": 42.8073059999997
+    },
+    "current": {
+      "medianMs": 66.07022299999994,
+      "p95Ms": 69.90140100000002
+    },
+    "scope": "Complete CLI startup and listing, fixed original stdout comparison; historical Python captured separately. No capture analysis or printer timing."
+  },
+  "notes": "Independent sequential runs on this machine; Python reference captured before Node runs. 2 warmups and 7 measured runs. Compiled build excluded, V8 compile cache disabled for CSV. No hardware or printing acceptance."
+}
