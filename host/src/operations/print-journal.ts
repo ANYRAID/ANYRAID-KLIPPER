@@ -6,6 +6,7 @@ import {
   journalRequest,
   printStatistics,
   type PrintStatistics,
+  type JournalPage,
   validJournalId,
   type JournalOptions,
   type JournalInfo,
@@ -171,6 +172,12 @@ export class PrintJournal {
   }
   active(): Promise<JournalRecord | null> {
     return this.#call('active', []) as Promise<JournalRecord | null>;
+  }
+  /** Bounded lexical traversal for reconciliation, not a frozen snapshot.
+   * A subsequent full scan observes insertions/updates before an older cursor. */
+  scan(after?:string,limit=100):Promise<JournalPage>{
+    if(after!==undefined&&!validJournalId(after)||!Number.isSafeInteger(limit)||limit<1||limit>256)return Promise.reject(new JournalError('INVALID','Invalid journal page'));
+    return this.#call('scan',[after,limit]) as Promise<JournalPage>;
   }
   transition(
     requestId: string,

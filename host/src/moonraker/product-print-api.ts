@@ -39,7 +39,7 @@ export class ProductPrintApi {
    if(params.request_id===undefined)return this.status;
    if(!validJournalId(params.request_id))throw new ApiError(400,'Invalid print request identity');
    const record=await this.#controller.requestRecord(params.request_id);context.signal.throwIfAborted();
-   return {current:this.status,record:record?{request:details(record.request),state:record.state,revision:record.revision,...record.statistics?{statistics:{total_duration:record.statistics.totalDuration,print_duration:record.statistics.printDuration,filament_used:record.statistics.filamentUsed}}:{}}:null};
+   return {current:this.status,record:record?{request:details(record.request),state:record.state,revision:record.revision,...record.timestamps?{timestamps:{reserved_at:record.timestamps.reservedAt,started_at:record.timestamps.startedAt,ended_at:record.timestamps.endedAt}}:{},...record.statistics?{statistics:{total_duration:record.statistics.totalDuration,print_duration:record.statistics.printDuration,filament_used:record.statistics.filamentUsed}}:{}}:null};
   }
   if(this.#compatibility&&(['start','pause','resume','cancel'].includes(action))&&(action==='start'?Object.hasOwn(params,'filename'):Object.keys(params).length===0))return this.#standard(action as 'start'|'pause'|'resume'|'cancel',params,context);
   let pending:Promise<void>;

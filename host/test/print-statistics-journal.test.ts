@@ -30,7 +30,7 @@ test('version one journals migrate without inventing statistics and wrong device
  try{
   await assert.rejects(PrintJournal.open({...f.options,deviceId:'wrong'}),/different device/);db=new DatabaseSync(f.options.path);assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,1);db.close();
   const journal=await PrintJournal.open(f.options);try{assert.deepEqual(await journal.get('job'),{request,state:'completed',revision:3});await journal.reserve({...request,requestId:'new'});await journal.transition('new',1,'cancelled',snapshot);}finally{await journal.close();}
-  db=new DatabaseSync(f.options.path);assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,2);assert.equal(db.prepare('SELECT count(*) AS n FROM request_statistics').get()!.n,1);db.close();
+  db=new DatabaseSync(f.options.path);assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,3);assert.equal(db.prepare('SELECT count(*) AS n FROM request_statistics').get()!.n,1);db.close();
  }finally{await rm(f.dir,{recursive:true,force:true});}
 });
 test('controller freezes live and durable counters at device completion and they survive a new process owner',async t=>{

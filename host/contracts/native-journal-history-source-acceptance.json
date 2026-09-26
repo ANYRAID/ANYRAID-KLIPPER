@@ -1,0 +1,67 @@
+{
+  "baseline": "cd06108a",
+  "node": "v26.9.0",
+  "schemaVersion": 3,
+  "scope": "Transactional native job timestamps and bounded internal reconciliation scan; standard history integration still pending",
+  "sources": {
+    "host/src/operations/print-journal-types.ts": "072d6c61bb0bf61d9713974a7bc165cc87d1e23cbf380a5ff1e3ef43cb174733",
+    "host/src/operations/print-journal-worker.ts": "b0d22f63ea089c0915c09fa67df9a94b207acf82b7c4eafafafa0fdac1b199b0",
+    "host/src/operations/print-journal.ts": "8adf8d4418e4753b8bdcf78b390e32e124fff889f0a6a120ced14e140c44f319",
+    "host/src/moonraker/product-print-api.ts": "7763e596609f7052ef6fa30cbc7886c3a6b60a383dcb55b08557a034303a3c14",
+    "host/test/print-journal-scan.test.ts": "81750d3ff1d185d16473f5a15b82371e9910fde606fad816e449ae5a7a7f4db4",
+    "host/test/print-statistics-journal.test.ts": "1fb180ca908c17bb92b51e231f72cfa2bec7bde1fee621b3d13cae8b864447f3",
+    "host/bench/print-journal-scan.ts": "7cdf1fe3b014eff45fa0e014af05aa00df76ab62da645b7bbc8483907ac50fc0",
+    "host/acceptance/product-compiled-journey.test.ts": "12bc299ba64caf833cf69906c8473e03ccbe753551c173ccc960eb475a015959"
+  },
+  "checks": {
+    "relatedTests": 45,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "tests": "✔ durable lifecycle reserves before effects and refuses completed replay after restart (89.019448ms)\n✔ cancel does not persist terminal state before device stop acknowledgement (39.016106ms)\n✔ restart leaves uncertain print interrupted and blocks all new device starts (76.589803ms)\n✔ failed storage acknowledgement prevents effects and reset cannot erase started job (36.075579ms)\n✔ cancel during preparation drains action before persisting cancellation (34.991446ms)\n✔ cancel overlapping durable completion preserves committed safe completion (37.667138ms)\n✔ late cancellation commit cannot restore success after deadline and retry reconciles (89.104299ms)\n✔ restoration exposes interrupted identity without effects and requires stop before next job (73.019219ms)\n✔ restore refuses to adopt a live record or hide a closed journal (38.063104ms)\n✔ failed recovery stop retains interrupted record for a fresh acknowledged retry (74.810792ms)\n✔ recovery timeout owns late stop and cannot clear interruption before acknowledgement (108.104166ms)\n✔ restoring a terminal journal yields idle without device calls (74.771021ms)\n✔ one journal cannot be bound to competing controllers even after terminal reset (39.307049ms)\n✔ pending restoration claims journal before asynchronous lookup and failed read releases claim (37.74594ms)\n✔ validation and rejected live-record restoration do not consume journal ownership (36.512475ms)\n✔ repeated cancel deadlines reuse the entire stop-and-commit operation (130.410233ms)\n✔ device fault persists only after stop, coalesces callers and cannot restart (38.751443ms)\n✔ preparation and pause failures persist failed after safe stop (74.036352ms)\n✔ late fault does not replace completed or cancelled durable outcomes (75.988206ms)\n✔ failed physical stop never publishes acknowledged failed outcome (37.078681ms)\n✔ fault waits for delayed preparation and its late reservation before failed persistence (36.9245ms)\n✔ fault rejects when failed outcome cannot be written (39.41123ms)\n✔ reservation and outcome timestamps commit with state and retain the first outcome across recovery (73.476884ms)\n✔ bounded lexical scan preserves records, leaves live state intact and a new scan sees earlier insertions (41.723169ms)\n✔ schema two migration preserves statistics and does not fabricate old timestamps (75.649822ms)\n✔ durable journal reserves once, rejects conflicts and stale transitions, and retains terminal records (75.614961ms)\n✔ exclusive ownership prevents a second writer and device identity mismatch cannot mutate history (201.009463ms)\n✔ accepted writes drain before close; bounded queue rejects excess without losing ownership (112.818034ms)\n✔ SIGKILL after acknowledged start leaves an interrupted reservation, never permission to replay (234.296676ms)\n✔ unknown schemas, symlinks and malformed requests fail closed (144.205535ms)\n✔ storage full closes the worker and preserves every previously acknowledged terminal record (139.963173ms)\n✔ malformed persisted payload closes the journal instead of forgetting an old request (72.969188ms)\n✔ terminal statistics are validated, atomically versioned, immutable on acknowledgement and durable across reopen (113.21671ms)\n✔ version one journals migrate without inventing statistics and wrong device migration rolls back (73.864569ms)\n✔ controller freezes live and durable counters at device completion and they survive a new process owner (78.293155ms)\n✔ typed pressure admission rejects invalid and stale controls; disconnected client cannot replay or cancel accepted tuning (38.224126ms)\n✔ Native admission responds after durable reservation while preparation continues and retries cannot change identity (38.899345ms)\n✔ Client cancellation stops receipt waiting without undoing an admitted print; server close performs safe cancellation (37.565097ms)\n✔ Native control rejects missing expiry, legacy start shape and expired requests before effects (37.769121ms)\n✔ Native API requires a durable single owner and matching maintenance gate (36.723967ms)\n✔ Native close retains failure and allows an explicit cleanup retry (37.646299ms)\n✔ standard printing maps to durable typed operations, returns ok and can start after completion (41.05742ms)\n✔ standard authorization binds current state, refuses denied files and stops after client cancellation (38.288186ms)\n✔ held standard policies remain counted after disconnect and cannot run after close (37.832691ms)\n✔ standard websocket requests use the same durable controller and return the Moonraker result shape (69.07344ms)\nℹ tests 45\nℹ suites 0\nℹ pass 45\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3281.843068\n",
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.256066ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18882.883707ms)\nℹ {\"installation\":{\"durationMs\":703.2691159999995,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":87.397,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.852415,\"maxMs\":13.451263},\"cpu\":{\"user\":698093,\"system\":77087},\"rss\":166617088},{\"loop\":{\"p99Ms\":1.779711,\"maxMs\":4.534271},\"cpu\":{\"user\":410580,\"system\":43075},\"rss\":186916864}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19051.795284ms)\nℹ {\"installation\":{\"durationMs\":700.041745999999,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":7.842376999997214,\"deleteRequests\":16,\"deleteP95Ms\":13.159073999995599,\"thumbnailRequests\":16,\"thumbnailP95Ms\":2.5299420000010286,\"metadataRequests\":16,\"metadataP95Ms\":14.30000900000232,\"downloads\":16,\"downloadP95Ms\":4.196061999999074,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":86.078,\"directoryRequests\":1989,\"directoryP99Ms\":6.10495599999922,\"statusRequests\":8248,\"uploads\":16,\"statusP99Ms\":2.9512770000001183,\"uploadP95Ms\":8.890400000000227,\"generations\":[{\"loop\":{\"p99Ms\":2.092031,\"maxMs\":12.812287},\"cpu\":{\"user\":1876818,\"system\":234719},\"rss\":244862976},{\"loop\":{\"p99Ms\":1.944575,\"maxMs\":5.697535},\"cpu\":{\"user\":1213420,\"system\":137266},\"rss\":245841920}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7954.979888ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46529.94577\n",
+  "scanBenchmark": {
+    "node": "v26.9.0",
+    "records": 2000,
+    "pageSize": 100,
+    "warmups": 3,
+    "runs": 11,
+    "fullScanMedianMs": 16.677847999999926,
+    "fullScanP95Ms": 17.758700999999974,
+    "pageP95Ms": 0.8986119999999573,
+    "maximumPageP95Ms": 25,
+    "scope": "Bounded worker IPC and indexed lexical traversal, includes result validation. Same process host; no physical target storage or concurrent motion guarantee."
+  },
+  "writeBenchmark": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "variants": [
+      "terminalStateOnly",
+      "terminalStateAndStatistics"
+    ],
+    "jobs": 100,
+    "warmups": 3,
+    "runs": 11,
+    "results": [
+      {
+        "medianMs": 0.16020742000000268,
+        "p95Ms": 0.1708458500000006
+      },
+      {
+        "medianMs": 0.19033282000000099,
+        "p95Ms": 0.2085982099999933
+      }
+    ],
+    "addedP95Ms": 0.037752359999992685,
+    "maximumAddedP95Ms": 2,
+    "scope": "Acknowledged terminal transaction IPC and durable commit, not per-move work. Same current schema in both variants. Read-only SQLite verification outside timing; no physical target guarantee."
+  },
+  "limitations": [
+    "Scan is live lexical traversal, not a snapshot; full rescans are required for preceding insertions or updates",
+    "Old timestamps are unknown; recovery acknowledgement never invents a job ending",
+    "Wall-clock timestamps may move backward; durations remain independently monotonic",
+    "No completed native server.history list/totals/delete/notifications integration",
+    "Default entry still Python, 193 tracked Python files and physical precision/stability gates remain"
+  ]
+}

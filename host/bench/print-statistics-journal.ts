@@ -15,5 +15,5 @@ try{
   if(run>=3)samples[variant].push(elapsed/jobs);
  }
  const results=samples.map(values=>{values.sort((a,b)=>a-b);return {medianMs:values[5],p95Ms:values[10]};});const addedP95Ms=results[1].p95Ms-results[0].p95Ms;assert(addedP95Ms<2,JSON.stringify({results,addedP95Ms}));
- console.log(JSON.stringify({node:process.version,filesystemMagic:statfsSync(root).type,variants:['terminalStateOnly','terminalStateAndStatistics'],jobs,warmups:3,runs:11,results,addedP95Ms,maximumAddedP95Ms:2,scope:'Acknowledged terminal transaction IPC and durable commit, not per-move work. Same version-2 schema in both variants. Read-only SQLite verification outside timing; no physical target guarantee.'}));
+ console.log(JSON.stringify({node:process.version,filesystemMagic:statfsSync(root).type,variants:['terminalStateOnly','terminalStateAndStatistics'],jobs,warmups:3,runs:11,results,addedP95Ms,maximumAddedP95Ms:2,scope:'Acknowledged terminal transaction IPC and durable commit, not per-move work. Same current schema in both variants. Read-only SQLite verification outside timing; no physical target guarantee.'}));
 }finally{await rm(root,{recursive:true,force:true});}

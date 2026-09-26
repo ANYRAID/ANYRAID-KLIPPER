@@ -15,6 +15,9 @@ const schema =
   "CREATE TABLE metadata (id INTEGER PRIMARY KEY CHECK(id=1),device_id TEXT NOT NULL) STRICT;\nCREATE TABLE requests (id TEXT PRIMARY KEY,request TEXT NOT NULL CHECK(length(request)<=2048),state TEXT NOT NULL CHECK(state IN ('reserved','started','completed','cancelled','failed','interrupted')),revision INTEGER NOT NULL CHECK(revision BETWEEN 1 AND 9007199254740991)) STRICT;\nCREATE UNIQUE INDEX one_active ON requests((1)) WHERE state NOT IN ('completed','cancelled');";
 const normalized = (sql: string) => sql.replace(/\s+/g, ' ').trim();
 const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,statistics TEXT NOT NULL CHECK(length(statistics)<=512)) STRICT;';
+const timesSchema='CREATE TABLE request_times (id TEXT PRIMARY KEY,reserved_at REAL CHECK(reserved_at>=0),started_at REAL CHECK(started_at>=0),ended_at REAL CHECK(ended_at>=0)) STRICT;';
+const recordQuery='SELECT requests.*,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)';
+function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
 const port = parentPort!;
 const options = workerData as JournalOptions;
 let db: DatabaseSync | undefined,
@@ -60,7 +63,9 @@ function record(
       throw new JournalError('CORRUPT', 'Invalid persisted print record');
     const statistics=row.statistics==null?undefined:printStatistics(JSON.parse(String(row.statistics)));
     if(statistics&&JSON.stringify(statistics)!==row.statistics)throw new JournalError('CORRUPT','Invalid persisted print statistics');
-    return { request, state, revision,...statistics?{statistics}:{} };
+    const timestamps=row.timed_id==null?undefined:{reservedAt:row.reserved_at as number|null,startedAt:row.started_at as number|null,endedAt:row.ended_at as number|null};
+    if(timestamps&&Object.values(timestamps).some(value=>value!==null&&(typeof value!=='number'||!Number.isFinite(value)||value<0)))throw new JournalError('CORRUPT','Invalid persisted print timestamps');
+    return { request, state, revision,...statistics?{statistics}:{},...timestamps?{timestamps}:{} };
   } catch {
     throw new JournalError('CORRUPT', 'Invalid persisted print record');
   }
@@ -68,7 +73,7 @@ function record(
 function lookup(id: string) {
   return record(
     db!
-      .prepare('SELECT requests.*,request_statistics.statistics FROM requests LEFT JOIN request_statistics USING(id) WHERE requests.id=?')
+      .prepare(recordQuery+' WHERE requests.id=?')
       .get(id),
   );
 }
@@ -76,7 +81,7 @@ function active() {
   return record(
     db!
       .prepare(
-        "SELECT requests.*,request_statistics.statistics FROM requests LEFT JOIN request_statistics USING(id) WHERE state NOT IN ('completed','cancelled')",
+        recordQuery+" WHERE state NOT IN ('completed','cancelled')",
       )
       .get(),
   );
@@ -138,11 +143,11 @@ function initialize() {
     .all();
   if (!(
     (app === 0 && version === 0 && tables.length === 0) ||
-    (app === 0x4152504a && (version === 1||version===2))
+    (app === 0x4152504a && (version === 1||version===2||version===3))
   ))
     throw new JournalError('SCHEMA', 'Unknown print journal schema');
-  if (version === 1||version===2) {
-    const expected = (schema+(version===2?statisticsSchema:''))
+  if (version >=1) {
+    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:''))
         .split(';')
         .map((s) => normalized(s))
         .filter(Boolean)
@@ -162,11 +167,12 @@ function initialize() {
   transaction(() => {
     if (version === 0) {
       db!.exec(
-        schema + statisticsSchema+' PRAGMA application_id=0x4152504a; PRAGMA user_version=2;',
+        schema + statisticsSchema+timesSchema+' PRAGMA application_id=0x4152504a; PRAGMA user_version=3;',
       );
       db!.prepare('INSERT INTO metadata VALUES(1,?)').run(options.deviceId);
     }
     if(version===1)db!.exec(statisticsSchema+' PRAGMA user_version=2;');
+    if(version===1||version===2)db!.exec(timesSchema+' PRAGMA user_version=3;');
     if (db!.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok')
       throw new JournalError('CORRUPT', 'Print journal integrity check failed');
     const identity = db!
@@ -211,6 +217,12 @@ function dispatch(method: string, args: unknown[]): unknown {
     return null;
   }
   if (method === 'active') return active();
+  if(method==='scan'){
+    const [after,limit]=args;
+    if(after!==undefined&&!validJournalId(after)||!Number.isSafeInteger(limit)||Number(limit)<1||Number(limit)>256)throw new JournalError('INVALID','Invalid journal page');
+    const records=db!.prepare(recordQuery+' WHERE requests.id>? ORDER BY requests.id LIMIT ?').all(after===undefined?'':String(after),Number(limit)).map(row=>record(row)!);
+    return {records,nextAfter:records.length===limit?records.at(-1)!.request.requestId:null};
+  }
   if (method === 'get') {
     if (!validJournalId(args[0]))
       throw new JournalError('INVALID', 'Invalid request identity');
@@ -243,6 +255,7 @@ function dispatch(method: string, args: unknown[]): unknown {
       db!
         .prepare("INSERT INTO requests VALUES(?,?,'reserved',1)")
         .run(request.requestId, json);
+      db!.prepare('INSERT INTO request_times(id,reserved_at) VALUES(?,?)').run(request.requestId,wallTime());
       return { created: true, record: lookup(request.requestId)! };
     });
   }
@@ -273,6 +286,10 @@ function dispatch(method: string, args: unknown[]): unknown {
       // Preserve the first frozen outcome through failure acknowledgement and
       // restart reconciliation; do not replace known values with missing data.
       if(statistics)db!.prepare('INSERT INTO request_statistics(id,statistics) VALUES(?,?) ON CONFLICT(id) DO NOTHING').run(id,JSON.stringify(statistics));
+      const field=state==='started'?'started_at':'ended_at';
+      // Reconciliation cannot establish when an interrupted job actually ended.
+      // Keep an existing end time, but never substitute the recovery ACK time.
+      if(prior.state!=='interrupted'&&prior.state!=='failed')db!.prepare(`INSERT INTO request_times(id,${field}) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET ${field}=COALESCE(request_times.${field},excluded.${field})`).run(id,wallTime());
       return lookup(id)!;
     });
   }

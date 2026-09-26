@@ -6,7 +6,9 @@ export interface JournalRecord {
   state: JournalState;
   revision: number;
   statistics?:PrintStatistics;
+  timestamps?:{reservedAt:number|null;startedAt:number|null;endedAt:number|null};
 }
+export interface JournalPage {records:JournalRecord[];nextAfter:string|null;}
 export interface PrintStatistics {totalDuration:number|null;printDuration:number|null;filamentUsed:number|null;}
 export function printStatistics(value:unknown):PrintStatistics {
   if(!value||typeof value!=='object'||Array.isArray(value))throw new JournalError('INVALID','Invalid print statistics');
