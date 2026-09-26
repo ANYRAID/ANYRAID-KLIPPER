@@ -7,5 +7,5 @@
     "rootDir": "..",
     "outDir": "build/product-host"
   },
-  "include": ["src/**/*.ts", "../scripts/product-host.ts"]
+  "include": ["src/**/*.ts", "../scripts/product-host.ts", "../scripts/product-service-unit.ts"]
 }

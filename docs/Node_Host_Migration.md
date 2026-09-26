@@ -23381,3 +23381,21 @@ host/contracts/native-job-status-acceptance.json。
 报告默认入口切换依赖和实际 Python 退役情况，而不是以新增测试数量
 或兼容接口数量推算完成比例。完整 Moonraker、历史运动数值异常、独立
 目标环境和实机验收仍未完成。
+
+### Node 运行包的 systemd 部署准备入口
+
+编译产物现包含 scripts/product-service-unit.js，核对平台、ABI 与清单
+文件摘要后生成服务文件；不加载机器模块或操作系统服务。服务通过绝对
+Node/JS 路径启动，禁用 TS 解析，不自动重启，SIGTERM 清理主进程后再
+由 systemd 处理停止超时。旧标准服务互斥及权限要求见启动说明中的
+“systemd 部署入口与默认服务切换”依赖表。
+
+7 项编译包与服务生成验证通过，另补测包外机器模块在 / 工作目录下的
+双模拟 UART 启停通过。本机 11 个独立冷进程的完整清单校验和服务生成
+中位数 66.3 ms、P95 69.1 ms；此步骤不进入打印热路径。首次校验发现
+WorkingDirectory 引号规则不同，改为固定根目录后通过本机 systemd
+解析。证据见 host/contracts/native-service-deployment-acceptance.json。
+
+这关闭了编译包缺少服务生成入口的问题，尚未执行真实服务启停或默认
+Python 服务切换，194 个受跟踪 Python 文件未因本次改动退役。机型
+适配、完整 Moonraker、历史计算异常和实机性能/精度仍是未完成项。

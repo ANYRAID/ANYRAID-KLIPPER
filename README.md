@@ -65,6 +65,10 @@ Node 主机已接通线性打印机自动配置、原生步进与归零组件、
 也可通过 `npm --prefix host run build:product-host` 生成 JavaScript
 运行包；原生插件构建、生产依赖安装与机器模块要求见同一启动说明。
 
+编译包现可用 `scripts/product-service-unit.js` 生成并核验 Node 主机的
+systemd 服务文件，详见启动说明。生成不会启用服务；默认 Python 安装
+入口及实机迁移门槛仍未退役。
+
 本分支的固件构建现需 Node.js 26（`node` 可在 PATH 中找到，或通过
 `make NODE=/绝对路径/node` 指定）。构建生成器不需要安装 npm 依赖；
 Kconfig 和其他尚未迁移的工具仍需要 Python。

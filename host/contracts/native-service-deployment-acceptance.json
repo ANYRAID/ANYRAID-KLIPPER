@@ -1,0 +1,23 @@
+{
+  "scope": "Read-only compiled product systemd unit preparation; no actual system service installation or default entrypoint switch",
+  "sourceHashes": {
+    "host/src/runtime/product-service-unit.ts": "cba3d153329d41445e545745558267907490d323ad4f0a5a296656d197874402",
+    "scripts/product-service-unit.ts": "1b024b90fac3c7c2b3805a79d6eeb79f88781124700d2b69d9123ebac05fbd4e",
+    "host/test/product-service-unit.test.ts": "202cb97df76dd3be37857f39f92dbdbc0768bdc67a7d7e7ef4c0c6e8cff880a3",
+    "host/test/product-build.test.ts": "d77deab36faad5ed900a1eb14e268f24229b7a62d8f004863c8df76016099beb",
+    "host/tsconfig.product-host.json": "17bea181a56a38aa811a678d804922092b8f10b610daa1f90d52ccbf02ad0b76"
+  },
+  "verification": "✔ compiled product workers, addons, assets and mathematical output run without TS or Python (5706.552309ms)\nℹ {\"servicePreparation\":{\"coldProcesses\":11,\"warmups\":1,\"medianMs\":66.32515499999954,\"p95Ms\":69.05771699999968,\"scope\":\"Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation\"}}\n✔ product publication is reproducible and preserves prior output on compiler or addon failure (9126.127749ms)\n✔ compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports (5398.495368ms)\n✔ read-only unit generation escapes systemd paths and passes installed parser (67.632064ms)\n✔ rejects corrupted bundle, mismatched ABI and unsafe inventory paths (2.622148ms)\n✔ rejects root, replaceable profiles, source modules and symlink control characters (1.580591ms)\n✔ CLI rejects missing, duplicate and unknown flags before producing any unit (0.359309ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 20715.277216\n",
+  "rootWorkingDirectoryVerification": "✔ compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports (5441.508776ms)\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5701.772407\n",
+  "initialCorrections": [
+    "Fixed test literal quote expectation",
+    "Systemd verification rejected quoted WorkingDirectory path; replaced it with fixed root directory and verified CLI resource resolution from root"
+  ],
+  "limitations": [
+    "Manifest hashes do not authenticate a trusted release or cover installed third-party dependencies",
+    "Generation does not import or validate machine bindings",
+    "Systemd parser verification and simulated UART process lifecycle are not actual system service or physical printer acceptance",
+    "No Python retired; default Python entrypoint remains",
+    "Historical numerical failures, SIGSEGV and EPIPE remain unresolved"
+  ]
+}

@@ -63,6 +63,53 @@ C 源码/构建脚本、Node 头文件快照和插件输出摘要，以及编译
 字体资源和双 UART 主机启停。统一产品验收另覆盖编译包的上传、打印、
 暂停/恢复、取消及 SIGHUP 后再打印。测试 UART 对端为模拟 MCU。
 
+## systemd 部署入口与默认服务切换
+
+编译包包含只读服务生成工具。在目标 Linux 主机使用最终部署的 Node.js
+26.9+ 26.x 执行，先安装运行包生产依赖，再生成待审核的服务文件：
+
+```sh
+/opt/node26/bin/node /opt/anyraid/scripts/product-service-unit.js \
+  --bundle /opt/anyraid --profile /etc/anyraid/machine.mjs --user printer \
+  > /tmp/anyraid-host.service
+systemd-analyze verify /tmp/anyraid-host.service
+```
+
+源码入口为 `node scripts/product-service-unit.ts`，参数相同。工具核对
+build-info.json 的产品、平台、架构及 Node ABI，并计算清单内每个文件
+的 SHA-256；这不认证清单的来源，也不验证安装后的第三方依赖或机器
+模块行为。机器模块和 Node 可执行文件必须在可替换运行包之外；生成
+过程不导入机器模块，不打开 MCU，不安装或操作系统服务。应在审核后
+保持包内容不变；此检查不是启动时的防篡改机制。
+
+生成的 ExecStart 使用当前 Node 可执行文件的绝对路径和编译 JS 入口，
+禁用 TypeScript 解析。配置路径支持空格、引号、美元符号及百分号；
+工作目录固定为 /，机器模块应使用绝对配置路径及基于 import.meta.url
+的资源路径。printer 是必须预先建立的普通用户示例，需按实际机型配置
+串口/CAN 权限以及日志、数据库和发布文件目录权限；工具不创建账号。
+
+服务设置 Restart=no，故障退出后需要明确诊断和恢复。SIGTERM 先交给
+主进程完成停止与资源清理；KillMode=mixed 在 90 秒停止超时后清理剩余
+进程。进程退出或 systemd active 状态都不能证明硬件物理停止或就绪；
+独立物理停止绑定与固件失联保护仍为机型验收要求。不设置 ExecReload，
+不会把普通服务 reload 隐式映射为打印主机重初始化。
+
+**启用此服务会与 klipper.service 和 moonraker.service 互斥，停止这些
+标准名称的旧服务。** 自定义服务名称、手工进程及其他 MCU 使用者需在
+切换时另行确认。仓库当前未执行安装、启用或默认入口切换。完成下表
+门槛并按项目 PR/发布流程获准部署后，才可将审核后的文件安装到
+/etc/systemd/system/anyraid-host.service，执行 daemon-reload 和启用操作。
+保留旧服务文件、配置和数据备份；回退也须先确认打印已停止。
+
+| 默认入口切换依赖 | 当前证据与剩余工作 |
+| --- | --- |
+| 不依赖 Python 的主机产物 | 已有独立 JS 包、原生插件源码构建和离线生产依赖安装测试；须在目标平台再验证 |
+| 机器配置与板卡适配 | loadProductMachineProfile 可装配受支持的线性机器；仍需真实机型的停止、鉴权、文件及生命周期绑定 |
+| 服务启动与退出 | 已有生成器、本机 systemd 解析、外置 JS 模块与双模拟 UART 启停验证；尚未运行真实系统服务 |
+| 现有安装入口退役 | install-debian.sh 等仍安装 Python；需在目标机型端到端验收后切换，当前未退役 |
+| 客户端与完整 Moonraker | 已有标准打印等接口；完整功能及客户端整体验收仍未完成 |
+| 速度、精度与恢复 | 已有本机模拟基准；历史数值异常、EPIPE、独立环境与真实打印精度/吞吐/故障验收尚未关闭 |
+
 ## 机器模块契约
 
 ### 声明式机器配置

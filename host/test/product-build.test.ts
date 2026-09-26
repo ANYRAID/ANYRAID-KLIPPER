@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 import {mkdtemp,mkdir,readFile,writeFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import {buildProductHost} from '../scripts/build-product-host.ts';
 import {productBuildSmoke} from './helpers/product-build-smoke.ts';
 import {installProductDependencies} from './helpers/product-install.ts';
@@ -17,7 +17,7 @@ import {configuredPrinterFixture} from './helpers/configured-printer.ts';
 import {productTransports} from './helpers/product-transports.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 function environment(){const env={...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete (env as NodeJS.ProcessEnv)[key];return env;}
-test('compiled product workers, addons, assets and mathematical output run without TS or Python',async()=>{
+test('compiled product workers, addons, assets and mathematical output run without TS or Python',async(t)=>{
  const dir=await mkdtemp(join(tmpdir(),'product-build-')),output=join(dir,'app'),work=join(dir,'data');try{
   await mkdir(work);await buildProductHost(output);const marker=JSON.parse(await readFile(join(output,'build-info.json'),'utf8'));
   assert.equal(marker.product,'anyraid-product-host');assert.equal(marker.modules,process.versions.modules);
@@ -25,6 +25,11 @@ test('compiled product workers, addons, assets and mathematical output run witho
   assert(marker.files['host/contracts/unicode-lower-15.json']);assert(marker.files['host/assets/fonts/LICENSE-DejaVu.txt']);assert(marker.files['package-lock.json']);assert(marker.files['host/build/serialqueue.node']);
   const native=JSON.parse(await readFile(join(output,'host/build/native-build-info.json'),'utf8'));for(const [name,hash] of Object.entries(native.outputs))assert.equal(marker.files['host/build/'+name],hash);
   await installProductDependencies(output);
+  const serviceProfile=join(work,'machine.mjs');await writeFile(serviceProfile,'throw new Error("Service generation must not import the machine");');
+  const serviceTimes:number[]=[];let serviceUnit='';
+  for(let run=0;run<12;run++){const begin=performance.now();serviceUnit=execFileSync(process.execPath,[join(output,'scripts/product-service-unit.js'),'--bundle',output,'--profile',serviceProfile,'--user','printer'],{env:environment(),encoding:'utf8',timeout:10000});if(run)serviceTimes.push(performance.now()-begin);}
+  serviceTimes.sort((a,b)=>a-b);assert.match(serviceUnit,/Restart=no/);assert.match(serviceUnit,/--no-experimental-strip-types/);assert(serviceTimes[10]<2000);
+  t.diagnostic(JSON.stringify({servicePreparation:{coldProcesses:11,warmups:1,medianMs:serviceTimes[5],p95Ms:serviceTimes[10],scope:'Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation'}}));
   const result=JSON.parse(execFileSync(process.execPath,[await productBuildSmoke(output,work)],{env:environment(),encoding:'utf8',timeout:15000,maxBuffer:4*1024**2}));
   const samples=Float64Array.from({length:4096*4},(_,i)=>i%4===0?Math.floor(i/4)/1024:Math.sin(2*Math.PI*64*Math.floor(i/4)/1024));
   const dataset={frequencies:Float64Array.from({length:128},(_,i)=>i*2),psd:Float64Array.from({length:128},(_,i)=>Math.exp(-(((i*2-45)/8)**2))+.01)};
@@ -46,17 +51,18 @@ test('product publication is reproducible and preserves prior output on compiler
 test('compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'product-built-cli-')),output=join(dir,'app'),f=await configuredPrinterFixture(false,false),transport=await productTransports(f.reader);let child:ReturnType<typeof spawn>|undefined;
  try{
-  await buildProductHost(output);await installProductDependencies(output);const profile=join(output,'machine.mjs'),configPath=join(dir,'moonraker.conf');await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
+  await buildProductHost(output);await installProductDependencies(output);const profile=join(dir,'machine.mjs'),configPath=join(dir,'moonraker.conf');await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
   const printerConfig=join(dir,'printer.cfg'),manifest=join(dir,'machine.json');
   await writeFile(printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n'));
   const {output:discardOutput,open:discardOpen,lifecycle:discardLifecycle,...print}=f.options.print;
   await writeFile(manifest,JSON.stringify({version:1,deviceId:'printer',printerConfig,moonrakerConfig:configPath,journalPath:join(dir,'jobs.db'),mcus:Object.fromEntries([...transport.policies].map(([id,{stopDevice,...policy}])=>[id,policy])),machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},hardware:{heaterGcodeIds:f.options.hardware.heaterGcodeIds},print,limits:{maxNozzle:300,maxBed:130}}));
   await writeFile(profile,`import {writeFile} from 'node:fs/promises';
-import {loadProductMachineProfile} from './host/src/runtime/product-machine-profile.js';
-import {ApiError} from './host/src/moonraker/rpc.js';
+import {loadProductMachineProfile} from ${JSON.stringify(pathToFileURL(join(output,'host/src/runtime/product-machine-profile.js')).href)};
+import {ApiError} from ${JSON.stringify(pathToFileURL(join(output,'host/src/moonraker/rpc.js')).href)};
 export async function createProductHostProfile(signal){const stops=[];return loadProductMachineProfile(${JSON.stringify(manifest)},async()=>({stops:new Map(['mcu','aux'].map(id=>[id,async()=>{stops.push(id);}])),print:{output(){},lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}},open:async()=>{throw new Error('Unexpected file');}},server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled',missingRequirements:[]},authorizeNotification:()=>{},authorize:(_m,_p,context)=>{if(context.request.headers['x-api-key']!=='test')throw new ApiError(401,'Denied');}},async release(){await writeFile(${JSON.stringify(join(dir,'closed.json'))},JSON.stringify(stops.sort()));}}),signal);}
 `);
-  child=spawn(process.execPath,[join(output,'scripts/product-host.js'),'--profile',profile],{env:environment(),stdio:['ignore','pipe','pipe']});
+  const generatedUnit=execFileSync(process.execPath,[join(output,'scripts/product-service-unit.js'),'--bundle',output,'--profile',profile,'--user','printer'],{env:environment(),encoding:'utf8',timeout:10000});assert.match(generatedUnit,/WorkingDirectory=\//);
+  child=spawn(process.execPath,[join(output,'scripts/product-host.js'),'--profile',profile],{cwd:'/',env:environment(),stdio:['ignore','pipe','pipe']});
   let stdout='',stderr='';const ready=Promise.withResolvers<{address:{port:number}}>();void ready.promise.catch(()=>{});
   child.stdout!.on('data',chunk=>{stdout+=chunk;for(const line of stdout.split('\n'))try{const v=JSON.parse(line);if(v.event==='ready')ready.resolve(v);}catch{}});child.stderr!.on('data',chunk=>{stderr+=chunk;});
   const exited=new Promise<number|null>((resolve,reject)=>{child!.on('error',reject);child!.on('exit',code=>{ready.reject(new Error(stderr));resolve(code);});});
