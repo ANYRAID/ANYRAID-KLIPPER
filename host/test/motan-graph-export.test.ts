@@ -50,5 +50,5 @@ test('mixed single and dual-axis panels share the same horizontal geometry and m
  a[0].axes.push('Velocity');b.curves[0].parameters={label:'one',linestyle:'none',marker:'o'};b.curves.push({...b.curves[0],parameters:{label:'two',linestyle:'none',marker:'o'}});
  const svg=renderMotanGraph([...a,b]);
  const widths=[...svg.matchAll(/<clipPath id="panel\d+"><rect[^>]*width="([^"]+)"/g)].map(m=>m[1]);assert.deepEqual(widths,['616','616']);
- const legends=[...svg.matchAll(/<g opacity="[^"]+"><title>[\s\S]*?<\/g>/g)];assert.match(legends.at(-1)![0],/fill="#dc2626"/);
+ const legends=[...svg.matchAll(/<g><title>[\s\S]*?<\/g>/g)];assert.match(legends.at(-1)![0],/fill="#dc2626"/);
 });

@@ -138,12 +138,16 @@ node ~/klipper/scripts/motan/motan_graph.ts -l
 
 Output is required: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, or complete JSON
 panels. HTML provides offline zoom, pan and curve toggles. Supported styles
-are `color/c` (hex, basic names, shorthand or tab colors), `label`,
+are `color/c` (hex, CSS/XKCD names, shorthand, tab colors, grayscale, Cn or none), `label`,
 `alpha` (0..1), `linewidth/lw` (0..20), `linestyle/ls` (solid, dashed,
 dash-dot, dotted or none), `drawstyle/ds` (`default`, `steps`, `steps-pre`,
 `steps-post`, `steps-mid`), `marker` (none, dot or circle), and
 `markersize/ms` (0..40). Unsupported parameters fail before analysis; they
 are not silently ignored. Use the legacy tool below for styles not yet ported.
+Colors follow the default Matplotlib palette (including case-insensitive multi-letter
+names). Grayscale strings range from 0 to 1. The default alpha of 0.8 overrides
+hex alpha; `none` always hides the curve and legend symbol while preserving
+legend text. Custom Matplotlib rcParams palettes are not loaded.
 `steps` is an alias for `steps-pre`. Markers stay on the original samples,
 while step vertices only change the displayed line; JSON keeps original data.
 The total expanded line budget is 500000 points across all panels.

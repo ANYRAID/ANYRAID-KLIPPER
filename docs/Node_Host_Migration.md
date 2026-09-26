@@ -22547,3 +22547,27 @@ NumPy 更快。万点完整 SVG 输出（5 次预热、11 次采样）三种阶�
 这些是离线绘图开销，不进入打印实时路径；没有浏览器帧率、Python
 渲染性能或实机验收结论。其他 Matplotlib 参数、结构化绘图值和
 Python 入口的完整退役仍需继续，已知运动稳定性问题仍未解决。
+
+### Motan 颜色兼容性
+
+Node 绘图接入 Matplotlib 3.10.7 的 1,163 个命名颜色，包含 CSS、
+XKCD、tab 和单字母色，另支持默认 Cn 循环、灰度字符串、3/4/6/8 位
+十六进制和 none。数值表保留原始通道，特别是 g 的绿色分量为 0.5，
+与 green 的 128/255 不同；SVG 使用百分比表示非整数色阶，避免提前
+量化。Matplotlib 许可证保存在 host/licenses/matplotlib.txt。
+
+直接捕获原 Matplotlib 的 96 组 RGBA 输出，覆盖显式透明度、负零、
+大小写、极大循环索引和灰度输入；参考见 host/contracts/motan-colors.json。
+默认 alpha=0.8 按旧 Motan 行为覆盖十六进制透明通道；none 始终透明。
+图例透明度仅作用于符号，文字仍可读。命名表使用默认配置，不加载
+用户自定义 Matplotlib rcParams 循环。无效色值和透明度明确拒绝。
+
+11 项受影响测试、类型检查通过。每批 8,000 次颜色解析，5 次预热、
+25 次测量，Node 26.9 中位/P95 为 1.751/2.913 ms，原 Matplotlib
+热缓存参考为 6.231/6.247 ms；结果数组与缓存策略不同，不作通用速度
+结论。完整 15,003 点读取、worker 分析和原子导出，SVG 中位/P95
+88.666/91.271 ms，PNG 113.330/116.924 ms，与上一轮测量接近。
+结果在 host/contracts/motan-color-performance.json；复测使用
+node host/bench/motan-colors.ts 与 node host/bench/motan-graph-export.ts。
+这些均为离线诊断开销，不证明打印吞吐或运动稳定性。Python Motan
+入口仍保留，真实浏览器及硬件验收尚未完成。
