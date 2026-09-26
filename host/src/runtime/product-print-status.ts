@@ -1,11 +1,11 @@
 import type {PrintController,PrintState} from '../operations/print.ts';
 import type {PrintLayerInfo} from '../gcode/print-layer-info.ts';
 const states:Record<PrintState,string>={idle:'standby',interrupted:'error',preparing:'printing',printing:'printing',pausing:'printing',paused:'paused',resuming:'paused',finishing:'printing',completed:'complete',cancelling:'printing',cancelled:'cancelled',failed:'error'};
-/** Public compatibility view. Active extrusion duration and filament still
+/** Public compatibility view. Active extrusion duration still
  * require accounting owners; never synthesize them from file progress. */
-export function productPrintStatus(controller:Pick<PrintController,'state'|'currentRequest'>&Partial<Pick<PrintController,'totalDuration'>>,layers:PrintLayerInfo,filename?:(fileId:string)=>string){
+export function productPrintStatus(controller:Pick<PrintController,'state'|'currentRequest'>&Partial<Pick<PrintController,'totalDuration'|'filamentUsed'>>,layers:PrintLayerInfo,filename?:(fileId:string)=>string){
  const state=controller.state,request=controller.currentRequest;
- return {...filename?{filename:request?filename(request.fileId):''}:{},...('totalDuration' in controller?{total_duration:controller.totalDuration}:{}),state:states[state],message:state==='interrupted'?'Print interrupted; recovery required':state==='failed'?'Native print failed':'',info:request&&layers.requestId===request.requestId?layers.status:{total_layer:null,current_layer:null}};
+ return {...filename?{filename:request?filename(request.fileId):''}:{},...('totalDuration' in controller?{total_duration:controller.totalDuration}:{}),...('filamentUsed' in controller?{filament_used:controller.filamentUsed}:{}),state:states[state],message:state==='interrupted'?'Print interrupted; recovery required':state==='failed'?'Native print failed':'',info:request&&layers.requestId===request.requestId?layers.status:{total_layer:null,current_layer:null}};
 }
 
 /** Paused becomes true only after pause acknowledgment; a pending resume has

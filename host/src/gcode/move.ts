@@ -1,5 +1,6 @@
 // Coordinate state port from klippy/extras/gcode_move.py; GPL-3.0-or-later.
 // Original Copyright (C) 2016-2025 Kevin O'Connor.
+import {ExtrusionAccounting} from './extrusion-accounting.ts';
 export interface MovePort {position():readonly number[];move(position:readonly number[],speed:number):void;}
 export interface CoordinateState {
   absoluteCoordinates:boolean;absoluteExtrude:boolean;
@@ -21,6 +22,7 @@ function moveRequested(params:Parameters):boolean {
 }
 function copy(state:CoordinateState):CoordinateState {return {...state,base:[...state.base],position:[...state.position],homing:[...state.homing]};}
 export class GCodeMove {
+  readonly extrusionAccounting=new ExtrusionAccounting();
   #port:MovePort;
   #state:CoordinateState;
   #axes=new Map([['X',0],['Y',1],['Z',2],['E',3]]);
@@ -46,7 +48,8 @@ export class GCodeMove {
     s.position[3]+=length*s.extrudeFactor;s.base[3]+=s.position[3]-previous;
     const speed=feedRate*s.speedFactor;
     if(![length,feedRate,s.position[3],s.base[3],speed].every(Number.isFinite)||feedRate<=0||speed<=0)throw new RangeError('Temporary extrusion overflow');
-    this.#port.move([...s.position],speed);this.#state=s;
+    this.#port.move([...s.position],speed);
+    this.extrusionAccounting.accepted(previous,s.position[3],s.extrudeFactor);this.#state=s;
   }
   /** Bind transformed position/motion functions before dispatching movement. */
   setPort(port:MovePort):MovePort {const previous=this.#port;this.#port=port;return previous;}
@@ -132,7 +135,7 @@ export class GCodeMove {
     }
     if(![...s.position,...s.base,...s.homing,s.speed,s.speedFactor,s.extrudeFactor].every(Number.isFinite)
       ||s.speed<=0||s.speedFactor<=0||s.extrudeFactor<=0)throw new RangeError('Coordinate state overflow');
-    if(target)this.#port.move([...target],moveSpeed);
+    if(target){this.#port.move([...target],moveSpeed);this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
     this.#state=s;
   }
 }

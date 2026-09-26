@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
+import {ExtrusionAccounting} from '../src/gcode/extrusion-accounting.ts';
 import {PrintController} from '../src/operations/print.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 import {productPrintStatus} from '../src/runtime/product-print-status.ts';
@@ -39,7 +40,8 @@ test('restored interrupted jobs retain unknown duration until explicit terminal 
  let journal=await PrintJournal.open({path,deviceId:'printer'});
  try{
   await journal.reserve(request);await journal.close();journal=await PrintJournal.open({path,deviceId:'printer'});
-  const controller=await PrintController.restore(device,limits,{}, {journal});
-  try{assert.equal(controller.state,'interrupted');assert.equal(controller.totalDuration,null);await controller.cancel();assert.equal(controller.totalDuration,null);controller.reset('job');assert.equal(controller.totalDuration,0);}finally{await controller.retire();}
+  const meter=new ExtrusionAccounting();meter.begin();meter.accepted(0,123,1);
+  const controller=await PrintController.restore(device,limits,{}, {journal,extrusionAccounting:meter});
+  try{assert.equal(controller.state,'interrupted');assert.equal(controller.filamentUsed,null);assert.equal(controller.totalDuration,null);await controller.cancel();assert.equal(controller.totalDuration,null);controller.reset('job');assert.equal(controller.totalDuration,0);assert.equal(controller.filamentUsed,0);}finally{await controller.retire();}
  }finally{await journal.close();await rm(directory,{recursive:true,force:true});}
 });

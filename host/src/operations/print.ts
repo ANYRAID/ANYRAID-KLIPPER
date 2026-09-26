@@ -1,4 +1,5 @@
 import {randomUUID} from 'node:crypto';
+import {ExtrusionAccounting} from '../gcode/extrusion-accounting.ts';
 import {PrintStateStream} from './print-state-stream.ts';
 import {MaintenanceGate} from './maintenance-gate.ts';
 import type { PrintJournal, JournalRecord } from './print-journal.ts';
@@ -62,6 +63,7 @@ export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
   finishMs: 30000,
 });
 export interface PrintControllerOptions {
+  extrusionAccounting?:ExtrusionAccounting;
   maxRememberedRequests?: number;
   maintenanceGate?:MaintenanceGate;
   /** Owned externally; keep open until all device actions and cleanup settle. */
@@ -77,6 +79,8 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #extrusionAccounting:ExtrusionAccounting|undefined;
+  get filamentUsed():number|null{return this.#extrusionAccounting?.filamentUsed??null;}
   #retirement:Promise<void>|undefined;
   /** Permanent owner shutdown. Unlike cancel's observation deadline, completion
    * proves that accepted actions, safety cleanup and journal writes retired.
@@ -187,6 +191,10 @@ export class PrintController {
   get totalDuration():number|null{return this.#durationStart===undefined?this.#duration:Math.max(0,(performance.now()-this.#durationStart)/1000);}
   #changeState(state:PrintState,renew=false):void{
     if(this.#state===state&&!renew)return;
+    if(state==='preparing')this.#extrusionAccounting?.begin();
+    else if(state==='idle')this.#extrusionAccounting?.reset();
+    else if(state==='interrupted')this.#extrusionAccounting?.restoreUnknown();
+    else this.#extrusionAccounting?.setActive(['printing','pausing','finishing','cancelling'].includes(state)&&this.#state!=='failed'&&this.#state!=='interrupted');
     if(state==='preparing'){this.#durationStart=performance.now();this.#duration=0;}
     else if(state==='idle'||state==='interrupted'){this.#durationStart=undefined;this.#duration=state==='idle'?0:null;}
     else if((state==='completed'||state==='cancelled'||state==='failed')&&this.#durationStart!==undefined){this.#duration=this.totalDuration;this.#durationStart=undefined;}
@@ -208,6 +216,8 @@ export class PrintController {
     deadlines: Partial<PrintDeadlines> = {},
     options: PrintControllerOptions = {},
   ) {
+    if(options.extrusionAccounting!==undefined&&!(options.extrusionAccounting instanceof ExtrusionAccounting))throw new TypeError('Invalid extrusion accounting owner');
+    this.#extrusionAccounting=options.extrusionAccounting;
     if (
       !Number.isFinite(limits.maxNozzle) ||
       limits.maxNozzle <= 0 ||

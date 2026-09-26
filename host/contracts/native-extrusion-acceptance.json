@@ -1,0 +1,63 @@
+{
+  "baseline": "f7018855",
+  "node": "v26.9.0",
+  "scope": "Signed accepted-command extrusion accounting exposed via native print_stats, excluding confirmed pause and resume actions",
+  "sources": {
+    "host/src/gcode/extrusion-accounting.ts": "e86819da5cad13062e2deefc6ff87a2d94f146e598839930c3ecb6c2b78b0f20",
+    "host/src/gcode/move.ts": "a423627a0d388b70d6136f280bc0649ab31eb2ebf487f69aa499d03a9fe2c4e6",
+    "host/src/operations/print.ts": "2ae08ab6ef7ee0abefd02230d804f2abccb90ea273fd8bed76cd5827e7ba57f2",
+    "host/src/runtime/product-printer.ts": "c567d588d1e9eeb41ce5bb7ffa95283b7b3c7fe788b212e4d462a8e35d65e096",
+    "host/src/runtime/product-print-status.ts": "e5eca6a9e6548829377c4ad576ff38802d83a4746a9c80aa887243bf818ee91e",
+    "host/test/extrusion-accounting.test.ts": "45b111a14bfeaab2ba2f10c1d159ccdd5008590dac48135ded0d144c1eb5066c",
+    "host/test/print-duration.test.ts": "9d91e9440c61e7248ee236696610116d44d3a4e97cd7b33f3a754cf4eb02decb",
+    "host/bench/extrusion-accounting.ts": "25a58074e49ca2bd3221f46c96eb118befb1940ef056511305f1cb145a1703b1",
+    "host/acceptance/product-compiled-journey.test.ts": "dbe2b355656636876e38f793bea114fdda27e7e1136b0a7adfaa01dab5891c90"
+  },
+  "checks": {
+    "relatedTests": 44,
+    "serviceAndBuildTests": 13,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "baseline": "f7018855",
+    "moves": 10000,
+    "warmups": 5,
+    "runs": 21,
+    "results": [
+      {
+        "medianMs": 4.316732999999999,
+        "p95Ms": 4.425933999999984
+      },
+      {
+        "medianMs": 4.614136999999971,
+        "p95Ms": 4.8477390000000185
+      }
+    ],
+    "ratio": 1.068895620831766,
+    "maximumMedianRatio": 1.15,
+    "exactCoordinatesAndSpeeds": true
+  },
+  "pythonCoordinateParity": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "commands": 12000,
+    "statesExact": true,
+    "moves": 3500,
+    "nodeMedianMs": 5.588559000000032,
+    "nodeP95Ms": 9.872951999999998,
+    "pythonMedianMs": 10.598190012387931,
+    "pythonP95Ms": 17.55946601042524,
+    "speedup": 1.8964083607935196
+  },
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.263846ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18335.400713ms)\nℹ {\"installation\":{\"durationMs\":706.724072,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":87.982,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.836031,\"maxMs\":17.121279},\"cpu\":{\"user\":723400,\"system\":66899},\"rss\":159981568},{\"loop\":{\"p99Ms\":1.798143,\"maxMs\":5.259263},\"cpu\":{\"user\":431059,\"system\":42228},\"rss\":182530048}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19509.223113ms)\nℹ {\"installation\":{\"durationMs\":886.1869670000015,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":10.708881999998994,\"deleteRequests\":16,\"deleteP95Ms\":13.711328999997932,\"thumbnailRequests\":16,\"thumbnailP95Ms\":9.819521000004897,\"metadataRequests\":16,\"metadataP95Ms\":17.567885999997088,\"downloads\":16,\"downloadP95Ms\":3.7607160000006843,\"wireCommands\":171,\"wireSteps\":3088,\"minimumStepLeadMs\":84.556,\"directoryRequests\":1979,\"directoryP99Ms\":5.104132999997091,\"statusRequests\":8216,\"uploads\":16,\"statusP99Ms\":3.8564469999982975,\"uploadP95Ms\":11.388380000000325,\"generations\":[{\"loop\":{\"p99Ms\":2.152447,\"maxMs\":14.467071},\"cpu\":{\"user\":1853248,\"system\":251232},\"rss\":239611904},{\"loop\":{\"p99Ms\":1.867775,\"maxMs\":5.365759},\"cpu\":{\"user\":1192244,\"system\":127173},\"rss\":243154944}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7898.950398ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46382.264771\n",
+  "environmentNote": "First paired benchmark attempt was blocked by sandbox spawnSync git EPERM before sampling; authorized read-only retry passed",
+  "limitations": [
+    "Accepted commanded length, not physical consumption",
+    "Unknown after restart or arithmetic overflow; print_duration remains absent",
+    "No physical printer acceptance; historical numerical mismatch, SIGSEGV and EPIPE remain open",
+    "No Python file retired; default entry still Python"
+  ]
+}

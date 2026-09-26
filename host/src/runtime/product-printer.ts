@@ -22,7 +22,7 @@ export async function connectProductPrinter(reader:ConfigurationReader,connectio
  const aborted=()=>{void printer.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',aborted,{once:true});
  try{
   signal.throwIfAborted();
-  controller=await PrintController.restore(printer.print.device,limits,deadlines,{journal,maintenanceGate,maxRememberedRequests});
+  controller=await PrintController.restore(printer.print.device,limits,deadlines,{journal,maintenanceGate,maxRememberedRequests,extrusionAccounting:printer.print.gcode.coordinates.extrusionAccounting});
   signal.throwIfAborted();printer.group.assertActive();
   const owned=controller;
   const close=():Promise<void>=>{
