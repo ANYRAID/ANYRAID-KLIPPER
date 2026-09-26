@@ -22255,3 +22255,34 @@ node host/scripts/diagnose-node-asan.ts --case motion --asan off --js-optimizati
 覆盖在 3 项诊断回归中，类型和空白检查通过；测试日志为
 `/tmp/node-motion-optimization-tests.log`。本轮未修改运动算法、未切换
 运行时或生产入口，根因和独立环境验收仍待继续处理。
+
+### 独立 CI 运动数值诊断
+
+新增 `.github/workflows/node-motion-diagnostics.yaml`，在相关代码/契约
+变更的 push、pull_request 或手动触发时运行 Ubuntu 24.04 作业。
+矩阵固定 Node 26.9.0/26.10.0 与默认/关闭 Maglev、TurboFan 配置，
+共四组；每组最多 50 个独立进程、单 worker，每进程 16 次相同
+运动计算。矩阵不因其他组失败而取消，最多并行两个作业，每作业
+限 10 分钟。只需要 Node 内置能力，不安装 Python、npm 依赖或
+项目原生插件；不能代替已有全量 CI、打印性能或实机验收。
+
+作业只有 contents 读取权限，checkout 不保留 Git 凭据。运行步骤
+显式使用 bash 失败管道语义，诊断非零退出不会被 tee 覆盖；没有
+continue-on-error。无论成功或失败均尝试上传运行日志、生成脚本
+和结构化报告，矩阵项/重跑使用独立 artifact 名，保留 30 天。
+完整报告包含实际参数、退出状态、阶段输出、失配和源/参考哈希；
+缺少报告或只有启动标记不能解释为数值验证通过。
+
+CLI 新增 `--report-parent /已存在绝对目录`，在指定目录下建立独占
+随机子目录，CI 只归档本次产物，不扫描其他临时文件。默认仍使用
+系统临时目录。motion、strip、empty 案例还核验最后的完成标记；
+即使子进程退出码为零，缺少完成标记也使诊断失败并停止追加任务。
+该约束避免提前正常退出造成假绿，不改变运动数值容差。
+
+本地类型检查、空白检查及 4 项回归通过，覆盖指定报告目录不覆盖
+已有文件、静默零退出必须失败且只运行一次。Actionlint 1.7.12
+语法及表达式检查通过，工具先按官方发布校验和验证；未启用
+ShellCheck。退出码 7 的管道故障验证确认显式 bash 保留失败。
+测试日志为 `/tmp/node-motion-ci-tests.log`。远程执行结果须按具体
+GitHub Actions 运行与提交 SHA 核对；本地提交和配置检查不代表
+远程验证已执行，更不证明此前发现的瞬时数值问题已修复。
