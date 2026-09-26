@@ -1,10 +1,17 @@
+import {randomUUID} from 'node:crypto';
+import {printFilename} from './print-api.ts';
 import {PrintController,type StartPrint} from '../operations/print.ts';
 import {journalRequest,validJournalId} from '../operations/print-journal-types.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
-import {ApiError,type Json,type RpcContext} from './rpc.ts';
+import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import type {PressureAdvancePort} from '../gcode/pressure-advance.ts';
 import {pressureAdvanceSettings,planPressureAdvance} from '../motion/pressure-advance-settings.ts';
+export interface NativePrintCompatibility {
+ /** Trusted machine policy: resolve published filename and explicit preparation
+  * temperatures. This hook must not move or heat the printer. */
+ start(filename:string,signal:AbortSignal):Promise<{fileId:string;nozzle:number;bed:number}>;
+}
 const owners=new WeakSet<PrintController>();
 const details=(request:Readonly<StartPrint>)=>({version:request.version,request_id:request.requestId,file_id:request.fileId,nozzle:request.nozzle,bed:request.bed,...request.expiresAt===undefined?{}:{expires_at:request.expiresAt}});
 type Action='start'|'pause'|'resume'|'cancel'|'reset'|'status'|'emergency_stop'|'pressure_advance';
@@ -15,12 +22,14 @@ export class ProductPrintApi {
  readonly #gate:MaintenanceGate;
  readonly #observers=new AbortController();
  readonly #pressure:PressureAdvancePort|undefined;
- constructor(controller:PrintController,gate:MaintenanceGate,pressure?:PressureAdvancePort){
+ readonly #compatibility:NativePrintCompatibility|undefined;readonly #compatPending=new Set<Promise<unknown>>();
+ constructor(controller:PrintController,gate:MaintenanceGate,pressure?:PressureAdvancePort,compatibility?:NativePrintCompatibility){
   if(!(controller instanceof PrintController)||!controller.durable||!controller.usesMaintenanceGate(gate)||owners.has(controller))throw new ApiError(400,'Native printing requires an unowned durable controller and shared maintenance gate');
   if(pressure&&(typeof pressure.name!=='string'||!pressure.name||typeof pressure.applyPressureAdvance!=='function'))throw new ApiError(400,'Invalid pressure control binding');
+  if(compatibility&&typeof compatibility.start!=='function')throw new ApiError(400,'Invalid native print compatibility policy');this.#compatibility=compatibility?{start:compatibility.start.bind(compatibility)}:undefined;
   this.#controller=controller;this.#gate=gate;this.#pressure=pressure;owners.add(controller);
  }
- get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',state:controller.state,state_token:controller.stateToken,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
+ get status(){const controller=this.#controller,request=controller.currentRequest;return {mode:'native',standard_print:!!this.#compatibility,pending_compatibility:this.#compatPending.size,state:controller.state,state_token:controller.stateToken,request:request?details(request):null,pending_device_actions:controller.pendingDeviceActions,safe_stop_pending:controller.safeStopPending,failed:controller.failure!==undefined,closed:this.#closed};}
  /** Internal live state view; network authorization remains the server's job. */
  watchState(signal:AbortSignal){if(this.#closed)throw new ApiError(503,'Native print API is closed');return this.#controller.watchState(AbortSignal.any([signal,this.#observers.signal]));}
  async call(action:Action,params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
@@ -32,6 +41,7 @@ export class ProductPrintApi {
    const record=await this.#controller.requestRecord(params.request_id);context.signal.throwIfAborted();
    return {current:this.status,record:record?{request:details(record.request),state:record.state,revision:record.revision}:null};
   }
+  if(this.#compatibility&&(['start','pause','resume','cancel'].includes(action))&&(action==='start'?Object.hasOwn(params,'filename'):Object.keys(params).length===0))return this.#standard(action as 'start'|'pause'|'resume'|'cancel',params,context);
   let pending:Promise<void>;
   if(action==='emergency_stop'){
    if(Object.keys(params).length)throw new ApiError(400,'Emergency stop does not accept parameters');
@@ -67,6 +77,25 @@ export class ProductPrintApi {
    }).finally(()=>context.signal.removeEventListener('abort',aborted));
   });
   return {request_id:params.request_id??null,accepted:true,current:this.status};
+ }
+ async #standard(action:'start'|'pause'|'resume'|'cancel',params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
+  if(this.#compatPending.size>=4)throw new ApiError(429,'Standard print policy capacity exceeded');
+  const token=this.#controller.stateToken,state=this.#controller.state,current=this.#controller.currentRequest;
+  if(action==='start'&&!['idle','completed','cancelled'].includes(state))throw new ApiError(409,'A print or recovery still owns the device');
+  if(action!=='start'&&!current)throw new ApiError(409,'No current print request');
+  if(action==='start'&&Object.keys(params).some(key=>key!=='filename'))throw new ApiError(400,'Standard start accepts only filename');
+  const filename=action==='start'?printFilename(params.filename):undefined;
+  const signal=AbortSignal.any([context.signal,this.#observers.signal,AbortSignal.timeout(30000)]),expiresAt=Date.now()+30000;
+  const policy=Promise.resolve().then(async()=>{
+   signal.throwIfAborted();let translated:Record<string,Json>;
+   if(filename!==undefined){const value=await this.#compatibility!.start(filename,signal);signal.throwIfAborted();let request:StartPrint;try{request=journalRequest({version:1,requestId:'compat-'+randomUUID(),fileId:value.fileId,nozzle:value.nozzle,bed:value.bed,expiresAt});}catch{throw new ApiError(400,'Invalid standard print policy result');}translated={version:1,request_id:request.requestId,file_id:request.fileId,nozzle:request.nozzle,bed:request.bed,expires_at:expiresAt};}
+   else translated={request_id:current!.requestId,state_token:token};
+   const authorized=authorizedContext({...context,signal},await context.authorize('printer.print.'+action,Object.freeze({...translated,...filename===undefined?{}:{filename}})));signal.throwIfAborted();return {translated,authorized};
+  });this.#compatPending.add(policy);void policy.then(()=>this.#compatPending.delete(policy),()=>this.#compatPending.delete(policy));
+  const resolved=await new Promise<Awaited<typeof policy>>((resolve,reject)=>{const abort=()=>reject(new ApiError(499,'Standard print policy cancelled; no operation admitted'));signal.addEventListener('abort',abort,{once:true});if(signal.aborted)abort();void policy.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));});
+  signal.throwIfAborted();if(this.#closed||this.#controller.stateToken!==token)throw new ApiError(409,'Print state changed during authorization');
+  if(action==='start'&&state!=='idle')try{this.#controller.reset(current!.requestId);}catch{throw new ApiError(409,'Previous print cleanup is still pending');}
+  await this.call(action,resolved.translated,resolved.authorized);return 'ok';
  }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#gate.invalidate();this.#observers.abort();const attempt=this.#controller.cancel();this.#closing=attempt;void attempt.catch(()=>{if(this.#closing===attempt)this.#closing=undefined;});return attempt;}
 }

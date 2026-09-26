@@ -545,3 +545,33 @@ SQLite、缩略图、PDF 字体、原生运动及模拟 UART 打印流程。它�
 或实机验收。Node 头文件默认来自当前 Node 安装，可通过 NODE_INCLUDE
 指定；CC 可指定 C 编译器。私有源码和头文件快照在构建结束后清理，
 编译失败保留原有运行包，不发布部分插件。
+
+## 标准 Moonraker 打印请求适配
+
+机器绑定可显式提供 `server.productPrintCompatibility`，其
+`async start(filename, signal)` 仅解析已发布文件并返回
+`{fileId, nozzle, bed}`。文件 ID 必须属于同一个打印文件存储；温度是机型
+明确选择的准备策略，必须经过控制器的机型上限校验。此钩子不得发起运动、
+加热或宏执行，必须响应取消。不配置该选项时仍只接受原有类型化打印请求。
+
+启用后，`POST /printer/print/start` 接受单个 `filename` 参数，
+pause/resume/cancel 接受空参数；对应 WebSocket JSON-RPC 方法相同。
+成功结果为 `"ok"`，请求形状依据
+[Moonraker 打印管理接口](https://moonraker.readthedocs.io/en/latest/external_api/printer/#print-job-management)。
+现有版本化 request_id/file_id/温度/有效期及状态令牌请求继续受支持，
+不允许混合标准字段和类型化字段。文件路径支持范围取决于已实现的文件
+存储；当前原生存储使用列表返回的 `<file_id>.gcode`，不是显示文件名。
+
+适配器生成 `compat-...` 请求标识并持久保留，状态接口可查询该标识。
+授权先按原始接口参数执行，再按解析后的 file_id、请求标识与参数执行；
+控制请求在授权前绑定当前状态，授权等待期间状态变化则拒绝。开始请求
+只允许 idle/completed/cancelled，已完成或取消的任务必须先通过原控制器
+清理门槛才能开始下一任务；failed/interrupted 仍要求显式恢复。
+暂停、恢复、取消保持原控制器的状态及物理停止约束。
+
+策略与二次授权最多同时保留 4 项，每次准入等待最多 30 秒；断开后尚未
+结束的外部策略继续计入容量，但迟到返回不能产生设备操作。已经持久准入
+的打印不会因为 HTTP 客户端断开自动取消。标准协议没有客户端幂等键，
+不能保证跨完成状态的重复开始请求恰好执行一次；丢失响应应先查询状态，
+需要精确重试的产品客户端继续使用类型化 request_id 接口。
+这仅补齐打印四接口的适配，不代表完整 Moonraker 或现成客户端整体兼容。

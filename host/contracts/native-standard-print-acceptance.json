@@ -1,0 +1,249 @@
+{
+  "schema": 1,
+  "implementationBase": "cb672871",
+  "node": "v26.9.0",
+  "contract": "https://moonraker.readthedocs.io/en/latest/external_api/printer/#print-job-management",
+  "validation": {
+    "relatedTests": 37,
+    "compiledAcceptanceTests": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "hashes": {
+    "host/src/moonraker/product-print-api.ts": "c240cfb0774777aaa7aae18ce83f18dbd835c2ea380a4af6251deface3ab06ae",
+    "host/src/moonraker/configured-server.ts": "2d784b70d4092464ba1857860effad151266f33319a1cb325e7a5ad77dd5b5b9",
+    "host/test/product-print-api.test.ts": "3440d49c02a993836ec90082fcec28c80f1ebebd92c95261771f275ad927d2a7",
+    "host/acceptance/product-compiled-journey.test.ts": "b9db1da0cbbb43936b085ec1b2335f36771a84933a3f049607f8f4333e59118b"
+  },
+  "records": [
+    {
+      "installation": {
+        "durationMs": 695.1826289999999,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3224,
+      "minimumStepLeadMs": 91.058,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.895423,
+            "maxMs": 13.180927
+          },
+          "cpu": {
+            "user": 701314,
+            "system": 64064
+          },
+          "rss": 164982784
+        },
+        {
+          "loop": {
+            "p99Ms": 1.695743,
+            "maxMs": 4.472831
+          },
+          "cpu": {
+            "user": 388386,
+            "system": 60604
+          },
+          "rss": 183480320
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 688.2376579999982,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 11.76429300000018,
+      "deleteRequests": 16,
+      "deleteP95Ms": 10.306734000005235,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 4.552229000000807,
+      "metadataRequests": 16,
+      "metadataP95Ms": 21.55859999999666,
+      "downloads": 16,
+      "downloadP95Ms": 3.9205309999961173,
+      "wireCommands": 141,
+      "wireSteps": 3120,
+      "minimumStepLeadMs": 88.075,
+      "directoryRequests": 2038,
+      "directoryP99Ms": 8.981776000000536,
+      "statusRequests": 8496,
+      "uploads": 16,
+      "statusP99Ms": 3.335782999998628,
+      "uploadP95Ms": 18.719913000000815,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.990655,
+            "maxMs": 14.090239
+          },
+          "cpu": {
+            "user": 1871464,
+            "system": 260187
+          },
+          "rss": 245166080
+        },
+        {
+          "loop": {
+            "p99Ms": 1.992703,
+            "maxMs": 6.914047
+          },
+          "cpu": {
+            "user": 1120263,
+            "system": 157873
+          },
+          "rss": 238551040
+        }
+      ]
+    }
+  ],
+  "earlierTrial": [
+    {
+      "installation": {
+        "durationMs": 701.4910609999997,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3224,
+      "minimumStepLeadMs": 90.075,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.971199,
+            "maxMs": 12.894207
+          },
+          "cpu": {
+            "user": 722829,
+            "system": 62356
+          },
+          "rss": 162840576
+        },
+        {
+          "loop": {
+            "p99Ms": 1.916927,
+            "maxMs": 4.171775
+          },
+          "cpu": {
+            "user": 432523,
+            "system": 52677
+          },
+          "rss": 182513664
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 691.050685000002,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.842768000002252,
+      "deleteRequests": 16,
+      "deleteP95Ms": 8.799204000002646,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.1485610000017914,
+      "metadataRequests": 16,
+      "metadataP95Ms": 16.924081000001024,
+      "downloads": 16,
+      "downloadP95Ms": 6.586624999999913,
+      "wireCommands": 141,
+      "wireSteps": 3120,
+      "minimumStepLeadMs": 89.393,
+      "directoryRequests": 2076,
+      "directoryP99Ms": 5.310869000000821,
+      "statusRequests": 8623,
+      "uploads": 16,
+      "statusP99Ms": 3.14158099999986,
+      "uploadP95Ms": 12.70363499999803,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.982463,
+            "maxMs": 13.066239
+          },
+          "cpu": {
+            "user": 1965003,
+            "system": 243138
+          },
+          "rss": 230842368
+        },
+        {
+          "loop": {
+            "p99Ms": 1.945599,
+            "maxMs": 5.238783
+          },
+          "cpu": {
+            "user": 1080860,
+            "system": 155080
+          },
+          "rss": 264458240
+        }
+      ]
+    }
+  ],
+  "verified": [
+    "Opt-in machine policy resolves filename and explicit preparation temperatures",
+    "HTTP filename query and body plus WebSocket result ok",
+    "File-aware second authorization before native admission",
+    "Durable generated request identity and journal lookup",
+    "Pause/resume/cancel share native controller and token checks",
+    "State changes during held authorization reject stale action",
+    "Disconnected policies remain bounded and cannot admit late operations",
+    "Completed job permits next standard request through existing reset checks",
+    "Original typed controls and legacy backend regressions",
+    "Fresh native build and independent production dependency installation before simulated print"
+  ],
+  "limitations": [
+    "Standard requests have no client idempotency key; completion-boundary retries require state reconciliation",
+    "Native flat file namespace remains; nested roots and full Moonraker not complete",
+    "Machine policy must be configured explicitly and cannot have device side effects",
+    "No real hardware acceptance; historical numerical anomaly unresolved",
+    "Default Python entrypoint remains"
+  ]
+}
