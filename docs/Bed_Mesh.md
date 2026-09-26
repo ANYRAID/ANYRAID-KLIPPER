@@ -725,6 +725,23 @@ socket:
 graph_mesh.py plot -a rapid ~/printer_data/comms/klippy.sock
 ```
 
+With Node.js 26 and the host dependencies installed, export a standalone
+animated path document instead of opening a Python plotting window:
+
+```
+node scripts/graph_mesh.ts plot rapid -a -o rapid.html mesh-dump.json
+node scripts/graph_mesh.ts plot path -a -o path.html ~/printer_data/comms/klippy.sock
+```
+
+Open the HTML document to play, pause, seek, or replay the path. Playback
+starts paused and pauses when the page is hidden. The animation reveals
+axis-aligned travel segments at a nominal 60 ms per frame; the final point
+is always included, even after a diagonal segment. This is a diagnostic
+visualization, not a reproduction of actual movement timing. Samples and
+missing-point markers remain visible throughout playback. Animation is
+supported for `path` and `rapid` with HTML output; other formats retain
+static plots. Empty travel paths have no playback controls.
+
 Or to plot a 3d visualization of the mesh, connecting via Moonraker:
 
 ```

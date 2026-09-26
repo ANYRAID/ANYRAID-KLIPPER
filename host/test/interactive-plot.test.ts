@@ -41,3 +41,19 @@ test('shared HTML export supports mesh geometry and embedded PNG spectrograms wi
  const dir=await mkdtemp(join(tmpdir(),'spectrogram-html-'));try{const file=join(dir,'spectrum.html');await writeSpectrogram({frames:2,fftSize:2,sampleRate:4,frequencies:Float64Array.of(0,2),times:Float64Array.of(.25,.5),power:Float64Array.of(0,1,10,100)},'Spectrum',2,file,new AbortController().signal);assert((await readFile(file,'utf8')).includes('data:image/png;base64,'));}finally{await rm(dir,{recursive:true,force:true});}
  assert.throws(()=>renderInteractivePlot('<svg ><image href="https://example.com/a.png"/></svg>'),/External/);assert.throws(()=>renderInteractivePlot('<svg ><image href="data:image/svg+xml;base64,AAAA"/></svg>'),/External/);
 });
+
+test('path playback pauses, seeks, completes, replays and stops while hidden',()=>{
+ const elements=Object.fromEntries(['viewport','status','in','out','reset','curves','animation','play','seek','position'].map(id=>[id,new Element()])),svg=new Element(),travel=new Element();
+ svg.attrs.viewBox='0 0 1000 760';elements.viewport.querySelector=()=>svg;
+ const full='M0 0L1 0L2 1L2 2L3 3';travel.attrs.d=full;travel.attrs['data-mesh-animation']='1,2,4,5';svg.querySelector=q=>q==='[data-mesh-animation]'?travel:undefined;
+ let next=0;const queued=new Map<number,Function>(),events:Record<string,Function>={};
+ const document={hidden:false,getElementById:(id:string)=>elements[id],createElement:()=>new Element(),createTextNode:(s:string)=>s,addEventListener:(key:string,fn:Function)=>{events[key]=fn;}};
+ runInNewContext(script(renderInteractivePlot('<svg viewBox="0 0 1000 760"></svg>')),{document,requestAnimationFrame:(fn:Function)=>{queued.set(++next,fn);return next;},cancelAnimationFrame:(id:number)=>queued.delete(id)});
+ const advance=(now:number)=>{const callbacks=[...queued.values()];queued.clear();callbacks.forEach(fn=>fn(now));};
+ assert.equal(travel.attrs.d,'M0 0');assert.equal(elements.position.textContent,'Point 1 / 5');assert.equal(elements.animation.hidden,false);
+ elements.play.onclick!();advance(0);advance(60);assert.equal(travel.attrs.d,'M0 0L1 0');elements.play.onclick!();assert.equal(queued.size,0);assert.equal(elements.play.attrs['aria-pressed'],'false');
+ (elements.seek as any).value='2';elements.seek.events.input();assert.equal(travel.attrs.d,'M0 0L1 0L2 1L2 2');assert.equal(queued.size,0);
+ elements.play.onclick!();advance(100);advance(160);assert.equal(travel.attrs.d,full);assert.equal(elements.play.textContent,'Play');assert.equal(queued.size,0);
+ elements.play.onclick!();assert.equal(travel.attrs.d,'M0 0');document.hidden=true;events.visibilitychange();assert.equal(queued.size,0);
+ (elements.seek as any).value='NaN';elements.seek.events.input();assert.equal(travel.attrs.d,'M0 0');
+});
