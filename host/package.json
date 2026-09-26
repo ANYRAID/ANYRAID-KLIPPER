@@ -258,6 +258,7 @@
     "bench:motan-compiled-export": "node bench/motan-compiled-export.ts",
     "build:product-host": "node scripts/build-product-host.ts",
     "bench:product-build": "node bench/product-build.ts",
+    "bench:native-product-machine": "node bench/native-product-machine.ts",
     "bench:product-machine": "node bench/product-machine.ts",
     "bench:native-host-status": "node bench/native-host-status.ts",
     "bench:native-objects": "node bench/native-objects.ts",

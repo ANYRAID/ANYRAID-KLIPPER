@@ -104,13 +104,62 @@ build-info.json 的产品、平台、架构及 Node ABI，并计算清单内每�
 | 默认入口切换依赖 | 当前证据与剩余工作 |
 | --- | --- |
 | 不依赖 Python 的主机产物 | 已有独立 JS 包、原生插件源码构建和离线生产依赖安装测试；须在目标平台再验证 |
-| 机器配置与板卡适配 | loadProductMachineProfile 可装配受支持的线性机器；仍需真实机型的停止、鉴权、文件及生命周期绑定 |
+| 机器配置与板卡适配 | loadNativeProductMachineProfile 已统一文件与元数据装配；仍需真实机型的停止、鉴权及输出生命周期绑定 |
 | 服务启动与退出 | 已有生成器、本机 systemd 解析、外置 JS 模块与双模拟 UART 启停验证；尚未运行真实系统服务 |
 | 现有安装入口退役 | install-debian.sh 等仍安装 Python；需在目标机型端到端验收后切换，当前未退役 |
 | 客户端与完整 Moonraker | 已有标准打印等接口；完整功能及客户端整体验收仍未完成 |
 | 速度、精度与恢复 | 已有本机模拟基准；历史数值异常、EPIPE、独立环境与真实打印精度/吞吐/故障验收尚未关闭 |
 
 ## 机器模块契约
+
+### 包含原生文件管理的机器配置
+
+推荐原生产品使用 `loadNativeProductMachineProfile`，它复用下述版本化
+机器 JSON 和拓扑校验，统一装配持久文件库、上传/下载、缩略图元数据、
+sealed-file 打印源及可选标准客户端打印策略。编译后的机器模块示例：
+
+```js
+import {loadNativeProductMachineProfile} from '/opt/anyraid/host/src/runtime/native-product-machine.js';
+import {createMachineAdapter} from './board-adapter.mjs';
+
+export function createProductHostProfile(signal) {
+  return loadNativeProductMachineProfile('/etc/anyraid/machine.json', {
+    filesRoot: '/var/lib/anyraid/files',
+    metadataRoot: '/var/lib/anyraid/metadata',
+    uploads: {stagingRoot: '/var/lib/anyraid/staging'},
+    standardPrint: {nozzle: 200, bed: 60},
+    createAdapter: createMachineAdapter,
+  }, signal);
+}
+```
+
+温度只是示例，必须按机型与材料确定。省略 standardPrint 时只保留类型化
+打印请求，不猜测 filename-only 请求的温度。提供时检查机器温度上限，
+只解析已发布的 `<fileId>.gcode`；上传文件不会因此自动开印或执行宏。
+可用 files 和 uploads 配置现有存储与传输配额；两个持久根目录必须是
+绝对且互不包含的配置路径，stagingRoot 必须预先存在。
+
+`createAdapter(configuration, signal, maintenanceGate)` 返回
+[NativeMachineAdapter](../host/src/runtime/native-product-machine.ts)：逐 MCU
+独立 stops、类型化 lifecycle、G-code output、authorizePrintFile、server
+与 release。server 必须显式提供 authorize 和 authorizeNotification；
+authorizePrintFile 是打印源准入策略，在标准文件解析及实际打开前各自
+调用，不替代 RPC 对用户、file_id 和状态控制的授权。适配器不再创建
+文件库、上传所有者或 productPrintCompatibility，也不能覆盖这些所有者。
+机型仍须提供真实物理停止和附加输出控制，不能将测试中的空回调用于实机。
+
+适配器工厂自行清理返回前的部分失败；成功返回后产品模块接管清理，
+即使此时已取消。文件库或元数据装配失败也会关闭已打开的所有者，再
+释放适配器。正常退出须先让主机和网络退场，再调用返回的 release；
+入口已按此顺序管理。重复 release 共用结果，并保留清理错误。
+
+打印源准入最多 8 个在途操作，关闭先取消并等待在途授权，再释放上传、
+文件库及适配器。授权函数必须响应 AbortSignal；不响应的函数会阻止
+资源清理完成。即使授权迟到成功，也会重新检查取消和共享准入状态，
+不能在关闭后继续打开文件。配置和标准温度策略在装配时复制，不能由
+适配器修改配置副本来覆盖机器限制。
+
+下述 `loadProductMachineProfile` 保留为需要自定义存储所有者的底层入口。
 
 ### 声明式机器配置
 

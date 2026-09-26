@@ -65,6 +65,10 @@ Node 主机已接通线性打印机自动配置、原生步进与归零组件、
 也可通过 `npm --prefix host run build:product-host` 生成 JavaScript
 运行包；原生插件构建、生产依赖安装与机器模块要求见同一启动说明。
 
+`loadNativeProductMachineProfile` 已提供持久文件、上传、元数据和打印源的
+统一装配，实际机型仍需提供显式停止、鉴权及输出生命周期适配。编译后
+负载打印验收使用同一产品入口；这不代表已完成真实机型适配。
+
 编译包现可用 `scripts/product-service-unit.js` 生成并核验 Node 主机的
 systemd 服务文件，详见启动说明。生成不会启用服务；默认 Python 安装
 入口及实机迁移门槛仍未退役。
