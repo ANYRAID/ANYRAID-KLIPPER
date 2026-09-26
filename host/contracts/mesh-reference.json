@@ -1,0 +1,344 @@
+{
+  "source": "scripts/graph_mesh.py",
+  "sourceSha256": "ee8fd58218854a9197fd34fef798a576912ed72ff47146d820a752283f29fa87",
+  "dataSha256": "88c26a8059f888ede3dc29ed4d6fbfe9757dc30f565af9f79fe369d529efbe74",
+  "compressedSha256": "fb81e2b144bb1fcf89f777cab39a692a193d6eae806daa0b919df36ebc727fff",
+  "uncompressedBytes": 3191402,
+  "compressedBytes": 1206565,
+  "cases": [
+    "analysis",
+    "path",
+    "surface",
+    "report",
+    "source"
+  ],
+  "before": {
+    "analysis": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "numpy": "2.5.3",
+      "rows": 200,
+      "cols": 300,
+      "pathPoints": 10000,
+      "warmups": 5,
+      "runs": 11,
+      "nodeAnalysis": {
+        "medianMs": 3.2053359999999884,
+        "p95Ms": 4.638285999999994
+      },
+      "numpyAnalysis": {
+        "medianMs": 7.686350028961897,
+        "p95Ms": 7.762649969663471
+      },
+      "maximumError": 0,
+      "scope": "Validated matrix/grid, statistics and path duplicates vs NumPy operations used by graph_mesh.py. Correct max_y is explicit; legacy max_x typo not reproduced. Input parsing, stdout formatting and process startup excluded. Node compacts coordinate vectors instead of full meshgrid arrays."
+    },
+    "path": [
+      {
+        "kind": "points",
+        "node": {
+          "medianMs": 0.20504300000004605,
+          "p95Ms": 0.22247299999992265
+        },
+        "python": {
+          "medianMs": 0.2782139927148819,
+          "p95Ms": 0.2926039742305875
+        },
+        "points": 900,
+        "scope": "Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "kind": "path",
+        "node": {
+          "medianMs": 0.28993400000001657,
+          "p95Ms": 0.7673009999999749
+        },
+        "python": {
+          "medianMs": 4.69634699402377,
+          "p95Ms": 4.727168008685112
+        },
+        "points": 900,
+        "scope": "Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "kind": "rapid",
+        "node": {
+          "medianMs": 0.4137759999999844,
+          "p95Ms": 0.703640000000064
+        },
+        "python": {
+          "medianMs": 4.412343027070165,
+          "p95Ms": 4.454913025256246
+        },
+        "points": 900,
+        "scope": "Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "nodePng": {
+          "medianMs": 33.74183200000016,
+          "p95Ms": 39.86400900000001
+        },
+        "scope": "SVG construction, PNG encoding and atomic file replacement, measured separately; no Python rendering baseline."
+      }
+    ],
+    "surface": [
+      {
+        "kind": "probedz",
+        "node": {
+          "medianMs": 0.17411300000003394,
+          "p95Ms": 0.18402199999991353
+        },
+        "python": {
+          "medianMs": 0.08589099161326885,
+          "p95Ms": 0.09234098251909018
+        },
+        "scope": "Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "meshz",
+        "node": {
+          "medianMs": 0.31483400000001893,
+          "p95Ms": 0.5761779999999135
+        },
+        "python": {
+          "medianMs": 0.26879296638071537,
+          "p95Ms": 0.28738396940752864
+        },
+        "scope": "Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "overlay",
+        "node": {
+          "medianMs": 0.17858300000000327,
+          "p95Ms": 0.28562399999998433
+        },
+        "python": {
+          "medianMs": 0.17100200057029724,
+          "p95Ms": 0.18385198200121522
+        },
+        "scope": "Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "delta",
+        "node": {
+          "medianMs": 0.209803000000079,
+          "p95Ms": 0.3091739999999845
+        },
+        "python": {
+          "medianMs": 0.12456096010282636,
+          "p95Ms": 0.1398320309817791
+        },
+        "scope": "Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "nodePng": {
+          "medianMs": 85.75207299999988,
+          "p95Ms": 91.73733799999991
+        },
+        "scope": "Surface SVG generation, PNG encoding and atomic file replacement; no Python image baseline. Two 30x40 grids."
+      }
+    ],
+    "report": {
+      "node": "v26.9.0",
+      "meshes": 4,
+      "rows": 100,
+      "columns": 150,
+      "warmups": 5,
+      "runs": 11,
+      "nodeReport": {
+        "medianMs": 3.0355029999999488,
+        "p95Ms": 4.10926900000004
+      },
+      "pythonReport": {
+        "medianMs": 13.51666304981336,
+        "p95Ms": 14.016319997608662
+      },
+      "maxError": 2.7755575615628914e-17,
+      "scope": "Original analyze with in-memory request/stdout; square extent avoids legacy max_y typo. Report computation and text formatting, no input parsing/file IO/startup. Node also validates and retains structured report."
+    },
+    "source": {
+      "node": "v26.9.0",
+      "python": "3.12.13",
+      "responseBytes": 554,
+      "warmups": 5,
+      "runs": 11,
+      "nodeAcquisition": {
+        "medianMs": 0.29789400000004207,
+        "p95Ms": 0.4296960000000354
+      },
+      "pythonAcquisition": {
+        "medianMs": 0.11240097228437662,
+        "p95Ms": 0.16229297034442425
+      },
+      "scope": "Local Unix socket request/response, decode and close initiation; Node includes stat and admission. Original Python function logs to StringIO. Startup/imports/server setup excluded; no physical printer or network latency claim."
+    }
+  },
+  "scope": "Original graph_mesh functions (recording plots) plus independent NumPy analysis used by existing benchmarks. Square original meshes avoid known max_y typo; rectangular analysis uses corrected bounds.",
+  "after": {
+    "analysis": {
+      "node": "v26.9.0",
+      "referencePython": "3.12.13",
+      "referenceNumpy": "2.5.3",
+      "rows": 200,
+      "cols": 300,
+      "pathPoints": 10000,
+      "warmups": 5,
+      "runs": 11,
+      "nodeAnalysis": {
+        "medianMs": 2.9684110000000032,
+        "p95Ms": 3.4291470000000004
+      },
+      "historicalNumpyAnalysis": {
+        "medianMs": 7.686350028961897,
+        "p95Ms": 7.762649969663471
+      },
+      "maximumError": 0,
+      "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Validated matrix/grid, statistics and path duplicates vs NumPy operations used by graph_mesh.py. Correct max_y is explicit; legacy max_x typo not reproduced. Input parsing, stdout formatting and process startup excluded. Node compacts coordinate vectors instead of full meshgrid arrays."
+    },
+    "path": [
+      {
+        "kind": "points",
+        "node": {
+          "medianMs": 0.20076200000002586,
+          "p95Ms": 0.2924340000000143
+        },
+        "historicalPython": {
+          "medianMs": 0.2782139927148819,
+          "p95Ms": 0.2926039742305875
+        },
+        "points": 900,
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "kind": "path",
+        "node": {
+          "medianMs": 0.448836,
+          "p95Ms": 1.0441249999999798
+        },
+        "historicalPython": {
+          "medianMs": 4.69634699402377,
+          "p95Ms": 4.727168008685112
+        },
+        "points": 900,
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "kind": "rapid",
+        "node": {
+          "medianMs": 0.4031360000000177,
+          "p95Ms": 0.6880789999999877
+        },
+        "historicalPython": {
+          "medianMs": 4.412343027070165,
+          "p95Ms": 4.454913025256246
+        },
+        "points": 900,
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Path computation/recorded plot arrays, exact coordinates. Original Matplotlib plot calls replaced by a recording backend. Startup, IO and actual rendering excluded."
+      },
+      {
+        "nodePng": {
+          "medianMs": 32.918903,
+          "p95Ms": 36.95275899999996
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. SVG construction, PNG encoding and atomic file replacement, measured separately; no Python rendering baseline."
+      }
+    ],
+    "surface": [
+      {
+        "kind": "probedz",
+        "node": {
+          "medianMs": 0.1905930000000069,
+          "p95Ms": 0.8609909999999843
+        },
+        "historicalPython": {
+          "medianMs": 0.08589099161326885,
+          "p95Ms": 0.09234098251909018
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "meshz",
+        "node": {
+          "medianMs": 0.46992600000001516,
+          "p95Ms": 0.7692610000000002
+        },
+        "historicalPython": {
+          "medianMs": 0.26879296638071537,
+          "p95Ms": 0.28738396940752864
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "overlay",
+        "node": {
+          "medianMs": 0.29541399999999385,
+          "p95Ms": 0.44220599999999877
+        },
+        "historicalPython": {
+          "medianMs": 0.17100200057029724,
+          "p95Ms": 0.18385198200121522
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "kind": "delta",
+        "node": {
+          "medianMs": 0.21718300000000568,
+          "p95Ms": 0.23298299999999017
+        },
+        "historicalPython": {
+          "medianMs": 0.12456096010282636,
+          "p95Ms": 0.1398320309817791
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Original Python surface functions with recorded arrays instead of Matplotlib rendering. Node validates and stores compact coordinate vectors; square ranges avoid legacy Y typo. Exact coordinate/height equality."
+      },
+      {
+        "nodePng": {
+          "medianMs": 88.53355899999997,
+          "p95Ms": 91.8049739999999
+        },
+        "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Surface SVG generation, PNG encoding and atomic file replacement; no Python image baseline. Two 30x40 grids."
+      }
+    ],
+    "report": {
+      "node": "v26.9.0",
+      "meshes": 4,
+      "rows": 100,
+      "columns": 150,
+      "warmups": 5,
+      "runs": 11,
+      "nodeReport": {
+        "medianMs": 2.8189979999999935,
+        "p95Ms": 5.399595000000005
+      },
+      "historicalPythonReport": {
+        "medianMs": 13.51666304981336,
+        "p95Ms": 14.016319997608662
+      },
+      "maxError": 2.7755575615628914e-17,
+      "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Original analyze with in-memory request/stdout; square extent avoids legacy max_y typo. Report computation and text formatting, no input parsing/file IO/startup. Node also validates and retains structured report."
+    },
+    "source": {
+      "node": "v26.9.0",
+      "referencePython": "3.12.13",
+      "responseBytes": 554,
+      "warmups": 5,
+      "runs": 11,
+      "nodeAcquisition": {
+        "medianMs": 0.2927540000000022,
+        "p95Ms": 0.45045600000000263
+      },
+      "historicalPythonAcquisition": {
+        "medianMs": 0.11240097228437662,
+        "p95Ms": 0.16229297034442425
+      },
+      "scope": "Reference outputs and Python/NumPy timing are historical captures; this run does not execute Python. Local Unix socket request/response, decode and close initiation; Node includes stat and admission. Original Python function logs to StringIO. Startup/imports/server setup excluded; no physical printer or network latency claim."
+    }
+  },
+  "validation": {
+    "tests": 23,
+    "typecheck": "passed",
+    "pythonOnPath": false,
+    "scope": "Five benchmark commands run with PATH=/nonexistent and absolute Node 26 path. Five new fixed-reference tests additionally rerun after type declaration correction and strict scalar tolerance check."
+  }
+}
