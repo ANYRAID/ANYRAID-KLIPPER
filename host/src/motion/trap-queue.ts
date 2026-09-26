@@ -1,3 +1,4 @@
+import {representableProfile} from './representable-profile.ts';
 import {StepCompressor} from './step-compressor.ts';
 import type {StepCompressorSettings,StepperKinematics} from './step-compressor.ts';
 import {createRequire} from 'node:module';
@@ -42,14 +43,15 @@ export class TrapQueue {
     if(moves.length>65536) throw new RangeError('Motion batch too large');
     const rows=new Float64Array(moves.length*13);let count=0,time=startTime;
     for(const move of moves) {
-      const p=move.profile;
-      if(!p) throw new Error('Move must be planned before queueing');
+      const profile=move.profile;
+      if(!profile) throw new Error('Move must be planned before queueing');
+      const normalized=representableProfile(move,time),p=normalized??profile,accel=normalized?.accel??move.accel;
       if(extrusionAxis!==undefined&&(!Number.isInteger(extrusionAxis)||extrusionAxis<3||extrusionAxis>=move.axesR.length)) throw new RangeError('Invalid extrusion axis');
       if(extrusionAxis!==undefined ? move.axesD[extrusionAxis]!==0 : move.isKinematic) {
         const ratio=extrusionAxis===undefined?1:move.axesR[extrusionAxis];
         const xyz=extrusionAxis===undefined?move.startPos.slice(0,3):[move.startPos[extrusionAxis],0,0];
         const axes=extrusionAxis===undefined?move.axesR.slice(0,3):[1,ratio>0&&(move.axesD[0]!==0||move.axesD[1]!==0)?1:0,0];
-        rows.set([time,p.accelT,p.cruiseT,p.decelT,...xyz,...axes,p.startV*ratio,p.cruiseV*ratio,move.accel*ratio],count*13);count++;
+        rows.set([time,p.accelT,p.cruiseT,p.decelT,...xyz,...axes,p.startV*ratio,p.cruiseV*ratio,accel*ratio],count*13);count++;
       } else if(coverIdle) {
         // Preserve identical phase-time arithmetic while extending inactive
         // axes to the common source horizon without generating movement.

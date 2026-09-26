@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Move,motionLimits} from '../src/motion/lookahead.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 // Captured from product-host HTTP pause: valid short segment, not a large
-// synthetic clock. This gate deliberately stays failing until the cause is fixed.
+// synthetic clock. Preserve this regression as part of product acceptance.
 test('short deceleration from the product pause path is representable in the native queue',()=>{
  const move=new Move(motionLimits(100,1000),[3.78,0,0,0],[3.79,0,0,0],10);
  move.setJunction(100,100,80.00000000000007);

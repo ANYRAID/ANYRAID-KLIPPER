@@ -1,13 +1,55 @@
 {
   "schema": 1,
-  "implementationBase": "6b9dbaba",
+  "implementationBase": "2246d604 plus representable-profile fix",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
   "result": "failed",
-  "tests": {"passed": 0, "failed": 2, "skipped": 0},
-  "verifiedBeforeFailure": ["trusted profile loaded through actual CLI", "dual PTY UART connection and authenticated HTTP", "unauthorized start rejected without opening file or scheduling motion", "authorized job admitted", "three-axis native homing with simulated endstop responses", "file print reaches printing state"],
-  "firstUnpassedGate": "HTTP pause returns 503 instead of 200 after native motion queue rejects a positive cruise phase below binary64 absolute-time resolution",
-  "capture": {"startPosition": 3.78, "endPosition": 3.79, "startV2": 100, "cruiseV2": 100, "endV2": 80.00000000000007, "accel": 1000, "printTime": 3.1993729999999587, "cruiseT": 2.654126918244515e-17, "decelT": 0.0010557280900008374},
-  "pending": ["pause and resume", "normal completion and endpoint verification", "reset and next job", "cancel response and durable final state", "fault journey", "compiled process journey", "full-load performance", "real hardware acceptance"],
-  "scope": "Real host CLI, native queues and UART bytes against simulated MCU responses; fixture file authorization and zero-temperature job. Does not establish real endstop, thermal, sealed upload, motor or print-quality acceptance. No motion guard or tolerance changed. Independent previously recorded runtime instability remains unresolved."
+  "tests": {
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0
+  },
+  "verifiedBeforeFailure": [
+    "trusted profile loaded through actual CLI",
+    "dual PTY UART connection and authenticated HTTP",
+    "unauthorized start rejected without opening file or scheduling motion",
+    "authorized job admitted",
+    "three-axis native homing with simulated endstop responses",
+    "file print reaches printing state",
+    "HTTP pause and current-token resume",
+    "stale resume token rejected",
+    "first job completes and durable journal records completion",
+    "final commanded endpoint [10,0,0,0] and inactive file",
+    "reset to idle and start second job"
+  ],
+  "firstUnpassedGate": "HTTP cancel on the second printing job returns 503 Request cancelled while the host service stops",
+  "capture": {
+    "startPosition": 3.78,
+    "endPosition": 3.79,
+    "startV2": 100,
+    "cruiseV2": 100,
+    "endV2": 80.00000000000007,
+    "accel": 1000,
+    "printTime": 3.1993729999999587,
+    "cruiseT": 2.654126918244515e-17,
+    "decelT": 0.0010557280900008374,
+    "resolved": true
+  },
+  "pending": [
+    "cancel response and durable final state",
+    "fault journey",
+    "compiled process journey",
+    "full-load performance",
+    "real hardware acceptance"
+  ],
+  "scope": "Real host CLI, native queues and UART bytes against simulated MCU responses; fixture file authorization and zero-temperature job. Does not establish real endstop, thermal, sealed upload, motor or print-quality acceptance. No motion guard or tolerance changed. Independent previously recorded runtime instability remains unresolved.",
+  "additionalResolvedCapture": {
+    "startPosition": 3.88,
+    "endPosition": 3.89,
+    "startV2": 99.99999999999964,
+    "cruiseV2": 100,
+    "endV2": 100,
+    "accelT": 1.776356839400252e-17,
+    "printTime": 4.667461912383371
+  }
 }
