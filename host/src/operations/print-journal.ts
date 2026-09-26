@@ -16,6 +16,7 @@ import {
   type JournalState,
 } from './print-journal-types.ts';
 import type { StartPrint } from './print.ts';
+import type {NativeHistoryTotals,NativeHistoryReset} from './print-history-totals.ts';
 export { JournalError } from './print-journal-types.ts';
 export type {
   JournalOptions,
@@ -184,6 +185,8 @@ export class PrintJournal {
   historyList(query:JournalHistoryQuery={}):Promise<JournalHistoryRecord[]>{return this.#call('historyList',[query]) as Promise<JournalHistoryRecord[]>;}
   historyGet(id:string):Promise<JournalHistoryRecord|null>{return this.#call('historyGet',[id]) as Promise<JournalHistoryRecord|null>;}
   historyDelete(id:string,all=false):Promise<{deleted_jobs:string[]}>{return this.#call('historyDelete',[id,all]) as Promise<{deleted_jobs:string[]}>;}
+  historyTotals():Promise<NativeHistoryTotals>{return this.#call('historyTotals',[]) as Promise<NativeHistoryTotals>;}
+  historyResetTotals():Promise<NativeHistoryReset>{return this.#call('historyResetTotals',[]) as Promise<NativeHistoryReset>;}
   transition(
     requestId: string,
     revision: number,

@@ -33,7 +33,7 @@ test('schema two migration preserves statistics and does not fabricate old times
  const f=await fixture();let journal=await PrintJournal.open(f.options);const statistics={totalDuration:3,printDuration:2,filamentUsed:1};
  try{
   await journal.reserve(request);await journal.transition('job',1,'failed',statistics);await journal.close();
-  const old=new DatabaseSync(f.options.path);old.exec('DROP TABLE history_hidden; DROP TABLE request_times; PRAGMA user_version=2;');old.close();
+  const old=new DatabaseSync(f.options.path);old.exec('DROP TABLE history_totals; DROP TABLE history_counted; DROP TABLE history_hidden; DROP TABLE request_times; PRAGMA user_version=2;');old.close();
   journal=await PrintJournal.open(f.options);const record=(await journal.active())!;assert.equal(record.timestamps,undefined);assert.deepEqual(record.statistics,statistics);
   const confirmed=await journal.transition('job',record.revision,'cancelled');assert.equal(confirmed.timestamps,undefined);assert.deepEqual(confirmed.statistics,statistics);
  }finally{await journal.close();await rm(f.dir,{recursive:true,force:true});}

@@ -23720,3 +23720,29 @@ schema 1/2/3 在设备身份校验事务内升级到 4，默认不隐藏旧记�
 P95 0.072 ms，所有 2000 条原请求仍存在。此操作存在查询成本，不能
 称为零开销。并发打印中 461 次历史查询 P99 11.04 ms，最小步进提前量
 87.72 ms。证据见 host/contracts/native-history-delete-acceptance.json。
+
+### 原生历史累计统计与重置
+
+原生打印现接通 GET /server/history/totals 和 POST
+/server/history/reset_totals，对应 RPC 为 server.history.totals 与
+server.history.reset_totals，使用统一鉴权。schema 5 在首个终态事务中
+同时写入累计值与去重标记，查询只读取单行累计状态，不扫描作业记录，
+不在逐步运动路径执行。删除历史不扣减累计值，重置不删除去重标记；
+失败后的取消确认、重新打开数据库均不会重复累计。存在 reserved、
+started 或 interrupted 作业时重置返回 409。
+
+schema 1–4 升级时从已有终态记录重建一次，包含隐藏历史。缺失统计
+返回 null，并通过 native_unknown 给出缺失作业数；浮点累计使用补偿
+求和，溢出通过 native_overflow 标记，不伪造零值或拒绝已接受运动。
+耗材量保留有符号指令量。重置返回此前累计值与未知/溢出信息。
+尚未接入真实操作者、切片元数据、辅助累计和历史变更通知。
+
+24 项日志/API 回归与 4 项编译后完整产品验收通过。产品验收核对首次
+完成统计、重初始化及删除历史后的累计作业数；日志测试核对重启、
+schema 升级、重置和去重。2000 条记录下累计查询 P95 0.034 ms，
+终态事务 P95 0.242 ms，重置 0.469 ms。同一 schema 内带/不带统计快照
+的配对基准，带快照每作业平均事务耗时的 P95 增量 0.039 ms；这不是
+schema 4/5 开销对照。负载模拟打印最小步进提前量 87.408 ms。
+证据见 host/contracts/native-history-totals-acceptance.json。
+所有数字仅为当前本机样本，不代表物理机型精度、目标板性能或稳定性
+验收；默认 Python 入口和已知运动异常的未完成状态保持不变。

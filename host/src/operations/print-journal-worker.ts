@@ -2,6 +2,7 @@ import { parentPort, workerData } from 'node:worker_threads';
 import { DatabaseSync } from 'node:sqlite';
 import { closeSync, openSync, lstatSync } from 'node:fs';
 import { isAbsolute } from 'node:path';
+import {emptyHistoryTotals,decodeHistoryTotals,addHistoryTotals,historyTotalsView} from './print-history-totals.ts';
 import {
   JournalError,
   journalRequest,
@@ -17,9 +18,17 @@ const normalized = (sql: string) => sql.replace(/\s+/g, ' ').trim();
 const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,statistics TEXT NOT NULL CHECK(length(statistics)<=512)) STRICT;';
 const timesSchema='CREATE TABLE request_times (id TEXT PRIMARY KEY,reserved_at REAL CHECK(reserved_at>=0),started_at REAL CHECK(started_at>=0),ended_at REAL CHECK(ended_at>=0)) STRICT;';
 const hiddenSchema='CREATE TABLE history_hidden (id TEXT PRIMARY KEY) STRICT;';
+const totalsSchema='CREATE TABLE history_totals (id INTEGER PRIMARY KEY CHECK(id=1),value TEXT NOT NULL CHECK(length(value)<=2048)) STRICT;CREATE TABLE history_counted (id TEXT PRIMARY KEY) STRICT;';
 const visibleHistory='NOT EXISTS (SELECT 1 FROM history_hidden WHERE history_hidden.id=requests.id)';
 const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
 function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
+function totalsState(){const row=db!.prepare('SELECT value FROM history_totals WHERE id=1').get();if(!row)throw new JournalError('CORRUPT','Missing history totals');return decodeHistoryTotals(String(row.value));}
+function countOutcome(value:JournalRecord):void{
+  if(db!.prepare('SELECT id FROM history_counted WHERE id=?').get(value.request.requestId))return;
+  const totals=totalsState();addHistoryTotals(totals,value.statistics);
+  db!.prepare('INSERT INTO history_counted(id) VALUES(?)').run(value.request.requestId);
+  db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(totals));
+}
 const port = parentPort!;
 const options = workerData as JournalOptions;
 let db: DatabaseSync | undefined,
@@ -145,11 +154,11 @@ function initialize() {
     .all();
   if (!(
     (app === 0 && version === 0 && tables.length === 0) ||
-    (app === 0x4152504a && (version >=1&&version<=4))
+    (app === 0x4152504a && (version >=1&&version<=5))
   ))
     throw new JournalError('SCHEMA', 'Unknown print journal schema');
   if (version >=1) {
-    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:'')+(version>=4?hiddenSchema:''))
+    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:'')+(version>=4?hiddenSchema:'')+(version>=5?totalsSchema:''))
         .split(';')
         .map((s) => normalized(s))
         .filter(Boolean)
@@ -176,6 +185,10 @@ function initialize() {
     if(version===1)db!.exec(statisticsSchema+' PRAGMA user_version=2;');
     if(version===1||version===2)db!.exec(timesSchema+' PRAGMA user_version=3;');
     if(version>=1&&version<=3)db!.exec(hiddenSchema+' PRAGMA user_version=4;');
+    if(version<5){
+      db!.exec(totalsSchema+' PRAGMA user_version=5;');
+      db!.prepare('INSERT INTO history_totals VALUES(1,?)').run(JSON.stringify(emptyHistoryTotals()));
+    }
     if (db!.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok')
       throw new JournalError('CORRUPT', 'Print journal integrity check failed');
     const identity = db!
@@ -183,6 +196,10 @@ function initialize() {
       .get();
     if (identity?.device_id !== options.deviceId)
       throw new JournalError('DEVICE', 'Journal belongs to a different device');
+    // Rebuild once from real outcomes, including hidden history. Incomplete
+    // legacy records remain uncounted until their terminal acknowledgement.
+    if(version<5)for(const row of db!.prepare(recordQuery+" WHERE state IN ('completed','cancelled','failed') OR (state='interrupted' AND statistics IS NOT NULL) ORDER BY requests.rowid").iterate())countOutcome(record(row)!);
+    totalsState();
     const existing = active();
     if (existing && existing.state !== 'interrupted')
       db!
@@ -220,6 +237,12 @@ function dispatch(method: string, args: unknown[]): unknown {
     return null;
   }
   if (method === 'active') return active();
+  if(method==='historyTotals')return historyTotalsView(totalsState());
+  if(method==='historyResetTotals')return transaction(()=>{
+    if(db!.prepare("SELECT id FROM requests WHERE state IN ('reserved','started','interrupted') LIMIT 1").get())throw new JournalError('STATE','Cannot reset totals during an unfinished print');
+    const previous=historyTotalsView(totalsState());db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(emptyHistoryTotals()));
+    return {last_totals:previous.job_totals,last_auxiliary_totals:[],last_native_unknown:previous.native_unknown,last_native_overflow:previous.native_overflow};
+  });
   if(method==='historyGet'){
     const id=args[0];if(typeof id!=='string'||!/^[0-9a-fA-F]{1,16}$/.test(id)||BigInt('0x'+id)<1n||BigInt('0x'+id)>(1n<<63n)-1n)throw new JournalError('INVALID','Invalid history uid');
     const row=db!.prepare(recordQuery+' WHERE requests.rowid=? AND '+visibleHistory).get(BigInt('0x'+id));return row?{...record(row)!,historyId:String(row.history_id)}:null;
@@ -323,7 +346,7 @@ function dispatch(method: string, args: unknown[]): unknown {
       // Reconciliation cannot establish when an interrupted job actually ended.
       // Keep an existing end time, but never substitute the recovery ACK time.
       if(prior.state!=='interrupted'&&prior.state!=='failed')db!.prepare(`INSERT INTO request_times(id,${field}) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET ${field}=COALESCE(request_times.${field},excluded.${field})`).run(id,wallTime());
-      return lookup(id)!;
+      const updated=lookup(id)!;if(state!=='started')countOutcome(updated);return updated;
     });
   }
   throw new JournalError('INVALID', 'Unknown journal operation');

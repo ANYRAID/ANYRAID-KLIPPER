@@ -146,6 +146,8 @@ export class PrintController {
   historyList(query:import('./print-journal-types.ts').JournalHistoryQuery){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyList(query);}
   historyGet(id:string){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyGet(id);}
   historyDelete(id:string,all=false){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyDelete(id,all);}
+  historyTotals(){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyTotals();}
+  historyResetTotals(){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyResetTotals();}
   get durable():boolean{return !!this.#journal;}
   usesMaintenanceGate(gate:MaintenanceGate):boolean{return this.#maintenanceGate===gate;}
   get rememberedRequests(): number {

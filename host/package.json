@@ -286,7 +286,8 @@
     "bench:print-statistics-journal": "node bench/print-statistics-journal.ts",
     "bench:print-journal-scan": "node bench/print-journal-scan.ts",
     "bench:native-history": "node bench/native-history.ts",
-    "bench:native-history-delete": "node bench/native-history-delete.ts"
+    "bench:native-history-delete": "node bench/native-history-delete.ts",
+    "bench:native-history-totals": "node bench/native-history-totals.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

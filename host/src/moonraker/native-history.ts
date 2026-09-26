@@ -25,6 +25,8 @@ export function registerNativeHistory(registry:EndpointRegistry,controller:Print
    const records=await controller.historyList({before:historyTime(params.before),since:historyTime(params.since),limit:historyInteger(params.limit,50),start:historyInteger(params.start,0),order:params.order===undefined?'desc':String(params.order)}),jobs:Json[]=[];
    for(const record of records)jobs.push(await prepare(record,context.signal));return {count:jobs.length,jobs};
   })));
+  release.push(registry.register({endpoint:'/server/history/totals',methods:['GET']},async()=>read(async()=>await controller.historyTotals() as unknown as Json)));
+  release.push(registry.register({endpoint:'/server/history/reset_totals',methods:['POST']},async(_params,_verb,context)=>read(async()=>{context.signal.throwIfAborted();return await controller.historyResetTotals() as unknown as Json;})));
  }catch(error){for(const undo of release.reverse())undo();throw error;}
  return ()=>{for(const undo of release.reverse())undo();};
 }
