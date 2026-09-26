@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
-import {readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {readFileSync,writeFileSync,rmSync,mkdtempSync,chmodSync} from 'node:fs';
+import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
@@ -22,4 +23,10 @@ test('probe records explicit optimizing compiler controls without requiring a C 
  const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert.ok(first,run.stderr);const {directory}=JSON.parse(first);
  try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.jsOptimization,'off');assert.deepEqual(report.args.slice(0,2),['--no-maglev','--no-turbofan']);assert.equal(report.runtime,undefined);assert.equal(report.results[0].stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');}finally{rmSync(directory,{recursive:true,force:true});}
 });
-test('probe rejects unbounded workers or runs before launching workloads',()=>{for(const args of [['--runs','1001'],['--workers','9'],['--js-optimization','unknown']]){const result=spawnSync(process.execPath,[cli,'--case','motion',...args],{encoding:'utf8',timeout:10000});assert.equal(result.status,1);assert.match(result.stderr,/Invalid diagnostic options/);assert.equal(result.stdout,'');}});
+test('probe preserves artifacts in an owned child directory and rejects silent successful exit',()=>{
+ const parent=mkdtempSync(join(tmpdir(),'motion-ci-test-')),fake=join(parent,'silent-node');
+ try{writeFileSync(join(parent,'sentinel'),'preserve');writeFileSync(fake,'#!'+process.execPath+'\nif(process.argv.includes("--version"))console.log(process.version);\n');chmodSync(fake,0o700);
+ const run=spawnSync(process.execPath,[cli,'--node',fake,'--case','motion','--asan','off','--runs','3','--workers','1','--report-parent',parent],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});assert.equal(run.status,1,run.stdout+run.stderr);const {directory}=JSON.parse(run.stdout.split('\n')[0]);assert.equal(directory.startsWith(join(parent,'anyraid-node-asan-')),true);assert.equal(readFileSync(join(parent,'sentinel'),'utf8'),'preserve');const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.results.length,1);assert.equal(report.results[0].status,0);assert.equal(report.results[0].error,'Verification completion marker missing');assert.ok(readFileSync(join(directory,'fixture.mjs'),'utf8').includes('motion:verified'));
+ }finally{rmSync(parent,{recursive:true,force:true});}
+});
+test('probe rejects unbounded workers or runs before launching workloads',()=>{for(const args of [['--runs','1001'],['--workers','9'],['--js-optimization','unknown'],['--report-parent','relative']]){const result=spawnSync(process.execPath,[cli,'--case','motion',...args],{encoding:'utf8',timeout:10000});assert.equal(result.status,1);assert.match(result.stderr,/Invalid diagnostic options/);assert.equal(result.stdout,'');}});
