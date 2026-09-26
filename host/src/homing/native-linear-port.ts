@@ -60,6 +60,14 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  position(){return this.#admission.logicalPosition;}
  homingPosition(){return this.#admission.plannedPosition;}
  currentBedMesh(){return this.#mesh?.copy()??null;}
+ async offsetBedMesh(x:number|null,y:number|null,toolOffset:number|null,signal:AbortSignal):Promise<boolean>{
+  this.assertActive();signal.throwIfAborted();
+  if([x,y,toolOffset].some(v=>v!==null&&!Number.isFinite(v)))throw new RangeError('Invalid mesh offset');
+  const mesh=this.currentBedMesh();if(!mesh)return false;
+  mesh.setOffsets(x,y);const settings=structuredClone(this.#meshSettings);
+  if(toolOffset!==null)settings.fadeConfig={...settings.fadeConfig,toolOffset};
+  await this.replaceBedMesh(mesh,settings,signal,String(this.#meshStatus.profile_name));return true;
+ }
  replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal,profileName=''):Promise<void>{
   if(typeof profileName!=='string'||profileName.length>128||/[\x00-\x1f\x7f]/.test(profileName))return Promise.reject(new RangeError('Invalid mesh profile name'));
   const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);

@@ -1,0 +1,174 @@
+{
+  "base": "8a51cd98",
+  "tests": {
+    "related": 9,
+    "finalExpandedOffset": 1,
+    "compiledProduct": 4
+  },
+  "benchmark": [
+    {
+      "node": "v26.9.0",
+      "commands": 1000,
+      "warmups": 3,
+      "runs": 11,
+      "plain": {
+        "wall": {
+          "medianMs": 345.8224259999988,
+          "p95Ms": 356.00216400000136
+        },
+        "cpu": {
+          "medianMs": 21.778,
+          "p95Ms": 49.139
+        }
+      },
+      "compensated": {
+        "wall": {
+          "medianMs": 338.6705499999989,
+          "p95Ms": 356.50083099999756
+        },
+        "cpu": {
+          "medianMs": 16.443,
+          "p95Ms": 50.541
+        }
+      },
+      "offsetSwitch": {
+        "medianMs": 0.08288100000027043,
+        "p95Ms": 0.15093200000046636
+      },
+      "exactXPulses": 100,
+      "exactZPulses": 0,
+      "scope": "Paired constant saved mesh versus no mesh for the same physical path through actual native steps and simulated MCU drain; variable mesh splitting and physical target acceptance remain separate."
+    }
+  ],
+  "product": [
+    {
+      "installation": {
+        "durationMs": 694.1431829999992,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.141,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 13.967359
+          },
+          "cpu": {
+            "user": 702389,
+            "system": 73892
+          },
+          "rss": 160018432
+        },
+        {
+          "loop": {
+            "p99Ms": 1.830911,
+            "maxMs": 5.746687
+          },
+          "cpu": {
+            "user": 463282,
+            "system": 42006
+          },
+          "rss": 180711424
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 702.5429259999983,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 460,
+      "historyP99Ms": 10.941340000001219,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.942975999998453,
+      "deleteRequests": 16,
+      "deleteP95Ms": 3.693081000001257,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.839389000000665,
+      "metadataRequests": 16,
+      "metadataP95Ms": 20.708002999999735,
+      "downloads": 16,
+      "downloadP95Ms": 6.0506120000027295,
+      "wireCommands": 168,
+      "wireSteps": 3082,
+      "minimumStepLeadMs": 81.757,
+      "directoryRequests": 1968,
+      "directoryP99Ms": 5.2350809999989,
+      "statusRequests": 8194,
+      "uploads": 16,
+      "statusP99Ms": 3.188043000001926,
+      "uploadP95Ms": 21.856528000000253,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.220031,
+            "maxMs": 13.328383
+          },
+          "cpu": {
+            "user": 2130118,
+            "system": 269119
+          },
+          "rss": 244363264
+        },
+        {
+          "loop": {
+            "p99Ms": 1.979391,
+            "maxMs": 5.464063
+          },
+          "cpu": {
+            "user": 1300481,
+            "system": 172689
+          },
+          "rss": 271593472
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/src/homing/native-linear-port.ts": "8cb6d4c358424a60a81c35d7be9043630f15e7f223ed534d236122e35d7bb823",
+    "host/src/runtime/native-linear-gcode.ts": "7a935e000ee3d66329cd5c607f81a476ebc85bd67288df4d77701c30d3217b64",
+    "host/test/native-bed-mesh-offset.test.ts": "1b1be8d415d7d59999babaa0cc3a75f5f76290408d04182cfeb66d462a899b34",
+    "host/bench/native-bed-mesh.ts": "1c2e4c59252ee46ced5de202fc45b4ee86beec12922306efe6360b56f018a9ca",
+    "host/acceptance/product-compiled-journey.test.ts": "621858de15e8f5cc51416478db3af6e3792bd006d829b7282b47916477ef47db",
+    "/tmp/native-bed-mesh-offset-tests.log": "3fcac91638abe2aa158af6787672bb82cd6a52abb3ee6a9f007c190e3f884691",
+    "/tmp/native-bed-mesh-offset-focused.log": "5b8bb739f3c0e42c028eaa0f60d9fd640319877052b699131aa4f797238ea271",
+    "/tmp/native-bed-mesh-offset-product.log": "0913f770343a270ad1a1b16c8a50c2b2c6705115cf0e0022070ab5faa3f06310",
+    "/tmp/native-bed-mesh-offset-bench.log": "2381c8b00a29d4d8890a2a0de3c47ef8648c3a7a83638089dd9a1ee4c6c184d1"
+  },
+  "limitations": [
+    "Simulated MCU only; physical precision and target-board throughput unverified",
+    "Initial test path exceeded fixture X maximum; corrected fixture path without changing production limits",
+    "Earlier numerical mismatch and SIGSEGV remain unresolved",
+    "Probe calibration, profile persistence and Python retirement pending"
+  ]
+}

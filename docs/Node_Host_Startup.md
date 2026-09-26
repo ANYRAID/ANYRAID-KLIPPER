@@ -713,10 +713,13 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 ## 原生打印加载已保存网床
 
 线性原生主机现在读取 [bed_mesh] 及版本 1 的 [bed_mesh 名称] 保存数据，
-支持显式 BED_MESH_PROFILE LOAD=名称 与 BED_MESH_CLEAR。不自动加载
+支持显式 BED_MESH_PROFILE LOAD=名称、BED_MESH_CLEAR，以及
+BED_MESH_OFFSET X=数值 Y=数值 ZFADE=数值。偏移参数可分别省略，
+省略项保持当前值；XY 为绝对查询偏移，ZFADE 为淡出高度偏移。
+无活动网床时返回提示，不产生运动。重新 LOAD/CLEAR 清除此前偏移。不自动加载
 名为 default 的配置。fade_start、fade_end、fade_target、split_delta_z、
 move_check_distance 由现有网床算法使用；配置和保存网格先通过启动预检。
-这条入口目前只接通保存数据的加载/清除，未接入探针测量、校准、
+这条入口目前接通保存数据的加载/清除和运行时偏移，未接入探针测量、校准、
 PROFILE SAVE/REMOVE 和 SAVE_CONFIG。
 
 切换补偿先排空已接受的旧轨迹并等待 MCU 时间，再更新坐标变换和
