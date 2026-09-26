@@ -23,6 +23,7 @@ export class NativeLinearGCode {
  readonly display=new DisplayStatus();
  readonly retraction:FirmwareRetraction|undefined;
  readonly pressureAdvance:PressureAdvancePort|undefined;
+ readonly bedMeshStatus:(()=>Readonly<Record<string,import('../moonraker/rpc.ts').Json>>)|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
  constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration){
@@ -41,8 +42,9 @@ export class NativeLinearGCode {
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
   if(bedMesh){
-   const settings=structuredClone(bedMesh.settings),profiles=bedMesh.profiles;
-   this.dispatch.register('BED_MESH_PROFILE',async c=>{if(Object.keys(c.params).some(k=>k!=='LOAD')||typeof c.params.LOAD!=='string'||!c.params.LOAD.trim())throw new GCodeError('Native saved mesh requires BED_MESH_PROFILE LOAD=name');const mesh=profiles.load(c.params.LOAD);await port.replaceBedMesh(mesh,settings,c.signal);this.coordinates.resetPosition();});
+   const settings=structuredClone(bedMesh.settings),profiles=bedMesh.profiles;let prior:object|undefined,cached:Readonly<Record<string,import('../moonraker/rpc.ts').Json>>;
+   this.bedMeshStatus=()=>{const active=port.bedMeshStatus;if(prior!==active){cached=Object.freeze(Object.defineProperty(Object.defineProperties({},Object.getOwnPropertyDescriptors(active)),'profiles',{enumerable:true,get:()=>profiles.objectStatus}));prior=active;}return cached;};
+   this.dispatch.register('BED_MESH_PROFILE',async c=>{if(Object.keys(c.params).some(k=>k!=='LOAD')||typeof c.params.LOAD!=='string'||!c.params.LOAD.trim())throw new GCodeError('Native saved mesh requires BED_MESH_PROFILE LOAD=name');const mesh=profiles.load(c.params.LOAD);await port.replaceBedMesh(mesh,settings,c.signal,c.params.LOAD);this.coordinates.resetPosition();});
    this.dispatch.register('BED_MESH_CLEAR',async c=>{if(Object.keys(c.params).length)throw new GCodeError('BED_MESH_CLEAR takes no parameters');await port.replaceBedMesh(null,settings,c.signal);this.coordinates.resetPosition();});
   }
   this.layers.register(this.dispatch);

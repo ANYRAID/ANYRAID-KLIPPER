@@ -11,12 +11,12 @@ test('native saved mesh changes actual Z steps; parking is physical and clear pr
  const t=await nativeLinearFixture(),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,undefined,configuration()),s=new AbortController().signal;
  try{
   t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);g.coordinates.resetPosition();g.enable();
-  assert.equal(t.port.currentBedMesh(),null);await g.dispatch.execute('BED_MESH_PROFILE LOAD=saved');assert.deepEqual(t.port.position(),[50,0,.8,2]);assert.deepEqual(t.port.homingPosition(),[50,0,1,2]);
+  assert.equal(g.bedMeshStatus!().profile_name,'');assert.deepEqual(Object.keys(g.bedMeshStatus!().profiles as object),['saved']);assert.equal(t.port.currentBedMesh(),null);await g.dispatch.execute('BED_MESH_PROFILE LOAD=saved');assert.equal(g.bedMeshStatus!().profile_name,'saved');assert.deepEqual(g.bedMeshStatus!().probed_matrix,[[.2,.2],[.2,.2]]);assert.deepEqual(t.port.position(),[50,0,.8,2]);assert.deepEqual(t.port.homingPosition(),[50,0,1,2]);
   const before=t.f.fw.motion.length;await g.dispatch.execute('G1 X51 Z1 F600\nM400');assert.deepEqual(t.port.position(),[51,0,1,2]);assert.deepEqual(t.port.homingPosition(),[51,0,1.2,2]);
   assert.equal(t.f.fw.motion.slice(before).filter(m=>m.name==='queue_step'&&m.parameters.oid===2).reduce((sum,m)=>sum+Number(m.parameters.count),0),20);
   const paused=await t.port.pause(s);assert.deepEqual(paused.position,[51,0,1.2,2]);await assert.rejects(t.port.replaceBedMesh(null,{},s),/paused/);
   const lifted=[...paused.position];lifted[2]+=.1;t.port.validatePausedPath([{position:lifted,speed:5},{position:paused.position,speed:5}]);await t.port.movePaused(lifted,5,s);await t.port.movePaused(paused.position,5,s);await t.port.resumeStream(s);
-  assert.deepEqual(g.coordinates.state.position,[51,0,1,2]);await g.dispatch.execute('BED_MESH_CLEAR');assert.deepEqual(g.coordinates.state.position,[51,0,1.2,2]);assert.equal(t.port.currentBedMesh(),null);assert.equal(t.f.stops,0);
+  assert.deepEqual(g.coordinates.state.position,[51,0,1,2]);await g.dispatch.execute('BED_MESH_CLEAR');assert.deepEqual(g.coordinates.state.position,[51,0,1.2,2]);assert.equal(t.port.currentBedMesh(),null);assert.equal(g.bedMeshStatus!().profile_name,'');assert.equal(t.f.stops,0);
  }finally{await g.close();await t.close();}
 });
 test('native homing keeps other axes physical while preserving the selected mesh across rebase',async()=>{

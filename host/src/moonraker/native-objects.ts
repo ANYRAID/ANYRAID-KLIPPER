@@ -25,7 +25,7 @@ export class NativeObjects {
    try{
    const names=requested??Object.keys(source);if(names.some(field=>!field||field.length>256||field.includes('\0')))throw new ApiError(503,'Invalid native object field');
    const selected:Record<string,Json>={};for(const field of names)put(selected,field,Object.hasOwn(source,field)?source[field]:null);
-   try{validateJson(selected);}catch{throw new ApiError(503,'Native object status is unavailable');}
+   try{validateJson(selected);}catch(error){if(error instanceof Error&&error.message==='JSON structure limit')throw new ApiError(413,'Native object structure capacity exceeded');throw new ApiError(503,'Native object status is unavailable');}
    remaining-=boundedJsonBytes({[name]:selected},remaining);entries.push([name,copy(selected) as Record<string,Json>]);
    }catch(error){if(error instanceof ApiError&&error.status===413)throw error;throw new ApiError(503,'Native object status is unavailable');}
   }

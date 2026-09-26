@@ -289,7 +289,8 @@
     "bench:native-history-delete": "node bench/native-history-delete.ts",
     "bench:native-history-totals": "node bench/native-history-totals.ts",
     "bench:native-history-events": "node bench/native-history-events.ts",
-    "bench:native-bed-mesh": "node bench/native-bed-mesh.ts"
+    "bench:native-bed-mesh": "node bench/native-bed-mesh.ts",
+    "bench:native-bed-mesh-status": "node bench/native-bed-mesh-status.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

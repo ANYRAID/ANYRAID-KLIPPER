@@ -1,3 +1,4 @@
+import {nativeBedMeshStatus} from '../runtime/native-bed-mesh-status.ts';
 import {BedMesh} from '../motion/bed-mesh.ts';
 import type {BedMeshFadeConfig} from '../motion/bed-mesh-fade.ts';
 import {StopNotice} from '../runtime/stop-notice.ts';
@@ -29,6 +30,8 @@ export interface PausedMove {position:readonly number[];speed:number;}
  * and product startup remain separate runtime responsibilities. */
 export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
+ #meshStatus=nativeBedMeshStatus(null,'');
+ get bedMeshStatus(){return this.#meshStatus;}
  #mesh:BedMesh|null=null;#meshSettings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number}={};
  #streamer:RebuiltMotionStreamer;
  #velocity:VelocityLimits;
@@ -57,11 +60,12 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  position(){return this.#admission.logicalPosition;}
  homingPosition(){return this.#admission.plannedPosition;}
  currentBedMesh(){return this.#mesh?.copy()??null;}
- replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal):Promise<void>{
-  const owned=mesh?.copy()??null,options=structuredClone(settings);
+ replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal,profileName=''):Promise<void>{
+  if(typeof profileName!=='string'||profileName.length>128||/[\x00-\x1f\x7f]/.test(profileName))return Promise.reject(new RangeError('Invalid mesh profile name'));
+  const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);
   return this.#operate('mesh',signal,async s=>{
    const next=createGuardedBedMeshPort({mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
-   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;
+   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;
   });
  }
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}

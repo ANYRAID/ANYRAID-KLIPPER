@@ -717,7 +717,7 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 名为 default 的配置。fade_start、fade_end、fade_target、split_delta_z、
 move_check_distance 由现有网床算法使用；配置和保存网格先通过启动预检。
 这条入口目前只接通保存数据的加载/清除，未接入探针测量、校准、
-PROFILE SAVE/REMOVE、SAVE_CONFIG 和完整 bed_mesh 状态对象。
+PROFILE SAVE/REMOVE 和 SAVE_CONFIG。
 
 切换补偿先排空已接受的旧轨迹并等待 MCU 时间，再更新坐标变换和
 G-code 坐标缓存。普通 G-code 使用逻辑坐标；toolhead.position、
@@ -727,3 +727,14 @@ G-code 坐标缓存。普通 G-code 使用逻辑坐标；toolhead.position、
 
 保存网床能参与原生打印，不代表本机已校准或全套网床功能已替代；实际
 探针、热床形变、Z 精度与速度仍需目标打印机验收。
+
+配置 [bed_mesh] 时，原生对象列表现包含 bed_mesh，可通过
+/printer/objects/query?bed_mesh 或对象订阅读取 profile_name、mesh_min、
+mesh_max、probed_matrix、mesh_matrix 和 profiles。矩阵保留完整 binary64
+值；清除后活动矩阵为 [[]]，保存配置仍保留。普通轮询建议只选择
+bed_mesh=profile_name，避免传输不需要的矩阵。
+
+矩阵按需生成并缓存，公共响应独立复制；大网格的名称查询不会生成矩阵。
+单矩阵（含行节点）或保存配置集合超过 90000 个结构节点时返回 413，
+组合响应仍受通用 100000 节点和 1 MiB 限制，不截断、降采样或改变精度。
+因此超大矩阵目前不能通过该对象接口完整取得，需后续完善有界导出流程。
