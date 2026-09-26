@@ -54,3 +54,15 @@ test('worker mixed analysis preserves exact residual types through chained deriv
   assert.deepEqual(rows,Array.from(result.times,(time,i)=>[String(time),...columns.map(name=>String(result.datasets[name][i]))]));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}
 });
+test('optimized numeric combinations preserve signed zero, overflow order and full-tail validation',()=>{
+ for(const make of [(v:number[])=>v,(v:number[])=>Float64Array.from(v)]){
+  const first=make([-0,0,1e16]),second=make([0,-0,1]);
+  for(const kind of ['deviation','corexy_y'] as const){const result=motanScalarCombine(first,second,kind);assert(result instanceof Float64Array);assert(Object.is(result[0],-0));assert(Object.is(result[1],0));assert.equal(result[2],kind==='deviation'?1e16:.5e16);}
+  assert.throws(()=>motanScalarCombine(make([Number.MAX_VALUE]),make([Number.MAX_VALUE]),'corexy_x'),/finite range/);
+  assert.throws(()=>motanScalarCombine(make([1,Infinity]),make([2]),'deviation'),/finite|numeric/);
+  assert.throws(()=>motanScalarCombine(make([1]),make([2,NaN]),'deviation'),/finite|numeric/);
+ }
+ const sparse=new Array<number>(2);sparse[0]=1;assert.throws(()=>motanScalarCombine(sparse,[2],'deviation'),/numeric/);
+ const integerTail=motanScalarCombine([1,2n],[3],'deviation');assert(Array.isArray(integerTail));assert(Object.isFrozen(integerTail));assert.deepEqual(integerTail,[-2]);
+ assert.throws(()=>motanScalarCombine([1],[2],'deviation',7),/memory limit/);assert.equal(motanScalarCombine([1],[2],'deviation',8)[0],-1);
+});

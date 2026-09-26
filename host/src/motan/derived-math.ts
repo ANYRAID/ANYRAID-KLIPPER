@@ -1,8 +1,8 @@
 // GPL-3.0-or-later. From analyzers.py, copyright (C) 2021 Kevin O'Connor.
 export type MotanSeries=readonly number[]|Float64Array;
-function validate(data:MotanSeries):void{if((!Array.isArray(data)&&!(data instanceof Float64Array))||data.length>2000000)throw new Error('Invalid Motan numeric series');for(const value of data)if(typeof value!=='number'||!Number.isFinite(value))throw new Error('Motan analysis requires finite Float64 values');}
+function validate(data:MotanSeries):void{if((!Array.isArray(data)&&!(data instanceof Float64Array))||data.length>2000000)throw new Error('Invalid Motan numeric series');for(let i=0;i<data.length;i++){const value=data[i];if(typeof value!=='number'||!Number.isFinite(value))throw new Error('Motan analysis requires finite Float64 values');}}
 function segment(time:number):void{if(!Number.isFinite(time)||time<=0)throw new Error('Invalid Motan analysis segment time');}
-function checked(data:Float64Array):Float64Array{for(const value of data)if(!Number.isFinite(value))throw new Error('Motan derived result exceeds finite range');return data;}
+function checked(data:Float64Array):Float64Array{for(let i=0;i<data.length;i++)if(!Number.isFinite(data[i]))throw new Error('Motan derived result exceeds finite range');return data;}
 /** CPython 3.12 float sum; retain the final compensation guard.
  * https://github.com/python/cpython/blob/v3.12.13/Python/bltinmodule.c */
 function sum(data:MotanSeries):number{let high=0,low=0;for(const value of data){const next=high+value;low+=Math.abs(high)>=Math.abs(value)?(high-next)+value:(value-next)+high;high=next;}if(low&&Number.isFinite(low))high+=low;return high;}
