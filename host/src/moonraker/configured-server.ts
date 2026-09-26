@@ -1,3 +1,4 @@
+import {NativeHostNotifications} from './native-host-notifications.ts';
 import {NativePrinterInformation,type NativePrinterIdentity} from './native-printer-info.ts';
 import {ProductHostControl} from '../runtime/product-host-control.ts';
 import {registerProductHostControl} from './product-host-api.ts';
@@ -128,6 +129,7 @@ export class ConfiguredMoonraker {
  #sensors:SensorStore|undefined;#sensorTimer:ReturnType<typeof setInterval>|undefined;#sensorError:string|null=null;#sensorSamples=0;#sensorNotifications=notificationMetrics();
  #nativeUploads:NativePrintUploads|undefined;
  #printApi:PrintApi|ProductPrintApi;
+ #nativeLifecycle:NativeHostNotifications|undefined;
  #printStateTask:Promise<void>|undefined;#printNotifications=notificationMetrics();
  #fileNotifications=notificationMetrics();
  #releaseFileChanges:()=>void=()=>{};
@@ -180,6 +182,7 @@ export class ConfiguredMoonraker {
   }
   const releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
   const releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
+  if(options.nativePrinterIdentity&&options.nativeHost)this.#nativeLifecycle=new NativeHostNotifications(options.nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,options.nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
@@ -329,6 +332,7 @@ export class ConfiguredMoonraker {
    if(this.#stopping)break;
    // Read after the transition stack has unwound (reset also clears request).
    // More than one transition can occur before delivery; expose only current state.
+   this.#nativeLifecycle?.sample();
    const status=api.status;if(status.state_token===lastToken)continue;lastToken=status.state_token;
    this.#broadcastTracked('notify_print_state_changed',[{state:status.state,state_token:status.state_token,request_id:status.request?.request_id??null}],this.#printNotifications);
   }}catch{this.#printNotifications.rejected++;}finally{await stream.return?.();}
@@ -380,6 +384,7 @@ export class ConfiguredMoonraker {
    this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    this.#startupAbort.signal.throwIfAborted();
+   this.#nativeLifecycle?.start();
    if(this.#printApi instanceof ProductPrintApi)this.#printStateTask=this.#observePrintState(this.#printApi,this.#printApi.watchState(this.#startupAbort.signal));
    if(this.#sensors){this.#sensorTimer=setInterval(()=>{
     if(this.#stopping)return;
@@ -396,7 +401,7 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
-  this.#releaseFileChanges();
+  this.#nativeLifecycle?.close();this.#releaseFileChanges();
   this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }

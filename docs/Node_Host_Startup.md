@@ -593,3 +593,17 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 因此 klippy_connected 可为 true、klippy_state 为 shutdown；这不授予
 打印许可。状态源异常返回 503，不用此前成功快照替代。未启用标准适配
 的产品服务不新增 printer.info，也不修改旧连接字段。
+
+标准适配的原生服务还发送 `notify_klippy_ready`、`notify_klippy_shutdown`
+和 `notify_klippy_disconnected`。通知由同一份实时主机状态推导，不触发
+设备动作，也不重放运动：进入 ready/shutdown 时各发送一次；已观察到
+主机后状态源不可用或退场则发送 disconnected。重复采样不重复广播。
+恢复可观察性后按新状态继续通知；通知本身不执行设备恢复。
+
+打印状态变化会在安全微任务之后触发检查，另以 250 ms 周期观察独立
+硬件变化。观察器只把通知交给已有有界队列，沿用 authorizeNotification、
+每客户端容量与超时策略；慢客户端授权不会被设备停止路径等待。关闭
+服务首先停止观察器，网络关闭独立进行，不保证网络退场前额外送达最后
+一条 disconnected；客户端必须处理 WebSocket 关闭。新连接不补发旧通知，
+应先查询 server.info/printer.info 建立初始状态。启动时的 error 状态仍
+通过查询及 webhooks 状态对象描述，不伪装成 ready。
