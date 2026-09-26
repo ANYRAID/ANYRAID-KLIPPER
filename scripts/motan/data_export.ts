@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // GPL-3.0-or-later. Scalar Motan CSV export; no Python runtime required.
 import {parseArgs} from 'node:util';
+import {validateMotanOutput} from '../../host/src/motan/output-path.ts';
 import {formatMotanDatasets} from '../../host/src/motan/dataset-catalog.ts';
 const help=`Usage: node scripts/motan/data_export.ts [options] <logname>
   -c, --columns LIST   Nonempty Python literal or JSON list of datasets
@@ -17,6 +18,7 @@ They use Python repr text and retain each row's historical snapshot.
 Mixed arithmetic requires known input types (typed status/Stallguard/phase).
 Unannotated raw sensor columns still reject ambiguous mixed arithmetic.
 SOS integers must fit NumPy int64/uint64; see migration notes.
+Output cannot replace the input capture or its index (including parent directory aliases).
 Stdout may be partial on failure; see migration notes.
 Limits: 1 million samples, 64 MiB accounted table budget, 256 MiB CSV, 60 s analysis.
 `;
@@ -37,6 +39,7 @@ try{
  else if(values['list-datasets'])process.stdout.write(formatMotanDatasets());
  else{
   if(positionals.length!==1||!values.columns||values.columns.length>65536)throw new Error(help);
+  if(values.output)await validateMotanOutput(positionals[0],values.output);
   const [{Readable},{pipeline},{parseLiteral},{MotanAnalysisExecutor},{motanCsvChunks,writeMotanCsv}]=await Promise.all([
    import('node:stream'),import('node:stream/promises'),import('../../host/src/diagnostics/python-literal.ts'),import('../../host/src/motan/analysis-executor.ts'),import('../../host/src/motan/csv-export.ts'),
   ]);

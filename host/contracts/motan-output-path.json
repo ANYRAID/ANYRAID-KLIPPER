@@ -1,0 +1,9 @@
+{
+  "node": "v26.9.0",
+  "warmupBatches": 5,
+  "measuredBatches": 25,
+  "checksPerBatch": 100,
+  "medianMsPerCheck": 0.031890199999999994,
+  "p95MsPerCheck": 0.03329811000000007,
+  "scope": "Three realpath calls per export, local temporary filesystem, warm directory cache; excludes analysis, encoding and writing. No Python or printer performance comparison."
+}
