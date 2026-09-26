@@ -1,0 +1,149 @@
+{
+  "schema": 1,
+  "implementationBase": "7169e706",
+  "node": "v26.9.0",
+  "platform": "linux",
+  "arch": "x64",
+  "command": "npm --prefix host run test:product-install",
+  "validation": {
+    "passed": 7,
+    "failed": 0,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "installation": {
+    "source": "existing npm package cache copied into a temporary directory",
+    "offline": true,
+    "ignoreScripts": true,
+    "omitDev": true,
+    "includeOptional": true,
+    "externalPath": "/no-programs",
+    "nodePath": "",
+    "typescriptRuntime": false,
+    "sharedNodeModules": false
+  },
+  "records": [
+    {
+      "installation": {
+        "durationMs": 711.570188,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3226,
+      "minimumStepLeadMs": 90.17,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.896447,
+            "maxMs": 12.959743
+          },
+          "cpu": {
+            "user": 684635,
+            "system": 86851
+          },
+          "rss": 162582528
+        },
+        {
+          "loop": {
+            "p99Ms": 1.838079,
+            "maxMs": 4.780031
+          },
+          "cpu": {
+            "user": 368733,
+            "system": 39442
+          },
+          "rss": 181035008
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 691.8280630000008,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 11.645943999999872,
+      "deleteRequests": 16,
+      "deleteP95Ms": 7.957426000000851,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 10.040902000000642,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.369709999999031,
+      "downloads": 16,
+      "downloadP95Ms": 4.399897999999666,
+      "wireCommands": 147,
+      "wireSteps": 3224,
+      "minimumStepLeadMs": 81.27,
+      "directoryRequests": 2066,
+      "directoryP99Ms": 5.1396979999990435,
+      "statusRequests": 8587,
+      "uploads": 16,
+      "statusP99Ms": 3.162121000001207,
+      "uploadP95Ms": 23.425970000000234,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.929215,
+            "maxMs": 13.352959
+          },
+          "cpu": {
+            "user": 1860968,
+            "system": 220068
+          },
+          "rss": 219815936
+        },
+        {
+          "loop": {
+            "p99Ms": 1.880063,
+            "maxMs": 6.488063
+          },
+          "cpu": {
+            "user": 1125563,
+            "system": 138538
+          },
+          "rss": 243728384
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/test/helpers/product-install.ts": "e2c40561e6e990a924a3f2890d5d7b6891a213e1c49995cb2ad9a9ca47ab4c32",
+    "host/test/product-build.test.ts": "7bb45a54b4da24f8bd3cb5a00a38e3c446f4de8df7fe5da974386f63874c9b28",
+    "host/acceptance/product-compiled-journey.test.ts": "e6b7c3f46f2f94fa05b0722b103be4922826a2ed68d0e9552b94a7720650825a",
+    "host/package.json": "399351902b52345086a891c73790a1547a9a06b82b7d83c1c3e335d07cb062a8",
+    "host/package-lock.json": "27f29957818c72245c230a59b6240b8b005d6d1f512d3f37ef4ac4506c799523",
+    "host/scripts/build-product-host.ts": "c3c6e2cd776830df9e8ed842ace4f8ba35a419fef0f91fb75c290bb393d9fab6"
+  },
+  "scope": "Independent production dependency trees from emitted lockfiles on the local Linux x64 host, mathematical output equality with source, compiled workers, image processing, SQLite, PDF assets, native motion and authenticated dual-PTY simulated printing with baseline/load and process restart. Existing locally built native addons reused. No target-board clean build, system service installation or hardware acceptance.",
+  "initialFailure": {
+    "cause": "Test incorrectly assumed @types/node must be absent; lockfile marks it as a transitive production dependency (dev is not true). Corrected the assertion; npm installation itself succeeded."
+  },
+  "remaining": [
+    "Default Python runtime and 194 Python files remain",
+    "Native addon provenance and fresh target-machine build not established",
+    "Historical motion precision anomaly unresolved",
+    "Full Moonraker and real printer acceptance incomplete"
+  ]
+}

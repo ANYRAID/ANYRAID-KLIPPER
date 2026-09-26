@@ -4,25 +4,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync,spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdtemp,mkdir,readFile,writeFile,readdir,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,mkdir,readFile,writeFile,readdir,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {buildProductHost} from '../scripts/build-product-host.ts';
 import {productBuildSmoke} from './helpers/product-build-smoke.ts';
+import {installProductDependencies} from './helpers/product-install.ts';
 import {calculateSpectrum} from '../src/calibration/spectrum.ts';
 import {fitInputShapers} from '../src/calibration/shaper-fit.ts';
 import {configuredPrinterFixture} from './helpers/configured-printer.ts';
 import {productTransports} from './helpers/product-transports.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
-function environment(){const env={...process.env,PATH:'/no-programs',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete (env as NodeJS.ProcessEnv)[key];return env;}
+function environment(){const env={...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete (env as NodeJS.ProcessEnv)[key];return env;}
 test('compiled product workers, addons, assets and mathematical output run without TS or Python',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'product-build-')),output=join(dir,'app'),work=join(dir,'data');try{
   await mkdir(work);await buildProductHost(output);const marker=JSON.parse(await readFile(join(output,'build-info.json'),'utf8'));
   assert.equal(marker.product,'anyraid-product-host');assert.equal(marker.modules,process.versions.modules);
   for(const [path,hash] of Object.entries(marker.files)){assert(!path.endsWith('.ts'));assert.equal(createHash('sha256').update(await readFile(join(output,path))).digest('hex'),hash,path);}
   assert(marker.files['host/contracts/unicode-lower-15.json']);assert(marker.files['host/assets/fonts/LICENSE-DejaVu.txt']);assert(marker.files['package-lock.json']);assert(marker.files['host/build/serialqueue.node']);
-  await symlink(join(root,'host/node_modules'),join(output,'node_modules'),'dir');
+  await installProductDependencies(output);
   const result=JSON.parse(execFileSync(process.execPath,[await productBuildSmoke(output,work)],{env:environment(),encoding:'utf8',timeout:15000,maxBuffer:4*1024**2}));
   const samples=Float64Array.from({length:4096*4},(_,i)=>i%4===0?Math.floor(i/4)/1024:Math.sin(2*Math.PI*64*Math.floor(i/4)/1024));
   const dataset={frequencies:Float64Array.from({length:128},(_,i)=>i*2),psd:Float64Array.from({length:128},(_,i)=>Math.exp(-(((i*2-45)/8)**2))+.01)};
@@ -43,7 +44,7 @@ test('product publication is reproducible and preserves prior output on compiler
 test('compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'product-built-cli-')),output=join(dir,'app'),f=await configuredPrinterFixture(false,false),transport=await productTransports(f.reader);let child:ReturnType<typeof spawn>|undefined;
  try{
-  await buildProductHost(output);await symlink(join(root,'host/node_modules'),join(output,'node_modules'),'dir');const profile=join(output,'machine.mjs'),configPath=join(dir,'moonraker.conf');await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
+  await buildProductHost(output);await installProductDependencies(output);const profile=join(output,'machine.mjs'),configPath=join(dir,'moonraker.conf');await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
   const printerConfig=join(dir,'printer.cfg'),manifest=join(dir,'machine.json');
   await writeFile(printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n'));
   const {output:discardOutput,open:discardOpen,lifecycle:discardLifecycle,...print}=f.options.print;

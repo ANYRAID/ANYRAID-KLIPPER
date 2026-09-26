@@ -5,12 +5,12 @@ import assert from 'node:assert/strict';
 import sharp from 'sharp';
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdtemp,writeFile,readFile,rm,symlink} from 'node:fs/promises';
+import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 import {buildProductHost} from '../scripts/build-product-host.ts';
+import {installProductDependencies} from '../test/helpers/product-install.ts';
 import {configuredPrinterFixture} from '../test/helpers/configured-printer.ts';
 import {productTransports} from '../test/helpers/product-transports.ts';
 import {Thermistor} from '../src/thermal/thermistor.ts';
@@ -18,7 +18,7 @@ import {FrameDecoder} from '../src/protocol/codec.ts';
 
 // The child loads only emitted JS, bundled addons and installed dependencies.
 // PTY firmware stays in the parent; all product operations cross authenticated HTTP.
-for(const loaded of [false,true])test(`load=${loaded}: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading`,{timeout:60000},async t=>{
+for(const loaded of [false,true])test(`load=${loaded}: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading`,{timeout:180000},async t=>{
  const dir=await mkdtemp(join(tmpdir(),'compiled-journey-')),app=join(dir,'app'),f=await configuredPrinterFixture(false,false);
  const transports:Awaited<ReturnType<typeof productTransports>>[]=[],timers=new Set<ReturnType<typeof setTimeout>>();
  const printerConfig=join(dir,'printer.cfg'),configPath=join(dir,'moonraker.conf'),manifest=join(dir,'machine.json'),trace=join(dir,'events.jsonl');
@@ -45,7 +45,7 @@ for(const loaded of [false,true])test(`load=${loaded}: compiled process uploads 
   return transport;
  }
  try{
-  await buildProductHost(app);await symlink(fileURLToPath(new URL('../node_modules',import.meta.url)),join(app,'node_modules'),'dir');
+  await buildProductHost(app);const installation=await installProductDependencies(app);t.diagnostic(JSON.stringify({installation}));
   const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),encoded=png.toString('base64'),preview=`; thumbnail_png begin 80x40 ${encoded.length}\n; ${encoded}\n; thumbnail_png end\n`;
   const loadGcode=preview+';'+('x'.repeat(256*1024-Buffer.byteLength(preview)-2))+'\n';
   await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');const gcode=preview+Array.from({length:1000},(_,i)=>`G1 X${(i+1)/100} F600\n`).join(''),sha256=createHash('sha256').update(gcode).digest('hex');
@@ -61,7 +61,7 @@ let generation=0;
 const record=event=>appendFile(${JSON.stringify(trace)},JSON.stringify(event)+'\\n');
 export async function createProductHostProfile(signal){const current=++generation,loop=monitorEventLoopDelay({resolution:1}),cpu=process.cpuUsage();loop.enable();await record({event:'factory',generation:current});return loadProductMachineProfile(${JSON.stringify(manifest)},async(_config,_signal,gate)=>{const files=await PublishedPrintFiles.open(${JSON.stringify(join(dir,'files'))}),uploads=await NativePrintUploads.open(files,gate,{stagingRoot:${JSON.stringify(dir)},metadataRoot:${JSON.stringify(join(dir,'metadata'))}});return {stops:new Map(['mcu','aux'].map(id=>[id,async cause=>{await record({event:'stop',generation:current,id,cause:String(cause)});} ])),print:{output(){},lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}},async open(id,signal){await record({event:'open',generation:current});return files.acquire(id,signal);}},server:{nativeUploads:uploads,information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled-journey',missingRequirements:[]},notificationLimits:{perClient:2,pending:128,timeoutMs:20},authorizeNotification:async(method,params,context)=>{if(method!=='notify_filelist_changed')throw new ApiError(403,'Not subscribed');if(context.request.headers['x-observer']==='slow')await new Promise(resolve=>setTimeout(resolve,50));if(context.request.headers['x-observer']!=='allowed')throw new ApiError(403,'File observation denied');},authorize:(_m,_p,context)=>{if(context.request.headers['x-api-key']!=='test')throw new ApiError(401,'Denied');return {username:'operator'};}},async release(){await uploads.close();await files.close();loop.disable();await record({event:'released',generation:current,loop:{p99Ms:loop.percentile(99)/1e6,maxMs:loop.max/1e6},cpu:process.cpuUsage(cpu),rss:process.memoryUsage().rss});}};},signal);}
 `);
-  const env:NodeJS.ProcessEnv={...process.env,PATH:'/no-programs',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete env[key];
+  const env:NodeJS.ProcessEnv={...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'};for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete env[key];
   function spawnHost(){if(watchdog)clearTimeout(watchdog);stderr='';child=spawn(process.execPath,[join(app,'scripts/product-host.js'),'--profile',profile],{env,stdio:['ignore','pipe','pipe']});let unread='';
   child.stdout!.on('data',chunk=>{unread+=chunk;for(let at=unread.indexOf('\n');at>=0;at=unread.indexOf('\n')){const line=unread.slice(0,at);unread=unread.slice(at+1);try{const event=JSON.parse(line);if(event.event==='ready')ready.push(`http://127.0.0.1:${event.address.port}`);}catch{}}});child.stderr!.on('data',chunk=>{stderr+=chunk;});
   ended=new Promise((resolve,reject)=>{child!.once('error',reject);child!.once('exit',(code,signal)=>resolve({code,signal}));});void ended.catch(()=>{});

@@ -26,7 +26,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 npm --prefix host run build:native
 npm --prefix host run build:product-host
 cd host/build/product-host
-npm ci --omit=dev --ignore-scripts
+npm ci --omit=dev --include=optional --ignore-scripts
 node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyraid/machine.mjs
 ```
 
@@ -483,7 +483,8 @@ MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请�
 目标温度归零。打印中注入错误 ADC 报告，确认故障、持久化失败记录和
 后续开印拒绝。温度和物理停止仍是模拟，不代表真实热响应、断电与
 所有故障恢复或实际打印验收。
-依赖目录复用本机已安装 node_modules，尚不是全新目标系统安装验收。
+编译包验收在空 node_modules 下按锁文件独立安装生产依赖，不再链接
+工作区依赖。原生插件仍由本机已有构建提供，尚不是全新目标系统安装验收。
 
 负载变体同时运行 4 路状态查询，在每个会话进入 printing 后分批上传
 8 个 256 KiB 文件，共 16 个；核对原有完整流程与末位置，不自动打印
@@ -519,3 +520,22 @@ MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请�
 这是累计容量而非仅存活文件数；达到容量须报告失败，尚不支持无限期轮转。
 同步构造 `new NativePrintUploads(files, gate)` 仍是内存模式，重启会撤销
 预览 URL。产品编译验收已使用上述持久工厂；现有 Python 部署不会自动切换。
+
+## 独立依赖安装验收
+
+运行 `npm --prefix host run test:product-install`：每个编译运行场景在新的
+目录中执行 `npm ci --omit=dev --include=optional --ignore-scripts --no-audit --no-fund`，
+校验 node_modules 和直接生产依赖不是工作区符号链接，且不安装 TypeScript
+编译器与实验性模板开发依赖。安装、运行均禁用 TS 解析，清空外部 PATH
+和 NODE_PATH；npm 本体由当前 Node.js 执行。可通过 npm_execpath 指定
+npm CLI 绝对路径，默认采用当前 Node 安装附带的 npm。
+
+命令不会以共享 node_modules 回退来掩盖缺包。默认遵循 npm 缓存/网络
+配置；离线环境先准备完整锁文件包缓存，再设置 npm_config_offline=true
+与 npm_config_cache。sharp 所需当前平台可选预编译依赖必须存在；
+缺失时测试失败，不启用安装脚本临时源码编译。安装时长仅表示当次缓存
+和平台条件，不是网络下载性能或全新系统安装时间。
+
+本门槛覆盖数学输出对照、后台任务、SQLite、缩略图、PDF 字体、
+原生运动及模拟 UART 打印流程。它仍依赖构建机的编译器、Node 头文件
+和已生成原生插件，不能代替目标板从零构建、系统服务部署或实机验收。
