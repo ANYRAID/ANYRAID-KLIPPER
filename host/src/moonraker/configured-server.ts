@@ -22,6 +22,7 @@ import {PrintApi,registerPrintApi,type PrintApiOptions} from './print-api.ts';
 import {HistoryRuntime,type HistoryRuntimeOptions} from './history-runtime.ts';
 import {HistoryRepository} from './history-repository.ts';
 import {registerHistory,type HistoryApiOptions} from './history-api.ts';
+import {registerNativeHistory} from './native-history.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {registerDatabaseMaintenance} from './database-maintenance.ts';
 import {DatabaseStore,registerDatabase} from './database.ts';
@@ -172,7 +173,7 @@ export class ConfiguredMoonraker {
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
   const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
-  const releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):()=>{};
+  const releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):options.productPrint&&this.#nativeUploads?registerNativeHistory(this.endpoints,options.productPrint,this.#nativeUploads):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};

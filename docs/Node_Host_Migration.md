@@ -23664,3 +23664,32 @@ PrintJournal.scan 提供内部有界读取：每页 1–256 条，按 ASCII 请�
 0.90 ms。当前 schema 下带结束快照的终态事务中位数 0.190 ms；本次
 基准不是 schema 2/3 的配对比较。详细证据见
 host/contracts/native-journal-history-source-acceptance.json。
+
+### 原生标准历史查询
+
+配置了原生打印控制器及 NativePrintUploads 的服务器现自动注册
+GET /server/history/list 和 GET /server/history/job；对应 RPC 名称为
+server.history.list 和 server.history.get_job，沿用统一鉴权。数据直接
+读取权威日志，不复制导入、不删除幂等记录。UID 为日志中追加记录的
+稳定序号（十六进制）；列表按该顺序升降序，支持 start/limit、before
+结束时间和 since 预留时间过滤，沿用旧历史接口的参数转换。
+
+默认每页 50 条，显式页大小最多 1000；limit<=0 请求全部时也受 1000 条
+响应边界约束，超过返回 413 并要求分页，不静默截断。未知时间不匹配
+时间过滤。当前作业读取真实计数，已结束作业读取持久快照；旧记录缺失
+时间或统计返回 null，未记录操作者标为 unknown。filename 为已发布的
+规范文件名，metadata.native_request_id 保留来源，尚未嵌入切片元数据。
+文件删除后记录仍可查询，exists 变为 false。
+
+这次只接通标准历史的读取部分；totals、reset_totals、删除和
+notify_history_changed 尚未接通，也没有以读取能力宣称完整 history
+组件已完成。后续历史删除必须独立于防止重复打印的请求日志，不能直接
+删掉 requests 行。返回的耗材量仍是有符号指令统计，不是实物测量。
+
+本轮 19 项历史/日志回归、类型与空白检查通过；编译后的 4 项完整产品
+验收通过，并在打印负载中增加历史列表轮询：473 次查询，P99 9.29 ms，
+最小步进提前量 83.85 ms，状态查询 P99 2.67 ms。单独的 2000 条记录
+基准每页 50 条，HTTP 查询中位数 3.69 ms、P95 4.49 ms，包含文件存在性
+检查及 JSON 序列化，不代表目标板保证。单条 get_job 按旧接口回显请求
+UID（列表仍返回规范 UID），该兼容细节另由 HTTP/RPC 回归验证。证据见
+host/contracts/native-history-read-acceptance.json。

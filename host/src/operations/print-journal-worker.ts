@@ -16,7 +16,7 @@ const schema =
 const normalized = (sql: string) => sql.replace(/\s+/g, ' ').trim();
 const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,statistics TEXT NOT NULL CHECK(length(statistics)<=512)) STRICT;';
 const timesSchema='CREATE TABLE request_times (id TEXT PRIMARY KEY,reserved_at REAL CHECK(reserved_at>=0),started_at REAL CHECK(started_at>=0),ended_at REAL CHECK(ended_at>=0)) STRICT;';
-const recordQuery='SELECT requests.*,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)';
+const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
 function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
 const port = parentPort!;
 const options = workerData as JournalOptions;
@@ -217,6 +217,23 @@ function dispatch(method: string, args: unknown[]): unknown {
     return null;
   }
   if (method === 'active') return active();
+  if(method==='historyGet'){
+    const id=args[0];if(typeof id!=='string'||!/^[0-9a-fA-F]{1,16}$/.test(id)||BigInt('0x'+id)<1n||BigInt('0x'+id)>(1n<<63n)-1n)throw new JournalError('INVALID','Invalid history uid');
+    const row=db!.prepare(recordQuery+' WHERE requests.rowid=?').get(BigInt('0x'+id));return row?{...record(row)!,historyId:String(row.history_id)}:null;
+  }
+  if(method==='historyList'){
+    const query=args[0] as import('./print-journal-types.ts').JournalHistoryQuery;
+    if(!query||typeof query!=='object'||Array.isArray(query))throw new JournalError('INVALID','Invalid history query');
+    const {before,since}=query,limit=query.limit??50,start=query.start??0,order=String(query.order??'desc').toUpperCase();
+    if(!['ASC','DESC'].includes(order)||!Number.isSafeInteger(limit)||!Number.isSafeInteger(start)||[before,since].some(v=>v!==undefined&&!Number.isFinite(v)))throw new JournalError('INVALID','Invalid history pagination');
+    if(limit>1000)throw new JournalError('CAPACITY','Use history pages of at most 1000 records');
+    const params:(string|number)[]=[];let sql=recordQuery+' WHERE 1';
+    if(before!==undefined&&before!==-1){sql+=' AND ended_at<?';params.push(before);}
+    if(since!==undefined&&since!==-1){sql+=' AND reserved_at>?';params.push(since);}
+    sql+=' ORDER BY requests.rowid '+order+' LIMIT ? OFFSET ?';params.push(limit>0?limit:1001,limit>0?Math.max(0,start):0);
+    const rows=db!.prepare(sql).all(...params);if(rows.length>1000)throw new JournalError('CAPACITY','Use bounded history pagination');
+    return rows.map(row=>({...record(row)!,historyId:String(row.history_id)}));
+  }
   if(method==='scan'){
     const [after,limit]=args;
     if(after!==undefined&&!validJournalId(after)||!Number.isSafeInteger(limit)||Number(limit)<1||Number(limit)>256)throw new JournalError('INVALID','Invalid journal page');

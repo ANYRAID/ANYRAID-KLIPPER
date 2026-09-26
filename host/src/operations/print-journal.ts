@@ -7,6 +7,8 @@ import {
   printStatistics,
   type PrintStatistics,
   type JournalPage,
+  type JournalHistoryRecord,
+  type JournalHistoryQuery,
   validJournalId,
   type JournalOptions,
   type JournalInfo,
@@ -179,6 +181,8 @@ export class PrintJournal {
     if(after!==undefined&&!validJournalId(after)||!Number.isSafeInteger(limit)||limit<1||limit>256)return Promise.reject(new JournalError('INVALID','Invalid journal page'));
     return this.#call('scan',[after,limit]) as Promise<JournalPage>;
   }
+  historyList(query:JournalHistoryQuery={}):Promise<JournalHistoryRecord[]>{return this.#call('historyList',[query]) as Promise<JournalHistoryRecord[]>;}
+  historyGet(id:string):Promise<JournalHistoryRecord|null>{return this.#call('historyGet',[id]) as Promise<JournalHistoryRecord|null>;}
   transition(
     requestId: string,
     revision: number,
