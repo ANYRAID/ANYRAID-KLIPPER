@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "implementationBase": "60796fb4 plus persistent API lifecycle fix",
+  "implementationBase": "bffda149 plus explicit local reinitialization and final-drain representation",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
   "result": "passed_simulated_scope",
@@ -23,7 +23,7 @@
     "resolved": true
   },
   "pending": [
-    "controlled hardware reinitialization and next print after cancellation",
+    "authenticated remote reinitialization",
     "compiled process journey",
     "sealed upload and nonzero-temperature journey",
     "fault injection across active printing and restoration",
@@ -55,11 +55,22 @@
     "HTTP cancel returns success after durable cancellation",
     "cancelled record and unavailable hardware remain queryable",
     "reset does not grant stopped hardware permission; next start rejected before file open",
-    "explicit process abort closes API and releases dependencies"
+    "explicit process abort closes API and releases dependencies",
+    "active printing rejects local reinitialization",
+    "explicit local reinitialization waits for old dependencies, preserves journal, homes and completes a fresh job"
   ],
   "additionalHostTests": [
     "UART disconnect retains authenticated failed status and rejects print start",
     "independent physical stop failure remains visible and shutdown reports cleanup failure",
-    "SIGINT and SIGTERM release dependencies"
-  ]
+    "SIGINT and SIGTERM release dependencies",
+    "SIGHUP readies a fresh generation in actual child process",
+    "duplicate requests coalesce; abort or cleanup failure prevents replacement"
+  ],
+  "additionalResolvedDrainCapture": {
+    "startPosition": 9.95,
+    "endPosition": 9.96,
+    "printTime": 3.619281999999901,
+    "cruiseT": 7.095019016745141e-17,
+    "decelT": 0.0010557280900009367
+  }
 }

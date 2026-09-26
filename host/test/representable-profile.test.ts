@@ -4,7 +4,7 @@ import {Move,motionLimits} from '../src/motion/lookahead.ts';
 import {representableProfile} from '../src/motion/representable-profile.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 function move(start:number,end:number,a:number,b:number){const m=new Move(motionLimits(100,1000),[start,0,0,0],[end,0,0,0],10);m.setJunction(a,100,b);return m;}
-for(const [start,end,a,b,time] of [[3.78,3.79,100,80.00000000000007,3.1993729999999587],[3.88,3.89,99.99999999999964,100,4.667461912383371]])test(`clock representation preserves endpoints and speeds for ${start} -> ${end}`,()=>{
+for(const [start,end,a,b,time] of [[3.78,3.79,100,80.00000000000007,3.1993729999999587],[3.88,3.89,99.99999999999964,100,4.667461912383371],[9.95,9.96,100,79.9999999999983,3.619281999999901]])test(`clock representation preserves endpoints and speeds for ${start} -> ${end}`,()=>{
  const m=move(start,end,a,b),before=structuredClone(m.profile!),p=representableProfile(m,time)!;
  assert.ok(p);assert.deepEqual(m.profile,before);assert.equal(p.startV,before.startV);assert.equal(p.endV,before.endV);assert(p.accel<=m.accel);assert.equal(p.cruiseT,0);
  const duration=p.accelT+p.decelT;assert.equal(time+duration,((time+before.accelT)+before.cruiseT)+before.decelT);

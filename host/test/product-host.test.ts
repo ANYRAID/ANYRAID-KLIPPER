@@ -37,13 +37,14 @@ for(const failedStop of [false,true])test(`runtime hardware fault retains authen
 for(const termination of ['SIGINT','SIGTERM'] as const)test(`executable host owns authenticated HTTP and graceful ${termination} shutdown`,async()=>{
  const dir=await mkdtemp(join(tmpdir(),'host-process-')),script=fileURLToPath(new URL('../../scripts/product-host.ts',import.meta.url)),profile=fileURLToPath(new URL('./helpers/product-host-profile.ts',import.meta.url));
  const child=spawn(process.execPath,[script,'--profile',profile],{env:{...process.env,ANYRAID_TEST_PROFILE_DIR:dir},stdio:['ignore','pipe','pipe']});
- let stdout='',stderr='';const ready=Promise.withResolvers<{address:{port:number}}>();void ready.promise.catch(()=>{});
- child.stdout.on('data',chunk=>{stdout+=chunk;for(const line of stdout.split('\n'))try{const value=JSON.parse(line);if(value.event==='ready')ready.resolve(value);}catch{}});child.stderr.on('data',chunk=>{stderr+=chunk;});
+ let stdout='',stderr='',unread='';const again=Promise.withResolvers<{port:number}>();let seenReady=false;const ready=Promise.withResolvers<{address:{port:number}}>();void ready.promise.catch(()=>{});
+ child.stdout.on('data',chunk=>{stdout+=chunk;unread+=chunk;for(let at=unread.indexOf('\n');at>=0;at=unread.indexOf('\n')){const line=unread.slice(0,at);unread=unread.slice(at+1);try{const value=JSON.parse(line);if(value.event==='ready'){if(seenReady)again.resolve(value.address);seenReady=true;ready.resolve(value);}}catch{}}});child.stderr.on('data',chunk=>{stderr+=chunk;});
  const ended=new Promise<{code:number|null;signal:NodeJS.Signals|null}>((resolve,reject)=>{child.on('error',reject);child.on('exit',(code,signal)=>{ready.reject(new Error(`Host exited before ready: ${stderr}`));resolve({code,signal});});});
  const timer=setTimeout(()=>{child.kill('SIGKILL');ready.reject(new Error(`Host test timeout: ${stderr}`));},15000);
  try{
   const {address}=await ready.promise,url=`http://127.0.0.1:${address.port}/printer/print/status`;
   const denied=await fetch(url);assert.equal(denied.status,401);await denied.arrayBuffer();const accepted=await fetch(url,{headers:{'x-api-key':'test'}});assert.equal(accepted.status,200);assert.equal((await accepted.json() as any).result.state,'idle');
+  if(termination==='SIGTERM'){child.kill('SIGHUP');const next=await again.promise;const after=await fetch(`http://127.0.0.1:${next.port}/printer/print/status`,{headers:{'x-api-key':'test'}});assert.equal(after.status,200);assert.equal((await after.json() as any).result.state,'idle');}
   child.kill(termination);assert.deepEqual(await ended,{code:0,signal:null});assert.deepEqual(JSON.parse(await readFile(join(dir,'closed.json'),'utf8')),{stops:[1,1],motion:[0,0]});await assert.rejects(fetch(url));
  }finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended.catch(()=>{});await rm(dir,{recursive:true,force:true});}
 });
