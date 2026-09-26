@@ -629,13 +629,12 @@ and/or travel path before performing `BED_MESH_CALIBRATE`.
 
 Most users will likely find that the visualizers included with
 applications such as Mainsail, Fluidd, and Octoprint are sufficient
-for basic analysis.  However, Klipper's `scripts` folder contains the
-`graph_mesh.py` script that may be used to perform additional
-visualizations and more detailed analysis, particularly useful
+for basic analysis. The Node command `node scripts/graph_mesh.ts` provides
+additional visualizations and detailed analysis, particularly useful
 for debugging hardware or the results produced by `bed_mesh`:
 
 ```
-usage: graph_mesh.py [-h] {list,plot,analyze,dump} ...
+usage: node scripts/graph_mesh.ts [-h] {list,plot,analyze,dump} ...
 
 Graph Bed Mesh Data
 
@@ -652,22 +651,24 @@ options:
 
 ### Pre-requisites
 
-Like most graphing tools provided by Klipper, `graph_mesh.py` requires
-the `matplotlib` and `numpy` python dependencies. In addition, connecting
-to Klipper via Moonraker's websocket requires the `websockets` python
-dependency.  While all visualizations can be output to an `svg` file, most of
-the visualizations offered by `graph_mesh.py` are better viewed in live
-preview mode on a desktop class PC. For example, the 3D visualizations may be
-rotated and zoomed in preview mode, and the path visualizations can optionally
-be animated in preview mode.
+Install Node.js 26.9 or later in the 26.x series and the dependencies in
+`host` (`npm --prefix host ci`). The old Python entry point has been
+retired; mesh diagnostics and their regression tests no longer require
+Python, NumPy, Matplotlib or Python websockets. Historical numerical
+reference data is retained for comparison.
+
+Plots require an explicit output file. HTML exports provide standalone
+3D rotation, zoom/pan and optional path playback in a browser. SVG, PNG,
+JPEG, WebP, TIFF and PDF provide static output; JSON preserves the full
+numeric model. These are diagnostic exports, not printer motion commands.
 
 ### Plotting Mesh data
 
-The `graph_mesh.py` tool can plot several types of visualizations.
-Available types can be shown by running `graph_mesh.py list`:
+The `node scripts/graph_mesh.ts` tool can plot several types of visualizations.
+Available types can be shown by running `node scripts/graph_mesh.ts list`:
 
 ```
-graph_mesh.py list
+node scripts/graph_mesh.ts list
 points    Plot original generated points
 path      Plot probe travel path
 rapid     Plot rapid scan travel path
@@ -680,7 +681,7 @@ delta     Plots the delta between current probed mesh and a profile
 Several options are available when plotting visualizations:
 
 ```
-usage: graph_mesh.py plot [-h] [-a] [-s] [-p PROFILE_NAME] [-o OUTPUT] <plot type> <input>
+usage: node scripts/graph_mesh.ts plot [-h] [-a] [-s] [-p PROFILE_NAME] -o OUTPUT <plot type> <input>
 
 positional arguments:
   <plot type>           Type of data to graph
@@ -688,7 +689,7 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-  -a, --animate         Animate paths in live preview
+  -a, --animate         Animate paths in an HTML export
   -s, --scale-plot      Use axis limits reported by Klipper to scale plot X/Y
   -p PROFILE_NAME, --profile-name PROFILE_NAME
                         Optional name of a profile to plot for 'probedz'
@@ -700,33 +701,31 @@ Below is a description of each argument:
 
 - `plot type`: A required positional argument designating the type of
   visualization to generate.  Must be one of the types output by the
-  `graph_mesh.py list` command.
+  `node scripts/graph_mesh.ts list` command.
 - `input`: A required positional argument containing a path or url
   to the input source.  This must be one of the following:
   - A path to Klipper's Unix Domain Socket
   - A url to an instance of Moonraker
-  - A path to a json file produced by `graph_mesh.py dump <input>`
+  - A path to a json file produced by `node scripts/graph_mesh.ts dump <input>`
 - `-a`:  Optional animation for the `path` and `rapid` visualization types.
-  Animations only apply to a live preview.
+  Animations require HTML output.
 - `-s`:  Optionally scales a plot using the `axis_minimum` and `axis_maximum`
   values reported by Klipper's `toolhead` object when the dump file was
   generated.
 - `-p`: A profile name that may be specified when generating the
   `probedz` 3D mesh visualization.  When generating an `overlay` or
   `delta` visualization this argument must be provided.
-- `-o`: An optional file path indicating that the script should save the
-  visualization to this location rather than run in preview mode.  Images
-  are saved in `svg` format.
+- `-o`: A required output path. The extension selects HTML, SVG, PNG, JPEG,
+  WebP, TIFF, PDF or JSON; the tool does not open a desktop plotting window.
 
 For example, to plot an animated rapid path, connecting via Klipper's unix
 socket:
 
 ```
-graph_mesh.py plot -a rapid ~/printer_data/comms/klippy.sock
+node scripts/graph_mesh.ts plot -a rapid -o rapid.html ~/printer_data/comms/klippy.sock
 ```
 
-With Node.js 26 and the host dependencies installed, export a standalone
-animated path document instead of opening a Python plotting window:
+Export a standalone animated path document from a saved snapshot or socket:
 
 ```
 node scripts/graph_mesh.ts plot rapid -a -o rapid.html mesh-dump.json
@@ -745,13 +744,12 @@ static plots. Empty travel paths have no playback controls.
 Or to plot a 3d visualization of the mesh, connecting via Moonraker:
 
 ```
-graph_mesh.py plot meshz http://my-printer.local
+node scripts/graph_mesh.ts plot meshz -o mesh.html http://my-printer.local
 ```
 
 ### Bed Mesh Analysis
 
-Local snapshot analysis is also available with Node.js 26 and the host
-package dependencies installed:
+Analyze local snapshots with the same Node entry point:
 
 ```
 node scripts/graph_mesh.ts analyze mesh-dump.json
@@ -789,7 +787,7 @@ Without `-o`, `dump` writes a timestamped JSON filename. Remote replies are
 limited to 64 MiB in total, including unrelated messages. Malformed JSON,
 UTF-8, unsafe integers and non-object mesh results are rejected. This is a
 read-only request and does not pass `mesh_args` or apply calibration changes.
-Static point/path plots also have a Node implementation:
+Export static point/path plots:
 
 ```
 node scripts/graph_mesh.ts list
@@ -838,11 +836,11 @@ requires no server or external JavaScript. Static formats retain the fixed
 view; HTML generation and browser rendering are offline diagnostic work,
 not operations to run in the printer control loop.
 
-The `graph_mesh.py` tool may also be used to perform an analysis on the
+The `node scripts/graph_mesh.ts` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
 
 ```
-graph_mesh.py analyze <input>
+node scripts/graph_mesh.ts analyze <input>
 ```
 
 As with the `plot` command, the `<input>` must be a path to Klipper's
@@ -890,7 +888,7 @@ The `dump` command may be used to save the response to a file which
 can be shared for analysis when troubleshooting:
 
 ```
-graph_mesh.py dump -o <output file name> <input>
+node scripts/graph_mesh.ts dump -o <output file name> <input>
 ```
 
 The `<input>` should be a path to Klipper's unix socket or
@@ -899,4 +897,4 @@ specify the path to the output file.  If omitted, the file will be
 saved in the working directory, with a file name in the following
 format:
 
-`klipper-bedmesh-{year}{month}{day}{hour}{minute}{second}.json`
+`klipper-bedmesh-YYYY-MM-DDTHH-MM-SS-mmmZ.json`

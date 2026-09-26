@@ -23423,3 +23423,26 @@ host/contracts/native-machine-bindings-acceptance.json。
 此变更将验收中的通用装配迁入产品，不代表机型物理适配已经完成；
 默认 Python 入口及 194 个受跟踪 Python 文件仍未退役。历史数值异常、
 SIGSEGV 和 EPIPE 不因本次成功而关闭。
+
+### 退役 Python 网床诊断入口
+
+移除 scripts/graph_mesh.py，统一使用 node scripts/graph_mesh.ts。原脚本
+SHA-256 与 mesh-reference.json 中已捕获源摘要完全一致；保留固定的
+Python/NumPy 数值参考、压缩数据摘要和原作者归属，不再加载旧脚本。
+Bed_Mesh 使用说明已切换为 Node，明确 -o、HTML 动画和三维交互输出，
+不再要求 Python 图形依赖或桌面预览窗口。
+
+删除旧脚本后，在 PATH=/no-programs 环境中 23 项相关回归通过；7 组
+基准顺序通过，未执行 Python。统计最大差异 0，多网床报告最大差异
+2.78e-17；路径坐标、完整曲面数组及既有静态 SVG 摘要对照通过。
+200x300 网床统计中位数 3.36 ms，历史 NumPy 为 7.69 ms；四网床报告
+3.01 ms，历史 Python 为 13.52 ms。历史计时不是本次同期重测。
+
+不是每项更快：Unix 获取中位数 0.341 ms 对历史 0.112 ms；曲面模型
+准备中位数 0.18–0.42 ms，部分慢于历史 Python。它们为独立诊断路径，
+不在主机运动热路径；图片编码及浏览器渲染也不能等同打印速度。完整
+结果见 host/contracts/mesh-retirement-acceptance.json。
+
+本次实际退役 1 个 Python 文件，受跟踪 Python 文件由 194 降至 193。
+klippy/extras/bed_mesh.py 和默认 Python 打印入口仍存在；本次诊断工具
+退役不代表实际网床运动补偿或实机精度已全面验收。

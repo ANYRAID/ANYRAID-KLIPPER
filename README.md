@@ -40,6 +40,11 @@ HTML/PDF/图像，无需 NumPy 或 Matplotlib；不自动修改打印机配置�
 图表脚本已退役。支持多文件比较、各轴选择及完整精度 CSV/JSON；
 需显式指定输出文件，图表计算不会直接控制打印机。
 
+网床分析与可视化统一使用 `node scripts/graph_mesh.ts`，支持路径动画、
+交互三维网床、完整精度报告和远程只读快照。旧 Python 入口已退役；
+回归与基准使用固定数值参考，不再运行 Python、NumPy 或 Matplotlib。
+使用方式见[网床可视化与分析](docs/Bed_Mesh.md#visualization-and-analysis)。
+
 挤出机压力提前示意图使用 `node scripts/graph_extruder.ts -o 输出文件`，
 支持交互 HTML、SVG/PDF 和图像输出；旧 Python 入口及测试运行依赖
 已退役。该工具采用固定示例运动，不是实际打印机的校准指令。
