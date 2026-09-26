@@ -23006,3 +23006,34 @@ memfd，之后以最多 64 KiB 的块传输，保留原始字节（包括 CRLF�
 0.109/0.122/0.109 ms。Worker 启动已预热，数据不是 HTTP 时延，
 不代表目标控制板。证据：`host/contracts/native-file-metadata-performance.json`。
 默认 Python 入口、已知运动异常和实机长期验证的未完成状态保持不变。
+
+## 运动异常的独立 C 算术对照（2026-09-27）
+
+新增 `node host/scripts/diagnose-motion-native.ts --rounds 200`，仅用于
+定位已记录的运动数值异常，不是生产运动算法或 Python 替换后端。
+它从已校验的原 Python 固定数组生成带长度头的 binary64 输入，
+独立 C 程序重新计算四阶限跃度位置、weighted4 滤波、弹簧积分、
+速度、加速度和偏差，逐点对照原值；不执行 Python，不连接打印机。
+沿用位置 1e-12、速度 1e-8、加速度 1e-4、偏差 1e-10 的门限，
+未放宽容差或重复计算后接受首次错误。
+
+C 编译分别使用 O0/O2，显式禁用 fast-math 和浮点乘加融合；程序
+要求小端 IEEE binary64 与最近值舍入。执行测量前，两种程序必须
+检出注入到参考数组的错误。主过程顺序交替运行六个独立 C 进程，
+每个最多 200 轮，单进程 30 秒超时；第一次失败后不追加运行。
+退出成功还要求完成标记和输入文件前后哈希相同。报告保留编译器、
+编译参数、二进制/源码/参考哈希、系统信息、退出状态和输出。
+
+本次 C 对照 6 个进程、1,200 轮均未检出失配，每轮比较 124,926
+个数值（共 149,911,200 次比较）。同轮先完成的 Node 26.9 默认
+配置、无 ASan、单 worker 30 个进程也未观察到失败。它们都只是
+同一台 Ryzen 5 3500X 主机上的有限样本，不能推翻此前 Node/Python
+数值错误和崩溃，也不能证明 C 是修复方案或本机硬件健康。C 耗时
+只记录诊断执行情况，不能解读为打印吞吐量或语言性能排名。
+
+证据保存在 `docs/diagnostics/node26-motion-failures.json` 的
+`nativeArithmeticControl`，原始报告为
+`/tmp/motion-native-control-HEKqtY/report.json` 和
+`/tmp/anyraid-node-asan-6mbQr9/report.json`。本轮未修改生产运动
+代码、精度门限或 Node 运行参数。独立主机验证、异常根因、实机
+长期验收仍未完成；不能据此切换生产入口。

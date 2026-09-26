@@ -559,5 +559,446 @@
         ]
       }
     ]
+  },
+  "nativeArithmeticControl": {
+    "repositoryBase": "96cf298e",
+    "diagnosticScriptSha256": "e45427f7ea3906a16fdf7d1e3ae53e8b8d7188b7d7d47a107b441036734535ff",
+    "nodeBaseline": {
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0-5"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "jsOptimization": "default",
+      "args": [
+        "/tmp/anyraid-node-asan-6mbQr9/fixture.mjs"
+      ],
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "results": [
+        {
+          "index": 0,
+          "pid": 2463915,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 1,
+          "pid": 2463922,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 2,
+          "pid": 2463929,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 3,
+          "pid": 2463936,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 4,
+          "pid": 2463959,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 5,
+          "pid": 2463966,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 6,
+          "pid": 2463973,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 7,
+          "pid": 2463980,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 8,
+          "pid": 2463987,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 9,
+          "pid": 2463994,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 10,
+          "pid": 2464001,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 11,
+          "pid": 2464008,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 12,
+          "pid": 2464031,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 13,
+          "pid": 2464038,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 14,
+          "pid": 2464045,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 15,
+          "pid": 2464052,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 16,
+          "pid": 2464059,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 17,
+          "pid": 2464066,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 18,
+          "pid": 2464074,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 19,
+          "pid": 2464081,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 20,
+          "pid": 2464088,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 21,
+          "pid": 2464096,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 22,
+          "pid": 2464103,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 23,
+          "pid": 2464110,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 24,
+          "pid": 2464117,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 25,
+          "pid": 2464124,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 26,
+          "pid": 2464147,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 27,
+          "pid": 2464154,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 28,
+          "pid": 2464161,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 29,
+          "pid": 2464168,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        }
+      ],
+      "reportPath": "/tmp/anyraid-node-asan-6mbQr9/report.json"
+    },
+    "native": {
+      "description": "C control computes fourth-order jerk-limited nominal positions, weighted4 filtering, spring integration, velocities, accelerations and deviations against fixed original Python arrays. Finite success does not clear earlier failures or certify hardware.",
+      "directory": "/tmp/motion-native-control-HEKqtY",
+      "node": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "sourceSha256": "2e4b8270a53d5c4ec7ecea04fb14faa28989c94e3eab2888265ab1cd88ccaecb",
+      "fixtureSha256": "b81b3000aa135f5e27f81116657742b45eb59a095ebc8bb402bc815c0a349c8f",
+      "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor"
+      },
+      "rounds": 200,
+      "comparedValuesPerRound": 124926,
+      "variants": [
+        {
+          "optimization": "-O0",
+          "binary": "/tmp/motion-native-control-HEKqtY/O0",
+          "sha256": "f24364535007e44e4a34452d3f8dc2eb60e88d85f505861883017ba45c11b38f",
+          "argv": [
+            "-std=c11",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-O0",
+            "-ffp-contract=off",
+            "-fno-fast-math",
+            "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/motion-integrity.c",
+            "-lm",
+            "-o",
+            "/tmp/motion-native-control-HEKqtY/O0"
+          ],
+          "control": {
+            "status": 2,
+            "signal": null,
+            "elapsedMs": 12.406886000000014,
+            "stdout": "motion-c:loaded\n{\"run\":0,\"curve\":0,\"index\":0,\"actual\":0,\"expected\":1,\"error\":-1,\"xor\":\"0x3ff0000000000000\"}\n",
+            "stderr": ""
+          }
+        },
+        {
+          "optimization": "-O2",
+          "binary": "/tmp/motion-native-control-HEKqtY/O2",
+          "sha256": "c2c6a8cc077677f97d186ff0cf1d5a79f6a17ba658eec15462ad4ccc0c1d0a78",
+          "argv": [
+            "-std=c11",
+            "-Wall",
+            "-Wextra",
+            "-Werror",
+            "-O2",
+            "-ffp-contract=off",
+            "-fno-fast-math",
+            "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/motion-integrity.c",
+            "-lm",
+            "-o",
+            "/tmp/motion-native-control-HEKqtY/O2"
+          ],
+          "control": {
+            "status": 2,
+            "signal": null,
+            "elapsedMs": 5.407251999999971,
+            "stdout": "motion-c:loaded\n{\"run\":0,\"curve\":0,\"index\":0,\"actual\":0,\"expected\":1,\"error\":-1,\"xor\":\"0x3ff0000000000000\"}\n",
+            "stderr": ""
+          }
+        }
+      ],
+      "runs": [
+        {
+          "batch": 0,
+          "optimization": "-O0",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 2008.5615839999998,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        },
+        {
+          "batch": 0,
+          "optimization": "-O2",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 547.029669,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        },
+        {
+          "batch": 1,
+          "optimization": "-O2",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 551.2371859999998,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        },
+        {
+          "batch": 1,
+          "optimization": "-O0",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 2005.0961730000004,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        },
+        {
+          "batch": 2,
+          "optimization": "-O0",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 2004.6580359999998,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        },
+        {
+          "batch": 2,
+          "optimization": "-O2",
+          "unchangedBefore": true,
+          "unchangedAfter": true,
+          "complete": true,
+          "status": 0,
+          "signal": null,
+          "elapsedMs": 554.5403240000005,
+          "stdout": "motion-c:loaded\nmotion-c:verified:200\n",
+          "stderr": ""
+        }
+      ],
+      "failed": false
+    },
+    "conclusion": "No failure observed in these bounded same-host samples. Earlier Node and Python failures remain unresolved; no safe CPU, runtime fix, hardware cause or production acceptance is established. Independent-host verification remains outstanding.",
+    "formattedSource": {
+      "sha256": "18c7275bd5290a7855b48dc869b7037d9f86221a8e98525b772f410891daf1ce",
+      "binaries": [
+        {
+          "optimization": "-O0",
+          "sha256": "f24364535007e44e4a34452d3f8dc2eb60e88d85f505861883017ba45c11b38f",
+          "identical": true
+        },
+        {
+          "optimization": "-O2",
+          "sha256": "c2c6a8cc077677f97d186ff0cf1d5a79f6a17ba658eec15462ad4ccc0c1d0a78",
+          "identical": true
+        }
+      ],
+      "explanation": "Only C whitespace and adjacent string literal formatting changed after execution. Rebuilding with the recorded compiler options produced byte-identical O0/O2 executables."
+    }
   }
 }
