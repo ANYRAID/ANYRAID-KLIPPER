@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "implementationBase": "0b0db0a7 plus acknowledged fault persistence and nonzero thermal journey",
+  "implementationBase": "f02b5e9d plus compiled concurrent-load acceptance",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
   "result": "passed_simulated_scope",
   "tests": {
-    "passed": 3,
+    "passed": 4,
     "failed": 0,
     "skipped": 0
   },
@@ -64,7 +64,10 @@
     "compiled process rejects stale resume token and exits cleanly on SIGTERM",
     "compiled request uses nozzle 200 C and bed 60 C; cold reports hold file execution after homing",
     "both heater PWM commands observed on UART before synthetic hot samples; completed targets are zero",
-    "malformed ADC report during printing faults device, persists failed after stop and rejects next start"
+    "malformed ADC report during printing faults device, persists failed after stop and rejects next start",
+    "compiled baseline and loaded journeys; four status clients and sixteen 256 KiB uploads starting during printing",
+    "accepted compressed step commands arrive before first step on simulated MCU clock",
+    "compiled child event-loop p99 below 50 ms and maximum below 100 ms in bounded paired local run"
   ],
   "additionalHostTests": [
     "UART disconnect retains authenticated failed status and rejects print start",
