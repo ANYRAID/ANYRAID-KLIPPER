@@ -9,6 +9,7 @@ import {
   type JournalPage,
   type JournalHistoryRecord,
   type JournalHistoryQuery,
+  type JournalHistoryEvent,
   validJournalId,
   type JournalOptions,
   type JournalInfo,
@@ -27,6 +28,20 @@ export type {
 /** Durable request metadata only. No device commands or automatic print replay. */
 export class PrintJournal {
   #worker: Worker;
+  #historyListeners=new Set<(event:JournalHistoryEvent)=>void>();
+  #historyObserverErrors=0;
+  get historyObserverErrors(){return this.#historyObserverErrors;}
+  /** Synchronous enqueue-only observers. Never await observers on durable ACK. */
+  subscribeHistory(listener:(event:JournalHistoryEvent)=>void):()=>void{
+    if(this.#closed||this.#closing||typeof listener!=='function'||this.#historyListeners.has(listener)||this.#historyListeners.size>=16)throw new JournalError('STATE','Invalid history observer');
+    this.#historyListeners.add(listener);return ()=>{this.#historyListeners.delete(listener);};
+  }
+  #emitHistory(event:JournalHistoryEvent):void{
+    for(const listener of [...this.#historyListeners])try{
+      const result:unknown=listener(structuredClone(event));
+      if(result&&typeof (result as Promise<unknown>).then==='function')void Promise.resolve(result).catch(()=>{this.#historyObserverErrors++;});
+    }catch{this.#historyObserverErrors++;}
+  }
   #pending = new Map<
     number,
     { resolve: (value: unknown) => void; reject: (error: unknown) => void }
@@ -57,7 +72,7 @@ export class PrintJournal {
       this.#closed = true;
       failed(error);
       for (const request of this.#pending.values()) request.reject(error);
-      this.#pending.clear();
+      this.#pending.clear();this.#historyListeners.clear();
     };
     this.#worker.on('message', (message) => {
       if ('ready' in message) {
@@ -73,7 +88,7 @@ export class PrintJournal {
         pending.reject(
           new JournalError(message.error.code, message.error.message),
         );
-      else pending.resolve(message.value);
+      else {pending.resolve(message.value);if(message.historyEvent)this.#emitHistory(message.historyEvent);}
     });
     this.#worker.on('error', fail);
     this.#exited = new Promise((resolve) =>

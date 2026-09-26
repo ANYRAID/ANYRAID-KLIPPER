@@ -10,6 +10,7 @@ import {
   validJournalId,
   type JournalRecord,
   type JournalState,
+  type JournalHistoryEvent,
   type JournalOptions,
 } from './print-journal-types.ts';
 const schema =
@@ -23,11 +24,16 @@ const visibleHistory='NOT EXISTS (SELECT 1 FROM history_hidden WHERE history_hid
 const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
 function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
 function totalsState(){const row=db!.prepare('SELECT value FROM history_totals WHERE id=1').get();if(!row)throw new JournalError('CORRUPT','Missing history totals');return decodeHistoryTotals(String(row.value));}
-function countOutcome(value:JournalRecord):void{
-  if(db!.prepare('SELECT id FROM history_counted WHERE id=?').get(value.request.requestId))return;
+function countOutcome(value:JournalRecord):boolean{
+  if(db!.prepare('SELECT id FROM history_counted WHERE id=?').get(value.request.requestId))return false;
   const totals=totalsState();addHistoryTotals(totals,value.statistics);
   db!.prepare('INSERT INTO history_counted(id) VALUES(?)').run(value.request.requestId);
-  db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(totals));
+  db!.prepare('UPDATE history_totals SET value=? WHERE id=1').run(JSON.stringify(totals));return true;
+}
+let historyEvent:JournalHistoryEvent|undefined;
+function captureHistory(action:JournalHistoryEvent['action'],id:string):void{
+ const row=db!.prepare(recordQuery+' WHERE requests.id=?').get(id)!;
+ historyEvent={action,record:{...record(row)!,historyId:String(row.history_id)}};
 }
 const port = parentPort!;
 const options = workerData as JournalOptions;
@@ -312,7 +318,7 @@ function dispatch(method: string, args: unknown[]): unknown {
         .prepare("INSERT INTO requests VALUES(?,?,'reserved',1)")
         .run(request.requestId, json);
       db!.prepare('INSERT INTO request_times(id,reserved_at) VALUES(?,?)').run(request.requestId,wallTime());
-      return { created: true, record: lookup(request.requestId)! };
+      captureHistory('added',request.requestId);return { created: true, record: lookup(request.requestId)! };
     });
   }
   if (method === 'transition') {
@@ -346,7 +352,7 @@ function dispatch(method: string, args: unknown[]): unknown {
       // Reconciliation cannot establish when an interrupted job actually ended.
       // Keep an existing end time, but never substitute the recovery ACK time.
       if(prior.state!=='interrupted'&&prior.state!=='failed')db!.prepare(`INSERT INTO request_times(id,${field}) VALUES(?,?) ON CONFLICT(id) DO UPDATE SET ${field}=COALESCE(request_times.${field},excluded.${field})`).run(id,wallTime());
-      const updated=lookup(id)!;if(state!=='started')countOutcome(updated);return updated;
+      const updated=lookup(id)!;if(state!=='started'&&countOutcome(updated))captureHistory('finished',id);return updated;
     });
   }
   throw new JournalError('INVALID', 'Unknown journal operation');
@@ -358,8 +364,8 @@ try {
     'message',
     (message: { id: number; method: string; args: unknown[] }) => {
       try {
-        const value = dispatch(message.method, message.args);
-        port.postMessage({ id: message.id, value });
+        historyEvent=undefined;const value = dispatch(message.method, message.args);
+        port.postMessage({ id: message.id, value, historyEvent });
         if (closed) port.close();
       } catch (error) {
         port.postMessage({ id: message.id, error: errorData(error) });

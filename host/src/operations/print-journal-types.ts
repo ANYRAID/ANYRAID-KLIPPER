@@ -10,6 +10,7 @@ export interface JournalRecord {
 }
 export interface JournalPage {records:JournalRecord[];nextAfter:string|null;}
 export interface JournalHistoryRecord extends JournalRecord {historyId:string;}
+export interface JournalHistoryEvent {action:'added'|'finished';record:JournalHistoryRecord;}
 export interface JournalHistoryQuery {before?:number;since?:number;limit?:number;start?:number;order?:string;}
 export interface PrintStatistics {totalDuration:number|null;printDuration:number|null;filamentUsed:number|null;}
 export function printStatistics(value:unknown):PrintStatistics {

@@ -1,0 +1,153 @@
+{
+  "base": "347e0e50",
+  "schema": 5,
+  "tests": {
+    "targeted": 18,
+    "product": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "metrics": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 171,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 86.528,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.893375,
+            "maxMs": 13.082623
+          },
+          "cpu": {
+            "user": 712258,
+            "system": 83031
+          },
+          "rss": 161869824
+        },
+        {
+          "loop": {
+            "p99Ms": 1.831935,
+            "maxMs": 5.259263
+          },
+          "cpu": {
+            "user": 462804,
+            "system": 59393
+          },
+          "rss": 182751232
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 465,
+      "historyP99Ms": 8.725701000003028,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.634573000003002,
+      "deleteRequests": 16,
+      "deleteP95Ms": 15.566396000001987,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.2632420000009006,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.15748800000074,
+      "downloads": 16,
+      "downloadP95Ms": 9.936348000002909,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 85.486,
+      "directoryRequests": 1979,
+      "directoryP99Ms": 8.557509000002028,
+      "statusRequests": 8255,
+      "uploads": 16,
+      "statusP99Ms": 4.620924999999261,
+      "uploadP95Ms": 10.995892000002641,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.801663,
+            "maxMs": 14.123007
+          },
+          "cpu": {
+            "user": 2223668,
+            "system": 267537
+          },
+          "rss": 250990592
+        },
+        {
+          "loop": {
+            "p99Ms": 1.907711,
+            "maxMs": 4.968447
+          },
+          "cpu": {
+            "user": 1260423,
+            "system": 178436
+          },
+          "rss": 263413760
+        }
+      ]
+    }
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "jobs": 100,
+    "warmups": 3,
+    "runs": 11,
+    "variants": [
+      "noObserver",
+      "oneObserver"
+    ],
+    "results": [
+      {
+        "medianMs": 0.5363287000000128,
+        "p95Ms": 0.568028740000002
+      },
+      {
+        "medianMs": 0.5521485300000063,
+        "p95Ms": 0.5678965299999982
+      }
+    ],
+    "addedP95Ms": -0.00013221000000385175,
+    "maximumAddedP95Ms": 2,
+    "scope": "Per-job reserve and terminal durable transactions including event IPC, with/without one enqueue-only observer in current implementation; not before/after worker capture or network latency, no physical target guarantee."
+  },
+  "hashes": {
+    "host/src/operations/print-journal-worker.ts": "0ce3984c19780193b09710832b766d9d4899dc8f32d31f6461e2c4558e4df08a",
+    "host/src/operations/print-journal.ts": "94b553ffa5307dc09f08d5d09684bb1fed95bd55d2ca81d4231768c25c3c7ccc",
+    "host/src/moonraker/native-history.ts": "20a411fa1ba1db4d90a7d686e28cf50ea70c73e7e36f856718e19cc475abd86b",
+    "host/src/moonraker/configured-server.ts": "1c04f1b40c3dfbd7a44bf4d733774dd9877c42aeab8b554552ebfe4927435ae4",
+    "host/acceptance/product-compiled-journey.test.ts": "12d466f175e86959520b86b0223445c12223c8601ff4a14bc3f80994cfe5e97a",
+    "host/test/native-history-events.test.ts": "f4bdd65ca779e9e18a44108db52f97e36ed4bb274ded62346e37f2cf6e48476c",
+    "host/bench/native-history-events.ts": "df02ceb5eff03a822290263467db76f6ba416fea2cbebd85994b80f13ac621af",
+    "/tmp/history-events-tests.log": "c039ab71e32ec4ac103b6adcafaaadbc51b4f6a58b5a4f108e549066688899c2",
+    "/tmp/history-events-product-final.log": "945630858adb8e5e65833e718dbfacfa83a57bd7627eaad942f16fd3173d330a",
+    "/tmp/history-events-bench-final.log": "c64f90d8fb66a65cbc79e7b9a8c463099652e4932aad9b6f798324620c55eb0e"
+  },
+  "limitations": [
+    "Notification delivery is bounded and best effort; reconnect requires history queries",
+    "No before/after worker capture benchmark; one-observer versus no-observer current implementation only",
+    "Compiled acceptance uses emulated MCU hardware; no physical accuracy or target performance proof",
+    "User attribution, slicer metadata, auxiliary statistics and full Python retirement remain incomplete"
+  ]
+}

@@ -143,6 +143,7 @@ export class PrintController {
   #lastReset: string | undefined;
   /** Read durable request metadata without replaying or changing device state. */
   requestRecord(requestId:string):Promise<JournalRecord|null>{return this.#journal?this.#journal.get(requestId):Promise.resolve(null);}
+  subscribeHistory(listener:(event:import('./print-journal-types.ts').JournalHistoryEvent)=>void){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.subscribeHistory(listener);}
   historyList(query:import('./print-journal-types.ts').JournalHistoryQuery){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyList(query);}
   historyGet(id:string){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyGet(id);}
   historyDelete(id:string,all=false){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyDelete(id,all);}
