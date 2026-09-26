@@ -1,0 +1,282 @@
+{
+  "schema": 1,
+  "implementationBase": "2df24a32",
+  "validation": {
+    "relatedTests": 28,
+    "productAcceptance": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "hashes": {
+    "host/src/moonraker/native-printer-info.ts": "22634a5460261541d45737b3ed292dbd438f3ef48a4cfd68578042693347aceb",
+    "host/src/moonraker/native-host-status.ts": "474b4632d5810a07ac43d86a9942e9e6ad7027a3dda3d7de64dd726d4eeb5a5b",
+    "host/src/moonraker/metadata.ts": "c914e6938a0f73408c73276ee44d93d7e7081c9fdfdc7b72e20b525ffee30226",
+    "host/src/moonraker/configured-server.ts": "9a38903ebf956cf83493e1096b89693372dffa533fd69654d6b2d0e9a1d950b6",
+    "host/src/runtime/product-service.ts": "6ed4046f893280d44b27add38563c541ac6b52af7280c365cb6c7dd810102c69",
+    "host/src/runtime/product-objects.ts": "44a75c2ea9e20c1024b4be7beebf576a0de6ac8504a770109214a01a53e00ed9",
+    "host/test/native-host-status.test.ts": "4af14396e7ac1368ca71807ed5b31099055fed6d980c52e0d90e6e112898ae11",
+    "host/acceptance/product-compiled-journey.test.ts": "3eba76b41646bb2c1afad4009bcb38380d2d656f086404041d9773443fba39c3",
+    "host/bench/native-host-status.ts": "5853439ecf17b4c445bb87626950ec742e71e270916c3609528bd3421970b738"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmup": 3,
+    "samples": 11,
+    "iterations": 100000,
+    "variants": [
+      "existingMetadata",
+      "metadataWithNativeSnapshot",
+      "nativeSnapshotAndPrinterIdentity"
+    ],
+    "timing": [
+      {
+        "medianUs": 0.023823600000000625,
+        "p95Us": 0.08847781999999937
+      },
+      {
+        "medianUs": 0.45047445000000036,
+        "p95Us": 0.48488052999999975
+      },
+      {
+        "medianUs": 0.6051077100000021,
+        "p95Us": 0.6372958599999993
+      }
+    ],
+    "cpu": [
+      {
+        "medianUs": 0.02399,
+        "p95Us": 0.17329
+      },
+      {
+        "medianUs": 0.45016,
+        "p95Us": 0.67729
+      },
+      {
+        "medianUs": 0.60711,
+        "p95Us": 0.82862
+      }
+    ],
+    "maximumAddedUs": 5,
+    "checksum": 109900000,
+    "scope": "Synchronous metadata response construction and bounded validation of a two-MCU snapshot. Third variant also constructs printer.info identity and protocol state; identity captured once. Excludes HTTP/RPC serialization, device getters and physical printing."
+  },
+  "product": [
+    {
+      "installation": {
+        "durationMs": 688.8270320000001,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 147,
+      "wireSteps": 3228,
+      "minimumStepLeadMs": 89.754,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.806335,
+            "maxMs": 12.926975
+          },
+          "cpu": {
+            "user": 702208,
+            "system": 73757
+          },
+          "rss": 164167680
+        },
+        {
+          "loop": {
+            "p99Ms": 1.760255,
+            "maxMs": 5.259263
+          },
+          "cpu": {
+            "user": 422279,
+            "system": 55206
+          },
+          "rss": 183246848
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 688.5382259999969,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.810096000001067,
+      "deleteRequests": 16,
+      "deleteP95Ms": 6.140887999998085,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.247756999997364,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.070319999998901,
+      "downloads": 16,
+      "downloadP95Ms": 5.347932000004221,
+      "wireCommands": 149,
+      "wireSteps": 3222,
+      "minimumStepLeadMs": 86.969,
+      "directoryRequests": 2053,
+      "directoryP99Ms": 7.292137000000366,
+      "statusRequests": 8524,
+      "uploads": 16,
+      "statusP99Ms": 3.1233640000027663,
+      "uploadP95Ms": 13.593025999998645,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.999871,
+            "maxMs": 14.188543
+          },
+          "cpu": {
+            "user": 1877707,
+            "system": 231899
+          },
+          "rss": 244060160
+        },
+        {
+          "loop": {
+            "p99Ms": 1.852415,
+            "maxMs": 4.575231
+          },
+          "cpu": {
+            "user": 1109256,
+            "system": 143421
+          },
+          "rss": 243150848
+        }
+      ]
+    }
+  ],
+  "earlierTrial": [
+    {
+      "installation": {
+        "durationMs": 688.0345919999995,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 147,
+      "wireSteps": 3224,
+      "minimumStepLeadMs": 90.233,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.829887,
+            "maxMs": 12.910591
+          },
+          "cpu": {
+            "user": 688724,
+            "system": 70656
+          },
+          "rss": 158920704
+        },
+        {
+          "loop": {
+            "p99Ms": 1.771519,
+            "maxMs": 4.640767
+          },
+          "cpu": {
+            "user": 443451,
+            "system": 52931
+          },
+          "rss": 180260864
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 698.8683029999993,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.946584999997867,
+      "deleteRequests": 16,
+      "deleteP95Ms": 3.534625000000233,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.4177769999987504,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.48215099999652,
+      "downloads": 16,
+      "downloadP95Ms": 3.058250999998563,
+      "wireCommands": 147,
+      "wireSteps": 3230,
+      "minimumStepLeadMs": 87.041,
+      "directoryRequests": 2064,
+      "directoryP99Ms": 5.3053169999984675,
+      "statusRequests": 8567,
+      "uploads": 16,
+      "statusP99Ms": 3.027290999998513,
+      "uploadP95Ms": 15.027443999999377,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.052095,
+            "maxMs": 13.017087
+          },
+          "cpu": {
+            "user": 1876960,
+            "system": 238657
+          },
+          "rss": 246386688
+        },
+        {
+          "loop": {
+            "p99Ms": 2.014207,
+            "maxMs": 5.423103
+          },
+          "cpu": {
+            "user": 1083205,
+            "system": 147845
+          },
+          "rss": 263176192
+        }
+      ]
+    }
+  ],
+  "scope": "Opt-in standard-client discovery on native product service: live server.info/printer.info and webhooks state, truthful Node process identity, failed/interrupted readiness exclusion, auth before status access and fail-closed source errors. Compiled process with freshly built addons and independent npm dependency tree, dual PTY simulated printing and ADC fault. Local benchmark excludes network and physical hardware.",
+  "remaining": [
+    "Full client compatibility, lifecycle notifications and remaining Moonraker APIs",
+    "Default Python entrypoint and remaining Python code",
+    "Historical numerical anomaly root cause",
+    "Target-board and real hardware acceptance"
+  ]
+}

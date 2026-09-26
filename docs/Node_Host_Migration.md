@@ -23316,3 +23316,28 @@ HTTP 查询/body 与 WebSocket、文件拒绝授权、状态竞争、断开与�
 生成的 compat 请求标识可从状态及持久日志查询，精确重试仍用类型化
 接口。当前文件范围仍是原生扁平存储。本交付不表示完整 Moonraker、
 现成客户端整体适配或实机精度验收完成，也未退役默认 Python 入口。
+
+### 原生主机的标准客户端发现状态（2026-09-27）
+
+启用标准打印适配的产品服务现同时提供 printer.info，并把 server.info
+中的兼容连接/状态字段映射到进程内原生后端。host_type: node 及 node_path
+标明实际运行时，python_path 为空，不声称存在 Python Klippy 进程。
+进程 ID、用户/组 ID、主机名、CPU 和实际打印配置路径均来自当前服务；
+software_version 采用集成模块声明的版本。未启用适配的服务保留旧字段。
+原生对象目录新增 webhooks，state/state_message 与发现接口共用映射。
+
+ready 不再在 failed/interrupted 作业状态下成立；中断待恢复映射 error，
+设备/打印失败和停止映射 shutdown，初始化映射 startup。每次请求读取
+活跃所有者，源异常返回 503；鉴权先于读取，错误文本不暴露底层路径。
+这里的 connected 表示原生后端仍可查询，不表示硬件 ready 或获准打印。
+
+28 项相关回归、4 项产品验收、类型及空白检查通过。实际编译进程覆盖
+发现就绪、标准打印、取消、设备重建和 ADC 故障的状态判定。两 MCU
+同步快照加 printer.info 响应构造中位数约 0.61 微秒、P95 0.64 微秒，
+不含网络传输；最终模拟打印负载状态查询 P99 3.12 ms，最小步进提前量
+86.97 ms，事件循环最大延迟 14.19 ms。记录与摘要见
+`host/contracts/native-printer-discovery-acceptance.json`。
+
+仍缺少完整客户端生命周期通知和其他 Moonraker 能力；本轮不构成现成
+客户端整体验收。默认 Python 入口、其他 Python 代码、历史数值异常和
+实机精度门槛继续保留，未宣称完成。

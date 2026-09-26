@@ -193,15 +193,18 @@ NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契�
 - `closing`、`admission_closed`、`maintenance`：服务退场、永久关闭准入
   和维护占用状态。
 - `ready`：MCU 组、所有会话及硬件均 ready，且服务未退场、准入未永久
-  关闭。它不授予新打印许可；维护占用、当前作业、归零和温度约束仍
+  关闭，打印状态不是 failed/interrupted。它不授予新打印许可；维护占用、
+  当前作业、归零和温度约束仍
   必须分别满足。例如未归零的空闲主机可以 ready，但不能越过归零策略。
 
 这些值不从 HTTP 监听或机器配置中的静态信息推断。物理停止确认还在
 等待时，group_state 已变为 stopping，ready 立即为 false。读取失败或
 来源数据不合法时返回 503，不返回此前缓存的 ready，也不暴露内部
 错误。该扩展沿用 `/server/info` 鉴权，普通 Klippy 模式不添加此字段；
-`klippy_connected` 和 `klippy_state` 继续描述 Klippy，不因原生主机
-就绪而伪造 Python 连接。已有打印状态通知仍使用 notify_print_state_changed。
+未启用标准客户端适配时，`klippy_connected` 和 `klippy_state` 保持旧
+后端字段。启用 productPrintCompatibility 的产品服务将这两个兼容字段
+映射到进程内原生后端的连接与状态，并返回 host_type: node，含义不是
+存在 Python 进程。已有打印状态通知仍使用 notify_print_state_changed。
 
 原生服务还提供 `/printer/objects/list` 与 `/printer/objects/query`，支持
 鉴权 REST 和 JSON-RPC（包括 WebSocket）；字段选择格式沿用 Moonraker：
@@ -224,6 +227,7 @@ JSON-RPC 方法为 `printer.objects.query`，参数示例：
 目前已绑定：
 
 - `native_host`：上述主机状态。
+- `webhooks`：与 printer.info 相同的 state/state_message，不含内部故障文本。
 - `gcode_move`：坐标模式、速度倍率、进料速度、挤出倍率、归零偏移、
   指令位置、G-code 位置及轴映射。speed 沿用上游 mm/min；位置不取整。
 - `toolhead`：指令位置、归零轴、四分量坐标边界、当前挤出机名称、
@@ -575,3 +579,17 @@ pause/resume/cancel 接受空参数；对应 WebSocket JSON-RPC 方法相同。
 不能保证跨完成状态的重复开始请求恰好执行一次；丢失响应应先查询状态，
 需要精确重试的产品客户端继续使用类型化 request_id 接口。
 这仅补齐打印四接口的适配，不代表完整 Moonraker 或现成客户端整体兼容。
+
+启用标准打印适配的产品服务同时注册 `/printer/info`。身份数据来自当前
+进程和实际加载的打印配置：process_id、用户/组 ID、Node 可执行路径、
+主机名、CPU、config_file 及集成模块提供的软件版本。python_path 和
+log_file 为空字符串，表示没有 Python 解释器及专用 Klippy 日志；
+node_path 与 host_type 明确标识原生运行时。身份字段初始化时捕获，
+每次请求的状态仍从当前所有者读取。该接口沿用常规 RPC/HTTP 鉴权。
+
+server.info、printer.info 和 webhooks 的就绪映射一致：硬件准备中是
+startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 error，
+故障、停止或退场是 shutdown。有效原生后端即使硬件故障仍可查询，
+因此 klippy_connected 可为 true、klippy_state 为 shutdown；这不授予
+打印许可。状态源异常返回 503，不用此前成功快照替代。未启用标准适配
+的产品服务不新增 printer.info，也不修改旧连接字段。

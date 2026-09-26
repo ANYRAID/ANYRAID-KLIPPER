@@ -1,3 +1,4 @@
+import {nativePrinterState} from '../moonraker/native-printer-info.ts';
 import {NativeObjects,type NativeObjectReader} from '../moonraker/native-objects.ts';
 import {readNativeHostStatus,type NativeHostStatusSource} from '../moonraker/native-host-status.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
@@ -9,6 +10,7 @@ import {productPrintStatus} from './product-print-status.ts';
 export function productObjects(printer:Awaited<ReturnType<typeof connectProductPrinter>>,nativeHost:NativeHostStatusSource):NativeObjects{
  const pressure=printer.print.gcode.pressureAdvance;
  const readers=new Map<string,NativeObjectReader>([
+  ['webhooks',()=>nativePrinterState(readNativeHostStatus(nativeHost))],
   ['native_host',()=>readNativeHostStatus(nativeHost)],
   ['gcode_move',()=>printer.print.gcode.coordinates.objectStatus],
   ['virtual_sdcard',()=>printer.print.file.objectStatus],
