@@ -57,7 +57,8 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 `npm --prefix host run bench:product-build` 比较源码与编译包的冷启动及
 后台任务，逐项核对数学输出。编译产物测试另行禁用 TypeScript 解析
 并清空外部程序 PATH，覆盖数值计算、持久化、缩略图、原生步进、PDF
-字体资源和双 UART 主机启停。测试 UART 对端为模拟 MCU。
+字体资源和双 UART 主机启停。统一产品验收另覆盖编译包的上传、打印、
+暂停/恢复、取消及 SIGHUP 后再打印。测试 UART 对端为模拟 MCU。
 
 ## 机器模块契约
 
@@ -416,7 +417,7 @@ npm --prefix host run test:product-acceptance
 ```
 
 此独立命令顺序执行主机流程验收和最小运动复现，属于产品交付必过
-门槛。普通单元测试通过不能替代它。当前两项通过；范围仅为下述
+门槛。普通单元测试通过不能替代它。当前三项通过；范围仅为下述
 模拟设备流程，仍不代表整个产品验收完成。状态记录在
 [product-acceptance-status.json](../host/contracts/product-acceptance-status.json)。
 
@@ -427,7 +428,17 @@ npm --prefix host run test:product-acceptance
 该硬件会话，reset 只清理作业终态，不重新授予硬件准入；再次打印被
 拒绝且不会打开文件或生成运动。显式本机重新初始化后，历史取消记录仍可查询，新任务重新归零并完成；
 活动打印中的重新初始化会被拒绝。模拟限位和文件授权仅属于测试夹具，
-没有证明真实加热、sealed 上传、限位、步进硬件或打印质量。
+没有证明真实加热、限位、步进硬件或打印质量。
+
+第三项从新构建的运行包启动独立 Node.js 子进程，禁用 TypeScript
+直接加载并清空外部程序 PATH，机器模块仅导入包内 JavaScript 与原生库。
+经鉴权 multipart 上传真实 G-code，核对 SHA-256 回执和禁止自动开印，
+使用 PublishedPrintFiles.acquire 的 sealed 文件执行完整打印流程。
+未经授权上传被拒绝；暂停/恢复与过期令牌拒绝、最终位置、取消、
+SIGHUP 后历史与文件恢复、新任务重新归零并完成、SIGTERM 清理均通过。
+MCU 模拟器在父进程，子进程不导入源码测试夹具；第三项仍使用零温度
+请求和模拟物理停止，不代表热控、故障恢复或真实打印完整验收。
+依赖目录复用本机已安装 node_modules，尚不是全新目标系统安装验收。
 
 最小复现不需要网络/MCU：X=3.78→3.79 mm、加速度 1000、起始与峰值
 速度平方 100、末速度平方 80.00000000000007，在打印时间

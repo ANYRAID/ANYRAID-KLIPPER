@@ -1,11 +1,11 @@
 {
   "schema": 1,
-  "implementationBase": "bffda149 plus explicit local reinitialization and final-drain representation",
+  "implementationBase": "e87582b1 plus compiled process sealed-upload journey acceptance",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
   "result": "passed_simulated_scope",
   "tests": {
-    "passed": 2,
+    "passed": 3,
     "failed": 0,
     "skipped": 0
   },
@@ -23,14 +23,14 @@
     "resolved": true
   },
   "pending": [
+    "nonzero-temperature compiled process journey",
+    "fresh target-system dependency installation",
     "authenticated remote reinitialization",
-    "compiled process journey",
-    "sealed upload and nonzero-temperature journey",
     "fault injection across active printing and restoration",
     "full-load performance",
     "real hardware acceptance"
   ],
-  "scope": "Real host CLI, native queues and UART bytes against simulated MCU responses; fixture file authorization and zero-temperature job. Does not establish real endstop, thermal, sealed upload, motor or print-quality acceptance. No motion guard or tolerance changed. Independent previously recorded runtime instability remains unresolved.",
+  "scope": "Source CLI journey uses fixture file access. Compiled child-process journey uses actual authenticated multipart upload and PublishedPrintFiles sealed reader, bundled JS/native addons and shared installed dependencies. Both use dual PTY UART firmware simulators, zero-temperature jobs and simulated physical stop. Does not establish fresh-system install, real thermal/endstop/motor behavior, target-board throughput or print quality. Independent recorded runtime instability remains unresolved.",
   "additionalResolvedCapture": {
     "startPosition": 3.88,
     "endPosition": 3.89,
@@ -57,7 +57,12 @@
     "reset does not grant stopped hardware permission; next start rejected before file open",
     "explicit process abort closes API and releases dependencies",
     "active printing rejects local reinitialization",
-    "explicit local reinitialization waits for old dependencies, preserves journal, homes and completes a fresh job"
+    "explicit local reinitialization waits for old dependencies, preserves journal, homes and completes a fresh job",
+    "fresh compiled bundle process with TypeScript stripping disabled and external PATH empty",
+    "authenticated multipart upload receipt SHA-256 matches exact G-code and does not start printing",
+    "compiled process prints PublishedPrintFiles sealed reader through pause/resume, completion and cancellation",
+    "SIGHUP compiled process restores published file receipt and journal; fresh job homes and completes",
+    "compiled process rejects stale resume token and exits cleanly on SIGTERM"
   ],
   "additionalHostTests": [
     "UART disconnect retains authenticated failed status and rejects print start",
