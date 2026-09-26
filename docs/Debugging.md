@@ -199,25 +199,13 @@ The Node tool supports PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON curve data. Use
 `-t heater_bed,extruder` for temperatures. An output filename is required;
 run `node ~/klipper/scripts/graphstats.ts --help` for the options.
 
-The original Python tool is still required for its interactive window and
-other export formats such as EPS. For that tool, install the
-"matplotlib" package:
-
-```
-sudo apt-get update
-sudo apt-get install python-matplotlib
-```
-
-Then graphs can be produced with:
-
-```
-~/klipper/scripts/graphstats.py /tmp/klippy.log -o loadgraph.png
-```
-
-One can then view the resulting **loadgraph.png** file.
+The Python statistics entry point has been retired. Use HTML for interactive
+zoom and curve selection, PDF or SVG for vector output, and PNG for images.
+No Python or Matplotlib installation is needed. The CLI requires an explicit
+output path; it does not open a desktop plotting window or export EPS.
 
 Different graphs can be produced. For more information run:
-`~/klipper/scripts/graphstats.py --help`
+`node ~/klipper/scripts/graphstats.ts --help`
 
 ## Generating extruder motion graphs
 

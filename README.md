@@ -26,6 +26,10 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [运行时与运动数值异常记录](docs/diagnostics/node26-motion-failures.json)；
 当前不能据此工作区的成功样本宣称已满足生产稳定性和运动精度要求。
 
+日志统计图统一使用 `node scripts/graphstats.ts 日志文件 -o 输出文件`，
+支持 MCU 负载、系统资源、频率和温度曲线。旧 Python 入口及回归
+运行依赖已退役；安装 host 依赖后可直接导出交互 HTML、PDF 或图像。
+
 离线输入整形校准已改为 `node scripts/calibrate_shaper.ts`，旧 Python
 脚本已退役。安装 `host` 依赖后可输出完整精度 CSV、拟合报告和
 HTML/PDF/图像，无需 NumPy 或 Matplotlib；不自动修改打印机配置。

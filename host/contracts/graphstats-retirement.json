@@ -1,0 +1,112 @@
+{
+  "source": "scripts/graphstats.py",
+  "sourceSha256": "1fa13e1adc27746f6e375ef3d88d07abf6551978fe0ffeb8025bc0e95d5b63cb",
+  "dataSha256": "6d926e4d9a6ce5778b90a3fbb858cbf0d0d1b1b8d8d7b2313494bfe0033141c8",
+  "compressedSha256": "19554444acbb4bf78a2efc8345a7cd2879eec7a3ca9bf00dc22361d042f7c411",
+  "uncompressedBytes": 10084468,
+  "compressedBytes": 835273,
+  "cases": [
+    {
+      "count": 10,
+      "mcu": null,
+      "inputSha256": "82a1b77a78df81912e44311d602989f4c6998f254432930d3ec8314f8e8e2876"
+    },
+    {
+      "count": 10,
+      "mcu": "tool",
+      "inputSha256": "82a1b77a78df81912e44311d602989f4c6998f254432930d3ec8314f8e8e2876"
+    },
+    {
+      "count": 1000,
+      "mcu": null,
+      "inputSha256": "2767127fb509c8af1e8a64f5a7784356e19a55209a3e080d45f8695b5e8451be"
+    },
+    {
+      "count": 1000,
+      "mcu": "tool",
+      "inputSha256": "2767127fb509c8af1e8a64f5a7784356e19a55209a3e080d45f8695b5e8451be"
+    },
+    {
+      "count": 10000,
+      "mcu": null,
+      "inputSha256": "05980ea1836c8d9e6c4410d88eb149ba9d8800298e66db8ad88adb36096e5d56"
+    }
+  ],
+  "before": {
+    "node": "v26.9.0",
+    "samples": 10000,
+    "inputBytes": 4234777,
+    "warmups": 5,
+    "runs": 11,
+    "nodeParseAndFivePlots": {
+      "medianMs": 167.70748400000048,
+      "p95Ms": 176.7113649999992
+    },
+    "pythonParseAndFivePlots": {
+      "medianMs": 302.4325100122951,
+      "p95Ms": 310.1950460113585
+    },
+    "scope": "Diagnostic calculations only: original Python parser and five original plot functions with a recording Matplotlib stub; Node typed plot models. Both begin with decoded input text; original Python open is adapted to StringIO. Process startup, JSON transfer, rendering and GUI excluded. All curve values compared each run. This is not a renderer benchmark or target-board print timing guarantee."
+  },
+  "scope": "Original Python parser output and five plot functions captured with existing recording Matplotlib adapter. Original plot arrays retained without downsampling. No GUI or physical printer acceptance.",
+  "exportBefore": {
+    "node": "v26.9.0",
+    "samples": 10000,
+    "inputBytes": 4234777,
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "medianMs": 129.94328300000006,
+        "p95Ms": 188.61397999999997
+      },
+      {
+        "format": "png",
+        "medianMs": 170.42371600000024,
+        "p95Ms": 179.26513499999965
+      }
+    ],
+    "scope": "Standalone Node diagnostic file read, strict decoding, parsing, system curve calculation, SVG generation, optional PNG rasterization and atomic file replacement. Decode validation outside timers. No Python renderer comparison, GUI or printer timing claim."
+  },
+  "after": {
+    "node": "v26.9.0",
+    "samples": 10000,
+    "inputBytes": 4234777,
+    "warmups": 5,
+    "runs": 11,
+    "nodeParseAndFivePlots": {
+      "medianMs": 159.91560100000015,
+      "p95Ms": 176.5918479999998
+    },
+    "historicalPythonParseAndFivePlots": {
+      "medianMs": 302.4325100122951,
+      "p95Ms": 310.1950460113585
+    },
+    "nodeBeforeRetirement": {
+      "medianMs": 167.70748400000048,
+      "p95Ms": 176.7113649999992
+    },
+    "scope": "In-memory diagnostic parsing and five plot models. All samples and complete curves checked against hash-verified original Python captures outside timers. Python timing is historical, not rerun. No rendering, process startup or printer throughput claim."
+  },
+  "exportAfter": {
+    "node": "v26.9.0",
+    "samples": 10000,
+    "inputBytes": 4234777,
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "medianMs": 127.54918799999996,
+        "p95Ms": 141.42595400000005
+      },
+      {
+        "format": "png",
+        "medianMs": 167.9130210000003,
+        "p95Ms": 172.6299629999994
+      }
+    ],
+    "scope": "Standalone Node diagnostic file read, strict decoding, parsing, system curve calculation, SVG generation, optional PNG rasterization and atomic file replacement. Decode validation outside timers. No Python renderer comparison, GUI or printer timing claim."
+  }
+}
