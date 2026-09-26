@@ -712,6 +712,11 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 
 ## 原生打印加载已保存网床
 
+声明式产品入口使用 Klipper 配置加载器读取 printer.cfg，包含主文件
+SAVE_CONFIG 自动保存区及 include。普通配置按 Klipper 规则覆盖保存区
+同名选项；损坏保存区在获取设备适配器前拒绝。Moonraker 配置仍使用
+其独立加载器。这不表示原生 SAVE_CONFIG 写入已接通。
+
 线性原生主机现在读取 [bed_mesh] 及版本 1 的 [bed_mesh 名称] 保存数据，
 支持显式 BED_MESH_PROFILE LOAD=名称、BED_MESH_CLEAR，以及
 BED_MESH_OFFSET X=数值 Y=数值 ZFADE=数值。偏移参数可分别省略，

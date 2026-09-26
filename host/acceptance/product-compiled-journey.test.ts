@@ -1,3 +1,4 @@
+import {AUTOSAVE_HEADER} from '../src/config/klipper-autosave.ts';
 import test from 'node:test';
 import {once} from 'node:events';
 import WebSocket from 'ws';
@@ -33,7 +34,7 @@ for(const loaded of [false,true])test(`load=${loaded}: compiled process uploads 
  const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
  async function nextTransport(){
   if(poll)clearInterval(poll);if(thermal)clearInterval(thermal);hot=false;assert.equal(timers.size,0);const transport=await productTransports(f.reader);transports.push(transport);
-  await writeFile(printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n')+(loaded?'\n\n[bed_mesh]\n[bed_mesh saved]\nversion: 1\nmin_x: 0\nmax_x: 100\nmin_y: 0\nmax_y: 100\nx_count: 2\ny_count: 2\nmesh_x_pps: 0\nmesh_y_pps: 0\nalgo: direct\ntension: .2\npoints: 0,.1\n  .4,.2\n':''));
+  await writeFile(printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n')+(loaded?'\n\n[bed_mesh]\n'+AUTOSAVE_HEADER+'#*# [bed_mesh saved]\n#*# version: 1\n#*# min_x: 0\n#*# max_x: 100\n#*# min_y: 0\n#*# max_y: 100\n#*# x_count: 2\n#*# y_count: 2\n#*# mesh_x_pps: 0\n#*# mesh_y_pps: 0\n#*# algo: direct\n#*# tension: .2\n#*# points: 0,.1\n#*#   .4,.2\n':''));
   const firmware=transport.firmware[0],decoder=new FrameDecoder(),stepClocks=new Map<number,number>();let cursor=0,sequence=1;
   firmware.peer.on('data',chunk=>{for(const frame of decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk)){
    if((frame[1]&15)!==sequence)continue;sequence=(sequence+1)&15;

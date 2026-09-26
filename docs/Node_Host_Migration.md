@@ -23889,3 +23889,16 @@ host/contracts/native-bed-mesh-offset-acceptance.json。
 初次回归路径超过夹具 X 最大行程，被既有保护拒绝；修正测试路径后
 通过，未放宽生产行程。以上仍是模拟 MCU，本轮没有关闭历史进程
 崩溃或数值异常，也没有完成实机精度及 Python 入口退役。
+
+### 产品入口读取 Klipper 自动保存区
+
+审查保存链路发现产品配置入口误用了 Moonraker 通用加载器，导致
+printer.cfg 的 #*# 自动保存区被当作普通注释忽略。现改用已有
+loadKlipperConfiguration，并传入启动取消信号；Moonraker 配置保持
+独立解析。配置与拓扑仍在获取适配器和日志资源前完成验证。
+
+新增产品级回归检查保存网床的完整浮点值、普通配置优先级及损坏
+保存区提前拒绝。13 项相关回归和 4 项编译产品验收通过；后者已将
+非平面网床改为真实自动保存格式，并完成偏移打印和重初始化。
+本轮仅修复读取链路，保存写入、校准、实机及 Python 退役仍待完成。
+性能及验证证据见 host/contracts/product-autosave-acceptance.json。

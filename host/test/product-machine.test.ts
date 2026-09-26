@@ -1,6 +1,8 @@
+import {AUTOSAVE_HEADER} from '../src/config/klipper-autosave.ts';
+import {readNativeBedMesh} from '../src/config/native-bed-mesh.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,writeFile,access} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,readFile,access} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
@@ -56,4 +58,15 @@ test('file-backed machine profile runs authenticated native service and retires 
  const dir=await mkdtemp(join(tmpdir(),'machine-host-')),f=await productMachineFixture(dir),abort=new AbortController();let observed:Promise<void>|undefined;try{
   await runProductHost(s=>loadProductMachineProfile(f.path,async()=>({...f.bindings,server:{...f.bindings.server,authorize:(_m,_p,c)=>{assert.equal(c.request.headers['x-api-key'],'test');}}}),s),abort.signal,address=>{observed=(async()=>{try{const response=await fetch(`http://127.0.0.1:${address.port}/printer/print/status`,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);assert.equal((await response.json() as any).result.state,'idle');}finally{abort.abort(new Error('done'));}})();});await observed;assert.equal(f.releases,1);assert.deepEqual(f.transport.stops,[1,1]);assert(f.transport.firmware.every(f=>f.motion.length===0));
  }finally{abort.abort();await f.close();await rm(dir,{recursive:true,force:true});}
+});
+
+test('product profile reads saved calibration with ordinary precedence and rejects corrupt autosave before acquisition',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'machine-autosave-')),f=await productMachineFixture(dir);let factories=0;
+ try{
+  const regular=await readFile(f.config.printerConfig,'utf8'),saved='[printer]\nmax_velocity: 999\n[bed_mesh saved]\nversion: 1\nmin_x: 0\nmax_x: 100\nmin_y: 0\nmax_y: 100\nx_count: 2\ny_count: 2\nmesh_x_pps: 0\nmesh_y_pps: 0\nalgo: direct\ntension: .2\npoints: .123456789012345,.2\n  .3,.4\n';
+  await writeFile(f.config.printerConfig,regular+'\n[bed_mesh]\n'+AUTOSAVE_HEADER+saved.trimEnd().split('\n').map(l=>'#*# '+l).join('\n')+'\n');
+  const p=await loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal());
+  try{assert.equal(p.reader.section('printer').getFloat('max_velocity'),100);assert.deepEqual(Array.from(readNativeBedMesh(p.reader)!.profiles.load('saved').probedValues()),[.123456789012345,.2,.3,.4]);}finally{await p.release();}
+  await writeFile(f.config.printerConfig,regular+AUTOSAVE_HEADER+'modified tail\n');await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),/Corrupt/);assert.equal(factories,1);assert.deepEqual(f.transport.stops,[0,0]);
+ }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });

@@ -1,0 +1,177 @@
+{
+  "base": "87f3ed90",
+  "tests": {
+    "related": 13,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "startup": [
+    {
+      "node": "v26.9.0",
+      "warmup": 3,
+      "samples": 11,
+      "variants": [
+        "manualProfile",
+        "declarativeProfile"
+      ],
+      "timing": [
+        {
+          "medianMs": 540.6340180000007,
+          "p95Ms": 579.0804659999994
+        },
+        {
+          "medianMs": 573.2271970000002,
+          "p95Ms": 582.071586
+        }
+      ],
+      "cpu": [
+        {
+          "medianMs": 73.214,
+          "p95Ms": 94.739
+        },
+        {
+          "medianMs": 112.508,
+          "p95Ms": 142.506
+        }
+      ],
+      "limits": {
+        "wallRatio": 1.1,
+        "wallSlackMs": 10,
+        "cpuRatio": 1.5,
+        "cpuSlackMs": 5
+      },
+      "scope": "Configuration/journal acquisition, two-PTY native service startup, retirement and release. Excludes fixture creation, module loading and process launch; no physical printing."
+    }
+  ],
+  "product": [
+    {
+      "installation": {
+        "durationMs": 700.9940549999992,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 171,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.559,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.938431,
+            "maxMs": 12.853247
+          },
+          "cpu": {
+            "user": 746827,
+            "system": 80264
+          },
+          "rss": 164954112
+        },
+        {
+          "loop": {
+            "p99Ms": 1.772543,
+            "maxMs": 4.141055
+          },
+          "cpu": {
+            "user": 406911,
+            "system": 42107
+          },
+          "rss": 182898688
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 703.2743399999999,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 468,
+      "historyP99Ms": 10.685424000002968,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.416025999998965,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.191195999999763,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 10.77438500000062,
+      "metadataRequests": 16,
+      "metadataP95Ms": 24.59719100000075,
+      "downloads": 16,
+      "downloadP95Ms": 3.848931000000448,
+      "wireCommands": 170,
+      "wireSteps": 3082,
+      "minimumStepLeadMs": 84.697,
+      "directoryRequests": 2010,
+      "directoryP99Ms": 7.999437999998918,
+      "statusRequests": 8336,
+      "uploads": 16,
+      "statusP99Ms": 4.017383999998856,
+      "uploadP95Ms": 12.569918999994115,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.079743,
+            "maxMs": 14.442495
+          },
+          "cpu": {
+            "user": 2208742,
+            "system": 239401
+          },
+          "rss": 227835904
+        },
+        {
+          "loop": {
+            "p99Ms": 2.119679,
+            "maxMs": 6.447103
+          },
+          "cpu": {
+            "user": 1314162,
+            "system": 163013
+          },
+          "rss": 266354688
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/src/runtime/product-machine-profile.ts": "d0be2a7f3b456adc913cb90b02db24201e3a1106981e41505bf26ce61a821929",
+    "host/src/config/klipper-files.ts": "92131bc2cdb096de5183eb5896c2ff6f940da521ec0876db9acdee4f1c09a3c7",
+    "host/test/product-machine.test.ts": "513cd3536bfc557310db0b27b253334a8008ef6a6d31ca423fca9b311ff89537",
+    "host/acceptance/product-compiled-journey.test.ts": "2f9eb048ed6179bf12e4f2be84b0bb4f08a1646180af90b4ae4ea630abcbffa7",
+    "/tmp/product-autosave-tests.log": "851855d14e4eb6382889909b56dd9a9f5f98d5d488d20fc41d0e859a42b14e4e",
+    "/tmp/product-autosave-acceptance.log": "cb3bb7edcc0ebdffad012f8a7efc012a6d9f80ba10435075b7fce90ac92f5c58",
+    "/tmp/product-autosave-startup-bench.log": "f17b6d8a247d8fd8d428c494ff708130b93e36387476b9f75bd50351bdd85abe"
+  },
+  "limitations": [
+    "Startup benchmark compares manual and declarative assembly using ordinary configuration, not large saved meshes",
+    "Product acceptance uses saved nonplanar mesh with simulated MCU only",
+    "Runtime SAVE_CONFIG write and restart not connected",
+    "Historical numerical mismatch and process crashes unresolved",
+    "Full Python retirement and complete Moonraker integration incomplete"
+  ]
+}

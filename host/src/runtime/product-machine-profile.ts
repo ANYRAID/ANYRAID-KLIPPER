@@ -3,6 +3,7 @@ import {isAbsolute} from 'node:path';
 import {parseProductMachine,type ProductMachineConfiguration} from '../config/product-machine.ts';
 import {planLinearPrinter} from '../config/linear-printer.ts';
 import {loadConfiguration} from '../moonraker/config-source.ts';
+import {loadKlipperConfiguration} from '../config/klipper-files.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readNetworkBinding} from '../moonraker/configured-server.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
@@ -31,7 +32,7 @@ export async function readProductMachine(path:string,signal:AbortSignal):Promise
 export async function loadProductMachineProfile(path:string,createBindings:ProductMachineBindingsFactory,signal:AbortSignal):Promise<ProductHostProfile>{
  signal.throwIfAborted();if(typeof createBindings!=='function')throw new TypeError('Machine bindings factory is required');
  const config=await readProductMachine(path,signal);
- const reader=new ConfigurationReader(await loadConfiguration(config.printerConfig,{},'printer'),null);signal.throwIfAborted();
+ const reader=new ConfigurationReader(await loadKlipperConfiguration(config.printerConfig,{signal}),null);signal.throwIfAborted();
  const moonraker=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readNetworkBinding(moonraker);signal.throwIfAborted();
  // Validate topology and transport declarations before acquiring adapter resources.
  const provisional=new Map(Object.entries(config.mcus));
