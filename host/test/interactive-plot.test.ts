@@ -57,3 +57,23 @@ test('path playback pauses, seeks, completes, replays and stops while hidden',()
  elements.play.onclick!();assert.equal(travel.attrs.d,'M0 0');document.hidden=true;events.visibilitychange();assert.equal(queued.size,0);
  (elements.seek as any).value='NaN';elements.seek.events.input();assert.equal(travel.attrs.d,'M0 0');
 });
+
+test('3D rotation coalesces input, reorders faces and moves axes and labels without changing source geometry',()=>{
+ const elements=Object.fromEntries(['viewport','status','in','out','reset','curves','surface-controls','yaw','tilt','angles','surface-reset'].map(id=>[id,new Element()])),svg=new Element(),surface=new Element();
+ svg.attrs.viewBox='0 0 1000 760';elements.viewport.querySelector=()=>svg;svg.querySelector=q=>q==='[data-surface-faces]'?surface:undefined;
+ const front=new Element(),back=new Element(),axis=new Element(),label=new Element();
+ front.attrs['data-surface-vertices']='0 0 1 1 0 1 0 1 1';back.attrs['data-surface-vertices']='0 0 -1 1 0 -1 0 1 -1';
+ axis.attrs['data-surface-axis']='0 0 0 1 0 0';label.attrs['data-surface-label']='1 0 0 8';
+ surface.querySelectorAll=()=>[front,back];surface.append=(element:Element)=>{surface.children=surface.children.filter(v=>v!==element);surface.children.push(element);};
+ svg.querySelectorAll=q=>q==='[data-surface-axis]'?[axis]:q==='[data-surface-label]'?[label]:[];
+ let next=0;const queue=new Map<number,Function>();
+ const run=()=>{const callbacks=[...queue.values()];queue.clear();callbacks.forEach(fn=>fn());};
+ runInNewContext(script(renderInteractivePlot('<svg viewBox="0 0 1000 760"></svg>')),{document:{getElementById:(id:string)=>elements[id],createElement:()=>new Element(),createTextNode:(s:string)=>s},requestAnimationFrame:(fn:Function)=>{queue.set(++next,fn);return next;},cancelAnimationFrame:(id:number)=>queue.delete(id)});
+ (elements.yaw as any).value='90';(elements.tilt as any).value='0';elements.yaw.events.input();elements.yaw.events.input();assert.equal(queue.size,1);run();
+ assert.equal(axis.attrs.d,'M470.000 355.000L120.000 475.000');assert.equal(label.attrs.x,'128.000');assert.equal(label.attrs.y,'490.000');assert.deepEqual(surface.children,[back,front]);
+ assert.equal(front.attrs['data-surface-vertices'],'0 0 1 1 0 1 0 1 1');
+ assert.equal(elements.angles.textContent,'Rotation 90° · Tilt 0°');
+ (elements.tilt as any).value='999';elements.tilt.events.input();run();assert.equal(elements.angles.textContent,'Rotation 90° · Tilt 80°');assert.ok(!/NaN|Infinity/.test(front.attrs.points));
+ (elements.yaw as any).value='NaN';elements.yaw.events.input();run();assert.match(elements.angles.textContent,/Rotation 0°/);
+ elements.tilt.events.input();elements['surface-reset'].onclick!();assert.equal(queue.size,0);assert.equal(axis.attrs.d,'M470.000 355.000L820.000 475.000');assert.equal(elements.angles.textContent,'Rotation 0° · Tilt 0°');
+});

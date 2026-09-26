@@ -824,7 +824,19 @@ the displayed polygons to the machine X/Y range. JSON retains all vertices.
 Image rendering admits at most 50000 cells across both surfaces, without
 silent downsampling; use JSON for larger grids. A zero-height mesh uses a
 0.001 mm Z display range. Colors, camera and layout differ from Matplotlib.
-Interactive rotation and animation still use the Python tool below.
+For an interactive 3D view, select HTML output:
+
+```
+node scripts/graph_mesh.ts plot overlay -p saved-profile -o overlay.html mesh-dump.json
+```
+
+All four surface modes support rotation and tilt sliders, a 3D reset button,
+and the shared zoom/pan controls. The camera updates the polygons, depth
+ordering, axes and labels together. Original heights and delta calculations
+are unchanged. HTML embeds the clipped geometry without downsampling and
+requires no server or external JavaScript. Static formats retain the fixed
+view; HTML generation and browser rendering are offline diagnostic work,
+not operations to run in the printer control loop.
 
 The `graph_mesh.py` tool may also be used to perform an analysis on the
 data provided by the [bed_mesh/dump_mesh](#dumping-mesh-data) API:
