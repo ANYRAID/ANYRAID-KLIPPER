@@ -5,7 +5,7 @@ import {ThumbnailProcessor} from './thumbnail-process.ts';
 import type {ThumbnailImage} from './thumbnail-images.ts';
 import {ThumbnailDownloads,type ThumbnailDownload} from './thumbnail-download.ts';
 import {MetadataExtractor} from './metadata-extractor.ts';
-import {METADATA_READ_BYTES} from './metadata-window.ts';
+import {extractPublishedMetadata,samePublishedSource} from './native-metadata-source.ts';
 import {FileMetadataStore} from './file-metadata.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
 const identity=(file:PublishedPrintFile,modified:number)=>JSON.stringify([file.sha256,file.name,file.size,modified]);
@@ -53,19 +53,13 @@ export class NativeFileMetadata {
   try{
    const initial=await this.#files.describe(id,signal),key=identity(initial.file,initial.modified),cached=this.peek(filename,initial.file,initial.modified);
    if(cached){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
-   const snapshot=await this.#files.acquireBinary(id,signal,this.#budget);let head:Buffer,tail:Buffer;
-   try{
-    if(identity(snapshot.record,initial.modified)!==key)throw new ApiError(409,'Native metadata source changed');
-    const read=async(start:number,end:number)=>{const bytes=Buffer.allocUnsafe(end-start);let offset=0;for await(const chunk of snapshot.reader.chunks(signal,start,end)){bytes.set(chunk,offset);offset+=chunk.length;}return bytes;};
-    head=await read(0,Math.min(snapshot.size,METADATA_READ_BYTES));const offset=snapshot.size>2*METADATA_READ_BYTES?snapshot.size-METADATA_READ_BYTES:METADATA_READ_BYTES;
-    tail=snapshot.size>METADATA_READ_BYTES?await read(offset,snapshot.size):Buffer.alloc(0);
-   }finally{await snapshot.reader.close();}
-   signal.throwIfAborted();const worker=await(this.#worker??=MetadataExtractor.open({maxPending:2,maxFileBytes:this.#files.status.maxFileBytes}));signal.throwIfAborted();
-   const result=await worker.extractWindows({head,tail,size:initial.file.size,modified:initial.modified},signal,true);signal.throwIfAborted();
+   const worker=await(this.#worker??=MetadataExtractor.open({maxPending:2,maxFileBytes:this.#files.status.maxFileBytes}));signal.throwIfAborted();
+   const result=await extractPublishedMetadata(this.#files,this.#budget,worker,id,signal);
+   if(result.fields.sha256!==initial.file.sha256||result.fields.name!==initial.file.name||result.fields.modified!==initial.modified)throw new ApiError(409,'Native metadata source changed');
    if(typeof result.thumbnailData!=='string')throw new ApiError(502,'Thumbnail extraction omitted source');
    let images:ThumbnailImage[]=[];
    if(result.thumbnailData){const processor=await(this.#processor??=ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2}));signal.throwIfAborted();images=await processor.prepare(result.thumbnailData,signal);signal.throwIfAborted();}
-   const current=await this.#files.describe(id,signal);if(identity(current.file,current.modified)!==key)throw new ApiError(409,'Native metadata source changed');
+   const current=await this.#files.describeSource(id,signal);if(identity(current.file,current.modified)!==key||!samePublishedSource(result.source,current.source))throw new ApiError(409,'Native metadata source changed');
    // Concurrent cold readers must share the already published preview URLs.
    if(this.peek(filename,current.file,current.modified))return this.#cache.metadata(filename);
    const bundleId='thumb-'+randomUUID(),prepared=images.map(image=>({...image,sha256:createHash('sha256').update(image.bytes).digest('hex')})),imageBytes=prepared.reduce((total,image)=>total+image.bytes.length,0);

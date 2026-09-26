@@ -8,6 +8,8 @@ import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snap
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
 export class PublishedFileChangedError extends Error {}
+/** Identity of the durable receipt, never the content blob or a temporary memfd. */
+export interface PublishedSourceIdentity {readonly dev:bigint;readonly ino:bigint;readonly mtimeNs:bigint;readonly ctimeNs:bigint;}
 export interface PublishedFileChange {readonly action:'create_file'|'delete_file';readonly file:PublishedPrintFile;readonly modified:number;}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
@@ -76,14 +78,17 @@ export class PublishedPrintFiles {
    this.#queue.shift();next.start();
   }
  }
- async #record(id:string):Promise<PublishedPrintFile>{
+ async #record(id:string):Promise<PublishedPrintFile>{return (await this.#receipt(id)).file;}
+ async #receipt(id:string,capture=false):Promise<{file:PublishedPrintFile;source?:PublishedSourceIdentity}>{
   const file=await open(this.#path(id+'.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   try{
-   const stat=await file.stat();if(!stat.isFile()||stat.size>2048)throw new Error('Invalid published file receipt');
+   const stat=await file.stat({bigint:true});if(!stat.isFile()||stat.size>2048n)throw new Error('Invalid published file receipt');
    const buffer=Buffer.alloc(2049),{bytesRead}=await file.read(buffer,0,buffer.length,0);if(bytesRead>2048)throw new Error('Published receipt exceeds limit');
    const value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(buffer.subarray(0,bytesRead))) as PublishedPrintFile;
    if(value===null||typeof value!=='object'||Array.isArray(value)||value.version!==1||value.id!==id||typeof value.sha256!=='string'||!/^[a-f0-9]{64}$/.test(value.sha256)||!Number.isSafeInteger(value.size)||value.size<0||value.size>this.#maxBytes||typeof value.name!=='string'||!value.name||value.name.length>256||/[\u0000-\u001f\u007f]/u.test(value.name))throw new Error('Invalid published file receipt');
-   return Object.freeze({version:1,id,sha256:value.sha256,size:value.size,name:value.name});
+   let source:PublishedSourceIdentity|undefined;
+   if(capture){const after=await file.stat({bigint:true});if(stat.dev!==after.dev||stat.ino!==after.ino||stat.size!==BigInt(bytesRead)||stat.size!==after.size||stat.mtimeNs!==after.mtimeNs||stat.ctimeNs!==after.ctimeNs)throw new PublishedFileChangedError('Published receipt changed while reading its identity');source=Object.freeze({dev:stat.dev,ino:stat.ino,mtimeNs:stat.mtimeNs,ctimeNs:stat.ctimeNs});}
+   return {file:Object.freeze({version:1,id,sha256:value.sha256,size:value.size,name:value.name}),...source?{source}:{}};
   }finally{await file.close();}
  }
  async #verifyExisting(record:PublishedPrintFile,signal:AbortSignal):Promise<void>{
@@ -105,6 +110,14 @@ export class PublishedPrintFiles {
  describe(id:string,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number}>{return this.#run(async()=>{
   this.#id(id);signal.throwIfAborted();const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published file not found'),{code:'ENOENT'});
   const file=await this.#record(id);signal.throwIfAborted();if(file.sha256!==stored.record.sha256||file.name!==stored.record.name||file.size!==stored.record.size)throw new Error('Published receipt changed outside store');return {file,modified:stored.modified};
+ },true,signal);}
+ /** Source identity is sampled with the receipt bytes from the same no-follow
+  * descriptor behind the mutation barrier. Ordinary cached reads avoid the
+  * extra fingerprint validation syscall. Callers still verify content bytes. */
+ describeSource(id:string,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number;source:PublishedSourceIdentity}>{return this.#run(async()=>{
+  this.#id(id);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published source requires recovery',{cause:this.#writeFault});
+  const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published file not found'),{code:'ENOENT'});
+  const result=await this.#receipt(id,true);signal.throwIfAborted();if(result.file.sha256!==stored.record.sha256||result.file.name!==stored.record.name||result.file.size!==stored.record.size)throw new PublishedFileChangedError('Published receipt changed outside store');return {file:result.file,modified:stored.modified,source:result.source!};
  },true,signal);}
  diskUsage(signal:AbortSignal):Promise<{total:number;used:number;free:number}>{return this.#run(async()=>{signal.throwIfAborted();const fs=await statfs(this.#path('.'),{bigint:true});signal.throwIfAborted();const result={total:Number(fs.blocks*fs.bsize),used:Number((fs.blocks-fs.bfree)*fs.bsize),free:Number(fs.bavail*fs.bsize)};if(Object.values(result).some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Disk usage exceeds exact JSON integer range');return result;},false,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}

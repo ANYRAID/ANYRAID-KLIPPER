@@ -10,6 +10,14 @@ async function fixture(options:Parameters<typeof PublishedPrintFiles.open>[1]={}
 test('durable publication survives reopen and yields a sealed snapshot with matching metadata',async()=>{
  const f=await fixture();try{const record=await f.store.publish('job','零件.gcode',f.source,signal());assert.equal(record.size,6);await f.store.close();const reopened=await PublishedPrintFiles.open(f.root);try{assert.deepEqual(await reopened.inspect('job'),record);const reader=await reopened.acquire('job',signal());try{await chmod(join(f.root,record.sha256+'.gcode'),0o600);await writeFile(join(f.root,record.sha256+'.gcode'),'G1 X9\n');const batch=(await reader.next(signal()))!;assert.equal(batch.script,'G1 X1');reader.commit(batch);}finally{await reader.close();}}finally{await reopened.close();}}finally{await f.close();}
 });
+test('receipt source identity survives reopening and distinguishes identical content republished under the same ID',async()=>{
+ const f=await fixture();try{
+  await f.store.publish('job','file.gcode',f.source,signal());await f.store.publish('shared','file.gcode',f.source,signal());const original=await f.store.describeSource('job',signal()),shared=await f.store.describeSource('shared',signal());assert.equal(original.file.sha256,shared.file.sha256);assert.notDeepEqual(original.source,shared.source);assert(Object.isFrozen(original.source));for(const value of Object.values(original.source))assert.equal(typeof value,'bigint');
+  await f.store.close();const next=await PublishedPrintFiles.open(f.root);try{
+   assert.deepEqual(await next.describeSource('job',signal()),original);await next.remove('job',signal());await assert.rejects(next.describeSource('job',signal()),{code:'ENOENT'});await next.publish('job','file.gcode',f.source,signal());const replacement=await next.describeSource('job',signal());assert.deepEqual(replacement.file,original.file);assert.notDeepEqual(replacement.source,original.source);assert.deepEqual((await next.describeSource('shared',signal())).source,shared.source);
+  }finally{await next.close();}
+ }finally{await f.close();}
+});
 test('unsafe IDs, duplicate IDs and symlink content cannot replace or escape publications',async()=>{
  const f=await fixture();try{for(const id of ['../file','a/b','','.','x\0'])await assert.rejects(f.store.publish(id,'file',f.source,signal()),/identifier/);const record=await f.store.publish('job','file',f.source,signal());await assert.rejects(f.store.publish('job','other',f.source,signal()),{code:'EEXIST'});assert.equal((await f.store.inspect('job')).name,'file');const blob=join(f.root,record.sha256+'.gcode');await unlink(blob);await symlink(f.path,blob);await assert.rejects(f.store.acquire('job',signal()),{code:'ELOOP'});await assert.rejects(f.store.publish('other','file',f.source,signal()),{code:'ELOOP'});}finally{await f.close();}
 });

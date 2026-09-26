@@ -13,6 +13,9 @@ import {ThumbnailStorage} from '../src/moonraker/thumbnail-storage.ts';
 import {MetadataExtractor} from '../src/moonraker/metadata-extractor.ts';
 import {ThumbnailProcessor} from '../src/moonraker/thumbnail-process.ts';
 import {FileMetadataStore} from '../src/moonraker/file-metadata.ts';
+import {PublishedPrintFiles,type PublishedSourceIdentity} from '../src/storage/published-files.ts';
+import {PrintSnapshotBudget} from '../src/gcode/snapshot-budget.ts';
+import {extractPublishedMetadata,samePublishedSource} from '../src/moonraker/native-metadata-source.ts';
 const signal=new AbortController().signal;
 async function fixture(maxPending=4){
  const dir=await mkdtemp(join(tmpdir(),'metadata-owner-')),path=join(dir,'part.gcode'),png=await sharp({create:{width:32,height:32,channels:3,background:'blue'}}).png().toBuffer(),b64=png.toString('base64');await writeFile(path,`; thumbnail begin 32 32 ${b64.length}\n; ${b64}\n; thumbnail end\nG1 X1 F600\n`);
@@ -26,6 +29,17 @@ async function extractWindows(f:Awaited<ReturnType<typeof fixture>>,s=signal){
  const value=await f.components.extractor.extractWindows({head:bytes,tail:new Uint8Array(),size:bytes.length,modified:Number(source.mtimeNs)/1e9},s,true);
  return {...value,source:{dev:source.dev,ino:source.ino,mtimeNs:source.mtimeNs,ctimeNs:source.ctimeNs}};
 }
+test('native verified windows persist against receipt identity and reject same-ID republication after reopening',async()=>{
+ const f=await fixture(),root=join(f.dir,'native'),budget=new PrintSnapshotBudget({maxBytes:4*1024**2,maxSnapshots:2});let files=await PublishedPrintFiles.open(root);
+ const validate=async(source:PublishedSourceIdentity,s:AbortSignal)=>samePublishedSource((await files.describeSource('native',s)).source,source);
+ try{
+  const publish=async()=>{const source=await open(f.path,'r');try{await files.publish('native','part.gcode',source,signal);await files.publish('shared','part.gcode',source,signal);}finally{await source.close();}};await publish();
+  const first=await f.owner.scanExtraction('native.gcode',signal,validate,()=>extractPublishedMetadata(files,budget,f.components.extractor,'native',signal));assert(first.committed);assert.equal(budget.status.reservations,0);const fields=f.owner.metadata('native.gcode');assert.equal(fields.file_id,'native');assert.equal(fields.sha256,(await files.inspect('native')).sha256);assert.equal((fields.thumbnails as unknown[]).length,1);
+  f.components.cache.clear();await files.close();files=await PublishedPrintFiles.open(root);assert.equal(await f.owner.recover('native.gcode',signal,validate),true);assert.deepEqual(f.owner.metadata('native.gcode'),fields);
+  await files.remove('native',signal);const source=await open(f.path,'r');try{await files.publish('native','part.gcode',source,signal);}finally{await source.close();}assert.equal((await files.inspect('native')).sha256,fields.sha256);f.components.cache.clear();await assert.rejects(f.owner.recover('native.gcode',signal,validate),/source changed/);assert.equal(f.components.cache.peek('native.gcode'),undefined);
+  const replacement=await f.owner.scanExtraction('native.gcode',signal,validate,()=>extractPublishedMetadata(files,budget,f.components.extractor,'native',signal));assert(replacement.committed);assert.notEqual(replacement.snapshotId,first.snapshotId);assert.equal(await f.owner.retireSuperseded(signal,'native.gcode'),1);
+ }finally{await files.close();await f.close();}
+});
 test('window producer shares durable version selection and post-selection invalidation',async()=>{
  const f=await fixture();try{
   let validations=0;const value=await f.owner.scanExtraction('part.gcode',signal,async source=>{validations++;return f.validate(source);},()=>extractWindows(f));assert(value.committed);assert.equal(validations,3);assert.equal(f.components.versions.current('part.gcode')?.state,'selected');const fields=f.owner.metadata('part.gcode');assert.equal((fields.thumbnails as unknown[]).length,1);
