@@ -78,6 +78,24 @@ export class NativePrintUploads {
   if(Object.keys(params).some(key=>key!=='file_id')||!validId(params.file_id))throw new ApiError(400,'Expected file_id');
   try{const record=await this.#files.inspect(params.file_id);signal.throwIfAborted();return record as unknown as Json;}catch(error){if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}
  }
+ async list(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
+  signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
+  if(Object.keys(params).some(key=>key!=='root')||params.root!==undefined&&typeof params.root!=='string')throw new ApiError(400,'Expected optional root');
+  if(params.root!==undefined&&params.root!=='gcodes')throw new ApiError(404,'Native file root not found');
+  const combined=AbortSignal.any([signal,this.#abort.signal]);
+  const task=this.#files.catalog(combined);this.#pending.add(task);
+  let entries;try{entries=await task;}finally{this.#pending.delete(task);}combined.throwIfAborted();
+  // Paths identify immutable receipts, not shared blobs or mutable display names.
+  const result=entries.map(({file,modified})=>({path:file.id+'.gcode',modified,size:file.size,permissions:'r',file_id:file.id,name:file.name,sha256:file.sha256}));
+  if(Buffer.byteLength(JSON.stringify(result))>900000)throw new ApiError(413,'Native file catalog exceeds response limit');return result;
+ }
  close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.allSettled([...this.#pending]).then(()=>{});}
 }
-export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads):()=>void{return registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>uploads.info(params,context.signal));}
+export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads):()=>void{
+ const release:(()=>void)[]=[];
+ try{
+  release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>uploads.info(params,context.signal)));
+  release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>uploads.list(params,context.signal)));
+  return ()=>{for(const remove of release.reverse())remove();};
+ }catch(error){for(const remove of release.reverse())remove();throw error;}
+}

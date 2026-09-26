@@ -271,7 +271,8 @@
     "bench:display-status": "node bench/display-status.ts",
     "bench:interactive-plot": "node bench/interactive-plot.ts",
     "bench:pressure-advance-settings": "node bench/pressure-advance-settings.ts",
-    "test:product-acceptance": "node --test --test-concurrency=1 acceptance/*.test.ts"
+    "test:product-acceptance": "node --test --test-concurrency=1 acceptance/*.test.ts",
+    "bench:native-file-catalog": "node bench/native-file-catalog.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

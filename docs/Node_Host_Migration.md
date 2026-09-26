@@ -42,8 +42,9 @@
    验证无 Python 的构建、安装、运行与运维；按任务 PR → develop → master
    流程完成集成和授权范围内的发布。不得为文件数下降提前删除未替代能力。
 
-下一项具体工作是第 1 项的统一集成验收与首个实际缺口修复，交付物是
-可复跑的命令、完整用户流程结果、发现并修复的断点及仍未执行的硬件门槛。
+第 1 项现已具备预编译包、鉴权 HTTP、模拟 MCU 的统一打印闭环验收，
+并覆盖文件列表选择与并发轮询。后续补齐原生上传文件的下载与目录/元数据
+接口连接，同时推进第 2 项未解决的运动精度异常；实机门槛仍未执行。
 进度汇报以“可用流程新增了什么、原入口是否退役、关键门槛是否通过”为准；
 提交数、测试数及新增 TS 文件数仅作辅助，不给出无证据的整体完成百分比。
 
@@ -22880,3 +22881,38 @@ queued 提交后才受理，running 提交后才允许开始恢复，新会话 r
 数据库启动、网络或设备重新连接，模拟立即完成的恢复；结果位于
 host/contracts/host-recovery-journal-performance.json。真实恢复耗时仍
 主要受设备重建影响，不用该结果替代目标机速度或长期稳定性验收。
+
+## 原生上传文件列表接入及打印负载验证（2026-09-26）
+
+配置 `nativeUploads` 的主服务现在注册 `GET /server/files/list` 和
+`server.files.list` RPC，默认根为 `gcodes`。列表返回 Moonraker 的
+`path`、`modified`（回执文件修改时间，Unix 秒）、`size`、`permissions`，
+并增加 `file_id`、`name`（原始文件名）与 `sha256`。逻辑路径为
+`<file_id>.gcode`，同名上传互不覆盖；客户端选中列表项后将 `file_id`
+传入既有版本化 `/printer/print/start`，保留持久化幂等和状态检查。
+原始文件名仅用于显示，列表不暴露存储目录、内容 blob 或 JSON 回执路径。
+
+列表从发布/恢复时验证的不可变回执缓存构建，等待在途存储操作完成后
+取得一致快照；不逐项读盘。它不替代开始打印时的回执、内容摘要和封存
+快照验证。关闭取消列表请求，删除后列表更新；重启保留修改时间和文件
+身份。列表不支持其他根，超出 JSON 响应预算显式拒绝，不能静默截断。
+`permissions: r` 表示列表中的不可变文件不可通过路径覆写；目录、下载、
+文件元数据及完整客户端兼容性仍待接通，本节不代表完整文件管理验收。
+
+验证命令：`node --test host/test/native-print-uploads.test.ts
+ host/test/published-files.test.ts`（实际执行时写为一行）及
+`npm --prefix host run test:product-acceptance`。已验证主服务上传后通过
+列表选择文件并打印、HTTP/RPC 一致、同名不同内容、鉴权、重启、删除和
+注册冲突回滚。编译包验收加入一个每 5 ms 轮询的列表客户端，与四个
+状态客户端、两代各八次 256 KiB 上传并行；4 项统一验收通过。记录中
+共 1,804 次列表请求、7,225 次状态查询、16 次上传；列表 HTTP P99
+约 3.21 ms，事件循环最大延迟约 12.67 ms，最小步进提前量约 85.89 ms。
+当前并发场景最多 17 个文件，不能据此声称满目录或目标板验证通过。
+
+`npm --prefix host run bench:native-file-catalog` 另外验证 1,024 个文件，
+3 次预热、11 次测量，列表生成及 JSON 序列化中位数 0.785 ms、P95
+1.008 ms；逐回执读盘参考中位数 52.443 ms。参考不是原 Python
+Moonraker 的实现，不能将比值报告为迁移加速倍数。两组证据分别保存在
+`host/contracts/native-file-catalog-performance.json` 和
+`host/contracts/native-file-catalog-load-acceptance.json`。所有结果仅限
+本机 Node 26.9、模拟 MCU；运动异常、实机长期验证和 Python 退役仍未完成。

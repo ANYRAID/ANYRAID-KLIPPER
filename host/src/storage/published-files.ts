@@ -7,7 +7,7 @@ import {createSealedPrintReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
-interface StoredReceipt {sha256:string;size:number;receiptBytes:number;}
+interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
 /** Private flat storage. Caller authenticates/authorizes IDs; no client paths.
  * Content and receipts are immutable publications. Root descriptor anchors IO. */
@@ -39,7 +39,7 @@ export class PublishedPrintFiles {
   }
   const referenced=new Set<string>();let receiptBytes=0;
   // Validate ALL references before deleting anything, including temporary names.
-  for(const [name,size] of receipts){const id=name.slice(0,-5),record=await this.#record(id),blob=record.sha256+'.gcode';if(blobs.get(blob)!==record.size)throw new Error('Published receipt references missing or invalid content');referenced.add(blob);this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes:size});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);receiptBytes+=size;}
+  for(const [name,size] of receipts){const id=name.slice(0,-5),record=await this.#record(id),blob=record.sha256+'.gcode';if(blobs.get(blob)!==record.size)throw new Error('Published receipt references missing or invalid content');referenced.add(blob);this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes:size,record,modified:(await lstat(this.#path(name))).mtimeMs/1000});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);receiptBytes+=size;}
   const garbage=[...temporary,...[...blobs.keys()].filter(name=>!referenced.has(name))];
   for(const name of garbage)await unlink(this.#path(name));if(garbage.length)await this.#root.sync();
   this.#storedBytes=receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
@@ -85,6 +85,12 @@ export class PublishedPrintFiles {
  /** Snapshot known receipt IDs behind the mutation barrier. This is an inventory,
   * not a claim that every receipt is still referenced by higher-level metadata. */
  listIds(signal:AbortSignal):Promise<readonly string[]>{return this.#run(async()=>{signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});return Object.freeze([...this.#records.keys()].sort());},true,signal);}
+ /** Cached immutable receipt catalog, atomically observed after in-flight mutations.
+  * It is discovery data only: acquisition still revalidates receipt and content. */
+ catalog(signal:AbortSignal):Promise<readonly {file:PublishedPrintFile;modified:number}[]>{return this.#run(async()=>{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});
+  return Object.freeze([...this.#records].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([,entry])=>Object.freeze({file:entry.record,modified:entry.modified})));
+ },true,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
  /** Bounded binary acquisition for non-G-code owners. The returned Buffer is an
   * independent verified snapshot; it never enters the text G-code reader. */
@@ -119,8 +125,8 @@ export class PublishedPrintFiles {
    // Link is atomic and never replaces content already published under its digest.
    try{await link(temp,this.#path(record.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(record,signal);}
    await this.#root.sync();signal.throwIfAborted();
-   receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();await receipt.close();receipt=undefined;signal.throwIfAborted();
-   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();return record;
+   receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
+   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();return record;
   }catch(error){failure=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);
    const removed=await Promise.allSettled([unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;}),unlink(receiptTemp).catch(error=>{if(error.code!=='ENOENT')throw error;})]);

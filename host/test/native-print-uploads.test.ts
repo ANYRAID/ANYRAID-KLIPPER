@@ -59,7 +59,10 @@ test('configured native upload stays idle until durable HTTP start, then execute
   await assert.rejects(ConfiguredMoonraker.load(path,{nativeUploads:uploads,maintenanceGate:gate,information,authorize:()=>{}}),/Native uploads/);
   service=await ConfiguredMoonraker.load(path,{nativeUploads:uploads,productPrint:controller,maintenanceGate:gate,information,authorize:(_m,_p,ctx)=>{if(ctx.request.headers['x-api-key']!=='operator')throw new ApiError(401,'Denied');}});const address=await service.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'operator'};
   const uploaded=await fetch(url+'/server/files/upload',{method:'POST',headers,body:multipart('G1 X1.000001\nG1 X2\n',{file_id:'part'})});assert.equal(uploaded.status,200);assert.equal(controller.state,'idle');assert.deepEqual(commands,[]);assert.equal((await fetch(url+'/printer/files/info?file_id=part')).status,401);
-  const started=await fetch(url+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({version:1,request_id:'job',file_id:'part',nozzle:0,bed:0,expires_at:Date.now()+60000})});assert.equal(started.status,200);await until(()=>controller.state==='finishing');assert.deepEqual(commands,['X1.000001','X2']);assert.notEqual((await journal.get('job'))?.state,'completed');drain.resolve();await until(()=>controller.state==='completed');assert.equal((await journal.get('job'))?.state,'completed');await service.close();assert.equal(uploads.status.closed,true);assert.equal(files.status.closed,false);assert.equal(gate.status.closed,true);
+  assert.equal((await fetch(url+'/server/files/list')).status,401);
+  const catalog=await (await fetch(url+'/server/files/list',{headers})).json();assert.equal(catalog.result.length,1);assert.equal(catalog.result[0].name,'part.gcode');assert.equal(catalog.result[0].path,'part.gcode');
+  const selected=catalog.result[0].file_id;assert.equal(selected,'part');
+  const started=await fetch(url+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({version:1,request_id:'job',file_id:selected,nozzle:0,bed:0,expires_at:Date.now()+60000})});assert.equal(started.status,200);await until(()=>controller.state==='finishing');assert.deepEqual(commands,['X1.000001','X2']);assert.notEqual((await journal.get('job'))?.state,'completed');drain.resolve();await until(()=>controller.state==='completed');assert.equal((await journal.get('job'))?.state,'completed');await service.close();assert.equal(uploads.status.closed,true);assert.equal(files.status.closed,false);assert.equal(gate.status.closed,true);
  }finally{drain.resolve();await service?.close();await uploads.close();await files.close();await journal.close();await rm(dir,{recursive:true,force:true});}
 });
 test('aborted authorization remains counted until actual settlement and cannot grow without bound',async()=>{
@@ -78,5 +81,27 @@ test('chunked excess body and malformed headers reject without publication',asyn
   const response=await new Promise<number>((resolve,reject)=>{const req=httpRequest(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode!));});req.on('error',reject);req.write('x'.repeat(70000));req.end();});assert.equal(response,413);
   for(const [url,type,body] of [[f.url+'/server/files/upload','multipart/form-data','x'],[f.url+'/server/files/upload?path=sub','multipart/form-data; boundary=abc','--abc--'],[f.url+'/server/files/upload','multipart/form-data; boundary=abc','--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\nX-Test: '+('x'.repeat(17000))+'\r\n\r\nG1\r\n--abc--']]){const result=await fetch(url,{method:'POST',headers:{'content-type':type},body});assert.equal(result.status,400);}
   assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);assert.equal(f.network.status.bufferedBytes,0);
+ }finally{await f.clean();}
+});
+
+test('native catalog preserves duplicate names, stable receipt times and RPC parity across reopen',async()=>{
+ const f=await fixture();let reopened:PublishedPrintFiles|undefined;
+ try{
+  assert.deepEqual((await (await fetch(f.url+'/server/files/list')).json()).result,[]);
+  for(const [id,text] of [['z','G1 X2'],['a','G1 X1']])assert.equal((await f.post(multipart(text,{file_id:id},'同名.gcode'))).status,200);
+  const result=(await (await fetch(f.url+'/server/files/list?root=gcodes')).json()).result;
+  assert.deepEqual(result.map((entry:any)=>[entry.path,entry.file_id,entry.name]),[['a.gcode','a','同名.gcode'],['z.gcode','z','同名.gcode']]);
+  for(const entry of result){assert(entry.modified>0&&entry.modified<=Date.now()/1000);assert.equal(entry.permissions,'r');assert.equal(entry.size,5);}
+  assert.notEqual(result[0].sha256,result[1].sha256);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.list',params:{}})});assert.deepEqual((await rpc.json()).result,result);
+  assert.equal((await fetch(f.url+'/server/files/list?root=config')).status,404);assert.equal((await fetch(f.url+'/server/files/list?extra=x')).status,400);
+  await f.files.close();reopened=await PublishedPrintFiles.open(join(f.dir,'files'));
+  const catalog=await reopened.catalog(new AbortController().signal);assert.deepEqual(catalog.map(entry=>[entry.file.id,entry.modified]),result.map((entry:any)=>[entry.file_id,entry.modified]));
+  await reopened.remove('a',new AbortController().signal);assert.deepEqual((await reopened.catalog(new AbortController().signal)).map(entry=>entry.file.id),['z']);
+ }finally{await reopened?.close();await f.clean();}
+});
+test('native list registration rolls back info when the shared catalog route is already owned',async()=>{
+ const f=await fixture();try{const rpc=new JsonRpcDispatcher(),registry=new EndpointRegistry(rpc);registry.register({endpoint:'/server/files/list',methods:['GET']},()=>[]);assert.throws(()=>registerNativeFileInfo(registry,f.uploads),/already registered/);assert.equal(registry.allowed('/printer/files/info'),undefined);assert.equal(rpc.has('printer.files.info'),false);assert.equal(rpc.has('server.files.list'),true);
+  await f.uploads.close();assert.equal((await fetch(f.url+'/server/files/list')).status,503);
  }finally{await f.clean();}
 });
