@@ -6,13 +6,13 @@ function scale(value:number,range:readonly number[]):number{const span=range[1]-
 function tick(value:number):string{return value===0?'0':Number(value.toPrecision(4)).toString();}
 /** Standalone diagnostic SVG, preserving every admitted point (no decimation). */
 export interface PlotXAxis {label:string;format:'utc'|'number';}
-export function renderStatsSvg(plot:StatsPlot,xAxis:PlotXAxis={label:'Time (UTC)',format:'utc'},yRanges?:readonly (readonly [number,number])[],fullLegend=false):string{
- if(typeof fullLegend!=='boolean')throw new TypeError('Invalid plot legend mode');
+export function renderStatsSvg(plot:StatsPlot,xAxis:PlotXAxis={label:'Time (UTC)',format:'utc'},yRanges?:readonly (readonly [number,number])[],fullLegend=false,reserveRightAxis=false):string{
+ if(typeof fullLegend!=='boolean'||typeof reserveRightAxis!=='boolean')throw new TypeError('Invalid plot legend mode');
  if(plot.curves.length>128||plot.axes.length<1||plot.axes.length>2)throw new RangeError('Plot series capacity exceeded');
  if(yRanges&&(yRanges.length!==plot.axes.length||yRanges.some(r=>r.length!==2||!r.every(Number.isFinite)||r[0]>=r[1])))throw new RangeError('Invalid plot axis range');
  const labels=fullLegend?plot.curves.map(c=>{const chars=Array.from(c.label),lines:string[]=[];for(let i=0;i<chars.length;i+=60)lines.push(chars.slice(i,i+60).join(''));return lines.length?lines:[''];}):[];
  const legendHeight=fullLegend?labels.reduce((n,lines)=>n+lines.length*16+4,0):Math.ceil(plot.curves.length/3)*20;
- const width=800,height=Math.max(600,(fullLegend?520:220)+legendHeight),left=84,right=plot.axes.length===2?100:36,top=66,bottom=70+legendHeight,w=width-left-right,h=height-top-bottom;
+ const width=800,height=Math.max(600,(fullLegend?520:220)+legendHeight),left=84,right=plot.axes.length===2||reserveRightAxis?100:36,top=66,bottom=70+legendHeight,w=width-left-right,h=height-top-bottom;
  let xmin=Infinity,xmax=-Infinity,points=0;const ymin=[Infinity,Infinity],ymax=[-Infinity,-Infinity];
  for(const c of plot.curves){if(c.times.length!==c.values.length||c.axis<0||c.axis>=plot.axes.length)throw new TypeError('Invalid plot curve');points+=c.times.length;if(points>500000)throw new RangeError('Plot point capacity exceeded');for(let i=0;i<c.times.length;i++){const x=c.times[i],y=c.values[i];if(!Number.isFinite(x)||!Number.isFinite(y)||x< -62135596800||x>=253402300800)throw new TypeError('Invalid plot coordinates');xmin=Math.min(xmin,x);xmax=Math.max(xmax,x);ymin[c.axis]=Math.min(ymin[c.axis],y);ymax[c.axis]=Math.max(ymax[c.axis],y);}}
  const xr=xmin===xmax&&Number.isFinite(xmin)?[xmin-.5,xmax+.5]:domain(xmin,xmax),yr=plot.axes.map((_,i)=>yRanges?.[i]??domain(ymin[i],ymax[i])),x=(value:number)=>left+scale(value,xr)*w,y=(value:number,axis:number)=>top+(1-scale(value,yr[axis]))*h;
@@ -24,11 +24,11 @@ export function renderStatsSvg(plot:StatsPlot,xAxis:PlotXAxis={label:'Time (UTC)
  let offset=0;plot.curves.forEach((c,i)=>{const px=fullLegend?left:left+(i%3)*(width-left-25)/3,py=top+h+66+(fullLegend?offset:Math.floor(i/3)*20),lines=fullLegend?labels[i]:[Array.from(c.label).slice(0,25).join('')];parts.push(`<g><title>${escape(c.label)}</title><path d="M${px} ${py-4}h14" stroke="${colors[i%colors.length]}" stroke-width="2"/>`);lines.forEach((line,j)=>parts.push(`<text x="${px+20}" y="${py+j*16}">${escape(line)}</text>`));parts.push('</g>');offset+=lines.length*16+4;});parts.push('</svg>');const output=parts.join('');if(Buffer.byteLength(output)>64*1024**2)throw new RangeError('SVG output capacity exceeded');return output;
 }
 
-export interface StatsPanel {plot:StatsPlot;xAxis:PlotXAxis;yRanges?:readonly (readonly [number,number])[];fullLegend?:boolean;}
+export interface StatsPanel {plot:StatsPlot;xAxis:PlotXAxis;yRanges?:readonly (readonly [number,number])[];fullLegend?:boolean;reserveRightAxis?:boolean;}
 /** Stack independently clipped plots into one standalone document. */
 export function renderStatsPanels(panels:readonly StatsPanel[]):string{
  if(!panels.length||panels.length>8)throw new RangeError('Expected 1 to 8 plot panels');
  let count=0;for(const panel of panels)for(const curve of panel.plot.curves){count+=curve.times.length;if(count>500000)throw new RangeError('Combined plot point capacity exceeded');}
- let height=0;const parts:string[]=[];panels.forEach((panel,i)=>{let svg=renderStatsSvg(panel.plot,panel.xAxis,panel.yRanges,panel.fullLegend);const match=/^<svg [^>]*height="(\d+)"/.exec(svg);if(!match)throw new Error('Missing generated SVG dimensions');const h=Number(match[1]);svg=svg.replace('<svg ',`<svg x="0" y="${height}" `).replaceAll('id="plot"',`id="panel${i}"`).replaceAll('clip-path="url(#plot)"',`clip-path="url(#panel${i})"`);parts.push(svg);height+=h;});
+ let height=0;const parts:string[]=[];panels.forEach((panel,i)=>{let svg=renderStatsSvg(panel.plot,panel.xAxis,panel.yRanges,panel.fullLegend,panel.reserveRightAxis);const match=/^<svg [^>]*height="(\d+)"/.exec(svg);if(!match)throw new Error('Missing generated SVG dimensions');const h=Number(match[1]);svg=svg.replace('<svg ',`<svg x="0" y="${height}" `).replaceAll('id="plot"',`id="panel${i}"`).replaceAll('clip-path="url(#plot)"',`clip-path="url(#panel${i})"`);parts.push(svg);height+=h;});
  const output=`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="${height}" viewBox="0 0 800 ${height}" role="img"><title>Diagnostic plots</title>${parts.join('')}</svg>`;if(Buffer.byteLength(output)>64*1024**2)throw new RangeError('SVG output capacity exceeded');return output;
 }

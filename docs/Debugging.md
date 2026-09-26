@@ -125,6 +125,29 @@ is possible to complete prints and other actions - the logging will
 continue in the background. When done logging, hit `ctrl-c` to exit
 from the `data_logger.py` tool.
 
+The captures can also be plotted with Node.js 26 after installing the host
+dependencies. The Node tool reads both capture files and runs analysis in a
+worker; it does not require Python:
+
+```
+npm --prefix ~/klipper/host ci
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.html
+node ~/klipper/scripts/motan/motan_graph.ts mylog -d .5 --segment-time .0001 -o motion.png -g '[["trapq(toolhead,velocity)?color=green"],["trapq(toolhead,accel)?color=tab:blue&ls=--"]]'
+node ~/klipper/scripts/motan/motan_graph.ts -l
+```
+
+Output is required: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, or complete JSON
+panels. HTML provides offline zoom, pan and curve toggles. Supported styles
+are `color/c` (hex, basic names, shorthand or tab colors), `label`,
+`alpha` (0..1), `linewidth/lw` (0..20), `linestyle/ls` (solid, dashed,
+dash-dot, dotted or none), `marker` (none, dot or circle), and
+`markersize/ms` (0..40). Unsupported parameters fail before analysis; they
+are not silently ignored. Use the legacy tool below for styles not yet ported.
+Numeric datasets only are supported by this graph entry point. Existing
+capture files are protected from replacement; failures/cancellation preserve
+prior output. Analysis is limited to 60 seconds per job. This is an offline
+diagnostic tool and does not drive a printer.
+
 The resulting files can be read and graphed using the `motan_graph.py`
 tool. To generate graphs on a Raspberry Pi, a one time step is
 necessary to install the "matplotlib" package:

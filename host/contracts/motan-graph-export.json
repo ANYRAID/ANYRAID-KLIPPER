@@ -1,0 +1,41 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "points": 15003,
+        "bytes": 244237,
+        "medianMs": 87.73881500000005,
+        "p95Ms": 94.93584599999986
+      },
+      {
+        "format": "png",
+        "points": 15003,
+        "bytes": 60560,
+        "medianMs": 113.3520239999998,
+        "p95Ms": 116.19209499999988
+      }
+    ],
+    "scope": "Synthetic capture file read, fresh analysis worker per job, full three-curve layout, SVG or PNG encoding and atomic write. Decode checks outside timer. No Python renderer comparison, browser frame rate or physical print timing."
+  },
+  "validation": {
+    "formats": [
+      "json",
+      "svg",
+      "png",
+      "html",
+      "pdf"
+    ],
+    "defaultGraphs": true,
+    "pythonOnPath": false,
+    "visualReview": "PNG decoded and inspected; mixed one/two-axis time geometry aligned",
+    "unrun": [
+      "Real browser interactions",
+      "Python/Matplotlib image performance comparison",
+      "Physical printer acceptance"
+    ]
+  }
+}
