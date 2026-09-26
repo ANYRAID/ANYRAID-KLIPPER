@@ -709,3 +709,21 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 未装配该所有者时不猜测自定义文件命名。`pause_resume.is_paused` 在暂停
 确认后为 true，恢复确认前仍为 true；仅发起暂停时不能声称已暂停。
 当前未提供实际累计打印时间或耗材统计，不能从文件进度推算这些字段。
+
+## 原生打印加载已保存网床
+
+线性原生主机现在读取 [bed_mesh] 及版本 1 的 [bed_mesh 名称] 保存数据，
+支持显式 BED_MESH_PROFILE LOAD=名称 与 BED_MESH_CLEAR。不自动加载
+名为 default 的配置。fade_start、fade_end、fade_target、split_delta_z、
+move_check_distance 由现有网床算法使用；配置和保存网格先通过启动预检。
+这条入口目前只接通保存数据的加载/清除，未接入探针测量、校准、
+PROFILE SAVE/REMOVE、SAVE_CONFIG 和完整 bed_mesh 状态对象。
+
+切换补偿先排空已接受的旧轨迹并等待 MCU 时间，再更新坐标变换和
+G-code 坐标缓存。普通 G-code 使用逻辑坐标；toolhead.position、
+归零、暂停停车和返回路径使用补偿后的物理计划坐标。这些都是计划值，
+不是实测位置。暂停中拒绝切换补偿；归零重建运动队列后保留已选网床。
+控制器重建或进程重启后仍需再次显式加载，不回放旧命令。
+
+保存网床能参与原生打印，不代表本机已校准或全套网床功能已替代；实际
+探针、热床形变、Z 精度与速度仍需目标打印机验收。

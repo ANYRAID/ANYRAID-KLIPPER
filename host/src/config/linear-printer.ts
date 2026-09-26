@@ -1,3 +1,4 @@
+import {readNativeBedMesh} from './native-bed-mesh.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readRetraction} from './retraction.ts';
 import {readArcResolution} from './arcs.ts';
@@ -11,7 +12,7 @@ export interface LinearPrinterPolicy {mcus:readonly string[];enableLeadTime:numb
 /** Plan the supported single-extruder linear machine from section names and
  * physical pin ownership. Does not open devices or grant homing authority. */
 export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
- readArcResolution(reader);readRetraction(reader);
+ readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
  const {kinematics}=readLinearMotionConfiguration(reader),pins=new PrinterPins<object>();
  if(!policy.mcus.length||policy.mcus.length>16||new Set(policy.mcus).size!==policy.mcus.length||![policy.enableLeadTime,policy.fanMinimumScheduleTime].every(n=>Number.isFinite(n)&&n>0))throw new Error('Invalid linear printer machine policy');
  for(const id of policy.mcus)pins.register(id,{});

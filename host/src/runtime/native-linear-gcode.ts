@@ -1,3 +1,4 @@
+import type {NativeBedMeshConfiguration} from '../config/native-bed-mesh.ts';
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
 import {FirmwareRetraction,type RetractionSettings} from '../gcode/retraction.ts';
@@ -24,7 +25,7 @@ export class NativeLinearGCode {
  readonly pressureAdvance:PressureAdvancePort|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string}){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration){
   if(pressureBinding){
    const {stepper,name}=pressureBinding;
    if(typeof name!=='string'||!name.trim()||name.length>256||name.includes('\0'))throw new Error('Invalid pressure advance object name');
@@ -39,6 +40,11 @@ export class NativeLinearGCode {
   this.dispatch=new GCodeDispatch({output,unknownCommand:'shutdown',checkpoint:s=>port.flush(s),drain:s=>port.drain(s),shutdown:reason=>{void port.motorOff(new Error(reason)).catch(()=>{});}});
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
+  if(bedMesh){
+   const settings=structuredClone(bedMesh.settings),profiles=bedMesh.profiles;
+   this.dispatch.register('BED_MESH_PROFILE',async c=>{if(Object.keys(c.params).some(k=>k!=='LOAD')||typeof c.params.LOAD!=='string'||!c.params.LOAD.trim())throw new GCodeError('Native saved mesh requires BED_MESH_PROFILE LOAD=name');const mesh=profiles.load(c.params.LOAD);await port.replaceBedMesh(mesh,settings,c.signal);this.coordinates.resetPosition();});
+   this.dispatch.register('BED_MESH_CLEAR',async c=>{if(Object.keys(c.params).length)throw new GCodeError('BED_MESH_CLEAR takes no parameters');await port.replaceBedMesh(null,settings,c.signal);this.coordinates.resetPosition();});
+  }
   this.layers.register(this.dispatch);
   this.display.register(this.dispatch);
   this.retraction?.register(this.dispatch,this.coordinates);

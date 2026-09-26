@@ -44,6 +44,7 @@ export class BedMeshMovePort implements MovePort {
   if(!this.#busy){this.#queue.reset();this.#flushDue=false;}
  }
  get fault():Error|undefined{return this.#fault;}
+ get logicalPosition():readonly number[]{return [...this.#logical];}
  get plannedPosition():readonly number[]{return [...this.#physical];}
  get pending():number{return this.#queue.length;}
  get flushDue():boolean{return this.#flushDue;}

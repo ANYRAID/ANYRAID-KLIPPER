@@ -24,6 +24,8 @@ export interface HomingPass {
  * motorOff must fence pending work, including callbacks which settle late.
  * Every asynchronous operation must honor signal and check device health. */
 export interface LinearHomingPort extends MovePort {
+ /** Physical halt coordinates for privileged homing; ordinary position may be transformed. */
+ homingPosition?():readonly number[];
  assertActive():void;
  drain(signal:AbortSignal):Promise<void>;
  forcePosition(position:readonly number[],signal:AbortSignal):Promise<void>;
@@ -76,7 +78,7 @@ export class LinearHomingCommand {
   const timer=setTimeout(()=>deadline.abort(new GCodeError('Homing timed out')),this.#timeout);
   const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#port))throw new Error('Homing coordinate port changed');};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
-  const position=()=>{const p=[...this.#port.position()];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
+  const position=()=>{const p=[...(this.#port.homingPosition?.()??this.#port.position())];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
   const fill=(coord:readonly (number|null)[])=>{const p=position();for(let i=0;i<coord.length;i++)if(coord[i]!==null)p[i]=coord[i]!;return p;};
   const confirm=(pass:HomingPass,rail:LinearHomingRail,second:boolean)=>{
    if(pass.stop.groups.length!==rail.endstops.length)throw new Error('Homing endstop coverage mismatch');

@@ -1,3 +1,5 @@
+import {BedMesh} from '../motion/bed-mesh.ts';
+import type {BedMeshFadeConfig} from '../motion/bed-mesh-fade.ts';
 import {StopNotice} from '../runtime/stop-notice.ts';
 import {dwellMove} from '../motion/dwell.ts';
 import type {LinearHomingPort,HomingPass} from './linear-command.ts';
@@ -27,6 +29,7 @@ export interface PausedMove {position:readonly number[];speed:number;}
  * and product startup remain separate runtime responsibilities. */
 export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
+ #mesh:BedMesh|null=null;#meshSettings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number}={};
  #streamer:RebuiltMotionStreamer;
  #velocity:VelocityLimits;
  #pressure=new Map<string,Readonly<PressureAdvanceSettings>>();
@@ -47,11 +50,20 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
- #newAdmission(position:readonly number[]){return createGuardedBedMeshPort({mesh:null,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
  get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausedClockMaintenance:this.#pausedClock!==undefined,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
- position(){return this.#admission.plannedPosition;}
+ position(){return this.#admission.logicalPosition;}
+ homingPosition(){return this.#admission.plannedPosition;}
+ currentBedMesh(){return this.#mesh?.copy()??null;}
+ replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal):Promise<void>{
+  const owned=mesh?.copy()??null,options=structuredClone(settings);
+  return this.#operate('mesh',signal,async s=>{
+   const next=createGuardedBedMeshPort({mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;
+  });
+ }
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
  get velocitySettings(){return this.#velocity.state;}
  get velocityStatus(){return this.#velocity.objectStatus;}
@@ -251,7 +263,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  validatePausedPath(legs:readonly PausedMove[]):void{
   this.assertActive();if(!this.#pauseReady||this.#resuming||this.#pausedBusy||this.#pauseMode!=='stationary'&&this.#streamer.status.pause!=='paused'||!this.#g.source.status.paused&&!this.#pausedClock)throw new Error('Native stream is not available for paused motion');
   if(!Array.isArray(legs)||legs.length>64)throw new RangeError('Invalid paused motion path');
-  const admission=this.#newAdmission(this.#g.source.status.position);
+  const admission=this.#newAdmission(this.#g.source.status.position,true);
   for(const leg of legs){admission.move(leg.position,leg.speed);admission.flush();}
  }
  async movePaused(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>{
@@ -262,7 +274,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   try{
    if(this.#pausedClock)await this.#awaitPausedClock(combined);
    this.#check(combined);if(!this.#g.source.status.paused)throw new Error('Paused source is not drained');
-   const admission=this.#newAdmission(this.#g.source.status.position);admission.move(target,speed);const moves=admission.flush();
+   const admission=this.#newAdmission(this.#g.source.status.position,true);admission.move(target,speed);const moves=admission.flush();
    if(moves.length){await new RebuiltMotionStreamer(this.#g).append(moves,combined);this.#check(combined);await this.#g.source.drain([],combined);}
    this.#check(combined);
   }catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Paused motion and stop failed');}throw error;}
@@ -274,7 +286,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(this.#pausedClock)await this.#awaitPausedClock(signal);
   this.#check(signal);if(!this.#pauseReady||this.#resuming)throw new Error('Native stream is not paused');
   if(this.#pausedBusy)throw new Error('Paused motion is busy');
-  const current=this.#g.source.status;if(!current.paused||!this.#pausePosition||current.position.length!==this.#pausePosition.length||current.position.some((v,i)=>v!==this.#pausePosition![i]))throw new Error('Must return to the drained pause position before resuming');
+  const current=this.#g.source.status;if(!current.paused||!this.#pausePosition||current.position.length!==this.#pausePosition.length||current.position.some((v,i)=>v!==this.#pausePosition![i]))throw new Error('Must return to the drained pause position before resuming',{cause:{current,expected:this.#pausePosition}});
   this.#resuming=true;
   const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
   try{if(this.#pauseMode!=='stationary')await this.#streamer.resume(createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;this.#pausePosition=undefined;this.#pauseMode=undefined;}
