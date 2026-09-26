@@ -8,6 +8,7 @@ import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
+import {NativeFileMetadata} from './native-file-metadata.ts';
 export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBinary']>>;
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
@@ -18,6 +19,7 @@ const validId=(id:unknown):id is string=>typeof id==='string'&&/^[A-Za-z0-9_-]{1
 export class NativePrintUploads {
  readonly #files:PublishedPrintFiles;readonly #gate:MaintenanceGate;readonly #root:string;readonly #max:number;readonly #capacity:number;
  readonly #abort=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #authorizing=new Set<Promise<unknown>>();
+ readonly #metadata:NativeFileMetadata;
  readonly #downloads=new Set<Promise<void>>();readonly #downloadBudget:PrintSnapshotBudget;readonly #maxDownloads:number;
  #closed=false;#published=0;
  constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:{stagingRoot?:string;maxFileBytes?:number;maxUploads?:number;maxDownloads?:number;maxDownloadBytes?:number}={}){
@@ -27,9 +29,9 @@ export class NativePrintUploads {
   const downloads=options.maxDownloads??2,downloadBytes=options.maxDownloadBytes??64*1024**2;
   if(!Number.isSafeInteger(downloads)||downloads<1||downloads>4||!Number.isSafeInteger(downloadBytes)||downloadBytes<1||downloadBytes>1024**3)throw new Error('Invalid native download limits');
   this.#maxDownloads=downloads;this.#downloadBudget=new PrintSnapshotBudget({maxBytes:downloadBytes,maxSnapshots:downloads});
-  this.#files=files;this.#gate=gate;this.#root=root;this.#max=max;this.#capacity=capacity;
+  this.#metadata=new NativeFileMetadata(files);this.#files=files;this.#gate=gate;this.#root=root;this.#max=max;this.#capacity=capacity;
  }
- get status(){return {closed:this.#closed,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
+ get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  async #authorize(context:RpcContext,params:Record<string,Json>,signal:AbortSignal,method='server.files.upload'):Promise<void>{
   signal.throwIfAborted();if(this.#authorizing.size>=this.#capacity*2)throw new ApiError(503,'Upload authorization capacity exceeded');
@@ -107,6 +109,21 @@ export class NativePrintUploads {
   });
   this.#downloads.add(task);void task.then(()=>this.#downloads.delete(task),()=>this.#downloads.delete(task));return task;
  }
+ metadata(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Record<string,Json>>{
+  if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
+  return this.#metadata.metadata(params.filename,signal);
+ }
+ directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{const task=this.#directory(params,signal);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));}
+ async #directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
+  signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native files closed');
+  if(Object.keys(params).some(key=>!['path','extended'].includes(key)))throw new ApiError(400,'Invalid directory arguments');
+  if(params.path!==undefined&&params.path!=='gcodes'&&params.path!=='gcodes/')throw new ApiError(404,'Native directory not found');
+  const extended=params.extended??false;if(typeof extended!=='boolean'&&(typeof extended!=='string'||!['true','false'].includes(extended.toLowerCase())))throw new ApiError(400,'Invalid extended flag');
+  const signalOwned=AbortSignal.any([signal,this.#abort.signal]),entries=await this.#files.catalog(signalOwned),usage=await this.#files.diskUsage(signalOwned);signalOwned.throwIfAborted();
+  const files=entries.map(({file,modified})=>{const filename=file.id+'.gcode',extra=extended===true||typeof extended==='string'&&extended.toLowerCase()==='true'?this.#metadata.peek(filename,file,modified):undefined;return {...extra,filename,modified,size:file.size,permissions:'r',file_id:file.id,name:file.name,sha256:file.sha256};});
+  const result={dirs:[],files,disk_usage:usage,root_info:{name:'gcodes',permissions:'rw'}};
+  if(Buffer.byteLength(JSON.stringify(result))>900000)throw new ApiError(413,'Native directory exceeds response limit');return result;
+ }
  async list(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
   if(Object.keys(params).some(key=>key!=='root')||params.root!==undefined&&typeof params.root!=='string')throw new ApiError(400,'Expected optional root');
@@ -118,13 +135,15 @@ export class NativePrintUploads {
   const result=entries.map(({file,modified})=>({path:file.id+'.gcode',modified,size:file.size,permissions:'r',file_id:file.id,name:file.name,sha256:file.sha256}));
   if(Buffer.byteLength(JSON.stringify(result))>900000)throw new ApiError(413,'Native file catalog exceeds response limit');return result;
  }
- close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.allSettled([...this.#pending,...this.#downloads]).then(()=>{});}
+ close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.allSettled([...this.#pending,...this.#downloads,this.#metadata.close()]).then(()=>{});}
 }
-export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads):()=>void{
+export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean}={}):()=>void{
  const release:(()=>void)[]=[];
  try{
   release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>uploads.info(params,context.signal)));
   release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>uploads.list(params,context.signal)));
+  release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>uploads.directory(params,context.signal)));
+  if(options.metadata!==false)release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>uploads.metadata(params,context.signal)));
   return ()=>{for(const remove of release.reverse())remove();};
  }catch(error){for(const remove of release.reverse())remove();throw error;}
 }

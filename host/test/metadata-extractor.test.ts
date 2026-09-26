@@ -36,3 +36,12 @@ test('cache tickets reject stale scans and failure does not invalidate a newer r
 test('mutating a source throughout parsing rejects publication',async()=>{
  const f=await fixture('G1 Z.2 X1\n'.repeat(200000)),extractor=await MetadataExtractor.open();const writer=await open(f.path,'r+');let stop=false;const mutate=(async()=>{while(!stop){await writer.write(Buffer.from('G'),0,1,0);await delay(1);}})();try{await assert.rejects(extractor.extract(await open(f.path,'r'),new AbortController().signal),/changed/);}finally{stop=true;await mutate;await writer.close();await extractor.close();await f.close();}
 });
+
+test('verified byte windows match descriptor extraction and keep cancelled jobs bounded',async()=>{
+ const f=await fixture(),extractor=await MetadataExtractor.open({maxPending:1});try{
+  const source=await open(f.path,'r'),bytes=await source.readFile(),modified=Number((await source.stat({bigint:true})).mtimeNs)/1e9,window={head:bytes,tail:Buffer.alloc(0),size:bytes.length,modified};
+  const expected=await extractor.extract(source,new AbortController().signal),actual=await extractor.extractWindows(window,new AbortController().signal);assert.deepEqual({...actual.fields,modified:expected.fields.modified},expected.fields);assert.deepEqual(actual.objects,expected.objects);assert.equal('source' in actual,false);
+  await assert.rejects(extractor.extractWindows({...window,head:Buffer.alloc(0)},new AbortController().signal),/Invalid/);
+  const abort=new AbortController(),pending=extractor.extractWindows(window,abort.signal);abort.abort(new Error('cancel window'));await assert.rejects(pending,/cancel window/);assert.equal(extractor.pendingRequests,1);await assert.rejects(extractor.extractWindows(window,new AbortController().signal),/queue is full/);await drained(extractor);assert.equal((await extractor.extractWindows(window,new AbortController().signal)).fields.first_layer_height,.3);
+ }finally{await extractor.close();await f.close();}
+});

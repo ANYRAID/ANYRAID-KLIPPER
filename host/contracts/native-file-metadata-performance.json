@@ -1,0 +1,54 @@
+{
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "warmups": 3,
+  "runs": 11,
+  "results": [
+    {
+      "bytes": 65536,
+      "cold": {
+        "medianMs": 1.4769190000000094,
+        "p95Ms": 2.0085770000000025
+      },
+      "cached": {
+        "medianMs": 0.10889099999999985,
+        "p95Ms": 0.16047199999999862
+      },
+      "eventLoop": {
+        "p99Ms": 1.698815,
+        "maxMs": 2.535423
+      }
+    },
+    {
+      "bytes": 4194304,
+      "cold": {
+        "medianMs": 18.613584000000003,
+        "p95Ms": 20.91724499999998
+      },
+      "cached": {
+        "medianMs": 0.12177100000002383,
+        "p95Ms": 1.8164740000000847
+      },
+      "eventLoop": {
+        "p99Ms": 1.802239,
+        "maxMs": 1.959935
+      }
+    },
+    {
+      "bytes": 67108864,
+      "cold": {
+        "medianMs": 106.36596700000018,
+        "p95Ms": 107.67698400000018
+      },
+      "cached": {
+        "medianMs": 0.10894099999995888,
+        "p95Ms": 0.12126099999977669
+      },
+      "eventLoop": {
+        "p99Ms": 1.355775,
+        "maxMs": 2.951167
+      }
+    }
+  ],
+  "scope": "Local immutable files: cold path includes full SHA-256 sealed copy, bounded byte windows and Worker scalar extraction; cached path revalidates receipt identity. Excludes publication, HTTP and hardware. Worker startup is warmed; full-file metadata and images are not claimed."
+}

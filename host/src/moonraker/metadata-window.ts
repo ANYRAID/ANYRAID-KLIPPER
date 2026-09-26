@@ -48,3 +48,10 @@ export async function readMetadataWindow(source:FileHandle,signal:Pick<AbortSign
  const data=head+tail;let seconds=before.mtimeNs/1000000000n,nanos=before.mtimeNs%1000000000n;if(nanos<0){seconds--;nanos+=1000000000n;}
  return Object.freeze({size,modified:Number(seconds)+Number(nanos)*1e-9,identificationHeader:head,data,...sliceCodepoints(data),source:Object.freeze({dev:before.dev,ino:before.ino,mtimeNs:before.mtimeNs,ctimeNs:before.ctimeNs})});
 }
+
+/** Compose the same byte windows for verified immutable non-filesystem sources. */
+export function composeMetadataWindow(headBytes:Uint8Array,tailBytes:Uint8Array,size:number,modified:number){
+ if(!Number.isSafeInteger(size)||size<0||!Number.isFinite(modified)||headBytes.byteLength!==Math.min(size,METADATA_READ_BYTES)||tailBytes.byteLength!==Math.max(0,Math.min(size-METADATA_READ_BYTES,METADATA_READ_BYTES)))throw new TypeError('Invalid metadata byte windows');
+ const head=decodeMetadataUtf8(Buffer.from(headBytes.buffer,headBytes.byteOffset,headBytes.byteLength)),tail=decodeMetadataUtf8(Buffer.from(tailBytes.buffer,tailBytes.byteOffset,tailBytes.byteLength)),data=head+tail;
+ return {size,modified,identificationHeader:head,data,...sliceCodepoints(data)};
+}

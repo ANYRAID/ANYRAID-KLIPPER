@@ -1,5 +1,5 @@
 import {createRequire} from 'node:module';
-import {open,mkdir,link,unlink,opendir,lstat,type FileHandle} from 'node:fs/promises';
+import {open,mkdir,link,unlink,opendir,lstat,statfs,type FileHandle} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
@@ -91,6 +91,11 @@ export class PublishedPrintFiles {
   signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});
   return Object.freeze([...this.#records].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([,entry])=>Object.freeze({file:entry.record,modified:entry.modified})));
  },true,signal);}
+ describe(id:string,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number}>{return this.#run(async()=>{
+  this.#id(id);signal.throwIfAborted();const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published file not found'),{code:'ENOENT'});
+  const file=await this.#record(id);signal.throwIfAborted();if(file.sha256!==stored.record.sha256||file.name!==stored.record.name||file.size!==stored.record.size)throw new Error('Published receipt changed outside store');return {file,modified:stored.modified};
+ },true,signal);}
+ diskUsage(signal:AbortSignal):Promise<{total:number;used:number;free:number}>{return this.#run(async()=>{signal.throwIfAborted();const fs=await statfs(this.#path('.'),{bigint:true});signal.throwIfAborted();const result={total:Number(fs.blocks*fs.bsize),used:Number((fs.blocks-fs.bfree)*fs.bsize),free:Number(fs.bavail*fs.bsize)};if(Object.values(result).some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Disk usage exceeds exact JSON integer range');return result;},false,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
  /** Bounded binary acquisition for non-G-code owners. The returned Buffer is an
   * independent verified snapshot; it never enters the text G-code reader. */
