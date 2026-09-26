@@ -1,0 +1,385 @@
+{
+  "description": "Bounded local observations. Motion numerical integrity failures and process crashes remain unresolved. No common cause, hardware defect, safe CPU, or successful production acceptance is established.",
+  "repositoryBase": "ce46c677",
+  "diagnosticScriptSha256": "808a42787eb24aa098603dc332bc286d22930d5899b9a9df588542f4ec90da38",
+  "nodeBatches": [
+    {
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 200,
+      "workers": 8,
+      "fixtureSha256": "3438e0a757177d185da9947254cec1e2e2a60af3515bac8af922566968fe9fe1",
+      "reportPath": "/tmp/anyraid-node-asan-2IqoYn/report.json",
+      "runs": 23,
+      "failures": [
+        {
+          "index": 20,
+          "pid": 2320831,
+          "status": 1,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": "node:internal/modules/run_main:107\n    triggerUncaughtException(\n    ^\n\nAssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(Math.abs(v-expected.values[k])<=[1e-8,1e-4,1e-10][i])\n\n    at file:///tmp/anyraid-node-asan-2IqoYn/fixture.mjs:13:34\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-2IqoYn/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-2IqoYn/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-2IqoYn/fixture.mjs:11:9 {\n  generatedMessage: true,\n  code: 'ERR_ASSERTION',\n  actual: false,\n  expected: true,\n  operator: '==',\n  diff: 'simple'\n}\n\nNode.js v26.9.0\n"
+        }
+      ]
+    },
+    {
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 200,
+      "workers": 8,
+      "fixtureSha256": "593a74f07bded4d945524391010d6aebd09b3e288ccf686f2f5e08724f3e3275",
+      "reportPath": "/tmp/anyraid-node-asan-ZnHcFo/report.json",
+      "runs": 54,
+      "failures": [
+        {
+          "index": 50,
+          "pid": 2321601,
+          "status": 1,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": "file:///tmp/anyraid-node-asan-ZnHcFo/fixture.mjs:15\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":4,\"panel\":0,\"curve\":2,\"index\":3653,\"actual\":34.04437582654094,\"expected\":34.04437570733165,\"error\":1.1920928955078125e-7,\"repeated\":34.04437570733165,\"nearby\":[34.27725877060084,34.16057445559062,34.04437582654094,33.92866291605401,33.813436347678305],\"reference\":[34.27725877060084,34.16057445559062,34.04437570733165,33.92866291605401,33.813436347678305]}\n    at file:///tmp/anyraid-node-asan-ZnHcFo/fixture.mjs:15:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-ZnHcFo/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-ZnHcFo/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-ZnHcFo/fixture.mjs:11:9\n\nNode.js v26.9.0\n"
+        }
+      ]
+    }
+  ],
+  "cpuAffinityTrials": [
+    {
+      "cpu": 0,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-9O87oc/report.json",
+      "runs": 30,
+      "failures": []
+    },
+    {
+      "cpu": 1,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "1"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-IzXYZW/report.json",
+      "runs": 22,
+      "failures": [
+        {
+          "index": 21,
+          "pid": 2322998,
+          "status": null,
+          "signal": "SIGSEGV",
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "cpu": 2,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "2"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-g2XqEv/report.json",
+      "runs": 7,
+      "failures": [
+        {
+          "index": 6,
+          "pid": 2323074,
+          "status": 1,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": "file:///tmp/anyraid-node-asan-g2XqEv/fixture.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":13,\"panel\":0,\"curve\":3,\"index\":3465,\"actual\":59.17177158572429,\"expected\":59.17117553927653,\"error\":0.0005960464477539062,\"xor\":\"0x1588000000\",\"repeated\":59.17117553927653,\"nearby\":[59.41555504673346,59.29347940195839,59.17177158572429,59.048640872738645,58.9258729065989],\"reference\":[59.41555504673346,59.29347940195839,59.17117553927653,59.048640872738645,58.9258729065989]}\n    at file:///tmp/anyraid-node-asan-g2XqEv/fixture.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-g2XqEv/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-g2XqEv/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-g2XqEv/fixture.mjs:11:9\n\nNode.js v26.9.0\n"
+        }
+      ]
+    },
+    {
+      "cpu": 3,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "3"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-LJSjNH/report.json",
+      "runs": 30,
+      "failures": []
+    },
+    {
+      "cpu": 4,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "4"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-GMDdAG/report.json",
+      "runs": 30,
+      "failures": []
+    },
+    {
+      "cpu": 5,
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "runtime": "/usr/lib/gcc/x86_64-linux-gnu/12/libasan.so",
+      "runtimeSha256": "eab865eb8655722dc950b1d6426237e41fec87efbe9374aa456787d3efe90b34",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "867944cf12185a2a3037cdad21d45833ca4244a366086b2481765218295b0138",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "5"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "reportPath": "/tmp/anyraid-node-asan-cb8WId/report.json",
+      "runs": 30,
+      "failures": []
+    }
+  ],
+  "python": {
+    "executable": "/usr/bin/python3",
+    "executableSha256": "cbca0b53c0d42e227fff73b97dbea83396adf3dd710f443bd543eb8aaf72c58d",
+    "sourceGitRef": "ce46c677^:scripts/graph_motion.py",
+    "sourceSha256": "fc67e6007f15df9cd6b2149c632eeed8a53274161ab458dd9bc457fc18e605a1",
+    "adapterGitRef": "ce46c677^:host/bench/motion-graph-reference.ts",
+    "adapterSha256": "20db27c486ec8447dabbc76113e3aa3175287f3897d5123fd7eea4ff5c4cce8d",
+    "case": {
+      "order": 4,
+      "jerkLimit": true,
+      "filter": "weighted4",
+      "smoothTime": 0.016666666666666666,
+      "repetitions": 16
+    },
+    "straceResult": [
+      {
+        "index": 3,
+        "status": null,
+        "signal": "SIGSEGV",
+        "stderr": ""
+      },
+      {
+        "done": 3,
+        "limit": 50
+      }
+    ],
+    "execBoundaryEvidence": [
+      "2318174 rt_sigaction(SIGSEGV, {sa_handler=SIG_DFL, sa_mask=[SEGV], sa_flags=SA_RESTORER|SA_RESTART, sa_restorer=0x7546df1e1320}, {sa_handler=0x9782c0, sa_mask=[], sa_flags=SA_RESTORER|SA_SIGINFO, sa_restorer=0x7546df1e1320}, 8) = 0",
+      "2318174 execve(\"/usr/bin/python3\", [\"/usr/bin/python3\", \"/tmp/anyraid-startup-debug/adapt\"..., \"/tmp/anyraid-startup-debug/graph\"..., \"16\", \"weighted4\", \"0.016666666666666666\", \"{\\\"order\\\":4,\\\"jerkLimit\\\":true}\"], 0x47227f80 /* 96 vars */) = 0",
+      "2318174 rt_sigaction(SIGSEGV, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0",
+      "2318174 --- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=0x160d128} ---",
+      "2318174 +++ killed by SIGSEGV +++"
+    ],
+    "faultHandlerResult": [
+      {
+        "index": 14,
+        "status": null,
+        "signal": "SIGSEGV",
+        "stderr": "Fatal Python error: Segmentation fault\n\nCurrent thread 0x0000779b069190c0 (most recent call first):\n  File \"/tmp/anyraid-startup-debug/graph_motion.py\", line 185 in calc_weighted4\n  File \"/tmp/anyraid-startup-debug/adapter.py\", line 21 in <lambda>\n  File \"/tmp/anyraid-startup-debug/graph_motion.py\", line 349 in plot_motion\n  File \"/tmp/anyraid-startup-debug/adapter.py\", line 23 in <module>\n"
+      },
+      {
+        "done": 14,
+        "limit": 50
+      }
+    ],
+    "nativeDebuggerExcerpt": "Thread 14.1 \"python3\" received signal SIGSEGV, Segmentation fault.\n[Switching to Thread 0x7d74cd0490c0 (LWP 2320479)]\n0x000000000160d0ff in ?? ()\nCAPTURED_FATAL_SIGNAL SIGSEGV\n#0  0x000000000160d0ff in ?? ()\n#1  0x0000000000000080 in ?? ()\n#2  0x4042c3630b350a01 in ?? ()\n#3  0x0000000000b4e2c8 in _PyRuntime ()\n#4  0x00007d74cbea64b0 in ?? ()\n#5  0x00007d74cbea6510 in ?? ()\n#6  0x41826814c8000000 in ?? ()\n#7  0x00007d74cbcf76b0 in ?? ()\n#8  0x00000000005d33c9 in PyNumber_Multiply ()\n#9  0x0000000000548d52 in _PyEval_EvalFrameDefault ()\n#10 0x000000000053fb5c in PyEval_EvalCode ()\n#11 0x0000000000671b6b in ?? ()\n#12 0x000000000066e425 in ?? ()\n#13 0x000000000067d006 in ?? ()\n#14 0x000000000067cd1c in _PyRun_SimpleFileObject ()\nrip            0x160d0ff           0x160d0ff\n=> 0x160d0ff:\tPython Exception <class 'gdb.MemoryError'>: Cannot access memory at address 0x160d0ff\nPROBE_FINISHED fault=True\n",
+    "addressComparison": {
+      "observedInstructionPointer": "0x160d0ff",
+      "mappedInstructionAfterCall": "0x60d0ff",
+      "xor": "0x1000000",
+      "qualification": "Nearby mapped instruction is not proof of the intended return address or of a hardware cause."
+    }
+  },
+  "controls": {
+    "emptyPythonSpawn": {
+      "exe": "/usr/bin/python3",
+      "stress": true,
+      "succeeded": 200,
+      "runs": 200
+    },
+    "directPythonDebugger": "30 direct Python debugger runs completed normally",
+    "integerMemoryProbe": {
+      "bytes": 33554432,
+      "passes": 1671,
+      "seconds": 10.005,
+      "mismatches": 0
+    },
+    "integerMemoryProbeSourceSha256": "6bd3f3366a4b6f35b6fab204acd1e27677c296f2ed5b1d325afc9d035db923f1"
+  },
+  "limits": [
+    "Kernel journal not readable by current account.",
+    "Short passing controls do not certify memory or CPU health.",
+    "APT default cache reported a hash error once; private temporary cache allowed debug-library download. This is not proof of a shared cause.",
+    "No system packages installed, no global CPU/ASLR settings changed, no production parameters changed.",
+    "No precision tolerance was widened; repeated correct results never convert a first failure into success."
+  ]
+}

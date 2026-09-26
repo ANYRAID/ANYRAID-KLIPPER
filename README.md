@@ -21,6 +21,11 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
+本机迁移验证还发现了离线计算进程崩溃和瞬时运动数值失配，单进程
+顺序运行也可复现，根因尚未定位。诊断证据见
+[运行时与运动数值异常记录](docs/diagnostics/node26-motion-failures.json)；
+当前不能据此工作区的成功样本宣称已满足生产稳定性和运动精度要求。
+
 离线输入整形校准已改为 `node scripts/calibrate_shaper.ts`，旧 Python
 脚本已退役。安装 `host` 依赖后可输出完整精度 CSV、拟合报告和
 HTML/PDF/图像，无需 NumPy 或 Matplotlib；不自动修改打印机配置。
