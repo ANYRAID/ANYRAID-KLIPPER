@@ -16,6 +16,8 @@ const schema =
 const normalized = (sql: string) => sql.replace(/\s+/g, ' ').trim();
 const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,statistics TEXT NOT NULL CHECK(length(statistics)<=512)) STRICT;';
 const timesSchema='CREATE TABLE request_times (id TEXT PRIMARY KEY,reserved_at REAL CHECK(reserved_at>=0),started_at REAL CHECK(started_at>=0),ended_at REAL CHECK(ended_at>=0)) STRICT;';
+const hiddenSchema='CREATE TABLE history_hidden (id TEXT PRIMARY KEY) STRICT;';
+const visibleHistory='NOT EXISTS (SELECT 1 FROM history_hidden WHERE history_hidden.id=requests.id)';
 const recordQuery="SELECT requests.*,printf('%06X',requests.rowid) AS history_id,request_statistics.statistics,request_times.id AS timed_id,reserved_at,started_at,ended_at FROM requests LEFT JOIN request_statistics USING(id) LEFT JOIN request_times USING(id)";
 function wallTime():number{const value=Date.now()/1000;if(!Number.isFinite(value)||value<0)throw new JournalError('CLOCK','Invalid wall clock');return value;}
 const port = parentPort!;
@@ -143,11 +145,11 @@ function initialize() {
     .all();
   if (!(
     (app === 0 && version === 0 && tables.length === 0) ||
-    (app === 0x4152504a && (version === 1||version===2||version===3))
+    (app === 0x4152504a && (version >=1&&version<=4))
   ))
     throw new JournalError('SCHEMA', 'Unknown print journal schema');
   if (version >=1) {
-    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:''))
+    const expected = (schema+(version>=2?statisticsSchema:'')+(version>=3?timesSchema:'')+(version>=4?hiddenSchema:''))
         .split(';')
         .map((s) => normalized(s))
         .filter(Boolean)
@@ -167,12 +169,13 @@ function initialize() {
   transaction(() => {
     if (version === 0) {
       db!.exec(
-        schema + statisticsSchema+timesSchema+' PRAGMA application_id=0x4152504a; PRAGMA user_version=3;',
+        schema + statisticsSchema+timesSchema+hiddenSchema+' PRAGMA application_id=0x4152504a; PRAGMA user_version=4;',
       );
       db!.prepare('INSERT INTO metadata VALUES(1,?)').run(options.deviceId);
     }
     if(version===1)db!.exec(statisticsSchema+' PRAGMA user_version=2;');
     if(version===1||version===2)db!.exec(timesSchema+' PRAGMA user_version=3;');
+    if(version>=1&&version<=3)db!.exec(hiddenSchema+' PRAGMA user_version=4;');
     if (db!.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok')
       throw new JournalError('CORRUPT', 'Print journal integrity check failed');
     const identity = db!
@@ -219,7 +222,7 @@ function dispatch(method: string, args: unknown[]): unknown {
   if (method === 'active') return active();
   if(method==='historyGet'){
     const id=args[0];if(typeof id!=='string'||!/^[0-9a-fA-F]{1,16}$/.test(id)||BigInt('0x'+id)<1n||BigInt('0x'+id)>(1n<<63n)-1n)throw new JournalError('INVALID','Invalid history uid');
-    const row=db!.prepare(recordQuery+' WHERE requests.rowid=?').get(BigInt('0x'+id));return row?{...record(row)!,historyId:String(row.history_id)}:null;
+    const row=db!.prepare(recordQuery+' WHERE requests.rowid=? AND '+visibleHistory).get(BigInt('0x'+id));return row?{...record(row)!,historyId:String(row.history_id)}:null;
   }
   if(method==='historyList'){
     const query=args[0] as import('./print-journal-types.ts').JournalHistoryQuery;
@@ -227,12 +230,25 @@ function dispatch(method: string, args: unknown[]): unknown {
     const {before,since}=query,limit=query.limit??50,start=query.start??0,order=String(query.order??'desc').toUpperCase();
     if(!['ASC','DESC'].includes(order)||!Number.isSafeInteger(limit)||!Number.isSafeInteger(start)||[before,since].some(v=>v!==undefined&&!Number.isFinite(v)))throw new JournalError('INVALID','Invalid history pagination');
     if(limit>1000)throw new JournalError('CAPACITY','Use history pages of at most 1000 records');
-    const params:(string|number)[]=[];let sql=recordQuery+' WHERE 1';
+    const params:(string|number)[]=[];let sql=recordQuery+' WHERE '+visibleHistory;
     if(before!==undefined&&before!==-1){sql+=' AND ended_at<?';params.push(before);}
     if(since!==undefined&&since!==-1){sql+=' AND reserved_at>?';params.push(since);}
     sql+=' ORDER BY requests.rowid '+order+' LIMIT ? OFFSET ?';params.push(limit>0?limit:1001,limit>0?Math.max(0,start):0);
     const rows=db!.prepare(sql).all(...params);if(rows.length>1000)throw new JournalError('CAPACITY','Use bounded history pagination');
     return rows.map(row=>({...record(row)!,historyId:String(row.history_id)}));
+  }
+  if(method==='historyDelete'){
+    const [id,all]=args;
+    if(typeof all!=='boolean'||!all&&(typeof id!=='string'||!/^[0-9a-fA-F]{1,16}$/.test(id)||BigInt('0x'+id)<1n||BigInt('0x'+id)>(1n<<63n)-1n))throw new JournalError('INVALID','Invalid history deletion');
+    return transaction(()=>{
+      const rows=all?db!.prepare("SELECT id,state,printf('%06X',rowid) AS uid FROM requests WHERE "+visibleHistory+' ORDER BY rowid LIMIT 1001').all():db!.prepare("SELECT id,state,printf('%06X',rowid) AS uid FROM requests WHERE rowid=? AND "+visibleHistory).all(BigInt('0x'+String(id)));
+      if(!all&&!rows.length)throw new JournalError('MISSING','Unknown history job');
+      if(rows.some(row=>!['completed','cancelled','failed'].includes(String(row.state))))throw new JournalError('STATE','Cannot delete unfinished history');
+      // Do not silently partially delete when the response cannot list all IDs.
+      if(rows.length>1000)throw new JournalError('CAPACITY','Delete history in bounded individual requests');
+      const insert=db!.prepare('INSERT INTO history_hidden(id) VALUES(?)');for(const row of rows)insert.run(String(row.id));
+      return {deleted_jobs:all?rows.map(row=>String(row.uid)):[String(id)]};
+    });
   }
   if(method==='scan'){
     const [after,limit]=args;

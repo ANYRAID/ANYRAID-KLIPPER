@@ -44,4 +44,4 @@ export function registerHistory(registry:EndpointRegistry,options:HistoryApiOpti
  return ()=>{for(const undo of release)undo();};
 }
 // Shared request coercion for native and Klippy-backed history endpoints.
-export {integer as historyInteger,real as historyTime,identifier as historyUid};
+export {integer as historyInteger,real as historyTime,identifier as historyUid,boolean as historyBoolean};

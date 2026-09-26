@@ -1,0 +1,54 @@
+{
+  "baseline": "f7020eea",
+  "node": "v26.9.0",
+  "schemaVersion": 4,
+  "scope": "Standard native history deletion via independent visibility markers; immutable requests remain replay-protected",
+  "sources": {
+    "host/src/moonraker/native-history.ts": "85fdb460594b39c37ef22675ab0d18d137763e14278c45a552f616bdd68e0181",
+    "host/src/moonraker/history-api.ts": "b8193d504decb0d9a39d68b1ff99dce4c75862c5f37a78125bee5e5004bcafc8",
+    "host/src/operations/print-journal-worker.ts": "b92d70b8f67184c2105e84a01e1cb8dc162e4e4449053bf705b003a007ed4714",
+    "host/src/operations/print-journal.ts": "989e61717c947dbe41657bee20da27267dcef2fcedf9f4b828e0564762607bcf",
+    "host/src/operations/print.ts": "77c5e4a289928c3eb61d655b12a2cf0dff3e4c4cfac2278bb257d45f238fd09a",
+    "host/test/native-history-delete.test.ts": "9b3c08d587e514d0e527cf51dde8c962d7af58180960ff6082da2cf849d41205",
+    "host/test/native-history.test.ts": "74450161c8a59cb50293a4fc8f844add989975e177e8e06d2caa70cd6480e212",
+    "host/bench/native-history-delete.ts": "e108b44c44c0d86888962abd93ee0c968e7d3ef927a13457c66c14ed23aede79",
+    "host/acceptance/product-compiled-journey.test.ts": "481b1c9568ea3e36b8b0f8746e99bfb73f2b4d0af7423b71334b8250d1547ec8"
+  },
+  "checks": {
+    "relatedTests": 21,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "tests": "✔ configured history REST and JSON-RPC authorize reads and writes with real owner cleanup (108.220846ms)\n✔ history parameter conversions, file failure, cancellation and unregister remain observable (52.478848ms)\n✔ history get, deletion and base-total reset match pinned upstream handlers (211.591492ms)\n✔ configured history rejects mismatched database ownership without closing either store (100.449519ms)\n✔ configured auxiliary source owns reset fields and rejects a conflicting reset provider (57.738993ms)\n✔ history removal is atomic, terminal-only and retains requests, statistics and replay protection after restart (78.538014ms)\n✔ schema three upgrade creates visibility state without hiding old records (76.996505ms)\n✔ native standard history reads actual live and durable jobs through authenticated HTTP and RPC without erasing requests (99.350895ms)\n✔ reservation and outcome timestamps commit with state and retain the first outcome across recovery (75.394835ms)\n✔ bounded lexical scan preserves records, leaves live state intact and a new scan sees earlier insertions (42.136658ms)\n✔ schema two migration preserves statistics and does not fabricate old timestamps (74.130739ms)\n✔ durable journal reserves once, rejects conflicts and stale transitions, and retains terminal records (75.79083ms)\n✔ exclusive ownership prevents a second writer and device identity mismatch cannot mutate history (198.271925ms)\n✔ accepted writes drain before close; bounded queue rejects excess without losing ownership (114.285212ms)\n✔ SIGKILL after acknowledged start leaves an interrupted reservation, never permission to replay (234.224236ms)\n✔ unknown schemas, symlinks and malformed requests fail closed (146.063921ms)\n✔ storage full closes the worker and preserves every previously acknowledged terminal record (143.861323ms)\n✔ malformed persisted payload closes the journal instead of forgetting an old request (74.692246ms)\n✔ terminal statistics are validated, atomically versioned, immutable on acknowledgement and durable across reopen (113.194629ms)\n✔ version one journals migrate without inventing statistics and wrong device migration rolls back (74.783607ms)\n✔ controller freezes live and durable counters at device completion and they survive a new process owner (76.160255ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2434.691594\n",
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.419407ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18415.380144ms)\nℹ {\"installation\":{\"durationMs\":691.4422320000003,\"dependencies\":10}}\nℹ {\"loaded\":false,\"historyRequests\":0,\"historyP99Ms\":null,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":170,\"wireSteps\":3088,\"minimumStepLeadMs\":87.582,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.883135,\"maxMs\":16.990207},\"cpu\":{\"user\":708792,\"system\":71823},\"rss\":165412864},{\"loop\":{\"p99Ms\":1.778687,\"maxMs\":5.050367},\"cpu\":{\"user\":478724,\"system\":43127},\"rss\":187129856}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19091.442794ms)\nℹ {\"installation\":{\"durationMs\":703.3629809999984,\"dependencies\":10}}\nℹ {\"loaded\":true,\"historyRequests\":461,\"historyP99Ms\":11.040398000001005,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":4.740928999999596,\"deleteRequests\":16,\"deleteP95Ms\":4.496677000002819,\"thumbnailRequests\":16,\"thumbnailP95Ms\":3.9942099999971106,\"metadataRequests\":16,\"metadataP95Ms\":25.574250999998185,\"downloads\":16,\"downloadP95Ms\":5.0619430000006105,\"wireCommands\":170,\"wireSteps\":3088,\"minimumStepLeadMs\":87.721,\"directoryRequests\":1978,\"directoryP99Ms\":6.816466000000219,\"statusRequests\":8210,\"uploads\":16,\"statusP99Ms\":2.7381340000029013,\"uploadP95Ms\":8.932622000000265,\"generations\":[{\"loop\":{\"p99Ms\":1.963007,\"maxMs\":12.992511},\"cpu\":{\"user\":2020562,\"system\":245931},\"rss\":251961344},{\"loop\":{\"p99Ms\":1.927167,\"maxMs\":5.066751},\"cpu\":{\"user\":1291711,\"system\":160126},\"rss\":247218176}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7935.748633ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46082.375866\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "records": 2000,
+    "hidden": 1900,
+    "queryPage": 50,
+    "before": {
+      "medianMs": 0.4043849999999338,
+      "p95Ms": 0.4717759999999771
+    },
+    "after": {
+      "medianMs": 0.948472000000038,
+      "p95Ms": 1.197734999999966
+    },
+    "deletion": {
+      "medianMs": 0.05359099999998307,
+      "p95Ms": 0.0720010000000002
+    },
+    "deleteRemainingMs": 0.999311999999918,
+    "retainedRequestRecords": 2000,
+    "maximumQueryP95Ms": 25,
+    "maximumDeleteP95Ms": 5,
+    "scope": "Worker reads before/after hiding 95 percent of records and acknowledged single-row hide transactions. No physical target guarantee or per-move work."
+  },
+  "limitations": [
+    "Totals/reset, history notifications and user attribution remain incomplete",
+    "Hiding is not secure erasure, file deletion or request-capacity reclamation",
+    "Bulk deletion over 1000 visible records is rejected atomically; individual deletion remains available",
+    "No physical board validation or full Python retirement; default entry still Python"
+  ]
+}

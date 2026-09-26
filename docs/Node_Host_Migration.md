@@ -23693,3 +23693,30 @@ notify_history_changed 尚未接通，也没有以读取能力宣称完整 histo
 检查及 JSON 序列化，不代表目标板保证。单条 get_job 按旧接口回显请求
 UID（列表仍返回规范 UID），该兼容细节另由 HTTP/RPC 回归验证。证据见
 host/contracts/native-history-read-acceptance.json。
+
+### 原生标准历史删除与幂等隔离
+
+DELETE /server/history/job 与 server.history.delete_job 现可按 uid 删除
+单条历史，或以 all=true 原子删除全部可见历史，沿用标准参数转换和
+鉴权。删除只在 schema 4 的 history_hidden 表写入标记；requests、
+request_statistics、request_times 和源文件不被删除，列表与单条查询
+过滤隐藏记录，按原生请求 ID 查询仍可看到原结果。恢复数据库后隐藏
+状态保留，新控制器也不能重印已隐藏历史对应的旧请求。
+
+reserved、started、interrupted 记录拒绝删除；批量删除遇到其中任何
+可见记录即整体回滚，不隐藏其中已结束的部分。completed、cancelled
+和已持久确认的 failed 可删除。重复删除单条返回 404，删除空列表返回
+空数组。批量结果最多列出 1000 个 UID，超过时返回 413 并保持原状，
+可改用逐条删除；不静默部分删除，也不释放防重放日志的容量。
+
+schema 1/2/3 在设备身份校验事务内升级到 4，默认不隐藏旧记录；旧程序
+无法读取新 schema，降级仍需要匹配备份。当前未迁移实机数据库。
+历史总计、重置总计、变更通知及真实操作者归属仍未集成，完整历史组件
+尚未完成。删除历史不等于安全擦除文件、释放幂等容量或允许重放打印。
+
+本轮 21 项历史/日志回归、4 项完整产品验收、类型及空白检查通过。
+2000 条记录隐藏其中 1900 条后，逆向于主要剩余记录位置的升序 50 条
+查询 P95 从 0.472 ms 增至 1.198 ms；单条隐藏事务中位数 0.054 ms、
+P95 0.072 ms，所有 2000 条原请求仍存在。此操作存在查询成本，不能
+称为零开销。并发打印中 461 次历史查询 P99 11.04 ms，最小步进提前量
+87.72 ms。证据见 host/contracts/native-history-delete-acceptance.json。
