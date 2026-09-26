@@ -5,6 +5,16 @@ export interface JournalRecord {
   request: Readonly<StartPrint>;
   state: JournalState;
   revision: number;
+  statistics?:PrintStatistics;
+}
+export interface PrintStatistics {totalDuration:number|null;printDuration:number|null;filamentUsed:number|null;}
+export function printStatistics(value:unknown):PrintStatistics {
+  if(!value||typeof value!=='object'||Array.isArray(value))throw new JournalError('INVALID','Invalid print statistics');
+  const v=value as PrintStatistics;
+  if(Object.keys(v).length!==3||!['totalDuration','printDuration','filamentUsed'].every(key=>Object.hasOwn(v,key)))throw new JournalError('INVALID','Invalid print statistics fields');
+  for(const key of ['totalDuration','printDuration','filamentUsed'] as const)if(v[key]!==null&&(typeof v[key]!=='number'||!Number.isFinite(v[key])||(key!=='filamentUsed'&&v[key]!<0)))throw new JournalError('INVALID','Invalid print statistics value');
+  if(v.totalDuration!==null&&v.printDuration!==null&&v.printDuration>v.totalDuration)throw new JournalError('INVALID','Print duration exceeds total duration');
+  return {totalDuration:v.totalDuration,printDuration:v.printDuration,filamentUsed:v.filamentUsed};
 }
 export interface JournalOptions {
   path: string;

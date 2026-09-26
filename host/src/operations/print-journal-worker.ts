@@ -5,6 +5,7 @@ import { isAbsolute } from 'node:path';
 import {
   JournalError,
   journalRequest,
+  printStatistics,
   validJournalId,
   type JournalRecord,
   type JournalState,
@@ -13,6 +14,7 @@ import {
 const schema =
   "CREATE TABLE metadata (id INTEGER PRIMARY KEY CHECK(id=1),device_id TEXT NOT NULL) STRICT;\nCREATE TABLE requests (id TEXT PRIMARY KEY,request TEXT NOT NULL CHECK(length(request)<=2048),state TEXT NOT NULL CHECK(state IN ('reserved','started','completed','cancelled','failed','interrupted')),revision INTEGER NOT NULL CHECK(revision BETWEEN 1 AND 9007199254740991)) STRICT;\nCREATE UNIQUE INDEX one_active ON requests((1)) WHERE state NOT IN ('completed','cancelled');";
 const normalized = (sql: string) => sql.replace(/\s+/g, ' ').trim();
+const statisticsSchema='CREATE TABLE request_statistics (id TEXT PRIMARY KEY,statistics TEXT NOT NULL CHECK(length(statistics)<=512)) STRICT;';
 const port = parentPort!;
 const options = workerData as JournalOptions;
 let db: DatabaseSync | undefined,
@@ -56,7 +58,9 @@ function record(
       revision < 1
     )
       throw new JournalError('CORRUPT', 'Invalid persisted print record');
-    return { request, state, revision };
+    const statistics=row.statistics==null?undefined:printStatistics(JSON.parse(String(row.statistics)));
+    if(statistics&&JSON.stringify(statistics)!==row.statistics)throw new JournalError('CORRUPT','Invalid persisted print statistics');
+    return { request, state, revision,...statistics?{statistics}:{} };
   } catch {
     throw new JournalError('CORRUPT', 'Invalid persisted print record');
   }
@@ -64,7 +68,7 @@ function record(
 function lookup(id: string) {
   return record(
     db!
-      .prepare('SELECT id,request,state,revision FROM requests WHERE id=?')
+      .prepare('SELECT requests.*,request_statistics.statistics FROM requests LEFT JOIN request_statistics USING(id) WHERE requests.id=?')
       .get(id),
   );
 }
@@ -72,7 +76,7 @@ function active() {
   return record(
     db!
       .prepare(
-        "SELECT id,request,state,revision FROM requests WHERE state NOT IN ('completed','cancelled')",
+        "SELECT requests.*,request_statistics.statistics FROM requests LEFT JOIN request_statistics USING(id) WHERE state NOT IN ('completed','cancelled')",
       )
       .get(),
   );
@@ -134,11 +138,11 @@ function initialize() {
     .all();
   if (!(
     (app === 0 && version === 0 && tables.length === 0) ||
-    (app === 0x4152504a && version === 1)
+    (app === 0x4152504a && (version === 1||version===2))
   ))
     throw new JournalError('SCHEMA', 'Unknown print journal schema');
-  if (version === 1) {
-    const expected = schema
+  if (version === 1||version===2) {
+    const expected = (schema+(version===2?statisticsSchema:''))
         .split(';')
         .map((s) => normalized(s))
         .filter(Boolean)
@@ -158,10 +162,11 @@ function initialize() {
   transaction(() => {
     if (version === 0) {
       db!.exec(
-        schema + ' PRAGMA application_id=0x4152504a; PRAGMA user_version=1;',
+        schema + statisticsSchema+' PRAGMA application_id=0x4152504a; PRAGMA user_version=2;',
       );
       db!.prepare('INSERT INTO metadata VALUES(1,?)').run(options.deviceId);
     }
+    if(version===1)db!.exec(statisticsSchema+' PRAGMA user_version=2;');
     if (db!.prepare('PRAGMA quick_check').get()?.quick_check !== 'ok')
       throw new JournalError('CORRUPT', 'Print journal integrity check failed');
     const identity = db!
@@ -242,7 +247,9 @@ function dispatch(method: string, args: unknown[]): unknown {
     });
   }
   if (method === 'transition') {
-    const [id, revision, state] = args;
+    const [id, revision, state, rawStatistics] = args;
+    const statistics=rawStatistics===undefined?undefined:printStatistics(rawStatistics);
+    if(statistics&&!['completed','cancelled','failed'].includes(String(state)))throw new JournalError('INVALID','Statistics require a terminal outcome');
     if (
       !validJournalId(id) ||
       !Number.isSafeInteger(revision) ||
@@ -263,6 +270,9 @@ function dispatch(method: string, args: unknown[]): unknown {
       db!
         .prepare('UPDATE requests SET state=?,revision=revision+1 WHERE id=?')
         .run(String(state), id);
+      // Preserve the first frozen outcome through failure acknowledgement and
+      // restart reconciliation; do not replace known values with missing data.
+      if(statistics)db!.prepare('INSERT INTO request_statistics(id,statistics) VALUES(?,?) ON CONFLICT(id) DO NOTHING').run(id,JSON.stringify(statistics));
       return lookup(id)!;
     });
   }

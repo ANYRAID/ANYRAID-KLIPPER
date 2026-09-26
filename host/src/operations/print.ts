@@ -187,6 +187,10 @@ export class PrintController {
   }
   #durationStart:number|undefined;
   #duration:number|null=0;
+  #freezeStatistics():void{
+    this.#extrusionAccounting?.setActive(false);
+    if(this.#durationStart!==undefined){this.#duration=this.totalDuration;this.#durationStart=undefined;}
+  }
   /** Elapsed job seconds, including preparation and pauses. Unknown after
    * journal restoration: monotonic timestamps cannot survive process restart. */
   get totalDuration():number|null{return this.#durationStart===undefined?this.#duration:Math.max(0,(performance.now()-this.#durationStart)/1000);}
@@ -200,7 +204,7 @@ export class PrintController {
     else if(state!=='cancelling')this.#extrusionAccounting?.setActive(['printing','pausing','finishing'].includes(state)&&this.#state!=='failed'&&this.#state!=='interrupted');
     if(state==='preparing'){this.#durationStart=performance.now();this.#duration=0;}
     else if(state==='idle'||state==='interrupted'){this.#durationStart=undefined;this.#duration=state==='idle'?0:null;}
-    else if((state==='completed'||state==='cancelled'||state==='failed')&&this.#durationStart!==undefined){this.#duration=this.totalDuration;this.#durationStart=undefined;}
+    else if(state==='completed'||state==='cancelled'||state==='failed')this.#freezeStatistics();
     this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);
     if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}
   }
@@ -545,6 +549,9 @@ export class PrintController {
     return cancellation;
   }
   async #persist(state: 'started' | 'completed' | 'cancelled' | 'failed'): Promise<void> {
+    // Device acknowledgement precedes this write. Freeze once, so durable and
+    // live terminal statistics agree and do not include database commit latency.
+    if(state!=='started')this.#freezeStatistics();
     if (this.#journalWrite) {
       await this.#journalWrite;
       return this.#persist(state);
@@ -556,7 +563,7 @@ export class PrintController {
     if (['completed', 'cancelled'].includes(record.state)||record.state===state) return;
     if(record.state==='failed'&&state!=='cancelled')return;
     const write = this.#journal
-      .transition(record.request.requestId, record.revision, state)
+      .transition(record.request.requestId, record.revision, state,state==='started'?undefined:{totalDuration:this.totalDuration,printDuration:this.printDuration,filamentUsed:this.filamentUsed})
       .then((updated) => {
         this.#journalRecord = updated;
       });

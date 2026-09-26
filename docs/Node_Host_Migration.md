@@ -23607,3 +23607,32 @@ host/contracts/native-effective-duration-acceptance.json；整体目标仍未完
 4 MiB 与 16 MiB 的 HTTP 中位吞吐为 187/238 MiB/s；是本机独立吞吐
 样本，不是旧版本配对回归比较或目标板保证。复现前失败、修复后结果
 及原始产品验收输出见 host/contracts/native-upload-rejection-acceptance.json。
+
+### 原生作业结束统计持久化
+
+打印日志 schema 升为 2，在原请求表之外增加有界 JSON 统计表；完成、
+取消、失败的状态更新与首次统计快照在同一个 SQLite 事务提交。正常
+结束及取消的计数在设备确认后、数据库提交前冻结，实时对象与持久化
+记录保持一致，不把数据库提交耗时计入打印用时。失败后的确认、重启
+恢复及再次取消不覆盖首次冻结数据，幂等请求历史也不被删除。
+
+GET /printer/print/status?request_id=... 的 record.statistics 提供
+总耗时、有效打印时长和有符号指令挤出量，字段分别为 total_duration、
+print_duration、filament_used。没有统计所有者的值为 null；旧记录没有
+statistics 字段，不编造历史。实时 interrupted 状态仍返回未知计数，
+查询已有结束记录则保留其原始快照。
+
+打开受支持的 schema 1 日志时，在事务中校验设备身份并升级；身份错误
+或迁移失败回滚，不抹除原记录。旧版本程序不认识 schema 2，降级前需
+按部署流程恢复匹配备份；仓库没有因此迁移任何实际设备的数据库。
+此项提供按请求 ID 查询的真实持久记录，标准 server.history 的列表、
+总计、删除及历史通知与原生模式的集成仍未完成，不能宣称完整历史组件
+已交付。逐步进/逐 G-code 路径没有新增数据库写入。
+
+本轮 51 项日志/控制器/API 回归、4 项完整产品验收、类型和空白检查通过，
+覆盖真实编译包重初始化和进程重启后的统计读取。负载模拟打印最小步进
+提前量为 81.13 ms，状态查询 P99 为 3.14 ms。终态事务基准在同一版本
+schema 下交替比较不带/带快照，每组每轮 100 个作业，3 轮预热、11 轮
+采样，单次终态确认中位耗时 0.109/0.139 ms，P95 增加 0.041 ms；只在
+作业结束写入，不代表实际目标存储性能。详细证据见
+host/contracts/native-print-statistics-acceptance.json。

@@ -4,6 +4,8 @@ import { Worker } from 'node:worker_threads';
 import {
   JournalError,
   journalRequest,
+  printStatistics,
+  type PrintStatistics,
   validJournalId,
   type JournalOptions,
   type JournalInfo,
@@ -174,6 +176,7 @@ export class PrintJournal {
     requestId: string,
     revision: number,
     state: JournalState,
+    statistics?:PrintStatistics,
   ): Promise<JournalRecord> {
     if (
       !validJournalId(requestId) ||
@@ -191,10 +194,12 @@ export class PrintJournal {
       return Promise.reject(
         new JournalError('INVALID', 'Invalid journal transition'),
       );
+    let snapshot:PrintStatistics|undefined;try{if(statistics!==undefined)snapshot=printStatistics(statistics);}catch(error){return Promise.reject(error);}
     return this.#call('transition', [
       requestId,
       revision,
       state,
+      snapshot,
     ]) as Promise<JournalRecord>;
   }
   close(): Promise<void> {
