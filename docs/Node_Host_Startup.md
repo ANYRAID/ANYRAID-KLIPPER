@@ -316,7 +316,29 @@ cancelled/failed 终态、无待处理设备动作或维护活动且物理停止
 旧会话清理失败或进程退出不会启动替代会话；重新启动失败会报告错误。
 API 监听在此期间关闭并重建，客户端须重新连接，工厂应复用相同持久化
 日志路径以保留历史。不会重放旧文件，新作业必须重新归零。
-当前没有远程鉴权重新初始化接口；SIGHUP 是本机进程管理入口。
+远程控制使用原有鉴权策略，必须单独授权 printer.host.status 与
+printer.host.reinitialize。GET /printer/host/status 返回当前 state_token、
+available（控制入口已挂接）与 busy；available 不等于硬件可打印。
+POST /printer/host/reinitialize 接受以下 JSON：
+
+```json
+{"version":1,"request_id":"recover-001","state_token":"从主机状态读取的令牌"}
+```
+
+HTTP 或 WebSocket JSON-RPC 的方法名为 printer.host.reinitialize；
+受理结果中的 accepted:true、operation.state:queued 只表示请求排队。
+完整响应交给网络层后才开始退场，不保证客户端已经收到该响应。
+交付失败、超过 10 秒未交付或会话提前退出时记录 failed，不执行恢复。
+实际执行前再次检查准入，期间出现新的打印/维护活动会导致请求失败。
+客户端重连后用 GET /printer/host/status?request_id=recover-001 查询
+queued/running/succeeded/failed；只有新会话 ready 才变为 succeeded。
+机器重建失败可能使进程退出，此时不能把失联当成恢复成功。
+
+同 request_id 与原 state_token 重试返回原记录，不再次执行；冲突身份
+或旧会话令牌返回 409。未鉴权请求不产生恢复动作。单进程保留最多
+128 条操作记录，达到容量后拒绝新请求，不通过淘汰记录允许重复执行。
+这些恢复回执目前仅存在进程内，跨进程重启的持久化查询尚未实现；
+新进程使用新令牌拒绝旧请求，不重放恢复命令。打印作业日志仍持久化。
 
 `PrintController.retire()` 是永久退场接口：它立即拒绝新的打印动作，
 关闭状态订阅和设备通知，随后等待已接受动作、实际安全停止及日志
@@ -426,7 +448,7 @@ npm --prefix host run test:product-acceptance
 完成、持久化完成记录、末位置核对、reset、第二作业开始、取消和
 取消结果查询。取消不再抢先关闭 HTTP 服务。当前安全停止仍永久结束
 该硬件会话，reset 只清理作业终态，不重新授予硬件准入；再次打印被
-拒绝且不会打开文件或生成运动。显式本机重新初始化后，历史取消记录仍可查询，新任务重新归零并完成；
+拒绝且不会打开文件或生成运动。显式重新初始化后，历史取消记录仍可查询，新任务重新归零并完成；
 活动打印中的重新初始化会被拒绝。模拟限位和文件授权仅属于测试夹具，
 没有证明真实加热、限位、步进硬件或打印质量。
 
@@ -435,7 +457,9 @@ npm --prefix host run test:product-acceptance
 经鉴权 multipart 上传真实 G-code，核对 SHA-256 回执和禁止自动开印，
 使用 PublishedPrintFiles.acquire 的 sealed 文件执行完整打印流程。
 未经授权上传被拒绝；暂停/恢复与过期令牌拒绝、最终位置、取消、
-SIGHUP 后历史与文件恢复、新任务重新归零并完成、SIGTERM 清理均通过。
+基线使用 SIGHUP，负载变体使用鉴权 API；历史与文件恢复、新任务重新
+归零并完成、SIGTERM 清理均通过。另验证未鉴权、活动打印、独立物理
+停止失败、旧会话令牌和重复恢复请求的处理。
 MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请求喷嘴
 200°C、热床 60°C：归零后持续室温采样，确认加热 PWM 已通过 UART
 发出但文件尚未执行，再输入达到目标的 ADC 报告完成打印；完成后两路

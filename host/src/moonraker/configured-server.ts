@@ -1,3 +1,5 @@
+import {ProductHostControl} from '../runtime/product-host-control.ts';
+import {registerProductHostControl} from './product-host-api.ts';
 import {NativeSubscriptions} from './native-subscriptions.ts';
 import {NativeObjects,registerNativeObjects} from './native-objects.ts';
 import type {NativeHostStatusSource} from './native-host-status.ts';
@@ -58,6 +60,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  maintenanceGate?:MaintenanceGate;
  /** Native device owner; replaces legacy print routes and excludes Klippy attachment. */
  productPrint?:PrintController;
+ productHostControl?:ProductHostControl;
  productPressure?:PressureAdvancePort;
  /** Live native owner snapshot; never a replacement for Klippy state. */
  nativeHost?:NativeHostStatusSource;
@@ -159,6 +162,7 @@ export class ConfiguredMoonraker {
   }});
   this.#nativeUploads=options.nativeUploads;const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
+  const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
   const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
   const releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):()=>{};
@@ -176,7 +180,7 @@ export class ConfiguredMoonraker {
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  this.#release=()=>{releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  this.#release=()=>{releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
@@ -186,6 +190,7 @@ export class ConfiguredMoonraker {
 
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint))throw new ConfigurationError('Host control requires a native print owner');
   if(options.nativeObjects!==undefined&&(!(options.nativeObjects instanceof NativeObjects)||!options.productPrint))throw new ConfigurationError('Native objects require a native print owner');
   if(options.productPressure!==undefined&&!options.productPrint)throw new ConfigurationError('Native pressure control requires a native print owner');
   if(options.nativeHost!==undefined&&(typeof options.nativeHost!=='function'||!options.productPrint))throw new ConfigurationError('Native host status requires a native print owner');

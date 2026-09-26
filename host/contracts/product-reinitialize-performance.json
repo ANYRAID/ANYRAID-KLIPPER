@@ -3,12 +3,12 @@
   "warmup": 3,
   "runs": 11,
   "baseline": {
-    "medianMs": 537.517745000001,
-    "p95Ms": 542.9483869999985
+    "medianMs": 538.5198600000003,
+    "p95Ms": 541.7931860000008
   },
   "current": {
-    "medianMs": 535.6897369999997,
-    "p95Ms": 539.7450200000003
+    "medianMs": 537.2895499999977,
+    "p95Ms": 554.3132590000005
   },
   "scope": "Alternating manual retirement/profile recreation/UART service startup vs explicit host-control reinitialization, including journal close/reopen and trusted factory; initial startup excluded; simulated devices, no file replay or real printing."
 }
