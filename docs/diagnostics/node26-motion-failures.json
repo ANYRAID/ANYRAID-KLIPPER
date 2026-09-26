@@ -1000,5 +1000,584 @@
       ],
       "explanation": "Only C whitespace and adjacent string literal formatting changed after execution. Rebuilding with the recorded compiler options produced byte-identical O0/O2 executables."
     }
+  },
+  "compiledJavaScriptControl": {
+    "repositoryBase": "dc69c387",
+    "diagnosticScriptSha256": "54969875a15fbe4eec6b4297216ab7b4a69e13c01b6ae5c9340f9f09b846167e",
+    "description": "Same Node binary and source hashes, sequential 30-process samples per mode, 16 rounds per process. JS compiled before sampling with TypeScript 7 and strip-types disabled in child. Neither sample reproduced earlier failures; this does not establish a cause or resolution. Legacy offline motion fixture, not production planner or physical output.",
+    "compiled": {
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "compiledHashes": {
+        "src/diagnostics/graph-motion.js": "5550be22e21bb7a5c09c8cfe2ff6236f2c5766e7c070b59b64c3048e5584206a",
+        "src/diagnostics/motion-filters.js": "79d610c375c6f2dbfd3f0a1f79c3b663d6abe60c1115d0c8184437f10be58953",
+        "src/diagnostics/legacy-motion-shaper.js": "f31bf0c8c6165a07661381606ce560c39f53fb4a3961d79958bf865c7c056d9e",
+        "bench/motion-graph-reference.js": "2a91a6ce492aea07c4b89428cdf1ab3479f581d4fab8113c0f07e6d5d9a841de",
+        "contracts/motion-graph-fixtures.js": "cc4b327df1f28d851e36bb6b71d20154ea02ee746a3ace0dd2f87090df52d0ec"
+      },
+      "compilerVersion": "7.0.2",
+      "execution": "compiled",
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0-5"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "jsOptimization": "default",
+      "args": [
+        "--no-experimental-strip-types",
+        "/tmp/anyraid-node-asan-OK331e/fixture.mjs"
+      ],
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "46f4f71309ad3882ff0f5037da8b752eeba3d6f60e7f5eed18a745904e2b86c2",
+      "results": [
+        {
+          "index": 0,
+          "pid": 2574759,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 1,
+          "pid": 2574766,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 2,
+          "pid": 2574773,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 3,
+          "pid": 2574780,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 4,
+          "pid": 2574826,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 5,
+          "pid": 2574833,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 6,
+          "pid": 2574840,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 7,
+          "pid": 2574847,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 8,
+          "pid": 2574854,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 9,
+          "pid": 2574877,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 10,
+          "pid": 2574884,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 11,
+          "pid": 2574891,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 12,
+          "pid": 2574898,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 13,
+          "pid": 2574905,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 14,
+          "pid": 2574913,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 15,
+          "pid": 2574920,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 16,
+          "pid": 2574927,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 17,
+          "pid": 2574934,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 18,
+          "pid": 2574941,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 19,
+          "pid": 2574948,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 20,
+          "pid": 2574955,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 21,
+          "pid": 2574963,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 22,
+          "pid": 2574970,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 23,
+          "pid": 2574977,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 24,
+          "pid": 2574984,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 25,
+          "pid": 2575007,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 26,
+          "pid": 2575014,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 27,
+          "pid": 2575021,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 28,
+          "pid": 2575028,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 29,
+          "pid": 2575068,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        }
+      ],
+      "reportPath": "/tmp/anyraid-node-asan-OK331e/report.json",
+      "reportSha256": "71579901944bccfdc8560ed78c47bfff92ddd35f2bc9d8ee258b930c0b4937c0"
+    },
+    "source": {
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "compiledHashes": {},
+      "execution": "source",
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0-5"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "jsOptimization": "default",
+      "args": [
+        "/tmp/anyraid-node-asan-hXpx3A/fixture.mjs"
+      ],
+      "limit": 30,
+      "workers": 1,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e",
+      "results": [
+        {
+          "index": 0,
+          "pid": 2575277,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 1,
+          "pid": 2575284,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 2,
+          "pid": 2575291,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 3,
+          "pid": 2575298,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 4,
+          "pid": 2575343,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 5,
+          "pid": 2575368,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 6,
+          "pid": 2575375,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 7,
+          "pid": 2575399,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 8,
+          "pid": 2575406,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 9,
+          "pid": 2575414,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 10,
+          "pid": 2575423,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 11,
+          "pid": 2575430,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 12,
+          "pid": 2575437,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 13,
+          "pid": 2575444,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 14,
+          "pid": 2575451,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 15,
+          "pid": 2575458,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 16,
+          "pid": 2575465,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 17,
+          "pid": 2575472,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 18,
+          "pid": 2575495,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 19,
+          "pid": 2575502,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 20,
+          "pid": 2575509,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 21,
+          "pid": 2575516,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 22,
+          "pid": 2575523,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 23,
+          "pid": 2575530,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 24,
+          "pid": 2575537,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 25,
+          "pid": 2575544,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 26,
+          "pid": 2575551,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 27,
+          "pid": 2575558,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 28,
+          "pid": 2575565,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        },
+        {
+          "index": 29,
+          "pid": 2575572,
+          "status": 0,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+          "stderr": ""
+        }
+      ],
+      "reportPath": "/tmp/anyraid-node-asan-hXpx3A/report.json",
+      "reportSha256": "ea26a8ba43703d78b320ffc55ab9581d2976717a0c3d77274e9d6cb84da1bfa6"
+    },
+    "injection": {
+      "detected": true,
+      "status": 1,
+      "signal": null,
+      "stdout": "",
+      "stderr": "file:///tmp/anyraid-node-asan-OK331e/injected.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":0,\"panel\":0,\"curve\":0,\"index\":0,\"actual\":0,\"expected\":1,\"error\":-1,\"xor\":\"0x3ff0000000000000\",\"repeated\":0,\"nearby\":[0,0,0],\"reference\":[1,0,0]}\n    at file:///tmp/anyraid-node-asan-OK331e/injected.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-OK331e/injected.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-OK331e/injected.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-OK331e/injected.mjs:11:9\n\nNode.js v26.9.0\n"
+    },
+    "setupFailure": "Initial implementation attempted unavailable TypeScript 7 transpileModule API; failed before any motion child. Corrected to project tsc CLI before both recorded samples."
   }
 }

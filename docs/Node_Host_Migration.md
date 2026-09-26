@@ -23746,3 +23746,25 @@ schema 4/5 开销对照。负载模拟打印最小步进提前量 87.408 ms。
 证据见 host/contracts/native-history-totals-acceptance.json。
 所有数字仅为当前本机样本，不代表物理机型精度、目标板性能或稳定性
 验收；默认 Python 入口和已知运动异常的未完成状态保持不变。
+
+## 运动异常的编译 JavaScript 对照
+
+diagnose-node-asan.ts 的 motion 用例新增 --execution compiled；
+默认 source 保持源码加载。编译模式使用项目 TypeScript 编译器生成
+独立 JS 依赖和固定参考数据，在被测子进程中加入
+--no-experimental-strip-types，记录编译器版本及 JS 文件摘要。
+它用于区分运行时 TypeScript 加载这一变量，不修改生产运动代码。
+
+本轮同一 Node 26.9.0、同一源码摘要、无 ASan、单 worker 条件下，
+编译模式与源码模式分别执行 30 个独立进程，每进程 16 轮，均完成
+数值校验。向参考曲线注入错误后，编译模式明确检出失配并以状态 1
+退出。原位置/速度/加速度/偏差容差保持不变；首次错误后停止采样。
+初次工具实现使用了 TypeScript 7 不提供的 transpileModule API，
+在执行运动子进程前失败，后改为项目实际 tsc CLI；此错误不计作运动
+异常或通过样本。
+
+结果仍不能定位历史异常：两种模式本轮都未复现，不能据此归因于类型
+解析、认定编译可修复，或允许切换生产入口。所用案例为历史离线运动
+复现，并非生产规划器的实机验收。证据与原始报告路径保存在
+diagnostics/node26-motion-failures.json 的 compiledJavaScriptControl。
+后续需独立环境复核和真实机型验证，现有失败记录保持未关闭。
