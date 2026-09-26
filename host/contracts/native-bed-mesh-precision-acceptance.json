@@ -1,0 +1,146 @@
+{
+  "base": "595efeee",
+  "scope": "Expanded verification of existing native motion, no production algorithm or tolerance changes",
+  "tests": {
+    "precision": 4,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": true
+  },
+  "precision": {
+    "grid": [
+      [
+        0,
+        0.1
+      ],
+      [
+        0.4,
+        0.2
+      ]
+    ],
+    "yPulses": 2000,
+    "zPulsesWithoutFade": 30,
+    "zPulsesWithFade": 115,
+    "direction": "positive",
+    "checks": [
+      "Pause during active motion and exact physical endpoint after resume",
+      "Invalid fade and aborted transition preserve published mesh state and latch failed motion"
+    ]
+  },
+  "product": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 171,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.896,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.846271,
+            "maxMs": 13.221887
+          },
+          "cpu": {
+            "user": 729108,
+            "system": 73734
+          },
+          "rss": 162222080
+        },
+        {
+          "loop": {
+            "p99Ms": 1.742847,
+            "maxMs": 4.032511
+          },
+          "cpu": {
+            "user": 394573,
+            "system": 46301
+          },
+          "rss": 182362112
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 462,
+      "historyP99Ms": 6.615388999998686,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 6.040301000000909,
+      "deleteRequests": 16,
+      "deleteP95Ms": 6.363235999997414,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.8112120000005234,
+      "metadataRequests": 16,
+      "metadataP95Ms": 24.239684000000125,
+      "downloads": 16,
+      "downloadP95Ms": 11.088696999999229,
+      "wireCommands": 169,
+      "wireSteps": 3086,
+      "minimumStepLeadMs": 87.51,
+      "directoryRequests": 1997,
+      "directoryP99Ms": 5.315129999999044,
+      "statusRequests": 8274,
+      "uploads": 16,
+      "statusP99Ms": 2.9356039999984205,
+      "uploadP95Ms": 9.200118000000657,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.111487,
+            "maxMs": 13.213695
+          },
+          "cpu": {
+            "user": 2136825,
+            "system": 247977
+          },
+          "rss": 248995840
+        },
+        {
+          "loop": {
+            "p99Ms": 1.904639,
+            "maxMs": 4.919295
+          },
+          "cpu": {
+            "user": 1330398,
+            "system": 156904
+          },
+          "rss": 264847360
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/test/native-bed-mesh-precision.test.ts": "aa6b8dc4f62568c44edc8a00ba2f9094b5ce5c19c52264f306e4b7d4cc41d3d2",
+    "host/acceptance/product-compiled-journey.test.ts": "bddab65b610562a9cc8ffd7c28707282fa228ac157f0c878cd0aecfe50258730",
+    "host/src/homing/native-linear-port.ts": "f85e5979673038dff4afa82de556f1f371d4ab0602681c3de120716b039a3d6e",
+    "host/src/runtime/native-linear-gcode.ts": "a32cf1087ac90e766f57516ca68335d1bcf07fd77e68adea6e2fe78750352fe5",
+    "/tmp/native-bed-mesh-precision-final.log": "ae97669625bb5486c85e477c184e239964d4d845f44703dbd7f61a6790aeec9c",
+    "/tmp/native-bed-mesh-nonplanar-product.log": "07ada4c7f524dcdc975bf42d3830ff5cdcee874fcaaf7acdd088b71bb0db2597",
+    "/tmp/native-bed-mesh-precision-whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "limitations": [
+    "Emulated MCU only, no physical accuracy or target-board throughput acceptance",
+    "Prior numerical failures and SIGSEGV remain unresolved",
+    "Python production entry remains"
+  ]
+}

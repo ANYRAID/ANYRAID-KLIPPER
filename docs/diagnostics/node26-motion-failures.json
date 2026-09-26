@@ -1597,5 +1597,854 @@
       "stderr": "",
       "priorFailure": "Source invocation via check_whitespace.sh: xargs reported node terminated by signal 11; outer shell later git diff --check returned 0. Source check did not pass."
     }
+  },
+  "compiledSequentialExtendedControl": {
+    "base": "595efeee",
+    "reportPath": "/tmp/anyraid-node-asan-PIoJjY/report.json",
+    "reportSha256": "4e1813ec39b8ce238bc1411dc3b83089c1df38604cdfbc065bf237ed172d49c5",
+    "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+    "version": "v26.9.0",
+    "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+    "addonHashes": {},
+    "moduleHashes": {
+      "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+      "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+      "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+      "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+      "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+      "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+      "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+    },
+    "compiledHashes": {
+      "src/diagnostics/graph-motion.js": "5550be22e21bb7a5c09c8cfe2ff6236f2c5766e7c070b59b64c3048e5584206a",
+      "src/diagnostics/motion-filters.js": "79d610c375c6f2dbfd3f0a1f79c3b663d6abe60c1115d0c8184437f10be58953",
+      "src/diagnostics/legacy-motion-shaper.js": "f31bf0c8c6165a07661381606ce560c39f53fb4a3961d79958bf865c7c056d9e",
+      "bench/motion-graph-reference.js": "2a91a6ce492aea07c4b89428cdf1ab3479f581d4fab8113c0f07e6d5d9a841de",
+      "contracts/motion-graph-fixtures.js": "cc4b327df1f28d851e36bb6b71d20154ea02ee746a3ace0dd2f87090df52d0ec"
+    },
+    "compilerVersion": "7.0.2",
+    "execution": "compiled",
+    "system": {
+      "platform": "linux",
+      "arch": "x64",
+      "kernel": "6.18.36-amd64-desktop-rolling",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "cpuAffinity": "0-5"
+    },
+    "kind": "motion",
+    "segv": "default",
+    "asan": "off",
+    "wasmBounds": "trap",
+    "jsOptimization": "default",
+    "args": [
+      "--no-experimental-strip-types",
+      "/tmp/anyraid-node-asan-PIoJjY/fixture.mjs"
+    ],
+    "limit": 100,
+    "workers": 1,
+    "fixtureSha256": "bea2b3b90210fba4ffaf125883ff7c6c37b19ae4c65fbe069b326f7ee54c6e11",
+    "results": [
+      {
+        "index": 0,
+        "pid": 2592584,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 1,
+        "pid": 2592591,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 2,
+        "pid": 2592598,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 3,
+        "pid": 2592605,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 4,
+        "pid": 2592629,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 5,
+        "pid": 2592636,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 6,
+        "pid": 2592659,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 7,
+        "pid": 2592666,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 8,
+        "pid": 2592673,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 9,
+        "pid": 2592680,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 10,
+        "pid": 2592687,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 11,
+        "pid": 2592694,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 12,
+        "pid": 2592701,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 13,
+        "pid": 2592708,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 14,
+        "pid": 2592715,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 15,
+        "pid": 2592724,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 16,
+        "pid": 2592731,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 17,
+        "pid": 2592739,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 18,
+        "pid": 2592746,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 19,
+        "pid": 2592753,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 20,
+        "pid": 2592776,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 21,
+        "pid": 2592783,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 22,
+        "pid": 2592790,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 23,
+        "pid": 2592797,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 24,
+        "pid": 2592804,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 25,
+        "pid": 2592811,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 26,
+        "pid": 2592818,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 27,
+        "pid": 2592825,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 28,
+        "pid": 2592832,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 29,
+        "pid": 2592839,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 30,
+        "pid": 2592846,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 31,
+        "pid": 2592853,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 32,
+        "pid": 2592860,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 33,
+        "pid": 2592867,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 34,
+        "pid": 2592890,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 35,
+        "pid": 2592897,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 36,
+        "pid": 2592904,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 37,
+        "pid": 2592911,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 38,
+        "pid": 2592918,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 39,
+        "pid": 2592925,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 40,
+        "pid": 2592932,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 41,
+        "pid": 2592939,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 42,
+        "pid": 2592946,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 43,
+        "pid": 2592954,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 44,
+        "pid": 2592962,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 45,
+        "pid": 2592970,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 46,
+        "pid": 2592977,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 47,
+        "pid": 2592984,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 48,
+        "pid": 2592991,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 49,
+        "pid": 2592998,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 50,
+        "pid": 2593005,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 51,
+        "pid": 2593012,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 52,
+        "pid": 2593019,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 53,
+        "pid": 2593026,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 54,
+        "pid": 2593033,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 55,
+        "pid": 2593040,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 56,
+        "pid": 2593047,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 57,
+        "pid": 2593054,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 58,
+        "pid": 2593061,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 59,
+        "pid": 2593068,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 60,
+        "pid": 2593075,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 61,
+        "pid": 2593082,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 62,
+        "pid": 2593089,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 63,
+        "pid": 2593096,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 64,
+        "pid": 2593103,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 65,
+        "pid": 2593110,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 66,
+        "pid": 2593117,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 67,
+        "pid": 2593124,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 68,
+        "pid": 2593131,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 69,
+        "pid": 2593138,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 70,
+        "pid": 2593145,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 71,
+        "pid": 2593152,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 72,
+        "pid": 2593159,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 73,
+        "pid": 2593166,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 74,
+        "pid": 2593173,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 75,
+        "pid": 2593180,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 76,
+        "pid": 2593187,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 77,
+        "pid": 2593194,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 78,
+        "pid": 2593201,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 79,
+        "pid": 2593208,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 80,
+        "pid": 2593215,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 81,
+        "pid": 2593222,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 82,
+        "pid": 2593229,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 83,
+        "pid": 2593237,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 84,
+        "pid": 2593244,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 85,
+        "pid": 2593251,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 86,
+        "pid": 2593258,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 87,
+        "pid": 2593265,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 88,
+        "pid": 2593272,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 89,
+        "pid": 2593279,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 90,
+        "pid": 2593286,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 91,
+        "pid": 2593293,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 92,
+        "pid": 2593300,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 93,
+        "pid": 2593307,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 94,
+        "pid": 2593314,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 95,
+        "pid": 2593321,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 96,
+        "pid": 2593328,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 97,
+        "pid": 2593335,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 98,
+        "pid": 2593342,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      },
+      {
+        "index": 99,
+        "pid": 2593384,
+        "status": 0,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\nmotion:verified\n",
+        "stderr": ""
+      }
+    ],
+    "conclusion": "100 sequential compiled-JavaScript processes, 16 numerical rounds each, completed without observed failures. Finite success does not close prior integrity failures or certify this host. Sandbox attempt EEs7SE had empty output and missing verification marker and was not counted."
   }
 }
