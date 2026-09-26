@@ -1,0 +1,75 @@
+{
+  "baseline": "05478b7f",
+  "node": "v26.9.0",
+  "scope": "Bounded discard of small in-flight bodies on native upload rejection before Connection: close",
+  "sources": {
+    "host/src/moonraker/server.ts": "0ca0a93e3af9a01b672cbb24ccafeffbe065e3d0bee91bad211504d1399fc168",
+    "host/src/moonraker/rejected-upload-body.ts": "951ab02e99b19f34f2024e45347d4c65366ad116fee10bbe2b0680f78fb52ce7",
+    "host/test/upload-rejection.test.ts": "7353f2b2f5079b81f20088aab24aff944bf2590748c14c457bbf0dd2f15586ab"
+  },
+  "beforeFix": "✖ early upload rejection waits for a small in-flight body before closing and never stages it (47.761782ms)\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 169.25338\n\n✖ failing tests:\n\ntest at host/test/upload-rejection.test.ts:15:1\n✖ early upload rejection waits for a small in-flight body before closing and never stages it (47.761782ms)\n  AssertionError [ERR_ASSERTION]: response must not close the connection while the bounded body is still being sent\n  \n  false !== true\n  \n      at TestContext.<anonymous> (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/test/upload-rejection.test.ts:24:70)\n      at async Test.run (node:internal/test_runner/test:1409:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n",
+  "checks": {
+    "networkAndUploadTests": 32,
+    "productAcceptance": 4,
+    "repeatedFetchDenials": 40,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "tests": "✔ HTTP RPC preserves replies, notification status, content type and error envelopes (32.22512ms)\n✔ WebSocket connection IDs, notifications, binary JSON, ordered batches and transport restrictions (13.191754ms)\n✔ authorization runs for each method and rejected origins cannot upgrade or invoke HTTP methods (6.253088ms)\n✔ independent websocket messages run concurrently while disconnect cancels active handlers (6.46028ms)\n✔ connection and per-socket request limits bound pending work and cancel overloaded peers (5.305106ms)\n✔ HTTP disconnect cancels its handler and shutdown does not claim ignored cancellation drained (26.429798ms)\n✔ request deadlines abort cooperative handlers and close the socket (21.485637ms)\n✔ closing during listen does not leave a bound server or permit restart (0.326724ms)\n✔ oversized input and output are bounded and forbidden notification names cannot be sent (6.428829ms)\n✔ global request and byte budgets reject excess work without releasing active handlers early (6.504491ms)\n✔ Node native browser-compatible WebSocket can use the RPC endpoint (3.95336ms)\n✔ native file deletion uses HTTP and RPC paths, revokes previews, reclaims storage and preserves other receipts (184.507753ms)\n✔ native removal rechecks authorized content after delayed policy and cancellation does not remove a file (26.208316ms)\n✔ native thumbnail HTTP journey preserves bytes, conditional responses, per-file authorization and replacement revocation (175.50456ms)\n✔ malformed native thumbnail does not publish partial metadata or poison following extraction (159.012836ms)\n✔ streaming native upload exceeds JSON limit and publishes exact immutable bytes with authorized receipt lookup (24.038588ms)\n✔ multipart bounds, fields, paths, digest and auto-print fail without publication or staging leftovers (29.581878ms)\n✔ upload authorizes before staging and after digest; maintenance blocks admission (4.86937ms)\n✔ held authorization has bounded admission and shutdown does not await an external policy (13.309365ms)\n✔ client disconnect during multipart streaming drains staging and releases activity (12.692618ms)\n✔ configured native upload stays idle until durable HTTP start, then executes sealed file through EOF drain (60.085257ms)\n✔ aborted authorization remains counted until actual settlement and cannot grow without bound (30.057724ms)\n✔ closing during final authorization prevents late publication and removes staged bytes (12.239902ms)\n✔ chunked excess body and malformed headers reject without publication (6.487711ms)\n✔ native catalog preserves duplicate names, stable receipt times and RPC parity across reopen (9.869432ms)\n✔ native list registration rolls back info when the shared catalog route is already owned (1.57853ms)\n✔ native directory and scalar metadata bind the selected immutable file and survive source retirement (73.946268ms)\n✔ early upload rejection waits for a small in-flight body before closing and never stages it (32.991679ms)\n✔ rejection discard bounds unknown bodies, stalls and shutdown without retaining listeners (249.991566ms)\n✔ repeated fetch multipart denial returns 401 without publishing a file (53.339132ms)\n✔ network shutdown aborts a pending rejection discard and releases request reservations (13.609909ms)\n✔ exhausted buffer capacity rejects before draining or authorizing a body (1.783612ms)\nℹ tests 32\nℹ suites 0\nℹ pass 32\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 1535.642692\n",
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.304926ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18384.532391ms)\nℹ {\"installation\":{\"durationMs\":697.1381340000003,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":167,\"wireSteps\":3088,\"minimumStepLeadMs\":81.557,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.829887,\"maxMs\":13.574143},\"cpu\":{\"user\":719225,\"system\":53169},\"rss\":160677888},{\"loop\":{\"p99Ms\":2.006015,\"maxMs\":8.404991},\"cpu\":{\"user\":466488,\"system\":48306},\"rss\":181047296}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19478.878941ms)\nℹ {\"installation\":{\"durationMs\":702.8653560000021,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":8.005099000001792,\"deleteRequests\":16,\"deleteP95Ms\":4.632238000001962,\"thumbnailRequests\":16,\"thumbnailP95Ms\":2.1575770000017656,\"metadataRequests\":16,\"metadataP95Ms\":16.37013300000035,\"downloads\":16,\"downloadP95Ms\":6.5347209999963525,\"wireCommands\":171,\"wireSteps\":3088,\"minimumStepLeadMs\":87.356,\"directoryRequests\":1988,\"directoryP99Ms\":8.98052099999768,\"statusRequests\":8234,\"uploads\":16,\"statusP99Ms\":2.954796999998507,\"uploadP95Ms\":16.622237000003224,\"generations\":[{\"loop\":{\"p99Ms\":2.057215,\"maxMs\":13.459455},\"cpu\":{\"user\":1853487,\"system\":235692},\"rss\":245661696},{\"loop\":{\"p99Ms\":1.931263,\"maxMs\":4.792319},\"cpu\":{\"user\":1186842,\"system\":152003},\"rss\":242823168}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7957.813847ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46455.528292\n",
+  "throughput": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "size": 4194304,
+        "results": {
+          "direct": {
+            "medianMs": 5.209434999999985,
+            "p95Ms": 5.683591000000035,
+            "medianMiBPerSecond": 767.8375869936012,
+            "eventLoopMaximumMs": 1.044479
+          },
+          "http": {
+            "medianMs": 21.374635000000012,
+            "p95Ms": 23.061785999999984,
+            "medianMiBPerSecond": 187.1376984916934,
+            "eventLoopMaximumMs": 2.433023
+          }
+        }
+      },
+      {
+        "size": 16777216,
+        "results": {
+          "direct": {
+            "medianMs": 23.16011800000001,
+            "p95Ms": 32.4838729999999,
+            "medianMiBPerSecond": 690.8427668632773,
+            "eventLoopMaximumMs": 2.910207
+          },
+          "http": {
+            "medianMs": 67.33323700000005,
+            "p95Ms": 80.59673099999986,
+            "medianMiBPerSecond": 237.62410234339373,
+            "eventLoopMaximumMs": 7.614463
+          }
+        }
+      }
+    ],
+    "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+  },
+  "bounds": {
+    "discardBytes": 65536,
+    "discardTimeoutMs": 250,
+    "retainedUploadReservationBytes": 524288
+  },
+  "limitations": [
+    "Bodies exceeding the byte/time budget still receive early rejection and may encounter transport errors",
+    "Earlier EPIPE reports not all proven to have this cause",
+    "No physical printer or independent target validation",
+    "Normal upload throughput sample is not a paired old/new benchmark",
+    "Default Python entry and 193 tracked Python files remain; motion mismatch and SIGSEGV remain open"
+  ]
+}

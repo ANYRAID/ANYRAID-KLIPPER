@@ -1,5 +1,6 @@
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
 import type {NativePrintUploads} from './native-print-uploads.ts';
+import {discardRejectedUploadBody} from './rejected-upload-body.ts';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
 import {setImmediate as yieldImmediate} from 'node:timers/promises';
@@ -185,7 +186,12 @@ export class MoonrakerNetwork {
     const result=isRPC?await this.#rpc.dispatch(body,context):JSON.stringify({result:await this.#options.endpoints!.invoke(path,request.method!,this.#options.endpoints!.parse(path,query,body,request.headers['content-type']??''),context)});signal.throwIfAborted();
     if(result!==null&&Buffer.byteLength(result)>maxBytes){this.#error(response,500,'Response too large');return;}
     if(!response.destroyed){if(result!==null)response.setHeader('content-type','application/json; charset=UTF-8');if(completion){const sent=await new Promise<boolean>(resolve=>{const closed=()=>{response.off('finish',finished);resolve(false);},finished=()=>{response.off('close',closed);resolve(true);};response.once('close',closed);response.once('finish',finished);response.end(result??undefined);});if(!completion.complete(sent))response.destroy(completion.error);}else response.end(result??undefined);}
-   }catch(error){if(signal.aborted)this.#error(response,503,'Request cancelled');else if(!isRPC&&error instanceof ApiError)this.#error(response,Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500,error.message);else this.#error(response,isRPC?400:500,isRPC?'Invalid request body':'Internal Server Error');}
+   }catch(error){
+    // Early multipart policy rejection can otherwise close the TCP connection
+    // while fetch is still writing the body, hiding a valid 401 behind EPIPE.
+    // Keep the existing request slot and buffer reservation during this wait.
+    if(isUpload&&reserved>=65536&&!response.headersSent)await discardRejectedUploadBody(request,signal);
+    if(signal.aborted)this.#error(response,503,'Request cancelled');else if(!isRPC&&error instanceof ApiError)this.#error(response,Number.isInteger(error.status)&&error.status>=400&&error.status<=599?error.status:500,error.message);else this.#error(response,isRPC?400:500,isRPC?'Invalid request body':'Internal Server Error');}
    finally{if(completion&&!completion.complete(false))response.destroy(completion.error);this.#buffered-=reserved;this.#outputBytes-=outputReserved;signal.removeEventListener('abort',cancel);response.off('close',disconnected);}
   },parent.signal);
  }
