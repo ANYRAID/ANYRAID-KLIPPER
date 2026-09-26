@@ -16,13 +16,23 @@ export interface MetadataScanOptions {
 /** Complete field/image preparation and atomic metadata publication. Takes source
  * ownership unconditionally, including stale/pre-aborted/rejected admissions.
  * Does not own worker/process/store lifetimes or decide old-bundle retirement. */
-export async function scanFileMetadata(options:MetadataScanOptions):Promise<{committed:boolean;bundleId:string|null;extraction:Omit<MetadataExtraction,'thumbnailData'>|null}>{
- const {extractor,processor,storage,cache,ticket,source,signal,bundleId}=options;
- let primary:unknown,failed=false;
+export async function scanFileMetadata(options:MetadataScanOptions):Promise<MetadataScanResult>{
+ const {source}=options;let primary:unknown,failed=false;
+ try{return await scanExtractedMetadata({...options,extract:()=>options.extractor.extract(source,options.signal,true)});}
+ catch(error){failed=true;primary=error;throw error;}
+ finally{if(source.fd>=0){try{await source.close();}catch(error){throw new AggregateError(failed?[primary,error]:[error],'Metadata scan source close failed');}}}
+}
+export interface MetadataScanResult {committed:boolean;bundleId:string|null;extraction:Omit<MetadataExtraction,'thumbnailData'>|null;}
+export type ExtractedMetadataScanOptions=Omit<MetadataScanOptions,'source'|'extractor'>&{extract():Promise<MetadataExtraction>};
+/** Shared preparation for descriptor extraction and verified native byte windows.
+ * The producer owns its IO and must supply the identity checked by validateSource. */
+export async function scanExtractedMetadata(options:ExtractedMetadataScanOptions):Promise<MetadataScanResult>{
+ const {processor,storage,cache,ticket,signal,bundleId}=options;
  try{
+  if(typeof options.extract!=='function')throw new TypeError('Metadata extraction producer is required');
   if(typeof options.validateSource!=='function')throw new TypeError('Metadata source validation is required');
   signal.throwIfAborted();if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction:null};
-  const value=await extractor.extract(source,signal,true);signal.throwIfAborted();
+  const value=await options.extract();signal.throwIfAborted();
   const {thumbnailData,...extraction}=value;
   if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction};
   if(typeof thumbnailData!=='string')throw new ApiError(502,'Metadata extraction omitted thumbnail input');
@@ -32,6 +42,5 @@ export async function scanFileMetadata(options:MetadataScanOptions):Promise<{com
   if(!cache.isCurrent(ticket))return {committed:false,bundleId:null,extraction};
   const committed=await publishThumbnailMetadata(storage,cache,ticket,extraction.fields,bundleId,images,signal);
   return {committed,bundleId:committed&&images.length?bundleId:null,extraction};
- }catch(error){failed=true;primary=error;cache.fail(ticket);throw error;}
- finally{if(source.fd>=0){try{await source.close();}catch(error){throw new AggregateError(failed?[primary,error]:[error],'Metadata scan source close failed');}}}
+ }catch(error){cache.fail(ticket);throw error;}
 }

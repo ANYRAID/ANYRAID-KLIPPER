@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,writeFile,open,stat} from 'node:fs/promises';
+import {mkdtemp,rm,writeFile,readFile,open,stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -21,6 +21,25 @@ async function fixture(maxPending=4){
  return {dir,path,owner,components,validate,scan:async()=>owner.scan('part.gcode',await open(path,'r'),signal,validate),close:async()=>{await owner.close();await extractor.close();await processor.close();await images.close();await intents.close();await snapshots.close();await versions.close();await rm(dir,{recursive:true,force:true});}};
 }
 async function until(check:()=>boolean){for(let i=0;i<2000&&!check();i++)await delay(1);assert.equal(check(),true);}
+async function extractWindows(f:Awaited<ReturnType<typeof fixture>>,s=signal){
+ const source=await stat(f.path,{bigint:true}),bytes=await readFile(f.path);assert(bytes.length<1024**2);
+ const value=await f.components.extractor.extractWindows({head:bytes,tail:new Uint8Array(),size:bytes.length,modified:Number(source.mtimeNs)/1e9},s,true);
+ return {...value,source:{dev:source.dev,ino:source.ino,mtimeNs:source.mtimeNs,ctimeNs:source.ctimeNs}};
+}
+test('window producer shares durable version selection and post-selection invalidation',async()=>{
+ const f=await fixture();try{
+  let validations=0;const value=await f.owner.scanExtraction('part.gcode',signal,async source=>{validations++;return f.validate(source);},()=>extractWindows(f));assert(value.committed);assert.equal(validations,3);assert.equal(f.components.versions.current('part.gcode')?.state,'selected');const fields=f.owner.metadata('part.gcode');assert.equal((fields.thumbnails as unknown[]).length,1);
+  f.components.cache.clear();assert.equal(await f.owner.recover('part.gcode',signal,f.validate),true);assert.deepEqual(f.owner.metadata('part.gcode'),fields);
+  validations=0;await assert.rejects(f.owner.scanExtraction('part.gcode',signal,async source=>++validations<3&&await f.validate(source),()=>extractWindows(f)));assert.equal(f.components.versions.current('part.gcode')?.state,'invalidated');assert.equal(f.components.cache.peek('part.gcode'),undefined);assert.equal(await f.owner.recover('part.gcode',signal,f.validate),false);
+ }finally{await f.close();}
+});
+test('queued window producers are lazy, cancellation does not start IO, and close drains active production',async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),resume=Promise.withResolvers<void>();let secondCalls=0;
+ try{
+  const first=f.owner.scanExtraction('part.gcode',signal,f.validate,async()=>{entered.resolve();await resume.promise;return extractWindows(f);});await entered.promise;
+  const abort=new AbortController(),second=f.owner.scanExtraction('other.gcode',abort.signal,f.validate,async()=>{secondCalls++;return extractWindows(f,abort.signal);}),rejected=assert.rejects(second,/cancel window/);abort.abort(new Error('cancel window'));let closed=false;const closing=f.owner.close().then(()=>{closed=true;});await delay(5);assert.equal(closed,false);assert.equal(secondCalls,0);resume.resolve();assert.equal((await first).committed,true);await rejected;await closing;assert.equal(secondCalls,0);assert.equal(f.owner.status.pending,0);assert.equal(f.components.intents.unresolved().length,1);
+ }finally{resume.resolve();await f.close();}
+});
 test('owner composes scan, durable selection, recovery, replacement and safe retirement',async()=>{
  const f=await fixture();try{const first=await f.scan();assert.equal(first.committed,true);assert.equal(f.components.versions.current('part.gcode')?.scanId,first.intent.id);assert.equal(f.components.cache.thumbnails('part.gcode').length,1);await assert.rejects(f.owner.retire(first.intent,signal),/not retired/);
   f.components.cache.clear();assert.equal(await f.owner.recover('part.gcode',signal,f.validate),true);const second=await f.scan();assert.equal(second.committed,true);assert.equal(await f.owner.retireSuperseded(signal),1);assert.deepEqual(await f.components.images.listIds(signal),[second.intent.bundleId]);assert.deepEqual(await f.components.snapshots.listIds(signal),[second.snapshotId]);assert.deepEqual(f.components.intents.unresolved(),[second.intent]);
@@ -44,7 +63,7 @@ test('queued cancellation closes its accepted source before lifecycle close reso
 });
 test('a new owner restores the selected version after every component has been reopened',async()=>{
  const f=await fixture();try{
-  const result=await f.scan();await f.owner.close();const old=f.components;await old.extractor.close();await old.processor.close();await old.images.close();await old.intents.close();await old.snapshots.close();await old.versions.close();
+  const result=await f.owner.scanExtraction('part.gcode',signal,f.validate,()=>extractWindows(f));await f.owner.close();const old=f.components;await old.extractor.close();await old.processor.close();await old.images.close();await old.intents.close();await old.snapshots.close();await old.versions.close();
   const extractor=await MetadataExtractor.open(),processor=await ThumbnailProcessor.open(),images=await ThumbnailStorage.open(join(f.dir,'images')),intents=await MetadataScanIntents.open(join(f.dir,'intents')),snapshots=await MetadataSnapshots.open(join(f.dir,'snapshots')),versions=await MetadataVersions.open(join(f.dir,'versions')),cache=new FileMetadataStore(),owner=new MetadataLifecycle({extractor,processor,images,intents,snapshots,versions,cache});
   try{assert.equal(await owner.recover('part.gcode',signal,f.validate),true);assert.equal(versions.current('part.gcode')?.scanId,result.intent.id);assert.equal(cache.thumbnails('part.gcode').length,1);assert.equal(await owner.retireSuperseded(signal),0);await owner.invalidate('part.gcode',signal);assert.equal(await owner.retireSuperseded(signal),1);assert.deepEqual(await images.listIds(signal),[]);}finally{await owner.close();await extractor.close();await processor.close();await images.close();await intents.close();await snapshots.close();await versions.close();}
  }finally{await f.close();}

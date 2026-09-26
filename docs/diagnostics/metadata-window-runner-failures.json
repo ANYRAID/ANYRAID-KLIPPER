@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "97239f25",
+  "status": "Restricted-runner failures preserved; no root-cause claim. Approved local process/network execution passed all 75 final tests. Not attributed to historical numerical anomalies.",
+  "restrictedCombined": {
+    "command": "node --test --test-concurrency=1 host/test/metadata-lifecycle.test.ts host/test/metadata-scan.test.ts host/test/metadata-files.test.ts host/test/metadata-retirement.test.ts host/test/metadata-versions.test.ts host/test/metadata-snapshots.test.ts",
+    "exitCode": 1,
+    "output": "✖ host/test/metadata-files.test.ts (5480.677358ms)\n✔ host/test/metadata-lifecycle.test.ts (2211.365829ms)\n✔ host/test/metadata-retirement.test.ts (175.17648ms)\n✔ host/test/metadata-scan.test.ts (2488.767343ms)\n✖ host/test/metadata-snapshots.test.ts (252.615934ms)\n✔ host/test/metadata-versions.test.ts (172.436927ms)\nℹ tests 6\nℹ suites 0\nℹ pass 4\nℹ fail 2\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 10793.264964\n\n✖ failing tests:\n\ntest at host/test/metadata-files.test.ts:1:1\n✖ host/test/metadata-files.test.ts (5480.677358ms)\n  'test failed'\n\ntest at host/test/metadata-snapshots.test.ts:1:1\n✖ host/test/metadata-snapshots.test.ts (252.615934ms)\n  'test failed'\n"
+  },
+  "restrictedDetailed": {
+    "command": "node --test --test-reporter=tap --test-concurrency=1 host/test/metadata-files.test.ts host/test/metadata-snapshots.test.ts",
+    "exitCode": 1,
+    "output": "TAP version 13\n# Subtest: host/test/metadata-files.test.ts\nnot ok 1 - host/test/metadata-files.test.ts\n  ---\n  duration_ms: 5452.877268\n  type: 'test'\n  location: '/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/test/metadata-files.test.ts:1:1'\n  failureType: 'testCodeFailure'\n  exitCode: 1\n  signal: ~\n  error: 'test failed'\n  code: 'ERR_TEST_FAILURE'\n  ...\n# Subtest: host/test/metadata-snapshots.test.ts\nnot ok 2 - host/test/metadata-snapshots.test.ts\n  ---\n  duration_ms: 256.9081\n  type: 'test'\n  location: '/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/test/metadata-snapshots.test.ts:1:1'\n  failureType: 'testCodeFailure'\n  exitCode: 1\n  signal: ~\n  error: 'test failed'\n  code: 'ERR_TEST_FAILURE'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 0\n# fail 2\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 5717.080606\n"
+  },
+  "restrictedWithoutIsolation": {
+    "command": "node --test --test-isolation=none --test-reporter=tap host/test/metadata-snapshots.test.ts",
+    "exitCode": 1,
+    "output": "TAP version 13\n# Subtest: snapshot round trip preserves exact source integers and immutable fields\nok 1 - snapshot round trip preserves exact source integers and immutable fields\n  ---\n  duration_ms: 16.219196\n  type: 'test'\n  ...\n# Subtest: restore validates every image reference and rejects absent, foreign or stale sources\nok 2 - restore validates every image reference and rejects absent, foreign or stale sources\n  ---\n  duration_ms: 16.991797\n  type: 'test'\n  ...\n# Subtest: restore never replaces a newer ticket, including during source validation\nok 3 - restore never replaces a newer ticket, including during source validation\n  ---\n  duration_ms: 3.679544\n  type: 'test'\n  ...\n# Subtest: invalid references reject before publication, duplicate writes retain original snapshot\nok 4 - invalid references reject before publication, duplicate writes retain original snapshot\n  ---\n  duration_ms: 4.644697\n  type: 'test'\n  ...\n# Subtest: corrupt snapshot is discovered on verified read rather than restored to cache\nok 5 - corrupt snapshot is discovered on verified read rather than restored to cache\n  ---\n  duration_ms: 3.882087\n  type: 'test'\n  ...\n# Subtest: snapshot and source integers survive SIGKILL without closing their owner\nnot ok 6 - snapshot and source integers survive SIGKILL without closing their owner\n  ---\n  duration_ms: 120.956999\n  type: 'test'\n  location: '/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/test/metadata-snapshots.test.ts:42:1'\n  failureType: 'testCodeFailure'\n  error: 'Invalid metadata snapshot ID'\n  code: 'ERR_TEST_FAILURE'\n  name: 'TypeError'\n  stack: |-\n    validId (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/src/moonraker/metadata-snapshots.ts:14:140)\n    file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/src/moonraker/metadata-snapshots.ts:53:90\n    async TestContext.<anonymous> (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/test/metadata-snapshots.test.ts:47:87)\n    async Test.run (node:internal/test_runner/test:1409:7)\n    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\n  ...\n1..6\n# tests 6\n# suites 0\n# pass 5\n# fail 1\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 295.569718\n"
+  },
+  "approvedFinal": {
+    "tests": 75,
+    "passed": 75,
+    "failed": 0,
+    "reportSha256": "da1eac1e16522b93ab6fb7bba8286bcb289353f8d7d2fbd7062581ed1d2758fd"
+  }
+}

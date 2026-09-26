@@ -9,7 +9,7 @@ import type {ThumbnailStorage} from './thumbnail-storage.ts';
 import type {MetadataScanIntents,MetadataScanIntent} from './metadata-intents.ts';
 import type {MetadataSnapshots} from './metadata-snapshots.ts';
 import type {MetadataVersions,MetadataVersion} from './metadata-versions.ts';
-import {scanFileMetadata} from './metadata-scan.ts';
+import {scanExtractedMetadata} from './metadata-scan.ts';
 import {MetadataIntentScanError} from './metadata-intent-scan.ts';
 import {restoreCurrentMetadata} from './metadata-version-recovery.ts';
 import {retireMetadataScan} from './metadata-retirement.ts';
@@ -40,9 +40,17 @@ export class MetadataLifecycle {
  /** Source ownership is unconditional, even when admission fails. A newly
   * admitted scan revokes old cache tickets before waiting for its durable turn. */
  async scan(filename:string,source:FileHandle,signal:AbortSignal,validateSource:Validate):Promise<MetadataLifecycleScan>{
+  return this.#scan(filename,source,signal,validateSource,()=>this.#options.extractor.extract(source,signal,true));
+ }
+ /** Verified byte-window producers share the same durable intent, image,
+  * snapshot and version protocol. Called only after serialized admission. */
+ scanExtraction(filename:string,signal:AbortSignal,validateSource:Validate,extract:()=>Promise<MetadataExtraction>):Promise<MetadataLifecycleScan>{
+  return this.#scan(filename,undefined,signal,validateSource,extract);
+ }
+ async #scan(filename:string,source:FileHandle|undefined,signal:AbortSignal,validateSource:Validate,extract:()=>Promise<MetadataExtraction>):Promise<MetadataLifecycleScan>{
   let primary:unknown,failed=false;
   try{return await this.#admit(()=>{
-   signal.throwIfAborted();validateMetadataFilename(filename);if(typeof validateSource!=='function')throw new TypeError('Metadata source validation is required');
+   signal.throwIfAborted();validateMetadataFilename(filename);if(typeof validateSource!=='function'||typeof extract!=='function')throw new TypeError('Metadata extraction and source validation are required');
    const o=this.#options,ticket=o.cache.begin(filename);
    return async()=>{
     let intent:MetadataScanIntent|undefined,operationFailure:unknown,operationFailed=false;
@@ -50,7 +58,7 @@ export class MetadataLifecycle {
      signal.throwIfAborted();if(o.intents.status.faulted||o.snapshots.status.faulted||o.versions.status.faulted)throw new ApiError(503,'Metadata stores require recovery');if(!o.cache.isCurrent(ticket))throw new ApiError(409,'Metadata scan was superseded');
      intent=await o.intents.begin(filename,signal);const pending=await o.versions.begin(intent,signal);
      const staged=new FileMetadataStore({maxRecords:1,maxBytes:2*1024**2,maxRecordBytes:1024**2});
-     const result=await scanFileMetadata({extractor:o.extractor,processor:o.processor,storage:o.images,cache:staged,ticket:staged.begin(filename),source,signal,bundleId:intent.bundleId,validateSource:async(value,s)=>o.cache.isCurrent(ticket)&&await validateSource(value,s)});
+     const result=await scanExtractedMetadata({extract,processor:o.processor,storage:o.images,cache:staged,ticket:staged.begin(filename),signal,bundleId:intent.bundleId,validateSource:async(value,s)=>o.cache.isCurrent(ticket)&&await validateSource(value,s)});
      if(!result.committed||!result.extraction)throw new ApiError(409,'Metadata preparation did not complete');
      const stale:MetadataLifecycleScan={committed:false,intent,snapshotId:null,version:null};
      if(!o.cache.isCurrent(ticket))return stale;
@@ -63,10 +71,10 @@ export class MetadataLifecycle {
      if(!await validateSource(result.extraction.source,signal)){await o.versions.invalidate(filename,new AbortController().signal);throw new ApiError(409,'Metadata source changed during selection');}
      signal.throwIfAborted();return {committed:o.cache.commit(ticket,snapshot.fields),intent,snapshotId:snapshot.id,version:selected};
     }catch(error){o.cache.fail(ticket);operationFailed=true;operationFailure=intent?new MetadataIntentScanError(intent,error):error;throw operationFailure;}
-    finally{if(source.fd>=0){try{await source.close();}catch(cleanup){throw new AggregateError(operationFailed?[operationFailure,cleanup]:[cleanup],'Accepted metadata source cleanup failed');}}}
+    finally{if(source&&source.fd>=0){try{await source.close();}catch(cleanup){throw new AggregateError(operationFailed?[operationFailure,cleanup]:[cleanup],'Accepted metadata source cleanup failed');}}}
    };
   });}catch(error){primary=error;failed=true;throw error;}
-  finally{if(source.fd>=0){try{await source.close();}catch(cleanup){throw new AggregateError(failed?[primary,cleanup]:[cleanup],'Metadata lifecycle source cleanup failed');}}}
+  finally{if(source&&source.fd>=0){try{await source.close();}catch(cleanup){throw new AggregateError(failed?[primary,cleanup]:[cleanup],'Metadata lifecycle source cleanup failed');}}}
  }
  invalidate(filename:string,signal:AbortSignal):Promise<MetadataVersion>{return this.#admit(()=>{signal.throwIfAborted();validateMetadataFilename(filename);this.#options.cache.invalidate(filename);return ()=>this.#options.versions.invalidate(filename,signal);});}
  recover(filename:string,signal:AbortSignal,validateSource:Validate):Promise<boolean>{return this.#admit(()=>{signal.throwIfAborted();validateMetadataFilename(filename);if(typeof validateSource!=='function')throw new TypeError('Metadata source validation is required');const o=this.#options,ticket=o.cache.begin(filename);return ()=>restoreCurrentMetadata({versions:o.versions,snapshots:o.snapshots,images:o.images,cache:o.cache,ticket,signal,validateSource});});}
