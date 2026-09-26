@@ -127,6 +127,10 @@ SOS 整数须在 NumPy int64/uint64 范围内。增加 `--preserve-number-types`
 `node scripts/motan/data_export.ts --list-datasets` 可直接列出数据集语法，
 不需要日志文件。性能与格式边界见迁移说明。
 
+Motan 浮点派生及类型化标量数学的回归、CSV 对照和 6 组基准已改用
+固定 CPython 参考，不再启动 Python；参考按输入及采集文件摘要校验。
+其他 Motan 对照仍有 Python 依赖，当前不能在无 Python 环境中运行全套测试。
+
 需要保留状态、Stallguard 或相位列的整数/浮点来源时，可显式增加
 `--preserve-number-types`。该模式支持这些列及已知浮点
 派生结果之间明确整数/浮点混合的偏差、CoreXY、导数和积分等计算。

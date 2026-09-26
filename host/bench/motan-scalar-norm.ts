@@ -18,5 +18,5 @@ for(const mode of ['float-buffer','integer-53','integer-100','mixed'])for(const 
  }
  assert.deepEqual(scalarBits(result),reference.values);
  const numericBaseline=baseline.length?stats(baseline):undefined;
- console.log(JSON.stringify({node:process.version,mode,axes,samples:20000,pythonMs:stats(reference.ms),nodeMs:stats(ms),numericBaselineMs:numericBaseline,exactTypesAndBits:true,warmups:{node:20,python:2},runs:{node:15,python:7},scope:'In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.'}));
+ console.log(JSON.stringify({node:process.version,mode,axes,samples:20000,historicalPythonMs:stats(reference.ms),nodeMs:stats(ms),numericBaselineMs:numericBaseline,exactTypesAndBits:true,referenceMode:"captured CPython; this run does not execute Python",warmups:{node:20,historicalPython:2},runs:{node:15,historicalPython:7},scope:'In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.'}));
 }

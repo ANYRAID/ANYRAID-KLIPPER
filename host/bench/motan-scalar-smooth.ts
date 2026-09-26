@@ -14,5 +14,5 @@ for(const mode of ['float-buffer','integer-53','integer-100','mixed'])for(const 
   if(run>=20)(variant==='current'?ms:baseline).push(elapsed);result=value;
  }
  assert.deepEqual(scalarBits(result),reference.values);
- console.log(JSON.stringify({node:process.version,mode,halfWindow:half,samples:20000,pythonMs:stats(reference.ms),nodeMs:stats(ms),numericBaselineMs:baseline.length?stats(baseline):undefined,exactTypesAndBits:true,warmups:{node:20,python:2},runs:{node:15,python:7},scope:'In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.'}));
+ console.log(JSON.stringify({node:process.version,mode,halfWindow:half,samples:20000,historicalPythonMs:stats(reference.ms),nodeMs:stats(ms),numericBaselineMs:baseline.length?stats(baseline):undefined,exactTypesAndBits:true,referenceMode:"captured CPython; this run does not execute Python",warmups:{node:20,historicalPython:2},runs:{node:15,historicalPython:7},scope:'In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.'}));
 }

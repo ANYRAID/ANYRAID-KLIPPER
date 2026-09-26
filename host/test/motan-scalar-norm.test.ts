@@ -1,3 +1,4 @@
+import {motanMathCsvReference} from './helpers/motan-math-csv-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -9,7 +10,6 @@ import {motanScalarNorm2,type MotanScalarSeries} from '../src/motan/scalar-math.
 import {scalarOracle,scalarBits} from './helpers/motan-scalar-oracle.ts';
 import {MotanAnalysisExecutor} from '../src/motan/analysis-executor.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
-import {scipyReferenceEnvironment,scipyReferencePython} from './helpers/motan-sos-oracle.ts';
 test('scalar norm squares integers before ordered float accumulation and matches Python bits',()=>{
  const base=(1n<<53n)+1n;
  const cases:MotanScalarSeries[][]=[[[base-1n],[base-1n],[base]],[[base+1n],[base]],[[base,-base,0n,1n],[0n,1n,0n,2n]],[[true,false,true,false],[false,true,true,false]],[[base,1n,true,-0],[.5,false,2n,0n],[3n,2.5,0n,0]],[[1.25,-0,Number.MIN_VALUE],[2.5,0,0]]];
@@ -44,8 +44,8 @@ test('integer norm flows through worker, downstream derivative and no-Python CSV
   assert.ok(result.datasets[norm] instanceof Float64Array);assert.ok(result.datasets[derivative] instanceof Float64Array);
   const root=fileURLToPath(new URL('../../',import.meta.url)),args=[prefix,'-c',JSON.stringify(columns),'--duration','5','--segment-time','.01'];
   const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:10000});
-  const python=execFileSync(scipyReferencePython(),[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',env:scipyReferenceEnvironment(),timeout:10000});
+  const captured=motanMathCsvReference(prefix,args.slice(1));
   const rows=(csv:string)=>csv.trimEnd().split('\r\n').slice(1).map(row=>row.split(',').map(Number));
-  assert.deepEqual(rows(node),rows(python));assert.deepEqual(rows(node),Array.from(result.times,(time,i)=>[time,...columns.map(name=>result.datasets[name][i])]));
+  assert.deepEqual(rows(node),rows(captured));assert.deepEqual(rows(node),Array.from(result.times,(time,i)=>[time,...columns.map(name=>result.datasets[name][i])]));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}
 });

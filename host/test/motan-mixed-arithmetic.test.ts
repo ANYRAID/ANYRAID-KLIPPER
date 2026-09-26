@@ -1,3 +1,4 @@
+import {motanMathCsvReference} from './helpers/motan-math-csv-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -51,9 +52,9 @@ test('typed mixed status differences, derivatives and CoreXY work through worker
   await assert.rejects(executor.analyze({...request,preserveNumberTypes:false}),/Ambiguous/);
   const root=fileURLToPath(new URL('../../',import.meta.url)),args=[prefix,'-c',JSON.stringify(columns),'--duration','5','--segment-time','.01'];
   const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:10000});
-  const python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',timeout:10000});
+  const captured=motanMathCsvReference(prefix,args.slice(1));
   const rows=(csv:string)=>csv.trimEnd().split('\r\n').slice(1).map(row=>row.split(',').map(Number));
-  assert.deepEqual(rows(node),rows(python));assert.deepEqual(rows(node),Array.from(result.times,(time,i)=>[time,...columns.map(name=>Number(result.datasets[name][i]))]));
+  assert.deepEqual(rows(node),rows(captured));assert.deepEqual(rows(node),Array.from(result.times,(time,i)=>[time,...columns.map(name=>Number(result.datasets[name][i]))]));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}
 });
 test('status type mode does not misclassify unannotated raw integer datasets as floats',async()=>{
@@ -62,8 +63,8 @@ test('status type mode does not misclassify unannotated raw integer datasets as 
   const wide=(1n<<53n)+1n;await managerFixture(prefix,2,'corexy',{wide});
   const status='status(export_fields.wide)',phase='step_phase(tmc2209 stepper_x)',sg='stallguard(stepper_x,sg_result)',raw=[`deviation(${status},${phase})`,`deviation(${status},${sg})`];
   const root=fileURLToPath(new URL('../../',import.meta.url));
-  const python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(raw),'-d','.02','--segment-time','.01'],{encoding:'utf8',timeout:10000});
-  const first=python.split('\r\n')[1].split(',');assert.equal(BigInt(first[1]),wide-36n);assert.equal(BigInt(first[2]),wide-100n);
+  const captured=motanMathCsvReference(prefix,['-c',JSON.stringify(raw),'-d','.02','--segment-time','.01']);
+  const first=captured.split('\r\n')[1].split(',');assert.equal(BigInt(first[1]),wide-36n);assert.equal(BigInt(first[2]),wide-100n);
   const phaseResult=await executor.analyze({prefix,datasets:[raw[0]],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01});
   assert.ok(Array.from(phaseResult.datasets[raw[0]]).every(value=>value===wide-36n));
   await assert.rejects(executor.analyze({prefix,datasets:[`deviation(${status},kin(stepper_x))`],output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01}),/Ambiguous/);

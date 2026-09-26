@@ -11,6 +11,6 @@ for(const mode of ['float-array','float-buffer','integer']){
   const reference=scalarOracle(kind,first,kind==='derivative'?undefined:second,.001,true),ms:number[]=[];let result:MotanScalarSeries=[];
   for(let i=0;i<9;i++){const start=performance.now();result=kind==='derivative'?motanScalarDerivative(first,.001):motanScalarCombine(first,second,kind);const elapsed=performance.now()-start;if(i>=2)ms.push(elapsed);}
   assert.deepEqual(scalarBits(result),reference.values);
-  console.log(JSON.stringify({node:process.version,mode,kind,samples:first.length,pythonMs:stats(reference.ms),nodeMs:stats(ms),exactTypesAndBits:true}));
+  console.log(JSON.stringify({node:process.version,mode,kind,samples:first.length,historicalPythonMs:stats(reference.ms),nodeMs:stats(ms),exactTypesAndBits:true,referenceMode:"captured CPython; this run does not execute Python"}));
  }
 }

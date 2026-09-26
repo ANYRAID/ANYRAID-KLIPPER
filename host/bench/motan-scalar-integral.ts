@@ -15,5 +15,5 @@ for(const mode of ['float-buffer','integer-53','integer-100','mixed'])for(const 
   if(run>=20)(variant==='current'?ms:baseline).push(elapsed);result=value;
  }
  assert.deepEqual(scalarBits(result),expected.values);
- console.log(JSON.stringify({node:process.version,mode,withReference,samples:20000,pythonMs:stats(expected.ms),nodeMs:stats(ms),numericBaselineMs:baseline.length?stats(baseline):undefined,exactTypesAndBits:true,warmups:{node:20,python:2},runs:{node:15,python:7},scope:'Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.'}));
+ console.log(JSON.stringify({node:process.version,mode,withReference,samples:20000,historicalPythonMs:stats(expected.ms),nodeMs:stats(ms),numericBaselineMs:baseline.length?stats(baseline):undefined,exactTypesAndBits:true,referenceMode:"captured CPython; this run does not execute Python",warmups:{node:20,historicalPython:2},runs:{node:15,historicalPython:7},scope:'Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.'}));
 }

@@ -23446,3 +23446,33 @@ Bed_Mesh 使用说明已切换为 Node，明确 -o、HTML 动画和三维交互�
 本次实际退役 1 个 Python 文件，受跟踪 Python 文件由 194 降至 193。
 klippy/extras/bed_mesh.py 和默认 Python 打印入口仍存在；本次诊断工具
 退役不代表实际网床运动补偿或实机精度已全面验收。
+
+### Motan 派生与标量数学对照去除 Python 执行依赖
+
+motan-derived-oracle 与 motan-scalar-oracle 不再执行 Python 或通过 Git
+加载 Python 源码。独立 CPython 3.12.13 捕获保存在
+host/contracts/motan-math-reference.json 和 .bin：23 个浮点派生、195 个
+类型化标量案例，另含 5 组原 CSV 字节对照。数学输入摘要、日志和索引
+摘要及 CSV 参数共同约束匹配；新输入必须取得独立参考，不能由 TS
+实现生成预期结果。整数文本、Float64 位模式及负零保留。
+
+原始源与捕获前测试/基准摘要保留在清单。归档约 2.21 MB，以独立 gzip
+记录索引，整体及逐记录核验 SHA-256，单记录解压上限 4 MiB；只解码
+当前案例，不为每个测试保留全部约 23 MB 解压数据。输出返回独立对象。
+这些记录不是签名；获取新案例时仍需审查来源，不能自动放宽输入匹配。
+
+首次无 Python 复跑发现 5 项 CSV 集成仍直接运行旧导出器，已补充固定
+CSV 参考并删除直接调用。最终 PATH=/no-programs 下 23 项回归通过；
+6 组、61 个性能样本仅提供 Git 以读取固定旧 TS 基线，未执行 Python，
+类型与位模式对照全部成立。证据见
+host/contracts/motan-math-reference-acceptance.json。
+
+20000 样本浮点派生中位数：微分 0.468 ms、积分 0.332 ms、范数 0.290 ms、
+平滑 0.375 ms、CoreXY 组合 0.275 ms，均与原始输出精确一致。部分标量
+偏差和组合样本仍慢于历史 Python，例如 Number 数组偏差中位数 2.08 ms
+对 0.676 ms；完成基准不等于全部性能目标通过。Python 耗时标为历史
+采样，本轮未改生产数学算法，也未作实机打印速度或运动精度结论。
+
+Motan 其他读日志、滤波、类型采样和分析对照仍会执行 Python；旧工具
+暂不因此删除。本次去除的是嵌入测试的 Python 执行链，受跟踪 .py
+文件仍为 193，默认 Python 打印入口仍未退役。

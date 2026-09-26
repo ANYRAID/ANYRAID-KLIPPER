@@ -27,7 +27,7 @@ try{
    assert.deepEqual(scalarBits(result),reference.values);
    const current=kind==='derivative'?motanScalarDerivative(first,.001,true):motanScalarCombine(first,second,kind,64*1024**2,true);
    assert.deepEqual(scalarBits(current),reference.values);
-   console.log(JSON.stringify({node:process.version,mode,kind,samples:20000,pythonMs:stats(reference.ms),nodeMs:stats(ms),previousMs:old.length?stats(old):undefined,exactTypesAndBits:true,warmups:{node:20,python:2},runs:{node:15,python:7},scope:'Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.'}));
+   console.log(JSON.stringify({node:process.version,mode,kind,samples:20000,historicalPythonMs:stats(reference.ms),nodeMs:stats(ms),previousMs:old.length?stats(old):undefined,exactTypesAndBits:true,referenceMode:"captured CPython; this run does not execute Python",warmups:{node:20,historicalPython:2},runs:{node:15,historicalPython:7},scope:'Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.'}));
   }
  }
 }finally{await rm(dir,{recursive:true,force:true});}
