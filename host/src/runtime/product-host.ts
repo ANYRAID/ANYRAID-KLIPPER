@@ -8,6 +8,7 @@ import type {AddressInfo} from 'node:net';
  * The factory cleans up its own partial failure. On success, resource lifetime
  * transfers to the host; release runs after all service owners have retired. */
 export interface ProductHostProfile {
+ recoveryJournal?:{path:string;deviceId:string};
  reader:ConfigurationReader;
  policies:ReadonlyMap<string,MCUMachinePolicy>;
  product:ProductPrinterOptions;
@@ -35,7 +36,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   while(!signal.aborted){
    profile=await factory(signal);
    if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
-   signal.throwIfAborted();service=await startConfiguredProductService(profile.reader,profile.policies,profile.product,{...profile.options,server:{...profile.options.server,productHostControl:control}},signal);
+   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredProductService(profile.reader,profile.policies,profile.product,{...profile.options,server:{...profile.options.server,productHostControl:control}},signal);
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
    const validate=()=>{
@@ -58,5 +59,6 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   completion??=activeRequest;
   if(completion)completion.reject(errors.length?new AggregateError(errors,'Product reinitialization failed'):signal.reason??new Error('Product host stopped before reinitialization'));
  }
+ try{await control.close();}catch(error){errors.push(error);}
  if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Product host and resource cleanup failed');
 }

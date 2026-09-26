@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "implementationBase": "1c2d3204 plus authenticated response-fenced host recovery",
+  "implementationBase": "015c3aa5 plus process-lifetime durable recovery journal",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
   "result": "passed_simulated_scope",
@@ -27,7 +27,7 @@
     "fault injection across active printing and restoration",
     "full-load performance",
     "real hardware acceptance",
-    "durable remote recovery receipts across process restart"
+    "recovery history archival lifecycle"
   ],
   "scope": "Source CLI journey uses fixture file access. Compiled child-process journey uses actual authenticated multipart upload and PublishedPrintFiles sealed reader, bundled JS/native addons and shared installed dependencies. Both use dual PTY UART firmware simulators and simulated physical stop. Source journey uses zero temperatures; compiled journey requests 200/60 C with synthetic cold/hot ADC reports and malformed-report injection. Does not establish fresh-system install, real thermal/endstop/motor behavior, target-board throughput or print quality. Independent recorded runtime instability remains unresolved.",
   "additionalResolvedCapture": {
@@ -71,7 +71,10 @@
     "authenticated HTTP recovery in loaded compiled journey returns queued receipt before retirement; new generation reports succeeded",
     "duplicate recovery request does not create another generation; stale token and active print are rejected",
     "independent physical stop failure rejects remote reinitialization",
-    "WebSocket RPC batch hands response off before queued recovery dispatch"
+    "WebSocket RPC batch hands response off before queued recovery dispatch",
+    "compiled host process restart preserves successful recovery receipt and idempotent retry without file open or movement",
+    "SIGKILL while queued or running yields interrupted receipt on reopen without replay",
+    "admission/running/success write failures never acknowledge uncommitted state; shutdown waits for in-flight admission"
   ],
   "additionalHostTests": [
     "UART disconnect retains authenticated failed status and rejects print start",

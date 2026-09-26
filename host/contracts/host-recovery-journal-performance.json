@@ -1,0 +1,30 @@
+{
+  "node": "v26.9.0",
+  "warmup": 3,
+  "runs": 11,
+  "variants": [
+    "memory",
+    "sqliteWorker"
+  ],
+  "admission": [
+    {
+      "medianMs": 0.0048799999999999955,
+      "p95Ms": 0.02179999999999893
+    },
+    {
+      "medianMs": 0.08747100000000785,
+      "p95Ms": 0.15742199999999684
+    }
+  ],
+  "completion": [
+    {
+      "medianMs": 0.013919999999998822,
+      "p95Ms": 0.03802000000000305
+    },
+    {
+      "medianMs": 0.2519629999999893,
+      "p95Ms": 0.33829299999999307
+    }
+  ],
+  "scope": "Alternating recovery admission and queued/running/succeeded receipt persistence, immediate mock reinitializer, local filesystem. Excludes worker/database startup, network and MCU replacement; terminal status polled with setImmediate."
+}

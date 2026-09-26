@@ -48,6 +48,6 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
   new ServerInformation(bindings.server.information);
   const policies=new Map<string,MCUMachinePolicy>();for(const [id,p] of Object.entries(config.mcus)){const stopDevice=bindings.stops.get(id);if(typeof stopDevice!=='function')throw new TypeError('Missing physical stop binding: '+id);policies.set(id,{...p,stopDevice} as MCUMachinePolicy);}
   journal=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});signal.throwIfAborted();
-  return {reader,policies,product:{journal,maintenanceGate:gate,limits:{...config.limits},deadlines:{...config.deadlines}},options:{configPath:config.moonrakerConfig,machine:{...config.machine},hardware:config.hardware,print:{...config.print,open:bindings.print.open,output:bindings.print.output,lifecycle:{...bindings.print.lifecycle}},server:{...bindings.server}},release};
+  return {recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId},reader,policies,product:{journal,maintenanceGate:gate,limits:{...config.limits},deadlines:{...config.deadlines}},options:{configPath:config.moonrakerConfig,machine:{...config.machine},hardware:config.hardware,print:{...config.print,open:bindings.print.open,output:bindings.print.output,lifecycle:{...bindings.print.lifecycle}},server:{...bindings.server}},release};
  }catch(error){try{await release();}catch(cleanup){throw new AggregateError([error,cleanup],'Machine profile assembly and cleanup failed',{cause:error});}throw error;}
 }

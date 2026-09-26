@@ -102,6 +102,14 @@ JSON 只保存数据，例如以下结构（坐标、速度和温度须按机型
 }
 ```
 
+标准机器装配同时声明独立恢复日志路径 journalPath +
+.host-recovery.sqlite；例如 /var/lib/anyraid/jobs.db.host-recovery.sqlite。
+恢复日志由主机进程所有者打开和关闭，跨设备重新初始化保持同一所有者，
+不由单个机器会话释放。备份或迁移时应在主机完全退出后同时保存两类日志。
+自定义 ProductHostProfile 可显式提供 recoveryJournal 的 path/deviceId；
+未提供时为测试/兼容的内存模式，host/status 的 durable 为 false，不能
+将其当作持久化恢复部署。
+
 根节点与每层对象都拒绝未知字段。路径必须为绝对路径，JSON 文件须为
 不超过 64 KiB 的 UTF-8 普通文件；非有限数、重复归零轴、负停车距离、
 无效速度和超时都会失败。CAN 策略使用 `transport: "can"`、`nodeId`
@@ -318,7 +326,8 @@ API 监听在此期间关闭并重建，客户端须重新连接，工厂应复�
 日志路径以保留历史。不会重放旧文件，新作业必须重新归零。
 远程控制使用原有鉴权策略，必须单独授权 printer.host.status 与
 printer.host.reinitialize。GET /printer/host/status 返回当前 state_token、
-available（控制入口已挂接）与 busy；available 不等于硬件可打印。
+available（控制入口可用）、busy、durable、storage_failed；available
+不等于硬件可打印，存储错误会使控制入口不可用。
 POST /printer/host/reinitialize 接受以下 JSON：
 
 ```json
@@ -331,14 +340,22 @@ HTTP 或 WebSocket JSON-RPC 的方法名为 printer.host.reinitialize；
 交付失败、超过 10 秒未交付或会话提前退出时记录 failed，不执行恢复。
 实际执行前再次检查准入，期间出现新的打印/维护活动会导致请求失败。
 客户端重连后用 GET /printer/host/status?request_id=recover-001 查询
-queued/running/succeeded/failed；只有新会话 ready 才变为 succeeded。
+queued/running/succeeded/failed/interrupted；只有新会话 ready 且成功
+回执提交完成后才变为 succeeded。
 机器重建失败可能使进程退出，此时不能把失联当成恢复成功。
 
 同 request_id 与原 state_token 重试返回原记录，不再次执行；冲突身份
-或旧会话令牌返回 409。未鉴权请求不产生恢复动作。单进程保留最多
-128 条操作记录，达到容量后拒绝新请求，不通过淘汰记录允许重复执行。
-这些恢复回执目前仅存在进程内，跨进程重启的持久化查询尚未实现；
-新进程使用新令牌拒绝旧请求，不重放恢复命令。打印作业日志仍持久化。
+或旧会话令牌返回 409。未鉴权请求不产生恢复动作。恢复日志保留最多
+128 条操作记录、数据库上限 1 MiB；达到容量后拒绝新请求，不自动淘汰
+记录，进程重启不会清空持久化容量。历史归档管理仍待完善。
+
+独立 SQLite Worker 使用排他所有权与同步提交：queued 提交后才受理，
+running 提交后才调用恢复，succeeded 提交后才报告成功。存储失败返回
+503 或保持最后已提交的状态，并设置 storage_failed；不能将 running
+视作成功。进程重新打开日志时将 queued/running 转为 interrupted，
+旧请求可查询/幂等重试以取得原记录，但绝不自动执行。新进程令牌拒绝
+其他旧请求。未知结构、不同设备、损坏或被占用的日志使启动失败，
+不重建覆盖原文件。该行为已有 SIGKILL 验证，仍不是实际断电验收。
 
 `PrintController.retire()` 是永久退场接口：它立即拒绝新的打印动作，
 关闭状态订阅和设备通知，随后等待已接受动作、实际安全停止及日志
