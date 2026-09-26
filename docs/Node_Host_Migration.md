@@ -22514,3 +22514,36 @@ PATH、完整 JSON、双轴对齐、输入/已有输出保护、参数注入、�
 没有 Python 图像渲染性能对照，不代表打印吞吐或浏览器帧率。
 Python Motan 绘图入口尚未退役，当前也不支持结构化值绘图；完整
 替代、运动稳定性和实机验收仍未完成。
+
+### Motan 阶梯绘图样式
+
+Node Motan 绘图增加 `drawstyle/ds`：default、steps（pre 别名）、
+steps-pre、steps-post、steps-mid。前/后阶梯在相邻采样时间处跳变，
+中点阶梯在两采样时间的中点跳变。原始曲线模型和 JSON 不改，标记
+只放在原始采样点，不能把增加的折点误作新的测量值。单点曲线使用
+显式标记时也不再与共享绘图器的隐式点重复叠加。
+
+从已有隔离 Matplotlib 3.10.7 / NumPy 2.5.3 直接捕获 STEP_LOOKUP_MAP
+的 20 组顶点，覆盖五种样式、单点、非等间隔、重复/反向时间及负零。
+`host/contracts/motan-step-plot.json` 保留原 Python JSON 的负零字面量，
+记录源哈希；新顶点函数与全部参考精确一致。空数组、长度失配、
+非有限数、中点加法溢出和展开后容量另有边界检查。
+
+绘图使用现有投影后的 SVG 坐标展开阶梯，延续三位小数显示精度；
+这与用于对照的原始数值顶点分开，不能把屏幕坐标当作运动计算输出。
+所有面板合计最多五十万个展开后的线顶点，超限明确失败且保留旧
+输出，不降采样。ds/drawstyle 同时指定会报别名冲突。未知样式在
+分析前拒绝。实际 CLI 的 JSON、SVG、PNG、HTML、PDF 已覆盖中点阶梯。
+
+八项相关测试、类型检查通过。十万点数值展开预热 5 次、测量 25 次：
+Node pre/post/mid 中位分别 1.282/0.641/0.551 ms，旧 NumPy 为
+0.217/0.211/0.268 ms；Node 包含有限数检查和容量校验，不能宣称比
+NumPy 更快。万点完整 SVG 输出（5 次预热、11 次采样）三种阶梯
+中位约 10.3–11.0 ms，普通折线 3.144 ms，所有线段均保留。性能
+记录见 `host/contracts/motan-step-performance.json`，可用
+`node host/bench/motan-step-plot.ts` 和 `node host/bench/motan-step-render.ts`
+复测 Node 部分，不需要 Python。
+
+这些是离线绘图开销，不进入打印实时路径；没有浏览器帧率、Python
+渲染性能或实机验收结论。其他 Matplotlib 参数、结构化绘图值和
+Python 入口的完整退役仍需继续，已知运动稳定性问题仍未解决。

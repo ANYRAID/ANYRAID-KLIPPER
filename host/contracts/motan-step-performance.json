@@ -1,0 +1,79 @@
+{
+  "vertices": {
+    "node": "v26.9.0",
+    "inputPoints": 100000,
+    "warmups": 5,
+    "runs": 25,
+    "results": [
+      {
+        "drawstyle": "steps-pre",
+        "medianMs": 1.28209600000001,
+        "p95Ms": 2.3927280000000053,
+        "historicalPython": {
+          "medianMs": 0.21710299188271165,
+          "p95Ms": 0.2831330057233572,
+          "points": 199999
+        }
+      },
+      {
+        "drawstyle": "steps-post",
+        "medianMs": 0.641237000000018,
+        "p95Ms": 1.126152999999988,
+        "historicalPython": {
+          "medianMs": 0.21144200582057238,
+          "p95Ms": 0.2175829722546041,
+          "points": 199999
+        }
+      },
+      {
+        "drawstyle": "steps-mid",
+        "medianMs": 0.5512659999999983,
+        "p95Ms": 1.0191020000000037,
+        "historicalPython": {
+          "medianMs": 0.2682129852473736,
+          "p95Ms": 0.27760403463616967,
+          "points": 200000
+        }
+      }
+    ],
+    "scope": "Finite validation and complete step-vertex allocation; historical Matplotlib/NumPy expansion has no equivalent admission checks. No rendering, IPC, IO or print-speed claim."
+  },
+  "svg": {
+    "node": "v26.9.0",
+    "inputPoints": 10000,
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "drawstyle": "default",
+        "bytes": 160856,
+        "medianMs": 3.1438069999999954,
+        "p95Ms": 3.4075699999999927
+      },
+      {
+        "drawstyle": "steps-pre",
+        "bytes": 319428,
+        "medianMs": 11.009170000000012,
+        "p95Ms": 13.06821500000001
+      },
+      {
+        "drawstyle": "steps-post",
+        "bytes": 319429,
+        "medianMs": 10.33056300000004,
+        "p95Ms": 12.65662100000003
+      },
+      {
+        "drawstyle": "steps-mid",
+        "bytes": 319445,
+        "medianMs": 10.312371999999982,
+        "p95Ms": 11.979012999999895
+      }
+    ],
+    "scope": "Complete numeric-axis SVG projection, step expansion, style and legend generation. Model preparation, IO, Python rendering and printer timing excluded."
+  },
+  "unrun": [
+    "Python renderer timing comparison",
+    "Real browser interaction acceptance",
+    "Physical printer acceptance"
+  ]
+}

@@ -140,9 +140,13 @@ Output is required: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, or complete JSON
 panels. HTML provides offline zoom, pan and curve toggles. Supported styles
 are `color/c` (hex, basic names, shorthand or tab colors), `label`,
 `alpha` (0..1), `linewidth/lw` (0..20), `linestyle/ls` (solid, dashed,
-dash-dot, dotted or none), `marker` (none, dot or circle), and
+dash-dot, dotted or none), `drawstyle/ds` (`default`, `steps`, `steps-pre`,
+`steps-post`, `steps-mid`), `marker` (none, dot or circle), and
 `markersize/ms` (0..40). Unsupported parameters fail before analysis; they
 are not silently ignored. Use the legacy tool below for styles not yet ported.
+`steps` is an alias for `steps-pre`. Markers stay on the original samples,
+while step vertices only change the displayed line; JSON keeps original data.
+The total expanded line budget is 500000 points across all panels.
 Numeric datasets only are supported by this graph entry point. Existing
 capture files are protected from replacement; failures/cancellation preserve
 prior output. Analysis is limited to 60 seconds per job. This is an offline

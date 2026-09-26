@@ -13,7 +13,7 @@ import {managerFixture} from './helpers/motan-manager-fixture.ts';
 const panels=()=>motanGraphPanels({times:Float64Array.of(0,.25,.5),datasets:{a:Float64Array.of(1,2,3)},labels:{a:{name:'a',label:'unsafe </script> " &',units:'Position\n(mm)'}}},parseMotanGraphs("[['a?color=green&alpha=.4&ls=--&lw=2&marker=o&ms=4']]"),'capture');
 test('Motan styling preserves numeric axes, full labels, color, alpha, dashes and markers',()=>{
  const svg=renderMotanGraph(panels());assert.match(svg,/numeric horizontal axis/);assert.match(svg,/stroke="#008000"/);assert.match(svg,/opacity="0.4"/);assert.match(svg,/stroke-dasharray="6 4"/);assert.match(svg,/stroke-width="2"/);assert.equal((svg.match(/<circle/g)||[]).length,4);assert.match(svg,/Time \(s\)/);assert.ok(!svg.includes('</script>'));assert.match(svg,/&lt;\/script&gt;/);
- for(const parameter of ['color=url(x)','color=notacolor','alpha=2','lw=NaN','lw=2&linewidth=3','marker=x','drawstyle=steps','label=ok&onload=bad'])assert.throws(()=>validateMotanGraphStyles(parseMotanGraphs(`[['a?${parameter}']]`)));
+ for(const parameter of ['color=url(x)','color=notacolor','alpha=2','lw=NaN','lw=2&linewidth=3','marker=x','drawstyle=unknown','label=ok&onload=bad'])assert.throws(()=>validateMotanGraphStyles(parseMotanGraphs(`[['a?${parameter}']]`)));
  const none=panels();none[0].curves[0].parameters.linestyle='none';delete none[0].curves[0].parameters.ls;const output=renderMotanGraph(none);assert.equal((output.match(/<circle/g)||[]).length,4);
 });
 test('Node Motan CLI exports actual captures in every main mode without a Python executable',async()=>{
@@ -22,7 +22,7 @@ test('Node Motan CLI exports actual captures in every main mode without a Python
  try{
   await managerFixture(prefix,2,'cartesian');
   const original=await readFile(prefix+'.json.gz');
-  const graph="[['trapq(toolhead,x)?color=green','derivative(trapq(toolhead,x))?color=tab:blue&alpha=.4'],['status(heater.temperature)?color=%23ff0000']]";
+  const graph="[['trapq(toolhead,x)?color=green&ds=steps-mid','derivative(trapq(toolhead,x))?color=tab:blue&alpha=.4'],['status(heater.temperature)?color=%23ff0000']]";
   for(const extension of ['json','svg','png','html','pdf']){
    const output=join(dir,'plot.'+extension);run([prefix,'-g',graph,'-d','.2','--segment-time','.01','-o',output]);
    const bytes=await readFile(output);assert.ok(bytes.length>100);
