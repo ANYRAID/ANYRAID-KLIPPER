@@ -1,0 +1,50 @@
+{
+  "baseline": "f36d38a3",
+  "node": "v26.9.0",
+  "scope": "Native controller total duration exposed through Moonraker print_stats; no extrusion duration, filament accounting or physical hardware claim",
+  "sources": {
+    "host/src/operations/print.ts": "ad876885f0e8a8eb3b11e023fc3c43524facb67a2ba53e13c4428e805874740c",
+    "host/src/runtime/product-print-status.ts": "d92b627e287b9f92412ba2aece87f8cd793c54c598985ea941d74b9d3eb7ab8b",
+    "host/src/runtime/product-objects.ts": "e48254d67448ede447a736a479ca8bf50cfb604781eed03eeb0c284e103cc75e",
+    "host/test/print-duration.test.ts": "fffe0576b7979cabe926236d5a0ecfa5d45eb03fd9a5278b557cdbd0021ba555",
+    "host/acceptance/product-compiled-journey.test.ts": "43deae0c6686360a43d656fe98e1b29833deceb6ed67e58235d6a30364952736",
+    "host/bench/product-print-duration.ts": "a9b879cebccfe4e0a1e787a175b34ac0c4ae1885d9ead441155c9c8bc1bb52d9"
+  },
+  "checks": {
+    "controllerTests": 58,
+    "serviceAndBuildTests": 13,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "runs": 11,
+    "iterations": 100000,
+    "variants": [
+      "withoutDuration",
+      "monotonicDuration"
+    ],
+    "results": [
+      {
+        "medianUs": 0.6159545799999978,
+        "p95Us": 0.6356042200000002
+      },
+      {
+        "medianUs": 0.8309736999999995,
+        "p95Us": 0.8469515899999999
+      }
+    ],
+    "maximumAddedP95Us": 5,
+    "checksum": 341472520,
+    "scope": "Status snapshot and serialization only; no per-move work, transport or hardware speed claim."
+  },
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.270965ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18764.681625ms)\nℹ {\"installation\":{\"durationMs\":692.7545029999997,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":147,\"wireSteps\":3228,\"minimumStepLeadMs\":90.108,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.906687,\"maxMs\":13.254655},\"cpu\":{\"user\":723946,\"system\":82815},\"rss\":162828288},{\"loop\":{\"p99Ms\":1.823743,\"maxMs\":7.778303},\"cpu\":{\"user\":398814,\"system\":49753},\"rss\":188096512}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19383.628712ms)\nℹ {\"installation\":{\"durationMs\":697.1988550000024,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":5.726640000000771,\"deleteRequests\":16,\"deleteP95Ms\":6.202386000000843,\"thumbnailRequests\":16,\"thumbnailP95Ms\":1.8918919999996433,\"metadataRequests\":16,\"metadataP95Ms\":27.994869000001927,\"downloads\":16,\"downloadP95Ms\":4.947639999998501,\"wireCommands\":141,\"wireSteps\":3120,\"minimumStepLeadMs\":91.044,\"directoryRequests\":2042,\"directoryP99Ms\":5.068111000000499,\"statusRequests\":8450,\"uploads\":16,\"statusP99Ms\":2.830043999994814,\"uploadP95Ms\":12.80567499999961,\"generations\":[{\"loop\":{\"p99Ms\":1.982463,\"maxMs\":13.025279},\"cpu\":{\"user\":1899452,\"system\":241751},\"rss\":249528320},{\"loop\":{\"p99Ms\":1.884159,\"maxMs\":4.648959},\"cpu\":{\"user\":1152285,\"system\":156445},\"rss\":242450432}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7993.383074ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46782.411278\n",
+  "limitations": [
+    "Restored interrupted jobs report null until explicit reset because elapsed time is not persisted",
+    "Default production entry still Python; 193 tracked Python files remain",
+    "Historical motion mismatch, SIGSEGV and EPIPE not closed",
+    "No target machine or physical printer acceptance; no push or release"
+  ]
+}

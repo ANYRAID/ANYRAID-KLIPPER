@@ -279,7 +279,8 @@
     "bench:native-file-previews": "node bench/native-file-previews.ts",
     "bench:native-file-metadata": "node bench/native-file-metadata.ts",
     "diagnose:motion-native": "node scripts/diagnose-motion-native.ts",
-    "test:product-install": "node --test --test-concurrency=1 test/product-native-build.test.ts test/product-build.test.ts acceptance/*.test.ts"
+    "test:product-install": "node --test --test-concurrency=1 test/product-native-build.test.ts test/product-build.test.ts acceptance/*.test.ts",
+    "bench:product-print-duration": "node bench/product-print-duration.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

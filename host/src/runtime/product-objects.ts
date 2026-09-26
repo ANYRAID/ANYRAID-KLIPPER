@@ -6,7 +6,7 @@ import type {connectProductPrinter} from './product-printer.ts';
 import {productDisplayStatus} from './product-display-status.ts';
 import {productPrintStatus,productPauseStatus} from './product-print-status.ts';
 /** Publish only fields backed by the assembled native owners. Missing fields
- * retain the query protocol's null behavior; no synthetic print durations. */
+ * retain the query protocol's null behavior; durations come from the controller. */
 export function productObjects(printer:Awaited<ReturnType<typeof connectProductPrinter>>,nativeHost:NativeHostStatusSource,filename?:(fileId:string)=>string):NativeObjects{
  const pressure=printer.print.gcode.pressureAdvance;
  const readers=new Map<string,NativeObjectReader>([

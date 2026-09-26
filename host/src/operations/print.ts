@@ -180,7 +180,19 @@ export class PrintController {
     const stream=new PrintStateStream(Object.freeze({state:this.#state,stateToken:this.#stateToken}),signal,()=>this.#stateObservers.delete(stream));
     this.#stateObservers.add(stream);return stream;
   }
-  #changeState(state:PrintState,renew=false):void{if(this.#state===state&&!renew)return;this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}}
+  #durationStart:number|undefined;
+  #duration:number|null=0;
+  /** Elapsed job seconds, including preparation and pauses. Unknown after
+   * journal restoration: monotonic timestamps cannot survive process restart. */
+  get totalDuration():number|null{return this.#durationStart===undefined?this.#duration:Math.max(0,(performance.now()-this.#durationStart)/1000);}
+  #changeState(state:PrintState,renew=false):void{
+    if(this.#state===state&&!renew)return;
+    if(state==='preparing'){this.#durationStart=performance.now();this.#duration=0;}
+    else if(state==='idle'||state==='interrupted'){this.#durationStart=undefined;this.#duration=state==='idle'?0:null;}
+    else if((state==='completed'||state==='cancelled'||state==='failed')&&this.#durationStart!==undefined){this.#duration=this.totalDuration;this.#durationStart=undefined;}
+    this.#state=state;this.#stateToken=this.#stateEpoch+':'+(++this.#stateRevision);
+    if(this.#stateObservers.size){const change=Object.freeze({state,stateToken:this.#stateToken});for(const observer of this.#stateObservers)observer.publish(change);}
+  }
   #active: Promise<void> | undefined;
   #abort: AbortController | undefined;
   #cancel: Promise<void> | undefined;

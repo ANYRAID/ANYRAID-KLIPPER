@@ -23500,3 +23500,24 @@ Float64Array 由 0.541 ms 降到 0.220 ms；经过混合输入后 Float64Array
 无效值、稀疏数组、结果类型和内存边界检查。6 组共 61 个数学基准的
 类型/位模式对照也通过；仍有整数类样本慢于历史 Python。实机精度、
 独立目标环境、历史运行时异常及完整 Python 退役仍未完成。
+
+### 原生作业总耗时
+
+PrintController 在作业进入 preparing 时启动单调计时，包含准备、暂停、
+恢复及正常结束的排空时间；completed、cancelled 或首次 failed 时冻结。
+故障后的安全清理、再次取消和重复请求不重新启动计时，显式 reset 后归零。
+产品 print_stats 查询和订阅现可读取 total_duration（秒）；查询只读取
+控制器计时，不从文件进度推算，不在步进或 G-code 热路径增加工作。
+
+持久化日志当前没有可恢复的耗时记录，重启后的 interrupted 作业返回
+null，后续取消仍保留未知值，直到显式 reset。不同进程的单调时钟不能
+相减。print_duration 和 filament_used 仍需独立挤出统计，暂未提供；
+此功能不代表完整 print_stats 或 Moonraker 已完成。
+
+本轮 58 项控制器/持久化/状态回归、13 项服务/编译包回归及 4 项统一产品
+验收通过，类型和空白检查通过。编译后双模拟 MCU 负载打印的最小步进
+提前量为 91.04 ms，状态查询 P99 为 2.83 ms；仍不代表实机验收。
+bench:product-print-duration 在同进程交替采样 11 轮，每轮 10 万次查询，
+新增计时与序列化 P95 从 0.636 us 至 0.847 us，增加约 0.211 us。
+证据见 host/contracts/native-print-duration-acceptance.json；没有退役
+额外 Python 文件，也没有关闭既有运动数值及运行时异常。
