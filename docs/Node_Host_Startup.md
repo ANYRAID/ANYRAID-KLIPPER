@@ -1576,6 +1576,7 @@ POST 传 `version:1`、`state_token`，以及以下操作之一：
 状态，POST 带 `version:1`、`state_token` 和 `action`；先 `start`，
 再以 `adjust` 加 `delta`（相对 Z 毫米值）或 `bisect_up/down` 调整，
 接触确认用 `accept`。每次使用最新令牌，全部点确认后返回调整建议。
-该手动路径固定使用第一螺丝基准，暂不支持强制旋向和偏差阈值。
+start 可带 direction:CW|CCW 和 maximum_deviation，参数固定至会话
+结束；省略旋向时使用第一螺丝基准，零阈值表示零容差。中途不可改参。
 `cancel` 或交互超时会停止并要求重新初始化。配置无探针时不注册
 自动探测接口；手动流程不自动修改补偿或保存配置。

@@ -1,3 +1,4 @@
+import type {ScrewDirection} from '../motion/screws-tilt.ts';
 import {randomUUID} from 'node:crypto';
 import {ApiError,type Json} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
@@ -5,11 +6,12 @@ import type {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import type {BedTiltProbePlan} from '../config/bed-tilt.ts';
 import {fitBedTilt} from '../motion/bed-tilt.ts';
 import {manualProbeBounds,planManualProbe,type ManualProbeAdjustment} from '../homing/manual-probe.ts';
+export interface ManualScrewOptions {direction?:ScrewDirection;maximumDeviation?:number;}
 export interface ManualBedTiltMotion {
  idle():boolean;planned():readonly number[];measured():readonly number[];
  limits:{axisMinimum:readonly number[];axisMaximum:readonly number[]};
  move(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>;
- apply(samples:readonly (readonly number[])[],signal:AbortSignal):Promise<Json>;
+ apply(samples:readonly (readonly number[])[],signal:AbortSignal,screwOptions:Readonly<ManualScrewOptions>):Promise<Json>;
  synchronize():void;stop(cause:unknown):Promise<void>;subscribeStop(listener:(cause:unknown)=>void):()=>void;
 }
 /** Interactive lease remains held between requests. Reconnect reads state;
@@ -22,9 +24,10 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
  let state:'ready'|'moving'|'awaiting'|'completed'|'cancelled'|'failed'='ready',token=randomUUID(),closed=false,release:(()=>void)|undefined,timer:ReturnType<typeof setTimeout>|undefined;
  let closing:Promise<void>|undefined;
  let lifetime=new AbortController(),pending:Promise<Json>|undefined,stopping:Promise<void>|undefined,last:{token:string;key:string;value:Json}|undefined;
+ let screwOptions:Readonly<ManualScrewOptions>=Object.freeze({});
  let samples:number[][]=[],position:number[]|null=null,expected:number[]|undefined,startZ=0,history:number[]=[],unchanged=false,result:Json=null;
  const clearTimer=()=>{clearTimeout(timer);timer=undefined;};
- const snapshot=()=>({state_token:token,state,point_index:samples.length,point_count:plan.points.length,point:!multiPoint&&position===null?null:[...plan.points[Math.min(samples.length,plan.points.length-1)]],position,lower:position?manualProbeBounds(position[2],history).lower:null,upper:position?manualProbeBounds(position[2],history).upper:null,unchanged,accepted:samples,result,available:!closed&&(state==='ready'||state==='completed')&&gate.available&&motion.idle()});
+ const snapshot=()=>({...mode==='screws_tilt'?{direction:screwOptions.direction??null,maximum_deviation:screwOptions.maximumDeviation??null}:{},state_token:token,state,point_index:samples.length,point_count:plan.points.length,point:!multiPoint&&position===null?null:[...plan.points[Math.min(samples.length,plan.points.length-1)]],position,lower:position?manualProbeBounds(position[2],history).lower:null,upper:position?manualProbeBounds(position[2],history).upper:null,unchanged,accepted:samples,result,available:!closed&&(state==='ready'||state==='completed')&&gate.available&&motion.idle()});
  const copy=():Json=>structuredClone(snapshot());
  function terminate(cause:unknown,cancelled=false):Promise<void>{
   if(stopping)return stopping;const done=Promise.withResolvers<void>();stopping=done.promise;
@@ -44,9 +47,10 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
  const unregister=registry.register({endpoint:mode==='screws_tilt'?'/printer/calibration/screws_tilt/manual':mode==='z_endstop'?'/printer/calibration/z_endstop':mode==='probe'?'/printer/calibration/manual_probe':'/printer/calibration/bed_tilt/manual',methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return copy();
   const action=params.action,actions=['start','adjust','bisect_up','bisect_down','previous_up','previous_down','accept','cancel'];
-  if(params.version!==1||typeof params.state_token!=='string'||typeof action!=='string'||!actions.includes(action)||Object.keys(params).some(k=>!['version','state_token','action',...(action==='adjust'?['delta']:[])].includes(k))||action==='adjust'&&typeof params.delta!=='number')throw new ApiError(400,'Expected version, state_token, action and optional numeric delta');
+  if(params.version!==1||typeof params.state_token!=='string'||typeof action!=='string'||!actions.includes(action)||Object.keys(params).some(k=>!['version','state_token','action',...(action==='adjust'?['delta']:[]),...(mode==='screws_tilt'&&action==='start'?['direction','maximum_deviation']:[])].includes(k))||action==='adjust'&&typeof params.delta!=='number')throw new ApiError(400,'Expected version, state_token, action and optional numeric delta');
+  if(params.direction!==undefined&&params.direction!=='CW'&&params.direction!=='CCW'||params.maximum_deviation!==undefined&&(typeof params.maximum_deviation!=='number'||!Number.isFinite(params.maximum_deviation)||params.maximum_deviation<0))throw new ApiError(400,'Invalid screw direction or maximum deviation');
   if(closed)throw new ApiError(503,'Manual calibration owner closed');
-  const key=JSON.stringify([action,params.delta??null]);
+  const key=JSON.stringify([action,params.delta??null,params.direction??null,params.maximum_deviation??null]);
   if(last?.token===params.state_token){if(last.key!==key)throw new ApiError(409,'Manual calibration retry conflicts');return structuredClone(last.value);}
   if(params.state_token!==token)throw new ApiError(409,'Stale manual calibration state');
   if(action==='cancel'){
@@ -57,6 +61,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
    if(!['ready','completed'].includes(state)||!gate.available||!motion.idle())throw new ApiError(409,'Manual calibration requires idle homed printer');
    const current=motion.planned();if(!multiPoint){validate(current);plan.points=[[current[0],current[1]]];plan.horizontalHeight=current[2];}for(const [x,y] of plan.points)validate([x,y,plan.horizontalHeight,current[3]]);
    try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks manual calibration');}
+   screwOptions=Object.freeze({direction:params.direction as ScrewDirection|undefined,maximumDeviation:params.maximum_deviation as number|undefined});
    lifetime=new AbortController();stopping=undefined;samples=[];result=null;position=null;history=[];
   }else if(state!=='awaiting'||!position)throw new ApiError(409,'Manual calibration is not awaiting input');
   let step:ReturnType<typeof planManualProbe>|undefined;
@@ -74,7 +79,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
    }else{
     samples.push(position!.slice(0,3));
     if(samples.length<plan.points.length)await nextPoint(signal);
-    else{if(multiPoint){const p=[...motion.planned()];p[2]=Math.max(p[2],plan.horizontalHeight);await move(p,plan.travelSpeed,signal);}result=await motion.apply(samples,signal);signal.throwIfAborted();readPosition();state='completed';clearTimer();release?.();release=undefined;}
+    else{if(multiPoint){const p=[...motion.planned()];p[2]=Math.max(p[2],plan.horizontalHeight);await move(p,plan.travelSpeed,signal);}result=await motion.apply(samples,signal,screwOptions);signal.throwIfAborted();readPosition();state='completed';clearTimer();release?.();release=undefined;}
    }
    signal.throwIfAborted();token=randomUUID();if(state==='awaiting')arm();const value=copy();last={token:consumed,key,value:structuredClone(value)};return value;
   }catch(error){await terminate(error).catch(()=>{});throw new ApiError(503,'Manual calibration stopped; reinitialize before further motion');}})();
