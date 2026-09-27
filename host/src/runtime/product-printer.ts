@@ -43,7 +43,7 @@ export async function connectProductPrinter(reader:ConfigurationReader,connectio
   void (async()=>{try{for await(const change of changes){if(change.state==='printing')for(const sensor of sensors)sensor.runtime.stateChanged();}}catch(error){if(!sensorAbort.signal.aborted)void printer.close(error).catch(()=>{});}})();
   const idleTimeout=new ProductIdleTimeout(idleSeconds,serialClock,()=>{
    const state=owned.state,gate=maintenanceGate.status,paused=state==='paused';
-   return {busy:paused?(gate.activities>0||gate.maintenance):!maintenanceGate.available,printing:['preparing','printing','pausing','resuming','finishing','cancelling'].includes(state),key:JSON.stringify([owned.stateToken,printer.linear.port.position(),printer.linear.kinematics.status.homedAxes,printer.hardware.motorEnable?.status.lines.map(l=>l.enabled),printer.hardware.analog.map(a=>a.runtime.status.target)])};
+   return {busy:paused?(gate.activities>0||gate.maintenance):!maintenanceGate.available,printing:['preparing','printing','pausing','resuming','finishing','cancelling'].includes(state),key:JSON.stringify([owned.stateToken,printer.linear.port.position(),printer.linear.kinematics.status.homedAxes,printer.hardware.motorEnable?.status.lines.map(l=>l.enabled),printer.hardware.thermal.map(a=>a.runtime.status.target)])};
   },async idleSignal=>{
    idleSignal.throwIfAborted();
    // A paused timeout retires the job; releasing motors must never leave a

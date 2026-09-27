@@ -1,3 +1,4 @@
+import {createHeaterOutputRuntime} from './heater-output.ts';
 // Analog heater resource assembly. GPL-3.0-or-later.
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readHeaterConfiguration} from '../thermal/heater-config.ts';
@@ -11,11 +12,8 @@ import {readPrintClock,type PrintClockTimeline} from '../timing/print-clock-time
 import type {StepperMCU} from './stepper.ts';
 import type {MessageDictionary} from '../protocol/dictionary.ts';
 import {MCUGroup} from '../runtime/mcu-group.ts';
-import {GenerationPWMOutput} from '../outputs/generation-pwm.ts';
-import {AsyncHeaterRuntime} from '../thermal/async-runtime.ts';
 import {SerialADCTemperature,type SensorTimer} from '../thermal/serial-adc.ts';
 import type {ThermalTimer} from '../thermal/runtime.ts';
-import {serialClock} from '../protocol/serial-queue.ts';
 const dictionaries=new WeakMap<object,{output:MessageDictionary;sensor:MessageDictionary}>(),owners=new WeakSet<object>();
 export interface AnalogHeaterRequest {section:string;pwmOid?:number;adcOid?:number}
 export interface HeaterClock {currentPrintTime:number;timeline?:PrintClockTimeline;calibration:Readonly<{offset:number;frequency:number}>}
@@ -52,14 +50,8 @@ export function compileConfiguredAnalogHeaters<T>(reader:ConfigurationReader,pin
 export function attachConfiguredAnalogHeater<T>(group:MCUGroup,plan:ReturnType<typeof compileConfiguredAnalogHeaters<T>>[number],timers:{sensor?:SensorTimer;thermal?:ThermalTimer}={}){
  group.assertActive();const expected=dictionaries.get(plan),outputSession=group.session(plan.output.mcu),sensorSession=group.session(plan.sensor.mcu);
  if(!expected||owners.has(plan)||expected.output!==outputSession.dictionary||expected.sensor!==sensorSession.dictionary)throw new Error('Invalid or reused analog heater plan ownership');
- const p=plan.output,c=plan.configuration;let output:GenerationPWMOutput|undefined;
- const runtime=new AsyncHeaterRuntime(c.settings,c.control,{
-  configuration:{cycleTime:p.pwm.cycleTime,maximumDuration:p.pwm.maximumDuration,initialPower:p.pwm.invert?1-p.pwm.startValue:p.pwm.startValue,defaultPower:p.pwm.invert?1-p.pwm.shutdownValue:p.pwm.shutdownValue},
-  reset(signal){group.assertActive();outputSession.configuration;sensorSession.configuration;output??=p.timeline?GenerationPWMOutput.withClock(p.pwm,outputSession.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,outputSession.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);return output.reset(signal);},
-  setPWM(time,power,signal){if(!output)throw new Error('Heater output not started');return output.setPWM(time,power,signal);},
-  stop(cause){return output?output.stop(cause):group.stop(cause);},
- },()=>{const system=serialClock.now();return {system,print:p.clock.printTimeAtClock(outputSession.clock.sync.getClock(system))};},c.verification,timers.thermal);
+ const c=plan.configuration,binding=createHeaterOutputRuntime(group,plan.output,c,plan.sensor.mcu,timers.thermal),runtime=binding.runtime;
  const sensor=new SerialADCTemperature(sensorSession,plan.sensor.chip,{oid:plan.sensor.adc.oid,pin:plan.sensor.pin,currentPrintTime:plan.sensor.currentPrintTime,minimum:c.settings.minimum,maximum:c.settings.maximum},c.converter,plan.sensor.clock.clockAt,plan.sensor.clock.printTimeAtClock,{sample:(time,temp)=>runtime.sample(time,temp),shutdown:reason=>{void runtime.shutdown(reason).catch(()=>{});}},timers.sensor,plan.sensor.timeline);
  owners.add(plan);
- return Object.freeze({runtime,sensor,get outputStatus(){return output?.status;},async start(signal:AbortSignal){try{await runtime.start(signal);sensor.activate();}catch(error){try{await group.stop(error);}catch(stop){throw new AggregateError([error,stop],'Analog heater startup and stop failed');}throw error;}},stop:(cause?:unknown)=>runtime.shutdown(cause)});
+ return Object.freeze({runtime,sensor,get outputStatus(){return binding.outputStatus;},async start(signal:AbortSignal){try{await runtime.start(signal);sensor.activate();}catch(error){try{await group.stop(error);}catch(stop){throw new AggregateError([error,stop],'Analog heater startup and stop failed');}throw error;}},stop:(cause?:unknown)=>runtime.shutdown(cause)});
 }

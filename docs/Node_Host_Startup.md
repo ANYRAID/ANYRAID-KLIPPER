@@ -93,12 +93,22 @@ MCU 继续配置三次无效报告保护，主机收到故障不等待其累计�
 退出解除响应订阅、监测定时器及共享时钟历史租约。通过既有传感器
 注册提供 M105、TEMPERATURE_WAIT、对象查询和温度历史，不具有加热目标权限。
 
-目前此路径用于独立传感器，尚未用于 extruder/heater_generic 的反馈源；
-也未迁移 MAX31855/MAX31856/MAX31865。多个同类传感器可共用 SPI 总线，
+此路径也支持 extruder、heater_bed 和 heater_generic 的温度反馈：保留
+heater_pin、control、PID/开关参数、verify_heater 和功率设置，按上述方式
+配置 MAX6675 的片选和总线。加热器的 min_temp/max_temp 必须位于
+0–1023.75°C 内；超出芯片能力的加热量程在 MCU 配置前拒绝。
+数字输入与 ADC 复用相同异步温控和输出保护：无新鲜温度不能设非零
+目标，初始及默认功率为零，MCU 输出看门狗为三秒，目标归零须确认
+代次重置，反馈或传输故障沿整机停止路径处理。热端挤出温度限制、
+加热等待、heater_fan/controller_fan 及对象温度/目标/功率均使用统一
+加热器状态。独立传感器与加热器反馈同批分配 SPI 资源，可共享总线。
+
+尚未迁移 MAX31855/MAX31856/MAX31865。多个同类传感器可共用 SPI 总线，
 与 TMC 等其他组件共用同一物理总线的资源协调尚未接通，会拒绝引脚冲突。
 已验证硬件 SPI、现代和旧软件 SPI 的模拟配置，以及硬件/现代软件 SPI
 编译产品的打印、重初始化和开路停机；真实 SPI 电气时序、热精度和
-目标板验收未完成。证据见 [MAX6675 验收](../host/contracts/max6675-acceptance.json)。
+目标板验收未完成。证据见 [MAX6675 输入验收](../host/contracts/max6675-acceptance.json)
+和[数字加热器反馈验收](../host/contracts/spi-heater-acceptance.json)。
 
 ## 原生温度历史
 

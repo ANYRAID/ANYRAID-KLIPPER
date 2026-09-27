@@ -25,8 +25,8 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
  if(printer.linear.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.linear.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());
  const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...retraction.status}));
- for(const [i,heater] of printer.hardware.plan.heaters.entries())readers.set(heater.section,()=>{
-  const thermal=printer.hardware.analog[i].runtime.objectStatus;
+ for(const heater of printer.hardware.thermal)readers.set(heater.section,()=>{
+  const thermal=heater.runtime.objectStatus;
   if(pressure?.name!==heater.section)return thermal;
   const accepted=pressure.pressureAdvance;
   return {...thermal,pressure_advance:accepted.advance,smooth_time:accepted.smoothTime};

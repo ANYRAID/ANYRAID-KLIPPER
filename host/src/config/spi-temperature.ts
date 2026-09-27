@@ -1,3 +1,4 @@
+import type {TemperatureSink,SensorTimer} from '../thermal/serial-adc.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins,type PhysicalPinMap,type PinRequest} from '../protocol/pins.ts';
 import {compileSpi,compileSoftwareSpi} from '../protocol/spi-config.ts';
@@ -11,7 +12,7 @@ import {readPrintClock} from '../timing/print-clock-timeline.ts';
 import type {MCUGroup} from '../runtime/mcu-group.ts';
 const owners=new WeakSet<object>(),dictionaries=new WeakMap<object,object>();
 export function compileConfiguredSpiSensors<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,clocks:ReadonlyMap<string,HeaterClock>,sections:readonly {section:string}[]){
- if(sections.length>128||new Set(sections.map(s=>s.section)).size!==sections.length)throw new Error('Invalid SPI temperature sensor batch');
+ if(sections.length>192||new Set(sections.map(s=>s.section)).size!==sections.length)throw new Error('Invalid SPI temperature sensor batch');
  if(!sections.length)return Object.freeze([]);
  const requests:PinRequest[]=[],maps=new Map<string,PhysicalPinMap>(),buses=new Set<string>();
  const prepared=sections.map(({section})=>{
@@ -44,8 +45,11 @@ export function compileConfiguredSpiSensors<T>(reader:ConfigurationReader,pins:P
   pins.lookupBatch(requests,maps);return Object.freeze(plans);
  });
 }
-export function attachConfiguredSpiSensor<T>(group:MCUGroup,plan:ReturnType<typeof compileConfiguredSpiSensors<T>>[number]){
+export function attachConfiguredSpiTemperature<T>(group:MCUGroup,plan:ReturnType<typeof compileConfiguredSpiSensors<T>>[number],sink:TemperatureSink,timer?:SensorTimer){
  group.assertActive();const session=group.session(plan.mcu);if(owners.has(plan)||dictionaries.get(plan)!==session.dictionary)throw new Error('Invalid or reused SPI sensor plan');
- const state=new TemperatureSensorState(),sensor=new SerialThermocouple(session,plan,plan.timeline,{sample:(time,temp)=>state.sample(time,temp),shutdown:reason=>{state.shutdown(reason);void group.stop(new Error(reason)).catch(()=>{});}});
- owners.add(plan);return Object.freeze({section:plan.section,state,sensor});
+ const sensor=new SerialThermocouple(session,plan,plan.timeline,sink,timer);owners.add(plan);return sensor;
+}
+export function attachConfiguredSpiSensor<T>(group:MCUGroup,plan:ReturnType<typeof compileConfiguredSpiSensors<T>>[number]){
+ const state=new TemperatureSensorState(),sensor=attachConfiguredSpiTemperature(group,plan,{sample:(time,temp)=>state.sample(time,temp),shutdown:reason=>{state.shutdown(reason);void group.stop(new Error(reason)).catch(()=>{});}});
+ return Object.freeze({section:plan.section,state,sensor});
 }

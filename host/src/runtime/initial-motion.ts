@@ -69,7 +69,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
    const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
-   const heaterIndex=plan.heaters.findIndex(h=>h.section===section),heater=hardware.analog[heaterIndex]?.runtime;
+   const heater=hardware.thermal.find(h=>h.section===section)?.runtime;
    if(!heater)throw new Error('Linear motion requires its configured extruder heater');
    const resolved='homing' in settings?compileLinearHoming(plan,generation,settings,new Map(hardware.drivers.flatMap(d=>d.sensorless?[[d.section,d.sensorless] as const]:[]))):settings;
    const result=createConfiguredNativeLinearPort(reader,{...resolved,probeDevice:hardware.bltouch?{device:hardware.bltouch.device,endstop:hardware.bltouch.endstop}:undefined,endstopPhases:configureEndstopPhases(reader,plan.steppers,hardware.drivers),generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
