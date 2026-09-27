@@ -29,8 +29,8 @@
 归属、源文件循环和异常语法，4 项测试、类型检查及空白检查通过。
 暖文件缓存下完整读取解析 30 次中位 3.60 ms、P95 7.04 ms；此测量
 不含求值、输出和进程启动，不宣称比旧实现更快，也不属于打印热路径。
-尚未实现配置求值、生成、最小配置导出及菜单，Makefile 保持 Python
-入口，本轮 Python 退役数为 0。证据见
+解析层的验收范围不包括配置生成、最小配置导出及菜单，Makefile 保持
+Python 入口，解析层交付没有退役 Python。证据见
 [Kconfig 解析验收](../host/contracts/kconfig-parser-acceptance.json)。
 复现：Node.js 26 运行 `host/test/kconfig-parser.test.ts`（使用 `--test`）
 及 `host/bench/kconfig-parser.ts`；日常测试读取冻结 JSON，无需 Python。
@@ -42,9 +42,23 @@ Kconfig 表达式求值层已补齐三态逻辑、短路、精确整数比较、
 解析与求值合计 8 项测试、类型和空白检查通过。45.32 万次表达式求值
 中位 27.49 ms、P95 33.98 ms；同机顺序运行的 Python 缓存求值中位
 108.53 ms。此比较不含符号依赖求解、默认值/选择组决策、解析和输出，
-不代表完整构建提速。配置求解器与构建切换仍待完成，Python 退役数仍为 0。
+不代表完整构建提速。构建切换仍待完成，Python 退役数仍为 0。
 证据见 [表达式验收](../host/contracts/kconfig-evaluate-acceptance.json)，
 复现基准为 `node host/bench/kconfig-evaluate.ts`。
+
+配置求解器现已连接解析与求值，支持项目当前的 bool/int/hex/string、
+重复定义、默认值、继承依赖、选择组、强弱反向依赖、范围约束及写出标记。
+仓库 42 份固件配置各按原状态与开启低级选项求解，84 组共 30,492 个
+符号结果的类型、文本、三态值、可见性和写出标记均与旧实现一致。
+另验证越界值回退、隐藏选项、选择覆盖、选择组顺序和依赖循环失败。
+解析/表达式/求解器合计 12 项测试、类型和空白检查通过。84 份配置完整
+求解中位 48.36 ms、P95 50.49 ms，Python 同机顺序基线中位 60.14 ms；
+新实现含模型构造，双方均不含文件解析、导出与固件编译。
+尚未接入配置文件读取/生成、最小配置导出和交互菜单；未切换 Makefile，
+本轮 Python 退役数为 0。当前项目不使用 tristate 声明，求解器遇到该
+声明明确报错，不能宣称为通用 Kconfiglib 全功能替代。证据见
+[配置求解验收](../host/contracts/kconfig-model-acceptance.json)，复现基准为
+`node host/bench/kconfig-model.ts`。
 
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。

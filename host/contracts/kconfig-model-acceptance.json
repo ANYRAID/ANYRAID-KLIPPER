@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-28",
+  "scope": "Complete resolved symbol values for current repository bool/int/hex/string configurations",
+  "reference": "kconfig-model-reference.json",
+  "referenceMethod": "One-time bundled Kconfiglib load_config for all 42 test/configs/*.config with LOW_LEVEL_OPTIONS unchanged and forced y; frozen text, tri_value, visibility and _write_to_conf for every unique defined symbol. Source, Kconfig and config input SHA-256 are embedded.",
+  "configurations": 84,
+  "symbolsPerConfiguration": 363,
+  "symbolComparisons": 30492,
+  "fieldsCompared": [
+    "type",
+    "text",
+    "tri",
+    "visibility",
+    "write"
+  ],
+  "testsIncludingExpressionAndParser": 12,
+  "benchmark": {
+    "node": "v26.9.0",
+    "configurations": 84,
+    "symbolsPerConfiguration": 363,
+    "warmups": 3,
+    "runs": 15,
+    "medianMs": 48.35604000000001,
+    "p95Ms": 50.49436700000001,
+    "checksum": 57225,
+    "scope": "Model construction, assignments, full symbol/visibility/write-flag resolution on an already parsed tree. No parsing, config-file IO, export, compiler or motion processing."
+  },
+  "pythonBaseline": {
+    "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+    "configurations": 84,
+    "symbolsPerConfiguration": 363,
+    "warmups": 3,
+    "runs": 15,
+    "medianMs": 60.13856700155884,
+    "p95Ms": 61.96100899978774,
+    "checksum": 57225,
+    "scope": "Kconfiglib unset_values, assignments and full value/visibility/write resolution on an already parsed reusable tree; no file IO or export. Sequential same-machine baseline, not paired."
+  },
+  "limitations": [
+    "No .config reader/export, autoconf generation, minimal-config export or interactive menu yet",
+    "No Makefile switch and no Python retirement this turn",
+    "Tristate declarations/module-mode choices explicitly unsupported; current project uses bool/int/hex/string",
+    "No printer or motion runtime changes; historical crash/precision issues unresolved",
+    "No end-to-end firmware build acceleration claim"
+  ]
+}
