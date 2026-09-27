@@ -1,3 +1,4 @@
+import {legacyMotanCsv,legacyMotanCsvTiming} from '../test/helpers/motan-export-reference.ts';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -24,10 +25,11 @@ try{
  }
  console.log(JSON.stringify({scope:'20000 samples, 64 rows/block; validation, async sampling and results; excludes JSON/gzip/worker. Old source 88a86262. Node 20 warmups/15 runs; Python 2/7.',node:process.version,pythonMs:stats(reference.ms),oldMs:stats(timings.old),nodeMs:stats(timings.current),typedMs:stats(timings.typed),exact:true}));
  const prefix=join(dir,'log');await managerFixture(prefix,10);
- const columns=['stallguard(stepper_x,sg_result)'],outputs:string[]=[];
- for(const mode of ['python','node','typed']){
-  const args=[join(root,`scripts/motan/data_export.${mode==='python'?'py':'ts'}`),prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001',...(mode==='typed'?['--preserve-number-types']:[])],ms:number[]=[];let output='';
-  for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(mode==='python'?'python3':process.execPath,args,{encoding:'utf8',maxBuffer:16*1024**2,timeout:30000});if(run>=2)ms.push(performance.now()-start);}
+ const columns=['stallguard(stepper_x,sg_result)'],common=[prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001'],outputs:string[]=[legacyMotanCsv(common)];
+ console.log(JSON.stringify({scope:'Captured original CSV process timing',historicalPythonMs:legacyMotanCsvTiming(common)}));
+ for(const mode of ['node','typed']){
+  const args=[join(root,'scripts/motan/data_export.ts'),prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001',...(mode==='typed'?['--preserve-number-types']:[])],ms:number[]=[];let output='';
+  for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(process.execPath,args,{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},maxBuffer:16*1024**2,timeout:30000});if(run>=2)ms.push(performance.now()-start);}
   outputs.push(output);console.log(JSON.stringify({scope:'20000 CSV samples including process startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs',mode,ms:stats(ms)}));
  }
  const rows=(text:string)=>text.trimEnd().split('\r\n').slice(1).map(line=>line.split(',').map(v=>v===''?null:Number(v)));assert.deepEqual(rows(outputs[1]),rows(outputs[0]));assert.deepEqual(rows(outputs[2]),rows(outputs[0]));console.log(JSON.stringify({csvNumericExact:true}));

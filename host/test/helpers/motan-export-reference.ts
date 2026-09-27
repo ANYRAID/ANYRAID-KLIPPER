@@ -17,3 +17,9 @@ export function legacyMotanCsv(args:string[],snapshot=false):string{
  assert.ok(record,'Missing frozen original CSV reference: '+key);assert.deepEqual(record.input,input);return record.csv;
 }
 export const motanExportReferenceMetadata=metadata;
+
+export function legacyMotanCsvTiming(args:string[]){
+ legacyMotanCsv(args);
+ const input={args:args.slice(1),snapshot:false,capture:['.json.gz','.index.gz'].map(s=>sha(readFileSync(args[0]+s)))};
+ const timing=metadata.additionalCsvTiming[sha(JSON.stringify(input))];assert.ok(timing,'Missing captured CSV timing');return structuredClone(timing);
+}

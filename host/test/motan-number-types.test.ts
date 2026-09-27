@@ -1,3 +1,4 @@
+import {legacyMotanCsv} from './helpers/motan-export-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -90,7 +91,7 @@ test('opt-in worker and CSV subtract wide and small integer tokens exactly witho
   const cli=fileURLToPath(new URL('../../scripts/motan/data_export.ts',import.meta.url));
   const csv=execFileSync(process.execPath,[cli,prefix,'-c',JSON.stringify([name]),'--preserve-number-types','-d','.02','--segment-time','.01'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:10000});
   assert.ok(csv.split('\r\n').slice(1,-1).every(row=>row.endsWith(',9007199254740992')));
-  const legacy=execFileSync('python3',[cli.replace(/\.ts$/,'.py'),prefix,'-c',JSON.stringify([name]),'-d','.02','--segment-time','.01'],{encoding:'utf8',timeout:10000});
+  const legacy=legacyMotanCsv([prefix,'-c',JSON.stringify([name]),'-d','.02','--segment-time','.01']);
   const decode=(text:string)=>text.trimEnd().split('\r\n').slice(1).map(row=>{const [time,value]=row.split(',');return [Number(time),value];});
   assert.equal(csv.split('\r\n')[0],legacy.split('\r\n')[0]);assert.deepEqual(decode(csv),decode(legacy));
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}

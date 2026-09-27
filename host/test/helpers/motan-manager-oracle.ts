@@ -1,6 +1,20 @@
-import {execFileSync} from 'node:child_process';
+// GPL-3.0-or-later. Captured original log-manager outputs; no Python or Git.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
+interface Stored {input:unknown;result:{values:Record<string,string|null>[];labels:Record<string,{label:string;units:string}>;ms:number[];start:string};}
+const sha=(value:Buffer|string)=>createHash('sha256').update(value).digest('hex');
+const metadata=JSON.parse(readFileSync(new URL('../../contracts/motan-manager-reference.json',import.meta.url),'utf8'));
+let records:Record<string,Stored>|undefined;
+const decode=(text:string)=>{assert.match(text,/^[0-9a-f]{16}$/);return Buffer.from(text,'hex').readDoubleBE();};
 export function managerOracle(prefix:string,start:number,names:string[],times:number[],bench=false):{values:Record<string,unknown>[];labels:Record<string,{label:string;units:string}>;ms:number[];start:number}{
- const source=execFileSync('git',['show','2c7ba578:scripts/motan/readlog.py']);if(createHash('sha256').update(source).digest('hex')!=='f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2')throw new Error('Motan source changed');const script=`import json,sys,time\nscope={}\nexec(${JSON.stringify(source.toString())},scope)\nx=json.load(sys.stdin)\ndef run():\n m=scope['LogManager'](x['prefix'])\n try:\n  m.setup_index();m.seek_time(x['start']);handlers={name:m.setup_dataset(name) for name in x['names']}\n  values=[{name:h.pull_data(t) for name,h in handlers.items()} for t in x['times']]\n  return values,{name:h.get_label() for name,h in handlers.items()},m.get_start_time()\n finally: m.index_reader.file.close();m.jdispatch.log_reader.file.close()\nvalues,labels,start=run();ms=[]\nif ${bench?'True':'False'}:\n for i in range(9):\n  begin=time.perf_counter();run();elapsed=(time.perf_counter()-begin)*1000\n  if i>=2: ms.append(elapsed)\nprint(json.dumps(dict(values=values,labels=labels,ms=ms,start=start)))`;
- return JSON.parse(execFileSync('python3',['-c',script],{input:JSON.stringify({prefix,start,names,times}),encoding:'utf8',maxBuffer:32*1024**2}));
+ if(!records){
+  assert.equal(sha(readFileSync(new URL('./motan-manager-fixture.ts',import.meta.url))),metadata.fixtureSha256);
+  const zip=readFileSync(new URL('../../contracts/motan-manager-reference.json.gz',import.meta.url));assert.equal(sha(zip),metadata.gzipSha256);
+  const data=gunzipSync(zip,{maxOutputLength:16*1024**2});assert.equal(data.length,metadata.dataBytes);assert.equal(sha(data),metadata.dataSha256);
+  records=JSON.parse(data.toString());assert.equal(Object.keys(records!).length,metadata.caseCount);
+ }
+ const input={capture:['.json.gz','.index.gz'].map(s=>sha(readFileSync(prefix+s))),start,names,times,bench},key=sha(JSON.stringify(input)),row=records![key];assert.ok(row,'Missing original manager reference: '+key);assert.deepEqual(row.input,input);
+ return {values:row.result.values.map(v=>Object.fromEntries(Object.entries(v).map(([k,n])=>[k,n===null?null:decode(n)]))),labels:structuredClone(row.result.labels),ms:[...row.result.ms],start:decode(row.result.start)};
 }

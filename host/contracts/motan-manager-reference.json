@@ -1,0 +1,140 @@
+{
+  "schema": 1,
+  "sourceCommit": "ad9bba75",
+  "originalHelperSha256": "1778ed240e245787b08b40e5a4ffaab42831b51f2906710f108aec602ded5faf",
+  "source": {
+    "revision": "2c7ba578:scripts/motan/readlog.py",
+    "sha256": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2"
+  },
+  "fixtureSha256": "7758f3df9e62b0968c24d4fec5de026f734314854fb4d21053e43c647022e360",
+  "caseCount": 4,
+  "rows": 527,
+  "datasets": 14,
+  "dataBytes": 306124,
+  "dataSha256": "cccff8d313447da18e3fd86b15549566ae12e9e116cfecfb6cf739c9447ca68d",
+  "gzipSha256": "3cc20f6bafd98233a2001054d6277944040689c29ccbaa12edcb635d993c1d4c",
+  "encoding": "Number values stored as Float64 big-endian hexadecimal; null remains null",
+  "scope": "Four original Python log-manager cases, complete sampled rows matched Node before freezing. Includes full scan and seek at 960 seconds; timings are historical.",
+  "finalBenchmark": [
+    {
+      "node": "v26.9.0",
+      "start": 0,
+      "frames": 500,
+      "datasets": 14,
+      "nodeMs": {
+        "median": 42.25326200000006,
+        "p95": 46.74467200000004
+      },
+      "historicalPythonMs": {
+        "median": 26.19969000807032,
+        "p95": 26.814937009476125
+      },
+      "maxEventLoopMs": 15.187967,
+      "exact": true
+    },
+    {
+      "node": "v26.9.0",
+      "start": 960,
+      "frames": 20,
+      "datasets": 14,
+      "nodeMs": {
+        "median": 6.473106999999914,
+        "p95": 8.265102999999954
+      },
+      "historicalPythonMs": {
+        "median": 3.056632005609572,
+        "p95": 3.074181964620948
+      },
+      "maxEventLoopMs": 4.167679,
+      "exact": true
+    }
+  ],
+  "rejectedParserOptimization": {
+    "reason": "Sensor parsing regressed 7-8%; numeric-looking text regressed about 2x. Production parser change reverted.",
+    "node": "v26.9.0",
+    "baseline": "ad9bba75",
+    "scope": "Paired parser-only batches; original precision and types retained in both modes",
+    "results": [
+      {
+        "kind": "sensor",
+        "typed": false,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 1.2154000000000025,
+        "currentMedianMs": 1.3169010000000014,
+        "ratio": 1.0835124238933673,
+        "exact": true
+      },
+      {
+        "kind": "sensor",
+        "typed": true,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 1.2670900000000103,
+        "currentMedianMs": 1.3505810000000054,
+        "ratio": 1.0658919255932842,
+        "exact": true
+      },
+      {
+        "kind": "wide",
+        "typed": false,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 10.208523000000014,
+        "currentMedianMs": 6.131579999999985,
+        "ratio": 0.6006334119049325,
+        "exact": true
+      },
+      {
+        "kind": "wide",
+        "typed": true,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 10.032021999999984,
+        "currentMedianMs": 6.104350000000011,
+        "ratio": 0.6084865045152433,
+        "exact": true
+      },
+      {
+        "kind": "status",
+        "typed": false,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 8.732890999999995,
+        "currentMedianMs": 4.871319999999969,
+        "ratio": 0.5578129854134183,
+        "exact": true
+      },
+      {
+        "kind": "status",
+        "typed": true,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 15.699577999999974,
+        "currentMedianMs": 11.194190999999819,
+        "ratio": 0.7130249615626507,
+        "exact": true
+      },
+      {
+        "kind": "quoted",
+        "typed": false,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 1.0649379999999837,
+        "currentMedianMs": 2.185408000000052,
+        "ratio": 2.0521457587203065,
+        "exact": true
+      },
+      {
+        "kind": "quoted",
+        "typed": true,
+        "iterations": 1000,
+        "batches": 11,
+        "baselineMedianMs": 1.0834890000000996,
+        "currentMedianMs": 2.2676989999999932,
+        "ratio": 2.0929598731503365,
+        "exact": true
+      }
+    ]
+  }
+}

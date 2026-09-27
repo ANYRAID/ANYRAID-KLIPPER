@@ -1,3 +1,4 @@
+import {legacyMotanCsv,legacyMotanCsvTiming} from '../test/helpers/motan-export-reference.ts';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -36,10 +37,11 @@ try{
    }finally{await manager.close();}
   }
   console.log(JSON.stringify({scope:'20000 samples; gzip/log consumption, scalar accounting and analysis; excludes manager open, dataset setup and CSV. 20 warmups/15 runs, alternating.',node:process.version,oldRef,columns:columns.length,typed,oldMs:stats(ms.old),nodeMs:stats(ms.current),exactTypesAndValues:true}));
-  const outputs:Record<string,string>={};
-  for(const mode of ['old','current','python']){
-   const args=[mode==='old'?paths.cli:join(root,`scripts/motan/data_export.${mode==='python'?'py':'ts'}`),prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001',...(typed&&mode!=='python'?['--preserve-number-types']:[])],times:number[]=[];let output='';
-   for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(mode==='python'?'python3':process.execPath,args,{encoding:'utf8',maxBuffer:32*1024**2,timeout:30000});if(run>=2)times.push(performance.now()-start);}
+  const common=[prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001'],outputs:Record<string,string>={python:legacyMotanCsv(common)};
+  console.log(JSON.stringify({scope:'Captured original CSV process timing',historicalPythonMs:legacyMotanCsvTiming(common)}));
+  for(const mode of ['old','current']){
+   const args=[mode==='old'?paths.cli:join(root,'scripts/motan/data_export.ts'),prefix,'-c',JSON.stringify(columns),'-d','20','--segment-time','.001',...(typed?['--preserve-number-types']:[])],times:number[]=[];let output='';
+   for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(process.execPath,args,{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},maxBuffer:32*1024**2,timeout:30000});if(run>=2)times.push(performance.now()-start);}
    outputs[mode]=output;console.log(JSON.stringify({scope:'20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs',node:process.version,oldRef,columns:columns.length,typed,mode,ms:stats(times)}));
   }
   assert.equal(outputs.current,outputs.old);

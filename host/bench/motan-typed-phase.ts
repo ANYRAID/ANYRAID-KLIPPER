@@ -1,3 +1,4 @@
+import {legacyMotanCsv,legacyMotanCsvTiming} from '../test/helpers/motan-export-reference.ts';
 import {performance} from 'node:perf_hooks';
 import assert from 'node:assert/strict';
 import {MotanTypedPhaseSampler,motanTypedPhaseConfig} from '../src/motan/typed-phase-samples.ts';
@@ -30,10 +31,11 @@ for(const count of [600,16000])for(const floating of [false,true]){
 const {mkdtemp,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path'),{fileURLToPath}=await import('node:url'),{execFileSync}=await import('node:child_process'),{managerFixture}=await import('../test/helpers/motan-manager-fixture.ts');
 const dir=await mkdtemp(join(tmpdir(),'motan-phase-csv-bench-')),prefix=join(dir,'log'),root=fileURLToPath(new URL('../../',import.meta.url));
 try{
- await managerFixture(prefix,10);const outputs:string[]=[];
- for(const mode of ['python','node','typed']){
-  const args=[join(root,`scripts/motan/data_export.${mode==='python'?'py':'ts'}`),prefix,'-c','["step_phase(tmc2209 stepper_x)"]','-d','20','--segment-time','.001',...(mode==='typed'?['--preserve-number-types']:[])],ms:number[]=[];let output='';
-  for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(mode==='python'?'python3':process.execPath,args,{encoding:'utf8',maxBuffer:16*1024**2,timeout:30000});if(run>=2)ms.push(performance.now()-start);}
+ await managerFixture(prefix,10);const common=[prefix,'-c','["step_phase(tmc2209 stepper_x)"]','-d','20','--segment-time','.001'],outputs:string[]=[legacyMotanCsv(common)];
+ console.log(JSON.stringify({scope:'Captured original CSV process timing',historicalPythonMs:legacyMotanCsvTiming(common)}));
+ for(const mode of ['node','typed']){
+  const args=[join(root,'scripts/motan/data_export.ts'),prefix,'-c','["step_phase(tmc2209 stepper_x)"]','-d','20','--segment-time','.001',...(mode==='typed'?['--preserve-number-types']:[])],ms:number[]=[];let output='';
+  for(let run=0;run<9;run++){const start=performance.now();output=execFileSync(process.execPath,args,{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},maxBuffer:16*1024**2,timeout:30000});if(run>=2)ms.push(performance.now()-start);}
   outputs.push(output);console.log(JSON.stringify({scope:'20000 phase CSV samples including startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs',mode,ms:stats(ms)}));
  }
  const rows=(text:string)=>text.trimEnd().split('\r\n').slice(1).map(line=>line.split(',').map(Number));assert.deepEqual(rows(outputs[1]),rows(outputs[0]));assert.deepEqual(rows(outputs[2]),rows(outputs[0]));console.log(JSON.stringify({csvNumericExact:true}));
