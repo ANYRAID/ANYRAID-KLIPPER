@@ -30,10 +30,15 @@ const owners=new WeakSet<SerialSession>();
 export async function openSDFlashMachine(session:SerialSession,board:string,signal:AbortSignal,options:{fast?:boolean;helper?:string}={}){
  signal.throwIfAborted();session.assertActive();if(owners.has(session)||session.status.configured)throw new Error('SD flashing requires a fresh exclusive MCU session');
  const compiled=compileSDFlashBoard(session,session.dictionary,board,options.fast??false);owners.add(session);let files:SDFileSystem|undefined,closing:Promise<void>|undefined;
+ const reset=async(resetSignal:AbortSignal)=>{
+  resetSignal.throwIfAborted();if(closing)throw new Error('SD flash machine is already closing');let result:Awaited<ReturnType<SerialSession['resetOffline']>>|undefined;
+  closing=(async()=>{const errors:unknown[]=[];try{await files?.close();resetSignal.throwIfAborted();result=await session.resetOffline(resetSignal);}catch(error){errors.push(error);}try{await session.stop();}catch(error){errors.push(error);}finally{owners.delete(session);}if(errors.length)throw new AggregateError(errors,'SD flash reset or cleanup failed');})();
+  await closing;return result!;
+ };
  const close=()=>closing??=(async()=>{const errors:unknown[]=[];try{await files?.close();}catch(error){errors.push(error);}try{await session.stop();}catch(error){errors.push(error);}finally{owners.delete(session);}if(errors.length)throw new AggregateError(errors,'SD flash machine cleanup failed');})();
  try{
   await session.configure(compiled.configuration,signal);signal.throwIfAborted();
   const card=compiled.plan.bus.kind==='sdio'?new SDCardSDIO(sessionSDIO(session,0)):sessionSDCardSPI(session,0);
-  files=await SDFileSystem.open(card,signal,options.helper);signal.throwIfAborted();return {plan:compiled.plan,files,close};
+  files=await SDFileSystem.open(card,signal,options.helper);signal.throwIfAborted();return {plan:compiled.plan,files,close,reset};
  }catch(error){try{await close();}catch(cleanup){throw new AggregateError([error,cleanup],'SD flash machine startup and cleanup failed',{cause:error});}throw error;}
 }

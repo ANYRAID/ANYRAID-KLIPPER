@@ -10,7 +10,7 @@ import {SerialSession} from '../src/protocol/serial-session.ts';
 const signal=()=>new AbortController().signal;
 async function fixture(mcu='stm32f103xe',pins='PA6,PA7,PA8',legacySpiConfig=false){
  const image=fatDisk(),card=new SDCardEmulator();card.image=image.image;card.csd[9]=7;card.csd[15]=sdCRC7(card.csd.subarray(0,15));let stops=0;
- const firmware=await serialFirmware(undefined,{mcu,legacySpiConfig,extendedPins:true,spiPins:pins,tmcSpi(_oid,data,read){if(read)return {data:card.transferBytes(data,signal())};card.sendBytes(data,signal());return {data:new Uint8Array()};}}),session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}});
+ const firmware=await serialFirmware(undefined,{reset:'ack',mcu,legacySpiConfig,extendedPins:true,spiPins:pins,tmcSpi(_oid,data,read){if(read)return {data:card.transferBytes(data,signal())};card.sendBytes(data,signal());return {data:new Uint8Array()};}}),session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}});
  await session.initialize(signal());return {firmware,session,card,get stops(){return stops;},async close(){await session.stop();await firmware.close();}};
 }
 for(const legacy of [false,true])test(`board factory uploads over native SPI with ${legacy?'legacy':'modern'} chip select`,async t=>{
@@ -18,6 +18,7 @@ for(const legacy of [false,true])test(`board factory uploads over native SPI wit
   assert.equal(machine.plan.mcu,'stm32f103xe');assert.equal(f.session.configuration.reused,false);
   const receipt=await uploadSDFirmware(machine.files,machine.plan.name,machine.plan.mcu,Buffer.alloc(4097,23),signal());assert.equal(receipt.state,'uploaded');assert.equal(receipt.activationVerified,false);assert.equal(receipt.path,'firmware.bin');
   await assert.rejects(openSDFlashMachine(f.session,'btt-skr-mini',signal()),/fresh exclusive/);t.diagnostic(JSON.stringify({bytes:4097,configureMountUploadVerifyMs:performance.now()-start,scope:'Board factory, native simulated UART/SPI and FAT16 image; excludes physical hardware'}));
+ await machine.reset(signal());assert.equal(f.firmware.outputs.filter(o=>o.name==='reset').length,1);await assert.rejects(machine.reset(signal()),/already closing/);
  }finally{await machine.close();}assert.equal(f.stops,1);assert.equal(f.session.status.state,'closed');}finally{await f.close();}
 });
 test('MCU mismatch and chip-select overlap fail before configuration or card commands',async()=>{

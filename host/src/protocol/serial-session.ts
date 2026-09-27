@@ -1,5 +1,5 @@
 import {trsyncFormats,type TriggerSyncProtocol,type TriggerPlan} from '../inputs/trsync.ts';
-import {firmwareFault} from './firmware-fault.ts';
+import {firmwareFault,FirmwareFault} from './firmware-fault.ts';
 import {MotionRetiredError} from '../motion/retired.ts';
 import {configureMCU,type MCUConfigPlan,type ConfiguredMCU} from './mcu-config.ts';
 import type {ScheduledPacket} from '../motion/move-queue.ts';
@@ -49,7 +49,7 @@ export class SerialSession {
  #lastAccepted=0n;#ackWaits=new Set<AckWait>();
  #motionTimer:ReturnType<typeof setTimeout>|undefined;#motionExpiry=Infinity;#motionPending=0;
  #configuration:ConfiguredMCU|undefined;#configuring=false;
- #motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
+ #resetting=false;#motionBound=false;#motionBusy=false;#queryPending=0;#space=new Set<()=>void>();
  #commandQueueIds=new WeakMap<TimedCommandQueue,number>();
  #nextCommandQueue=2;#outputPending=0;
  #closeObservers=new Set<(cause:unknown)=>void>();
@@ -65,7 +65,7 @@ export class SerialSession {
  get dictionary():MessageDictionary{if(this.#state!=='warming'&&this.#state!=='ready')throw new Error('Firmware dictionary is not ready');return this.#dictionary;}
  get clock():ClockRuntime{if(!this.#clock)throw new Error('Clock is not initialized');return this.#clock;}
  /** Health check without allocating a status snapshot. */
- assertActive():void{if(this.#state!=='ready')throw new Error('MCU session is not ready',{cause:this.#fault});this.clock.assertActive();}
+ assertActive():void{if(this.#state!=='ready'||this.#resetting)throw new Error('MCU session is not ready',{cause:this.#fault});this.clock.assertActive();}
  /** Register before MCU configuration so init reports cannot race registration.
   * Each name/OID has one consumer; subscribed responses cannot be queried. */
  subscribeResponse(format:string,oid:number,handler:ResponseSubscription):()=>void{
@@ -106,7 +106,7 @@ export class SerialSession {
   finally{signal.removeEventListener('abort',abort);}
  }
  query(payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions={}):Promise<TimedResponse>{
-  if(this.#state!=='ready'||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
+  if(this.#state!=='ready'||this.#resetting||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
   if(options.oid!==undefined&&this.#subscriptions.get(responseName)?.has(options.oid))return Promise.reject(new Error('Response route is subscribed'));
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}return this.#queries.query(payload,responseName,signal,options);
  }
@@ -131,7 +131,7 @@ export class SerialSession {
   * timeout and cancellation use the same shared query manager as normal queries. */
  queryOnQueue(queue:TimedCommandQueue,payload:Uint8Array,responseName:string,signal:AbortSignal,options:QueryOptions&{minClock?:bigint;reqClock?:bigint}={}):Promise<TimedResponse>{
   if(!this.#commandQueueIds.has(queue))return Promise.reject(new Error('Command queue belongs to another session'));
-  if(this.#state!=='ready'||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
+  if(this.#state!=='ready'||this.#resetting||this.#configuring)return Promise.reject(new Error('Serial session is not ready'));
   if(options.oid!==undefined&&this.#subscriptions.get(responseName)?.has(options.oid))return Promise.reject(new Error('Response route is subscribed'));
   try{this.clock.assertActive();}catch(error){return Promise.reject(error);}
   const min=options.minClock??0n,req=options.reqClock??min;
@@ -149,11 +149,24 @@ export class SerialSession {
   }));
  }
  async configure(plan:MCUConfigPlan,signal:AbortSignal):Promise<ConfiguredMCU>{
-  if(this.#state!=='ready'||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
+  if(this.#state!=='ready'||this.#resetting||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
   this.#configuring=true;
   try{this.clock.assertActive();const result=await configureMCU(this.#dictionary,{query:(p,n,s)=>this.#queries.query(p,n,s,{retries:5}),send:(p,s)=>this.#send(p,s),stop:e=>this.stop(e)},plan,signal);this.#assertOpen();this.clock.assertActive();this.#configuration=result;return result;}
   catch(error){try{await this.stop(error);}catch{/* failure retained */}throw error;}
   finally{this.#configuring=false;}
+ }
+ /** Explicit offline maintenance only. The owner must exclude other host users
+  * and have closed all peripherals. ACK means delivery, not successful reboot;
+  * the caller must reconnect and verify firmware. Never reuses this session. */
+ async resetOffline(signal:AbortSignal):Promise<{acknowledged:boolean;restartObserved:boolean}>{
+  signal.throwIfAborted();this.assertActive();
+  if(this.#motionBound||this.#configuring||this.#subscriptionCount||this.#outputPending)throw new Error('Offline reset requires an idle session without motion or subscriptions');
+  this.#dictionary.lookup('reset');const payload=this.#dictionary.encode('reset',{});this.#resetting=true;
+  let sent=false,result={acknowledged:false,restartObserved:false},failure:unknown;
+  try{await this.waitForAcknowledgements(signal);sent=true;await this.#send(payload,signal);signal.throwIfAborted();result.acknowledged=true;}
+  catch(error){if(sent&&!signal.aborted&&error instanceof FirmwareFault&&error.details.event==='starting')result.restartObserved=true;else failure=signal.aborted?signal.reason:error;}
+  try{await this.stop(new Error('Offline firmware reset requested'));}catch(error){failure=failure===undefined?error:new AggregateError([failure,error],'Offline reset and cleanup failed');}
+  if(failure!==undefined)throw failure;return result;
  }
  /** Build the move-slot sink binding using firmware-confirmed capacity. */
  motionQueue(id:string,emitterIds:readonly string[],clockAt:(printTime:number)=>bigint):MCUQueueConfig{
@@ -163,7 +176,7 @@ export class SerialSession {
  /** One ordered motion queue per MCU, matching steppersync's single cq.
   * Resolve after native acceptance; firmware ACKs remain tracked in background. */
  motionTransport(emitterIds:readonly string[]):RetirableMotionTransport{
-  if(this.#state!=='ready'||this.#motionBound||!this.#configuration||this.#configuration.moveSlots<1)throw new Error('Motion transport requires an unbound ready session with configured move slots');
+  if(this.#state!=='ready'||this.#resetting||this.#motionBound||!this.#configuration||this.#configuration.moveSlots<1)throw new Error('Motion transport requires an unbound ready session with configured move slots');
   if(!emitterIds.length||emitterIds.length>128||new Set(emitterIds).size!==emitterIds.length||emitterIds.some(id=>!/^[A-Za-z0-9_.:-]{1,128}$/.test(id)))throw new Error('Invalid motion emitter binding');
   this.#motionBound=true;const ids=new Set(emitterIds),lease:MotionLease={retired:false,pending:undefined,retirement:undefined};
   return Object.freeze({send:(packets:readonly ScheduledPacket[])=>{
