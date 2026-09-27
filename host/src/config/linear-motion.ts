@@ -1,5 +1,6 @@
 // Linear machine limits and homing defaults from klippy/toolhead.py,
 // stepper.py and kinematics/extruder.py. GPL-3.0-or-later.
+import {readProbeConfiguration} from './probe.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {LinearKinematics,type LinearConfig,type Axis,type Range} from '../kinematics/linear.ts';
 import {motionLimits} from '../motion/lookahead.ts';
@@ -45,5 +46,5 @@ export function createConfiguredNativeLinearPort(reader:ConfigurationReader,hard
   const names=hardware.endstopNames[i];if(!names.length||names.length>16||names.length!==hardware.groupsByAxis[i].length||new Set(names).size!==names.length||names.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new Error('Configured endstop names differ from homing groups');
   return Object.freeze({...rail,endstops:Object.freeze([...names])});
  });
- const port=new NativeLinearHomingPort({...hardware,...config});return {port,...config,rails:Object.freeze(rails)};
+ const port=new NativeLinearHomingPort({...hardware,...config,probeConfiguration:readProbeConfiguration(reader)});return {port,...config,rails:Object.freeze(rails)};
 }

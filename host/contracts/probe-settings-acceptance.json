@@ -1,0 +1,41 @@
+{
+  "base": "4e92e900",
+  "tests": {
+    "nativeAndConfiguration": 19,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samples": 11,
+    "home": {
+      "wall": {
+        "medianMs": 253.52573499999926,
+        "p95Ms": 254.56086499999947
+      },
+      "cpu": {
+        "medianMs": 7.722,
+        "p95Ms": 25.673
+      }
+    },
+    "probe": {
+      "wall": {
+        "medianMs": 254.49483400000008,
+        "p95Ms": 257.71521199999916
+      },
+      "cpu": {
+        "medianMs": 8.995,
+        "p95Ms": 30.047
+      }
+    },
+    "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+  },
+  "scope": "Probe configuration drives real simulated two-seek native measurement and signed bed coordinate offsets.",
+  "limitations": [
+    "No physical printer validation. Historical runtime and motion precision issues remain unresolved.",
+    "Public maintenance operations and mesh path orchestration incomplete. Activation macros explicitly rejected pending typed adapters.",
+    "Native benchmark covers single seek and excludes config parsing; repeated-sample arithmetic benchmark recorded in probe-samples-acceptance.json."
+  ]
+}

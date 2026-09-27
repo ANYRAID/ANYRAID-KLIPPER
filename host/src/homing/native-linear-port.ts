@@ -1,3 +1,4 @@
+import type {ProbeConfiguration} from '../config/probe.ts';
 import {collectProbeSamples,type ProbeSamples} from './probe-samples.ts';
 import {nativeBedMeshStatus} from '../runtime/native-bed-mesh-status.ts';
 import {BedMesh} from '../motion/bed-mesh.ts';
@@ -19,6 +20,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+ probeConfiguration?:Readonly<ProbeConfiguration>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
@@ -48,7 +50,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
@@ -332,6 +334,13 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  probeZ(z:number,speed:number,groups:LinearSeekOptions['groups'],signal:AbortSignal){
   const owned=groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}));
   return this.#operate('seek',signal,s=>this.#probeZ(z,speed,owned,s));
+ }
+ async measureProbe(z:number,signal:AbortSignal){
+  const config=this.#o.probeConfiguration;if(!config)throw new Error('No configured probe settings');
+  const result=await this.probeConfiguredSamples(z,config.speed,config.sampling,signal),p=result.position,o=config.offsets;
+  const bed=[p[0]+o[0],p[1]+o[1],p[2]-o[2]];
+  if(!bed.every(Number.isFinite)){const error=new RangeError('Probe offset overflow');await this.motorOff(error);throw error;}
+  return Object.freeze({...result,bedPosition:Object.freeze(bed)});
  }
  probeConfiguredSamples(z:number,speed:number,options:ProbeSamples,signal:AbortSignal){
   const policy={...options};

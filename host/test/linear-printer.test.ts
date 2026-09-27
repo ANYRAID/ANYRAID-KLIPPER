@@ -36,7 +36,7 @@ test('extra motors sharing an endstop remain owned in every homing axis',async()
 });
 test('probe pin is independently allocated and wired into the native owner',async()=>{
  const f=await configuredPrinterFixture();try{
-  const r=new ConfigurationReader(new ConfigurationSource('/probe.cfg',{...f.reader.source.original,probe:{pin:'^!PA13'}},[]),null),plan=planLinearPrinter(r,policy);
+  const r=new ConfigurationReader(new ConfigurationSource('/probe.cfg',{...f.reader.source.original,probe:{pin:'^!PA13',z_offset:'1.2'}},[]),null),plan=planLinearPrinter(r,policy);
   assert.deepEqual(plan.linear.probe,[{section:'probe',emitters:['x','y','z','e']}]);
   const owner=await startClockedPrinter(r,f.group,'mcu',plan.layout,{...f.options,hardware:{...f.options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear},f.signal);
   try{

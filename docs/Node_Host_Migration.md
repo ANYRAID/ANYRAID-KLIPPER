@@ -24026,3 +24026,18 @@ probeConfiguredSamples 在一个独占操作中完成所有下探、实际停止
 测试包含实际原生模拟下探、回撤、二次下探及独占拒绝，也包含容差
 重试、奇偶中位数和取消。模拟固件不会自动更新步数与 trigger 原因，
 回撤夹具必须更新二者；不得通过放松 MCU 停止确认来让夹具通过。
+
+### 配置驱动的探针测量
+
+readProbeConfiguration 在机器规划时校验 `[probe]` 的 speed、lift_speed、
+samples、sample_retract_dist、samples_result、samples_tolerance 及
+samples_tolerance_retries，默认值沿用原 probe.py；数量上限沿用原生
+采样策略。z_offset 必填，x_offset/y_offset 默认为零，不做小数截断。
+非空 activate_gcode/deactivate_gcode 明确拒绝，不能静默忽略设备部署
+动作；需要部署/收回的探针仍待类型化设备适配。
+
+原生 measureProbe 使用配置中的速度与采样策略，返回原始触发位置
+以及 bedPosition：X/Y 加对应偏移、Z 减 z_offset。物理停止位置保持
+真实测量状态，不因计算床面坐标而修改运动坐标。调用方仍需同步
+G-code 坐标缓存。配置到原生两次下探的模拟回归已覆盖；公共校准接口、
+网格路径编排及配置持久化测量结果尚未完成。
