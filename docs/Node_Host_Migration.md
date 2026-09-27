@@ -24920,3 +24920,26 @@ endstop_phase 校准或实测转子位置。
 包含状态投影与当前坐标换算，不含 HTTP/串口。类型及空白检查通过。
 证据见 host/contracts/tmc-phase-hardware-acceptance.json。
 历史运行时异常、目标板验收与默认 Python 入口退役仍未完成。
+
+### 归零相位修正算法与统计对照
+
+host/src/homing/endstop-phase.ts 实现 endstop_phase 的相位容差、首次
+归零自动学习、整步零位对齐和圆周统计。保持原 Python 对负坐标的
+向零截断，以及相同统计代价时的相位选择顺序。MCU 触发计数、直方图
+和统计代价使用 BigInt；几何距离保留原 Float64 运算顺序。未知 TMC
+相位拒绝修正，超容差读数仍纳入统计，与原实现一致。
+
+48 组配置的连续归零观测与 287 组原 Python 统计快照逐项对照通过；
+另验证大于安全整数的统计代价、未知读数和无样本拒绝，共 4/4 测试。
+回归只读取固定 JSON，不运行 Python，也不依赖旧 Python 文件存在。
+
+1024 档统计由平方复杂度改为线性滑动累加，本机 Node 26.9 每次中位
+0.0558 ms，单次相位修正中位 0.264 微秒。原 Python 完整统计函数
+中位约 60.52 ms，包含响应文本格式化，不能当作纯语言速度比较。
+复现命令为 `node host/bench/endstop-phase.ts`；详细证据及代码哈希见
+host/contracts/endstop-phase-acceptance.json。
+
+此阶段仅完成算法与数值验收，尚未将 endstop_phase 配置、最终归零
+触发计数及校准保存接入产品。主链必须使用限位触发时的步进计数，
+不能用停止后的计数代替；CoreXY/CoreXZ 还需通过运动学换算修正。
+在完成这些接入和对应验收前，不能删除旧 endstop_phase.py。

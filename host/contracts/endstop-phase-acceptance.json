@@ -1,0 +1,59 @@
+{
+  "scope": "Pure endstop phase correction and circular calibration statistics; not yet connected to G28",
+  "sha256": {
+    "host/src/homing/endstop-phase.ts": "3b41d6f4a0265ccb56022fa0b6c3349dd006b44ee662e72d89ff342bb8f3dea8",
+    "host/test/endstop-phase.test.ts": "f3668d36937c47edf1d9f453364c114e7160a4dfedaa8846a16dee9dc4e5841f",
+    "host/bench/endstop-phase.ts": "2e1516e82471609c4b08dacec278c6a0379ba499f0492fa4008c347a6faf014d",
+    "host/contracts/endstop-phase-reference.json": "7e83a35741e15f420443599336b6587da285e32a887252df1fcd47ba85d33680"
+  },
+  "tests": "✔ 48 original configurations preserve corrections, learning, errors and exact trigger histories (6.222018ms)\n✔ 287 original circular histograms preserve ties and wraparound with exact integer costs (5.152692ms)\n✔ invalid observations never learn a phase or mutate history (0.516658ms)\n✔ statistics keep costs beyond safe integers and deterministic equal-cost phase order (0.142502ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 66.198065\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "scope": "Pure correction and 1024-bin statistics; no hardware I/O or motion scheduling",
+    "statistics": {
+      "iterations": 100,
+      "medianMs": 0.05578438000000006,
+      "maxMs": 0.059482629999999974,
+      "samplesMs": [
+        0.05555098000000001,
+        0.055659979999999935,
+        0.05566777999999999,
+        0.05575278000000011,
+        0.05578438000000006,
+        0.056343189999999904,
+        0.05690068999999994,
+        0.05758330000000001,
+        0.059482629999999974
+      ]
+    },
+    "correction": {
+      "iterations": 10000,
+      "medianMs": 0.00026401070000000004,
+      "maxMs": 0.0002779927999999984,
+      "samplesMs": [
+        0.0002578095999999988,
+        0.00026255669999999894,
+        0.00026257369999999866,
+        0.0002633876000000015,
+        0.00026401070000000004,
+        0.0002655267000000009,
+        0.0002688817999999998,
+        0.0002716819000000015,
+        0.0002779927999999984
+      ]
+    },
+    "originalPythonStatisticsMs": [
+      60.40191097417846,
+      60.4162709787488,
+      60.52016298053786,
+      60.53428305312991,
+      60.64337398856878
+    ],
+    "checksum": 1277999.9999910593
+  },
+  "limits": [
+    "Original Python statistics benchmark includes response formatting; this is not an isolated language comparison.",
+    "No hardware timing, actual phase repeatability or complete homing integration is demonstrated.",
+    "Historical runtime and numerical anomalies remain unresolved."
+  ]
+}
