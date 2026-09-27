@@ -15,6 +15,7 @@
 #include "thermocouple_range.h" // max31855_out_of_range
 
 DECL_CONSTANT("MAX31855_SIGNED_RANGE", 1);
+DECL_CONSTANT("MAX31856_SIGNED_RANGE", 1);
 
 enum {
     TS_CHIP_MAX31855, TS_CHIP_MAX31856, TS_CHIP_MAX31865, TS_CHIP_MAX6675
@@ -96,6 +97,8 @@ thermocouple_respond(struct thermocouple_spi *spi, uint32_t next_begin_time
     /* check the result and stop if below or above allowed range */
     uint8_t out_of_range = spi->chip_type == TS_CHIP_MAX31855
         ? max31855_out_of_range(value, spi->min_value, spi->max_value)
+        : spi->chip_type == TS_CHIP_MAX31856
+        ? max31856_out_of_range(value, spi->min_value, spi->max_value)
         : value < spi->min_value || value > spi->max_value;
     if (fault || out_of_range) {
         spi->invalid_count++;
