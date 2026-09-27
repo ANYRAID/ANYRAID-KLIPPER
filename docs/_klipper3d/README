@@ -1,39 +1,53 @@
-This directory defines the https://www.klipper3d.org/ website. The
-site is hosted using "github pages". The
-.github/workflows/klipper3d-deploy.yaml tool uses mkdocs (
-https://www.mkdocs.org/ ) to automatically convert the markdown files
-in the docs/ directory to html. In addition to the files in this
-directory, the docs/CNAME file also controls the website generation.
+Node.js documentation site
+==========================
 
-To test deploy the main English site locally one can use commands
-similar to the following:
+The GitHub Pages workflow .github/workflows/klipper3d-deploy.yaml uses Node.js
+26.9+ (26.x) and host/package-lock.json. Python, pip and MkDocs are not required.
+The site configuration and navigation are in site.yml; docs/CNAME continues
+to control the custom domain. No deployment is performed by local builds.
 
-virtualenv ~/mkdocs-env && ~/mkdocs-env/bin/pip install -r ~/klipper/docs/_klipper3d/mkdocs-requirements.txt
-cd ~/klipper && ~/mkdocs-env/bin/mkdocs serve --config-file ~/klipper/docs/_klipper3d/mkdocs.yml -a 0.0.0.0:8000
+Install dependencies, then build the English site from the repository root:
 
-To test deploy the multi-language site locally one can use commands
-similar to the following:
-
-virtualenv ~/mkdocs-env && ~/mkdocs-env/bin/pip install -r ~/klipper/docs/_klipper3d/mkdocs-requirements.txt
-source ~/mkdocs-env/bin/activate
-cd ~/klipper && ./docs/_klipper3d/build-translations.sh
-cd ~/klipper/site/ && python3 -m http.server 8000
-
-Node candidate (not the deployment entrypoint):
-
+  npm ci --prefix host --ignore-scripts --no-audit --no-fund
   node scripts/build-docs.ts /tmp/klipper-docs-preview
 
-Requires Node.js 26.9+ and host dependencies. The output directory must not
-exist and must be outside docs/. Includes HTML, navigation, static assets and
-search. Serve it over HTTP to use search; file:// cannot fetch its index.
-Multilingual browser acceptance and Markdown extension parity remain pending.
-Benchmark: node host/bench/docs-site.ts
+Build all active languages (fetches the official translations into a temporary
+checkout, then cleans only that checkout):
 
-For multilingual output, pass an existing klipper-translations checkout:
+  docs/_klipper3d/build-website.sh /tmp/klipper-docs-all
 
-  node scripts/build-docs.ts /tmp/klipper-docs-all /path/to/klipper-translations
+For an offline build, provide an existing klipper-translations checkout:
 
-The command stages translated Markdown and resources, uses active_translations
-and Navigation.md, and prefers manual-index.md. It does not fetch translations
-or modify the checkout. Each language has an independent search index.
-Benchmark: node host/bench/docs-translations.ts /path/to/klipper-translations
+  docs/_klipper3d/build-website.sh /tmp/klipper-docs-all /path/to/klipper-translations
+
+The output directory must be new and outside docs/. Sources and existing sites
+are never overwritten. A failed build may leave partial output; do not publish
+it. The default output is repository-root/site. The workflow deploys only after
+a successful build. Serve generated output over HTTP using a static server;
+file:// cannot fetch the search index. No Python HTTP server is needed.
+
+Translation builds use active_translations and Navigation.md and prefer
+manual-index.md. Each language has its own navigation and search index. Search
+supports literal Unicode words, title ranking, live results, highlighting and
+shareable queries. It deliberately does not apply language-specific stemming:
+technical identifiers and Chinese substrings remain literal.
+
+Rendering decisions:
+- Preserve existing ASCII heading anchors and two-space child-list indentation.
+- Preserve code examples rather than reproducing the old hook's code rewriting.
+- Use CommonMark fenced code inside lists instead of the old inline-code result.
+- Blank lines may separate paragraphs within one unordered list rather than
+  splitting it into multiple lists; item order, nesting and content remain.
+- Styling is local and responsive, with system light/dark colors; the former
+  Material theme and its analytics integration are not loaded.
+
+Validation and benchmarks (Node only):
+
+  node --test --test-isolation=none --test-concurrency=1 host/test/docs-*.test.ts
+  node host/bench/docs-render.ts
+  node host/bench/docs-search.ts
+  node host/bench/docs-translations.ts /path/to/klipper-translations
+
+Fixed old-renderer references remain in host/contracts/. These are evidence,
+not an executable Python dependency. Real GitHub Actions deployment and public
+site acceptance must still follow the repository PR and release process.

@@ -10,7 +10,7 @@ try {
   for (let i = 0; i < 10; i++) {
     const start = performance.now();
     result = await buildDocsSite({ docs: join(repo, 'docs'),
-      config: join(repo, 'docs/_klipper3d/mkdocs.yml'), output: join(root, String(i)) });
+      config: join(repo, 'docs/_klipper3d/site.yml'), output: join(root, String(i)) });
     if (i >= 3) samplesMs.push(performance.now() - start);
   }
   console.log(JSON.stringify({ node: process.version, warmups: 3, samplesMs,

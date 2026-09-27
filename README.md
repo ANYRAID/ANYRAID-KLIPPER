@@ -223,3 +223,7 @@ MAX31855 独立温度输入与加热反馈已接入 Node 配置装配，要求 M
 SD 卡烧录入口 `scripts/flash-sdcard.sh` 已改用 Node.js 26，支持独占串口、
 写后哈希校验和重连验证；不再依赖 Python/CFFI。安装、断电状态码和
 尚未完成的实机验收见 [SD 卡更新](docs/SDCard_Updates.md)。
+
+文档站点构建已切换 Node.js 26，支持现有七语言导航与搜索，
+不再依赖 MkDocs 或 Python。入口和兼容性决策见
+[文档构建说明](docs/_klipper3d/README)。

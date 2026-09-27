@@ -7,25 +7,28 @@ on:
       - master
     paths:
       - docs/**
+      - scripts/build-docs.ts
+      - host/src/diagnostics/docs-*.ts
+      - host/src/diagnostics/markdown-it-attrs.d.ts
+      - host/package.json
+      - host/package-lock.json
       - .github/workflows/klipper3d-deploy.yaml
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Setup python
-        uses: actions/setup-python@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.8'
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('docs/_klipper3d/mkdocs-requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          node-version: '26.9.0'
+          cache: npm
+          cache-dependency-path: host/package-lock.json
       - name: Install dependencies
-        run: pip install -r docs/_klipper3d/mkdocs-requirements.txt
-      - name: Build MkDocs Pages
+        run: npm ci --prefix host --ignore-scripts --no-audit --no-fund
+      - name: Validate documentation renderer
+        run: node --test --test-isolation=none --test-concurrency=1 host/test/docs-*.test.ts
+      - name: Build Node Pages
         run: docs/_klipper3d/build-website.sh
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.4.3

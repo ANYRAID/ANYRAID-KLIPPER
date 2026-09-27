@@ -37,3 +37,12 @@ test('block precheck preserves indented code for CRLF and tab indentation', () =
       '<pre><code>Intro\n3. literal\n</code></pre>\n');
   }
 });
+
+test('intentional CommonMark list improvements retain item order and fenced code text', () => {
+  const list = renderDocsPage('- first\n\n  paragraph\n\n- second', 'https://example.test/').html;
+  assert.equal((list.match(/<ul>/g) ?? []).length, 1);
+  assert.equal((list.match(/<li>/g) ?? []).length, 2);
+  assert.ok(list.indexOf('first') < list.indexOf('paragraph') && list.indexOf('paragraph') < list.indexOf('second'));
+  const code = renderDocsPage('- first\n\n  ```text\n  a < b\n  ```', 'https://example.test/').html;
+  assert.match(code, /<pre><code class="language-text">a &lt; b\n<\/code><\/pre>/);
+});

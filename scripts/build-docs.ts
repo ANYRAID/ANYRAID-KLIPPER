@@ -10,7 +10,7 @@ if (![1, 2].includes(args.length) || args.some((arg) => arg.startsWith('-'))) {
   const root = resolve(import.meta.dirname, '..');
   try {
     const options = { docs: resolve(root, 'docs'),
-      config: resolve(root, 'docs/_klipper3d/mkdocs.yml'), output: args[0] };
+      config: resolve(root, 'docs/_klipper3d/site.yml'), output: args[0] };
     console.log(JSON.stringify(args[1] ? await buildTranslatedDocs({ ...options, translations: args[1] })
       : await buildDocsSite(options)));
   } catch (error) {

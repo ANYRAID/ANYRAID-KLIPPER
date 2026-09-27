@@ -11,7 +11,7 @@ try {
   for (let round = 0; round < 10; round++) {
     const start = performance.now();
     result = await buildTranslatedDocs({ docs: join(repo, 'docs'),
-      config: join(repo, 'docs/_klipper3d/mkdocs.yml'), translations: resolve(process.argv[2]), output: join(root, String(round)) });
+      config: join(repo, 'docs/_klipper3d/site.yml'), translations: resolve(process.argv[2]), output: join(root, String(round)) });
     if (round >= 3) samplesMs.push(performance.now() - start);
   }
   console.log(JSON.stringify({ node: process.version, warmups: 3, samplesMs,

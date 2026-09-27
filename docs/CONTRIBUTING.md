@@ -173,7 +173,7 @@ Common things a reviewer will look for:
 
    New documents should be added to [Overview.md](Overview.md) and be
    added to the website index
-   [docs/_klipper3d/mkdocs.yml](../docs/_klipper3d/mkdocs.yml).
+   [docs/_klipper3d/site.yml](../docs/_klipper3d/site.yml).
 
 6. Are commits well formed, address a single topic per commit, and
    independent?
@@ -332,4 +332,5 @@ index.md does not render correctly).
 Known Issues:
 1. Currently, there isn't a method for correctly translating pictures in
 the documentation
-2. It is impossible to translate titles in mkdocs.yml.
+2. Navigation group labels are translated through Navigation.md. Subsection
+labels without a mapped translation retain their site.yml text.

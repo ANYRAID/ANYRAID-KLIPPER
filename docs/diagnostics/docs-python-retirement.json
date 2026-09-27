@@ -1,0 +1,76 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samplesMs": [
+      1191.0350039999998,
+      1179.1664380000002,
+      1175.0186519999997,
+      1214.5916040000002,
+      1206.1190829999996,
+      1187.4446169999992,
+      1182.6535230000009
+    ],
+    "medianMs": 1187.4446169999992,
+    "result": [
+      {
+        "language": "en",
+        "pages": 57,
+        "assets": 118
+      },
+      {
+        "language": "zh",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "zh-Hant",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "hu",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "de",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "it",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "fr",
+        "pages": 55,
+        "assets": 74
+      }
+    ],
+    "scope": "Multilingual candidate build, staging and filesystem writes; no download or browser time"
+  },
+  "nodeVersion": "26.9.0",
+  "translationCommit": "eacd544a2ecc0c9c59d5f458f03a4eba6fb7518f",
+  "verification": {
+    "offlineWrapper": true,
+    "pathOnlyContains": "dirname; Node selected by absolute NODE path",
+    "defaultCloneWrapper": true,
+    "temporaryCloneRemoved": true,
+    "cnamePreserved": true,
+    "documentTests": 32,
+    "typecheck": true,
+    "workflowYaml": true
+  },
+  "notRun": [
+    "remote GitHub Actions execution",
+    "public site deployment"
+  ],
+  "sources": {
+    "docs/_klipper3d/build-website.sh": "3e1510faa2773b001e9f2b4a5c3e85413fd31c9439fb10d549a1af2645e2a014",
+    "docs/_klipper3d/site.yml": "e70f5fcacc2ccf7c77c7e794951293a4550bbee484cc3df46c5ae25759e5e8d9",
+    ".github/workflows/klipper3d-deploy.yaml": "dbc38f8b9074fd2b395f58d36918092a3d3d94e4b6a58f7ae18d59934575b161",
+    "scripts/build-docs.ts": "b933b01910f95b2ad5b89c054ff7e3b4014420b6259b1869b288e7bcd3f139b2"
+  }
+}
