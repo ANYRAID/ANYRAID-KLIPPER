@@ -1,0 +1,106 @@
+{
+  "date": "2026-09-28",
+  "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31865.pdf",
+  "model": {
+    "standard": "IEC 751 coefficients documented in MAX31865 Rev 3 p10",
+    "minimumC": -200,
+    "maximumC": 850,
+    "a": 0.0039083,
+    "b": -5.775e-7,
+    "c": -4.18301e-12,
+    "negativeCorrection": true
+  },
+  "tests": {
+    "command": "node --test --test-isolation=none host/test/max31865.test.ts host/test/max31856.test.ts host/test/max31855.test.ts host/test/max6675.test.ts",
+    "passed": 15,
+    "resistors": [
+      [
+        100,
+        400
+      ],
+      [
+        100,
+        430
+      ],
+      [
+        1000,
+        4300
+      ],
+      [
+        100,
+        1000
+      ]
+    ],
+    "codesPerPair": 32768,
+    "checks": [
+      "Every valid code monotone and independently evaluated forward residual below 5e-15",
+      "Every 31st valid code and endpoints compared with 30-decimal fixed-point bisection, error below 2e-10 C",
+      "Positive temperatures agree with legacy quadratic within 2e-10 C",
+      "Every odd wire word rejected as fault",
+      "Every valid default code tested at exact lower and upper range boundary",
+      "Unsupported model domain and malformed input rejected"
+    ]
+  },
+  "difference": {
+    "nominal": 100,
+    "reference": 400,
+    "adcCode": 1518,
+    "currentC": -199.97641658978617,
+    "legacyC": -202.39990807137016
+  },
+  "benchmarks": {
+    "full": {
+      "node": "v26.9.0",
+      "nominalResistance": 100,
+      "referenceResistance": 430,
+      "firstCode": 1412,
+      "lastCode": 29756,
+      "positiveOnly": false,
+      "decodes": 907040,
+      "warmups": 5,
+      "runs": 19,
+      "medianMs": 8.468610999999996,
+      "p95Ms": 16.490249000000006,
+      "checksum": 266441632.4010797,
+      "scope": "Valid MAX31865 RTD model codes, scalar decoding only; no serial transport or target hardware"
+    },
+    "positiveNode": {
+      "node": "v26.9.0",
+      "nominalResistance": 100,
+      "referenceResistance": 430,
+      "firstCode": 7621,
+      "lastCode": 29756,
+      "positiveOnly": true,
+      "decodes": 708352,
+      "warmups": 5,
+      "runs": 19,
+      "medianMs": 2.9826120000000174,
+      "p95Ms": 10.510183999999995,
+      "checksum": 286636226.8721024,
+      "scope": "Valid MAX31865 RTD model codes, scalar decoding only; no serial transport or target hardware"
+    },
+    "positivePython": {
+      "python": "3.12.13",
+      "source": "klippy/extras/spi_temperature.py:MAX31865.calc_temp",
+      "sourceSha256": "0e3723b5cfc90f1cdbde957c5604680a605ba4ee487b5b78da53086fb8b8882f",
+      "decodes": 708352,
+      "warmups": 5,
+      "runs": 19,
+      "medianMs": 197.44205100141698,
+      "p95Ms": 363.0358159971365,
+      "checksum": 286636226.8721021,
+      "scope": "Actual old calc_temp method, bus import stub only, positive RTD domain; initialization and transport excluded"
+    }
+  },
+  "sourceSha256": {
+    "host/src/thermal/max31865.ts": "1f89c75695f2a2afb69cddc524e5ac6d02667bb20905b896c6c9434f3e89e460",
+    "host/test/max31865.test.ts": "937b5ebe255913eed95ebd282648eb23f97c21400d70649bdba3ac951b301a9c",
+    "host/bench/max31865.ts": "883d47b20fdc57689ad348b32fa87a080f6ac5c367a29d4da517b2c34bf136d5"
+  },
+  "limitations": [
+    "Configuration, initialization, serial consumer and compiled product integration pending",
+    "Scalar benchmark only, no physical probe or target-board precision/performance acceptance",
+    "No Python retired; default printing entrypoint still Python",
+    "Historical runtime crash and motion numerical issues unresolved"
+  ]
+}
