@@ -16,6 +16,19 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- SD 烧录板卡目录已迁移 27 项定义、46 项别名（72 个不同名称），
+  与原 Python 固定参考逐项匹配；列表去除旧 chitu-v6 的重复项。
+  `planSDFlash` 校验实际 MCU 与板卡一致，明确硬件／软件 SPI、模式、
+  速度、文件名及手动断电要求。固件准备直接调用 Node Robin／Chitu
+  转换器；1 MiB 含复制和 SHA-256 的中位耗时分别为普通 0.766 ms、
+  Robin 0.842 ms、Chitu 24.268 ms（2 次预热、7 次采样）。
+  `uploadSDFirmware` 已接入 FAT 文件写入、长度与 SHA-256 读回校验，
+  拒绝并发上传与唯一文件名冲突，不沿用旧入口批量删除同后缀文件的
+  行为。回执只声明 uploaded，activationVerified 恒为 false，不能
+  将写卡成功等同于 bootloader 激活成功。7 项板卡／文件链路回归、
+  类型检查通过；旧烧录入口尚未切换，MCU 板卡装配、重启验证和
+  编译包分发仍待完成。固定参考及实现分别为
+  `host/contracts/sd-boards-reference.json` 与 `host/src/diagnostics/sd-upload.ts`。
 - `SDFileSystem` 已将 FatFs 文件操作连接到 SD 卡生命周期：独占同一
   卡片对象，挂载前初始化，关闭先结束文件系统再复位卡片，失败保留
   原始与清理错误。FAT16、FAT32 均完成长文件名写入、关闭、重新

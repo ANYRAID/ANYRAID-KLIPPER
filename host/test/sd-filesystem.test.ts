@@ -28,3 +28,11 @@ test('FAT32 firmware roundtrip includes native UART, MCU SPI FIFO and remount',a
   t.diagnostic(JSON.stringify({bytes:bytes.length,writeRemountReadMs:performance.now()-start,scope:'FAT32 helper, SD CRC/commands, native UART and MCU FIFO; simulated firmware/card'}));
  }finally{try{await fs?.close();}finally{await session.stop();await firmware.close();}}
 });
+test('converted firmware upload verifies on-disk bytes and fences timestamp collisions',async()=>{
+ const {uploadSDFirmware}=await import('../src/diagnostics/sd-upload.ts'),{encodeRobin}=await import('../src/build/firmware.ts');const disk=fatDisk(),io=new SDCardEmulator();io.image=disk.image;io.csd[9]=7;io.csd[15]=sdCRC7(io.csd.subarray(0,15));const card=new SDCardSPI(io),fs=await SDFileSystem.open(card,signal());
+ try{
+  const source=Buffer.alloc(4097,23),receipt=await uploadSDFirmware(fs,'mks-robin-e3','stm32f103xe',source,signal());assert.equal(receipt.activationVerified,false);assert.equal(receipt.path,'Robin_e3.bin');assert.deepEqual(await fs.readFile(receipt.path,signal()),encodeRobin(source));
+  const options={timestamp:'20260928010101'};const pending=uploadSDFirmware(fs,'creality-v4.2.7','stm32f103xe',source,signal(),options);await assert.rejects(uploadSDFirmware(fs,'creality-v4.2.7','stm32f103xe',source,signal(),options),/already active/);await pending;await assert.rejects(uploadSDFirmware(fs,'creality-v4.2.7','stm32f103xe',source,signal(),options),/already exists/);const writes=io.writes.length;await assert.rejects(uploadSDFirmware(fs,'creality-v4.2.7','stm32f103xe',source,signal(),options),/already exists/);assert.equal(io.writes.length,writes);
+  await assert.rejects(uploadSDFirmware({stat:fs.stat.bind(fs),writeFile:fs.writeFile.bind(fs),async readFile(path,s){const bytes=await fs.readFile(path,s);bytes[0]^=1;return bytes;}},'btt-skr-mini','stm32f103xe',source,signal()),/SHA-256 mismatch/);
+ }finally{await fs.close();}
+});
