@@ -159,10 +159,128 @@
   },
   "limitations": [
     "Save success and configuration reload tested via mounted source product HTTP API with injected calibration; no physical probing",
-    "Compiled product tests authentication, refusal after cancellation, existing printing and reinitialization; not a successful save followed by compiled restart in one journey",
     "Local warm filesystem timings, no target-board performance guarantee",
     "Receipt is session-local, not a durable cross-process operation journal",
     "Delete/calibration/general configuration editing and Python retirement remain pending",
     "Prior SIGSEGV and numerical failures unresolved"
-  ]
+  ],
+  "compiledRoundTrip": {
+    "base": "220eba56",
+    "tests": 4,
+    "typecheck": true,
+    "configuration": {
+      "compiled": true,
+      "reinitialized": true,
+      "oldTokenRejected": true,
+      "profile": "retained",
+      "implicitMeshActivation": false
+    },
+    "product": [
+      {
+        "loaded": false,
+        "historyNotifications": 32,
+        "historyRequests": 0,
+        "historyP99Ms": null,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 167,
+        "wireSteps": 3088,
+        "minimumStepLeadMs": 87.047,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.482175,
+              "maxMs": 18.923519
+            },
+            "cpu": {
+              "user": 782208,
+              "system": 75355
+            },
+            "rss": 163770368
+          },
+          {
+            "loop": {
+              "p99Ms": 1.782783,
+              "maxMs": 5.308415
+            },
+            "cpu": {
+              "user": 407428,
+              "system": 60988
+            },
+            "rss": 188084224
+          }
+        ]
+      },
+      {
+        "loaded": true,
+        "historyNotifications": 32,
+        "historyRequests": 462,
+        "historyP99Ms": 4.813705000000482,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.0440920000000915,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.048259000002872,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.6393560000033176,
+        "metadataRequests": 16,
+        "metadataP95Ms": 13.570203999999649,
+        "downloads": 16,
+        "downloadP95Ms": 5.221891000001051,
+        "wireCommands": 186,
+        "wireSteps": 3316,
+        "minimumStepLeadMs": 86.803,
+        "directoryRequests": 1979,
+        "directoryP99Ms": 5.309901999993599,
+        "statusRequests": 8197,
+        "uploads": 16,
+        "statusP99Ms": 3.465767000001506,
+        "uploadP95Ms": 8.46612499999901,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.001919,
+              "maxMs": 14.082047
+            },
+            "cpu": {
+              "user": 2093737,
+              "system": 267363
+            },
+            "rss": 241717248
+          },
+          {
+            "loop": {
+              "p99Ms": 1.942527,
+              "maxMs": 4.210687
+            },
+            "cpu": {
+              "user": 1259936,
+              "system": 172989
+            },
+            "rss": 268943360
+          }
+        ]
+      }
+    ],
+    "hashes": {
+      "/tmp/native-config-compiled-roundtrip.log": "a258bb2ccb1a69283a3ee80d06c07fc1c47fa44fa6236d462d32c60193fbe897",
+      "host/acceptance/product-compiled-journey.test.ts": "f455bfd9be68ab267a730c8b417e4bb6cb966a9ef98f8a84bba88e27570b4c9c"
+    },
+    "scope": "Additional print file loads and offsets a saved mesh, completes normally, saves through authenticated HTTP, retries successfully, reinitializes through durable host control, verifies stored points and rejects the previous configuration token. No Python or TS runtime loading in product child."
+  }
 }
