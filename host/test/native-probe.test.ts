@@ -29,3 +29,15 @@ for(const failure of ['no-hit','during-rebase'] as const)test(`owned probe failu
   await assert.rejects(running,failure==='no-hit'?/Probe did not trigger/:/cancel owned probe/);assert.equal(t.port.status.failed,true);assert.equal(t.kinematics.status.homedAxes,'');assert.throws(()=>t.port.move([50,0,1,2],5),/stopped/);
  }finally{clearTimeout(timer);await t.close();}
 });
+for(const initial of ['triggered','sampling'] as const)test(`owned probe rejects ${initial} input before downward motion`,async()=>{
+ const t=await nativeLinearFixture(),s=new AbortController().signal;
+ try{
+  t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);
+  t.f.fw.setEndstopState({homing:initial==='sampling'?1:0,pin_value:initial==='triggered'?1:0,next_clock:0},7);
+  const before=t.f.fw.outputs.length;
+  await assert.rejects(t.port.probeZ(0,5,t.groups,s),/already triggered or sampling/);
+  const output=t.f.fw.outputs.slice(before);assert(output.some(m=>m.name==='endstop_query_state'));
+  assert(!output.some(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0));
+  assert(!output.some(m=>m.name==='queue_step'));assert.equal(t.port.status.failed,true);assert.equal(t.kinematics.status.homedAxes,'');
+ }finally{await t.close();}
+});

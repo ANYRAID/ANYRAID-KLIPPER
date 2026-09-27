@@ -330,6 +330,16 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    const start=this.homingPosition(),target=[...start];target[2]=z;
    if(!Number.isFinite(z)||z>=start[2])throw new RangeError('Probe target must be below the physical start');
    this.#o.kinematics.planHomingAxisMove(start,target,speed,2);
+   await this.#drain(s);
+   if(!owned.length||owned.length>16)throw new Error('Invalid probe stop groups');
+   for(const group of owned){
+    const binding=group.members[group.primary],primary=binding&&this.#g.members[binding.physicalMember];
+    if(!primary)throw new Error('Invalid probe primary MCU');
+    group.endstop.assertDictionary(primary.session.dictionary);
+    const reply=await primary.session.queryOnQueue(primary.queue,group.endstop.query(),'endstop_state',s,{oid:group.endstop.oid});
+    const state=group.endstop.decode(reply.message);
+    if(!state||state.homing||state.triggered)throw new Error('Probe is already triggered or sampling');
+   }
    await this.#rebase(start,s);
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe'}).run(target,speed,2,s);
    try{this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}

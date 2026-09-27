@@ -65,5 +65,39 @@
     "Probe GPIO configuration, pre-trigger query, repeated sampling and consumer calibration workflow remain unconnected.",
     "Historical numerical anomalies and process crashes remain unresolved.",
     "Initial no-hit fixture injected failure before rebase stop confirmation; fixed fixture injects after probe arming, without weakening production stop checks."
-  ]
+  ],
+  "preflight": {
+    "base": "2aac3ee7",
+    "tests": 9,
+    "typecheck": true,
+    "whitespace": true,
+    "benchmark": {
+      "node": "v26.9.0",
+      "warmups": 3,
+      "samples": 11,
+      "home": {
+        "wall": {
+          "medianMs": 253.72938900000008,
+          "p95Ms": 254.49397599999975
+        },
+        "cpu": {
+          "medianMs": 7.899,
+          "p95Ms": 11.14
+        }
+      },
+      "probe": {
+        "wall": {
+          "medianMs": 254.4030129999992,
+          "p95Ms": 256.7583020000002
+        },
+        "cpu": {
+          "medianMs": 8.72,
+          "p95Ms": 24.166
+        }
+      },
+      "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+    },
+    "sourceSha256": "14f36cf825ae0c9cbd2a61cdad59427a358bbfa0733074ba9a6ace9b91b1a01f",
+    "scope": "Fresh MCU input query before probe arming. Triggered and sampling input reject without new step output. Simulated MCU only; compiled product suite was not rerun for this probe-only guard."
+  }
 }
