@@ -74,7 +74,7 @@ test('product auto-plans filament input and releases policy on MCU stop',async()
  const f=await configuredPrinterFixture(false,false,true),dir=await mkdtemp(join(tmpdir(),'filament-product-')),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'}),maintenanceGate=new MaintenanceGate();let owner:Awaited<ReturnType<typeof connectProductPrinter>>|undefined;
  try{
   owner=await connectProductPrinter(f.reader,f.connections,'mcu',f.layout,f.options,{journal,maintenanceGate,limits:{maxNozzle:300,maxBed:130}},f.signal);
-  const sensor=owner.filamentSensors[0],plan=owner.hardware.plan.buttons[0];assert.equal(sensor.section,'filament_switch_sensor tool');assert.equal(sensor.runtime.status.valid,false);
+  const sensor=owner.filamentSensors[0],plan=owner.hardware.plan.buttons[0];assert.equal(sensor.section,'filament_switch_sensor tool');assert.equal(sensor.runtime.status.valid,false);await assert.rejects(owner.controller.start(request),/Filament is absent or unconfirmed/);assert.equal(owner.controller.state,'idle');assert.equal(await journal.get(request.requestId),null);assert(f.firmware.every(device=>device.motion.length===0));
   f.firmware[1].emit('buttons_state',{oid:plan.buttons.oid,ack_count:0,state:Buffer.from([1])});
   const end=performance.now()+4000;while(!sensor.runtime.status.valid){assert(performance.now()<end,'filament warmup timeout');await new Promise(r=>setTimeout(r,10));}
   assert.equal(sensor.runtime.status.filament_detected,true);assert.equal(owner.controller.state,'idle');assert.equal(owner.controller.stateObservers,1);

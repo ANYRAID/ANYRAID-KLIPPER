@@ -744,3 +744,11 @@ test('resume interlock rejects absent material without leaving pause or faulting
  let allowed=false,resumes=0;const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){resumes++;},async finish(){},async stop(){}},{maxNozzle:280,maxBed:110},{},{beforeResume(){if(!allowed)throw new Error('No filament');}});
  await controller.start(request);await controller.pause();const token=controller.stateToken;await assert.rejects(controller.resume(),/No filament/);assert.equal(controller.state,'paused');assert.equal(controller.stateToken,token);assert.equal(resumes,0);allowed=true;await controller.resume();assert.equal(resumes,1);await controller.retire();
 });
+test('start interlock preserves idle and permits retry of a rejected request',async()=>{
+ let allowed=false,starts=0,prepares=0;const controller=new PrintController({async prepare(){prepares++;},async start(){starts++;},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:280,maxBed:110},{},{beforeStart(){if(!allowed)throw new Error('No filament');}});
+ await assert.rejects(controller.start(request),/No filament/);assert.equal(controller.state,'idle');assert.equal(prepares,0);assert.equal(starts,0);allowed=true;await controller.start(request);allowed=false;await controller.start(request);assert.equal(starts,1);await controller.retire();
+});
+test('lost material during preparation stops without starting file execution',async()=>{
+ let allowed=true,starts=0,stops=0;const controller=new PrintController({async prepare(){allowed=false;},async start(){starts++;},async pause(){},async resume(){},async finish(){},async stop(){stops++;}},{maxNozzle:280,maxBed:110},{},{beforeStart(){if(!allowed)throw new Error('No filament');}});
+ await assert.rejects(controller.start(request),/No filament/);assert.equal(controller.state,'failed');assert.equal(starts,0);assert(stops>0);await controller.retire();
+});

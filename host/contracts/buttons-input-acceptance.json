@@ -101,5 +101,19 @@
     "precisionToleranceUnchanged": true,
     "diagnostics": "Consumption assertion now includes actual and paused usage, final position and durable record.",
     "historicalStabilityFailuresRemainOpen": true
+  },
+  "startInterlock": {
+    "controllerTests": 29,
+    "productTests": 6,
+    "compiledTests": 4,
+    "behaviour": [
+      "Reject unknown or absent filament before task reservation and hardware preparation",
+      "Recheck after journal reservation and after preparation before executing file",
+      "Retain idempotent replay of previously accepted request",
+      "Rejected request can be retried after insertion without reset"
+    ],
+    "loadedMinimumStepLeadMs": 88.287,
+    "loadedMaximumGenerationLoopP99Ms": 2.191359,
+    "scope": "Simulated MCU, not physical hardware"
   }
 }

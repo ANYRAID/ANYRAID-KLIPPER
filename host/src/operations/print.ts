@@ -63,6 +63,8 @@ export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
   finishMs: 30000,
 });
 export interface PrintControllerOptions {
+  /** Checked before reservation and again before preparation/file execution. */
+  beforeStart?:()=>void;
   /** Synchronous product interlock; rejection retains the confirmed pause. */
   beforeResume?:()=>void;
   extrusionAccounting?:ExtrusionAccounting;
@@ -81,6 +83,7 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #beforeStart:(()=>void)|undefined;
   #beforeResume:(()=>void)|undefined;
   #extrusionAccounting:ExtrusionAccounting|undefined;
   get filamentUsed():number|null{return this.#extrusionAccounting?.filamentUsed??null;}
@@ -232,6 +235,7 @@ export class PrintController {
     deadlines: Partial<PrintDeadlines> = {},
     options: PrintControllerOptions = {},
   ) {
+    if(options.beforeStart!==undefined&&typeof options.beforeStart!=='function')throw new TypeError('Invalid start interlock');this.#beforeStart=options.beforeStart;
     if(options.beforeResume!==undefined&&typeof options.beforeResume!=='function')throw new TypeError('Invalid resume interlock');
     this.#beforeResume=options.beforeResume;
     if(options.extrusionAccounting!==undefined&&!(options.extrusionAccounting instanceof ExtrusionAccounting))throw new TypeError('Invalid extrusion accounting owner');
@@ -364,6 +368,7 @@ export class PrintController {
       return Promise.reject(
         new Error('Print request history capacity reached'),
       );
+    try{this.#beforeStart?.();}catch(error){return Promise.reject(error);}
     let releaseActivity:()=>void;try{releaseActivity=this.#maintenanceGate?.activity()??(()=>{});}catch(error){return Promise.reject(error);}
     this.#start = Object.freeze({
       version: 1,
@@ -389,9 +394,11 @@ export class PrintController {
         // Durable reservation must finish before the first device effect. A
         // wall-clock rollback cannot extend the original admission budget.
         if(expiresAt!==undefined&&(Date.now()>=expiresAt||performance.now()-admittedAt>=remaining))throw new Error('Print request expired before admission');
+        this.#beforeStart?.();
         admission.resolve();
         await this.#device.prepare(this.#start!, signal);
         signal.throwIfAborted();
+        this.#beforeStart?.();
         await this.#device.start(this.#start!.fileId, signal);
         signal.throwIfAborted();
         await this.#persist('started');

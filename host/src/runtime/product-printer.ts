@@ -26,10 +26,11 @@ export async function connectProductPrinter(reader:ConfigurationReader,connectio
  const printer=await connectConfiguredPrinter(reader,connections,primaryId,layout,options,signal);
  let controller:PrintController|undefined,closing:Promise<void>|undefined;
  const sensors:{section:string;runtime:FilamentSwitch}[]=[];
+ const requireFilament=()=>{for(const sensor of sensors)if(!sensor.runtime.canResume)throw new Error('Filament is absent or unconfirmed in '+sensor.section);};
  const aborted=()=>{void printer.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',aborted,{once:true});
  try{
   signal.throwIfAborted();
-  controller=await PrintController.restore(printer.print.device,limits,deadlines,{journal,maintenanceGate,maxRememberedRequests,extrusionAccounting:printer.print.gcode.coordinates.extrusionAccounting,beforeResume:()=>{for(const sensor of sensors)if(!sensor.runtime.canResume)throw new Error('Cannot resume: filament is absent or unconfirmed in '+sensor.section);}});
+  controller=await PrintController.restore(printer.print.device,limits,deadlines,{journal,maintenanceGate,maxRememberedRequests,extrusionAccounting:printer.print.gcode.coordinates.extrusionAccounting,beforeStart:requireFilament,beforeResume:requireFilament});
   signal.throwIfAborted();printer.group.assertActive();
   const owned=controller;
   const sensorAbort=new AbortController();
