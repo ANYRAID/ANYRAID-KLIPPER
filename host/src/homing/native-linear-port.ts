@@ -309,7 +309,9 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
-  const target=[...position];return this.#operate('rebase',signal,async s=>{
+  const target=[...position];return this.#operate('rebase',signal,s=>this.#rebase(target,s));
+ }
+ async #rebase(target:readonly number[],s:AbortSignal){
    await this.#drain(s);const g=this.#g,routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
@@ -318,6 +320,19 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
     this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
+ }
+ /** Privileged probe owner supplies separately configured stop groups. Never
+  * infer that a Z homing switch is a bed probe. Coordinates here are physical. */
+ probeZ(z:number,speed:number,groups:LinearSeekOptions['groups'],signal:AbortSignal){
+  const owned=groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}));
+  return this.#operate('seek',signal,async s=>{
+   if(this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Probe requires all axes homed');
+   const start=this.homingPosition(),target=[...start];target[2]=z;
+   if(!Number.isFinite(z)||z>=start[2])throw new RangeError('Probe target must be below the physical start');
+   this.#o.kinematics.planHomingAxisMove(start,target,speed,2);
+   await this.#rebase(start,s);
+   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe'}).run(target,speed,2,s);
+   try{this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}
   });
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{

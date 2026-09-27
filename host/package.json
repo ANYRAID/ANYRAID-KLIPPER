@@ -292,7 +292,8 @@
     "bench:native-bed-mesh": "node bench/native-bed-mesh.ts",
     "bench:native-bed-mesh-status": "node bench/native-bed-mesh-status.ts",
     "bench:native-configuration": "node bench/native-configuration.ts",
-    "bench:probe-linear-seek": "node bench/probe-linear-seek.ts"
+    "bench:probe-linear-seek": "node bench/probe-linear-seek.ts",
+    "bench:native-probe": "node bench/native-probe.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",

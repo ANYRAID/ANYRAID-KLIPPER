@@ -26,7 +26,7 @@ export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false
   const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{generation,emitters:f.emitters,kinematicIds:['x','y','z'],groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
   const coordinates=new GCodeMove(port);
   const command=new LinearHomingCommand(kinematics,coordinates,port,rails,5000);
-  return {f,generation,port,kinematics,coordinates,command,fan,timeline,async close(){await port.dispose();await f.close();await timeline?.stop();}};
+  return {f,generation,groups,port,kinematics,coordinates,command,fan,timeline,async close(){await port.dispose();await f.close();await timeline?.stop();}};
  }catch(error){await f.close();await timeline?.stop();throw error;}
 }
 export async function nativeStreamStarted(t:Awaited<ReturnType<typeof nativeLinearFixture>>){

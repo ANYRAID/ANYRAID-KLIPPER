@@ -1,0 +1,69 @@
+{
+  "base": "4cd707a5",
+  "tests": {
+    "nativeRegression": 19,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": true
+  },
+  "benchmark": [
+    {
+      "node": "v26.9.0",
+      "warmups": 3,
+      "samples": 11,
+      "home": {
+        "wall": {
+          "medianMs": 253.74446399999943,
+          "p95Ms": 254.34166199999981
+        },
+        "cpu": {
+          "medianMs": 8.199,
+          "p95Ms": 11.194
+        }
+      },
+      "probe": {
+        "wall": {
+          "medianMs": 254.29806200000166,
+          "p95Ms": 256.69408399999975
+        },
+        "cpu": {
+          "medianMs": 11.003,
+          "p95Ms": 26.838
+        }
+      },
+      "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+    }
+  ],
+  "coordinates": {
+    "unit": "mm",
+    "trigger": [
+      51,
+      0,
+      0.88,
+      2
+    ],
+    "halt": [
+      51,
+      0,
+      0.85,
+      2
+    ]
+  },
+  "sourceSha256": {
+    "host/src/homing/native-linear-port.ts": "da89332b0f1e9522e1bc4e2f284ca0d0d4c74e3d2eefdf32093577dc9db7f1d9",
+    "host/test/helpers/native-linear-port.ts": "23283740e6c9facb59d6dee82fb46192e0023bc16a71f75ffc6af49c89c5b19d",
+    "host/test/native-probe.test.ts": "ca6a3c85f6503f9bb1a22de9bac7539e8178010c99223b22d07ca24d7517e509",
+    "host/bench/native-probe.ts": "2ef01f608d54b520c8f9846a7180fb0ad0a8f8599dd9baabeb8a37f609f0c310"
+  },
+  "logs": [
+    "/tmp/native-probe-verified.log",
+    "/tmp/native-probe-product.log",
+    "/tmp/native-probe-bench.log"
+  ],
+  "limitations": [
+    "Simulated MCU only; no target board or physical printer acceptance.",
+    "Probe GPIO configuration, pre-trigger query, repeated sampling and consumer calibration workflow remain unconnected.",
+    "Historical numerical anomalies and process crashes remain unresolved.",
+    "Initial no-hit fixture injected failure before rebase stop confirmation; fixed fixture injects after probe arming, without weakening production stop checks."
+  ]
+}
