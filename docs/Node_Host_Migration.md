@@ -25331,3 +25331,31 @@ host/contracts/bltouch-auto-printer-acceptance.json。
 
 本次没有退役 Python 文件，也没有切换默认入口。维护接口、目标板
 及真机验收仍未完成；历史 Node 崩溃和数值失配保持开放。
+
+### 运动诊断中断后的证据保存
+
+诊断曾在等待过程中失去进程句柄，原 /tmp 日志及报告也不可用。
+该次关闭优化的 Node 26.10 检查状态为未验证，不能计入通过结果。
+先前在对话中观察到的成功样本也不作为关闭历史异常的持久证据。
+
+`host/scripts/diagnose-node-asan.ts` 现在在启动子进程前、启动后及每次
+子进程结束后原子更新 report.json，记录活动 PID、已完成结果和耗时。
+报告状态为 running、completed、failed 或 interrupted；SIGTERM/SIGINT
+停止新任务、终止活动子进程并保存 interrupted，SIGKILL 后保留最后的
+running 快照。running 不证明进程仍存活，也不表示通过，应核对进程
+或工具句柄。只有 completed 且结果数等于 limit、每个结果无错误并有
+验证完成标记时，才可认为这组诊断完成。
+
+长诊断使用工作树内持久目录，避免只把证据保存在临时环境：
+
+```sh
+mkdir -p host/build/motion-diagnostics
+node host/scripts/diagnose-node-asan.ts --case motion --asan off \
+  --execution compiled --runs 50 --workers 1 \
+  --report-parent "$PWD/host/build/motion-diagnostics"
+```
+
+上述命令是复现入口，不代表本次又执行了 50 次检查。已有 6 项诊断
+回归验证通过，包含真实原参考计算、注入数值错误，以及在一个子任务
+完成、另一个仍活动时发送 SIGTERM/SIGKILL 后检查报告。类型与空白
+检查通过。该改动仅保存诊断证据，不修改运动计算，不关闭历史异常。

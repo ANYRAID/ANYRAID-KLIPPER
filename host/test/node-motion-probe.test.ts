@@ -10,7 +10,7 @@ const cli=fileURLToPath(new URL('../scripts/diagnose-node-asan.ts',import.meta.u
 test('motion runtime probe verifies original reference in bounded fresh Node children and records source hashes',()=>{
  const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--runs','2','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2,env:{...process.env,CC:'/nonexistent-compiler'}});
  const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert.ok(first,run.stderr);const {directory}=JSON.parse(first);
- try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.kind,'motion');assert.equal(report.asan,'off');assert.deepEqual(report.addonHashes,{});assert.equal(report.results.length,2);
+ try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.kind,'motion');assert.equal(report.asan,'off');assert.deepEqual(report.addonHashes,{});assert.equal(report.results.length,2);assert.equal(report.state,'completed');assert.deepEqual(report.active,[]);
  assert.equal(report.jsOptimization,'default');assert.equal(report.runtime,undefined);assert.equal(report.runtimeSha256,undefined);assert.equal(report.args.length,1);assert.equal(report.childWorkingDirectory,directory);assert.deepEqual(report.coreFiles,[]);if(process.platform==='linux'){assert.match(report.corePolicy.limits,/Max core file size/);assert.match(report.corePolicy.filter,/^[0-9a-f]+$/);}
  for(const result of report.results){assert.equal(result.status,0);assert.equal(result.signal,null);assert.equal(result.stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');}
  const source=readFileSync(new URL('../src/diagnostics/graph-motion.ts',import.meta.url));assert.equal(report.moduleHashes['src/diagnostics/graph-motion.ts'],createHash('sha256').update(source).digest('hex'));assert.equal(report.fixtureSha256,createHash('sha256').update(readFileSync(join(directory,'fixture.mjs'))).digest('hex'));
@@ -26,7 +26,42 @@ test('probe records explicit optimizing compiler controls without requiring a C 
 test('probe preserves artifacts in an owned child directory and rejects silent successful exit',()=>{
  const parent=mkdtempSync(join(tmpdir(),'motion-ci-test-')),fake=join(parent,'silent-node');
  try{writeFileSync(join(parent,'sentinel'),'preserve');writeFileSync(fake,'#!'+process.execPath+'\nif(process.argv.includes("--version"))console.log(process.version);else require("node:fs").writeFileSync("core.fixture","test");\n');chmodSync(fake,0o700);
- const run=spawnSync(process.execPath,[cli,'--node',fake,'--case','motion','--asan','off','--runs','3','--workers','1','--report-parent',parent],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});assert.equal(run.status,1,run.stdout+run.stderr);const {directory}=JSON.parse(run.stdout.split('\n')[0]);assert.equal(directory.startsWith(join(parent,'anyraid-node-asan-')),true);assert.equal(readFileSync(join(parent,'sentinel'),'utf8'),'preserve');const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.results.length,1);assert.equal(report.childWorkingDirectory,directory);assert.deepEqual(report.coreFiles,[{path:join(directory,'core.fixture'),bytes:4}]);assert.equal(report.results[0].status,0);assert.equal(report.results[0].error,'Verification completion marker missing');assert.ok(readFileSync(join(directory,'fixture.mjs'),'utf8').includes('motion:verified'));
+ const run=spawnSync(process.execPath,[cli,'--node',fake,'--case','motion','--asan','off','--runs','3','--workers','1','--report-parent',parent],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});assert.equal(run.status,1,run.stdout+run.stderr);const {directory}=JSON.parse(run.stdout.split('\n')[0]);assert.equal(directory.startsWith(join(parent,'anyraid-node-asan-')),true);assert.equal(readFileSync(join(parent,'sentinel'),'utf8'),'preserve');const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.results.length,1);assert.equal(report.state,'failed');assert.deepEqual(report.active,[]);assert.equal(report.childWorkingDirectory,directory);assert.deepEqual(report.coreFiles,[{path:join(directory,'core.fixture'),bytes:4}]);assert.equal(report.results[0].status,0);assert.equal(report.results[0].error,'Verification completion marker missing');assert.ok(readFileSync(join(directory,'fixture.mjs'),'utf8').includes('motion:verified'));
  }finally{rmSync(parent,{recursive:true,force:true});}
 });
 test('probe rejects unbounded workers or runs before launching workloads',()=>{for(const args of [['--runs','1001'],['--workers','9'],['--js-optimization','unknown'],['--report-parent','relative']]){const result=spawnSync(process.execPath,[cli,'--case','motion',...args],{encoding:'utf8',timeout:10000});assert.equal(result.status,1);assert.match(result.stderr,/Invalid diagnostic options/);assert.equal(result.stdout,'');}});
+
+for(const signal of ['SIGTERM','SIGKILL'] as const)test(`probe checkpoints completed children before parent ${signal}`,async()=>{
+ const {spawn}=await import('node:child_process'),{setTimeout:delay}=await import('node:timers/promises');
+ const parent=mkdtempSync(join(tmpdir(),'motion-checkpoint-')),fake=join(parent,'controlled-node');let child:ReturnType<typeof spawn>|undefined,worker:number|undefined;
+ try{
+  writeFileSync(fake,'#!'+process.execPath+`\nconst fs=require('node:fs');
+if(process.argv.includes('--version'))console.log(process.version);
+else if(!fs.existsSync('first-completed')){fs.writeFileSync('first-completed','yes');console.log('started');}
+else {setTimeout(()=>process.exit(2),15000);}
+`);chmodSync(fake,0o700);
+  child=spawn(process.execPath,[cli,'--node',fake,'--case','empty','--asan','off','--runs','3','--workers','1','--report-parent',parent],{stdio:['ignore','pipe','pipe']});
+  let output='',stderr='';child.stdout!.on('data',b=>{output+=b;});child.stderr!.on('data',b=>{stderr+=b;});
+  const ended=new Promise<{code:number|null;signal:NodeJS.Signals|null}>((resolve,reject)=>{child!.once('error',reject);child!.once('close',(code,signal)=>resolve({code,signal}));});
+  let directory:string|undefined,checkpoint:any;const deadline=performance.now()+10000;
+  for(;;){
+   assert(child.exitCode===null&&child.signalCode===null,output+stderr);assert(performance.now()<deadline,'Missing incremental checkpoint: '+output+stderr);
+   const line=output.split('\n').find(l=>l.startsWith('{')&&l.endsWith('}'));if(line)directory=JSON.parse(line).directory;
+   if(directory){checkpoint=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));if(checkpoint.results.length===1&&checkpoint.active.length===1)break;}
+   await delay(10);
+  }
+  assert.equal(checkpoint.state,'running');assert.equal(checkpoint.results[0].stdout,'started\n');assert.equal(checkpoint.results[0].status,0);assert.equal(checkpoint.active[0].index,1);worker=checkpoint.active[0].pid;assert.equal(typeof worker,'number');
+  assert.equal(child.kill(signal),true);const result=await ended;
+  const report=JSON.parse(readFileSync(join(directory!,'report.json'),'utf8'));
+  if(signal==='SIGTERM'){
+   assert.equal(result.code,143);assert.equal(report.state,'interrupted');assert.equal(report.interruption,'SIGTERM');assert.deepEqual(report.active,[]);assert.equal(report.results.length,2);assert.equal(report.results[1].signal,'SIGTERM');assert.equal(report.results[1].status,null);
+  }else{
+   assert.equal(result.signal,'SIGKILL');assert.equal(report.state,'running');assert.equal(report.results.length,1);assert.equal(report.active[0].pid,worker);
+  }
+  assert.equal(report.limit,3);assert.equal(report.results[0].stdout,'started\n');assert(report.elapsedMs>=0);assert.equal(report.startedAt,checkpoint.startedAt);
+ }finally{
+  if(child?.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');
+  if(worker)try{process.kill(worker,'SIGKILL');}catch(error){if((error as NodeJS.ErrnoException).code!=='ESRCH')throw error;}
+  rmSync(parent,{recursive:true,force:true});
+ }
+});
