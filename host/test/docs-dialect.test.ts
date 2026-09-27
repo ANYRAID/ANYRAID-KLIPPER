@@ -6,8 +6,8 @@ const fixture = JSON.parse(readFileSync(new URL('../contracts/docs-dialect-refer
 // HTML attribute order and inter-tag whitespace are not semantic differences.
 const normalize = (html: string) => html.replace(/<input([^>]+)>/g, (_, attributes: string) =>
   '<input ' + (attributes.match(/[a-z]+="[^"]*"/g) ?? []).sort().join(' ') + '>')
-  .replace(/>\s+</g, '><').trim();
-for (const name of ['breakless', 'indented-code', 'underscore', 'strike', 'autolink', 'table', 'headings', 'task-list']) {
+  .replace(/>\s+</g, '><').replace(/\s+(?=<\/?(?:ul|ol|li)>)/g, '').trim();
+for (const name of ['breakless', 'indented-code', 'underscore', 'strike', 'autolink', 'table', 'headings', 'task-list', 'ordered', 'two-space-nested', 'ordered-resume', 'ordered-top-level-neighbor', 'ordered-deep']) {
   test(`legacy Markdown dialect: ${name}`, () => {
     const item = fixture.cases.find((entry: { name: string }) => entry.name === name);
     assert.ok(item);

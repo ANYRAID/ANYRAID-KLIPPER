@@ -16,6 +16,15 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 文档列表兼容层修复已确认的有序列表两空格子列表提升到顶层问题，
+  按源缩进重新关联父项，并恢复相邻编号块的连续列表和旧起始编号
+  语义。固定 Python 参考增加继续编号、深层子列表、独立邻接列表
+  等样例；13 类方言参考一致，全部 26 项文档检查及类型检查通过。
+  58 页渲染基准中位 286.071 ms，见
+  [列表对照](diagnostics/docs-list-validation.json)。这些有限样例不等于
+  所有旧扩展已等价；仍需处理段落分隔的无序列表、列表内围栏，
+  以及新发现的非 1 编号打断段落语义；发布入口与 Python 保留。
+
 - 用原锁定 Markdown 3.3.7／py-gfm 2.0.0／truly-sane-lists 1.2／
   breakless-lists 1.0.1 在临时环境生成 13 类固定 HTML 参考，保存在
   host/contracts/docs-dialect-reference.json；Node 回归不运行 Python。

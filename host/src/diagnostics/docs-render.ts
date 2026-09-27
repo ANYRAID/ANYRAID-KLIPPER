@@ -1,5 +1,6 @@
 import MarkdownIt from 'markdown-it';
 import attrs from 'markdown-it-attrs';
+import { restoreDocsListNesting } from './docs-lists.ts';
 import { parseDocument } from 'yaml';
 import { transformDocsMarkdown } from './docs-markdown.ts';
 
@@ -45,7 +46,9 @@ export function renderDocsPage(source: string, repoUrl: string): DocsPage {
   const parser = new MarkdownIt({ html: true, linkify: true }).use(attrs);
   parser.renderer.rules.s_open = () => '<del>';
   parser.renderer.rules.s_close = () => '</del>';
-  const tokens = parser.parse(transformDocsMarkdown(source, `${repoUrl.replace(/\/+$/, '')}/`), {});
+  const transformed = transformDocsMarkdown(source, `${repoUrl.replace(/\/+$/, '')}/`);
+  const tokens = parser.parse(transformed, {});
+  restoreDocsListNesting(tokens, transformed);
   const headings: DocsHeading[] = [], text: string[] = [];
   const ids = new Set<string>();
   for (let index = 0; index < tokens.length; index++) {
