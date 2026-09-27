@@ -17,6 +17,7 @@ export function transformDocsMarkdown(
   markdown: string,
   repoUrl: string,
   onRewrite?: (rewrite: MarkdownRewrite) => void,
+  protectedLines?: ReadonlySet<number>,
 ): string {
   // Python splitlines includes Unicode separators and drops one final empty
   // line. Do not use JS \s: it includes BOM but omits Python's U+001C..001F.
@@ -27,7 +28,7 @@ export function transformDocsMarkdown(
     const before = lines[i];
     let after = before;
     if ([...after.matchAll(fence)].length % 2) inCode = !inCode;
-    if (inCode) continue;
+    if (inCode || protectedLines?.has(i)) continue;
     // Preserve the caller-supplied repository prefix exactly, including slash
     // handling. URL policy belongs to the site configuration, not this port.
     after = after.replaceAll('](../', `](${repoUrl}blob/master/`);

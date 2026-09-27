@@ -44,9 +44,26 @@ export function renderDocsPage(source: string, repoUrl: string): DocsPage {
     source = source.slice(front[0].length);
   }
   const parser = new MarkdownIt({ html: true, linkify: true }).use(attrs);
+  // Legacy breakless lists allow any ordered marker to interrupt a paragraph.
+  // Use a block-parser terminator instead of rewriting source, so fenced and
+  // indented code contents remain byte-for-byte intact.
+  parser.block.ruler.before('list', 'docs_ordered_interrupt', (state, start, _end, silent) => {
+    if (!silent || state.parentType !== 'paragraph'
+      || state.sCount[start] - state.blkIndent >= 4) return false;
+    const line = state.src.slice(state.bMarks[start] + state.tShift[start], state.eMarks[start]);
+    return /^\d{1,9}\.[ \t]+\S/u.test(line);
+  }, { alt: ['paragraph'] });
   parser.renderer.rules.s_open = () => '<del>';
   parser.renderer.rules.s_close = () => '</del>';
-  const transformed = transformDocsMarkdown(source, `${repoUrl.replace(/\/+$/, '')}/`);
+  // Identify indented code with the parser before compatibility preprocessing.
+  // The old hook mistook numbered lines inside these examples for real lists.
+  const protectedLines = new Set<number>();
+  for (const token of parser.parse(source, {})) {
+    if (token.type === 'code_block' && token.map) {
+      for (let line = token.map[0]; line < token.map[1]; line++) protectedLines.add(line);
+    }
+  }
+  const transformed = transformDocsMarkdown(source, `${repoUrl.replace(/\/+$/, '')}/`, undefined, protectedLines);
   const tokens = parser.parse(transformed, {});
   restoreDocsListNesting(tokens, transformed);
   const headings: DocsHeading[] = [], text: string[] = [];

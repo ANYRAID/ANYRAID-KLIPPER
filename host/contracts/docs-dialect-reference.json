@@ -97,6 +97,26 @@
       "name": "ordered-code-literal",
       "input": "```\n1. a\n  - child\n```",
       "html": "<pre class=\"highlight\"><code>1. a\n  - child\n</code></pre>"
+    },
+    {
+      "name": "ordered-paragraph",
+      "input": "Intro\n3. third\n4. fourth",
+      "html": "<p>Intro</p>\n<ol>\n<li>third</li>\n<li>fourth</li>\n</ol>"
+    },
+    {
+      "name": "ordered-paragraph-indented",
+      "input": "Intro\n  42. step\n  43. step",
+      "html": "<p>Intro</p>\n<p>42. step\n  43. step</p>"
+    },
+    {
+      "name": "ordered-interrupt-code",
+      "input": "```text\nIntro\n3. literal\n```",
+      "html": "<pre class=\"highlight\"><code class=\"language-text\">Intro\n\n3. literal\n</code></pre>"
+    },
+    {
+      "name": "ordered-indented-code",
+      "input": "    Intro\n    3. literal",
+      "html": "<pre><code>Intro\n\n3. literal\n</code></pre>"
     }
   ]
 }
