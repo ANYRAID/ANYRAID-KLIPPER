@@ -1,3 +1,5 @@
+import type {BLTouchDevice} from '../../src/homing/bltouch-device.ts';
+import type {EndstopProtocol} from '../../src/inputs/endstop.ts';
 import {ConfigurationReader} from '../../src/moonraker/config-reader.ts';
 import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import type {ConfiguredEndstopPhase} from '../../src/config/endstop-phase.ts';
@@ -18,7 +20,7 @@ import {GenerationPWMOutput} from '../../src/outputs/generation-pwm.ts';
 import {ScheduledCoolingFan,type FanConfig} from '../../src/outputs/fan.ts';
 import {FanBoundaryTimeline} from '../../src/outputs/fan-boundaries.ts';
 const signal=()=>new AbortController().signal;
-export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,synchronized=false,probe?:Record<string,string>,sensorless?:TmcSensorlessMode,endstopPhases?:readonly ConfiguredEndstopPhase[],probeHome=false){
+export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,synchronized=false,probe?:Record<string,string>,sensorless?:TmcSensorlessMode,endstopPhases?:readonly ConfiguredEndstopPhase[],probeHome=false,deviceFactory?:(endstop:EndstopProtocol,stop:(cause:unknown)=>Promise<void>)=>Promise<BLTouchDevice>){
  const f=await rebuiltFixture(false,true,fanConfig!==undefined,motorPower,auxiliary);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
  try{
   if(fanConfig){const group=f.options.group,s=group.session(f.fanMCU),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue(f.fanMCU),group.commandQueue(f.fanMCU),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
@@ -28,10 +30,11 @@ export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false
   const groups=[{sensorless,members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
   let reader=linearMotionReader({...Object.fromEntries(['stepper_x','stepper_y','stepper_z'].map(name=>[name,{homing_retract_dist:String(retractDistance)}])),...(probe?{probe}:{})});
   if(probeHome){const raw=structuredClone(reader.source.original);delete raw.stepper_z.position_endstop;raw.stepper_z.endstop_pin='probe:z_virtual_endstop';reader=new ConfigurationReader(new ConfigurationSource('/probe-home.cfg',raw,[]),null);}
-  const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{endstopPhases,generation,emitters:f.emitters,kinematicIds:['x','y','z'],probeGroups:groups,groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
+  const device=deviceFactory?await deviceFactory(f.endstop,cause=>f.options.group.stop(cause)):undefined;
+  const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{probeDevice:device?{device,endstop:f.endstop}:undefined,endstopPhases,generation,emitters:f.emitters,kinematicIds:['x','y','z'],probeGroups:groups,groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
   const coordinates=new GCodeMove(port);
   const command=new LinearHomingCommand(kinematics,coordinates,port,rails,5000);
-  return {f,generation,groups,port,kinematics,coordinates,command,fan,timeline,async close(){await port.dispose();await f.close();await timeline?.stop();}};
+  return {f,generation,groups,device,port,kinematics,coordinates,command,fan,timeline,async close(){await port.dispose();await f.close();await timeline?.stop();}};
  }catch(error){await f.close();await timeline?.stop();throw error;}
 }
 export async function nativeStreamStarted(t:Awaited<ReturnType<typeof nativeLinearFixture>>){

@@ -1,3 +1,5 @@
+import type {BLTouchDevice,BLTouchSample} from './bltouch-device.ts';
+import type {EndstopProtocol} from '../inputs/endstop.ts';
 import type {SafeZHoming} from './safe-z-home.ts';
 import {probeHomingPosition} from './probe-home.ts';
 import {endstopPhasePosition} from './endstop-phase-position.ts';
@@ -29,6 +31,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
  safeZHoming?:Readonly<SafeZHoming>;
+ probeDevice?:Readonly<{device:BLTouchDevice;endstop:EndstopProtocol}>;
  probeHoming?:Readonly<{minimumZ:number;offset:number}>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
@@ -76,10 +79,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
+  if(o.probeDevice&&(o.probeGroups?.length!==1||o.probeGroups[0].endstop!==o.probeDevice.endstop||o.probeDevice.device.status.phase!=='idle'))throw new Error('Probe device must own the configured sensor and be initialized');
   if(o.probeHoming&&(!Number.isFinite(o.probeHoming.minimumZ)||!Number.isFinite(o.probeHoming.offset)||o.probeHoming.offset<o.probeHoming.minimumZ||o.groupsByAxis[2].length!==1||o.probeGroups?.length!==1||o.groupsByAxis[2][0].endstop!==o.probeGroups[0].endstop))throw new Error('Invalid probe homing configuration or ownership');
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
@@ -387,7 +391,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  probeZ(z:number,speed:number,groups:LinearSeekOptions['groups'],signal:AbortSignal){
   const owned=groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}));
-  return this.#operate('seek',signal,s=>this.#probeZ(z,speed,owned,s));
+  return this.#operate('seek',signal,s=>this.#deviceSession(sample=>sample((ss,onTriggered)=>this.#probeZ(z,speed,owned,ss,onTriggered)),s));
  }
  async measureProbe(z:number,signal:AbortSignal){
   const config=this.#o.probeConfiguration;if(!config)throw new Error('No configured probe settings');
@@ -398,11 +402,21 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  probeConfiguredSamples(z:number,speed:number,options:ProbeSamples,signal:AbortSignal){
   const policy={...options};
-  return this.#operate('probe-samples',signal,s=>this.#sampleProbe(z,speed,policy,s));
+  return this.#operate('probe-samples',signal,s=>this.#deviceSession((sample,ss)=>this.#sampleProbe(z,speed,policy,ss,sample),s));
  }
- #sampleProbe(z:number,speed:number,policy:ProbeSamples,s:AbortSignal){
+ async #deviceSession<T>(run:(sample:BLTouchSample,s:AbortSignal)=>Promise<T>,s:AbortSignal):Promise<T>{
+  const owner=this.#o.probeDevice;if(!owner)return run(seek=>seek(s,async()=>{}),s);
+  await this.#drain(s);
+  const result=await owner.device.session((sample,ss)=>run(async seek=>{
+   const value=await sample(seek);this.#check(ss);
+   // Stowing may outlast the recovered generation's future baseline.
+   if(!owner.device.status.deployed)await this.#rebase(this.homingPosition(),ss);return value;
+  },ss),s);
+  this.#check(s);await this.#rebase(this.homingPosition(),s);return result;
+ }
+ #sampleProbe(z:number,speed:number,policy:ProbeSamples,s:AbortSignal,sample:BLTouchSample){
    if(!this.#o.probeGroups)throw new Error('No configured probe');
-   return collectProbeSamples(policy,()=>this.#probeZ(z,speed,this.#o.probeGroups!,s),async(target,liftSpeed)=>{
+   return collectProbeSamples(policy,()=>sample((ss,onTriggered)=>this.#probeZ(z,speed,this.#o.probeGroups!,ss,onTriggered)),async(target,liftSpeed)=>{
     const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,liftSpeed,2,s);this.#check(s);
     const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
    },s);
@@ -417,15 +431,16 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    for(const point of plan.points){const target=[point.nozzleX,point.nozzleY,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}
    admission.shutdown(new Error('Grid preflight complete'));
    await this.#drain(s);
-   return measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
-    this.#check(s);if(target.every((v,i)=>v===this.homingPosition()[i]))return;
+   return this.#deviceSession((sample,ss)=>measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
+    this.#check(ss);if(target.every((v,i)=>v===this.homingPosition()[i]))return;
     const physical=this.#newAdmission(this.homingPosition(),true);physical.move(target,speed);
-    await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
+    await this.#streamer.append(physical.flush(),ss);await this.#g.source.drain([],ss);this.#check(s);
     const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Probe grid travel completed'));this.#admission=next;
-   },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,s);return measured.position[2]-config.offsets[2];}},s);
+   },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample);return measured.position[2]-config.offsets[2];}},ss),s);
   });
  }
- async #probeZ(z:number,speed:number,owned:LinearSeekOptions['groups'],s:AbortSignal){
+ async #probeZ(z:number,speed:number,owned:LinearSeekOptions['groups'],s:AbortSignal,onTriggered?:()=>Promise<void>){
+   if(this.#o.probeDevice&&(owned.length!==1||owned[0].endstop!==this.#o.probeDevice.endstop))throw new Error('Probe device sensor ownership differs');
    if(this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Probe requires all axes homed');
    const start=this.homingPosition(),target=[...start];target[2]=z;
    if(!Number.isFinite(z)||z>=start[2])throw new RangeError('Probe target must be below the physical start');
@@ -441,7 +456,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     if(!state||state.homing||state.triggered)throw new Error('Probe is already triggered or sampling');
    }
    await this.#rebase(start,s);
-   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe'}).run(target,speed,2,s);
+   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe',onTriggered}).run(target,speed,2,s);
    try{this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
@@ -451,15 +466,18 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    if(modes.length){await this.#drain(s);for(const mode of modes)await mode.enter(s);await this.#rebase(this.homingPosition(),s);}
    const probe=axis===2?this.#o.probeHoming:undefined;
    if(probe){if(groups.length!==1||modes.length||!this.#o.kinematics.status.homedAxes.includes('x')||!this.#o.kinematics.status.homedAxes.includes('y'))throw new Error('Probe Z homing requires homed XY and one probe endstop');target[2]=probe.minimumZ;if(target[2]>=this.homingPosition()[2])throw new Error('Probe Z search must descend');}
-   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:probe?'probe':'home'}).run(target,speed,axis,s);
-   try{this.#adopt(result.generation,result.position,s);
-    if(probe)await this.#rebase(probeHomingPosition(result.position,result.triggerPosition,probe.offset),s);
-    // Successful seek includes trigger-stop confirmation and halted positions.
-    // On failure the operation retires hardware without a moving-mode restore.
-    for(const mode of modes)await mode.restore(s);
-    if(modes.length)await this.#rebase(result.position,s);
-    this.#lastHoming={pass:result,axis,generation:this.#g,counts:result.triggerCounts};
-    return result;}catch(error){result.motion.dispose();throw error;}
+   const seek=async(onTriggered?:()=>Promise<void>)=>{
+    if(probe&&this.#o.probeDevice)await this.#rebase(this.homingPosition(),s);
+    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:probe?'probe':'home',onTriggered}).run(target,speed,axis,s);
+    try{this.#adopt(result.generation,result.position,s);
+     if(probe)await this.#rebase(probeHomingPosition(result.position,result.triggerPosition,probe.offset),s);
+     for(const mode of modes)await mode.restore(s);
+     if(modes.length)await this.#rebase(result.position,s);
+     return result;
+    }catch(error){result.motion.dispose();throw error;}
+   };
+   const result=probe&&this.#o.probeDevice?await this.#deviceSession(sample=>sample((_s,onTriggered)=>seek(onTriggered)),s):await seek();
+   this.#lastHoming={pass:result,axis,generation:this.#g,counts:result.triggerCounts};return result;
   });
  }
  finishHoming(pass:HomingPass,axis:Axis,endstop:number,signal:AbortSignal):Promise<void>{
@@ -492,7 +510,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  motorOff(cause:unknown):Promise<void>{
   if(this.#stop)return this.#stop;this.#failed=true;this.#fault=cause;this.#phase='stopped';this.#admission.shutdown(cause);this.#o.kinematics.clearHoming([0,1,2]);
   const stopped=Promise.withResolvers<void>();this.#stop=stopped.promise;this.#abort.abort(cause);
-  void this.#g.drain.stop(cause).then(stopped.resolve,stopped.reject);this.#notice.emit(cause);return this.#stop;
+  void Promise.allSettled([this.#g.drain.stop(cause),...(this.#o.probeDevice?[this.#o.probeDevice.device.stop(cause)]:[])]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)stopped.reject(new AggregateError(errors,'Native motion and probe stop failed'));else stopped.resolve();});this.#notice.emit(cause);return this.#stop;
  }
  /** Stop failure must not bypass in-flight owners or leak their final generation.
   * Publish before motorOff: group observers can re-enter shutdown synchronously. */
