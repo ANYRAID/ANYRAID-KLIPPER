@@ -1195,3 +1195,30 @@ UART 或 SPI。UART 地址范围为 0–7，共享引脚时必须唯一；SPI �
 非零时启用 StallGuard4 并打开静音模式、清零 TPWMTHRS。
 归零结束确认停止后恢复原寄存器值。相位观测和相位校准接口同样适用。
 这些能力仍需在目标 TMC2240 板卡上完成电气、温度与重复归零验收。
+
+## 床面倾斜补偿与校准
+
+线性机器可配置 [bed_tilt] 的 x_adjust、y_adjust、z_adjust，缺省为 0。
+普通打印按 `Z物理 = Z逻辑 + X*x_adjust + Y*y_adjust + z_adjust`
+补偿，读取逻辑位置时反向换算。补偿后的物理路径仍受 Z 行程、速度、
+加速度及挤出约束；归零、安全抬升和校准移动使用物理坐标。
+[bed_tilt] 与 [bed_mesh] 不能同时占用运动变换。
+
+配置 points（至少三个非共线 XY 点）、horizontal_move_z（默认 5）、
+speed（默认 50），并配置 [probe] 或 [bltouch] 后，可使用自动校准。
+points 表示喷嘴位置，与原 bed_tilt 的默认语义一致；拟合输入会加上
+探针 XY 偏移并减去 Z 偏移。全部目标和搜索范围在移动前校验，旧补偿
+不参与测量；全部采样、收针和拟合成功后才发布新系数。失败停止运动、
+撤销归零权限并保留旧系数。当前无探针的手动测量引导仍待迁移。
+
+1. 归零后 GET `/printer/calibration/bed_tilt` 获取 state_token，再 POST
+   `{ "version": 1, "state_token": "…" }`。只使用服务器配置点位；成功
+   重试返回原结果，不重复移动。结果含 adjust、samples、persisted=false。
+2. GET `/printer/configuration/bed_tilt` 预览当前校准及保存令牌；POST 同样
+   的版本化结构保存服务器测得的系数，不接受客户端系数或脚本。
+   系数用可往返的完整精度文本保存，不按显示小数位截断。
+3. 保存会封闭打印入口，必须按主机重初始化流程重读配置。外部配置已被
+   修改时拒绝覆盖；保存失败也要求检查配置并重新初始化。
+
+`/printer/objects/query?bed_tilt` 返回当前 x/y/z、revision 和 calibrated；
+后者表示本运行代次是否完成了自动测量，不表示真机验收通过。

@@ -22,6 +22,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   ['toolhead',()=>{const k=printer.linear.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.linear.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
+ if(printer.linear.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.linear.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());
  const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...retraction.status}));
  for(const [i,heater] of printer.hardware.plan.heaters.entries())readers.set(heater.section,()=>{

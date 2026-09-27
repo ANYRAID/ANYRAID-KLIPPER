@@ -1,0 +1,159 @@
+{
+  "scope": "Configured bed tilt in native linear motion, automatic probing, typed save and compiled product with simulated MCU; not physical printer acceptance",
+  "sourceSha256": {
+    "host/acceptance/product-compiled-journey.test.ts": "04c8cbd011ada6b5619a65e2c6a3c6e184e0e8e75af1771d51008f817f858218",
+    "host/package.json": "8bb83b1cfd2564af37808ce3859aaca31c61b310e3129758d40e3c88d5c4ee60",
+    "host/src/config/linear-motion.ts": "2d4075eea0450a643273728a545bb608dbd2bfe651f64d5d0f4be892af0278bd",
+    "host/src/homing/native-linear-port.ts": "d7a2df9174f4c44d732776066b53e8cd9accafe1bcab0513b1a4b0152a77d9ed",
+    "host/src/moonraker/native-probe.ts": "09918cac3f511958fd53f20a1aefab9bae62c9e711fa042b1b97247cfab64410",
+    "host/src/motion/bed-mesh-port.ts": "a3d9fc2c655633ad3fbcf0c8d3e94f2cef9b81a8a97f3cdf7f9d560b6aa405e6",
+    "host/src/runtime/product-objects.ts": "5646149a537d9ad978b78daeba26e7e5be3932cb170cbafb24a2526b21305cb6",
+    "host/src/runtime/product-service.ts": "7f482faef8e92d07b6f6e516e0867edb69848372c51265f72834eb805fdfe525",
+    "host/test/helpers/native-linear-port.ts": "6706a7f10be5acb77bad98438757507eb20d7c7778ce633c6c9c56b3385a6477",
+    "host/bench/bed-tilt.ts": "8f57c372f6fdceb9b308ce1f2e32e9a4f37fba32cee48d5291a72859f325960d",
+    "host/contracts/bed-tilt-reference.json": "386b4a5bcc50bf1ede4bbbdc4707bc4bcb84f4cc991aee134c1bbb088a5b1537",
+    "host/src/config/bed-tilt.ts": "941ee9d2acf50266df8b7082c64fed2328eea340f144c25e4de3e702d833f2af",
+    "host/src/moonraker/native-bed-tilt.ts": "9e75fd09edf54aa2928457a2e694777e51ce3ff64e7f6dfde47351f8885e3c5c",
+    "host/src/motion/bed-tilt.ts": "7feb4b3c00dc5dca4b6d3916146579dffba9ab85247f757a8c55b29601ccb43f",
+    "host/test/bed-tilt-save.test.ts": "eee79c238c49a7476c949af3ba57f9084fc950737902b0585f93053363ec24a1",
+    "host/test/bed-tilt.test.ts": "bbb11443b320d79613c2f5d8d214fafa601a71492554db3fd6f617e3f791e193",
+    "host/test/native-bed-tilt.test.ts": "b0aeccb15946708826d76e4f1de6f13406e13f3cb1a9706eccb797b9673f0c61"
+  },
+  "precision": {
+    "originalPython": "3.12.13",
+    "transformCases": 240,
+    "fitCases": 6,
+    "comparison": "exact binary64 equality",
+    "reference": "bed-tilt-reference.json",
+    "initialFailure": "Ordinary accumulation differed from Python compensated sum; maximum observed z coefficient difference about 1.4e-8 at XY origin 10000. Compensated normal equations restored exact equality without changing shared solver or tolerance."
+  },
+  "tests": "✔ pressure requests anchor after all mesh splits without flushing lookahead (3.345015ms)\n✔ G-code mesh adapter plans compensated segments and preserves independent mesh state (0.891642ms)\n✔ late safety failure leaves lookahead and G-code coordinates unchanged and retry succeeds (0.621529ms)\n✔ mesh port rejects reentry and invalid fade, passes through without a mesh (0.431126ms)\n✔ asynchronous validators cannot admit motion (2.397082ms)\n✔ tilt persistence uses measured revision, preserves precision and requires reinitialization (11.640656ms)\n✔ tilt persistence preserves external edits and blocks further motion after failure (1.409639ms)\n✔ closing tilt persistence joins cancellation of an in-flight write (1.142505ms)\n✔ bed tilt preserves original binary64 forward, inverse and least squares arithmetic (1.812994ms)\n✔ configuration preserves coefficients and rejects competing transform or degenerate probe points (1.41748ms)\n✔ G-code tilt applies before physical Z limits and does not alter extrusion or queue on rejection (1.54759ms)\n✔ clearing a mesh preserves the active tilt inverse and no coefficients alias caller state (0.295884ms)\n✔ native multi-sample probe refreshes motion baseline after device waits (cancel=false) (5031.659661ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=false) (3143.939105ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=true) (1114.136906ms)\n✔ native tilt calibration bypasses old compensation and preserves it on failure=false (2911.831993ms)\n✔ native tilt calibration bypasses old compensation and preserves it on failure=true (417.705366ms)\n✔ typed probe is authorized, exclusive, cache-safe and retry-idempotent (1.069965ms)\n✔ close cancels measurement and fences future printer activities (0.315624ms)\n✔ endpoint failure from a real native probe fences both owners (410.761714ms)\n✔ homing and probe share the same maintenance lock and reject client axes (0.439166ms)\n✔ native grid travels and measures all four points without replacing the old mesh (3492.683692ms)\n✔ failed native grid preserves old mesh (range) (411.363393ms)\n✔ failed native grid preserves old mesh (reference) (411.066499ms)\n✔ failed native grid preserves old mesh (triggered) (409.422727ms)\n✔ probe homing shifts only Z by measured bed height and preserves halt overshoot (0.181503ms)\n✔ native probe Z home validates trigger, retract and authority (xy=false retract=0 stuck=false) (410.453241ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=0 stuck=false) (647.870303ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=false) (1367.822761ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true) (1339.889059ms)\n✔ cancellation during probe Z descent revokes all homing and joins motor stop (518.213936ms)\n✔ probe homing coordinate arithmetic matches 216 original Python boundary cases exactly (0.993563ms)\nℹ tests 32\nℹ suites 0\nℹ pass 32\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 22238.322286\n",
+  "typecheck": true,
+  "whitespace": true,
+  "bench": [
+    {
+      "node": "v26.9.0",
+      "iterations": 10000,
+      "warmups": 2,
+      "samples": 7,
+      "nodeMedianMs": 0.8387390000000039,
+      "nodeMaxMs": 0.8727889999999974,
+      "historicalPythonMedianMs": 4.362038000067514,
+      "historicalPythonMaxMs": 4.380298000000948,
+      "checksum": 5634412.819329084,
+      "scope": "Validated forward plane transform versus original Python move with mock toolhead; no MCU or printer throughput claim."
+    },
+    {
+      "kind": "fit",
+      "iterations": 1000,
+      "nodeMedianMs": 3.3852760000000046,
+      "nodeMaxMs": 4.435035000000013,
+      "historicalPythonMedianMs": 11.832649000098172,
+      "historicalPythonMaxMs": 12.004558000171528,
+      "checksum": 5637113.627141959,
+      "scope": "Plane least squares, no probing or MCU I/O."
+    }
+  ],
+  "product": {
+    "pass": 1,
+    "fail": 0,
+    "metrics": {
+      "phaseQueries": 4736,
+      "phaseP99Ms": 3.424826000000394,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": true,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 200,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 1055,
+      "historyP99Ms": 9.344156000001021,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 8.548695000001317,
+      "deleteRequests": 16,
+      "deleteP95Ms": 8.666376000001037,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 12.575039000003017,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.498915000000125,
+      "downloads": 16,
+      "downloadP95Ms": 5.2293509999999515,
+      "wireCommands": 252,
+      "wireSteps": 4754,
+      "minimumStepLeadMs": 81.629,
+      "directoryRequests": 4570,
+      "directoryP99Ms": 5.358053000003565,
+      "statusRequests": 18950,
+      "uploads": 16,
+      "statusP99Ms": 3.398616000000402,
+      "uploadP95Ms": 21.80039300000135,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.923071,
+            "maxMs": 18.776063
+          },
+          "cpu": {
+            "user": 5502097,
+            "system": 578381
+          },
+          "rss": 271286272
+        },
+        {
+          "loop": {
+            "p99Ms": 1.936383,
+            "maxMs": 7.639039
+          },
+          "cpu": {
+            "user": 1537988,
+            "system": 175884
+          },
+          "rss": 277536768
+        }
+      ]
+    },
+    "diagnostics": [
+      "ℹ {\"installation\":{\"durationMs\":714.158128,\"dependencies\":10}}",
+      "ℹ {\"filamentRunout\":{\"sensor\":\"filament_switch_sensor tool\",\"compiled\":true,\"automaticPause\":true,\"absentResumeRejected\":true,\"runoutPauseMs\":1173.1871549999996,\"settledStepClock\":true,\"noAutomaticResume\":true}}",
+      "ℹ {\"bedTilt\":{\"compiled\":true,\"physicalPrintZ\":0.01,\"samples\":[[1,1,0.775],[1.01,1,0.775],[1,1.01,0.775]],\"adjust\":{\"x\":1.6531775948180893e-12,\"y\":-1.0114131754335176e-12,\"z\":0.7749999999993561},\"retryWithoutMotion\":true}}",
+      "ℹ {\"idleTimeout\":{\"heaterOff\":true,\"motorRelease\":true,\"hostRemainsReady\":true}}",
+      "ℹ {\"pausedTimeout\":{\"cancelled\":true,\"resumeRejected\":true}}"
+    ]
+  },
+  "failedAttempts": [
+    {
+      "kind": "environment",
+      "reason": "Offline npm cache missing locked ws package after temporary environment changed; resolved by lockfile install with network access."
+    },
+    {
+      "kind": "fixture count",
+      "reason": "Three new calibration endstop hits required expected total 12 instead of 9; corrected and reran under full API/file load.",
+      "evidence": "✖ load=false spi=false software=false model5160=false model2240=false curved=false probeHome=false safeHome=false bltouch=false tilted=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC/TMC fault without Python or TS loading (40566.317418ms)\nℹ {\"installation\":{\"durationMs\":3478.551394,\"dependencies\":10}}\nℹ {\"filamentRunout\":{\"sensor\":\"filament_switch_sensor tool\",\"compiled\":true,\"automaticPause\":true,\"absentResumeRejected\":true,\"runoutPauseMs\":1180.7568630000023,\"settledStepClock\":true,\"noAutomaticResume\":true}}\nℹ {\"bedTilt\":{\"compiled\":true,\"physicalPrintZ\":0.01,\"samples\":[[1,1,0.775],[1.01,1,0.775],[1,1.01,0.775]],\"adjust\":{\"x\":1.6531775948180893e-12,\"y\":-1.0114131754335176e-12,\"z\":0.7749999999993561},\"retryWithoutMotion\":true}}\nℹ {\"idleTimeout\":{\"heaterOff\":true,\"motorRelease\":true,\"hostRemainsReady\":true}}\nℹ {\"pausedTimeout\":{\"cancelled\":true,\"resumeRejected\":true}}\nℹ {\"failureContext\":{\"loaded\":false,\"loadGeneration\":0,\"homed\":12,\"exitCode\":null,\"signalCode\":null,\"stderr\":\"\",\"events\":\"{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: File execution stopped\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: File execution stopped\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":1,\\\"loop\\\":{\\\"p99Ms\\\":1.733631,\\\"maxMs\\\":18.530303},\\\"cpu\\\":{\\\"user\\\":1371452,\\\"system\\\":151070},\\\"rss\\\":180998144}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":2}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":2}\\n\"}}\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 40889.257988\n\n✖ failing tests:\n\ntest at host/acceptance/product-compiled-journey.test.ts:24:602\n✖ load=false spi=false software=false model5160=false model2240=false curved=false probeHome=false safeHome=false bltouch=false tilted=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC/TMC fault without Python or TS loading (40566.317418ms)\n  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:\n  \n  12 !== 9\n  \n      at TestContext.<anonymous> (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:194:610)\n      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n      at async Test.run (node:internal/test_runner/test:1409:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: 12,\n    expected: 9,\n    operator: 'strictEqual',\n    diff: 'simple'\n  }\n"
+    }
+  ],
+  "limitations": [
+    "Manual probing workflow is not migrated",
+    "Python files and default entrypoint remain",
+    "Historical Node runtime/numerical anomalies remain unresolved",
+    "No physical printer or target-board acceptance"
+  ]
+}

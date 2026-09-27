@@ -1,3 +1,5 @@
+import {BedTilt,fitBedTilt} from '../motion/bed-tilt.ts';
+import type {BedTiltProbePlan} from '../config/bed-tilt.ts';
 import type {BLTouchDevice,BLTouchSample} from './bltouch-device.ts';
 import type {EndstopProtocol} from '../inputs/endstop.ts';
 import type {SafeZHoming} from './safe-z-home.ts';
@@ -28,6 +30,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+ bedTilt?:BedTilt;
  endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
  safeZHoming?:Readonly<SafeZHoming>;
@@ -67,6 +70,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return position===undefined?undefined:Object.freeze({position,clock:tick,generation:binding.history});
  }
 
+ #tilt:BedTilt|undefined;
  #mesh:BedMesh|null=null;#meshSettings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number}={};
  #streamer:RebuiltMotionStreamer;
  #velocity:VelocityLimits;
@@ -84,13 +88,14 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
   this.#o={...o,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#tilt=o.bedTilt?new BedTilt(o.bedTilt.adjust):undefined;
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
- #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({tilt:physical?undefined:this.#tilt,mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
  get safeZHoming(){return this.#o.safeZHoming;}
  get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausedClockMaintenance:this.#pausedClock!==undefined,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
@@ -115,7 +120,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(typeof profileName!=='string'||profileName.length>128||/[\x00-\x1f\x7f]/.test(profileName))return Promise.reject(new RangeError('Invalid mesh profile name'));
   const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);
   return this.#operate('mesh',signal,async s=>{
-   const next=createGuardedBedMeshPort({mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   const next=createGuardedBedMeshPort({tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
    await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;
   });
  }
@@ -421,6 +426,39 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
    },s);
  }
+ get bedTiltStatus(){return this.#tilt?{...this.#tilt.adjust,revision:String(this.#tiltRevision),calibrated:this.#tiltRevision>0n}:undefined;}
+ #tiltRevision=0n;
+ calibrateBedTilt(options:BedTiltProbePlan,minimumZ:number,signal:AbortSignal){
+  const config=this.#o.probeConfiguration,plan=structuredClone(options);
+  return this.#operate('bed-tilt',signal,async s=>{
+   if(!this.#tilt||!config||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Bed tilt calibration requires configured tilt, probe and homed axes');
+   if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2])throw new Error('Invalid bed tilt travel');
+   fitBedTilt(plan.points.map(p=>[...p,0]));
+   const admission=this.#newAdmission(this.homingPosition(),true);
+   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
+   finally{admission.shutdown(new Error('Bed tilt preflight complete'));}
+   await this.#drain(s);
+   const samples=await this.#deviceSession(async(sample,ss)=>{
+    const points:number[][]=[];
+    for(const [x,y] of plan.points){
+     const raised=[...this.homingPosition()];raised[2]=Math.max(raised[2],plan.horizontalHeight);await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     raised[0]=x;raised[1]=y;await this.#probeTravel(raised,plan.travelSpeed,ss);raised[2]=plan.horizontalHeight;await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     const result=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample),p=result.position,o=config.offsets;
+     points.push([p[0]+o[0],p[1]+o[1],p[2]-o[2]]);
+    }
+    const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
+   },s);
+   this.#check(s);const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   this.#admission.shutdown(new Error('Bed tilt calibration applied'));this.#admission=next;this.#tilt=tilt;this.#tiltRevision++;
+   return {adjust:{...tilt.adjust},samples};
+  });
+ }
+ async #probeTravel(target:readonly number[],speed:number,s:AbortSignal){
+  this.#check(s);if(target.every((v,i)=>v===this.homingPosition()[i]))return;
+  const physical=this.#newAdmission(this.homingPosition(),true);physical.move(target,speed);
+  await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
+  const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Probe travel completed'));this.#admission=next;
+ }
  measureBedMesh(options:ProbeGrid,minimumZ:number,signal:AbortSignal){
   const config=this.#o.probeConfiguration;if(!config)return Promise.reject(new Error('No configured probe settings'));
   const plan=planProbeGrid(options,config.offsets);
@@ -432,10 +470,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    admission.shutdown(new Error('Grid preflight complete'));
    await this.#drain(s);
    return this.#deviceSession((sample,ss)=>measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
-    this.#check(ss);if(target.every((v,i)=>v===this.homingPosition()[i]))return;
-    const physical=this.#newAdmission(this.homingPosition(),true);physical.move(target,speed);
-    await this.#streamer.append(physical.flush(),ss);await this.#g.source.drain([],ss);this.#check(s);
-    const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Probe grid travel completed'));this.#admission=next;
+    await this.#probeTravel(target,speed,ss);
    },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample);return measured.position[2]-config.offsets[2];}},ss),s);
   });
  }

@@ -1,3 +1,4 @@
+import {BedTilt} from './bed-tilt.ts';
 import {isAsyncFunction,isPromise} from 'node:util/types';
 import type {MovePort} from '../gcode/move.ts';
 import {BedMesh} from './bed-mesh.ts';
@@ -7,7 +8,7 @@ import {Move,LookAheadQueue,type MotionLimits} from './lookahead.ts';
 import {markMoveEnd,validateEndMarkers} from './boundary-markers.ts';
 import {markPressureBoundary,validatePressureBoundaries,type PressureBoundary} from './pressure-boundaries.ts';
 export interface BedMeshPortOptions {
- mesh:BedMesh|null;fade?:BedMeshFade;fadeConfig?:BedMeshFadeConfig;physicalPosition:readonly number[];limits:MotionLimits;
+ tilt?:BedTilt;mesh:BedMesh|null;fade?:BedMeshFade;fadeConfig?:BedMeshFadeConfig;physicalPosition:readonly number[];limits:MotionLimits;
  /** Required synchronous kinematic/extrusion checks; may limit speed/acceleration.
   * Must not perform I/O or mutate endpoints or previously admitted moves. */
  validate:(move:Move)=>void;signal?:AbortSignal;splitDeltaZ?:number;checkDistance?:number;
@@ -15,7 +16,7 @@ export interface BedMeshPortOptions {
 /** GCodeMove adapter owning a lookahead queue and an owned mesh snapshot.
  * Physical position means accepted/planned position, not measured MCU position. */
 export class BedMeshMovePort implements MovePort {
- #mesh:BedMesh|null;#fade:BedMeshFade;#limits:MotionLimits;#validate:(move:Move)=>void;
+ #tilt:BedTilt|undefined;#mesh:BedMesh|null;#fade:BedMeshFade;#limits:MotionLimits;#validate:(move:Move)=>void;
  #logical:number[];#physical:number[];#queue=new LookAheadQueue();#busy=false;#flushDue=false;
  #fault:Error|undefined;#signal:AbortSignal|undefined;
  #onAbort=()=>this.shutdown(this.#signal?.reason);
@@ -24,6 +25,8 @@ export class BedMeshMovePort implements MovePort {
  #split:{splitDeltaZ:number;checkDistance:number};
  constructor(options:BedMeshPortOptions){
   const {physicalPosition}=options;
+  if(options.tilt&&options.mesh)throw new Error('Bed tilt conflicts with mesh');
+  this.#tilt=options.tilt?new BedTilt(options.tilt.adjust):undefined;
   if(options.fade&&options.fadeConfig)throw new RangeError('Specify resolved fade or fadeConfig, not both');
   if(!Array.isArray(physicalPosition)||physicalPosition.length!==4||!physicalPosition.every(Number.isFinite)||typeof options.validate!=='function'||isAsyncFunction(options.validate))throw new RangeError('Invalid mesh port configuration');
   this.#mesh=options.mesh?.copy()??null;this.#fade=options.fade??BedMeshFade.forMesh(this.#mesh,options.fadeConfig);this.#physical=[...physicalPosition];this.#limits={...options.limits,extraAxes:options.limits.extraAxes?[...options.limits.extraAxes]:undefined};this.#validate=options.validate;
@@ -34,7 +37,7 @@ export class BedMeshMovePort implements MovePort {
   this.#signal=options.signal;if(this.#signal){this.#signal.addEventListener('abort',this.#onAbort,{once:true});if(this.#signal.aborted)this.#onAbort();}this.#active();
  }
  #idle(){this.#active();if(this.#busy)throw new Error('Mesh motion admission active');}
- #inverse():number[]{const p=[...this.#physical];if(this.#mesh)p[2]=this.#fade.unapply(p[2],this.#mesh.calcZ(p[0],p[1]));return p;}
+ #inverse():number[]{const p=this.#tilt?this.#tilt.unapply(this.#physical):[...this.#physical];if(this.#mesh)p[2]=this.#fade.unapply(p[2],this.#mesh.calcZ(p[0],p[1]));return p;}
  position():readonly number[]{this.#idle();const position=this.#inverse();this.#logical=[...position];return position;}
  /** Latches the first cause and drops only host-owned, unflushed motion.
   * Already returned trajectories require a separate downstream hardware stop. */
@@ -63,7 +66,8 @@ export class BedMeshMovePort implements MovePort {
   try{
    let endpoints:number[][];
    const factor=this.#mesh?this.#fade.factor(target[2]):0;
-   if(this.#mesh&&factor)endpoints=splitBedMeshMove(this.#mesh,this.#logical,target,{...this.#split,factor,fadeOffset:this.#fade.target});
+   if(this.#tilt)endpoints=[this.#tilt.apply(target)];
+   else if(this.#mesh&&factor)endpoints=splitBedMeshMove(this.#mesh,this.#logical,target,{...this.#split,factor,fadeOffset:this.#fade.target});
    else {const end=[...target];if(this.#mesh)end[2]+=this.#fade.target;endpoints=[end];}
    if(this.#queue.length+endpoints.length>100000)throw new RangeError('Mesh lookahead budget exceeded');
    let previous=this.#physical;const staged:Move[]=[];
@@ -77,9 +81,9 @@ export class BedMeshMovePort implements MovePort {
   * movement, including earlier flushes. It must honor cancellation and perform
   * hardware stop on failure; this port can only stop host admission. */
  async replaceMesh(mesh:BedMesh|null,fadeConfig:BedMeshFadeConfig,drain:(moves:Move[],signal:AbortSignal)=>Promise<void>,signal?:AbortSignal):Promise<readonly number[]>{
-  this.#idle();if(typeof drain!=='function')throw new TypeError('Motion drain required');
+  this.#idle();if(this.#tilt&&mesh)throw new Error('Bed tilt conflicts with mesh');if(typeof drain!=='function')throw new TypeError('Motion drain required');
   const signals=[this.#signal,signal].filter((s):s is AbortSignal=>s!==undefined),combined=AbortSignal.any(signals);combined.throwIfAborted();
-  const next=mesh?.copy()??null,fade=BedMeshFade.forMesh(next,fadeConfig),logical=[...this.#physical];
+  const next=mesh?.copy()??null,fade=BedMeshFade.forMesh(next,fadeConfig),logical=this.#tilt?this.#tilt.unapply(this.#physical):[...this.#physical];
   if(next)logical[2]=fade.unapply(logical[2],next.calcZ(logical[0],logical[1]));
   const abort=()=>this.shutdown(combined.reason);this.#busy=true;combined.addEventListener('abort',abort,{once:true});
   try{
