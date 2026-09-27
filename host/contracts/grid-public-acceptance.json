@@ -1,0 +1,49 @@
+{
+  "base": "34547f72",
+  "tests": {
+    "httpAndConfiguration": 5,
+    "nativeAndGrid": 5,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmarks": [
+    {
+      "node": "v26.9.0",
+      "samples": 1000,
+      "points": 36,
+      "medianMs": 0.04413000000000977,
+      "p95Ms": 0.12211200000000133,
+      "scope": "Path planning, async orchestration and interpolation with fake constant measurement; excludes native movement and transport."
+    },
+    {
+      "node": "v26.9.0",
+      "samples": 1000,
+      "p95Ms": 0.0319510000000065,
+      "medianMs": 0.015250000000008868,
+      "scope": "Authorized in-process endpoint, immediate fake measurement plus idempotent retry; no native motion or HTTP transport."
+    }
+  ],
+  "journey": {
+    "http": true,
+    "simulatedMCUs": 2,
+    "points": 9,
+    "activated": "measured",
+    "retryWithoutMotion": true,
+    "persisted": "retained",
+    "profileReloadMatches": true,
+    "thermalReports": true,
+    "fanTimeline": true
+  },
+  "fixes": [
+    "Skip zero-displacement grid movement rather than drain an already stationary source; full product fan timeline exposed invalid horizon.",
+    "Long-lived simulation now emits valid periodic ADC data instead of triggering missing-sensor shutdown."
+  ],
+  "limitations": [
+    "Initial homing authority set by test fixture; real G28 then grid on physical hardware remains unverified.",
+    "HTTP journey uses source TS; compiled product suite verifies existing printing and build compatibility.",
+    "Circular beds, zero-reference and faulty-region policies rejected pending implementation.",
+    "Grid request deadline is 120 seconds; no durable cross-process calibration receipt.",
+    "Historical numerical anomalies and process crashes remain unresolved."
+  ]
+}

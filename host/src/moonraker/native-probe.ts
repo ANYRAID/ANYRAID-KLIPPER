@@ -4,12 +4,12 @@ import type {EndpointRegistry} from './endpoints.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 /** One typed single-point measurement at current XY; no script or motion target
  * accepted from clients. The machine supplies the configured Z search limit. */
-export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void}){
+export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void},kind:'probe'|'bed_mesh'='probe'){
  let token=randomUUID(),state:'ready'|'measuring'|'failed'='ready',closed=false;
  let last:{token:string;receipt:Json}|undefined,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();
  const snapshot=()=>({state_token:token,state,available:!closed&&state==='ready'&&!gate.status.closed&&motion.idle()});
- const releases=[registry.register({endpoint:'/printer/calibration/probe',methods:['GET','POST']},async(params,verb,context)=>{
+ const releases=[registry.register({endpoint:'/printer/calibration/'+kind,methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return snapshot();
   if(Object.keys(params).some(k=>!['version','state_token'].includes(k))||params.version!==1||typeof params.state_token!=='string')throw new ApiError(400,'Expected version and state_token');
   if(closed)throw new ApiError(503,'Probe owner closed');

@@ -365,6 +365,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    admission.shutdown(new Error('Grid preflight complete'));
    await this.#drain(s);
    return measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
+    this.#check(s);if(target.every((v,i)=>v===this.homingPosition()[i]))return;
     const physical=this.#newAdmission(this.homingPosition(),true);physical.move(target,speed);
     await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
     const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Probe grid travel completed'));this.#admission=next;
