@@ -4,6 +4,7 @@ export interface EndstopPhaseOptions {stepDistance:number;microsteps:number;trig
 function period(phases:number){if(!Number.isInteger(phases)||phases<4||phases>1024||(phases&(phases-1)))throw new RangeError('Invalid endstop phase period');}
 function modulo(value:bigint,phases:number){const p=BigInt(phases);return Number((value%p+p)%p);}
 export class EndstopPhaseAlignment {
+ #statistics:ReturnType<typeof endstopPhaseStatistics>|null=null;
  #step:number;#phases:number;#phase:number|null;#accuracy:number;#align:boolean;#history:bigint[];#last:{phase:number;mcuPosition:bigint}|null=null;
  constructor(options:EndstopPhaseOptions){
   const {stepDistance,microsteps,triggerPhase,accuracy,alignZero=false}=options,phases=microsteps*4;period(phases);
@@ -17,7 +18,12 @@ export class EndstopPhaseAlignment {
   this.#step=stepDistance;this.#phases=phases;this.#align=alignZero;this.#history=Array<bigint>(phases).fill(0n);
  }
  get status(){return Object.freeze({triggerPhase:this.#phase,phases:this.#phases,accuracy:this.#accuracy,last:this.#last});}
+ get statistics(){return this.#last?(this.#statistics??=endstopPhaseStatistics(this.#history)):null;}
  get history(){return Object.freeze([...this.#history]);}
+ observe(triggerPosition:bigint,offset:number|null):number{
+  if(typeof triggerPosition!=='bigint'||offset===null||!Number.isInteger(offset)||offset<0||offset>=this.#phases)throw new RangeError('Unknown or invalid endstop phase observation');
+  const phase=modulo(triggerPosition+BigInt(offset),this.#phases);this.#history[phase]++;this.#statistics=null;this.#last=Object.freeze({phase,mcuPosition:triggerPosition});return phase;
+ }
  /** offset is a confirmed TMC phase offset; explicitly use 0 for a non-TMC
   * stepper. A trigger counter, not the final halted counter, is required. */
  adjust(triggerPosition:bigint,offset:number|null,endstopPosition:number):number{
@@ -25,7 +31,7 @@ export class EndstopPhaseAlignment {
   let align=0;
   // Alignment precedes auto-learning, matching the first-home behavior.
   if(this.#align&&this.#phase!==null){const microsteps=this.#phases/4,half=Math.floor(microsteps/2),phaseOffset=((this.#phase+half)%microsteps-half)*this.#step,full=microsteps*this.#step;align=Math.trunc(endstopPosition/full+.5)*full-endstopPosition+phaseOffset;if(!Number.isFinite(align))throw new RangeError('Endstop alignment overflow');}
-  const phase=modulo(triggerPosition+BigInt(offset),this.#phases);this.#history[phase]++;this.#last=Object.freeze({phase,mcuPosition:triggerPosition});
+  const phase=this.observe(triggerPosition,offset);
   if(this.#phase===null){this.#phase=phase;return 0;}
   let delta=(phase-this.#phase+this.#phases)%this.#phases;
   if(delta>=this.#phases-this.#accuracy)delta-=this.#phases;

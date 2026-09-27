@@ -16,3 +16,6 @@ test('phase config rejects unknown motors, malformed ratios and uninitialized dr
  const r=linearMotionReader({stepper_x:{rotation_distance:'32',microsteps:'16'},'endstop_phase stepper_x':{trigger_phase:'1/0'}});assert.throws(()=>configureEndstopPhases(r,steppers,[]));
  const missing=linearMotionReader({stepper_x:{rotation_distance:'32',microsteps:'16'},'endstop_phase stepper_x':{},'tmc2209 stepper_x':{}});assert.throws(()=>configureEndstopPhases(missing,steppers,[]),/not initialized/);
 });
+test('unconfigured TMC rails collect statistics without enabling correction',()=>{
+ const phase=new TmcPhaseState(16,false),r=linearMotionReader({stepper_x:{rotation_distance:'32',microsteps:'16'}}),owners=configureEndstopPhases(r,steppers,[{section:'tmc2209 stepper_x',phase}]);assert.equal(owners.length,1);assert.equal(owners[0].name,'stepper_x');assert.equal(owners[0].statsOnly,true);assert.equal(owners[0].alignment.status.triggerPhase,null);
+});

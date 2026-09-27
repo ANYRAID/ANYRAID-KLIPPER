@@ -41,3 +41,9 @@ test('statistics keep costs beyond safe integers and deterministic equal-cost ph
  assert.deepEqual(result,{phase:2,phases:4,low:0,high:3,cost:count*4n,samples:count*4n});
  const asymmetric=endstopPhaseStatistics([count+1n,count,count,count]);assert.equal(asymmetric.phase,0);assert.equal(asymmetric.cost,count*4n);
 });
+test('statistics-only observations neither learn a correction nor enforce a trigger tolerance',()=>{
+ const p=new EndstopPhaseAlignment({microsteps:16,stepDistance:.01});p.observe(0n,0);p.observe(32n,0);assert.equal(p.status.triggerPhase,null);assert.equal(p.history[0],1n);assert.equal(p.history[32],1n);assert.equal(p.status.last?.mcuPosition,32n);
+});
+test('cached calibration is immutable and invalidates on every observation',()=>{
+ const p=new EndstopPhaseAlignment({microsteps:16,stepDistance:.01});const statistics=()=>p.statistics;assert.equal(statistics(),null);p.observe(0n,0);const first=statistics()!;assert(Object.isFrozen(first));assert.equal(statistics(),first);assert.equal(first.samples,1n);p.observe(1n,0);const next=statistics()!;assert.notEqual(next,first);assert.equal(next.samples,2n);assert.equal(first.samples,1n);assert.deepEqual(next,endstopPhaseStatistics(p.history));
+});

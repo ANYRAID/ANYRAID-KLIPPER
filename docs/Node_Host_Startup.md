@@ -1102,5 +1102,25 @@ G28 只在最终一轮限位触发确认后应用修正；有回退时使用第�
 状态。旧归零结果不能重复应用或用于另一代运动队列。
 
 没有显式 trigger_phase 时，首个成功最终归零观测自动学习相位。
-当前尚未提供 ENDSTOP_PHASE_CALIBRATE 的产品校准/持久化接口；
-该内存学习值随主机重建清除，不能视为已经保存到配置。
+内存观测随主机重建清除，保存采用下述版本化产品接口。
+
+已初始化的 TMC 线性轴即使没有 endstop_phase 配置，也会在最终归零
+时累计相位统计；未配置的轴只统计，不会隐式启用坐标修正。
+GET /printer/calibration/endstop_phase 返回 state_token、各电机的
+samples、last_phase、last_mcu_position 和 calibration 建议值。
+计数、累计代价与 MCU 位置使用十进制字符串，避免 JSON 数值丢失
+整数精度；没有观测时 calibration 为 null。每次新观测使旧令牌失效。
+
+POST /printer/calibration/endstop_phase 接受
+`{version:1,state_token:"预览令牌",stepper:"stepper_y",action:"save"}`。
+请求须授权，打印机须空闲且维护入口可用，只能保存主归零电机已有
+观测的推荐相位。客户端不能传入任意 phase 值。写入使用现有配置
+备份、外部编辑检测和原子保存机制，保留准确度与整步对齐选项。
+成功返回 saved_phase、persisted:true、restart_required:true，关闭
+新的打印准入，须显式重建主机后生效。相同请求可安全重试，冲突
+请求拒绝；新主机不接受旧令牌。保存失败也要求重建与检查配置。
+
+calibration.low/high 是选中圆周窗口内的观测边界；low 大于 high
+表示范围跨过相位零点。统计结果按新观测失效并缓存，重复查询不会
+重复扫描直方图。建议值和样本数量供校准决策使用，真机归零重复
+精度仍须在目标打印机上测量。

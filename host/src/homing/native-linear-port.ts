@@ -38,6 +38,13 @@ export interface PausedMove {position:readonly number[];speed:number;}
  * The runtime must arrange timely checkpoints and final drain. Mesh lifecycle
  * and product startup remain separate runtime responsibilities. */
 export class NativeLinearHomingPort implements LinearHomingPort {
+ #phaseRevision=0n;
+ endstopPhaseCalibration(){
+  return {revision:String(this.#phaseRevision),steppers:(this.#o.endstopPhases??[]).map(owner=>{
+   const last=owner.alignment.status.last,statistics=owner.alignment.statistics;
+   return {name:owner.name??owner.id,primary:this.#o.kinematicIds.includes(owner.id),correction_enabled:!owner.statsOnly,last_phase:last?.phase??null,last_mcu_position:last?String(last.mcuPosition):null,samples:statistics?String(statistics.samples):'0',calibration:statistics?{phase:statistics.phase,phases:statistics.phases,low:statistics.low,high:statistics.high,cost:String(statistics.cost)}:null};
+  })};
+ }
  #lastHoming:{pass:HomingPass;axis:Axis;generation:NativeLinearPortOptions['generation'];counts:readonly {id:string;trigger:bigint}[]}|undefined;
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #meshStatus=nativeBedMeshStatus(null,'');
@@ -441,9 +448,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return this.#operate('phase-correction',signal,async s=>{
    const last=this.#lastHoming;this.#lastHoming=undefined;
    if(!last||last.pass!==pass||last.axis!==axis||last.generation!==this.#g)throw new Error('Stale or foreign homing phase result');
-   const id=this.#o.kinematicIds[axis],owner=this.#o.endstopPhases?.find(p=>p.id===id);if(!owner)return;
+   const id=this.#o.kinematicIds[axis],owners=this.#o.endstopPhases??[];
+   for(const tracked of owners){
+    if(!tracked.statsOnly||tracked.id!==id&&!new RegExp('^stepper_'+ 'xyz'[axis]+'\\d+$').test(tracked.name??''))continue;
+    const count=last.counts.find(c=>c.id===tracked.id);if(!count)throw new Error('Missing endstop statistics trigger');
+    tracked.alignment.observe(count.trigger,tracked.offset());this.#phaseRevision++;
+   }
+   const owner=owners.find(p=>p.id===id&&!p.statsOnly);if(!owner)return;
    const counter=last.counts.find(c=>c.id===id);if(!counter)throw new Error('Missing endstop phase trigger');
-   const adjustment=owner.alignment.adjust(counter.trigger,owner.offset(),endstop);if(adjustment===0)return;
+   let adjustment:number;try{adjustment=owner.alignment.adjust(counter.trigger,owner.offset(),endstop);}finally{this.#phaseRevision++;}if(adjustment===0)return;
    const position=[...this.homingPosition()],actuators=this.#o.kinematicIds.map(id=>{
     const binding=this.#g.motion.bindings.find(b=>b.id===id);if(!binding)throw new Error('Missing phase coordinate binding');
     return binding.stepper.coordinatePosition(position[0],position[1],position[2]);

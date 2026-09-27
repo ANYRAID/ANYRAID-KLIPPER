@@ -5,9 +5,9 @@ import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {EndstopPhaseAlignment} from '../src/homing/endstop-phase.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 const signal=()=>new AbortController().signal;
-for(const unknown of [false,true])test(`native final homing phase ${unknown?'unknown stops before homing authority':'uses the trigger count and rebases the coordinate'}`,async()=>{
+for(const {unknown,statsOnly} of [{unknown:false,statsOnly:false},{unknown:true,statsOnly:false},{unknown:false,statsOnly:true}])test(`native final homing phase ${unknown?'unknown stops before homing authority':statsOnly?'collects statistics without changing coordinates':'uses the trigger count and rebases the coordinate'}`,async()=>{
  const alignment=new EndstopPhaseAlignment({microsteps:16,stepDistance:.01,triggerPhase:{phase:35,phases:64}});
- const t=await nativeLinearFixture(0,()=>false,false,undefined,false,false,false,undefined,undefined,[{id:'x',alignment,offset:()=>unknown?null:0}]);let sent=false;let last:HomingPass|undefined;const home=t.port.home.bind(t.port);t.port.home=async(...args)=>{last=await home(...args);return last;};
+ const t=await nativeLinearFixture(0,()=>false,false,undefined,false,false,false,undefined,undefined,[{id:'x',statsOnly,alignment,offset:()=>unknown?null:0}]);let sent=false;let last:HomingPass|undefined;const home=t.port.home.bind(t.port);t.port.home=async(...args)=>{last=await home(...args);return last;};
  const timer=setInterval(()=>{
   // Fresh stop-confirmation after correction uses reason 2 rather than a stale hit.
   if(t.port.status.phase!=='seek'){t.f.fw.setTriggerReason(2,8);return;}
@@ -18,6 +18,6 @@ for(const unknown of [false,true])test(`native final homing phase ${unknown?'unk
  },1);
  try{
   if(unknown){await assert.rejects(t.command.home([0],signal()),/Unknown/);assert.equal(t.kinematics.status.homedAxes,'');assert(t.port.status.failed);assert.equal(alignment.status.last,null);}
-  else{await t.command.home([0],signal());assert(sent);assert.equal(alignment.status.last?.mcuPosition,100n);assert.equal(alignment.status.last?.phase,36);assert.equal(t.port.position()[0],51.03);assert.equal(t.coordinates.state.position[0],51.03);assert.equal(t.kinematics.status.homedAxes,'x');assert.equal(t.f.stops,0);await assert.rejects(t.port.finishHoming(last!,0,51,signal()),/Stale/);assert(t.port.status.failed);assert.equal(t.kinematics.status.homedAxes,'');}
+  else{await t.command.home([0],signal());assert(sent);assert.equal(alignment.status.last?.mcuPosition,100n);assert.equal(alignment.status.last?.phase,36);assert.equal(t.port.position()[0],statsOnly?51.02:51.03);assert.equal(t.coordinates.state.position[0],statsOnly?51.02:51.03);assert.equal(t.kinematics.status.homedAxes,'x');assert.equal(t.f.stops,0);const row=t.port.endstopPhaseCalibration().steppers[0];assert.equal(row.samples,'1');assert.equal(row.last_mcu_position,'100');assert.equal(row.correction_enabled,!statsOnly);await assert.rejects(t.port.finishHoming(last!,0,51,signal()),/Stale/);assert(t.port.status.failed);assert.equal(t.kinematics.status.homedAxes,'');}
  }finally{clearInterval(timer);await t.close();}
 });
