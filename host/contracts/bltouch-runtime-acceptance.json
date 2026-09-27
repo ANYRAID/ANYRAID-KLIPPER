@@ -1,0 +1,23 @@
+{
+  "scope": "Compiled-resource runtime owner across separate control/sensor MCUs, generation PWM, verification and lifecycle; no automatic startup or motion-port binding yet",
+  "sha256": {
+    "host/src/runtime/bltouch.ts": "8e63fd88be46073a75bdcea794fc3f04b142a27500b313527a81588e700b1dd9",
+    "host/test/bltouch-runtime.test.ts": "d7573c564920fca11fc1bef36cf274402ae984ee02a28e70996bef53e934e33f"
+  },
+  "tests": "✔ BLTouch settings preserve defaults and reject conflicting probe and macro ownership (2.63274ms)\n✔ control and sensor may use different MCUs while verification keeps a distinct OID (5.545179ms)\n✔ physical alias conflicts and missing sensor ownership fail atomically (2.437734ms)\n✔ compiled BLTouch resources configure on two native MCU sessions without motion (432.23591ms)\n✔ startup cannot silently accept BLTouch before native seek ownership is connected (416.717896ms)\n✔ startup verification gates ready; each sample deploys, waits, seeks and stows (2.238828ms)\n✔ multi-sample session lowers once, uses touch mode and stows only after all samples (0.65283ms)\n✔ failed raise verification retries reset twice and never publishes ready (0.582048ms)\n✔ failed sensor test retries but never invokes descent (0.616858ms)\n✔ successful retry and original rolling five-minute sensor-test timeout (1.017861ms)\n✔ clone flags skip unsupported checks and reset before raising (0.320059ms)\n✔ cancelled sensor verification stops hardware without late deployment (0.432613ms)\n✔ seek failure stops motion and PWM instead of claiming a verified stow (0.395102ms)\n✔ retained sample capability cannot issue device commands after its session (0.968659ms)\n✔ transport verification errors stop immediately instead of being treated as a retryable no-hit (0.216407ms)\n✔ a session cannot publish idle while a detached sample is still active (0.355071ms)\n✔ probe sampling tolerance retries retain one deployed pin for the complete multi-sample session (0.638489ms)\n✔ trigger schedules stow before seek readback but defers sensor verification until it completes (0.412842ms)\n✔ multi-sample trigger does not stow before the owning session ends (0.277688ms)\n✔ compiled split-MCU BLTouch starts generation output, verifies sensors and stows before returning idle (4154.871761ms)\nℹ {\"splitMCULifecycleMs\":3739.458485,\"checks\":3,\"motion\":false,\"generationOutput\":true}\n✔ cancelled startup stops both MCUs and cannot publish ready from late verification (414.224034ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 5578.122142\n",
+  "typecheck": true,
+  "lifecycle": {
+    "splitMCULifecycleMs": 3739.458485,
+    "checks": 3,
+    "motion": false,
+    "generationOutput": true
+  },
+  "initialFailure": "EndstopVerification requires a SerialSession-owned query queue; the MCUGroup wrapper was rejected before I/O. Binding now uses sensorSession.commandQueue() for queries while retaining group-owned PWM safety queues.",
+  "remaining": [
+    "Bind runtime owner into NativeLinearHomingPort and automatic hardware startup",
+    "Drain before sessions and rebase after device waits",
+    "Wire BLTouch configuration and virtual Z probe selection",
+    "Full compiled print load test and real device validation",
+    "Python entrypoint and implementation remain"
+  ]
+}
