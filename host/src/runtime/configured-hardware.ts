@@ -1,3 +1,4 @@
+import {attachConfiguredSpiSensor} from '../config/spi-temperature.ts';
 import {HostTemperature} from '../thermal/host-temperature.ts';
 import {attachConfiguredAnalogSensor} from '../config/analog-sensor.ts';
 import {attachConfiguredBLTouch} from './bltouch.ts';
@@ -64,7 +65,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   if(emitters){const barrier=readyHardware&&hardwareOwners.get(readyHardware)?.beforeTarget;if(!barrier)throw new Error('Configured motion target barrier is not ready');await barrier(signal);}
  }),analog:ReturnType<typeof attachConfiguredAnalogHeater>[]=[];
  const hostSensors:HostTemperature[]=[];
- const sensors:ReturnType<typeof attachConfiguredAnalogSensor>[]=[];
+ const sensors:(ReturnType<typeof attachConfiguredAnalogSensor>|ReturnType<typeof attachConfiguredSpiSensor>)[]=[];
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
  const buttons:{section:string;input:SwitchInput}[]=[];
@@ -88,6 +89,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const h of plan.heaters){const binding=attachConfiguredAnalogHeater(group,h);analog.push(binding);heaters.register(h.section,binding.runtime,ids[h.section]);}
   for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensor.state,p.gcodeId);}
   for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,binding.state,p.gcodeId);}
+  for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,binding.state,p.gcodeId);}
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}

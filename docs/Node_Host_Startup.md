@@ -32,7 +32,8 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 
 自动装配支持 `[temperature_sensor chamber]` 这类独立 ADC 温度输入。
 配置 `sensor_type`、`sensor_pin`，并按设备设置 `min_temp`、`max_temp`；
-支持现有热敏电阻和线性 ADC 转换器，尚不包含数字 SPI/I2C 温度源。
+支持现有热敏电阻和线性 ADC 转换器；MAX6675 数字 SPI 输入见下文，
+其他数字 SPI/I2C 温度源仍待迁移。
 默认温度边界与原实现相同，为 -273.15 和 99999999.9 摄氏度。
 可选 `gcode_id: C` 将传感器加入 M105 报告，TEMPERATURE_WAIT 可引用
 完整传感器名；它不接受加热目标，也不分配 PWM 输出。
@@ -68,6 +69,36 @@ temperature_host host 的 temperature，不能有重复的主机温度对象短�
 严格的退出延迟上限。本轮使用普通临时文件和模拟 MCU 验收，未验证
 目标设备的真实 sysfs 驱动；证据见
 [主机温度验收](../host/contracts/host-temperature-acceptance.json)。
+
+## MAX6675 数字温度传感器
+
+原生独立 `[temperature_sensor chamber]` 支持 `sensor_type: MAX6675`。
+`sensor_pin` 为片选；硬件 SPI 必须指定 `spi_bus`，软件 SPI 则指定
+`spi_software_miso_pin`、`spi_software_mosi_pin` 和 `spi_software_sclk_pin`，
+两种配置不能混用。所有引脚必须属于片选所在 MCU；引脚别名、保留引脚、
+冲突及固件命令会在提交 MCU 配置前检查。SPI 使用 mode 0，默认 4 MHz，
+允许 100 kHz 至 4.3 MHz。总线及引脚应按目标板实际接线配置。
+
+固件按 0.3 秒报告；主机订阅先于 MCU 配置，激活前的有效样本先缓存。
+读取保留无符号 12 位、每单位 0.25°C 的原始精度。芯片编码范围为
+0 至 1023.75°C，仍须配置适合机器的 min_temp/max_temp；没有任何可表达
+温度的范围会被拒绝。固件阈值向允许范围内部取整，上界允许不参与温度
+计算的 D0 三态值。与旧 Python 四舍五入阈值有意不同，例如
+20.01–20.99°C 只允许 20.25、20.50、20.75°C。格式依据
+[Analog Devices MAX6675 手册](https://www.analog.com/media/en/technical-documentation/data-sheets/max6675.pdf)。
+
+热电偶开路、设备位异常、保留位错误、越界、重复或倒退采样、过期或
+明显未来采样均停止 MCU 组；首样本或后续报告超过七秒也停止。
+MCU 继续配置三次无效报告保护，主机收到故障不等待其累计。
+退出解除响应订阅、监测定时器及共享时钟历史租约。通过既有传感器
+注册提供 M105、TEMPERATURE_WAIT、对象查询和温度历史，不具有加热目标权限。
+
+目前此路径用于独立传感器，尚未用于 extruder/heater_generic 的反馈源；
+也未迁移 MAX31855/MAX31856/MAX31865。多个同类传感器可共用 SPI 总线，
+与 TMC 等其他组件共用同一物理总线的资源协调尚未接通，会拒绝引脚冲突。
+已验证硬件 SPI、现代和旧软件 SPI 的模拟配置，以及硬件/现代软件 SPI
+编译产品的打印、重初始化和开路停机；真实 SPI 电气时序、热精度和
+目标板验收未完成。证据见 [MAX6675 验收](../host/contracts/max6675-acceptance.json)。
 
 ## 原生温度历史
 

@@ -1,27 +1,8 @@
-import type {MessageDictionary} from '../protocol/dictionary.ts';
-import type {PinBinding} from '../protocol/pins.ts';
 import type {SerialSession} from '../protocol/serial-session.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {TmcSpiChain} from './tmc-spi.ts';
-export const tmcSpiFormats={config:'config_spi oid=%c pin=%u cs_active_high=%c',bus:'spi_set_bus oid=%c spi_bus=%u mode=%u rate=%u',send:'spi_send oid=%c data=%*s',transfer:'spi_transfer oid=%c data=%*s',response:'spi_transfer_response oid=%c response=%*s'} as const;
-/** Caller owns GPIO reservation and must configure ALL chip selects before
- * applying bus commands. Explicit bus selection avoids silently choosing pins. */
-export function compileTmcSpi<T>(chip:T,d:MessageDictionary,oid:number,cs:PinBinding<T>,bus:string|number,rate=4000000){
- if(!Number.isInteger(oid)||oid<0||oid>254||cs.chip!==chip||!cs.pin||/[\s^~!:]/u.test(cs.pin)||cs.invert!==0||cs.pullup!==0||!Number.isInteger(rate)||rate<100000||rate>0xffffffff||typeof bus==='number'&&(!Number.isInteger(bus)||bus<0||bus>0xffffffff)||typeof bus==='string'&&(!bus||/[\s=]/u.test(bus)))throw new Error('Invalid TMC SPI configuration');
- for(const format of Object.values(tmcSpiFormats))d.lookup(format);
- const select=`config_spi oid=${oid} pin=${cs.pin} cs_active_high=0`,configureBus=`spi_set_bus oid=${oid} spi_bus=${bus} mode=3 rate=${rate}`;d.encodeCommand(select);d.encodeCommand(configureBus);
- return Object.freeze({oid,rate,select,configureBus});
-}
-export const tmcSoftwareSpiFormats={modern:'spi_set_sw_bus oid=%c miso_pin=%u mosi_pin=%u sclk_pin=%u mode=%u pulse_ticks=%u',legacy:'spi_set_software_bus oid=%c miso_pin=%u mosi_pin=%u sclk_pin=%u mode=%u rate=%u'} as const;
-export function compileTmcSoftwareSpi<T>(chip:T,d:MessageDictionary,oid:number,cs:PinBinding<T>,bus:readonly PinBinding<T>[],rate=4000000){
- if(!Number.isInteger(oid)||oid<0||oid>254||!Number.isInteger(rate)||rate<100000||rate>0xffffffff||bus.length!==3||[cs,...bus].some(p=>p.chip!==chip||!p.pin||/[\s^~!:]/u.test(p.pin)||p.invert!==0||p.pullup!==0))throw new Error('Invalid TMC software SPI configuration');
- for(const key of ['config','send','transfer','response'] as const)d.lookup(tmcSpiFormats[key]);
- let modern=true;try{d.lookup(tmcSoftwareSpiFormats.modern);}catch{modern=false;d.lookup(tmcSoftwareSpiFormats.legacy);}
- const frequency=Number(d.constant('CLOCK_FREQ')),pulseTicks=Math.trunc((1/rate)*frequency);
- if(!Number.isFinite(frequency)||frequency<=0||frequency>1e9||pulseTicks<0||pulseTicks>0xffffffff)throw new RangeError('Invalid software SPI clock');
- const select=`config_spi oid=${oid} pin=${cs.pin} cs_active_high=0`,configureBus=`${modern?'spi_set_sw_bus':'spi_set_software_bus'} oid=${oid} miso_pin=${bus[0].pin} mosi_pin=${bus[1].pin} sclk_pin=${bus[2].pin} mode=3 ${modern?'pulse_ticks='+pulseTicks:'rate='+rate}`;d.encodeCommand(select);d.encodeCommand(configureBus);
- return Object.freeze({oid,rate,select,configureBus});
-}
+export {spiFormats as tmcSpiFormats,softwareSpiFormats as tmcSoftwareSpiFormats,compileSpi as compileTmcSpi,compileSoftwareSpi as compileTmcSoftwareSpi} from '../protocol/spi-config.ts';
+import {spiFormats as tmcSpiFormats} from '../protocol/spi-config.ts';
 const owners=new WeakMap<SerialSession,Map<number,TmcSpiChain>>();
 export function sessionTmcSpi(session:SerialSession,oid:number,length=1):TmcSpiChain{
  session.assertActive();if(!Number.isInteger(oid)||oid<0||oid>254||!Number.isInteger(length)||length<1||length>10)throw new RangeError('Invalid TMC SPI chain');
