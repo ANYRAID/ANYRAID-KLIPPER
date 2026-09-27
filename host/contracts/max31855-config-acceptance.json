@@ -25,8 +25,8 @@
       "range",
       "stale"
     ],
-    "targetMCUBuild": false,
-    "compiledProduct": false,
+    "targetMCUBuild": true,
+    "compiledProduct": true,
     "hardware": false
   },
   "benchmark": {
@@ -42,8 +42,207 @@
   "regressionLogSha256": "fda253d3fea0dcaab2cb103ec91ca92451cae43d71925267af543d89fd572414",
   "limitations": [
     "MCU firmware must advertise MAX31855_SIGNED_RANGE=1",
-    "No target firmware build or flash performed",
-    "Compiled product and real thermocouple acceptance remain incomplete",
-    "Python entrypoint and module retained"
-  ]
+    "Target build still uses Python Kconfiglib; no firmware flashed",
+    "Real thermocouple accuracy and hardware acceptance incomplete",
+    "Python host entrypoint and module retained"
+  ],
+  "compiledProductFollowup": {
+    "baseCommit": "74416e28",
+    "sourceSha256": {
+      "host/acceptance/product-compiled-journey.test.ts": "6822969c7cf2bdd3a128a5b3a65e49b72326d1268328b79279f0cc985294a668",
+      "host/test/helpers/product-transports.ts": "0a04d720cec015e80f76fd1f61e2eecf05f7c533c4483a3e93c94e20c926f19a"
+    },
+    "passed": 2,
+    "variants": [
+      "hardware SPI shared with TMC",
+      "software SPI shared with TMC"
+    ],
+    "metrics": [
+      {
+        "phaseQueries": 3514,
+        "phaseP99Ms": 3.8784989999985555,
+        "loaded": false,
+        "spi": true,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "zEndstop": false,
+        "max31855": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 304,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max31855-heater-open",
+        "historyNotifications": 32,
+        "historyRequests": 788,
+        "historyP99Ms": 11.902218999999604,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 10.402710999998817,
+        "deleteRequests": 16,
+        "deleteP95Ms": 13.20388499999899,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 5.918964000000415,
+        "metadataRequests": 16,
+        "metadataP95Ms": 69.70485399999961,
+        "downloads": 16,
+        "downloadP95Ms": 16.073732000000746,
+        "wireCommands": 189,
+        "wireSteps": 3692,
+        "minimumStepLeadMs": 82.552,
+        "directoryRequests": 3361,
+        "directoryP99Ms": 7.3444519999975455,
+        "statusRequests": 14060,
+        "uploads": 16,
+        "statusP99Ms": 4.805050000002666,
+        "uploadP95Ms": 13.659631000000445,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.144255,
+              "maxMs": 81.395711
+            },
+            "cpu": {
+              "user": 4372837,
+              "system": 512878
+            },
+            "rss": 284733440
+          },
+          {
+            "loop": {
+              "p99Ms": 1.987583,
+              "maxMs": 6.795263
+            },
+            "cpu": {
+              "user": 1577833,
+              "system": 199613
+            },
+            "rss": 245215232
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3653,
+        "phaseP99Ms": 3.8494169999976293,
+        "loaded": false,
+        "spi": true,
+        "software": true,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "zEndstop": false,
+        "max31855": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max31855-heater-open",
+        "historyNotifications": 32,
+        "historyRequests": 819,
+        "historyP99Ms": 9.977013999996416,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.186365000001388,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.181564999998955,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.396630000002915,
+        "metadataRequests": 16,
+        "metadataP95Ms": 24.25732099999732,
+        "downloads": 16,
+        "downloadP95Ms": 12.252552999998443,
+        "wireCommands": 192,
+        "wireSteps": 3702,
+        "minimumStepLeadMs": 83.38,
+        "directoryRequests": 3512,
+        "directoryP99Ms": 5.783852000000479,
+        "statusRequests": 14610,
+        "uploads": 16,
+        "statusP99Ms": 3.8611579999997048,
+        "uploadP95Ms": 10.027934999998251,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.154495,
+              "maxMs": 19.922943
+            },
+            "cpu": {
+              "user": 4596672,
+              "system": 579113
+            },
+            "rss": 284172288
+          },
+          {
+            "loop": {
+              "p99Ms": 2.068479,
+              "maxMs": 6.385663
+            },
+            "cpu": {
+              "user": 1449959,
+              "system": 208591
+            },
+            "rss": 270548992
+          }
+        ]
+      }
+    ],
+    "logSha256": "431c8a49560de62ba39f55ce4d0fabad7859efb11e361c5221be6989533b8da8"
+  },
+  "targetFirmware": {
+    "target": "atmega2560",
+    "toolchain": "avr-gcc 7.3.0-atmel3.6.1-arduino7",
+    "toolchainURL": "https://downloads.arduino.cc/tools/avr-gcc-7.3.0-atmel3.6.1-arduino7-x86_64-pc-linux-gnu.tar.bz2",
+    "toolchainArchiveSha256": "bd8c37f6952a2130ac9ee32c53f6a660feb79bee8353c8e289eb60fdcefed91e",
+    "configurationSha256": "5995cf6442e822775e112777c7e577b990f2b406621f4185c035a8d267c263b0",
+    "elfSha256": "5821a26cf840322ab440955e7f895682311e44e3ba30bb9f7daa1b275af7c598",
+    "hexSha256": "5b2664f8bbe15ce3b892e190878eeff3ab2d6279cb7b8abcc653ec65711d18c9",
+    "dictionarySha256": "9fe85e7da14d71df002b31846abb8da2d1e23f149694e2a6a2528024aadb878f",
+    "buildLogSha256": "9990ddc103f59b2a15c79ccecf41a37ab3eb9595526138b2bb7fe50fce4c7779",
+    "textBytes": 46222,
+    "dataBytes": 48,
+    "bssBytes": 373,
+    "signedRangeCapability": 1,
+    "pythonFree": false,
+    "remainingPython": "Kconfiglib genconfig.py and savedefconfig.py",
+    "flashed": false
+  }
 }
