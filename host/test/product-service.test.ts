@@ -218,3 +218,28 @@ test('configured quad gantry HTTP calibration owns probe, motor adjustment and d
   const status=await (await fetch(base+'/printer/objects/query?quad_gantry_level',{headers})).json() as any;assert.deepEqual(status.result.status.quad_gantry_level,{applied:true});
  }finally{if(timer)clearInterval(timer);await owner?.close();await transport.close();await f.dispose();}
 });
+test('skew HTTP persistence reloads exact server coefficients and fences previous service tokens',async()=>{
+ const {KlipperSaveSession}=await import('../src/config/klipper-save-session.ts');
+ const f=await fixture();let next:Awaited<ReturnType<typeof fixture>>|undefined,owner:Awaited<ReturnType<typeof startProductService>>|undefined;
+ try{
+  const path=join(f.dir,'printer.cfg'),sections={...f.reader.source.original,skew_correction:{}};
+  await writeFile(path,Object.entries(sections).map(([name,values])=>'['+name+']\n'+Object.entries(values).map(([key,value])=>key+': '+String(value).replace(/\n/g,'\n  ')).join('\n')).join('\n\n'));
+  const loaded=await KlipperSaveSession.load(path),reader=new ConfigurationReader(loaded.source,null);
+  owner=await startProductService(reader,f.connections,'mcu',f.layout,f.options,{...f.product,configurationSession:loaded.session},f.serviceOptions,f.signal);
+  let base=`http://127.0.0.1:${owner.address.port}`;const headers={'x-api-key':'test','content-type':'application/json'};
+  const get=async(path:string)=>(await (await fetch(base+path,{headers})).json() as any).result;
+  const post=async(path:string,body:unknown,authorized=true)=>{const response=await fetch(base+path,{method:'POST',headers:authorized?headers:{'content-type':'application/json'},body:JSON.stringify(body)});return {status:response.status,body:await response.json() as any};};
+  const settings='/printer/settings/skew',configuration='/printer/configuration/skew',state=await get(settings);
+  const set={version:1,state_token:state.state_token,action:'measure',measurements:{xy:[142.123456789,141.987654321,100],xz:null,yz:null}};
+  const measured=await post(settings,set);assert.equal(measured.status,200,JSON.stringify(measured));const factors=measured.body.result.factors;
+  assert.deepEqual(owner.printer.print.gcode.coordinates.state.position,owner.printer.linear.port.position());
+  const save={version:1,state_token:(await get(configuration)).state_token,action:'save',profile:'calibrated'};
+  assert.equal((await post(configuration,save,false)).status,401);const receipt=await post(configuration,save);assert.equal(receipt.status,200,JSON.stringify(receipt));assert(receipt.body.result.restart_required);assert.deepEqual(await post(configuration,save),receipt);
+  assert.equal((await post(settings,{version:1,state_token:(await get(settings)).state_token,action:'clear'})).status,409);assert(loaded.session.status.sealedForRestart);
+  await owner.close();owner=undefined;next=await fixture();const restored=await KlipperSaveSession.load(path);
+  owner=await startProductService(new ConfigurationReader(restored.source,null),next.connections,'mcu',next.layout,next.options,{...next.product,configurationSession:restored.session},next.serviceOptions,next.signal);base=`http://127.0.0.1:${owner.address.port}`;
+  const current=await get(settings);assert.deepEqual(current.factors,{xy:0,xz:0,yz:0});assert.deepEqual(current.profiles,['calibrated']);assert.equal((await post(settings,set)).status,409);assert.equal((await post(configuration,save)).status,409);
+  const activated=await post(settings,{version:1,state_token:current.state_token,action:'load',profile:'calibrated'});assert.equal(activated.status,200);assert.deepEqual(activated.body.result.factors,factors);
+  const remove=await post(configuration,{version:1,state_token:(await get(configuration)).state_token,action:'remove',profile:'calibrated'});assert.equal(remove.status,200,JSON.stringify(remove));const deleted=await KlipperSaveSession.load(path);assert.equal(deleted.source.original['skew_correction calibrated'],undefined);
+ }finally{await owner?.close();await next?.dispose();await f.dispose();}
+});

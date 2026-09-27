@@ -1527,3 +1527,28 @@ POST 仅传 version: 1 和当前 state_token。新限位等于已加载限位减
 水印风扇也通过编译产品并发打印负载、重载和故障停机验收。
 其他 SPI 型号风扇组合及真机验收仍待完成，不能将模拟输出包当作实际
 引脚、风量或冷却效果的证明。
+
+### 歪斜补偿产品操作
+
+配置声明 `[skew_correction]`；具名节 `[skew_correction 名称]` 必须
+包含有限的 `xy_skew`、`xz_skew`、`yz_skew`。存储配置不会自动启用。
+
+鉴权 GET `/printer/settings/skew` 返回当前系数、配置名称和状态令牌。
+POST 传 `version:1`、`state_token`，以及以下操作之一：
+
+- `action:load` 与 `profile`：加载存储系数。
+- `action:measure` 与 `measurements`：完整指定 `xy`、`xz`、`yz`，
+  每项为 `[AC,BD,AD]` 测量长度，或 `null` 表示关闭该平面。
+- `action:clear`：清除活动补偿。
+
+操作只在空闲时接收，排空旧运动后同步 G-code 坐标；暂停期间拒绝修改。
+重复成功请求使用原令牌和相同参数可取得原回执，不重复应用。
+运行时设置不持久化，服务重建后归零。
+
+持久化使用 GET `/printer/configuration/skew` 获取独立令牌，再 POST
+`version:1`、`state_token`、`action:save` 和 `profile`。保存服务端
+当前系数，不接受客户端系数；成功后需重新初始化再加载该配置。
+`action:remove` 仅删除自动保存区域的配置，普通配置或 include 中
+仍有同名节时拒绝。文件外部修改导致保存失败，不覆盖外部变更。
+保存成功或失败后当前服务均要求重新初始化。HTTP 保存、服务重建、
+精确读回和删除流程已有模拟硬件验收；真实打印机验收尚未完成。
