@@ -69,6 +69,13 @@ TEMPERATURE_WAIT 温度源及原生对象查询/订阅。编译产品验证了�
 [主机温度验收](../host/contracts/host-temperature-acceptance.json)。
 数字传感器、非独立传感器使用场景及默认 Python 入口仍未完成退役。
 
+原生产品的 Moonraker 温度历史现已接通真实原生对象快照，不再等待旧
+Klippy 连接才能开始采样。74 项回归及编译产品流程通过，覆盖标准接口
+鉴权、热端/热床目标历史和主机温度曲线。温度历史测试与基准已删除
+Python 对照执行器，改用固定源码生成的参考，显式保留负零。
+当前历史仍按服务代次保存在内存，跨原生重初始化连续性尚未实现；见
+[温度历史验收](../host/contracts/native-temperature-history-acceptance.json)。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 

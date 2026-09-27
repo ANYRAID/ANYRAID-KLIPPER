@@ -69,6 +69,24 @@ temperature_host host 的 temperature，不能有重复的主机温度对象短�
 目标设备的真实 sysfs 驱动；证据见
 [主机温度验收](../host/contracts/host-temperature-acceptance.json)。
 
+## 原生温度历史
+
+原生产品默认提供 GET `/server/temperature_store`，无需 Python Klippy
+连接或显式开启 temperatureStore。每秒从原生对象采集一次温度、目标、
+功率或速度；独立温度传感器只提供 temperatures 数组。初始就绪快照
+作为第一个样本，随后以固定容量保留最近样本。
+
+Moonraker 配置 `[data_store] temperature_store_size` 控制每字段容量，
+默认 1200；沿用现有传感器数量和总槽位限制。查询遵循服务鉴权，
+`include_monitors=true` 可包含已声明的监测对象。历史舍入仅用于遥测，
+不反馈到温控或运动计算。采样查询失败时保留历史并记录运行时错误，
+硬件状态仍应从原生主机和设备对象判断。
+
+历史保存在当前服务代次的内存中；原生主机重初始化会重建服务并重新
+开始采样，尚不提供跨重初始化或进程重启的历史连续性。关闭服务会
+取消采样定时器。数值参考和基准已经移除 Python 执行依赖，详见
+[原生温度历史验收](../host/contracts/native-temperature-history-acceptance.json)。
+
 ## 编译后的运行包
 
 在已经安装开发依赖的仓库内，使用目标运行环境对应的 Node.js 26.9+

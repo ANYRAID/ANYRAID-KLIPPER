@@ -1,0 +1,189 @@
+{
+  "scope": "Native Moonraker temperature history from real native object snapshots; simulated printer product validation",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/moonraker/temperature-store-runtime.ts": "b04aa3749b95c892d641cf35173eae01122c3694233d9fba25b27bfd3a45f115",
+    "host/src/moonraker/configured-server.ts": "98893189ffe2c7bd7ea698b4d9016a8ce0229e3f1430c9c05167a1374e1715ae",
+    "host/test/native-temperature-store.test.ts": "3c6013439ed27cd3e6e0f89a5e9880de8fadf3b1ad77d5bca4bbdb9166a4330f",
+    "host/test/temperature-store.test.ts": "8c2aca4968020cb25b58a312cd1ef73ff871288e8fb93d8c8dab81b807b9988d",
+    "host/bench/temperature-store.ts": "17f6843eee0522276dac982e55a0be412cffb9bbd8d2ed18b9f7723c3a6dfec9",
+    "host/contracts/temperature-store-reference.json": "f045400134908ef592c88aa6784ded9c6b6a184c32090dab7bb2ba7cf9901212",
+    "host/acceptance/product-compiled-journey.test.ts": "42606a788fed05770f91ea3f1893144b5d1969b145062db5715e4aa7c92108d1"
+  },
+  "checks": {
+    "typecheck": true,
+    "regressionPassed": 74,
+    "regressionFailed": 0,
+    "regressionDurationMs": 6832.220817,
+    "compiledProductPassed": 1,
+    "compiledProductFailed": 0,
+    "compiledProductDurationMs": 35511.922134,
+    "fixedReferenceGroups": 3,
+    "fixedSampleInputs": 7038
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "sensors": 32,
+    "fieldsPerSensor": 4,
+    "samples": 1000,
+    "nodeHistory": {
+      "stable": {
+        "medianMs": 8.780702999999988,
+        "p95Ms": 11.759104000000008
+      },
+      "varying": {
+        "medianMs": 16.678717000000006,
+        "p95Ms": 21.484437000000014
+      }
+    },
+    "historicalPythonHistory": {
+      "stable": {
+        "medianMs": 41.87232200001745,
+        "p95Ms": 42.06780699951196
+      },
+      "varying": {
+        "medianMs": 42.54942799980199,
+        "p95Ms": 42.67944099956367
+      }
+    },
+    "scope": "1000 synchronous callbacks; fixed historical Python baseline, no Python runtime. Excludes I/O, timers, JSON serialization and target hardware"
+  },
+  "productMetrics": [
+    {
+      "installation": {
+        "durationMs": 716.494845,
+        "dependencies": 10
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1282.4572850000004,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "measured_min_temp": 42,
+        "measured_max_temp": 42
+      },
+      "hostSensor": true,
+      "noHeaterAuthority": true
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 10,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_sensor chamber"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "phaseQueries": 4132,
+      "phaseP99Ms": 2.4155730000002222,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "hostSensor": true,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 70,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "host-temperature",
+      "historyNotifications": 32,
+      "historyRequests": 920,
+      "historyP99Ms": 7.538001000000804,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.252071999999316,
+      "deleteRequests": 16,
+      "deleteP95Ms": 14.761059999998906,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 19.719798000000083,
+      "metadataRequests": 16,
+      "metadataP95Ms": 13.854575999997905,
+      "downloads": 16,
+      "downloadP95Ms": 3.7023599999993166,
+      "wireCommands": 202,
+      "wireSteps": 4026,
+      "minimumStepLeadMs": 86.861,
+      "directoryRequests": 3996,
+      "directoryP99Ms": 3.968116000000009,
+      "statusRequests": 16532,
+      "uploads": 16,
+      "statusP99Ms": 2.863011000001279,
+      "uploadP95Ms": 5.882847999999285,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.898495,
+            "maxMs": 17.858559
+          },
+          "cpu": {
+            "user": 4692920,
+            "system": 501435
+          },
+          "rss": 286355456
+        },
+        {
+          "loop": {
+            "p99Ms": 1.874943,
+            "maxMs": 11.788287
+          },
+          "cpu": {
+            "user": 1692168,
+            "system": 211090
+          },
+          "rss": 267677696
+        }
+      ]
+    }
+  ],
+  "retired": "host/test/helpers/temperature-store-oracle.ts; tests and benchmark no longer spawn Python",
+  "resolvedFailure": "JSON stringify normalized Python reference negative zero; tagged negative-zero encoding now preserves strict IEEE-754 comparison.",
+  "limitations": [
+    "History is per native service generation and does not yet survive native host reinitialization or process restart.",
+    "Historical readings are telemetry and do not establish current hardware health.",
+    "Benchmark excludes MCU I/O, timers, serialization and target hardware.",
+    "Full Moonraker compatibility, Python retirement and historical runtime instability remain open."
+  ]
+}
