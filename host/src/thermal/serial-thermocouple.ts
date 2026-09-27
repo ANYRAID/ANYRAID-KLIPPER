@@ -1,3 +1,4 @@
+import {Max31865} from './max31865.ts';
 import {max31856Temperature} from './max31856.ts';
 import {max31855Temperature} from './max31855.ts';
 import type {SerialSession} from '../protocol/serial-session.ts';
@@ -6,7 +7,7 @@ import type {PrintClockTimeline,ClockHistoryLease} from '../timing/print-clock-t
 import type {TemperatureSink,SensorTimer} from './serial-adc.ts';
 import {max6675Temperature,thermocoupleFormats} from './max6675.ts';
 const timer:SensorTimer={now:()=>serialClock.now(),schedule(callback,seconds){const handle=setInterval(callback,seconds*1000);return ()=>clearInterval(handle);}};
-export interface ThermocouplePlan{model?:'MAX6675'|'MAX31855'|'MAX31856';oid:number;reportTicks:number;minimum:number;maximum:number;initialClock:bigint;}
+export interface ThermocouplePlan{model?:'MAX6675'|'MAX31855'|'MAX31856'|'MAX31865';rtd?:Max31865;oid:number;reportTicks:number;minimum:number;maximum:number;initialClock:bigint;}
 /** Subscribe before MCU configuration; publish only after activation. Every
  * malformed, stale, out-of-range or chip-fault report stops the required source. */
 export class SerialThermocouple {
@@ -14,8 +15,9 @@ export class SerialThermocouple {
  #detach=()=>{};#cancel:(()=>void)|undefined;#closed=false;#active=false;#sample:readonly[number,number]|undefined;#lastClock:bigint|undefined;#received=0;#started=0;#lastNow=0;#fault:unknown;#stopError:unknown;
  constructor(session:SerialSession,plan:ThermocouplePlan,clock:PrintClockTimeline,sink:TemperatureSink,scheduler:SensorTimer=timer){
   if(!Number.isInteger(plan.oid)||plan.oid<0||plan.oid>254||!Number.isInteger(plan.reportTicks)||plan.reportTicks<1||plan.reportTicks>0x7fffffff||typeof plan.initialClock!=='bigint'||plan.initialClock<0n||plan.initialClock>=0x7fffffffffffffffn||!Number.isFinite(plan.minimum)||!Number.isFinite(plan.maximum)||plan.maximum<=plan.minimum)throw new Error('Invalid thermocouple plan');
-  if(plan.model!==undefined&&!['MAX6675','MAX31855','MAX31856'].includes(plan.model))throw new Error('Invalid thermocouple model');
-  const decode=plan.model==='MAX31856'?max31856Temperature:plan.model==='MAX31855'?max31855Temperature:max6675Temperature;
+  if(plan.model!==undefined&&!['MAX6675','MAX31855','MAX31856','MAX31865'].includes(plan.model))throw new Error('Invalid thermocouple model');
+  if(plan.model==='MAX31865'&&!(plan.rtd instanceof Max31865))throw new Error('Missing MAX31865 RTD model');
+  const decode=plan.model==='MAX31865'?plan.rtd!.temperature.bind(plan.rtd):plan.model==='MAX31856'?max31856Temperature:plan.model==='MAX31855'?max31855Temperature:max6675Temperature;
   plan=Object.freeze({...plan});session.assertActive();this.#session=session;this.#clock=clock;this.#sink={sample:sink.sample.bind(sink),shutdown:sink.shutdown.bind(sink)};this.#timer=scheduler;clock.reserveClock(plan.initialClock);this.#lease=clock.retain();
   try{this.#detach=session.subscribeResponse(thermocoupleFormats.response,plan.oid,{receive:r=>{try{
    const p=r.message.parameters,now=this.#now();if(this.#closed)throw new Error('Thermocouple closed');

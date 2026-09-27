@@ -1,0 +1,49 @@
+{
+  "date": "2026-09-28",
+  "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31865.pdf",
+  "scope": "MAX31865 configuration, readback-verified startup, serial samples and heater control",
+  "tests": {
+    "hostPassed": 60,
+    "hostCommand": "node --test --test-isolation=none --test-concurrency=1 host/test/spi-temperature.test.ts host/test/spi-heater.test.ts host/test/max31856.test.ts host/test/max31865.test.ts host/test/max31865-integration.test.ts",
+    "firmwarePassed": 1,
+    "firmwareCommand": "node --test --test-isolation=none host/test/thermocouple-firmware.test.ts",
+    "firmwareRawWords": 65536,
+    "firmwareFaultStatuses": 256,
+    "sanitizer": "UBSan actual src/thermocouple.c with SPI and timer stubs",
+    "checks": [
+      "Hardware/modern software/legacy software SPI, 2/3/4 wires",
+      "PT1000 negative sample full precision",
+      "PID and watermark heater fault stop",
+      "Fault bit in raw word rejected even without separate status",
+      "Readback mismatch, malformed response, startup fault and cancellation stop before sampling",
+      "Invalid configuration rejected before I/O"
+    ]
+  },
+  "startup": {
+    "standbyWaitMs": 100,
+    "biasWaitMs": 100,
+    "firstConversionWaitMs": 100,
+    "spiMode": 1,
+    "thresholds": "Restored to POR defaults; MCU and host enforce encoded temperature bounds",
+    "runtimeFaultRetry": false
+  },
+  "performance": {
+    "numericEvidence": "max31865-decoder-acceptance.json",
+    "additionalIntentionalStartupWaitMs": 300,
+    "compiledProductLoadBenchmark": "pending"
+  },
+  "sourceSha256": {
+    "host/src/config/spi-temperature.ts": "3aacbd228eb41a1d74e6a3f3460ff4ecc7f5b621f4b2de97aacb4986ee65c1e4",
+    "host/src/thermal/max31865-startup.ts": "7c4bf15adc482ca3f01f0af6b64bbdfedfb670d07d7ed25e324c015f42aa9416",
+    "host/src/thermal/serial-thermocouple.ts": "3ddcf8da7c7dd8a252fc1ecaf057a49f74474cb226d2dd2d6b36fa5bd978413b",
+    "host/test/max31865-integration.test.ts": "619660d8cd079639d4b8d0fb62f7709338131daaecb7263cbaef78fd501a7deb",
+    "host/test/helpers/thermocouple-firmware/test.c": "10a6986d18a9a50f61b6169b5769537ace20dbda8fbd4dc97f55095c9fe69ced"
+  },
+  "limitations": [
+    "No compiled-product MAX31865 full printing journey yet",
+    "No physical RTD or MCU target timing verification",
+    "Settling assumptions are based on datasheet network; custom analog networks need validation",
+    "No Python retired; 187 tracked files and default Python printing entrypoint remain",
+    "Historical Node runtime and motion numerical issues unresolved"
+  ]
+}

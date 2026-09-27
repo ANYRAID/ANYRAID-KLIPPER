@@ -44,6 +44,10 @@ struct spidev_s *spidev_oid_lookup(uint8_t oid) { (void)oid; return NULL; }
 void spidev_transfer(struct spidev_s *spi, uint8_t receive, uint8_t length
                      , uint8_t *data)
 { (void)spi; (void)receive;
+    if(object.chip_type==TS_CHIP_MAX31865) {
+        if(length==2) { assert(data[0]==0x07);data[1]=spi_fault;return; }
+        assert(length==3 && data[0]==0x01);
+    }
     if(object.chip_type==TS_CHIP_MAX31856) {
         if(length==2) { assert(data[0]==0x0f);data[1]=spi_fault;return; }
         assert(length==4 && data[0]==0x0c);
@@ -95,6 +99,22 @@ int main(void)
     assert(stopped==0);
     thermocouple_handle_max31856(&object,400,0);assert(stopped==1);
     assert(max31856_out_of_range(0x1000000,0,0x7fffff));
+    // RTD fault bit and every 16-bit word use the actual unsigned MCU checker.
+    object.chip_type=TS_CHIP_MAX31865;
+    object.min_value=10000;object.max_value=40000;spi_fault=0;
+    for(uint32_t raw=0;raw<65536;raw++) {
+        spi_word=raw;stopped=0;object.invalid_count=0;
+        for(int i=0;i<3;i++)thermocouple_handle_max31865(&object,400,0);
+        assert(reported==raw && reported_fault==(raw&1));
+        assert(stopped==((raw&1)||raw<10000||raw>40000));
+    }
+    for(int fault=0;fault<256;fault++) {
+        spi_fault=fault;spi_word=20000;stopped=0;object.invalid_count=0;
+        for(int i=0;i<2;i++)thermocouple_handle_max31865(&object,400,0);
+        assert(stopped==0 && reported_fault==(fault&0xfc));
+        thermocouple_handle_max31865(&object,400,0);
+        assert(stopped==((fault&0xfc)!=0));
+    }
     // MAX6675 retains unsigned comparison and its existing fault encoding.
     object.chip_type=TS_CHIP_MAX6675;object.min_value=0;object.max_value=3201;
     for(int code=0;code<4096;code++) {
