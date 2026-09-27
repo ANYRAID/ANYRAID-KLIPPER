@@ -1586,3 +1586,18 @@ start 可带 direction:CW|CCW 和 maximum_deviation，参数固定至会话
 `max_deviation` 和按 `screw1` 等编号组织的 `results`。新测量开始
 立即清除上一轮建议；失败或取消返回 failed 且无结果。服务重建从
 idle 开始，不将上一次服务的建议当作当前测量。
+
+### 床面螺丝粗调与精调
+
+`[bed_screws]` 配置至少三个连续编号的 `screw1` 等 XY 坐标，可加
+`_name` 和 `_fine_adjust` 精调坐标。`horizontal_move_z` 为横移安全
+高度，`probe_height` 为手动调整时喷嘴高度；前者必须高于后者，所有
+点位和高度须在物理行程内。`speed` 控制横移，`probe_speed` 控制升降。
+
+鉴权 GET `/printer/calibration/bed_screws` 获取令牌。POST 使用
+`version:1`、`state_token` 与 `action`：`start` 开始，`accept`
+确认无需显著调整，`adjusted` 表示本点做过显著调整并要求重新确认
+其他点，`cancel` 停止。粗调完成后自动进入已配置的精调点。
+会话要求空闲且 XYZ 已归零，并在等待用户期间独占运动；同一成功
+请求重试不移动。完成后抬升喷嘴，取消、超时或失败要求重新初始化。
+这是一项用户手动旋转螺丝的引导，不会自动调整电机或保存补偿。

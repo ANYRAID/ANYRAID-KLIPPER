@@ -1,0 +1,118 @@
+{
+  "node": "26.9.0",
+  "scope": "Independent compiled product, authenticated HTTP, simulated MCU, no Python or TS loader",
+  "journey": {
+    "bedScrews": {
+      "compiled": true,
+      "elapsedMs": 6384.715161,
+      "coarseAndFine": true,
+      "adjustedForcesRecheck": true,
+      "retryWithoutMotion": true,
+      "noProbe": true
+    }
+  },
+  "metrics": {
+    "phaseQueries": 5105,
+    "phaseP99Ms": 2.532223000001977,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": false,
+    "manualScrews": false,
+    "bedScrews": true,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 216,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1132,
+    "historyP99Ms": 8.994194000002608,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 3.5158340000016324,
+    "deleteRequests": 16,
+    "deleteP95Ms": 7.470044000001508,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 2.023855999999796,
+    "metadataRequests": 16,
+    "metadataP95Ms": 27.778481999999713,
+    "downloads": 16,
+    "downloadP95Ms": 3.606926000000385,
+    "wireCommands": 284,
+    "wireSteps": 4627,
+    "minimumStepLeadMs": 87.173,
+    "directoryRequests": 4926,
+    "directoryP99Ms": 5.014773000000787,
+    "statusRequests": 20426,
+    "uploads": 16,
+    "statusP99Ms": 2.395089999999982,
+    "uploadP95Ms": 13.611221999999543,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.914879,
+          "maxMs": 17.367039
+        },
+        "cpu": {
+          "user": 5834761,
+          "system": 696574
+        },
+        "rss": 286224384
+      },
+      {
+        "loop": {
+          "p99Ms": 1.886207,
+          "maxMs": 6.246399
+        },
+        "cpu": {
+          "user": 1471977,
+          "system": 183677
+        },
+        "rss": 305827840
+      }
+    ]
+  },
+  "checks": [
+    "Coarse and fine passes complete",
+    "Adjusted action forces rechecking",
+    "Identical request replay causes no extra movement",
+    "Maintenance blocks homing",
+    "Final nozzle lift",
+    "Subsequent print, reload and ADC shutdown"
+  ],
+  "limitations": [
+    "No physical screw adjustment acceptance",
+    "Historical runtime crashes and motion numerical mismatches remain open"
+  ]
+}
