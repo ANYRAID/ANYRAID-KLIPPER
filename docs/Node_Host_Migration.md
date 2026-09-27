@@ -25225,3 +25225,21 @@ host/contracts/bltouch-native-verification-acceptance.json。
 机器编译器尚未分配该专用验证 OID，原生下探触发时收针和完整
 产品负载验收仍需接入。因此此交付不改变 BLTouch 产品支持状态，
 也未退役原 Python 文件。
+
+### BLTouch 冷启动配置与资源分配
+
+硬件编译器已接入 BLTouch 控制 PWM 和独立验证 trsync 分配，
+与归零共享已编译传感器，避免重复申领 GPIO。控制与传感器可
+位于不同 MCU，统一分配 OID 和移动槽；控制 PWM 使用 20 ms
+周期、初始及关断值零，并要求可撤销未来写入的 generation 协议。
+配置拒绝与普通 probe 共存、激活宏和物理引脚别名冲突。
+
+配置及既有硬件启动回归 24/24 通过，类型检查通过；两 MCU
+原生配置下发通过且没有运动。100 份配置编译中位 15.340 ms，
+单份最大约 0.188 ms，仅属于启动开销。证据见
+host/contracts/bltouch-config-acceptance.json。
+
+原生下探生命周期尚未连接，因此 startConfiguredHardware 对
+BLTouch 明确报错，在任何配置或运动下发前退出，不默默忽略该
+设备。下一步需连接生命周期所有者、虚拟 Z 归零和触发时收针，
+再解除入口限制并完成编译产品负载验收；对应 Python 仍未退役。

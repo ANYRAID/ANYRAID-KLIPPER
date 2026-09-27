@@ -50,6 +50,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  signal.throwIfAborted();group.assertActive();
  const timeout=options.timeoutMs??10000;
  if(owners.has(group)||(typeof options.beforeTarget!=='function'&&!(options.beforeTarget===undefined&&options.motion?.length))||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
+ if(reader.hasSection('bltouch'))throw new Error('BLTouch native seek lifecycle is not yet connected');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
  const thermalPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('heater_fan ')).map(f=>[f.section,readHeaterFanPolicy(reader,f.section,plan.heaters.map(h=>h.section))]));
  const controllerPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('controller_fan ')).map(f=>[f.section,readControllerFanPolicy(reader,f.section,plan.heaters.map(h=>h.section),plan.steppers.map(s=>s.section))]));
