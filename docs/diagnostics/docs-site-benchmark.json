@@ -1,0 +1,20 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "samplesMs": [
+    327.730282,
+    328.4064619999999,
+    320.416113,
+    321.51297799999975,
+    322.08666700000003,
+    321.1299829999998,
+    315.33592599999974
+  ],
+  "medianMs": 321.51297799999975,
+  "result": {
+    "pages": 57,
+    "assets": 110
+  },
+  "scope": "English candidate build including filesystem writes; no printer or deployment acceptance.",
+  "sourceSha256": "f7c98aaa99a1ea07debefa087fc656427afb3809e7d4e51b6dbc2429b52e01a9"
+}

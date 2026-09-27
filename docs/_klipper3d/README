@@ -18,3 +18,13 @@ virtualenv ~/mkdocs-env && ~/mkdocs-env/bin/pip install -r ~/klipper/docs/_klipp
 source ~/mkdocs-env/bin/activate
 cd ~/klipper && ./docs/_klipper3d/build-translations.sh
 cd ~/klipper/site/ && python3 -m http.server 8000
+
+Node candidate (English only; not the deployment entrypoint):
+
+  node scripts/build-docs.ts /tmp/klipper-docs-preview
+
+Requires Node.js 26.9+ and host dependencies. The output directory must not
+exist and must be outside docs/. Includes HTML, navigation, static assets and
+search. Serve it over HTTP to use search; file:// cannot fetch its index.
+Translations, browser acceptance and Markdown extension parity remain pending.
+Benchmark: node host/bench/docs-site.ts
