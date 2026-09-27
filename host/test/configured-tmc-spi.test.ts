@@ -17,7 +17,7 @@ const reader=(change:Record<string,string>={},software=false,model='tmc2130')=>n
 },[]),null);
 async function fixture(bad=false,software?:'modern'|'legacy'){
  const registers=new Map<number,number>(),writes:number[][]=[];let latched=Buffer.alloc(10),fault=0,stops=0;
- const firmware=await serialFirmware(undefined,{extendedPins:true,stepperBytePins:true,spiSoftware:software,tmcSpi(_oid,frame){
+ const firmware=await serialFirmware(undefined,{max6675:true,extendedPins:true,stepperBytePins:true,spiSoftware:software,tmcSpi(_oid,frame){
   if(bad)return {data:Buffer.alloc(0)};const previous=latched;latched=Buffer.alloc(10);const b=Buffer.from(frame);
   for(let i=0;i<10;i+=5){const r=b[i]&127,key=i*128+r;if(b[i]&128){writes.push([i,r,b.readUInt32BE(i+1)]);registers.set(key,b.readUInt32BE(i+1));}latched.writeUInt32BE(r===0x6f?fault:r===1?0:registers.get(key)??0,i+1);}return {data:previous};
  }}),group=new MCUGroup([{id:'mcu',async connect(s,stopDevice){const session=new SerialSession(firmware.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){stops++;}}]),signal=new AbortController().signal;
@@ -82,5 +82,16 @@ for(const software of [false,true])test(`TMC2240 SPI owns fixed-range current, t
   const deadline=Date.now()+3000;while(h.drivers[0].monitor.status.temperature===null&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
   assert.equal(h.drivers[0].monitor.status.temperature,-264.68);
   f.setFault(1<<12);const end=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<end)await new Promise(r=>setTimeout(r,10));await h.close();assert(h.drivers.some(d=>d.monitor.status.fault));assert.equal(f.stops,1);
+ }finally{await f.close();}
+});
+for(const software of [undefined,'modern','legacy'] as const)for(const fault of ['temperature','driver'] as const)test(`TMC and MAX6675 share ${software??'hardware'} SPI with distinct modes and stop on ${fault}`,async()=>{
+ const f=await fixture(false,software);try{
+  const shared:Record<string,string>=software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{spi_bus:'spi1'},source=new ConfigurationReader(new ConfigurationSource('/shared-spi.cfg',{...reader({},!!software).source.original,'temperature_sensor case':{sensor_type:'MAX6675',sensor_pin:'PA10',...shared,min_temp:'0',max_temp:'100'},'heater_generic tool':{sensor_type:'MAX6675',sensor_pin:'PA11',...shared,heater_pin:'PA12',min_temp:'0',max_temp:'300',control:'watermark'}},[]),null);
+  const h=await startConfiguredHardware(source,f.group,f.clocks,{...layout,sensors:[{section:'temperature_sensor case'}],heaters:[{section:'heater_generic tool'}]},{beforeTarget(){}},f.signal),commands=h.plan.configurations[0].plan.commands;
+  assert(commands.findLastIndex(c=>c.startsWith('config_spi '))<commands.findIndex(c=>c.startsWith('spi_set_')));assert.match(h.plan.tmcSpis[0].spi.configureBus,/mode=3 /);assert.match(h.plan.spiHeaters[0].sensor.spi.configureBus,/mode=0 /);
+  for(const p of [...h.plan.spiSensors,...h.plan.spiHeaters.map(h=>h.sensor)])f.firmware.emit('thermocouple_result',{oid:p.oid,next_clock:(f.firmware.currentClock()+p.reportTicks)>>>0,value:25*32,fault:0});
+  let deadline=Date.now()+2000;while(!h.spiHeaters[0].runtime.status.received&&Date.now()<deadline)await new Promise(r=>setTimeout(r,2));assert(h.spiHeaters[0].runtime.status.received);await h.heaters.setTarget('tool',200,f.signal);
+  if(fault==='driver')f.setFault(1<<25);else{const p=h.plan.spiHeaters[0].sensor;f.firmware.emit('thermocouple_result',{oid:p.oid,next_clock:(f.firmware.currentClock()+p.reportTicks)>>>0,value:4,fault:4});}
+  deadline=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));await h.close();assert.equal(f.stops,1);assert(h.sensors[0].sensor.status.closed);assert(h.spiHeaters[0].runtime.status.outputStopConfirmed);assert(h.drivers.every(d=>d.monitor.status.closed));
  }finally{await f.close();}
 });

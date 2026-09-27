@@ -34,13 +34,14 @@ export class PinResolver {
  }
 }
 export interface PinOptions {canInvert?:boolean;canPullup?:boolean;shareType?:string}
-export interface PinRequest {description:string;options?:PinOptions;exclusive?:boolean}
+export interface PinRequest {description:string;options?:PinOptions;exclusive?:boolean;strictSharing?:boolean}
 export interface PhysicalPinMap {pins:Readonly<Record<string,number>>;reserved?:readonly number[]}
 interface PhysicalPins {fingerprint:string;pins:Map<string,number>;reserved:Set<number>}
 export interface PinBinding<T> {readonly chip:T;readonly chipName:string;readonly pin:string;readonly invert:0|1;readonly pullup:-1|0|1;readonly shareType?:string}
 /** Registration and ownership only. Actuator-specific setup belongs to the chip. */
 export class PrinterPins<T> {
  #chips=new Map<string,T>();#resolvers=new Map<string,PinResolver>();#active=new Map<string,PinBinding<T>>();#multi=new Set<string>();
+ #strictSharing=new WeakSet<PinBinding<T>>();
  #wire=new Map<string,PhysicalPins>();#held=new WeakMap<PinBinding<T>,string>();#exclusive=new WeakSet<PinBinding<T>>();
  register(name:string,chip:T):void{name=name.trim();if(!valid(name)||this.#chips.has(name))throw new PinError('Invalid or duplicate chip name');if([...this.#wire.keys()].some(n=>this.#chips.get(n)===chip))throw new PinError('Mapped physical chip already has a name');this.#chips.set(name,chip);this.#resolvers.set(name,new PinResolver());}
  chip(name:string):T{if(!this.#chips.has(name))throw new PinError(`Unknown chip ${name}`);return this.#chips.get(name)!;}
@@ -57,7 +58,7 @@ export class PrinterPins<T> {
  lookup(description:string,options:PinOptions={}):PinBinding<T>{
   const binding=this.parse(description,options),key=`${binding.chipName}:${binding.pin}`,previous=this.#active.get(key);
   if(this.#wire.has(binding.chipName))return this.lookupBatch([{description,options}])[0];
-  if(previous){if(this.#exclusive.has(previous))throw new PinError(`Pin ${binding.pin} is exclusively owned`);if(!this.#multi.has(key)){if(options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}return previous;}
+  if(previous){if(this.#exclusive.has(previous))throw new PinError(`Pin ${binding.pin} is exclusively owned`);if(this.#strictSharing.has(previous)||!this.#multi.has(key)){if(options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}return previous;}
   this.#active.set(key,binding);return binding;
  }
  /** Atomic multi-pin acquisition. Existing owners survive failed validation.
@@ -73,7 +74,7 @@ export class PrinterPins<T> {
    wire.set(name,{fingerprint,pins:new Map(entries),reserved:new Set(reserved)});
   }
   const active=new Map(this.#active),physical=new Map<string,PinBinding<T>>(),resolvers=new Map([...this.#resolvers].map(([name,r])=>[name,r.clone()]));
-  const identities=new Map<PinBinding<T>,string>(),exclusive=new Set<PinBinding<T>>();
+  const identities=new Map<PinBinding<T>,string>(),exclusive=new Set<PinBinding<T>>(),strictSharing=new Set<PinBinding<T>>();
   const key=(p:PinBinding<T>)=>{
    const resolver=resolvers.get(p.chipName)!,pin=resolver.resolve([`claim pin=${p.pin}`])[0].slice(10),mapping=wire.get(p.chipName);
    if(!mapping)return `${p.chipName}:name:${pin}`;
@@ -83,12 +84,13 @@ export class PrinterPins<T> {
   };
   for(const p of active.values()){const k=key(p);if(physical.has(k)&&physical.get(k)!==p)throw new PinError('Existing pin aliases overlap');physical.set(k,p);}
   const result=requests.map(request=>{
-   const options=request.options??{},binding=this.parse(request.description,options),raw=`${binding.chipName}:${binding.pin}`,canonical=key(binding),previous=physical.get(canonical);
-   if(previous){if(request.exclusive||exclusive.has(previous)||this.#exclusive.has(previous)||!this.#multi.has(raw)){if(request.exclusive||exclusive.has(previous)||this.#exclusive.has(previous)||options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}return previous;}
-   active.set(raw,binding);physical.set(canonical,binding);if(request.exclusive)exclusive.add(binding);return binding;
+   const options=request.options??{};if(request.strictSharing&&(typeof options.shareType!=='string'||!options.shareType))throw new PinError('Strict sharing requires a share type');
+   const binding=this.parse(request.description,options),raw=`${binding.chipName}:${binding.pin}`,canonical=key(binding),previous=physical.get(canonical);
+   if(previous){if(request.exclusive||exclusive.has(previous)||this.#exclusive.has(previous)||request.strictSharing||strictSharing.has(previous)||this.#strictSharing.has(previous)||!this.#multi.has(raw)){if(request.exclusive||exclusive.has(previous)||this.#exclusive.has(previous)||options.shareType===undefined||options.shareType!==previous.shareType)throw new PinError(`Pin ${binding.pin} used multiple times`);if(binding.invert!==previous.invert||binding.pullup!==previous.pullup)throw new PinError('Shared pin must have same polarity');}if(request.strictSharing)strictSharing.add(previous);return previous;}
+   active.set(raw,binding);physical.set(canonical,binding);if(request.exclusive)exclusive.add(binding);if(request.strictSharing)strictSharing.add(binding);return binding;
   });
-  this.#active=active;this.#wire=wire;for(const [binding,id] of identities)this.#held.set(binding,id);requests.forEach((request,i)=>{if(request.exclusive)this.#exclusive.add(result[i]);});return Object.freeze(result);
+  this.#active=active;this.#wire=wire;for(const binding of strictSharing)this.#strictSharing.add(binding);for(const [binding,id] of identities)this.#held.set(binding,id);requests.forEach((request,i)=>{if(request.exclusive)this.#exclusive.add(result[i]);});return Object.freeze(result);
  }
  allowMultiUse(description:string):void{const p=this.parse(description);this.#multi.add(`${p.chipName}:${p.pin}`);}
- resetSharing(binding:PinBinding<T>):void{const key=`${binding.chipName}:${binding.pin}`;if(this.#active.get(key)!==binding)throw new PinError('Unknown pin binding');if(this.#exclusive.has(binding))throw new PinError('Exclusive pin requires a new hardware registry');this.#active.delete(key);}
+ resetSharing(binding:PinBinding<T>):void{const key=`${binding.chipName}:${binding.pin}`;if(this.#active.get(key)!==binding)throw new PinError('Unknown pin binding');if(this.#exclusive.has(binding))throw new PinError('Exclusive pin requires a new hardware registry');if(this.#strictSharing.has(binding))throw new PinError('Shared bus pin requires a new hardware registry');this.#active.delete(key);}
 }

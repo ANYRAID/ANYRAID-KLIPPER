@@ -1,3 +1,4 @@
+import {spiBusRequests} from './spi-bus.ts';
 import {planTmc2240} from '../drivers/tmc2240.ts';
 import {planTmc5160} from '../drivers/tmc5160.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -7,8 +8,8 @@ import type {StepperMCU} from './stepper.ts';
 import {compileTmcSpi,compileTmcSoftwareSpi} from '../drivers/tmc-spi-mcu.ts';
 import {planTmc2130} from '../drivers/tmc2130.ts';
 type SpiDriverPlan=(Omit<ReturnType<typeof planTmc2130>,'registers'>|Omit<ReturnType<typeof planTmc5160>,'registers'>|Omit<ReturnType<typeof planTmc2240>,'registers'>)&{registers:readonly Readonly<{name:string;address:number;value:number}>[]};
-/** One OID per CS chain. Hardware bus pins are exclusively claimed once across
- * all CS chains, with firmware BUS_PINS metadata required for conflict checks. */
+/** One OID per CS chain. Bus pins share only identical physical wiring and
+ * backend; chip selects remain exclusive across peripheral kinds. */
 export function compileConfiguredTmcSpi<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,steppers:readonly {section:string;bothEdges:boolean}[]){
  const maps=new Map<string,PhysicalPinMap>(),requests:PinRequest[]=[],usedBuses=new Set<string>();
  const chains=new Map<string,{mcu:string;cs:ReturnType<typeof pins.parse>;bus:string;software?:readonly ReturnType<typeof pins.parse>[];rate:number;length:number;devices:{position:number;plan:SpiDriverPlan}[]}>();
@@ -29,8 +30,7 @@ export function compileConfiguredTmcSpi<T>(reader:ConfigurationReader,pins:Print
   if(old){if(old.bus!==bus||old.rate!==rate||old.length!==length||old.devices.some(d=>d.position===position))throw new Error('Conflicting TMC SPI chain configuration');old.devices.push({position,plan});}
   else{chains.set(key,{mcu:cs.chipName,cs:Object.freeze({...cs,pin:resolved}),bus,software,rate,length,devices:[{position,plan}]});requests.push({description,exclusive:true});}
   const busKey=cs.chipName+':'+bus;if(!usedBuses.has(busKey)){
-   if(software)for(const k of swNames)requests.push({description:c.get(k),exclusive:true});
-   else{const constant=mcu.dictionary.constant('BUS_PINS_'+bus);if(typeof constant!=='string'||constant.split(',').length!==3)throw new Error('TMC SPI requires three firmware bus pins');for(const name of constant.split(','))requests.push({description:cs.chipName+':'+name.trim(),exclusive:true});}
+   requests.push(...spiBusRequests(pins,cs.chipName,mcu.dictionary,bus,software));
    usedBuses.add(busKey);
   }
  }

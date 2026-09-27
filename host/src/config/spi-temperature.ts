@@ -1,3 +1,4 @@
+import {spiBusRequests} from './spi-bus.ts';
 import type {TemperatureSink,SensorTimer} from '../thermal/serial-adc.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins,type PhysicalPinMap,type PinRequest} from '../protocol/pins.ts';
@@ -28,13 +29,13 @@ export function compileConfiguredSpiSensors<T>(reader:ConfigurationReader,pins:P
   if(software&&c.hasOption('spi_bus'))throw new Error('SPI hardware and software buses are mutually exclusive');
   const bus=software?'software:'+software.map(p=>enumeration[p.pin]).join(','):c.get('spi_bus'),rate=c.getInt('spi_speed',{defaultValue:4000000,minval:100000,maxval:4300000});
   requests.push({description,exclusive:true});const key=cs.chipName+':'+bus;
-  if(!buses.has(key)){if(software)for(const k of swNames)requests.push({description:c.get(k),exclusive:true});else{const constant=mcu.dictionary.constant('BUS_PINS_'+bus);if(typeof constant!=='string'||constant.split(',').length!==3)throw new Error('SPI temperature requires firmware bus pins');for(const p of constant.split(','))requests.push({description:cs.chipName+':'+p.trim(),exclusive:true});}buses.add(key);}
+  if(!buses.has(key)){requests.push(...spiBusRequests(pins,cs.chipName,mcu.dictionary,bus,software));buses.add(key);}
   const clock=readPrintClock(mapping.calibration,mapping.timeline),frequency=Number(mcu.dictionary.constant('CLOCK_FREQ')),reportTicks=Math.trunc(.3*frequency);
   if(!Number.isFinite(mapping.currentPrintTime)||mapping.currentPrintTime<0||!Number.isFinite(frequency)||frequency<=0||frequency>1e9||reportTicks<1||reportTicks>0x7fffffff)throw new Error('Invalid thermocouple timing');
   for(const format of Object.values(thermocoupleFormats))mcu.dictionary.lookup(format);
   return {section,minimum,maximum,range,gcodeId:gcodeId??undefined,mcu:cs.chipName,chip:mcu.chip,dictionary:mcu.dictionary,cs:resolvePin(description),software,bus,rate,clock,timeline:mapping.timeline,currentPrintTime:mapping.currentPrintTime,frequency,reportTicks};
  });
- return mcuOids(pins).claim(prepared.flatMap(p=>[{mcu:p.mcu,owner:p.section+':spi'},{mcu:p.mcu,owner:p.section}]),oids=>{
+ return mcuOids(pins).claim(prepared.flatMap(p=>[{mcu:p.mcu,owner:'temperature:'+p.section+':spi'},{mcu:p.mcu,owner:'temperature:'+p.section}]),oids=>{
   const plans=prepared.map((p,i)=>{
    const spi=p.software?compileSoftwareSpi(p.chip,p.dictionary,oids[i*2],p.cs,p.software,p.rate,0):compileSpi(p.chip,p.dictionary,oids[i*2],p.cs,p.bus,p.rate,0),oid=oids[i*2+1],initialClock=p.clock.clockAt(Math.trunc(p.currentPrintTime+1.5))+BigInt(Math.trunc(oid*.01*p.frequency));
    if(initialClock<0n||initialClock>=0x7fffffffffffffffn)throw new Error('Invalid thermocouple query clock');

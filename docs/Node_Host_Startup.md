@@ -104,11 +104,15 @@ heater_pin、control、PID/开关参数、verify_heater 和功率设置，按上
 加热器状态。独立传感器与加热器反馈同批分配 SPI 资源，可共享总线。
 
 尚未迁移 MAX31855/MAX31856/MAX31865。多个同类传感器可共用 SPI 总线，
-与 TMC 等其他组件共用同一物理总线的资源协调尚未接通，会拒绝引脚冲突。
+现已支持与 TMC 共用总线：必须属于同一 MCU、同一种 SPI 实现且完整
+物理接线一致，片选保持独占。硬件总线别名须映射相同控制器；不允许
+硬件/软件混用、信号互换或部分重叠，多重使用设置不能绕过这些约束。
+全部片选先配置，再启用总线；固件在每次片选前恢复设备模式和速率。
 已验证硬件 SPI、现代和旧软件 SPI 的模拟配置，以及硬件/现代软件 SPI
 编译产品的打印、重初始化和开路停机；真实 SPI 电气时序、热精度和
 目标板验收未完成。证据见 [MAX6675 输入验收](../host/contracts/max6675-acceptance.json)
 和[数字加热器反馈验收](../host/contracts/spi-heater-acceptance.json)。
+跨 TMC 共享的独立产品验证见[共享 SPI 验收](../host/contracts/shared-spi-acceptance.json)。
 
 ## 原生温度历史
 
