@@ -8,7 +8,8 @@ export class SDCardEmulator implements SDCardSPITransport {
   this.csd[14]=protectedCard?0x30:0;this.csd[15]=sdCRC7(this.csd.subarray(0,15));
  }
  #block(data:Uint8Array){const crc=sdCRC16(data)^(this.badCRC?1:0);this.response=[0,254,...data,crc>>>8,crc&255,255];}
- async send(data:Uint8Array,signal:AbortSignal){
+ async send(data:Uint8Array,signal:AbortSignal){this.sendBytes(data,signal);}
+ sendBytes(data:Uint8Array,signal:AbortSignal){
   signal.throwIfAborted();
   if(this.frame){this.frame.push(...data);if(this.frame.length===515){this.writes.push(Uint8Array.from(this.frame));this.frame=undefined;this.response=[5,...Array(this.busy?128:1).fill(this.busy?0:255)];}return;}
   if(data.length!==6)throw new Error('Unexpected command length');if(sdCRC7(data.subarray(0,5))!==data[5])throw new Error('Command CRC');
@@ -16,5 +17,6 @@ export class SDCardEmulator implements SDCardSPITransport {
   const replies:Record<number,number[]>={0:[1],8:this.high?[1,0,0,1,10]:[5],59:[1],55:[1],41:[0],58:this.high?[0,64,255,128,0]:[1,0,255,128,0],16:[0],24:[0],13:[0,this.rejectStatus?1:0]};
   if(command===10)this.#block(this.cid);else if(command===9)this.#block(this.csd);else if(command===17)this.#block(this.data);else{this.response=[...(replies[command]??[4])];while(this.response.length<8)this.response.push(255);if(command===24)this.frame=[];}
  }
- async transfer(data:Uint8Array,signal:AbortSignal){signal.throwIfAborted();if(this.shortResponse)return new Uint8Array();return Uint8Array.from(data,()=>this.response.shift()??255);}
+ async transfer(data:Uint8Array,signal:AbortSignal){return this.transferBytes(data,signal);}
+ transferBytes(data:Uint8Array,signal:AbortSignal){signal.throwIfAborted();if(this.shortResponse)return new Uint8Array();return Uint8Array.from(data,()=>this.response.shift()??255);}
 }
