@@ -1,0 +1,270 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "f60ceb9c",
+  "runtime": "Node.js 26.9.0",
+  "sourceSha256": {
+    "host/src/moonraker/native-z-adjustment.ts": "e477f580fbd4f535e78a8e40a1d5ab24fac405755480f22875038a3ac30b7890",
+    "host/src/runtime/product-service.ts": "52383c48bd64aa17e2b4cebbc68ad98c7b9a9ea5bdfec4666966f8077a57625e",
+    "host/test/z-adjustment.test.ts": "7c6ddef16e5fcfc2576ba466f8918345c8151998acf4dd3afb54a8b94f91fcf6",
+    "host/acceptance/product-compiled-journey.test.ts": "b3221d7e6af0ccf007a11d98fb451335bc8cf40a9be437dcc63056954f2a7a1f"
+  },
+  "tests": {
+    "adjustmentAndSave": 10,
+    "typecheck": "passed",
+    "compiledProduct": 1
+  },
+  "measurements": [
+    {
+      "installation": {
+        "durationMs": 726.686542,
+        "dependencies": 10
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_motion_sensor encoder",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1408.7750890000007,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 10,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 19,
+        "samplesAfter": 22
+      }
+    },
+    {
+      "gridCalibration": {
+        "compiled": true,
+        "typedHoming": true,
+        "noPrintJob": true,
+        "points": 9,
+        "referencePoints": 1,
+        "durationMs": 9075.476751999995,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "zEndstopCalibration": {
+        "compiled": true,
+        "contact": [
+          0,
+          0,
+          -0.05
+        ],
+        "old": 0,
+        "saved": 0.05,
+        "reinitialized": true,
+        "homedAfterReload": true,
+        "retryWithoutWrite": true
+      }
+    },
+    {
+      "zOffsetAdjustment": {
+        "compiled": true,
+        "before": [
+          10,
+          0,
+          0.011000000000000001,
+          1
+        ],
+        "after": [
+          10,
+          0,
+          -0.014,
+          1
+        ],
+        "offset": -0.05,
+        "retryWithoutMove": true
+      }
+    },
+    {
+      "zOffsetPersistence": {
+        "compiled": true,
+        "offset": -0.05,
+        "saved": 0.1,
+        "offsetReset": true,
+        "retryWithoutWrite": true
+      }
+    },
+    {
+      "phaseCalibration": {
+        "compiled": true,
+        "statsOnlyBeforeSave": true,
+        "observations": "1",
+        "savedPhases": [
+          {
+            "stepper": "stepper_x",
+            "trigger_phase": "0/64"
+          },
+          {
+            "stepper": "stepper_y",
+            "trigger_phase": "0/64"
+          },
+          {
+            "stepper": "stepper_z",
+            "trigger_phase": "0/64"
+          }
+        ],
+        "reinitialized": true,
+        "oldTokenRejected": true,
+        "retryWithoutWrite": true
+      }
+    },
+    {
+      "configurationSave": {
+        "compiled": true,
+        "reinitialized": true,
+        "oldTokenRejected": true,
+        "removedAfterReinitialization": true,
+        "profile": "retained",
+        "implicitMeshActivation": false
+      }
+    },
+    {
+      "phaseQueries": 3616,
+      "phaseP99Ms": 2.7761129999998957,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": true,
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 55
+        },
+        {
+          "statusReads": 62,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 18,
+          "writes": 46
+        },
+        {
+          "statusReads": 56,
+          "writes": 54
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 806,
+      "historyP99Ms": 5.436093000000255,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.415435000002617,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.687768000003416,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.54085699999996,
+      "metadataRequests": 16,
+      "metadataP95Ms": 21.6781919999994,
+      "downloads": 16,
+      "downloadP95Ms": 17.493983999998818,
+      "wireCommands": 478,
+      "wireSteps": 7224,
+      "minimumStepLeadMs": 75.94,
+      "directoryRequests": 3466,
+      "directoryP99Ms": 6.269019999999728,
+      "statusRequests": 14463,
+      "uploads": 16,
+      "statusP99Ms": 2.816984000000957,
+      "uploadP95Ms": 13.75024300000041,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.952767,
+            "maxMs": 17.334271
+          },
+          "cpu": {
+            "user": 4374519,
+            "system": 489368
+          },
+          "rss": 287891456
+        },
+        {
+          "loop": {
+            "p99Ms": 1.939455,
+            "maxMs": 5.509119
+          },
+          "cpu": {
+            "user": 1439792,
+            "system": 184887
+          },
+          "rss": 261656576
+        }
+      ]
+    }
+  ],
+  "log": {
+    "path": "host/build/z-adjustment-product-validation.log",
+    "sha256": "9a2e3131eaa0bd5f86a83eaaa70e561f73a0ffe5c00db1716ca79dd53562b31b"
+  },
+  "limits": [
+    "Idle and homed calibration only; live and paused trajectory rebasing not implemented",
+    "Simulated MCU, no real printer validation",
+    "Default Python entrypoint retained",
+    "Historical runtime crashes and numerical mismatches remain unresolved"
+  ]
+}

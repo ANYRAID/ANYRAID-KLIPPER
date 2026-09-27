@@ -1416,6 +1416,29 @@ accept 产生候选值：配置 position_endstop 减去喷嘴接触高度。输�
 [Z 限位校准验收](../host/contracts/z-endstop-acceptance.json)包含实际文件
 重读及编译产品再次归零证据；不替代真机接触与精度验收。
 
+### 空闲 Z 偏移调整
+
+GET/POST `/printer/calibration/z_offset` 提供无需任意 G-code 的校准操作。
+GET 返回当前 z_offset、命令位置、行程边界、available 和 state_token。
+POST 传 `{version: 1, state_token, adjust: -0.025}`；adjust 单位为毫米，
+必须非零且绝对值不超过 0.1，每次移动速度固定为 5 mm/s。
+
+仅允许已归零且空闲或打印完成的机器。请求获得维护独占后，通过同一
+G-code 调度器排空运动，执行 SET_GCODE_OFFSET 的 Z_ADJUST/MOVE 语义，
+再等待运动排空才返回。只改变 Z 偏移及 Z 位置，保持逻辑 G-code 位置和
+挤出状态；网床/倾斜补偿与最终运动约束仍由原生运动端口执行。
+
+状态令牌绑定坐标偏移版本、命令位置和打印状态代次；相同请求的最近
+回执可重取，不再次移动。其他运动或偏移变化后不能重放旧请求。
+调整不自动保存；有独立 Z 限位的机器可使用下述配置保存接口。
+取消、执行失败或 30 秒超时会关闭运动准入并请求停机，需要重新初始化
+及归零。关闭服务会取消并等待进行中的调整完成回收。
+
+打印中及暂停中拒绝调整。暂停保留的轨迹和恢复位置尚无同步重定位协议，
+因此本接口不提供在线首层微调；该能力仍属于后续迁移范围。
+[调整验收](../host/contracts/z-adjustment-acceptance.json)覆盖编译产品的
+打印后调整、重复请求、保存和重初始化，以及并发打印负载指标。
+
 ### 将当前 Z 偏移保存到限位配置
 
 单独 stepper_z 限位配置提供 GET/POST `/printer/configuration/z_offset`。
