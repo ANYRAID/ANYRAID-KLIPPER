@@ -1323,6 +1323,31 @@ UART 或 SPI。UART 地址范围为 0–7，共享引脚时必须唯一；SPI �
 归零结束确认停止后恢复原寄存器值。相位观测和相位校准接口同样适用。
 这些能力仍需在目标 TMC2240 板卡上完成电气、温度与重复归零验收。
 
+## 多 Z 机械校准
+
+Cartesian／CoreXY 机器配置至少两个独立 Z 电机和 [probe]／[bltouch] 后，
+可使用 [z_tilt]。z_positions 按 stepper_z、stepper_z1、stepper_z2 等数字
+顺序列出各电机 XY 支点；points 是至少两个喷嘴 XY 探测点。共线测量
+仅允许可观测的相对电机方向。不得与 [bed_tilt] 同时配置。
+
+可配置 speed（默认 50 mm/s）、horizontal_move_z（默认 5 mm）、retries
+（0..30，默认 0）、retry_tolerance（0..1 mm，默认 0）。原生新增
+max_adjust（每轮最大相对电机调整量，默认 5 mm，必须大于 0）；各轮
+仍受 Z 行程限制。抬升／调整速度使用探针 lift_speed。点位、支点数量、
+探针偏移与几何在启动时校验。配置不授予归零权限。
+
+归零并保持空闲后 GET `/printer/calibration/z_tilt`，再 POST
+`{"version":1,"state_token":"返回的令牌"}`。接口要求鉴权及维护独占，
+不接受客户端脚本、点位或电机参数；完成请求的重复提交返回同一结果，
+不再次移动。成功后同步 G-code 坐标，结果包含 passes、samples、
+measured_range、tolerance_satisfied、adjustments、final_z 和 persisted=false。
+measured_range 是最后一轮调整前的测量范围；retries=0 只执行一轮，
+不能把成功等同于达到容差。接口总期限为 120 秒，超时或失败需重新初始化。
+
+`/printer/objects/query?z_tilt` 返回 applied；释放电机或故障停机清除此
+标志。机械调整清除旧网床补偿，需要重新测量网床。每段仍按实际步距
+量化，不能保证整个调整误差小于半步；模拟验收不证明真实床面精度。
+
 ## 床面倾斜补偿与校准
 
 线性机器可配置 [bed_tilt] 的 x_adjust、y_adjust、z_adjust，缺省为 0。

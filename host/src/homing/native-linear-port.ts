@@ -1,3 +1,4 @@
+import type {ZTiltCalibrationPlan} from '../config/z-tilt.ts';
 import {planZTilt,type ZTiltMotor} from '../motion/z-tilt.ts';
 import type {StoppedEmitter} from './rebuild-motion.ts';
 import {BedTilt,fitBedTilt} from '../motion/bed-tilt.ts';
@@ -44,7 +45,6 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
 interface RebaseLayout {routes:readonly {id:string;extrusionAxis?:number;stationaryPosition?:readonly [number,number,number]}[];emitters:readonly StoppedEmitter[];}
-export interface ZTiltCalibrationPlan extends BedTiltProbePlan {motors:readonly ZTiltMotor[];maximumTravel:number;retries:number;retryTolerance:number;}
 export interface PausedMove {position:readonly number[];speed:number;}
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
  * MCU/actuator ownership and a live thermal guard. Ordinary moves are admitted
