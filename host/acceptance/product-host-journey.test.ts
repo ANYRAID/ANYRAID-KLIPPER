@@ -1,4 +1,5 @@
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
+import {PrintJournal} from '../src/operations/print-journal.ts';
 import type {ProductHostProfile} from '../src/runtime/product-host.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -63,6 +64,16 @@ test('host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, 
   await control.reinitialize();assert.equal(opened,2);assert.equal(firmware.motion.length,0);assert.equal((await get()).state,'idle');
   const restored=await fetch(base+'/printer/print/status?request_id=cancel',{headers});assert.equal((await restored.json() as any).result.record.state,'cancelled');
   result=await post('start',request('after-reinitialize'));assert.equal(result.code,200,JSON.stringify(result.body));await wait('completed');assert.equal(opened,3);assert.equal(homed,9);assert.equal((await f.journal.get('after-reinitialize'))?.state,'completed');
-  abort.abort();await running;assert(f.released);assert.deepEqual(f.transport.stops,[1,1]);await assert.rejects(fetch(base+'/printer/print/status'));
+  // Exercise owner termination while motion is active, not only idle cleanup.
+  current=await get();assert.equal((await post('reset',{request_id:'after-reinitialize',state_token:current.state_token})).code,200);
+  result=await post('start',request('shutdown-active'));assert.equal(result.code,200,JSON.stringify(result.body));await wait('printing');
+  const shutdownStart=performance.now();abort.abort(new Error('Product host termination requested'));await running;
+  assert(performance.now()-shutdownStart<5000,'active print shutdown exceeded five seconds');
+  assert(f.released);assert.deepEqual(f.transport.stops,[1,1]);await assert.rejects(fetch(base+'/printer/print/status'));
+  // Reopen the on-disk journal after all resource owners have released it.
+  // A successful shutdown must not leave a resumable or apparently active job.
+  const shutdownJournal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'});
+  try{assert.equal((await shutdownJournal.get('shutdown-active'))?.state,'cancelled');assert.equal((await shutdownJournal.get('after-reinitialize'))?.state,'completed');}
+  finally{await shutdownJournal.close();}
  }catch(error){if(hostFailure)throw new AggregateError([hostFailure,error],'Host journey failed');throw error;}finally{abort.abort();await running.catch(()=>{});clearInterval(timer);for(const task of timers)clearTimeout(task);profiles.delete(dir);await f.profile.release();await rm(dir,{recursive:true,force:true});}
 });
