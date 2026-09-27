@@ -2,13 +2,15 @@
 import {createConnection,type Socket} from 'node:net';
 import {Readable,Writable} from 'node:stream';
 import {setTimeout as delay} from 'node:timers/promises';
-/** Bounded, amortized-linear byte framing, including split UTF-8 sequences. */
+/** Bounded, amortized-linear byte framing, including split UTF-8 sequences.
+ * ownedChunks transfers immutable chunk ownership: complete frames may share
+ * its backing buffer. Default callers retain ownership and receive copies. */
 export class ConsoleFrames {
  #buffer=Buffer.alloc(0);#length=0;
- readonly delimiter:number;readonly maximum:number;
- constructor(delimiter:number,maximum=1024*1024){this.delimiter=delimiter;this.maximum=maximum;if(!Number.isInteger(delimiter)||delimiter<0||delimiter>255||!Number.isSafeInteger(maximum)||maximum<1||maximum>64*1024**2)throw new RangeError('Invalid console frame limit');}
+ readonly delimiter:number;readonly maximum:number;readonly ownedChunks:boolean;
+ constructor(delimiter:number,maximum=1024*1024,ownedChunks=false){this.delimiter=delimiter;this.maximum=maximum;this.ownedChunks=ownedChunks;if(typeof ownedChunks!=='boolean'||!Number.isInteger(delimiter)||delimiter<0||delimiter>255||!Number.isSafeInteger(maximum)||maximum<1||maximum>64*1024**2)throw new RangeError('Invalid console frame limit');}
  get pending(){return this.#length;}
- push(chunk:Buffer):Buffer[]{const frames:Buffer[]=[];let start=0;for(;;){const end=chunk.indexOf(this.delimiter,start),part=chunk.subarray(start,end<0?chunk.length:end),size=this.#length+part.length;if(size>this.maximum)throw new RangeError('Console frame limit exceeded');if(size>this.#buffer.length){const next=Buffer.allocUnsafe(Math.min(this.maximum,Math.max(4096,size,this.#buffer.length*2)));this.#buffer.copy(next,0,0,this.#length);this.#buffer=next;}part.copy(this.#buffer,this.#length);this.#length=size;if(end<0)return frames;frames.push(Buffer.from(this.#buffer.subarray(0,this.#length)));this.#length=0;start=end+1;if(start===chunk.length)return frames;}}
+ push(chunk:Buffer):Buffer[]{const frames:Buffer[]=[];let start=0;for(;;){const end=chunk.indexOf(this.delimiter,start),part=chunk.subarray(start,end<0?chunk.length:end),size=this.#length+part.length;if(size>this.maximum)throw new RangeError('Console frame limit exceeded');if(end>=0&&this.#length===0){frames.push(this.ownedChunks?part:Buffer.from(part));start=end+1;if(start===chunk.length)return frames;continue;}if(size>this.#buffer.length){const next=Buffer.allocUnsafe(Math.min(this.maximum,Math.max(4096,size,this.#buffer.length*2)));this.#buffer.copy(next,0,0,this.#length);this.#buffer=next;}part.copy(this.#buffer,this.#length);this.#length=size;if(end<0)return frames;frames.push(Buffer.from(this.#buffer.subarray(0,this.#length)));this.#length=0;start=end+1;if(start===chunk.length)return frames;}}
  finish():Buffer|undefined{if(!this.#length)return;const result=Buffer.from(this.#buffer.subarray(0,this.#length));this.#length=0;return result;}
 }
 const utf8=new TextDecoder('utf-8',{fatal:true});

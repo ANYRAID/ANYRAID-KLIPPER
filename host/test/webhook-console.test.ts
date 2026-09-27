@@ -8,6 +8,17 @@ import {tmpdir} from 'node:os';
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {consoleRequest,ConsoleFrames,webhookConsole} from '../src/diagnostics/webhook-console.ts';
+test('complete-frame copies isolate callers while owned chunks preserve bytes across every split',()=>{
+ const input=Buffer.from('abc\x03def\x03tail'),frames=new ConsoleFrames(3),out=frames.push(input);input.fill(0);assert.deepEqual(out.map(b=>b.toString()),['abc','def']);assert.equal(frames.finish()!.toString(),'tail');
+ const source=Buffer.from('\x03你好\x03{"clock":9007199254740993}\x03tail');
+ for(const owned of [false,true])for(let size=1;size<=source.length;size++){
+  const decoder=new ConsoleFrames(3,64,owned),result:Buffer[]=[];
+  for(let start=0;start<source.length;start+=size)result.push(...decoder.push(source.subarray(start,start+size)));
+  assert.deepEqual(result.map(b=>b.toString()),['','你好','{"clock":9007199254740993}']);assert.equal(decoder.finish()!.toString(),'tail');
+  assert.throws(()=>new ConsoleFrames(3,2,owned).push(Buffer.from('abc\x03')),/limit/);
+ }
+ const owned=new ConsoleFrames(3,64,true),one=owned.push(source)[1];assert.equal(one.buffer,source.buffer);assert.equal(one.byteOffset,source.byteOffset+1);
+});
 function sink(){let text='';const stream=new Writable({highWaterMark:1,write(chunk,_encoding,done){text+=chunk.toString();setImmediate(done);}});return {stream,text:()=>text};}
 test('console framing handles fragmented UTF8, exact numeric lexemes and bounded tails',()=>{const frames=new ConsoleFrames(3,32),bytes=Buffer.from('你好\x03{}\x03tail'),got:Buffer[]=[];for(const b of bytes)got.push(...frames.push(Buffer.of(b)));assert.deepEqual(got.map(b=>b.toString()),['你好','{}']);assert.equal(frames.finish()!.toString(),'tail');assert.equal(frames.pending,0);assert.throws(()=>frames.push(Buffer.alloc(33)),RangeError);assert.equal(consoleRequest(Buffer.from(' { "id":9007199254740993, "x": 1.0000000000000001, "s":" a \\\" b " } ')),'{"id":9007199254740993,"x":1.0000000000000001,"s":" a \\\" b "}');assert.equal(consoleRequest(Buffer.from(' #comment')),undefined);assert.throws(()=>consoleRequest(Buffer.from('NaN')));assert.throws(()=>consoleRequest(Buffer.of(255)));});
 test('console CLI exchanges ETX requests and final unterminated input, drains responses after EOF',async()=>{const dir=await mkdtemp(join(tmpdir(),'whconsole-')),path=join(dir,'socket'),received:string[]=[];const server=createServer({allowHalfOpen:true},socket=>{const f=new ConsoleFrames(3);socket.on('data',chunk=>{for(const frame of f.push(Buffer.from(chunk))){received.push(frame.toString());const reply=Buffer.from('{"result":"你好"}\x03');socket.write(reply.subarray(0,13));socket.write(reply.subarray(13));}});socket.on('end',()=>socket.end());});try{await new Promise<void>(r=>server.listen(path,r));const child=spawn(process.execPath,[fileURLToPath(new URL('../../scripts/whconsole.ts',import.meta.url)),path]);let out='',err='';child.stdout.on('data',c=>out+=c);child.stderr.on('data',c=>err+=c);child.stdin.end('# comment\ninvalid\n{"id":9007199254740993}\n{ "method": "info" }');const code=await new Promise(r=>child.once('exit',r));assert.equal(code,0,err);assert.deepEqual(received,['{"id":9007199254740993}','{"method":"info"}']);assert.equal((out.match(/GOT:/g)||[]).length,2);assert.match(out,/你好/);assert.match(err,/Unable to parse line/);}finally{await new Promise<void>(r=>server.close(()=>r()));await rm(dir,{recursive:true,force:true});}});

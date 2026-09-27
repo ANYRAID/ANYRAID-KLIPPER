@@ -1,0 +1,139 @@
+{
+  "node": "26.9.0",
+  "scope": "Owned decompression chunks avoid complete-frame copies; other framing callers retain copying ownership",
+  "runs": [
+    {
+      "before": [
+        {
+          "node": "v26.9.0",
+          "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+          "warmup": 2,
+          "measured": 7,
+          "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+        },
+        {
+          "rounds": 10000,
+          "rows": 1,
+          "node": {
+            "median": 113.34504300000003,
+            "p95": 121.55645099999992
+          },
+          "maxEventLoopMs": 7.675903,
+          "checksum": 150260000
+        },
+        {
+          "rounds": 256,
+          "rows": 1000,
+          "node": {
+            "median": 261.62800399999924,
+            "p95": 273.89243499999975
+          },
+          "maxEventLoopMs": 2.865151,
+          "checksum": 872180
+        }
+      ],
+      "after": [
+        {
+          "node": "v26.9.0",
+          "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+          "warmup": 2,
+          "measured": 7,
+          "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+        },
+        {
+          "rounds": 10000,
+          "rows": 1,
+          "node": {
+            "median": 110.38910499999997,
+            "p95": 113.72805900000003
+          },
+          "maxEventLoopMs": 7.098367,
+          "checksum": 150260000
+        },
+        {
+          "rounds": 256,
+          "rows": 1000,
+          "node": {
+            "median": 261.29216799999995,
+            "p95": 264.3098280000004
+          },
+          "maxEventLoopMs": 2.394111,
+          "checksum": 872180
+        }
+      ]
+    },
+    {
+      "before": [
+        {
+          "node": "v26.9.0",
+          "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+          "warmup": 2,
+          "measured": 7,
+          "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+        },
+        {
+          "rounds": 10000,
+          "rows": 1,
+          "node": {
+            "median": 117.26755400000002,
+            "p95": 121.95570599999996
+          },
+          "maxEventLoopMs": 7.655423,
+          "checksum": 150260000
+        },
+        {
+          "rounds": 256,
+          "rows": 1000,
+          "node": {
+            "median": 252.4643219999998,
+            "p95": 266.2571929999999
+          },
+          "maxEventLoopMs": 3.510271,
+          "checksum": 872180
+        }
+      ],
+      "after": [
+        {
+          "node": "v26.9.0",
+          "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+          "warmup": 2,
+          "measured": 7,
+          "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+        },
+        {
+          "rounds": 10000,
+          "rows": 1,
+          "node": {
+            "median": 109.22197800000004,
+            "p95": 112.74809499999998
+          },
+          "maxEventLoopMs": 6.651903,
+          "checksum": 150260000
+        },
+        {
+          "rounds": 256,
+          "rows": 1000,
+          "node": {
+            "median": 257.9790740000003,
+            "p95": 263.68589900000006
+          },
+          "maxEventLoopMs": 2.260991,
+          "checksum": 872180
+        }
+      ]
+    }
+  ],
+  "tests": 34,
+  "checks": [
+    "All chunk split positions preserve UTF-8, empty frames and exact integer lexemes",
+    "Default caller mutations cannot change returned frames or retained tail",
+    "Oversized complete and fragmented frames remain bounded",
+    "Reader seek, close, truncation, dispatch and socket capture pass regression"
+  ],
+  "limitations": [
+    "Small-record results 109.222-110.389 ms are close to historical Python 109.761 ms, not an independent target-board parity proof",
+    "Bulk results vary; no stable bulk speedup claimed",
+    "Owned chunks require immutable transfer and are enabled only for private decompression output",
+    "Historical Node runtime crashes and motion numerical mismatches remain unresolved"
+  ]
+}

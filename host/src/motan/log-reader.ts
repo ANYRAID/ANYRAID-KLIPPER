@@ -18,7 +18,7 @@ export class MotanLogReader {
  #reading:Promise<unknown>|undefined;#source:Readable|undefined;#inflate:Gunzip|InflateRaw|undefined;#pump:Promise<void>|undefined;#iterator:AsyncIterator<Buffer>|undefined;
  #frames:ConsoleFrames;#queue:Buffer[]=[];#at=0;#pending:Promise<MotanMessage[]>|undefined;#closing:Promise<void>|undefined;#messages=0;#ignoredTail=0;
  readonly #abort=()=>{void this.close().catch(()=>{});};
- private constructor(file:FileHandle,size:number,options:MotanReadOptions){this.#preserveNumberTypes=options.preserveNumberTypes??false;this.#file=file;this.#size=size;this.#maxDecoded=options.maxDecodedBytes??4*1024**3;this.#recordLimit=options.maxRecordBytes??1024**2;this.#partial=options.allowIncomplete??false;this.#signal=options.signal;this.#frames=new ConsoleFrames(3,this.#recordLimit);this.#signal?.addEventListener('abort',this.#abort,{once:true});}
+ private constructor(file:FileHandle,size:number,options:MotanReadOptions){this.#preserveNumberTypes=options.preserveNumberTypes??false;this.#file=file;this.#size=size;this.#maxDecoded=options.maxDecodedBytes??4*1024**3;this.#recordLimit=options.maxRecordBytes??1024**2;this.#partial=options.allowIncomplete??false;this.#signal=options.signal;this.#frames=new ConsoleFrames(3,this.#recordLimit,true);this.#signal?.addEventListener('abort',this.#abort,{once:true});}
  static async open(path:string,options:MotanReadOptions={}):Promise<MotanLogReader>{
   options={...options};
   const fileMax=options.maxFileBytes??512*1024**2,decoded=options.maxDecodedBytes??4*1024**3,record=options.maxRecordBytes??1024**2;
@@ -54,17 +54,17 @@ export class MotanLogReader {
   try{this.#start();const result:MotanMessage[]=[];let bytes=0;
    while(result.length<limit){this.#check();if(this.#at<this.#queue.length){const raw=this.#queue[this.#at];if(result.length&&bytes+raw.length>4*1024**2)break;this.#at++;bytes+=raw.length;result.push(this.#decode(raw));continue;}
     this.#queue=[];this.#at=0;if(this.#eof)break;const next=await this.#iterator!.next();this.#check();
-    if(next.done){await this.#pump;this.#eof=true;if(this.#frames.pending){if(!this.#partial)throw new Error('Motan log ends with an incomplete record');this.#ignoredTail=this.#frames.pending;this.#frames=new ConsoleFrames(3,this.#recordLimit);}break;}
+    if(next.done){await this.#pump;this.#eof=true;if(this.#frames.pending){if(!this.#partial)throw new Error('Motan log ends with an incomplete record');this.#ignoredTail=this.#frames.pending;this.#frames=new ConsoleFrames(3,this.#recordLimit,true);}break;}
     this.#decoded+=next.value.length;if(this.#decoded>this.#maxDecoded)throw new Error('Motan decompression limit exceeded');this.#queue=this.#frames.push(next.value);
    }return result;
   }catch(error){const cause=this.#signal?.aborted?this.#signal.reason:this.#closed?new Error('Motan reader is closed'):error;if(!this.#closed)this.#failure??=cause;this.#source?.destroy();this.#inflate?.destroy();throw cause;}
  }
  async seek(position:number):Promise<void>{
   this.#check();if(this.#pending||this.#seeking)throw new Error('Cannot seek during a Motan read');if(!Number.isSafeInteger(position)||position<0||position>this.#size)throw new Error('Invalid Motan index offset');
-  this.#seeking=true;try{this.#generation++;this.#source?.destroy();this.#inflate?.destroy();await Promise.allSettled([this.#pump,this.#reading]);this.#check();this.#source=undefined;this.#inflate=undefined;this.#pump=undefined;this.#iterator=undefined;this.#position=position;this.#decoded=0;this.#eof=false;this.#queue=[];this.#at=0;this.#frames=new ConsoleFrames(3,this.#recordLimit);this.#ignoredTail=0;}finally{this.#seeking=false;}
+  this.#seeking=true;try{this.#generation++;this.#source?.destroy();this.#inflate?.destroy();await Promise.allSettled([this.#pump,this.#reading]);this.#check();this.#source=undefined;this.#inflate=undefined;this.#pump=undefined;this.#iterator=undefined;this.#position=position;this.#decoded=0;this.#eof=false;this.#queue=[];this.#at=0;this.#frames=new ConsoleFrames(3,this.#recordLimit,true);this.#ignoredTail=0;}finally{this.#seeking=false;}
  }
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;this.#generation++;this.#signal?.removeEventListener('abort',this.#abort);this.#source?.destroy();this.#inflate?.destroy();
-  this.#closing=(async()=>{await Promise.allSettled([this.#pending,this.#pump,this.#reading]);this.#queue=[];this.#frames=new ConsoleFrames(3,this.#recordLimit);this.#source=undefined;this.#inflate=undefined;this.#iterator=undefined;this.#pump=undefined;this.#reading=undefined;await this.#file.close();})();return this.#closing;
+  this.#closing=(async()=>{await Promise.allSettled([this.#pending,this.#pump,this.#reading]);this.#queue=[];this.#frames=new ConsoleFrames(3,this.#recordLimit,true);this.#source=undefined;this.#inflate=undefined;this.#iterator=undefined;this.#pump=undefined;this.#reading=undefined;await this.#file.close();})();return this.#closing;
  }
 }
