@@ -4,7 +4,7 @@ import type {EndpointRegistry} from './endpoints.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 /** Typed homing/probe/grid maintenance; no client script or motion target.
  * The product supplies configured geometry and the native operation owner. */
-export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void},kind:'probe'|'bed_mesh'|'bed_tilt'|'z_tilt'|'home'='probe'){
+export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void},kind:'probe'|'bed_mesh'|'bed_tilt'|'z_tilt'|'quad_gantry_level'|'home'='probe'){
  let token=randomUUID(),state:'ready'|'measuring'|'failed'='ready',closed=false;
  let last:{token:string;receipt:Json}|undefined,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();

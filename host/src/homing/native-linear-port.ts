@@ -1,3 +1,4 @@
+import type {QuadGantryCalibrationPlan} from '../config/quad-gantry.ts';
 import {planQuadGantry} from '../motion/quad-gantry.ts';
 import type {planZAdjustments} from '../motion/z-adjustments.ts';
 import type {ZTiltCalibrationPlan} from '../config/z-tilt.ts';
@@ -447,15 +448,19 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  #zTiltApplied=false;
  get zTiltStatus(){return {applied:this.#zTiltApplied};}
- calibrateZTilt(options:ZTiltCalibrationPlan,minimumZ:number,signal:AbortSignal){
+ calibrateZTilt(options:ZTiltCalibrationPlan,minimumZ:number,signal:AbortSignal){return this.#calibrateZ(options,minimumZ,signal);}
+ calibrateQuadGantry(options:QuadGantryCalibrationPlan,minimumZ:number,signal:AbortSignal){return this.#calibrateZ(options,minimumZ,signal);}
+ #calibrateZ(options:ZTiltCalibrationPlan|QuadGantryCalibrationPlan,minimumZ:number,signal:AbortSignal){
   const plan=structuredClone(options),config=this.#o.probeConfiguration;
-  return this.#operate('z-tilt-calibration',signal,async s=>{
-   this.#zTiltApplied=false;
+  return this.#operate('corners' in plan?'quad-gantry-calibration':'z-tilt-calibration',signal,async s=>{
+   this.#zTiltApplied=false;this.#quadGantryApplied=false;
+   const ids='corners' in plan?plan.motorIds:plan.motors.map(m=>m.id);
+   const solve=(samples:readonly (readonly number[])[],z:number)=>'corners' in plan?planQuadGantry(samples,plan.corners,ids,z,plan.maximumTravel):planZTilt(samples,plan.motors,z,plan.maximumTravel);
    if(!config||!this.#o.probeGroups||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Z tilt calibration requires configured probe and homed axes');
    if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2]||!Number.isInteger(plan.retries)||plan.retries<0||plan.retries>30||!Number.isFinite(plan.retryTolerance)||plan.retryTolerance<0||plan.retryTolerance>1)throw new RangeError('Invalid Z tilt calibration travel or retry policy');
-   const z=this.#o.emitters.filter(e=>e.mode==='z');if(this.#o.kinematics.kind==='corexz'||z.length!==plan.motors.length||z.some(e=>!plan.motors.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
+   const z=this.#o.emitters.filter(e=>e.mode==='z');if(this.#o.kinematics.kind==='corexz'||z.length!==ids.length||z.some(e=>!ids.includes(e.id)))throw new Error('Z tilt must own every independent Z motor');
    // Probe points are nozzle XY, while fitting uses the probe's bed XY.
-   planZTilt(plan.points.map(p=>[p[0]+config.offsets[0],p[1]+config.offsets[1],0]),plan.motors,plan.horizontalHeight,plan.maximumTravel);
+   solve(plan.points.map(p=>[p[0]+config.offsets[0],p[1]+config.offsets[1],0]),plan.horizontalHeight);
    const admission=this.#newAdmission(this.homingPosition(),true);
    try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
    finally{admission.shutdown(new Error('Z tilt preflight complete'));}
@@ -476,8 +481,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     if(plan.retries&&increasing>1)throw new Error('Z tilt measured range is increasing');
     const toleranceSatisfied=measuredRange<=plan.retryTolerance;
     if(plan.retries&&!toleranceSatisfied&&pass===plan.retries)throw new Error('Z tilt retry limit exceeded');
-    const adjustment=await this.#adjustZTilt(samples,plan.motors,plan.maximumTravel,config.sampling.liftSpeed,s);
-    if(!plan.retries||toleranceSatisfied){this.#zTiltApplied=true;return {passes:pass+1,samples,measuredRange,toleranceSatisfied,adjustment};}
+    await this.#drain(s);const adjustment=solve(samples,this.homingPosition()[2]);await this.#executeZAdjustment(adjustment,config.sampling.liftSpeed,s);
+    if(!plan.retries||toleranceSatisfied){if('corners' in plan)this.#quadGantryApplied=true;else this.#zTiltApplied=true;return {passes:pass+1,samples,measuredRange,toleranceSatisfied,adjustment};}
    }
    throw new Error('Z tilt calibration did not complete');
   });

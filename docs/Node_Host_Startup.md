@@ -1348,6 +1348,27 @@ measured_range 是最后一轮调整前的测量范围；retries=0 只执行一�
 标志。机械调整清除旧网床补偿，需要重新测量网床。每段仍按实际步距
 量化，不能保证整个调整误差小于半步；模拟验收不证明真实床面精度。
 
+## 四 Z 龙门校准
+
+[quad_gantry_level] 使用四个独立 Z 电机，按 stepper_z、stepper_z1 等
+数字顺序对应前左、后左、后右、前右。gantry_corners 指定前左和后右
+两个龙门支点 XY；points 按相同顺序指定四个喷嘴探测点，前后两排
+各自必须等 Y，左右和前后不能重合或倒序。拟合会应用探针偏移。
+该配置要求 [probe]／[bltouch]，不支持 CoreXZ，也不能与 [z_tilt]
+或 [bed_tilt] 同时启用。
+
+speed 默认 50 mm/s，horizontal_move_z 默认 5 mm，retries 默认 0，
+retry_tolerance 默认 0 mm；重试范围与多 Z 校准一致。max_adjust 默认
+4 mm，限制每轮实际相对电机行程（最大修正减最小修正），比旧 Python
+仅检查最大正修正更严格。行程、探测点位和几何在启动时检查。
+
+归零并保持空闲后 GET `/printer/calibration/quad_gantry_level`，再 POST
+`{"version":1,"state_token":"返回的令牌"}`。鉴权、维护锁、重复请求、
+120 秒期限、失败重初始化及返回字段与多 Z 校准相同。对象查询
+`/printer/objects/query?quad_gantry_level` 返回 applied。此标志表示本
+运行代次完成了流程；不等于调整后的床面已重新测量或真机验收通过。
+校准清除旧网床补偿，电机关闭会清除 applied；逐段步距量化限制仍适用。
+
 ## 床面倾斜补偿与校准
 
 线性机器可配置 [bed_tilt] 的 x_adjust、y_adjust、z_adjust，缺省为 0。

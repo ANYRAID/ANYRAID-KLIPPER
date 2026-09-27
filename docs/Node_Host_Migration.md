@@ -96,8 +96,13 @@ X 斜率 0.0025，导致多余的单电机运动。新实现改为中心化拟�
 吞吐变化。Python 参考计时包含格式化且不含分段规划，不作等工作量
 加速比。原生执行耗时与范围见
 [四 Z 龙门阶段验收](../host/contracts/quad-gantry-acceptance.json)。
-[quad_gantry_level] 仍被自动装配拒绝：自动探测、配置、产品 API 和
-编译／真机验收尚待完成；本阶段未退役 Python。
+[quad_gantry_level] 已接入配置装配、自动探测及产品校准 API，复用
+多 Z 探测和重试控制，几何求解保持独立。源代码产品的真实 HTTP
+验收覆盖四点探测、鉴权、未归零拒绝、重复请求不重复移动、坐标同步
+及 applied 状态；自动探测覆盖单轮、重试收敛、耗尽、发散与越界。
+配置拒绝不完整电机、非等 Y 探测排和冲突校准。编译／真机验收仍待
+完成；本阶段未退役 Python。证据见
+[四 Z 自动校准与产品 API](../host/contracts/quad-gantry-product-acceptance.json)。
 
 打印中退出验收（2026-09-28）：预编译产品以 `PATH=/no-programs`、
 禁用 TypeScript 加载启动，完成鉴权文件上传、归零和加热，观察到打印

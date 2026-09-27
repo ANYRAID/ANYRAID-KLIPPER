@@ -177,3 +177,25 @@ test('explicit product layout cannot advertise Z tilt without bound probe and mo
   await assert.rejects(startProductService(reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal),/Z tilt hardware ownership/);assert.deepEqual(f.stops,[1,1]);
  }finally{await f.dispose();}
 });
+test('configured quad gantry HTTP calibration owns probe, motor adjustment and duplicate receipts',async()=>{
+ const f=await fixture(),raw={...f.reader.source.original,probe:{pin:'^PA13',z_offset:'0'},stepper_z1:{step_pin:'PA14',dir_pin:'PA15',rotation_distance:'40',microsteps:'16',enable_pin:'!PA2'},stepper_z2:{step_pin:'PA16',dir_pin:'PA17',rotation_distance:'40',microsteps:'16',enable_pin:'!PA2'},stepper_z3:{step_pin:'PA18',dir_pin:'PA19',rotation_distance:'40',microsteps:'16',enable_pin:'!PA2'},quad_gantry_level:{gantry_corners:'50,0\n50.01,.01',points:'50,0\n50,.01\n50.01,.01\n50.01,0',horizontal_move_z:'1',speed:'10',max_adjust:'1'}},transport=await productTransports(new ConfigurationReader(new ConfigurationSource('/z-tilt.cfg',raw,[]),null));
+ let owner:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined,timer:ReturnType<typeof setInterval>|undefined;
+ try{
+  owner=await startConfiguredProductService(transport.reader,transport.policies,f.product,{...f.serviceOptions,machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},hardware:f.options.hardware,print:f.options.print},f.signal);
+  const base=`http://127.0.0.1:${owner.address.port}`,path='/printer/calibration/quad_gantry_level',headers={'x-api-key':'test','content-type':'application/json'};
+  const state=await (await fetch(base+path,{headers})).json() as any,request={version:1,state_token:state.result.state_token};assert.equal(state.result.available,false);
+  const post=()=>fetch(base+path,{method:'POST',headers,body:JSON.stringify(request)});
+  assert.equal((await post()).status,409);assert.equal((await fetch(base+path)).status,401);
+  owner.printer.linear.kinematics.markHomed([0,1,2]);await owner.printer.linear.port.forcePosition([50,0,1,0],f.signal);owner.printer.print.gcode.coordinates.resetPosition();
+  const fw=transport.firmware[0],probe=owner.printer.hardware.plan.homing.find(h=>h.section==='probe')!,trigger=probe.triggers[0].protocol,handled=new Set<unknown>();let hits=0;
+  timer=setInterval(()=>{
+   const outputs=fw.outputs,arm=outputs.find(m=>m.name==='endstop_home'&&m.parameters.oid===probe.endstop.oid&&Number(m.parameters.sample_count)>0&&!handled.has(m));
+   if(!arm){if(hits&&outputs.findLastIndex(m=>m.name==='reset_step_clock')>outputs.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0))fw.setTriggerReason(2,trigger.oid);return;}
+   const hit=Number(arm.parameters.clock)+50000;if(fw.currentClock()<hit+1000)return;handled.add(arm);hits++;fw.setTriggerReason(1,trigger.oid);fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},probe.endstop.oid);fw.emit('trsync_state',{oid:trigger.oid,can_trigger:0,trigger_reason:1,clock:hit});
+  },1);
+  const response=await post(),receipt=await response.json() as any;assert.equal(response.status,200,JSON.stringify(receipt));assert.equal(hits,4);assert.equal(receipt.result.result.passes,1);assert.equal(receipt.result.result.persisted,false);
+  const motion=fw.motion.length,repeated=await post();assert.deepEqual(await repeated.json(),receipt);assert.equal(fw.motion.length,motion);assert.equal(hits,4);
+  assert.deepEqual(owner.printer.print.gcode.coordinates.state.position,owner.printer.linear.port.position());
+  const status=await (await fetch(base+'/printer/objects/query?quad_gantry_level',{headers})).json() as any;assert.deepEqual(status.result.status.quad_gantry_level,{applied:true});
+ }finally{if(timer)clearInterval(timer);await owner?.close();await transport.close();await f.dispose();}
+});

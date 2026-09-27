@@ -8,7 +8,7 @@ import {productDisplayStatus} from './product-display-status.ts';
 import {productPrintStatus,productPauseStatus} from './product-print-status.ts';
 /** Publish only fields backed by the assembled native owners. Missing fields
  * retain the query protocol's null behavior; durations come from the controller. */
-export function productObjects(printer:Awaited<ReturnType<typeof connectProductPrinter>>,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false):NativeObjects{
+export function productObjects(printer:Awaited<ReturnType<typeof connectProductPrinter>>,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false,quad=false):NativeObjects{
  const pressure=printer.print.gcode.pressureAdvance;
  const readers=new Map<string,NativeObjectReader>([
   ['webhooks',()=>nativePrinterState(readNativeHostStatus(nativeHost))],
@@ -22,6 +22,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   ['toolhead',()=>{const k=printer.linear.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.linear.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
+ if(quad)readers.set('quad_gantry_level',()=>printer.linear.port.quadGantryStatus);
  if(zTilt)readers.set('z_tilt',()=>printer.linear.port.zTiltStatus);
  if(printer.linear.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.linear.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());

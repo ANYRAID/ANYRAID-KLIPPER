@@ -1,0 +1,31 @@
+{
+  "node": "26.9.0",
+  "scope": "Configuration-driven four Z calibration using native step generation, simulated MCU serial links and a real HTTP product service. Compiled package and physical hardware acceptance are pending.",
+  "validation": {
+    "automaticCalibrationAndConfigTests": 15,
+    "productAndEndpointTests": 19,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "checks": [
+    "Exactly four configured independent Z motors and two opposite gantry corners",
+    "Ordered nondegenerate probe rows, axis ranges, probe offsets and retry policy validated before startup",
+    "Conflicting Z tilt, bed tilt or CoreXZ rejected",
+    "Shared automatic probe ownership with independent four-rail geometric solver",
+    "Flat, single pass, convergence, exhausted retries, increasing range and invalid travel",
+    "Authenticated HTTP calibration, unhomed rejection, coordinate synchronization and applied status",
+    "Completed request replay returns the same result with no new motor packets",
+    "Existing product startup, shutdown, pressure tuning, object queries and endpoint exclusivity regressions"
+  ],
+  "performance": {
+    "numericalAndNativeExecutionReference": "quad-gantry-acceptance.json",
+    "productHttpTestDurationMs": 2503.578068,
+    "scope": "Test duration includes startup, four-point probing, calibration and teardown, and ran alongside calibration regression. Not an isolated latency or print throughput benchmark. Numerical and segmented execution code did not change in this integration."
+  },
+  "limitations": [
+    "The default Python printing entrypoint remains; no Python files retired.",
+    "The 120 second API deadline bounds all retries together.",
+    "Applied does not prove a post-adjustment measurement meets tolerance.",
+    "Maximum travel is per pass and quantization occurs at each segment."
+  ]
+}
