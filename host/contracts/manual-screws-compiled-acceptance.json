@@ -1,0 +1,167 @@
+{
+  "node": "26.9.0",
+  "scope": "Compiled product with authenticated HTTP, simulated MCU, no probe, no Python or TS loader",
+  "calibration": {
+    "manualScrewsTilt": {
+      "compiled": true,
+      "elapsedMs": 4385.293055000002,
+      "result": {
+        "base": 2,
+        "deviation": 0.19999999999999996,
+        "error": true,
+        "results": [
+          {
+            "z": 0.9,
+            "sign": "CCW",
+            "adjust": "00:24",
+            "is_base": false,
+            "turns": 0.3999999999999999
+          },
+          {
+            "z": 0.8,
+            "sign": "CCW",
+            "adjust": "00:12",
+            "is_base": false,
+            "turns": 0.19999999999999996
+          },
+          {
+            "z": 0.7000000000000001,
+            "sign": "CW",
+            "adjust": "00:00",
+            "is_base": true,
+            "turns": 0
+          }
+        ],
+        "samples": [
+          [
+            1,
+            1,
+            0.9
+          ],
+          [
+            1.0125,
+            1,
+            0.8
+          ],
+          [
+            1,
+            1.0125,
+            0.7000000000000001
+          ]
+        ],
+        "names": [
+          "front",
+          "screw at 1.010,1.000",
+          "screw at 1.000,1.010"
+        ],
+        "thread": "CW-M3",
+        "persisted": false
+      },
+      "retryWithoutMotion": true,
+      "noProbe": true
+    }
+  },
+  "metrics": {
+    "phaseQueries": 4932,
+    "phaseP99Ms": 2.6903350000029604,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": true,
+    "manualScrews": true,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 208,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1096,
+    "historyP99Ms": 7.026432000000568,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 4.935814999998911,
+    "deleteRequests": 16,
+    "deleteP95Ms": 6.107400999993843,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 1.3607080000001588,
+    "metadataRequests": 16,
+    "metadataP95Ms": 19.23703200000091,
+    "downloads": 16,
+    "downloadP95Ms": 4.7261319999997795,
+    "wireCommands": 268,
+    "wireSteps": 4805,
+    "minimumStepLeadMs": 86.678,
+    "directoryRequests": 4763,
+    "directoryP99Ms": 4.773691999998846,
+    "statusRequests": 19733,
+    "uploads": 16,
+    "statusP99Ms": 2.894587999999203,
+    "uploadP95Ms": 18.88116799999989,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.928191,
+          "maxMs": 17.956863
+        },
+        "cpu": {
+          "user": 5662020,
+          "system": 649763
+        },
+        "rss": 265863168
+      },
+      {
+        "loop": {
+          "p99Ms": 1.897471,
+          "maxMs": 5.853183
+        },
+        "cpu": {
+          "user": 1555065,
+          "system": 196909
+        },
+        "rss": 283537408
+      }
+    ]
+  },
+  "checks": [
+    "Automatic probe endpoint absent without probe",
+    "Three contacts confirmed through manual HTTP workflow",
+    "CCW and explicit zero tolerance preserved",
+    "Repeated accept causes no additional movement",
+    "Maintenance lease blocks competing homing",
+    "Printing, reload and ADC shutdown pass"
+  ],
+  "limitations": [
+    "No real manual contact or screw adjustment acceptance",
+    "Historical runtime crashes and numerical mismatches remain unresolved"
+  ]
+}
