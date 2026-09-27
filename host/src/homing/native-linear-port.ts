@@ -1,3 +1,4 @@
+import {planProbeGrid,measureProbeGrid,type ProbeGrid} from './probe-grid.ts';
 import type {ProbeConfiguration} from '../config/probe.ts';
 import {collectProbeSamples,type ProbeSamples} from './probe-samples.ts';
 import {nativeBedMeshStatus} from '../runtime/native-bed-mesh-status.ts';
@@ -344,12 +345,30 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  probeConfiguredSamples(z:number,speed:number,options:ProbeSamples,signal:AbortSignal){
   const policy={...options};
-  return this.#operate('probe-samples',signal,s=>{
+  return this.#operate('probe-samples',signal,s=>this.#sampleProbe(z,speed,policy,s));
+ }
+ #sampleProbe(z:number,speed:number,policy:ProbeSamples,s:AbortSignal){
    if(!this.#o.probeGroups)throw new Error('No configured probe');
    return collectProbeSamples(policy,()=>this.#probeZ(z,speed,this.#o.probeGroups!,s),async(target,liftSpeed)=>{
     const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,liftSpeed,2,s);this.#check(s);
     const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
    },s);
+ }
+ measureBedMesh(options:ProbeGrid,minimumZ:number,signal:AbortSignal){
+  const config=this.#o.probeConfiguration;if(!config)return Promise.reject(new Error('No configured probe settings'));
+  const plan=planProbeGrid(options,config.offsets);
+  return this.#operate('probe-grid',signal,async s=>{
+   if(this.#o.kinematics.status.homedAxes!=='xyz'||minimumZ>=plan.horizontalHeight||!Number.isFinite(minimumZ))throw new Error('Invalid grid homing or search range');
+   // Validate every nozzle XY, travel height and search limit before motion.
+   const admission=this.#newAdmission(this.homingPosition(),true);
+   for(const point of plan.points){const target=[point.nozzleX,point.nozzleY,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}
+   admission.shutdown(new Error('Grid preflight complete'));
+   await this.#drain(s);
+   return measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
+    const physical=this.#newAdmission(this.homingPosition(),true);physical.move(target,speed);
+    await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
+    const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Probe grid travel completed'));this.#admission=next;
+   },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,s);return measured.position[2]-config.offsets[2];}},s);
   });
  }
  async #probeZ(z:number,speed:number,owned:LinearSeekOptions['groups'],s:AbortSignal){

@@ -1,0 +1,35 @@
+{
+  "base": "d9e91197",
+  "tests": {
+    "nativeAndGrid": 15,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": 1000,
+    "points": 36,
+    "medianMs": 0.04434100000000285,
+    "p95Ms": 0.12044199999999705,
+    "scope": "Path planning, async orchestration and interpolation with fake constant measurement; excludes native movement and transport."
+  },
+  "native": {
+    "points": 4,
+    "heights": [
+      0.88,
+      0.88,
+      0.88,
+      0.88
+    ],
+    "finalPhysicalZ": 1,
+    "oldProfileRetained": true
+  },
+  "limitations": [
+    "Simulated MCU only; no physical mesh accuracy or target-board performance acceptance.",
+    "Grid measurement returns a complete mesh without enabling or saving it.",
+    "Configuration binding and public grid endpoint remain unconnected. Circular beds, zero reference and faulty regions remain unimplemented.",
+    "Compiled acceptance exercises existing product printing; grid-specific behavior verified in native tests.",
+    "Historical runtime crashes and numerical anomalies remain unresolved."
+  ]
+}
