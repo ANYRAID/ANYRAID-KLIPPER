@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "10691b34",
+  "sourceSha256": {
+    "host/src/moonraker/native-manual-probe.ts": "e7e1508738b3e134f61d52f9b8bdd87448b541ffbd8911237a2e43a0d27003a5",
+    "host/src/moonraker/native-manual-bed-tilt.ts": "48f9e19b9e3c161838da9dc41f4501f7a8b9240deb9d2e7f58d9a2d65b3db082",
+    "host/src/runtime/product-service.ts": "5cade63c4a6ee27a5a5dd11262d01984be9700e282ac3cdedfe5516d25b9bd73",
+    "host/src/homing/manual-probe.ts": "9994d1aa59304c937f0a5ac8da3a37248467aaa9b782034af872859ca2da506d",
+    "host/test/manual-probe-operation.test.ts": "b37c5765ea856fd7d832ceb64a42f41f249e0592bedca7455fa0f4b2db002d51",
+    "host/acceptance/product-compiled-journey.test.ts": "f5a8e153ed435637e90afa1d2a45ee2a97c2fbdd85a0e7c55ae97bf9e7ef4d42"
+  },
+  "tests": {
+    "regressions": 15,
+    "finalPureRegressions": 13,
+    "compiledProducts": 1,
+    "fixedNumericalReferenceCases": 128,
+    "coverage": [
+      "当前XY单点测量、启动和确认无额外移动",
+      "微小调整按步距回读、下降后才能确认",
+      "权限、维护互斥、取消、超时、硬件停止和清理",
+      "确认重试不重复运动、不改变床面拟合、不自动保存",
+      "打印后独立探测再三点校准、保存重初始化和再次打印"
+    ],
+    "note": "编译产品通过后仅调整未启动状态point由占位坐标改为null，并通过最终类型检查与13项纯回归"
+  },
+  "manual": {
+    "manualProbe": {
+      "compiled": true,
+      "position": [
+        10,
+        0,
+        0
+      ],
+      "leaseBlocksCalibration": true,
+      "retryWithoutMotion": true
+    }
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 4.666331999999997,
+    "nodeMaxMs": 4.925085999999993,
+    "historicalPythonMedianMs": 11.993486999926972,
+    "historicalPythonMaxMs": 12.044097999933001,
+    "checksum": 3386409.722058255,
+    "scope": "Validated manual target planning versus original TESTZ with mock toolhead and suppressed reporting; excludes HTTP, physical travel and operator response."
+  },
+  "product": {
+    "phaseQueries": 4830,
+    "phaseP99Ms": 5.548924000000625,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": true,
+    "manualTilt": true,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 208,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1077,
+    "historyP99Ms": 13.058614000001398,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 4.3581689999991795,
+    "deleteRequests": 16,
+    "deleteP95Ms": 6.380256000000372,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 3.422996000001149,
+    "metadataRequests": 16,
+    "metadataP95Ms": 27.257544000000053,
+    "downloads": 16,
+    "downloadP95Ms": 3.2794529999991937,
+    "wireCommands": 275,
+    "wireSteps": 4908,
+    "minimumStepLeadMs": 87.824,
+    "directoryRequests": 4635,
+    "directoryP99Ms": 8.824737999999343,
+    "statusRequests": 19326,
+    "uploads": 16,
+    "statusP99Ms": 4.44137899999987,
+    "uploadP95Ms": 9.798469999999725,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.361343,
+          "maxMs": 18.546687
+        },
+        "cpu": {
+          "user": 5776430,
+          "system": 637220
+        },
+        "rss": 246853632
+      },
+      {
+        "loop": {
+          "p99Ms": 1.872895,
+          "maxMs": 12.132351
+        },
+        "cpu": {
+          "user": 1511061,
+          "system": 187750
+        },
+        "rss": 262885376
+      }
+    ]
+  },
+  "limits": [
+    "位置来自命令步进历史，不是编码器或真实接触测量",
+    "本机模拟MCU验收不能证明目标板性能与真机精度",
+    "Z限位校准未接通，manual_probe.py尚不可退役",
+    "默认Python入口和192个Python文件仍在",
+    "历史Node崩溃与瞬时数值异常仍未定位"
+  ]
+}

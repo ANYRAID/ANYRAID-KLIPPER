@@ -1371,8 +1371,24 @@ position 根据排空后的整数步进历史重建，是命令位置而非编�
 最近一次重试返回原回执；冲突或旧令牌返回 409。客户端重新连接可 GET
 恢复当前状态，主机重启不会重放运动。等待输入超过五分钟、通信故障或
 取消会撤销运动权限；有效校准不会在未完成采样时发布。
-独立手动探测和 Z 限位校准尚未迁移，不能据此删除原 manual_probe.py。
+Z 限位校准尚未迁移，不能据此删除原 manual_probe.py。
 
 规划数值参考、基准及模拟产品结果见
 [手动校准验收](../host/contracts/manual-probe-acceptance.json)。运行
 `npm --prefix host run bench:manual-probe` 可复核规划耗时；不代表真实打印速度。
+
+### 独立手动探测
+
+已归零且空闲时，GET `/printer/calibration/manual_probe` 获取状态；POST 使用
+上述 version、state_token 和 action 协议。无需配置床面倾斜或探针。
+`start` 在当前 XY 和 Z 开始单点搜索，不自动移动；adjust 和历史搜索
+沿用上述步距回读、0.5 mm 抬升及行程约束，速度限制为 5 mm/s。
+`accept` 要求实际下降至少一个可分辨步距，返回 `result.position` 三维
+喷嘴命令位置和 `persisted: false`，不抬升、不修改 Z 偏移或床面拟合。
+操作者仍须确认真实接触。启动前 point 为 null，完成后可发起新测量。
+
+会话采用相同权限、维护互斥、重试回执、五分钟超时和停止清理规则。
+确认后释放维护权限；取消或故障后须重新初始化及归零。该接口替代
+独立 MANUAL_PROBE/TESTZ/ACCEPT 的交互流程，保留受控操作而非执行宏。
+[独立手动探测验收](../host/contracts/standalone-manual-probe-acceptance.json)
+记录固定数值参考、性能和编译产品验证；尚未完成真实接触与目标板验收。

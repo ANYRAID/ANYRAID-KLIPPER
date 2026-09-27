@@ -124,6 +124,13 @@ TMC 与 MAX6675 的硬件/软件 SPI 总线协调已接通，修复同一 MCU �
 目标板验收。本轮未退役新的 Python 文件，默认入口仍未切换。详见
 [共享 SPI 验收](../host/contracts/shared-spi-acceptance.json)。
 
+独立手动探测现已接入 `/printer/calibration/manual_probe`，无需配置床面
+倾斜；完成接触确认后返回测量位置，不自动改变校准配置。15 项回归
+（含 128 个固定数值参考）及打印后探测、床面校准、重初始化的编译
+产品流程通过。10,000 次规划中位耗时 Node 4.67 ms、历史 Python
+11.99 ms；不含人工等待和物理移动。本轮未减少 Python 文件，Z 限位
+校准仍待接通。见[独立手动探测验收](../host/contracts/standalone-manual-probe-acceptance.json)。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 
