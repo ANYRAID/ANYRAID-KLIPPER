@@ -29,5 +29,6 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   return {...thermal,pressure_advance:accepted.advance,smooth_time:accepted.smoothTime};
  });
  for(const fan of printer.hardware.fans)readers.set(fan.section,()=>({speed:fan.runtime.status.speed,rpm:null}));
+ for(const sensor of printer.filamentSensors)readers.set(sensor.section,()=>({...sensor.runtime.status}));
  return new NativeObjects(readers,serialClock.now);
 }

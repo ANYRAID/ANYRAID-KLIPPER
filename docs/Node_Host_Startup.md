@@ -895,3 +895,25 @@ shutdown_speed 默认 1，按 max_power 截断；软件 PWM 仅接受 0/1
 回调不会加快倒计时。默认 idle_timeout=30，idle_speed=fan_speed，
 shutdown_speed=0。状态查询和输出限制与其他风扇相同，M106/M107
 不控制此风扇。电机状态是主机已调度的使能状态，不是电气反馈。
+
+### 断料开关与类型化暂停
+
+原生产品入口支持 `[filament_switch_sensor 名称]` 的 `switch_pin`（支持
+MCU 前缀、上拉和反相）、`debounce_delay`（0–60 秒，默认 0）、
+`event_delay`（0–3600 秒，默认 3）及 `pause_on_runout`（默认 true）。
+启动后等待 2 秒稳定窗口，状态 `valid` 变为 true 后才有经过消抖的
+检测结果；未知状态不能解释为有料。
+
+打印中确认断料会请求现有的类型化暂停，等待已排队运动和暂停动作
+完成。重新进料只更新状态，不自动恢复；缺料、输入未确认或已关闭
+时拒绝恢复，保持当前暂停。`pause_on_runout: false` 只报告传感器，
+不触发暂停或阻止恢复。Moonraker 的同名对象报告 `filament_detected`、
+`enabled`、`pause_on_runout`、`valid` 和 `closed`。
+
+非空 `runout_gcode` 和 `insert_gcode` 配置会在连接前报错，需要改为
+受控产品操作。`pause_delay` 验证为正数但不用于延迟首次暂停请求；
+它在旧实现中用于暂停后执行宏，原生路径直接等待暂停完成。没有接入
+传统 QUERY/SET_FILAMENT_SENSOR 文本命令；使用对象查询查看状态。
+
+目前验证使用预编译 Node.js 26 产品和模拟 MCU。实际开关电气逻辑、
+抖动时长、耗材行程及目标板上的机械停稳时间仍需真机验收。

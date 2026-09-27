@@ -740,3 +740,7 @@ test('remembered requests contain only immutable versioned fields', async () => 
   controller.reset(request.requestId);
   assert.equal(controller.rememberedRequests, 1);
 });
+test('resume interlock rejects absent material without leaving pause or faulting the job',async()=>{
+ let allowed=false,resumes=0;const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){resumes++;},async finish(){},async stop(){}},{maxNozzle:280,maxBed:110},{},{beforeResume(){if(!allowed)throw new Error('No filament');}});
+ await controller.start(request);await controller.pause();const token=controller.stateToken;await assert.rejects(controller.resume(),/No filament/);assert.equal(controller.state,'paused');assert.equal(controller.stateToken,token);assert.equal(resumes,0);allowed=true;await controller.resume();assert.equal(resumes,1);await controller.retire();
+});

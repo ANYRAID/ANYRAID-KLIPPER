@@ -45,7 +45,7 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
   const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:(request,signal)=>gcode.prepareForPrint(startupHoming,s=>{gcode.layers.reset(request.requestId);gcode.display.reset();return lifecycle.prepare(request,s);},signal),finishOutputs:async(id,signal)=>{
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
-  }});
+  }},()=>gcode.coordinates.extrusionAccounting.setActive(true));
   const file=new FilePrintDevice(motion,gcode.dispatch,o.open);device=new ThermalPrintDevice(file,heaters,{...o.mapping},(work,signal)=>gcode.dispatch.runExclusive(work,signal));
   heaters.attach(gcode.dispatch,{bed:o.mapping.bed,extruders:[o.mapping.nozzle]},async signal=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(signal);});
   return {device,file,gcode,close};

@@ -63,6 +63,8 @@ export const defaultPrintDeadlines: Readonly<PrintDeadlines> = Object.freeze({
   finishMs: 30000,
 });
 export interface PrintControllerOptions {
+  /** Synchronous product interlock; rejection retains the confirmed pause. */
+  beforeResume?:()=>void;
   extrusionAccounting?:ExtrusionAccounting;
   maxRememberedRequests?: number;
   maintenanceGate?:MaintenanceGate;
@@ -79,6 +81,7 @@ interface PrintRecord {
 // Never release it on reset/failure: old controller references remain callable.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
+  #beforeResume:(()=>void)|undefined;
   #extrusionAccounting:ExtrusionAccounting|undefined;
   get filamentUsed():number|null{return this.#extrusionAccounting?.filamentUsed??null;}
   get printDuration():number|null{return this.#extrusionAccounting?.printDuration??null;}
@@ -229,6 +232,8 @@ export class PrintController {
     deadlines: Partial<PrintDeadlines> = {},
     options: PrintControllerOptions = {},
   ) {
+    if(options.beforeResume!==undefined&&typeof options.beforeResume!=='function')throw new TypeError('Invalid resume interlock');
+    this.#beforeResume=options.beforeResume;
     if(options.extrusionAccounting!==undefined&&!(options.extrusionAccounting instanceof ExtrusionAccounting))throw new TypeError('Invalid extrusion accounting owner');
     this.#extrusionAccounting=options.extrusionAccounting;
     if (
@@ -415,6 +420,7 @@ export class PrintController {
     if (this.#state === 'resuming') return this.#active!;
     if (this.#state !== 'paused' || this.#active)
       return Promise.reject(new Error(`Cannot resume while ${this.#state}`));
+    try{this.#beforeResume?.();}catch(error){return Promise.reject(error);}
     return this.#run('resume', 'resuming', 'printing', (signal) =>
       this.#device.resume(signal),
     );

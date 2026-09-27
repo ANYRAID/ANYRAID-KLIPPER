@@ -1,0 +1,105 @@
+{
+  "date": "2026-09-27",
+  "status": "compiled-runout-and-resume-verified-hardware-pending",
+  "tests": 7,
+  "typecheck": true,
+  "whitespace": true,
+  "benchmark": {
+    "node": "v26.9.0",
+    "packets": 20000,
+    "acceptedSamples": 10000,
+    "duplicateReports": 10000,
+    "counterWraps": 39,
+    "samples": 11,
+    "nodeMedianMs": 12.73572299999995,
+    "nodeP95Ms": 14.054541000000029,
+    "pythonMedianMs": 13.73220601817593,
+    "pythonP95Ms": 13.80850694840774,
+    "scope": "Original Python button decoder with immediate callbacks versus TS immutable batches; exact ACK counts and states, excludes MCU IO"
+  },
+  "remaining": [
+    "target hardware switch polarity, debounce and mechanical pause validation",
+    "legacy Python default entry retirement as part of overall host migration"
+  ],
+  "serialDeliveryBenchmark": {
+    "node": "v26.9.0",
+    "reports": 20000,
+    "samples": 11,
+    "medianMs": 30.515968999999984,
+    "p95Ms": 33.81884099999999,
+    "scope": "Serialized ACK and consumer publication with immediate synthetic transport, not physical UART throughput"
+  },
+  "nativeScope": "Actual native serial queue with simulated MCU: duplicate filtering, one ACK, publication after ACK, no publication after close",
+  "productPolicy": {
+    "tests": 13,
+    "typecheck": true,
+    "debounceWarmupSeconds": 2,
+    "automaticResume": false,
+    "macros": "reject non-empty insert_gcode and runout_gcode before connection",
+    "coverage": [
+      "automatic layout and OID ownership",
+      "bounded debounce and duplicate samples",
+      "cooldown on repeated resume",
+      "pause rejection faults owner",
+      "product MCU fault releases policy and state observer"
+    ],
+    "benchmark": {
+      "node": "v26.9.0",
+      "events": 20000,
+      "samples": 11,
+      "medianMs": 2.017557999999994,
+      "p95Ms": 3.762992000000011,
+      "scope": "Debounce and idle admission; synthetic timer; exact 20000 state transitions; excludes physical pause latency"
+    }
+  },
+  "compiledRegression": {
+    "tests": 4,
+    "passed": 4,
+    "scope": "Emitted JS with PATH /no-programs and TS loading disabled; PTY simulated MCU; loaded and unloaded runout, settled queued clocks, no new motion for 200 ms, absent resume rejection, reinsertion and explicit resume to exact XYZ/E endpoints and 1 mm filament usage",
+    "runout": [
+      {
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1240.3806730000015,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      },
+      {
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1149.579681000003,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    ],
+    "performance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 88.044,
+        "generationLoopP99Ms": [
+          1.884159,
+          1.876991
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 84.673,
+        "generationLoopP99Ms": [
+          1.993727,
+          1.937407
+        ]
+      }
+    ]
+  },
+  "resumeAccounting": {
+    "failure": "Intermediate loaded compiled run passed runout/pause/interlock but failed abs(filament_used - 1) < 1e-12 after completion. Exact observed consumption was not included by the old assertion.",
+    "cause": "Held/file commands may execute before controller transitions resuming to printing; inactive accounting skips accepted extrusion.",
+    "change": "Activate accounting after native parking return and before resumeStream releases commands, retaining disabled accounting during thermal and parking preparation.",
+    "tests": 43,
+    "precisionToleranceUnchanged": true,
+    "diagnostics": "Consumption assertion now includes actual and paused usage, final position and durable record.",
+    "historicalStabilityFailuresRemainOpen": true
+  }
+}

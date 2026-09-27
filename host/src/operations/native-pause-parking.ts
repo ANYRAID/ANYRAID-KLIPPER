@@ -8,9 +8,11 @@ type ParkingPort=Pick<NativeLinearHomingPort,'pause'|'validatePausedPath'|'moveP
  * modal coordinates. The machine configuration owns collision-free parking
  * coordinates and lift distance; all legs still pass live motion guards. */
 export class NativePauseParking {
+ #beforeStreamResume:(()=>void)|undefined;
  #port:ParkingPort;#config:PauseParkingConfig;#phase:'idle'|'pausing'|'parked'|'resuming'|'failed'='idle';
  #pause:Promise<void>|undefined;#return:PausedMove[]=[];
- constructor(port:ParkingPort,config:PauseParkingConfig){
+ constructor(port:ParkingPort,config:PauseParkingConfig,beforeStreamResume?:()=>void){
+  if(beforeStreamResume!==undefined&&typeof beforeStreamResume!=='function')throw new TypeError('Invalid stream resume observer');this.#beforeStreamResume=beforeStreamResume;
   if(!Array.isArray(config.parkXY)||config.parkXY.length!==2||!config.parkXY.every(Number.isFinite)||![config.retract,config.lift].every(v=>Number.isFinite(v)&&v>=0)||![config.travelSpeed,config.liftSpeed,config.retractSpeed].every(v=>Number.isFinite(v)&&v>0))throw new RangeError('Invalid pause parking configuration');
   this.#port=port;this.#config={...config,parkXY:[config.parkXY[0],config.parkXY[1]]};
  }
@@ -38,6 +40,7 @@ export class NativePauseParking {
   try{
    this.#port.validatePausedPath(this.#return);
    for(const leg of this.#return)await this.#port.movePaused(leg.position,leg.speed,signal);
+   signal.throwIfAborted();this.#beforeStreamResume?.();
    await this.#port.resumeStream(signal);signal.throwIfAborted();this.#return=[];this.#pause=undefined;this.#phase='idle';
   }catch(error){await this.#fail(error);}
  }

@@ -12,12 +12,14 @@ import {compileConfiguredMotorEnables} from './motor-enable.ts';
 import {compileConfiguredHoming} from './homing.ts';
 import {compileConfiguredCoolingFans,type CoolingFanRequest,type FanClock} from './cooling-fan.ts';
 import {compileConfiguredAnalogHeaters} from './analog-heater.ts';
+import {compileConfiguredButtons} from './buttons.ts';
 export interface HardwareLayout {
  steppers:readonly (Omit<StepperSectionRequest,'oid'>&{emitter:string;enableLeadTime:number})[];
  /** Explicit physical membership; homing runtime still binds its emitters. */
  homing:readonly {section:string;mcus:readonly string[]}[];
  fans:readonly Omit<CoolingFanRequest,'oid'|'enableOid'>[];
  heaters:readonly {section:string}[];
+ buttons?:readonly {section:string}[];
  boards?:readonly {mcu:string;aliases?:Readonly<Record<string,string>>;reserved?:readonly string[]}[];
 }
 /** No MCU IO. A fresh private resource registry makes failures across device
@@ -44,6 +46,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const homing=layout.homing.length?compileConfiguredHoming(reader,pins,mcus,layout.homing.map(h=>({section:h.section,triggers:h.mcus.map(mcu=>({mcu}))}))):Object.freeze([]);
  const fans=layout.fans.length?compileConfiguredCoolingFans(reader,pins,mcus,sharedClocks,layout.fans.map(f=>({section:f.section,minimumScheduleTime:f.minimumScheduleTime,capacity:f.capacity}))):Object.freeze([]);
  const heaters=layout.heaters.length?compileConfiguredAnalogHeaters(reader,pins,mcus,sharedClocks,layout.heaters.map(h=>({section:h.section}))):Object.freeze([]);
+ const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
  const pending=new Map(devices.map(({id})=>[id,{commands:[] as string[],restart:[] as string[],init:[] as string[],reservedMoves:0}]));
  const add=(mcu:string,part:{commands:readonly string[];restart?:readonly string[];init?:readonly string[];reservedMoves?:number})=>{const p=pending.get(mcu)!;p.commands.push(...part.commands);p.restart.push(...part.restart??[]);p.init.push(...part.init??[]);p.reservedMoves+=part.reservedMoves??0;};
  for(const s of steppers)add(s.mcu,{commands:[s.config],restart:[s.restart]});
@@ -51,10 +54,11 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  for(const h of homing){add(h.mcu,h.endstop);for(const t of h.triggers)add(t.mcu,t.protocol);}
  for(const f of fans){add(f.output.mcu,f.output.pwm);if(f.enable)add(f.enable.mcu,f.enable.pwm);}
  for(const h of heaters){add(h.output.mcu,h.output.pwm);add(h.sensor.mcu,h.sensor.adc);}
+ for(const b of buttons)add(b.mcu,b.buttons);
  const configurations=Object.freeze(devices.map(({id},physicalMember)=>{
   const resources=mcuOids(pins).finalize(id),p=pending.get(id)!;
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters});
+ return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters,buttons});
 }

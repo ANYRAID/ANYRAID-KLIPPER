@@ -17,3 +17,9 @@ test('resume revalidates the full return path before lowering or unretracting',a
 test('cancelled intermediate parking leg cannot publish parked or start later legs',async()=>{
  const f=fixture(),abort=new AbortController();f.port.movePaused=async()=>{abort.abort(new Error('cancel park'));abort.signal.throwIfAborted();};const p=new NativePauseParking(f.port,config);await assert.rejects(p.pause(abort.signal),/cancel park/);assert.equal(p.status.phase,'failed');assert.deepEqual(f.events,['stop']);
 });
+test('accounting resumes after parking return and before a held command can continue',async()=>{
+ const {ExtrusionAccounting}=await import('../src/gcode/extrusion-accounting.ts'),meter=new ExtrusionAccounting(),f=fixture();meter.begin();meter.accepted(0,.4,1);meter.setActive(false);
+ f.port.movePaused=async()=>{assert.equal(meter.filamentUsed,.4);meter.accepted(0,1,1);};
+ f.port.resumeStream=async()=>{meter.accepted(.4,.401,1);};
+ const parking=new NativePauseParking(f.port,config,()=>meter.setActive(true));await parking.pause(signal());await parking.resume(signal());meter.accepted(.401,1,1);assert.equal(meter.filamentUsed,1);
+});

@@ -70,3 +70,16 @@ test('native product close waits beyond cancel deadline for an uncooperative pre
   assert.equal(owner.controller.pendingDeviceActions,0);assert.equal((await f.journal.get('job'))?.state,'cancelled');assert.deepEqual(f.stops,[1,1]);
  }finally{release.resolve();await closing?.catch(()=>{});await owner?.close().catch(()=>{});await f.dispose();}
 });
+test('product auto-plans filament input and releases policy on MCU stop',async()=>{
+ const f=await configuredPrinterFixture(false,false,true),dir=await mkdtemp(join(tmpdir(),'filament-product-')),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'}),maintenanceGate=new MaintenanceGate();let owner:Awaited<ReturnType<typeof connectProductPrinter>>|undefined;
+ try{
+  owner=await connectProductPrinter(f.reader,f.connections,'mcu',f.layout,f.options,{journal,maintenanceGate,limits:{maxNozzle:300,maxBed:130}},f.signal);
+  const sensor=owner.filamentSensors[0],plan=owner.hardware.plan.buttons[0];assert.equal(sensor.section,'filament_switch_sensor tool');assert.equal(sensor.runtime.status.valid,false);
+  f.firmware[1].emit('buttons_state',{oid:plan.buttons.oid,ack_count:0,state:Buffer.from([1])});
+  const end=performance.now()+4000;while(!sensor.runtime.status.valid){assert(performance.now()<end,'filament warmup timeout');await new Promise(r=>setTimeout(r,10));}
+  assert.equal(sensor.runtime.status.filament_detected,true);assert.equal(owner.controller.state,'idle');assert.equal(owner.controller.stateObservers,1);
+  f.firmware[1].emit('buttons_state',{oid:plan.buttons.oid,ack_count:20,state:Buffer.from([0])});
+  while(owner.hardware.status.state==='ready'){assert(performance.now()<end,'fault timeout');await new Promise(r=>setTimeout(r,10));}
+  await owner.close();assert.equal(sensor.runtime.status.closed,true);assert.equal(owner.controller.stateObservers,0);assert.deepEqual(f.stops,[1,1]);
+ }finally{await owner?.close();await f.close();await journal.close();await rm(dir,{recursive:true,force:true});}
+});
