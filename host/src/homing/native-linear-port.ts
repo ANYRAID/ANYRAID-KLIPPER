@@ -1,3 +1,5 @@
+import {planQuadGantry} from '../motion/quad-gantry.ts';
+import type {planZAdjustments} from '../motion/z-adjustments.ts';
 import type {ZTiltCalibrationPlan} from '../config/z-tilt.ts';
 import {planZTilt,type ZTiltMotor} from '../motion/z-tilt.ts';
 import type {StoppedEmitter} from './rebuild-motion.ts';
@@ -186,7 +188,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  releaseMotors(signal:AbortSignal):Promise<void>{if(this.#g.motorEnable&&!this.canReleaseMotors)return Promise.reject(new Error('Always-on motors cannot be released by software'));return this.#operate('release',signal,async s=>{
   const power=this.#g.motorEnable;if(!power)throw new Error('Motor enables are not configured');
   await this.#drain(s);this.#g.assertMotorCalibration();this.#o.kinematics.clearHoming([0,1,2]);
-  this.#zTiltApplied=false;await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
+  this.#zTiltApplied=false;this.#quadGantryApplied=false;await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
  });}
  queueCoolingFan(value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
   const output=this.#g.boundaryOutput;if(!output)throw new Error('Cooling fan is not configured');
@@ -408,10 +410,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    const z=this.#o.emitters.filter(e=>e.mode==='z');
    if(z.length!==pivots.length||z.some(e=>!pivots.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
    await this.#drain(s);const start=[...this.homingPosition()],plan=planZTilt(measured,pivots,start[2],maximumTravel);
+   await this.#executeZAdjustment(plan,speed,s);return plan;
+ }
+ async #executeZAdjustment(plan:ReturnType<typeof planZAdjustments>,speed:number,s:AbortSignal){
+   const start=[...this.homingPosition()];
    const bounds=this.#o.kinematics.status;if([plan.finalZ,...plan.segments.map(p=>p.targetZ)].some(v=>v<bounds.axisMinimum[2]||v>bounds.axisMaximum[2]))throw new RangeError('Z tilt exceeds Z axis range');
    const normal:RebaseLayout={emitters:this.#o.emitters,routes:this.#g.routes.map(r=>({id:this.#g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}))};
    if(this.#g.routes.some(r=>r.stationaryPosition))throw new Error('Z tilt requires ordinary motor bindings');
    let fixed='z-tilt-fixed';while(normal.routes.some(r=>r.id===fixed))fixed+='-';
+   this.#zTiltApplied=false;this.#quadGantryApplied=false;
    // Mechanical changes invalidate the previous measured surface transform.
    this.#mesh=null;this.#meshStatus=nativeBedMeshStatus(null,'');this.#tilt=undefined;
    this.#admission.shutdown(new Error('Mechanical Z calibration replaces surface compensation'));this.#admission=this.#newAdmission(start);
@@ -424,7 +431,19 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,speed,2,s);this.#check(s);
     this.#admission.shutdown(new Error('Z adjustment segment completed'));this.#admission=this.#newAdmission(halt);
    }
-   const final=[...this.homingPosition()];final[2]=plan.finalZ;await this.#rebase(final,s,normal);return plan;
+   const final=[...this.homingPosition()];final[2]=plan.finalZ;await this.#rebase(final,s,normal);
+ }
+ #quadGantryApplied=false;
+ get quadGantryStatus(){return {applied:this.#quadGantryApplied};}
+ adjustQuadGantry(samples:readonly (readonly number[])[],corners:readonly (readonly number[])[],motorIds:readonly string[],maximumTravel:number,speed:number,signal:AbortSignal){
+  const measured=samples.map(p=>[...p]),geometry=corners.map(p=>[...p]),ids=[...motorIds];
+  return this.#operate('quad-gantry',signal,async s=>{
+   this.#quadGantryApplied=false;
+   const z=this.#o.emitters.filter(e=>e.mode==='z');
+   if(this.#o.kinematics.kind==='corexz'||this.#o.kinematics.status.homedAxes!=='xyz'||z.length!==4||z.some(e=>!ids.includes(e.id))||!Number.isFinite(speed)||speed<=0)throw new Error('Quad gantry requires homed independent four Z motors');
+   await this.#drain(s);const plan=planQuadGantry(measured,geometry,ids,this.homingPosition()[2],maximumTravel);
+   await this.#executeZAdjustment(plan,speed,s);this.#quadGantryApplied=true;return plan;
+  });
  }
  #zTiltApplied=false;
  get zTiltStatus(){return {applied:this.#zTiltApplied};}
@@ -638,7 +657,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   });
  }
  motorOff(cause:unknown):Promise<void>{
-  this.#zTiltApplied=false;
+  this.#zTiltApplied=false;this.#quadGantryApplied=false;
   if(this.#stop)return this.#stop;this.#failed=true;this.#fault=cause;this.#phase='stopped';this.#admission.shutdown(cause);this.#o.kinematics.clearHoming([0,1,2]);
   const stopped=Promise.withResolvers<void>();this.#stop=stopped.promise;this.#abort.abort(cause);
   void Promise.allSettled([this.#g.drain.stop(cause),...(this.#o.probeDevice?[this.#o.probeDevice.device.stop(cause)]:[])]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)stopped.reject(new AggregateError(errors,'Native motion and probe stop failed'));else stopped.resolve();});this.#notice.emit(cause);return this.#stop;

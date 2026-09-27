@@ -1,0 +1,70 @@
+{
+  "scope": "Four Z gantry numerical planning and measured-sample native motor execution only. Automatic probing, configuration assembly, product API and compiled/hardware acceptance remain pending.",
+  "node": "26.9.0",
+  "tests": {
+    "mathAndFrozenReference": 10,
+    "nativeExecutionAndZTiltRegression": 16,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "reference": "quad-gantry-reference.json",
+  "checks": [
+    "36 actual Python probe_finalize fixtures match per-motor corrections",
+    "Analytic bilinear twist invariant under XY translation up to 1e9 mm",
+    "Flat common decimal height generates no motor motion",
+    "Actual relative travel bounded instead of positive correction only",
+    "Native four-motor pulse counts 0/10/40/20 and synchronous 10/10/10/10 afterward",
+    "Cancellation stops group and revokes homing; out-of-bound request emits no steps"
+  ],
+  "performance": {
+    "planning": {
+      "node": "v26.9.0",
+      "plans": 3600,
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 9.622790999999992,
+      "maxMs": 12.87822899999999,
+      "checksum": 18717.37500000023,
+      "scope": "Four-corner interpolation and bounded individual motor plan; no probing or physical movement."
+    },
+    "legacy": {
+      "python": "3.12.13",
+      "plans": 3600,
+      "medianMs": 47.53935600092518,
+      "maxMs": 47.6635669983807,
+      "checksum": -4.440892098500626e-13,
+      "scope": "Actual Python probe_finalize geometry, formatting and callback dispatch; no physical probing or motor planning. Not equal-work TS comparison."
+    },
+    "sharedZTilt": {
+      "node": "v26.9.0",
+      "plans": 3600,
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 16.98092700000001,
+      "maxMs": 19.434505,
+      "checksum": 19163.413718472322,
+      "scope": "Plane fit and bounded per-motor planning only; no probing, step generation or hardware"
+    },
+    "execution": {
+      "node": "v26.9.0",
+      "iterations": 7,
+      "warmup": 2,
+      "medianMs": 968.8955740000001,
+      "maxMs": 1003.9735819999996,
+      "times": [
+        959.7568300000003,
+        960.3407459999999,
+        968.8955740000001,
+        1000.8229850000007,
+        1003.9735819999996
+      ],
+      "scope": "Four Z motors, three physical segments and final coordinate rebase. Includes simulated MCU clock waits, stop confirmations and native step generation; excludes probing and setup. Not physical hardware or an equal-work Python comparison."
+    }
+  },
+  "limitations": [
+    "Python timing includes formatting/callbacks and omits segment planning: not equal-work comparison.",
+    "Shared Z tilt planning sample is 16.98 ms/3600 versus preceding 15.52 ms; calibration path, no print hot-loop throughput conclusion.",
+    "Per-segment step quantization persists; no physical position feedback acceptance.",
+    "Default Python entrypoint and historical runtime/numerical issues remain."
+  ]
+}

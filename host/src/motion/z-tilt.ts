@@ -1,3 +1,4 @@
+import {planZAdjustments} from './z-adjustments.ts';
 // Mechanical Z adjustment from klippy/extras/z_tilt.py; GPL-3.0-or-later.
 import {gaussianSolve} from '../math/mathutil.ts';
 export interface ZTiltMotor {id:string;x:number;y:number;}
@@ -24,20 +25,5 @@ export function planZTilt(samples:readonly (readonly number[])[],motors:readonly
  }
  const z=mz-mx*x-my*y,adjustments=motors.map(m=>({id:m.id,adjustment:m.x*x+m.y*y+z}));
  if(![x,y,z,...adjustments.map(m=>m.adjustment)].every(Number.isFinite))throw new RangeError('Z tilt fit overflow');
- // Highest correction moves first; the lowest motor remains physically still.
- // Stable ties retain configured motor order, as in Python's stable sort.
- const order=adjustments.map((m,index)=>({...m,index,offset:-m.adjustment})).sort((a,b)=>a.offset-b.offset);
- const spread=order.at(-1)!.offset-order[0].offset;
- if(!Number.isFinite(spread)||spread>maximumTravel)throw new RangeError('Z tilt adjustment exceeds travel limit');
- const segments:{motors:readonly string[];targetZ:number;distance:number}[]=[];
- let previous=currentZ;
- for(let i=0;i<order.length-1;i++){
-  const targetZ=currentZ+(order[i+1].offset-order[0].offset),distance=targetZ-previous;
-  if(!Number.isFinite(targetZ)||!Number.isFinite(distance)||distance<0||(order[i+1].offset>order[i].offset&&distance===0)||(order[i+1].offset===order[i].offset&&distance!==0))throw new RangeError('Z tilt motion is not representable');
-  segments.push(Object.freeze({motors:Object.freeze(order.slice(0,i+1).map(m=>m.id)),targetZ,distance}));previous=targetZ;
- }
- if(previous-currentZ>maximumTravel)throw new RangeError('Z tilt represented motion exceeds travel limit');
- const finalZ=previous+order[0].offset;
- if(!Number.isFinite(finalZ))throw new RangeError('Z tilt final coordinate overflow');
- return Object.freeze({fit:Object.freeze({x,y,z}),adjustments:Object.freeze(adjustments.map(m=>Object.freeze(m))),segments:Object.freeze(segments),finalZ,maximumMotorTravel:spread});
+ return Object.freeze({...planZAdjustments(adjustments,currentZ,maximumTravel),fit:Object.freeze({x,y,z})});
 }
