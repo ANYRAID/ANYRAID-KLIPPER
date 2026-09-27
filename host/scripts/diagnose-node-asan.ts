@@ -44,6 +44,8 @@ const source=kind==='motion'?`console.log('motion:loading');
 const {motionPlots,motionPositions}=await import(${JSON.stringify(motionModule)});
 const {motionGraphReference}=await import(${JSON.stringify(referenceModule)});
 const {default:assert}=await import('node:assert/strict');
+const {writeFileSync}=await import('node:fs');
+const {serialize}=await import('node:v8');
 const profile={order:4,jerkLimit:true},reference=motionGraphReference('weighted4',undefined,profile);
 console.log('motion:loaded');
 for(let run=0;run<16;run++){
@@ -53,10 +55,17 @@ for(let run=0;run<16;run++){
  panels.forEach((p,i)=>{const r=reference.panels[i];assert.equal(p.plot.curves.length,r.curves.length);p.plot.curves.forEach((c,j)=>{
   const expected=r.curves[j];assert.deepEqual(c.times,expected.times);assert.equal(c.values.length,expected.values.length);
   c.values.forEach((v,k)=>{if(!(Math.abs(v-expected.values[k])<=[1e-8,1e-4,1e-10][i])){
-   const repeated=motionPlots('weighted4',undefined,profile)[i].plot.curves[j].values[k];
+   // Persist the first failure before recomputing: a successful repeat must
+   // never replace the arrays that actually failed. V8 serialization retains
+   // non-finite numbers and negative zero, which JSON would discard.
+   const capture=new URL('motion-mismatch-'+process.pid+'-'+run+'.bin',import.meta.url);
+   writeFileSync(capture,serialize({version:1,run,panel:i,curve:j,index:k,positions,panels,reference}),{flag:'wx',mode:0o600,flush:true});
+   const repeatedPanels=motionPlots('weighted4',undefined,profile);
+   const repeated=repeatedPanels[i].plot.curves[j].values[k];
+   writeFileSync(new URL(capture.href+'.repeat'),serialize({positions:motionPositions(profile),panels:repeatedPanels}),{flag:'wx',mode:0o600,flush:true});
    const bits=x=>{const bytes=Buffer.alloc(8);bytes.writeDoubleLE(x);return bytes.readBigUInt64LE();};
    const xor='0x'+(bits(v)^bits(expected.values[k])).toString(16);
-   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));
+   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,capture:capture.href,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));
   }});
  });});
 }
@@ -90,8 +99,9 @@ let interruption:NodeJS.Signals|undefined,killTimer:ReturnType<typeof setTimeout
  * persistent --report-parent when the environment may discard /tmp. */
 function checkpoint(state:'running'|'completed'|'failed'|'interrupted'){
  const coreFiles=readdirSync(directory).filter(name=>/^core(?:\.|$)/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size}));
+ const mismatchFiles=readdirSync(directory).filter(name=>/^motion-mismatch-\d+-\d+\.bin(?:\.repeat)?$/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size,sha256:hash(join(directory,name))}));
  const path=join(directory,'report.json'),temporary=path+'.tmp';
- writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()],coreFiles,results},null,2),{flush:true,mode:0o600});
+ writeFileSync(temporary,JSON.stringify({...metadata,startedAt,updatedAt:new Date().toISOString(),elapsedMs:performance.now()-started,state,interruption,active:[...active.values()],coreFiles,mismatchFiles,results},null,2),{flush:true,mode:0o600});
  renameSync(temporary,path);
 }
 function interrupt(signal:NodeJS.Signals){

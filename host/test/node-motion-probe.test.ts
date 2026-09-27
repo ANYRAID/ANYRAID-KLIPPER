@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
+import {deserialize} from 'node:v8';
 const cli=fileURLToPath(new URL('../scripts/diagnose-node-asan.ts',import.meta.url));
 test('compiled probe also freezes a complete source control for runtime comparisons',()=>{
  const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--execution','compiled','--runs','1','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});
@@ -26,6 +27,10 @@ test('motion runtime probe verifies original reference in bounded fresh Node chi
  const source=readFileSync(new URL('../src/diagnostics/graph-motion.ts',import.meta.url));assert.equal(report.moduleHashes['src/diagnostics/graph-motion.ts'],createHash('sha256').update(source).digest('hex'));assert.equal(report.fixtureSha256,createHash('sha256').update(readFileSync(join(directory,'fixture.mjs'))).digest('hex'));
  const fixture=readFileSync(join(directory,'fixture.mjs'),'utf8'),injected=fixture.replace('const expected=r.curves[j];','const expected=r.curves[j];if(run===0&&i===0&&j===0)c.values[0]+=1;');assert.notEqual(fixture,injected);const path=join(directory,'injected.mjs');writeFileSync(path,injected);
  const failure=spawnSync(process.execPath,[path],{encoding:'utf8',timeout:10000});assert.equal(failure.status,1);assert.match(failure.stderr,/Error: Motion numerical mismatch /);const line=failure.stderr.split('\n').find(l=>l.startsWith('Error: Motion numerical mismatch '))!;const detail=JSON.parse(line.slice('Error: Motion numerical mismatch '.length));assert.equal(detail.actual,1);assert.equal(detail.expected,0);assert.equal(detail.repeated,0);assert.equal(detail.xor,'0x3ff0000000000000');assert.doesNotMatch(failure.stdout,/motion:verified/);
+ const captured=deserialize(readFileSync(new URL(detail.capture))),repeated=deserialize(readFileSync(new URL(detail.capture+'.repeat')));
+ assert.equal(captured.version,1);assert.equal(captured.panels[0].plot.curves[0].values[0],1);assert.equal(captured.reference.panels[0].curves[0].values[0],0);assert.equal(repeated.panels[0].plot.curves[0].values[0],0);
+ assert.deepEqual(captured.positions,repeated.positions);assert(captured.positions.length>1000);assert.equal(captured.panels.length,3);assert.deepEqual(report.mismatchFiles,[]);
+
  }finally{rmSync(directory,{recursive:true,force:true});}
 });
 test('probe records explicit optimizing compiler controls without requiring a C compiler',()=>{
