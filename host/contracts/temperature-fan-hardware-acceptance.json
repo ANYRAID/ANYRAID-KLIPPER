@@ -1,0 +1,31 @@
+{
+  "node": "26.9.0",
+  "scope": "Configured temperature fan hardware, simulated dual MCU serial PTYs, host file source and authenticated HTTP object query",
+  "relatedTests": 32,
+  "checks": [
+    "Automatic layout includes fan output and sensor without assigning M106 ownership",
+    "Cross-MCU ADC samples drive cold off, hot cooling, speed ceiling and target disable",
+    "Invalid ADC temperature stops both MCU owners",
+    "Host file readings are mapped to output print clock; malformed file stops both owners",
+    "Temperature fan report retains target and sensor freshness",
+    "HTTP object combines live temperature, target and speed and lists the sensor",
+    "Existing hardware startup, native component and generic temperature sensor regression"
+  ],
+  "callbackBenchmark": {
+    "samples": 10000,
+    "outputWrites": 10000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 30.562459999999987,
+    "maxMs": 31.17743600000003,
+    "previousWithoutSensorCallbackMedianMs": 30.072623999999962,
+    "scope": "Sensor state and callbacks, control, runtime queue and asynchronous mock PWM; excludes serial transport"
+  },
+  "limitations": [
+    "Controlled product settings API not implemented yet",
+    "SPI temperature fan combination not independently accepted",
+    "Compiled product loaded printing acceptance and physical hardware remain pending",
+    "No Python retired and default entrypoint remains Python",
+    "Historical Node crashes and motion numerical mismatches remain unresolved"
+  ]
+}

@@ -1,3 +1,4 @@
+import {readTemperatureFan} from './temperature-fan.ts';
 import {compileConfiguredSpiHeaters} from './spi-heater.ts';
 import {compileConfiguredSpiSensors} from './spi-temperature.ts';
 import {readHostTemperature} from '../thermal/host-temperature.ts';
@@ -37,6 +38,9 @@ export interface HardwareLayout {
  * after every MCU is configured. This does not grant homing authority. */
 export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGroup,clocks:ReadonlyMap<string,FanClock>,layout:HardwareLayout){
  group.assertActive();
+ const temperatureFans=Object.freeze(layout.fans.filter(f=>f.section.startsWith('temperature_fan ')).map(f=>readTemperatureFan(reader,f.section)));
+ for(const f of temperatureFans)if(!layout.sensors?.some(s=>s.section===f.section))throw new Error('Temperature fan requires its configured sensor');
+ for(const s of layout.sensors??[])if(s.section.startsWith('temperature_fan ')&&!temperatureFans.some(f=>f.section===s.section))throw new Error('Temperature fan sensor requires its output');
  const devices=group.status.devices,mcus=new Map(devices.map(({id})=>{const session=group.session(id);if(session.status.configured)throw new Error('Hardware assembly requires unconfigured MCU sessions');return [id,{chip:session,dictionary:session.dictionary}] as const;}));
  const pins=new PrinterPins<ReturnType<MCUGroup['session']>>();
  for(const [id,mcu] of mcus){pins.register(id,mcu.chip);if(!clocks.has(id))throw new Error(`Missing hardware clock: ${id}`);}
@@ -91,5 +95,5 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,buttons,tmcUarts,tmcSpis});
+ return Object.freeze({temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,buttons,tmcUarts,tmcSpis});
 }

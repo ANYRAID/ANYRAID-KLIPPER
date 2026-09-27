@@ -31,8 +31,8 @@
 后生效，省略目标温度时保留原值。Node 26.9.0 的 96000 次样本处理
 中位 4.541 ms、最大 5.892 ms；同机 Python 对照中位 117.299 ms，
 但其模拟输出保存与配置包装开销不同，不据此宣称等工作量加速比。
-此证据仅覆盖控制计算，运行时、传感器保护、MCU 输出和产品接口仍需
-接入，原生配置暂不接受 `temperature_fan`，没有因此退役 Python。
+此证据仅覆盖控制计算；配置与采样接线的后续进展见下文，没有因此
+退役 Python。
 见 [控制层验收](../host/contracts/temperature-fan-control-acceptance.json)。
 
 温控风扇运行时已实现有界采样输出队列、独立串行写入和持续采样超时
@@ -42,8 +42,19 @@
 与相关控制／既有风扇回归共 18 项通过。10000 次样本及模拟异步输出
 中位 30.073 ms、最大 30.735 ms，包含事件循环结算，不含串口传输。
 控制器已允许主机传感器的一秒采样周期；运行时要求采样与输出使用
-同一同步打印时钟。配置硬件和产品接口尚未接线，模拟 stop 调用不代表
-实际引脚冷却效果，见 [运行时验收](../host/contracts/temperature-fan-runtime-acceptance.json)。
+同一同步打印时钟。模拟 stop 调用不代表实际引脚冷却效果，见
+[运行时验收](../host/contracts/temperature-fan-runtime-acceptance.json)。
+
+原生配置现接受 `temperature_fan`，统一规划 PWM 输出与独立温度源。
+启动在风扇默认输出确认后订阅采样，随后激活传感器；ADC 保留同步打印
+时间，主机温度文件在采样回调中取得输出 MCU 打印时间。两 MCU 模拟
+串口验收覆盖低温关风、升温启风、限速、目标关闭和异常停机；主机文件
+读取失败也关闭设备组。真实 HTTP 查询可见温度、目标、速度与传感器
+注册，尚未开放受控设置接口或完成编译产品负载验收。含传感器回调的
+10000 次模拟异步输出中位 30.562 ms、最大 31.177 ms；32 项相关
+配置、硬件启动、传感器与产品对象测试通过。SPI 温控风扇使用已有 SPI
+温度源接线，但该组合尚未独立验收；没有真机证据或新增 Python 退役。
+见 [接线验收](../host/contracts/temperature-fan-hardware-acceptance.json)。
 
 多 Z 机械调平的数值／运动规划层现位于 `host/src/motion/z-tilt.ts`。
 36 组从原 Python 实际拟合及 `ZAdjustHelper.adjust_steppers` 提取的

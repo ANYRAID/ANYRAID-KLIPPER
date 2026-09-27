@@ -1,3 +1,6 @@
+import {TemperatureFanControl} from '../thermal/temperature-fan.ts';
+import {TemperatureFanRuntime} from '../thermal/temperature-fan-runtime.ts';
+import type {TemperatureSensorState} from '../thermal/temperature-sensor.ts';
 import {startMax31865} from '../thermal/max31865-startup.ts';
 import {attachConfiguredSpiHeater} from '../config/spi-heater.ts';
 import {startMax31856} from '../thermal/max31856-startup.ts';
@@ -59,6 +62,9 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const timeout=options.timeoutMs??10000;
  if(owners.has(group)||(typeof options.beforeTarget!=='function'&&!(options.beforeTarget===undefined&&options.motion?.length))||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
+ const temperatureControls=new Map(plan.temperatureFans.map(p=>[p.section,new TemperatureFanControl(p.settings,p.algorithm,p.reportDelay)]));
+ const temperatureFans:{section:string;control:TemperatureFanControl;runtime:TemperatureFanRuntime;state:TemperatureSensorState}[]=[];
+ const sensorView=(section:string,state:TemperatureSensorState)=>({getTemperature(){return {...state.getTemperature(),target:temperatureControls.get(section)?.settings.target??0};}});
  const thermalPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('heater_fan ')).map(f=>[f.section,readHeaterFanPolicy(reader,f.section,plan.allHeaters.map(h=>h.section))]));
  const controllerPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('controller_fan ')).map(f=>[f.section,readControllerFanPolicy(reader,f.section,plan.allHeaters.map(h=>h.section),plan.steppers.map(s=>s.section))]));
  const emitters=options.motion?compileConfiguredMotionEmitters(reader,plan,options.motion):undefined;
@@ -95,9 +101,9 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    if(a){binding=attachConfiguredAnalogHeater(group,a);analog.push(binding);}else{binding=attachConfiguredSpiHeater(group,plan.spiHeaters.find(p=>p.section===h.section)!);spiHeaters.push(binding);}
    thermal.push({section:h.section,runtime:binding.runtime});heaters.register(h.section,binding.runtime,ids[h.section]);
   }
-  for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensor.state,p.gcodeId);}
-  for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,binding.state,p.gcodeId);}
-  for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,binding.state,p.gcodeId);}
+  for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}
+  for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
+  for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
@@ -124,6 +130,14 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
   for(const f of plan.fans){const runtime=new ScheduledCoolingFan(output(f.output),f.config,f.enable?output(f.enable):undefined);fans.push({section:f.section,runtime});await runtime.start(abort.signal);active();}
+  for(const p of plan.temperatureFans){
+   const f=fans.find(f=>f.section===p.section)!,outputPlan=plan.fans.find(f=>f.section===p.section)!;
+   const now=()=>Math.max(...[outputPlan.output,...outputPlan.enable?[outputPlan.enable]:[]].map(o=>o.clock.printTimeAtClock(group.session(o.mcu).clock.sync.getClock(serialClock.now()))));
+   const host=hostSensors.find(s=>s.section===p.section),source=host??sensors.find(s=>s.section===p.section);if(!source)throw new Error('Temperature fan source missing');
+   const control=temperatureControls.get(p.section)!,runtime=new TemperatureFanRuntime(f.runtime,control,now,error=>{void close(error).catch(()=>{});});
+   const detachSample=source.state.subscribeSample((time,temp)=>runtime.sample(host?now():time,temp));
+   temperatureFans.push({section:p.section,control,runtime,state:source.state});cleanup.add(async cause=>{detachSample();await runtime.stop(cause);});runtime.start();active();
+  }
   if(plan.bltouch){bltouch=attachConfiguredBLTouch(group,plan);cleanup.add(cause=>bltouch!.close(cause));await bltouch.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of [...analog,...spiHeaters]){a.sensor.activate();active();}
   for(const s of sensors){s.sensor.activate();active();}
@@ -141,7 +155,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    cleanup.add(cause=>owner.stop(cause));owner.start();active();
   }
   state='ready';
-  const result=Object.freeze({plan,emitters,heaters,bltouch,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),spiHeaters:Object.freeze(spiHeaters),thermal:Object.freeze(thermal.map(h=>Object.freeze(h))),sensors:Object.freeze(sensors),hostSensors:Object.freeze(hostSensors),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
+  const result=Object.freeze({temperatureFans:Object.freeze(temperatureFans.map(f=>Object.freeze(f))),plan,emitters,heaters,bltouch,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),spiHeaters:Object.freeze(spiHeaters),thermal:Object.freeze(thermal.map(h=>Object.freeze(h))),sensors:Object.freeze(sensors),hostSensors:Object.freeze(hostSensors),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
   hardwareOwners.set(result,{group,claimed:false,cleanup});readyHardware=result;return result;
  }catch(error){try{await close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Hardware startup and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',cancelled);}

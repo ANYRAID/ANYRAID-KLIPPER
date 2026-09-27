@@ -8,6 +8,13 @@ import {stepperBatchFixture} from './helpers/configured-steppers.ts';
 import {heaterClocks} from './helpers/configured-heater.ts';
 import {mcuOids} from '../src/protocol/mcu-oids.ts';
 const reader=(values:Record<string,string>={})=>new ConfigurationReader(new ConfigurationSource('/sensor.cfg',{'temperature_sensor chamber':{sensor_type:'Generic 3950',sensor_pin:'PA0',...values}},[]),null);
+test('sensor listeners preserve sample precision, detach and propagate control failures',()=>{
+ const state=new TemperatureSensorState(),samples:number[][]=[];
+ const detach=state.subscribeSample((time,temp)=>samples.push([time,temp]));state.sample(1.123,25.123456789);assert.deepEqual(samples,[[1.123,25.123456789]]);
+ detach();state.sample(2,30);assert.equal(samples.length,1);
+ state.subscribeSample(()=>{throw new Error('output owner failed');});assert.throws(()=>state.sample(3,40),/owner failed/);assert.equal(state.getTemperature().temperature,30);
+ state.shutdown('closed');assert.throws(()=>state.subscribeSample(()=>{}),/stopped/);
+});
 test('generic sensor preserves original zero, negative extrema and Python display rounding',()=>{
  const s=new TemperatureSensorState();assert.deepEqual(s.objectStatus,{temperature:0,measured_min_temp:99999999,measured_max_temp:0});assert(s.getTemperature().stale);
  s.sample(1,0);assert.equal(s.objectStatus.measured_min_temp,99999999);assert(!s.getTemperature().stale);

@@ -53,8 +53,9 @@ test('probe pin is independently allocated and wired into the native owner',asyn
 });
 test('automatic layout includes thermal fans without assigning them to M106',async()=>{
  const f=await configuredPrinterFixture();try{
-  const r=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{...f.reader.source.original,'heater_fan hotend':{pin:'aux:PA13'}},[]),null),plan=planLinearPrinter(r,policy);
+  const r=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{...f.reader.source.original,'heater_fan hotend':{pin:'aux:PA13'},'temperature_fan chamber':{pin:'PA14',sensor_type:'temperature_host',min_temp:'0',max_temp:'100',control:'watermark'}},[]),null),plan=planLinearPrinter(r,policy);
   assert(plan.layout.fans.some(f=>f.section==='heater_fan hotend'));assert.equal(plan.initial.fanSection,'fan');
+  assert(plan.layout.fans.some(f=>f.section==='temperature_fan chamber'));assert(plan.layout.sensors!.some(s=>s.section==='temperature_fan chamber'));
  }finally{await f.close();}
 });
 

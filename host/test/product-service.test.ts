@@ -111,6 +111,17 @@ test('native server information follows physical stop while cleanup acknowledgem
   held.resolve();await stopping;info=await read();assert.equal(info.native_host.ready,false);assert.equal(info.native_host.group_state,'stopped');assert.deepEqual(f.stops,[1,1]);
  }finally{held.resolve();await stopping?.catch(()=>{});await owner?.close();await f.dispose();}
 });
+test('temperature fan product object combines live temperature, target and cooling speed',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
+ try{
+  const section='temperature_fan chamber',path=join(f.dir,'host-temp');await writeFile(path,'25000\n');
+  const reader=new ConfigurationReader(new ConfigurationSource('/temperature-fan.cfg',{...f.reader.source.original,[section]:{pin:'aux:PA13',sensor_type:'temperature_host',sensor_path:path,min_temp:'0',max_temp:'100',control:'watermark'}},[]),null);
+  owner=await startProductService(reader,f.connections,'mcu',{...f.layout,fans:[...f.layout.fans,{section,minimumScheduleTime:.02}],sensors:[{section}]},f.options,f.product,f.serviceOptions,f.signal);
+  const end=performance.now()+2000;while(owner.printer.hardware.fans.find(f=>f.section===section)!.runtime.status.speed!==0){assert(performance.now()<end);await delay(5);}
+  const response=await fetch(`http://127.0.0.1:${owner.address.port}/printer/objects/query?temperature_fan%20chamber&heaters`,{headers:{'x-api-key':'test'}}),result=(await response.json() as any).result.status;
+  assert.deepEqual(result[section],{temperature:25,target:40,speed:0,rpm:null});assert(result.heaters.available_sensors.includes(section));assert(f.firmware.every(f=>f.motion.length===0));
+ }finally{await owner?.close();await f.dispose();}
+});
 test('native object queries expose actual coordinate state and configured sensors without movement',async()=>{
  const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
  try{
