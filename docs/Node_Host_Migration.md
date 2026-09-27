@@ -24761,3 +24761,25 @@ TMC2130 硬件及软件 SPI 场景，总计 7/7 通过。TMC5160 场景覆盖
 HTTP 传输或 SPI 通信。类型与空白检查通过；证据见
 host/contracts/tmc5160-hardware-acceptance.json。目标板电流、MOSFET
 保护、软件位时序和打印质量仍待验收，历史运行时及数值异常未关闭。
+
+### 无传感器归零模式管理（未接入 G28）
+
+新增 TMC2209、TMC2130、TMC5160 的模式计划与独占切换状态管理。
+2209 设置 TPWMTHRS 并启用 stealthChop；2130/5160 关闭 stealthChop
+并设置 DIAG0 或 DIAG1。TCOOLTHRS 仅在原字段为零时启用，SPI 型号
+临时清零 THIGH。保留无关位，按原顺序恢复所有修改字段。
+模式只在全部写入确认后生效；任何部分失败或恢复取消都使 owner
+永久失效，并通知硬件停机。调用方必须在开始前排空运动，在恢复前
+确认归零运动停止，并在整个期间排他持有运动与寄存器修改权限。
+
+640 组固定对照由原 TMCVirtualPinHelper、FieldHelper 与各型号字段表
+生成，覆盖高位、非零阈值、两路 DIAG 和重复归零；日常回归不调用
+Python。5 项测试通过，包括逐写入故障/取消、并发拒绝和非法输入。
+Node 26.9.0 下 640 次计划中位 0.465 ms，完整切换与恢复中位
+2.560 ms；原 Python helper 相同输入中位 11.938 ms。两者均无真实
+通信，Python 包含字段映射构造，不能作为实际归零耗时或打印提速结论。
+证据见 host/contracts/tmc-sensorless-acceptance.json。
+
+当前尚未解析 virtual_endstop 配置，也未将模式 owner 接入归零执行、
+驱动装配或产品验收；因此无传感器 G28 仍不可用。此项不代表 Python
+入口退役，不关闭历史运动精度异常或实机验收门槛。
