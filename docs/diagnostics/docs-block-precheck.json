@@ -1,0 +1,25 @@
+{
+  "beforeMedianMs": 496.3038670000001,
+  "after": {
+    "node": "v26.9.0",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "pages": 58,
+    "inputBytes": 2892398,
+    "warmups": 3,
+    "samplesMs": [
+      323.53704600000015,
+      321.249595,
+      321.4212480000001,
+      330.894503,
+      320.35642400000006,
+      321.0248529999999,
+      317.83386999999993
+    ],
+    "medianMs": 321.249595,
+    "outputBytes": 6162507,
+    "outputSha256": "29fde1867ad46a0fb0cf0ef00aa45cd63b1c5579a935e42ac4cec476c9959670",
+    "scope": "Markdown HTML rendering and page metadata only; not a whole-site or print benchmark."
+  },
+  "outputIdentical": true,
+  "sourceSha256": "7d68e5399192c978fa1a57602749bb7d459453ad54b44e1cdf198436ca634663"
+}

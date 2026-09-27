@@ -1,4 +1,4 @@
-import MarkdownIt from 'markdown-it';
+import MarkdownIt, { type Token } from 'markdown-it';
 import attrs from 'markdown-it-attrs';
 import { restoreDocsListNesting } from './docs-lists.ts';
 import { parseDocument } from 'yaml';
@@ -58,7 +58,10 @@ export function renderDocsPage(source: string, repoUrl: string): DocsPage {
   // Identify indented code with the parser before compatibility preprocessing.
   // The old hook mistook numbered lines inside these examples for real lists.
   const protectedLines = new Set<number>();
-  for (const token of parser.parse(source, {})) {
+  const blocks: Token[] = [];
+  // Match Markdown-it's normalizer before calling its public block parser.
+  parser.block.parse(source.replace(/\r\n?/g, '\n').replace(/\0/g, '\uFFFD'), parser, {}, blocks);
+  for (const token of blocks) {
     if (token.type === 'code_block' && token.map) {
       for (let line = token.map[0]; line < token.map[1]; line++) protectedLines.add(line);
     }

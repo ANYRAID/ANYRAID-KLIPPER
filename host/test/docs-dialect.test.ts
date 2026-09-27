@@ -30,3 +30,10 @@ test('indented code retains numbered text without inserted blank lines or list c
   const html = renderDocsPage('    Intro\n    3. literal', 'https://example.test/').html;
   assert.equal(html, '<pre><code>Intro\n3. literal\n</code></pre>\n');
 });
+
+test('block precheck preserves indented code for CRLF and tab indentation', () => {
+  for (const source of ['    Intro\r\n    3. literal', '\tIntro\n\t3. literal']) {
+    assert.equal(renderDocsPage(source, 'https://example.test/').html,
+      '<pre><code>Intro\n3. literal\n</code></pre>\n');
+  }
+});
