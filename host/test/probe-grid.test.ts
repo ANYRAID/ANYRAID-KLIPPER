@@ -14,3 +14,10 @@ test('cancelled or invalid sample does not publish a partial mesh',async()=>{
  await assert.rejects(measureProbeGrid(plan,{position:()=>position,move:async()=>{},probe:async()=>NaN},new AbortController().signal),/Invalid/);
  assert.throws(()=>planProbeGrid({...options,mesh:{...options.mesh,x_count:1e9}},[0,0,0]),/probe count/);
 });
+for(const external of [false,true])test(`zero reference ${external?'outside':'inside'} mesh preserves exact heights and travel`,async()=>{
+ const reference:[number,number]=external?[25,35]:[15,35],plan=planProbeGrid({...options,zeroReference:reference},[2,-3,0]);let position=[0,0,5,0],count=0;
+ const mesh=await measureProbeGrid(plan,{position:()=>position,move:async p=>{position=[...p];},probe:async()=>{count++;return position[0]+2+(position[1]-3)*2;}},new AbortController().signal);
+ assert.equal(count,external?5:4);const offset=reference[0]+reference[1]*2;
+ assert.deepEqual([...mesh.probedValues()],[70-offset,80-offset,90-offset,100-offset]);if(!external)assert.equal(mesh.calcZ(...reference),0);
+ assert.equal(position[2],5);if(external)assert.deepEqual(position.slice(0,2),[23,38]);
+});

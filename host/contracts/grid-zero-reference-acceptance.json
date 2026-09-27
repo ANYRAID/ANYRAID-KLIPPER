@@ -1,0 +1,26 @@
+{
+  "base": "39a144e0",
+  "tests": {
+    "httpNativeAndReference": 9,
+    "expandedNativePreflight": 4,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": 1000,
+    "points": 36,
+    "referencePoints": 1,
+    "medianMs": 0.045660000000012246,
+    "p95Ms": 0.10983199999999727,
+    "scope": "Path planning, async orchestration and interpolation with fake constant measurement and external zero reference; excludes native movement and transport."
+  },
+  "scope": "Within-mesh interpolation reference and external final probe reference, with nozzle offset conversion and full preflight. HTTP simulates 9 mesh probes plus 1 external reference, activates and saves/reloads exact matrix.",
+  "limitations": [
+    "Simulated MCU and desktop performance only; no physical accuracy acceptance.",
+    "Compiled product regression covers existing print journey; reference-specific HTTP journey uses source TS.",
+    "Circular beds and faulty regions remain unimplemented.",
+    "Historical numerical discrepancies and crashes remain unresolved."
+  ]
+}

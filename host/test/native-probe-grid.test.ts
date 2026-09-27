@@ -18,13 +18,13 @@ test('native grid travels and measures all four points without replacing the old
   assert.equal(hits,4);assert.deepEqual([...mesh.probedValues()],[.88,.88,.88,.88]);assert.equal(t.port.bedMeshStatus.profile_name,'old');assert.equal(t.port.homingPosition()[2],1);assert.equal(t.port.status.failed,false);
  }finally{clearInterval(timer);await t.close();}
 });
-for(const failure of ['range','triggered'] as const)test(`failed native grid preserves old mesh (${failure})`,async()=>{
+for(const failure of ['range','reference','triggered'] as const)test(`failed native grid preserves old mesh (${failure})`,async()=>{
  const t=await nativeLinearFixture(0,()=>false,false,undefined,false,false,false,{z_offset:'0'}),s=new AbortController().signal;
  try{
   t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,0],s);await t.port.replaceBedMesh(new BedMesh(grid.mesh,[[.1,.1],[.1,.1]]),{},s,'old');
   const before=t.f.fw.motion.length;if(failure==='triggered')t.f.fw.setEndstopState({homing:0,pin_value:1,next_clock:0},7);
-  await assert.rejects(t.port.measureBedMesh(failure==='range'?{...grid,mesh:{...grid.mesh,max_x:201}}:grid,0,s));
-  if(failure==='range')assert.equal(t.f.fw.motion.length,before);
+  await assert.rejects(t.port.measureBedMesh(failure==='range'?{...grid,mesh:{...grid.mesh,max_x:201}}:failure==='reference'?{...grid,zeroReference:[201,0]}:grid,0,s));
+  if(failure!=='triggered')assert.equal(t.f.fw.motion.length,before);
   assert.equal(t.port.bedMeshStatus.profile_name,'old');assert.deepEqual([...t.port.currentBedMesh()!.probedValues()],[.1,.1,.1,.1]);assert(t.port.status.failed);assert.equal(t.kinematics.status.homedAxes,'');
  }finally{await t.close();}
 });

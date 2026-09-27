@@ -807,7 +807,9 @@ samples、retries 和 attempts，并同步 G-code 坐标缓存。成功会更换
 120 秒截止时间和进程内幂等回执与单点探测一致。测点来自 probe_count
 （默认 3,3），支持 mesh_pps、algorithm、bicubic_tension、speed 和
 horizontal_move_z。只有保存网床、没有测量范围的配置不注册此接口。
-圆形网床、零参考点和故障区尚未实现，配置时明确报错，不静默忽略。
+支持 zero_reference_position：网格内按插值结果归零；网格外追加一次
+探测并减去参考高度。外部参考点先检查喷嘴行程，无法到达时不开始
+网格运动。圆形网床和故障区尚未实现，配置时明确报错，不静默忽略。
 
 POST 在当前已归零状态下执行完整测量，成功后以 `measured` 名称启用
 网床并同步 G-code 坐标。响应仅返回测点数量、范围及 persisted:false；

@@ -1,5 +1,5 @@
 import {BedMesh,type BedMeshParameters} from '../motion/bed-mesh.ts';
-export interface ProbeGrid {mesh:BedMeshParameters;horizontalHeight:number;travelSpeed:number;}
+export interface ProbeGrid {mesh:BedMeshParameters;horizontalHeight:number;travelSpeed:number;zeroReference?:readonly [number,number];}
 /** Rectangular serpentine path in nozzle coordinates. Matrix indices stay in
  * ascending bed XY order, independently of traversal direction. */
 export function planProbeGrid(options:ProbeGrid,offsets:readonly number[]){
@@ -7,15 +7,20 @@ export function planProbeGrid(options:ProbeGrid,offsets:readonly number[]){
  const mesh=new BedMesh(options.mesh,Array.from({length:options.mesh.y_count},()=>Array(options.mesh.x_count).fill(0)));
  const p=mesh.params;
  if(offsets.length!==3||!offsets.every(Number.isFinite)||!Number.isFinite(options.horizontalHeight)||!Number.isFinite(options.travelSpeed)||options.travelSpeed<=0)throw new RangeError('Invalid probe grid travel');
+ const reference=options.zeroReference?Object.freeze([...options.zeroReference] as [number,number]):undefined;
+ if(reference&&(reference.length!==2||!reference.every(Number.isFinite)))throw new RangeError('Invalid zero reference');
+ const external=!!reference&&(reference[0]<p.min_x||reference[0]>p.max_x||reference[1]<p.min_y||reference[1]>p.max_y);
  const points=[];
  for(let y=0;y<p.y_count;y++)for(let i=0;i<p.x_count;i++){
   const x=y%2?p.x_count-1-i:i,bedX=p.min_x+(p.max_x-p.min_x)*x/(p.x_count-1),bedY=p.min_y+(p.max_y-p.min_y)*y/(p.y_count-1),nozzleX=bedX-offsets[0],nozzleY=bedY-offsets[1];
   if(![nozzleX,nozzleY].every(Number.isFinite))throw new RangeError('Probe grid coordinate overflow');
   points.push(Object.freeze({x,y,nozzleX,nozzleY}));
  }
- return Object.freeze({mesh:p,horizontalHeight:options.horizontalHeight,travelSpeed:options.travelSpeed,points:Object.freeze(points)});
+ if(external){const nozzleX=reference![0]-offsets[0],nozzleY=reference![1]-offsets[1];if(![nozzleX,nozzleY].every(Number.isFinite))throw new RangeError('Reference coordinate overflow');points.push(Object.freeze({x:-1,y:-1,nozzleX,nozzleY}));}
+ return Object.freeze({reference,external,mesh:p,horizontalHeight:options.horizontalHeight,travelSpeed:options.travelSpeed,points:Object.freeze(points)});
 }
 export async function measureProbeGrid(plan:ReturnType<typeof planProbeGrid>,port:{position():readonly number[];move(target:readonly number[],speed:number):Promise<void>;probe():Promise<number>},signal:AbortSignal){
+ let referenceHeight:number|undefined;
  const matrix=Array.from({length:plan.mesh.y_count},()=>Array<number>(plan.mesh.x_count));
  for(const point of plan.points){
   signal.throwIfAborted();const start=port.position(),raised=[...start];raised[2]=Math.max(start[2],plan.horizontalHeight);
@@ -23,8 +28,9 @@ export async function measureProbeGrid(plan:ReturnType<typeof planProbeGrid>,por
   // Never lower during XY travel; approach the configured probe height only
   // once the nozzle is over the next measurement point.
   xy[2]=plan.horizontalHeight;await port.move(xy,plan.travelSpeed);
-  const z=await port.probe();if(!Number.isFinite(z))throw new Error('Invalid grid probe height');matrix[point.y][point.x]=z;
+  const z=await port.probe();if(!Number.isFinite(z))throw new Error('Invalid grid probe height');if(point.x<0)referenceHeight=z;else matrix[point.y][point.x]=z;
  }
  signal.throwIfAborted();const finish=[...port.position()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await port.move(finish,plan.travelSpeed);signal.throwIfAborted();
- return new BedMesh(plan.mesh,matrix);
+ if(plan.external){if(referenceHeight===undefined)throw new Error('Missing reference measurement');for(const row of matrix)for(let x=0;x<row.length;x++)row[x]-=referenceHeight;}
+ const mesh=new BedMesh(plan.mesh,matrix);if(plan.reference&&!plan.external)mesh.setZeroReference(...plan.reference);return mesh;
 }
