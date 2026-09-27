@@ -149,4 +149,43 @@ export class KconfigModel {
   });
  }
  resolve():Record<string,KResolved>{return Object.fromEntries([...this.symbols.keys()].map(name=>[name,this.value(name)]));}
+ /** savedefconfig compares defaults in the current dependency context, not
+  * against a separate model with all user assignments removed. */
+ minimalSymbols():string[]{
+  const output:string[]=[];
+  for(const symbol of this.symbols.values()){
+   const current=this.value(symbol.name);
+   let strong=0,weak=0;
+   for(const reverse of this.reverse.get(symbol.name)??[]){
+    const value=this.evaluate(and(atom(reverse.source),reverse.condition));
+    if(reverse.weak)weak=Math.max(weak,value);else strong=Math.max(strong,value);
+   }
+   if(!symbol.choice&&current.visibility<=strong)continue;
+   let fallback='';
+   if(symbol.type==='bool'){
+    let tri=0;
+    if(!symbol.choice){
+     for(const {property,condition} of this.properties(symbol))if(property.kind==='default'){
+      const conditionValue=this.evaluate(condition);
+      if(conditionValue){tri=Math.min(conditionValue,this.evaluate(property.value));break;}
+     }
+     tri=Math.max(tri,strong,weak);
+    }
+    fallback=tri?'y':'n';
+   }else if(symbol.type!=='unknown'){
+    for(const {property,condition} of this.properties(symbol))if(property.kind==='default'&&this.evaluate(condition)){fallback=kconfigAtom(property.value,this.lookup).text;break;}
+   }
+   if(current.text===fallback)continue;
+   const choice=symbol.choice;
+   if(choice&&current.tri===2&&!choice.definition.node.properties.some(p=>p.kind==='optional')){
+    const visible=(name:string)=>this.visibility(this.symbols.get(name)!.definitions)>0;
+    let selected:string|undefined;
+    for(const property of choice.definition.node.properties)if(property.kind==='default'&&this.evaluate(and(choice.definition.dependency,property.condition))&&property.value.kind==='symbol'&&choice.members.includes(property.value.value)&&visible(property.value.value)){selected=property.value.value;break;}
+    selected??=choice.members.find(visible);
+    if(selected===symbol.name)continue;
+   }
+   if(current.write)output.push(symbol.name);
+  }
+  return output;
+ }
 }

@@ -39,6 +39,13 @@ export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG
 }
 
 const escape=(text:string)=>text.replaceAll('\\','\\\\').replaceAll('"','\\"');
+export function kconfigMinimal(model:KconfigModel,header='',prefix='CONFIG_'):string{
+ return header+model.minimalSymbols().map(name=>{
+  const value=model.value(name);
+  if(value.type==='bool'||value.type==='tristate')return value.text==='n'?'# '+prefix+name+' is not set\n':prefix+name+'='+value.text+'\n';
+  return prefix+name+'='+(value.type==='string'?'"'+escape(value.text)+'"':value.text)+'\n';
+ }).join('');
+}
 /** Repository Kconfiglib intentionally emits disabled bools and hidden symbols. */
 export function kconfigAutoconf(model:KconfigModel,header='',prefix='CONFIG_'):string{
  const chunks=[header];

@@ -68,11 +68,23 @@ Makefile 的 `autoconf.h` 生成现已切换到 Node 入口
 显示目标已是最新。相同内容保留时间戳，写入采用临时文件原子替换。
 完整命令行含进程启动，暖编译缓存中位 49.30 ms、P95 51.51 ms，Python
 基线中位 48.26 ms；禁用编译缓存为 92.65 ms，仍慢于 Python。该开销
-位于构建阶段，不影响打印热路径，不宣称完整构建提速。完整构建仍执行
-Python 最小配置导出，`olddefconfig` 与菜单也未迁移；旧库保留至这些
-入口完成替换，受跟踪 Python 文件仍为 192。证据见
+位于构建阶段，不影响打印热路径，不宣称完整构建提速。头文件切换阶段
+的完整构建仍执行 Python 最小配置导出，该入口随后完成下述迁移。
+受跟踪 Python 文件仍为 192。证据见
 [头文件生成验收](../host/contracts/kconfig-genconfig-acceptance.json)，复现基准
 为 `node host/bench/kconfig-genconfig.ts`。真实硬件验收尚未执行。
+
+最小配置导出已切换到 `scripts/kconfig-savedefconfig.mjs`，按当前依赖
+上下文省略默认值及不可改变的符号，并保留选择组规则。84 组输出与旧版
+逐字节一致，重新加载后完整头文件也一致。16 项回归、类型和空白检查
+通过。使用已有完整配置、空输出目录和 `PYTHON=/nonexistent-python`
+完成 AVR ELF/HEX 编译，头文件与最小配置均与前一版一致。缺失或过期
+配置的初始化尚未覆盖，`olddefconfig` 与交互菜单仍为 Python。
+STM32F446 非空最小配置完整命令行中位 50.76 ms、P95 57.39 ms，Python
+基线中位 47.13 ms；禁用编译缓存中位 94.91 ms。未宣称构建加速，打印
+运行路径与运动算术未变。证据见
+[最小配置验收](../host/contracts/kconfig-minimal-acceptance.json)，复现基准为
+`node host/bench/kconfig-genconfig.ts --minimal`。旧库保留至剩余入口退役。
 
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。

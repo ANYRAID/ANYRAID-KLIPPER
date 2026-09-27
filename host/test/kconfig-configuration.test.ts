@@ -7,8 +7,21 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {parseKconfig} from '../src/kconfig/parser.ts';
-import {loadKconfigConfiguration,kconfigAutoconf} from '../src/kconfig/configuration.ts';
+import {loadKconfigConfiguration,kconfigAutoconf,kconfigMinimal} from '../src/kconfig/configuration.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
+test('84 minimal configurations match Python bytes and reload to identical firmware headers',async()=>{
+ const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-minimal-reference.json',import.meta.url),'utf8'));
+ const tree=await parseKconfig(root);
+ assert.equal(createHash('sha256').update(await readFile(join(root,'lib/kconfiglib/kconfiglib.py'))).digest('hex'),reference.sourceSha256);
+ for(const c of reference.cases){
+  const input=await readFile(join(root,c.file),'utf8');
+  const {model}=loadKconfigConfiguration(tree,input+(c.lowlevel?'\nCONFIG_LOW_LEVEL_OPTIONS=y\n':''));
+  const minimal=kconfigMinimal(model);
+  assert.equal(minimal,c.contents,c.file+' lowlevel='+c.lowlevel);
+  assert.equal(kconfigAutoconf(loadKconfigConfiguration(tree,minimal).model),kconfigAutoconf(model),c.file+' round trip');
+ }
+ assert.equal(reference.cases.length,84);
+});
 test('all 84 configurations load from real files and generate byte-identical autoconf headers',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-autoconf-reference.json',import.meta.url),'utf8'));
  const modelReference=JSON.parse(await readFile(new URL('../contracts/kconfig-model-reference.json',import.meta.url),'utf8'));
@@ -53,6 +66,12 @@ test('CLI honors output headers, preserves unchanged mtime and retains output on
   assert.equal((await stat(env.KCONFIG_AUTOHEADER,{bigint:true})).mtimeNs,before.mtimeNs);
   assert.equal(run(['Kconfig'],{NODE_DISABLE_COMPILE_CACHE:'1'}).status,0);
   assert.equal((await stat(env.KCONFIG_AUTOHEADER,{bigint:true})).mtimeNs,before.mtimeNs);
+  const minimalPath=join(dir,'defconfig');
+  const minimal=()=>spawnSync(process.execPath,[join(root,'scripts/kconfig-savedefconfig.mjs'),'--kconfig','Kconfig','--out',minimalPath],{env:{...env,KCONFIG_CONFIG_HEADER:'# Minimal\n'},encoding:'utf8'});
+  const firstMinimal=minimal();assert.equal(firstMinimal.status,0,firstMinimal.stderr);
+  assert.equal(await readFile(minimalPath,'utf8'),'# Minimal\nCUSTOM_ENABLE=y\n');
+  const minimalTime=(await stat(minimalPath,{bigint:true})).mtimeNs;assert.equal(minimal().status,0);
+  assert.equal((await stat(minimalPath,{bigint:true})).mtimeNs,minimalTime);
   assert.equal(run(['--header-path',env.KCONFIG_CONFIG,'Kconfig']).status,1);
   assert.equal(await readFile(env.KCONFIG_CONFIG,'utf8'),'CUSTOM_ENABLE=y\n');
   await writeFile(join(dir,'Kconfig'),'unknown directive\n');assert.equal(run().status,1);
