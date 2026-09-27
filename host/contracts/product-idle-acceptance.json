@@ -1,5 +1,5 @@
 {
-  "status": "compiled-idle-policy-verified-dynamic-settings-and-hardware-pending",
+  "status": "compiled-idle-policy-and-runtime-settings-verified-hardware-and-intermittent-mesh-failure-pending",
   "defaultSeconds": 600,
   "timeoutRangeSeconds": {
     "exclusiveMin": 0,
@@ -23,8 +23,8 @@
     "node": "v26.9.0",
     "polls": 20000,
     "samples": 11,
-    "medianMs": 5.222374000000002,
-    "p95Ms": 6.2314190000000025,
+    "medianMs": 4.975939999999994,
+    "p95Ms": 6.101637000000011,
     "scope": "Idle observation with representative activity key and bounded synthetic timer; no physical output latency"
   },
   "compiled": [
@@ -87,12 +87,68 @@
         "Suppressing expected stop notification exposed start and configuration-save admission relying on fault state; expected 409 received 200"
       ],
       "fix": "Explicitly invalidate MaintenanceGate on every hardware close"
+    },
+    {
+      "tests": 4,
+      "passed": 3,
+      "issues": [
+        "Loaded compiled journey paused with empty bed_mesh.profile_name; expected saved"
+      ],
+      "status": "open",
+      "diagnosticFollowUp": {
+        "tests": 1,
+        "passed": 1,
+        "note": "Same loaded scenario passed in isolation; root cause unproven, original assertion retained with file-position failure context"
+      }
     }
   ],
   "remaining": [
-    "Typed dynamic timeout settings interface",
     "Target hardware validation",
     "Legacy Python default entry retirement",
-    "Historical process/motion stability issues remain open"
-  ]
+    "Historical process/motion stability issues remain open",
+    "Intermittent compiled pause mesh-state assertion: root cause unproven"
+  ],
+  "dynamicSettings": {
+    "endpoint": "/printer/settings/idle_timeout",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "persisted": false,
+    "unitTests": 5,
+    "closeDuringAuthorization": "rejected without mutation",
+    "retry": "last accepted request only; does not reset timer twice",
+    "reinitialization": "configuration restored; old token rejected",
+    "benchmark": {
+      "node": "v26.9.0",
+      "updates": 20000,
+      "retries": 20000,
+      "samples": 11,
+      "medianMs": 47.19600700000001,
+      "p95Ms": 51.537678,
+      "scope": "Authorized registry calls, token generation, bounded receipt and synthetic timer; excludes network and physical outputs"
+    },
+    "compiledTests": {
+      "tests": 4,
+      "passed": 4
+    },
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.803,
+        "generationLoopP99Ms": [
+          1.767423,
+          1.812479
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 83.641,
+        "generationLoopP99Ms": [
+          1.930239,
+          2.045951
+        ]
+      }
+    ]
+  }
 }

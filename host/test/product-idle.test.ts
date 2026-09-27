@@ -9,7 +9,7 @@ test('idle timeout is one-shot, resets on activity and never expires during prin
  f.state('printing',true);await f.advance(21);assert.equal(f.owner.status.state,'Printing');await f.advance(100);assert.equal(f.calls,1);f.state('completed');await f.advance(101);await f.advance(103);assert.equal(f.calls,1);await f.advance(104);assert.equal(f.calls,2);f.owner.close();assert.equal(f.timers.size,0);
 });
 test('pending expiry is not duplicated and close fences late completion',async()=>{
- const held=Promise.withResolvers<void>(),f=fixture(()=>held.promise);await f.advance(3);await f.advance(30);assert.equal(f.calls,1);assert.equal(f.timers.size,0);f.owner.close();held.resolve();await f.advance(40);assert.equal(f.timers.size,0);assert.equal(f.owner.status.closed,true);
+ const held=Promise.withResolvers<void>(),f=fixture(()=>held.promise);await f.advance(3);assert.equal(f.owner.updatable,false);assert.throws(()=>f.owner.setTimeout(10),/expiring/);assert.equal(f.owner.status.idle_timeout,3);await f.advance(30);assert.equal(f.calls,1);assert.equal(f.timers.size,0);f.owner.close();held.resolve();await f.advance(40);assert.equal(f.timers.size,0);assert.equal(f.owner.status.closed,true);
 });
 test('failed expiry faults once and removes the timer',async()=>{const f=fixture(async()=>{throw new Error('off failed');});await f.advance(3);assert.match(String(f.error),/off failed/);assert.equal(f.timers.size,0);assert.equal(f.owner.status.closed,true);});
 test('idle configuration defaults to 600 seconds and rejects arbitrary macros',()=>{

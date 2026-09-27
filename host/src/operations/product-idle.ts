@@ -15,6 +15,15 @@ export class ProductIdleTimeout {
   if(!Number.isFinite(seconds)||seconds<=0||seconds>86400)throw new RangeError('Invalid idle timeout');this.seconds=seconds;this.clock=clock;this.read=read;this.expire=expire;this.fault=fault;this.#last=clock.now();this.#tick();
  }
  get status(){return {state:this.#printingSince!==undefined?'Printing':this.#expired?'Idle':'Ready',printing_time:this.#printingSince===undefined?0:Math.max(0,this.clock.now()-this.#printingSince),idle_timeout:this.seconds,expired:this.#expired,closed:this.#abort.signal.aborted};}
+ get updatable():boolean{return !this.#abort.signal.aborted&&!this.#pending;}
+ /** Runtime-only setting. Restart the inactivity interval once, without
+  * interrupting accepted safety work or changing the printer configuration. */
+ setTimeout(seconds:number):void{
+  if(!Number.isFinite(seconds)||seconds<=0||seconds>86400)throw new RangeError('Invalid idle timeout');
+  if(this.#abort.signal.aborted||this.#pending)throw new Error('Idle timeout owner closed or expiring');
+  const now=this.clock.now();if(!Number.isFinite(now)||now<this.#last)throw new Error('Invalid idle clock');
+  this.#cancel?.();this.#cancel=undefined;this.seconds=seconds;this.#last=now;this.#expired=false;this.#schedule();
+ }
  #schedule():void{if(!this.#abort.signal.aborted)this.#cancel=this.clock.schedule(()=>{this.#cancel=undefined;this.#tick();},Math.min(1,Math.max(.05,this.seconds)));}
  #tick():void{
   if(this.#abort.signal.aborted||this.#pending)return;

@@ -959,4 +959,13 @@ MCU 前缀、上拉和反相）、`debounce_delay`（0–60 秒，默认 0）、
 
 `idle_timeout` 对象报告 state、printing_time、idle_timeout、expired、
 closed 和 motors_releasable。非空 `gcode` 在连接前拒绝，不执行任意
-超时宏。当前通过配置调整超时；尚未提供对应的动态设置接口。
+超时宏。
+
+已认证客户端可用 `GET /printer/settings/idle_timeout` 获取当前 timeout、
+state_token、available 和 persisted；用同一路径的 POST 临时调整超时：
+`{"version":1,"state_token":"查询返回的令牌","timeout":600}`。
+成功后返回新令牌并重新开始空闲计时；仅缓存最近一次请求的回执，
+相同令牌和数值重试不会再次延长计时，冲突值及过期令牌返回 409。
+关闭实例、受控维护或正在执行超时清理时拒绝新的设置。
+设置不写入配置文件（persisted 为 false），重建实例恢复配置值并撤销
+旧令牌。接口不执行宏，不改变运动参数；打印或暂停时也可调整。
