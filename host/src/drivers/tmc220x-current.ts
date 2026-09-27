@@ -4,11 +4,12 @@ import type {TmcUartDevice} from './tmc-uart.ts';
  * Publish only acknowledged register pairs. Any ambiguous write retires hardware. */
 export class Tmc220xCurrent {
  #current:ReturnType<typeof tmc220xCurrent>;#hold:number;#resistor:number;#chop:number;#ihold:number;
- #device:Pick<TmcUartDevice,'write'>;#lifetime:AbortSignal;#fault:(cause:unknown)=>void;#busy=false;#failed=false;
+ #device:Pick<TmcUartDevice,'write'>;#lifetime:AbortSignal;#fault:(cause:unknown)=>void;#busy=false;#failed=false;#revision=0;
  constructor(device:Pick<TmcUartDevice,'write'>,plan:ReturnType<typeof planTmc220x>,lifetime:AbortSignal,fault:(cause:unknown)=>void){
   this.#device=device;this.#current=plan.current;this.#hold=plan.requestedHold;this.#resistor=plan.resistor;
   this.#chop=plan.registers.find(r=>r.name==='CHOPCONF')!.value;this.#ihold=plan.registers.find(r=>r.name==='IHOLD_IRUN')!.value;this.#lifetime=lifetime;this.#fault=fault;
  }
+ get revision(){return this.#revision;}
  get current(){return this.#current;}
  async set(change:{run?:number;hold?:number},signal:AbortSignal):Promise<void>{
   const combined=AbortSignal.any([signal,this.#lifetime]);combined.throwIfAborted();
@@ -20,7 +21,7 @@ export class Tmc220xCurrent {
   try{
    if(chop!==this.#chop)await this.#device.write(0x6c,chop,combined);
    combined.throwIfAborted();await this.#device.write(0x10,ihold,combined);combined.throwIfAborted();
-   this.#current=next;this.#hold=hold;this.#chop=chop;this.#ihold=ihold;
+   this.#current=next;this.#hold=hold;this.#chop=chop;this.#ihold=ihold;this.#revision++;
   }catch(error){this.#failed=true;this.#fault(error);throw error;}finally{this.#busy=false;}
  }
 }

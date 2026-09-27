@@ -1,3 +1,4 @@
+import {registerNativeDriverCurrent} from '../moonraker/native-driver-current.ts';
 import {registerNativeIdleSettings} from '../moonraker/native-idle-settings.ts';
 import {readProbeGrid} from '../config/probe-grid.ts';
 import {readNativeBedMesh} from '../config/native-bed-mesh.ts';
@@ -38,13 +39,14 @@ export interface ProductServiceOptions {
 export async function startProductService(reader:ConfigurationReader,connections:readonly MCUConnection[],primaryId:string,layout:HardwareLayout,printerOptions:ConfiguredPrinterOptions,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal){
  signal.throwIfAborted();const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
- let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
+ let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;let closeDriverCurrent:(()=>Promise<void>)|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
  const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.linear.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
  const close=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
   closeIdleSettings?.();
+  const driverCurrentClosed=closeDriverCurrent?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -54,6 +56,12 @@ export async function startProductService(reader:ConfigurationReader,connections
   signal.throwIfAborted();
   server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined)});
   signal.throwIfAborted();printer.group.assertActive();
+  closeDriverCurrent=registerNativeDriverCurrent(server.endpoints,printer.maintenanceGate,{
+   snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
+   idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves,
+   set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.print.gcode.dispatch.runExclusive(async s=>{await printer.linear.port.drain(s);await driver.current.set(change,s);},signal);},
+   fail:error=>{void printer.hardware.close(error).catch(()=>{});}
+  });
   closeIdleSettings=registerNativeIdleSettings(server.endpoints,printer.idleTimeout,()=>!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance);
   if(product.configurationSession)closeConfiguration=registerNativeConfiguration(server.endpoints,product.configurationSession,printer.maintenanceGate,new BedMeshProfiles(reader),{current:()=>printer.linear.port.currentBedMesh(),idle:()=>['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves});
   closeHome=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,measure:async s=>{await printer.print.gcode.homing.home([0,1,2],s);return {homed_axes:printer.linear.kinematics.status.homedAxes,position:[...printer.linear.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'home');
