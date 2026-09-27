@@ -1,3 +1,4 @@
+import {registerNativeSkewSave} from '../moonraker/native-skew-save.ts';
 import {registerNativeSkew} from '../moonraker/native-skew.ts';
 import {readSkewProfiles} from '../config/skew.ts';
 import {readQuadGantry} from '../config/quad-gantry.ts';
@@ -55,6 +56,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
  let closeQuad:(()=>Promise<void>)|undefined;
  let closeTemperatureFans:(()=>void)|undefined;
+ let closeSkewSave:(()=>Promise<void>)|undefined;
  let closeSkew:(()=>Promise<void>)|undefined;
  let closeZTilt:(()=>Promise<void>)|undefined;
  let closeZAdjustment:(()=>Promise<void>)|undefined;
@@ -73,7 +75,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeSkew)jobs.push(closeSkew());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -96,6 +98,7 @@ export async function startProductService(reader:ConfigurationReader,connections
    fail:error=>{void printer.hardware.close(error).catch(()=>{});}
   });
   const skewProfiles=readSkewProfiles(reader);
+  if(skewProfiles)closeSkewSave=registerNativeSkewSave(server.endpoints,printer.maintenanceGate,{snapshot:()=>printer.linear.port.skewStatus,idle:()=>!closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy},product.configurationSession);
   if(skewProfiles)closeSkew=registerNativeSkew(server.endpoints,printer.maintenanceGate,skewProfiles,{
    snapshot:()=>printer.linear.port.skewStatus,
    idle:()=>!closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,
