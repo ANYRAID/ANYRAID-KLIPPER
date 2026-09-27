@@ -8,13 +8,13 @@ import {sdCRC7} from '../src/diagnostics/sd-card-spi.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 import {SerialSession} from '../src/protocol/serial-session.ts';
 const signal=()=>new AbortController().signal;
-async function fixture(mcu='stm32f103xe',pins='PA6,PA7,PA8'){
+async function fixture(mcu='stm32f103xe',pins='PA6,PA7,PA8',legacySpiConfig=false){
  const image=fatDisk(),card=new SDCardEmulator();card.image=image.image;card.csd[9]=7;card.csd[15]=sdCRC7(card.csd.subarray(0,15));let stops=0;
- const firmware=await serialFirmware(undefined,{mcu,extendedPins:true,spiPins:pins,tmcSpi(_oid,data,read){if(read)return {data:card.transferBytes(data,signal())};card.sendBytes(data,signal());return {data:new Uint8Array()};}}),session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}});
+ const firmware=await serialFirmware(undefined,{mcu,legacySpiConfig,extendedPins:true,spiPins:pins,tmcSpi(_oid,data,read){if(read)return {data:card.transferBytes(data,signal())};card.sendBytes(data,signal());return {data:new Uint8Array()};}}),session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}});
  await session.initialize(signal());return {firmware,session,card,get stops(){return stops;},async close(){await session.stop();await firmware.close();}};
 }
-test('board factory configures fresh MCU and uploads verified firmware over native SPI',async t=>{
- const f=await fixture();try{const start=performance.now(),machine=await openSDFlashMachine(f.session,'btt-skr-mini-e3-v2',signal());try{
+for(const legacy of [false,true])test(`board factory uploads over native SPI with ${legacy?'legacy':'modern'} chip select`,async t=>{
+ const f=await fixture('stm32f103xe','PA6,PA7,PA8',legacy);try{const start=performance.now(),machine=await openSDFlashMachine(f.session,'btt-skr-mini-e3-v2',signal());try{
   assert.equal(machine.plan.mcu,'stm32f103xe');assert.equal(f.session.configuration.reused,false);
   const receipt=await uploadSDFirmware(machine.files,machine.plan.name,machine.plan.mcu,Buffer.alloc(4097,23),signal());assert.equal(receipt.state,'uploaded');assert.equal(receipt.activationVerified,false);assert.equal(receipt.path,'firmware.bin');
   await assert.rejects(openSDFlashMachine(f.session,'btt-skr-mini',signal()),/fresh exclusive/);t.diagnostic(JSON.stringify({bytes:4097,configureMountUploadVerifyMs:performance.now()-start,scope:'Board factory, native simulated UART/SPI and FAT16 image; excludes physical hardware'}));
