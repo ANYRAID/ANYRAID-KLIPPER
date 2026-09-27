@@ -1,0 +1,40 @@
+{
+  "files": [
+    {
+      "file": "motion-mismatch-346880-7.bin.gz",
+      "rawSHA256": "724464c72722f784eb50c42626047fe0f5b21e4002885239c3c5d8915b3eb867",
+      "compressedSHA256": "5b184857881cd6dfd8e21b12af257459e83a25b49b79a9c01d28de35ad1c8e18",
+      "rawBytes": 1336888,
+      "compressedBytes": 792669
+    },
+    {
+      "file": "motion-mismatch-346880-7.bin.repeat.gz",
+      "rawSHA256": "20e41430ef410366e805820a87a3afbb6b3b9ae08640ebe30b7c342979cb14fa",
+      "compressedSHA256": "c4ec2c226852742bd91cb46d8f57f289b1420becf834c43f6dd53b4688fd4645",
+      "rawBytes": 110417,
+      "compressedBytes": 65380
+    }
+  ],
+  "analysis": {
+    "version": 2,
+    "kind": "positions",
+    "run": 7,
+    "index": 11478,
+    "compressedSHA256": "724464c72722f784eb50c42626047fe0f5b21e4002885239c3c5d8915b3eb867",
+    "rawSHA256": "724464c72722f784eb50c42626047fe0f5b21e4002885239c3c5d8915b3eb867",
+    "sameInvocationInputs": false,
+    "differences": [
+      {
+        "stage": "standalone positions vs reference",
+        "count": 0,
+        "examples": []
+      }
+    ],
+    "limitation": "Invariant differences locate inconsistent stored stages; they do not establish the runtime, compiler or hardware root cause."
+  },
+  "observation": "Failure branch taken despite saved arrays and printed actual/expected agreeing. The original comparison intermediates were not retained. A separate earlier velocity spike is present in the captured output arrays.",
+  "limitations": [
+    "No root cause established",
+    "A successful replay cannot establish integrity of the failed process"
+  ]
+}

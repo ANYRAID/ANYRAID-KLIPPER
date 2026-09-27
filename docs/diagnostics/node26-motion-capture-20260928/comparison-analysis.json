@@ -1,0 +1,187 @@
+{
+  "files": [
+    {
+      "file": "motion-mismatch-348782-15.bin.gz",
+      "rawSHA256": "89ec38a59999fb1d2f2cd236f34531df0f32f5d270be9fdba57c41aa2a4a48f5",
+      "compressedSHA256": "08bc30147dbb566fdebf33f537b2058cd78d8aad1e0e7e4ac5ee05aa426b916f",
+      "rawBytes": 4690925,
+      "compressedBytes": 2589287
+    },
+    {
+      "file": "motion-mismatch-348782-15.bin.repeat.gz",
+      "rawSHA256": "210fa3e09086bdbcf161790a5a53e4450afd531f59f140044d91b715af707a7a",
+      "compressedSHA256": "95bcfd1105ffceb8157b2d0aebd7d1cff94b38fd0a95fc46a1b483dc2289d4ba",
+      "rawBytes": 2139444,
+      "compressedBytes": 1031551
+    }
+  ],
+  "analysis": {
+    "comparison": {
+      "actual": -0.06914286694832938,
+      "expected": -0.06914286694832938,
+      "difference": -2.3283064365386963e-10,
+      "absolute": 2.3283064365386963e-10,
+      "within": false,
+      "tolerance": 1e-10,
+      "recomputedDifference": 0,
+      "recomputedWithin": true
+    },
+    "version": 3,
+    "kind": "curves",
+    "run": 15,
+    "panel": 2,
+    "curve": 0,
+    "index": 4569,
+    "compressedSHA256": "89ec38a59999fb1d2f2cd236f34531df0f32f5d270be9fdba57c41aa2a4a48f5",
+    "rawSHA256": "89ec38a59999fb1d2f2cd236f34531df0f32f5d270be9fdba57c41aa2a4a48f5",
+    "sameInvocationInputs": true,
+    "differences": [
+      {
+        "stage": "standalone positions vs reference",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 0",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 2",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 3",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 0",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 2",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 3",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 2 curve 0",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 2 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "plot nominal vs reference",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 0 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 0 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 0 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 0 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 1 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 1 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 1 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 1 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 2 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 2 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 2 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 2 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 3 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 3 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 3 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 3 vs raw stage",
+        "count": 0,
+        "examples": []
+      }
+    ],
+    "limitation": "Invariant differences locate inconsistent stored stages; they do not establish the runtime, compiler or hardware root cause."
+  },
+  "observation": "Captured equal actual and expected operands with stored difference -2^-32; recomputation yields zero. All captured arrays and derivative invariants pass on replay.",
+  "limitations": [
+    "A transient computation/value inconsistency is established, not its hardware or runtime cause.",
+    "Separate prior capture contains real velocity/acceleration output corruption."
+  ]
+}

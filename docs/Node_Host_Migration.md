@@ -16,6 +16,26 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 继续精度诊断得到两项新证据：增强后的纯编译 JS 样本在第 200 个
+  子进程 SIGSEGV（203 个最终启动进程，无 core）；随后另一轮在第 20 个
+  子进程进入位置失配分支（22 个最终启动进程），但实际保存的位置、
+  参考及重算数组一致，日志 actual／expected 也均为 28.506302268502182。
+  这不能解释此前已保存的真实速度尖峰，也不支持直接认定位置算法有
+  确定性误差。报告与无损快照见
+  [比较异常证据](diagnostics/node26-motion-capture-20260928/equal-position-analysis.json)。
+  新工具 `node host/scripts/inspect-motion-capture.ts capture.bin.gz`
+  核对参考、同次导数输入、原始导数及最终曲线，输出 binary64 位模式和
+  分阶段差异；缺失同次输入时明确标注，不从独立重算伪造证据。
+  捕获格式 v3 进一步保存触发失败的 actual、expected、difference、
+  absolute、within 和 tolerance；不放宽容差，不改运动算法。9 项
+  诊断／现场分析测试及类型检查通过。根因与生产运动精度仍未解决。
+  v3 随后在第 112 个子进程再次捕获：actual 与 expected 均为
+  -0.06914286694832938，但保存的 difference 为 -2.3283064365386963e-10，
+  absolute 为正同值、within=false；重算 difference=0。全部已捕获数组
+  和同次导数不变量重放通过。见
+  [减法中间值证据](diagnostics/node26-motion-capture-20260928/comparison-analysis.json)。
+  本次故障支持瞬时计算／临时值不一致，不能据此断言 V8 或硬件根因。
+
 - **运动数值异常再次复现，仍未解决**：Node 26.9.0、编译 JS、无 ASan、
   4 个并发离线诊断进程。第一轮在第 49 个子进程失败（最终启动 52 个）：
   名义速度索引 10857 本应为 0，实际 0.0005960464477539062，派生加速度
