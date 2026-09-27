@@ -19,12 +19,21 @@ source ~/mkdocs-env/bin/activate
 cd ~/klipper && ./docs/_klipper3d/build-translations.sh
 cd ~/klipper/site/ && python3 -m http.server 8000
 
-Node candidate (English only; not the deployment entrypoint):
+Node candidate (not the deployment entrypoint):
 
   node scripts/build-docs.ts /tmp/klipper-docs-preview
 
 Requires Node.js 26.9+ and host dependencies. The output directory must not
 exist and must be outside docs/. Includes HTML, navigation, static assets and
 search. Serve it over HTTP to use search; file:// cannot fetch its index.
-Translations, browser acceptance and Markdown extension parity remain pending.
+Multilingual browser acceptance and Markdown extension parity remain pending.
 Benchmark: node host/bench/docs-site.ts
+
+For multilingual output, pass an existing klipper-translations checkout:
+
+  node scripts/build-docs.ts /tmp/klipper-docs-all /path/to/klipper-translations
+
+The command stages translated Markdown and resources, uses active_translations
+and Navigation.md, and prefers manual-index.md. It does not fetch translations
+or modify the checkout. Each language has an independent search index.
+Benchmark: node host/bench/docs-translations.ts /path/to/klipper-translations

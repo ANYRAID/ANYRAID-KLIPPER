@@ -5,7 +5,13 @@ import { searchDocs } from './docs-search.ts';
 import { renderDocsPage, docsLink, type DocsPage } from './docs-render.ts';
 
 const escape = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
-export interface SiteBuildOptions { docs: string; output: string; config: string }
+export interface SiteBuildOptions {
+  docs: string; output: string; config: string;
+  language?: string;
+  title?: string;
+  navigationLabels?: Record<string, string>;
+  alternatives?: { name: string; href: string; language: string }[];
+}
 
 function navigation(value: unknown, pages: Map<string, DocsPage>, prefix: string): string {
   if (!Array.isArray(value)) throw new Error('Site navigation must be an array');
@@ -35,6 +41,16 @@ export async function buildDocsSite(options: SiteBuildOptions): Promise<{ pages:
   if (configDoc.errors.length) throw new Error(configDoc.errors[0].message);
   const config = configDoc.toJS({ maxAliasCount: 50 });
   if (!config || typeof config.site_name !== 'string' || typeof config.repo_url !== 'string') throw new Error('Invalid site configuration');
+  if (options.title !== undefined) config.site_name = options.title;
+  if (options.navigationLabels) {
+    const labels = options.navigationLabels;
+    const translate = (value: unknown): unknown => Array.isArray(value) ? value.map(translate)
+      : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value)
+        .map(([key, child]) => [labels[key] ?? key, translate(child)])) : value;
+    config.nav = translate(config.nav);
+  }
+  const language = options.language ?? 'en';
+  if (!/^[a-zA-Z][a-zA-Z0-9-]*$/.test(language)) throw new Error('Invalid site language');
   const pages = new Map<string, DocsPage>(), assets: string[] = [];
   async function visit(directory: string): Promise<void> {
     for (const entry of (await readdir(join(docs, directory), { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
@@ -60,7 +76,9 @@ export async function buildDocsSite(options: SiteBuildOptions): Promise<{ pages:
     const prefix = '../'.repeat(path.split('/').length - 1);
     const nav = navigation(config.nav, pages, prefix);
     const toc = page.hideToc ? '' : '<ul>' + page.headings.map((heading) => `<li><a href="#${escape(heading.id)}">${escape(heading.text)}</a></li>`).join('') + '</ul>';
-    const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(page.title)} — ${escape(config.site_name)}</title><link rel="stylesheet" href="${prefix}site.css"><link rel="icon" href="${prefix}img/favicon.ico"><script src="${prefix}site.js" defer></script></head><body><a class="skip" href="#content">Skip to content</a><header><a href="${prefix}index.html">${escape(config.site_name)}</a><form id="search" data-root="${prefix || './'}" role="search"><label>Search <input name="q" type="search"></label><button>Search</button></form><a href="${escape(config.repo_url)}">Repository</a></header><section id="results" aria-live="polite"></section><div id="layout"><nav aria-label="Documentation">${nav}</nav><main id="content">${page.html}</main><aside aria-label="On this page">${toc}</aside></div></body></html>`;
+    const alternatives = (options.alternatives ?? []).map((item) =>
+      '<a hreflang="' + escape(item.language) + '" href="' + escape(prefix + item.href) + '">' + escape(item.name) + '</a>').join(' ');
+    const html = `<!doctype html><html lang="${escape(language)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(page.title)} — ${escape(config.site_name)}</title><link rel="stylesheet" href="${prefix}site.css"><link rel="icon" href="${prefix}img/favicon.ico"><script src="${prefix}site.js" defer></script></head><body><a class="skip" href="#content">Skip to content</a><header><a href="${prefix}index.html">${escape(config.site_name)}</a><form id="search" data-root="${prefix || './'}" role="search"><label>Search <input name="q" type="search"></label><button>Search</button></form><a href="${escape(config.repo_url)}">Repository</a>${alternatives}</header><section id="results" aria-live="polite"></section><div id="layout"><nav aria-label="Documentation">${nav}</nav><main id="content">${page.html}</main><aside aria-label="On this page">${toc}</aside></div></body></html>`;
     const destination = join(output, docsLink(path));
     await mkdir(dirname(destination), { recursive: true });
     await writeFile(destination, html);

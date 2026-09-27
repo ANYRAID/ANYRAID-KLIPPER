@@ -16,6 +16,20 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- Node 多语言候选构建已接通：读取官方 active_translations，处理目录、
+  站点语言、显示名称和搜索语言字段，保留末列注释兼容性。沿用
+  Navigation.md 的标题位置及 manual-index.md 优先规则；生成语言
+  切换链接、正确 HTML lang 与各语言独立索引，不修改翻译源文件。
+  官方翻译提交 eacd544a2ecc0c9c59d5f458f03a4eba6fb7518f 实际构建
+  英文 57 页、zh／zh-Hant／hu／de／it／fr 各 55 页，共 387 页。
+  12 项文档回归通过，覆盖翻译导航、手工首页、路径验证与索引隔离。
+  预热 3 轮、采样 7 轮的整站中位为 1102.568 ms，包含翻译
+  暂存与文件写入；见 [多语言基准](diagnostics/docs-translations-benchmark.json)。
+  命令为 node scripts/build-docs.ts /tmp/新目录 翻译仓库路径；基准为
+  node host/bench/docs-translations.ts 翻译仓库路径。搜索当前为 Unicode
+  字面多词匹配，不宣称已经等价于旧语言分词器；多语言浏览器、
+  移动端、搜索高亮、旧 Markdown 扩展对照仍待完成，发布入口未切换。
+
 - 候选文档站已完成内置浏览器桌面搜索流程验收：搜索、多词匹配、
   结果跳转、返回和刷新恢复查询均通过。现场发现同名指南排在第
   12 位，现改为精确标题／标题词优先；修复后 Pressure advance
