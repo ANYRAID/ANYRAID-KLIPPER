@@ -2,10 +2,12 @@ import {connectConfiguredPrinter,type ConfiguredPrinterOptions} from './configur
 import {PrintController,type PrintLimits,type PrintDeadlines} from '../operations/print.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
+import type {KlipperSaveSession} from '../config/klipper-save-session.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUConnection} from './mcu-group.ts';
 import type {HardwareLayout} from '../config/hardware.ts';
 export interface ProductPrinterOptions {
+ configurationSession?:KlipperSaveSession;
  limits:PrintLimits;deadlines?:Partial<PrintDeadlines>;maxRememberedRequests?:number;
  /** External owners: share gate with Moonraker and retain journal until shutdown
   * and all pending controller actions settle, including failed shutdown. */
