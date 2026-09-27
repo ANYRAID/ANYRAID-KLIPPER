@@ -1,0 +1,8703 @@
+{
+  "source": "lib/kconfiglib/kconfiglib.py",
+  "sourceSha256": "42db0f9368347d31e81fdd5dd7b9dba321dac200ce81209ab2a72efa2e3eacf9",
+  "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+  "files": {
+    "src/Kconfig": "b085a73a30c492ff0185b57b17e0ca9e7e52a45d4ab5d853fde8030486e6a072",
+    "src/avr/Kconfig": "ee84b91fa8a395dc999857100d9620fdbfb231553c5dc5a0887c2aa5aa28d19d",
+    "src/atsam/Kconfig": "06b973eb7c3046bfdca1a7e23f37dbe09b693c92a1351c84a50f16ec68eb8eb8",
+    "src/atsamd/Kconfig": "a488fd05d825d29b6f869706ba85b211b7bfd3e6a927b0e23b4c95a3280a09c7",
+    "src/lpc176x/Kconfig": "0c59432b21f4ff24f86776a6d9739a2789297095066299f4928a97cc74372cba",
+    "src/stm32/Kconfig": "9c5968fbb739c9680c6c1dce90b5baea2b8ea724572b44477d18f4e8bad8b5f1",
+    "src/hc32f460/Kconfig": "c0d222345c741a90d959693628a0762238ba20c3bdae315b14158fe49297ac4b",
+    "src/rp2040/Kconfig": "68bf97b70730579eba50d25d83c169038a321c56f6caac440c351343a25015e2",
+    "src/pru/Kconfig": "6eef06d85571edf1ddbf19500d155e699ea8a2b1d6c08409bde0e4acea79d02f",
+    "src/ar100/Kconfig": "61ef3c85b591300f53075c9c9f4821917c92a8d1a06fc943904e12dc9ae6a7ca",
+    "src/linux/Kconfig": "9a8f6a8447821057b338e477d3cbba06a88b1069443297fc34fd07e3706915c8",
+    "src/simulator/Kconfig": "ea1e88942e2f8203f4afe898abd7c74a0303a2b9975b7c7a21351c9013b1bc8f"
+  },
+  "rows": [
+    {
+      "kind": "config",
+      "name": "LOW_LEVEL_OPTIONS",
+      "file": "src/Kconfig",
+      "line": 5,
+      "prompt": [
+        "Enable extra low-level configuration options",
+        "y"
+      ],
+      "help": "Enable low-level configuration options that (if modified) may\nresult in a build that does not function correctly.",
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 11,
+      "prompt": [
+        "Micro-controller Architecture",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_AVR",
+      "file": "src/Kconfig",
+      "line": 13,
+      "prompt": [
+        "Atmega AVR",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_ATSAM",
+      "file": "src/Kconfig",
+      "line": 15,
+      "prompt": [
+        "SAM3/SAM4/SAM E70",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_ATSAMD",
+      "file": "src/Kconfig",
+      "line": 17,
+      "prompt": [
+        "SAMC21/SAMD21/SAMD51/SAME5x",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_LPC176X",
+      "file": "src/Kconfig",
+      "line": 19,
+      "prompt": [
+        "LPC176x",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32",
+      "file": "src/Kconfig",
+      "line": 21,
+      "prompt": [
+        "STMicroelectronics STM32",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_HC32F460",
+      "file": "src/Kconfig",
+      "line": 23,
+      "prompt": [
+        "Huada Semiconductor HC32F460",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_RPXXXX",
+      "file": "src/Kconfig",
+      "line": 25,
+      "prompt": [
+        "Raspberry Pi RP2040/RP235x",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_PRU",
+      "file": "src/Kconfig",
+      "line": 27,
+      "prompt": [
+        "Beaglebone PRU",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_AR100",
+      "file": "src/Kconfig",
+      "line": 29,
+      "prompt": [
+        "Allwinner A64 AR100",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_LINUX",
+      "file": "src/Kconfig",
+      "line": 31,
+      "prompt": [
+        "Linux process",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SIMU",
+      "file": "src/Kconfig",
+      "line": 33,
+      "prompt": [
+        "Host simulator",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_SELECT",
+      "file": "src/avr/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_LIMITED_CODE_SIZE",
+          "MACH_atmega168 || MACH_atmega328 || MACH_atmega328p || MACH_atmega32u4 || MACH_lgt8f328p"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/avr/Kconfig",
+      "line": 16,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"avr\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/avr/Kconfig",
+      "line": 20,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega2560",
+      "file": "src/avr/Kconfig",
+      "line": 22,
+      "prompt": [
+        "atmega2560",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega1280",
+      "file": "src/avr/Kconfig",
+      "line": 24,
+      "prompt": [
+        "atmega1280",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_at90usb1286",
+      "file": "src/avr/Kconfig",
+      "line": 26,
+      "prompt": [
+        "at90usb1286",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_at90usb646",
+      "file": "src/avr/Kconfig",
+      "line": 28,
+      "prompt": [
+        "at90usb646",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega32u4",
+      "file": "src/avr/Kconfig",
+      "line": 30,
+      "prompt": [
+        "atmega32u4",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega1284p",
+      "file": "src/avr/Kconfig",
+      "line": 32,
+      "prompt": [
+        "atmega1284p",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega644p",
+      "file": "src/avr/Kconfig",
+      "line": 34,
+      "prompt": [
+        "atmega644p",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega328p",
+      "file": "src/avr/Kconfig",
+      "line": 36,
+      "prompt": [
+        "atmega328p",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega328",
+      "file": "src/avr/Kconfig",
+      "line": 38,
+      "prompt": [
+        "atmega328",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_atmega168",
+      "file": "src/avr/Kconfig",
+      "line": 40,
+      "prompt": [
+        "atmega168",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_lgt8f328p",
+      "file": "src/avr/Kconfig",
+      "line": 42,
+      "prompt": [
+        "lgt8f328p",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/avr/Kconfig",
+      "line": 46,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"atmega168\"",
+          "MACH_atmega168"
+        ],
+        [
+          "\"atmega328\"",
+          "MACH_atmega328"
+        ],
+        [
+          "\"atmega328p\"",
+          "MACH_atmega328p"
+        ],
+        [
+          "\"atmega1284p\"",
+          "MACH_atmega1284p"
+        ],
+        [
+          "\"atmega644p\"",
+          "MACH_atmega644p"
+        ],
+        [
+          "\"at90usb1286\"",
+          "MACH_at90usb1286"
+        ],
+        [
+          "\"at90usb646\"",
+          "MACH_at90usb646"
+        ],
+        [
+          "\"atmega32u4\"",
+          "MACH_atmega32u4"
+        ],
+        [
+          "\"atmega1280\"",
+          "MACH_atmega1280"
+        ],
+        [
+          "\"atmega2560\"",
+          "MACH_atmega2560"
+        ],
+        [
+          "\"lgt8f328p\"",
+          "MACH_lgt8f328p"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_BUILD_MCU",
+      "file": "src/avr/Kconfig",
+      "line": 60,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "MCU",
+          "!MACH_lgt8f328p"
+        ],
+        [
+          "\"atmega328p\"",
+          "MACH_lgt8f328p"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVRDUDE_PROTOCOL",
+      "file": "src/avr/Kconfig",
+      "line": 65,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"wiring\"",
+          "MACH_atmega2560"
+        ],
+        [
+          "\"avr109\"",
+          "MACH_at90usb1286 || MACH_at90usb646 || MACH_atmega32u4"
+        ],
+        [
+          "\"arduino\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/avr/Kconfig",
+      "line": 71,
+      "prompt": [
+        "Processor speed",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_FREQ_32000000",
+      "file": "src/avr/Kconfig",
+      "line": 73,
+      "prompt": [
+        "32Mhz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_FREQ_16000000",
+      "file": "src/avr/Kconfig",
+      "line": 76,
+      "prompt": [
+        "16Mhz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_FREQ_20000000",
+      "file": "src/avr/Kconfig",
+      "line": 78,
+      "prompt": [
+        "20Mhz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_FREQ_8000000",
+      "file": "src/avr/Kconfig",
+      "line": 81,
+      "prompt": [
+        "8Mhz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/avr/Kconfig",
+      "line": 85,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "8000000",
+          "AVR_FREQ_8000000"
+        ],
+        [
+          "20000000",
+          "AVR_FREQ_20000000"
+        ],
+        [
+          "32000000",
+          "AVR_FREQ_32000000"
+        ],
+        [
+          "16000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLEAR_PRESCALER",
+      "file": "src/avr/Kconfig",
+      "line": 92,
+      "prompt": [
+        "Manually clear the CPU prescaler field at startup",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": "Some AVR chips ship with a \"clock prescaler\" that causes the\nchip to run at 1/8th speed. Enable this setting to clear the\nprescaler field at startup which will cause the chip to run\nwithout a clock divisor.",
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_CLKPR",
+      "file": "src/avr/Kconfig",
+      "line": 102,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0",
+          "CLEAR_PRESCALER"
+        ],
+        [
+          "-1",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_STACK_SIZE",
+      "file": "src/avr/Kconfig",
+      "line": 107,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "256",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_WATCHDOG",
+      "file": "src/avr/Kconfig",
+      "line": 111,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USBSERIAL",
+      "file": "src/avr/Kconfig",
+      "line": 115,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL",
+      "file": "src/avr/Kconfig",
+      "line": 119,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/avr/Kconfig",
+      "line": 123,
+      "prompt": [
+        "Communication interface",
+        "LOW_LEVEL_OPTIONS && (MACH_atmega2560 || MACH_atmega1280 || MACH_atmega644p || MACH_atmega1284p || MACH_at90usb1286 || MACH_at90usb646 || MACH_atmega32u4)"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_USB",
+      "file": "src/avr/Kconfig",
+      "line": 125,
+      "prompt": [
+        "USB",
+        "MACH_at90usb1286 || MACH_at90usb646 || MACH_atmega32u4"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_SERIAL_UART0",
+      "file": "src/avr/Kconfig",
+      "line": 128,
+      "prompt": [
+        "UART0",
+        "!(MACH_at90usb1286 || MACH_at90usb646 || MACH_atmega32u4)"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_SERIAL_UART1",
+      "file": "src/avr/Kconfig",
+      "line": 131,
+      "prompt": [
+        "UART1",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_SERIAL_UART2",
+      "file": "src/avr/Kconfig",
+      "line": 134,
+      "prompt": [
+        "UART2",
+        "MACH_atmega2560 || MACH_atmega1280"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AVR_SERIAL_UART3",
+      "file": "src/avr/Kconfig",
+      "line": 137,
+      "prompt": [
+        "UART3",
+        "MACH_atmega2560 || MACH_atmega1280"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL_BAUD_U2X",
+      "file": "src/avr/Kconfig",
+      "line": 141,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL_PORT",
+      "file": "src/avr/Kconfig",
+      "line": 146,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "3",
+          "AVR_SERIAL_UART3"
+        ],
+        [
+          "2",
+          "AVR_SERIAL_UART2"
+        ],
+        [
+          "1",
+          "AVR_SERIAL_UART1"
+        ],
+        [
+          "0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SIMULAVR",
+      "file": "src/avr/Kconfig",
+      "line": 153,
+      "prompt": [
+        "Compile for simulavr software emulation",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": "Compile the code to run on simulavr software emulation\ninstead of for real hardware. This disables support for \"U2X\nbaud\" mode which is not supported on simulavr.\n\nIf unsure, select \"N\".",
+      "defaults": [
+        [
+          "n",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_SELECT",
+      "file": "src/atsam/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "!MACH_SAME70"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_CHIPID",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_BOOTLOADER_REQUEST",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/atsam/Kconfig",
+      "line": 18,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"atsam\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsam/Kconfig",
+      "line": 22,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM3X8E",
+      "file": "src/atsam/Kconfig",
+      "line": 24,
+      "prompt": [
+        "SAM3x8e",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM3X",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM3X8C",
+      "file": "src/atsam/Kconfig",
+      "line": 27,
+      "prompt": [
+        "SAM3x8c",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM3X",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM4S8C",
+      "file": "src/atsam/Kconfig",
+      "line": 30,
+      "prompt": [
+        "SAM4s8c",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM4S",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM4E8E",
+      "file": "src/atsam/Kconfig",
+      "line": 33,
+      "prompt": [
+        "SAM4e8e",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM4E",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME70Q20B",
+      "file": "src/atsam/Kconfig",
+      "line": 36,
+      "prompt": [
+        "SAME70Q20B",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAME70",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM3X",
+      "file": "src/atsam/Kconfig",
+      "line": 41,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM4",
+      "file": "src/atsam/Kconfig",
+      "line": 43,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM4S",
+      "file": "src/atsam/Kconfig",
+      "line": 45,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAM4E",
+      "file": "src/atsam/Kconfig",
+      "line": 48,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAM4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME70",
+      "file": "src/atsam/Kconfig",
+      "line": 51,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_SAM_CANBUS",
+      "file": "src/atsam/Kconfig",
+      "line": 53,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_SAME70"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/atsam/Kconfig",
+      "line": 57,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"sam3x8e\"",
+          "MACH_SAM3X8E"
+        ],
+        [
+          "\"sam3x8c\"",
+          "MACH_SAM3X8C"
+        ],
+        [
+          "\"sam4s8c\"",
+          "MACH_SAM4S8C"
+        ],
+        [
+          "\"sam4e8e\"",
+          "MACH_SAM4E8E"
+        ],
+        [
+          "\"same70q20b\"",
+          "MACH_SAME70Q20B"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/atsam/Kconfig",
+      "line": 65,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "84000000",
+          "MACH_SAM3X"
+        ],
+        [
+          "120000000",
+          "MACH_SAM4"
+        ],
+        [
+          "300000000",
+          "MACH_SAME70"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/atsam/Kconfig",
+      "line": 71,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000",
+          "MACH_SAME70"
+        ],
+        [
+          "0x80000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/atsam/Kconfig",
+      "line": 76,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/atsam/Kconfig",
+      "line": 80,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20400000",
+          "MACH_SAME70"
+        ],
+        [
+          "0x20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/atsam/Kconfig",
+      "line": 85,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x18000",
+          "MACH_SAM3X"
+        ],
+        [
+          "0x20000",
+          "MACH_SAM4 || MACH_SAME70"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/atsam/Kconfig",
+      "line": 90,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "512",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/atsam/Kconfig",
+      "line": 94,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x0",
+          "MACH_SAME70"
+        ],
+        [
+          "0x400000",
+          "MACH_SAM4"
+        ],
+        [
+          "0x80000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ARMCM_ITCM_FLASH_MIRROR_START",
+      "file": "src/atsam/Kconfig",
+      "line": 100,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x400000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ARMCM_DTCM_START",
+      "file": "src/atsam/Kconfig",
+      "line": 105,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ARMCM_DTCM_SIZE",
+      "file": "src/atsam/Kconfig",
+      "line": 110,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsam/Kconfig",
+      "line": 115,
+      "prompt": [
+        "Communication interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_USB",
+      "file": "src/atsam/Kconfig",
+      "line": 117,
+      "prompt": [
+        "USB",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_SERIAL",
+      "file": "src/atsam/Kconfig",
+      "line": 120,
+      "prompt": [
+        "Serial",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_MMENU_CANBUS_PC12_PD12",
+      "file": "src/atsam/Kconfig",
+      "line": 123,
+      "prompt": [
+        "CAN bus (on PC12/PD12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_MMENU_CANBUS_PB3_PB2",
+      "file": "src/atsam/Kconfig",
+      "line": 127,
+      "prompt": [
+        "CAN bus (on PB3/PB2)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_USBCANBUS",
+      "file": "src/atsam/Kconfig",
+      "line": 131,
+      "prompt": [
+        "USB to CAN bus bridge",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBCANBUS",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsam/Kconfig",
+      "line": 136,
+      "prompt": [
+        "CAN bus interface",
+        "USBCANBUS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_CMENU_CANBUS_PC12_PD12",
+      "file": "src/atsam/Kconfig",
+      "line": 138,
+      "prompt": [
+        "CAN bus (on PC12/PD12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_CMENU_CANBUS_PB3_PB2",
+      "file": "src/atsam/Kconfig",
+      "line": 140,
+      "prompt": [
+        "CAN bus (on PB3/PB2)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_CANBUS_PC12_PD12",
+      "file": "src/atsam/Kconfig",
+      "line": 144,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAM_MMENU_CANBUS_PC12_PD12 || ATSAM_CMENU_CANBUS_PC12_PD12"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAM_CANBUS_PB3_PB2",
+      "file": "src/atsam/Kconfig",
+      "line": 147,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAM_MMENU_CANBUS_PB3_PB2 || ATSAM_CMENU_CANBUS_PB3_PB2"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_SELECT",
+      "file": "src/atsamd/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "MACH_SAMX2"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_CHIPID",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_BOOTLOADER_REQUEST",
+          "y"
+        ],
+        [
+          "HAVE_LIMITED_CODE_SIZE",
+          "FLASH_SIZE < 0x10000"
+        ],
+        [
+          "HAVE_SOFTWARE_DIVIDE_REQUIRED",
+          "MACH_SAMD21"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_SERCOM",
+      "file": "src/atsamd/Kconfig",
+      "line": 21,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/atsamd/Kconfig",
+      "line": 26,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"atsamd\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 30,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMC21G18",
+      "file": "src/atsamd/Kconfig",
+      "line": 32,
+      "prompt": [
+        "SAMC21G18",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMC21",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD21G18",
+      "file": "src/atsamd/Kconfig",
+      "line": 35,
+      "prompt": [
+        "SAMD21G18",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD21",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD21E18",
+      "file": "src/atsamd/Kconfig",
+      "line": 38,
+      "prompt": [
+        "SAMD21E18",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD21",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD21J18",
+      "file": "src/atsamd/Kconfig",
+      "line": 41,
+      "prompt": [
+        "SAMD21J18",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD21",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD21E15",
+      "file": "src/atsamd/Kconfig",
+      "line": 44,
+      "prompt": [
+        "SAMD21E15",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD21",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD51G19",
+      "file": "src/atsamd/Kconfig",
+      "line": 47,
+      "prompt": [
+        "SAMD51G19",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD51J19",
+      "file": "src/atsamd/Kconfig",
+      "line": 50,
+      "prompt": [
+        "SAMD51J19",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD51N19",
+      "file": "src/atsamd/Kconfig",
+      "line": 53,
+      "prompt": [
+        "SAMD51N19",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD51P20",
+      "file": "src/atsamd/Kconfig",
+      "line": 56,
+      "prompt": [
+        "SAMD51P20",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMD51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME51J19",
+      "file": "src/atsamd/Kconfig",
+      "line": 59,
+      "prompt": [
+        "SAME51J19",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAME51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME51N19",
+      "file": "src/atsamd/Kconfig",
+      "line": 62,
+      "prompt": [
+        "SAME51N19",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAME51",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME54P20",
+      "file": "src/atsamd/Kconfig",
+      "line": 65,
+      "prompt": [
+        "SAME54P20",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAME54",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMX2",
+      "file": "src/atsamd/Kconfig",
+      "line": 70,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMC21",
+      "file": "src/atsamd/Kconfig",
+      "line": 72,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMX2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD21",
+      "file": "src/atsamd/Kconfig",
+      "line": 75,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMX2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMX5",
+      "file": "src/atsamd/Kconfig",
+      "line": 78,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAMD51",
+      "file": "src/atsamd/Kconfig",
+      "line": 80,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMX5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME51",
+      "file": "src/atsamd/Kconfig",
+      "line": 83,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMX5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_SAME54",
+      "file": "src/atsamd/Kconfig",
+      "line": 86,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_SAMX5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_SAMD_CANBUS",
+      "file": "src/atsamd/Kconfig",
+      "line": 89,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_SAMC21 || MACH_SAME51 || MACH_SAME54"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_SAMD_USB",
+      "file": "src/atsamd/Kconfig",
+      "line": 92,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "n",
+          "MACH_SAMC21G18"
+        ],
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/atsamd/Kconfig",
+      "line": 97,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"samc21g18a\"",
+          "MACH_SAMC21G18"
+        ],
+        [
+          "\"samd21g18a\"",
+          "MACH_SAMD21G18"
+        ],
+        [
+          "\"samd21e18a\"",
+          "MACH_SAMD21E18"
+        ],
+        [
+          "\"samd21j18a\"",
+          "MACH_SAMD21J18"
+        ],
+        [
+          "\"samd21e15a\"",
+          "MACH_SAMD21E15"
+        ],
+        [
+          "\"samd51g19a\"",
+          "MACH_SAMD51G19"
+        ],
+        [
+          "\"samd51j19a\"",
+          "MACH_SAMD51J19"
+        ],
+        [
+          "\"samd51n19a\"",
+          "MACH_SAMD51N19"
+        ],
+        [
+          "\"samd51p20a\"",
+          "MACH_SAMD51P20"
+        ],
+        [
+          "\"same51j19a\"",
+          "MACH_SAME51J19"
+        ],
+        [
+          "\"same51n19a\"",
+          "MACH_SAME51N19"
+        ],
+        [
+          "\"same54p20a\"",
+          "MACH_SAME54P20"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/atsamd/Kconfig",
+      "line": 112,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x8000",
+          "MACH_SAMD21E15"
+        ],
+        [
+          "0x40000",
+          "MACH_SAMC21G18 || MACH_SAMD21G18 || MACH_SAMD21E18 || MACH_SAMD21J18"
+        ],
+        [
+          "0x80000",
+          "MACH_SAMD51G19 || MACH_SAMD51J19 || MACH_SAMD51N19 || MACH_SAME51J19 || MACH_SAME51N19"
+        ],
+        [
+          "0x100000",
+          "MACH_SAMD51P20 || MACH_SAME54P20"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/atsamd/Kconfig",
+      "line": 119,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/atsamd/Kconfig",
+      "line": 123,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/atsamd/Kconfig",
+      "line": 127,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x1000",
+          "MACH_SAMD21E15"
+        ],
+        [
+          "0x8000",
+          "MACH_SAMC21G18 || MACH_SAMD21G18 || MACH_SAMD21E18 || MACH_SAMD21J18"
+        ],
+        [
+          "0x30000",
+          "MACH_SAMD51G19 || MACH_SAMD51J19 || MACH_SAMD51N19 || MACH_SAME51J19 || MACH_SAME51N19"
+        ],
+        [
+          "0x40000",
+          "MACH_SAMD51P20 || MACH_SAME54P20"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/atsamd/Kconfig",
+      "line": 134,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "512",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 143,
+      "prompt": [
+        "Bootloader offset",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD_FLASH_START_2000",
+      "file": "src/atsamd/Kconfig",
+      "line": 145,
+      "prompt": [
+        "8KiB bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD_FLASH_START_4000",
+      "file": "src/atsamd/Kconfig",
+      "line": 148,
+      "prompt": [
+        "16KiB bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD_FLASH_START_0000",
+      "file": "src/atsamd/Kconfig",
+      "line": 150,
+      "prompt": [
+        "No bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/atsamd/Kconfig",
+      "line": 153,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x4000",
+          "SAMD_FLASH_START_4000"
+        ],
+        [
+          "0x2000",
+          "SAMD_FLASH_START_2000"
+        ],
+        [
+          "0x0000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 164,
+      "prompt": [
+        "Clock Reference",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_REF_X32K",
+      "file": "src/atsamd/Kconfig",
+      "line": 166,
+      "prompt": [
+        "32.768Khz crystal",
+        "!MACH_SAMC21"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_REF_X12M",
+      "file": "src/atsamd/Kconfig",
+      "line": 168,
+      "prompt": [
+        "12Mhz crystal",
+        "MACH_SAMC21"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_REF_X25M",
+      "file": "src/atsamd/Kconfig",
+      "line": 170,
+      "prompt": [
+        "25Mhz crystal",
+        "MACH_SAMC21 || MACH_SAMX5"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_REF_INTERNAL",
+      "file": "src/atsamd/Kconfig",
+      "line": 172,
+      "prompt": [
+        "Internal clock",
+        "!MACH_SAMC21"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 176,
+      "prompt": [
+        "Processor speed",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD51_FREQ_120",
+      "file": "src/atsamd/Kconfig",
+      "line": 179,
+      "prompt": [
+        "120 MHz (standard)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD51_FREQ_150",
+      "file": "src/atsamd/Kconfig",
+      "line": 181,
+      "prompt": [
+        "150 MHz (overclock)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD51_FREQ_180",
+      "file": "src/atsamd/Kconfig",
+      "line": 183,
+      "prompt": [
+        "180 MHz (overclock)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SAMD51_FREQ_200",
+      "file": "src/atsamd/Kconfig",
+      "line": 185,
+      "prompt": [
+        "200 MHz (overclock)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/atsamd/Kconfig",
+      "line": 189,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "48000000",
+          "MACH_SAMX2"
+        ],
+        [
+          "150000000",
+          "SAMD51_FREQ_150"
+        ],
+        [
+          "180000000",
+          "SAMD51_FREQ_180"
+        ],
+        [
+          "200000000",
+          "SAMD51_FREQ_200"
+        ],
+        [
+          "120000000",
+          "MACH_SAMX5"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 202,
+      "prompt": [
+        "Communication interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_USB",
+      "file": "src/atsamd/Kconfig",
+      "line": 204,
+      "prompt": [
+        "USB",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_SERIAL",
+      "file": "src/atsamd/Kconfig",
+      "line": 208,
+      "prompt": [
+        "Serial",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_MMENU_CANBUS_PA23_PA22",
+      "file": "src/atsamd/Kconfig",
+      "line": 212,
+      "prompt": [
+        "CAN bus (on PA23/PA22)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_MMENU_CANBUS_PA25_PA24",
+      "file": "src/atsamd/Kconfig",
+      "line": 216,
+      "prompt": [
+        "CAN bus (on PA25/PA24)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_MMENU_CANBUS_PB11_PB10",
+      "file": "src/atsamd/Kconfig",
+      "line": 220,
+      "prompt": [
+        "CAN bus (on PB11/PB10)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_MMENU_CANBUS_PB13_PB12",
+      "file": "src/atsamd/Kconfig",
+      "line": 224,
+      "prompt": [
+        "CAN bus (on PB13/PB12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_MMENU_CANBUS_PB15_PB14",
+      "file": "src/atsamd/Kconfig",
+      "line": 228,
+      "prompt": [
+        "CAN bus (on PB15/PB14)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_USBCANBUS",
+      "file": "src/atsamd/Kconfig",
+      "line": 232,
+      "prompt": [
+        "USB to CAN bus bridge",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBCANBUS",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/atsamd/Kconfig",
+      "line": 237,
+      "prompt": [
+        "CAN bus interface",
+        "USBCANBUS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CMENU_CANBUS_PA23_PA22",
+      "file": "src/atsamd/Kconfig",
+      "line": 239,
+      "prompt": [
+        "CAN bus (on PA23/PA22)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CMENU_CANBUS_PB13_PB12",
+      "file": "src/atsamd/Kconfig",
+      "line": 241,
+      "prompt": [
+        "CAN bus (on PB13/PB12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CMENU_CANBUS_PB15_PB14",
+      "file": "src/atsamd/Kconfig",
+      "line": 243,
+      "prompt": [
+        "CAN bus (on PB15/PB14)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CANBUS_PA23_PA22",
+      "file": "src/atsamd/Kconfig",
+      "line": 247,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAMD_MMENU_CANBUS_PA23_PA22 || ATSAMD_CMENU_CANBUS_PA23_PA22"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CANBUS_PA25_PA24",
+      "file": "src/atsamd/Kconfig",
+      "line": 250,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAMD_MMENU_CANBUS_PA25_PA24"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CANBUS_PB11_PB10",
+      "file": "src/atsamd/Kconfig",
+      "line": 253,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAMD_MMENU_CANBUS_PB11_PB10"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CANBUS_PB13_PB12",
+      "file": "src/atsamd/Kconfig",
+      "line": 256,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAMD_MMENU_CANBUS_PB13_PB12 || ATSAMD_CMENU_CANBUS_PB13_PB12"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ATSAMD_CANBUS_PB15_PB14",
+      "file": "src/atsamd/Kconfig",
+      "line": 259,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "ATSAMD_MMENU_CANBUS_PB15_PB14 || ATSAMD_CMENU_CANBUS_PB15_PB14"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_SELECT",
+      "file": "src/lpc176x/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_CHIPID",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_BOOTLOADER_REQUEST",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/lpc176x/Kconfig",
+      "line": 18,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"lpc176x\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/lpc176x/Kconfig",
+      "line": 22,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_LPC1768",
+      "file": "src/lpc176x/Kconfig",
+      "line": 24,
+      "prompt": [
+        "lpc1768 (100 MHz)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_LPC1769",
+      "file": "src/lpc176x/Kconfig",
+      "line": 26,
+      "prompt": [
+        "lpc1769 (120 MHz)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/lpc176x/Kconfig",
+      "line": 30,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"lpc1768\"",
+          "MACH_LPC1768"
+        ],
+        [
+          "\"lpc1769\"",
+          "MACH_LPC1769"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/lpc176x/Kconfig",
+      "line": 35,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "100000000",
+          "MACH_LPC1768"
+        ],
+        [
+          "120000000",
+          "MACH_LPC1769"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/lpc176x/Kconfig",
+      "line": 40,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x80000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/lpc176x/Kconfig",
+      "line": 44,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/lpc176x/Kconfig",
+      "line": 48,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x10000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/lpc176x/Kconfig",
+      "line": 52,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x7fe0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/lpc176x/Kconfig",
+      "line": 56,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "512",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/lpc176x/Kconfig",
+      "line": 65,
+      "prompt": [
+        "Bootloader offset",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_FLASH_START_4000",
+      "file": "src/lpc176x/Kconfig",
+      "line": 67,
+      "prompt": [
+        "16KiB bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_FLASH_START_0000",
+      "file": "src/lpc176x/Kconfig",
+      "line": 69,
+      "prompt": [
+        "No bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/lpc176x/Kconfig",
+      "line": 72,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x4000",
+          "LPC_FLASH_START_4000"
+        ],
+        [
+          "0x0000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/lpc176x/Kconfig",
+      "line": 82,
+      "prompt": [
+        "Communication interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_USB",
+      "file": "src/lpc176x/Kconfig",
+      "line": 84,
+      "prompt": [
+        "USB",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_SERIAL_UART0_P03_P02",
+      "file": "src/lpc176x/Kconfig",
+      "line": 87,
+      "prompt": [
+        "Serial (on UART0 P0.3/P0.2)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_SERIAL_UART3_P429_P428",
+      "file": "src/lpc176x/Kconfig",
+      "line": 90,
+      "prompt": [
+        "Serial (on UART3 P4.29/P4.28)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_MMENU_CANBUS_P0_0_P0_1",
+      "file": "src/lpc176x/Kconfig",
+      "line": 93,
+      "prompt": [
+        "CAN bus (CAN1 on P0.0/P0.1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_MMENU_CANBUS_P0_21_P0_22",
+      "file": "src/lpc176x/Kconfig",
+      "line": 96,
+      "prompt": [
+        "CAN bus (CAN1 on P0.21/P0.22)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_MMENU_CANBUS_P0_4_P0_5",
+      "file": "src/lpc176x/Kconfig",
+      "line": 99,
+      "prompt": [
+        "CAN bus (CAN2 on P0.4/P0.5)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_MMENU_CANBUS_P2_7_P2_8",
+      "file": "src/lpc176x/Kconfig",
+      "line": 102,
+      "prompt": [
+        "CAN bus (CAN2 on P2.7/P2.8)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_USBCANBUS",
+      "file": "src/lpc176x/Kconfig",
+      "line": 105,
+      "prompt": [
+        "USB to CAN bus bridge",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBCANBUS",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/lpc176x/Kconfig",
+      "line": 110,
+      "prompt": [
+        "CAN bus interface",
+        "USBCANBUS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CMENU_CANBUS_P0_0_P0_1",
+      "file": "src/lpc176x/Kconfig",
+      "line": 112,
+      "prompt": [
+        "CAN bus (CAN1 on P0.0/P0.1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CMENU_CANBUS_P0_21_P0_22",
+      "file": "src/lpc176x/Kconfig",
+      "line": 114,
+      "prompt": [
+        "CAN bus (CAN1 on P0.21/P0.22)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CMENU_CANBUS_P0_4_P0_5",
+      "file": "src/lpc176x/Kconfig",
+      "line": 116,
+      "prompt": [
+        "CAN bus (CAN2 on P0.4/P0.5)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CMENU_CANBUS_P2_7_P2_8",
+      "file": "src/lpc176x/Kconfig",
+      "line": 118,
+      "prompt": [
+        "CAN bus (CAN2 on P2.7/P2.8)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CANBUS_P0_0_P0_1",
+      "file": "src/lpc176x/Kconfig",
+      "line": 122,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "LPC_MMENU_CANBUS_P0_0_P0_1 || LPC_CMENU_CANBUS_P0_0_P0_1"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CANBUS_P0_21_P0_22",
+      "file": "src/lpc176x/Kconfig",
+      "line": 125,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "LPC_MMENU_CANBUS_P0_21_P0_22 || LPC_CMENU_CANBUS_P0_21_P0_22"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CANBUS_P0_4_P0_5",
+      "file": "src/lpc176x/Kconfig",
+      "line": 128,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "LPC_MMENU_CANBUS_P0_4_P0_5 || LPC_CMENU_CANBUS_P0_4_P0_5"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LPC_CANBUS_P2_7_P2_8",
+      "file": "src/lpc176x/Kconfig",
+      "line": 131,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "LPC_MMENU_CANBUS_P2_7_P2_8 || LPC_CMENU_CANBUS_P2_7_P2_8"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SELECT",
+      "file": "src/stm32/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "!MACH_STM32F031"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "!MACH_STM32F031"
+        ],
+        [
+          "HAVE_GPIO_SDIO",
+          "MACH_STM32F4"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "MACH_STM32F042 || MACH_STM32F070 || MACH_STM32F072 || MACH_STM32F1 || MACH_STM32F4 || MACH_STM32F7 || MACH_STM32G0 || MACH_STM32G4 || MACH_STM32H7"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_CHIPID",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "!MACH_STM32H7"
+        ],
+        [
+          "HAVE_BOOTLOADER_REQUEST",
+          "y"
+        ],
+        [
+          "HAVE_LIMITED_CODE_SIZE",
+          "FLASH_SIZE < 0x10000"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/stm32/Kconfig",
+      "line": 20,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"stm32\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/stm32/Kconfig",
+      "line": 29,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F103",
+      "file": "src/stm32/Kconfig",
+      "line": 31,
+      "prompt": [
+        "STM32F103",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F1",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F207",
+      "file": "src/stm32/Kconfig",
+      "line": 34,
+      "prompt": [
+        "STM32F207",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F401",
+      "file": "src/stm32/Kconfig",
+      "line": 37,
+      "prompt": [
+        "STM32F401",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F405",
+      "file": "src/stm32/Kconfig",
+      "line": 40,
+      "prompt": [
+        "STM32F405",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F4",
+          "y"
+        ],
+        [
+          "MACH_STM32F4x5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F407",
+      "file": "src/stm32/Kconfig",
+      "line": 44,
+      "prompt": [
+        "STM32F407",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F4",
+          "y"
+        ],
+        [
+          "MACH_STM32F4x5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F429",
+      "file": "src/stm32/Kconfig",
+      "line": 48,
+      "prompt": [
+        "STM32F429",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F4",
+          "y"
+        ],
+        [
+          "MACH_STM32F4x5",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F446",
+      "file": "src/stm32/Kconfig",
+      "line": 52,
+      "prompt": [
+        "STM32F446",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F765",
+      "file": "src/stm32/Kconfig",
+      "line": 55,
+      "prompt": [
+        "STM32F765",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F7",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F031",
+      "file": "src/stm32/Kconfig",
+      "line": 58,
+      "prompt": [
+        "STM32F031",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F0",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F042",
+      "file": "src/stm32/Kconfig",
+      "line": 61,
+      "prompt": [
+        "STM32F042",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F0",
+          "y"
+        ],
+        [
+          "MACH_STM32F0x2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F070",
+      "file": "src/stm32/Kconfig",
+      "line": 65,
+      "prompt": [
+        "STM32F070",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F0",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F072",
+      "file": "src/stm32/Kconfig",
+      "line": 68,
+      "prompt": [
+        "STM32F072",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32F0",
+          "y"
+        ],
+        [
+          "MACH_STM32F0x2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G070",
+      "file": "src/stm32/Kconfig",
+      "line": 72,
+      "prompt": [
+        "STM32G070",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G0",
+          "y"
+        ],
+        [
+          "MACH_STM32G07x",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G071",
+      "file": "src/stm32/Kconfig",
+      "line": 76,
+      "prompt": [
+        "STM32G071",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G0",
+          "y"
+        ],
+        [
+          "MACH_STM32G07x",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G0B0",
+      "file": "src/stm32/Kconfig",
+      "line": 80,
+      "prompt": [
+        "STM32G0B0",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G0",
+          "y"
+        ],
+        [
+          "MACH_STM32G0Bx",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G0B1",
+      "file": "src/stm32/Kconfig",
+      "line": 84,
+      "prompt": [
+        "STM32G0B1",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G0",
+          "y"
+        ],
+        [
+          "MACH_STM32G0Bx",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G431",
+      "file": "src/stm32/Kconfig",
+      "line": 88,
+      "prompt": [
+        "STM32G431",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G474",
+      "file": "src/stm32/Kconfig",
+      "line": 91,
+      "prompt": [
+        "STM32G474",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32G4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32H723",
+      "file": "src/stm32/Kconfig",
+      "line": 94,
+      "prompt": [
+        "STM32H723",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32H7",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32H743",
+      "file": "src/stm32/Kconfig",
+      "line": 97,
+      "prompt": [
+        "STM32H743",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32H7",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32H750",
+      "file": "src/stm32/Kconfig",
+      "line": 100,
+      "prompt": [
+        "STM32H750",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32H7",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32L412",
+      "file": "src/stm32/Kconfig",
+      "line": 103,
+      "prompt": [
+        "STM32L412",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_STM32L4",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_N32G452",
+      "file": "src/stm32/Kconfig",
+      "line": 106,
+      "prompt": [
+        "Nation N32G452",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_N32G45x",
+          "y"
+        ],
+        [
+          "MACH_STM32F1",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_N32G455",
+      "file": "src/stm32/Kconfig",
+      "line": 110,
+      "prompt": [
+        "Nation N32G455",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "MACH_N32G45x",
+          "y"
+        ],
+        [
+          "MACH_STM32F1",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F103x6",
+      "file": "src/stm32/Kconfig",
+      "line": 116,
+      "prompt": [
+        "Only 10KiB of RAM (for rare stm32f103x6 variant)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F070x6",
+      "file": "src/stm32/Kconfig",
+      "line": 120,
+      "prompt": [
+        "Only 6KiB of RAM (for rare stm32f070x6 variant)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F0",
+      "file": "src/stm32/Kconfig",
+      "line": 124,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F1",
+      "file": "src/stm32/Kconfig",
+      "line": 126,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F2",
+      "file": "src/stm32/Kconfig",
+      "line": 128,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F4",
+      "file": "src/stm32/Kconfig",
+      "line": 130,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F7",
+      "file": "src/stm32/Kconfig",
+      "line": 132,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G0",
+      "file": "src/stm32/Kconfig",
+      "line": 134,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G07x",
+      "file": "src/stm32/Kconfig",
+      "line": 136,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G0Bx",
+      "file": "src/stm32/Kconfig",
+      "line": 138,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32G4",
+      "file": "src/stm32/Kconfig",
+      "line": 140,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32H7",
+      "file": "src/stm32/Kconfig",
+      "line": 142,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F0x2",
+      "file": "src/stm32/Kconfig",
+      "line": 144,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32F4x5",
+      "file": "src/stm32/Kconfig",
+      "line": 146,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_STM32L4",
+      "file": "src/stm32/Kconfig",
+      "line": 148,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_N32G45x",
+      "file": "src/stm32/Kconfig",
+      "line": 150,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STM32_USBFS",
+      "file": "src/stm32/Kconfig",
+      "line": 152,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_STM32F0x2 || MACH_STM32G0Bx || MACH_STM32L4 || MACH_STM32G4"
+        ],
+        [
+          "y",
+          "(MACH_STM32F1 || MACH_STM32F070) && !STM32_CLOCK_REF_INTERNAL"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STM32_USBOTG",
+      "file": "src/stm32/Kconfig",
+      "line": 156,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_STM32F2 || MACH_STM32F4 || MACH_STM32F7 || MACH_STM32H7"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_USB_DOUBLE_BUFFER_TX",
+      "file": "src/stm32/Kconfig",
+      "line": 159,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STM32_CANBUS",
+      "file": "src/stm32/Kconfig",
+      "line": 162,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_STM32F1 || MACH_STM32F2 || MACH_STM32F4x5 || MACH_STM32F446 || MACH_STM32F0x2"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STM32_FDCANBUS",
+      "file": "src/stm32/Kconfig",
+      "line": 165,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_STM32G0B1 || MACH_STM32H7 || MACH_STM32G4"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STM32_USBCANBUS",
+      "file": "src/stm32/Kconfig",
+      "line": 168,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/stm32/Kconfig",
+      "line": 175,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"stm32f031x6\"",
+          "MACH_STM32F031"
+        ],
+        [
+          "\"stm32f042x6\"",
+          "MACH_STM32F042"
+        ],
+        [
+          "\"stm32f070xb\"",
+          "MACH_STM32F070"
+        ],
+        [
+          "\"stm32f072xb\"",
+          "MACH_STM32F072"
+        ],
+        [
+          "\"stm32f103xe\"",
+          "MACH_STM32F103"
+        ],
+        [
+          "\"stm32f207xx\"",
+          "MACH_STM32F207"
+        ],
+        [
+          "\"stm32f401xc\"",
+          "MACH_STM32F401"
+        ],
+        [
+          "\"stm32f405xx\"",
+          "MACH_STM32F405"
+        ],
+        [
+          "\"stm32f407xx\"",
+          "MACH_STM32F407"
+        ],
+        [
+          "\"stm32f429xx\"",
+          "MACH_STM32F429"
+        ],
+        [
+          "\"stm32f446xx\"",
+          "MACH_STM32F446"
+        ],
+        [
+          "\"stm32f765xx\"",
+          "MACH_STM32F765"
+        ],
+        [
+          "\"stm32g070xx\"",
+          "MACH_STM32G070"
+        ],
+        [
+          "\"stm32g071xx\"",
+          "MACH_STM32G071"
+        ],
+        [
+          "\"stm32g0b0xx\"",
+          "MACH_STM32G0B0"
+        ],
+        [
+          "\"stm32g0b1xx\"",
+          "MACH_STM32G0B1"
+        ],
+        [
+          "\"stm32g431xx\"",
+          "MACH_STM32G431"
+        ],
+        [
+          "\"stm32g474xx\"",
+          "MACH_STM32G474"
+        ],
+        [
+          "\"stm32h723xx\"",
+          "MACH_STM32H723"
+        ],
+        [
+          "\"stm32h743xx\"",
+          "MACH_STM32H743"
+        ],
+        [
+          "\"stm32h750xx\"",
+          "MACH_STM32H750"
+        ],
+        [
+          "\"stm32l412xx\"",
+          "MACH_STM32L412"
+        ],
+        [
+          "\"stm32f103xe\"",
+          "MACH_N32G45x"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/stm32/Kconfig",
+      "line": 201,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "48000000",
+          "MACH_STM32F0"
+        ],
+        [
+          "64000000",
+          "MACH_STM32F103 && STM32_CLOCK_REF_INTERNAL"
+        ],
+        [
+          "72000000",
+          "MACH_STM32F103"
+        ],
+        [
+          "120000000",
+          "MACH_STM32F207"
+        ],
+        [
+          "84000000",
+          "MACH_STM32F401"
+        ],
+        [
+          "168000000",
+          "MACH_STM32F4x5"
+        ],
+        [
+          "180000000",
+          "MACH_STM32F446"
+        ],
+        [
+          "216000000",
+          "MACH_STM32F765"
+        ],
+        [
+          "64000000",
+          "MACH_STM32G0"
+        ],
+        [
+          "170000000",
+          "MACH_STM32G431"
+        ],
+        [
+          "170000000",
+          "MACH_STM32G474"
+        ],
+        [
+          "520000000",
+          "MACH_STM32H723"
+        ],
+        [
+          "400000000",
+          "MACH_STM32H743"
+        ],
+        [
+          "480000000",
+          "MACH_STM32H750"
+        ],
+        [
+          "80000000",
+          "MACH_STM32L412"
+        ],
+        [
+          "64000000",
+          "MACH_N32G45x && STM32_CLOCK_REF_INTERNAL"
+        ],
+        [
+          "96000000",
+          "MACH_N32G45x && USB"
+        ],
+        [
+          "128000000",
+          "MACH_N32G45x"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/stm32/Kconfig",
+      "line": 222,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x8000",
+          "MACH_STM32F031 || MACH_STM32F042 || MACH_STM32F070x6 || MACH_STM32F103x6"
+        ],
+        [
+          "0x20000",
+          "(MACH_STM32F070 || MACH_STM32F072) && !MACH_STM32F070x6"
+        ],
+        [
+          "0x10000",
+          "(MACH_STM32F103 && !MACH_STM32F103x6) || MACH_STM32L412"
+        ],
+        [
+          "0x40000",
+          "MACH_STM32F2 || MACH_STM32F401 || MACH_STM32H723"
+        ],
+        [
+          "0x80000",
+          "MACH_STM32F4x5 || MACH_STM32F446"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32G0 || MACH_STM32G431"
+        ],
+        [
+          "0x40000",
+          "MACH_STM32G474"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32H750"
+        ],
+        [
+          "0x200000",
+          "MACH_STM32H743 || MACH_STM32F765"
+        ],
+        [
+          "0x20000",
+          "MACH_N32G45x"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/stm32/Kconfig",
+      "line": 235,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x8000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/stm32/Kconfig",
+      "line": 239,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/stm32/Kconfig",
+      "line": 243,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x1000",
+          "MACH_STM32F031"
+        ],
+        [
+          "0x1800",
+          "MACH_STM32F042"
+        ],
+        [
+          "0x1800",
+          "MACH_STM32F070x6"
+        ],
+        [
+          "0x4000",
+          "(MACH_STM32F070 || MACH_STM32F072) && !MACH_STM32F070x6"
+        ],
+        [
+          "0x2800",
+          "MACH_STM32F103x6"
+        ],
+        [
+          "0x5000",
+          "MACH_STM32F103 && !MACH_STM32F103x6"
+        ],
+        [
+          "0x8000",
+          "MACH_STM32G431"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32G474"
+        ],
+        [
+          "0xa000",
+          "MACH_STM32L412"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32F207"
+        ],
+        [
+          "0x10000",
+          "MACH_STM32F401"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32F4x5 || MACH_STM32F446"
+        ],
+        [
+          "0x80000",
+          "MACH_STM32F765"
+        ],
+        [
+          "0x9000",
+          "MACH_STM32G07x"
+        ],
+        [
+          "0x24000",
+          "MACH_STM32G0Bx"
+        ],
+        [
+          "0x20000",
+          "MACH_STM32H7"
+        ],
+        [
+          "0x10000",
+          "MACH_N32G45x"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/stm32/Kconfig",
+      "line": 263,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "512",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32F103GD_DISABLE_SWD",
+      "file": "src/stm32/Kconfig",
+      "line": 267,
+      "prompt": [
+        "Disable SWD at startup (for GigaDevice stm32f103 clones)",
+        "y"
+      ],
+      "help": "The GigaDevice clone of the STM32F103 may not be able to\nreliably disable SWD at run-time. This can prevent the PA13\nand PA14 pins from being available. Selecting this option\ndisables SWD at startup and thus makes these pins available.",
+      "defaults": [
+        [
+          "n",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_DFU_ROM_ADDRESS",
+      "file": "src/stm32/Kconfig",
+      "line": 277,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0",
+          "!USB"
+        ],
+        [
+          "0x1fffc400",
+          "MACH_STM32F042"
+        ],
+        [
+          "0x1fffc800",
+          "MACH_STM32F072"
+        ],
+        [
+          "0x1fff0000",
+          "MACH_STM32F4 || MACH_STM32F7 || MACH_STM32G0 || MACH_STM32G4 || MACH_STM32L4"
+        ],
+        [
+          "0x1ff09800",
+          "MACH_STM32H7"
+        ],
+        [
+          "0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/stm32/Kconfig",
+      "line": 291,
+      "prompt": [
+        "Bootloader offset",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_2000",
+      "file": "src/stm32/Kconfig",
+      "line": 293,
+      "prompt": [
+        "8KiB bootloader",
+        "MACH_STM32F1 || MACH_STM32F070 || MACH_STM32G0 || MACH_STM32G4 || MACH_STM32F0x2"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_5000",
+      "file": "src/stm32/Kconfig",
+      "line": 295,
+      "prompt": [
+        "20KiB bootloader",
+        "MACH_STM32F103"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_7000",
+      "file": "src/stm32/Kconfig",
+      "line": 297,
+      "prompt": [
+        "28KiB bootloader",
+        "MACH_STM32F1"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_8000",
+      "file": "src/stm32/Kconfig",
+      "line": 299,
+      "prompt": [
+        "32KiB bootloader",
+        "MACH_STM32F1 || MACH_STM32F2 || MACH_STM32F4 || MACH_STM32F7 || MACH_STM32H750"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_8800",
+      "file": "src/stm32/Kconfig",
+      "line": 301,
+      "prompt": [
+        "34KiB bootloader",
+        "MACH_STM32F103"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_20200",
+      "file": "src/stm32/Kconfig",
+      "line": 303,
+      "prompt": [
+        "128KiB bootloader with 512 byte offset",
+        "MACH_STM32F4x5"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_9000",
+      "file": "src/stm32/Kconfig",
+      "line": 305,
+      "prompt": [
+        "36KiB bootloader",
+        "MACH_STM32F1"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_C000",
+      "file": "src/stm32/Kconfig",
+      "line": 307,
+      "prompt": [
+        "48KiB bootloader",
+        "MACH_STM32F4x5 || MACH_STM32F401"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_10000",
+      "file": "src/stm32/Kconfig",
+      "line": 309,
+      "prompt": [
+        "64KiB bootloader",
+        "MACH_STM32F1 || MACH_STM32F4"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_800",
+      "file": "src/stm32/Kconfig",
+      "line": 312,
+      "prompt": [
+        "2KiB bootloader",
+        "MACH_STM32F103"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_1000",
+      "file": "src/stm32/Kconfig",
+      "line": 314,
+      "prompt": [
+        "4KiB bootloader",
+        "MACH_STM32F1 || MACH_STM32F0"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_4000",
+      "file": "src/stm32/Kconfig",
+      "line": 316,
+      "prompt": [
+        "16KiB bootloader",
+        "MACH_STM32F207 || MACH_STM32F401 || MACH_STM32F4x5 || MACH_STM32F103 || MACH_STM32F072"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_20000",
+      "file": "src/stm32/Kconfig",
+      "line": 318,
+      "prompt": [
+        "128KiB bootloader",
+        "MACH_STM32H743 || MACH_STM32H723 || MACH_STM32F7 || MACH_STM32H750"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_FLASH_START_0000",
+      "file": "src/stm32/Kconfig",
+      "line": 321,
+      "prompt": [
+        "No bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/stm32/Kconfig",
+      "line": 324,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x8000800",
+          "STM32_FLASH_START_800"
+        ],
+        [
+          "0x8001000",
+          "STM32_FLASH_START_1000"
+        ],
+        [
+          "0x8002000",
+          "STM32_FLASH_START_2000"
+        ],
+        [
+          "0x8004000",
+          "STM32_FLASH_START_4000"
+        ],
+        [
+          "0x8005000",
+          "STM32_FLASH_START_5000"
+        ],
+        [
+          "0x8007000",
+          "STM32_FLASH_START_7000"
+        ],
+        [
+          "0x8008000",
+          "STM32_FLASH_START_8000"
+        ],
+        [
+          "0x8008800",
+          "STM32_FLASH_START_8800"
+        ],
+        [
+          "0x8009000",
+          "STM32_FLASH_START_9000"
+        ],
+        [
+          "0x800C000",
+          "STM32_FLASH_START_C000"
+        ],
+        [
+          "0x8010000",
+          "STM32_FLASH_START_10000"
+        ],
+        [
+          "0x8020000",
+          "STM32_FLASH_START_20000"
+        ],
+        [
+          "0x8020200",
+          "STM32_FLASH_START_20200"
+        ],
+        [
+          "0x8000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "ARMCM_RAM_VECTORTABLE",
+      "file": "src/stm32/Kconfig",
+      "line": 341,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "MACH_STM32F0 && FLASH_APPLICATION_ADDRESS != 0x8000000"
+        ],
+        [
+          "n",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/stm32/Kconfig",
+      "line": 351,
+      "prompt": [
+        "Clock Reference",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_8M",
+      "file": "src/stm32/Kconfig",
+      "line": 353,
+      "prompt": [
+        "8 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_12M",
+      "file": "src/stm32/Kconfig",
+      "line": 355,
+      "prompt": [
+        "12 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_16M",
+      "file": "src/stm32/Kconfig",
+      "line": 357,
+      "prompt": [
+        "16 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_20M",
+      "file": "src/stm32/Kconfig",
+      "line": 359,
+      "prompt": [
+        "20 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_24M",
+      "file": "src/stm32/Kconfig",
+      "line": 361,
+      "prompt": [
+        "24 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_25M",
+      "file": "src/stm32/Kconfig",
+      "line": 363,
+      "prompt": [
+        "25 MHz crystal",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CLOCK_REF_INTERNAL",
+      "file": "src/stm32/Kconfig",
+      "line": 365,
+      "prompt": [
+        "Internal clock",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_REF_FREQ",
+      "file": "src/stm32/Kconfig",
+      "line": 368,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "25000000",
+          "STM32_CLOCK_REF_25M"
+        ],
+        [
+          "24000000",
+          "STM32_CLOCK_REF_24M"
+        ],
+        [
+          "20000000",
+          "STM32_CLOCK_REF_20M"
+        ],
+        [
+          "16000000",
+          "STM32_CLOCK_REF_16M"
+        ],
+        [
+          "12000000",
+          "STM32_CLOCK_REF_12M"
+        ],
+        [
+          "1",
+          "STM32_CLOCK_REF_INTERNAL"
+        ],
+        [
+          "8000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32F0_TRIM",
+      "file": "src/stm32/Kconfig",
+      "line": 378,
+      "prompt": [
+        "Internal clock trim override",
+        "LOW_LEVEL_OPTIONS && MACH_STM32F0 && STM32_CLOCK_REF_INTERNAL && !USBSERIAL"
+      ],
+      "help": "Specify the internal clock trim value. Setting this can be\nuseful if the factory default internal clock is not accurate.\nDefault is 16 (use factory default). Each increment increases\nthe clock rate by ~240KHz.",
+      "defaults": [
+        [
+          "16",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/stm32/Kconfig",
+      "line": 392,
+      "prompt": [
+        "Communication interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_USB_PA11_PA12",
+      "file": "src/stm32/Kconfig",
+      "line": 394,
+      "prompt": [
+        "USB (on PA11/PA12)",
+        "HAVE_STM32_USBFS || HAVE_STM32_USBOTG"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_USB_PA11_PA12_REMAP",
+      "file": "src/stm32/Kconfig",
+      "line": 397,
+      "prompt": [
+        "USB (on PA9/PA10)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_USB_PB14_PB15",
+      "file": "src/stm32/Kconfig",
+      "line": 401,
+      "prompt": [
+        "USB (on PB14/PB15)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART1",
+      "file": "src/stm32/Kconfig",
+      "line": 405,
+      "prompt": [
+        "Serial (on USART1 PA10/PA9)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART1_ALT_PB7_PB6",
+      "file": "src/stm32/Kconfig",
+      "line": 408,
+      "prompt": [
+        "Serial (on USART1 PB7/PB6)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART2",
+      "file": "src/stm32/Kconfig",
+      "line": 411,
+      "prompt": [
+        "Serial (on USART2 PA3/PA2)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART2_ALT_PA15_PA14",
+      "file": "src/stm32/Kconfig",
+      "line": 414,
+      "prompt": [
+        "Serial (on USART2 PA15/PA14)",
+        "LOW_LEVEL_OPTIONS && (MACH_STM32F0 || MACH_STM32G4)"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART2_ALT_PB4_PB3",
+      "file": "src/stm32/Kconfig",
+      "line": 417,
+      "prompt": [
+        "Serial (on USART2 PB4/PB3)",
+        "LOW_LEVEL_OPTIONS && MACH_STM32G4"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART2_ALT_PD6_PD5",
+      "file": "src/stm32/Kconfig",
+      "line": 420,
+      "prompt": [
+        "Serial (on USART2 PD6/PD5)",
+        "LOW_LEVEL_OPTIONS && !MACH_STM32F0"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART3",
+      "file": "src/stm32/Kconfig",
+      "line": 423,
+      "prompt": [
+        "Serial (on USART3 PB11/PB10)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART3_ALT_PD9_PD8",
+      "file": "src/stm32/Kconfig",
+      "line": 427,
+      "prompt": [
+        "Serial (on USART3 PD9/PD8)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART3_ALT_PC11_PC10",
+      "file": "src/stm32/Kconfig",
+      "line": 431,
+      "prompt": [
+        "Serial (on USART3 PC11/PC10)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_UART4",
+      "file": "src/stm32/Kconfig",
+      "line": 435,
+      "prompt": [
+        "Serial (on UART4 PA0/PA1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART5",
+      "file": "src/stm32/Kconfig",
+      "line": 439,
+      "prompt": [
+        "Serial (on USART5 PD2/PD3)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART6",
+      "file": "src/stm32/Kconfig",
+      "line": 443,
+      "prompt": [
+        "Serial (on USART6 PA12/PA11)",
+        "LOW_LEVEL_OPTIONS && MACH_STM32F401"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_SERIAL_USART6_ALT_PC7_PC6",
+      "file": "src/stm32/Kconfig",
+      "line": 446,
+      "prompt": [
+        "Serial (on USART6 PC7/PC6)",
+        "LOW_LEVEL_OPTIONS && MACH_STM32F401"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PA11_PA12",
+      "file": "src/stm32/Kconfig",
+      "line": 449,
+      "prompt": [
+        "CAN bus (on PA11/PA12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PA11_PA12_REMAP",
+      "file": "src/stm32/Kconfig",
+      "line": 453,
+      "prompt": [
+        "CAN bus (on PA9/PA10)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PA11_PB9",
+      "file": "src/stm32/Kconfig",
+      "line": 457,
+      "prompt": [
+        "CAN bus (on PA11/PB9)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PB8_PB9",
+      "file": "src/stm32/Kconfig",
+      "line": 461,
+      "prompt": [
+        "CAN bus (on PB8/PB9)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PI9_PH13",
+      "file": "src/stm32/Kconfig",
+      "line": 465,
+      "prompt": [
+        "CAN bus (on PI9/PH13)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PB5_PB6",
+      "file": "src/stm32/Kconfig",
+      "line": 469,
+      "prompt": [
+        "CAN bus (on PB5/PB6)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PB12_PB13",
+      "file": "src/stm32/Kconfig",
+      "line": 473,
+      "prompt": [
+        "CAN bus (on PB12/PB13)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PD0_PD1",
+      "file": "src/stm32/Kconfig",
+      "line": 477,
+      "prompt": [
+        "CAN bus (on PD0/PD1)",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PB0_PB1",
+      "file": "src/stm32/Kconfig",
+      "line": 481,
+      "prompt": [
+        "CAN bus (on PB0/PB1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PD12_PD13",
+      "file": "src/stm32/Kconfig",
+      "line": 485,
+      "prompt": [
+        "CAN bus (on PD12/PD13)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PC2_PC3",
+      "file": "src/stm32/Kconfig",
+      "line": 489,
+      "prompt": [
+        "CAN bus (on PC2/PC3)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_MMENU_CANBUS_PH13_PH14",
+      "file": "src/stm32/Kconfig",
+      "line": 493,
+      "prompt": [
+        "CAN bus (on PH13/PH14)",
+        "MACH_STM32H743"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_USBCANBUS_PA11_PA12",
+      "file": "src/stm32/Kconfig",
+      "line": 497,
+      "prompt": [
+        "USB to CAN bus bridge (USB on PA11/PA12)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBCANBUS",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/stm32/Kconfig",
+      "line": 502,
+      "prompt": [
+        "CAN bus interface",
+        "USBCANBUS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PB8_PB9",
+      "file": "src/stm32/Kconfig",
+      "line": 504,
+      "prompt": [
+        "CAN bus (on PB8/PB9)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PI9_PH13",
+      "file": "src/stm32/Kconfig",
+      "line": 506,
+      "prompt": [
+        "CAN bus (on PI9/PH13)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PB5_PB6",
+      "file": "src/stm32/Kconfig",
+      "line": 509,
+      "prompt": [
+        "CAN bus (on PB5/PB6)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PB12_PB13",
+      "file": "src/stm32/Kconfig",
+      "line": 512,
+      "prompt": [
+        "CAN bus (on PB12/PB13)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PD0_PD1",
+      "file": "src/stm32/Kconfig",
+      "line": 515,
+      "prompt": [
+        "CAN bus (on PD0/PD1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PB0_PB1",
+      "file": "src/stm32/Kconfig",
+      "line": 518,
+      "prompt": [
+        "CAN bus (on PB0/PB1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PD12_PD13",
+      "file": "src/stm32/Kconfig",
+      "line": 521,
+      "prompt": [
+        "CAN bus (on PD12/PD13)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PC2_PC3",
+      "file": "src/stm32/Kconfig",
+      "line": 524,
+      "prompt": [
+        "CAN bus (on PC2/PC3)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CMENU_CANBUS_PH13_PH14",
+      "file": "src/stm32/Kconfig",
+      "line": 527,
+      "prompt": [
+        "CAN bus (on PH13/PH14)",
+        "MACH_STM32H743"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PB8_PB9",
+      "file": "src/stm32/Kconfig",
+      "line": 533,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PB8_PB9 || STM32_CMENU_CANBUS_PB8_PB9"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PI9_PH13",
+      "file": "src/stm32/Kconfig",
+      "line": 536,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PI9_PH13 || STM32_CMENU_CANBUS_PI9_PH13"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PB5_PB6",
+      "file": "src/stm32/Kconfig",
+      "line": 539,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PB5_PB6 || STM32_CMENU_CANBUS_PB5_PB6"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PB12_PB13",
+      "file": "src/stm32/Kconfig",
+      "line": 542,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PB12_PB13 || STM32_CMENU_CANBUS_PB12_PB13"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PD0_PD1",
+      "file": "src/stm32/Kconfig",
+      "line": 545,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PD0_PD1 || STM32_CMENU_CANBUS_PD0_PD1"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PB0_PB1",
+      "file": "src/stm32/Kconfig",
+      "line": 548,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PB0_PB1 || STM32_CMENU_CANBUS_PB0_PB1"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PD12_PD13",
+      "file": "src/stm32/Kconfig",
+      "line": 551,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PD12_PD13 || STM32_CMENU_CANBUS_PD12_PD13"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PC2_PC3",
+      "file": "src/stm32/Kconfig",
+      "line": 554,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PC2_PC3 || STM32_CMENU_CANBUS_PC2_PC3"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STM32_CANBUS_PH13_PH14",
+      "file": "src/stm32/Kconfig",
+      "line": 557,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "STM32_MMENU_CANBUS_PH13_PH14 || STM32_CMENU_CANBUS_PH13_PH14"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SELECT",
+      "file": "src/hc32f460/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_SOFTWARE_DIVIDE_REQUIRED",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/hc32f460/Kconfig",
+      "line": 16,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"hc32f460\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/hc32f460/Kconfig",
+      "line": 24,
+      "prompt": [
+        "Communication interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PA7_PA8",
+      "file": "src/hc32f460/Kconfig",
+      "line": 26,
+      "prompt": [
+        "Serial (PA7 & PA8)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PA13_PA14",
+      "file": "src/hc32f460/Kconfig",
+      "line": 29,
+      "prompt": [
+        "Serial (PA13 & PA14)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PA3_PA2",
+      "file": "src/hc32f460/Kconfig",
+      "line": 32,
+      "prompt": [
+        "Serial (PA3 & PA2)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PH2_PB10",
+      "file": "src/hc32f460/Kconfig",
+      "line": 35,
+      "prompt": [
+        "Serial (PH2 & PB10)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PA15_PA9",
+      "file": "src/hc32f460/Kconfig",
+      "line": 38,
+      "prompt": [
+        "Serial (PA15 & PA09)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_SERIAL_PC0_PC1",
+      "file": "src/hc32f460/Kconfig",
+      "line": 41,
+      "prompt": [
+        "Serial (PC0 & PC1)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/hc32f460/Kconfig",
+      "line": 50,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x40000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": "Application Address",
+      "file": "src/hc32f460/Kconfig",
+      "line": 54,
+      "prompt": [
+        "Application Address",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_FLASH_APPLICATION_ADDRESS_0x008000",
+      "file": "src/hc32f460/Kconfig",
+      "line": 56,
+      "prompt": [
+        "0x008000",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_FLASH_APPLICATION_ADDRESS_0x00C000",
+      "file": "src/hc32f460/Kconfig",
+      "line": 58,
+      "prompt": [
+        "0x00C000",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_FLASH_APPLICATION_ADDRESS_0x010000",
+      "file": "src/hc32f460/Kconfig",
+      "line": 60,
+      "prompt": [
+        "0x010000",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/hc32f460/Kconfig",
+      "line": 64,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x008000",
+          "HC32F460_FLASH_APPLICATION_ADDRESS_0x008000"
+        ],
+        [
+          "0x00C000",
+          "HC32F460_FLASH_APPLICATION_ADDRESS_0x00C000"
+        ],
+        [
+          "0x010000",
+          "HC32F460_FLASH_APPLICATION_ADDRESS_0x010000"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/hc32f460/Kconfig",
+      "line": 70,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x0",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/hc32f460/Kconfig",
+      "line": 74,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x8000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/hc32f460/Kconfig",
+      "line": 79,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x1fff8000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/hc32f460/Kconfig",
+      "line": 83,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "1024",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": "Clock Speed",
+      "file": "src/hc32f460/Kconfig",
+      "line": 87,
+      "prompt": [
+        "Clock Speed",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_CLOCK_SPEED_168M",
+      "file": "src/hc32f460/Kconfig",
+      "line": 89,
+      "prompt": [
+        "168 MHz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HC32F460_CLOCK_SPEED_200M",
+      "file": "src/hc32f460/Kconfig",
+      "line": 91,
+      "prompt": [
+        "200 MHz",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/hc32f460/Kconfig",
+      "line": 95,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "200000000",
+          "HC32F460_CLOCK_SPEED_200M"
+        ],
+        [
+          "168000000",
+          "HC32F460_CLOCK_SPEED_168M"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/hc32f460/Kconfig",
+      "line": 100,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"HC32F460\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SELECT",
+      "file": "src/rp2040/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_CHIPID",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_BOOTLOADER_REQUEST",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/rp2040/Kconfig",
+      "line": 18,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"rp2040\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/rp2040/Kconfig",
+      "line": 26,
+      "prompt": [
+        "Processor model",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_RP2040",
+      "file": "src/rp2040/Kconfig",
+      "line": 28,
+      "prompt": [
+        "rp2040",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MACH_RP2350",
+      "file": "src/rp2040/Kconfig",
+      "line": 30,
+      "prompt": [
+        "rp2350",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "MCU",
+      "file": "src/rp2040/Kconfig",
+      "line": 34,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"rp2040\"",
+          "MACH_RP2040"
+        ],
+        [
+          "\"rp2350\"",
+          "MACH_RP2350"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/rp2040/Kconfig",
+      "line": 39,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "12000000",
+          "MACH_RP2040"
+        ],
+        [
+          "150000000",
+          "MACH_RP2350"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_SIZE",
+      "file": "src/rp2040/Kconfig",
+      "line": 44,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x200000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_BOOT_ADDRESS",
+      "file": "src/rp2040/Kconfig",
+      "line": 48,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x10000100",
+          "MACH_RP2040"
+        ],
+        [
+          "0x10000000",
+          "MACH_RP2350"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_START",
+      "file": "src/rp2040/Kconfig",
+      "line": 53,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RAM_SIZE",
+      "file": "src/rp2040/Kconfig",
+      "line": 57,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x42000",
+          "MACH_RP2040"
+        ],
+        [
+          "0x82000",
+          "MACH_RP2350"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "STACK_SIZE",
+      "file": "src/rp2040/Kconfig",
+      "line": 62,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "512",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_HAVE_STAGE2",
+      "file": "src/rp2040/Kconfig",
+      "line": 71,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_HAVE_BOOTLOADER",
+      "file": "src/rp2040/Kconfig",
+      "line": 73,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/rp2040/Kconfig",
+      "line": 76,
+      "prompt": [
+        "Bootloader offset",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_FLASH_START_0000",
+      "file": "src/rp2040/Kconfig",
+      "line": 78,
+      "prompt": [
+        "No bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_FLASH_START_0100",
+      "file": "src/rp2040/Kconfig",
+      "line": 81,
+      "prompt": [
+        "No bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "RP2040_HAVE_STAGE2",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_FLASH_START_4000",
+      "file": "src/rp2040/Kconfig",
+      "line": 85,
+      "prompt": [
+        "16KiB bootloader",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "RPXXXX_HAVE_BOOTLOADER",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "FLASH_APPLICATION_ADDRESS",
+      "file": "src/rp2040/Kconfig",
+      "line": 89,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x10004000",
+          "RPXXXX_FLASH_START_4000"
+        ],
+        [
+          "0x10000100",
+          "RPXXXX_FLASH_START_0100"
+        ],
+        [
+          "0x10000000",
+          "RPXXXX_FLASH_START_0000"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/rp2040/Kconfig",
+      "line": 95,
+      "prompt": [
+        "Flash chip",
+        "LOW_LEVEL_OPTIONS && RP2040_HAVE_STAGE2"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_FLASH_W25Q080",
+      "file": "src/rp2040/Kconfig",
+      "line": 97,
+      "prompt": [
+        "W25Q080 with CLKDIV 2",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_FLASH_GENERIC_03",
+      "file": "src/rp2040/Kconfig",
+      "line": 99,
+      "prompt": [
+        "GENERIC_03H with CLKDIV 4",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_FLASH_GENERIC_03_CLKDIV8",
+      "file": "src/rp2040/Kconfig",
+      "line": 101,
+      "prompt": [
+        "GENERIC_03H with CLKDIV 8",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_STAGE2_FILE",
+      "file": "src/rp2040/Kconfig",
+      "line": 105,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"boot2_generic_03h.S\"",
+          "RP2040_FLASH_GENERIC_03"
+        ],
+        [
+          "\"boot2_generic_03h.S\"",
+          "RP2040_FLASH_GENERIC_03_CLKDIV8"
+        ],
+        [
+          "\"boot2_w25q080.S\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RP2040_STAGE2_CLKDIV",
+      "file": "src/rp2040/Kconfig",
+      "line": 111,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "8",
+          "RP2040_FLASH_GENERIC_03_CLKDIV8"
+        ],
+        [
+          "4",
+          "RP2040_FLASH_GENERIC_03"
+        ],
+        [
+          "2",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "choice",
+      "name": null,
+      "file": "src/rp2040/Kconfig",
+      "line": 122,
+      "prompt": [
+        "Communication Interface",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_USB",
+      "file": "src/rp2040/Kconfig",
+      "line": 124,
+      "prompt": [
+        "USBSERIAL",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART0_PINS_0_1",
+      "file": "src/rp2040/Kconfig",
+      "line": 127,
+      "prompt": [
+        "UART0 on GPIO0/GPIO1",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART0_PINS_12_13",
+      "file": "src/rp2040/Kconfig",
+      "line": 130,
+      "prompt": [
+        "UART0 on GPIO12/GPIO13",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART0_PINS_16_17",
+      "file": "src/rp2040/Kconfig",
+      "line": 133,
+      "prompt": [
+        "UART0 on GPIO16/GPIO17",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART0_PINS_28_29",
+      "file": "src/rp2040/Kconfig",
+      "line": 136,
+      "prompt": [
+        "UART0 on GPIO28/GPIO29",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART1_PINS_4_5",
+      "file": "src/rp2040/Kconfig",
+      "line": 139,
+      "prompt": [
+        "UART1 on GPIO4/GPIO5",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART1_PINS_8_9",
+      "file": "src/rp2040/Kconfig",
+      "line": 142,
+      "prompt": [
+        "UART1 on  GPIO8/GPIO9",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART1_PINS_20_21",
+      "file": "src/rp2040/Kconfig",
+      "line": 145,
+      "prompt": [
+        "UART1 on  GPIO20/GPIO21",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_SERIAL_UART1_PINS_24_25",
+      "file": "src/rp2040/Kconfig",
+      "line": 148,
+      "prompt": [
+        "UART1 on GPIO24/GPIO25",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "SERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_CANBUS",
+      "file": "src/rp2040/Kconfig",
+      "line": 151,
+      "prompt": [
+        "CAN bus",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "CANSERIAL",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_USBCANBUS",
+      "file": "src/rp2040/Kconfig",
+      "line": 154,
+      "prompt": [
+        "USB to CAN bus bridge",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [
+        [
+          "USBCANBUS",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_CANBUS_GPIO_RX",
+      "file": "src/rp2040/Kconfig",
+      "line": 159,
+      "prompt": [
+        "CAN RX gpio number",
+        "CANBUS"
+      ],
+      "help": null,
+      "defaults": [
+        [
+          "4",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": [
+        [
+          "0",
+          "29",
+          "y"
+        ]
+      ]
+    },
+    {
+      "kind": "config",
+      "name": "RPXXXX_CANBUS_GPIO_TX",
+      "file": "src/rp2040/Kconfig",
+      "line": 164,
+      "prompt": [
+        "CAN TX gpio number",
+        "CANBUS"
+      ],
+      "help": null,
+      "defaults": [
+        [
+          "5",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": [
+        [
+          "0",
+          "29",
+          "y"
+        ]
+      ]
+    },
+    {
+      "kind": "config",
+      "name": "PRU_SELECT",
+      "file": "src/pru/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_STRICT_TIMING",
+          "y"
+        ],
+        [
+          "HAVE_LIMITED_CODE_SIZE",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/pru/Kconfig",
+      "line": 13,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"pru\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/pru/Kconfig",
+      "line": 17,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "200000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "AR100_SELECT",
+      "file": "src/ar100/Kconfig",
+      "line": 5,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+          "y"
+        ],
+        [
+          "HAVE_LIMITED_CODE_SIZE",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/ar100/Kconfig",
+      "line": 13,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"ar100\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/ar100/Kconfig",
+      "line": 17,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "300000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "LINUX_SELECT",
+      "file": "src/linux/Kconfig",
+      "line": 6,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_I2C",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/linux/Kconfig",
+      "line": 15,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"linux\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/linux/Kconfig",
+      "line": 19,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "50000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "BOARD_DIRECTORY",
+      "file": "src/simulator/Kconfig",
+      "line": 6,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"simulator\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SIMULATOR_SELECT",
+      "file": "src/simulator/Kconfig",
+      "line": 10,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [
+        [
+          "HAVE_GPIO",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_ADC",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_SPI",
+          "y"
+        ],
+        [
+          "HAVE_GPIO_HARD_PWM",
+          "y"
+        ]
+      ],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL",
+      "file": "src/simulator/Kconfig",
+      "line": 18,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CLOCK_FREQ",
+      "file": "src/simulator/Kconfig",
+      "line": 21,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "20000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL",
+      "file": "src/Kconfig",
+      "line": 50,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "SERIAL_BAUD",
+      "file": "src/Kconfig",
+      "line": 52,
+      "prompt": [
+        "Baud rate for serial port",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": "Specify the baud rate of the serial port. This should be set\nto 250000. Read the FAQ before changing this value.",
+      "defaults": [
+        [
+          "250000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USBSERIAL",
+      "file": "src/Kconfig",
+      "line": 61,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USBCANBUS",
+      "file": "src/Kconfig",
+      "line": 63,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB",
+      "file": "src/Kconfig",
+      "line": 65,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "USBSERIAL || USBCANBUS"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_VENDOR_ID",
+      "file": "src/Kconfig",
+      "line": 68,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x1d50",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_DEVICE_ID",
+      "file": "src/Kconfig",
+      "line": 70,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "0x614e",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_SERIAL_NUMBER_CHIPID",
+      "file": "src/Kconfig",
+      "line": 72,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_SERIAL_NUMBER",
+      "file": "src/Kconfig",
+      "line": 75,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "\"12345\"",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "menu",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 78,
+      "prompt": [
+        "USB ids",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_VENDOR_ID",
+      "file": "src/Kconfig",
+      "line": 80,
+      "prompt": [
+        "USB vendor ID",
+        "USBSERIAL"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_DEVICE_ID",
+      "file": "src/Kconfig",
+      "line": 82,
+      "prompt": [
+        "USB device ID",
+        "USBSERIAL"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_SERIAL_NUMBER_CHIPID",
+      "file": "src/Kconfig",
+      "line": 84,
+      "prompt": [
+        "USB serial number from CHIPID",
+        "HAVE_CHIPID"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "USB_SERIAL_NUMBER",
+      "file": "src/Kconfig",
+      "line": 86,
+      "prompt": [
+        "USB serial number",
+        "!USB_SERIAL_NUMBER_CHIPID"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADC",
+      "file": "src/Kconfig",
+      "line": 91,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SPI",
+      "file": "src/Kconfig",
+      "line": 95,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SOFTWARE_SPI",
+      "file": "src/Kconfig",
+      "line": 99,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_I2C",
+      "file": "src/Kconfig",
+      "line": 103,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SOFTWARE_I2C",
+      "file": "src/Kconfig",
+      "line": 107,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HARD_PWM",
+      "file": "src/Kconfig",
+      "line": 111,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_BUTTONS",
+      "file": "src/Kconfig",
+      "line": 115,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_TMCUART",
+      "file": "src/Kconfig",
+      "line": 119,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_NEOPIXEL",
+      "file": "src/Kconfig",
+      "line": 123,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_PULSE_COUNTER",
+      "file": "src/Kconfig",
+      "line": 127,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ST7920",
+      "file": "src/Kconfig",
+      "line": 131,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HD44780",
+      "file": "src/Kconfig",
+      "line": 135,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADXL345",
+      "file": "src/Kconfig",
+      "line": 139,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_LIS2DW",
+      "file": "src/Kconfig",
+      "line": 143,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_BMI160",
+      "file": "src/Kconfig",
+      "line": 147,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_MPU9250",
+      "file": "src/Kconfig",
+      "line": 151,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ICM20948",
+      "file": "src/Kconfig",
+      "line": 155,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_THERMOCOUPLE",
+      "file": "src/Kconfig",
+      "line": 159,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HX71X",
+      "file": "src/Kconfig",
+      "line": 163,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_CS1237",
+      "file": "src/Kconfig",
+      "line": 167,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADS131M0X",
+      "file": "src/Kconfig",
+      "line": 171,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADS1220",
+      "file": "src/Kconfig",
+      "line": 175,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_LDC1612",
+      "file": "src/Kconfig",
+      "line": 179,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SENSOR_ANGLE",
+      "file": "src/Kconfig",
+      "line": 183,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "NEED_SENSOR_BULK",
+      "file": "src/Kconfig",
+      "line": 187,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_TRIGGER_ANALOG",
+      "file": "src/Kconfig",
+      "line": 193,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "NEED_SOS_FILTER",
+      "file": "src/Kconfig",
+      "line": 198,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "menu",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 202,
+      "prompt": [
+        "Optional features (to reduce code size)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADC",
+      "file": "src/Kconfig",
+      "line": 204,
+      "prompt": [
+        "Support micro-controller based ADC (analog to digital)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SPI",
+      "file": "src/Kconfig",
+      "line": 207,
+      "prompt": [
+        "Support communicating with external chips via SPI bus",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SOFTWARE_SPI",
+      "file": "src/Kconfig",
+      "line": 210,
+      "prompt": [
+        "Support software based SPI \"bit-banging\"",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_I2C",
+      "file": "src/Kconfig",
+      "line": 213,
+      "prompt": [
+        "Support communicating with external chips via I2C bus",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SOFTWARE_I2C",
+      "file": "src/Kconfig",
+      "line": 216,
+      "prompt": [
+        "Support software based I2C \"bit-banging\"",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HARD_PWM",
+      "file": "src/Kconfig",
+      "line": 219,
+      "prompt": [
+        "Support hardware PWM (pulse width modulation)",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_BUTTONS",
+      "file": "src/Kconfig",
+      "line": 222,
+      "prompt": [
+        "Support GPIO based button reading",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_TMCUART",
+      "file": "src/Kconfig",
+      "line": 225,
+      "prompt": [
+        "Support Trinamic stepper motor driver UART communication",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_NEOPIXEL",
+      "file": "src/Kconfig",
+      "line": 228,
+      "prompt": [
+        "Support 'neopixel' type LED control",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_PULSE_COUNTER",
+      "file": "src/Kconfig",
+      "line": 231,
+      "prompt": [
+        "Support measuring fan tachometer GPIO pins",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "comment",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 234,
+      "prompt": [
+        "LCD chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ST7920",
+      "file": "src/Kconfig",
+      "line": 235,
+      "prompt": [
+        "Support ST7920 LCD display",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HD44780",
+      "file": "src/Kconfig",
+      "line": 238,
+      "prompt": [
+        "Support HD44780 LCD display",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "comment",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 241,
+      "prompt": [
+        "Accelerometer chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADXL345",
+      "file": "src/Kconfig",
+      "line": 243,
+      "prompt": [
+        "Support adxl accelerometers",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_LIS2DW",
+      "file": "src/Kconfig",
+      "line": 246,
+      "prompt": [
+        "Support lis2dw and lis3dh 3-axis accelerometers",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_BMI160",
+      "file": "src/Kconfig",
+      "line": 249,
+      "prompt": [
+        "Support BMI160 accelerometer",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_MPU9250",
+      "file": "src/Kconfig",
+      "line": 252,
+      "prompt": [
+        "Support MPU accelerometers",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ICM20948",
+      "file": "src/Kconfig",
+      "line": 255,
+      "prompt": [
+        "Support ICM20948 accelerometer",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "comment",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 258,
+      "prompt": [
+        "External ADC type chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_THERMOCOUPLE",
+      "file": "src/Kconfig",
+      "line": 259,
+      "prompt": [
+        "Support thermocouple MAX sensors",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_HX71X",
+      "file": "src/Kconfig",
+      "line": 262,
+      "prompt": [
+        "Support HX711 and HX717 ADC chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_CS1237",
+      "file": "src/Kconfig",
+      "line": 265,
+      "prompt": [
+        "Support CS1237 ADC chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADS131M0X",
+      "file": "src/Kconfig",
+      "line": 268,
+      "prompt": [
+        "Support ADS 131M02/M04 ADC chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_ADS1220",
+      "file": "src/Kconfig",
+      "line": 271,
+      "prompt": [
+        "Support ADS 1220 ADC chip",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "comment",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 274,
+      "prompt": [
+        "Other external sensor chips",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_LDC1612",
+      "file": "src/Kconfig",
+      "line": 276,
+      "prompt": [
+        "Support ldc1612 eddy current sensor",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_SENSOR_ANGLE",
+      "file": "src/Kconfig",
+      "line": 279,
+      "prompt": [
+        "Support angle sensors",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "comment",
+      "name": null,
+      "file": "src/Kconfig",
+      "line": 282,
+      "prompt": [
+        "Other features",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_TRIGGER_ANALOG",
+      "file": "src/Kconfig",
+      "line": 285,
+      "prompt": [
+        "Support for homing/probing events using analog sensors",
+        "y"
+      ],
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CANSERIAL",
+      "file": "src/Kconfig",
+      "line": 292,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CANBUS",
+      "file": "src/Kconfig",
+      "line": 294,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "CANSERIAL || USBCANBUS"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CANBUS_FREQUENCY",
+      "file": "src/Kconfig",
+      "line": 297,
+      "prompt": [
+        "CAN bus speed",
+        "LOW_LEVEL_OPTIONS && CANBUS"
+      ],
+      "help": null,
+      "defaults": [
+        [
+          "1000000",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "CANBUS_FILTER",
+      "file": "src/Kconfig",
+      "line": 300,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "CANSERIAL"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "INLINE_STEPPER_HACK",
+      "file": "src/Kconfig",
+      "line": 305,
+      "prompt": null,
+      "help": null,
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STEPPER_OPTIMIZED_BOTH_EDGE",
+      "file": "src/Kconfig",
+      "line": 310,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "WANT_STEPPER_OPTIMIZED_BOTH_EDGE",
+      "file": "src/Kconfig",
+      "line": 312,
+      "prompt": [
+        "Optimize stepper code for 'step on both edges'",
+        "LOW_LEVEL_OPTIONS"
+      ],
+      "help": "Optimize the stepper code for Trinamic stepper motor drivers\nthat are configured in UART or SPI mode (and thus can perform\na step on both \"edges\" of the step pin).  Enabling this option\ntypically improves the stepper cpu performance by about 20%\nwhen using these drivers.  If this option is disabled the code\nwill instead deploy optimizations that improve the cpu\nperformance by about 20% for traditional drivers (those that\ntake a step only on the \"rising\" or \"falling\" level of the\nstep pin).",
+      "defaults": [
+        [
+          "y",
+          "y"
+        ]
+      ],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "INITIAL_PINS",
+      "file": "src/Kconfig",
+      "line": 328,
+      "prompt": [
+        "GPIO pins to set at micro-controller startup",
+        "y"
+      ],
+      "help": "One may specify a comma separated list of gpio pins to set\nduring the micro-controller startup sequence. By default the\npins will be set to output high - preface a pin with a '!'\ncharacter to set that pin to output low.",
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO",
+      "file": "src/Kconfig",
+      "line": 339,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO_ADC",
+      "file": "src/Kconfig",
+      "line": 341,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO_SPI",
+      "file": "src/Kconfig",
+      "line": 343,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO_SDIO",
+      "file": "src/Kconfig",
+      "line": 345,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO_I2C",
+      "file": "src/Kconfig",
+      "line": 347,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_GPIO_HARD_PWM",
+      "file": "src/Kconfig",
+      "line": 349,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_STRICT_TIMING",
+      "file": "src/Kconfig",
+      "line": 351,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_CHIPID",
+      "file": "src/Kconfig",
+      "line": 353,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_BOOTLOADER_REQUEST",
+      "file": "src/Kconfig",
+      "line": 355,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_LIMITED_CODE_SIZE",
+      "file": "src/Kconfig",
+      "line": 357,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    },
+    {
+      "kind": "config",
+      "name": "HAVE_SOFTWARE_DIVIDE_REQUIRED",
+      "file": "src/Kconfig",
+      "line": 359,
+      "prompt": null,
+      "help": null,
+      "defaults": [],
+      "selects": [],
+      "ranges": []
+    }
+  ]
+}
