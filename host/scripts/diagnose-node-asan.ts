@@ -18,7 +18,8 @@ const hash=(path:string)=>createHash('sha256').update(readFileSync(path)).digest
 const directory=mkdtempSync(join(reportParent,'anyraid-node-asan-')),fixture=join(directory,'fixture.mjs');
 // Freeze a JS-only dependency closure before spawning any measured process.
 // This isolates runtime TypeScript loading; it is not a production bundle build.
-const compiledHashes:Record<string,string>={};
+const compiledHashes:Record<string,string>={},frozenSourceHashes:Record<string,string>={};
+let sourceFixture:{path:string;sha256:string}|undefined;
 let moduleRoot=host,moduleExtension='ts',compilerVersion:string|undefined;
 if(execution==='compiled'){
  compilerVersion=(await import('typescript')).version;
@@ -29,9 +30,12 @@ if(execution==='compiled'){
  writeFileSync(project,JSON.stringify({compilerOptions:{target:'ES2024',module:'NodeNext',moduleResolution:'NodeNext',strict:true,skipLibCheck:true,noEmitOnError:true,rewriteRelativeImportExtensions:true,verbatimModuleSyntax:true,rootDir:host,outDir:moduleRoot,types:['node'],typeRoots:[join(host,'node_modules/@types')]},files:relativeFiles.map(p=>join(host,p))}));
  const compiled=spawnSync(process.execPath,[join(host,'node_modules/typescript/bin/tsc'),'-p',project],{encoding:'utf8',timeout:60000,maxBuffer:1024*1024});
  if(compiled.status!==0)throw new Error('Diagnostic JS compilation failed: '+compiled.stdout+compiled.stderr);
- for(const relative of relativeFiles){const output=relative.replace(/\.ts$/,'.js');compiledHashes[output]=hash(join(moduleRoot,output));}
  cpSync(join(host,'contracts/motion-retirement.json'),join(moduleRoot,'contracts/motion-retirement.json'));
  cpSync(join(host,'contracts/motion-retirement'),join(moduleRoot,'contracts/motion-retirement'),{recursive:true});
+ // Include transitive emitted modules and every reference blob, not only roots.
+ const sourceRoot=join(directory,'source');mkdirSync(sourceRoot);
+ function freeze(relative:string){for(const entry of readdirSync(join(moduleRoot,relative),{withFileTypes:true})){const path=join(relative,entry.name),original=join(moduleRoot,path);if(entry.isDirectory()){mkdirSync(join(sourceRoot,path));freeze(path);}else if(entry.isFile()){compiledHashes[path]=hash(original);const sourcePath=path.endsWith('.js')?path.slice(0,-3)+'.ts':path;cpSync(path.endsWith('.js')?join(host,sourcePath):original,join(sourceRoot,sourcePath));frozenSourceHashes[sourcePath]=hash(join(sourceRoot,sourcePath));}else throw new Error('Unexpected diagnostic dependency');}}
+ freeze('');
 }
 const motionModule=pathToFileURL(join(moduleRoot,'src/diagnostics/graph-motion.'+moduleExtension)).href;
 const referenceModule=pathToFileURL(join(moduleRoot,'bench/motion-graph-reference.'+moduleExtension)).href;
@@ -62,6 +66,7 @@ const source=Array.from({length:200},(_,i)=>\`export function f\${i}(x:number):n
 for(let i=0;i<40;i++)stripTypeScriptTypes(source);
 console.log('stripped');\n`:`console.log('started');\n`;
 writeFileSync(fixture,source);
+if(execution==='compiled'){const path=join(directory,'source-fixture.mjs'),root=join(directory,'source');writeFileSync(path,source.replace(JSON.stringify(motionModule),JSON.stringify(pathToFileURL(join(root,'src/diagnostics/graph-motion.ts')).href)).replace(JSON.stringify(referenceModule),JSON.stringify(pathToFileURL(join(root,'bench/motion-graph-reference.ts')).href)));sourceFixture={path,sha256:hash(path)};}
 const env:NodeJS.ProcessEnv={...process.env,LD_PRELOAD:runtime,ASAN_OPTIONS:`detect_leaks=0:abort_on_error=1:${segv==='exclusive'?'handle_segv=2:':''}verbosity=1:log_path=${join(directory,'asan')}`};
 // Do not inherit unrelated runtime flags or addon paths into minimal cases.
 delete env.NODE_OPTIONS;if(asan==='off'){delete env.LD_PRELOAD;delete env.ASAN_OPTIONS;}for(const key of Object.keys(env))if(key.startsWith('ANYRAID_')&&key.endsWith('_ADDON'))delete env[key];
@@ -78,7 +83,7 @@ const corePolicy=process.platform==='linux'?{filter:readFileSync('/proc/self/cor
 interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string;elapsedMs:number}
 const results:Result[]=[];let next=0,failed=false;
 const startedAt=new Date().toISOString(),started=performance.now();
-const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,fixtureSha256:hash(fixture)};
+const metadata={childWorkingDirectory,corePolicy,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,frozenSourceHashes,sourceFixture,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,fixtureSha256:hash(fixture)};
 const active=new Map<ReturnType<typeof spawn>,{index:number;pid:number|undefined}>();
 let interruption:NodeJS.Signals|undefined,killTimer:ReturnType<typeof setTimeout>|undefined;
 /** A killed parent leaves state=running, never a false completion. Store in a

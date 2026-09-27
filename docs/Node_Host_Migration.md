@@ -146,6 +146,15 @@ Python 执行依赖。偏移版本检查只在改变偏移的命令中执行；�
 Delta 多塔等剩余路径未退役。详见
 [偏移保存验收](../host/contracts/z-offset-acceptance.json)。
 
+运行时完整性对照补充：同一台主机、固定输入、串行子进程条件下，
+Node 22.22.3 和 26.9.0 分别完成源码/编译两种模式各 64 次，合计
+256 个进程未复现异常。数值参考数据一致且冻结文件哈希未变化；这
+不能证明历史 SIGSEGV 或数值失配已解决，也不能归因到类型剥离。
+沙箱中退出 0 但无验证输出的预检仍记为失败。下一项因果对照应在
+独立机器执行，不能靠继续刷本机通过次数关闭问题。诊断生成器现已
+冻结完整源码/编译依赖及参考数据，12 项工具回归通过。见
+[运行时交叉对照](diagnostics/node-runtime-crosscheck.json)。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 
@@ -25510,3 +25519,36 @@ Python 3.12 的 sum 补偿累加不同，大坐标样本 z 系数差约 1.4e-8�
 必要类型与空白检查通过；证据为 host/contracts/bed-tilt-acceptance.json。
 初次产品依赖安装因临时离线缓存丢失失败，联网按锁文件安装后恢复；
 新增三次探测后旧计数断言也已修正并重跑。历史运行时/数值异常仍开放。
+
+### 冻结输入的双运行时对照
+
+用于调查历史运行时崩溃和瞬时数值失配，不能作为真机精度验收。先在
+正常执行环境使用 Node 26 生成快照（已有锁定的 host 依赖）：
+
+```sh
+node host/scripts/diagnose-node-asan.ts --case motion --asan off \
+  --execution compiled --runs 1 --workers 1 --report-parent /已有输出目录
+```
+
+首条 JSON 返回 directory。该目录含 fixture.mjs、compiled/、
+source-fixture.mjs 和 source/；报告记录全部传递依赖及参考文件哈希。
+使用两份独立 Node 可执行文件运行对照，report 必须是尚不存在的目录：
+
+```sh
+/path/to/node22 host/scripts/compare-motion-runtimes.mjs \
+  --fixture /快照目录/fixture.mjs --execution compiled \
+  --first /path/to/node22 --second /path/to/node26 \
+  --pairs 64 --report /已有输出目录/compiled-comparison
+/path/to/node22 host/scripts/compare-motion-runtimes.mjs \
+  --fixture /快照目录/source-fixture.mjs --execution source \
+  --first /path/to/node22 --second /path/to/node26 \
+  --pairs 64 --report /已有输出目录/source-comparison
+```
+
+每对交替执行顺序，一次只运行一个子进程，最多 64 对；首次异常停止。
+子进程使用精简环境，必须退出 0 且完整输出数值验证标记，空输出不通过。
+报告逐项保存结果，结束时再校验所有输入和二进制哈希。不同模式是
+独立采样，不把两组之间的差异直接归因为编译器问题。
+
+本机已完成上述两组对照，历史失败仍开放。既有独立运行器 CI 尚未推送
+执行，当前没有独立机器上的验证证据；Node 22 只是对照，不是目标运行时。

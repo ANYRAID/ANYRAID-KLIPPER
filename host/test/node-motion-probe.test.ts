@@ -7,6 +7,16 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 const cli=fileURLToPath(new URL('../scripts/diagnose-node-asan.ts',import.meta.url));
+test('compiled probe also freezes a complete source control for runtime comparisons',()=>{
+ const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--execution','compiled','--runs','1','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2});
+ const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert(first,run.stderr);const {directory}=JSON.parse(first);
+ try{
+  assert.equal(run.status,0,run.stderr+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.state,'completed');
+  assert(report.compiledHashes['src/diagnostics/graphstats.js']);assert(report.frozenSourceHashes['src/diagnostics/graphstats.ts']);assert(report.compiledHashes['contracts/motion-retirement.json']);assert(report.frozenSourceHashes['contracts/motion-retirement.json']);
+  assert.equal(report.sourceFixture.sha256,createHash('sha256').update(readFileSync(report.sourceFixture.path)).digest('hex'));
+  const source=spawnSync(process.execPath,['--experimental-strip-types',report.sourceFixture.path],{encoding:'utf8',timeout:15000});assert.equal(source.status,0,source.stderr);assert.equal(source.stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');
+ }finally{rmSync(directory,{recursive:true,force:true});}
+});
 test('motion runtime probe verifies original reference in bounded fresh Node children and records source hashes',()=>{
  const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--runs','2','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2,env:{...process.env,CC:'/nonexistent-compiler'}});
  const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert.ok(first,run.stderr);const {directory}=JSON.parse(first);
