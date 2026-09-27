@@ -41,3 +41,18 @@ for(const initial of ['triggered','sampling'] as const)test(`owned probe rejects
   assert(!output.some(m=>m.name==='queue_step'));assert.equal(t.port.status.failed,true);assert.equal(t.kinematics.status.homedAxes,'');
  }finally{await t.close();}
 });
+test('native sample session retains exclusive ownership across retract and second seek',async()=>{
+ const t=await nativeLinearFixture(),s=new AbortController().signal;let hits=0,retracted=false,motionAtHit=0;const handled=new Set<unknown>();
+ const timer=setInterval(()=>{
+  if(hits===1&&!retracted){if(t.f.fw.outputs.findLastIndex(m=>m.name==='reset_step_clock')>t.f.fw.outputs.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0)&&t.f.fw.motion.length>motionAtHit){retracted=true;t.f.fw.setTriggerReason(2,8);t.f.fw.setStepperPosition(2,185);}}
+  const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0&&!handled.has(m));if(!arm)return;
+  const hit=Number(arm.parameters.clock)+50000;if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(hit+1000))return;
+  handled.add(arm);hits++;motionAtHit=t.f.fw.motion.length;t.f.fw.setTriggerReason(1,8);t.f.fw.setStepperPosition(2,hits===1?-15:170);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:hit});
+ },1);
+ try{
+  t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);
+  const running=t.port.probeConfiguredSamples(0,5,{samples:2,retractDistance:2,liftSpeed:5,tolerance:10,retries:0,result:'average'},s);
+  assert.throws(()=>t.port.move([50,0,2,2],5),/busy/);
+  const result=await running;assert.equal(hits,2);assert.equal(result.samples.length,2);assert.equal(result.attempts,2);assert.equal(t.port.status.failed,false);assert.equal(t.kinematics.status.homedAxes,'xyz');
+ }finally{clearInterval(timer);await t.close();}
+});

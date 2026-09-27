@@ -23,7 +23,7 @@ export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false
   if(filtered){generation.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});generation.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
   const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
   const reader=linearMotionReader(Object.fromEntries(['stepper_x','stepper_y','stepper_z'].map(name=>[name,{homing_retract_dist:String(retractDistance)}])));
-  const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{generation,emitters:f.emitters,kinematicIds:['x','y','z'],groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
+  const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{generation,emitters:f.emitters,kinematicIds:['x','y','z'],probeGroups:groups,groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
   const coordinates=new GCodeMove(port);
   const command=new LinearHomingCommand(kinematics,coordinates,port,rails,5000);
   return {f,generation,groups,port,kinematics,coordinates,command,fan,timeline,async close(){await port.dispose();await f.close();await timeline?.stop();}};

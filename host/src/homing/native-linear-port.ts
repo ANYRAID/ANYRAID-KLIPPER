@@ -1,3 +1,4 @@
+import {collectProbeSamples,type ProbeSamples} from './probe-samples.ts';
 import {nativeBedMeshStatus} from '../runtime/native-bed-mesh-status.ts';
 import {BedMesh} from '../motion/bed-mesh.ts';
 import type {BedMeshFadeConfig} from '../motion/bed-mesh-fade.ts';
@@ -330,7 +331,19 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  probeZ(z:number,speed:number,groups:LinearSeekOptions['groups'],signal:AbortSignal){
   const owned=groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}));
-  return this.#operate('seek',signal,async s=>{
+  return this.#operate('seek',signal,s=>this.#probeZ(z,speed,owned,s));
+ }
+ probeConfiguredSamples(z:number,speed:number,options:ProbeSamples,signal:AbortSignal){
+  const policy={...options};
+  return this.#operate('probe-samples',signal,s=>{
+   if(!this.#o.probeGroups)throw new Error('No configured probe');
+   return collectProbeSamples(policy,()=>this.#probeZ(z,speed,this.#o.probeGroups!,s),async(target,liftSpeed)=>{
+    const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,liftSpeed,2,s);this.#check(s);
+    const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
+   },s);
+  });
+ }
+ async #probeZ(z:number,speed:number,owned:LinearSeekOptions['groups'],s:AbortSignal){
    if(this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Probe requires all axes homed');
    const start=this.homingPosition(),target=[...start];target[2]=z;
    if(!Number.isFinite(z)||z>=start[2])throw new RangeError('Probe target must be below the physical start');
@@ -348,7 +361,6 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    await this.#rebase(start,s);
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe'}).run(target,speed,2,s);
    try{this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}
-  });
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{

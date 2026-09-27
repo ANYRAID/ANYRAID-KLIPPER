@@ -1,0 +1,48 @@
+{
+  "base": "3d424173",
+  "tests": 14,
+  "typecheck": true,
+  "whitespace": true,
+  "reduction": {
+    "node": "v26.9.0",
+    "sessionsPerRound": 10000,
+    "samplesPerSession": 3,
+    "medianMs": 27.374581999999975,
+    "p95Ms": 29.845208999999983,
+    "scope": "Sampling policy/reduction only; no MCU movement or transport."
+  },
+  "native": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samples": 11,
+    "home": {
+      "wall": {
+        "medianMs": 253.852515999999,
+        "p95Ms": 255.07836599999973
+      },
+      "cpu": {
+        "medianMs": 8.592,
+        "p95Ms": 22.652
+      }
+    },
+    "probe": {
+      "wall": {
+        "medianMs": 253.86075300000084,
+        "p95Ms": 257.31094099999973
+      },
+      "cpu": {
+        "medianMs": 8.638,
+        "p95Ms": 23.941
+      }
+    },
+    "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+  },
+  "limitations": [
+    "Simulated MCU only. Repeated native test verifies ownership and motion lifecycle with loose tolerance, not bed accuracy.",
+    "Configuration sampling parameters, offsets and public maintenance operation remain unconnected.",
+    "Compiled product acceptance not rerun for this internal sampling API.",
+    "Fixture initially retained hit reason and updated retract counters too early; correction waits for reset_step_clock after hit before simulating retract. Production stop/clock validation unchanged.",
+    "Initial equal-value mean drift fixed by reference-relative compensated summation; exact equality benchmark now passes.",
+    "Historical precision anomalies and crashes remain unresolved."
+  ]
+}
