@@ -1,3 +1,4 @@
+import type {PlannedQueue} from './planned-queue.ts';
 import {readPrintClock,type PrintClockTimeline} from '../timing/print-clock-timeline.ts';
 import {snapshotPrintClock} from '../timing/print-clock.ts';
 import {performance} from 'node:perf_hooks';
@@ -33,7 +34,7 @@ export class CoordinatedMotionDrain {
  schedulePressureBoundaries(changes:readonly TimedPressureBoundary[]):void{if(this.#busy)throw new Error('Motion drain already active');this.#group.assertActive();this.#coordinator.schedulePressureBoundaries(changes);}
  pressureBoundaryPrefix(changes:readonly TimedPressureBoundary[]):number{if(this.#busy)throw new Error('Motion drain already active');this.#group.assertActive();return this.#coordinator.pressureBoundaryPrefix(changes);}
  async stop(cause:unknown):Promise<void>{const results=await Promise.allSettled([this.#coordinator.shutdown(cause),this.#group.stop(cause)]);const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Motion source stop failed');}
- async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[],signal:AbortSignal,timeoutMs=30000,beforeReplace?:(signal:AbortSignal)=>Promise<void>):Promise<number>{
+ async replaceFuture(time:number,moves:readonly Move[],routes:readonly PlannedQueue[],position:readonly number[],signal:AbortSignal,timeoutMs=30000,beforeReplace?:(signal:AbortSignal)=>Promise<void>):Promise<number>{
   return this.#operate(signal,timeoutMs,async({run,check,combined})=>{if(beforeReplace){await run(beforeReplace(combined));check();}const end=await run(this.#coordinator.replaceFuture(time,moves,routes,position));check();return end;});
  }
  async advanceIdleSource(sourceUntil:number,signal:AbortSignal,timeoutMs=30000):Promise<boolean>{

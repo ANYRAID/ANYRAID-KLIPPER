@@ -18,7 +18,8 @@ const ownMove=(m:Move):MotionSnapshot=>({
 });
 /** Append can retry after flushing; terminal drain errors still stop devices. */
 export class MotionSourceCapacityError extends RangeError {}
-export interface PlannedQueue {queue:TrapQueue;extrusionAxis?:number}
+export type {PlannedQueue} from './planned-queue.ts';
+import {plannedQueuePosition,type PlannedQueue} from './planned-queue.ts';
 export interface SourceBoundaryOutput {
  deliver(boundaries:readonly {id:number;time:number}[],horizon:number,signal:AbortSignal):Promise<void>;
  invalidateAfter(time:number):void;
@@ -45,9 +46,9 @@ export class PlannedMotionSource {
   this.#starts=new Float64Array(maxBufferedMoves);this.#moves=new Array(maxBufferedMoves);
   if(!Number.isFinite(startTime)||startTime<0||startTime>=1e15||!Array.isArray(position)||position.length<4||!position.every(Number.isFinite)||!drain.usesQueues(routes.map(r=>r.queue)))throw new RangeError('Invalid planned source ownership or baseline');
   const axes=new Set<number>();let xyz=0;
-  for(const r of routes){if(r.extrusionAxis===undefined)xyz++;else if(!Number.isInteger(r.extrusionAxis)||r.extrusionAxis<3||r.extrusionAxis>=position.length||axes.has(r.extrusionAxis))throw new RangeError('Invalid planned source extrusion route');else axes.add(r.extrusionAxis);}
+  for(const r of routes){if(r.stationaryPosition!==undefined){if(r.extrusionAxis!==undefined||!Array.isArray(r.stationaryPosition)||r.stationaryPosition.length!==3||!r.stationaryPosition.every(Number.isFinite))throw new RangeError('Invalid stationary source route');}else if(r.extrusionAxis===undefined)xyz++;else if(!Number.isInteger(r.extrusionAxis)||r.extrusionAxis<3||r.extrusionAxis>=position.length||axes.has(r.extrusionAxis))throw new RangeError('Invalid planned source extrusion route');else axes.add(r.extrusionAxis);}
   if(xyz!==1||axes.size!==position.length-3)throw new RangeError('Planned source requires XYZ and every extra axis');
-  this.#routes=routes.map(r=>({...r}));this.#drain=drain;this.#time=startTime;this.#position=[...position];
+  this.#routes=routes.map(r=>({...r,stationaryPosition:r.stationaryPosition?Object.freeze([...r.stationaryPosition]) as readonly [number,number,number]:undefined}));this.#drain=drain;this.#time=startTime;this.#position=[...position];
   this.#output=output;if(output){this.#deliver=(horizon,signal)=>output.deliver(this.#schedule(),horizon,signal);
    // A one-slot output FIFO may withhold ACK until its preceding MCU tick.
    // Keep 100 ms of already committed motion beyond rolling output delivery;
@@ -128,14 +129,14 @@ export class PlannedMotionSource {
  #seed():void{
   const from=this.#seeded?this.#idleFrom:this.#drain.generatedTime;if(from===undefined)return;
   if(!Number.isFinite(from)||from>this.#time)throw new RangeError('Invalid source generation baseline');
-  if(from<this.#time)for(const r of this.#routes){const p=r.extrusionAxis===undefined?this.#position.slice(0,3):[this.#position[r.extrusionAxis],0,0];r.queue.appendRaw(stationaryRows(from,this.#time,p));}
+  if(from<this.#time)for(const r of this.#routes){const p=plannedQueuePosition(r,this.#position);r.queue.appendRaw(stationaryRows(from,this.#time,p));}
   if(this.#idleMarkers.length){this.#stationary.push(...this.#idleMarkers.map(id=>({id,time:this.#time})));this.#idleMarkers=[];}
   if(this.#idlePressure.length){this.#drain.schedulePressureBoundaries(this.#idlePressure.map(c=>({...c,time:this.#time})));this.#idlePressure=[];}
   this.#seeded=true;this.#idleFrom=undefined;
  }
  #append(moves:readonly Move[]):void{
   const {position,time}=this.#validate(moves,true),owned=moves.map(ownMove),pressure=moves.some(m=>m.pressureBoundaries?.length)?pressureBoundarySchedule(moves,this.#time):[];this.#seed();
-  for(const r of this.#routes){const end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
+  for(const r of this.#routes){let end:number;if(r.stationaryPosition){if(time>this.#time)r.queue.appendRaw(stationaryRows(this.#time,time,r.stationaryPosition));end=time;}else end=r.queue.appendPlanned(moves,this.#time,r.extrusionAxis,true);if(end!==time)throw new Error('Planned queue timelines differ');}
   if(pressure.length)this.#drain.schedulePressureBoundaries(pressure);
   let start=this.#time;for(let i=0;i<owned.length;i++){const slot=(this.#head+this.#count+i)%this.#ends.length;this.#moves[slot]=owned[i];this.#starts[slot]=start;start=this.#ends[slot];}
   this.#position=[...position];this.#time=time;this.#count+=moves.length;if(moves.length){this.#endVelocity=moves.at(-1)!.profile!.endV;this.#dwellEnd=moves.at(-1)!.dwellSeconds!==undefined;}
@@ -227,7 +228,7 @@ export class PlannedMotionSource {
   this.#busy=true;
   try{
    this.#seed();
-   const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
+   const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,plannedQueuePosition(r,this.#position)]));
    const deliver=afterCommit?async(horizon:number,s:AbortSignal)=>{const result:unknown=afterCommit();if(result!==undefined){if(isPromise(result))void result.catch(()=>{});throw new Error('Pressure window observer must be synchronous');}if(!paused)await this.#deliverRolling?.(horizon,s);}:paused?undefined:this.#deliverRolling;
    // Reserve the maximum supported window once per stationary generation.
    // Slider updates can then reuse this boundary without pushing resume ahead.
@@ -258,7 +259,7 @@ export class PlannedMotionSource {
      const count=Math.min(available,owned.length-offset);this.#append(owned.slice(offset,offset+count));offset+=count;remaining();
     }
    }
-   const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,r.extrusionAxis===undefined?[this.#position[0],this.#position[1],this.#position[2]]:[this.#position[r.extrusionAxis],0,0]]));
+   const positions=new Map<TrapQueue,readonly [number,number,number]>(this.#routes.map(r=>[r.queue,plannedQueuePosition(r,this.#position)]));
    const result=await this.#drain.drain(this.#time,positions,signal,remaining(),this.#deliverFinal);remaining();this.#time=result.sourceUntil;this.#paused=true;this.#endVelocity=0;this.#dwellEnd=false;this.#braking=false;this.#release();
   }catch(error){await this.#stop(error);throw this.#fault;}
   finally{this.#busy=false;}

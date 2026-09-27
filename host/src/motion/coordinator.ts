@@ -1,3 +1,4 @@
+import {plannedQueuePosition,type PlannedQueue} from './planned-queue.ts';
 import {MotionRetiredError,observeRetirement} from './retired.ts';
 import {PrintClockTimeline,type ClockHistoryLease} from '../timing/print-clock-timeline.ts';
 import type {StepCompressor,CompressedSteps} from './step-compressor.ts';
@@ -120,7 +121,7 @@ export class MotionCoordinator {
  }
  /** Fenced source-owner transaction. No generation or packet submission can
   * interleave. A partial native rewrite is terminal, never a recoverable retry. */
- async replaceFuture(time:number,moves:readonly Move[],routes:readonly {queue:TrapQueue;extrusionAxis?:number}[],position:readonly number[]):Promise<number>{
+ async replaceFuture(time:number,moves:readonly Move[],routes:readonly PlannedQueue[],position:readonly number[]):Promise<number>{
   if(this.#retired||this.#failed||this.#busy||this.#bounded)throw new Error('Motion coordinator cannot replace future');
   if(!this.usesQueues(routes.map(r=>r.queue))||!Number.isFinite(time)||time>=1e15||position.length<4||!position.every(Number.isFinite))throw new RangeError('Invalid future replacement ownership');
   this.#beginWork();this.#busy=true;
@@ -133,8 +134,9 @@ export class MotionCoordinator {
    for(const b of this.#bindings)if(b.stepper.pressureAdvanceEnabled)b.stepper.cancelPressureAdvanceAfter(time);
    let end:number|undefined;
    for(const r of routes){
-    let next:number;if(moves.length)next=r.queue.replaceFuturePlanned(moves,time,r.extrusionAxis,true);
-    else{const p=r.extrusionAxis===undefined?position.slice(0,3):[position[r.extrusionAxis],0,0];next=time+.001;r.queue.replaceFutureRaw(time,new Float64Array([time,0,next-time,0,...p,0,0,0,0,0,0]));}
+    let next:number;if(r.stationaryPosition){next=time;for(const m of moves){const p=m.profile!;next=((next+p.accelT)+p.cruiseT)+p.decelT;}if(!moves.length)next=time+.001;r.queue.replaceFutureRaw(time,stationaryRows(time,next,r.stationaryPosition));}
+    else if(moves.length)next=r.queue.replaceFuturePlanned(moves,time,r.extrusionAxis,true);
+    else{const p=plannedQueuePosition(r,position);next=time+.001;r.queue.replaceFutureRaw(time,new Float64Array([time,0,next-time,0,...p,0,0,0,0,0,0]));}
     if(end!==undefined&&next!==end)throw new Error('Replaced queue timelines differ');end=next;
    }
    for(const guard of this.#guards)guard.assertActive();if(this.#failed)throw this.#fault;

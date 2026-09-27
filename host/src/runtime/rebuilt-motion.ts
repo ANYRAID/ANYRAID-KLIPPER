@@ -1,3 +1,4 @@
+import {plannedQueuePosition} from '../motion/planned-queue.ts';
 import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
 import {SecondarySync} from '../timing/secondary-sync.ts';
 import {CalibrationCadence} from '../timing/calibration-cadence.ts';
@@ -64,7 +65,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
   });
   const clockMembers=Object.freeze([...members.map((m,i)=>Object.freeze({mcu:routes[i],timeline:timelineFor(routes[i]),session:m.session,stepper:timelineFor(routes[i])?readPrintClock(grouped[i][0].stepper.calibration,timelineFor(routes[i])):grouped[i][0].stepper,calibration:()=>grouped[i][0].stepper.calibration})),...auxiliaryMCUs.map(a=>Object.freeze({mcu:a.id,timeline:a.timeline,session:group.session(a.id),stepper:readPrintClock(a.calibration,a.timeline),calibration:()=>a.calibration}))]);
   if(o.routes.length!==motion.queues.length||new Set(o.routes.map(r=>r.queue)).size!==o.routes.length)throw new Error('Rebuilt source queue coverage differs');
-  for(const r of o.routes){const q=motion.queues.find(q=>q.queue===r.queue),p=r.extrusionAxis===undefined?o.position.slice(0,3):[o.position[r.extrusionAxis],0,0];if(!q||q.position.some((v,i)=>v!==p[i]))throw new Error('Rebuilt source coordinate differs from recovery');}
+  for(const r of o.routes){const q=motion.queues.find(q=>q.queue===r.queue),p=plannedQueuePosition(r,o.position);if(!q||q.position.some((v,i)=>v!==p[i]))throw new Error('Rebuilt source coordinate differs from recovery');}
   const calibrations=bindings.map(b=>b.stepper.calibration);
   const assertClockCalibration=()=>{group.assertActive();for(const [i,b] of bindings.entries()){const current=b.stepper.calibration,saved=timelineFor(routes[b.member])?.status.calibration??calibrations[i];if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Motion clock calibration changed outside shared timeline');}};
   const assertMotorCalibration=()=>{if(!o.motorEnable)return;assertClockCalibration();o.motorEnable.assertBindings(group,bindings.map(b=>({id:b.id,mcu:routes[b.member],calibration:b.stepper.calibration})),bindings[0].stepper.generatedTime);};
