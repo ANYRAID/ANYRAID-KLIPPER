@@ -38,3 +38,15 @@ test('endpoint failure from a real native probe fences both owners',async()=>{
   assert(t.port.status.failed);assert(gate.status.closed);assert.equal(t.kinematics.status.homedAxes,'');
  }finally{await close();await t.close();}
 });
+test('homing and probe share the same maintenance lock and reject client axes',async()=>{
+ const registry=new EndpointRegistry(new JsonRpcDispatcher()),gate=new MaintenanceGate(),pending=Promise.withResolvers<any>();let homed=false;
+ const closeHome=registerNativeProbe(registry,gate,{idle:()=>true,measure:async()=>{await pending.promise;homed=true;return {homed_axes:'xyz'};},synchronize:()=>{}},'home');
+ const closeProbe=registerNativeProbe(registry,gate,{idle:()=>true,measure:async()=>({}),synchronize:()=>{}});
+ try{
+  const hs=await registry.invoke('/printer/calibration/home','GET',{},context) as any,ps=await registry.invoke('/printer/calibration/probe','GET',{},context) as any;
+  await assert.rejects(registry.invoke('/printer/calibration/home','POST',{version:1,state_token:hs.state_token,axes:'x'},context),/Expected/);
+  const running=registry.invoke('/printer/calibration/home','POST',{version:1,state_token:hs.state_token},context);await Promise.resolve();
+  await assert.rejects(registry.invoke('/printer/calibration/probe','POST',{version:1,state_token:ps.state_token},context),/activity/);assert.throws(()=>gate.activity());
+  pending.resolve({});await running;assert(homed);assert(!gate.status.maintenance);
+ }finally{pending.resolve({});await closeHome();await closeProbe();}
+});

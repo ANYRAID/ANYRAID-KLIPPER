@@ -2,9 +2,9 @@ import {randomUUID} from 'node:crypto';
 import {ApiError,type Json} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
-/** One typed single-point measurement at current XY; no script or motion target
- * accepted from clients. The machine supplies the configured Z search limit. */
-export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void},kind:'probe'|'bed_mesh'='probe'){
+/** Typed homing/probe/grid maintenance; no client script or motion target.
+ * The product supplies configured geometry and the native operation owner. */
+export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<Json>;synchronize():void},kind:'probe'|'bed_mesh'|'home'='probe'){
  let token=randomUUID(),state:'ready'|'measuring'|'failed'='ready',closed=false;
  let last:{token:string;receipt:Json}|undefined,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();
@@ -15,13 +15,13 @@ export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGa
   if(closed)throw new ApiError(503,'Probe owner closed');
   if(last?.token===params.state_token)return structuredClone(last.receipt);
   if(params.state_token!==token)throw new ApiError(409,'Stale probe state token');
-  if(state!=='ready'||!motion.idle())throw new ApiError(409,'Probe requires an idle homed printer');
+  if(state!=='ready'||!motion.idle())throw new ApiError(409,kind==='home'?'Homing requires an idle printer':'Probe requires an idle homed printer');
   let release:()=>void;try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks probe');}
   state='measuring';const consumed=token,deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new Error('Probe deadline exceeded')),120000),signal=AbortSignal.any([context.signal,lifetime.signal,deadline.signal]);
   pending=(async()=>{try{
    signal.throwIfAborted();const result=await motion.measure(signal);signal.throwIfAborted();motion.synchronize();
    token=randomUUID();state='ready';const receipt={...snapshot(),result};last={token:consumed,receipt:structuredClone(receipt)};return receipt;
-  }catch{state='failed';gate.invalidate();throw new ApiError(503,'Probe failed; reinitialize before further motion');}
+  }catch{state='failed';gate.invalidate();throw new ApiError(503,kind==='home'?'Homing failed; reinitialize before further motion':'Probe failed; reinitialize before further motion');}
   finally{clearTimeout(timer);release();}})();
   try{return await pending;}finally{pending=undefined;}
  })];
