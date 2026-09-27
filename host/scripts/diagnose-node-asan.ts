@@ -50,8 +50,13 @@ const profile={order:4,jerkLimit:true},reference=motionGraphReference('weighted4
 console.log('motion:loaded');
 for(let run=0;run<16;run++){
  const positions=motionPositions(profile);assert.equal(positions.length,reference.positions.length);
- positions.forEach((v,i)=>assert.ok(Math.abs(v-reference.positions[i])<=1e-12));
- const panels=motionPlots('weighted4',undefined,profile);assert.equal(panels.length,reference.panels.length);
+ positions.forEach((v,i)=>{if(!(Math.abs(v-reference.positions[i])<=1e-12)){
+  const capture=new URL('motion-mismatch-'+process.pid+'-'+run+'.bin',import.meta.url);
+  writeFileSync(capture,serialize({version:2,kind:'positions',run,index:i,positions,reference}),{flag:'wx',mode:0o600,flush:true});
+  const repeated=motionPositions(profile);writeFileSync(new URL(capture.href+'.repeat'),serialize({positions:repeated}),{flag:'wx',mode:0o600,flush:true});
+  throw new Error('Motion position mismatch '+JSON.stringify({run,index:i,actual:v,expected:reference.positions[i],repeated:repeated[i],capture:capture.href}));
+ }});
+ let stages;const panels=motionPlots('weighted4',undefined,profile,value=>{stages=value;});assert.equal(panels.length,reference.panels.length);
  panels.forEach((p,i)=>{const r=reference.panels[i];assert.equal(p.plot.curves.length,r.curves.length);p.plot.curves.forEach((c,j)=>{
   const expected=r.curves[j];assert.deepEqual(c.times,expected.times);assert.equal(c.values.length,expected.values.length);
   c.values.forEach((v,k)=>{if(!(Math.abs(v-expected.values[k])<=[1e-8,1e-4,1e-10][i])){
@@ -59,7 +64,7 @@ for(let run=0;run<16;run++){
    // never replace the arrays that actually failed. V8 serialization retains
    // non-finite numbers and negative zero, which JSON would discard.
    const capture=new URL('motion-mismatch-'+process.pid+'-'+run+'.bin',import.meta.url);
-   writeFileSync(capture,serialize({version:1,run,panel:i,curve:j,index:k,positions,panels,reference}),{flag:'wx',mode:0o600,flush:true});
+   writeFileSync(capture,serialize({version:2,run,panel:i,curve:j,index:k,positions,stages,panels,reference}),{flag:'wx',mode:0o600,flush:true});
    const repeatedPanels=motionPlots('weighted4',undefined,profile);
    const repeated=repeatedPanels[i].plot.curves[j].values[k];
    writeFileSync(new URL(capture.href+'.repeat'),serialize({positions:motionPositions(profile),panels:repeatedPanels}),{flag:'wx',mode:0o600,flush:true});

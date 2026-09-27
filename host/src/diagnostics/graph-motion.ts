@@ -24,10 +24,12 @@ export function motionPositions(options:MotionProfileOptions={}):number[]{
  }return out;
 }
 function spring(input:number[]):number[]{const omega2=(35*2*Math.PI)**2,damping=4*Math.PI*.05*35;let position=0,velocity=0;return input.map(stepper=>{position+=velocity*dt;const a=(stepper-position)*omega2;velocity+=a*dt;velocity-=velocity*damping*dt;return position;});}
-export function motionPlots(filter?:MotionFilter,smoothTime?:number,profile:MotionProfileOptions={}):StatsPanel[]{
+export interface MotionPlotStages {nominal:number[];updated:number[];head:number[];newHead:number[];velocity:number[][];acceleration:number[][];}
+export function motionPlots(filter?:MotionFilter,smoothTime?:number,profile:MotionProfileOptions={},capture?:(stages:MotionPlotStages)=>void):StatsPanel[]{
  if(filter&&profile.legacyShaper!==undefined)throw new RangeError('Choose a filter or legacy shaper');
  const nominal=motionPositions(profile),updated=filter?filterMotion(nominal,filter,smoothTime):applyLegacyMotionShaper(nominal,profile.legacyShaper),head=spring(nominal),newHead=spring(updated),velocity=[updated,nominal,head,newHead].map(derivative),acceleration=velocity.map(derivative),deviation=[newHead.map((v,i)=>v-nominal[i]),head.map((v,i)=>v-nominal[i])],keep=nominal.length-1000,times=Array.from({length:keep},(_,i)=>dt*i),xAxis={label:'Time (s)',format:'number' as const};
  const panel=(title:string,axis:string,labels:string[],values:number[][]):StatsPanel=>({xAxis,plot:{title,axes:[axis],curves:values.map((v,i)=>({label:labels[i],axis:0,style:'line',times:[...times],values:v.slice(0,keep)}))}});
+ capture?.({nominal,updated,head,newHead,velocity,acceleration});
  const profileLabel=`Order ${profile.order??2}${profile.jerkLimit?' / jerk limit':''}${filter?'':' / '+(profile.legacyShaper??'ei')}`;
  const accelerationPanel=panel(profileLabel+' acceleration','Acceleration (mm/s^2)',['New Accel','Nominal Accel','Head Accel','New Head Accel'],acceleration);accelerationPanel.yRanges=[[-5*accel,5*accel]];
  return [panel(filter?`Filter ${filter}: resonance 35 Hz / damping 0.05; configured 40 Hz / 0.1`:'Simulation: resonance 35 Hz / damping 0.05; configured 40 Hz / 0.1','Velocity (mm/s)',['New Velocity','Nominal Velocity','Head Velocity','New Head Velocity'],velocity),accelerationPanel,panel('Spring deviation','Deviation (mm)',['New','Nominal'],deviation)];

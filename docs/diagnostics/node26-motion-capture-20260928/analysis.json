@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "base": "8565dff5",
+  "files": [
+    {
+      "file": "motion-mismatch-340545-6.bin.gz",
+      "rawBytes": 3365916,
+      "rawSHA256": "198a0c2e93ca49d8918785e3ce0b1ff3b88c186352491cfb6f5046b9ee71f0ba",
+      "compressedBytes": 1759435,
+      "compressedSHA256": "b303d8f06d819495fbee18a6e68f84bd695823479b31628529d53b5d249462e9"
+    },
+    {
+      "file": "motion-mismatch-340545-6.bin.repeat.gz",
+      "rawBytes": 2139444,
+      "rawSHA256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617",
+      "compressedBytes": 1031536,
+      "compressedSHA256": "eb544ce99774aaede1629f4e8c54dc482fe1c25938154e8cf0720a75ace81863"
+    }
+  ],
+  "reportSHA256": "57edaa4078bfab32dab25311d7535e9b06984c8659602ad7b556e21e87c660bd",
+  "runs": 52,
+  "failedChild": 48,
+  "capturedRun": 6,
+  "positionsMatchRepeat": true,
+  "differences": [
+    {
+      "panel": 0,
+      "curve": 1,
+      "index": 10857,
+      "actual": 0.0005960464477539062,
+      "repeat": 0,
+      "delta": 0.0005960464477539062
+    },
+    {
+      "panel": 1,
+      "curve": 1,
+      "index": 10857,
+      "actual": 5.9604644775390625,
+      "repeat": 0,
+      "delta": 5.9604644775390625
+    },
+    {
+      "panel": 1,
+      "curve": 1,
+      "index": 10858,
+      "actual": -5.9604644775390625,
+      "repeat": 0,
+      "delta": -5.9604644775390625
+    }
+  ],
+  "interpretation": "One captured nominal velocity spike propagates to two acceleration spikes. Recalculation succeeds; original result remains invalid.",
+  "limitations": [
+    "Stored positions were computed separately from motionPlots inputs. Exact derivative operands were not captured.",
+    "No root cause established. No claim of hardware fault, V8 defect, or safe production execution."
+  ]
+}
