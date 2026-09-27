@@ -1,0 +1,28 @@
+{
+  "scope": "Skew correction calculation only; no print-path integration or Python retirement",
+  "node": "26.9.0",
+  "tests": 2,
+  "reference": "skew-reference.json",
+  "checks": [
+    "256 original Python forward and inverse coordinate results match exactly",
+    "Round-trip absolute error at tested printer coordinates is at most 2e-13 mm",
+    "Measured factors match Python within 2e-14 times max(1, absolute factor)",
+    "Measurement normalization accepts finite lengths scaled by 1e-200 and 1e200",
+    "Invalid and degenerate geometry, nonfinite input and output overflow are rejected"
+  ],
+  "benchmark": {
+    "iterations": 100000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 2.5827930000000094,
+    "nodeMaxMs": 3.456534000000005,
+    "historicalPythonMedianMs": 38.95295199981774,
+    "historicalPythonMaxMs": 39.10610400271253,
+    "checksum": 23039410.18221976
+  },
+  "limitations": [
+    "Planner integration, settings and persistence remain incomplete",
+    "No target hardware or printer throughput evidence",
+    "Historical runtime crashes and motion numerical mismatches remain unresolved"
+  ]
+}
