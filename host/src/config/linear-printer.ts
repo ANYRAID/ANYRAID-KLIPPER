@@ -32,13 +32,19 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
    const mcus=[...new Set(group.emitters.map(id=>owner.get(id)!))];homingLayout.push({section:group.section,mcus});return group;
   });
  });
+ const probe=reader.hasSection('probe')?[{section:'probe',emitters:ids}]:undefined;
+ if(probe){
+  const gpio=pins.parse(reader.section('probe').get('pin'),{canInvert:true,canPullup:true}).chipName;
+  if(!motors.some(m=>m.axis<3&&owner.get(m.emitter)===gpio))throw new Error('Probe GPIO requires a kinematic motor on its MCU');
+  homingLayout.push({section:'probe',mcus:[...new Set(owner.values())]});
+ }
  const fans=sections.filter(n=>n==='fan'||n.startsWith('fan_generic ')).map(section=>({section,minimumScheduleTime:policy.fanMinimumScheduleTime}));
  const heaters=sections.filter(n=>n==='extruder'||n==='heater_bed'||n.startsWith('heater_generic ')).map(section=>({section}));
  // Canonical nozzle/bed ordering is independent of source section ordering.
  heaters.sort((a,b)=>a.section==='extruder'?-1:b.section==='extruder'?1:a.section==='heater_bed'?-1:b.section==='heater_bed'?1:a.section.localeCompare(b.section));
  const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode}));
- const linear:ConfiguredLinearHoming={kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
+ const linear:ConfiguredLinearHoming={...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
  const initial:InitialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})};
  return {layout,motion,linear,initial};
 }

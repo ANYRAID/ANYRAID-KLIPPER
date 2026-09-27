@@ -19,7 +19,7 @@ export function compileConfiguredHoming<T>(reader:ConfigurationReader,pins:Print
  const maps=new Map<string,PhysicalPinMap>(),oids:MCUOidRequest[]=[];
  const getMCU=(name:string)=>{const mcu=mcus.get(name);if(!mcu||pins.chip(name)!==mcu.chip)throw new Error('Homing MCU ownership differs');return mcu;};
  const entries=requests.map(request=>{
-  const description=reader.section(request.section).get('endstop_pin'),pin=pins.parse(description,{canInvert:true,canPullup:true}),mcu=getMCU(pin.chipName),members=request.triggers.map(t=>({...t}));
+  const description=reader.section(request.section).get(request.section==='probe'?'pin':'endstop_pin'),pin=pins.parse(description,{canInvert:true,canPullup:true}),mcu=getMCU(pin.chipName),members=request.triggers.map(t=>({...t}));
   if(!members.length||members.length>16||new Set(members.map(t=>t.mcu)).size!==members.length||!members.some(t=>t.mcu===pin.chipName))throw new Error('Invalid homing trigger MCU membership');
   for(const t of members)getMCU(t.mcu);
   const resolver=pins.resolver(pin.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;

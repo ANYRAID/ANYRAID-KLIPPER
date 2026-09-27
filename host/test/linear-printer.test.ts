@@ -34,3 +34,20 @@ test('extra motors sharing an endstop remain owned in every homing axis',async()
   assert(plan.layout.homing.every(h=>h.mcus.includes('mcu')&&h.mcus.includes('aux')));
  }finally{await f.close();}
 });
+test('probe pin is independently allocated and wired into the native owner',async()=>{
+ const f=await configuredPrinterFixture();try{
+  const r=new ConfigurationReader(new ConfigurationSource('/probe.cfg',{...f.reader.source.original,probe:{pin:'^!PA13'}},[]),null),plan=planLinearPrinter(r,policy);
+  assert.deepEqual(plan.linear.probe,[{section:'probe',emitters:['x','y','z','e']}]);
+  const owner=await startClockedPrinter(r,f.group,'mcu',plan.layout,{...f.options,hardware:{...f.options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear},f.signal);
+  try{
+   const probe=owner.hardware.plan.homing.find(h=>h.section==='probe')!;assert(probe);assert.equal(probe.pin.invert,1);assert.equal(probe.pin.pullup,1);
+   assert(!owner.hardware.plan.homing.filter(h=>h.section!=='probe').some(h=>h.endstop.oid===probe.endstop.oid));
+   owner.linear.kinematics.markHomed([0,1,2]);await owner.linear.port.forcePosition([50,0,1,0],f.signal);
+   // Inverted input at raw zero is triggered. Verify the configured path queries
+   // this new OID and rejects before it can arm a downward seek.
+   const before=f.firmware[0].outputs.length;
+   await assert.rejects(owner.linear.port.probeConfiguredZ(0,5,f.signal),/already triggered/);
+   const output=f.firmware[0].outputs.slice(before);assert(output.some(m=>m.name==='endstop_query_state'&&m.parameters.oid===probe.endstop.oid));assert(!output.some(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0));
+  }finally{await owner.close();}
+ }finally{await f.close();}
+});

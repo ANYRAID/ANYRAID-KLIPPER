@@ -18,6 +18,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+ probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
@@ -46,7 +47,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
@@ -323,6 +324,10 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  /** Privileged probe owner supplies separately configured stop groups. Never
   * infer that a Z homing switch is a bed probe. Coordinates here are physical. */
+ probeConfiguredZ(z:number,speed:number,signal:AbortSignal){
+  if(!this.#o.probeGroups)return Promise.reject(new Error('No configured probe'));
+  return this.probeZ(z,speed,this.#o.probeGroups,signal);
+ }
  probeZ(z:number,speed:number,groups:LinearSeekOptions['groups'],signal:AbortSignal){
   const owned=groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}));
   return this.#operate('seek',signal,async s=>{

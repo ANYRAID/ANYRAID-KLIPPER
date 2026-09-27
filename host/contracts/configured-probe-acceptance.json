@@ -1,0 +1,43 @@
+{
+  "base": "02df6ad9",
+  "tests": {
+    "configuredAndNative": 25,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samples": 11,
+    "home": {
+      "wall": {
+        "medianMs": 253.84125999999924,
+        "p95Ms": 256.70711500000016
+      },
+      "cpu": {
+        "medianMs": 7.874,
+        "p95Ms": 12.209
+      }
+    },
+    "probe": {
+      "wall": {
+        "medianMs": 253.73987399999987,
+        "p95Ms": 257.7677939999994
+      },
+      "cpu": {
+        "medianMs": 8.361,
+        "p95Ms": 24.968
+      }
+    },
+    "scope": "Native owner drain/rebase and triggered Z seek with generation adoption; alternate explicit home rebase versus owned probe. Simulated MCU, fixture setup excluded."
+  },
+  "scope": "Optional probe pin allocation and complete stop-group binding to NativeLinearHomingPort.probeConfiguredZ. Inverted triggered input rejects on independently allocated OID. Existing native tests cover seek coordinates.",
+  "limitations": [
+    "Simulated MCU only. No physical printer acceptance.",
+    "Benchmark excludes machine startup and tests explicit probe groups; measures unchanged native probe path.",
+    "Full sampling settings, offsets and public calibration workflow remain incomplete.",
+    "Initial integration fixture lacked PA13; explicitly added spare pin to simulated firmware enumeration without changing production pin validation.",
+    "Historical numerical discrepancies and runtime crashes remain unresolved."
+  ]
+}

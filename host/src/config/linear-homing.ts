@@ -4,6 +4,7 @@ import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import type {HomingGroupConfig} from '../homing/group-plan.ts';
 export interface ConfiguredHomingGroup {section:string;emitters:readonly string[];expireTimeout?:number;}
 export interface ConfiguredLinearHoming {
+ probe?:readonly ConfiguredHomingGroup[];
  kinematicIds:ConfiguredLinearHardware['kinematicIds'];
  homing:readonly [readonly ConfiguredHomingGroup[],readonly ConfiguredHomingGroup[],readonly ConfiguredHomingGroup[]];
 }
@@ -14,7 +15,7 @@ export function compileLinearHoming(plan:ReturnType<typeof compileConfiguredHard
  if(request.homing.length!==3)throw new Error('Three configured homing axes required');
  const bindings=generation.motion.bindings,memberByMCU=new Map(plan.configurations.map(c=>[c.mcu,generation.members.findIndex(m=>m.session===c.session)]));
  if(request.kinematicIds.length!==3||new Set(request.kinematicIds).size!==3||request.kinematicIds.some(id=>!bindings.some(b=>b.id===id&&generation.routes.some(r=>r.queue===b.queue&&r.extrusionAxis===undefined))))throw new Error('Invalid configured homing rail representatives');
- const groupsByAxis=request.homing.map(groups=>{
+ const compileGroups=(groups:readonly ConfiguredHomingGroup[])=>{
   if(!groups.length||groups.length>16||new Set(groups.map(g=>g.section)).size!==groups.length)throw new Error('Invalid configured homing groups');
   const claimed=new Set<string>();
   const result=groups.map(g=>{
@@ -33,6 +34,7 @@ export function compileLinearHoming(plan:ReturnType<typeof compileConfiguredHard
   });
   if(claimed.size!==bindings.length)throw new Error('Configured homing omits motors');
   return Object.freeze(result);
- });
- return Object.freeze({kinematicIds:Object.freeze([...request.kinematicIds]) as ConfiguredLinearHardware['kinematicIds'],groupsByAxis:Object.freeze(groupsByAxis) as unknown as ConfiguredLinearHardware['groupsByAxis'],endstopNames:Object.freeze(request.homing.map(groups=>Object.freeze(groups.map(g=>g.section)))) as unknown as ConfiguredLinearHardware['endstopNames']});
+ };
+ const groupsByAxis=request.homing.map(compileGroups),probeGroups=request.probe?compileGroups(request.probe):undefined;
+ return Object.freeze({...(probeGroups?{probeGroups}:{}),kinematicIds:Object.freeze([...request.kinematicIds]) as ConfiguredLinearHardware['kinematicIds'],groupsByAxis:Object.freeze(groupsByAxis) as unknown as ConfiguredLinearHardware['groupsByAxis'],endstopNames:Object.freeze(request.homing.map(groups=>Object.freeze(groups.map(g=>g.section)))) as unknown as ConfiguredLinearHardware['endstopNames']});
 }
