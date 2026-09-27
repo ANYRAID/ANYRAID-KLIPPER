@@ -1,0 +1,48 @@
+{
+  "scope": "TMC5160 register/current model and native SPI initialization; not configured printer assembly",
+  "sha256": {
+    "host/src/drivers/tmc5160.ts": "13828e41f514a32a47b1c65cac4b9c3aba679e2d11d589d75c17eb34fc6e908d",
+    "host/src/drivers/tmc5160-current.ts": "9d9e040f76cd2133d310168f5fc45c454ee0ba538928af4be4b678f95aca3e25",
+    "host/test/tmc5160.test.ts": "8d1dfa690b8eef83a75f2a67cbf6d119a54d7300c09dab337345804428821e5b",
+    "host/test/tmc-spi-mcu.test.ts": "2a861d647e526b1619401d40630d93ec21c014134a4860b21b810fe72397ca1e",
+    "host/bench/tmc5160.ts": "da3f9523c3c337dd12f3078c983847cdbfd73e4ef13412b1d903c442d47be193",
+    "host/bench/tmc5160-current.ts": "aeb3b63bc53e4603e45abfba1f632b430264982164fae812c4639622c68e7136",
+    "host/contracts/tmc5160-reference.json": "a9594e520a8657e85392d40946a333842c04df8b430d17b1a317ea9b275f2712"
+  },
+  "tests": "✔ SPI compiler checks firmware bus names, mode three and CS inactive state (2.620394ms)\n✔ native SPI FIFO preserves pipeline, scheduled writes, chain positions and unsigned values (479.659299ms)\nℹ {\"scope\":\"Native SPI FIFO and simulated two-device pipeline, 20 warmups/100 reads, no electrical SPI timing\",\"medianMs\":0.16487199999994573,\"p95Ms\":0.22027300000002015,\"maxMs\":0.5841280000000779}\n✔ missing SPI query response cancels the session once without replaying preface (440.359397ms)\n✔ malformed SPI query response stops the MCU instead of trusting ACK (409.282254ms)\n✔ maximum chain falls back to ordered packets without exceeding MCU payload size (409.966703ms)\n✔ TMC2130 native startup and runtime current adjustment verify complete register values (418.738057ms)\n✔ TMC5160 native startup and runtime current adjustment verify complete register values (414.456031ms)\n✔ TMC2130 register ordering, signed SGT, wave tables and quantization match 256 original constructors (26.044539ms)\n✔ TMC2130 validates signed and full-width fields and preserves physical speed thresholds across microsteps (1.746563ms)\n✔ SPI initialization verifies every register before current owner can publish a change (0.704169ms)\n✔ adjacent Float64 threshold rounding and 20-bit clamping match original constructor (4.891014ms)\n✔ 5160 startup registers and current match 256 original constructors including unsigned protection fields (27.518818ms)\n✔ adjacent Float64 global-scale boundaries preserve the encoded zero-as-256 convention (0.344024ms)\n✔ 5160 writes GLOBALSCALER before current bits and publishes only after both acknowledgements (0.633268ms)\n✔ partial 5160 update failure retires current ownership without advancing the published revision (0.330394ms)\nℹ tests 15\nℹ suites 0\nℹ pass 15\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2736.463765\n",
+  "expandedBoundaryAndCancellationTests": "✔ 5160 startup registers and current match 256 original constructors including unsigned protection fields (37.339448ms)\n✔ adjacent Float64 global-scale boundaries preserve the encoded zero-as-256 convention (1.007313ms)\n✔ 5160 writes GLOBALSCALER before current bits and publishes only after both acknowledgements (2.817836ms)\n✔ partial 5160 update failure retires current ownership without advancing the published revision (0.70934ms)\n✔ cancelled global-scale write cannot publish state or proceed to current bits (0.607838ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 120.326573\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "plans": 256,
+    "warmups": 2,
+    "batches": 7,
+    "registers": 48384,
+    "medianMs": 8.403199999999998,
+    "maxMs": 9.827438,
+    "pythonMs": [
+      19.085888983681798,
+      19.13099898956716,
+      19.14185000350699,
+      19.143200013786554,
+      19.192490028217435,
+      19.218271016143262,
+      19.251551013439894
+    ],
+    "scope": "Node validated configuration plans versus original Python constructor with mocked config getters; no SPI I/O"
+  },
+  "currentBenchmark": {
+    "node": "v26.9.0",
+    "updates": 10000,
+    "warmups": 2,
+    "batches": 7,
+    "medianMs": 9.914468999999997,
+    "maxMs": 13.087401,
+    "writes": 180000,
+    "scope": "Current quantization, cancellation and publication; immediately acknowledged mock writes, excludes drain and SPI"
+  },
+  "limitations": [
+    "Not yet wired into configured hardware, model-specific monitoring or typed current API limits",
+    "No physical board current, MOSFET protection, timing or print validation",
+    "Python baseline uses mock config accessors; no complete transaction speedup claim"
+  ]
+}

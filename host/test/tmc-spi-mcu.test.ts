@@ -54,3 +54,15 @@ test('TMC2130 native startup and runtime current adjustment verify complete regi
   const current=new Tmc220xCurrent(device,plan,signal(),()=>assert.fail('current fault'));await current.set({run:1.5,hold:.3},signal());assert.equal(writes,plan.registers.length+2);assert.equal((await device.read(0x10,signal()))&0x1f1f,(current.current.irun<<8)|current.current.ihold);
  }finally{await session.stop();await firmware.close();}
 });
+
+test('TMC5160 native startup and runtime current adjustment verify complete register values',async()=>{
+ const {planTmc5160}=await import('../src/drivers/tmc5160.ts'),{initializeTmc220x}=await import('../src/drivers/tmc220x.ts'),{Tmc5160Current}=await import('../src/drivers/tmc5160-current.ts'),{ConfigurationReader}=await import('../src/moonraker/config-reader.ts'),{ConfigurationSource}=await import('../src/moonraker/config-source.ts');
+ const registers=new Map<number,number>();let latched=Buffer.alloc(5),writes=0;
+ const firmware=await serialFirmware(undefined,{tmcSpi(_oid,frame){const previous=latched,bytes=Buffer.from(frame),reg=bytes[0]&127;if(bytes[0]&128){registers.set(reg,bytes.readUInt32BE(1));writes++;}latched=Buffer.alloc(5);latched.writeUInt32BE(registers.get(reg)??0,1);return {data:previous};}}),session=new SerialSession(firmware.fd,{async stopDevice(){}});
+ try{
+  await session.initialize(signal());const config=compileTmcSpi(session,session.dictionary,0,pin(session),'spi1');await session.configure({oidCount:1,commands:[config.select,config.configureBus]},signal());const device=sessionTmcSpi(session,0).register();
+  const reader=new ConfigurationReader(new ConfigurationSource('/spi.cfg',{'tmc5160 stepper_x':{run_current:'.8',driver_sgt:'-64',driver_mslut0:'4294967295'},stepper_x:{rotation_distance:'40',microsteps:'16'}},[]),null),plan=planTmc5160(reader,'tmc5160 stepper_x');
+  await initializeTmc220x(device,plan,signal());assert.equal(writes,plan.registers.length);for(const register of plan.registers)assert.equal(await device.read(register.address,signal()),register.value);
+  const current=new Tmc5160Current(device,plan,signal(),()=>assert.fail('current fault'));await current.set({run:3,hold:.3},signal());assert.equal(writes,plan.registers.length+2);assert.equal(await device.read(0x0b,signal()),current.current.globalscaler);assert.equal((await device.read(0x10,signal()))&0x1f1f,(current.current.irun<<8)|current.current.ihold);
+ }finally{await session.stop();await firmware.close();}
+});
