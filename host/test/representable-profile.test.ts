@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Move,motionLimits} from '../src/motion/lookahead.ts';
+import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
 import {representableProfile} from '../src/motion/representable-profile.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 function move(start:number,end:number,a:number,b:number){const m=new Move(motionLimits(100,1000),[start,0,0,0],[end,0,0,0],10);m.setJunction(a,100,b);return m;}
@@ -27,5 +27,25 @@ test('coalescing respects reversed coordinates and synchronized extrusion endpoi
   assert.ok(p);
   using xyz=new TrapQueue();using e=new TrapQueue();const until=xyz.appendPlanned([m],time);assert.equal(e.appendPlanned([m],time,3,true),until);
   for(const [queue,coordinate] of [[xyz,0],[e,3]] as const){const r=queue.extract(1,time,until+1);if(coordinate===3&&!extrusion){assert.equal(r.length,0);continue;}assert.equal(r[4]+r[7]*(r[2]+.5*r[3]*r[1])*r[1],end[coordinate]);}
+ }
+});
+test('clock and extrusion rounding plateaus admit an exact interior duration',()=>{
+ const m=new Move(motionLimits(100,1000),[9.95,0,0,.995],[9.96,0,0,.996],10);m.setJunction(100,100,79.9999999999983);
+ const time=2.999999999999901,original=structuredClone(m.profile!),p=representableProfile(m,time);assert(p);assert.equal(original.cruiseT,7.095019016745141e-17);
+ assert.equal(time+p.decelT,time+original.cruiseT+original.decelT);assert.equal(p.startV-p.accel*p.decelT,p.endV);assert(p.accel<=m.accel);assert.deepEqual(m.profile,original);
+ for(const axis of [undefined,3]){
+  using q=new TrapQueue();const until=q.appendPlanned([m],time,axis),start=axis===3?.995:9.95,end=axis===3?.996:9.96;
+  const row=q.extract(1,time,until+1);assert.equal(row[4]+(row[2]+.5*row[3]*row[1])*row[1],end);
+  using motor=q.createStepper({frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===3?.000125:.00125,[start,0,0]);motor.generate(until);assert.equal(motor.flush().position,8n);
+ }
+});
+test('product path remains representable across absolute clock boundaries and batch sizes',()=>{
+ for(const chunk of [10,150,1000]){
+  const q=new LookAheadQueue(),moves:Move[]=[];
+  for(let i=0;i<1000;i++){q.add(new Move(motionLimits(100,1000),[i/100,0,0,i/1000],[(i+1)/100,0,0,(i+1)/1000],10));if((i+1)%chunk===0)moves.push(...q.flush(true));}moves.push(...q.flush());
+  for(const start of [1,2,4,8,16,32,64]){
+   using xyz=new TrapQueue();using e=new TrapQueue();const end=xyz.appendPlanned(moves,start);assert.equal(e.appendPlanned(moves,start,3,true),end);
+   for(const [queue,position] of [[xyz,10],[e,1]] as const){const r=queue.extract(1,start,end+1);assert.equal(r[4]+r[7]*(r[2]+.5*r[3]*r[1])*r[1],position);}
+  }
  }
 });

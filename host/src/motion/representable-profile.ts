@@ -15,7 +15,11 @@ export function representableProfile(move:Move,time:number):(Trapezoid&{accel:nu
  // Geometry-derived duration may round the absolute end clock upward. The
  // existing non-cruise duration is another candidate, under identical exact
  // endpoint, speed, acceleration and deviation checks (never an epsilon clamp).
- candidate:for(const duration of [move.distance/((p.startV+p.endV)*.5),p.accelT+p.decelT]){
+ const geometric=move.distance/((p.startV+p.endV)*.5),ramp=p.accelT+p.decelT;
+ // End-clock rounding and coordinate rounding have distinct plateaus. Their
+ // overlap can lie between the two endpoint candidates (not at either one).
+ // The midpoint is only another candidate; all exact invariants still apply.
+ candidate:for(const duration of [geometric,ramp,ramp+(geometric-ramp)*.5]){
  const accel=Math.abs(p.endV-p.startV)/duration;
  if(!(duration>0)||!(accel>0)||accel>move.accel||time+duration!==((time+p.accelT)+p.cruiseT)+p.decelT)continue;
  const signed=accelerating?accel:-accel,distance=(p.startV+.5*signed*duration)*duration;
@@ -28,7 +32,7 @@ export function representableProfile(move:Move,time:number):(Trapezoid&{accel:nu
  for(let i=0;i<move.axesR.length;i++){
   const ratio=move.axesR[i];if(!ratio)continue;
   if(i>=3&&move.startPos[i]+(p.startV*ratio+.5*signed*ratio*duration)*duration!==move.endPos[i])continue candidate;
-  if(bound*Math.abs(ratio)>Math.min(spacing(move.startPos[i]),spacing(move.endPos[i]))||move.startPos[i]+ratio*distance!==move.endPos[i])return;
+  if(bound*Math.abs(ratio)>Math.min(spacing(move.startPos[i]),spacing(move.endPos[i]))||move.startPos[i]+ratio*distance!==move.endPos[i])continue candidate;
  }
  return {startV:p.startV,cruiseV:Math.max(p.startV,p.endV),endV:p.endV,accelT:accelerating?duration:0,cruiseT:0,decelT:decelerating?duration:0,accel};
  }
