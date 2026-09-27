@@ -1,3 +1,6 @@
+import {planTmc220x,initializeTmc220x} from '../src/drivers/tmc220x.ts';
+import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
+import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -31,6 +34,9 @@ test('native serial MCU waits for UART completion before IFCNT and preserves sch
   await device.write(16,0xfedcba98,signal());assert.equal(await device.read(16,signal()),0xfedcba98);assert.equal(writes,1);
   const clock=session.clock.sync.getClock(serialClock.now()+.05);
   await device.write(16,0x80000000,signal(),clock);assert.equal(await device.read(16,signal()),0x80000000);
+  const config=new ConfigurationReader(new ConfigurationSource('/tmc.cfg',{'tmc2209 stepper_x':{run_current:'.8',hold_current:'.4'},stepper_x:{rotation_distance:'40',microsteps:'16'}},[]),null),startup=planTmc220x(config,'tmc2209 stepper_x');
+  await initializeTmc220x(device,startup,signal());for(const entry of startup.registers)assert.equal(await device.read(entry.address,signal()),entry.value);
+  assert.equal(writes,2+startup.registers.length);
   assert.equal(firmware.outputs.filter(o=>o.name==='config_tmcuart').length,1);
  }finally{await session.stop();await firmware.close();}
 });
