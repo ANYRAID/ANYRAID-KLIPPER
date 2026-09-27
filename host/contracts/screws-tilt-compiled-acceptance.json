@@ -1,0 +1,164 @@
+{
+  "node": "26.9.0",
+  "scope": "Independent compiled product, authenticated HTTP and simulated MCU; no Python or TS loader",
+  "calibration": {
+    "screwsTilt": {
+      "compiled": true,
+      "elapsedMs": 3531.069471999999,
+      "result": {
+        "base": 0,
+        "deviation": 0.03749999999999998,
+        "error": true,
+        "results": [
+          {
+            "z": 0.775,
+            "sign": "CW",
+            "adjust": "00:00",
+            "is_base": true,
+            "turns": 0
+          },
+          {
+            "z": 0.75,
+            "sign": "CW",
+            "adjust": "00:03",
+            "is_base": false,
+            "turns": 0.050000000000000044
+          },
+          {
+            "z": 0.7375,
+            "sign": "CW",
+            "adjust": "00:04",
+            "is_base": false,
+            "turns": 0.07499999999999996
+          }
+        ],
+        "names": [
+          "front",
+          "screw at 1.010,1.000",
+          "screw at 1.000,1.010"
+        ],
+        "samples": [
+          [
+            1,
+            1,
+            0.775
+          ],
+          [
+            1.01,
+            1,
+            0.75
+          ],
+          [
+            1,
+            1.01,
+            0.7375
+          ]
+        ],
+        "thread": "CW-M3"
+      },
+      "retryWithoutMotion": true
+    }
+  },
+  "metrics": {
+    "phaseQueries": 4575,
+    "phaseP99Ms": 3.853090999997221,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": true,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 192,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1016,
+    "historyP99Ms": 7.627290999997058,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 5.939828000000489,
+    "deleteRequests": 16,
+    "deleteP95Ms": 4.675232000001415,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 3.237213000000338,
+    "metadataRequests": 16,
+    "metadataP95Ms": 29.372207999998864,
+    "downloads": 16,
+    "downloadP95Ms": 5.1644389999983105,
+    "wireCommands": 252,
+    "wireSteps": 4847,
+    "minimumStepLeadMs": 87.493,
+    "directoryRequests": 4414,
+    "directoryP99Ms": 5.939209000000119,
+    "statusRequests": 18300,
+    "uploads": 16,
+    "statusP99Ms": 3.5279259999952046,
+    "uploadP95Ms": 6.608107000000018,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.930239,
+          "maxMs": 17.793023
+        },
+        "cpu": {
+          "user": 5291494,
+          "system": 635717
+        },
+        "rss": 265424896
+      },
+      {
+        "loop": {
+          "p99Ms": 1.924095,
+          "maxMs": 5.451775
+        },
+        "cpu": {
+          "user": 1640423,
+          "system": 185006
+        },
+        "rss": 284622848
+      }
+    ]
+  },
+  "checks": [
+    "Three physical probe samples",
+    "Direction and zero tolerance reflected in user suggestions",
+    "Identical retry causes no extra probe or motion",
+    "Changed retry parameters rejected",
+    "Printing, pause/resume, reload and ADC shutdown complete"
+  ],
+  "limitations": [
+    "No physical screw adjustment or target printer acceptance",
+    "Manual probing without a configured probe is not implemented",
+    "Historical runtime crashes and numerical mismatches remain open"
+  ]
+}

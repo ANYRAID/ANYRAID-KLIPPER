@@ -1552,3 +1552,22 @@ POST 传 `version:1`、`state_token`，以及以下操作之一：
 仍有同名节时拒绝。文件外部修改导致保存失败，不覆盖外部变更。
 保存成功或失败后当前服务均要求重新初始化。HTTP 保存、服务重建、
 精确读回和删除流程已有模拟硬件验收；真实打印机验收尚未完成。
+
+### 探针辅助调平螺丝
+
+`[screws_tilt_adjust]` 支持连续编号的 `screw1` 至 `screw99`（至少
+三个 XY 点）、对应 `_name`、`screw_thread`、`speed` 和
+`horizontal_move_z`。螺纹支持 `CW-M3` 至 `CW-M6` 及对应 `CCW`。
+配置必须有探针，所有点与抬升高度须在物理行程内。
+
+鉴权 GET `/printer/calibration/screws_tilt` 获取状态令牌；POST 使用
+`version:1`、`state_token`，可加 `direction:CW|CCW` 和
+`maximum_deviation`（毫米，零表示零容差）。机器必须空闲且 XYZ
+已归零，接口采用服务端点位，不接收客户端运动坐标。
+
+返回 `result` 包含 `base`（从零开始的基准点索引）、`names`、
+`samples`、`thread` 和各点 `results`。`sign` 是旋钮方向，`adjust`
+以完整圈数和分钟表示，60 分钟为一圈；`turns` 保留未格式化圈数。
+偏差超过阈值时 `error:true`，应按建议调整并以新令牌重新测量。
+相同成功请求重试只返回原回执，不重新移动。测量不会自动调电机或
+修改床面补偿；探测失败或取消要求重新初始化后再操作。
