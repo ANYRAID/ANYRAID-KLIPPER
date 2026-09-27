@@ -22,7 +22,7 @@ const fields:readonly (readonly [Register,string,number,number,number|boolean])[
 ];
 export function planTmc220x(reader:ConfigurationReader,section:string){
  const match=/^(tmc2208|tmc2209) (.+)$/.exec(section);if(!match||!reader.hasSection(section)||!reader.hasSection(match[2]))throw new Error('Invalid TMC220x section');
- const model=match[1],driver=reader.section(section),stepper=readStepperDistance(reader.section(match[2])),microsteps=stepper.microsteps,mres=Math.log2(256/microsteps);
+ const model=match[1]==='tmc2208'?'tmc2208' as const:'tmc2209' as const,driver=reader.section(section),stepper=readStepperDistance(reader.section(match[2])),microsteps=stepper.microsteps,mres=Math.log2(256/microsteps);
  if(!Number.isInteger(mres)||mres<0||mres>8)throw new Error('Invalid TMC microsteps');
  const requestedHold=driver.getFloat('hold_current',{defaultValue:2,above:0,maxval:2}),resistor=driver.getFloat('sense_resistor',{defaultValue:.110,above:0});
  const current=tmc220xCurrent(driver.getFloat('run_current',{above:0,maxval:2}),requestedHold,resistor),values=new Map<Register,number>();

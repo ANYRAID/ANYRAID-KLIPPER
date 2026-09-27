@@ -5,7 +5,7 @@ export interface SensorlessPlan {readonly enter:readonly SensorlessRegister[];re
 /** Pure register plan. The caller supplies the current acknowledged register
  * image and excludes other writers until restoration finishes. */
 export function planTmcSensorless(model:string,registers:readonly SensorlessRegister[],diag?:0|1):SensorlessPlan {
- if(!['tmc2209','tmc2130','tmc5160'].includes(model))throw new Error('Unsupported sensorless driver');
+ if(!['tmc2209','tmc2130','tmc5160','tmc2240'].includes(model))throw new Error('Unsupported sensorless driver');
  if(model==='tmc2209'?diag!==undefined:diag!==0&&diag!==1)throw new Error('Invalid sensorless DIAG selection');
  const image=new Map<string,SensorlessRegister>();
  for(const r of registers){if(image.has(r.name)||!Number.isInteger(r.value)||r.value<0||r.value>0xffffffff)throw new Error('Invalid sensorless register image');image.set(r.name,r);}
@@ -13,7 +13,7 @@ export function planTmcSensorless(model:string,registers:readonly SensorlessRegi
  const get=(name:string,address:number)=>{const r=image.get(name);if(!r||r.address!==address)throw new Error('Missing sensorless register '+name);return r;};
  const set=(name:string,address:number,mask:number,value:number)=>{const r=get(name,address);restore.push(Object.freeze({...r}));enter.push(Object.freeze({...r,value:((r.value&~mask)|(value&mask))>>>0}));};
  if(model==='tmc2209'){set('TPWMTHRS',0x13,0xfffff,0);set('GCONF',0,4,0);}
- else {const mask=1<<(diag===0?7:8);set('GCONF',0,4|mask,mask);}
+ else {const mask=1<<(diag===0?7:8),sg4=model==='tmc2240'&&(get('SG4_THRS',0x74).value&255)!==0;set('GCONF',0,4|mask,mask|(sg4?4:0));if(sg4)set('TPWMTHRS',0x13,0xfffff,0);}
  if((get('TCOOLTHRS',0x14).value&0xfffff)===0)set('TCOOLTHRS',0x14,0xfffff,0xfffff);
  if(model!=='tmc2209')set('THIGH',0x15,0xfffff,0);
  return Object.freeze({enter:Object.freeze(enter),restore:Object.freeze(restore)});

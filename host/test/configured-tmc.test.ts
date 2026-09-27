@@ -62,3 +62,19 @@ test('runtime driver reset stops configured hardware and cancels all monitor tim
   const frames=f.firmware.frames;await new Promise(r=>setTimeout(r,50));assert.equal(f.firmware.frames,frames);
  }finally{await f.close();}
 });
+
+test('TMC2240 UART address seven uses model-specific current and monitoring with shared address ownership',async()=>{
+ const f=await fixture();try{
+  const raw=structuredClone(reader().source.original);raw['tmc2240 stepper_y']={...raw['tmc2209 stepper_y'],uart_address:'7'};delete raw['tmc2209 stepper_y'];
+  const cfg=()=>new ConfigurationReader(new ConfigurationSource('/tmc.cfg',structuredClone(raw),[]),null);
+  raw['tmc2240 stepper_y'].uart_address='8';assert.throws(()=>compileConfiguredHardware(cfg(),f.group,f.clocks,layout));
+  raw['tmc2240 stepper_y'].uart_address='0';assert.throws(()=>compileConfiguredHardware(cfg(),f.group,f.clocks,layout),/address conflict/);
+  assert.equal(f.writes.length,0);raw['tmc2240 stepper_y'].uart_address='7';
+  const h=await startConfiguredHardware(cfg(),f.group,f.clocks,layout,{beforeTarget(){}},f.signal);
+  assert.equal(h.plan.tmcSpis.length,0);assert.equal(h.plan.tmcUarts.length,1);const driver=h.drivers.find(d=>d.section==='tmc2240 stepper_y')!;
+  assert.equal(driver.current.maxCurrent,(24000/12000)/Math.SQRT2);
+  await driver.current.set({run:1.2,hold:.3},f.signal);assert.deepEqual(f.writes.slice(-2).map(w=>[w.address,w.register]),[[7,0xb],[7,0x10]]);
+  const deadline=Date.now()+3000;while(driver.monitor.status.temperature===null&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));assert.equal(driver.monitor.status.temperature,-264.68);
+  f.setFault(1);const end=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<end)await new Promise(r=>setTimeout(r,10));await h.close();assert.equal(f.stops,1);assert(h.drivers.some(d=>d.monitor.status.fault));
+ }finally{await f.close();}
+});

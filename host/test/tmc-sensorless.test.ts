@@ -39,3 +39,12 @@ test('invalid model, DIAG and incomplete or corrupt register images fail before 
  const row=reference.rows[0];assert.throws(()=>planTmcSensorless('tmc2208',row.registers));assert.throws(()=>planTmcSensorless('tmc2209',row.registers,0));assert.throws(()=>planTmcSensorless('tmc2130',row.registers));
  for(const registers of [[],[...row.registers,row.registers[0]],row.registers.map(r=>({...r,value:-1})),row.registers.map(r=>({...r,address:99}))])assert.throws(()=>planTmcSensorless('tmc2209',registers));
 });
+
+test('TMC2240 SG4 selects stealthchop and restores thresholds while SG2 selects spreadcycle',()=>{
+ for(const diag of [0,1] as const)for(const sg4 of [0,1,255]){
+  const registers=[{name:'GCONF',address:0,value:0x8000000c},{name:'TPWMTHRS',address:0x13,value:123},{name:'TCOOLTHRS',address:0x14,value:0},{name:'THIGH',address:0x15,value:456},{name:'SG4_THRS',address:0x74,value:512|sg4}];
+  const p=planTmcSensorless('tmc2240',registers,diag),mask=1<<(diag===0?7:8);
+  assert.deepEqual(p.enter,[{name:'GCONF',address:0,value:(0x80000008|mask|(sg4?4:0))>>>0},...sg4?[{name:'TPWMTHRS',address:0x13,value:0}]:[],{name:'TCOOLTHRS',address:0x14,value:0xfffff},{name:'THIGH',address:0x15,value:0}]);
+  assert.deepEqual(p.restore,p.enter.map(r=>registers.find(o=>o.name===r.name)));
+ }
+});

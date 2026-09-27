@@ -3,7 +3,7 @@ import {performance} from 'node:perf_hooks';
 import {tmc220xStatusReader} from '../src/drivers/tmc220x-status.ts';
 import {StepperPosition} from '../src/motion/stepper-position.ts';
 import {NativeObjects} from '../src/moonraker/native-objects.ts';
-const state={closed:false,checks:1,drvStatus:0x801f0000,gstat:0,warnings:0,fault:undefined},plan={model:'tmc2209',current:{runCurrent:.8,holdCurrent:.3}},names=['x','y','z','e'];
+const state={closed:false,temperature:null,checks:1,drvStatus:0x801f0000,gstat:0,warnings:0,fault:undefined},plan={model:'tmc2209',current:{runCurrent:.8,holdCurrent:.3}},names=['x','y','z','e'];
 const catalogs=[false,true].map(withPhase=>new NativeObjects(new Map(names.map((n,i)=>{
  const position=new StepperPosition(40,3200);position.align(100n,i);
  return [n,tmc220xStatusReader(plan,{status:state},()=>plan.current,()=>withPhase?{offset:7,position:position.commandedPosition(7n)}:null)];

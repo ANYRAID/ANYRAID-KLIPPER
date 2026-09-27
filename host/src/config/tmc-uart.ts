@@ -1,3 +1,5 @@
+import {planTmc2240} from '../drivers/tmc2240.ts';
+type UartDriverPlan=(Omit<ReturnType<typeof planTmc220x>,'registers'>|(Omit<ReturnType<typeof planTmc2240>,'registers'>&{address:number}))&{registers:readonly Readonly<{name:string;address:number;value:number}>[]};
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins,type PhysicalPinMap} from '../protocol/pins.ts';
 import {mcuOids} from '../protocol/mcu-oids.ts';
@@ -7,12 +9,12 @@ import {planTmc220x} from '../drivers/tmc220x.ts';
 /** All drivers on a physical UART are allocated together. The parent hardware
  * assembly owns rollback across other peripheral builders. No device I/O. */
 export function compileConfiguredTmcUart<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,steppers:readonly {section:string;bothEdges:boolean}[]){
- const sections=reader.sections().filter(s=>/^tmc\d+ /.test(s)&&!/^tmc(2130|5160) /.test(s));
+ const sections=reader.sections().filter(s=>/^tmc\d+ /.test(s)&&!/^tmc(2130|5160) /.test(s)&&!(s.startsWith('tmc2240 ')&&!reader.section(s).hasOption('uart_pin')));
  if(sections.length>128)throw new Error('Too many TMC drivers');
- const maps=new Map<string,PhysicalPinMap>(),buses=new Map<string,{mcu:string;rx:ReturnType<typeof pins.parse>;tx:ReturnType<typeof pins.parse>;descriptions:string[];devices:ReturnType<typeof planTmc220x>[]} >(),motors=new Set<string>();
+ const maps=new Map<string,PhysicalPinMap>(),buses=new Map<string,{mcu:string;rx:ReturnType<typeof pins.parse>;tx:ReturnType<typeof pins.parse>;descriptions:string[];devices:UartDriverPlan[]} >(),motors=new Set<string>();
  for(const section of sections){
-  if(!/^tmc220[89] /.test(section))throw new Error('Unsupported native TMC model: '+section);
-  const c=reader.section(section),model=planTmc220x(reader,section),stepper=steppers.find(s=>s.section===model.stepper);
+  if(!/^tmc(220[89]|2240) /.test(section))throw new Error('Unsupported native TMC model: '+section);
+  const c=reader.section(section),model=section.startsWith('tmc2240 ')?Object.freeze({...planTmc2240(reader,section),address:c.getInt('uart_address',{defaultValue:0,minval:0,maxval:7})}):planTmc220x(reader,section),stepper=steppers.find(s=>s.section===model.stepper);
   if(!stepper||motors.has(model.stepper))throw new Error('Missing or duplicate TMC stepper owner');motors.add(model.stepper);
   if(!reader.section(model.stepper).hasOption('enable_pin'))throw new Error('TMC startup requires a controlled motor enable');
   if(c.hasOption('select_pins'))throw new Error('TMC UART mux is not yet supported');

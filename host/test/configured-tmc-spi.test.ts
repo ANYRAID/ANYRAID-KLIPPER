@@ -70,3 +70,17 @@ for(const software of [false,true])test(`TMC5160 hardware owner supports model c
   f.setFault(1<<12);const deadline=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));await h.close();assert(h.drivers.some(d=>d.monitor.status.fault));assert.equal(f.stops,1);
  }finally{await f.close();}
 });
+
+for(const software of [false,true])test(`TMC2240 SPI owns fixed-range current, temperature and supply-short shutdown (software=${software})`,async()=>{
+ const f=await fixture(false,software?'modern':undefined);try{
+  const h=await startConfiguredHardware(reader({},software,'tmc2240'),f.group,f.clocks,layout,{beforeTarget(){}},f.signal);
+  assert.equal(h.status.state,'ready');assert.equal(h.plan.tmcUarts.length,0);assert.equal(h.drivers.length,2);
+  for(const {position,plan} of h.plan.tmcSpis[0].devices)assert.deepEqual(f.writes.filter(w=>w[0]===(2-position)*5).map(w=>w.slice(1)),plan.registers.map(r=>[r.address,r.value]));
+  assert.equal(h.drivers[0].current.maxCurrent,(24000/12000)/Math.SQRT2);
+  await h.drivers[0].current.set({run:1.2,hold:.3},f.signal);assert(Math.abs(h.drivers[0].current.current.runCurrent-1.2)<.02);
+  const n=f.writes.length;await assert.rejects(h.drivers[0].current.set({run:1.5},f.signal));assert.equal(f.writes.length,n);
+  const deadline=Date.now()+3000;while(h.drivers[0].monitor.status.temperature===null&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));
+  assert.equal(h.drivers[0].monitor.status.temperature,-264.68);
+  f.setFault(1<<12);const end=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<end)await new Promise(r=>setTimeout(r,10));await h.close();assert(h.drivers.some(d=>d.monitor.status.fault));assert.equal(f.stops,1);
+ }finally{await f.close();}
+});

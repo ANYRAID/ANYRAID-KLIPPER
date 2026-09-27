@@ -1,0 +1,716 @@
+{
+  "scope": "TMC2240 native SPI/UART assembly, original numeric corpus, protection and compiled authenticated product journeys using simulated MCU transports; not physical printer acceptance",
+  "sha256": {
+    "host/acceptance/product-compiled-journey.test.ts": "e1b3d0920d9f5ed465a4200bc5aa49c029948cbda03e5e179ffbab394a854002",
+    "host/bench/tmc-phase-status.ts": "c58647be889a9ec87dcf95360978ea62825a5f9b3fbac7b92905b4c31470e3f6",
+    "host/bench/tmc-status.ts": "3d81610eed79e3871e57c34dff593140c6f74cb0d105ab2a92a742cc099e6379",
+    "host/src/config/sensorless.ts": "073c2276351a0383ad4c5444c2f5b7d57815557c716e90579e40c4ddb16fa95f",
+    "host/src/config/tmc-spi.ts": "597a497769fddbd43e0a736da9a8df7cf9211a71b57042d0c78e94396be8aed3",
+    "host/src/config/tmc-uart.ts": "1a799da938219b32459213f7ee06645609fbcd9786c392ca0bf3f98959e3e6d3",
+    "host/src/drivers/tmc-sensorless.ts": "e7e4c86d8bf442a1f6cf82899c8a15b3fa05c2fac0510c15ae4f3346e0aff9f4",
+    "host/src/drivers/tmc220x-monitor.ts": "0e89d72473dae93d9505100a88da8c507bd968d6f350f99681574939e3da6402",
+    "host/src/drivers/tmc220x-status.ts": "fa821d1e9757d877f882242018d1aa3b7a21e001429cf41815a0cbb20020cf9f",
+    "host/src/drivers/tmc220x.ts": "73ff026bca5f538fcd8e73bd902cab1a0005ddfa7db5028d94a90588401c0a87",
+    "host/src/runtime/configured-hardware.ts": "f166e994870db754ccda720b4119161421069c955639ee7b21fc5bda73abfb1d",
+    "host/test/configured-tmc-spi.test.ts": "db4bdc2f8c038d21ea8c630d88b8822d41117e5b7b25ae36e4c7ade4c69c6e57",
+    "host/test/configured-tmc.test.ts": "52f82b60874d40edddf76f2f319dd04329e8ee21d94263dc5e6492cea6776482",
+    "host/test/helpers/product-transports.ts": "d05b7d98cb49a16e102b86b936e1ee992ba0fa53b50b3eae756c695bdbb7143c",
+    "host/test/tmc-sensorless.test.ts": "a2fb60726d20532a8fb885f4e1fc346cf4574a33ec2ccfc2936eb5516b834efb",
+    "host/test/tmc220x-status.test.ts": "63b985cab2aca779a0312e82103c0778d1a3532f4c5520ae7bcc645bcda37a96",
+    "host/contracts/tmc2240-temperature-reference.json": "1111e453731a92d23b72754c6068e5dec7498d662a62b0339a09851cd085e8be",
+    "host/src/drivers/tmc2240-temperature.ts": "4c108bb080cf4893076a542e942bb6ae2183c5e88f7fb9cf3ef44bb75ee615b3",
+    "host/test/tmc2240-monitor.test.ts": "f4b07efc0430131f1e572737a12f77794337ced806f7f3442862200677868b40"
+  },
+  "tests": "✔ two chained SPI drivers initialize with one OID, controlled enables and matched double-edge mode (1443.115755ms)\nℹ {\"startupMs\":19.559413000000063,\"scope\":\"Two chained TMC2130 drivers with native serialqueue and simulated SPI\"}\n✔ SPI conflicts fail before I/O and all chip selects precede bus activation (422.700596ms)\n✔ failed SPI startup never publishes ready or enables motors (409.834166ms)\n✔ software SPI modern initializes chained drivers without hardware bus commands (419.326144ms)\n✔ software SPI legacy initializes chained drivers without hardware bus commands (416.988825ms)\n✔ software SPI reserves physical pins and rejects mixed chain wiring before I/O (416.59489ms)\n✔ TMC5160 hardware owner supports model current and supply-short monitoring (software=false) (1421.59016ms)\n✔ TMC5160 hardware owner supports model current and supply-short monitoring (software=true) (1413.450341ms)\n✔ TMC2240 SPI owns fixed-range current, temperature and supply-short shutdown (software=false) (2420.544912ms)\n✔ TMC2240 SPI owns fixed-range current, temperature and supply-short shutdown (software=true) (2420.14675ms)\n✔ hardware initializes shared UART drivers with unique OID, disabled motors and matched edge mode (456.205386ms)\nℹ {\"startupMs\":49.72774000000027,\"scope\":\"Two TMC2209 drivers, shared UART, simulated 2ms write completion; includes hardware configuration\"}\n✔ duplicate addresses and peripheral alias collisions are rejected without configuration I/O (412.148097ms)\n✔ failed driver initialization never publishes ready hardware and stops the MCU (408.662773ms)\n✔ runtime driver reset stops configured hardware and cancels all monitor timers (1488.361522ms)\n✔ TMC2240 UART address seven uses model-specific current and monitoring with shared address ownership (2445.986291ms)\n✔ 640 sensorless transitions match original Python field values and register order (26.45499ms)\n✔ ambiguous writes and cancellation at every transition boundary retire ownership (2.36688ms)\n✔ entry and restoration are exclusive and publish state only after final acknowledgement (0.192352ms)\n✔ pre-cancelled entry does no I/O; pre-cancelled restore retires active hardware (0.204822ms)\n✔ invalid model, DIAG and incomplete or corrupt register images fail before I/O (0.219312ms)\n✔ TMC2240 SG4 selects stealthchop and restores thresholds while SG2 selects spreadcycle (0.239053ms)\n✔ startup clears latched GSTAT once; warnings remain visible without stopping (0.455966ms)\n✔ every fatal status bit and runtime reset stop after three confirmations without clearing (1.003482ms)\n✔ startup refuses persistent errors, and stop aborts and joins an in-flight read (0.313054ms)\n✔ TMC2130 status masks, read-cleared GSTAT and active-current reset checks are model-specific (0.656808ms)\n✔ TMC5160 clears startup GSTAT and checks both supply shorts without the 2130 zero-current quirk (0.477446ms)\n✔ cached status preserves unsigned fields, actual quantization, projection and detached snapshots (0.80682ms)\n✔ never-started and normally closed monitors do not advertise current driver telemetry (0.077341ms)\n✔ phase projection uses the current coordinate provider and is hidden after retirement (0.109312ms)\n✔ 4488 original TMC2240 current cases match every register and quantized amp value exactly (14.265158ms)\n✔ range and current limits reject malformed or unsupported electrical settings (0.358974ms)\n✔ live current preserves initialized range and publishes only after both register acknowledgements (0.79145ms)\n✔ partial current update retires owner on write failure (0.237603ms)\n✔ partial current update retires owner on cancellation (0.127772ms)\n✔ all 8192 temperature ADC values match original Python rounded status exactly (2.038336ms)\n✔ 2240 clears startup flags, samples temperature periodically and tolerates temperature-only read errors (0.75838ms)\n✔ 2240 confirms every motor fault and GSTAT bit before stopping without runtime clearing (1.503469ms)\n✔ temperature sampling cancellation is joined and never swallowed as a communication warning (0.323974ms)\n✔ 310 original TMC2240 startup plans preserve register order, values and threshold boundaries (65.570048ms)\n✔ TMC2240 signed waveform offset and model-specific fields reject unsupported values (1.352957ms)\nℹ tests 40\nℹ suites 0\nℹ pass 40\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 16693.039233\n",
+  "attempts": [
+    {
+      "scope": "First driver suite",
+      "pass": 24,
+      "fail": 1,
+      "failure": "UART fixture mutated a ConfigurationSource-frozen object; fixed by cloning source before construction"
+    },
+    {
+      "scope": "Full compiled product matrix before fixture corrections",
+      "pass": 8,
+      "fail": 1,
+      "failure": "TMC2240 UART fixture selected diag_pin by transport instead of model; undefined.replace at line 50",
+      "metrics": [
+        {
+          "phaseQueries": 0,
+          "phaseP99Ms": null,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 160,
+              "writes": 43
+            },
+            {
+              "statusReads": 64,
+              "writes": 42
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 0,
+          "historyP99Ms": null,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 4,
+          "fileNotificationP95Ms": null,
+          "deleteRequests": 0,
+          "deleteP95Ms": null,
+          "thumbnailRequests": 0,
+          "thumbnailP95Ms": null,
+          "metadataRequests": 0,
+          "metadataP95Ms": null,
+          "downloads": 0,
+          "downloadP95Ms": null,
+          "wireCommands": 191,
+          "wireSteps": 3684,
+          "minimumStepLeadMs": 87.882,
+          "directoryRequests": 0,
+          "directoryP99Ms": null,
+          "statusRequests": 0,
+          "uploads": 0,
+          "statusP99Ms": null,
+          "uploadP95Ms": null,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.849343,
+                "maxMs": 17.039359
+              },
+              "cpu": {
+                "user": 1273534,
+                "system": 167824
+              },
+              "rss": 174776320
+            },
+            {
+              "loop": {
+                "p99Ms": 1.840127,
+                "maxMs": 7.790591
+              },
+              "cpu": {
+                "user": 624782,
+                "system": 58196
+              },
+              "rss": 188932096
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3743,
+          "phaseP99Ms": 3.104069000000891,
+          "loaded": true,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 160,
+              "writes": 55
+            },
+            {
+              "statusReads": 62,
+              "writes": 54
+            },
+            {
+              "statusReads": 88,
+              "writes": 46
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            },
+            {
+              "statusReads": 16,
+              "writes": 46
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "tmc-reset",
+          "historyNotifications": 32,
+          "historyRequests": 836,
+          "historyP99Ms": 4.218063000000257,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 5.485878999999841,
+          "deleteRequests": 16,
+          "deleteP95Ms": 5.79550300000119,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 7.209980999999971,
+          "metadataRequests": 16,
+          "metadataP95Ms": 29.658621000002313,
+          "downloads": 16,
+          "downloadP95Ms": 3.562004999999772,
+          "wireCommands": 370,
+          "wireSteps": 5562,
+          "minimumStepLeadMs": 87.624,
+          "directoryRequests": 3603,
+          "directoryP99Ms": 4.401965000004566,
+          "statusRequests": 14968,
+          "uploads": 16,
+          "statusP99Ms": 2.990397000001394,
+          "uploadP95Ms": 8.822809999997844,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.954815,
+                "maxMs": 18.169855
+              },
+              "cpu": {
+                "user": 4565076,
+                "system": 521406
+              },
+              "rss": 283869184
+            },
+            {
+              "loop": {
+                "p99Ms": 1.917951,
+                "maxMs": 6.193151
+              },
+              "cpu": {
+                "user": 1383762,
+                "system": 215789
+              },
+              "rss": 260083712
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3585,
+          "phaseP99Ms": 3.4969339999952354,
+          "loaded": true,
+          "spi": true,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 304,
+              "writes": 91
+            },
+            {
+              "statusReads": 122,
+              "writes": 90
+            },
+            {
+              "statusReads": 176,
+              "writes": 82
+            },
+            {
+              "statusReads": 16,
+              "writes": 76
+            },
+            {
+              "statusReads": 32,
+              "writes": 82
+            },
+            {
+              "statusReads": 16,
+              "writes": 76
+            }
+          ],
+          "faultInjected": "tmc-overtemperature",
+          "historyNotifications": 32,
+          "historyRequests": 798,
+          "historyP99Ms": 10.769345000007888,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 7.800048000004608,
+          "deleteRequests": 16,
+          "deleteP95Ms": 10.568392999994103,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 5.033163000000059,
+          "metadataRequests": 16,
+          "metadataP95Ms": 24.203024000002188,
+          "downloads": 16,
+          "downloadP95Ms": 17.98991499999829,
+          "wireCommands": 370,
+          "wireSteps": 5561,
+          "minimumStepLeadMs": 74.878,
+          "directoryRequests": 3457,
+          "directoryP99Ms": 5.266586000012467,
+          "statusRequests": 14344,
+          "uploads": 16,
+          "statusP99Ms": 2.854985999991186,
+          "uploadP95Ms": 21.725093000000925,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.936383,
+                "maxMs": 18.956287
+              },
+              "cpu": {
+                "user": 4319319,
+                "system": 519495
+              },
+              "rss": 277213184
+            },
+            {
+              "loop": {
+                "p99Ms": 1.921023,
+                "maxMs": 6.033407
+              },
+              "cpu": {
+                "user": 1411397,
+                "system": 183522
+              },
+              "rss": 268603392
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3735,
+          "phaseP99Ms": 3.3259109999926295,
+          "loaded": true,
+          "spi": true,
+          "software": true,
+          "model5160": false,
+          "model2240": false,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 320,
+              "writes": 91
+            },
+            {
+              "statusReads": 122,
+              "writes": 90
+            },
+            {
+              "statusReads": 176,
+              "writes": 82
+            },
+            {
+              "statusReads": 16,
+              "writes": 76
+            },
+            {
+              "statusReads": 32,
+              "writes": 82
+            },
+            {
+              "statusReads": 16,
+              "writes": 76
+            }
+          ],
+          "faultInjected": "tmc-overtemperature",
+          "historyNotifications": 32,
+          "historyRequests": 837,
+          "historyP99Ms": 9.914655000000494,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 4.143133000005037,
+          "deleteRequests": 16,
+          "deleteP95Ms": 17.516260000003967,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 1.7036519999965094,
+          "metadataRequests": 16,
+          "metadataP95Ms": 29.74030400000629,
+          "downloads": 16,
+          "downloadP95Ms": 3.018098000000464,
+          "wireCommands": 370,
+          "wireSteps": 5559,
+          "minimumStepLeadMs": 87.841,
+          "directoryRequests": 3605,
+          "directoryP99Ms": 4.480367000011029,
+          "statusRequests": 14941,
+          "uploads": 16,
+          "statusP99Ms": 2.8955859999987297,
+          "uploadP95Ms": 5.957385000016075,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.947647,
+                "maxMs": 19.316735
+              },
+              "cpu": {
+                "user": 4481557,
+                "system": 577721
+              },
+              "rss": 287653888
+            },
+            {
+              "loop": {
+                "p99Ms": 1.978367,
+                "maxMs": 5.791743
+              },
+              "cpu": {
+                "user": 1422765,
+                "system": 206038
+              },
+              "rss": 267763712
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3945,
+          "phaseP99Ms": 2.5637319999805186,
+          "loaded": true,
+          "spi": true,
+          "software": false,
+          "model5160": true,
+          "model2240": false,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 336,
+              "writes": 100
+            },
+            {
+              "statusReads": 122,
+              "writes": 98
+            },
+            {
+              "statusReads": 176,
+              "writes": 90
+            },
+            {
+              "statusReads": 16,
+              "writes": 84
+            },
+            {
+              "statusReads": 32,
+              "writes": 90
+            },
+            {
+              "statusReads": 16,
+              "writes": 84
+            }
+          ],
+          "faultInjected": "tmc-overtemperature",
+          "historyNotifications": 32,
+          "historyRequests": 878,
+          "historyP99Ms": 5.430288000003202,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 5.099885000003269,
+          "deleteRequests": 16,
+          "deleteP95Ms": 5.95013499999186,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 2.100726000004215,
+          "metadataRequests": 16,
+          "metadataP95Ms": 28.530618999997387,
+          "downloads": 16,
+          "downloadP95Ms": 2.9623269999865443,
+          "wireCommands": 370,
+          "wireSteps": 5559,
+          "minimumStepLeadMs": 85.065,
+          "directoryRequests": 3795,
+          "directoryP99Ms": 4.860650999995414,
+          "statusRequests": 15778,
+          "uploads": 16,
+          "statusP99Ms": 2.4962520000117365,
+          "uploadP95Ms": 6.090916999994079,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.927167,
+                "maxMs": 19.120127
+              },
+              "cpu": {
+                "user": 4711710,
+                "system": 580537
+              },
+              "rss": 284798976
+            },
+            {
+              "loop": {
+                "p99Ms": 1.906687,
+                "maxMs": 6.262783
+              },
+              "cpu": {
+                "user": 1409628,
+                "system": 181765
+              },
+              "rss": 294563840
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3568,
+          "phaseP99Ms": 2.997298000002047,
+          "loaded": true,
+          "spi": true,
+          "software": false,
+          "model5160": false,
+          "model2240": true,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 304,
+              "writes": 104
+            },
+            {
+              "statusReads": 122,
+              "writes": 102
+            },
+            {
+              "statusReads": 176,
+              "writes": 94
+            },
+            {
+              "statusReads": 16,
+              "writes": 88
+            },
+            {
+              "statusReads": 32,
+              "writes": 94
+            },
+            {
+              "statusReads": 16,
+              "writes": 88
+            }
+          ],
+          "faultInjected": "tmc-overtemperature",
+          "historyNotifications": 32,
+          "historyRequests": 798,
+          "historyP99Ms": 10.743986000015866,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 5.729661999997916,
+          "deleteRequests": 16,
+          "deleteP95Ms": 10.93191700000898,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 13.636552000010852,
+          "metadataRequests": 16,
+          "metadataP95Ms": 27.682849000004353,
+          "downloads": 16,
+          "downloadP95Ms": 3.9375,
+          "wireCommands": 370,
+          "wireSteps": 5562,
+          "minimumStepLeadMs": 80.119,
+          "directoryRequests": 3440,
+          "directoryP99Ms": 4.879852000012761,
+          "statusRequests": 14274,
+          "uploads": 16,
+          "statusP99Ms": 2.9729280000028666,
+          "uploadP95Ms": 6.567502999998396,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.923071,
+                "maxMs": 17.530879
+              },
+              "cpu": {
+                "user": 4420177,
+                "system": 508389
+              },
+              "rss": 285945856
+            },
+            {
+              "loop": {
+                "p99Ms": 1.990655,
+                "maxMs": 6.885375
+              },
+              "cpu": {
+                "user": 1469959,
+                "system": 186835
+              },
+              "rss": 264060928
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scope": "First targeted UART rerun",
+      "pass": 0,
+      "fail": 1,
+      "failure": "Restored GCONF checked against TMC2209 spreadcycle bit instead of TMC2240 layout; actual 0 versus fixture expected 4"
+    },
+    {
+      "scope": "Final affected SPI and UART compiled product scenarios after model-aware entry/restoration assertions",
+      "pass": 2,
+      "fail": 0,
+      "metrics": [
+        {
+          "phaseQueries": 3759,
+          "phaseP99Ms": 3.4448240000001533,
+          "loaded": true,
+          "spi": true,
+          "software": false,
+          "model5160": false,
+          "model2240": true,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 320,
+              "writes": 104
+            },
+            {
+              "statusReads": 122,
+              "writes": 102
+            },
+            {
+              "statusReads": 176,
+              "writes": 94
+            },
+            {
+              "statusReads": 16,
+              "writes": 88
+            },
+            {
+              "statusReads": 32,
+              "writes": 94
+            },
+            {
+              "statusReads": 16,
+              "writes": 88
+            }
+          ],
+          "faultInjected": "tmc-overtemperature",
+          "historyNotifications": 32,
+          "historyRequests": 841,
+          "historyP99Ms": 9.677823000001808,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 6.054305999999997,
+          "deleteRequests": 16,
+          "deleteP95Ms": 4.800720999999612,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 2.448022000000492,
+          "metadataRequests": 16,
+          "metadataP95Ms": 28.067834999999832,
+          "downloads": 16,
+          "downloadP95Ms": 5.498859999999695,
+          "wireCommands": 369,
+          "wireSteps": 5562,
+          "minimumStepLeadMs": 85.349,
+          "directoryRequests": 3602,
+          "directoryP99Ms": 7.012778999996954,
+          "statusRequests": 15035,
+          "uploads": 16,
+          "statusP99Ms": 3.0951999999997497,
+          "uploadP95Ms": 7.821669000000838,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.987583,
+                "maxMs": 17.858559
+              },
+              "cpu": {
+                "user": 4742599,
+                "system": 550120
+              },
+              "rss": 287617024
+            },
+            {
+              "loop": {
+                "p99Ms": 1.992703,
+                "maxMs": 6.463487
+              },
+              "cpu": {
+                "user": 1426646,
+                "system": 202739
+              },
+              "rss": 267157504
+            }
+          ]
+        },
+        {
+          "phaseQueries": 3743,
+          "phaseP99Ms": 3.314222000000882,
+          "loaded": true,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": true,
+          "sensorless": true,
+          "tmc": [
+            {
+              "statusReads": 160,
+              "writes": 108
+            },
+            {
+              "statusReads": 64,
+              "writes": 106
+            },
+            {
+              "statusReads": 88,
+              "writes": 96
+            },
+            {
+              "statusReads": 8,
+              "writes": 88
+            },
+            {
+              "statusReads": 16,
+              "writes": 96
+            },
+            {
+              "statusReads": 8,
+              "writes": 88
+            }
+          ],
+          "faultInjected": "tmc-reset",
+          "historyNotifications": 32,
+          "historyRequests": 834,
+          "historyP99Ms": 11.647138000000268,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 5.997636000000057,
+          "deleteRequests": 16,
+          "deleteP95Ms": 8.59437899999466,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 11.70256800000061,
+          "metadataRequests": 16,
+          "metadataP95Ms": 26.094990999998117,
+          "downloads": 16,
+          "downloadP95Ms": 5.8946150000047055,
+          "wireCommands": 369,
+          "wireSteps": 5561,
+          "minimumStepLeadMs": 87.601,
+          "directoryRequests": 3597,
+          "directoryP99Ms": 5.2862069999973755,
+          "statusRequests": 14972,
+          "uploads": 16,
+          "statusP99Ms": 3.164810000002035,
+          "uploadP95Ms": 18.74418799999694,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.981439,
+                "maxMs": 18.202623
+              },
+              "cpu": {
+                "user": 4602607,
+                "system": 550962
+              },
+              "rss": 284422144
+            },
+            {
+              "loop": {
+                "p99Ms": 1.949695,
+                "maxMs": 6.070271
+              },
+              "cpu": {
+                "user": 1439872,
+                "system": 170260
+              },
+              "rss": 266616832
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Final product rerun covers both changed TMC2240 cases; other seven cases passed in the preceding full matrix, not rerun after fixture-only changes",
+    "No physical UART/SPI electrical, driver thermal or printer precision acceptance",
+    "192 tracked Python files remain; default Python host and original TMC2240 module are not retired",
+    "Historical Node motion numerical failures and crashes remain open"
+  ]
+}

@@ -4,12 +4,12 @@ const fields:readonly (readonly [string,number,number])[]=[['otpw',0,1],['ot',1,
 /** Read-only snapshot projection: never queries hardware. Current values are
  * the acknowledged configured quantization, not an electrical measurement. */
 export function tmc220xStatusReader(plan:{model:string;current:Readonly<{runCurrent:number;holdCurrent:number}>},monitor:Pick<Tmc220xMonitor,'status'>,current=()=>plan.current,phase:()=>{offset:number;position:number|null}|null=()=>null){
- const selected=/^tmc(2130|5160)$/.test(plan.model)?[...plan.model==='tmc5160'?[['s2vsa',12,1],['s2vsb',13,1],['stealth',14,1]] as const:[],['sg_result',0,1023],['fsactive',15,1],['cs_actual',16,31],['stallguard',24,1],['ot',25,1],['otpw',26,1],['s2ga',27,1],['s2gb',28,1],['ola',29,1],['olb',30,1],['stst',31,1]] as const:fields;
+ const selected=/^tmc(2130|5160|2240)$/.test(plan.model)?[...plan.model!=='tmc2130'?[['s2vsa',12,1],['s2vsb',13,1],['stealth',14,1]] as const:[],['sg_result',0,1023],['fsactive',15,1],['cs_actual',16,31],['stallguard',24,1],['ot',25,1],['otpw',26,1],['s2ga',27,1],['s2gb',28,1],['ola',29,1],['olb',30,1],['stst',31,1]] as const:fields;
  let previous:number|null=null,decoded:Readonly<Record<string,number>>=Object.freeze({});
  return ()=>{
   const status=monitor.status,active=!status.closed&&status.checks>0;
   if(status.drvStatus!==previous){previous=status.drvStatus;const next:Record<string,number>={};if(previous!==null)for(const [name,shift,mask] of selected){const value=(previous>>>shift)&mask;if(value)next[name]=value;}decoded=Object.freeze(next);}
   const observed=active?phase():null;
-  return {mcu_phase_offset:observed?.offset??null,phase_offset_position:observed?.position??null,run_current:current().runCurrent,hold_current:current().holdCurrent,drv_status:active?decoded:null,temperature:null,native_monitor:{active,checks:status.checks,fault:status.fault!==undefined,gstat:status.gstat}};
+  return {mcu_phase_offset:observed?.offset??null,phase_offset_position:observed?.position??null,run_current:current().runCurrent,hold_current:current().holdCurrent,drv_status:active?decoded:null,temperature:active&&plan.model==='tmc2240'?status.temperature:null,native_monitor:{active,checks:status.checks,fault:status.fault!==undefined,gstat:status.gstat}};
  };
 }

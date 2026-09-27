@@ -11,11 +11,11 @@ export async function productTransports(reader:ConfigurationReader,buttons=false
  const pairs=[ptyPair(),ptyPair()],firmware=await Promise.all(pairs.map((p,index)=>serialFirmware(p,{triggerSync:true,stepperBytePins:true,extendedPins:true,buttons,...spi?{spiSoftware:software?'modern' as const:undefined,spiPins:'PA15,PA16,PA17',tmcSpi:(_oid:number,frame:Uint8Array,read:boolean)=>{
   const state=tmcState[index],previous=spiLatched[index],next=Buffer.alloc(20),bytes=Buffer.from(frame);assert.equal(bytes.length,20);
   for(let offset=0;offset<20;offset+=5){const address=3-offset/5,reg=bytes[offset]&127,key=address+':'+reg;if(bytes[offset]&128){state.registers.set(key,bytes.readUInt32BE(offset+1));state.writes++;}else if(reg===1||reg===0x6f)state.statusReads++;
-   const value=reg===1?0:reg===0x6f?(((state.registers.get(address+':16')??0)&0x1f00)<<8)|(state.fault?1<<25:0):state.registers.get(key)??0;next.writeUInt32BE(value>>>0,offset+1);
+   const value=reg===1?0:reg===0x51?2808:reg===0x6f?(((state.registers.get(address+':16')??0)&0x1f00)<<8)|(state.fault?1<<25:0):state.registers.get(key)??0;next.writeUInt32BE(value>>>0,offset+1);
   }spiLatched[index]=next;return {data:previous,delayMs:read?3:undefined};
  }}:tmc?{tmcUart:(_oid:number,frame:Uint8Array,read:number)=>{
   const state=tmcState[index],byte=(i:number)=>{const bit=i*10+1;return ((frame[bit>>>3]|frame[(bit>>>3)+1]<<8)>>>(bit&7))&255;},address=byte(1),reg=byte(2)&127,key=address+':'+reg;
-  if(read){assert.deepEqual(Buffer.from(frame),encodeTmcRead(address,reg));if(reg===1||reg===0x6f)state.statusReads++;return {data:encodeTmcWrite(255,reg,reg===2?state.counts.get(address)??0:reg===1?state.fault:state.registers.get(key)??0,true),delayMs:3};}
+  if(read){assert.deepEqual(Buffer.from(frame),encodeTmcRead(address,reg));if(reg===1||reg===0x6f)state.statusReads++;return {data:encodeTmcWrite(255,reg,reg===2?state.counts.get(address)??0:reg===1?state.fault:reg===0x51?2808:state.registers.get(key)??0,true),delayMs:3};}
   const value=byte(3)*2**24+byte(4)*65536+byte(5)*256+byte(6);assert.deepEqual(Buffer.from(frame),encodeTmcWrite(address,reg,value));state.writes++;state.counts.set(address,((state.counts.get(address)??0)+1)&255);state.registers.set(key,value);return {data:Buffer.alloc(0),delayMs:2};
  }}:{}}))),stops=[0,0];
  const policies=new Map<string,MCUMachinePolicy>(['mcu','aux'].map((id,i)=>[id,{transport:'uart',rts:true,leaveBootloader:false,stopDevice:async()=>{stops[i]++;}}]));
