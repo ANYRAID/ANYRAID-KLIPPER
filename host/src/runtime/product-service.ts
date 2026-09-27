@@ -1,3 +1,5 @@
+import {readScrewsTilt} from '../config/screws-tilt.ts';
+import {registerNativeScrewsTilt} from '../moonraker/native-screws-tilt.ts';
 import {registerNativeSkewSave} from '../moonraker/native-skew-save.ts';
 import {registerNativeSkew} from '../moonraker/native-skew.ts';
 import {readSkewProfiles} from '../config/skew.ts';
@@ -52,8 +54,9 @@ export interface ProductServiceOptions {
  * listener as one owner. Journal remains external; server component ownership
  * follows ConfiguredMoonraker.load. No automatic reconnect or print replay. */
 export async function startProductService(reader:ConfigurationReader,connections:readonly MCUConnection[],primaryId:string,layout:HardwareLayout,printerOptions:ConfiguredPrinterOptions,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal){
- signal.throwIfAborted();const zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
+ signal.throwIfAborted();const screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
+ let closeScrews:(()=>Promise<void>)|undefined;
  let closeQuad:(()=>Promise<void>)|undefined;
  let closeTemperatureFans:(()=>void)|undefined;
  let closeSkewSave:(()=>Promise<void>)|undefined;
@@ -75,7 +78,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeScrews)jobs.push(closeScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -106,6 +109,11 @@ export async function startProductService(reader:ConfigurationReader,connections
    fail:error=>printer.hardware.close(error)
   });
   closeEndstopPhase=registerNativeEndstopPhase(server.endpoints,printer.maintenanceGate,{snapshot:()=>printer.linear.port.endstopPhaseCalibration(),idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy},product.configurationSession);
+  if(screws)closeScrews=registerNativeScrewsTilt(server.endpoints,printer.maintenanceGate,{
+   idle:()=>!closing&&printer.hardware.status.state==='ready'&&['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&printer.linear.kinematics.status.homedAxes==='xyz',
+   measure:(signal,direction,maximumDeviation)=>printer.linear.port.measureScrewsTilt(screws,reader.section('stepper_z').getFloat('position_min',{defaultValue:0}),signal,direction,maximumDeviation),
+   synchronize:()=>printer.print.gcode.coordinates.resetPosition(),fail:error=>printer.hardware.close(error)
+  });
   closeIdleSettings=registerNativeIdleSettings(server.endpoints,printer.idleTimeout,()=>!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance);
   closeTemperatureFans=registerNativeTemperatureFans(server.endpoints,printer.hardware.temperatureFans,()=>!closing&&printer.hardware.status.state==='ready'&&!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance&&!printer.controller.safeStopPending);
   if(product.configurationSession)closeConfiguration=registerNativeConfiguration(server.endpoints,product.configurationSession,printer.maintenanceGate,new BedMeshProfiles(reader),{current:()=>printer.linear.port.currentBedMesh(),idle:()=>['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves});
