@@ -19,3 +19,20 @@ test('temperature monitor option follows Moonraker strict Boolean conversion',()
  for(const input of [true,'true','TRUE'])assert.equal(includeTemperatureMonitors(input),true);
  for(const input of [null,1,0,{},[],' true ','yes'])assert.throws(()=>includeTemperatureMonitors(input),/include_monitors/);
 });
+test('generation handoff copies exact rounded rings, truncates to new capacity and prunes removed fields',()=>{
+ const old=new TemperatureStore({capacity:4});old.configure(['x','removed'],['x'],{x:{temperature:-0,power:.125},removed:{temperature:10}});
+ for(const temperature of [2.675,3.125,4.125,5.125])old.sample({x:{temperature}});
+ const before=old.snapshot(true),next=new TemperatureStore({capacity:3},old);
+ next.configure(['x','new'],[],{x:{temperature:6.125},new:{temperature:-0}});
+ assert.deepEqual(next.snapshot(),{x:{temperatures:[4.12,5.12,6.12]},new:{temperatures:[-0]}});
+ next.sample({x:{temperature:7}});assert.deepEqual(old.snapshot(true),before);
+ old.sample({x:{temperature:99}});assert.deepEqual(next.snapshot().x.temperatures,[5.12,6.12,7]);
+ const larger=new TemperatureStore({capacity:8},next);larger.configure(['x'],[],{x:{temperature:8}});assert.deepEqual(larger.snapshot().x.temperatures,[5.12,6.12,7,8]);
+});
+test('new generation validates changed budgets before copying history and permits retry',()=>{
+ const old=new TemperatureStore();old.configure(['x'],[],{x:{temperature:-0,power:1}});const before=old.snapshot();
+ const next=new TemperatureStore({capacity:2,maxSlots:2},old);
+ assert.throws(()=>next.configure(['x'],[],{x:{temperature:1,power:1}}),/capacity/);assert.deepEqual(next.snapshot(),{});assert.deepEqual(old.snapshot(),before);
+ next.configure(['x'],[],{x:{temperature:1}});assert.deepEqual(next.snapshot().x.temperatures,[-0,1]);
+ next.configure(['x'],[],{x:{temperature:2}});assert.deepEqual(next.snapshot().x.temperatures,[1,2]);
+});

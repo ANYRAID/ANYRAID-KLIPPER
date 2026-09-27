@@ -1,3 +1,4 @@
+import type {TemperatureStore} from '../moonraker/temperature-store.ts';
 import {ProductHostControl} from './product-host-control.ts';
 import {startConfiguredProductService,type ConfiguredProductServiceOptions} from './product-service.ts';
 import type {ProductPrinterOptions} from './product-printer.ts';
@@ -23,11 +24,12 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  control??=new ProductHostControl();
  signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function')throw new TypeError('Invalid product host callbacks');
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
+ let temperatureHistory:TemperatureStore|undefined;
  let profile:ProductHostProfile|undefined,service:Awaited<ReturnType<typeof startConfiguredProductService>>|undefined,detach=()=>{},completion:ReturnType<typeof Promise.withResolvers<void>>|undefined,activeRequest:ReturnType<typeof Promise.withResolvers<void>>|undefined;
  const closeGeneration=async()=>{
   detach();detach=()=>{};const oldService=service,oldProfile=profile;service=undefined;profile=undefined;
   const failures:unknown[]=[];
-  if(oldService)try{await oldService.close();}catch(error){failures.push(error);}
+  if(oldService)try{await oldService.close();temperatureHistory=oldService.server.retiredTemperatureHistory();}catch(error){failures.push(error);}
   if(oldProfile)try{await oldProfile.release();}catch(error){failures.push(error);}
   if(failures.length)throw new AggregateError(failures,'Product generation cleanup failed');
  };
@@ -36,7 +38,8 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   while(!signal.aborted){
    profile=await factory(signal);
    if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
-   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredProductService(profile.reader,profile.policies,profile.product,{...profile.options,server:{...profile.options.server,productHostControl:control}},signal);
+   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredProductService(profile.reader,profile.policies,profile.product,{...profile.options,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
+   temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
    const validate=()=>{

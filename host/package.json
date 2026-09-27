@@ -214,6 +214,7 @@
     "bench:motion-history": "node bench/motion-history.ts",
     "bench:motion-retention": "node bench/motion-retention.ts",
     "bench:gcode-store": "node bench/gcode-store.ts",
+    "bench:temperature-handoff": "node bench/temperature-handoff.ts",
     "bench:temperature-store": "node bench/temperature-store.ts",
     "bench:database": "node bench/database.ts",
     "bench:database-backup": "node bench/database-backup.ts",

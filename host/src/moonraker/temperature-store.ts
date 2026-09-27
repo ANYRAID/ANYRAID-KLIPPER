@@ -22,23 +22,25 @@ class History {
  readonly values:Value[];head=0;length=0;raw:Value|undefined;rounded:Value=null;
  constructor(capacity:number){this.values=new Array(capacity);}
  append(raw:Value){if(!Object.is(raw,this.raw)){this.rounded=raw===null?null:rounded(raw);this.raw=raw;}this.values[(this.head+this.length)%this.values.length]=this.rounded;if(this.length<this.values.length)this.length++;else this.head=(this.head+1)%this.values.length;}
+ copy(capacity:number):History{const next=new History(capacity),length=Math.min(capacity,this.length),start=this.length-length;for(let i=0;i<length;i++)next.values[next.length++]=this.values[(this.head+start+i)%this.values.length];next.raw=this.raw;next.rounded=this.rounded;return next;}
  snapshot():Value[]{return Array.from({length:this.length},(_,i)=>this.values[(this.head+i)%this.values.length]);}
 }
 export interface TemperatureStoreLimits {capacity?:number;maxSensors?:number;maxSlots?:number;}
 /** Telemetry only: rounded history is never fed back to motion or heater control. */
 export class TemperatureStore {
  readonly #capacity:number;readonly #maxSensors:number;readonly #maxSlots:number;
+ #previous:TemperatureStore|undefined;
  #sensors=new Map<string,Map<string,History>>();#monitors=new Set<string>();
- constructor({capacity=1200,maxSensors=128,maxSlots=1000000}:TemperatureStoreLimits={}){for(const [n,max] of [[capacity,100000],[maxSensors,4096],[maxSlots,16000000]])if(!Number.isSafeInteger(n)||n<1||n>max)throw new RangeError('Invalid temperature history limits');this.#capacity=capacity;this.#maxSensors=maxSensors;this.#maxSlots=maxSlots;}
+ constructor({capacity=1200,maxSensors=128,maxSlots=1000000}:TemperatureStoreLimits={},previous?:TemperatureStore){this.#previous=previous;for(const [n,max] of [[capacity,100000],[maxSensors,4096],[maxSlots,16000000]])if(!Number.isSafeInteger(n)||n<1||n>max)throw new RangeError('Invalid temperature history limits');this.#capacity=capacity;this.#maxSensors=maxSensors;this.#maxSlots=maxSlots;}
  get status(){return {sensors:this.#sensors.size,fields:[...this.#sensors.values()].reduce((n,s)=>n+s.size,0),capacity:this.#capacity};}
  configure(sensors:readonly string[],monitors:readonly string[],status:StatusView):void{
   const names=[...new Set([...sensors,...monitors])];if(names.length>this.#maxSensors)throw new ApiError(429,'Too many temperature sensors');
   const plan=names.map(name=>{if(typeof name!=='string'||!name||name.length>256||name.includes('\0'))throw new ApiError(502,'Invalid temperature sensor name');return {name,values:Object.entries(Object.hasOwn(status,name)?status[name]:{}).filter(([field])=>fields.has(field)).map(([field,raw])=>[field,value(raw)] as const)};});
   if(plan.reduce((n,s)=>n+s.values.length,0)*this.#capacity>this.#maxSlots)throw new ApiError(429,'Temperature history capacity exceeded');
   const next=new Map<string,Map<string,History>>();
-  for(const sensor of plan){if(!sensor.values.length)continue;next.set(sensor.name,new Map(sensor.values.map(([field])=>[field,this.#sensors.get(sensor.name)?.get(field)??new History(this.#capacity)])));}
+  for(const sensor of plan){if(!sensor.values.length)continue;next.set(sensor.name,new Map(sensor.values.map(([field])=>[field,this.#sensors.get(sensor.name)?.get(field)??(this.#previous?this.#previous.#sensors.get(sensor.name)?.get(field)?.copy(this.#capacity):undefined)??new History(this.#capacity)])));}
   for(const sensor of plan)for(const [field,raw] of sensor.values)next.get(sensor.name)!.get(field)!.append(raw);
-  this.#sensors=next;this.#monitors=new Set(monitors);
+  this.#sensors=next;this.#monitors=new Set(monitors);this.#previous=undefined;
  }
  sample(status:StatusView):void{
   const pending:[History,Value][]=[];

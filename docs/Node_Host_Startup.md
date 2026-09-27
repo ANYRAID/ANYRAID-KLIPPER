@@ -82,10 +82,14 @@ Moonraker 配置 `[data_store] temperature_store_size` 控制每字段容量，
 不反馈到温控或运动计算。采样查询失败时保留历史并记录运行时错误，
 硬件状态仍应从原生主机和设备对象判断。
 
-历史保存在当前服务代次的内存中；原生主机重初始化会重建服务并重新
-开始采样，尚不提供跨重初始化或进程重启的历史连续性。关闭服务会
-取消采样定时器。数值参考和基准已经移除 Python 执行依赖，详见
-[原生温度历史验收](../host/contracts/native-temperature-history-acceptance.json)。
+历史保存在主机进程内存中。原生重初始化在旧服务和依赖关闭成功后，
+将已有字段的历史复制给新服务，再追加新代次初始样本。容量缩小时
+只保留最近样本；删除的传感器或字段被移除，新增字段从新样本开始。
+复制保留已舍入值和负零，不重复舍入；采样器不共享可变缓冲区。
+重初始化间隙不补造样本，进程退出后不保留历史。关闭失败不会创建
+替代服务。数值参考和基准已经移除 Python 执行依赖，详见
+[原生温度历史验收](../host/contracts/native-temperature-history-acceptance.json)和
+[重初始化历史交接验收](../host/contracts/temperature-handoff-acceptance.json)。
 
 ## 编译后的运行包
 

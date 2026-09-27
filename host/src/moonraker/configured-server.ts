@@ -79,7 +79,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  sensorTransport?:MqttSensors;
  /** Explicit authorization for broker-originated calls; no HTTP identity is inferred. */
  mqttAuthorize?:MqttAuthorization;
- temperatureStore?:{maxSensors?:number;maxSlots?:number};
+ temperatureStore?:{maxSensors?:number;maxSlots?:number;previous?:TemperatureStore};
  /** Transfers database lifetime on successful load. */
  database?:DatabaseStore;
  /** Repository must be initialized on this database before loading the server. */
@@ -161,7 +161,7 @@ export class ConfiguredMoonraker {
   this.#network=new MoonrakerNetwork(this.rpc,{...options,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
-  if(options.temperatureStore||options.nativeObjects)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})}),()=>this.#klippy?.cachedStatus??{});
+  if(options.temperatureStore||options.nativeObjects)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})},options.temperatureStore?.previous),()=>this.#klippy?.cachedStatus??{});
   this.#sensorTransport=options.sensorTransport;this.#sensors=options.sensors;const releaseSensors=this.#sensors?registerSensors(this.endpoints,this.#sensors):()=>{};
   if(this.#sensorTransport){this.#mqttMacros=new MqttMacroPublisher(this.#sensorTransport,this.#sensorTransport.instanceName);this.#mqttStatus=new MqttStatusRuntime(this.#sensorTransport,readMqttStatusOptions(reader));}
   const releaseMqtt=this.#sensorTransport?registerMqttPublish(this.endpoints,this.#sensorTransport):()=>{};
@@ -321,6 +321,8 @@ export class ConfiguredMoonraker {
  async drainHistory():Promise<void>{await this.#historyRuntime?.drain();}
  get jobState(){return this.#jobState?{stats:this.#jobState.lastStats,event:this.#jobState.lastEvent}:null;}
  get cachedKlippyStatus(){return this.#klippy?.cachedStatus??null;}
+ /** Only a retired sampler may hand history to the next service generation. */
+ retiredTemperatureHistory():TemperatureStore|undefined{if(this.#temperatureStore&&!this.#temperatureStore.status.closed)throw new Error('Temperature sampler is still active');return this.#temperatureStore?.store;}
  get temperatureStoreStatus(){return this.#temperatureStore?.status??null;}
  get gcodeStoreStatus(){return this.#gcodeStore?.status??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
