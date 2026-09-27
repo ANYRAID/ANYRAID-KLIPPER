@@ -131,6 +131,13 @@ TMC 与 MAX6675 的硬件/软件 SPI 总线协调已接通，修复同一 MCU �
 11.99 ms；不含人工等待和物理移动。本轮未减少 Python 文件，Z 限位
 校准仍待接通。见[独立手动探测验收](../host/contracts/standalone-manual-probe-acceptance.json)。
 
+单独 Z 限位校准已接通测量和保存操作，保留精度并校验行程边界。
+20 项回归及编译产品的打印、接触测量、保存、重初始化、再次归零
+通过；模拟接触 -0.05 mm 从原限位 0 得到新限位 0.05，重读一致。
+本轮没有退役 Python 文件；偏移应用、Delta 多塔等 manual_probe.py
+剩余行为及真实机械精度仍待迁移/验收。见
+[Z 限位校准验收](../host/contracts/z-endstop-acceptance.json)。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 

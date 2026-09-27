@@ -1371,7 +1371,8 @@ position 根据排空后的整数步进历史重建，是命令位置而非编�
 最近一次重试返回原回执；冲突或旧令牌返回 409。客户端重新连接可 GET
 恢复当前状态，主机重启不会重放运动。等待输入超过五分钟、通信故障或
 取消会撤销运动权限；有效校准不会在未完成采样时发布。
-Z 限位校准尚未迁移，不能据此删除原 manual_probe.py。
+单独 Z 限位校准见下文；偏移应用及 Delta 多塔等路径尚未迁移，
+不能据此删除原 manual_probe.py。
 
 规划数值参考、基准及模拟产品结果见
 [手动校准验收](../host/contracts/manual-probe-acceptance.json)。运行
@@ -1392,3 +1393,22 @@ Z 限位校准尚未迁移，不能据此删除原 manual_probe.py。
 独立 MANUAL_PROBE/TESTZ/ACCEPT 的交互流程，保留受控操作而非执行宏。
 [独立手动探测验收](../host/contracts/standalone-manual-probe-acceptance.json)
 记录固定数值参考、性能和编译产品验证；尚未完成真实接触与目标板验收。
+
+### Z 限位接触校准
+
+配置了 stepper_z.position_endstop 且未使用 probe:z_virtual_endstop 时，
+GET/POST `/printer/calibration/z_endstop` 提供同样的单点 start、adjust、
+搜索、accept、cancel 操作。必须已归零且空闲；当前 XY 不变。机器的
+position_min 必须允许待测接触位置，操作不会绕过行程限制。
+
+accept 产生候选值：配置 position_endstop 减去喷嘴接触高度。输入及
+候选值均须在配置行程内，结果保留完整数值精度，不按显示精度舍入。
+测量不会改变当前归零坐标或写文件。GET `/printer/configuration/z_endstop`
+查看 candidate 及新的 state_token；POST 仅包含 version: 1 和该令牌，
+保存本机接受的候选值。客户端不得提交 position_endstop 数值。
+
+保存通过既有配置会话进行备份和冲突检查；同请求重试返回原回执。
+保存后运动准入关闭，须通过主机重初始化操作加载新配置并重新归零。
+保存失败也须重初始化并检查配置，不能继续运动。
+[Z 限位校准验收](../host/contracts/z-endstop-acceptance.json)包含实际文件
+重读及编译产品再次归零证据；不替代真机接触与精度验收。
