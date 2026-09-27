@@ -25,6 +25,9 @@ export class ThermalPrintDevice implements PrintDevice {
   this.#listeners.add(listener);return ()=>{this.#listeners.delete(listener);};
  }
  #setFault(cause:unknown):void{
+  // Requested stop reports its own failure through the joined stop promise.
+  // Expected motion/heater shutdown notifications must not race cancellation.
+  if(this.#stopping)return;
   if(this.#fault)return;this.#fault=cause;
   const listeners=[...this.#listeners];this.#listeners.clear();
   const errors:unknown[]=[];for(const listener of listeners)try{listener(cause);}catch(error){errors.push(error);}

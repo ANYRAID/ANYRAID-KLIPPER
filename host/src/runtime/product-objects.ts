@@ -17,6 +17,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   ['display_status',eventtime=>productDisplayStatus(printer.print.gcode.display,printer.controller.state,printer.print.file.objectStatus.progress,eventtime)],
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers,filename)],
   ['pause_resume',()=>productPauseStatus(printer.controller.state)],
+  ['idle_timeout',()=>({...printer.idleTimeout.status,motors_releasable:printer.linear.port.canReleaseMotors})],
   ['toolhead',()=>{const k=printer.linear.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.linear.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);

@@ -77,3 +77,6 @@ test('a completed job cannot lend thermal readiness to the next preparing job',a
   held.resolve();await preparing;await f.device.start('next-file',signal);assert.equal(f.events.filter(e=>e==='start').length,2);
  }finally{held.resolve();await preparing?.catch(()=>{});f.motionStop.resolve();await f.group.shutdown();}
 });
+test('requested stop notifications keep cancellation pending until acknowledgements arrive',async()=>{
+ const f=await fixture();await f.controller.start(request);await f.controller.pause();const cancelled=f.controller.cancel();await flush();f.faultMotion(new Error('File execution stopped'));assert.equal(f.controller.state,'cancelling');assert.equal(f.controller.failure,undefined);f.resets[0][1].resolve();f.resets[1][1].resolve();f.motionStop.resolve();await cancelled;assert.equal(f.controller.state,'cancelled');await f.group.shutdown();
+});
