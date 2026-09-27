@@ -799,6 +799,27 @@ bed_mesh=profile_name，避免传输不需要的矩阵。
 不会报告虚假的删除成功；应先处理来源冲突再重建会话。
 成功重试必须同时匹配令牌、名称和 action；把删除重试改为保存会拒绝。
 
+## 使用探针完成 Z 归零
+
+带普通 GPIO 探针的线性机器可以在 stepper_z 配置
+`endstop_pin: probe:z_virtual_endstop`，同时配置 [probe] 的 pin 和
+z_offset。删除 stepper_z.position_endstop；Z 触发位置由 z_offset
+确定。虚拟引脚本身不能添加 ! 或 ^，电平与上拉配置写在 probe.pin。
+Z 必须向下归零，z_offset 必须在 Z 行程范围内。
+
+G28 按 XYZ 顺序执行；单独 G28 Z 前必须已归零 XY。Z 在当前 XY
+位置下降，不自动定位到床中心。Z 归零和后续探测/网床测量共享同一
+GPIO 与触发同步资源，附加 Z 电机可共享探针，但不能配置独立限位。
+每次归零使用单次触发，回退及二次归零由 homing_retract_dist、
+homing_retract_speed、second_homing_speed 控制，不使用 probe.samples。
+坐标换算保留触发到完全停止之间的位移，不把停止位置直接写成 z_offset。
+归零失败、二次触发没有运动或取消会停止硬件并撤销归零状态。
+
+探针 Z 归零不执行电机端点相位校正；相应 Z 相位统计保持无样本，
+显式 endstop_phase stepper_z 配置拒绝。当前 safe_z_home 自动定位、
+BLTouch/激活宏设备适配尚未接入；safe_z_home 配置明确拒绝，不能
+将它当作已生效的移动路径。后续需接入自动定位并完成目标机实测。
+
 ## 单点探针维护操作
 
 配置 `[probe]` 的原生产品服务注册 `GET/POST /printer/calibration/probe`。

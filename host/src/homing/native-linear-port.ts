@@ -1,3 +1,4 @@
+import {probeHomingPosition} from './probe-home.ts';
 import {endstopPhasePosition} from './endstop-phase-position.ts';
 import type {ConfiguredEndstopPhase} from '../config/endstop-phase.ts';
 import {observedStepperPosition} from '../motion/observed-position.ts';
@@ -26,6 +27,7 @@ import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,ty
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
  endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
+ probeHoming?:Readonly<{minimumZ:number;offset:number}>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
@@ -72,9 +74,10 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
+  if(o.probeHoming&&(!Number.isFinite(o.probeHoming.minimumZ)||!Number.isFinite(o.probeHoming.offset)||o.probeHoming.offset<o.probeHoming.minimumZ||o.groupsByAxis[2].length!==1||o.probeGroups?.length!==1||o.groupsByAxis[2][0].endstop!==o.probeGroups[0].endstop))throw new Error('Invalid probe homing configuration or ownership');
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
@@ -434,8 +437,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    this.#lastHoming=undefined;
    const groups=this.#o.groupsByAxis[axis],modes=[...new Set(groups.flatMap(g=>g.sensorless?[g.sensorless]:[]))];
    if(modes.length){await this.#drain(s);for(const mode of modes)await mode.enter(s);await this.#rebase(this.homingPosition(),s);}
-   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:'home'}).run(target,speed,axis,s);
+   const probe=axis===2?this.#o.probeHoming:undefined;
+   if(probe){if(groups.length!==1||modes.length||!this.#o.kinematics.status.homedAxes.includes('x')||!this.#o.kinematics.status.homedAxes.includes('y'))throw new Error('Probe Z homing requires homed XY and one probe endstop');target[2]=probe.minimumZ;if(target[2]>=this.homingPosition()[2])throw new Error('Probe Z search must descend');}
+   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:probe?'probe':'home'}).run(target,speed,axis,s);
    try{this.#adopt(result.generation,result.position,s);
+    if(probe)await this.#rebase(probeHomingPosition(result.position,result.triggerPosition,probe.offset),s);
     // Successful seek includes trigger-stop confirmation and halted positions.
     // On failure the operation retires hardware without a moving-mode restore.
     for(const mode of modes)await mode.restore(s);
@@ -448,6 +454,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return this.#operate('phase-correction',signal,async s=>{
    const last=this.#lastHoming;this.#lastHoming=undefined;
    if(!last||last.pass!==pass||last.axis!==axis||last.generation!==this.#g)throw new Error('Stale or foreign homing phase result');
+   if(axis===2&&this.#o.probeHoming)return;
    const id=this.#o.kinematicIds[axis],owners=this.#o.endstopPhases??[];
    for(const tracked of owners){
     if(!tracked.statsOnly||tracked.id!==id&&!new RegExp('^stepper_'+ 'xyz'[axis]+'\\d+$').test(tracked.name??''))continue;

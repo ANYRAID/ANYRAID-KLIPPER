@@ -57,3 +57,17 @@ test('automatic layout includes thermal fans without assigning them to M106',asy
   assert(plan.layout.fans.some(f=>f.section==='heater_fan hotend'));assert.equal(plan.initial.fanSection,'fan');
  }finally{await f.close();}
 });
+
+test('probe virtual Z reuses the probe GPIO and trigger owners without duplicate allocation',async()=>{
+ const f=await configuredPrinterFixture();try{
+  const raw=structuredClone(f.reader.source.original);delete raw.stepper_z.position_endstop;raw.stepper_z.endstop_pin='probe:z_virtual_endstop';raw.probe={pin:'^PA13',z_offset:'1.2'};
+  const cfg=()=>new ConfigurationReader(new ConfigurationSource('/probe-home.cfg',structuredClone(raw),[]),null),plan=planLinearPrinter(cfg(),policy);
+  assert.equal(plan.layout.homing.filter(h=>h.section==='probe').length,1);assert.equal(plan.layout.homing.some(h=>h.section==='stepper_z'),false);assert.deepEqual(plan.linear.homing[2],plan.linear.probe);
+  const owner=await startClockedPrinter(cfg(),f.group,'mcu',plan.layout,{...f.options,hardware:{...f.options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear},f.signal);
+  assert.equal(owner.linear.rails[2].endstop,1.2);assert.equal(owner.linear.kinematics.status.homedAxes,'');await owner.close();
+  raw.stepper_z.position_endstop='0';assert.throws(()=>planLinearPrinter(cfg(),policy),/position_endstop/);delete raw.stepper_z.position_endstop;
+  raw.stepper_z.homing_positive_dir='true';assert.throws(()=>planLinearPrinter(cfg(),policy),/descend/);raw.stepper_z.homing_positive_dir='false';
+  raw.safe_z_home={home_xy_position:'50,50'};assert.throws(()=>planLinearPrinter(cfg(),policy),/safe_z_home/);delete raw.safe_z_home;
+  raw.stepper_z1={step_pin:'aux:PA6',dir_pin:'aux:PA7',endstop_pin:'aux:PA8',rotation_distance:'40',microsteps:'16'};assert.throws(()=>planLinearPrinter(cfg(),policy),/mix/);
+ }finally{await f.close();}
+});
