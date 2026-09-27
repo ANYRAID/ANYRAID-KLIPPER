@@ -23955,3 +23955,23 @@ host/contracts/native-configuration-acceptance.json 的 compiledRoundTrip。
 具体结果见 host/contracts/native-configuration-remove-acceptance.json。
 实机探针校准、跨进程维护回执、完整 Moonraker 集成、历史稳定性异常
 与全面 Python 退役仍未完成。
+
+### 原生探测寻位坐标重建
+
+原生 LinearHomingSeek 新增显式 probe 模式，保留默认 home 模式。
+归零仍把触发位置赋为目标坐标；探测从寻位前的执行器坐标，加上以
+整数相减得到的触发/停止步数，重建两个独立物理位置。探测未触发
+时停止并拒绝发布新运动代际，不能把运动终点当作床面测量值。
+NativeLinearHomingPort 的 G28 路径显式固定为 home，避免探测模式
+意外改变归零语义。
+
+原生模拟检查精确得到 X 触发/停止 50.45/50.48 mm；向下 Z 探测为
+-0.12/-0.15 mm，而非目标 -1 mm。Z 夹具显式允许负行程，并使用
+实际下发 rest_ticks 生成报告；初版错误沿用 X 的 1 ms 间隔，造成
+触发时钟偏移，已修正夹具，没有调整生产算法或精度容差。
+
+这只是接通原生寻位与探测坐标重建，不是完整 PROBE 或床面校准功能。
+探针 GPIO 配置、触发前检查、多次采样/重试、Z 偏移、网格测量流程
+及用户维护接口仍待接入。完整证据见
+host/contracts/probe-linear-seek-acceptance.json；模拟数据不能证明实机
+探测精度，也不关闭历史数值异常和进程崩溃。

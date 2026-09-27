@@ -17,7 +17,7 @@ import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer
 import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
-export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'> {
+export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
@@ -322,7 +322,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
-   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:this.#o.groupsByAxis[axis]}).run(target,speed,axis,s);
+   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:this.#o.groupsByAxis[axis],mode:'home'}).run(target,speed,axis,s);
    try{this.#adopt(result.generation,result.position,s);return result;}catch(error){result.motion.dispose();throw error;}
   });
  }

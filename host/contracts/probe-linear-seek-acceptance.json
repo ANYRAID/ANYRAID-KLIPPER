@@ -1,0 +1,193 @@
+{
+  "base": "bc0b5517",
+  "tests": {
+    "native": 8,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": true
+  },
+  "benchmark": [
+    {
+      "node": "v26.9.0",
+      "warmups": 3,
+      "samples": 11,
+      "home": {
+        "wall": {
+          "medianMs": 262.7862750000004,
+          "p95Ms": 263.20020000000113
+        },
+        "cpu": {
+          "medianMs": 4.424,
+          "p95Ms": 6.379
+        }
+      },
+      "probe": {
+        "wall": {
+          "medianMs": 262.47426000000087,
+          "p95Ms": 263.0551889999997
+        },
+        "cpu": {
+          "medianMs": 3.899,
+          "p95Ms": 20.385
+        }
+      },
+      "scope": "Native hit history and generation adoption, alternating home/probe with identical simulated trigger and counters. Setup excluded; no physical hardware."
+    }
+  ],
+  "product": [
+    {
+      "installation": {
+        "durationMs": 687.9470549999996,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.223,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.097151,
+            "maxMs": 12.951551
+          },
+          "cpu": {
+            "user": 718467,
+            "system": 81727
+          },
+          "rss": 160792576
+        },
+        {
+          "loop": {
+            "p99Ms": 1.728511,
+            "maxMs": 5.238783
+          },
+          "cpu": {
+            "user": 396295,
+            "system": 59056
+          },
+          "rss": 182378496
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 684.6964799999987,
+        "dependencies": 10
+      }
+    },
+    {
+      "configurationSave": {
+        "compiled": true,
+        "reinitialized": true,
+        "oldTokenRejected": true,
+        "removedAfterReinitialization": true,
+        "profile": "retained",
+        "implicitMeshActivation": false
+      }
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 463,
+      "historyP99Ms": 9.16414299999451,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 7.107244999999239,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.995347000000038,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.0471980000002077,
+      "metadataRequests": 16,
+      "metadataP95Ms": 15.523988000000827,
+      "downloads": 16,
+      "downloadP95Ms": 4.49207000000024,
+      "wireCommands": 188,
+      "wireSteps": 3316,
+      "minimumStepLeadMs": 86.211,
+      "directoryRequests": 1995,
+      "directoryP99Ms": 5.598014999999577,
+      "statusRequests": 8293,
+      "uploads": 16,
+      "statusP99Ms": 2.856467999998131,
+      "uploadP95Ms": 8.326321000000462,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.973247,
+            "maxMs": 14.024703
+          },
+          "cpu": {
+            "user": 2112210,
+            "system": 259633
+          },
+          "rss": 249307136
+        },
+        {
+          "loop": {
+            "p99Ms": 1.912831,
+            "maxMs": 4.489215
+          },
+          "cpu": {
+            "user": 1277276,
+            "system": 170393
+          },
+          "rss": 251342848
+        }
+      ]
+    }
+  ],
+  "exact": {
+    "x": {
+      "trigger": 50.45,
+      "halt": 50.48
+    },
+    "z": {
+      "trigger": -0.12,
+      "halt": -0.15,
+      "target": -1
+    }
+  },
+  "hashes": {
+    "host/src/homing/linear-seek.ts": "643b66dfabaec250d132ef4ff14b09d0f2268c5ab417bb79d22fb568c02d5fd2",
+    "host/src/homing/native-linear-port.ts": "5c9d97adf0b00cba3fcdb1c5ce1a0d256fc5546ebb226bf13beb3bca88b97174",
+    "host/test/homing-linear-seek.test.ts": "1cd369683c0a8211377627ff8aaac35122b51e25768468ce5ebec8b30841fa54",
+    "host/bench/probe-linear-seek.ts": "8a56ba87573336496f59fd0f5c45e73e111db7dda9d53f3e8ae6527ac9039bf9",
+    "/tmp/probe-seek-verified.log": "4ea3bd9e97a745c9dae3695256988806cf225ae2bf086f5822a626d37178b847",
+    "/tmp/probe-seek-bench.log": "67b5d5f786bfa1e5269e549b335f17d52c1bbdc2df17340e4217552c09ebbd0d",
+    "/tmp/probe-seek-product.log": "20bba11d9a833920b53bdfd7ac402ff85e972947ee0e2fd21d7324ccfb0be7af",
+    "/tmp/probe-seek-final.log": "86e63e4b02788197843434dde11c2b1398248336ad3fc073a66fcf832f0aaf5f",
+    "/tmp/probe-seek-final-allowed-range.log": "fb5eff23754373a1b4f7bf3a2e4cdcc2350ea370b9ef88302ffa57bc004eebe2"
+  },
+  "fixtureCorrections": [
+    "Negative Z target initially outside fixture range; fixture now explicitly configures -2 mm minimum",
+    "Z report initially used X-axis rest interval; now uses actual endstop_home rest_ticks without changing production timing or precision"
+  ],
+  "limitations": [
+    "Probe seek primitive only; no probe GPIO configuration, PROBE command, sampling retry or bed calibration workflow connected",
+    "Simulated MCU and local benchmarks, no physical precision or target-board performance acceptance",
+    "Earlier numerical integrity failures and SIGSEGV unresolved",
+    "Complete Python retirement and complete Moonraker integration remain pending"
+  ]
+}
