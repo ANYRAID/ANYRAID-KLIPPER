@@ -1558,7 +1558,7 @@ POST 传 `version:1`、`state_token`，以及以下操作之一：
 `[screws_tilt_adjust]` 支持连续编号的 `screw1` 至 `screw99`（至少
 三个 XY 点）、对应 `_name`、`screw_thread`、`speed` 和
 `horizontal_move_z`。螺纹支持 `CW-M3` 至 `CW-M6` 及对应 `CCW`。
-配置必须有探针，所有点与抬升高度须在物理行程内。
+自动模式必须有探针，所有点与抬升高度须在物理行程内。
 
 鉴权 GET `/printer/calibration/screws_tilt` 获取状态令牌；POST 使用
 `version:1`、`state_token`，可加 `direction:CW|CCW` 和
@@ -1571,3 +1571,11 @@ POST 传 `version:1`、`state_token`，以及以下操作之一：
 偏差超过阈值时 `error:true`，应按建议调整并以新令牌重新测量。
 相同成功请求重试只返回原回执，不重新移动。测量不会自动调电机或
 修改床面补偿；探测失败或取消要求重新初始化后再操作。
+
+无探针配置可使用 `/printer/calibration/screws_tilt/manual`。GET 获取
+状态，POST 带 `version:1`、`state_token` 和 `action`；先 `start`，
+再以 `adjust` 加 `delta`（相对 Z 毫米值）或 `bisect_up/down` 调整，
+接触确认用 `accept`。每次使用最新令牌，全部点确认后返回调整建议。
+该手动路径固定使用第一螺丝基准，暂不支持强制旋向和偏差阈值。
+`cancel` 或交互超时会停止并要求重新初始化。配置无探针时不注册
+自动探测接口；手动流程不自动修改补偿或保存配置。
