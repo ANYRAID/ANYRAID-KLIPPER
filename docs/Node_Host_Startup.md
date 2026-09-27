@@ -808,7 +808,7 @@ z_offset。删除 stepper_z.position_endstop；Z 触发位置由 z_offset
 Z 必须向下归零，z_offset 必须在 Z 行程范围内。
 
 G28 按 XYZ 顺序执行；单独 G28 Z 前必须已归零 XY。Z 在当前 XY
-位置下降，不自动定位到床中心。Z 归零和后续探测/网床测量共享同一
+位置下降；配置下述 safe_z_home 后会先自动定位。Z 归零和后续探测/网床测量共享同一
 GPIO 与触发同步资源，附加 Z 电机可共享探针，但不能配置独立限位。
 每次归零使用单次触发，回退及二次归零由 homing_retract_dist、
 homing_retract_speed、second_homing_speed 控制，不使用 probe.samples。
@@ -816,9 +816,19 @@ homing_retract_speed、second_homing_speed 控制，不使用 probe.samples。
 归零失败、二次触发没有运动或取消会停止硬件并撤销归零状态。
 
 探针 Z 归零不执行电机端点相位校正；相应 Z 相位统计保持无样本，
-显式 endstop_phase stepper_z 配置拒绝。当前 safe_z_home 自动定位、
-BLTouch/激活宏设备适配尚未接入；safe_z_home 配置明确拒绝，不能
-将它当作已生效的移动路径。后续需接入自动定位并完成目标机实测。
+显式 endstop_phase stepper_z 配置拒绝。BLTouch/激活宏设备适配尚未接入。
+
+可配置 [safe_z_home]：home_xy_position 为喷嘴 XY 坐标（不自动减去
+探针偏移），speed 默认 50，z_hop 默认 0，z_hop_speed 默认 15，
+move_to_previous 默认 false。XY 定位与抬升坐标必须在机器行程内，
+z_hop 必须非负；与 homing_override 冲突时拒绝启动。
+
+任何 G28（包括只归零 XY）先按需抬升。Z 未归零时临时以 Z=0
+为起点执行受限抬升，过程不授予正式 Z 归零权限。随后归零所选 XY；
+请求 Z 归零时必须已有 XY 权限，移动到配置位置后下探，完成后
+再次抬升到 z_hop。move_to_previous 只恢复进入定位步骤前的 XY，
+保留抬升后的 Z 和挤出位置。物理定位不应用网床补偿；故障或取消
+沿归零停机路径撤销权限。目标板抬升方向、可用余量和探针位置仍须实测。
 
 ## 单点探针维护操作
 

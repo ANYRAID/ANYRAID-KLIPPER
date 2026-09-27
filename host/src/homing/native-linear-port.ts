@@ -1,3 +1,4 @@
+import type {SafeZHoming} from './safe-z-home.ts';
 import {probeHomingPosition} from './probe-home.ts';
 import {endstopPhasePosition} from './endstop-phase-position.ts';
 import type {ConfiguredEndstopPhase} from '../config/endstop-phase.ts';
@@ -27,6 +28,7 @@ import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,ty
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
  endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
+ safeZHoming?:Readonly<SafeZHoming>;
  probeHoming?:Readonly<{minimumZ:number;offset:number}>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
@@ -85,6 +87,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
  #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ get safeZHoming(){return this.#o.safeZHoming;}
  get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausedClockMaintenance:this.#pausedClock!==undefined,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
@@ -353,6 +356,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
   this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
+ }
+ /** Physical safe-home travel preserves extrusion and ordinary axis authority. */
+ homingTravel(position:readonly number[],speed:number,signal:AbortSignal){
+  const target=[...position];return this.#operate('homing-travel',signal,async s=>{
+   const start=this.homingPosition();if(target.length!==start.length||target.slice(3).some((v,i)=>v!==start[i+3]))throw new Error('Safe home travel cannot move extra axes');
+   const physical=this.#newAdmission(start,true);physical.move(target,speed);
+   await this.#drain(s);await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
+   const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Safe home travel completed'));this.#admission=next;
+  });
  }
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,s=>this.#rebase(target,s));

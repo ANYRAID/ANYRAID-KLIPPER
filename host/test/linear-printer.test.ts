@@ -67,7 +67,7 @@ test('probe virtual Z reuses the probe GPIO and trigger owners without duplicate
   assert.equal(owner.linear.rails[2].endstop,1.2);assert.equal(owner.linear.kinematics.status.homedAxes,'');await owner.close();
   raw.stepper_z.position_endstop='0';assert.throws(()=>planLinearPrinter(cfg(),policy),/position_endstop/);delete raw.stepper_z.position_endstop;
   raw.stepper_z.homing_positive_dir='true';assert.throws(()=>planLinearPrinter(cfg(),policy),/descend/);raw.stepper_z.homing_positive_dir='false';
-  raw.safe_z_home={home_xy_position:'50,50'};assert.throws(()=>planLinearPrinter(cfg(),policy),/safe_z_home/);delete raw.safe_z_home;
+  raw.safe_z_home={home_xy_position:'-1,50'};assert.throws(()=>planLinearPrinter(cfg(),policy),/safe Z/);delete raw.safe_z_home;
   raw.stepper_z1={step_pin:'aux:PA6',dir_pin:'aux:PA7',endstop_pin:'aux:PA8',rotation_distance:'40',microsteps:'16'};assert.throws(()=>planLinearPrinter(cfg(),policy),/mix/);
  }finally{await f.close();}
 });

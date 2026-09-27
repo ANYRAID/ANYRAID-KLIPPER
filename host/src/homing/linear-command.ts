@@ -1,3 +1,4 @@
+import {safeZHomingSettings,type SafeZHoming} from './safe-z-home.ts';
 // Linear-axis G28 sequencing from klippy/extras/homing.py. GPL-3.0-or-later.
 import {GCodeDispatch,GCodeError} from '../gcode/dispatch.ts';
 import {GCodeMove,type MovePort} from '../gcode/move.ts';
@@ -24,6 +25,8 @@ export interface HomingPass {
  * motorOff must fence pending work, including callbacks which settle late.
  * Every asynchronous operation must honor signal and check device health. */
 export interface LinearHomingPort extends MovePort {
+ readonly safeZHoming?:Readonly<SafeZHoming>;
+ homingTravel?(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>;
  /** Physical halt coordinates for privileged homing; ordinary position may be transformed. */
  homingPosition?():readonly number[];
  /** Complete final-pass coordinate correction before granting homing authority. */
@@ -53,6 +56,7 @@ export function homingRetract(force:readonly number[],home:readonly number[],dis
  * native driver; registering this class alone does not wire printer hardware. */
 export class LinearHomingCommand {
  #kin:LinearKinematics;#coordinates:GCodeMove;#port:LinearHomingPort;#rails:readonly LinearHomingRail[];#busy=false;#timeout:number;
+ #safe:Readonly<SafeZHoming>|undefined;
  #cleanupPending=false;#cleanupFailed=false;#cleanupError:unknown;
  constructor(kinematics:LinearKinematics,coordinates:GCodeMove,port:LinearHomingPort,rails:readonly LinearHomingRail[],timeoutMs=120000){
   if(!coordinates.usesPort(port)||rails.length!==3||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new Error('Invalid linear homing ownership');
@@ -60,6 +64,7 @@ export class LinearHomingCommand {
    const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);
    if(typeof r.positiveDirection!=='boolean'||![r.speed,r.retractSpeed,r.secondSpeed].every(v=>Number.isFinite(v)&&v>0)||!Number.isFinite(r.retractDistance)||r.retractDistance<0||geometry.force[i]===geometry.home[i]||!r.endstops.length||r.endstops.length>16||new Set(r.endstops).size!==r.endstops.length||r.endstops.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new RangeError('Invalid linear homing rail');
   }
+  if(port.safeZHoming){if(!port.homingTravel)throw new Error('Safe Z homing requires physical travel ownership');this.#safe=safeZHomingSettings(port.safeZHoming,kinematics.status);}
   this.#kin=kinematics;this.#coordinates=coordinates;this.#port=port;this.#rails=rails.map(r=>({...r,endstops:[...r.endstops]}));this.#timeout=timeoutMs;
  }
  get status(){return {busy:this.#busy,cleanupPending:this.#cleanupPending,cleanupFailed:this.#cleanupFailed,cleanupError:this.#cleanupError};}
@@ -91,9 +96,17 @@ export class LinearHomingCommand {
    if(second)for(const p of offsets)if(moving.has(`${p.member}:${p.oid}`)&&p.start===p.trigger){let group=pass.stop.memberOffsets.length-1;while(group>0&&pass.stop.memberOffsets[group]>p.member)group--;throw new HomingCommandError('still_triggered',rail.endstops[group]);}
   };
   try{
-   check();this.#kin.clearHoming(selected);await run(this.#port.drain(s));
+   check();await run(this.#port.drain(s));
+   const safe=this.#safe,travel=async(target:number[],speed:number)=>{if(target.every((v,i)=>v===position()[i]))return;await run(this.#port.homingTravel!(target,speed,s));this.#coordinates.resetPosition();};
+   if(safe?.hop){
+    const p=position();if(!this.#kin.status.homedAxes.includes('z')){p[2]=0;await run(this.#port.forcePosition(p,s));p[2]=safe.hop;await run(this.#port.retract(p,safe.hopSpeed,2,s));this.#coordinates.resetPosition();}
+    else if(p[2]<safe.hop){p[2]=safe.hop;await travel(p,safe.hopSpeed);}
+   }
+   this.#kin.clearHoming(selected);
    for(const axis of selected){
-    check();const rail=this.#rails[axis],geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
+    check();let previousXY:readonly number[]|undefined;
+    if(axis===2&&safe){if(!this.#kin.status.homedAxes.includes('x')||!this.#kin.status.homedAxes.includes('y'))throw new GCodeError('Safe Z homing requires homed XY');const p=position();previousXY=p.slice(0,2);p[0]=safe.position[0];p[1]=safe.position[1];await travel(p,safe.speed);}
+    const rail=this.#rails[axis],geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
     await run(this.#port.forcePosition(fill(geometry.force),s));
     let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirm(finalPass,rail,false);
     if(rail.retractDistance){
@@ -102,6 +115,7 @@ export class LinearHomingCommand {
      finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirm(finalPass,rail,true);
     }
     await run(this.#port.drain(s));if(this.#port.finishHoming)await run(this.#port.finishHoming(finalPass,axis,rail.endstop,s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
+    if(axis===2&&safe){let p=position();if(safe.hop&&p[2]<safe.hop){p[2]=safe.hop;await travel(p,safe.hopSpeed);}if(safe.moveToPrevious){p=position();p[0]=previousXY![0];p[1]=previousXY![1];await travel(p,safe.speed);}}
    }
   }catch(error){
    const local=new AbortController(),timer=setTimeout(()=>local.abort(new Error('Homing motor-off cleanup timed out')),5000);
