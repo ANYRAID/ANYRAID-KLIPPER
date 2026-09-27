@@ -8,7 +8,7 @@ export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGa
  let token=randomUUID(),state:'ready'|'measuring'|'failed'='ready',closed=false;
  let last:{token:string;receipt:Json}|undefined,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();
- const snapshot=()=>({state_token:token,state,available:!closed&&state==='ready'&&!gate.status.closed&&motion.idle()});
+ const snapshot=()=>({state_token:token,state,available:!closed&&state==='ready'&&gate.available&&motion.idle()});
  const releases=[registry.register({endpoint:'/printer/calibration/'+kind,methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return snapshot();
   if(Object.keys(params).some(k=>!['version','state_token'].includes(k))||params.version!==1||typeof params.state_token!=='string')throw new ApiError(400,'Expected version and state_token');
@@ -20,7 +20,7 @@ export function registerNativeProbe(registry:EndpointRegistry,gate:MaintenanceGa
   state='measuring';const consumed=token,deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new Error('Probe deadline exceeded')),120000),signal=AbortSignal.any([context.signal,lifetime.signal,deadline.signal]);
   pending=(async()=>{try{
    signal.throwIfAborted();const result=await motion.measure(signal);signal.throwIfAborted();motion.synchronize();
-   token=randomUUID();state='ready';const receipt={...snapshot(),result};last={token:consumed,receipt:structuredClone(receipt)};return receipt;
+   token=randomUUID();state='ready';release();const receipt={...snapshot(),result};last={token:consumed,receipt:structuredClone(receipt)};return receipt;
   }catch{state='failed';gate.invalidate();throw new ApiError(503,kind==='home'?'Homing failed; reinitialize before further motion':'Probe failed; reinitialize before further motion');}
   finally{clearTimeout(timer);release();}})();
   try{return await pending;}finally{pending=undefined;}

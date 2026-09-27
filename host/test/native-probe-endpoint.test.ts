@@ -16,7 +16,7 @@ test('typed probe is authorized, exclusive, cache-safe and retry-idempotent',asy
   await assert.rejects(invoke('POST',{...request,script:'G1 Z-10'}),/Expected/);
   const release=gate.activity();await assert.rejects(invoke('POST',request),/activity/);release();
   const running=invoke('POST',request);await Promise.resolve();assert.equal(calls,1);assert.throws(()=>gate.activity());await assert.rejects(invoke('POST',request),/idle/);
-  pending.resolve({bed_position:[10,20,.123456789]});const result=await running;assert.equal(resets,1);assert.notEqual(result.state_token,status.state_token);assert.equal(gate.status.maintenance,false);
+  pending.resolve({bed_position:[10,20,.123456789]});const result=await running;assert.equal(resets,1);assert.equal(result.available,true);assert.notEqual(result.state_token,status.state_token);assert.equal(gate.status.maintenance,false);
   const repeated=await invoke('POST',request);assert.deepEqual(repeated,result);repeated.result.bed_position[2]=123;assert.notDeepEqual(await invoke('POST',request),repeated);assert.equal(calls,1);
  }finally{await close();}
 });
@@ -46,6 +46,7 @@ test('homing and probe share the same maintenance lock and reject client axes',a
   const hs=await registry.invoke('/printer/calibration/home','GET',{},context) as any,ps=await registry.invoke('/printer/calibration/probe','GET',{},context) as any;
   await assert.rejects(registry.invoke('/printer/calibration/home','POST',{version:1,state_token:hs.state_token,axes:'x'},context),/Expected/);
   const running=registry.invoke('/printer/calibration/home','POST',{version:1,state_token:hs.state_token},context);await Promise.resolve();
+  assert.equal((await registry.invoke('/printer/calibration/probe','GET',{},context) as any).available,false);
   await assert.rejects(registry.invoke('/printer/calibration/probe','POST',{version:1,state_token:ps.state_token},context),/activity/);assert.throws(()=>gate.activity());
   pending.resolve({});await running;assert(homed);assert(!gate.status.maintenance);
  }finally{pending.resolve({});await closeHome();await closeProbe();}

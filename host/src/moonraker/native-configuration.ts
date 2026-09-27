@@ -11,7 +11,7 @@ import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 export function registerNativeConfiguration(registry:EndpointRegistry,session:KlipperSaveSession,gate:MaintenanceGate,profiles:BedMeshProfiles,motion:{current():BedMesh|null;idle():boolean}){
  const token=randomUUID();let state:'ready'|'saving'|'saved'|'failed'='ready',profile:string|null=null,action:'save'|'remove'='save',closed=false,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();
- const snapshot=()=>({state_token:token,state,profile,action,restart_required:state==='saved'||state==='failed',available:!closed&&state==='ready'&&!gate.status.closed});
+ const snapshot=()=>({state_token:token,state,profile,action,restart_required:state==='saved'||state==='failed',available:!closed&&state==='ready'&&gate.available&&motion.idle()});
  const releases=[registry.register({endpoint:'/printer/configuration',methods:['GET']},async()=>snapshot())];
  releases.push(registry.register({endpoint:'/printer/configuration/bed_mesh',methods:['POST']},async(params,_verb,context)=>{
   if(Object.keys(params).some(k=>!['version','state_token','profile','action'].includes(k))||params.version!==1||typeof params.profile!=='string'||typeof params.state_token!=='string')throw new ApiError(400,'Expected version, state_token and profile');

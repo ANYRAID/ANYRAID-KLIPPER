@@ -52,3 +52,9 @@ test('client cancellation does not release an accepted database maintenance oper
  store.backup=async name=>{const result=await original(name);entered.resolve();await settled.promise;return result;};registerDatabaseMaintenance(registry,store,()=>{},undefined,gate);
  try{const operation=registry.invoke('/server/database/backup','POST',{filename:'snapshot.db'},{transport:'http',signal:abort.signal,authorize:()=>{}});const rejected=assert.rejects(operation,/aborted/);await entered.promise;abort.abort();assert.throws(()=>gate.activity(),MaintenanceBusyError);settled.resolve();await rejected;gate.activity()();}finally{settled.resolve();await store.close();await rm(dir,{recursive:true,force:true});}
 });
+test('availability observes all owners without taking a lease or masking admission errors',()=>{
+ const gate=new MaintenanceGate();assert(gate.available);const activity=gate.activity();assert(!gate.available);activity();
+ let idle=false;const remove=gate.registerIdle(()=>idle);assert(!gate.available);idle=true;assert(gate.available);assert.equal(gate.status.maintenance,false);
+ const release=gate.acquire();assert(!gate.available);release();assert(gate.available);remove();
+ const detach=gate.registerIdle(()=>{throw Error('owner failure');});assert(!gate.available);assert.throws(()=>gate.acquire(),/owner failure/);detach();assert(gate.available);gate.invalidate();assert(!gate.available);
+});
