@@ -74,7 +74,7 @@ const args=[...(execution==='compiled'?['--no-experimental-strip-types']:[]),...
 // Keep a kernel core local to this isolated diagnostic directory. Absolute
 // fixture imports make motion independent of cwd; history still needs host.
 const childWorkingDirectory=kind==='history'?host:directory;
-const corePolicy=process.platform==='linux'?{pattern:readFileSync('/proc/sys/kernel/core_pattern','utf8').trim(),usesPid:readFileSync('/proc/sys/kernel/core_uses_pid','utf8').trim(),limits:readFileSync('/proc/self/limits','utf8').split('\n').find(line=>line.startsWith('Max core file size'))}:undefined;
+const corePolicy=process.platform==='linux'?{filter:readFileSync('/proc/self/coredump_filter','utf8').trim(),pattern:readFileSync('/proc/sys/kernel/core_pattern','utf8').trim(),usesPid:readFileSync('/proc/sys/kernel/core_uses_pid','utf8').trim(),limits:readFileSync('/proc/self/limits','utf8').split('\n').find(line=>line.startsWith('Max core file size'))}:undefined;
 interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string}
 const results:Result[]=[];let next=0,failed=false;
 console.log(JSON.stringify({directory,kind,node,version:version.stdout.trim(),limit,workers,segv,asan,wasmBounds,jsOptimization,execution,compilerVersion}));
