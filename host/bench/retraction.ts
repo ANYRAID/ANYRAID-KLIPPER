@@ -51,7 +51,7 @@ print(json.dumps({'result':result,'times':sorted(times)}))
 `;
 const p=spawnSync(process.env.PYTHON??'python3',['-c',python,fileURLToPath(new URL('../../klippy/extras/gcode_move.py',import.meta.url)),fileURLToPath(new URL('../../klippy/extras/firmware_retraction.py',import.meta.url))],{encoding:'utf8',timeout:60000,maxBuffer:32*1024*1024});if(p.status!==0)throw Error(p.stderr||String(p.error));const oracle=JSON.parse(p.stdout);
 function run(capture=false){
- const moves:[number[],number][]=[],states:unknown[]=[],g=new GCodeMove({position:()=>[0,0,0,0],move:(p,s)=>moves.push([[...p],s])}),r=new FirmwareRetraction({retract_length:.1,retract_speed:20.019,unretract_extra_length:.01,unretract_speed:10});
+ const moves:[number[],number][]=[],states:unknown[]=[],g=new GCodeMove({position:()=>[0,0,0,0],move:(p,s)=>{moves.push([[...p],s]);}}),r=new FirmwareRetraction({retract_length:.1,retract_speed:20.019,unretract_extra_length:.01,unretract_speed:10});
  for(let i=0;i<count;i++){
   g.execute('M220',{S:50+i%100});g.execute('M221',{S:80+i%40});r.configure({RETRACT_LENGTH:.1+i%7*.000005,RETRACT_SPEED:20.019+i%3*.0001});r.move(g,true);r.move(g,true);r.move(g,false);r.move(g,false);
   if(capture){const s=g.state;states.push([s.absoluteCoordinates,s.absoluteExtrude,s.base,s.position,s.speed,s.speedFactor,s.extrudeFactor,r.retracted]);}

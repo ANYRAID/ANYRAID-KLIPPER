@@ -11,7 +11,7 @@ import {createNativeLinearPrint} from '../src/operations/native-linear-print.ts'
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 const settings={retract_length:.1,retract_speed:20.019,unretract_extra_length:.01,unretract_speed:10},signal=()=>new AbortController().signal;
 test('typed retraction preserves modes, overrides and user macro storage',()=>{
- const moves:{p:readonly number[];speed:number}[]=[],g=new GCodeMove({position:()=>[1,2,3,4],move:(p,speed)=>moves.push({p,speed})}),r=new FirmwareRetraction(settings);
+ const moves:{p:readonly number[];speed:number}[]=[],g=new GCodeMove({position:()=>[1,2,3,4],move:(p,speed)=>{moves.push({p,speed});}}),r=new FirmwareRetraction(settings);
  g.execute('G92',{E:0});g.execute('M220',{S:50});g.execute('M221',{S:200});g.execute('M83');g.execute('SAVE_GCODE_STATE',{NAME:'_retract_state'});const before=g.state;
  r.move(g,true);r.move(g,true);r.move(g,false);r.move(g,false);assert.equal(moves.length,2);assert.equal(moves[0].speed,1201/120);assert.equal(moves[0].p[3],3.8);assert.equal(g.state.position[3],4.02);assert.deepEqual(g.gcodePosition,[1,2,3,0]);assert.equal(g.state.speed,before.speed);assert.equal(g.state.absoluteExtrude,false);
  g.execute('G90');g.execute('RESTORE_GCODE_STATE',{NAME:'_retract_state'});assert.equal(g.state.absoluteExtrude,false);assert.equal(g.state.speed,before.speed);

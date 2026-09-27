@@ -1,0 +1,26 @@
+{
+  "source": "klippy/extras/exclude_object.py",
+  "sourceSha256": "9b3756ec0baca6207f19cae4bdd0c82dfd2d22c34934e228723e7463c66d8bfb",
+  "dataSha256": "08324f21690dde7acd2ffd3f18f7255f543933d6cf7c8ae3b7fdb9436786a55c",
+  "actions": 7583,
+  "admittedMoves": 3558,
+  "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+  "platform": "Linux-6.18.36-amd64-desktop-rolling-x86_64-with-glibc2.38",
+  "benchmark": {
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 9.382483998706448,
+    "samplesMs": [
+      9.86950100013928,
+      9.666418000051635,
+      9.504636000201572,
+      9.269251000660006,
+      9.243370999683975,
+      9.279962001528475,
+      9.3183829994814,
+      9.395983999638702,
+      9.382483998706448
+    ],
+    "scope": "Original Python transform with in-memory commands and output collection; excludes JSON parsing and full trace snapshots"
+  }
+}

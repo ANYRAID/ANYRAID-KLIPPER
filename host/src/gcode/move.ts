@@ -1,7 +1,9 @@
 // Coordinate state port from klippy/extras/gcode_move.py; GPL-3.0-or-later.
 // Original Copyright (C) 2016-2025 Kevin O'Connor.
 import {ExtrusionAccounting} from './extrusion-accounting.ts';
-export interface MovePort {position():readonly number[];move(position:readonly number[],speed:number):void;}
+/** Signed downstream command E delta, before dividing by the current extrusion factor. */
+export interface MoveAdmission {extrusionDelta:number;}
+export interface MovePort {position():readonly number[];move(position:readonly number[],speed:number):void|MoveAdmission;}
 export interface CoordinateState {
   absoluteCoordinates:boolean;absoluteExtrude:boolean;
   base:number[];position:number[];homing:number[];
@@ -50,8 +52,8 @@ export class GCodeMove {
     s.position[3]+=length*s.extrudeFactor;s.base[3]+=s.position[3]-previous;
     const speed=feedRate*s.speedFactor;
     if(![length,feedRate,s.position[3],s.base[3],speed].every(Number.isFinite)||feedRate<=0||speed<=0)throw new RangeError('Temporary extrusion overflow');
-    this.#port.move([...s.position],speed);
-    this.extrusionAccounting.accepted(previous,s.position[3],s.extrudeFactor);this.#state=s;
+    const admitted=this.#port.move([...s.position],speed);
+    if(admitted)this.extrusionAccounting.accepted(0,admitted.extrusionDelta,s.extrudeFactor);else this.extrusionAccounting.accepted(previous,s.position[3],s.extrudeFactor);this.#state=s;
   }
   /** Bind transformed position/motion functions before dispatching movement. */
   setPort(port:MovePort):MovePort {const previous=this.#port;this.#port=port;return previous;}
@@ -137,7 +139,7 @@ export class GCodeMove {
     }
     if(![...s.position,...s.base,...s.homing,s.speed,s.speedFactor,s.extrudeFactor].every(Number.isFinite)
       ||s.speed<=0||s.speedFactor<=0||s.extrudeFactor<=0)throw new RangeError('Coordinate state overflow');
-    if(target){this.#port.move([...target],moveSpeed);this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
+    if(target){const admitted=this.#port.move([...target],moveSpeed);if(admitted)this.extrusionAccounting.accepted(0,admitted.extrusionDelta,s.extrudeFactor);else this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
     this.#state=s;
   }
   /** Only offset-producing commands need the revision fence. Keep the ordinary
@@ -146,7 +148,7 @@ export class GCodeMove {
     if(![...s.position,...s.base,...s.homing,s.speed,s.speedFactor,s.extrudeFactor].every(Number.isFinite)||s.speed<=0||s.speedFactor<=0||s.extrudeFactor<=0)throw new RangeError('Coordinate state overflow');
     const changed=s.homing[2]!==this.#state.homing[2];
     if(changed&&this.#zOffsetRevision===Number.MAX_SAFE_INTEGER)throw new RangeError('Z offset revision exhausted');
-    if(target){this.#port.move([...target],speed);this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
+    if(target){const admitted=this.#port.move([...target],speed);if(admitted)this.extrusionAccounting.accepted(0,admitted.extrusionDelta,s.extrudeFactor);else this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
     if(changed)this.#zOffsetRevision++;this.#state=s;
   }
 
