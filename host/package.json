@@ -16,6 +16,7 @@
     "bench:bed-tilt": "node bench/bed-tilt.ts",
     "bench:manual-probe": "node bench/manual-probe.ts",
     "bench:native-printer-sections": "node bench/native-printer-sections.ts",
+    "bench:temperature-sensor": "node bench/temperature-sensor.ts",
     "bench:maintenance-gate": "node bench/maintenance-gate.ts",
     "bench:spectrum": "node bench/spectrum.ts",
     "bench:protocol": "node bench/protocol.ts",

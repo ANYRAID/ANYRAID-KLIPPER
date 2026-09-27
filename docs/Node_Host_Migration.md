@@ -54,6 +54,14 @@ CoreXY、CoreXZ 已分别通过独立编译产品的完整模拟打印流程，�
 这修正了迁移入口行为，不代表被拒绝的组件已经替代，也未完成全部
 配置选项兼容。详见 [验收记录](../host/contracts/native-printer-sections-acceptance.json)。
 
+独立 temperature_sensor 的模拟 ADC 路径已接入自动硬件装配、M105/
+TEMPERATURE_WAIT 温度源及原生对象查询/订阅。编译产品验证了腔体
+温度报告、并发打印和该输入故障后的整机停止。10,000 次采样统计的
+中位耗时为 Node 0.67 ms/Python 3.34 ms，显示状态读取为 4.43/8.29 ms。
+数字传感器、主机温度及原 Python 通用传感器入口仍未全部替代；不能
+删除 temperature_sensor.py。证据见
+[温度传感器验收](../host/contracts/temperature-sensor-acceptance.json)。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 

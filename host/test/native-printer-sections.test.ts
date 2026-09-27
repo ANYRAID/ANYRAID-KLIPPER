@@ -9,7 +9,7 @@ test('native component preflight accepts supported owners and their bound config
  validateNativePrinterSections(reader(['bed_tilt','bltouch']));
 });
 test('native component preflight rejects unknown components, misspellings and orphaned owners',()=>{
- for(const section of ['gcode_macro START','temperature_sensor chamber','quad_gantry_level','exclude_object','homing_override','delayed_gcode boot','heater_fna hotend','verify_heater missing','tmc2209 missing','tmc9999 stepper_x','endstop_phase missing','bed_mesh orphan','fan_generic ','board_pins ']){
+ for(const section of ['gcode_macro START','temperature_fan chamber','quad_gantry_level','exclude_object','homing_override','delayed_gcode boot','heater_fna hotend','verify_heater missing','tmc2209 missing','tmc9999 stepper_x','endstop_phase missing','bed_mesh orphan','fan_generic ','board_pins ']){
   assert.throws(()=>validateNativePrinterSections(reader(['printer','stepper_x',section])),error=>String(error).includes('['+section+']'));
  }
 });

@@ -75,9 +75,9 @@ test('unsupported included printer components fail before adapter, journal or MC
  const dir=await mkdtemp(join(tmpdir(),'machine-components-')),f=await productMachineFixture(dir);let factories=0;
  try{
   const original=await readFile(f.config.printerConfig,'utf8'),extra=join(dir,'unported.cfg');
-  await writeFile(extra,'[gcode_macro PRINT_START]\ngcode: G28\n\n[temperature_sensor chamber]\nsensor_type: Generic 3950\nsensor_pin: aux:PA15\n');
+  await writeFile(extra,'[gcode_macro PRINT_START]\ngcode: G28\n\n[temperature_fan chamber]\nsensor_type: Generic 3950\nsensor_pin: aux:PA15\n');
   await writeFile(f.config.printerConfig,original+'\n[include unported.cfg]\n');
-  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),error=>String(error).includes('[gcode_macro PRINT_START]')&&String(error).includes('[temperature_sensor chamber]'));
+  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),error=>String(error).includes('[gcode_macro PRINT_START]')&&String(error).includes('[temperature_fan chamber]'));
   assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });

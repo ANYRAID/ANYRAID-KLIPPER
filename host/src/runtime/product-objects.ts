@@ -33,6 +33,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
  });
  const drivers=new Map<string,{model:string;current:Readonly<{runCurrent:number;holdCurrent:number}>}>([...printer.hardware.plan.tmcUarts.flatMap(u=>u.devices.map(d=>[d.model+' '+d.stepper,d] as const)),...printer.hardware.plan.tmcSpis.flatMap(b=>b.devices.map(({plan:d})=>[d.model+' '+d.stepper,d] as const))]);
  for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor,()=>driver.current.current,()=>{const sample=driver.phase.sample;if(!sample)return null;const stepper=printer.hardware.plan.steppers.find(s=>s.section===driver.section.slice(driver.section.indexOf(' ')+1))!;return {offset:sample.offset,position:printer.linear.port.phaseOffsetPosition(stepper.emitter,sample.offset)};}));}
+ for(const sensor of printer.hardware.sensors)readers.set(sensor.section,()=>sensor.state.objectStatus);
  for(const fan of printer.hardware.fans)readers.set(fan.section,()=>({speed:fan.runtime.status.speed,rpm:null}));
  for(const sensor of printer.filamentSensors)readers.set(sensor.section,()=>({...sensor.runtime.status}));
  return new NativeObjects(readers,serialClock.now);

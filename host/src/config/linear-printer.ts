@@ -51,7 +51,8 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
  // Canonical nozzle/bed ordering is independent of source section ordering.
  heaters.sort((a,b)=>a.section==='extruder'?-1:b.section==='extruder'?1:a.section==='heater_bed'?-1:b.section==='heater_bed'?1:a.section.localeCompare(b.section));
  const buttons=sections.filter(n=>/^filament_(switch|motion)_sensor /.test(n)).map(section=>{if(section.startsWith('filament_motion_sensor '))readFilamentEncoderPolicy(reader,section);else readFilamentPolicy(reader,section);return {section};});
- const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters,...(buttons.length?{buttons}:{})};
+ const sensors=sections.filter(n=>n.startsWith('temperature_sensor ')).map(section=>({section}));
+ const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters,sensors,...(buttons.length?{buttons}:{})};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode}));
  const linear:ConfiguredLinearHoming={...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
  const initial:InitialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})};

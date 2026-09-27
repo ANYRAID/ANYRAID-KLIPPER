@@ -18,7 +18,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实机验收仍需继续完成。
 
 自动线性机器装配会检查合并 include 后的每个打印机配置节。尚未迁移的
-组件（例如 gcode_macro、temperature_sensor、exclude_object）或没有
+组件（例如 gcode_macro、temperature_fan、exclude_object）或没有
 对应设备的 verify_heater、TMC、endstop_phase、bed_mesh 配置会明确报错，
 不会在忽略这些配置后报告就绪。文件机器配置入口在创建适配器、作业
 数据库和连接 MCU 前执行此检查；已保存的网床配置仍需对应 [bed_mesh]。
@@ -27,6 +27,27 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 尚未完成；具体数值、选项和硬件约束继续由各组件校验。
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
+
+## 独立模拟温度传感器
+
+自动装配支持 `[temperature_sensor chamber]` 这类独立 ADC 温度输入。
+配置 `sensor_type`、`sensor_pin`，并按设备设置 `min_temp`、`max_temp`；
+支持现有热敏电阻和线性 ADC 转换器，尚不包含数字 SPI/I2C 或主机温度源。
+默认温度边界与原实现相同，为 -273.15 和 99999999.9 摄氏度。
+可选 `gcode_id: C` 将传感器加入 M105 报告，TEMPERATURE_WAIT 可引用
+完整传感器名；它不接受加热目标，也不分配 PWM 输出。
+
+对象查询/订阅中的 `temperature_sensor chamber` 返回 temperature、
+measured_min_temp、measured_max_temp；同时列入 heaters.available_sensors，
+不会列入 available_heaters。显示值按原 Python 规则保留两位小数，
+内部转换和等待判断使用完整精度。零温度不更新极值，初始最小/最大值
+保持原实现的 99999999/0，负温度不会将初始最大值降到零以下。
+
+ADC 输入具有独占引脚及 OID，沿所属 MCU 时钟采样；启动前订阅，配置
+完成后激活。越界、格式错误或超过七秒未收到有效报告会沿既有 ADC
+保护链路停止 MCU 组。主机重初始化会重建传感器统计，不重放采样。
+本机模拟验收及性能记录见
+[独立温度传感器验收](../host/contracts/temperature-sensor-acceptance.json)。
 
 ## 编译后的运行包
 
