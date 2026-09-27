@@ -12,8 +12,8 @@ import {serialClock} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 const signal=new AbortController().signal,layout={steppers:[],homing:[],fans:[],heaters:[],sensors:[{section:'temperature_sensor chamber'}]};
 const reader=(change:Record<string,string>={},software=false)=>new ConfigurationReader(new ConfigurationSource('/spi-temperature.cfg',{'temperature_sensor chamber':{sensor_type:'MAX6675',sensor_pin:'PA0',...software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{spi_bus:'spi1'},min_temp:'0',max_temp:'100',gcode_id:'C',...change}},[]),null);
-async function fixture(software?:'modern'|'legacy'){
- let stops=0;const firmware=await serialFirmware(undefined,{max6675:true,extendedPins:true,spiSoftware:software}),group=new MCUGroup([{id:'mcu',async connect(s,stopDevice){const session=new SerialSession(firmware.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){stops++;}}]);await group.start(signal);
+async function fixture(software?:'modern'|'legacy',max31855=false){
+ let stops=0;const firmware=await serialFirmware(undefined,{max6675:true,max31855,extendedPins:true,spiSoftware:software}),group=new MCUGroup([{id:'mcu',async connect(s,stopDevice){const session=new SerialSession(firmware.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){stops++;}}]);await group.start(signal);
  const clocks=new Map([['mcu',{currentPrintTime:Number(group.session('mcu').clock.sync.getClock(serialClock.now()))/1e6,calibration:{offset:0,frequency:1e6}}]]);
  return {firmware,group,clocks,get stops(){return stops;},async close(){await group.stop().catch(()=>{});await firmware.close();}};
 }
@@ -63,3 +63,5 @@ for(const failure of ['missing','stale','future','duplicate','range','reserved',
   await until(()=>f.stops===1);assert.equal(sensor.status.closed,true);assert.equal(faults.length,1);assert.equal(samples.length,['stale','duplicate'].includes(failure)?1:0);assert.equal(cancelled,failure==='consumer'?0:1);assert.throws(()=>sensor.activate(),/restart/);
  }finally{await f.close();}
 });
+
+for(const capable of [false,true])test('MAX31855 configuration signed firmware capability='+capable,async()=>{const f=await fixture(undefined,capable);try{const config=reader({sensor_type:'MAX31855',min_temp:'-10'});if(!capable){assert.throws(()=>compileConfiguredHardware(config,f.group,f.clocks,layout),/signed-range/);assert.equal(f.firmware.outputs.length,0);return;}const h=await startConfiguredHardware(config,f.group,f.clocks,layout,{beforeTarget(){}},signal),p=h.plan.spiSensors[0];assert.equal(p.model,'MAX31855');assert.match(p.commands[0],/thermocouple_type=MAX31855/);f.firmware.emit('thermocouple_result',{oid:p.oid,next_clock:(f.firmware.currentClock()+p.reportTicks)>>>0,value:0xfffc0000,fault:0});await until(()=>h.sensors[0].state.objectStatus.temperature===-.25);await h.close();}finally{await f.close();}});

@@ -1,3 +1,4 @@
+import {max31855Range} from '../thermal/max31855.ts';
 import {spiBusRequests} from './spi-bus.ts';
 import type {TemperatureSink,SensorTimer} from '../thermal/serial-adc.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -17,10 +18,11 @@ export function compileConfiguredSpiSensors<T>(reader:ConfigurationReader,pins:P
  if(!sections.length)return Object.freeze([]);
  const requests:PinRequest[]=[],maps=new Map<string,PhysicalPinMap>(),buses=new Set<string>();
  const prepared=sections.map(({section})=>{
-  const c=reader.section(section);if(c.get('sensor_type')!=='MAX6675')throw new Error('Unsupported SPI temperature sensor');
-  const minimum=c.getFloat('min_temp',{defaultValue:-273.15,minval:-273.15}),maximum=c.getFloat('max_temp',{defaultValue:99999999.9,above:minimum}),range=max6675Range(minimum,maximum),gcodeId=c.get('gcode_id',{defaultValue:null});
+  const c=reader.section(section),model=c.get('sensor_type');if(model!=='MAX6675'&&model!=='MAX31855')throw new Error('Unsupported SPI temperature sensor');
+  const minimum=c.getFloat('min_temp',{defaultValue:-273.15,minval:-273.15}),maximum=c.getFloat('max_temp',{defaultValue:99999999.9,above:minimum}),range=(model==='MAX31855'?max31855Range:max6675Range)(minimum,maximum),gcodeId=c.get('gcode_id',{defaultValue:null});
   if(gcodeId!==null&&!/^[A-Za-z][A-Za-z0-9_]{0,15}$/.test(gcodeId))throw new Error('Invalid temperature G-code id');
   const description=c.get('sensor_pin'),cs=pins.parse(description),mcu=mcus.get(cs.chipName),mapping=clocks.get(cs.chipName);if(!mcu||mcu.chip!==cs.chip||!mapping?.timeline)throw new Error('SPI temperature MCU or timeline mismatch');
+  if(model==='MAX31855'&&mcu.dictionary.constants.MAX31855_SIGNED_RANGE!==1)throw new Error('MAX31855 requires firmware signed-range capability');
   const resolver=pins.resolver(cs.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}
   maps.set(cs.chipName,{pins:enumeration,reserved:resolver.physicalReservations(enumeration)});
@@ -33,13 +35,13 @@ export function compileConfiguredSpiSensors<T>(reader:ConfigurationReader,pins:P
   const clock=readPrintClock(mapping.calibration,mapping.timeline),frequency=Number(mcu.dictionary.constant('CLOCK_FREQ')),reportTicks=Math.trunc(.3*frequency);
   if(!Number.isFinite(mapping.currentPrintTime)||mapping.currentPrintTime<0||!Number.isFinite(frequency)||frequency<=0||frequency>1e9||reportTicks<1||reportTicks>0x7fffffff)throw new Error('Invalid thermocouple timing');
   for(const format of Object.values(thermocoupleFormats))mcu.dictionary.lookup(format);
-  return {section,minimum,maximum,range,gcodeId:gcodeId??undefined,mcu:cs.chipName,chip:mcu.chip,dictionary:mcu.dictionary,cs:resolvePin(description),software,bus,rate,clock,timeline:mapping.timeline,currentPrintTime:mapping.currentPrintTime,frequency,reportTicks};
+  return {section,model:model as 'MAX6675'|'MAX31855',minimum,maximum,range,gcodeId:gcodeId??undefined,mcu:cs.chipName,chip:mcu.chip,dictionary:mcu.dictionary,cs:resolvePin(description),software,bus,rate,clock,timeline:mapping.timeline,currentPrintTime:mapping.currentPrintTime,frequency,reportTicks};
  });
  return mcuOids(pins).claim(prepared.flatMap(p=>[{mcu:p.mcu,owner:'temperature:'+p.section+':spi'},{mcu:p.mcu,owner:'temperature:'+p.section}]),oids=>{
   const plans=prepared.map((p,i)=>{
    const spi=p.software?compileSoftwareSpi(p.chip,p.dictionary,oids[i*2],p.cs,p.software,p.rate,0):compileSpi(p.chip,p.dictionary,oids[i*2],p.cs,p.bus,p.rate,0),oid=oids[i*2+1],initialClock=p.clock.clockAt(Math.trunc(p.currentPrintTime+1.5))+BigInt(Math.trunc(oid*.01*p.frequency));
    if(initialClock<0n||initialClock>=0x7fffffffffffffffn)throw new Error('Invalid thermocouple query clock');
-   const commands=[`config_thermocouple oid=${oid} spi_oid=${spi.oid} thermocouple_type=MAX6675`],init=[`query_thermocouple oid=${oid} clock=${BigInt.asUintN(32,initialClock)} rest_ticks=${p.reportTicks} min_value=${p.range.minimum} max_value=${p.range.maximum} max_invalid_count=3`];
+   const commands=[`config_thermocouple oid=${oid} spi_oid=${spi.oid} thermocouple_type=${p.model}`],init=[`query_thermocouple oid=${oid} clock=${BigInt.asUintN(32,initialClock)} rest_ticks=${p.reportTicks} min_value=${p.range.minimum} max_value=${p.range.maximum} max_invalid_count=3`];
    for(const command of [...commands,...init])p.dictionary.encodeCommand(command);
    const plan=Object.freeze({...p,spi,oid,initialClock,commands:Object.freeze(commands),init:Object.freeze(init)});dictionaries.set(plan,p.dictionary);return plan;
   });

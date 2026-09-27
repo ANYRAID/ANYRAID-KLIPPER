@@ -21,7 +21,7 @@ export function compileConfiguredSpiHeaters<T>(reader:ConfigurationReader,pins:P
  const prepared=sensors.map(sensor=>{
   const configuration=readHeaterControlConfiguration(reader,sensor.section),description=reader.section(sensor.section).get('heater_pin'),pin=pins.parse(description,{canInvert:true}),mcu=mcus.get(pin.chipName),mapping=clocks.get(pin.chipName);
   if(!mcu||mcu.chip!==pin.chip||!mapping)throw new Error('SPI heater output MCU or clock differs');
-  if(configuration.settings.minimum<0||configuration.settings.maximum>1023.75)throw new Error('MAX6675 heater range exceeds sensor capability');
+  if(sensor.model==='MAX6675'&&(configuration.settings.minimum<0||configuration.settings.maximum>1023.75))throw new Error('MAX6675 heater range exceeds sensor capability');
   if(configuration.settings.minimum!==sensor.minimum||configuration.settings.maximum!==sensor.maximum)throw new Error('SPI heater and sensor ranges differ');
   const resolver=pins.resolver(pin.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
   for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}

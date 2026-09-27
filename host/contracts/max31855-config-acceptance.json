@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "df6d6b1b",
+  "sourceSha256": {
+    "src/thermocouple.c": "94c31978c9aadec9756a19f0a382c30e95c2cca9a0ee7b7b97a54dd0363d7498",
+    "src/thermocouple_range.h": "acf1f4215a8ce607346e530ae813b82eced1ebf3e094d65417473841ccf4963c",
+    "host/src/config/spi-temperature.ts": "7223b2475b15cdec5fa1b1487bf240f03e6ea9bb45b7010020f180f9e730b3ec",
+    "host/src/config/spi-heater.ts": "7bec291fc735680bd05a4a664c1be7cbed1aa3f6c5055b52af458ff5538389f2",
+    "host/src/config/hardware.ts": "76ddb46799016e27a01d73c547ac955db81f4050009ff98b17bf0d7a133496d8",
+    "host/test/thermocouple-firmware.test.ts": "2e73ce4d9002e775569c6aeb86962c231d97c168d34a17a5263c65ef99fa66a3",
+    "host/test/helpers/thermocouple-firmware/test.c": "c2174f18fd09e38f756bbc77c6fe7f55748c18e3ef1e91138ddd0be61bb46294",
+    "host/test/spi-temperature.test.ts": "709597d67637e574da39df7f9ad4bc05b5edeaed5e118b58c0a30caaae97f7d0",
+    "host/test/spi-heater.test.ts": "5a77bb0ba966a3febb135f31e02053d071237da7ee05be6adb27beeb2ae1545a"
+  },
+  "validation": {
+    "regressions": 35,
+    "typecheck": "passed",
+    "firmwareHandlers": "actual thermocouple.c compiled and executed under UBSan",
+    "signedCodes": 16384,
+    "coldJunctionCases": 2,
+    "oldFirmwareRejected": true,
+    "pidAndBangBangFaults": [
+      "open",
+      "range",
+      "stale"
+    ],
+    "targetMCUBuild": false,
+    "compiledProduct": false,
+    "hardware": false
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 4.232354999999984,
+    "p95Ms": 12.208517999999998,
+    "checksum": -131072,
+    "scope": "Signed MAX31855 wire decoding only; no SPI transport, heater control or hardware"
+  },
+  "regressionLogSha256": "fda253d3fea0dcaab2cb103ec91ca92451cae43d71925267af543d89fd572414",
+  "limitations": [
+    "MCU firmware must advertise MAX31855_SIGNED_RANGE=1",
+    "No target firmware build or flash performed",
+    "Compiled product and real thermocouple acceptance remain incomplete",
+    "Python entrypoint and module retained"
+  ]
+}

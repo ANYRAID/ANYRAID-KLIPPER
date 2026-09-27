@@ -55,13 +55,13 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const bltouch=compileConfiguredBLTouch(reader,pins,mcus,sharedClocks,homing);
  const fans=layout.fans.length?compileConfiguredCoolingFans(reader,pins,mcus,sharedClocks,layout.fans.map(f=>({section:f.section,minimumScheduleTime:f.minimumScheduleTime,capacity:f.capacity}))):Object.freeze([]);
  if(layout.heaters.length>64||new Set(layout.heaters.map(h=>h.section)).size!==layout.heaters.length)throw new Error('Invalid heater batch');
- const spiHeaterSections=layout.heaters.filter(h=>reader.section(h.section).get('sensor_type')==='MAX6675'),analogHeaterSections=layout.heaters.filter(h=>!spiHeaterSections.includes(h));
+ const spiHeaterSections=layout.heaters.filter(h=>['MAX6675','MAX31855'].includes(reader.section(h.section).get('sensor_type'))),analogHeaterSections=layout.heaters.filter(h=>!spiHeaterSections.includes(h));
  const heaters=analogHeaterSections.length?compileConfiguredAnalogHeaters(reader,pins,mcus,sharedClocks,analogHeaterSections.map(h=>({section:h.section}))):Object.freeze([]);
  if((layout.sensors?.length??0)>128||new Set(layout.sensors?.map(s=>s.section)).size!==(layout.sensors?.length??0))throw new Error('Invalid temperature sensor batch');
  const hostSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_host');
  if(new Set(hostSections.map(s=>s.section.trim().split(/\s+/).at(-1))).size!==hostSections.length)throw new Error('Duplicate host temperature object name');
  const hostSensors=Object.freeze(hostSections.map(s=>readHostTemperature(reader,s.section)));
- const spiSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='MAX6675');
+ const spiSections=(layout.sensors??[]).filter(s=>['MAX6675','MAX31855'].includes(reader.section(s.section).get('sensor_type')));
  const spiInputs=compileConfiguredSpiSensors(reader,pins,mcus,sharedClocks,[...spiSections,...spiHeaterSections]);
  const spiSensors=Object.freeze(spiInputs.filter(p=>spiSections.some(s=>s.section===p.section))),spiHeaters=compileConfiguredSpiHeaters(reader,pins,mcus,sharedClocks,spiInputs.filter(p=>spiHeaterSections.some(h=>h.section===p.section)));
  const allHeaters=Object.freeze(layout.heaters.map(h=>[...heaters,...spiHeaters].find(p=>p.section===h.section)!));
