@@ -56,3 +56,12 @@ test('the dispatch queue waits for homing before admitting subsequent movement',
  const f=linearHomingFixture({retractDistance:0}),d=new GCodeDispatch({output(){},shutdown:()=>assert.fail()});f.command.register(d);d.register('G1',g=>{assert.equal(f.kin.status.homedAxes,'x');f.coordinates.execute('G1',g.params);});d.setReady(true);
  await d.execute('G28 X\nG1 X10');assert.equal(f.events.at(-1)!.kind,'move');assert.equal(f.coordinates.state.position[0],10);
 });
+test('final phase correction receives only the last verified pass before homed authority',async()=>{
+ const passes=[homingPass(),homingPass()],f=linearHomingFixture({pass:async n=>passes[n-1]});let finished=0;
+ f.port.finishHoming=async(pass,axis,endstop,s)=>{s.throwIfAborted();assert.equal(pass,passes[1]);assert.equal(axis,0);assert.equal(endstop,0);assert.equal(f.kin.status.homedAxes,'');finished++;await f.port.forcePosition([.03,35,40,7],s);};
+ await f.command.home([0],signal());assert.equal(finished,1);assert.equal(f.coordinates.state.position[0],.03);assert.equal(f.kin.status.homedAxes,'x');
+});
+test('phase correction failures stop the machine without granting homing authority',async()=>{
+ const f=linearHomingFixture({retractDistance:0});f.port.finishHoming=async()=>{throw new Error('Unknown phase');};
+ await assert.rejects(f.command.home([0],signal()),/Unknown phase/);assert.equal(f.stops,1);assert.equal(f.kin.status.homedAxes,'');
+});

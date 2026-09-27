@@ -1,3 +1,5 @@
+import {endstopPhasePosition} from './endstop-phase-position.ts';
+import type {ConfiguredEndstopPhase} from '../config/endstop-phase.ts';
 import {observedStepperPosition} from '../motion/observed-position.ts';
 import {planProbeGrid,measureProbeGrid,type ProbeGrid} from './probe-grid.ts';
 import type {ProbeConfiguration} from '../config/probe.ts';
@@ -22,6 +24,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+ endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
@@ -35,6 +38,7 @@ export interface PausedMove {position:readonly number[];speed:number;}
  * The runtime must arrange timely checkpoints and final drain. Mesh lifecycle
  * and product startup remain separate runtime responsibilities. */
 export class NativeLinearHomingPort implements LinearHomingPort {
+ #lastHoming:{pass:HomingPass;axis:Axis;generation:NativeLinearPortOptions['generation'];counts:readonly {id:string;trigger:bigint}[]}|undefined;
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #meshStatus=nativeBedMeshStatus(null,'');
  get bedMeshStatus(){return this.#meshStatus;}
@@ -63,7 +67,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  constructor(o:NativeLinearPortOptions){
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
@@ -420,6 +424,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
+   this.#lastHoming=undefined;
    const groups=this.#o.groupsByAxis[axis],modes=[...new Set(groups.flatMap(g=>g.sensorless?[g.sensorless]:[]))];
    if(modes.length){await this.#drain(s);for(const mode of modes)await mode.enter(s);await this.#rebase(this.homingPosition(),s);}
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:'home'}).run(target,speed,axis,s);
@@ -428,7 +433,22 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     // On failure the operation retires hardware without a moving-mode restore.
     for(const mode of modes)await mode.restore(s);
     if(modes.length)await this.#rebase(result.position,s);
+    this.#lastHoming={pass:result,axis,generation:this.#g,counts:result.triggerCounts};
     return result;}catch(error){result.motion.dispose();throw error;}
+  });
+ }
+ finishHoming(pass:HomingPass,axis:Axis,endstop:number,signal:AbortSignal):Promise<void>{
+  return this.#operate('phase-correction',signal,async s=>{
+   const last=this.#lastHoming;this.#lastHoming=undefined;
+   if(!last||last.pass!==pass||last.axis!==axis||last.generation!==this.#g)throw new Error('Stale or foreign homing phase result');
+   const id=this.#o.kinematicIds[axis],owner=this.#o.endstopPhases?.find(p=>p.id===id);if(!owner)return;
+   const counter=last.counts.find(c=>c.id===id);if(!counter)throw new Error('Missing endstop phase trigger');
+   const adjustment=owner.alignment.adjust(counter.trigger,owner.offset(),endstop);if(adjustment===0)return;
+   const position=[...this.homingPosition()],actuators=this.#o.kinematicIds.map(id=>{
+    const binding=this.#g.motion.bindings.find(b=>b.id===id);if(!binding)throw new Error('Missing phase coordinate binding');
+    return binding.stepper.coordinatePosition(position[0],position[1],position[2]);
+   });
+   await this.#rebase(endstopPhasePosition(this.#o.kinematics,position,actuators,axis,adjustment),s);
   });
  }
  retract(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal){

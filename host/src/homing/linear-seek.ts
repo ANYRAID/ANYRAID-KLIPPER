@@ -46,7 +46,7 @@ export class LinearHomingSeek {
    const result=await executor.run(signal);motion=result.motion;signal.throwIfAborted();if(!halt||!trigger)throw new Error('Missing seek coordinates');if(mode==='probe'&&result.missingHits.length)throw new Error('Probe did not trigger');
    motion=plan.restorePhysicalMembers(motion);
    const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:halt,boundaryTransfer,motorEnable:g.motorEnable});
-   signal.throwIfAborted();return Object.freeze({...result,movingSteppers,motion,generation:next,position:halt,triggerPosition:trigger});
+   signal.throwIfAborted();return Object.freeze({...result,triggerCounts:Object.freeze(actuators.map(a=>{const p=result.offsets.find(p=>p.member===a.member&&p.oid===a.oid);if(!p)throw new Error('Missing phase trigger mapping');return Object.freeze({id:a.id,trigger:p.trigger});})),movingSteppers,motion,generation:next,position:halt,triggerPosition:trigger});
   }catch(error){
    const errors:unknown[]=[error];this.#cleanupPending=true;
    const cleanup=g.drain.stop(error).catch(e=>{this.#cleanupError=e;throw e;}).finally(()=>{this.#cleanupPending=false;});void cleanup.catch(()=>{});

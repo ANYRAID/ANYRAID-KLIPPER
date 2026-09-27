@@ -26,6 +26,8 @@ export interface HomingPass {
 export interface LinearHomingPort extends MovePort {
  /** Physical halt coordinates for privileged homing; ordinary position may be transformed. */
  homingPosition?():readonly number[];
+ /** Complete final-pass coordinate correction before granting homing authority. */
+ finishHoming?(pass:HomingPass,axis:Axis,endstop:number,signal:AbortSignal):Promise<void>;
  assertActive():void;
  drain(signal:AbortSignal):Promise<void>;
  forcePosition(position:readonly number[],signal:AbortSignal):Promise<void>;
@@ -93,13 +95,13 @@ export class LinearHomingCommand {
    for(const axis of selected){
     check();const rail=this.#rails[axis],geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
     await run(this.#port.forcePosition(fill(geometry.force),s));
-    confirm(await run(this.#port.home(home,rail.speed,axis,s)),rail,false);
+    let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirm(finalPass,rail,false);
     if(rail.retractDistance){
      const target=fill(geometry.home),{retract,start}=homingRetract(fill(geometry.force),target,rail.retractDistance);
      await run(this.#port.retract(retract,rail.retractSpeed,axis,s));await run(this.#port.forcePosition(start,s));
-     confirm(await run(this.#port.home(target,rail.secondSpeed,axis,s)),rail,true);
+     finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirm(finalPass,rail,true);
     }
-    await run(this.#port.drain(s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
+    await run(this.#port.drain(s));if(this.#port.finishHoming)await run(this.#port.finishHoming(finalPass,axis,rail.endstop,s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
    }
   }catch(error){
    const local=new AbortController(),timer=setTimeout(()=>local.abort(new Error('Homing motor-off cleanup timed out')),5000);
