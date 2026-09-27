@@ -1,3 +1,5 @@
+import {calculateScrewTilt,type ScrewDirection} from '../motion/screws-tilt.ts';
+import type {ScrewsTiltPlan} from '../config/screws-tilt.ts';
 import {SkewCorrection,type SkewFactors} from '../motion/skew.ts';
 import type {QuadGantryCalibrationPlan} from '../config/quad-gantry.ts';
 import {planQuadGantry} from '../motion/quad-gantry.ts';
@@ -579,6 +581,30 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
    },s);
    this.#check(s);return this.#applyBedTilt(samples);
+  });
+ }
+ measureScrewsTilt(options:ScrewsTiltPlan,minimumZ:number,signal:AbortSignal,direction?:ScrewDirection,maximumDeviation?:number){
+  const config=this.#o.probeConfiguration,plan=structuredClone(options);
+  return this.#operate('screws-tilt',signal,async s=>{
+   if(!config||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Screw tilt calibration requires configured tilt, probe and homed axes');
+   if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2])throw new Error('Invalid bed tilt travel');
+   calculateScrewTilt(plan.points.map(()=>0),plan.thread,direction,maximumDeviation);
+   if(plan.names.length!==plan.points.length||plan.points.some(p=>p.length!==2||!p.every(Number.isFinite)))throw new Error('Invalid screw tilt plan');
+   const admission=this.#newAdmission(this.homingPosition(),true);
+   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
+   finally{admission.shutdown(new Error('Screw tilt preflight complete'));}
+   await this.#drain(s);
+   const samples=await this.#deviceSession(async(sample,ss)=>{
+    const points:number[][]=[];
+    for(const [x,y] of plan.points){
+     const raised=[...this.homingPosition()];raised[2]=Math.max(raised[2],plan.horizontalHeight);await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     raised[0]=x;raised[1]=y;await this.#probeTravel(raised,plan.travelSpeed,ss);raised[2]=plan.horizontalHeight;await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     const result=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample),p=result.position,o=config.offsets;
+     points.push([p[0]+o[0],p[1]+o[1],p[2]-o[2]]);
+    }
+    const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
+   },s);
+   this.#check(s);return {...calculateScrewTilt(samples.map(p=>p[2]),plan.thread,direction,maximumDeviation),names:[...plan.names],samples,thread:plan.thread};
   });
  }
  async #probeTravel(target:readonly number[],speed:number,s:AbortSignal){
