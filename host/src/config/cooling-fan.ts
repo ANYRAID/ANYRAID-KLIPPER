@@ -16,7 +16,7 @@ export function compileConfiguredCoolingFans<T>(reader:ConfigurationReader,pins:
  const fans=requests.map(request=>{
   const section=reader.section(request.section),maxPower=section.getFloat('max_power',{defaultValue:1,above:0,maxval:1}),kickStartTime=section.getFloat('kick_start_time',{defaultValue:.1,minval:0}),offBelow=section.getFloat('off_below',{defaultValue:0,minval:0,maxval:1}),cycleTime=section.getFloat('cycle_time',{defaultValue:.01,above:0}),hardware=section.getBoolean('hardware_pwm',{defaultValue:false});
   const thermal=request.section.startsWith('heater_fan '),shutdownSpeed=section.getFloat('shutdown_speed',{defaultValue:thermal?1:0,minval:0,maxval:1}),shutdownPower=Math.min(maxPower,shutdownSpeed);
-  if(!thermal&&shutdownPower!==0)throw new Error('Part-cooling runtime requires zero shutdown speed');
+  if(!thermal&&!request.section.startsWith('controller_fan ')&&shutdownPower!==0)throw new Error('Part-cooling runtime requires zero shutdown speed');
   if(section.hasOption('tachometer_pin'))throw new Error('Fan tachometer requires a pulse-counter provider');
   const {minimumScheduleTime,capacity=1024}=request;if(!Number.isFinite(minimumScheduleTime)||minimumScheduleTime<=0||!Number.isInteger(capacity)||capacity<1||capacity>65536)throw new Error('Invalid cooling fan scheduling policy');
   const enable=section.get('enable_pin',{defaultValue:null});if(enable===null&&request.enableOid!==undefined)throw new Error('Fan enable OID has no pin');

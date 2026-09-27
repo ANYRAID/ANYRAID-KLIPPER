@@ -882,3 +882,16 @@ shutdown_speed 默认 1，按 max_power 截断；软件 PWM 仅接受 0/1
 完整验收两条打印流程在重初始化后的运动中发生时间分辨率错误；增加
 精确输入诊断后的 4 项验收通过。首次失败尚未定位，不能据重跑成功
 认定打印稳定性达标。完整记录见 host/contracts/heater-fan-foundation.json。
+
+### 控制板散热风扇
+
+`[controller_fan 名称]` 已接入原生自动装配。stepper 默认选择所有
+已配置电机，heater 默认 extruder；可显式设置空列表或指定有效名称。
+任一所选电机启用或所选加热器目标非零时使用 fan_speed；活动停止后
+使用 idle_speed，经过 idle_timeout 秒关闭。首次启动未出现活动时
+保持关闭。缺少可控使能引脚的常开电机按启用处理。
+
+空闲计时使用单调时钟，从首次观测到活动停止起计时，额外的起转加速
+回调不会加快倒计时。默认 idle_timeout=30，idle_speed=fan_speed，
+shutdown_speed=0。状态查询和输出限制与其他风扇相同，M106/M107
+不控制此风扇。电机状态是主机已调度的使能状态，不是电气反馈。

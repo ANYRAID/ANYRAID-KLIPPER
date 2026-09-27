@@ -40,7 +40,7 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
   if(!motors.some(m=>m.axis<3&&owner.get(m.emitter)===gpio))throw new Error('Probe GPIO requires a kinematic motor on its MCU');
   homingLayout.push({section:'probe',mcus:[...new Set(owner.values())]});
  }
- const fans=sections.filter(n=>n==='fan'||n.startsWith('fan_generic ')||n.startsWith('heater_fan ')).map(section=>({section,minimumScheduleTime:policy.fanMinimumScheduleTime}));
+ const fans=sections.filter(n=>n==='fan'||n.startsWith('fan_generic ')||n.startsWith('heater_fan ')||n.startsWith('controller_fan ')).map(section=>({section,minimumScheduleTime:policy.fanMinimumScheduleTime}));
  const heaters=sections.filter(n=>n==='extruder'||n==='heater_bed'||n.startsWith('heater_generic ')).map(section=>({section}));
  // Canonical nozzle/bed ordering is independent of source section ordering.
  heaters.sort((a,b)=>a.section==='extruder'?-1:b.section==='extruder'?1:a.section==='heater_bed'?-1:b.section==='heater_bed'?1:a.section.localeCompare(b.section));

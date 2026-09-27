@@ -82,3 +82,18 @@ test('thermal fan follows heater target through native queues and closes its tim
   clearInterval(interval);interval=undefined;await owner.close();const count=writes().length;await delay(150);assert.equal(writes().length,count);assert.equal(fan.status.phase,'stopped');assert.deepEqual(f.stops,[1,1]);
  }finally{if(interval)clearInterval(interval);await f.close();}
 });
+test('controller fan follows heater and motor activity then idle speed and timeout',async()=>{
+ const {ConfigurationReader}=await import('../src/moonraker/config-reader.ts'),{ConfigurationSource}=await import('../src/moonraker/config-source.ts');
+ const f=await hardwareStartupFixture(false,false,true);let timer:ReturnType<typeof setInterval>|undefined;
+ try{
+  const section='controller_fan board',reader=new ConfigurationReader(new ConfigurationSource('/controller.cfg',{...hardwareReader().source.original,[section]:{pin:'PA4',heater:'extruder',stepper:'stepper_x',fan_speed:'.8',idle_speed:'.3',idle_timeout:'1',kick_start_time:'0'}},[]),null);
+  const owner=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,fans:[...hardwareLayout.fans,{section,minimumScheduleTime:.1}]},{beforeTarget(){}},f.signal),aux=f.group.session('aux'),h=owner.plan.heaters[0],raw=Math.round(h.configuration.converter.adc(25)*h.sensor.adc.maximumSum);
+  const emit=()=>f.firmware[1].emit('analog_in_state',{oid:h.sensor.adc.oid,next_clock:Number(BigInt.asUintN(32,aux.clock.sync.getClock(serialClock.now())+292000n)),values:Buffer.from([raw&255,raw>>8])});emit();timer=setInterval(emit,100);
+  await until(()=>owner.analog[0].runtime.status.received);const fan=owner.fans.find(f=>f.section===section)!.runtime;assert.equal(fan.status.speed,0);
+  await owner.heaters.setTarget('extruder',200,f.signal);await until(()=>fan.status.speed===.8);await owner.heaters.turnOffAll();await until(()=>fan.status.speed===.3);await until(()=>fan.status.speed===0);
+  const main=f.group.session('mcu'),first=main.clock.sync.getClock(serialClock.now())+300000n;await owner.motorEnable!.beforeSteps([{id:'x',messages:[],position:1n,history:new BigInt64Array([first,first,0n,1n,1000n,0n])}]);await until(()=>fan.status.speed===.8);
+  await owner.motorEnable!.disableAll(0,f.signal);await until(()=>fan.status.speed===.3);await until(()=>fan.status.speed===0);
+  const oid=owner.plan.fans.find(f=>f.section===section)!.output.pwm.oid;assert.deepEqual(f.firmware[0].outputs.filter(o=>o.name==='queue_digital_out_generation'&&o.parameters.oid===oid).map(o=>o.parameters.on_ticks),[8000,3000,0,8000,3000,0]);
+  clearInterval(timer);timer=undefined;await owner.close();assert.deepEqual(f.stops,[1,1]);
+ }finally{if(timer)clearInterval(timer);await f.close();}
+});
