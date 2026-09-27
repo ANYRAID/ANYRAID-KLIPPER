@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-28",
+  "scope": "MAX31856 configuration, verified SPI initialization, serial reports and heater registration",
+  "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31856.pdf",
+  "tests": {
+    "command": "node --test --test-isolation=none --test-concurrency=1 host/test/spi-temperature.test.ts host/test/spi-heater.test.ts host/test/max31856.test.ts",
+    "passed": 39,
+    "spi": [
+      "hardware",
+      "software modern",
+      "software legacy"
+    ],
+    "coverage": [
+      "Negative fractional sample at full control precision",
+      "Unspecified low bits ignored",
+      "PID and watermark output and fault stop",
+      "Firmware capability required",
+      "Invalid options fail before MCU I/O",
+      "Readback mismatch stops before sampling",
+      "Startup abort does not enable conversion"
+    ]
+  },
+  "startup": {
+    "settleBeforeConfigurationMs": 1000,
+    "settleBeforeSamplingMs": 1000,
+    "periodicReportSeconds": 0.3,
+    "armClock": "current calibrated MCU clock plus one report period",
+    "verification": [
+      "standby CR0",
+      "CR0 CR1 MASK",
+      "automatic conversion CR0"
+    ]
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "positiveOnly": false,
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 2.760187000000002,
+    "p95Ms": 14.871877000000012,
+    "checksum": -4096,
+    "scope": "MAX31856 scalar decoding with unspecified low bits; no SPI transport, firmware, heater control or actual hardware"
+  },
+  "limitations": [
+    "No compiled-product MAX31856 printing journey yet",
+    "No physical thermocouple or target-board timing acceptance",
+    "Open circuit detection remains disabled as in previous Python settings",
+    "P95 scalar benchmark higher than earlier sample; no end-to-end throughput claim",
+    "187 Python files remain; default printing entrypoint still Python",
+    "Historical runtime and motion numerical failures unresolved"
+  ]
+}

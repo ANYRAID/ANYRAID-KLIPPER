@@ -1,4 +1,5 @@
 import {attachConfiguredSpiHeater} from '../config/spi-heater.ts';
+import {startMax31856} from '../thermal/max31856-startup.ts';
 import type {AsyncHeaterRuntime} from '../thermal/async-runtime.ts';
 import {attachConfiguredSpiSensor} from '../config/spi-temperature.ts';
 import {HostTemperature} from '../thermal/host-temperature.ts';
@@ -99,6 +100,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
+  await Promise.all([...plan.spiSensors,...plan.spiHeaters.map(h=>h.sensor)].filter(p=>p.model==='MAX31856').map(p=>startMax31856(group.session(p.mcu),p,abort.signal)));active();
   // All enable GPIOs are configured/restarted off. No motion/output owner is
   // exposed until every driver has acknowledged its complete register plan.
   const phaseOwner=(device:{read(register:number,signal:AbortSignal):Promise<number>},driver:{stepper:string;microsteps:number})=>{
