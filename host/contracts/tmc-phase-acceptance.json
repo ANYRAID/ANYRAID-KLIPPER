@@ -1,0 +1,48 @@
+{
+  "scope": "Exact phase arithmetic and generation state only; not connected to stopped-motion sampling or status",
+  "sha256": {
+    "host/src/drivers/tmc-phase.ts": "062d3956130bab0fad17c654ea12057d4f14d4b9e82e206c0df2075a3de5da0a",
+    "host/test/tmc-phase.test.ts": "1c2d5b582b1c9c064c95509c3a3d8bef8f3e6c4084e35210222d203827f5a07f",
+    "host/bench/tmc-phase.ts": "e39e4b9343d0aac8ca9849f77e9d251dd69635fd8b52fb4534e9fa5f53347717",
+    "host/contracts/tmc-phase-reference.json": "dbc4965c6896b26d7f7b4e7c138947d6a74323dc5735d73e49b14770ad3bc149"
+  },
+  "tests": "✔ all 18432 MSCNT, microstep and direction combinations match original Python (13.865783ms)\n✔ negative and beyond-Number MCU counts preserve exact Python modulo (0.383996ms)\n✔ phase state invalidates unknown samples and cannot revive retired hardware (0.742492ms)\n✔ phase input validation rejects lossy or unsupported values (0.209153ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 67.771968\n",
+  "nodeBenchmark": {
+    "node": "v26.9.0",
+    "scope": "18432 phase conversions per round; 2 warmups, 9 measurements; no serial I/O or stopped-motion barrier",
+    "medianMs": 2.7762560000000036,
+    "maximumMs": 3.2176330000000064,
+    "timings": [
+      2.7170249999999925,
+      2.751424,
+      2.7623140000000035,
+      2.770285000000001,
+      2.7762560000000036,
+      2.8117650000000083,
+      2.874285999999998,
+      3.0748399999999947,
+      3.2176330000000064
+    ],
+    "checksum": 22922240
+  },
+  "pythonBenchmark": {
+    "scope": "Original Python phase sync with mocked field/stepper/query getters; 18432 cases, includes state updates and mocked warning callback; no hardware",
+    "timings": [
+      13.992216030601412,
+      14.05060599790886,
+      14.067797048483044,
+      14.076266961637884,
+      14.10304702585563,
+      14.158627949655056,
+      14.33475100202486,
+      14.482093043625355,
+      14.619466033764184
+    ],
+    "checksum": 22922240
+  },
+  "limits": [
+    "Python benchmark includes mocked getters and phase state update while Node benchmark measures arithmetic only; not an end-to-end speedup claim.",
+    "No physical driver read, motion synchronization or phase-to-commanded-position publication validated.",
+    "Historical runtime/numerical failures remain open."
+  ]
+}
