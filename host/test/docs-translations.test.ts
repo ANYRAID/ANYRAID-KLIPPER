@@ -38,6 +38,9 @@ test('multilingual build preserves manual index, navigation, language switching 
     assert.match(html, /lang="zh"/);
     assert.match(html, /手工首页/);
     assert.match(html, /安装和配置/);
+    assert.match(html, /<button>搜索<\/button>/);
+    assert.match(html, /跳至正文/);
+    assert.match(await readFile(join(output, 'zh/site.js'), 'utf8'), /搜索结果/);
     assert.match(html, /hreflang="en" href="\.\.\/index.html"/);
     assert.match(await readFile(join(output, 'index.html'), 'utf8'), /hreflang="zh" href="zh\/index.html"/);
     const search = await readFile(join(output, 'zh/search.json'), 'utf8');
