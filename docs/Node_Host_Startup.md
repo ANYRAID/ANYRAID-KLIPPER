@@ -32,7 +32,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 
 自动装配支持 `[temperature_sensor chamber]` 这类独立 ADC 温度输入。
 配置 `sensor_type`、`sensor_pin`，并按设备设置 `min_temp`、`max_temp`；
-支持现有热敏电阻和线性 ADC 转换器，尚不包含数字 SPI/I2C 或主机温度源。
+支持现有热敏电阻和线性 ADC 转换器，尚不包含数字 SPI/I2C 温度源。
 默认温度边界与原实现相同，为 -273.15 和 99999999.9 摄氏度。
 可选 `gcode_id: C` 将传感器加入 M105 报告，TEMPERATURE_WAIT 可引用
 完整传感器名；它不接受加热目标，也不分配 PWM 输出。
@@ -48,6 +48,26 @@ ADC 输入具有独占引脚及 OID，沿所属 MCU 时钟采样；启动前订�
 保护链路停止 MCU 组。主机重初始化会重建传感器统计，不重放采样。
 本机模拟验收及性能记录见
 [独立温度传感器验收](../host/contracts/temperature-sensor-acceptance.json)。
+
+## 主机温度传感器
+
+`[temperature_sensor host]` 可使用 `sensor_type: temperature_host`。
+`sensor_path` 默认为 `/sys/class/thermal/thermal_zone0/temp`，也可指定
+其他绝对路径的温度文件，内容须为有限十进制毫摄氏度数值。沿用上述
+min_temp、max_temp 和可选 gcode_id，不要求 sensor_pin，不分配 MCU ADC。
+
+文件按一秒间隔异步读取，每次最多 128 字节，只允许常规文件（包含
+Linux sysfs 温度节点），不会把 FIFO 当作温度源。首次读取成功后才完成
+硬件启动。原生状态同时提供 temperature_sensor host 的统计和
+temperature_host host 的 temperature，不能有重复的主机温度对象短名。
+
+文件内容错误、越界或读取超过七秒会停止设备并保留最后一次有效温度，
+不会像旧读取错误路径那样发布零值或静默停止采样。退出会取消定时器、
+等待在途文件读取后关闭句柄；重初始化重新打开文件并清空统计。
+受阻的文件系统读取可能延迟句柄回收，不能据此宣称任意文件系统都有
+严格的退出延迟上限。本轮使用普通临时文件和模拟 MCU 验收，未验证
+目标设备的真实 sysfs 驱动；证据见
+[主机温度验收](../host/contracts/host-temperature-acceptance.json)。
 
 ## 编译后的运行包
 

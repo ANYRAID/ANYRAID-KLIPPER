@@ -1,0 +1,165 @@
+{
+  "scope": "Independent host temperature file source integrated into native printer; temporary file and simulated MCU product evidence",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/thermal/host-temperature.ts": "f0a1a05d9589db00bd909ec649a8a539b403fa2935e541a6a5e1c57b58609e0e",
+    "host/src/config/hardware.ts": "bc60233ac373f930c1417f62032ffb618227265c1c330918cd2eb55301b92999",
+    "host/src/runtime/configured-hardware.ts": "db0c8beadca25c6ae9df5e7c0b0f3e68af46462b9f8402f72423fd6b9f70dcd0",
+    "host/src/runtime/product-objects.ts": "76b4dfce20d7e61cd69cd0cc36b75fa85820e4daae1aaaac1c770fe5b7fbf576",
+    "host/test/host-temperature.test.ts": "4f639fd15d1dd3b15d910dbefa71aafb9cf451872e9a5943c168040406e617d8",
+    "host/bench/host-temperature.ts": "beb30bf8779991cd5c7ae542a10112a770c0e03461a7ec2b834656a49bf1fdc9",
+    "host/contracts/host-temperature-reference.json": "3c3bae67a33bc2323527b6353327cdb354708336feb18bec2d93f9936b27433a",
+    "host/acceptance/product-compiled-journey.test.ts": "5c0089dc579679df66785b406758b446bf0238aec8f4225a0b6b5981cfc504d1"
+  },
+  "tests": {
+    "regressionPassed": 26,
+    "regressionFailed": 0,
+    "regressionDurationMs": 2702.905309,
+    "compiledProductPassed": 1,
+    "compiledProductFailed": 0,
+    "compiledProductDurationMs": 34951.060715,
+    "fixedPythonCases": 8
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 1.243144000000001,
+    "nodeMaxMs": 1.4417470000000066,
+    "pythonMedianMs": 2.5587989998712146,
+    "pythonMaxMs": 2.5805599998420803,
+    "checksum": -541722.2222475383,
+    "scope": "Millidegree parsing; TS includes finite/range validation. Original float conversion baseline excludes executor, file I/O and scheduling. Product test measures concurrent printing with async file polling."
+  },
+  "productMetrics": [
+    {
+      "installation": {
+        "durationMs": 729.913507,
+        "dependencies": 10
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1262.4649069999996,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "measured_min_temp": 42,
+        "measured_max_temp": 42
+      },
+      "hostSensor": true,
+      "noHeaterAuthority": true
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "phaseQueries": 3914,
+      "phaseP99Ms": 4.149176999999327,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "hostSensor": true,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 70,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "host-temperature",
+      "historyNotifications": 32,
+      "historyRequests": 877,
+      "historyP99Ms": 10.476879999998346,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.777592000000368,
+      "deleteRequests": 16,
+      "deleteP95Ms": 6.636716000000888,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.759302000000389,
+      "metadataRequests": 16,
+      "metadataP95Ms": 18.321791000000303,
+      "downloads": 16,
+      "downloadP95Ms": 6.0637989999995625,
+      "wireCommands": 204,
+      "wireSteps": 4030,
+      "minimumStepLeadMs": 84.112,
+      "directoryRequests": 3766,
+      "directoryP99Ms": 7.535085999999865,
+      "statusRequests": 15663,
+      "uploads": 16,
+      "statusP99Ms": 4.157938000000286,
+      "uploadP95Ms": 13.740098000000216,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.030591,
+            "maxMs": 18.022399
+          },
+          "cpu": {
+            "user": 4484151,
+            "system": 565590
+          },
+          "rss": 279076864
+        },
+        {
+          "loop": {
+            "p99Ms": 1.916927,
+            "maxMs": 5.210111
+          },
+          "cpu": {
+            "user": 1638183,
+            "system": 215824
+          },
+          "rss": 264904704
+        }
+      ]
+    }
+  ],
+  "behaviorChanges": [
+    "Invalid or stale source stops the MCU group instead of silently terminating sampling with zero.",
+    "Finite decimal readings are bounded to 128 bytes; non-regular files and duplicate host object names are rejected."
+  ],
+  "limitations": [
+    "No real sysfs thermal driver or target-board sustained test.",
+    "A stalled filesystem read can delay joined close, even after the timeout requests device stop.",
+    "Parser microbenchmark excludes file I/O, Python executor and scheduling; concurrent compiled product metrics are separate.",
+    "General digital temperature sensors and temperature_host as a heater source remain incomplete.",
+    "Historical Node runtime crashes and numerical failures remain open."
+  ]
+}

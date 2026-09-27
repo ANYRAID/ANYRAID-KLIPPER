@@ -62,6 +62,13 @@ TEMPERATURE_WAIT 温度源及原生对象查询/订阅。编译产品验证了�
 删除 temperature_sensor.py。证据见
 [温度传感器验收](../host/contracts/temperature-sensor-acceptance.json)。
 
+后续已接通独立 temperature_host 文件源：异步轮询、温度状态、文件异常
+停机和句柄退出清理通过编译产品验收。8 个固定 Python 毫摄氏度参考
+一致，10,000 次解析为 Node 1.24 ms/Python 2.56 ms；此解析基准不包含
+文件 I/O，打印并发指标另记录于
+[主机温度验收](../host/contracts/host-temperature-acceptance.json)。
+数字传感器、非独立传感器使用场景及默认 Python 入口仍未完成退役。
+
 以下执行顺序继续有效。后文按阶段保留的记录是历史快照，不能将每个
 小模块的完成相加作为整体完成率。
 
