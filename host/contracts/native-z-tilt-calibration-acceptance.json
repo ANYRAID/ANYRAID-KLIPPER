@@ -1,0 +1,57 @@
+{
+  "scope": "Native automatic probe and mechanical adjustment pipeline. Configuration assembly, product endpoint and physical hardware acceptance are still pending.",
+  "checks": {
+    "tests": 20,
+    "typecheck": true,
+    "whitespace": true,
+    "scenarios": [
+      "three offset-corrected probe points with native stop/recovery",
+      "flat decimal height .88 without spurious displacement",
+      "zero retries applies once without claiming tolerance",
+      "second probe pass converges",
+      "retry exhaustion stops before another correction",
+      "two consecutive range increases stop calibration",
+      "out-of-range points reject before probing",
+      "motor release resets applied status",
+      "36 frozen Python planning references retained"
+    ]
+  },
+  "semantics": {
+    "tolerance": "Compare full precision measured range, no six-decimal rounding.",
+    "measuredRange": "Last probe pass before its correction, not a post-correction physical measurement.",
+    "exhaustion": "Reject before another correction when retry budget is exhausted.",
+    "maximumTravel": "Per adjustment pass; each pass also checks configured Z range."
+  },
+  "performance": {
+    "planning": {
+      "node": "v26.9.0",
+      "plans": 3600,
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 15.516599999999983,
+      "maxMs": 22.013924000000003,
+      "checksum": 19163.413718472322,
+      "scope": "Plane fit and bounded per-motor planning only; no probing, step generation or hardware"
+    },
+    "execution": {
+      "node": "v26.9.0",
+      "iterations": 7,
+      "warmup": 2,
+      "medianMs": 752.074482,
+      "maxMs": 767.2120340000001,
+      "times": [
+        725.8764039999996,
+        748.2024180000003,
+        752.074482,
+        758.4087239999999,
+        767.2120340000001
+      ],
+      "scope": "Three Z motors, two physical segments and final coordinate rebase. Includes simulated MCU clock waits, stop confirmations and native step generation; excludes probing and setup. Not physical hardware or an equal-work Python comparison."
+    }
+  },
+  "limitations": [
+    "No real probe, step loss or motion accuracy acceptance.",
+    "Per-segment step rounding remains as documented in native-z-tilt-acceptance.json.",
+    "Historical Node crashes and motion numerical mismatches are not closed by these successful runs."
+  ]
+}

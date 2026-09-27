@@ -29,10 +29,10 @@ export function planZTilt(samples:readonly (readonly number[])[],motors:readonly
  const order=adjustments.map((m,index)=>({...m,index,offset:-m.adjustment})).sort((a,b)=>a.offset-b.offset);
  const spread=order.at(-1)!.offset-order[0].offset;
  if(!Number.isFinite(spread)||spread>maximumTravel)throw new RangeError('Z tilt adjustment exceeds travel limit');
- const zLow=currentZ-order[0].offset,segments:{motors:readonly string[];targetZ:number;distance:number}[]=[];
+ const segments:{motors:readonly string[];targetZ:number;distance:number}[]=[];
  let previous=currentZ;
  for(let i=0;i<order.length-1;i++){
-  const targetZ=zLow+order[i+1].offset,distance=targetZ-previous;
+  const targetZ=currentZ+(order[i+1].offset-order[0].offset),distance=targetZ-previous;
   if(!Number.isFinite(targetZ)||!Number.isFinite(distance)||distance<0||(order[i+1].offset>order[i].offset&&distance===0)||(order[i+1].offset===order[i].offset&&distance!==0))throw new RangeError('Z tilt motion is not representable');
   segments.push(Object.freeze({motors:Object.freeze(order.slice(0,i+1).map(m=>m.id)),targetZ,distance}));previous=targetZ;
  }

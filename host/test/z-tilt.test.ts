@@ -39,3 +39,7 @@ test('centered fit recovers an analytic plane under coordinate translation',()=>
 });
 
 test('collinear measurements refuse unobservable motor slopes',()=>{assert.throws(()=>planZTilt([[0,0,0],[100,0,1]],[{id:'z',x:0,y:0},{id:'z1',x:0,y:100}],5,10),/observable/);});
+
+test('flat common decimal offset cannot manufacture a negative adjustment',()=>{
+ for(const height of [.88,.1,.3,.7]){const p=planZTilt([[0,0,height],[100,0,height],[0,100,height]],[...motors,{id:'z2',x:0,y:100}],1,1);assert(p.segments.every(s=>s.distance===0&&s.targetZ===1));near(p.finalZ,1-height);}
+});

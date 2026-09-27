@@ -44,6 +44,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
 interface RebaseLayout {routes:readonly {id:string;extrusionAxis?:number;stationaryPosition?:readonly [number,number,number]}[];emitters:readonly StoppedEmitter[];}
+export interface ZTiltCalibrationPlan extends BedTiltProbePlan {motors:readonly ZTiltMotor[];maximumTravel:number;retries:number;retryTolerance:number;}
 export interface PausedMove {position:readonly number[];speed:number;}
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
  * MCU/actuator ownership and a live thermal guard. Ordinary moves are admitted
@@ -185,7 +186,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  releaseMotors(signal:AbortSignal):Promise<void>{if(this.#g.motorEnable&&!this.canReleaseMotors)return Promise.reject(new Error('Always-on motors cannot be released by software'));return this.#operate('release',signal,async s=>{
   const power=this.#g.motorEnable;if(!power)throw new Error('Motor enables are not configured');
   await this.#drain(s);this.#g.assertMotorCalibration();this.#o.kinematics.clearHoming([0,1,2]);
-  await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
+  this.#zTiltApplied=false;await power.disableAll(this.#g.source.status.sourceTime,s);this.#check(s);
  });}
  queueCoolingFan(value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
   const output=this.#g.boundaryOutput;if(!output)throw new Error('Cooling fan is not configured');
@@ -400,7 +401,9 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   * segment stops the whole group and clears homing instead of resuming print. */
  adjustZTilt(samples:readonly (readonly number[])[],motors:readonly ZTiltMotor[],maximumTravel:number,speed:number,signal:AbortSignal){
   const measured=samples.map(p=>[...p]),pivots=motors.map(m=>({...m}));
-  return this.#operate('z-tilt',signal,async s=>{
+  return this.#operate('z-tilt',signal,async s=>{this.#zTiltApplied=false;const plan=await this.#adjustZTilt(measured,pivots,maximumTravel,speed,s);this.#zTiltApplied=true;return plan;});
+ }
+ async #adjustZTilt(measured:readonly (readonly number[])[],pivots:readonly ZTiltMotor[],maximumTravel:number,speed:number,s:AbortSignal){
    if(this.#o.kinematics.kind==='corexz'||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
    const z=this.#o.emitters.filter(e=>e.mode==='z');
    if(z.length!==pivots.length||z.some(e=>!pivots.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
@@ -422,6 +425,42 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     this.#admission.shutdown(new Error('Z adjustment segment completed'));this.#admission=this.#newAdmission(halt);
    }
    const final=[...this.homingPosition()];final[2]=plan.finalZ;await this.#rebase(final,s,normal);return plan;
+ }
+ #zTiltApplied=false;
+ get zTiltStatus(){return {applied:this.#zTiltApplied};}
+ calibrateZTilt(options:ZTiltCalibrationPlan,minimumZ:number,signal:AbortSignal){
+  const plan=structuredClone(options),config=this.#o.probeConfiguration;
+  return this.#operate('z-tilt-calibration',signal,async s=>{
+   this.#zTiltApplied=false;
+   if(!config||!this.#o.probeGroups||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Z tilt calibration requires configured probe and homed axes');
+   if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2]||!Number.isInteger(plan.retries)||plan.retries<0||plan.retries>30||!Number.isFinite(plan.retryTolerance)||plan.retryTolerance<0||plan.retryTolerance>1)throw new RangeError('Invalid Z tilt calibration travel or retry policy');
+   const z=this.#o.emitters.filter(e=>e.mode==='z');if(this.#o.kinematics.kind==='corexz'||z.length!==plan.motors.length||z.some(e=>!plan.motors.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
+   // Probe points are nozzle XY, while fitting uses the probe's bed XY.
+   planZTilt(plan.points.map(p=>[p[0]+config.offsets[0],p[1]+config.offsets[1],0]),plan.motors,plan.horizontalHeight,plan.maximumTravel);
+   const admission=this.#newAdmission(this.homingPosition(),true);
+   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
+   finally{admission.shutdown(new Error('Z tilt preflight complete'));}
+   await this.#drain(s);let previous:number|undefined,increasing=0;
+   for(let pass=0;pass<=plan.retries;pass++){
+    const samples=await this.#deviceSession(async(sample,ss)=>{
+     const points:number[][]=[];
+     for(const [x,y] of plan.points){
+      const raised=[...this.homingPosition()];raised[2]=Math.max(raised[2],plan.horizontalHeight);await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+      raised[0]=x;raised[1]=y;await this.#probeTravel(raised,plan.travelSpeed,ss);raised[2]=plan.horizontalHeight;await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+      const result=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample),p=result.position,o=config.offsets;points.push([p[0]+o[0],p[1]+o[1],p[2]-o[2]]);
+     }
+     const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
+    },s);
+    const measuredRange=Math.max(...samples.map(p=>p[2]))-Math.min(...samples.map(p=>p[2]));
+    if(!Number.isFinite(measuredRange))throw new RangeError('Z tilt measurement range overflow');
+    if(previous!==undefined&&measuredRange>previous+1e-7)increasing++;else increasing=Math.max(0,increasing-1);previous=measuredRange;
+    if(plan.retries&&increasing>1)throw new Error('Z tilt measured range is increasing');
+    const toleranceSatisfied=measuredRange<=plan.retryTolerance;
+    if(plan.retries&&!toleranceSatisfied&&pass===plan.retries)throw new Error('Z tilt retry limit exceeded');
+    const adjustment=await this.#adjustZTilt(samples,plan.motors,plan.maximumTravel,config.sampling.liftSpeed,s);
+    if(!plan.retries||toleranceSatisfied){this.#zTiltApplied=true;return {passes:pass+1,samples,measuredRange,toleranceSatisfied,adjustment};}
+   }
+   throw new Error('Z tilt calibration did not complete');
   });
  }
  /** Privileged probe owner supplies separately configured stop groups. Never
@@ -599,6 +638,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   });
  }
  motorOff(cause:unknown):Promise<void>{
+  this.#zTiltApplied=false;
   if(this.#stop)return this.#stop;this.#failed=true;this.#fault=cause;this.#phase='stopped';this.#admission.shutdown(cause);this.#o.kinematics.clearHoming([0,1,2]);
   const stopped=Promise.withResolvers<void>();this.#stop=stopped.promise;this.#abort.abort(cause);
   void Promise.allSettled([this.#g.drain.stop(cause),...(this.#o.probeDevice?[this.#o.probeDevice.device.stop(cause)]:[])]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)stopped.reject(new AggregateError(errors,'Native motion and probe stop failed'));else stopped.resolve();});this.#notice.emit(cause);return this.#stop;
