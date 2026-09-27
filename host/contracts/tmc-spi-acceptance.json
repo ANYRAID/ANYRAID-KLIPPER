@@ -1,0 +1,42 @@
+{
+  "scope": "TMC2130-family SPI protocol and native MCU adapter, not configured driver startup",
+  "sha256": {
+    "host/src/drivers/tmc-spi.ts": "8715ea539eead1d757cf721619fdcb5970c774618d373686f80f0d281b3bb640",
+    "host/src/drivers/tmc-spi-mcu.ts": "fbd7991eed85a4e50ef45ff0e36a65ed4acece07c3d70a3bddcac36db9b00754",
+    "host/test/tmc-spi.test.ts": "42f7be48ce7cb2e59680a6e7cd4ea0f9219a89ac8120d3ffe56e11a306e0a685",
+    "host/test/tmc-spi-mcu.test.ts": "79925ef0aa0d8e0b553272d84b8852ea73d4f2a3aebd0892c2008e2cfa5114f0",
+    "host/test/helpers/serial-firmware.ts": "3845b7cda57cf0adf326d1f281f09454e317ce15b8b3c7766106bb69f7daa2b2",
+    "host/bench/tmc-spi.ts": "2bbf4f33aefd7565ef07fc1e0a92494e07c9c20fc71e0df9a5b8b025ed6405c5",
+    "host/contracts/tmc-spi-reference.json": "7462939e365ced00eef17fbef211a0496667263eeaeed4cb17ce4f5209ee8abc"
+  },
+  "tests": "✔ SPI compiler checks firmware bus names, mode three and CS inactive state (3.701467ms)\n✔ native SPI FIFO preserves pipeline, scheduled writes, chain positions and unsigned values (477.471375ms)\nℹ {\"scope\":\"Native SPI FIFO and simulated two-device pipeline, 20 warmups/100 reads, no electrical SPI timing\",\"medianMs\":0.1583219999999983,\"p95Ms\":0.21460300000001098,\"maxMs\":0.7448219999999992}\n✔ missing SPI query response cancels the session once without replaying preface (440.015331ms)\n✔ malformed SPI query response stops the MCU instead of trusting ACK (408.690662ms)\n✔ maximum chain falls back to ordered packets without exceeding MCU payload size (409.195069ms)\n✔ all chain positions and uint32 words match 512 frozen original Python frames (4.084943ms)\n✔ whole write verification retries serialize against other chain positions (0.399756ms)\n✔ five mismatches retire the chain and transport cancellation is not replayed (0.274914ms)\n✔ MCU UART config uses firmware pins and AVR baud with strict clock validation (0.758821ms)\n✔ native serial MCU waits for UART completion before IFCNT and preserves scheduled write order (773.46889ms)\n✔ aborting a missing MCU response closes the real session and forbids later register traffic (448.195336ms)\n✔ missing UART response times out once without resending the MCU command (5406.81266ms)\n✔ native UART read path reports bounded benchmark samples with exact unsigned values (480.181859ms)\nℹ {\"scope\":\"Native serialqueue, dictionary, MCU framing and simulated UART reply; 20 warmups/200 sequential reads; excludes physical bit timing\",\"medianMs\":0.13015199999972538,\"p95Ms\":1.3971519999995508,\"maxMs\":2.1496429999988322}\nℹ tests 13\nℹ suites 0\nℹ pass 13\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 8942.936054\n",
+  "priorSeparatePackets": "✔ SPI compiler checks firmware bus names, mode three and CS inactive state (2.443768ms)\n✔ native SPI FIFO preserves pipeline, scheduled writes, chain positions and unsigned values (492.959697ms)\nℹ {\"scope\":\"Native SPI FIFO and simulated two-device pipeline, 20 warmups/100 reads, no electrical SPI timing\",\"medianMs\":0.23663299999998344,\"p95Ms\":0.32680500000003576,\"maxMs\":2.376207000000022}\n✔ missing SPI query response cancels the session once without replaying preface (440.270223ms)\n✔ malformed SPI query response stops the MCU instead of trusting ACK (408.575643ms)\n✔ all chain positions and uint32 words match 512 frozen original Python frames (4.663292ms)\n✔ whole write verification retries serialize against other chain positions (0.565249ms)\n✔ five mismatches retire the chain and transport cancellation is not replayed (0.261434ms)\n✔ MCU UART config uses firmware pins and AVR baud with strict clock validation (0.682181ms)\n✔ native serial MCU waits for UART completion before IFCNT and preserves scheduled write order (776.77576ms)\n✔ aborting a missing MCU response closes the real session and forbids later register traffic (447.27582ms)\n✔ missing UART response times out once without resending the MCU command (5408.226747ms)\n✔ native UART read path reports bounded benchmark samples with exact unsigned values (432.747749ms)\nℹ {\"scope\":\"Native serialqueue, dictionary, MCU framing and simulated UART reply; 20 warmups/200 sequential reads; excludes physical bit timing\",\"medianMs\":0.10124200000063865,\"p95Ms\":0.13361199999962992,\"maxMs\":0.457657000000836}\nℹ tests 12\nℹ suites 0\nℹ pass 12\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 8512.31967\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 20,
+    "rows": 512,
+    "warmups": 2,
+    "batches": 7,
+    "medianMs": 1.8678290000000004,
+    "maxMs": 2.5968300000000113,
+    "bytes": 5054400,
+    "python": {
+      "iterations": 20,
+      "rows": 512,
+      "warmups": 2,
+      "batches": 7,
+      "medianMs": 13.061885023489594,
+      "maxMs": 13.104036974254996,
+      "scope": "Original Python chain owner allocation and read/write frame construction; no MCU I/O"
+    },
+    "scope": "Validated Node Buffer construction versus original Python list construction and owner allocation; no MCU I/O"
+  },
+  "initialFailure": "Test dictionary reused reserved message ID; fixture corrected before final verification",
+  "limitations": [
+    "Hardware SPI only with explicit bus, mode 3 and active-low chip select",
+    "Chain length bounded to 10 for MCU packet capacity",
+    "Configuration caller must reserve bus GPIOs and configure all chip selects before applying bus configuration",
+    "TMC2130/5160 register models, assembly, monitoring and physical SPI timing not yet integrated",
+    "Sample timing is not a target-board printing or stability acceptance"
+  ]
+}
