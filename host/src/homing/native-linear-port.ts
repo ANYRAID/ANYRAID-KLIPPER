@@ -371,7 +371,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const target=[...position];return this.#operate('homing-travel',signal,async s=>{
    const start=this.homingPosition();if(target.length!==start.length||target.slice(3).some((v,i)=>v!==start[i+3]))throw new Error('Safe home travel cannot move extra axes');
    const physical=this.#newAdmission(start,true);physical.move(target,speed);
-   await this.#drain(s);await this.#streamer.append(physical.flush(),s);await this.#g.source.drain([],s);this.#check(s);
+   await this.#drain(s);const moves=physical.flush();
+   // An unchanged physical target has no new timeline to drain. The previous
+   // drain already settled outputs; replaying its horizon after MCU clock
+   // retirement would submit an output horizon in the past.
+   if(moves.length){await this.#streamer.append(moves,s);await this.#g.source.drain([],s);}this.#check(s);
    const next=this.#newAdmission(target);this.#admission.shutdown(new Error('Safe home travel completed'));this.#admission=next;
   });
  }
@@ -426,6 +430,25 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
    },s);
  }
+ /** Resolved motor coordinates after a complete drain, matching manual probe
+  * step resolution semantics. Integer pulse counts avoid solver round-trip drift.
+  * This is commanded pulse history, not an encoder measurement. */
+ manualProbePosition(){
+  this.assertActive();const source=this.#g.source.status;if(this.#busy||this.#admission.pending||source.seeded&&!source.paused||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Manual probe requires drained homed motion');
+  const motors=this.#o.kinematicIds.map(id=>{const binding=this.#g.motion.bindings.find(b=>b.id===id);if(!binding)throw new Error('Missing manual probe motor');return binding.position.commandedPosition(binding.history.status.lastPlannedPosition);});
+  return [...this.#o.kinematics.calcPosition(motors),this.homingPosition()[3]];
+ }
+ applyManualBedTilt(samples:readonly (readonly number[])[],signal:AbortSignal){
+  const owned=samples.map(p=>[...p]);return this.#operate('manual-bed-tilt',signal,async s=>{
+   if(!this.#tilt||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Manual tilt requires configured tilt and homed axes');
+   await this.#drain(s);this.#check(s);return this.#applyBedTilt(owned);
+  });
+ }
+ #applyBedTilt(samples:number[][]){
+  const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+  this.#admission.shutdown(new Error('Bed tilt calibration applied'));this.#admission=next;this.#tilt=tilt;this.#tiltRevision++;
+  return {adjust:{...tilt.adjust},samples};
+ }
  get bedTiltStatus(){return this.#tilt?{...this.#tilt.adjust,revision:String(this.#tiltRevision),calibrated:this.#tiltRevision>0n}:undefined;}
  #tiltRevision=0n;
  calibrateBedTilt(options:BedTiltProbePlan,minimumZ:number,signal:AbortSignal){
@@ -448,9 +471,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
     }
     const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
    },s);
-   this.#check(s);const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
-   this.#admission.shutdown(new Error('Bed tilt calibration applied'));this.#admission=next;this.#tilt=tilt;this.#tiltRevision++;
-   return {adjust:{...tilt.adjust},samples};
+   this.#check(s);return this.#applyBedTilt(samples);
   });
  }
  async #probeTravel(target:readonly number[],speed:number,s:AbortSignal){

@@ -1209,7 +1209,7 @@ speed（默认 50），并配置 [probe] 或 [bltouch] 后，可使用自动校�
 points 表示喷嘴位置，与原 bed_tilt 的默认语义一致；拟合输入会加上
 探针 XY 偏移并减去 Z 偏移。全部目标和搜索范围在移动前校验，旧补偿
 不参与测量；全部采样、收针和拟合成功后才发布新系数。失败停止运动、
-撤销归零权限并保留旧系数。当前无探针的手动测量引导仍待迁移。
+撤销归零权限并保留旧系数。未配置探针时可使用下述手动测量操作。
 
 1. 归零后 GET `/printer/calibration/bed_tilt` 获取 state_token，再 POST
    `{ "version": 1, "state_token": "…" }`。只使用服务器配置点位；成功
@@ -1221,4 +1221,34 @@ points 表示喷嘴位置，与原 bed_tilt 的默认语义一致；拟合输入
    修改时拒绝覆盖；保存失败也要求检查配置并重新初始化。
 
 `/printer/objects/query?bed_tilt` 返回当前 x/y/z、revision 和 calibrated；
-后者表示本运行代次是否完成了自动测量，不表示真机验收通过。
+后者表示本运行代次是否完成了校准，不表示真机验收通过。
+
+### 无探针手动测量
+
+配置 [bed_tilt] 的校准点后，归零并保持打印机空闲，GET
+`/printer/calibration/bed_tilt/manual` 获取 state_token。POST 请求均包含
+`version: 1`、当前 `state_token` 和 `action`；每次完成后使用新令牌。
+
+- `start`：依次抬升、前往第一个配置点，等待用户确认喷嘴高度。
+- `adjust`：额外传入非零 `delta`，以毫米表示相对 Z 调整，绝对值不超过 5。
+  `bisect_up` / `bisect_down` 根据已访问高度折半搜索；
+  `previous_up` / `previous_down` 前往相邻历史高度，单次不超过 0.2 mm。
+  向目标下降前按原流程抬高至目标上方 0.5 mm，所有移动受机器行程限制。
+- `accept`：确认当前接触点并移动到下一点。必须确实下降至少一个可分辨
+  步距才可确认；全部点完成后抬升并应用拟合，仍须通过配置保存接口持久化。
+- `cancel`：终止会话并停止电机，之后必须重新初始化和归零。
+
+返回状态包含当前点、已确认点、position、lower、upper、unchanged 和 result。
+position 根据排空后的整数步进历史重建，是命令位置而非编码器测量。
+极小调整没有跨越步距时 unchanged 为 true，不得据此确认喷嘴已经下降。
+手动采样使用喷嘴坐标，不加入探针偏移。
+
+会话独占维护权限，期间不能开始打印或另一项校准。相同令牌和相同请求的
+最近一次重试返回原回执；冲突或旧令牌返回 409。客户端重新连接可 GET
+恢复当前状态，主机重启不会重放运动。等待输入超过五分钟、通信故障或
+取消会撤销运动权限；有效校准不会在未完成采样时发布。
+独立手动探测和 Z 限位校准尚未迁移，不能据此删除原 manual_probe.py。
+
+规划数值参考、基准及模拟产品结果见
+[手动校准验收](../host/contracts/manual-probe-acceptance.json)。运行
+`npm --prefix host run bench:manual-probe` 可复核规划耗时；不代表真实打印速度。

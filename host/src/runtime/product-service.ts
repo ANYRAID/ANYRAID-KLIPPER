@@ -1,3 +1,4 @@
+import {registerManualBedTilt} from '../moonraker/native-manual-bed-tilt.ts';
 import {readBedTilt} from '../config/bed-tilt.ts';
 import {registerNativeBedTiltSave} from '../moonraker/native-bed-tilt.ts';
 import {registerNativeEndstopPhase} from '../moonraker/native-endstop-phase.ts';
@@ -42,6 +43,7 @@ export interface ProductServiceOptions {
 export async function startProductService(reader:ConfigurationReader,connections:readonly MCUConnection[],primaryId:string,layout:HardwareLayout,printerOptions:ConfiguredPrinterOptions,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal){
  signal.throwIfAborted();const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
+ let closeManualTilt:(()=>Promise<void>)|undefined;
  let closeTilt:(()=>Promise<void>)|undefined,closeTiltSave:(()=>Promise<void>)|undefined;
  let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;let closeEndstopPhase:(()=>Promise<void>)|undefined;let closeDriverCurrent:(()=>Promise<void>)|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
  const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.linear.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
@@ -50,7 +52,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   closeIdleSettings?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -72,6 +74,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   closeHome=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,measure:async s=>{await printer.print.gcode.homing.home([0,1,2],s);return {homed_axes:printer.linear.kinematics.status.homedAxes,position:[...printer.linear.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'home');
   const tilt=readBedTilt(reader),tiltIdle=()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&printer.linear.kinematics.status.homedAxes==='xyz';
   if(tilt){
+   if(tilt.calibration)closeManualTilt=registerManualBedTilt(server.endpoints,printer.maintenanceGate,{idle:tiltIdle,planned:()=>printer.linear.port.homingPosition(),measured:()=>printer.linear.port.manualProbePosition(),limits:printer.linear.kinematics.status,move:(p,speed,s)=>printer.linear.port.homingTravel(p,speed,s),apply:async(samples,s)=>({...await printer.linear.port.applyManualBedTilt(samples,s),persisted:false}),synchronize:()=>printer.print.gcode.coordinates.resetPosition(),stop:cause=>printer.linear.port.motorOff(cause),subscribeStop:listener=>printer.linear.port.subscribeStop(listener)},tilt.calibration);
    closeTiltSave=registerNativeBedTiltSave(server.endpoints,printer.maintenanceGate,{snapshot:()=>printer.linear.port.bedTiltStatus,idle:tiltIdle},product.configurationSession);
    if(tilt.calibration&&(reader.hasSection('probe')||reader.hasSection('bltouch')))closeTilt=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:tiltIdle,measure:async s=>({...await printer.linear.port.calibrateBedTilt(tilt.calibration!,reader.section('stepper_z').getFloat('position_min',{defaultValue:0}),s),persisted:false}),synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'bed_tilt');
   }

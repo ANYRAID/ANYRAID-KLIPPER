@@ -1,0 +1,196 @@
+{
+  "scope": "Manual no-probe bed tilt through compiled product and simulated MCU, not real printer acceptance",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/homing/manual-probe.ts": "9994d1aa59304c937f0a5ac8da3a37248467aaa9b782034af872859ca2da506d",
+    "host/src/homing/native-linear-port.ts": "faee59bcc3e7ed52fb5f59ea919e422c2a884a58e748715923f1ac0c6f54177c",
+    "host/src/moonraker/native-manual-bed-tilt.ts": "3558bb2ee0217b6271eaa00b7d8df87a63416f4c2b58ce1e308344dc8bc1381d",
+    "host/src/runtime/product-service.ts": "10f9746371302cad032528ff4ca014497313f9692898f284e27c53ab53cbdee3",
+    "host/test/manual-bed-tilt.test.ts": "ceddb8d42ca60a20fe1426dcc493aafeb94e268e6e00a1c747d4c4bb8b982cfd",
+    "host/test/native-manual-bed-tilt.test.ts": "6547b1431b9709743f879a69cd9a6cd7e472ebe081ba992df42096911b9a008a",
+    "host/acceptance/product-compiled-journey.test.ts": "5f362716af8514b8d403192884701cb78411889a9fd07d0ea0122930fee5599a",
+    "host/bench/manual-probe.ts": "2476f6331b81063da81a4e075c594980706fac642faf95f3af22735d4a1212a6",
+    "host/contracts/manual-probe-reference.json": "e054142cd9b0e62e6d7d1fa1871f52a2bd5d9f373ce0a38f3d0fc02afc35415f"
+  },
+  "checks": {
+    "typecheck": true,
+    "regression": {
+      "passed": 36,
+      "failed": 0,
+      "durationMs": 19132.457105,
+      "files": [
+        "manual-bed-tilt",
+        "native-manual-bed-tilt",
+        "native-bed-tilt",
+        "bed-tilt-save",
+        "fan-boundaries",
+        "native-fan-gcode"
+      ]
+    },
+    "compiledProduct": {
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 39160.968652
+    },
+    "referenceCases": 128
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 4.703903999999994,
+    "nodeMaxMs": 4.954476,
+    "historicalPythonMedianMs": 11.993486999926972,
+    "historicalPythonMaxMs": 12.044097999933001,
+    "checksum": 3386409.722058255,
+    "scope": "Validated manual target planning versus original TESTZ with mock toolhead and suppressed reporting; excludes HTTP, physical travel and operator response."
+  },
+  "productMetrics": [
+    {
+      "installation": {
+        "durationMs": 714.353155,
+        "dependencies": 10
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1278.7839999999997,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "bedTilt": {
+        "compiled": true,
+        "manual": true,
+        "physicalPrintZ": 0.01,
+        "samples": [
+          [
+            1,
+            1,
+            0.9
+          ],
+          [
+            1.0125,
+            1,
+            0.9
+          ],
+          [
+            1,
+            1.0125,
+            0.9
+          ]
+        ],
+        "adjust": {
+          "x": 1.432187701766452e-14,
+          "y": 1.7197354651443675e-12,
+          "z": 0.8999999999982587
+        },
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "phaseQueries": 4747,
+      "phaseP99Ms": 2.5905599999987317,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": true,
+      "manualTilt": true,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 200,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 1055,
+      "historyP99Ms": 9.438816999994742,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.546948999999586,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.207118999998784,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.3369779999993625,
+      "metadataRequests": 16,
+      "metadataP95Ms": 19.94253700000081,
+      "downloads": 16,
+      "downloadP95Ms": 13.838827999999921,
+      "wireCommands": 268,
+      "wireSteps": 4828,
+      "minimumStepLeadMs": 81.299,
+      "directoryRequests": 4576,
+      "directoryP99Ms": 4.866614999999001,
+      "statusRequests": 18991,
+      "uploads": 16,
+      "statusP99Ms": 2.686560999994981,
+      "uploadP95Ms": 13.180569999998625,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.923071,
+            "maxMs": 18.497535
+          },
+          "cpu": {
+            "user": 5401037,
+            "system": 609981
+          },
+          "rss": 261746688
+        },
+        {
+          "loop": {
+            "p99Ms": 1.915903,
+            "maxMs": 5.562367
+          },
+          "cpu": {
+            "user": 1485039,
+            "system": 182435
+          },
+          "rss": 274055168
+        }
+      ]
+    }
+  ],
+  "resolvedFailures": [
+    "Solver float round trip 1 -> 0.9999999999999999 falsely looked like downward movement; read integer commanded step history after drain.",
+    "Unchanged safe travel drained the old output horizon again after sampled MCU clock retirement; no-op travel now preserves the already drained timeline."
+  ],
+  "limitations": [
+    "Position is commanded pulse history, not encoder feedback or confirmed physical nozzle contact.",
+    "Python measurement is a one-time original TESTZ AST benchmark with mocked toolhead; routine TS tests and benchmarks do not invoke Python.",
+    "Full Python retirement, standalone manual probe, Z endstop calibration and target hardware acceptance remain incomplete.",
+    "Historical Node process crashes and transient numerical mismatches remain unresolved."
+  ]
+}
