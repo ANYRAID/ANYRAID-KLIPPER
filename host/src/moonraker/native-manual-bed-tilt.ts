@@ -8,6 +8,7 @@ import {fitBedTilt} from '../motion/bed-tilt.ts';
 import {manualProbeBounds,planManualProbe,type ManualProbeAdjustment} from '../homing/manual-probe.ts';
 export interface ManualScrewOptions {direction?:ScrewDirection;maximumDeviation?:number;}
 export interface ManualBedTiltMotion {
+ begin?(options:Readonly<ManualScrewOptions>):void;
  idle():boolean;planned():readonly number[];measured():readonly number[];
  limits:{axisMinimum:readonly number[];axisMaximum:readonly number[]};
  move(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>;
@@ -72,7 +73,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
   const consumed=token,signal=AbortSignal.any([context.signal,lifetime.signal]);state='moving';arm();
   pending=(async()=>{try{
    signal.throwIfAborted();if(action!=='start'&&expected?.some((v,i)=>v!==motion.planned()[i]))throw new Error('Manual position ownership changed');
-   if(action==='start'){if(!multiPoint){readPosition();startZ=position![2];history=[];unchanged=false;state='awaiting';}else await nextPoint(signal);}
+   if(action==='start'){motion.begin?.(screwOptions);if(!multiPoint){readPosition();startZ=position![2];history=[];unchanged=false;state='awaiting';}else await nextPoint(signal);}
    else if(step){
     const previous=position![2],p=[...motion.planned()];if(p[2]<step.bob){p[2]=step.bob;await move(p,Math.min(5,plan.travelSpeed),signal);}p[2]=step.target;await move(p,Math.min(5,plan.travelSpeed),signal);
     history=step.history;readPosition();unchanged=position![2]===previous;state='awaiting';

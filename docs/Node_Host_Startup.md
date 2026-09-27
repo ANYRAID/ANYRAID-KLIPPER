@@ -1580,3 +1580,9 @@ start 可带 direction:CW|CCW 和 maximum_deviation，参数固定至会话
 结束；省略旋向时使用第一螺丝基准，零阈值表示零容差。中途不可改参。
 `cancel` 或交互超时会停止并要求重新初始化。配置无探针时不注册
 自动探测接口；手动流程不自动修改补偿或保存配置。
+
+已配置螺丝校准的服务还发布 `screws_tilt_adjust` 对象。通过
+`/printer/objects/query?screws_tilt_adjust` 查询 `state`、`error`、
+`max_deviation` 和按 `screw1` 等编号组织的 `results`。新测量开始
+立即清除上一轮建议；失败或取消返回 failed 且无结果。服务重建从
+idle 开始，不将上一次服务的建议当作当前测量。
