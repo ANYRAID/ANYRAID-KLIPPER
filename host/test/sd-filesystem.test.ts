@@ -36,3 +36,13 @@ test('converted firmware upload verifies on-disk bytes and fences timestamp coll
   await assert.rejects(uploadSDFirmware({stat:fs.stat.bind(fs),writeFile:fs.writeFile.bind(fs),async readFile(path,s){const bytes=await fs.readFile(path,s);bytes[0]^=1;return bytes;}},'btt-skr-mini','stm32f103xe',source,signal()),/SHA-256 mismatch/);
  }finally{await fs.close();}
 });
+test('bootloader artifact verification survives FAT remount and rejects a stale image',async()=>{
+ const {verifySDFirmware}=await import('../src/diagnostics/sd-verify.ts'),{MessageDictionary}=await import('../src/protocol/dictionary.ts'),{createHash}=await import('node:crypto');
+ const disk=fatDisk(),io=new SDCardEmulator();io.image=disk.image;io.csd[9]=7;io.csd[15]=sdCRC7(io.csd.subarray(0,15));const card=new SDCardSPI(io);let fs=await SDFileSystem.open(card,signal());
+ const d=new MessageDictionary();d.identify(Buffer.from(JSON.stringify({commands:{},responses:{},config:{MCU:'stm32f103xe'}})),false);
+ const bytes=Buffer.alloc(4097,51),request={board:'btt-skr-mini',size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+ try{
+  await fs.writeFile('FIRMWARE.CUR',bytes,signal());await fs.close();fs=await SDFileSystem.open(card,signal());const result=await verifySDFirmware(fs,d,request,signal());assert.equal(result.bootloaderFileMatched,true);assert.equal(result.runningDictionaryMatched,false);
+  bytes[0]^=1;await fs.writeFile('FIRMWARE.CUR',bytes,signal());await assert.rejects(verifySDFirmware(fs,d,request,signal()),/SHA-256 mismatch/);
+ }finally{await fs.close();}
+});
