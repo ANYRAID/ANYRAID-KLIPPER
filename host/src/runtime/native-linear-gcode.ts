@@ -44,13 +44,13 @@ export class NativeLinearGCode {
   if(bedMesh){
    const settings=structuredClone(bedMesh.settings),profiles=bedMesh.profiles;let prior:object|undefined,cached:Readonly<Record<string,import('../moonraker/rpc.ts').Json>>;
    this.bedMeshStatus=()=>{const active=port.bedMeshStatus;if(prior!==active){cached=Object.freeze(Object.defineProperty(Object.defineProperties({},Object.getOwnPropertyDescriptors(active)),'profiles',{enumerable:true,get:()=>profiles.objectStatus}));prior=active;}return cached;};
-   this.dispatch.register('BED_MESH_PROFILE',async c=>{if(Object.keys(c.params).some(k=>k!=='LOAD')||typeof c.params.LOAD!=='string'||!c.params.LOAD.trim())throw new GCodeError('Native saved mesh requires BED_MESH_PROFILE LOAD=name');const mesh=profiles.load(c.params.LOAD);await port.replaceBedMesh(mesh,settings,c.signal,c.params.LOAD);this.coordinates.resetPosition();});
-   this.dispatch.register('BED_MESH_CLEAR',async c=>{if(Object.keys(c.params).length)throw new GCodeError('BED_MESH_CLEAR takes no parameters');await port.replaceBedMesh(null,settings,c.signal);this.coordinates.resetPosition();});
+   this.dispatch.register('BED_MESH_PROFILE',async c=>{if(Object.keys(c.params).some(k=>k!=='LOAD')||typeof c.params.LOAD!=='string'||!c.params.LOAD.trim())throw new GCodeError('Native saved mesh requires BED_MESH_PROFILE LOAD=name');const mesh=profiles.load(c.params.LOAD);await port.replaceBedMesh(mesh,settings,c.signal,c.params.LOAD);this.coordinates.resetPosition();},{drainBefore:true});
+   this.dispatch.register('BED_MESH_CLEAR',async c=>{if(Object.keys(c.params).length)throw new GCodeError('BED_MESH_CLEAR takes no parameters');await port.replaceBedMesh(null,settings,c.signal);this.coordinates.resetPosition();},{drainBefore:true});
    this.dispatch.register('BED_MESH_OFFSET',async c=>{
     if(Object.keys(c.params).some(k=>!['X','Y','ZFADE'].includes(k)))throw new GCodeError('Invalid BED_MESH_OFFSET parameter');
     const values=['X','Y','ZFADE'].map(k=>{if(!Object.hasOwn(c.params,k))return null;try{return parseConfigurationFloat(c.params[k]);}catch{throw new GCodeError('Invalid BED_MESH_OFFSET '+k);}});
     if(await port.offsetBedMesh(values[0],values[1],values[2],c.signal))this.coordinates.resetPosition();else c.respondInfo('No mesh loaded to offset');
-   });
+   },{drainBefore:true});
   }
   this.layers.register(this.dispatch);
   this.display.register(this.dispatch);

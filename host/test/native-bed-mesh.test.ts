@@ -38,3 +38,18 @@ test('mesh replacement drains queued old compensation before publishing the new 
   assert.equal(t.port.status.pendingMoves,0);assert.deepEqual(t.coordinates.state.position,[51,0,1.2,2]);assert.equal(t.f.fw.motion.slice(before).filter(m=>m.name==='queue_step'&&m.parameters.oid===2).reduce((sum,m)=>sum+Number(m.parameters.count),0),20);
  }finally{await t.close();}
 });
+
+test('file pause during mesh-clear drain retains compensation and the unexecuted clear command',async()=>{
+ const t=await nativeLinearFixture(),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,undefined,configuration()),s=new AbortController().signal;
+ let keep=true,checkpoint=false,done:Promise<number>|undefined;
+ try{
+  t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);g.coordinates.resetPosition();g.enable();await g.dispatch.execute('BED_MESH_PROFILE LOAD=saved');
+  done=g.dispatch.executePrefix('G1 X51 F30\nBED_MESH_CLEAR',()=>keep,active=>{checkpoint=active;});void done.catch(()=>{});
+  const deadline=performance.now()+3000;
+  while(!['mesh','drain'].includes(t.port.status.phase)){assert(performance.now()<deadline,'no mesh drain started');await new Promise(resolve=>setImmediate(resolve));}
+  assert.equal(t.port.status.phase,'drain','mesh replacement needs an interruptible pre-command drain');assert.equal(checkpoint,true);
+  keep=false;const paused=await t.port.pause(s);assert(paused.position[0]<51);assert.equal(g.bedMeshStatus!().profile_name,'saved');
+  await t.port.resumeStream(s);assert.equal(await done,1);assert.equal(g.bedMeshStatus!().profile_name,'saved');
+  assert.equal(await g.dispatch.executePrefix('BED_MESH_CLEAR',()=>true),1);assert.equal(g.bedMeshStatus!().profile_name,'');assert.deepEqual(t.port.homingPosition(),[51,0,1,2]);assert.deepEqual(g.coordinates.state.position,[51,0,1,2]);assert.equal(t.f.stops,0);
+ }finally{await g.close();await done?.catch(()=>{});await t.close();}
+});

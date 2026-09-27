@@ -85,3 +85,16 @@ test('idle machine work skips occupied admission without accumulating deferred a
  gate.resolve();await active;await new Promise<void>(resolve=>setImmediate(resolve));assert.equal(calls,0);
  assert.equal(await d.runWhenIdle(async()=>{calls++;},signal),true);assert.equal(calls,1);assert.equal(shutdown.length,0);
 });
+
+test('pre-command drain retains the state change when a file prefix is paused',async()=>{
+ let keep=true,active=false,drains=0,changes=0;const entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();
+ const d=new GCodeDispatch({output(){},shutdown(){assert.fail('unexpected shutdown');},async drain(){drains++;if(drains===1){assert(active);entered.resolve();await release.promise;}}});d.setReady(true);d.register('CHANGE_STATE',()=>{changes++;},{drainBefore:true});
+ const prefix=d.executePrefix('M110\nCHANGE_STATE',()=>keep,value=>{active=value;});await entered.promise;keep=false;release.resolve();assert.equal(await prefix,1);assert.equal(changes,0);assert.equal(active,false);
+ keep=true;assert.equal(await d.executePrefix('CHANGE_STATE',()=>keep,value=>{active=value;}),1);assert.equal(changes,1);
+});
+test('failed or cancelled pre-command drain cannot publish the state change',async()=>{
+ for(const abort of [false,true]){
+  let changes=0,stops=0;const d=new GCodeDispatch({output(){},shutdown(){stops++;},async drain(){if(abort)d.emergencyStop('cancelled');else throw new Error('drain failed');}});d.setReady(true);d.register('CHANGE_STATE',()=>{changes++;},{drainBefore:true});
+  await assert.rejects(d.execute('CHANGE_STATE'),abort?/cancelled/:/drain failed/);assert.equal(changes,0);assert.equal(stops,1);
+ }
+});

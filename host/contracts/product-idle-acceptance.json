@@ -1,5 +1,5 @@
 {
-  "status": "compiled-idle-policy-and-runtime-settings-verified-hardware-and-intermittent-mesh-failure-pending",
+  "status": "compiled-idle-policy-and-runtime-settings-verified-hardware-pending",
   "defaultSeconds": 600,
   "timeoutRangeSeconds": {
     "exclusiveMin": 0,
@@ -94,19 +94,19 @@
       "issues": [
         "Loaded compiled journey paused with empty bed_mesh.profile_name; expected saved"
       ],
-      "status": "open",
+      "status": "matching-noninterruptible-drain-mechanism-reproduced-and-fixed",
       "diagnosticFollowUp": {
         "tests": 1,
         "passed": 1,
         "note": "Same loaded scenario passed in isolation; root cause unproven, original assertion retained with file-position failure context"
-      }
+      },
+      "fix": "Dispatch interruptible pre-command drain before BED_MESH_CLEAR/PROFILE/OFFSET; preserve pending command and compensation across pause"
     }
   ],
   "remaining": [
     "Target hardware validation",
     "Legacy Python default entry retirement",
-    "Historical process/motion stability issues remain open",
-    "Intermittent compiled pause mesh-state assertion: root cause unproven"
+    "Historical process/motion stability issues remain open"
   ],
   "dynamicSettings": {
     "endpoint": "/printer/settings/idle_timeout",
@@ -147,6 +147,50 @@
         "generationLoopP99Ms": [
           1.930239,
           2.045951
+        ]
+      }
+    ]
+  },
+  "meshPauseRegression": {
+    "before": {
+      "tests": 1,
+      "passed": 0,
+      "failure": "mesh phase entered instead of interruptible drain"
+    },
+    "after": {
+      "dispatchAndFileTests": 31,
+      "nativeMeshAndGcodeTests": 20,
+      "compiledTests": 4
+    },
+    "scope": "Simulated native queue regression and compiled product acceptance; no physical printer verification",
+    "benchmark": {
+      "node": "v26.9.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "commands": 10000,
+      "exact": true,
+      "nodeMedianMs": 18.740769,
+      "nodeP95Ms": 20.947360000000003,
+      "pythonMedianMs": 38.319440034683794,
+      "pythonP95Ms": 40.30142695410177,
+      "speedup": 2.044710120202847,
+      "eventLoopP99Ms": 1.680383,
+      "eventLoopMaxMs": 2.197503
+    },
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.584,
+        "generationLoopP99Ms": [
+          1.772543,
+          1.739775
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 84.069,
+        "generationLoopP99Ms": [
+          1.997823,
+          1.977343
         ]
       }
     ]

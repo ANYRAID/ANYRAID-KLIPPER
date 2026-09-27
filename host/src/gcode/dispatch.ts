@@ -8,7 +8,7 @@ export interface CommandContext extends ParsedCommand {
   ack(message?:string):boolean;
 }
 export type Handler=(command:CommandContext)=>void|Promise<void>;
-interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;checkpoint:boolean;}
+interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;checkpoint:boolean;drainBefore:boolean;}
 export interface DispatchHooks {
   /** Native product files must not silently skip unimplemented commands. */
   unknownCommand?:'ignore'|'shutdown';
@@ -26,9 +26,9 @@ export class GCodeDispatch {
   #hooks:DispatchHooks;#stopping=false;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
   hasCommand(name:string):boolean {return this.#handlers.has(name);}
-  register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean}={}):void {
+  register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean;drainBefore?:boolean}={}):void {
     if(!/^[A-Z_][A-Z0-9_]*$/.test(name)||this.#handlers.has(name))throw new Error('Invalid or duplicate command registration');
-    this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false,checkpoint:options.checkpoint??false});
+    this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false,checkpoint:options.checkpoint??false,drainBefore:options.drainBefore??false});
   }
   setReady(ready:boolean,reason='Printer is not ready'):void {this.#ready=ready;this.#reason=reason;}
   emergencyStop(reason='Shutdown due to M112 command'):void {
@@ -117,6 +117,14 @@ export class GCodeDispatch {
             if(!this.#ready&&!registration?.whenNotReady)throw new GCodeError(this.#reason);
             if(registration) {
               if(registration.extended)try{context.params=extendedParameters(parsed);}catch{throw new GCodeError(`Malformed command '${parsed.commandline}'`);}
+              if(registration.drainBefore){
+                // Keep state-changing commands unconsumed while old motion is
+                // stopped at a file checkpoint. Resume retries the same line.
+                try{onCheckpoint?.(true);await this.#hooks.drain?.(controller.signal);controller.signal.throwIfAborted();}
+                catch(error){if(!controller.signal.aborted)this.emergencyStop('Motion barrier failed');throw error;}
+                finally{onCheckpoint?.(false);}
+                if(shouldContinue&&!shouldContinue())return completed;
+              }
               try{if(registration.checkpoint)onCheckpoint?.(true);const result=registration.handler(context);if(result)await result;}finally{if(registration.checkpoint)onCheckpoint?.(false);}
               controller.signal.throwIfAborted();
             } else if(parsed.command){
@@ -127,7 +135,7 @@ export class GCodeDispatch {
         }catch(error) {
           const expected=error instanceof GCodeError;
           const message=expected?error.message:'Internal error processing G-code';
-          if(!expected)this.emergencyStop(message);
+          if(!expected&&!controller.signal.aborted)this.emergencyStop(message);
           this.#hooks.output('!! '+message.split('\n')[0].trim());this.#hooks.commandError?.();
           if(!needAck||controller.signal.aborted)throw error;
         }
