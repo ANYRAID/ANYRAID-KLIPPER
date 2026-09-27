@@ -1,0 +1,41 @@
+{
+  "scope": "TMC2240 startup register planning, without hardware assembly",
+  "sha256": {
+    "host/src/drivers/tmc2240.ts": "96190a12b2337ca8a81ff251147b470dabbe3f04487db710455eaaaba9d8bd73",
+    "host/test/tmc2240-plan.test.ts": "278417c5ed0788a750989474661133a22f347006c826c55daf23c5a6a19c1206",
+    "host/bench/tmc2240-plan.ts": "2037c056df5f22c4105977efc6cb4b1ff9551541c9cee4ca6f79b23b3c9e1ee7",
+    "host/contracts/tmc2240-plan-reference.json": "b699b8216bf5678955b794824293e475196543c536558d455c13050084c9a172"
+  },
+  "tests": "✔ 4488 original TMC2240 current cases match every register and quantized amp value exactly (11.842304ms)\n✔ range and current limits reject malformed or unsupported electrical settings (0.558696ms)\n✔ live current preserves initialized range and publishes only after both register acknowledgements (2.354227ms)\n✔ partial current update retires owner on write failure (0.314893ms)\n✔ partial current update retires owner on cancellation (0.239773ms)\n✔ 310 original TMC2240 startup plans preserve register order, values and threshold boundaries (39.687369ms)\n✔ TMC2240 signed waveform offset and model-specific fields reject unsupported values (1.295645ms)\nℹ tests 7\nℹ suites 0\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 136.364453\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "scope": "Startup plans including typed configuration snapshots, no hardware I/O; Python uses mocked getters",
+    "plans": 310,
+    "medianMs": 24.12881699999997,
+    "maxMs": 26.109610000000004,
+    "samplesMs": [
+      23.857124,
+      23.924964999999986,
+      23.956995000000006,
+      24.06618800000001,
+      24.12881699999997,
+      24.153178000000025,
+      24.414871000000005,
+      24.814404999999994,
+      26.109610000000004
+    ],
+    "pythonMs": [
+      25.7351309992373,
+      25.574839033652097,
+      25.63151001231745,
+      25.690081005450338,
+      25.713829963933676
+    ],
+    "checksum": 81840
+  },
+  "limits": [
+    "Python constructor benchmark uses mocked config getters; Node includes typed config snapshots.",
+    "SPI/UART ownership, status/temperature monitoring and print-chain integration remain pending.",
+    "Historical runtime and numerical anomalies remain unresolved."
+  ]
+}
