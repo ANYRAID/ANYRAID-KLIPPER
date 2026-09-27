@@ -24542,3 +24542,28 @@ ready 且拒绝后续开始请求。首轮模拟器将 Uint8Array 与 Buffer 的
 检查通过。证据见 host/contracts/tmc-print-load-acceptance.json。
 这补齐模拟环境的监测与完整打印并发验证，不代表真实驱动电气故障、
 MCU 中断负载、实机打印质量或历史运行时异常已经验收。
+
+### Moonraker TMC 对象快照（2026-09-27）
+
+已装配的 tmc2208/tmc2209 节现注册到原生对象列表和查询接口，沿用
+现有 HTTP/WebSocket 鉴权及字段投影。drv_status 解析原 DRV_STATUS
+非零字段，包含正确的 uint32 高位；run_current/hold_current 为已经
+确认的配置量化值，不是电气测量值。相位偏移及温度尚未实现，返回
+null。native_monitor 提供 active、checks、fault 与最后 GSTAT；
+不公开底层错误消息或设备路径。
+
+查询只读取监测快照，不产生 UART 命令。同一寄存器值复用不可变的
+字段解析结果，NativeObjects 再返回独立副本；客户端不能改变监测
+状态。未开始或已关闭的监测返回 drv_status=null，active=false，
+故障标记保留，避免将停止前的驱动字段误认为当前有效读数。
+
+5 项对象与网络接口回归通过。最初网络测试因沙箱禁止监听出现 EPERM，
+获得测试执行权限后通过。2000 次四驱动查询（2 轮预热、7 轮测量）
+中位 40.476 ms、p95 42.066 ms，单次约 0.020 ms；包含字段解析、
+验证、投影与副本，不含 HTTP/UART。尚无运行期电流修改接口。
+
+编译产品验收 4/4 通过：经鉴权 HTTP 查询实际四驱动对象目录和字段，
+在 ADC/TMC 故障后断言 drv_status 失效、监测停止；TMC 故障分支另
+确认至少一颗驱动保留 fault 标记。有负载场景最小步进提前量
+84.312 ms、事件循环 p99 最高 1.943 ms。记录见
+host/contracts/tmc-status-acceptance.json；不替代实机电流与打印验收。
