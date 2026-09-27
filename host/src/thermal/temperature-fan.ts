@@ -10,12 +10,13 @@ function validate(s:TemperatureFanSettings):void{
 export class TemperatureFanControl {
  #settings:TemperatureFanSettings;#algorithm:TemperatureFanAlgorithm;#delay:number;#time=0;#temperature=25;#derivative=0;#integral=0;#integralMax=0;#heating=false;#next=0;#speed=0;
  constructor(settings:TemperatureFanSettings,algorithm:TemperatureFanAlgorithm,reportDelay:number){
-  validate(settings);if(!Number.isFinite(reportDelay)||reportDelay<=0||reportDelay>=1)throw new RangeError('Invalid temperature fan report delay');
+  validate(settings);if(!Number.isFinite(reportDelay)||reportDelay<=0)throw new RangeError('Invalid temperature fan report delay');
   if(algorithm.kind==='watermark'){if(!Number.isFinite(algorithm.delta)||algorithm.delta<=0||!Number.isFinite(settings.target+algorithm.delta))throw new RangeError('Invalid fan hysteresis');}
   else if(algorithm.kind==='pid'){if(![algorithm.kp,algorithm.ki,algorithm.kd].every(v=>Number.isFinite(v)&&v>=0)||!Number.isFinite(algorithm.derivativeTime)||algorithm.derivativeTime<=0)throw new RangeError('Invalid fan PID');this.#integralMax=algorithm.ki?settings.maximumSpeed/(algorithm.ki/255):0;if(!Number.isFinite(this.#integralMax))throw new RangeError('Fan integral limit overflow');}
   else throw new RangeError('Unknown temperature fan algorithm');
   this.#settings={...settings};this.#algorithm={...algorithm};this.#delay=reportDelay;
  }
+ get reportDelay(){return this.#delay;}
  get settings(){return Object.freeze({...this.#settings});}
  get state(){return {time:this.#time,temperature:this.#temperature,derivative:this.#derivative,integral:this.#integral,heating:this.#heating,scheduledSpeed:this.#speed};}
  /** Validate the entire request before changing any field. */

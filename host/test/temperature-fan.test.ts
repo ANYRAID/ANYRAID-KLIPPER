@@ -5,6 +5,10 @@ import {TemperatureFanControl} from '../src/thermal/temperature-fan.ts';
 const reference=JSON.parse(readFileSync(new URL('../contracts/temperature-fan-reference.json',import.meta.url),'utf8'));
 const settings=reference.settings;
 const control=(maximumSpeed=1)=>new TemperatureFanControl({...settings,minimumSpeed:0,maximumSpeed},{kind:'watermark',delta:2},.3);
+test('one-second host sensor report delay is preserved',()=>{
+ const fan=new TemperatureFanControl(settings,{kind:'watermark',delta:2},1);
+ assert.deepEqual(fan.sample(1,50),{time:2,speed:1});
+});
 test('480 samples match actual legacy PID and watermark output and internal precision',()=>{
  for(const c of reference.cases){
   const fan=new TemperatureFanControl(settings,c.algorithm,reference.reportDelay);
