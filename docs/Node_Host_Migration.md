@@ -16,6 +16,19 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- Node 文档 HTML 渲染层加入 Markdown、属性与 YAML 元数据解析，
+  锁定依赖版本。保留 ASCII 标题锚点、重复标题后缀、显式 ID、
+  表格及图片属性；站内 Markdown 链接改为 HTML，并在调用预处理
+  时补齐仓库 URL 尾部斜杠，避免原配置拼出 klipperblob/master。
+  7 项预处理／渲染检查通过，覆盖 58 篇固定文档的生成和锚点唯一性；
+  这不是与 MkDocs 全量 HTML 的等价证明。类型和格式检查通过。
+  渲染基准预热 3 轮、采样 7 轮，中位 286.251 ms，
+  各轮完整页面结果哈希一致；记录见
+  [HTML 渲染基准](diagnostics/docs-render-benchmark.json)，复测命令为
+  node host/bench/docs-render.ts。尚缺整站导航／搜索／多语言生成、
+  原 Markdown 扩展的完整语义对照及浏览器验收；未切换构建入口，
+  未删除 Python，主打印入口和运动精度阻塞不变。
+
 - 文档构建迁移已固定 Markdown 预处理兼容性基线：58 篇现有文档及
   14 个边界样例共 2,892,699 字节，原 Python 输出 SHA-256 与输入
   一起保存在 host/contracts/docs-markdown-reference.json.gz；来源为

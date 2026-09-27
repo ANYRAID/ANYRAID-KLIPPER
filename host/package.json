@@ -320,11 +320,14 @@
     "complex.js": "2.4.3",
     "fft.js": "4.0.4",
     "fontkit": "2.0.4",
+    "markdown-it": "15.0.2",
+    "markdown-it-attrs": "4.3.1",
     "mqtt": "5.16.0",
     "pdfkit": "0.20.2",
     "qoijs": "1.0.0",
     "sharp": "0.35.4",
     "svg-to-pdfkit": "0.1.8",
-    "ws": "8.21.3"
+    "ws": "8.21.3",
+    "yaml": "2.9.1"
   }
 }
