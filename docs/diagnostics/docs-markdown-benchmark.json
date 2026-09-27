@@ -1,0 +1,47 @@
+{
+  "scope": "Documentation preprocessing only; excludes rendering, search and translations. Not a print performance result.",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "python": {
+    "pythonVersion": "Python 3.12.13",
+    "sourceCommit": "ddc6892b3e9c8fc611d8e947c6e3d6d0afb4851f",
+    "sourceSha256": "3a9ee2d8e6e0e5955d0f89a436aa161a0e22874e19f9ce5337819e29b7116746",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "cases": 72,
+    "inputBytes": 2892699,
+    "warmups": 3,
+    "samplesMs": [
+      143.2203570002457,
+      143.31994900567224,
+      143.16414700442692,
+      142.71346999885282,
+      143.01290499861352,
+      142.82983200246235,
+      143.73489400168182
+    ],
+    "medianMs": 143.16414700442692
+  },
+  "node": {
+    "node": "v26.9.0",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "cases": 72,
+    "inputBytes": 2892699,
+    "warmups": 3,
+    "samplesMs": [
+      40.94752,
+      43.16394200000002,
+      40.431813000000034,
+      43.25816299999997,
+      42.36251999999996,
+      40.043687999999975,
+      40.322040999999956
+    ],
+    "medianMs": 40.94752,
+    "outputLength": 19062370
+  },
+  "sources": {
+    "host/src/diagnostics/docs-markdown.ts": "8b61fc2c72b54edc77cb45dc33fdf60acc16f3ca87a05f7fd1b55b715928c427",
+    "host/bench/docs-markdown.ts": "10458d41416b4f33f400f9b75d1c3c0275a59cc3fa3402c65495a8040046a3a6"
+  }
+}

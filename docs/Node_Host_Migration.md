@@ -16,6 +16,18 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 文档构建迁移已固定 Markdown 预处理兼容性基线：58 篇现有文档及
+  14 个边界样例共 2,892,699 字节，原 Python 输出 SHA-256 与输入
+  一起保存在 host/contracts/docs-markdown-reference.json.gz；来源为
+  ddc6892b 的 mkdocs_hooks.py，文件哈希保存在夹具内。Node 转换器
+  保持原代码围栏、Unicode 换行／空白、列表缩进及链接前缀行为；
+  两项回归通过，测试和 Node 基准不启动 Python。一次性 Python
+  对照及 Node 均预热 3 轮、采样 7 轮，中位分别 143.164 ms 与
+  40.948 ms，见 [预处理基准](diagnostics/docs-markdown-benchmark.json)。
+  复测命令为 node host/bench/docs-markdown.ts。该结果只覆盖文档
+  预处理，不代表打印性能。MkDocs、搜索、主题和多语言生成尚未
+  替换，构建入口未切换，原钩子保留，Python 文件仍为 181 个。
+
 - 独立完整 C 对照扩大至 6 个进程、每进程 1000 轮，-O0／-O2 各三次，
   均通过原位置及十条曲线的固定参考与原容差。见
   [完整 C 对照](diagnostics/node26-native-control-20260928.json)。
