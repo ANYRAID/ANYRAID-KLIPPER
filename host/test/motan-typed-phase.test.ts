@@ -1,3 +1,4 @@
+import {legacyMotanCsv} from './helpers/motan-export-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -51,7 +52,7 @@ test('typed phase reader and worker retain integer residues through status diffe
   const phase='step_phase(tmc2209 stepper_x)',difference=`deviation(status(export_fields.wide),${phase})`,columns=[phase,difference];
   const result=await executor.analyze({prefix,datasets:columns,output:'table',preserveNumberTypes:true,duration:.02,segmentTime:.01});assert.deepEqual(Array.from(result.datasets[phase]),[36n,36n]);assert.deepEqual(Array.from(result.datasets[difference]),[wide-36n,wide-36n]);
   const root=fileURLToPath(new URL('../../',import.meta.url)),args=[prefix,'-c',JSON.stringify(columns),'-d','.02','--segment-time','.01'];
-  const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'}}),python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8'});assert.equal(node,python);
+  const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'}}),python=legacyMotanCsv(args);assert.equal(node,python);
  }finally{await executor.close();await rm(dir,{recursive:true,force:true});}
 });
 
@@ -72,7 +73,7 @@ test('float phase tokens survive compressed stepq/status/config records and matc
     for(const [time,token] of [[2.5,'1.0'],[5.5,'null']] as const)await writer.addData(Buffer.from(`{"q":"status","params":{"status":{"toolhead":{"estimated_print_time":${time}},"tmc2209 stepper_x":{"mcu_phase_offset":${token}}}}}`));
    }finally{await writer.close();await index.close();}
    const columns=['step_phase(tmc2209 stepper_x)','step_phase(tmc2209 stepper_x,microstep)'],result=await executor.analyze({prefix,datasets:columns,output:'table',preserveNumberTypes:true,duration:7,segmentTime:.5}),root=fileURLToPath(new URL('../../',import.meta.url));
-   const csv=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),prefix,'-c',JSON.stringify(columns),'-d','7','--segment-time','.5'],{encoding:'utf8'}),rows=csv.trimEnd().split('\r\n').slice(1).map(line=>line.split(','));
+   const csv=legacyMotanCsv([prefix,'-c',JSON.stringify(columns),'-d','7','--segment-time','.5']),rows=csv.trimEnd().split('\r\n').slice(1).map(line=>line.split(','));
    for(const [j,column] of columns.entries()){
     const expected=rows.map(row=>/[.eE]/.test(row[j+1])?Number(row[j+1]):BigInt(row[j+1]));
     assert.deepEqual(scalarBits(result.datasets[column]),scalarBits(expected));

@@ -1,3 +1,4 @@
+import {legacyMotanCsv} from './helpers/motan-export-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
@@ -52,7 +53,7 @@ test('typed Stallguard raw CSV and exact status differences match Python through
   for(const column of columns){
    const args=[raw,'-c',JSON.stringify([column]),'-d','.3','--segment-time','.05'];
    const node=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'}});
-   const python=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8'});
+   const python=legacyMotanCsv(args);
    const normalize=(text:string)=>text.trimEnd().split('\r\n').slice(1).map(line=>line.split(',').slice(1).map(v=>v==='1.0'?'1':v==='-0.0'?'-0':v));
    assert.deepEqual(normalize(node),normalize(python));if(column===columns[0])assert.ok(node.includes('9007199254740993'));
   }

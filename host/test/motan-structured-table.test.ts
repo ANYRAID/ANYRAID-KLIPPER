@@ -1,3 +1,5 @@
+import {csvRows,csvBits} from './helpers/motan-csv-reference.ts';
+import {legacyMotanCsv} from './helpers/motan-export-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -57,23 +59,11 @@ test('structured CSV matches original fields and fixes mutable whole-object hist
   for(const skip of ['0','2.1']){
    const args=[prefix,'-c',JSON.stringify(columns),'-d','7','-s',skip,'--segment-time','.1'];
    const csv=execFileSync(process.execPath,[join(root,'scripts/motan/data_export.ts'),...args,'--preserve-number-types'],{encoding:'utf8',env:{...process.env,PATH:'/no-programs'},timeout:15000});
-   const legacy=execFileSync('python3',[join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',timeout:15000});
-   const snapshotted=execFileSync('python3',['-c',`import sys,runpy,copy,os
-sys.path.insert(0,os.path.dirname(sys.argv[1]));import readlog
-original=readlog.HandleStatusField.pull_data
-def snapshot(self,time): return copy.deepcopy(original(self,time))
-readlog.HandleStatusField.pull_data=snapshot
-sys.argv=sys.argv[1:];runpy.run_path(sys.argv[0],run_name='__main__')`,join(root,'scripts/motan/data_export.py'),...args],{encoding:'utf8',timeout:15000});
-   const exact=execFileSync('python3',['-c',`import csv,io,json,sys,struct
-x=json.load(sys.stdin);a,b,original=[list(csv.reader(io.StringIO(s,newline=''))) for s in x]
-assert a[0]==b[0]==original[0] and len(a)==len(b)==len(original)
-assert a[1][2]!=original[1][2], 'fixture must expose legacy whole-object aliasing'
-for left,old in zip(a[1:],original[1:]):
- assert left[1]==old[1] and left[3]==old[3]
-for left,right in zip(a[1:],b[1:]):
- assert struct.pack('>d',float(left[0]))==struct.pack('>d',float(right[0]))
- assert left[1:]==right[1:], (left,right)
-print('exact')`],{input:JSON.stringify([csv,snapshotted,legacy]),encoding:'utf8'});assert.equal(exact.trim(),'exact');
+   const legacy=legacyMotanCsv(args);
+   const snapshotted=legacyMotanCsv(args,true);
+   const [actual,expected,original]=[csv,snapshotted,legacy].map(csvRows);
+   assert.deepEqual(actual[0],expected[0]);assert.deepEqual(actual[0],original[0]);assert.equal(actual.length,expected.length);assert.equal(actual.length,original.length);assert.notEqual(actual[1][2],original[1][2],'fixture must expose legacy whole-object aliasing');
+   for(let i=1;i<actual.length;i++){assert.equal(actual[i][1],original[i][1]);assert.equal(actual[i][3],original[i][3]);assert.equal(csvBits(actual[i][0]),csvBits(expected[i][0]));assert.deepEqual(actual[i].slice(1),expected[i].slice(1));}
   }
  }finally{await rm(dir,{recursive:true,force:true});}
 });

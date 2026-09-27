@@ -119,6 +119,10 @@ Motan CSV 推荐使用预编译入口以减少启动开销。安装 `host/` 依�
 `node host/build/motan/scripts/motan/data_export.js capture -c '["trapq(toolhead,x)"]' -o motion.csv`。
 修改源码后需要重新构建；请在没有导出任务使用该目录时构建。
 调试时仍可直接运行 `node scripts/motan/data_export.ts`，参数相同。
+旧 `data_export.py` 已退役。CSV 导出的类型、相位、Stallguard、结构化
+状态和过滤结果对照，以及编译导出基准，均读取按输入摘要校验的固定
+CPython 参考，不再运行旧导出器。其他 Motan 数学/采样对照仍有 Python
+依赖；离线小标量 CSV 的冷启动目前仍慢于旧 Python，详见迁移说明。
 新入口无需 Python，支持取消、完整文件原子替换及文本/布尔/null/BigInt
 原始列，以及整数导数、偏差、CoreXY、norm2、平滑、积分和 SOS 计算。
 SOS 整数须在 NumPy int64/uint64 范围内。增加 `--preserve-number-types`
