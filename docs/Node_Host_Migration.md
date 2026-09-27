@@ -24821,3 +24821,29 @@ SIGSEGV，无错误栈。此前沙箱尝试的 8 个子进程都是空输出，�
 
 摘要、失败标准输出与报告哈希见 diagnostics/node26-motion-current.json；
 原 node26-motion-failures.json 保持不变。默认入口与实机门槛继续保留。
+
+### 捕获运动诊断 core 与异常返回计数
+
+诊断子进程（非 history 用例）改在独立临时目录执行，记录 cwd、
+core_pattern、core_uses_pid、继承的 core 限制与产生的 core 清单。
+不改变数值容差或自动重试策略，不设置全局内核参数；Linux core
+额度只在本轮诊断 shell 中临时设置为 512 MiB。
+
+两次有界源码诊断分别捕获数值失配和 SIGSEGV。失配为第 4 轮、
+速度面板 Head Velocity 的第 7486 个样本，误差
+0.0011920928955078125 mm/s，复算恢复参考值。下一批第 135 个任务
+收到 SIGSEGV，取得 core；文件逻辑大小约 638 MiB，实际分配约
+75 MiB（稀疏文件），不能将 shell 的 core 限额当作逻辑文件大小。
+
+更正上节“当前环境无调试器”：此前仅检查 PATH；随后找到早期留在
+/tmp 的解包 GDB 16.3 并成功使用，无需系统安装。core 中故障地址
+按 Node 文件映射换算至 Builtins_ArrayIteratorPrototypeNext + 2547。
+RCX=0x1000001，返回序列使用 RCX*8 调整 RSP 后，在 push 指令处
+触发 SIGSEGV，正常回溯因 RSP 无法读取而停止。异常计数的来源未明，
+这不证明 V8 缺陷、硬件故障或与此前 Python 崩溃同源。
+
+工具回归 4/4 通过，包含失配注入、静默退出拒绝、独立 cwd 与模拟
+core 清单；类型、空白检查通过。现场摘录、哈希及临时 core 路径见
+ diagnostics/node26-motion-core.json。core 不纳入 Git。历史失败保持
+未关闭，下一步应围绕异常返回计数追踪及独立环境对照，不能用重复
+成功替代根因解释。

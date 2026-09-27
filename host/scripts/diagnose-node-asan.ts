@@ -1,7 +1,7 @@
 // Bounded diagnostic only; never retries or changes the native acceptance gate.
 import {spawn,spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdtempSync,readFileSync,writeFileSync,mkdirSync,cpSync} from 'node:fs';
+import {mkdtempSync,readFileSync,writeFileSync,mkdirSync,cpSync,readdirSync,statSync} from 'node:fs';
 import {tmpdir,cpus,release} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -71,15 +71,20 @@ if(kind==='motion')for(const path of ['src/diagnostics/graph-motion.ts','src/dia
 if(kind==='history')for(const [key,name] of Object.entries({TRAPQ:'trapq',STEPCOMPRESS:'stepcompress',SERIALQUEUE:'serialqueue',UNIX_PEER:'unix-peer',SEALED_FILE:'sealed-file',CAN_QUERY:'can-query',AR100_TEST:'ar100-flash-test'})){const path=join(host,'build',name+'-asan.node');env['ANYRAID_'+key+'_ADDON']=path;addonHashes[name]=hash(path);}
 const version=spawnSync(node,['--version'],{encoding:'utf8',timeout:10000});if(version.status!==0)throw new Error('Candidate Node cannot start');
 const args=[...(execution==='compiled'?['--no-experimental-strip-types']:[]),...(jsOptimization==='off'?['--no-maglev','--no-turbofan']:[]),...(wasmBounds==='inline'?['--disable-wasm-trap-handler']:[]),...(kind==='history'?['--test','--test-reporter=tap','test/step-history.test.ts']:[fixture])];
+// Keep a kernel core local to this isolated diagnostic directory. Absolute
+// fixture imports make motion independent of cwd; history still needs host.
+const childWorkingDirectory=kind==='history'?host:directory;
+const corePolicy=process.platform==='linux'?{pattern:readFileSync('/proc/sys/kernel/core_pattern','utf8').trim(),usesPid:readFileSync('/proc/sys/kernel/core_uses_pid','utf8').trim(),limits:readFileSync('/proc/self/limits','utf8').split('\n').find(line=>line.startsWith('Max core file size'))}:undefined;
 interface Result {index:number;pid:number|undefined;status:number|null;signal:NodeJS.Signals|null;error?:string;stdout:string;stderr:string}
 const results:Result[]=[];let next=0,failed=false;
 console.log(JSON.stringify({directory,kind,node,version:version.stdout.trim(),limit,workers,segv,asan,wasmBounds,jsOptimization,execution,compilerVersion}));
 await Promise.all(Array.from({length:workers},async()=>{while(next<limit&&!failed){const index=next++;await new Promise<void>(resolve=>{
- const child=spawn(node,args,{cwd:host,env,timeout:10000,killSignal:'SIGKILL'});let stdout='',stderr='',error:string|undefined;
+ const child=spawn(node,args,{cwd:childWorkingDirectory,env,timeout:10000,killSignal:'SIGKILL'});let stdout='',stderr='',error:string|undefined;
  const capture=(target:'stdout'|'stderr',chunk:Buffer)=>{if(stdout.length+stderr.length+chunk.length>1024*1024){error='Output budget exceeded';child.kill('SIGKILL');return;}if(target==='stdout')stdout+=chunk.toString();else stderr+=chunk.toString();};
  child.stdout.on('data',b=>capture('stdout',b));child.stderr.on('data',b=>capture('stderr',b));child.on('error',e=>{error=e.message;});
  child.on('close',(status,signal)=>{const marker=kind==='motion'?'motion:verified':kind==='strip'?'stripped':kind==='empty'?'started':undefined;if(status===0&&marker&&stdout.trimEnd().split('\n').at(-1)!==marker&&!error)error='Verification completion marker missing';const result={index,pid:child.pid,status,signal,error,stdout,stderr};results.push(result);if(status!==0||error){failed=true;console.log(JSON.stringify({index,status,signal,error}));}resolve();});
  });}}));
-writeFileSync(join(directory,'report.json'),JSON.stringify({node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,fixtureSha256:hash(fixture),results},null,2));
+const coreFiles=readdirSync(directory).filter(name=>/^core(?:\.|$)/.test(name)).map(name=>({path:join(directory,name),bytes:statSync(join(directory,name)).size}));
+writeFileSync(join(directory,'report.json'),JSON.stringify({childWorkingDirectory,corePolicy,coreFiles,node,version:version.stdout.trim(),nodeSha256:hash(node),runtime,runtimeSha256:runtime?hash(runtime):undefined,addonHashes,moduleHashes,compiledHashes,compilerVersion,execution,system,kind,segv,asan,wasmBounds,jsOptimization,args,limit,workers,fixtureSha256:hash(fixture),results},null,2));
 console.log(JSON.stringify({directory,runs:results.length,failures:results.filter(r=>r.status!==0||r.error).length}));
 if(failed)process.exitCode=1;

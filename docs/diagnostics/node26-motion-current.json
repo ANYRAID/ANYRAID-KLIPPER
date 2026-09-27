@@ -233,7 +233,7 @@
     "Normal host compiled JavaScript completed 100 processes, 16 numerical rounds each.",
     "Normal host source TypeScript failed with SIGSEGV after motion:loaded; 33 processes were started before workers stopped, 32 completed.",
     "Same Node binary and source hashes do not establish type stripping as the crash cause; independent-runner execution remains pending.",
-    "No core was captured: core size limit is 0 and no debugger is available in this environment.",
+    "No core was captured in this batch: core size limit was 0. No debugger was found on PATH; a pre-existing unpacked debugger was subsequently located (see node26-motion-core.json).",
     "Physical motion precision and historical numerical mismatches are not cleared."
   ]
 }
