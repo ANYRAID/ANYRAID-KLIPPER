@@ -16,6 +16,19 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- SDIO 卡片层 `SDCardSDIO` 已实现 V1/V2 初始化、OCR 就绪、CID/CSD
+  CRC、RCA、卡片选择、容量与写保护、扇区读写和复位。保持 3.3 V
+  电压范围，不请求尚未实现的 1.8 V 切换。仅 OCR R3 响应允许固件
+  报告 CRC／响应索引例外，其他命令错误拒绝继续。写后轮询真实
+  CURRENT_STATE（状态字 bits 12:9）及 READY_FOR_DATA（bit 8），
+  修正旧 Python 对最低字节错误位域的检查；寄存器损坏和失败不会
+  发布初始化状态。状态依据见
+  [Linux MMC 定义](https://raw.githubusercontent.com/torvalds/linux/master/include/linux/mmc/mmc.h)，
+  初始化依据见 [SD 物理层简化规范](https://www.sdcard.org/cms/wp-content/themes/sdcard-org/dl.php?f=Part1_Physical_Layer_Simplified_Specification_Ver7.10.pdf)。
+  卡片及 MCU 字典传输层 11 项测试通过。256 次模拟扇区读写各一轮
+  中位 8.690 ms、最大 14.564 ms（2 次预热、7 次采样），含每次写后
+  状态确认，不含 MCU 通信和真实卡延迟。原生 SDIO 模拟／实机联调、
+  FAT 集成及旧烧录入口退役仍未完成。
 - SDIO 的 MCU 命令／扇区缓冲传输层已迁至
   `host/src/diagnostics/sdio-mcu.ts`，按当前 `src/sdiocmds.c` 字典
   编译配置，独占每个 OID 的 512 字节缓冲事务，32 字节分块传输。
