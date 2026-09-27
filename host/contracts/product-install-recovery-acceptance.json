@@ -1,0 +1,175 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "487067b8",
+  "runtime": "Node.js 26.9.0",
+  "sourceSha256": {
+    "host/src/runtime/product-install.ts": "1c9942d0ca3ac3de3ba3a142a572bbdccc4adca9aa936aa32cb1c7a8385a4081",
+    "host/test/product-install.test.ts": "d28e4c1a630abcb582e6ab5778127e0d5363c46edfba72b38ab46be42ba53f14",
+    "host/acceptance/product-compiled-journey.test.ts": "e2c3c53e7487a6a83cfc97bc07d155c257b1e17606b620adf7c5efd9411bc233"
+  },
+  "validation": {
+    "installerTests": 6,
+    "typecheck": "passed",
+    "compiledBundleSmoke": 1,
+    "compiledSimulatedPrint": 1
+  },
+  "diagnostics": [
+    {
+      "path": "host/build/product-install-staging-validation.log",
+      "sha256": "0506c00519b440578d2846d7115faeed8357f335a10d97f43b86df08a2965e9f",
+      "measurements": [
+        {
+          "servicePreparation": {
+            "coldProcesses": 11,
+            "warmups": 1,
+            "medianMs": 77.38802100000066,
+            "p95Ms": 110.11653500000011,
+            "scope": "Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation"
+          }
+        }
+      ]
+    },
+    {
+      "path": "host/build/product-install-print-validation.log",
+      "sha256": "a77115c6267a23ff3d97562f443e751eeb2d019bad4a94b1bd2bbed331fc5661",
+      "measurements": [
+        {
+          "installation": {
+            "durationMs": 727.994591,
+            "dependencies": 10
+          }
+        },
+        {
+          "filamentRunout": {
+            "sensor": "filament_switch_sensor tool",
+            "compiled": true,
+            "automaticPause": true,
+            "absentResumeRejected": true,
+            "runoutPauseMs": 1148.2681369999991,
+            "settledStepClock": true,
+            "noAutomaticResume": true
+          }
+        },
+        {
+          "nativeTemperatureHistory": {
+            "samples": 11,
+            "sensors": [
+              "extruder",
+              "heater_bed"
+            ],
+            "authenticated": true
+          }
+        },
+        {
+          "idleTimeout": {
+            "heaterOff": true,
+            "motorRelease": true,
+            "hostRemainsReady": true
+          }
+        },
+        {
+          "pausedTimeout": {
+            "cancelled": true,
+            "resumeRejected": true
+          }
+        },
+        {
+          "temperatureHistoryRestart": {
+            "preserved": true,
+            "samplesBefore": 21,
+            "samplesAfter": 24
+          }
+        },
+        {
+          "phaseQueries": 0,
+          "phaseP99Ms": null,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "stressed": false,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 168,
+              "writes": 43
+            },
+            {
+              "statusReads": 64,
+              "writes": 42
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 0,
+          "historyP99Ms": null,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 4,
+          "fileNotificationP95Ms": null,
+          "deleteRequests": 0,
+          "deleteP95Ms": null,
+          "thumbnailRequests": 0,
+          "thumbnailP95Ms": null,
+          "metadataRequests": 0,
+          "metadataP95Ms": null,
+          "downloads": 0,
+          "downloadP95Ms": null,
+          "wireCommands": 189,
+          "wireSteps": 3606,
+          "minimumStepLeadMs": 87.746,
+          "directoryRequests": 0,
+          "directoryP99Ms": null,
+          "statusRequests": 0,
+          "uploads": 0,
+          "statusP99Ms": null,
+          "uploadP95Ms": null,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.766399,
+                "maxMs": 19.562495
+              },
+              "cpu": {
+                "user": 1269355,
+                "system": 130713
+              },
+              "rss": 177250304
+            },
+            {
+              "loop": {
+                "p99Ms": 1.761279,
+                "maxMs": 6.832127
+              },
+              "cpu": {
+                "user": 543698,
+                "system": 66290
+              },
+              "rss": 196849664
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "No hardware or system service activation",
+    "Install duration is a single local sample and depends on npm cache/network",
+    "No Python entrypoint retired",
+    "Historical runtime crashes and numerical mismatches remain unresolved"
+  ]
+}

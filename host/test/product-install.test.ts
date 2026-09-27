@@ -11,7 +11,7 @@ async function fixture(run:(root:string,npm:string)=>Promise<void>){
   await mkdir(join(root,'scripts'));const content={'scripts/product-host.js':'throw new Error("must not start");','package.json':JSON.stringify({dependencies:{example:'1.0.0'}}),'package-lock.json':'{}'};
   for(const [name,text] of Object.entries(content))await writeFile(join(root,name),text);
   await writeFile(join(root,'build-info.json'),JSON.stringify({schema:1,product:'anyraid-product-host',platform:process.platform,arch:process.arch,modules:process.versions.modules,files:Object.fromEntries(Object.entries(content).map(([k,v])=>[k,createHash('sha256').update(v).digest('hex')]))}));
-  const npm=join(root,'fake-npm.mjs');await writeFile(npm,`import {mkdir,writeFile} from 'node:fs/promises';await writeFile('observed.json',JSON.stringify({args:process.argv.slice(2),path:process.env.PATH,nodeOptions:process.env.NODE_OPTIONS}));await mkdir('node_modules/example',{recursive:true});`);await run(root,npm);
+  const npm=join(root,'fake-npm.mjs');await writeFile(npm,`import {mkdir,writeFile} from 'node:fs/promises';await writeFile('../observed.json',JSON.stringify({args:process.argv.slice(2),path:process.env.PATH,nodeOptions:process.env.NODE_OPTIONS}));await mkdir('node_modules/example',{recursive:true});`);await run(root,npm);
  }finally{await rm(root,{recursive:true,force:true});}
 }
 test('fresh installer validates bundle and runs npm with production-only no-script settings',()=>fixture(async(root,npm)=>{
@@ -28,7 +28,29 @@ test('installer help and invalid arguments require no bundle or npm execution',a
  let output='';await productInstallCLI(['--help'],new AbortController().signal,t=>{output+=t;});assert.match(output,/Does not start/);
  for(const args of [[],['--bundle'],['--install','yes'],['--bundle','/a','--bundle','/b']])await assert.rejects(productInstallCLI(args,new AbortController().signal,()=>assert.fail()),/Expected/);
 });
-test('failed npm leaves evidence and refuses to overwrite a partial dependency tree',()=>fixture(async(root,npm)=>{
+test('failed install removes partial dependencies and permits a fresh retry',()=>fixture(async(root,npm)=>{
+ const original=await readFile(npm,'utf8');
  await writeFile(npm,"import {mkdir} from 'node:fs/promises';await mkdir('node_modules/partial',{recursive:true});process.exitCode=9;");
- await assert.rejects(installProductDependencies(root,new AbortController().signal,npm));assert((await lstat(join(root,'node_modules/partial'))).isDirectory());await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});await assert.rejects(installProductDependencies(root,new AbortController().signal,npm),/already exist/);
+ await assert.rejects(installProductDependencies(root,new AbortController().signal,npm));
+ await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});
+ await writeFile(npm,original);await installProductDependencies(root,new AbortController().signal,npm);assert((await lstat(join(root,'node_modules/example'))).isDirectory());
+}));
+test('cancelled installer joins its child before removing staging and retrying',()=>fixture(async(root,npm)=>{
+ const original=await readFile(npm,'utf8'),controller=new AbortController();
+ await writeFile(npm,"import {mkdir,writeFile} from 'node:fs/promises';process.on('SIGTERM',()=>{});await mkdir('node_modules/partial',{recursive:true});await writeFile('../started','ready');setInterval(()=>{},100);");
+ const pending=installProductDependencies(root,controller.signal,npm);void pending.catch(()=>{});
+ const deadline=Date.now()+10000;while(true){try{await lstat(join(root,'started'));break;}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;if(Date.now()>deadline)throw new Error('npm fixture did not start');await new Promise(done=>setTimeout(done,10));}}
+ await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});
+ controller.abort();await assert.rejects(pending,{name:'AbortError'});
+ await assert.rejects(lstat(join(root,'.dependency-install.lock')),{code:'ENOENT'});
+ await writeFile(npm,original);await installProductDependencies(root,new AbortController().signal,npm);
+}));
+test('changed staged manifest and missing dependency prevent publication',()=>fixture(async(root,npm)=>{
+ const original=await readFile(npm,'utf8');
+ await writeFile(npm,original+"await writeFile('package-lock.json','changed');");
+ await assert.rejects(installProductDependencies(root,new AbortController().signal,npm),/manifest changed/);
+ await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});
+ await writeFile(npm,"import {mkdir} from 'node:fs/promises';await mkdir('node_modules');");
+ await assert.rejects(installProductDependencies(root,new AbortController().signal,npm),{code:'ENOENT'});
+ await assert.rejects(lstat(join(root,'node_modules')),{code:'ENOENT'});
 }));
