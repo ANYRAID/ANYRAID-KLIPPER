@@ -415,8 +415,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
-   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:this.#o.groupsByAxis[axis],mode:'home'}).run(target,speed,axis,s);
-   try{this.#adopt(result.generation,result.position,s);return result;}catch(error){result.motion.dispose();throw error;}
+   const groups=this.#o.groupsByAxis[axis],modes=[...new Set(groups.flatMap(g=>g.sensorless?[g.sensorless]:[]))];
+   if(modes.length){await this.#drain(s);for(const mode of modes)await mode.enter(s);await this.#rebase(this.homingPosition(),s);}
+   const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:'home'}).run(target,speed,axis,s);
+   try{this.#adopt(result.generation,result.position,s);
+    // Successful seek includes trigger-stop confirmation and halted positions.
+    // On failure the operation retires hardware without a moving-mode restore.
+    for(const mode of modes)await mode.restore(s);
+    if(modes.length)await this.#rebase(result.position,s);
+    return result;}catch(error){result.motion.dispose();throw error;}
   });
  }
  retract(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal){

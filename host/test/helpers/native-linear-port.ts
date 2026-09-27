@@ -1,3 +1,4 @@
+import type {TmcSensorlessMode} from '../../src/drivers/tmc-sensorless.ts';
 import {snapshotPrintClock} from '../../src/timing/print-clock.ts';
 import {PrintClockTimeline} from '../../src/timing/print-clock-timeline.ts';
 import {SecondarySync} from '../../src/timing/secondary-sync.ts';
@@ -14,14 +15,14 @@ import {GenerationPWMOutput} from '../../src/outputs/generation-pwm.ts';
 import {ScheduledCoolingFan,type FanConfig} from '../../src/outputs/fan.ts';
 import {FanBoundaryTimeline} from '../../src/outputs/fan-boundaries.ts';
 const signal=()=>new AbortController().signal;
-export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,synchronized=false,probe?:Record<string,string>){
+export async function nativeLinearFixture(retractDistance=0,canExtrude=()=>false,filtered=false,fanConfig?:FanConfig,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,synchronized=false,probe?:Record<string,string>,sensorless?:TmcSensorlessMode){
  const f=await rebuiltFixture(false,true,fanConfig!==undefined,motorPower,auxiliary);let fan:ScheduledCoolingFan|undefined,timeline:FanBoundaryTimeline|undefined;
  try{
   if(fanConfig){const group=f.options.group,s=group.session(f.fanMCU),stepper=f.options.motion.bindings[0].stepper,mapping=snapshotPrintClock(stepper.calibration),pwm=new GenerationPWMOutput(f.fanPlan!,s.dictionary,group.commandQueue(f.fanMCU),group.commandQueue(f.fanMCU),mapping.clockAt,mapping.printTimeAtClock);fan=new ScheduledCoolingFan(pwm,fanConfig);await fan.start(signal());timeline=new FanBoundaryTimeline(fan);}
   const clockTimelines=synchronized?['m','a'].map(id=>({id,timeline:new PrintClockTimeline({offset:0,frequency:1e6}),synchronizer:id==='m'?new SecondarySync(f.options.group.session('a').clock.sync,f.options.group.session('m').clock.sync,0,{offset:0,frequency:1e6,syncTime:0}):undefined})):undefined;
   const generation=await bindRebuiltMotion({...f.options,clockTimelines,...timeline?{boundaryOutput:{output:timeline,mcu:f.fanMCU}}:{}});
   if(filtered){generation.motion.bindings[0].stepper.configureShapers({x:inputShaper('mzv',40,.1)});generation.motion.bindings[1].stepper.configurePressureAdvance(.05,.04);}
-  const groups=[{members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
+  const groups=[{sensorless,members:[{physicalMember:0,trigger:f.options.members[0].trigger,emitters:f.emitters.map(e=>e.id)}],primary:0,endstop:f.endstop,expireTimeout:.25}];
   const reader=linearMotionReader({...Object.fromEntries(['stepper_x','stepper_y','stepper_z'].map(name=>[name,{homing_retract_dist:String(retractDistance)}])),...(probe?{probe}:{})});
   const {port,kinematics,rails}=createConfiguredNativeLinearPort(reader,{generation,emitters:f.emitters,kinematicIds:['x','y','z'],probeGroups:groups,groupsByAxis:[groups,groups,groups],endstopNames:[['test'],['test'],['test']],canExtrude});
   const coordinates=new GCodeMove(port);

@@ -1,3 +1,4 @@
+import type {TmcSensorlessMode} from '../drivers/tmc-sensorless.ts';
 import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import type {prepareHomingTrajectory} from './prepare-trajectory.ts';
 import type {HomingMember} from './stop-confirmation.ts';
@@ -7,6 +8,7 @@ import type {TriggerSyncProtocol} from '../inputs/trsync.ts';
 import type {ArmedHomingGroup} from './move-execution.ts';
 import {homingEndstopSampling,type EndstopActuator} from './endstop-rate.ts';
 export interface HomingGroupConfig {
+ readonly sensorless?:TmcSensorlessMode;
  readonly members:readonly {physicalMember:number;trigger:TriggerSyncProtocol;emitters:readonly string[]}[];
  readonly primary:number;readonly endstop:EndstopProtocol;readonly expireTimeout:number;
 }

@@ -1,3 +1,4 @@
+import {readHomingPin} from './sensorless.ts';
 import {readFilamentEncoderPolicy} from '../inputs/filament-encoder.ts';
 import {readProbeGrid} from './probe-grid.ts';
 import {readProbeConfiguration} from './probe.ts';
@@ -31,7 +32,7 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
   const extra=motors.filter(m=>m.axis===index&&m.emitter!==axis&&reader.section(m.section).hasOption('endstop_pin'));
   const independent=new Set(extra.map(m=>m.emitter));
   return [{section:`stepper_${axis}`,emitters:ids.filter(id=>!independent.has(id))},...extra.map(m=>({section:m.section,emitters:[m.emitter]}))].map(group=>{
-   const gpio=pins.parse(reader.section(group.section).get('endstop_pin'),{canInvert:true,canPullup:true}).chipName;
+   const gpio=pins.parse(readHomingPin(reader,group.section).description,{canInvert:true,canPullup:true}).chipName;
    if(!group.emitters.some(id=>owner.get(id)===gpio&&id!=='e'))throw new Error('Homing GPIO requires an assigned kinematic motor on its MCU');
    const mcus=[...new Set(group.emitters.map(id=>owner.get(id)!))];homingLayout.push({section:group.section,mcus});return group;
   });

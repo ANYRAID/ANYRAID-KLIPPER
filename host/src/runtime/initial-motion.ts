@@ -70,7 +70,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
    const heaterIndex=plan.heaters.findIndex(h=>h.section===section),heater=hardware.analog[heaterIndex]?.runtime;
    if(!heater)throw new Error('Linear motion requires its configured extruder heater');
-   const resolved='homing' in settings?compileLinearHoming(plan,generation,settings):settings;
+   const resolved='homing' in settings?compileLinearHoming(plan,generation,settings,new Map(hardware.drivers.flatMap(d=>d.sensorless?[[d.section,d.sensorless] as const]:[]))):settings;
    const result=createConfiguredNativeLinearPort(reader,{...resolved,generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
    const createPrint=async(options:ConfiguredPrintOptions)=>{
     group.assertActive();if(printPending)throw new Error('Configured print already owned');

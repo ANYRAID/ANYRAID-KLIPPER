@@ -40,3 +40,18 @@ test('compiled endstop and trigger plans perform exact new and reused configurat
  const {configureMCU}=await import('../src/protocol/mcu-config.ts'),{crc32}=await import('node:zlib'),f=stepperBatchFixture(),[p]=compileConfiguredHoming(reader(),f.pins,f.mcus,[{section:'x',triggers:[{mcu:'mcu'}]}]),oidCount=mcuOids(f.pins).finalize('mcu').oidCount,commands=[...p.endstop.commands,...p.triggers[0].protocol.commands],restart=[...p.triggers[0].protocol.restart,...p.endstop.restart],full=[`allocate_oids count=${oidCount}`,...commands],crc=crc32(Buffer.from(full.join('\n')));
  for(const reused of [false,true]){const sent:Uint8Array[]=[];let queries=0;const result=await configureMCU(f.dictionary,{async query(){return {message:{name:'config',parameters:{is_config:reused||queries++>0?1:0,crc,is_shutdown:0,move_count:512}},sentTime:1,receiveTime:1};},async send(payload){sent.push(payload.slice());},async stop(){assert.fail('valid homing configuration stopped');}},{oidCount,commands,restart},new AbortController().signal);assert.equal(result.reused,reused);assert.deepEqual(sent,(reused?restart:[...full,`finalize_config crc=${crc}`]).map(c=>f.dictionary.encodeCommand(c)));}
 });
+test('virtual TMC DIAG pins retain physical polarity, ownership and driver identity',()=>{
+ for(const model of ['tmc2209','tmc2130','tmc5160'])for(const diag of [0,1]){
+  const f=stepperBatchFixture(),option=model==='tmc2209'?'diag_pin':`diag${diag}_pin`;
+  const r=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{stepper_x:{endstop_pin:model+'_stepper_x:virtual_endstop'},[model+' stepper_x']:{[option]:'^!PA4'}},[]),null);
+  const [p]=compileConfiguredHoming(r,f.pins,f.mcus,[{section:'stepper_x',triggers:[{mcu:'mcu'}]}]);assert.deepEqual(p.sensorless,{section:model+' stepper_x',diag:model==='tmc2209'?undefined:diag});assert.equal(p.pin.invert,1);assert.equal(p.pin.pullup,1);assert.equal(p.pin.pin,'PA4');
+ }
+});
+test('invalid virtual pins and reserved physical DIAG fail without claims',()=>{
+ for(const virtual of ['^tmc2209_stepper_x:virtual_endstop','!tmc2209_stepper_x:virtual_endstop','tmc2208_stepper_x:virtual_endstop','tmc2209_stepper_x:other','tmc2209_missing:virtual_endstop']){
+  const f=stepperBatchFixture(),r=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{stepper_x:{endstop_pin:virtual},'tmc2209 stepper_x':{diag_pin:'PA4'}},[]),null);
+  assert.throws(()=>compileConfiguredHoming(r,f.pins,f.mcus,[{section:'stepper_x',triggers:[{mcu:'mcu'}]}]));assert.equal(f.pins.claimedPins.length,0);assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount,0);
+ }
+ const f=stepperBatchFixture(true),r=new ConfigurationReader(new ConfigurationSource('/endstops.cfg',{stepper_x:{endstop_pin:'tmc2209_stepper_x:virtual_endstop'},'tmc2209 stepper_x':{diag_pin:'PA3_ALIAS'}},[]),null);
+ assert.throws(()=>compileConfiguredHoming(r,f.pins,f.mcus,[{section:'stepper_x',triggers:[{mcu:'mcu'}]}]),/reserved/);assert.equal(f.pins.claimedPins.length,0);
+});

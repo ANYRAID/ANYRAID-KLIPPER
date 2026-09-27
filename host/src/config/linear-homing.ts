@@ -1,3 +1,4 @@
+import type {TmcSensorlessMode} from '../drivers/tmc-sensorless.ts';
 import type {compileConfiguredHardware} from './hardware.ts';
 import type {ConfiguredLinearHardware} from './linear-motion.ts';
 import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
@@ -11,7 +12,7 @@ export interface ConfiguredLinearHoming {
 /** Resolve configured GPIO/trsync ownership into the compact motion member map.
  * Every axis must explicitly cover all motors, including idle extrusion motors.
  * No IO, resource allocation, homing authority or invented trigger objects. */
-export function compileLinearHoming(plan:ReturnType<typeof compileConfiguredHardware>,generation:Awaited<ReturnType<typeof bindRebuiltMotion>>,request:ConfiguredLinearHoming):Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>{
+export function compileLinearHoming(plan:ReturnType<typeof compileConfiguredHardware>,generation:Awaited<ReturnType<typeof bindRebuiltMotion>>,request:ConfiguredLinearHoming,sensorless:ReadonlyMap<string,TmcSensorlessMode>=new Map()):Omit<ConfiguredLinearHardware,'generation'|'emitters'|'canExtrude'>{
  if(request.homing.length!==3)throw new Error('Three configured homing axes required');
  const bindings=generation.motion.bindings,memberByMCU=new Map(plan.configurations.map(c=>[c.mcu,generation.members.findIndex(m=>m.session===c.session)]));
  if(request.kinematicIds.length!==3||new Set(request.kinematicIds).size!==3||request.kinematicIds.some(id=>!bindings.some(b=>b.id===id&&generation.routes.some(r=>r.queue===b.queue&&r.extrusionAxis===undefined))))throw new Error('Invalid configured homing rail representatives');
@@ -30,7 +31,8 @@ export function compileLinearHoming(plan:ReturnType<typeof compileConfiguredHard
    if(members.length!==needed.size||new Set(members.map(m=>m.physicalMember)).size!==needed.size)throw new Error('Configured homing trigger coverage differs');
    const primary=members.findIndex(m=>m.physicalMember===memberByMCU.get(h.mcu));
    if(primary<0||!owned.some(b=>b.member===members[primary].physicalMember&&generation.routes.some(r=>r.queue===b.queue&&r.extrusionAxis===undefined)))throw new Error('Configured homing GPIO requires a kinematic motor member');
-   return Object.freeze({members:Object.freeze(members),primary,endstop:h.endstop,expireTimeout:timeout}) satisfies HomingGroupConfig;
+   const mode=h.sensorless?sensorless.get(h.sensorless.section):undefined;if(h.sensorless&&!mode)throw new Error('Sensorless homing driver is not initialized');
+   return Object.freeze({members:Object.freeze(members),primary,endstop:h.endstop,expireTimeout:timeout,sensorless:mode}) satisfies HomingGroupConfig;
   });
   if(claimed.size!==bindings.length)throw new Error('Configured homing omits motors');
   return Object.freeze(result);
