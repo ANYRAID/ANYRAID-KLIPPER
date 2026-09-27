@@ -115,7 +115,18 @@ export class Move {
       if(!Number.isFinite(duration))throw new RangeError('Nonfinite move duration');
       this.profile={startV,cruiseV:Math.max(startV,endV),endV,accelT:startV2<endV2?duration:0,cruiseT:0,decelT:startV2>endV2?duration:0};return;
     }
-    const accelT=accelD/((startV+cruiseV)*.5),cruiseT=Math.max(0,cruiseD)/cruiseV,decelT=decelD/((endV+cruiseV)*.5);
+    // The exact peak-selection identity denotes a triangular profile. Its
+    // two ramps consume the entire move; a positive subtraction residual is
+    // floating-point cancellation, not a third physical phase. Preserve both
+    // endpoint speeds and acceleration instead of adding a sub-clock cruise.
+    // Rounded peak identities at extreme speeds can also describe real cruise.
+    // Require two ramps and a residual within a relative distance roundoff
+    // budget: at most 16 eps times the sum of the three distance operands.
+    // This bounds the removed travel, independently of clock magnitude or
+    // coordinate origin. In particular it never erases a tiny pure cruise.
+    const residualBound=16*Number.EPSILON*(this.distance+Math.abs(accelD)+Math.abs(decelD));
+    const triangularResidual=triangular&&accelD>0&&decelD>0&&cruiseD<=residualBound;
+    const accelT=accelD/((startV+cruiseV)*.5),cruiseT=triangularResidual?0:Math.max(0,cruiseD)/cruiseV,decelT=decelD/((endV+cruiseV)*.5);
     if(![accelT,cruiseT,decelT].every(Number.isFinite)) throw new RangeError('Nonfinite move duration');
     this.profile={startV,cruiseV,endV,accelT,cruiseT,decelT};
   }

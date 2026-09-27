@@ -52,3 +52,12 @@ test('native arcs retain homing and cold extrusion guards before emitting any st
   try{if(homed)f.kinematics.markHomed([0,1,2]);gcode.enable();await assert.rejects(gcode.dispatch.execute(homed?'G2 J1 E2.01':'G2 J1'));assert.equal(f.f.fw.motion.filter(m=>m.name==='queue_step').length,0);assert.deepEqual(gcode.coordinates.state.position,[50,0,0,2]);assert.equal(f.port.status.failed,true);}finally{await gcode.close();await f.close();}
  }
 });
+
+test('all frozen original Python arc coordinates match without invoking Python',async()=>{
+ const {arcsReference:{origin,cases,reference}}=await import('./helpers/arcs-reference.ts');
+ assert.equal(cases.length,80);assert.equal(reference.results.length,cases.length);
+ for(const [i,c] of cases.entries()){
+  const plan=planArc(origin,c.absolute,c.params,c.clockwise,c.plane,c.resolution),expected=reference.results[i];assert.equal(plan.segments,expected.length);
+  for(const [j,point] of expected.entries()){const actual=arcSegment(plan,j);assert.deepEqual(Object.keys(actual).sort(),Object.keys(point).sort());for(const key of Object.keys(point))assert(Math.abs(Number(actual[key])-point[key])<=1e-12*Math.max(1,Math.abs(point[key])));}
+ }
+});

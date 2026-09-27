@@ -49,3 +49,22 @@ test('product path remains representable across absolute clock boundaries and ba
   }
  }
 });
+
+test('two-sided triangular junctions do not invent sub-clock cruise from distance cancellation',()=>{
+ const start=[3,1,2,.1],end=[3.00046,1.00020102,2.00000046,.1000046],m=new Move(motionLimits(100,1000),start,end,10),a=40.046,b=41.023,peak=(a+(b+m.deltaV2))*.5;
+ const residual=m.distance-(peak-a)*(.5/m.accel)-(peak-b)*(.5/m.accel);assert(residual>0);assert(residual/Math.sqrt(peak)<Number.EPSILON);
+ m.setJunction(a,peak,b);assert.equal(m.profile!.cruiseT,0);assert(m.profile!.accelT>0&&m.profile!.decelT>0);assert.equal(m.profile!.startV,Math.sqrt(a));assert.equal(m.profile!.endV,Math.sqrt(b));
+ for(const time of [1,12.037322595289076,32,1024]){
+  using xyz=new TrapQueue();using e=new TrapQueue();const until=xyz.appendPlanned([m],time);assert.equal(e.appendPlanned([m],time,3,true),until);
+  for(const [q,indices] of [[xyz,[0,1,2]],[e,[3]]] as const){const r=q.extract(1,time,until+1),distance=(r[2]+.5*r[3]*r[1])*r[1];for(const [j,i] of indices.entries())assert(Math.abs(r[4+j]+r[7+j]*distance-end[i])<=Number.EPSILON*Math.abs(end[i]));}
+ }
+ // A genuinely speed-capped trapezoid still retains its nonzero cruise.
+ const capped=new Move(motionLimits(100,1000),start,end,10);capped.setJunction(a,(peak+b)*.5,b);assert(capped.profile!.cruiseT>0);
+});
+
+test('rounded triangular identities do not discard resolvable motion or pure cruise',()=>{
+ for(const distance of [1e-9,.0025]){
+  const m=new Move(motionLimits(1e9,1000),[0,0,0,0],[distance,0,0,0],1e9),v2=1e16,peak=(v2+(v2+m.deltaV2))*.5;
+  m.setJunction(v2,peak,v2);assert(m.profile!.cruiseT>0);
+ }
+});
