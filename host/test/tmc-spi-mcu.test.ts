@@ -21,7 +21,7 @@ test('native SPI FIFO preserves pipeline, scheduled writes, chain positions and 
   return {data:previous};
  }}),session=new SerialSession(firmware.fd,{async stopDevice(){}});
  try{
-  await session.initialize(signal());const p=compileTmcSpi(session,session.dictionary,0,pin(session),0);await session.configure({oidCount:1,commands:[p.select,p.configureBus]},signal());
+  await session.initialize(signal());const p=compileTmcSpi(session,session.dictionary,0,pin(session),'spi1');await session.configure({oidCount:1,commands:[p.select,p.configureBus]},signal());
   const chain=sessionTmcSpi(session,0,2);assert.equal(sessionTmcSpi(session,0,2),chain);assert.throws(()=>sessionTmcSpi(session,0,1),/length/);const a=chain.register(1),b=chain.register(2);
   const clock=session.clock.sync.getClock(serialClock.now()+.03);await Promise.all([a.write(0x6c,0xfedcba98,signal(),clock),b.write(0x6c,0x80000000,signal())]);assert.equal(await a.read(0x6c,signal()),0xfedcba98);assert.deepEqual(await b.readRaw(0x6c,signal()),{spiStatus:8,value:0x80000000});
   const samples:number[]=[];for(let i=0;i<120;i++){const start=performance.now();assert.equal(await a.read(0x6c,signal()),0xfedcba98);if(i>=20)samples.push(performance.now()-start);}samples.sort((a,b)=>a-b);t.diagnostic(JSON.stringify({scope:'Native SPI FIFO and simulated two-device pipeline, 20 warmups/100 reads, no electrical SPI timing',medianMs:samples[50],p95Ms:samples[94],maxMs:samples[99]}));
@@ -48,7 +48,7 @@ test('TMC2130 native startup and runtime current adjustment verify complete regi
  const registers=new Map<number,number>();let latched=Buffer.alloc(5),writes=0;
  const firmware=await serialFirmware(undefined,{tmcSpi(_oid,frame){const previous=latched,bytes=Buffer.from(frame),reg=bytes[0]&127;if(bytes[0]&128){registers.set(reg,bytes.readUInt32BE(1));writes++;}latched=Buffer.alloc(5);latched.writeUInt32BE(registers.get(reg)??0,1);return {data:previous};}}),session=new SerialSession(firmware.fd,{async stopDevice(){}});
  try{
-  await session.initialize(signal());const config=compileTmcSpi(session,session.dictionary,0,pin(session),0);await session.configure({oidCount:1,commands:[config.select,config.configureBus]},signal());const device=sessionTmcSpi(session,0).register();
+  await session.initialize(signal());const config=compileTmcSpi(session,session.dictionary,0,pin(session),'spi1');await session.configure({oidCount:1,commands:[config.select,config.configureBus]},signal());const device=sessionTmcSpi(session,0).register();
   const reader=new ConfigurationReader(new ConfigurationSource('/spi.cfg',{'tmc2130 stepper_x':{run_current:'.8',driver_sgt:'-64',driver_mslut0:'4294967295'},stepper_x:{rotation_distance:'40',microsteps:'16'}},[]),null),plan=planTmc2130(reader,'tmc2130 stepper_x');
   await initializeTmc220x(device,plan,signal());assert.equal(writes,plan.registers.length);for(const register of plan.registers)assert.equal(await device.read(register.address,signal()),register.value);
   const current=new Tmc220xCurrent(device,plan,signal(),()=>assert.fail('current fault'));await current.set({run:1.5,hold:.3},signal());assert.equal(writes,plan.registers.length+2);assert.equal((await device.read(0x10,signal()))&0x1f1f,(current.current.irun<<8)|current.current.ihold);

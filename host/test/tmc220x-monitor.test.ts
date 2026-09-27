@@ -21,3 +21,13 @@ test('startup refuses persistent errors, and stop aborts and joins an in-flight 
  const monitor=new Tmc220xMonitor({async read(_r,s){if(!block)return 0;return new Promise<number>((_ok,no)=>s.addEventListener('abort',()=>{aborted=true;no(s.reason);},{once:true}));},async write(){}},()=>assert.fail('normal close is not a runtime fault'),clock);
  await monitor.start(signal());block=true;await clock.advance(1);await settle();await monitor.stop();assert.equal(aborted,true);assert.equal(clock.pending,0);
 });
+test('TMC2130 status masks, read-cleared GSTAT and active-current reset checks are model-specific',async()=>{
+ for(const bit of [1<<25,1<<27,1<<28]){
+  const clock=new FakeClock(),faults:unknown[]=[];let status=0,gstat=1;
+  const monitor=new Tmc220xMonitor({async read(r){if(r===1){const v=gstat;gstat=0;return v;}return status;},async write(){assert.fail('SPI GSTAT must not be written');}},e=>faults.push(e),clock,{currentActive:()=>false});
+  await monitor.start(signal());status=1<<26;await clock.advance(1.1);assert.equal(monitor.status.warnings,1<<26);assert.equal(faults.length,0);status=bit;await clock.advance(1.1);assert.equal(faults.length,1);await monitor.stop();
+ }
+ const clock=new FakeClock(),faults:unknown[]=[];let active=false;
+ const monitor=new Tmc220xMonitor({async read(){return 0;},async write(){assert.fail();}},e=>faults.push(e),clock,{currentActive:()=>active});
+ await monitor.start(signal());await clock.advance(1.1);assert.equal(faults.length,0);active=true;await clock.advance(1.1);assert.equal(faults.length,1);await monitor.stop();
+});

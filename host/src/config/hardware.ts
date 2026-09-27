@@ -1,3 +1,4 @@
+import {compileConfiguredTmcSpi} from './tmc-spi.ts';
 import {compileConfiguredTmcUart} from './tmc-uart.ts';
 import {applyConfiguredBoardPins} from './board-pins.ts';
 import {PrintClockTimeline,readPrintClock} from '../timing/print-clock-timeline.ts';
@@ -48,6 +49,8 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const fans=layout.fans.length?compileConfiguredCoolingFans(reader,pins,mcus,sharedClocks,layout.fans.map(f=>({section:f.section,minimumScheduleTime:f.minimumScheduleTime,capacity:f.capacity}))):Object.freeze([]);
  const heaters=layout.heaters.length?compileConfiguredAnalogHeaters(reader,pins,mcus,sharedClocks,layout.heaters.map(h=>({section:h.section}))):Object.freeze([]);
  const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
+ const tmcSections=reader.sections().filter(s=>/^tmc\d+ /.test(s));if(tmcSections.length>128||new Set(tmcSections.map(s=>s.slice(s.indexOf(' ')+1))).size!==tmcSections.length)throw new Error('Duplicate or excessive TMC stepper owners');
+ const tmcSpis=compileConfiguredTmcSpi(reader,pins,mcus,steppers);
  const tmcUarts=compileConfiguredTmcUart(reader,pins,mcus,steppers);
  const pending=new Map(devices.map(({id})=>[id,{commands:[] as string[],restart:[] as string[],init:[] as string[],reservedMoves:0}]));
  const add=(mcu:string,part:{commands:readonly string[];restart?:readonly string[];init?:readonly string[];reservedMoves?:number})=>{const p=pending.get(mcu)!;p.commands.push(...part.commands);p.restart.push(...part.restart??[]);p.init.push(...part.init??[]);p.reservedMoves+=part.reservedMoves??0;};
@@ -57,11 +60,13 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  for(const f of fans){add(f.output.mcu,f.output.pwm);if(f.enable)add(f.enable.mcu,f.enable.pwm);}
  for(const h of heaters){add(h.output.mcu,h.output.pwm);add(h.sensor.mcu,h.sensor.adc);}
  for(const b of buttons)add(b.mcu,b.buttons);
+ for(const b of tmcSpis)add(b.mcu,{commands:[b.spi.select]});
+ for(const b of tmcSpis)add(b.mcu,{commands:[b.spi.configureBus]});
  for(const b of tmcUarts)add(b.mcu,b.uart);
  const configurations=Object.freeze(devices.map(({id},physicalMember)=>{
   const resources=mcuOids(pins).finalize(id),p=pending.get(id)!;
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters,buttons,tmcUarts});
+ return Object.freeze({configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,fans,heaters,buttons,tmcUarts,tmcSpis});
 }

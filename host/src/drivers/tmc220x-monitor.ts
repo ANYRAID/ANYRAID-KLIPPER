@@ -8,20 +8,20 @@ const timer:TmcMonitorTimer={schedule(callback,seconds){const id=setTimeout(call
 export class Tmc220xMonitor {
  #device:Pick<TmcUartDevice,'read'|'write'>;#fault:(error:unknown)=>void;#timer:TmcMonitorTimer;
  #abort=new AbortController();#pending:Promise<void>|undefined;#cancel:(()=>void)|undefined;#started=false;#closed=false;
- #drv:number|null=null;#gstat:number|null=null;#error:unknown;#checks=0;
- constructor(device:Pick<TmcUartDevice,'read'|'write'>,fault:(error:unknown)=>void,clock:TmcMonitorTimer=timer){this.#device=device;this.#fault=fault;this.#timer=clock;}
- get status(){return {closed:this.#closed,checks:this.#checks,drvStatus:this.#drv,gstat:this.#gstat,warnings:this.#drv===null?null:this.#drv&0xf01,fault:this.#error};}
+ #drv:number|null=null;#gstat:number|null=null;#error:unknown;#checks=0;#spi=false;#currentActive:()=>boolean=()=>false;
+ constructor(device:Pick<TmcUartDevice,'read'|'write'>,fault:(error:unknown)=>void,clock:TmcMonitorTimer=timer,spi?:{currentActive():boolean}){this.#spi=!!spi;this.#currentActive=spi?.currentActive??(()=>false);this.#device=device;this.#fault=fault;this.#timer=clock;}
+ get status(){return {closed:this.#closed,checks:this.#checks,drvStatus:this.#drv,gstat:this.#gstat,warnings:this.#drv===null?null:this.#drv&(this.#spi?0x04000000:0xf01),fault:this.#error};}
  async #check(startup:boolean){
   const signal=this.#abort.signal;
-  for(const [register,mask] of [[0x6f,0x3e],[1,0xffffffff]]){
+  for(const [register,mask] of [[0x6f,this.#spi?0x1a000000:0x3e],[1,0xffffffff]]){
    let cleared=false;
    for(let attempt=0;attempt<3;attempt++){
     signal.throwIfAborted();const value=await this.#device.read(register,signal);signal.throwIfAborted();
     if(!Number.isInteger(value)||value<0||value>0xffffffff)throw new Error('Malformed TMC status');
     if(register===1)this.#gstat=value;else this.#drv=value;
-    if((value&mask)===0)break;
+    if((value&mask)===0&&!(this.#spi&&!startup&&register===0x6f&&(value&0x1f0000)===0&&this.#currentActive()))break;
     if(attempt===2)throw new Error(`TMC driver fault register ${register.toString(16)} value ${value.toString(16)}`);
-    if(startup&&register===1&&!cleared){await this.#device.write(1,value,signal);cleared=true;}
+    if(startup&&!this.#spi&&register===1&&!cleared){await this.#device.write(1,value,signal);cleared=true;}
    }
   }
   this.#checks++;

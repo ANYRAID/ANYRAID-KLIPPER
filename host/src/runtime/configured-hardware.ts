@@ -1,3 +1,4 @@
+import {sessionTmcSpi} from '../drivers/tmc-spi-mcu.ts';
 import {Tmc220xCurrent} from '../drivers/tmc220x-current.ts';
 import {Tmc220xMonitor} from '../drivers/tmc220x-monitor.ts';
 import {sessionTmcUart} from '../drivers/tmc-uart-mcu.ts';
@@ -80,6 +81,12 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   // All enable GPIOs are configured/restarted off. No motion/output owner is
   // exposed until every driver has acknowledged its complete register plan.
   for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor,current:new Tmc220xCurrent(device,driver,abort.signal,error=>{void close(error).catch(()=>{});})});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
+  for(const bus of plan.tmcSpis){const chain=sessionTmcSpi(group.session(bus.mcu),bus.spi.oid,bus.length);for(const entry of bus.devices){
+   const driver=entry.plan,device=chain.register(entry.position);await initializeTmc220x(device,driver,abort.signal);active();
+   const fault=(error:unknown)=>{void close(error).catch(()=>{});},current=new Tmc220xCurrent(device,driver,abort.signal,fault),emitter=plan.steppers.find(s=>s.section===driver.stepper)!.emitter;
+   const monitor=new Tmc220xMonitor(device,fault,undefined,{currentActive:()=>current.current.irun>=4&&current.current.ihold>0&&!!motorEnable?.status.lines.some(l=>l.enabled&&l.emitters.some(id=>id===emitter))});
+   drivers.push({section:driver.model+' '+driver.stepper,monitor,current});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();
+  }}
   for(const [i,b] of plan.buttons.entries()){buttons[i].input.activate(group.commandQueue(b.mcu));active();}
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
