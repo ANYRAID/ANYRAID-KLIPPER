@@ -1,0 +1,44 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "pages": 58,
+    "queries": [
+      "pressure advance",
+      "bed mesh",
+      "运动精度",
+      "SET_PRESSURE_ADVANCE",
+      "not-found-unique-phrase"
+    ],
+    "warmups": 3,
+    "samplesMsPerQuery": [
+      3.278779600000007,
+      3.610706000000005,
+      3.706867199999988,
+      3.2718196000000033,
+      3.256031400000006,
+      3.292391799999996,
+      3.401943200000005
+    ],
+    "medianMsPerQuery": 3.292391799999996,
+    "scope": "Node search computation; browser rendering and fetching excluded"
+  },
+  "browser": "Codex in-app browser",
+  "checks": [
+    "multi-word search returned results",
+    "exact title ranked first after fix (previously twelfth)",
+    "result opened Pressure advance heading",
+    "Back restored search results",
+    "Reload restored URL query and first result",
+    "desktop screenshot inspected"
+  ],
+  "notVerified": [
+    "mobile viewport",
+    "translated pages",
+    "search highlighting",
+    "complete legacy Markdown extension parity"
+  ],
+  "sources": {
+    "host/src/diagnostics/docs-search.ts": "6aae476899d3b8f931fe3827a194888475e99d7b5bfd72b17279f4f707934d91",
+    "host/src/diagnostics/docs-site.ts": "b2dd083aa4a91ca4bb9c3b51ab8adafaba635561774a5297a6327b7d623cf501"
+  }
+}
