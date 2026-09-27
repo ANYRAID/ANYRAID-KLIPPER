@@ -5,10 +5,10 @@ import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {ptyPair} from './pty.ts';
 import {serialFirmware} from './serial-firmware.ts';
 import type {MCUMachinePolicy} from '../../src/runtime/configured-mcu-connections.ts';
-export async function productTransports(reader:ConfigurationReader,buttons=false,tmc=false,spi=false){
+export async function productTransports(reader:ConfigurationReader,buttons=false,tmc=false,spi=false,software=false){
  const tmcState=[0,1].map(()=>({fault:0,statusReads:0,writes:0,counts:new Map<number,number>(),registers:new Map<string,number>()}));
  const spiLatched=[Buffer.alloc(20),Buffer.alloc(20)];
- const pairs=[ptyPair(),ptyPair()],firmware=await Promise.all(pairs.map((p,index)=>serialFirmware(p,{triggerSync:true,stepperBytePins:true,extendedPins:true,buttons,...spi?{spiPins:'PA15,PA16,PA17',tmcSpi:(_oid:number,frame:Uint8Array,read:boolean)=>{
+ const pairs=[ptyPair(),ptyPair()],firmware=await Promise.all(pairs.map((p,index)=>serialFirmware(p,{triggerSync:true,stepperBytePins:true,extendedPins:true,buttons,...spi?{spiSoftware:software?'modern' as const:undefined,spiPins:'PA15,PA16,PA17',tmcSpi:(_oid:number,frame:Uint8Array,read:boolean)=>{
   const state=tmcState[index],previous=spiLatched[index],next=Buffer.alloc(20),bytes=Buffer.from(frame);assert.equal(bytes.length,20);
   for(let offset=0;offset<20;offset+=5){const address=3-offset/5,reg=bytes[offset]&127,key=address+':'+reg;if(bytes[offset]&128){state.registers.set(key,bytes.readUInt32BE(offset+1));state.writes++;}else if(reg===1||reg===0x6f)state.statusReads++;
    const value=reg===1?0:reg===0x6f?(((state.registers.get(address+':16')??0)&0x1f00)<<8)|(state.fault?1<<25:0):state.registers.get(key)??0;next.writeUInt32BE(value>>>0,offset+1);

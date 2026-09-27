@@ -1,0 +1,5 @@
+import {compileTmcSoftwareSpi,tmcSoftwareSpiFormats,tmcSpiFormats} from '../src/drivers/tmc-spi-mcu.ts';
+import {MessageDictionary} from '../src/protocol/dictionary.ts';
+const d=new MessageDictionary(),chip={},pin=(name:string)=>({chip,chipName:'mcu',pin:name,invert:0 as const,pullup:0 as const}),bus=[pin('PA1'),pin('PA2'),pin('PA3')],cs=pin('PA0');
+d.identify(Buffer.from(JSON.stringify({commands:{[tmcSpiFormats.config]:10,[tmcSpiFormats.send]:11,[tmcSpiFormats.transfer]:12,[tmcSoftwareSpiFormats.modern]:13},responses:{[tmcSpiFormats.response]:14},enumerations:{pin:{PA0:0,PA1:1,PA2:2,PA3:3}},config:{CLOCK_FREQ:72000000}})),false);
+const samples:number[]=[];for(let batch=0;batch<9;batch++){const start=performance.now();for(let i=0;i<1000;i++)compileTmcSoftwareSpi(chip,d,0,cs,bus);if(batch>=2)samples.push(performance.now()-start);}samples.sort((a,b)=>a-b);console.log(JSON.stringify({node:process.version,configurations:1000,warmups:2,batches:7,medianMs:samples[3],maxMs:samples[6],scope:'Software SPI pin validation, firmware format lookup and command encoding; no bit timing or MCU I/O'},null,2));

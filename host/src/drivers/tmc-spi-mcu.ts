@@ -12,11 +12,21 @@ export function compileTmcSpi<T>(chip:T,d:MessageDictionary,oid:number,cs:PinBin
  const select=`config_spi oid=${oid} pin=${cs.pin} cs_active_high=0`,configureBus=`spi_set_bus oid=${oid} spi_bus=${bus} mode=3 rate=${rate}`;d.encodeCommand(select);d.encodeCommand(configureBus);
  return Object.freeze({oid,rate,select,configureBus});
 }
+export const tmcSoftwareSpiFormats={modern:'spi_set_sw_bus oid=%c miso_pin=%u mosi_pin=%u sclk_pin=%u mode=%u pulse_ticks=%u',legacy:'spi_set_software_bus oid=%c miso_pin=%u mosi_pin=%u sclk_pin=%u mode=%u rate=%u'} as const;
+export function compileTmcSoftwareSpi<T>(chip:T,d:MessageDictionary,oid:number,cs:PinBinding<T>,bus:readonly PinBinding<T>[],rate=4000000){
+ if(!Number.isInteger(oid)||oid<0||oid>254||!Number.isInteger(rate)||rate<100000||rate>0xffffffff||bus.length!==3||[cs,...bus].some(p=>p.chip!==chip||!p.pin||/[\s^~!:]/u.test(p.pin)||p.invert!==0||p.pullup!==0))throw new Error('Invalid TMC software SPI configuration');
+ for(const key of ['config','send','transfer','response'] as const)d.lookup(tmcSpiFormats[key]);
+ let modern=true;try{d.lookup(tmcSoftwareSpiFormats.modern);}catch{modern=false;d.lookup(tmcSoftwareSpiFormats.legacy);}
+ const frequency=Number(d.constant('CLOCK_FREQ')),pulseTicks=Math.trunc((1/rate)*frequency);
+ if(!Number.isFinite(frequency)||frequency<=0||frequency>1e9||pulseTicks<0||pulseTicks>0xffffffff)throw new RangeError('Invalid software SPI clock');
+ const select=`config_spi oid=${oid} pin=${cs.pin} cs_active_high=0`,configureBus=`${modern?'spi_set_sw_bus':'spi_set_software_bus'} oid=${oid} miso_pin=${bus[0].pin} mosi_pin=${bus[1].pin} sclk_pin=${bus[2].pin} mode=3 ${modern?'pulse_ticks='+pulseTicks:'rate='+rate}`;d.encodeCommand(select);d.encodeCommand(configureBus);
+ return Object.freeze({oid,rate,select,configureBus});
+}
 const owners=new WeakMap<SerialSession,Map<number,TmcSpiChain>>();
 export function sessionTmcSpi(session:SerialSession,oid:number,length=1):TmcSpiChain{
  session.assertActive();if(!Number.isInteger(oid)||oid<0||oid>254||!Number.isInteger(length)||length<1||length>10)throw new RangeError('Invalid TMC SPI chain');
  let chains=owners.get(session);const existing=chains?.get(oid);if(existing){if(existing.length!==length)throw new Error('Inconsistent TMC SPI chain length');return existing;}
- const d=session.dictionary;for(const format of Object.values(tmcSpiFormats))d.lookup(format);const queue=session.commandQueue();
+ const d=session.dictionary;for(const key of ['config','send','transfer','response'] as const)d.lookup(tmcSpiFormats[key]);const queue=session.commandQueue();
  const chain=new TmcSpiChain({async transfer(preface,data,minClock,signal){
   session.assertActive();const send=d.encode('spi_send',{oid,data:preface}),query=d.encode('spi_transfer',{oid,data});
   try{
