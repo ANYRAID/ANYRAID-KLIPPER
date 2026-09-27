@@ -43,6 +43,7 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
  };
  try{
   const motion=bindNativeFileMotion(port,o.parking,{...lifecycle,prepare:(request,signal)=>gcode.prepareForPrint(startupHoming,s=>{gcode.layers.reset(request.requestId);gcode.display.reset();return lifecycle.prepare(request,s);},signal),finishOutputs:async(id,signal)=>{
+   gcode.objects?.finish();
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
   }},()=>gcode.coordinates.extrusionAccounting.setActive(true));

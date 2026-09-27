@@ -1,6 +1,7 @@
 import type {NativeBedMeshConfiguration} from '../config/native-bed-mesh.ts';
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
+import {ObjectCommands} from '../gcode/object-commands.ts';
 import {FirmwareRetraction,type RetractionSettings} from '../gcode/retraction.ts';
 import {DisplayStatus} from '../gcode/display-status.ts';
 import {PrintLayerInfo} from '../gcode/print-layer-info.ts';
@@ -21,12 +22,13 @@ export class NativeLinearGCode {
  readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand;
  readonly layers=new PrintLayerInfo();
  readonly display=new DisplayStatus();
+ readonly objects:ObjectCommands|undefined;
  readonly retraction:FirmwareRetraction|undefined;
  readonly pressureAdvance:PressureAdvancePort|undefined;
  readonly bedMeshStatus:(()=>Readonly<Record<string,import('../moonraker/rpc.ts').Json>>)|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration,excludeObjects=false){
   if(pressureBinding){
    const {stepper,name}=pressureBinding;
    if(typeof name!=='string'||!name.trim()||name.length>256||name.includes('\0'))throw new Error('Invalid pressure advance object name');
@@ -53,6 +55,7 @@ export class NativeLinearGCode {
    },{drainBefore:true});
   }
   this.layers.register(this.dispatch);
+  if(excludeObjects){this.objects=new ObjectCommands(this.coordinates,port);this.objects.register(this.dispatch);}
   this.display.register(this.dispatch);
   this.retraction?.register(this.dispatch,this.coordinates);
   bindVelocityCommands(this.dispatch,port);
@@ -77,7 +80,7 @@ export class NativeLinearGCode {
   const mode=policy.mode,axes=[...policy.axes];
   if(!['home','require_homed'].includes(mode)||!axes.length||axes.length>3||new Set(axes).size!==axes.length||axes.some(a=>!Number.isInteger(a)||a<0||a>2))return Promise.reject(new Error('Invalid print homing policy'));
   return this.dispatch.runExclusive(async s=>{
-   this.#port.assertActive();await prepare(s);s.throwIfAborted();this.#port.assertActive();
+   this.#port.assertActive();this.objects?.reset();await prepare(s);s.throwIfAborted();this.#port.assertActive();
    if(mode==='home')await this.homing.home(axes,s);
    if(axes.some(a=>!this.#kinematics.status.homedAxes.includes('xyz'[a])))throw new Error('Print requires homed axes');
    s.throwIfAborted();this.enable();

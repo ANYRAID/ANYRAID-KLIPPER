@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "7077655f",
+  "sourceSha256": {
+    "host/src/gcode/object-commands.ts": "577fdcd3bc281ddf6954ca8c12283ceefd48bc1960aed183f9a2fc06d761396f",
+    "host/src/runtime/native-linear-gcode.ts": "9507726c96a32a860c846e4e20e4457ab404d0a42ccc21e6eb5271926732a6d9",
+    "host/src/operations/native-linear-print.ts": "72b0b71b5589f837b11db43c88e6a438f43aa81786004123702231ed97e3c4e1",
+    "host/test/object-commands.test.ts": "66783c18f612aa1b8ff42459895e9497322982c77e68b91afefe85c1eccd96e4",
+    "host/test/object-print.test.ts": "6069fe3bece6c145485d0fa1ef7645639e577cbc3a665353992a3f44d7e5444c",
+    "host/test/helpers/native-linear-print.ts": "e7c54f44b5fec07b696f5e7d7b2920c1bc29ad21d96ca2456d06fbb8c940859e",
+    "host/bench/object-commands.ts": "5dfa4079d7c456c69aebfa4bd24082bb17f93d200ee76538dca418cffbd6ba40"
+  },
+  "validation": {
+    "regressions": 36,
+    "typecheck": "passed",
+    "nativeSimulatedFile": true,
+    "automaticConfiguration": false,
+    "typedCancellationAPI": false,
+    "realHardware": false
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "commands": 3001,
+    "admittedMoves": 503,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 7.830435999999992,
+    "p95Ms": 11.879083999999978,
+    "scope": "Actual extended-command parsing, dispatch, object metadata and coordinate transform; in-memory port, no planner or hardware"
+  },
+  "logSha256": "4df56a8eab43f0c9427a2c2e23173a5ba8a11d22adb5c7a357f48204e11ea1d4",
+  "limitations": [
+    "Automatic configuration still rejects exclude_object",
+    "Typed cancellation API and object publishing remain incomplete",
+    "Pause/resume and bed mesh combination acceptance remains incomplete",
+    "Original Python module retained",
+    "Historical runtime crashes and numerical mismatches unresolved"
+  ]
+}
