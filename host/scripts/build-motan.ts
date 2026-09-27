@@ -1,6 +1,6 @@
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdir,mkdtemp,readFile,writeFile,readdir,rename,rm,access,lstat} from 'node:fs/promises';
+import {cp,copyFile,mkdir,mkdtemp,readFile,writeFile,readdir,rename,rm,access,lstat} from 'node:fs/promises';
 import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 const host=fileURLToPath(new URL('..',import.meta.url));
@@ -19,12 +19,13 @@ export async function buildMotan(output=join(host,'build/motan'),config=join(hos
   stage=await mkdtemp(join(parent,'.motan-build-'));
   const result=spawnSync(process.execPath,[join(host,'node_modules/typescript/bin/tsc'),'-p',resolve(config),'--outDir',stage],{stdio:'pipe',encoding:'utf8',timeout:60000,maxBuffer:4*1024**2});
   if(result.error||result.status!==0)throw new Error('Motan TypeScript build failed: '+(result.error?.message??result.stdout+result.stderr));
-  for(const entry of ['scripts/motan/data_export.js','host/src/motan/analysis-worker.js'])await access(join(stage,entry));
+  for(const entry of ['scripts/motan/data_export.js','scripts/motan/motan_graph.js','host/src/motan/analysis-worker.js'])await access(join(stage,entry));
   const project=JSON.parse(await readFile(join(host,'package.json'),'utf8'));
-  await writeFile(join(stage,'package.json'),JSON.stringify({type:'module',private:true,engines:project.engines,dependencies:{'complex.js':project.dependencies['complex.js']}},null,2)+'\n');
+  await writeFile(join(stage,'package.json'),JSON.stringify({name:project.name,type:'module',private:true,engines:project.engines,dependencies:project.dependencies},null,2)+'\n');
   await writeFile(join(stage,'COPYING'),await readFile(join(host,'../COPYING')));
-  await mkdir(join(stage,'host/licenses'),{recursive:true});
-  await writeFile(join(stage,'host/licenses/scipy-signal.txt'),await readFile(join(host,'licenses/scipy-signal.txt')));
+  await copyFile(join(host,'package-lock.json'),join(stage,'package-lock.json'));
+  await cp(join(host,'licenses'),join(stage,'host/licenses'),{recursive:true});
+  await cp(join(host,'assets'),join(stage,'host/assets'),{recursive:true});
   const files:Record<string,string>={};
   const inventory=async(dir:string):Promise<void>=>{for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)){const path=join(dir,entry.name);if(entry.isDirectory())await inventory(path);else files[relative(stage!,path).replaceAll('\\','/')]=createHash('sha256').update(await readFile(path)).digest('hex');}};
   await inventory(stage);

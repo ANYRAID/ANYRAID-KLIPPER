@@ -124,6 +124,12 @@ Motan 运动数据采集入口已切换为
 输出文件必须不存在，重复采集请使用新前缀。Motan 后续分析和绘图
 尚未全部迁移，性能与剩余范围见迁移说明。
 
+Motan CSV 和图表均可使用独立编译包，包含 worker、字体、许可证和锁定
+依赖。复制到仓库外后运行 `npm ci --omit=dev --include=optional --ignore-scripts`，
+即可用 Node 执行 `scripts/motan/motan_graph.js` 和 `data_export.js`，无需
+Python 或 TS 运行时。构建会替换目标目录，捕获和输出文件应放在目录外。
+具体命令及未迁移样式见[调试说明](docs/Debugging.md#motion-analysis-and-data-logging)。
+
 Motan CSV 推荐使用预编译入口以减少启动开销。安装 `host/` 依赖后，
 先运行 `npm --prefix host run build:motan`，再执行
 `node host/build/motan/scripts/motan/data_export.js capture -c '["trapq(toolhead,x)"]' -o motion.csv`。

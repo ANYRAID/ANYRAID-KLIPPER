@@ -112,7 +112,7 @@ Klipper supports logging its internal motion history, which can be
 later analyzed. To use this feature, Klipper must be started with the
 [API Server](API_Server.md) enabled.
 
-Data logging is enabled with the `data_logger.py` tool. For example:
+Data logging is enabled with the `data_logger.ts` tool. For example:
 ```
 node ~/klipper/scripts/motan/data_logger.ts /tmp/klippy_uds mylog -s '*'
 ```
@@ -123,7 +123,7 @@ generated - a compressed data file and an index file (eg,
 `mylog.json.gz` and `mylog.index.gz`). After starting the logging, it
 is possible to complete prints and other actions - the logging will
 continue in the background. When done logging, hit `ctrl-c` to exit
-from the `data_logger.py` tool.
+from the `data_logger.ts` tool.
 
 The captures can also be plotted with Node.js 26 after installing the host
 dependencies. The Node tool reads both capture files and runs analysis in a
@@ -135,6 +135,25 @@ node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.html
 node ~/klipper/scripts/motan/motan_graph.ts mylog -d .5 --segment-time .0001 -o motion.png -g '[["trapq(toolhead,velocity)?color=green"],["trapq(toolhead,accel)?color=tab:blue&ls=--"]]'
 node ~/klipper/scripts/motan/motan_graph.ts -l
 ```
+
+For a standalone compiled package, build it while no exports are running,
+copy the generated directory outside the repository, and install its locked
+runtime dependencies with the target Node.js 26.9+ 26.x runtime:
+
+```sh
+npm --prefix ~/klipper/host run build:motan -- /absolute/motan-package
+cd /absolute/motan-package
+npm ci --omit=dev --include=optional --ignore-scripts
+node --no-experimental-strip-types scripts/motan/motan_graph.js /absolute/mylog -o /absolute/motion.pdf
+node --no-experimental-strip-types scripts/motan/data_export.js /absolute/mylog -c '["trapq(toolhead,x)"]' -o /absolute/motion.csv
+```
+
+The bundle contains both CLIs, the analysis worker, fonts and licenses,
+and the host's locked production dependency set. Keep captures and exports
+outside the generated directory: rebuilding replaces it, including installed
+dependencies. Install dependencies again after a rebuild. The package does
+not require Python or a TypeScript runtime loader. Native image dependencies
+must support the target platform; current standalone verification is on Linux x64.
 
 Output is required: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, or complete JSON
 panels. HTML provides offline zoom, pan and curve toggles. Supported styles
@@ -199,7 +218,7 @@ options - use the `--help` option to see a list. It may also be
 convenient to view/modify the
 [motan_graph.py](../scripts/motan/motan_graph.py) script itself.
 
-The raw data logs produced by the `data_logger.py` tool follow the
+The raw data logs produced by the `data_logger.ts` tool follow the
 format described in the [API Server](API_Server.md). It may be useful
 to inspect the data with a Unix command like the following:
 `gunzip < mylog.json.gz | tr '\03' '\n' | less`
