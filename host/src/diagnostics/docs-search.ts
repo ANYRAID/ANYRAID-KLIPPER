@@ -20,3 +20,20 @@ export function searchDocs(entries: DocsSearchEntry[], query: string): DocsSearc
   return matches.sort((a, b) => b.score - a.score || a.index - b.index)
     .slice(0, 50).map((match) => match.entry);
 }
+
+export function highlightDocs(text: string, query: string): { text: string; match: boolean }[] {
+  const terms = [...new Set(query.trim().slice(0, 512).split(/\s+/u).filter(Boolean))]
+    .sort((a, b) => b.length - a.length)
+    .map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!terms.length) return [{ text, match: false }];
+  const pattern = new RegExp(terms.join('|'), 'giu');
+  const parts: { text: string; match: boolean }[] = [];
+  let position = 0;
+  for (const match of text.matchAll(pattern)) {
+    if (match.index > position) parts.push({ text: text.slice(position, match.index), match: false });
+    parts.push({ text: match[0], match: true });
+    position = match.index + match[0].length;
+  }
+  if (position < text.length) parts.push({ text: text.slice(position), match: false });
+  return parts;
+}

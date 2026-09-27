@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
-import { searchDocs } from '../src/diagnostics/docs-search.ts';
+import { searchDocs, highlightDocs } from '../src/diagnostics/docs-search.ts';
 import { renderDocsPage } from '../src/diagnostics/docs-render.ts';
 const fixture = JSON.parse(gunzipSync(readFileSync(new URL('../contracts/docs-markdown-reference.json.gz', import.meta.url))).toString());
 const entries = fixture.cases.filter((item: { name: string }) => item.name.startsWith('docs/'))
@@ -14,9 +14,14 @@ const queries = ['pressure advance', 'bed mesh', '运动精度', 'SET_PRESSURE_A
 const samplesMs: number[] = [];
 for (let run = 0; run < 10; run++) {
   const start = performance.now();
-  for (const query of queries) searchDocs(entries, query);
+  for (const query of queries) {
+    for (const result of searchDocs(entries, query)) {
+      highlightDocs(result.title, query);
+      highlightDocs(result.text.slice(0, 240), query);
+    }
+  }
   if (run >= 3) samplesMs.push((performance.now() - start) / queries.length);
 }
 console.log(JSON.stringify({ node: process.version, pages: entries.length, queries,
   warmups: 3, samplesMsPerQuery: samplesMs, medianMsPerQuery: samplesMs.toSorted((a, b) => a - b)[3],
-  scope: 'Node search computation; browser rendering and fetching excluded' }, null, 2));
+  scope: 'Node search and highlight segmentation; DOM rendering and fetching excluded' }, null, 2));

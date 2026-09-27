@@ -2,7 +2,8 @@ import { mkdir, readdir, readFile, writeFile, copyFile, realpath } from 'node:fs
 import { resolve, dirname, join, sep } from 'node:path';
 import { parseDocument } from 'yaml';
 import { docsLabels, type DocsLabels } from './docs-labels.ts';
-import { searchDocs } from './docs-search.ts';
+import { startDocsSearch } from './docs-search-browser.ts';
+import { searchDocs, highlightDocs } from './docs-search.ts';
 import { renderDocsPage, docsLink, type DocsPage } from './docs-render.ts';
 
 const escape = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
@@ -29,7 +30,9 @@ function navigation(value: unknown, pages: Map<string, DocsPage>, prefix: string
 
 const stylesheet = `:root{color-scheme:light dark;font:16px/1.6 system-ui,sans-serif}*{box-sizing:border-box}body{margin:0}a{color:light-dark(#175c9c,#80bfff)}header{padding:1rem 2rem;border-bottom:1px solid #8885;display:flex;gap:1rem;align-items:center;flex-wrap:wrap}header a{font-weight:700}input{font:inherit;padding:.4rem}#layout{display:grid;grid-template-columns:19rem minmax(0,1fr) 15rem;gap:2rem;max-width:100rem;margin:auto;padding:2rem}nav,aside{font-size:.9rem;overflow-wrap:anywhere}nav ul{list-style:none;padding-left:1rem}nav>ul{padding:0}main{min-width:0}pre{overflow:auto;padding:1rem;background:light-dark(#f1f3f5,#20272e)}code{font-family:monospace}table{display:block;overflow:auto;border-collapse:collapse}td,th{padding:.4rem .8rem;border:1px solid #8886}img{max-width:100%;height:auto;background:white}.center-image{display:block;margin:auto}h1,h2,h3,h4{scroll-margin-top:1rem}#results{padding:0 2rem;max-width:70rem;margin:auto}#results:empty{display:none}#results li{margin:1rem 0}#results p{margin:0}.skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;background:Canvas;padding:1rem}@media(max-width:1000px){#layout{grid-template-columns:15rem minmax(0,1fr)}aside{display:none}}@media(max-width:700px){#layout{display:block;padding:1rem}nav{max-height:14rem;overflow:auto;border-bottom:1px solid #8885;margin-bottom:2rem}header{padding:1rem}input{max-width:100%}}`;
 
-const searchScript = (labels: DocsLabels) => `const labels=${JSON.stringify(labels)};const searchDocs=${searchDocs.toString()};const form=document.querySelector('#search');const input=form.querySelector('input');const results=document.querySelector('#results');let indexPromise;let generation=0;async function search(){const current=++generation;const query=input.value.trim();results.replaceChildren();const url=new URL(location.href);if(query)url.searchParams.set('q',query);else url.searchParams.delete('q');history.replaceState(null,'',url);if(!query)return;try{indexPromise??=fetch(new URL('search.json',document.currentScript?.src||new URL(form.dataset.root,location.href))).then(r=>{if(!r.ok)throw Error('Search unavailable');return r.json()});const entries=await indexPromise;if(current!==generation)return;const terms=query.toLocaleLowerCase().split(/\\s+/u);let count=0;const list=document.createElement('ol');for(const entry of searchDocs(entries,query)){const li=document.createElement('li');const a=document.createElement('a');a.href=form.dataset.root+entry.url;a.textContent=entry.title;li.append(a);const p=document.createElement('p');const at=entry.text.toLocaleLowerCase().indexOf(terms[0]);p.textContent=entry.text.slice(Math.max(0,at-70),Math.max(0,at-70)+240);li.append(p);list.append(li);if(++count===50)break}results.textContent=count?labels.results:labels.empty;results.append(list)}catch{indexPromise=undefined;if(current===generation)results.textContent=labels.failed}}form.addEventListener('submit',event=>{event.preventDefault();search()});input.value=new URL(location.href).searchParams.get('q')||'';if(input.value)search();`;
+const searchScript = (labels: DocsLabels) =>
+  `(${startDocsSearch.toString()})(${JSON.stringify(labels)},${searchDocs.toString()},${highlightDocs.toString()});`;
+
 
 export async function buildDocsSite(options: SiteBuildOptions): Promise<{ pages: number; assets: number }> {
   const docs = await realpath(options.docs);
