@@ -22,8 +22,13 @@
   两项回归通过，10000 次受校验转换及路径规划中位 2.839 ms，
   最大 4.344 ms，不含硬件运动或用户等待。参考位于
   `host/contracts/bed-screws-reference.json`，基准为
-  `host/bench/bed-screws.ts`。配置、产品接口与硬件执行尚未接入，
-  旧 Python 未退役。
+  `host/bench/bed-screws.ts`。旧 Python 未退役。
+- `bed_screws` 配置及 `/printer/calibration/bed_screws` 已接入产品
+  服务：连续编号的粗调点、可选精调点和 Z 高度在启动前校验，POST
+  采用 `version:1`、`state_token`、`action:start|accept|adjusted|cancel`。
+  会话保留维护锁，成功重试不重复移动，状态在移动完成后发布；取消、
+  超时及运动失败停机并要求重新初始化。四项状态／配置／接口回归
+  通过，真实 HTTP、编译产品及真机执行验收仍待完成。
 - 螺丝测量现发布 `screws_tilt_adjust` 对象，包含阶段、偏差阈值和
   每点建议。新测量和失败清除旧建议，服务重建回到空结果。六项状态／
   接口回归及自动、手动两条编译产品流程通过，实际对象查询与操作
