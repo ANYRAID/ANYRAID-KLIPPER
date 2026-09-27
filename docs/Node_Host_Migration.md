@@ -43,8 +43,19 @@ Motan 读取器与分发器的 16 项回归现使用原 Python 生成的固定 g
 仅运行 Node，历史 Python 耗时留在上一份验收记录，避免冒充实时对照。
 独立重测的小记录／大记录批量中位为 53.344／49.329 ms。首次与类型
 检查并行的计时存在干扰，因此验收采用单独重测；生产读取实现未改变。
-其他 Motan Python 对照辅助函数和基准仍待清理，详见
+其他 Motan Python 对照辅助函数仍待清理，详见
 [读取回归脱离 Python](../host/contracts/motan-reader-python-free-acceptance.json)。
+
+Motan 分发与日志写入基准也已去掉 Python／Git 子进程，均在
+`PATH=/no-programs` 下完成。分发校验和同时对照原 Python 固定结果与
+按输入工作量独立求和，写入继续逐字节校验解压后的全部记录及刷新
+边界。原 Python 耗时独立保存在历史基线文件，避免与本轮 Node 测量
+混淆。小记录分发 Node 中位 126.070 ms，清理前 124.941 ms，原
+Python 109.761 ms，约慢 14–15%，该性能差距仍未解决；大记录分发
+Node 288.035 ms、原 Python 453.590 ms。小记录逐条异步写入也比
+Python 同步写入慢，采集应继续使用已经接入的批量路径。此轮未修改
+运行时算法，不能把基准去依赖描述成性能优化。完整结果见
+[IO 基准脱离 Python](../host/contracts/motan-io-benchmark-python-free.json)。
 
 温控风扇的纯控制层现支持水印与 PID：480 个原 Python 实际输出样本
 逐项比对了调度时间、占空比、导数和积分状态，6 项边界测试通过。
