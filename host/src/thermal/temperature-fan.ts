@@ -8,6 +8,7 @@ function validate(s:TemperatureFanSettings):void{
 /** Sample-clock control only. Runtime must own sensor freshness, output MCU
  * scheduling and shutdown cooling; this class does not authorize PWM itself. */
 export class TemperatureFanControl {
+ #revision=0;
  #settings:TemperatureFanSettings;#algorithm:TemperatureFanAlgorithm;#delay:number;#time=0;#temperature=25;#derivative=0;#integral=0;#integralMax=0;#heating=false;#next=0;#speed=0;
  constructor(settings:TemperatureFanSettings,algorithm:TemperatureFanAlgorithm,reportDelay:number){
   validate(settings);if(!Number.isFinite(reportDelay)||reportDelay<=0)throw new RangeError('Invalid temperature fan report delay');
@@ -17,12 +18,13 @@ export class TemperatureFanControl {
   this.#settings={...settings};this.#algorithm={...algorithm};this.#delay=reportDelay;
  }
  get reportDelay(){return this.#delay;}
+ get revision(){return this.#revision;}
  get settings(){return Object.freeze({...this.#settings});}
  get state(){return {time:this.#time,temperature:this.#temperature,derivative:this.#derivative,integral:this.#integral,heating:this.#heating,scheduledSpeed:this.#speed};}
  /** Validate the entire request before changing any field. */
  configure(update:Partial<Pick<TemperatureFanSettings,'target'|'minimumSpeed'|'maximumSpeed'>>):void{
   if(Object.keys(update).some(k=>!['target','minimumSpeed','maximumSpeed'].includes(k)))throw new RangeError('Unknown temperature fan setting');
-  const next={...this.#settings,...update};validate(next);if(this.#algorithm.kind==='watermark'&&!Number.isFinite(next.target+this.#algorithm.delta))throw new RangeError('Fan hysteresis overflow');this.#settings=next;
+  const next={...this.#settings,...update};validate(next);if(this.#algorithm.kind==='watermark'&&!Number.isFinite(next.target+this.#algorithm.delta))throw new RangeError('Fan hysteresis overflow');if(this.#revision===Number.MAX_SAFE_INTEGER)throw new Error('Temperature fan revision exhausted');this.#settings=next;this.#revision++;
  }
  sample(time:number,temperature:number):{time:number;speed:number}|undefined{
   const s=this.#settings,a=this.#algorithm;

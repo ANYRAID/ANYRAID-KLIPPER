@@ -120,6 +120,14 @@ test('temperature fan product object combines live temperature, target and cooli
   const end=performance.now()+2000;while(owner.printer.hardware.fans.find(f=>f.section===section)!.runtime.status.speed!==0){assert(performance.now()<end);await delay(5);}
   const response=await fetch(`http://127.0.0.1:${owner.address.port}/printer/objects/query?temperature_fan%20chamber&heaters`,{headers:{'x-api-key':'test'}}),result=(await response.json() as any).result.status;
   assert.deepEqual(result[section],{temperature:25,target:40,speed:0,rpm:null});assert(result.heaters.available_sensors.includes(section));assert(f.firmware.every(f=>f.motion.length===0));
+  const url=`http://127.0.0.1:${owner.address.port}/printer/settings/temperature_fan`,headers={'x-api-key':'test','content-type':'application/json'};
+  const get=await fetch(url+'?name='+encodeURIComponent(section),{headers}),state=(await get.json() as any).result;
+  const request={name:section,version:1,state_token:state.state_token,target:20,min_speed:.2,max_speed:.6};
+  assert.equal((await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(request)})).status,401);
+  const post=await fetch(url,{method:'POST',headers,body:JSON.stringify(request)}),receipt=(await post.json() as any).result;assert.equal(post.status,200);assert.equal(receipt.target,20);
+  const retry=await fetch(url,{method:'POST',headers,body:JSON.stringify(request)});assert.deepEqual((await retry.json() as any).result,receipt);
+  const deadline=performance.now()+2500;while(owner.printer.hardware.fans.find(f=>f.section===section)!.runtime.status.speed!==.6){assert(performance.now()<deadline);await delay(5);}
+  const rejected=await fetch(url,{method:'POST',headers,body:JSON.stringify({...request,state_token:receipt.state_token,target:30,min_speed:.9})});assert.equal(rejected.status,400);assert.equal(owner.printer.hardware.temperatureFans[0].control.settings.target,20);
  }finally{await owner?.close();await f.dispose();}
 });
 test('native object queries expose actual coordinate state and configured sensors without movement',async()=>{

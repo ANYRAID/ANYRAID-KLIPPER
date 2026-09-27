@@ -11,6 +11,7 @@ import {registerNativeBedTiltSave} from '../moonraker/native-bed-tilt.ts';
 import {registerNativeEndstopPhase} from '../moonraker/native-endstop-phase.ts';
 import {registerNativeDriverCurrent} from '../moonraker/native-driver-current.ts';
 import {registerNativeIdleSettings} from '../moonraker/native-idle-settings.ts';
+import {registerNativeTemperatureFans} from '../moonraker/native-temperature-fan.ts';
 import {readProbeGrid} from '../config/probe-grid.ts';
 import {readNativeBedMesh} from '../config/native-bed-mesh.ts';
 import {registerNativeProbe} from '../moonraker/native-probe.ts';
@@ -51,6 +52,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  signal.throwIfAborted();const zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
  let closeQuad:(()=>Promise<void>)|undefined;
+ let closeTemperatureFans:(()=>void)|undefined;
  let closeZTilt:(()=>Promise<void>)|undefined;
  let closeZAdjustment:(()=>Promise<void>)|undefined;
  let closeObjectCancellation:(()=>void)|undefined;
@@ -64,6 +66,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  const close=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
   closeIdleSettings?.();
+  closeTemperatureFans?.();
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
@@ -91,6 +94,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   });
   closeEndstopPhase=registerNativeEndstopPhase(server.endpoints,printer.maintenanceGate,{snapshot:()=>printer.linear.port.endstopPhaseCalibration(),idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy},product.configurationSession);
   closeIdleSettings=registerNativeIdleSettings(server.endpoints,printer.idleTimeout,()=>!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance);
+  closeTemperatureFans=registerNativeTemperatureFans(server.endpoints,printer.hardware.temperatureFans,()=>!closing&&printer.hardware.status.state==='ready'&&!printer.maintenanceGate.status.closed&&!printer.maintenanceGate.status.maintenance&&!printer.controller.safeStopPending);
   if(product.configurationSession)closeConfiguration=registerNativeConfiguration(server.endpoints,product.configurationSession,printer.maintenanceGate,new BedMeshProfiles(reader),{current:()=>printer.linear.port.currentBedMesh(),idle:()=>['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves});
   closeHome=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,measure:async s=>{await printer.print.gcode.homing.home([0,1,2],s);return {homed_axes:printer.linear.kinematics.status.homedAxes,position:[...printer.linear.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'home');
   const tilt=readBedTilt(reader),tiltIdle=()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves&&printer.linear.kinematics.status.homedAxes==='xyz';

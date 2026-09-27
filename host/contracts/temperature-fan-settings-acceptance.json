@@ -1,0 +1,29 @@
+{
+  "node": "26.9.0",
+  "scope": "Versioned runtime settings and authenticated HTTP with simulated MCU PWM",
+  "tests": 17,
+  "httpScenarios": 1,
+  "checks": [
+    "Authorization precedes settings mutation",
+    "Target and min/max speed validate and commit atomically",
+    "Omitted target is preserved",
+    "Repeated request returns its original receipt; conflicting or stale requests fail",
+    "External changes including change-and-restore invalidate tokens",
+    "Maintenance, close, reload and delayed authorization cannot retain stale authority",
+    "HTTP update changes cooling PWM on a subsequent temperature sample"
+  ],
+  "benchmark": {
+    "updates": 10000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 24.213542000000018,
+    "maxMs": 25.82587000000001,
+    "scope": "Registry dispatch, state tokens, validation and receipts; no HTTP transport or sensor/PWM IO"
+  },
+  "limitations": [
+    "Settings receipt is not physical output acknowledgement",
+    "Settings are runtime-only and reset on reload",
+    "SPI fan combination, compiled loaded printing and hardware acceptance remain pending",
+    "No Python retired; historical Node crashes and motion numerical mismatches remain unresolved"
+  ]
+}

@@ -1504,3 +1504,24 @@ POST 仅传 version: 1 和当前 state_token。新限位等于已加载限位减
 与前后交替性能样本。`npm --prefix host run bench:gcode` 现在读取固定
 原 Python 参考，校验 12,000 个状态和 3,500 次移动，不再执行 Python。
 不同 CPU 的历史耗时只作参考，不作为目标板速度通过证据。
+
+## 温控风扇设置
+
+原生配置支持 `[temperature_fan chamber]` 的 `watermark` 或 `pid`
+控制，必须配置 `min_temp`、`max_temp`、输出 `pin` 和温度源。
+`target_temp` 默认不高于 40°C，`min_speed` 默认 0.3，`max_speed`
+默认 1；最小速度不得大于最大速度。目标不大于零时关闭控制输出。
+输出仍受 `max_power`、`off_below` 和启动加速设置约束。
+
+鉴权后 GET `/printer/settings/temperature_fan` 列出风扇设置；加上
+`name=temperature_fan%20chamber` 查询单项。POST 传完整配置节名 `name`、
+`version: 1`、GET 返回的 `state_token`，以及 `target`、`min_speed`、
+`max_speed` 中至少一项。数值整组校验，省略字段保留原值。响应中的
+`applies_to: next_temperature_sample` 表示控制设置已接受，输出在下一次
+有效采样后调度，不代表引脚已经改变；通过对象查询观察温度、目标和速度。
+
+最近一次相同令牌与相同请求可重试并取得原回执；更旧请求、冲突重试、
+重载前令牌均拒绝。其他修改即使改回原值，也会使旧令牌失效。
+维护及停止期间拒绝修改。设置不持久化，重载恢复配置文件值。
+目前 ADC 跨 MCU、主机文件和 HTTP 流程通过模拟验收；SPI 风扇组合、
+编译产品并发打印负载与真机验收仍待完成。
