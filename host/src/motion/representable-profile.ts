@@ -1,14 +1,34 @@
 import type {Move,Trapezoid} from './lookahead.ts';
 const bits=new DataView(new ArrayBuffer(8));
 function spacing(value:number):number{value=Math.abs(value);bits.setFloat64(0,value);bits.setBigUint64(0,bits.getBigUint64(0)+1n);return bits.getFloat64(0)-value;}
-/** A one-sided trapezoid may contain a phase shorter than the absolute clock
- * can represent. Replace it only with an endpoint-exact constant acceleration,
- * bounded by one coordinate ULP and the original acceleration limit. Otherwise
- * leave it to native validation. Never change the planner's logical timeline. */
+/** A trapezoid may contain a phase shorter than the absolute clock
+ * can represent. One-sided replacement preserves exact endpoints; two-sided
+ * plateau folding has an explicit one-ULP / 1e-12 mm endpoint-error ceiling.
+ * Never increase acceleration or change the planner's logical timeline. */
 export function representableProfile(move:Move,time:number):(Trapezoid&{accel:number})|undefined{
  const p=move.profile!;
  const accelEnd=time+p.accelT,cruiseEnd=accelEnd+p.cruiseT;
  if(!(p.cruiseT>0)||!(p.accelT>0&&accelEnd===time||cruiseEnd===accelEnd||p.decelT>0&&cruiseEnd+p.decelT===cruiseEnd))return;
+ // Two real ramps can straddle a plateau whose duration rounds to zero on
+ // the absolute clock. Preserve ramp timing, velocities and acceleration.
+ // Bound both removed travel and native integrated endpoint error to one
+ // coordinate ULP, with a separate 1e-12 mm ceiling for large coordinates.
+ // Logical endpoints remain untouched; this is a bounded representation,
+ // not a claim of bit-identical intermediate geometry.
+ if(cruiseEnd===accelEnd&&p.accelT>0&&p.decelT>0&&accelEnd>time&&cruiseEnd+p.decelT>cruiseEnd){
+  let bounded=true;
+  for(let i=0;i<move.axesR.length;i++){
+   const ratio=move.axesR[i];if(!ratio)continue;
+   const bound=Math.min(spacing(move.startPos[i]),spacing(move.endPos[i]),1e-12);
+   const middle=move.startPos[i]+ratio*(p.startV+.5*move.accel*p.accelT)*p.accelT;
+   const end=middle+ratio*(p.cruiseV-.5*move.accel*p.decelT)*p.decelT;
+   // Extrusion trap rows multiply velocity and acceleration before integration.
+   const eMiddle=move.startPos[i]+(p.startV*ratio+.5*move.accel*ratio*p.accelT)*p.accelT;
+   const eEnd=eMiddle+(p.cruiseV*ratio-.5*move.accel*ratio*p.decelT)*p.decelT;
+   if(!Number.isFinite(end)||Math.abs(end-move.endPos[i])>bound||i>=3&&(!Number.isFinite(eEnd)||Math.abs(eEnd-move.endPos[i])>bound)||p.cruiseV*p.cruiseT*Math.abs(ratio)>bound)bounded=false;
+  }
+  if(bounded)return {...p,cruiseT:0,accel:move.accel};
+ }
  const accelerating=p.decelT===0&&p.startV<p.endV&&p.cruiseV===p.endV;
  const decelerating=p.accelT===0&&p.startV>p.endV&&p.cruiseV===p.startV;
  if(!accelerating&&!decelerating)return;

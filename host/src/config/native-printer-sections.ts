@@ -1,11 +1,12 @@
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {ConfigurationError} from '../moonraker/config-source.ts';
-const single=new Set(['printer','mcu','extruder','heater_bed','fan','board_pins','input_shaper','probe','bltouch','bed_mesh','bed_tilt','safe_z_home','gcode_arcs','firmware_retraction','idle_timeout','endstop_phase']);
+const single=new Set(['printer','mcu','extruder','heater_bed','fan','board_pins','input_shaper','probe','bltouch','bed_mesh','bed_tilt','safe_z_home','gcode_arcs','firmware_retraction','exclude_object','idle_timeout','endstop_phase']);
 const named=/^(?:mcu|board_pins|heater_generic|fan_generic|heater_fan|controller_fan|temperature_sensor|filament_switch_sensor|filament_motion_sensor|thermistor|adc_temperature) \S(?:.*\S)?$/;
 /** Automatic native assembly must account for every declared component.
  * A supported section is not proof that every option has been implemented;
  * individual readers still own option and hardware validation. */
 export function validateNativePrinterSections(reader:ConfigurationReader):void{
+ if(reader.hasSection('exclude_object')&&Object.keys(reader.section('exclude_object').options()).length)throw new ConfigurationError('[exclude_object] does not accept options');
  const sections=reader.sections(),known=new Set(sections);
  const motors=new Set(sections.filter(s=>/^stepper_[xyz](?:[1-9][0-9]*)?$/.test(s)||s==='extruder'));
  const heaters=new Set(sections.filter(s=>s==='extruder'||s==='heater_bed'||s.startsWith('heater_generic ')).map(s=>s.trim().split(/\s+/).at(-1)!));

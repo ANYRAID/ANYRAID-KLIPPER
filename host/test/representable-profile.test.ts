@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
 import {representableProfile} from '../src/motion/representable-profile.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
+test('sub-clock two-ramp plateau has bounded geometry and preserves reference motor counts',()=>{
+ for(const sign of [-1,1])for(const extruder of [false,true]){
+  const axis=extruder?3:0,start=[0,0,0,0],end=[0,0,0,0];start[axis]=sign*2.05;end[axis]=sign*2.06;
+  const m=new Move(motionLimits(100,100),start,end,1);m.accel=100;m.setJunction(0,1,0);const original=structuredClone(m.profile!),time=4.969021999999999,p=representableProfile(m,time)!;
+  assert(p);assert.equal(p.cruiseT,0);assert.equal(p.accelT,original.accelT);assert.equal(p.decelT,original.decelT);assert.equal(p.accel,100);assert.equal(p.cruiseV,original.cruiseV);assert.deepEqual(m.profile,original);assert.equal(representableProfile(m,0),undefined);
+  const counts:bigint[]=[];
+  for(const t of [0,time]){
+   using queue=new TrapQueue();const until=queue.appendPlanned([m],t,extruder?3:undefined);
+   using motor=queue.createStepper({frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',.00125,[start[axis],0,0]);motor.generate(until);counts.push(motor.flush().position);
+   const row=queue.extract(1,t,until+1);const integrated=row[4]+row[7]*(row[2]+.5*row[3]*row[1])*row[1];assert(Math.abs(integrated-end[axis])<=Number.EPSILON*4);
+  }
+  assert.deepEqual(counts,[BigInt(sign*8),BigInt(sign*8)]);
+ }
+ // A coarse clock cannot authorize meaningful cruise removal.
+ const large=new Move(motionLimits(100,100),[1e6,0,0,0],[1e6+.010001,0,0,0],1);large.setJunction(0,1,0);assert.equal(representableProfile(large,1e14),undefined);
+});
 function move(start:number,end:number,a:number,b:number){const m=new Move(motionLimits(100,1000),[start,0,0,0],[end,0,0,0],10);m.setJunction(a,100,b);return m;}
 for(const [start,end,a,b,time] of [[3.78,3.79,100,80.00000000000007,3.1993729999999587],[3.88,3.89,99.99999999999964,100,4.667461912383371],[9.95,9.96,100,79.9999999999983,3.619281999999901]])test(`clock representation preserves endpoints and speeds for ${start} -> ${end}`,()=>{
  const m=move(start,end,a,b),before=structuredClone(m.profile!),p=representableProfile(m,time)!;

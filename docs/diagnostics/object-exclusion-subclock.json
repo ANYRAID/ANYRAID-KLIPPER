@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "887c0c8e",
+  "status": "bounded representation implemented; simulated regressions passed; physical hardware unverified",
+  "node": "26.9.0",
+  "trigger": "First exclusion during native parked pause, resume retained motion, then five 0.01 mm extrusion warmup moves",
+  "profile": {
+    "p": {
+      "startV": 0,
+      "cruiseV": 1,
+      "endV": 0,
+      "accelT": 0.01,
+      "cruiseT": 2.3071822230491534e-16,
+      "decelT": 0.01
+    },
+    "time": 4.969021999999999,
+    "scale": 1.000000000000023,
+    "accel": 99.9999999999977,
+    "accelT": 0.010000000000000231,
+    "decelT": 0.010000000000000231,
+    "start": [
+      51,
+      0,
+      0,
+      2.05
+    ],
+    "end": [
+      51,
+      0,
+      0,
+      2.06
+    ],
+    "ratio": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "oldAccel": 100,
+    "distance": 0.010000000000000231
+  },
+  "observations": [
+    "Reproduced with input shaping/pressure advance disabled and enabled",
+    "Native queue rejects positive cruise duration that does not advance absolute binary64 clock",
+    "Removing cruise or symmetrically redistributing duration did not preserve exact E endpoint in all cases"
+  ],
+  "error": "Motion duration below time resolution",
+  "reproduce": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern=filtered=false host/test/object-print.test.ts",
+  "logSha256": "80dea3259688699c30bbe9d57afccc8d00bd30760c0c22de5d318380c63a7e2a",
+  "resolution": {
+    "method": "Fold unrepresentable plateau only between two representable ramps",
+    "maximumEndpointErrorMm": 1e-12,
+    "maximumCoordinateUlps": 1,
+    "preserved": [
+      "logical endpoint",
+      "ramp durations",
+      "velocities",
+      "acceleration",
+      "absolute end time"
+    ],
+    "tests": "48 relevant regressions; signed XYZ/E native motor counts; filtered and unfiltered parked first-exclusion resume",
+    "doesNotResolve": "Historical transient numerical mismatches or runtime crashes"
+  }
+}

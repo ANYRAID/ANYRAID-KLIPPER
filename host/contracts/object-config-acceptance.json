@@ -1,0 +1,193 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "887c0c8e",
+  "sourceSha256": {
+    "host/src/motion/representable-profile.ts": "04d8c3543e4b548f7993dd3543f26d100553dd09591de9cd00fde22b746349cc",
+    "host/src/config/native-printer-sections.ts": "8f9bff8ca0ef59d5064dadea315e3f2340a087e7780a612bd2ea7a6c167804aa",
+    "host/src/runtime/initial-motion.ts": "239d4ab6106d45ea5b16998f04c48c55785370dc370e485a36eb19d46e4f3192",
+    "host/test/object-print.test.ts": "765070cad2bc7739d830d76ed062251596063042c897598bbec2b1f81f9da3f0",
+    "host/test/representable-profile.test.ts": "c4d31e94b462c7364dcbf2acef070c4e47707cea497bb1b0c82048caa8b18a19",
+    "host/acceptance/product-compiled-journey.test.ts": "42ec998edcd146b0c6917f820760639390b16ed6bd86fce98005a1a510264337"
+  },
+  "regressions": 48,
+  "typecheck": "passed",
+  "compiledLoadedProduct": 1,
+  "metrics": [
+    {
+      "phaseQueries": 3549,
+      "phaseP99Ms": 4.2229109999971115,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 55
+        },
+        {
+          "statusReads": 62,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 791,
+      "historyP99Ms": 10.09650700000202,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 8.516012000000046,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.831825999999637,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 6.639944000000469,
+      "metadataRequests": 16,
+      "metadataP95Ms": 28.37604199999987,
+      "downloads": 16,
+      "downloadP95Ms": 5.767726000000039,
+      "wireCommands": 373,
+      "wireSteps": 5558,
+      "minimumStepLeadMs": 85.936,
+      "directoryRequests": 3402,
+      "directoryP99Ms": 8.747073999998975,
+      "statusRequests": 14202,
+      "uploads": 16,
+      "statusP99Ms": 3.6958559999984573,
+      "uploadP95Ms": 15.462397999999666,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.181119,
+            "maxMs": 18.874367
+          },
+          "cpu": {
+            "user": 4506810,
+            "system": 509734
+          },
+          "rss": 273227776
+        },
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 6.729727
+          },
+          "cpu": {
+            "user": 1534721,
+            "system": 180089
+          },
+          "rss": 262811648
+        }
+      ]
+    }
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "iterations": 16,
+    "sourceMedianMs": 14.662424000000101,
+    "sourceP95Ms": 17.210226999999918,
+    "directMedianMs": 9.368813999999986,
+    "directP95Ms": 14.362756999999988,
+    "scope": "Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison."
+  },
+  "pairedBenchmark": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "warmups": 5,
+    "runs": 21,
+    "beforeMedianMs": 4.147254000000004,
+    "afterMedianMs": 3.2376059999999995,
+    "ratio": 0.7806625781782347,
+    "samples": [
+      [
+        3.1852639999999894,
+        2.9965709999999888,
+        3.5998229999999865,
+        4.371668,
+        4.236766000000017,
+        4.100202999999993,
+        4.372737999999998,
+        4.265615999999994,
+        4.147254000000004,
+        4.5097609999999975,
+        4.35459800000001,
+        4.0284420000000125,
+        3.989941000000016,
+        4.143204000000026,
+        4.262215999999967,
+        4.594314000000054,
+        4.127904000000001,
+        4.111072999999976,
+        4.203084999999987,
+        4.057112000000018,
+        4.4293499999999995
+      ],
+      [
+        3.027152000000001,
+        3.1062629999999842,
+        3.0705719999999985,
+        3.2719960000000015,
+        3.0115010000000098,
+        3.021792000000005,
+        3.5579820000000097,
+        3.758966999999984,
+        3.0727019999999925,
+        3.2376059999999995,
+        3.0003309999999885,
+        3.0654919999999777,
+        3.1597050000000024,
+        3.1366140000000087,
+        4.394308999999993,
+        4.217215999999951,
+        4.2066749999999615,
+        4.186435000000017,
+        4.267596999999967,
+        3.706504999999993,
+        3.4398700000000417
+      ]
+    ],
+    "scope": "Alternating same-process ordinary XYZ native trap append; excludes transport and hardware"
+  },
+  "regressionLogSha256": "efb31487768e43c55842eb15748d1b1c5ac6adc7fc2645d470ca7b13d982ef2e",
+  "productLogSha256": "f5583a3b40606ee92a606f8997102a76e0c5b7af6c28b745994042ef9db2dc62",
+  "limitations": [
+    "Compiled HTTP cancellation retries an object already excluded by file; parked first exclusion separately tested with native simulated motion",
+    "Endpoint representation may differ by up to one coordinate ULP and at most 1e-12 mm",
+    "Real hardware unverified",
+    "Historical runtime crashes and transient mismatches unresolved",
+    "Original Python host and exclude module retained"
+  ]
+}
