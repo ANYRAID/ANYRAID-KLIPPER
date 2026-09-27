@@ -1,0 +1,105 @@
+{
+  "status": "compiled-encoder-runout-verified-hardware-pending",
+  "reference": "klippy/extras/filament_motion_sensor.py",
+  "tests": 2,
+  "benchmark": {
+    "node": "v26.9.0",
+    "observations": 200000,
+    "samples": 11,
+    "hits": 121871,
+    "nodeMedianMs": 0.9004710000000387,
+    "nodeP95Ms": 3.35617400000001,
+    "pythonMedianMs": 23.38447404326871,
+    "pythonP95Ms": 23.720367986243218,
+    "scope": "Distance policy only; original Python arithmetic; no position reconstruction, transport or pause latency"
+  },
+  "precision": [
+    "Strict position < runoutPosition matches Python",
+    "20万次检测结果逐项对照",
+    "Reject nonfinite or unrepresentable thresholds before mutation"
+  ],
+  "remaining": [
+    "Target hardware electrical and mechanical encoder validation",
+    "Multi-extruder ownership not yet supported by product",
+    "Legacy Python entry retirement in overall migration",
+    "Historical numerical/process stability failures remain open"
+  ],
+  "positionReconstruction": {
+    "tests": 14,
+    "benchmark": {
+      "node": "v26.9.0",
+      "rows": 1000,
+      "queries": 200000,
+      "samples": 11,
+      "medianMs": 38.10940099999999,
+      "p95Ms": 39.84608400000002,
+      "checksum": 5002500.000000008,
+      "scope": "Integer history lookup and coordinate conversion; all observations checked against explicit pulse counts; excludes MCU clock estimator and physical execution"
+    },
+    "source": "StepHistory and StepperPosition, exposed by NativeLinearHomingPort.observedActuatorPosition",
+    "semantics": [
+      "Estimate MCU clock at host edge/poll time; exact integer pulse reconstruction",
+      "Reject expired history; hold final position only after final retained pulse is due",
+      "Generation identity changes with homing/rebase",
+      "Includes pressure advance pulses; planned history is not physical encoder readback"
+    ],
+    "integrationPending": false
+  },
+  "runtime": {
+    "pollSeconds": 0.25,
+    "tests": 25,
+    "benchmark": {
+      "node": "v26.9.0",
+      "polls": 20000,
+      "edges": 2000,
+      "samples": 11,
+      "medianMs": 6.075688000000014,
+      "p95Ms": 11.156123999999991,
+      "scope": "Encoder runtime with bounded synthetic timers and constant-time position provider; no physical IO"
+    },
+    "policy": "Latch runout until a new encoder edge; no automatic resume; rebase cannot clear the latch; unknown history while printing faults owner; reject invalid startup/resume state"
+  },
+  "compiled": {
+    "tests": 4,
+    "passed": 4,
+    "runout": [
+      {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1289.5817160000006,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      },
+      {
+        "sensor": "filament_motion_sensor encoder",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1798.7961219999997,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    ],
+    "performance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 85.202,
+        "generationLoopP99Ms": [
+          1.787903,
+          2.185215
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 86.799,
+        "generationLoopP99Ms": [
+          1.937407,
+          1.874943
+        ]
+      }
+    ],
+    "scope": "Independent emitted JS with simulated two-MCU serial transport, HTTP load, stop encoder edges, confirm pause clocks, reject resume, restore edges, explicit resume and exact final position/filament checks"
+  }
+}

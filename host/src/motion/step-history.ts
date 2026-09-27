@@ -74,4 +74,11 @@ export class StepHistory {
   }
   return row.start+(row.count<0n?-steps:steps);
  }
+ /** Observers may hold the tail constant only after every retained pulse is
+  * due. This never extends history backwards or includes future pulse rows. */
+ observedAt(atClock:bigint):bigint|undefined{
+  clock(atClock);if(atClock<this.#from)return undefined;
+  if(atClock<=this.#through)return this.at(atClock);
+  const tail=this.#rows.at(-1);return !tail||tail.last<=atClock?this.#last:undefined;
+ }
 }

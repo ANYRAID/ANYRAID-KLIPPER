@@ -1,3 +1,4 @@
+import {observedStepperPosition} from '../motion/observed-position.ts';
 import {planProbeGrid,measureProbeGrid,type ProbeGrid} from './probe-grid.ts';
 import type {ProbeConfiguration} from '../config/probe.ts';
 import {collectProbeSamples,type ProbeSamples} from './probe-samples.ts';
@@ -37,6 +38,17 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #o:NativeLinearPortOptions;#g:NativeLinearPortOptions['generation'];#admission:ReturnType<typeof createGuardedBedMeshPort>;
  #meshStatus=nativeBedMeshStatus(null,'');
  get bedMeshStatus(){return this.#meshStatus;}
+ /** Query this generation only. An old event outside retained coverage returns
+  * undefined; callers must never substitute the queued endpoint. The generation
+  * token changes when homing/rebase replaces the pulse/coordinate history. */
+ observedActuatorPosition(id:string,eventtime:number){
+  this.assertActive();if(!Number.isFinite(eventtime)||eventtime<0||eventtime>serialClock.now())throw new RangeError('Invalid actuator observation time');
+  const binding=this.#g.motion.bindings.find(b=>b.id===id);if(!binding)throw new RangeError('Unknown observed actuator');
+  const clock=this.#g.members[binding.member].session.clock;clock.assertActive();
+  const tick=clock.sync.getClock(eventtime),position=observedStepperPosition(binding.history,binding.position,tick);
+  return position===undefined?undefined:Object.freeze({position,clock:tick,generation:binding.history});
+ }
+
  #mesh:BedMesh|null=null;#meshSettings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number}={};
  #streamer:RebuiltMotionStreamer;
  #velocity:VelocityLimits;

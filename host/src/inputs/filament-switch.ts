@@ -1,7 +1,7 @@
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 export interface FilamentPolicy {debounce:number;eventDelay:number;pause:boolean;}
 export function readFilamentPolicy(reader:ConfigurationReader,section:string):Readonly<FilamentPolicy>{
- if(!section.startsWith('filament_switch_sensor ')||!section.slice(23).trim())throw new Error('Invalid filament switch section');
+ if(!/^filament_(switch|motion)_sensor \S/.test(section))throw new Error('Invalid filament sensor section');
  const c=reader.section(section);
  for(const key of ['runout_gcode','insert_gcode'])if(c.get(key,{defaultValue:''}).trim())throw new Error('Filament macros require typed operations');
  // Legacy delay only separated PAUSE from a subsequent macro. Typed pause is
