@@ -9,11 +9,11 @@ import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 import {KlipperSaveSession} from '../src/config/klipper-save-session.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 const endpoint='/printer/calibration/endstop_phase';
-async function fixture(){
+async function fixture(multiple=false){
  const dir=await mkdtemp(join(tmpdir(),'phase-save-')),path=join(dir,'printer.cfg'),original='[printer]\nkinematics: cartesian\n[endstop_phase stepper_x]\nendstop_accuracy: 0.04\nendstop_align_zero: true\n';await writeFile(path,original);
  const loaded=await KlipperSaveSession.load(path),gate=new MaintenanceGate(),registry=new EndpointRegistry(new JsonRpcDispatcher()),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
  let revision=0,idle=true,samples=true;
- const close=registerNativeEndstopPhase(registry,gate,{idle:()=>idle,snapshot:()=>({revision:String(revision),steppers:[{name:'stepper_x',primary:true,correction_enabled:true,last_phase:3,last_mcu_position:'1267650600228229401496703205377',samples:samples?'12':'0',calibration:samples?{phase:3,phases:64,low:2,high:4,cost:'5'}:null}]})},loaded.session);
+ const close=registerNativeEndstopPhase(registry,gate,{idle:()=>idle,snapshot:()=>({revision:String(revision),steppers:[{name:'stepper_x',primary:true,correction_enabled:true,trigger_phase:3,last_phase:3,last_mcu_position:'1267650600228229401496703205377',samples:samples?'12':'0',calibration:samples?{phase:3,phases:64,low:2,high:4,cost:'5'}:null},...multiple?[{name:'stepper_y',primary:true,correction_enabled:false,trigger_phase:null,last_phase:7,last_mcu_position:'7',samples:'9',calibration:{phase:7,phases:64,low:6,high:8,cost:'3'}}]:[]]})},loaded.session);
  const invoke=(verb:string,body:any={})=>registry.invoke(endpoint,verb,body,context) as Promise<any>;
  return {path,original,loaded,gate,registry,context,close,invoke,change(){revision++;},idle(v:boolean){idle=v;},samples(v:boolean){samples=v;},async dispose(){await close();await rm(dir,{recursive:true,force:true});}};
 }
@@ -41,5 +41,15 @@ test('closing joins an in-flight phase save and fences further print admission',
   f.loaded.session.save=async signal=>new Promise((_,reject)=>{signal!.throwIfAborted();signal!.addEventListener('abort',()=>reject(signal!.reason),{once:true});});
   const request=body(await f.invoke('GET')),pending=f.invoke('POST',request),rejected=assert.rejects(pending,/failed/);
   await new Promise(resolve=>setImmediate(resolve));assert.equal(f.gate.status.maintenance,true);await f.close();await rejected;assert(f.gate.status.closed);assert.equal(f.gate.status.maintenance,false);assert.equal(await readFile(f.path,'utf8'),f.original);
+ }finally{await f.dispose();}
+});
+test('multi-axis selection validates all rows before one atomic save and canonical retry',async()=>{
+ const f=await fixture(true);try{
+  const state=await f.invoke('GET'),request={version:1,state_token:state.state_token,steppers:['stepper_y','stepper_x'],action:'save'};
+  for(const steppers of [[],['stepper_x','stepper_x'],['stepper_x','missing'],[5],['a','b','c','d']])await assert.rejects(f.invoke('POST',{...request,steppers}));
+  await assert.rejects(f.invoke('POST',{...request,stepper:'stepper_x'}));f.samples(false);await assert.rejects(f.invoke('POST',request),/Home every/);assert.equal(await readFile(f.path,'utf8'),f.original);assert.equal(f.loaded.session.status.save_config_pending,false);f.samples(true);
+  let saves=0;const save=f.loaded.session.save.bind(f.loaded.session);f.loaded.session.save=async(...args)=>{saves++;return save(...args);};
+  const result=await f.invoke('POST',request);assert.equal(saves,1);assert.deepEqual(result.saved_phases,[{stepper:'stepper_x',trigger_phase:'3/64'},{stepper:'stepper_y',trigger_phase:'7/64'}]);assert.deepEqual(await f.invoke('POST',{...request,steppers:['stepper_x','stepper_y']}),result);assert.equal(saves,1);
+  await assert.rejects(f.invoke('POST',{...request,steppers:['stepper_y']}),/conflicts/);const restored=await KlipperSaveSession.load(f.path);for(const p of result.saved_phases)assert.equal(restored.source.original['endstop_phase '+p.stepper].trigger_phase,p.trigger_phase);
  }finally{await f.dispose();}
 });

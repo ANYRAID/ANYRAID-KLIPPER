@@ -42,7 +42,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  endstopPhaseCalibration(){
   return {revision:String(this.#phaseRevision),steppers:(this.#o.endstopPhases??[]).map(owner=>{
    const last=owner.alignment.status.last,statistics=owner.alignment.statistics;
-   return {name:owner.name??owner.id,primary:this.#o.kinematicIds.includes(owner.id),correction_enabled:!owner.statsOnly,last_phase:last?.phase??null,last_mcu_position:last?String(last.mcuPosition):null,samples:statistics?String(statistics.samples):'0',calibration:statistics?{phase:statistics.phase,phases:statistics.phases,low:statistics.low,high:statistics.high,cost:String(statistics.cost)}:null};
+   return {name:owner.name??owner.id,primary:this.#o.kinematicIds.includes(owner.id),correction_enabled:!owner.statsOnly,trigger_phase:owner.statsOnly?null:owner.alignment.status.triggerPhase,last_phase:last?.phase??null,last_mcu_position:last?String(last.mcuPosition):null,samples:statistics?String(statistics.samples):'0',calibration:statistics?{phase:statistics.phase,phases:statistics.phases,low:statistics.low,high:statistics.high,cost:String(statistics.cost)}:null};
   })};
  }
  #lastHoming:{pass:HomingPass;axis:Axis;generation:NativeLinearPortOptions['generation'];counts:readonly {id:string;trigger:bigint}[]}|undefined;
