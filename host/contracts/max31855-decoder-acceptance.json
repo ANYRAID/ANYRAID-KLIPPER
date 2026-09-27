@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "b8e9df7f",
+  "reference": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31855.pdf",
+  "sourceSha256": {
+    "host/src/thermal/max31855.ts": "82721f7c7c35d9795b61efee64fc5b3d3b9acd3b9574e580b3212f2c5c74d18d",
+    "host/src/thermal/serial-thermocouple.ts": "7ac1e236ba826ce2d75d4233673d9945ebf4e6c8096a7fba962e58ad37020544",
+    "host/test/max31855.test.ts": "b03e6eda2f3212d67ee3568c6f33e6c8a0a34b832141adcc30f480b2ff010e8d",
+    "host/test/spi-temperature.test.ts": "9f6a0f4d0c90deef36f5687652dbc667798c3c61dc1f5ba8129ff6c1d6d47829",
+    "host/bench/max31855.ts": "7c222fcee2e4f868e6285a697698af95b20249a4a65e24801b1a1ee4091ebe88"
+  },
+  "validation": {
+    "regressions": 18,
+    "temperatureCodes": 16384,
+    "coldJunctionCasesPerCode": 4,
+    "typecheck": "passed",
+    "simulatedReports": true,
+    "firmwareSignedRange": false,
+    "configuration": false,
+    "physicalHardware": false
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 3.896017999999998,
+    "p95Ms": 14.61048799999999,
+    "checksum": -131072,
+    "scope": "Signed MAX31855 wire decoding only; no SPI transport, heater control or hardware"
+  },
+  "logSha256": "efa07f304130ecf8e0b97ec696b231848fd312c66d8c963a0c508878d3293d4c",
+  "limitations": [
+    "Negative range bounds require signed firmware comparison, not yet implemented",
+    "Report test injects data using existing MAX6675 fixture dictionary",
+    "Automatic sensor and heater configuration not enabled",
+    "Original Python module retained"
+  ]
+}

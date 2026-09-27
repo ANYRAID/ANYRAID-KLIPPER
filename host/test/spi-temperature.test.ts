@@ -18,6 +18,18 @@ async function fixture(software?:'modern'|'legacy'){
  return {firmware,group,clocks,get stops(){return stops;},async close(){await group.stop().catch(()=>{});await firmware.close();}};
 }
 async function until(check:()=>boolean){const end=Date.now()+2000;while(!check()){assert(Date.now()<end,'Condition timed out');await delay(2);}}
+test('MAX31855 report consumer publishes negative temperatures and rejects an isolated summary fault',async()=>{
+ // Report-consumer coverage only. The fixture has a MAX6675 configuration
+ // dictionary; it injects raw reports rather than emulating chip SPI reads.
+ const f=await fixture(),samples:number[]=[],faults:string[]=[];
+ try{
+  const plan=compileConfiguredHardware(reader(),f.group,f.clocks,layout),p=plan.spiSensors[0],session=f.group.session('mcu');
+  const sensor=new SerialThermocouple(session,{...p,model:'MAX31855',minimum:-10},p.timeline,{sample(_t,v){samples.push(v);},shutdown(reason){faults.push(reason);}});
+  await session.configure(plan.configurations[0].plan,signal);sensor.activate();
+  f.firmware.emit('thermocouple_result',{oid:p.oid,next_clock:(f.firmware.currentClock()+p.reportTicks)>>>0,value:0xfffc7ff0,fault:0});await until(()=>samples.length===1);assert.equal(samples[0],-.25);
+  f.firmware.emit('thermocouple_result',{oid:p.oid,next_clock:(f.firmware.currentClock()+p.reportTicks)>>>0,value:0x00010000,fault:0});await until(()=>f.stops===1);assert.deepEqual(samples,[-.25]);assert.equal(faults.length,1);assert(sensor.status.closed);
+ }finally{await f.close();}
+});
 for(const software of [undefined,'modern','legacy'] as const)test(`MAX6675 ${software??'hardware'} SPI starts with mode zero and fault stops whole hardware`,async()=>{
  const f=await fixture(software);try{
   const h=await startConfiguredHardware(reader({},!!software),f.group,f.clocks,layout,{beforeTarget(){}},signal),p=h.plan.spiSensors[0];
