@@ -1,0 +1,144 @@
+{
+  "node": "26.9.0",
+  "scope": "Compiled JavaScript product with installed production dependencies, native motion libraries, real HTTP and simulated MCU PTYs. Python and direct TypeScript loading unavailable.",
+  "environment": {
+    "PATH": "/no-programs",
+    "NODE_OPTIONS": "--no-experimental-strip-types",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "calibration": {
+    "compiled": true,
+    "elapsedMs": 3055.5633149999994,
+    "receipt": {
+      "passes": 1,
+      "samples": [
+        [
+          1,
+          1,
+          0.775
+        ],
+        [
+          1.01,
+          1,
+          0.75
+        ]
+      ],
+      "measured_range": 0.025000000000000022,
+      "tolerance_satisfied": false,
+      "adjustments": [
+        {
+          "id": "z",
+          "adjustment": 0.7749999999999999
+        },
+        {
+          "id": "z1",
+          "adjustment": 0.75
+        }
+      ],
+      "final_z": 0.25,
+      "persisted": false
+    },
+    "retryWithoutMotion": true,
+    "restoredSynchronizedZ": true
+  },
+  "checks": [
+    "Configured non-flat two-point Z calibration through authenticated HTTP",
+    "Two Z motors differ by two net steps during mechanical adjustment",
+    "Completed request replay returns receipt with no additional motion",
+    "After calibration each motor produces four pulses for each +0.05 and -0.05 mm controlled Z movement",
+    "Motor release and configuration reload clear applied status",
+    "Two completed prints, cancellation, reload and injected ADC fault shutdown",
+    "Concurrent file, metadata, history and object queries during printing"
+  ],
+  "metrics": {
+    "phaseQueries": 4693,
+    "phaseP99Ms": 3.819193000001178,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": true,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 200,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1050,
+    "historyP99Ms": 8.927050999998755,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 9.356225999999879,
+    "deleteRequests": 16,
+    "deleteP95Ms": 5.9873569999999745,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 9.862471000000369,
+    "metadataRequests": 16,
+    "metadataP95Ms": 18.680931000000783,
+    "downloads": 16,
+    "downloadP95Ms": 3.7500029999991966,
+    "wireCommands": 301,
+    "wireSteps": 5243,
+    "minimumStepLeadMs": 76.513,
+    "directoryRequests": 4500,
+    "directoryP99Ms": 5.999157999998715,
+    "statusRequests": 18773,
+    "uploads": 16,
+    "statusP99Ms": 3.788503000003402,
+    "uploadP95Ms": 21.7965460000014,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.209791,
+          "maxMs": 18.825215
+        },
+        "cpu": {
+          "user": 5771368,
+          "system": 663580
+        },
+        "rss": 300265472
+      },
+      {
+        "loop": {
+          "p99Ms": 1.936383,
+          "maxMs": 11.829247
+        },
+        "cpu": {
+          "user": 1672809,
+          "system": 200048
+        },
+        "rss": 303583232
+      }
+    ]
+  },
+  "limitations": [
+    "No physical printer or probe accuracy acceptance.",
+    "Default Python entrypoint remains; no Python files retired.",
+    "Per-segment step rounding and historical Node crash/numerical issues remain open."
+  ]
+}

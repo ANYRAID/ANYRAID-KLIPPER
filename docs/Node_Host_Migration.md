@@ -38,7 +38,7 @@ X 斜率 0.0025，导致多余的单电机运动。新实现改为中心化拟�
 3600 次完整规划中位 15.872 ms；同机原 Python 拟合和标量排序／坐标
 计算中位 47.284 ms，两者均不含探测、步进生成和硬件。
 `[z_tilt]` 配置、逐电机执行、自动探测和受控校准 API 已接入，
-目前通过源代码运行的产品 HTTP 验收；编译产品与真机验收仍待完成，
+已通过源代码及编译产品的模拟 MCU HTTP 验收；真机验收仍待完成，
 此阶段未退役 Python。证据见
 [Z 调平规划验收](../host/contracts/z-tilt-planning-acceptance.json)。
 
@@ -74,6 +74,15 @@ X 斜率 0.0025，导致多余的单电机运动。新实现改为中心化拟�
 真实床面精度验收。`[z_tilt]` 配置装配与产品校准入口已接通，详见
 [多 Z 配置与 API 验收](../host/contracts/z-tilt-product-acceptance.json)。
 证据见 [自动多 Z 探测验收](../host/contracts/native-z-tilt-calibration-acceptance.json)。
+
+编译产品多 Z 校准验收：产品进程使用 PATH=/no-programs，禁用 TS
+直接加载，完成非平床双点探测，两电机产生 2 步净差；重复请求不增加
+运动，随后受控 Z 正反微调中每个电机各产生 4 步，确认正常绑定恢复。
+同一场景覆盖两次完成打印、取消、重载和 ADC 故障停机；释放电机与
+重载后 applied 状态清除。并发文件／状态负载下所有步进提前量为正，
+事件循环通过现有门槛；完整性能数值与边界见
+[编译产品多 Z 验收](../host/contracts/z-tilt-compiled-acceptance.json)。
+这不代表真实机械调平精度已验收，也未退役默认 Python 打印入口。
 
 打印中退出验收（2026-09-28）：预编译产品以 `PATH=/no-programs`、
 禁用 TypeScript 加载启动，完成鉴权文件上传、归零和加热，观察到打印
