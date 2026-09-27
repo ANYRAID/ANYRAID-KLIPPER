@@ -1,3 +1,5 @@
+import {planZTilt,type ZTiltMotor} from '../motion/z-tilt.ts';
+import type {StoppedEmitter} from './rebuild-motion.ts';
 import {BedTilt,fitBedTilt} from '../motion/bed-tilt.ts';
 import type {BedTiltProbePlan} from '../config/bed-tilt.ts';
 import type {BLTouchDevice,BLTouchSample} from './bltouch-device.ts';
@@ -41,6 +43,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
+interface RebaseLayout {routes:readonly {id:string;extrusionAxis?:number;stationaryPosition?:readonly [number,number,number]}[];emitters:readonly StoppedEmitter[];}
 export interface PausedMove {position:readonly number[];speed:number;}
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
  * MCU/actuator ownership and a live thermal guard. Ordinary moves are admitted
@@ -382,15 +385,44 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  forcePosition(position:readonly number[],signal:AbortSignal){
   const target=[...position];return this.#operate('rebase',signal,s=>this.#rebase(target,s));
  }
- async #rebase(target:readonly number[],s:AbortSignal){
-   await this.#drain(s);const g=this.#g,routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
+ async #rebase(target:readonly number[],s:AbortSignal,layout?:RebaseLayout){
+   await this.#drain(s);const g=this.#g,routes=layout?.routes??g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition}));
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
     if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
-    const emitters=recoveryEmitters(g.motion.bindings,this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
-    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
-    this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
+    const emitters=recoveryEmitters(g.motion.bindings,layout?.emitters??this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
+    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:r.stationaryPosition??(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
+    this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
+ }
+ /** Execute measured mechanical corrections under exclusive motion ownership.
+  * All Z motors must be named; samples are physical bed coordinates. A failed
+  * segment stops the whole group and clears homing instead of resuming print. */
+ adjustZTilt(samples:readonly (readonly number[])[],motors:readonly ZTiltMotor[],maximumTravel:number,speed:number,signal:AbortSignal){
+  const measured=samples.map(p=>[...p]),pivots=motors.map(m=>({...m}));
+  return this.#operate('z-tilt',signal,async s=>{
+   if(this.#o.kinematics.kind==='corexz'||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
+   const z=this.#o.emitters.filter(e=>e.mode==='z');
+   if(z.length!==pivots.length||z.some(e=>!pivots.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
+   await this.#drain(s);const start=[...this.homingPosition()],plan=planZTilt(measured,pivots,start[2],maximumTravel);
+   const bounds=this.#o.kinematics.status;if([plan.finalZ,...plan.segments.map(p=>p.targetZ)].some(v=>v<bounds.axisMinimum[2]||v>bounds.axisMaximum[2]))throw new RangeError('Z tilt exceeds Z axis range');
+   const normal:RebaseLayout={emitters:this.#o.emitters,routes:this.#g.routes.map(r=>({id:this.#g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}))};
+   if(this.#g.routes.some(r=>r.stationaryPosition))throw new Error('Z tilt requires ordinary motor bindings');
+   let fixed='z-tilt-fixed';while(normal.routes.some(r=>r.id===fixed))fixed+='-';
+   // Mechanical changes invalidate the previous measured surface transform.
+   this.#mesh=null;this.#meshStatus=nativeBedMeshStatus(null,'');this.#tilt=undefined;
+   this.#admission.shutdown(new Error('Mechanical Z calibration replaces surface compensation'));this.#admission=this.#newAdmission(start);
+   for(const segment of plan.segments){
+    if(segment.distance===0)continue;
+    const active=new Set(segment.motors),position=[...this.homingPosition()],held=Object.freeze(position.slice(0,3)) as readonly [number,number,number];
+    const emitters=normal.emitters.map(e=>e.mode==='z'&&!active.has(e.id)?{...e,queueId:fixed}:e),used=new Set(emitters.map(e=>e.queueId));
+    await this.#rebase(position,s,{emitters,routes:[...normal.routes.filter(r=>used.has(r.id)),{id:fixed,stationaryPosition:held}]});
+    const target=[...position];target[2]=segment.targetZ;
+    const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,speed,2,s);this.#check(s);
+    this.#admission.shutdown(new Error('Z adjustment segment completed'));this.#admission=this.#newAdmission(halt);
+   }
+   const final=[...this.homingPosition()];final[2]=plan.finalZ;await this.#rebase(final,s,normal);return plan;
+  });
  }
  /** Privileged probe owner supplies separately configured stop groups. Never
   * infer that a Z homing switch is a bed probe. Coordinates here are physical. */

@@ -1,0 +1,41 @@
+{
+  "scope": "Native measured-sample Z adjustment only. Automatic probing, retries, configured product calibration and hardware acceptance remain incomplete.",
+  "tests": {
+    "native": 6,
+    "affectedRegression": 36,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "checks": [
+    "Three Z motors receive 0/20/40 pulses across two segments",
+    "Normal Z motion after final rebuild drives every Z motor by ten pulses",
+    "Flat bed performs zero correction pulses",
+    "Missing motor or excessive travel fails before adjustment packets",
+    "Cancellation after adjustment starts stops the whole group and clears homing",
+    "Per-segment step quantization explicitly tested"
+  ],
+  "precision": {
+    "stepDistanceMm": 0.01,
+    "segmentsMm": [
+      0.006,
+      0.006
+    ],
+    "firstActiveMotorSteps": 2,
+    "limitation": "Per-segment coordinate rebasing rounds each segment; total adjustment error is not bounded to half one step. Simulated firmware records accepted pulses, not real physical movement or encoder feedback."
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 7,
+    "warmup": 2,
+    "medianMs": 719.1351030000005,
+    "maxMs": 759.0265039999999,
+    "times": [
+      707.6892789999997,
+      718.1671379999998,
+      719.1351030000005,
+      734.9830709999997,
+      759.0265039999999
+    ],
+    "scope": "Three Z motors, two physical segments and final coordinate rebase. Includes simulated MCU clock waits, stop confirmations and native step generation; excludes probing and setup. Not physical hardware or an equal-work Python comparison."
+  }
+}
