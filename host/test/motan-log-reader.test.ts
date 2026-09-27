@@ -4,12 +4,12 @@ import {mkdtemp,readFile,writeFile,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {gzipSync} from 'node:zlib';
-import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {MotanLogReader} from '../src/motan/log-reader.ts';
 import {MotanLogWriter} from '../src/motan/log-writer.ts';
 test('Motan reader streams original Python gzip output, preserves numeric precision and restarts at full-flush indexes',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'motan-read-')),path=join(dir,'log');let reader:MotanLogReader|undefined;
- try{const code="import sys,zlib,json\nf=open(sys.argv[1],'wb');c=zlib.compressobj(wbits=31)\nf.write(c.compress(b'{\"clock\":9007199254740993,\"x\":1.0000000000000002}\\x03'));f.write(c.flush(zlib.Z_FULL_FLUSH));offset=f.tell()\nf.write(c.compress(b'{\"clock\":9007199254740995,\"x\":-0.0}\\x03'));f.write(c.flush());f.close();print(offset)";const offset=Number(execFileSync('python3',['-c',code,path],{encoding:'utf8'}));reader=await MotanLogReader.open(path);assert.deepEqual(await reader.pullMessage(),{clock:9007199254740993n,x:1.0000000000000002});assert.deepEqual(await reader.pullMessage(),{clock:9007199254740995n,x:-0});assert.equal(await reader.pullMessage(),null);assert.equal(reader.status.eof,true);await reader.seek(offset);assert.deepEqual(await reader.pullMessages(),[{clock:9007199254740995n,x:-0}]);await reader.seek(0);assert.equal((await reader.pullMessages()).length,2);await reader.seek(reader.status.fileSize);assert.equal(await reader.pullMessage(),null);
+ try{const reference=JSON.parse(await readFile(new URL('../contracts/motan-gzip-reference.json',import.meta.url),'utf8')),bytes=Buffer.from(reference.base64,'base64');assert.equal(createHash('sha256').update(bytes).digest('hex'),reference.sha256);await writeFile(path,bytes);const offset=reference.offset;reader=await MotanLogReader.open(path);assert.deepEqual(await reader.pullMessage(),{clock:9007199254740993n,x:1.0000000000000002});assert.deepEqual(await reader.pullMessage(),{clock:9007199254740995n,x:-0});assert.equal(await reader.pullMessage(),null);assert.equal(reader.status.eof,true);await reader.seek(offset);assert.deepEqual(await reader.pullMessages(),[{clock:9007199254740995n,x:-0}]);await reader.seek(0);assert.equal((await reader.pullMessages()).length,2);await reader.seek(reader.status.fileSize);assert.equal(await reader.pullMessage(),null);
  }finally{await reader?.close();await rm(dir,{recursive:true,force:true});}
 });
 test('Motan reader bounds messages and decoding while accepting records fragmented across compressed chunks',async()=>{

@@ -1,0 +1,67 @@
+{
+  "node": "26.9.0",
+  "tests": 16,
+  "environment": {
+    "PATH": "/no-programs"
+  },
+  "references": [
+    "motan-gzip-reference.json",
+    "motan-dispatch-reference.json"
+  ],
+  "checks": [
+    "Fixed Python-produced gzip bytes and full-flush offset retain independent compatibility basis",
+    "Original Python dispatcher ordering and status timing retained in frozen reference",
+    "Reader and dispatcher tests invoke neither Python nor Git",
+    "Reader benchmark runs Node only; historical Python comparison remains in separate acceptance record"
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "label": "small",
+        "count": 30000,
+        "rawBytes": 2385870,
+        "gzipBytes": 735989,
+        "results": {
+          "nodeBatch1": {
+            "medianMs": 72.18672100000003,
+            "p95Ms": 73.43027000000006,
+            "eventLoopMaximumMs": 2.742271
+          },
+          "nodeBatch256": {
+            "medianMs": 53.34433400000012,
+            "p95Ms": 58.66128200000003,
+            "eventLoopMaximumMs": 3.454975
+          }
+        }
+      },
+      {
+        "label": "bulk",
+        "count": 128,
+        "rawBytes": 7138661,
+        "gzipBytes": 2777303,
+        "results": {
+          "nodeBatch1": {
+            "medianMs": 48.22850900000003,
+            "p95Ms": 52.882985999999846,
+            "eventLoopMaximumMs": 1.688575
+          },
+          "nodeBatch256": {
+            "medianMs": 49.32890499999985,
+            "p95Ms": 50.672653999999966,
+            "eventLoopMaximumMs": 3.727359
+          }
+        }
+      }
+    ],
+    "scope": "Node streaming reader over fixed generated local gzip workloads. Historical Python comparison is recorded in motan-python-entrypoint-retirement.json; no Python process is invoked. Includes decompression, exact JSON numeric boundary checks, message iteration and open/close; input construction excluded. Node strict EOF validation is additional. No target-board or concurrent-print proof."
+  },
+  "limitations": [
+    "Other Motan historical Python oracle helpers and dispatch/writer benchmarks remain to migrate",
+    "No production implementation changed; timing differences are repeated measurement variation",
+    "Offline benchmark only, no target-printer performance proof"
+  ]
+}

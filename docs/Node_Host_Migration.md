@@ -37,6 +37,15 @@ CSV，单次冷启动导出分别约 121/121/162/128/285 ms。相同压缩日志
 参考，不能称为整个测试环境已脱离 Python。验收与退役源码哈希见
 [Motan 入口退役记录](../host/contracts/motan-python-entrypoint-retirement.json)。
 
+Motan 读取器与分发器的 16 项回归现使用原 Python 生成的固定 gzip／
+分发结果，保留源码哈希、压缩版本、完整刷新位置及原输入，不再现场
+启动 Python 或 Git；已在 `PATH=/no-programs` 下通过。读取基准也改为
+仅运行 Node，历史 Python 耗时留在上一份验收记录，避免冒充实时对照。
+独立重测的小记录／大记录批量中位为 53.344／49.329 ms。首次与类型
+检查并行的计时存在干扰，因此验收采用单独重测；生产读取实现未改变。
+其他 Motan Python 对照辅助函数和基准仍待清理，详见
+[读取回归脱离 Python](../host/contracts/motan-reader-python-free-acceptance.json)。
+
 温控风扇的纯控制层现支持水印与 PID：480 个原 Python 实际输出样本
 逐项比对了调度时间、占空比、导数和积分状态，6 项边界测试通过。
 修正低占空比关闭及收紧上限被小变化抑制的问题，设置修改为整组验证
