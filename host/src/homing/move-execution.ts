@@ -22,6 +22,9 @@ export interface HomingMoveOptions extends Omit<HomingSetRecoveryOptions,'groups
  /** Complete emitter coverage, sharing one timeline for each physical MCU. */
  readonly clockTimelines?:ReadonlyMap<string,PrintClockTimeline>;
  readonly prepareWindow?:(until:number)=>void;
+ /** Schedule device output only after drip stops, before readback. Must not
+  * sample the homing endstop, move axes or grant position authority. */
+ readonly onTriggered?:(signal:AbortSignal)=>Promise<void>;
  readonly locate:(readback:HomingReadback)=>ReturnType<HomingSetRecoveryOptions['locate']>;
 }
 /** One actual native homing pass: arm -> drip -> stop/readback -> retire/reset.
@@ -39,7 +42,7 @@ export class HomingMoveExecution {
  #finished=false;#disposed=false;#cleanupPending=false;#cleanupErrors:unknown[]=[];
  constructor(options:HomingMoveOptions){
   const timeout=options.timeoutMs??60000;
-  if(!Number.isInteger(timeout)||timeout<1||timeout>3600000||!Number.isFinite(options.startTime)||options.startTime<0||!Number.isFinite(options.endTime)||options.endTime<options.startTime||options.endTime>=1e12||options.coordinator.status.generatedTime!==options.startTime||options.coordinator.status.busy||options.coordinator.status.failed||options.coordinator.status.retired||!options.coordinator.usesBindings(options.bindings)||typeof options.locate!=='function')throw new Error('Invalid homing move boundary');
+  if(!Number.isInteger(timeout)||timeout<1||timeout>3600000||!Number.isFinite(options.startTime)||options.startTime<0||!Number.isFinite(options.endTime)||options.endTime<options.startTime||options.endTime>=1e12||options.coordinator.status.generatedTime!==options.startTime||options.coordinator.status.busy||options.coordinator.status.failed||options.coordinator.status.retired||!options.coordinator.usesBindings(options.bindings)||typeof options.locate!=='function'||options.onTriggered!==undefined&&typeof options.onTriggered!=='function')throw new Error('Invalid homing move boundary');
   this.#o={...options,clockTimelines:options.clockTimelines?new Map(options.clockTimelines):undefined,timeoutMs:timeout,groups:options.groups.map(g=>({...g,startClocks:[...g.startClocks],members:g.members.map(m=>({...m,steppers:m.steppers.map(s=>({...s}))})),sampling:{...g.sampling,payload:g.sampling.payload.slice()}})),bindings:options.bindings.map(b=>({...b})),emitters:structuredClone(options.emitters),histories:Object.freeze(options.histories.map(h=>Object.freeze({...h})))};
   const o=this.#o;this.#members=o.groups.flatMap(g=>g.members);this.#mappings=[];this.#representatives=[];
   if(o.clockTimelines&&(o.clockTimelines.size!==o.bindings.length||o.bindings.some(b=>!(o.clockTimelines!.get(b.id) instanceof PrintClockTimeline)))||o.prepareWindow&&(!o.clockTimelines||typeof o.prepareWindow!=='function'))throw new Error('Invalid homing shared clock coverage');
@@ -91,6 +94,7 @@ export class HomingMoveExecution {
   try{
    s.throwIfAborted();for(const h of this.#o.histories)releaseHistory.push(h.history.pin());for(const timeline of new Set(this.#timelines.filter(t=>t!==undefined))){const lease=timeline.retain(timeline.clockAt(this.#o.startTime));releaseHistory.push(()=>lease.release());}this.#checkMappings();await run(this.#set.arm(s));
    const drip=await run(this.#drip.run(this.#o.startTime,this.#o.endTime,s,this.#o.timeoutMs));
+   if(drip.reason==='triggered'&&this.#o.onTriggered)await run(this.#o.onTriggered(s));
    this.#checkMappings();await run(this.#recovery.recover(s).then(result=>{if(s.aborted){result.motion.dispose();throw s.reason;}motion=result.motion;return result;}));
    for(const session of sessions)session.assertActive();s.throwIfAborted();if(!this.#readback)throw new Error('Missing homing readback');
    if(!motion)throw new Error('Missing recovered motion');return Object.freeze({...this.#readback,motion,drip});

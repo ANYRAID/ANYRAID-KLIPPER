@@ -61,3 +61,11 @@ test('probe sampling tolerance retries retain one deployed pin for the complete 
  const result=await f.device.session((sample,s)=>collectProbeSamples({samples:2,retractDistance:2,liftSpeed:5,tolerance:.1,retries:1,result:'average'},()=>sample(async()=>{const z=values.shift()!;return {trigger:[0,0,z,0],halt:[0,0,z-.01,0]};}),async p=>{assert(f.device.status.deployed);retracts.push([...p]);},s),signal());
  assert.equal(result.attempts,4);assert.equal(result.retries,1);assert.equal(result.position[2],1.01);assert.equal(retracts.length,3);assert.equal(f.commands.filter(c=>c==='pin_down').length,1);assert.equal(f.commands.at(-1),'pin_up');assert.equal(f.device.status.phase,'idle');
 });
+test('trigger schedules stow before seek readback but defers sensor verification until it completes',async()=>{
+ const f=fixture();await f.device.initialize(signal());let retained!:()=>Promise<void>;
+ await f.device.session(sample=>sample(async(_s,trigger)=>{retained=trigger;const checks=f.verification.length;const first=trigger();assert.strictEqual(trigger(),first);await first;assert.equal(f.commands.at(-1),'pin_up');assert.equal(f.verification.length,checks);return 7;}),signal());
+ assert.equal(f.verification.at(-1)!.triggered,false);assert.equal(f.commands.filter(c=>c==='pin_up').length,3);await assert.rejects(async()=>retained(),/expired/);assert.equal(f.device.status.phase,'idle');
+});
+test('multi-sample trigger does not stow before the owning session ends',async()=>{
+ const f=fixture({stowOnEachSample:false});await f.device.initialize(signal());await f.device.session(sample=>sample(async(_s,trigger)=>{await trigger();assert.equal(f.commands.at(-1),'pin_down');}),signal());assert.equal(f.commands.at(-1),'pin_up');
+});

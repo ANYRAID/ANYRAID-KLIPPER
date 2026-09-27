@@ -10,6 +10,7 @@ import {observeRetirement} from '../motion/retired.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 export interface LinearSeekOptions {
  mode?:'home'|'probe';
+ onTriggered?:(signal:AbortSignal)=>Promise<void>;
  generation:Awaited<ReturnType<typeof bindRebuiltMotion>>;kinematics:LinearKinematics;
  emitters:readonly StoppedEmitter[];groups:readonly HomingGroupConfig[];
  /** Representative rail motors, ordered as calcPosition's A/B/C inputs. */
@@ -37,7 +38,7 @@ export class LinearHomingSeek {
    const movingSteppers=Object.freeze(actuators.filter(a=>!a.extra&&g.motion.bindings.find(b=>b.id===a.id)!.stepper.coordinatePosition(...prepared.endPosition.slice(0,3) as [number,number,number])!==g.motion.bindings.find(b=>b.id===a.id)!.stepper.coordinatePosition(...prepared.startPosition.slice(0,3) as [number,number,number])).map(a=>Object.freeze({member:a.member,oid:a.oid})));
    let halt:readonly number[]|undefined,trigger:readonly number[]|undefined;
    const clockTimelines=g.clockTimelines?new Map(g.motion.bindings.map(b=>[b.id,g.clockMembers.find(m=>m.session===g.members[b.member].session)!.timeline!])):undefined;
-   executor=new HomingMoveExecution({...plan,clockTimelines,prepareWindow:clockTimelines?until=>{prepared.prepareWindow(until);}:undefined,coordinator:g.coordinator,bindings:g.motion.bindings,startTime:prepared.startTime,endTime:prepared.endTime,timeoutMs,locate:readback=>{
+   executor=new HomingMoveExecution({...plan,onTriggered:o.onTriggered,clockTimelines,prepareWindow:clockTimelines?until=>{prepared.prepareWindow(until);}:undefined,coordinator:g.coordinator,bindings:g.motion.bindings,startTime:prepared.startTime,endTime:prepared.endTime,timeoutMs,locate:readback=>{
     for(const a of actuators)if(a.extra){const offset=readback.offsets.find(p=>p.member===a.member&&p.oid===a.oid);if(!offset||offset.triggerOffset!==0n||offset.haltOffset!==0n)throw new Error('Unexpected extra-axis movement during homing');}
     const located=homingToolheadPositions({mode,actuators,offsets:readback.offsets,reference:mode==='probe'?prepared.startPosition:prepared.endPosition,calculate:positions=>o.kinematics.calcPosition(o.kinematicIds.map(id=>positions.get(id)!))});halt=located.halt;trigger=located.trigger;
     const now=serialClock.now(),printTime=Math.max(...g.clockMembers.map(m=>m.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;

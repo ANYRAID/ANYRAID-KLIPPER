@@ -1,0 +1,41 @@
+{
+  "scope": "Trigger-time device-output scheduling hook in native homing and BLTouch lifecycle; not yet connected by machine startup",
+  "sha256": {
+    "host/src/homing/bltouch-device.ts": "49dd1a26dc3f44a67e48a4a4176bb9e76c0e54b4f3aadd558a7d53615d68d276",
+    "host/src/homing/linear-seek.ts": "ad5ab3cef5a1b9e2e5aee478b8a3a1d985ab2178049d8f30121e994ea9ffd49e",
+    "host/src/homing/move-execution.ts": "1637046b23f76ad6c652ead1e863fddf19dd3bd0bace00d344f079db66d7dde7",
+    "host/test/bltouch-device.test.ts": "4a6843f536b622a61d6e0f82e0e31e0c8191b0153ffc4f6f1f1d319ef8ca2997",
+    "host/test/homing-move-execution.test.ts": "ec0d96f7192ee9d79f0d99f10442f996382f2c4d77562cd17a1920b92f12fd4a",
+    "host/bench/bltouch-device.ts": "f92a4a11456dd2e687035f129c58c9eda930ce8f0a04057c89d680e737fe215f"
+  },
+  "tests": "✔ startup verification gates ready; each sample deploys, waits, seeks and stows (3.923337ms)\n✔ multi-sample session lowers once, uses touch mode and stows only after all samples (0.867551ms)\n✔ failed raise verification retries reset twice and never publishes ready (0.857471ms)\n✔ failed sensor test retries but never invokes descent (0.670608ms)\n✔ successful retry and original rolling five-minute sensor-test timeout (1.751231ms)\n✔ clone flags skip unsupported checks and reset before raising (0.368475ms)\n✔ cancelled sensor verification stops hardware without late deployment (2.4689ms)\n✔ seek failure stops motion and PWM instead of claiming a verified stow (0.446066ms)\n✔ retained sample capability cannot issue device commands after its session (0.284513ms)\n✔ transport verification errors stop immediately instead of being treated as a retryable no-hit (0.318544ms)\n✔ a session cannot publish idle while a detached sample is still active (0.421225ms)\n✔ probe sampling tolerance retries retain one deployed pin for the complete multi-sample session (0.791949ms)\n✔ trigger schedules stow before seek readback but defers sensor verification until it completes (0.603567ms)\n✔ multi-sample trigger does not stow before the owning session ends (0.375654ms)\n✔ stationary verification returns authoritative MCU deadline without stepper commands (673.966212ms)\n✔ stationary verification returns authoritative MCU hit without stepper commands (667.07784ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (0) (678.656118ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (2) (670.282569ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (4) (662.516665ms)\n✔ stale hit clock is rejected even when raw GPIO matches the desired state (659.776942ms)\n✔ cancellation stops the session and prevents verifier reuse (428.024803ms)\n✔ host timeout remains a fault and never becomes an MCU no-hit result (430.636184ms)\n✔ expired window is rejected before writes and ongoing sampling cannot be accepted (659.659451ms)\n✔ BLTouch lifecycle uses native PWM and independently confirmed sensor sampling on one MCU (4137.181053ms)\nℹ {\"nativeLifecycleMs\":3729.6771869999993,\"verifications\":3,\"simulatedSeekCalls\":1,\"physicalMotion\":false}\n✔ trigger device output precedes recovery and its failure prevents coordinate reset (637.324712ms)\n✔ cancellation during trigger output joins stop and late completion cannot reset coordinates (633.885992ms)\n✔ one owner arms native triggers, archives generated history, reads back and restores the motion generation (639.752822ms)\n✔ coupled MCU trigger clocks use each calibrated domain rather than copying primary ticks (1043.568244ms)\n✔ full travel without a hit recovers against endpoint history without inventing a hit (909.687359ms)\n✔ independent endstop groups retain different hit times through the unified native lifecycle (1070.161413ms)\n✔ pre-cancellation stops the complete move without arming or resetting devices (409.803664ms)\n✔ a calibration change after construction fails before physical arming (407.182803ms)\n✔ coordinate reconstruction failure prevents every reset and stops all devices (635.192387ms)\n✔ invalid constructor ownership frees dispatches without stopping healthy sessions (406.86493ms)\n✔ active homing pins the initial history through readback and releases it after retirement (635.185027ms)\nℹ tests 35\nℹ suites 0\nℹ pass 35\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 17219.450895\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 1000,
+    "warmups": 2,
+    "samples": 7,
+    "medianMs": 16.011612000000014,
+    "maxMs": 21.592359000000016,
+    "maxPerSampleMs": 0.021592359000000016,
+    "seeks": 9000,
+    "writes": 36054,
+    "checks": 9018,
+    "scope": "Trigger callback and lifecycle CPU/promise overhead only; in-memory clock/verification/seek ports, no physical wait, serial I/O or printer acceptance."
+  },
+  "typecheck": true,
+  "behavior": [
+    "After native drip trigger completion, schedule device PWM before recovery",
+    "Endstop verification occurs only after seek readback completes",
+    "Output failure or cancellation prevents coordinate reset and joins stop",
+    "No trigger callback on exhausted travel",
+    "Trigger raise uses current MCU time, not the future planned motion endpoint",
+    "Late or repeated callbacks cannot schedule duplicate or foreign commands"
+  ],
+  "remaining": [
+    "Bind compiled BLTouch resource owner into NativeLinearHomingPort",
+    "Rebase after deployment/stow waits so new motion baseline is still future",
+    "Wire configuration and virtual probe Z paths, then remove startup refusal",
+    "Full compiled product performance and physical printer acceptance",
+    "Original Python retained"
+  ]
+}

@@ -14,7 +14,7 @@ export interface BLTouchDevicePort extends BLTouchCommandPort {
   * completed verification window with no hit; transport failures must reject. */
  verifyState(options:{time:number;until:number;triggered:boolean;sampleTime:number;sampleCount:number;restTime:number},signal:AbortSignal):Promise<boolean>;
 }
-export type BLTouchSample=<R>(seek:(signal:AbortSignal)=>Promise<R>)=>Promise<R>;
+export type BLTouchSample=<R>(seek:(signal:AbortSignal,onTriggered:()=>Promise<void>)=>Promise<R>)=>Promise<R>;
 /** The outer motion owner retains exclusive hardware ownership throughout
  * session(). Port.stop must stop both motion and PWM, not merely clear duty. */
 export class BLTouchDevice {
@@ -37,12 +37,15 @@ export class BLTouchDevice {
  async #send(command:BLTouchCommand,s:AbortSignal,duration=.1,extraLead=0){this.#check(s);return this.#wait(this.#commands.send(command,this.#earliest()+extraLead,s,duration),s);}
  async #sync(s:AbortSignal){await this.#wait(this.#port.waitUntil(Math.max(this.#commands.status.nextCommandTime,this.#time(this.#port.motionPrintTime())),s),s);}
  async #verify(triggered:boolean,s:AbortSignal){
-  const time=this.#commands.status.actionEndTime,until=time+.1;if(until<=time)throw new RangeError('Unrepresentable BLTouch verification window');
+  const time=Math.max(this.#commands.status.actionEndTime,this.#time(this.#port.estimatedPrintTime())+.1),until=time+.1;if(until<=time)throw new RangeError('Unrepresentable BLTouch verification window');
   return this.#wait(this.#port.verifyState({time,until,triggered,sampleTime:.000015,sampleCount:4,restTime:.001},s),s);
  }
  async #raise(s:AbortSignal,extraLead=0){
   if(!this.#settings.pinUpNotTriggered){await this.#send('reset',s,.1,extraLead);extraLead=0;}
   await this.#send('pin_up',s,this.#settings.pinMoveTime,extraLead);
+  await this.#verifyRaise(s);
+ }
+ async #verifyRaise(s:AbortSignal){
   if(this.#settings.pinUpNotTriggered)for(let retry=0;;retry++){
    if(await this.#verify(false,s))break;
    if(retry===2)throw new Error('BLTouch failed to raise probe');
@@ -78,8 +81,15 @@ export class BLTouchDevice {
    let active=true;
    const sample:BLTouchSample=async seek=>{
     this.#check(s);if(!active||this.#busySample)throw new Error('BLTouch sample ownership conflict');this.#busySample=true;
-    try{if(!this.#deployed)await this.#lower(s);const value=await this.#wait(seek(s),s);if(this.#settings.stowOnEachSample)await this.#raise(s);return value;}
-    catch(error){try{await this.stop(error);}catch(stop){throw new AggregateError([error,stop],'BLTouch sample and stop failed');}throw error;}finally{this.#busySample=false;}
+    let sampleActive=true,raised:Promise<void>|undefined;
+    const onTriggered=()=>{this.#check(s);if(!sampleActive)throw new Error('BLTouch trigger callback expired');if(!this.#settings.stowOnEachSample)return Promise.resolve();return raised??=(async()=>{
+     // Do not use the planned trajectory end as a command start: it may still
+     // be far in the future when a probe has already triggered.
+     const send=(command:BLTouchCommand,duration:number)=>this.#wait(this.#commands.send(command,this.#time(this.#port.estimatedPrintTime())+.1,s,duration),s);
+     if(!this.#settings.pinUpNotTriggered)await send('reset',.1);await send('pin_up',this.#settings.pinMoveTime);
+    })();};
+    try{if(!this.#deployed)await this.#lower(s);const value=await this.#wait(seek(s,onTriggered),s);if(this.#settings.stowOnEachSample){if(raised){await this.#wait(raised,s);await this.#verifyRaise(s);}else await this.#raise(s);}return value;}
+    catch(error){try{await this.stop(error);}catch(stop){throw new AggregateError([error,stop],'BLTouch sample and stop failed');}throw error;}finally{sampleActive=false;this.#busySample=false;}
    };
    let value:T;try{value=await this.#wait(run(sample,s),s);}finally{active=false;}
    if(this.#busySample)throw new Error('BLTouch session returned with an active sample');
