@@ -1,6 +1,6 @@
 import {readFile,realpath} from 'node:fs/promises';
 import {resolve,relative,isAbsolute} from 'node:path';
-import {tokenizeKconfig,parseKconfigExpression,kconfigYes,type KExpression,type KToken} from './expression.ts';
+import {tokenizeKconfig,parseKconfigExpression,kconfigCondition,kconfigYes,type KExpression,type KToken} from './expression.ts';
 export type KProperty={kind:'type';type:'bool'|'tristate'|'int'|'hex'|'string'}|{kind:'prompt';text:string;condition:KExpression}|{kind:'depends'|'visible';expression:KExpression}|{kind:'default';value:KExpression;condition:KExpression}|{kind:'select';name:string;condition:KExpression}|{kind:'imply';name:string;condition:KExpression}|{kind:'range';minimum:KExpression;maximum:KExpression;condition:KExpression}|{kind:'optional'};
 export interface KNode{kind:'root'|'config'|'menuconfig'|'choice'|'menu'|'comment'|'if';name?:string;title?:string;file:string;line:number;properties:KProperty[];children:KNode[];help?:string;}
 export interface KTree{root:KNode;files:string[];}
@@ -20,17 +20,17 @@ export async function parseKconfig(rootDirectory:string,entry='src/Kconfig'):Pro
    const exact=(n:number)=>{if(tokens.length!==n)throw new Error('Invalid '+word+' arguments');};
    const symbol=(t:KToken|undefined)=>{if(t?.kind!=='word'||!/^\w+$/.test(t.value))throw new Error('Expected symbol name');return t.value;};
    const quoted=(t:KToken|undefined)=>{if(t?.kind!=='string')throw new Error('Expected quoted text');return t.value;};
-   const conditional=(values:readonly KToken[])=>{const at=values.findIndex(t=>t.kind==='word'&&t.value==='if');return {value:at<0?values:values.slice(0,at),condition:at<0?kconfigYes:parseKconfigExpression(values.slice(at+1))};};
+   const conditional=(values:readonly KToken[])=>{const at=values.findIndex(t=>t.kind==='word'&&t.value==='if');return {value:at<0?values:values.slice(0,at),condition:at<0?kconfigYes:kconfigCondition(parseKconfigExpression(values.slice(at+1)))};};
    if(word==='source'){exact(1);const included=quoted(tokens[0]);if(included.includes('$'))throw new Error('Kconfig source expansion unsupported');await read(included,stack.at(-1)!);current=stack.at(-1)!;continue;}
    if(word==='mainmenu'){exact(1);if(stack.at(-1)!==root)throw new Error('Nested mainmenu');root.title=quoted(tokens[0]);continue;}
    if(['config','menuconfig'].includes(word)){exact(1);add(word as 'config'|'menuconfig',start+1,{name:symbol(tokens[0])});continue;}
    if(word==='choice'){if(tokens.length>1)throw new Error('Invalid choice');stack.push(add('choice',start+1,tokens.length?{name:tokens[0].kind==='string'?quoted(tokens[0]):symbol(tokens[0])}:{}));continue;}
    if(word==='menu'||word==='comment'){exact(1);const node=add(word,start+1,{title:quoted(tokens[0])});if(word==='menu')stack.push(node);continue;}
-   if(word==='if'){const node=add('if',start+1);node.properties.push({kind:'depends',expression:parseKconfigExpression(tokens)});stack.push(node);continue;}
+   if(word==='if'){const node=add('if',start+1);node.properties.push({kind:'depends',expression:kconfigCondition(parseKconfigExpression(tokens))});stack.push(node);continue;}
    if(['endif','endmenu','endchoice'].includes(word)){exact(0);if(stack.length===1||stack.at(-1)!.kind!==word.slice(3))throw new Error('Unmatched '+word);stack.pop();current=stack.at(-1)!;continue;}
    if(word==='help'){exact(0);let end=line+1;const content:string[]=[];while(end<lines.length&&(!lines[end].trim()||indent(lines[end])>indent(raw))){content.push(lines[end]);end++;}const nonempty=content.filter(s=>s.trim()),margin=nonempty.length?Math.min(...nonempty.map(indent)):0;current.help=content.map(s=>s.replaceAll('\t','        ').slice(margin)).join('\n').trimEnd();line=end-1;continue;}
    if(['bool','tristate','int','hex','string'].includes(word)){current.properties.push({kind:'type',type:word as 'bool'|'tristate'|'int'|'hex'|'string'});if(tokens.length){const {value,condition}=conditional(tokens);if(value.length!==1)throw new Error('Invalid type prompt');current.properties.push({kind:'prompt',text:quoted(value[0]),condition});}continue;}
-   if(word==='depends'||word==='visible'){if(tokens.shift()?.value!==(word==='depends'?'on':'if'))throw new Error('Invalid '+word);current.properties.push({kind:word,expression:parseKconfigExpression(tokens)});continue;}
+   if(word==='depends'||word==='visible'){if(tokens.shift()?.value!==(word==='depends'?'on':'if'))throw new Error('Invalid '+word);current.properties.push({kind:word,expression:kconfigCondition(parseKconfigExpression(tokens))});continue;}
    if(word==='optional'){exact(0);current.properties.push({kind:'optional'});continue;}
    const {value,condition}=conditional(tokens);
    if(word==='prompt'){if(value.length!==1)throw new Error('Invalid prompt');current.properties.push({kind:'prompt',text:quoted(value[0]),condition});}

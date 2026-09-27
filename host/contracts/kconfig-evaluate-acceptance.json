@@ -1,0 +1,38 @@
+{
+  "date": "2026-09-28",
+  "scope": "Expression evaluation on resolved symbols; configuration solver not yet implemented",
+  "reference": "kconfig-expression-reference.json",
+  "referenceMethod": "One-time bundled Kconfiglib _parse_expr(False) and expr_value snapshots; 11 architecture choices and explicit bool/int/hex/string synthetic symbols. Raw conditions intentionally separate MODULES rewriting, which is tested independently.",
+  "architectureExpressions": 412,
+  "architectures": 11,
+  "syntheticCases": 8256,
+  "totalOracleComparisons": 12788,
+  "testsIncludingParser": 8,
+  "benchmark": {
+    "node": "v26.9.0",
+    "evaluations": 453200,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 27.49100149999998,
+    "p95Ms": 33.978477,
+    "checksum": 56600,
+    "scope": "Parsed expressions and resolved symbol snapshots across 11 architectures; excludes parser, dependency/default/choice resolution and output generation. Build-time work, not motion processing."
+  },
+  "pythonBaseline": {
+    "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+    "evaluations": 453200,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 108.52800300017407,
+    "p95Ms": 108.64994899748126,
+    "checksum": 56600,
+    "scope": "Kconfiglib expr_value on parsed expressions with warmed symbol caches; independent sequential same-machine baseline, not paired whole-configuration timing"
+  },
+  "limitations": [
+    "No config solver/default selection/choice resolution yet",
+    "Makefile retains Python Kconfiglib; zero Python files retired",
+    "Benchmark excludes parse, symbol resolution and export; independent sequential runs, not end-to-end speedup",
+    "Print motion arithmetic unchanged; existing numerical/runtime diagnostics remain open",
+    "No actual printer validation"
+  ]
+}

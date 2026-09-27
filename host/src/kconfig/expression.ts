@@ -17,3 +17,12 @@ export function parseKconfigExpression(tokens:readonly KToken[]):KExpression{
  const result=or();if(i!==tokens.length)throw new Error('Unexpected Kconfig expression token');return result;
 }
 export const kconfigYes:KExpression=Object.freeze({kind:'symbol',value:'y'});
+
+/** Conditional m is gated by MODULES; comparison operands and defaults are not. */
+export function kconfigCondition(expression:KExpression):KExpression {
+ if(expression.kind==='symbol'||expression.kind==='literal')return expression.value==='m'
+  ?{kind:'binary',operator:'&&',left:expression,right:{kind:'symbol',value:'MODULES'}}:expression;
+ if(expression.kind==='not')return {kind:'not',value:kconfigCondition(expression.value)};
+ if(expression.kind==='binary'&&(expression.operator==='&&'||expression.operator==='||'))return {...expression,left:kconfigCondition(expression.left),right:kconfigCondition(expression.right)};
+ return expression;
+}

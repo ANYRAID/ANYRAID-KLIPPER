@@ -35,6 +35,17 @@
 复现：Node.js 26 运行 `host/test/kconfig-parser.test.ts`（使用 `--test`）
 及 `host/bench/kconfig-parser.ts`；日常测试读取冻结 JSON，无需 Python。
 
+Kconfig 表达式求值层已补齐三态逻辑、短路、精确整数比较、字符串字符序
+及条件中 `m` 对 `MODULES` 的依赖。整数使用 BigInt，避免超过 binary64
+安全范围后比较失真；不会改变打印运动内核的浮点运算。11 种架构的
+412 条表达式与 8,256 个边界样本，共 12,788 个旧实现结果对照通过。
+解析与求值合计 8 项测试、类型和空白检查通过。45.32 万次表达式求值
+中位 27.49 ms、P95 33.98 ms；同机顺序运行的 Python 缓存求值中位
+108.53 ms。此比较不含符号依赖求解、默认值/选择组决策、解析和输出，
+不代表完整构建提速。配置求解器与构建切换仍待完成，Python 退役数仍为 0。
+证据见 [表达式验收](../host/contracts/kconfig-evaluate-acceptance.json)，
+复现基准为 `node host/bench/kconfig-evaluate.ts`。
+
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。
 6 项安装回归、类型检查、编译包后台任务和一条模拟打印流程通过；本机
