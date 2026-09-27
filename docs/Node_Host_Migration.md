@@ -16,6 +16,19 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 用原锁定 Markdown 3.3.7／py-gfm 2.0.0／truly-sane-lists 1.2／
+  breakless-lists 1.0.1 在临时环境生成 13 类固定 HTML 参考，保存在
+  host/contracts/docs-dialect-reference.json；Node 回归不运行 Python。
+  发现并修复任务清单未转复选框与删除线使用 s 而非 del 的差异；
+  普通段落、行内代码、围栏内标记不会误转成复选框。14 项方言及
+  渲染检查通过，8 类与固定参考一致。完整 58 页渲染中位耗时
+  289.656 ms，见 [方言对照](diagnostics/docs-dialect-validation.json)。
+  对照仍确认有序列表起始编号／两空格嵌套、段落分隔的列表合并、
+  列表内围栏代码三类语义差异，另有空白与样式类差异；不将这些
+  未解决项计为通过，发布入口和 Python 钩子继续保留。类型检查通过；
+  格式检查首次以 125 退出（Node signal 11），单独复查以 0 退出，
+  两次结果均记录于方言对照报告，既有运行时稳定性问题未解决。
+
 - Node 多语言候选构建已接通：读取官方 active_translations，处理目录、
   站点语言、显示名称和搜索语言字段，保留末列注释兼容性。沿用
   Navigation.md 的标题位置及 manual-index.md 优先规则；生成语言

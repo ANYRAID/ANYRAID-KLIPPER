@@ -43,12 +43,26 @@ export function renderDocsPage(source: string, repoUrl: string): DocsPage {
     source = source.slice(front[0].length);
   }
   const parser = new MarkdownIt({ html: true, linkify: true }).use(attrs);
+  parser.renderer.rules.s_open = () => '<del>';
+  parser.renderer.rules.s_close = () => '</del>';
   const tokens = parser.parse(transformDocsMarkdown(source, `${repoUrl.replace(/\/+$/, '')}/`), {});
   const headings: DocsHeading[] = [], text: string[] = [];
   const ids = new Set<string>();
   for (let index = 0; index < tokens.length; index++) {
     const token = tokens[index];
     if (token.type === 'inline') {
+      const first = token.children?.[0];
+      if (tokens[index - 1]?.type === 'paragraph_open'
+        && tokens[index - 2]?.type === 'list_item_open' && first?.type === 'text') {
+        const checkbox = /^\[([ xX])\](?=\s)/u.exec(first.content);
+        if (checkbox) {
+          const input = new MarkdownIt.Token('html_inline', '', 0);
+          input.content = '<input disabled="disabled" type="checkbox"'
+            + (checkbox[1].toLowerCase() === 'x' ? ' checked="checked"' : '') + ' />';
+          first.content = first.content.slice(3);
+          token.children!.unshift(input);
+        }
+      }
       const plain = (token.children ?? []).map((child) =>
         ['text', 'code_inline', 'image'].includes(child.type) ? child.content
           : ['softbreak', 'hardbreak'].includes(child.type) ? ' ' : '').join('');
