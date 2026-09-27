@@ -5,10 +5,10 @@ import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
 import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 const path='/printer/settings/driver_current';
-function setup(){
+function setup(max=2){
  const gate=new MaintenanceGate(),registry=new EndpointRegistry(new JsonRpcDispatcher()),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
  let revision=0,run=.8,hold=.8,idle=true,calls=0,faults=0,work:(signal:AbortSignal)=>Promise<void>=async()=>{};
- const close=registerNativeDriverCurrent(registry,gate,{snapshot:()=>[{name:'tmc2209 stepper_x',revision,run_current:run,hold_current:hold}],idle:()=>idle,async set(_name,change,signal){calls++;await work(signal);signal.throwIfAborted();run=change.run??run;hold=change.hold??hold;revision++;},fail(){faults++;}});
+ const close=registerNativeDriverCurrent(registry,gate,{snapshot:()=>[{name:'tmc2209 stepper_x',revision,max_current:max,run_current:run,hold_current:hold}],idle:()=>idle,async set(_name,change,signal){calls++;await work(signal);signal.throwIfAborted();run=change.run??run;hold=change.hold??hold;revision++;},fail(){faults++;}});
  const invoke=(verb:string,params:any={})=>registry.invoke(path,verb,params,context) as Promise<any>;
  return {gate,registry,context,close,invoke,setIdle(v:boolean){idle=v;},external(){revision++;},setWork(w:typeof work){work=w;},get calls(){return calls;},get faults(){return faults;}};
 }
@@ -43,4 +43,8 @@ test('authorization completing after disposal cannot mutate a retired generation
 });
 test('invalidated hardware cannot return a successful retry receipt',async()=>{
  const f=setup();try{const body=request(await f.invoke('GET'));await f.invoke('POST',body);f.gate.invalidate();await assert.rejects(f.invoke('POST',body),/unavailable/);assert.equal(f.calls,1);}finally{await f.close();}
+});
+
+test('current limits come from the selected model and reject excess before taking ownership',async()=>{
+ for(const max of [2,10]){const f=setup(max);try{const state=await f.invoke('GET'),body={...request(state),run_current:3};assert.equal(state.drivers[0].max_current,max);if(max===2){await assert.rejects(f.invoke('POST',body),/limit/);assert.equal(f.calls,0);}else{await assert.rejects(f.invoke('POST',{...body,run_current:10.01}),/limit/);assert.equal(f.calls,0);assert.equal((await f.invoke('POST',body)).drivers[0].run_current,3);}}finally{await f.close();}}
 });

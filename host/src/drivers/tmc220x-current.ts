@@ -10,6 +10,7 @@ export class Tmc220xCurrent {
   this.#chop=plan.registers.find(r=>r.name==='CHOPCONF')!.value;this.#ihold=plan.registers.find(r=>r.name==='IHOLD_IRUN')!.value;this.#lifetime=lifetime;this.#fault=fault;
  }
  get revision(){return this.#revision;}
+ get maxCurrent(){return 2;}
  get current(){return this.#current;}
  async set(change:{run?:number;hold?:number},signal:AbortSignal):Promise<void>{
   const combined=AbortSignal.any([signal,this.#lifetime]);combined.throwIfAborted();

@@ -1,3 +1,5 @@
+import {Tmc5160Current} from '../drivers/tmc5160-current.ts';
+import type {TmcCurrentControl} from '../drivers/tmc-current.ts';
 import {sessionTmcSpi} from '../drivers/tmc-spi-mcu.ts';
 import {Tmc220xCurrent} from '../drivers/tmc220x-current.ts';
 import {Tmc220xMonitor} from '../drivers/tmc220x-monitor.ts';
@@ -57,7 +59,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
  const buttons:{section:string;input:SwitchInput}[]=[];
- const drivers:{section:string;monitor:Tmc220xMonitor;current:Tmc220xCurrent}[]=[];
+ const drivers:{section:string;monitor:Tmc220xMonitor;current:TmcCurrentControl}[]=[];
  let motorEnable:MotorEnable|undefined,state:'starting'|'ready'|'stopping'|'stopped'|'failed'='starting',fault:unknown,stopError:unknown,closing:Promise<void>|undefined,detach=()=>{};
  const close=(cause:unknown=new Error('Configured hardware closed')):Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;state='stopping';fault=cause;abort.abort(cause);detach();
@@ -83,8 +85,8 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor,current:new Tmc220xCurrent(device,driver,abort.signal,error=>{void close(error).catch(()=>{});})});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
   for(const bus of plan.tmcSpis){const chain=sessionTmcSpi(group.session(bus.mcu),bus.spi.oid,bus.length);for(const entry of bus.devices){
    const driver=entry.plan,device=chain.register(entry.position);await initializeTmc220x(device,driver,abort.signal);active();
-   const fault=(error:unknown)=>{void close(error).catch(()=>{});},current=new Tmc220xCurrent(device,driver,abort.signal,fault),emitter=plan.steppers.find(s=>s.section===driver.stepper)!.emitter;
-   const monitor=new Tmc220xMonitor(device,fault,undefined,{currentActive:()=>current.current.irun>=4&&current.current.ihold>0&&!!motorEnable?.status.lines.some(l=>l.enabled&&l.emitters.some(id=>id===emitter))});
+   const fault=(error:unknown)=>{void close(error).catch(()=>{});},current=driver.model==='tmc5160'?new Tmc5160Current(device,driver,abort.signal,fault):new Tmc220xCurrent(device,driver,abort.signal,fault),emitter=plan.steppers.find(s=>s.section===driver.stepper)!.emitter;
+   const monitor=new Tmc220xMonitor(device,fault,undefined,{model:driver.model,currentActive:()=>current.current.irun>=4&&current.current.ihold>0&&!!motorEnable?.status.lines.some(l=>l.enabled&&l.emitters.some(id=>id===emitter))});
    drivers.push({section:driver.model+' '+driver.stepper,monitor,current});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();
   }}
   for(const [i,b] of plan.buttons.entries()){buttons[i].input.activate(group.commandQueue(b.mcu));active();}

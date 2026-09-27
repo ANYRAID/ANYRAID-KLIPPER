@@ -1,16 +1,18 @@
+import {planTmc5160} from '../drivers/tmc5160.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins,type PhysicalPinMap,type PinRequest} from '../protocol/pins.ts';
 import {mcuOids} from '../protocol/mcu-oids.ts';
 import type {StepperMCU} from './stepper.ts';
 import {compileTmcSpi,compileTmcSoftwareSpi} from '../drivers/tmc-spi-mcu.ts';
 import {planTmc2130} from '../drivers/tmc2130.ts';
+type SpiDriverPlan=(Omit<ReturnType<typeof planTmc2130>,'registers'>|Omit<ReturnType<typeof planTmc5160>,'registers'>)&{registers:readonly Readonly<{name:string;address:number;value:number}>[]};
 /** One OID per CS chain. Hardware bus pins are exclusively claimed once across
  * all CS chains, with firmware BUS_PINS metadata required for conflict checks. */
 export function compileConfiguredTmcSpi<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,steppers:readonly {section:string;bothEdges:boolean}[]){
  const maps=new Map<string,PhysicalPinMap>(),requests:PinRequest[]=[],usedBuses=new Set<string>();
- const chains=new Map<string,{mcu:string;cs:ReturnType<typeof pins.parse>;bus:string;software?:readonly ReturnType<typeof pins.parse>[];rate:number;length:number;devices:{position:number;plan:ReturnType<typeof planTmc2130>}[]}>();
- for(const section of reader.sections().filter(s=>s.startsWith('tmc2130 '))){
-  const c=reader.section(section),base=planTmc2130(reader,section),stepper=steppers.find(s=>s.section===base.stepper);
+ const chains=new Map<string,{mcu:string;cs:ReturnType<typeof pins.parse>;bus:string;software?:readonly ReturnType<typeof pins.parse>[];rate:number;length:number;devices:{position:number;plan:SpiDriverPlan}[]}>();
+ for(const section of reader.sections().filter(s=>/^tmc(2130|5160) /.test(s))){
+  const c=reader.section(section),base=section.startsWith('tmc5160 ')?planTmc5160(reader,section):planTmc2130(reader,section),stepper=steppers.find(s=>s.section===base.stepper);
   if(!stepper||!reader.section(base.stepper).hasOption('enable_pin'))throw new Error('TMC SPI requires a controlled stepper enable');
 
   const description=c.get('cs_pin'),cs=pins.parse(description),mcu=mcus.get(cs.chipName);if(!mcu||mcu.chip!==cs.chip)throw new Error('TMC SPI MCU mismatch');

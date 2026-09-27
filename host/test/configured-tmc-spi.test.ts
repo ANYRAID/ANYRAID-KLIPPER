@@ -10,10 +10,10 @@ import {serialClock} from '../src/protocol/serial-queue.ts';
 import {tmc220xStatusReader} from '../src/drivers/tmc220x-status.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 const layout={steppers:[{section:'stepper_x',emitter:'x',enableLeadTime:.001},{section:'stepper_y',emitter:'y',enableLeadTime:.001,requestBothEdges:true}],homing:[],fans:[],heaters:[]};
-const reader=(change:Record<string,string>={},software=false)=>new ConfigurationReader(new ConfigurationSource('/spi.cfg',{
+const reader=(change:Record<string,string>={},software=false,model='tmc2130')=>new ConfigurationReader(new ConfigurationSource('/spi.cfg',{
  stepper_x:{step_pin:'PA0',dir_pin:'PA1',enable_pin:'!PA2',rotation_distance:'40',microsteps:'16'},stepper_y:{step_pin:'PA4',dir_pin:'PA5',enable_pin:'!PA2',rotation_distance:'40',microsteps:'32',step_pulse_duration:'.0000001'},
- 'tmc2130 stepper_x':{cs_pin:'PA9',spi_bus:'spi1',...software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{},chain_length:'2',chain_position:'1',run_current:'.8'},
- 'tmc2130 stepper_y':{cs_pin:'PA9',spi_bus:'spi1',...software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{},chain_length:'2',chain_position:'2',run_current:'.9',...change}
+ [model+' stepper_x']:{cs_pin:'PA9',spi_bus:'spi1',...software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{},chain_length:'2',chain_position:'1',run_current:'.8'},
+ [model+' stepper_y']:{cs_pin:'PA9',spi_bus:'spi1',...software?{spi_software_miso_pin:'PA6',spi_software_mosi_pin:'PA7',spi_software_sclk_pin:'PA8'}:{},chain_length:'2',chain_position:'2',run_current:'.9',...change}
 },[]),null);
 async function fixture(bad=false,software?:'modern'|'legacy'){
  const registers=new Map<number,number>(),writes:number[][]=[];let latched=Buffer.alloc(10),fault=0,stops=0;
@@ -59,5 +59,14 @@ test('software SPI reserves physical pins and rejects mixed chain wiring before 
   for(const change of [{spi_software_miso_pin:'PA0'},{spi_software_mosi_pin:'PA6'},{spi_software_sclk_pin:'PA7'}] as Record<string,string>[])assert.throws(()=>compileConfiguredHardware(reader(change,true),f.group,f.clocks,layout));
   const raw=structuredClone(reader({},true).source.original);raw['tmc2130 stepper_x'].spi_software_miso_pin='PA0';raw['tmc2130 stepper_y'].spi_software_miso_pin='PA0';assert.throws(()=>compileConfiguredHardware(new ConfigurationReader(new ConfigurationSource('/spi.cfg',raw,[]),null),f.group,f.clocks,layout),/multiple/);
   assert.equal(f.writes.length,0);assert.equal(f.firmware.stepperConfigs.length,0);assert.equal(compileConfiguredHardware(reader({},true),f.group,f.clocks,layout).tmcSpis[0].spi.oid,3);
+ }finally{await f.close();}
+});
+
+for(const software of [false,true])test(`TMC5160 hardware owner supports model current and supply-short monitoring (software=${software})`,async()=>{
+ const f=await fixture(false,software?'modern':undefined);try{
+  const h=await startConfiguredHardware(reader({},software,'tmc5160'),f.group,f.clocks,layout,{beforeTarget(){}},f.signal);assert.equal(h.drivers[0].current.maxCurrent,10);assert.equal(f.writes.length,42);
+  await h.drivers[0].current.set({run:3,hold:.3},f.signal);assert(h.drivers[0].current.current.runCurrent>2.9);assert.equal(f.writes.length,44);
+  const state=tmc220xStatusReader(h.plan.tmcSpis[0].devices[0].plan,{status:{...h.drivers[0].monitor.status,drvStatus:0x7000}})();assert.deepEqual(state.drv_status,{s2vsa:1,s2vsb:1,stealth:1});
+  f.setFault(1<<12);const deadline=Date.now()+3000;while(h.status.state==='ready'&&Date.now()<deadline)await new Promise(r=>setTimeout(r,10));await h.close();assert(h.drivers.some(d=>d.monitor.status.fault));assert.equal(f.stops,1);
  }finally{await f.close();}
 });

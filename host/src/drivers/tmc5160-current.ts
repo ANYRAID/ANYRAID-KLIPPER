@@ -14,6 +14,7 @@ export function tmc5160Current(run:number,hold=10,resistor=.075){
 export class Tmc5160Current {
  #device:Pick<TmcSpiDevice,'write'>;#current:ReturnType<typeof tmc5160Current>;#hold:number;#resistor:number;#ihold:number;#lifetime:AbortSignal;#fault:(cause:unknown)=>void;#busy=false;#failed=false;#revision=0;
  constructor(device:Pick<TmcSpiDevice,'write'>,plan:{current:ReturnType<typeof tmc5160Current>;requestedHold:number;resistor:number;registers:readonly {name:string;value:number}[]},lifetime:AbortSignal,fault:(cause:unknown)=>void){this.#device=device;this.#current=plan.current;this.#hold=plan.requestedHold;this.#resistor=plan.resistor;this.#ihold=plan.registers.find(r=>r.name==='IHOLD_IRUN')!.value;this.#lifetime=lifetime;this.#fault=fault;}
+ get maxCurrent(){return 10;}
  get current(){return this.#current;}
  get revision(){return this.#revision;}
  async set(change:{run?:number;hold?:number},signal:AbortSignal){

@@ -31,3 +31,10 @@ test('TMC2130 status masks, read-cleared GSTAT and active-current reset checks a
  const monitor=new Tmc220xMonitor({async read(){return 0;},async write(){assert.fail();}},e=>faults.push(e),clock,{currentActive:()=>active});
  await monitor.start(signal());await clock.advance(1.1);assert.equal(faults.length,0);active=true;await clock.advance(1.1);assert.equal(faults.length,1);await monitor.stop();
 });
+test('TMC5160 clears startup GSTAT and checks both supply shorts without the 2130 zero-current quirk',async()=>{
+ for(const bit of [1<<12,1<<13]){
+  const clock=new FakeClock(),faults:unknown[]=[];let gstat=1,status=0,writes=0;
+  const monitor=new Tmc220xMonitor({async read(r){return r===1?gstat:status;},async write(r,v){assert.equal(r,1);assert.equal(v,1);writes++;gstat=0;}},e=>faults.push(e),clock,{model:'tmc5160',currentActive:()=>true});
+  await monitor.start(signal());assert.equal(writes,1);await clock.advance(1.1);assert.equal(faults.length,0);status=bit;await clock.advance(1.1);assert.equal(faults.length,1);assert.equal(writes,1);await monitor.stop();
+ }
+});

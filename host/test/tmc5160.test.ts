@@ -29,3 +29,10 @@ test('cancelled global-scale write cannot publish state or proceed to current bi
  const row=reference.rows[32],plan=planTmc5160(reader(row.driver,row.stepper),'tmc5160 stepper_x'),abort=new AbortController(),faults:unknown[]=[];let writes=0;
  const current=new Tmc5160Current({async write(){writes++;abort.abort(new Error('cancel'));}},plan,signal(),e=>faults.push(e));await assert.rejects(current.set({run:3},abort.signal),/cancel/);assert.equal(writes,1);assert.equal(current.current,plan.current);assert.equal(faults.length,1);
 });
+test('native G-code accepts the 5160 current range and rejects excess before writing',async()=>{
+ const {bindTmcCurrent}=await import('../src/gcode/tmc-current.ts'),{GCodeDispatch}=await import('../src/gcode/dispatch.ts');
+ const row=reference.rows[31],plan=planTmc5160(reader(row.driver,row.stepper),'tmc5160 stepper_x');let writes=0;
+ const current=new Tmc5160Current({async write(){writes++;}},plan,signal(),()=>assert.fail('fault')),dispatch=new GCodeDispatch({output(){},shutdown(){assert.fail('shutdown');},async drain(){}});bindTmcCurrent(dispatch,[{section:'tmc5160 stepper_x',current}]);dispatch.setReady(true);
+ await dispatch.execute('SET_TMC_CURRENT STEPPER=stepper_x CURRENT=3 HOLDCURRENT=0.3');assert.equal(writes,2);assert(current.current.runCurrent>2.9);
+ await dispatch.execute('SET_TMC_CURRENT STEPPER=stepper_x CURRENT=10.1',{acknowledge:true});assert.equal(writes,2);
+});

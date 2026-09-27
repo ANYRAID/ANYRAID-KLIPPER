@@ -7,7 +7,7 @@ import {planTmc220x} from '../drivers/tmc220x.ts';
 /** All drivers on a physical UART are allocated together. The parent hardware
  * assembly owns rollback across other peripheral builders. No device I/O. */
 export function compileConfiguredTmcUart<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,steppers:readonly {section:string;bothEdges:boolean}[]){
- const sections=reader.sections().filter(s=>/^tmc\d+ /.test(s)&&!s.startsWith('tmc2130 '));
+ const sections=reader.sections().filter(s=>/^tmc\d+ /.test(s)&&!/^tmc(2130|5160) /.test(s));
  if(sections.length>128)throw new Error('Too many TMC drivers');
  const maps=new Map<string,PhysicalPinMap>(),buses=new Map<string,{mcu:string;rx:ReturnType<typeof pins.parse>;tx:ReturnType<typeof pins.parse>;descriptions:string[];devices:ReturnType<typeof planTmc220x>[]} >(),motors=new Set<string>();
  for(const section of sections){

@@ -57,7 +57,7 @@ export async function startProductService(reader:ConfigurationReader,connections
   server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined)});
   signal.throwIfAborted();printer.group.assertActive();
   closeDriverCurrent=registerNativeDriverCurrent(server.endpoints,printer.maintenanceGate,{
-   snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
+   snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,max_current:d.current.maxCurrent,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
    idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves,
    set:async(name,change,signal)=>{const driver=printer.hardware.drivers.find(d=>d.section===name);if(!driver)throw new Error('Unknown current driver');await printer.print.gcode.dispatch.runExclusive(async s=>{await printer.linear.port.drain(s);await driver.current.set(change,s);},signal);},
    fail:error=>{void printer.hardware.close(error).catch(()=>{});}

@@ -3,7 +3,7 @@ import {ApiError,type Json} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import type {MaintenanceGate} from '../operations/maintenance-gate.ts';
 export interface DriverCurrentMaintenance {
- snapshot():readonly {name:string;revision:number;run_current:number;hold_current:number}[];
+ snapshot():readonly {name:string;revision:number;run_current:number;hold_current:number;max_current:number}[];
  idle():boolean;
  set(name:string,change:{run?:number;hold?:number},signal:AbortSignal):Promise<void>;
  fail(cause:unknown):void;
@@ -22,12 +22,13 @@ export function registerNativeDriverCurrent(registry:EndpointRegistry,gate:Maint
  const unregister=registry.register({endpoint:'/printer/settings/driver_current',methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return snapshot();
   if(Object.keys(params).some(k=>!['version','state_token','driver','run_current','hold_current'].includes(k))||params.version!==1||typeof params.state_token!=='string'||typeof params.driver!=='string'||!['run_current','hold_current'].some(k=>Object.hasOwn(params,k)))throw new ApiError(400,'Expected version, state_token, driver and current');
-  for(const k of ['run_current','hold_current'])if(Object.hasOwn(params,k)){const n=params[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||n>2||(k==='hold_current'&&n===0))throw new ApiError(400,'Invalid driver current');}
+  for(const k of ['run_current','hold_current'])if(Object.hasOwn(params,k)){const n=params[k];if(typeof n!=='number'||!Number.isFinite(n)||n<0||(k==='hold_current'&&n===0))throw new ApiError(400,'Invalid driver current');}
   const state=snapshot(),key=JSON.stringify([params.driver,params.run_current??null,params.hold_current??null]);
   if(closed||failed||gate.status.closed)throw new ApiError(503,'Driver current owner unavailable');
   if(previous?.token===params.state_token&&previous.fingerprint===fingerprint){if(previous.key!==key)throw new ApiError(409,'Driver current retry conflicts');return structuredClone(previous.receipt);}
   if(params.state_token!==token)throw new ApiError(409,'Stale driver current state token');
-  if(!state.drivers.some(d=>d.name===params.driver))throw new ApiError(400,'Unknown current driver');
+  const driver=state.drivers.find(d=>d.name===params.driver);if(!driver)throw new ApiError(400,'Unknown current driver');
+  if(['run_current','hold_current'].some(k=>typeof params[k]==='number'&&params[k]>driver.max_current))throw new ApiError(400,'Current exceeds driver limit');
   if(!state.available)throw new ApiError(409,'Driver current requires an idle printer');
   let release:()=>void;try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks current adjustment');}
   busy=true;const consumed=token,deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new Error('Current adjustment deadline exceeded')),10000),signal=AbortSignal.any([context.signal,lifetime.signal,deadline.signal]);
