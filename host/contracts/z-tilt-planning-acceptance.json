@@ -1,0 +1,74 @@
+{
+  "date": "2026-09-28",
+  "scope": "Pure mechanical Z tilt fitting and individual motor motion planning",
+  "tests": {
+    "passed": 5,
+    "command": "node --test --test-isolation=none host/test/z-tilt.test.ts",
+    "legacyCases": 36,
+    "actuatorCounts": [
+      2,
+      3,
+      4
+    ],
+    "comparisonTolerance": 1e-10,
+    "checks": [
+      "Per-motor corrections, enabled groups, segment distances and final Z match frozen reference",
+      "Analytic translated planes recover known slopes",
+      "Flat equal-height two-point regression fixed",
+      "Unobservable motor slopes rejected",
+      "Travel bound and unrepresentable motion rejected"
+    ]
+  },
+  "intentionalDifference": {
+    "samples": [
+      [
+        0,
+        0,
+        0.25
+      ],
+      [
+        100,
+        0,
+        0.25
+      ]
+    ],
+    "legacyFit": {
+      "z": 0,
+      "x": 0.0025,
+      "y": 0
+    },
+    "note": "Legacy underdetermined solver produces nonzero slope for equal probe heights; new fit intentionally differs"
+  },
+  "benchmarks": {
+    "node": {
+      "node": "v26.9.0",
+      "plans": 3600,
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 15.872254999999996,
+      "maxMs": 20.05316400000001,
+      "checksum": 19163.413718472322,
+      "scope": "Plane fit and bounded per-motor planning only; no probing, step generation or hardware"
+    },
+    "python": {
+      "python": "3.12.13",
+      "plans": 3600,
+      "medianMs": 47.2843349998584,
+      "maxMs": 47.46858699945733,
+      "checksum": 19163.413718472322,
+      "scope": "Actual legacy solve_linear_equations plus scalar motor ordering/final coordinate; excludes toolhead dispatch and I/O"
+    }
+  },
+  "sourceSha256": {
+    "host/src/motion/z-tilt.ts": "a4caeba638da97bfdeeae669f6c9cde689461493758b2c17ae719d58c94e91f6",
+    "host/test/z-tilt.test.ts": "9b3b31021608644dc83c513c483c2b9ff2fe49840aaafcfe5b340a3d5318397b",
+    "host/contracts/z-tilt-reference.json": "b63415941e0aaf6ba91df320292698b74f4cd1ffa8791960f1b8bee10947200b",
+    "host/bench/z-tilt.ts": "c8182267a835f3b775a2e4bd86c0e41561acb6fdb10bbcae560c5d88cba833cb"
+  },
+  "limitations": [
+    "Pure planner only; z_tilt configuration is still rejected",
+    "Per-motor execution, probing lifecycle, failure recovery and controlled API not integrated",
+    "No target board or physical printer precision/performance verification",
+    "No Python retired; historical runtime/motion issues unresolved"
+  ]
+}
