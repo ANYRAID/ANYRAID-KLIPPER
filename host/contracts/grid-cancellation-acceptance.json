@@ -1,0 +1,20 @@
+{
+  "base": "e9cfa5ed",
+  "test": "HTTP disconnect during grid seek stops native motion and retains prior mesh",
+  "passed": true,
+  "typecheck": true,
+  "trigger": "Client request aborted during second armed grid seek",
+  "assertions": [
+    "Native motion failed and homed axes cleared",
+    "Every configured MCU stop adapter called",
+    "Maintenance admission closed and lease released",
+    "Prior mesh and printer config contents unchanged",
+    "Subsequent home request rejected and print activity denied"
+  ],
+  "log": "/tmp/grid-cancel-verified.log",
+  "limitations": [
+    "Source product service with simulated MCU; no physical stopping distance acceptance",
+    "Test-only change, no production motion or performance behavior changed",
+    "No claim that historical runtime crashes or numerical anomalies are resolved"
+  ]
+}
