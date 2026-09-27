@@ -1,4 +1,5 @@
 import {registerNativeZAdjustment} from '../moonraker/native-z-adjustment.ts';
+import {registerNativeObjectCancellation} from '../moonraker/native-object-cancel.ts';
 import {registerNativeZOffset} from '../moonraker/native-z-offset.ts';
 import {registerNativeZEndstop} from '../moonraker/native-z-endstop.ts';
 import {registerManualProbe} from '../moonraker/native-manual-probe.ts';
@@ -48,6 +49,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  signal.throwIfAborted();const configPath=options.configPath,serverOptions={...options.server};
  const printer=await connectProductPrinter(reader,connections,primaryId,layout,printerOptions,product,signal);
  let closeZAdjustment:(()=>Promise<void>)|undefined;
+ let closeObjectCancellation:(()=>void)|undefined;
  let closeZOffset:(()=>Promise<void>)|undefined;
  let closeZEndstop:(()=>Promise<void>)|undefined;
  let closeManualProbe:(()=>Promise<void>)|undefined;
@@ -58,6 +60,7 @@ export async function startProductService(reader:ConfigurationReader,connections
  const close=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
   closeIdleSettings?.();
+  closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
   const jobs:Promise<void>[]=[];if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
@@ -70,6 +73,10 @@ export async function startProductService(reader:ConfigurationReader,connections
   signal.throwIfAborted();
   server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined)});
   signal.throwIfAborted();printer.group.assertActive();
+  if(printer.print.gcode.objects)closeObjectCancellation=registerNativeObjectCancellation(server.endpoints,printer.print.gcode.objects,{
+   snapshot:()=>({requestId:printer.controller.currentRequest?.requestId??null,state:printer.controller.state,stateToken:printer.controller.stateToken,available:!closing&&!printer.maintenanceGate.status.closed&&!printer.controller.safeStopPending}),
+   assertActive:()=>printer.linear.port.assertActive()
+  });
   closeDriverCurrent=registerNativeDriverCurrent(server.endpoints,printer.maintenanceGate,{
    snapshot:()=>printer.hardware.drivers.map(d=>({name:d.section,revision:d.current.revision,max_current:d.current.maxCurrent,run_current:d.current.current.runCurrent,hold_current:d.current.current.holdCurrent})),
    idle:()=>printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.linear.port.status.busy&&!printer.linear.port.status.pendingMoves,

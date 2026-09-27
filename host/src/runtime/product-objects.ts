@@ -24,6 +24,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
  ]);
  if(printer.linear.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.linear.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());
+ const objects=printer.print.gcode.objects;if(objects)readers.set('exclude_object',()=>objects.status);
  const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...retraction.status}));
  for(const heater of printer.hardware.thermal)readers.set(heater.section,()=>{
   const thermal=heater.runtime.objectStatus;

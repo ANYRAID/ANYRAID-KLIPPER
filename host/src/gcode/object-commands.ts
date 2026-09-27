@@ -11,6 +11,8 @@ function point(value:unknown):value is number[]{return Array.isArray(value)&&val
  * detach after final motion drains. Definitions remain visible after finish. */
 export class ObjectCommands {
  readonly #coordinates:GCodeMove;readonly #downstream:MovePort;
+ #revision=0n;
+ get revision(){return this.#revision.toString();}
  #transform:ObjectExclusionTransform|undefined;#objects:Definition[]=[];#completedExcluded:string[]=[];#current:string|null=null;
  constructor(coordinates:GCodeMove,downstream:MovePort){if(!coordinates.usesPort(downstream))throw new Error('Object coordinate ownership mismatch');this.#coordinates=coordinates;this.#downstream=downstream;}
  get status(){return {objects:structuredClone(this.#objects),excluded_objects:this.#transform?.status.excluded_objects??[...this.#completedExcluded],current_object:this.#current};}
@@ -18,17 +20,18 @@ export class ObjectCommands {
   const name=canonical(value);let transform=this.#transform;
   if(!transform){if(!this.#coordinates.usesPort(this.#downstream))throw new Error('Object transform ownership changed');transform=new ObjectExclusionTransform(this.#downstream);if(this.#current)transform.start(this.#current);transform.exclude(name);this.#coordinates.setPort(transform);this.#transform=transform;}
   else transform.exclude(name);
+  this.#revision++;
  }
  finish():void{if(this.#transform){if(!this.#coordinates.usesPort(this.#transform))throw new Error('Object transform ownership changed');this.#completedExcluded=this.#transform.status.excluded_objects;this.#coordinates.setPort(this.#downstream);this.#coordinates.resetPosition();this.#transform=undefined;}this.#current=null;}
- reset():void{this.finish();this.#objects=[];this.#completedExcluded=[];}
- #add(definition:Definition):void{if(this.#objects.length>=1024)throw new GCodeError('Object definition capacity exceeded');this.#objects=[...this.#objects,definition].sort((a,b)=>compare(a.name,b.name));}
+ reset():void{this.#revision++;this.finish();this.#objects=[];this.#completedExcluded=[];}
+ #add(definition:Definition):void{if(this.#objects.length>=1024)throw new GCodeError('Object definition capacity exceeded');this.#revision++;this.#objects=[...this.#objects,definition].sort((a,b)=>compare(a.name,b.name));}
  register(dispatch:GCodeDispatch):void{
   dispatch.register('EXCLUDE_OBJECT_START',c=>{if(c.params.NAME===undefined)throw new GCodeError('Missing object NAME');const name=canonical(c.params.NAME);if(!this.#objects.some(o=>o.name===name))this.#add({name});this.#current=name;this.#transform?.start(name);});
   dispatch.register('EXCLUDE_OBJECT_END',c=>{if(this.#current===null&&this.#transform){c.respondInfo('EXCLUDE_OBJECT_END called, but no object is currently active');return;}if(c.params.NAME!==undefined&&canonical(c.params.NAME)!==this.#current)c.respondInfo('EXCLUDE_OBJECT_END NAME does not match the current object');this.#current=null;this.#transform?.end();});
   dispatch.register('EXCLUDE_OBJECT',c=>{
    const name=c.params.NAME?canonical(c.params.NAME):undefined;
    // Original flags use nonempty string truthiness, including RESET=0.
-   if(c.params.RESET)this.#transform?.unexclude(name);
+   if(c.params.RESET){this.#transform?.unexclude(name);this.#revision++;}
    else if(name)this.exclude(name);
    else if(c.params.CURRENT){if(!this.#current)throw new GCodeError('There is no current object to cancel');this.exclude(this.#current);}
    else c.respondInfo('Excluded objects: '+this.status.excluded_objects.join(' '));
