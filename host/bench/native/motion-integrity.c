@@ -65,8 +65,9 @@ static void weighted4(const double *input,double *output,size_t n){
     }
 }
 int main(int argc,char **argv){
-    if(argc!=3){
-        fputs("usage: motion-integrity fixture.f64 rounds\n",stderr);
+    if(argc!=3 && argc!=4){
+        fputs("usage: motion-integrity fixture.f64 rounds "
+              "[filter-output.f64]\n",stderr);
         return 64;
     }
     char *end;long rounds=strtol(argv[2],&end,10);
@@ -131,6 +132,14 @@ int main(int argc,char **argv){
                 free(fixture);free(workspace);return 2;
             }
         }
+    }
+    if(argc==4){
+        FILE *output=fopen(argv[3],"wb");
+        if(!output){free(fixture);free(workspace);return 73;}
+        int written=fwrite(nominal,sizeof(double),n,output)==n &&
+            fwrite(updated,sizeof(double),n,output)==n;
+        int closed=fclose(output);
+        if(!written || closed){free(fixture);free(workspace);return 74;}
     }
     printf("motion-c:verified:%ld\n",rounds);
     free(fixture);free(workspace);return 0;

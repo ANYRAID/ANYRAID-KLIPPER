@@ -16,6 +16,22 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 独立完整 C 对照扩大至 6 个进程、每进程 1000 轮，-O0／-O2 各三次，
+  均通过原位置及十条曲线的固定参考与原容差。见
+  [完整 C 对照](diagnostics/node26-native-control-20260928.json)。
+  新增 `node host/scripts/diagnose-filter-control.ts`：C 程序先通过完整
+  运动参考检查，再导出同次 nominal／weighted4 数组；无项目依赖的
+  `filter-integrity.mjs` 单独反复计算加权滤波，失败时先保存原始输出
+  再重算。默认 Node 1000 轮、jitless 64 轮通过，注入预期值错误均检出。
+  源码、编译器、二进制和输入哈希见
+  [精简滤波对照](diagnostics/node26-filter-control-20260928.json)。
+  这些有界样本缩小了复现环境，未建立运行时或硬件根因；不能以它们
+  覆盖此前完整 Node 工作负载的已确认失败。仍需要跨主机对照与目标
+  打印机验收，未更改生产数学实现或扩大容差。
+  本轮另在 Node 源码格式检查中观察到 SIGSEGV（xargs 报 signal 11），
+  并非运动工作负载；该次检查记为失败，复查结果不能删除此失败证据。
+  见 [格式检查崩溃记录](diagnostics/node26-whitespace-crash-20260928.json)。
+
 - 独立减法对照与无 JIT 全工作负载得到不同结果。新工具
   `node host/scripts/compare-subtraction.ts 2000` 将同一 binary64 数对
   交给独立 C volatile 读取、独立 Node typed-array 循环与关闭优化器的

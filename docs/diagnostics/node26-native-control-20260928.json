@@ -1,0 +1,144 @@
+{
+  "description": "C control computes fourth-order jerk-limited nominal positions, weighted4 filtering, spring integration, velocities, accelerations and deviations against fixed original Python arrays. Finite success does not clear earlier failures or certify hardware.",
+  "directory": "/tmp/motion-native-control-T8I54W",
+  "node": "v26.9.0",
+  "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+  "sourceSha256": "18c7275bd5290a7855b48dc869b7037d9f86221a8e98525b772f410891daf1ce",
+  "fixtureSha256": "b81b3000aa135f5e27f81116657742b45eb59a095ebc8bb402bc815c0a349c8f",
+  "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "system": {
+    "platform": "linux",
+    "arch": "x64",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor"
+  },
+  "rounds": 1000,
+  "comparedValuesPerRound": 124926,
+  "variants": [
+    {
+      "optimization": "-O0",
+      "binary": "/tmp/motion-native-control-T8I54W/O0",
+      "sha256": "f24364535007e44e4a34452d3f8dc2eb60e88d85f505861883017ba45c11b38f",
+      "argv": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O0",
+        "-ffp-contract=off",
+        "-fno-fast-math",
+        "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/motion-integrity.c",
+        "-lm",
+        "-o",
+        "/tmp/motion-native-control-T8I54W/O0"
+      ],
+      "control": {
+        "status": 2,
+        "signal": null,
+        "elapsedMs": 13.824587000000008,
+        "stdout": "motion-c:loaded\n{\"run\":0,\"curve\":0,\"index\":0,\"actual\":0,\"expected\":1,\"error\":-1,\"xor\":\"0x3ff0000000000000\"}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "optimization": "-O2",
+      "binary": "/tmp/motion-native-control-T8I54W/O2",
+      "sha256": "c2c6a8cc077677f97d186ff0cf1d5a79f6a17ba658eec15462ad4ccc0c1d0a78",
+      "argv": [
+        "-std=c11",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-O2",
+        "-ffp-contract=off",
+        "-fno-fast-math",
+        "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/motion-integrity.c",
+        "-lm",
+        "-o",
+        "/tmp/motion-native-control-T8I54W/O2"
+      ],
+      "control": {
+        "status": 2,
+        "signal": null,
+        "elapsedMs": 5.813465000000008,
+        "stdout": "motion-c:loaded\n{\"run\":0,\"curve\":0,\"index\":0,\"actual\":0,\"expected\":1,\"error\":-1,\"xor\":\"0x3ff0000000000000\"}\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "runs": [
+    {
+      "batch": 0,
+      "optimization": "-O0",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 10018.878753,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    },
+    {
+      "batch": 0,
+      "optimization": "-O2",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 2720.674459,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    },
+    {
+      "batch": 1,
+      "optimization": "-O2",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 2744.691506000001,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    },
+    {
+      "batch": 1,
+      "optimization": "-O0",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 10020.840572,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    },
+    {
+      "batch": 2,
+      "optimization": "-O0",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 10010.684736000003,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    },
+    {
+      "batch": 2,
+      "optimization": "-O2",
+      "unchangedBefore": true,
+      "unchangedAfter": true,
+      "complete": true,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 2725.8731449999977,
+      "stdout": "motion-c:loaded\nmotion-c:verified:1000\n",
+      "stderr": ""
+    }
+  ],
+  "failed": false
+}
