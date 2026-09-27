@@ -75,6 +75,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.logicalPosition;}
+ phaseOffsetPosition(id:string,offset:number):number|null{
+  if(this.#failed)return null;const binding=this.#g.motion.bindings.find(b=>b.id===id);
+  if(!binding||!Number.isInteger(offset)||offset<0||offset>=1024)throw new Error('Invalid phase position binding');
+  return binding.position.commandedPosition(BigInt(offset));
+ }
  homingPosition(){return this.#admission.plannedPosition;}
  currentBedMesh(){return this.#mesh?.copy()??null;}
  async offsetBedMesh(x:number|null,y:number|null,toolOffset:number|null,signal:AbortSignal):Promise<boolean>{

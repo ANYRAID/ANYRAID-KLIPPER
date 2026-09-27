@@ -80,3 +80,11 @@ test('coordinate changes cannot silently change MCU clock calibration',async()=>
   await assert.rejects(rebase.recover(signal()),/calibration differs/);assert(!f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));assert.equal(f.stops,1);
  }finally{await f.close();}
 });
+test('phase observer joins stopped readback before rebase and failure prevents a new generation',async()=>{
+ const {registerStoppedPositionObserver}=await import('../src/motion/stopped-position-observer.ts');
+ const f=await recoveryFixture(1);let calls=0;
+ const detach=registerStoppedPositionObserver(f.sessions[0],f.options.members[0].steppers[0].oid,async position=>{
+  calls++;assert.equal(position,100n);assert(f.fs[0].outputs.some(o=>o.name==='stepper_get_position'));assert(!f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));throw new Error('phase read failed');
+ });
+ try{f.fs[0].setTriggerReason(2);await assert.rejects(new CoordinateRebase(f.options).recover(signal()),/phase read failed/);assert.equal(calls,1);assert.equal(f.stops,1);assert(!f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));}finally{detach();await f.close();}
+});

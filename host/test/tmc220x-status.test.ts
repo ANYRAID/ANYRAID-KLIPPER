@@ -18,3 +18,9 @@ test('cached status preserves unsigned fields, actual quantization, projection a
 test('never-started and normally closed monitors do not advertise current driver telemetry',()=>{
  const state={closed:false,checks:0,drvStatus:null,gstat:null,warnings:null,fault:undefined};const read=tmc220xStatusReader(plan,{status:state});assert.equal(read().drv_status,null);assert.equal(read().native_monitor.active,false);state.closed=true;assert.equal(read().native_monitor.fault,false);assert.equal(read().temperature,null);assert.equal(read().mcu_phase_offset,null);
 });
+test('phase projection uses the current coordinate provider and is hidden after retirement',()=>{
+ const state={closed:false,checks:1,drvStatus:0,gstat:0,warnings:null,fault:undefined};let position=2.5,calls=0;
+ const read=tmc220xStatusReader(plan,{status:state},()=>plan.current,()=>{calls++;return {offset:7,position};});
+ assert.equal(read().mcu_phase_offset,7);assert.equal(read().phase_offset_position,2.5);position=-3;assert.equal(read().phase_offset_position,-3);
+ state.closed=true;const before=calls;assert.equal(read().mcu_phase_offset,null);assert.equal(read().phase_offset_position,null);assert.equal(calls,before);
+});

@@ -1,3 +1,4 @@
+import {observeStoppedPosition} from '../motion/stopped-position-observer.ts';
 // Explicit stepper stop using the existing MCU trsync/stepper_stop protocol.
 import type {HomingMember,HomingStopResult} from '../homing/stop-confirmation.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
@@ -53,6 +54,7 @@ export class MotionStopConfirmation {
       const reply=await m.session.queryOnQueue(m.queue,dictionary.encode('stepper_get_position',{oid:stepper.oid}),'stepper_position',s,{oid:stepper.oid});
       const raw=reply.message.parameters.pos,observedClock=m.session.clock.sync.getClock(reply.receiveTime);
       if(typeof raw!=='number'||!Number.isInteger(raw)||raw< -0x80000000||raw>0x7fffffff||observedClock<0n||observedClock>BigInt(Number.MAX_SAFE_INTEGER))throw new RangeError('Invalid stopped position readback');
+      await observeStoppedPosition(m.session,stepper.oid,BigInt(stepper.inverted?-raw:raw),s);
       positions.push(Object.freeze({member,oid:stepper.oid,raw,position:BigInt(stepper.inverted?-raw:raw),observedClock}));
      }
      return positions;

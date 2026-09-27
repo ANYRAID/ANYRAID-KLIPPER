@@ -1,3 +1,5 @@
+import {TmcPhaseState} from '../drivers/tmc-phase.ts';
+import {registerStoppedPositionObserver} from '../motion/stopped-position-observer.ts';
 import {TmcSensorlessMode} from '../drivers/tmc-sensorless.ts';
 import {Tmc5160Current} from '../drivers/tmc5160-current.ts';
 import type {TmcCurrentControl} from '../drivers/tmc-current.ts';
@@ -60,7 +62,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
  const buttons:{section:string;input:SwitchInput}[]=[];
- const drivers:{section:string;monitor:Tmc220xMonitor;current:TmcCurrentControl;sensorless?:TmcSensorlessMode}[]=[];
+ const drivers:{section:string;monitor:Tmc220xMonitor;current:TmcCurrentControl;phase:TmcPhaseState;sensorless?:TmcSensorlessMode}[]=[];
  let motorEnable:MotorEnable|undefined,state:'starting'|'ready'|'stopping'|'stopped'|'failed'='starting',fault:unknown,stopError:unknown,closing:Promise<void>|undefined,detach=()=>{};
  const close=(cause:unknown=new Error('Configured hardware closed')):Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;state='stopping';fault=cause;abort.abort(cause);detach();
@@ -83,13 +85,21 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
   // All enable GPIOs are configured/restarted off. No motion/output owner is
   // exposed until every driver has acknowledged its complete register plan.
+  const phaseOwner=(device:{read(register:number,signal:AbortSignal):Promise<number>},driver:{stepper:string;microsteps:number})=>{
+   const stepper=plan.steppers.find(s=>s.section===driver.stepper);if(!stepper)throw new Error('TMC phase stepper missing');
+   const phase=new TmcPhaseState(driver.microsteps,!!stepper.direction.invert),session=group.session(stepper.mcu);
+   const detach=registerStoppedPositionObserver(session,stepper.compressor.oid,async(position,signal)=>{const s=AbortSignal.any([signal,abort.signal]);
+    try{s.throwIfAborted();const word=await device.read(0x6a,s);s.throwIfAborted();phase.synchronize(word&1023,position);}
+    catch(error){phase.invalidate();void close(error).catch(()=>{});throw error;}
+   });cleanup.add(async()=>{detach();phase.retire();});return phase;
+  };
   const sensorless=(device:ConstructorParameters<typeof TmcSensorlessMode>[0],driver:{model:string;stepper:string;registers:ConstructorParameters<typeof TmcSensorlessMode>[2]})=>{const sections=plan.homing.filter(h=>h.sensorless?.section===driver.model+' '+driver.stepper);if(!sections.length)return undefined;const diag=sections[0].sensorless!.diag;if(sections.some(h=>h.sensorless!.diag!==diag))throw new Error('Conflicting sensorless DIAG owners');return new TmcSensorlessMode(device,driver.model,driver.registers,diag,abort.signal,error=>{void close(error).catch(()=>{});});};
-  for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor,sensorless:sensorless(device,driver),current:new Tmc220xCurrent(device,driver,abort.signal,error=>{void close(error).catch(()=>{});})});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
+  for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor,phase:phaseOwner(device,driver),sensorless:sensorless(device,driver),current:new Tmc220xCurrent(device,driver,abort.signal,error=>{void close(error).catch(()=>{});})});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
   for(const bus of plan.tmcSpis){const chain=sessionTmcSpi(group.session(bus.mcu),bus.spi.oid,bus.length);for(const entry of bus.devices){
    const driver=entry.plan,device=chain.register(entry.position);await initializeTmc220x(device,driver,abort.signal);active();
    const fault=(error:unknown)=>{void close(error).catch(()=>{});},current=driver.model==='tmc5160'?new Tmc5160Current(device,driver,abort.signal,fault):new Tmc220xCurrent(device,driver,abort.signal,fault),emitter=plan.steppers.find(s=>s.section===driver.stepper)!.emitter;
    const monitor=new Tmc220xMonitor(device,fault,undefined,{model:driver.model,currentActive:()=>current.current.irun>=4&&current.current.ihold>0&&!!motorEnable?.status.lines.some(l=>l.enabled&&l.emitters.some(id=>id===emitter))});
-   drivers.push({section:driver.model+' '+driver.stepper,monitor,current,sensorless:sensorless(device,driver)});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();
+   drivers.push({section:driver.model+' '+driver.stepper,monitor,current,phase:phaseOwner(device,driver),sensorless:sensorless(device,driver)});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();
   }}
   for(const [i,b] of plan.buttons.entries()){buttons[i].input.activate(group.commandQueue(b.mcu));active();}
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);

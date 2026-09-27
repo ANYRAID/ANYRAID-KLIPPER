@@ -63,3 +63,8 @@ test('a member closing during the final peer readback prevents snapshot publicat
   const stop=new HomingStopConfirmation([a.member,b.member],0,a.endstop,a.sampling,()=>{});await assert.rejects(stop.finish(signal()),/not ready/);assert.equal(a.stops,1);assert.equal(b.stops,1);
  }finally{await a.close();await b.close();}
 });
+test('homing phase sampling sees direction-correct counters and propagates read failure',async()=>{
+ const {registerStoppedPositionObserver}=await import('../src/motion/stopped-position-observer.ts'),f=await fixture();let seen:bigint|undefined;
+ const detach=registerStoppedPositionObserver(f.session,2,async position=>{seen=position;throw new Error('phase transport lost');});
+ try{f.fw.setTriggerReason(1);f.fw.setStepperPosition(2,-2147483648);await assert.rejects(new HomingStopConfirmation([f.member],0,f.endstop,f.sampling,()=>{}).finish(signal()),/phase transport lost/);assert.equal(seen,2147483648n);assert.equal(f.stops,1);}finally{detach();await f.close();}
+});

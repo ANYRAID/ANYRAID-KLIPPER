@@ -1,3 +1,4 @@
+import {observeStoppedPosition} from '../motion/stopped-position-observer.ts';
 // Homing stop/readback sequence derived from klippy/mcu.py and stepper.py.
 // GPL-3.0-or-later. No position authority is granted by this module.
 import {SerialSession,type TimedCommandQueue} from '../protocol/serial-session.ts';
@@ -63,6 +64,7 @@ export class HomingStopConfirmation {
      const reply=await m.session.queryOnQueue(m.queue,m.session.dictionary.encode('stepper_get_position',{oid:stepper.oid}),'stepper_position',s,{oid:stepper.oid});
      const raw=reply.message.parameters.pos;if(typeof raw!=='number'||!Number.isInteger(raw)||raw< -0x80000000||raw>0x7fffffff)throw new Error('Invalid homing stepper position');
      const observedClock=m.session.clock.sync.getClock(reply.receiveTime);if(observedClock<0n||observedClock>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('Invalid homing observation clock');
+     await observeStoppedPosition(m.session,stepper.oid,BigInt(stepper.inverted?-raw:raw),s);
      result.push(Object.freeze({member,oid:stepper.oid,raw,position:BigInt(stepper.inverted?-raw:raw),observedClock}));
     }return result;
    }))).flat();
