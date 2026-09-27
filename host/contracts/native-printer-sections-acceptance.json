@@ -1,0 +1,131 @@
+{
+  "scope": "Reject silently ignored printer configuration sections in automatic native assembly before adapter acquisition; not full option compatibility",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/config/native-printer-sections.ts": "07e33fe3845112d959a2633980ab3ab265de4e4186b47a85a807a771cbd402f1",
+    "host/src/config/linear-printer.ts": "98948c8652559a38be44c57a7d7b2cdf34e33b0fe97e255593d570081957c5b7",
+    "host/test/native-printer-sections.test.ts": "2e32496fbbc25d44f0cbd7db0dc0ff23dc2f19ad81e893a61c14807901a67fe8",
+    "host/test/product-machine.test.ts": "b247b9d7b70b54ca148d3da0727a4e0a16a5992f9a63f961a00d4686f1113bab",
+    "host/bench/native-printer-sections.ts": "85ad266f814a9c990f20de381dbd9ae996f0b8ac8b9cb573849b5331cf3e0d24"
+  },
+  "tests": {
+    "regressionPassed": 28,
+    "regressionFailed": 0,
+    "regressionDurationMs": 5782.96304,
+    "compiledProductPassed": 1,
+    "compiledProductFailed": 0,
+    "compiledProductDurationMs": 48416.241789
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "sections": 42,
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "medianMs": 46.95263899999998,
+    "maxMs": 47.481146000000024,
+    "scope": "Startup-only section validation; excludes full option/hardware validation and is not on motion scheduling path."
+  },
+  "product": {
+    "phaseQueries": 3613,
+    "phaseP99Ms": 3.0732349999998405,
+    "loaded": true,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "corexy",
+    "stressed": true,
+    "sensorless": true,
+    "tmc": [
+      {
+        "statusReads": 152,
+        "writes": 55
+      },
+      {
+        "statusReads": 62,
+        "writes": 54
+      },
+      {
+        "statusReads": 88,
+        "writes": 46
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      },
+      {
+        "statusReads": 16,
+        "writes": 46
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "tmc-reset",
+    "historyNotifications": 32,
+    "historyRequests": 807,
+    "historyP99Ms": 9.698670999998285,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 4.609281999999439,
+    "deleteRequests": 16,
+    "deleteP95Ms": 13.677437000000282,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 3.552750000000742,
+    "metadataRequests": 16,
+    "metadataP95Ms": 29.853433000000223,
+    "downloads": 16,
+    "downloadP95Ms": 8.633359000001292,
+    "wireCommands": 523,
+    "wireSteps": 9336,
+    "minimumStepLeadMs": 85.498,
+    "directoryRequests": 3475,
+    "directoryP99Ms": 9.169034999998985,
+    "statusRequests": 14456,
+    "uploads": 16,
+    "statusP99Ms": 3.7686739999990095,
+    "uploadP95Ms": 6.098500000000058,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.932287,
+          "maxMs": 17.547263
+        },
+        "cpu": {
+          "user": 4426970,
+          "system": 469784
+        },
+        "rss": 288161792
+      },
+      {
+        "loop": {
+          "p99Ms": 2.020351,
+          "maxMs": 6.475775
+        },
+        "cpu": {
+          "user": 1451339,
+          "system": 162951
+        },
+        "rss": 273055744
+      }
+    ]
+  },
+  "verified": [
+    "Unknown section names, unsupported macro/sensor components and orphaned heater/driver/profile configuration rejected",
+    "Included unported macro and sensor sections rejected before adapter factory, journal or MCU configuration",
+    "Supported loaded CoreXY configuration completes compiled product journey and repeated configuration reloads"
+  ],
+  "limitations": [
+    "This validates section ownership only. Individual readers own options; full unused-option compatibility remains incomplete.",
+    "Explicit low-level custom hardware assembly is outside the automatic linear machine contract.",
+    "Historical Node runtime and numerical anomalies and target hardware acceptance remain open."
+  ]
+}

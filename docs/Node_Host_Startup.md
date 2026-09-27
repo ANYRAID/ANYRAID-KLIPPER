@@ -17,6 +17,17 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 可以装配已支持的线性机器；机型适配、目标机部署、其余设备支持和
 实机验收仍需继续完成。
 
+自动线性机器装配会检查合并 include 后的每个打印机配置节。尚未迁移的
+组件（例如 gcode_macro、temperature_sensor、exclude_object）或没有
+对应设备的 verify_heater、TMC、endstop_phase、bed_mesh 配置会明确报错，
+不会在忽略这些配置后报告就绪。文件机器配置入口在创建适配器、作业
+数据库和连接 MCU 前执行此检查；已保存的网床配置仍需对应 [bed_mesh]。
+遇到未支持配置时，应完成对应能力迁移和产品操作绑定，不应仅删除配置
+来绕过功能缺失。当前检查覆盖配置节及从属关系，完整选项级兼容审计
+尚未完成；具体数值、选项和硬件约束继续由各组件校验。
+实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
+验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
+
 ## 编译后的运行包
 
 在已经安装开发依赖的仓库内，使用目标运行环境对应的 Node.js 26.9+

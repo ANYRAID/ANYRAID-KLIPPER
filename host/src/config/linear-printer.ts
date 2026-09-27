@@ -1,4 +1,5 @@
 import {readHomingPin} from './sensorless.ts';
+import {validateNativePrinterSections} from './native-printer-sections.ts';
 import {readFilamentEncoderPolicy} from '../inputs/filament-encoder.ts';
 import {readProbeGrid} from './probe-grid.ts';
 import {readProbeConfiguration,configuredProbeSection} from './probe.ts';
@@ -23,6 +24,7 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
  for(const id of policy.mcus)pins.register(id,{});
  const sections=reader.sections(),axes=['x','y','z'] as const;
  if(sections.some(n=>n.startsWith('stepper_')&&!/^stepper_[xyz](?:[1-9][0-9]*)?$/.test(n))||sections.some(n=>/^extruder[0-9]+$/.test(n)||n.startsWith('extruder_stepper ')))throw new Error('Unsupported linear printer motor topology');
+ validateNativePrinterSections(reader);
  const modes:ConfiguredMotionRequest['mode'][]=kinematics.kind==='cartesian'?['x','y','z']:kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
  const motors=axes.flatMap((axis,i)=>sections.filter(n=>n===`stepper_${axis}`||new RegExp(`^stepper_${axis}[1-9][0-9]*$`).test(n)).sort((a,b)=>Number(a.slice(9)||0)-Number(b.slice(9)||0)).map(section=>({section,emitter:section.slice(8),axis:i,mode:modes[i]})));
  motors.push({section:'extruder',emitter:'e',axis:3,mode:'extruder'});
