@@ -1,3 +1,4 @@
+import {FrameDecoder} from '../src/protocol/codec.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readBLTouchSettings} from '../src/config/bltouch.ts';
@@ -29,6 +30,7 @@ test('physical alias conflicts and missing sensor ownership fail atomically',()=
 test('compiled BLTouch resources configure on two native MCU sessions without motion',async()=>{
  const f=await hardwareStartupFixture();try{const plan=compileConfiguredHardware(reader(),f.group,f.clocks,layout);for(const c of plan.configurations)await c.session.configure(c.plan,f.signal);assert(f.firmware.every(m=>m.motion.length===0));assert(f.firmware[0].outputs.some(o=>o.name==='config_endstop'));assert.equal(f.firmware[0].outputs.filter(o=>o.name==='config_trsync').length,2);assert(f.firmware[1].outputs.some(o=>o.name==='set_digital_out_pwm_cycle'&&o.parameters.cycle_ticks===20000));assert(f.firmware[1].outputs.some(o=>o.name==='queue_digital_out'&&o.parameters.on_ticks===0));}finally{await f.close();}
 });
-test('startup cannot silently accept BLTouch before native seek ownership is connected',async()=>{
- const f=await hardwareStartupFixture();try{await assert.rejects(startConfiguredHardware(reader(),f.group,f.clocks,layout,{heaterGcodeIds:{},beforeTarget(){}},f.signal),/seek lifecycle/);assert(f.firmware.every(m=>m.motion.length===0&&m.outputs.length===0));assert(f.group.status.devices.every(d=>!f.group.session(d.id).status.configured));}finally{await f.close();}
+test('startup initializes the compiled BLTouch before publishing ready',async()=>{
+ const f=await hardwareStartupFixture();try{const decoder=new FrameDecoder(),fw=f.firmware[0];fw.peer.on('data',chunk=>{for(const frame of decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk))for(const c of fw.dictionary.parseFrame(frame))if(c.name==='endstop_home'&&Number(c.parameters.sample_count)){const p=c.parameters;fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:Number(p.pin_value),next_clock:(Number(p.clock)+Number(p.rest_ticks))>>>0},Number(p.oid));}});
+ const owner=await startConfiguredHardware(reader(),f.group,f.clocks,layout,{heaterGcodeIds:{},beforeTarget(){}},f.signal);assert.equal(owner.status.state,'ready');assert.equal(owner.bltouch!.status.device.phase,'idle');assert(f.firmware.every(m=>m.motion.length===0));await owner.close();assert.deepEqual(f.stops,[1,1]);}finally{await f.close();}
 });

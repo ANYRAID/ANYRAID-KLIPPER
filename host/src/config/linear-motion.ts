@@ -46,6 +46,7 @@ export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'
 /** Validate machine semantics and solver identity before constructing the port.
  * Existing hardware ownership stays with the caller if validation fails. */
 export function createConfiguredNativeLinearPort(reader:ConfigurationReader,hardware:ConfiguredLinearHardware){
+ if(reader.hasSection('bltouch')&&!hardware.probeDevice)throw new Error('BLTouch requires an initialized native probe device');
  const config=readLinearMotionConfiguration(reader),expected=config.kinematics.kind==='cartesian'?['x','y','z']:config.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
  if(hardware.kinematicIds.length!==3||new Set(hardware.kinematicIds).size!==3||hardware.kinematicIds.some((id,i)=>hardware.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Configured kinematics differs from native rail solvers');
  if(hardware.groupsByAxis.length!==3||hardware.endstopNames.length!==3)throw new Error('Three configured homing axes required');

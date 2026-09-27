@@ -816,7 +816,15 @@ homing_retract_speed、second_homing_speed 控制，不使用 probe.samples。
 归零失败、二次触发没有运动或取消会停止硬件并撤销归零状态。
 
 探针 Z 归零不执行电机端点相位校正；相应 Z 相位统计保持无样本，
-显式 endstop_phase stepper_z 配置拒绝。BLTouch/激活宏设备适配尚未接入。
+显式 endstop_phase stepper_z 配置拒绝。激活/停用宏不支持。
+
+BLTouch 使用 [bltouch] 的 sensor_pin、control_pin 和 z_offset，不能
+同时配置 [probe]。sensor_pin 可以带上拉和反相；控制与传感器可位于
+不同 MCU。启动阶段自动初始化设备，初始化失败停止硬件；单点、
+网床及虚拟 Z 归零共用设备所有者。每次下探先展开，触发后安排收针，
+按配置验证收针并刷新运动时间基线。首次触发没有电机位移也拒绝归零。
+BLTOUCH_DEBUG/STORE 的消费级维护接口尚未实现；真机电平、针脚方向、
+机械等待、触发精度和连续打印仍需目标设备验收。
 
 可配置 [safe_z_home]：home_xy_position 为喷嘴 XY 坐标（不自动减去
 探针偏移），speed 默认 50，z_hop 默认 0，z_hop_speed 默认 15，

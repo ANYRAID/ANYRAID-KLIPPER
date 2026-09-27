@@ -1,7 +1,7 @@
 import {readHomingPin} from './sensorless.ts';
 import {readFilamentEncoderPolicy} from '../inputs/filament-encoder.ts';
 import {readProbeGrid} from './probe-grid.ts';
-import {readProbeConfiguration} from './probe.ts';
+import {readProbeConfiguration,configuredProbeSection} from './probe.ts';
 import {readNativeBedMesh} from './native-bed-mesh.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readRetraction} from './retraction.ts';
@@ -17,7 +17,7 @@ export interface LinearPrinterPolicy {mcus:readonly string[];enableLeadTime:numb
 /** Plan the supported single-extruder linear machine from section names and
  * physical pin ownership. Does not open devices or grant homing authority. */
 export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
- if(reader.hasSection('probe'))readProbeGrid(reader);readProbeConfiguration(reader);readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
+ const probeSection=configuredProbeSection(reader);if(probeSection)readProbeGrid(reader);readProbeConfiguration(reader);readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
  const {kinematics,probeHoming}=readLinearMotionConfiguration(reader),pins=new PrinterPins<object>();
  if(!policy.mcus.length||policy.mcus.length>16||new Set(policy.mcus).size!==policy.mcus.length||![policy.enableLeadTime,policy.fanMinimumScheduleTime].every(n=>Number.isFinite(n)&&n>0))throw new Error('Invalid linear printer machine policy');
  for(const id of policy.mcus)pins.register(id,{});
@@ -32,17 +32,17 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
   const extra=motors.filter(m=>m.axis===index&&m.emitter!==axis&&reader.section(m.section).hasOption('endstop_pin'));
   if(index===2&&probeHoming&&extra.length)throw new Error('Cannot mix probe Z homing with independent endstops');
   const independent=new Set(extra.map(m=>m.emitter));
-  return [{section:index===2&&probeHoming?'probe':`stepper_${axis}`,emitters:ids.filter(id=>!independent.has(id))},...extra.map(m=>({section:m.section,emitters:[m.emitter]}))].map(group=>{
+  return [{section:index===2&&probeHoming?probeSection!:`stepper_${axis}`,emitters:ids.filter(id=>!independent.has(id))},...extra.map(m=>({section:m.section,emitters:[m.emitter]}))].map(group=>{
    const gpio=pins.parse(readHomingPin(reader,group.section).description,{canInvert:true,canPullup:true}).chipName;
    if(!group.emitters.some(id=>owner.get(id)===gpio&&id!=='e'))throw new Error('Homing GPIO requires an assigned kinematic motor on its MCU');
    const mcus=[...new Set(group.emitters.map(id=>owner.get(id)!))];homingLayout.push({section:group.section,mcus});return group;
   });
  });
- const probe=reader.hasSection('probe')?[{section:'probe',emitters:ids}]:undefined;
+ const probe=probeSection?[{section:probeSection,emitters:ids}]:undefined;
  if(probe){
-  const gpio=pins.parse(reader.section('probe').get('pin'),{canInvert:true,canPullup:true}).chipName;
+  const gpio=pins.parse(readHomingPin(reader,probeSection!).description,{canInvert:true,canPullup:true}).chipName;
   if(!motors.some(m=>m.axis<3&&owner.get(m.emitter)===gpio))throw new Error('Probe GPIO requires a kinematic motor on its MCU');
-  if(!homingLayout.some(h=>h.section==='probe'))homingLayout.push({section:'probe',mcus:[...new Set(owner.values())]});
+  if(!homingLayout.some(h=>h.section===probeSection))homingLayout.push({section:probeSection!,mcus:[...new Set(owner.values())]});
  }
  const fans=sections.filter(n=>n==='fan'||n.startsWith('fan_generic ')||n.startsWith('heater_fan ')||n.startsWith('controller_fan ')).map(section=>({section,minimumScheduleTime:policy.fanMinimumScheduleTime}));
  const heaters=sections.filter(n=>n==='extruder'||n==='heater_bed'||n.startsWith('heater_generic ')).map(section=>({section}));

@@ -439,6 +439,9 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample);return measured.position[2]-config.offsets[2];}},ss),s);
   });
  }
+ #verifyDeviceMovement(result:Awaited<ReturnType<LinearHomingSeek['run']>>){
+  if(this.#o.probeDevice&&result.movingSteppers.some(m=>{const p=result.offsets.find(p=>p.member===m.member&&p.oid===m.oid);return !p||p.start===p.trigger;}))throw new Error('BLTouch triggered without motor movement');
+ }
  async #probeZ(z:number,speed:number,owned:LinearSeekOptions['groups'],s:AbortSignal,onTriggered?:()=>Promise<void>){
    if(this.#o.probeDevice&&(owned.length!==1||owned[0].endstop!==this.#o.probeDevice.endstop))throw new Error('Probe device sensor ownership differs');
    if(this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Probe requires all axes homed');
@@ -457,7 +460,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    }
    await this.#rebase(start,s);
    const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups:owned,mode:'probe',onTriggered}).run(target,speed,2,s);
-   try{this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}
+   try{this.#verifyDeviceMovement(result);this.#adopt(result.generation,result.position,s);return Object.freeze({trigger:result.triggerPosition,halt:result.position});}catch(error){result.motion.dispose();throw error;}
  }
  home(position:readonly number[],speed:number,axis:Axis,signal:AbortSignal):Promise<HomingPass>{
   const target=[...position];return this.#operate('seek',signal,async s=>{
@@ -469,7 +472,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    const seek=async(onTriggered?:()=>Promise<void>)=>{
     if(probe&&this.#o.probeDevice)await this.#rebase(this.homingPosition(),s);
     const result=await new LinearHomingSeek({...this.#o,generation:this.#g,groups,mode:probe?'probe':'home',onTriggered}).run(target,speed,axis,s);
-    try{this.#adopt(result.generation,result.position,s);
+    try{if(probe)this.#verifyDeviceMovement(result);this.#adopt(result.generation,result.position,s);
      if(probe)await this.#rebase(probeHomingPosition(result.position,result.triggerPosition,probe.offset),s);
      for(const mode of modes)await mode.restore(s);
      if(modes.length)await this.#rebase(result.position,s);

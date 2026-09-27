@@ -1,0 +1,138 @@
+{
+  "scope": "Automatic BLTouch configuration, startup, virtual Z homing, and compiled product journey with simulated MCU firmware",
+  "sha256": {
+    "host/acceptance/product-compiled-journey.test.ts": "7023857b19520078b550045b97a5635d2edd3c5665b76f8eb129ac624cca6cc7",
+    "host/src/config/linear-motion.ts": "5cb86bb43d759a6a7d8e5b3a93ba86ffb5920bb5fcbb1dc171df51b05c078fb3",
+    "host/src/config/linear-printer.ts": "77c5e137631a3b1043a642070c2e7aa47506891e5b193abcd6d956bfa314f911",
+    "host/src/config/probe.ts": "c03da5b12cc9cb237a37e882cd68a9334cbcf6145dd6a97ff18a1e76694b9746",
+    "host/src/config/sensorless.ts": "b6f5f4a7da24feb582e038b2a4ef7dc764785fc10544eab977c4362c958db155",
+    "host/src/homing/native-linear-port.ts": "e168f1d6053094ff223c1af890b4e8db34e2002f0f84659344828670f2b7b62b",
+    "host/src/runtime/configured-hardware.ts": "4df377bd12366958bff75a92f4ddb857c33d11fa78d5052546aa173a1406027c",
+    "host/src/runtime/initial-motion.ts": "dee8ffd9d8ae5d3bb2410d4b62506d1f55cc0530257625025e13c9747e387f93",
+    "host/src/runtime/product-service.ts": "d76a92facc8911010e8b24852db85cb77daeab0d8806604550f95f3a22fc2665",
+    "host/test/bltouch-config.test.ts": "56d382f9e4296ad7072cb3d1f6d13a3434fafcba3dc4cb15ff260a74d3eccdca",
+    "host/test/bltouch-auto-printer.test.ts": "52980f8a5ae2ac1dd1977f6ccd9f1994284d2377831d581e4395a1e3bfc4588f"
+  },
+  "regression": "✔ automatic BLTouch printer initializes and validates first Z hit (stuck=false) (4462.696868ms)\n✔ automatic BLTouch printer initializes and validates first Z hit (stuck=true) (4089.577611ms)\n✔ BLTouch settings preserve defaults and reject conflicting probe and macro ownership (0.942854ms)\n✔ control and sensor may use different MCUs while verification keeps a distinct OID (1.269339ms)\n✔ physical alias conflicts and missing sensor ownership fail atomically (1.640544ms)\n✔ compiled BLTouch resources configure on two native MCU sessions without motion (416.105375ms)\n✔ startup initializes the compiled BLTouch before publishing ready (1499.277465ms)\n✔ native multi-sample probe refreshes motion baseline after device waits (cancel=false) (4968.394048ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=false) (3164.294007ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=true) (1113.01667ms)\n✔ hardware plans own isolated synchronizers and reject foreign or mismatched clock sources (3.947889ms)\n✔ hardware assembly collects every device and partitions OIDs and move reservations by MCU (1.37099ms)\n✔ late cross-device pin collisions publish no partial assembly and corrected input retries deterministically (2.69209ms)\n✔ configured sessions, missing clocks, duplicate emitters and reserved board pins cannot assemble (0.606739ms)\n✔ empty controllers consume no phantom move slots (0.372906ms)\n✔ all assembled plans pass real configuration CRC encoding and reused initialization (1.802716ms)\n✔ native two-MCU startup configures collected stepper, shared resources and subscribed heater (416.775218ms)\n✔ hardware assembly shares one private timeline per MCU across peripheral plans (2.144412ms)\n✔ automatic linear plan starts native cartesian hardware with no homing grant (419.382316ms)\n✔ automatic linear plan starts native corexy hardware with no homing grant (426.791356ms)\n✔ automatic linear plan starts native corexz hardware with no homing grant (417.336185ms)\n✔ extra Z motor with independent endstop gets complete disjoint stop ownership (418.900698ms)\n✔ unsupported motor topology and GPIO-only homing ownership fail before configuration (409.66668ms)\n✔ extra motors sharing an endstop remain owned in every homing axis (409.893154ms)\n✔ probe pin is independently allocated and wired into the native owner (426.725944ms)\n✔ automatic layout includes thermal fans without assigning them to M106 (410.038815ms)\n✔ probe virtual Z reuses the probe GPIO and trigger owners without duplicate allocation (417.70625ms)\n✔ native grid travels and measures all four points without replacing the old mesh (3494.715581ms)\n✔ failed native grid preserves old mesh (range) (410.867414ms)\n✔ failed native grid preserves old mesh (reference) (409.83568ms)\n✔ failed native grid preserves old mesh (triggered) (414.995925ms)\n✔ probe defaults and offset signs are preserved without precision rounding (0.273484ms)\n✔ sampling overrides are typed and bounded (0.379056ms)\n✔ saved-only mesh remains valid; rectangular calibration defaults and pairs are typed (0.776551ms)\n✔ probe homing shifts only Z by measured bed height and preserves halt overshoot (0.111071ms)\n✔ native probe Z home validates trigger, retract and authority (xy=false retract=0 stuck=false) (411.161798ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=0 stuck=false) (643.078659ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=false) (1350.622215ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true) (1321.208864ms)\n✔ cancellation during probe Z descent revokes all homing and joins motor stop (519.086762ms)\n✔ probe homing coordinate arithmetic matches 216 original Python boundary cases exactly (1.3146ms)\nℹ tests 41\nℹ suites 0\nℹ pass 41\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 33093.96156\n",
+  "typecheck": true,
+  "whitespace": true,
+  "product": {
+    "pass": 1,
+    "fail": 0,
+    "metrics": {
+      "phaseQueries": 5771,
+      "phaseP99Ms": 3.4637320000001637,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": true,
+      "safeHome": true,
+      "bltouch": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 216,
+          "writes": 55
+        },
+        {
+          "statusReads": 116,
+          "writes": 54
+        },
+        {
+          "statusReads": 261,
+          "writes": 46
+        },
+        {
+          "statusReads": 16,
+          "writes": 40
+        },
+        {
+          "statusReads": 56,
+          "writes": 46
+        },
+        {
+          "statusReads": 16,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 1285,
+      "historyP99Ms": 9.833048000000417,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.660186000000976,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.916804000000411,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.9141190000009374,
+      "metadataRequests": 16,
+      "metadataP95Ms": 23.645596999998816,
+      "downloads": 16,
+      "downloadP95Ms": 3.5007220000006782,
+      "wireCommands": 652,
+      "wireSteps": 7729,
+      "minimumStepLeadMs": 69.896,
+      "directoryRequests": 5575,
+      "directoryP99Ms": 4.697610999999597,
+      "statusRequests": 23087,
+      "uploads": 16,
+      "statusP99Ms": 2.6247700000021723,
+      "uploadP95Ms": 14.152923000001465,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.914879,
+            "maxMs": 18.022399
+          },
+          "cpu": {
+            "user": 5864944,
+            "system": 667740
+          },
+          "rss": 271478784
+        },
+        {
+          "loop": {
+            "p99Ms": 1.894399,
+            "maxMs": 5.926911
+          },
+          "cpu": {
+            "user": 2693852,
+            "system": 340946
+          },
+          "rss": 278937600
+        }
+      ]
+    },
+    "diagnostics": [
+      "ℹ {\"installation\":{\"durationMs\":721.840559,\"dependencies\":10}}",
+      "ℹ {\"safeHomePosition\":[0,0,0.10000000000002274,0]}",
+      "ℹ {\"filamentRunout\":{\"sensor\":\"filament_motion_sensor encoder\",\"compiled\":true,\"automaticPause\":true,\"absentResumeRejected\":true,\"runoutPauseMs\":1440.018333,\"settledStepClock\":true,\"noAutomaticResume\":true}}",
+      "ℹ {\"idleTimeout\":{\"heaterOff\":true,\"motorRelease\":true,\"hostRemainsReady\":true}}",
+      "ℹ {\"pausedTimeout\":{\"cancelled\":true,\"resumeRejected\":true}}",
+      "ℹ {\"gridCalibration\":{\"compiled\":true,\"typedHoming\":true,\"noPrintJob\":true,\"points\":9,\"referencePoints\":1,\"durationMs\":25775.765999999996,\"retryWithoutMotion\":true}}",
+      "ℹ {\"phaseCalibration\":{\"compiled\":true,\"statsOnlyBeforeSave\":true,\"observations\":\"1\",\"savedPhases\":[{\"stepper\":\"stepper_x\",\"trigger_phase\":\"0/64\"},{\"stepper\":\"stepper_y\",\"trigger_phase\":\"0/64\"}],\"reinitialized\":true,\"oldTokenRejected\":true,\"retryWithoutWrite\":true}}",
+      "ℹ {\"configurationSave\":{\"compiled\":true,\"reinitialized\":true,\"oldTokenRejected\":true,\"removedAfterReinitialization\":true,\"profile\":\"retained\",\"implicitMeshActivation\":false}}"
+    ]
+  },
+  "failedAttempts": [
+    {
+      "kind": "test fixture",
+      "detail": "Immediate-hit fixture initially included 30 ms motion; corrected to hit at sampling start for no-movement rejection."
+    },
+    {
+      "kind": "test watchdog",
+      "detail": "Original 45 second process lifetime killed final configuration restart after printing and mesh calibration. BLTouch-only lifetime raised to 90 seconds to include actual pin waits; performance gates unchanged.",
+      "log": "✖ load=true spi=false software=false model5160=false model2240=false curved=false probeHome=true safeHome=true bltouch=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC/TMC fault without Python or TS loading (93271.191173ms)\nℹ {\"installation\":{\"durationMs\":722.75951,\"dependencies\":10}}\nℹ {\"safeHomePosition\":[0,0,0.10000000000002274,0]}\nℹ {\"filamentRunout\":{\"sensor\":\"filament_motion_sensor encoder\",\"compiled\":true,\"automaticPause\":true,\"absentResumeRejected\":true,\"runoutPauseMs\":1392.9920649999985,\"settledStepClock\":true,\"noAutomaticResume\":true}}\nℹ {\"idleTimeout\":{\"heaterOff\":true,\"motorRelease\":true,\"hostRemainsReady\":true}}\nℹ {\"pausedTimeout\":{\"cancelled\":true,\"resumeRejected\":true}}\nℹ {\"gridCalibration\":{\"compiled\":true,\"typedHoming\":true,\"noPrintJob\":true,\"points\":9,\"referencePoints\":1,\"durationMs\":25854.422784000002,\"retryWithoutMotion\":true}}\nℹ {\"failureContext\":{\"loaded\":true,\"loadGeneration\":2,\"homed\":28,\"exitCode\":null,\"signalCode\":\"SIGKILL\",\"stderr\":\"\",\"events\":\"{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: File execution stopped\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: File execution stopped\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":1,\\\"loop\\\":{\\\"p99Ms\\\":1.991679,\\\"maxMs\\\":18.595839},\\\"cpu\\\":{\\\"user\\\":5987937,\\\"system\\\":722113},\\\"rss\\\":278155264}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":2}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":2}\\n{\\\"event\\\":\\\"open\\\",\\\"generation\\\":2}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":2,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: TMC driver fault register 1 value 1\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":2,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: TMC driver fault register 1 value 1\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":2,\\\"loop\\\":{\\\"p99Ms\\\":1.947647,\\\"maxMs\\\":7.245823},\\\"cpu\\\":{\\\"user\\\":2781774,\\\"system\\\":311320},\\\"rss\\\":286261248}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":1}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":1,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":1,\\\"loop\\\":{\\\"p99Ms\\\":1.660927,\\\"maxMs\\\":18.759679},\\\"cpu\\\":{\\\"user\\\":1150570,\\\"system\\\":148230},\\\"rss\\\":182767616}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":2}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":2,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":2,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":2,\\\"loop\\\":{\\\"p99Ms\\\":1.624063,\\\"maxMs\\\":12.361727},\\\"cpu\\\":{\\\"user\\\":122763,\\\"system\\\":28058},\\\"rss\\\":186744832}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":3}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":3,\\\"id\\\":\\\"mcu\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"stop\\\",\\\"generation\\\":3,\\\"id\\\":\\\"aux\\\",\\\"cause\\\":\\\"Error: Configured hardware closed\\\"}\\n{\\\"event\\\":\\\"released\\\",\\\"generation\\\":3,\\\"loop\\\":{\\\"p99Ms\\\":1.615871,\\\"maxMs\\\":4.890623},\\\"cpu\\\":{\\\"user\\\":276078,\\\"system\\\":39740},\\\"rss\\\":174301184}\\n{\\\"event\\\":\\\"factory\\\",\\\"generation\\\":4}\\n\"}}\nℹ tests 1\nℹ suites 0\nℹ pass 0\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 93598.785928\n\n✖ failing tests:\n\ntest at host/acceptance/product-compiled-journey.test.ts:24:552\n✖ load=true spi=false software=false model5160=false model2240=false curved=false probeHome=true safeHome=true bltouch=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC/TMC fault without Python or TS loading (93271.191173ms)\n  AssertionError [ERR_ASSERTION]\n      at waitReady (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:120:104)\n      at runNextTicks (node:internal/process/task_queues:65:5)\n      at process.processTimers (node:internal/timers:615:9)\n      at async verifySavedConfiguration (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:217:264)\n      at async TestContext.<anonymous> (file:///home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/acceptance/product-compiled-journey.test.ts:223:1331)\n      at async Test.run (node:internal/test_runner/test:1409:7)\n      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {\n    generatedMessage: false,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n"
+    }
+  ],
+  "limitations": [
+    "Simulated MCU, no target printer acceptance",
+    "192 tracked Python files remain; default entrypoint still Python",
+    "Historical runtime crashes and numerical mismatches unresolved",
+    "BLTouch maintenance product endpoints incomplete"
+  ]
+}

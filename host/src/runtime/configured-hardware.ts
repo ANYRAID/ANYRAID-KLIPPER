@@ -1,3 +1,4 @@
+import {attachConfiguredBLTouch} from './bltouch.ts';
 import {Tmc2240Current} from '../drivers/tmc2240-current.ts';
 import {TmcPhaseState} from '../drivers/tmc-phase.ts';
 import {registerStoppedPositionObserver} from '../motion/stopped-position-observer.ts';
@@ -50,13 +51,12 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  signal.throwIfAborted();group.assertActive();
  const timeout=options.timeoutMs??10000;
  if(owners.has(group)||(typeof options.beforeTarget!=='function'&&!(options.beforeTarget===undefined&&options.motion?.length))||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
- if(reader.hasSection('bltouch'))throw new Error('BLTouch native seek lifecycle is not yet connected');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
  const thermalPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('heater_fan ')).map(f=>[f.section,readHeaterFanPolicy(reader,f.section,plan.heaters.map(h=>h.section))]));
  const controllerPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('controller_fan ')).map(f=>[f.section,readControllerFanPolicy(reader,f.section,plan.heaters.map(h=>h.section),plan.steppers.map(s=>s.section))]));
  const emitters=options.motion?compileConfiguredMotionEmitters(reader,plan,options.motion):undefined;
  if(Object.keys(ids).some(name=>!plan.heaters.some(h=>h.section===name)))throw new Error('Unknown heater G-code mapping');
- let readyHardware:object|undefined;
+ let readyHardware:object|undefined;let bltouch:ReturnType<typeof attachConfiguredBLTouch>|undefined;
  const heaters=new AsyncPrinterHeaters(async signal=>{
   await options.beforeTarget?.(signal);signal.throwIfAborted();
   if(emitters){const barrier=readyHardware&&hardwareOwners.get(readyHardware)?.beforeTarget;if(!barrier)throw new Error('Configured motion target barrier is not ready');await barrier(signal);}
@@ -107,6 +107,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
   for(const f of plan.fans){const runtime=new ScheduledCoolingFan(output(f.output),f.config,f.enable?output(f.enable):undefined);fans.push({section:f.section,runtime});await runtime.start(abort.signal);active();}
+  if(plan.bltouch){bltouch=attachConfiguredBLTouch(group,plan);cleanup.add(cause=>bltouch!.close(cause));await bltouch.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of analog){a.sensor.activate();active();}
   for(const f of fans){const policy=thermalPolicies.get(f.section),controller=controllerPolicies.get(f.section);if(!policy&&!controller)continue;
    const p=plan.fans.find(p=>p.section===f.section)!;
@@ -121,7 +122,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    cleanup.add(cause=>owner.stop(cause));owner.start();active();
   }
   state='ready';
-  const result=Object.freeze({plan,emitters,heaters,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
+  const result=Object.freeze({plan,emitters,heaters,bltouch,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
   hardwareOwners.set(result,{group,claimed:false,cleanup});readyHardware=result;return result;
  }catch(error){try{await close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Hardware startup and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',cancelled);}
