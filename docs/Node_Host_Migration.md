@@ -29,8 +29,8 @@
 归属、源文件循环和异常语法，4 项测试、类型检查及空白检查通过。
 暖文件缓存下完整读取解析 30 次中位 3.60 ms、P95 7.04 ms；此测量
 不含求值、输出和进程启动，不宣称比旧实现更快，也不属于打印热路径。
-解析层的验收范围不包括配置生成、最小配置导出及菜单，Makefile 保持
-Python 入口，解析层交付没有退役 Python。证据见
+解析层的验收范围不包括配置生成、最小配置导出及菜单，解析层交付
+没有退役 Python。证据见
 [Kconfig 解析验收](../host/contracts/kconfig-parser-acceptance.json)。
 复现：Node.js 26 运行 `host/test/kconfig-parser.test.ts`（使用 `--test`）
 及 `host/bench/kconfig-parser.ts`；日常测试读取冻结 JSON，无需 Python。
@@ -42,7 +42,7 @@ Kconfig 表达式求值层已补齐三态逻辑、短路、精确整数比较、
 解析与求值合计 8 项测试、类型和空白检查通过。45.32 万次表达式求值
 中位 27.49 ms、P95 33.98 ms；同机顺序运行的 Python 缓存求值中位
 108.53 ms。此比较不含符号依赖求解、默认值/选择组决策、解析和输出，
-不代表完整构建提速。构建切换仍待完成，Python 退役数仍为 0。
+不代表完整构建提速。表达式层交付的 Python 文件退役数为 0。
 证据见 [表达式验收](../host/contracts/kconfig-evaluate-acceptance.json)，
 复现基准为 `node host/bench/kconfig-evaluate.ts`。
 
@@ -54,11 +54,25 @@ Kconfig 表达式求值层已补齐三态逻辑、短路、精确整数比较、
 解析/表达式/求解器合计 12 项测试、类型和空白检查通过。84 份配置完整
 求解中位 48.36 ms、P95 50.49 ms，Python 同机顺序基线中位 60.14 ms；
 新实现含模型构造，双方均不含文件解析、导出与固件编译。
-尚未接入配置文件读取/生成、最小配置导出和交互菜单；未切换 Makefile，
-本轮 Python 退役数为 0。当前项目不使用 tristate 声明，求解器遇到该
+求解器交付本身不包括配置文件读取/生成、最小配置导出和交互菜单，
+Python 文件退役数为 0。当前项目不使用 tristate 声明，求解器遇到该
 声明明确报错，不能宣称为通用 Kconfiglib 全功能替代。证据见
 [配置求解验收](../host/contracts/kconfig-model-acceptance.json)，复现基准为
 `node host/bench/kconfig-model.ts`。
+
+Makefile 的 `autoconf.h` 生成现已切换到 Node 入口
+`scripts/kconfig-genconfig.mjs`。配置文件读取、字符串转义、重复选择历史、
+未知/无效赋值回退及头文件输出已接入；84 组真实配置的输出字节与旧版
+一致。15 项回归、类型和空白检查通过，最终入口完成 ATmega2560 ELF/HEX
+编译；单独生成头文件时将 `PYTHON` 指向不存在的命令仍成功，重复 make
+显示目标已是最新。相同内容保留时间戳，写入采用临时文件原子替换。
+完整命令行含进程启动，暖编译缓存中位 49.30 ms、P95 51.51 ms，Python
+基线中位 48.26 ms；禁用编译缓存为 92.65 ms，仍慢于 Python。该开销
+位于构建阶段，不影响打印热路径，不宣称完整构建提速。完整构建仍执行
+Python 最小配置导出，`olddefconfig` 与菜单也未迁移；旧库保留至这些
+入口完成替换，受跟踪 Python 文件仍为 192。证据见
+[头文件生成验收](../host/contracts/kconfig-genconfig-acceptance.json)，复现基准
+为 `node host/bench/kconfig-genconfig.ts`。真实硬件验收尚未执行。
 
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。

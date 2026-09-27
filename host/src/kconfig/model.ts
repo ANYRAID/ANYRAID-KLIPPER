@@ -20,8 +20,10 @@ export class KconfigModel {
  private readonly memo=new Map<string,number|string|undefined>();
  private readonly active=new Set<string>();
  private readonly users:Map<string,string>;
- constructor(tree:KTree,assignments:ReadonlyMap<string,string>=new Map()){
+ private readonly requestedSelections:ReadonlyMap<string,string>;
+ constructor(tree:KTree,assignments:ReadonlyMap<string,string>=new Map(),requestedSelections:ReadonlyMap<string,string>=new Map()){
   this.users=new Map(assignments);
+  this.requestedSelections=new Map(requestedSelections);
   const visit=(node:KNode,parent:KExpression,visible:KExpression,choice?:Choice)=>{
    let dependency=parent,promptDependency=visible;
    for(const property of node.properties){
@@ -86,7 +88,7 @@ export class KconfigModel {
   const key=choice.id+':mode';if(this.memo.has(key))return this.memo.get(key) as KTristate;
   return this.guarded(key,()=>{
    const optional=choice.definition.node.properties.some(p=>p.kind==='optional');
-   const selected=choice.members.some(name=>this.users.get(name)==='y');
+   const selected=this.requestedSelections.has(choice.id)||choice.members.some(name=>this.users.get(name)==='y');
    const mode=(!optional||selected)?this.visibility([choice.definition]):0;
    this.memo.set(key,mode);return mode;
   });
@@ -99,6 +101,7 @@ export class KconfigModel {
    if(this.choiceMode(choice)){
     // Last y assignment is the user selection, including when several members are set.
     for(const [name,value] of this.users)if(value==='y'&&choice.members.includes(name))selected=name;
+    selected=this.requestedSelections.get(choice.id)??selected;
     if(selected&&!visible(selected))selected=undefined;
     if(!selected)for(const property of choice.definition.node.properties)if(property.kind==='default'&&this.evaluate(and(choice.definition.dependency,property.condition))){
      if(property.value.kind==='symbol'&&choice.members.includes(property.value.value)&&visible(property.value.value)){selected=property.value.value;break;}

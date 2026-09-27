@@ -108,10 +108,11 @@ include $(OUT)board-link
 
 ################ Kconfig rules
 
-$(OUT)autoconf.h: $(KCONFIG_CONFIG)
+$(OUT)autoconf.h: $(KCONFIG_CONFIG) src/Kconfig $(wildcard src/*/Kconfig) \
+    scripts/kconfig-genconfig.mjs $(wildcard host/src/kconfig/*.ts)
 	@echo "  Building $@"
 	$(Q)mkdir -p $(OUT)
-	$(Q) KCONFIG_AUTOHEADER=$@ $(PYTHON) lib/kconfiglib/genconfig.py src/Kconfig
+	$(Q) KCONFIG_AUTOHEADER=$@ $(NODE) scripts/kconfig-genconfig.mjs src/Kconfig
 
 $(KCONFIG_CONFIG) olddefconfig: src/Kconfig
 	$(Q)$(PYTHON) lib/kconfiglib/olddefconfig.py src/Kconfig
