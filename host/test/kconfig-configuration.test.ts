@@ -1,3 +1,4 @@
+import {assertKconfigOracle} from './helpers/kconfig-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdtemp,rm,stat,symlink,lstat} from 'node:fs/promises';
@@ -12,7 +13,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url));
 test('84 full configurations match Python formatting and remain idempotent after reload',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-full-reference.json',import.meta.url),'utf8'));
  const tree=await parseKconfig(root);
- assert.equal(createHash('sha256').update(await readFile(join(root,'lib/kconfiglib/kconfiglib.py'))).digest('hex'),reference.sourceSha256);
+ await assertKconfigOracle(reference);
  for(const c of reference.cases){
   const input=await readFile(join(root,c.file),'utf8');
   const {model}=loadKconfigConfiguration(tree,input+(c.lowlevel?'\nCONFIG_LOW_LEVEL_OPTIONS=y\n':''));
@@ -45,7 +46,7 @@ test('olddefconfig creates missing config and preserves backup, mode, symlinks a
 test('84 minimal configurations match Python bytes and reload to identical firmware headers',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-minimal-reference.json',import.meta.url),'utf8'));
  const tree=await parseKconfig(root);
- assert.equal(createHash('sha256').update(await readFile(join(root,'lib/kconfiglib/kconfiglib.py'))).digest('hex'),reference.sourceSha256);
+ await assertKconfigOracle(reference);
  for(const c of reference.cases){
   const input=await readFile(join(root,c.file),'utf8');
   const {model}=loadKconfigConfiguration(tree,input+(c.lowlevel?'\nCONFIG_LOW_LEVEL_OPTIONS=y\n':''));
@@ -58,8 +59,9 @@ test('84 minimal configurations match Python bytes and reload to identical firmw
 test('all 84 configurations load from real files and generate byte-identical autoconf headers',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-autoconf-reference.json',import.meta.url),'utf8'));
  const modelReference=JSON.parse(await readFile(new URL('../contracts/kconfig-model-reference.json',import.meta.url),'utf8'));
+ await assertKconfigOracle(modelReference);
  assert.equal(reference.sourceSha256,modelReference.sourceSha256);
- for(const [file,hash] of Object.entries({...modelReference.files,[modelReference.source]:modelReference.sourceSha256}))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),hash,file);
+ for(const [file,hash] of Object.entries(modelReference.files))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),hash,file);
  const tree=await parseKconfig(root);
  for(const c of reference.cases){
   const input=await readFile(join(root,c.file),'utf8');

@@ -1,3 +1,4 @@
+import {assertKconfigOracle} from './helpers/kconfig-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
@@ -7,7 +8,7 @@ import {evaluateKconfig,kconfigInteger,type KValue} from '../src/kconfig/evaluat
 const parse=(text:string)=>parseKconfigExpression(tokenizeKconfig(text));
 test('all architecture expressions and numeric boundaries match frozen Kconfiglib',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-expression-reference.json',import.meta.url),'utf8'));
- assert.equal(createHash('sha256').update(await readFile(new URL('../../lib/kconfiglib/kconfiglib.py',import.meta.url))).digest('hex'),reference.sourceSha256);
+ await assertKconfigOracle(reference);
  for(const [file,digest] of Object.entries(reference.files))assert.equal(createHash('sha256').update(await readFile(new URL('../../'+file,import.meta.url))).digest('hex'),digest,file);
  const expressions=reference.expressions.map(parse);
  for(const scenario of reference.scenarios){

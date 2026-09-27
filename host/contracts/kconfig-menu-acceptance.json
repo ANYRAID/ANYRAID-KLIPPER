@@ -1,0 +1,95 @@
+{
+  "date": "2026-09-28",
+  "scope": "Repository Kconfig interactive numbered terminal menu and file lifecycle migrated to Node.js 26",
+  "entrypoint": "scripts/kconfig-menuconfig.mjs",
+  "makeTarget": "menuconfig",
+  "tests": 27,
+  "features": [
+    "Paged hierarchy and numbered selection/editing",
+    "Visible/hidden symbol search and help",
+    "Cross-architecture preferences",
+    "Full save/save-as/load/reset/minimal export",
+    "Explicit overwrite/discard prompts; EOF does not save",
+    "Backup, symlinks, atomic output, optimistic external-change checks",
+    "Edits made during save remain dirty"
+  ],
+  "pty": {
+    "passed": true,
+    "log": "host/build/kconfig-menu-pty.log",
+    "actions": [
+      "Open architecture menu by number",
+      "Select STM32 by number",
+      "Search MACH_STM32F446",
+      "Select result by number",
+      "Save and quit"
+    ],
+    "configurationSha256": "7cfbd94e42555728a48c7690254888303be6438dbc6828fe52368e49f932da0c"
+  },
+  "makeJourney": {
+    "pythonCommand": "/nonexistent-python",
+    "menuLog": "host/build/kconfig-menu-make.log",
+    "buildLog": "host/build/kconfig-menu-final-avr-build.log",
+    "steps": [
+      "Initialize missing configuration with Node",
+      "Node make menuconfig sets low-level options and SERIAL_BAUD=115200",
+      "Save and exit",
+      "Build AVR ELF/HEX"
+    ],
+    "configurationSha256": "2abaf73598026c310d7da22af755c816892a331b347cb1174e8fd5a229cad42f",
+    "artifacts": [
+      {
+        "name": "autoconf.h",
+        "sha256": "59ac6836a8633e60c9902edbc074c3e60f1387faece6be0e5202549ddb9784d4"
+      },
+      {
+        "name": "defconfig",
+        "sha256": "cbee10276862cfabcd532956090c6e818c2839fe54599bc806ee6c8a8c574d47"
+      },
+      {
+        "name": "klipper.elf",
+        "sha256": "c42f3867885237af2d5d90d29bb1c9ed010a381d4a03c58c8646c6c803cbdff5"
+      },
+      {
+        "name": "klipper.elf.hex",
+        "sha256": "ba9d5af1900bb17c8f71a8049bfbe5426cb05acfba1582fc59d347abd7321670"
+      }
+    ],
+    "size": {
+      "text": 46256,
+      "data": 48,
+      "bss": 373
+    }
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "journey": {
+      "edits": 15,
+      "warmups": 3,
+      "runs": 12,
+      "medianMs": 83.75303549999998,
+      "p95Ms": 86.89374100000009,
+      "scope": "New process, parse, line-menu redraws, 15 edits, full save, minimal export, exit; piped input/output, warm compile/filesystem cache"
+    },
+    "save": {
+      "warmups": 3,
+      "runs": 30,
+      "medianMs": 1.3237990000001219,
+      "p95Ms": 1.8290759999999864,
+      "scope": "Edit, recompute, conflict checks, backup, atomic replacement and saved-state update; warm filesystem cache"
+    },
+    "limitation": "No curses comparison or target board/printing timing claim; real PTY correctness is validated separately"
+  },
+  "retiredPython": [
+    "lib/kconfiglib/kconfiglib.py",
+    "lib/kconfiglib/menuconfig.py"
+  ],
+  "remainingPythonFiles": 187,
+  "oracleProvenance": "kconfig-retired-oracle.json",
+  "limitations": [
+    "Numbered line menu replaces curses key bindings, not a visual clone",
+    "External-change checks are optimistic, not OS-level compare-and-swap against arbitrary writers",
+    "An interrupted save can leave a lock; no automatic stale-lock deletion",
+    "No comparison to old curses responsiveness or target-board timing",
+    "Default Python printing runtime and other modules remain; hardware and existing crash/precision diagnostics not closed"
+  ]
+}

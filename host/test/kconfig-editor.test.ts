@@ -1,3 +1,4 @@
+import {assertKconfigOracle} from './helpers/kconfig-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -10,7 +11,8 @@ import {KconfigEditor} from '../src/kconfig/editor.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 test('interactive architecture changes preserve hidden preferences and match Python after every edit',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-editor-reference.json',import.meta.url),'utf8'));
- for(const [file,hash] of Object.entries({...reference.files,'lib/kconfiglib/kconfiglib.py':reference.sourceSha256}))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),hash,file);
+ for(const [file,hash] of Object.entries(reference.files))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),hash,file);
+ await assertKconfigOracle(reference);
  const editor=new KconfigEditor(await parseKconfig(root));
  for(const step of reference.steps){
   editor.set(step.name,step.value);

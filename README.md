@@ -90,8 +90,8 @@ systemd 服务文件，详见启动说明。生成不会启用服务；默认 Py
 
 本分支的固件构建现需 Node.js 26（`node` 可在 PATH 中找到，或通过
 `make NODE=/绝对路径/node` 指定）。构建生成器不需要安装 npm 依赖；
-配置初始化/更新、`autoconf.h` 与最小配置已由 Node 生成；Kconfig
-交互菜单及其他尚未迁移的工具仍需要 Python。
+配置初始化/更新、`autoconf.h`、最小配置和交互菜单均已迁移到 Node；
+默认打印入口及其他尚未迁移的工具仍需要 Python。
 
 头文件入口为 `node scripts/kconfig-genconfig.mjs src/Kconfig`，支持
 `KCONFIG_CONFIG`、`KCONFIG_AUTOHEADER` 和 `--header-path`。无需 npm
@@ -105,7 +105,15 @@ systemd 服务文件，详见启动说明。生成不会启用服务；默认 Py
 变更前保留 `.old`，未变更时保持时间戳。直接入口为
 `node scripts/kconfig-olddefconfig.mjs src/Kconfig`。从缺失配置及空输出
 目录开始，设置 `PYTHON=/nonexistent-python` 仍已完成 AVR 编译。
-三个旧 Python 非交互入口已删除；`make menuconfig` 暂时仍依赖 Python。
+五个旧 Python Kconfig 文件均已删除；冻结对照的原始版本与哈希见
+[来源记录](host/contracts/kconfig-retired-oracle.json)。
+
+`make menuconfig` 现在打开分页编号菜单：输入编号进入菜单或修改选项，
+`back` 返回，`search 关键词` 搜索，`all` 显示隐藏项，`help 编号` 查看帮助。
+`save [路径]` 保存或另存，`load 路径` 加载，`export 路径` 导出最小配置，
+`reset` 恢复默认值，`quit` 退出。未保存修改和覆盖已有文件均会提示确认。
+这是新的行式交互界面，不沿用 curses 快捷键。保存检测到外部修改时会拒绝
+覆盖；异常退出遗留 `.kconfig-lock` 时，须确认没有保存进程再移除该锁。
 
 ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
 入口已切换为 Node；构建会使用本机 `HOSTCC`（默认 `cc`）生成串口
@@ -193,4 +201,4 @@ SOS 输入仍受上述整数范围限制；该模式当前不默认启用，详�
 MAX31855 独立温度输入与加热反馈已接入 Node 配置装配，要求 MCU 固件
 提供 `MAX31855_SIGNED_RANGE=1` 能力。旧固件会被拒绝；当前已通过固件
 处理函数、模拟热控、两个编译产品变体和 ATmega2560 固件构建验证。
-真实热电偶验收仍待完成；交互配置菜单还依赖 Python Kconfiglib。
+真实热电偶验收仍待完成；项目 Kconfig 工具链已迁移到 Node。

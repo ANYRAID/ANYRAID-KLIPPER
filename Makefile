@@ -119,7 +119,7 @@ $(KCONFIG_CONFIG) olddefconfig: src/Kconfig $(wildcard src/*/Kconfig) \
 	$(Q)$(NODE) scripts/kconfig-olddefconfig.mjs src/Kconfig
 
 menuconfig:
-	$(Q)$(PYTHON) lib/kconfiglib/menuconfig.py src/Kconfig
+	$(Q)$(NODE) scripts/kconfig-menuconfig.mjs src/Kconfig
 
 ################ Generic rules
 

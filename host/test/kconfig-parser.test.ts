@@ -1,3 +1,4 @@
+import {assertKconfigOracle} from './helpers/kconfig-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -11,6 +12,7 @@ const root=fileURLToPath(new URL('../../',import.meta.url)),expression=(s:string
 function normalized(e:KExpression):unknown{if(e.kind==='binary'){if(e.operator==='&&'||e.operator==='||'){const parts:unknown[]=[];const collect=(x:KExpression)=>{if(x.kind==='binary'&&x.operator===e.operator){collect(x.left);collect(x.right);}else parts.push(normalized(x));};collect(e);return [e.operator,...parts];}return [e.operator,normalized(e.left),normalized(e.right)];}if(e.kind==='not')return ['!',normalized(e.value)];return [e.kind,e.value];}
 test('complete repository Kconfig properties match frozen Python structure',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-structure-reference.json',import.meta.url),'utf8')),tree=await parseKconfig(root),rows:unknown[]=[];
+ await assertKconfigOracle(reference);
  for(const [path,digest] of Object.entries(reference.files))assert.equal(createHash('sha256').update(await readFile(join(root,path))).digest('hex'),digest,'Kconfig fixture changed: '+path);
  const walk=(n:KNode)=>{if(!['root','if'].includes(n.kind)){const prompt=n.properties.find(p=>p.kind==='prompt');rows.push({kind:n.kind,name:n.name??null,file:n.file,line:n.line,prompt:prompt?.kind==='prompt'?[prompt.text,normalized(prompt.condition)]:n.title?[n.title,normalized(expression('y'))]:null,help:n.help??null,defaults:n.properties.filter(p=>p.kind==='default').map(p=>[normalized(p.value),normalized(p.condition)]),selects:n.properties.filter(p=>p.kind==='select').map(p=>[p.name,normalized(p.condition)]),ranges:n.properties.filter(p=>p.kind==='range').map(p=>[normalized(p.minimum),normalized(p.maximum),normalized(p.condition)])});}n.children.forEach(walk);};walk(tree.root);
  const expected=reference.rows.map((r:any)=>({...r,prompt:r.prompt?[r.prompt[0],normalized(expression(r.prompt[1]))]:null,defaults:r.defaults.map((v:string[])=>v.map(x=>normalized(expression(x)))),selects:r.selects.map(([n,c]:string[])=>[n,normalized(expression(c))]),ranges:r.ranges.map((v:string[])=>v.map(x=>normalized(expression(x))))}));

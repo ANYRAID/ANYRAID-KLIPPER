@@ -1,3 +1,4 @@
+import {assertKconfigOracle} from './helpers/kconfig-reference.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -10,7 +11,8 @@ import {KconfigModel} from '../src/kconfig/model.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 test('42 firmware configurations with low-level options off/on match all Python values, visibility and output flags',async()=>{
  const r=JSON.parse(await readFile(new URL('../contracts/kconfig-model-reference.json',import.meta.url),'utf8'));
- for(const [file,digest] of Object.entries({...r.files,[r.source]:r.sourceSha256}))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),digest,file);
+ for(const [file,digest] of Object.entries(r.files))assert.equal(createHash('sha256').update(await readFile(join(root,file))).digest('hex'),digest,file);
+ await assertKconfigOracle(r);
  const tree=await parseKconfig(root);
  for(const c of r.cases){
   assert.equal(createHash('sha256').update(await readFile(join(root,c.file))).digest('hex'),c.sha256,c.file);

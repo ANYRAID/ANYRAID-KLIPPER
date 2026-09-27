@@ -1,12 +1,14 @@
 import {KconfigModel} from './model.ts';
 import {loadKconfigConfiguration,kconfigFull,kconfigMinimal} from './configuration.ts';
 import type {KTree,KNode} from './parser.ts';
+import type {KValueType} from './evaluate.ts';
 
 export interface KMenuItem{
  node:KNode;
  label:string;
  name?:string;
  value?:string;
+ type?:KValueType;
  visible:boolean;
  kind:KNode['kind'];
 }
@@ -38,6 +40,9 @@ export class KconfigEditor{
   if(contents!==this.full())throw new Error('Saved configuration does not match current editor state');
   this.savedContent=contents;
  }
+ /** A completed asynchronous write may represent an older editor snapshot.
+  * Recording its exact bytes keeps later edits dirty instead of losing them. */
+ recordSavedSnapshot(contents:string):void{this.savedContent=contents;}
  load(source:string):void{
   const next=loadKconfigConfiguration(this.tree,source,this.prefix);next.model.resolve();
   this.model=next.model;this.assignments=next.assignments;this.selections=next.selections;this.warnings=next.warnings;this.savedContent=source;
@@ -70,7 +75,8 @@ export class KconfigEditor{
  item(node:KNode):KMenuItem{
   const prompt=node.properties.find(p=>p.kind==='prompt');
   const symbol=node.kind==='config'||node.kind==='menuconfig';
-  return {node,kind:node.kind,name:node.name,label:prompt?.kind==='prompt'?prompt.text:node.title??node.name??(node.kind==='choice'?'Choice':node.kind),visible:symbol||node.kind==='choice'?this.model.promptVisible(node):this.model.nodeVisible(node),value:symbol?this.model.value(node.name!).text:undefined};
+  const value=symbol?this.model.value(node.name!):undefined;
+  return {node,kind:node.kind,name:node.name,label:prompt?.kind==='prompt'?prompt.text:node.title??node.name??(node.kind==='choice'?'Choice':node.kind),visible:symbol||node.kind==='choice'?this.model.promptVisible(node):this.model.nodeVisible(node),value:value?.text,type:value?.type};
  }
  items(parent=this.tree.root,showAll=false):KMenuItem[]{
   const items:KMenuItem[]=[];

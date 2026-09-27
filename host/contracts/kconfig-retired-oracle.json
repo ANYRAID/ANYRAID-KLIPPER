@@ -1,0 +1,9 @@
+{
+  "source": "lib/kconfiglib/kconfiglib.py",
+  "sourceSha256": "42db0f9368347d31e81fdd5dd7b9dba321dac200ce81209ab2a72efa2e3eacf9",
+  "gitCommit": "8dc537fd81ec7d47a87ea0d4e89d222b659f34db",
+  "gitBlob": "fb5e4b760e7818743a641687956cc4e3a8723a23",
+  "menuSource": "lib/kconfiglib/menuconfig.py",
+  "menuSha256": "3d8f15075ed4f75fa0e74adac2751f2330c74cfdc196b4aeace3d88c741ff5ea",
+  "note": "Frozen differential fixtures were generated and checked before retirement. The original oracle remains retrievable from Git history; current tests do not require Python source or runtime. ISC license and historical patch are retained in lib/kconfiglib."
+}
