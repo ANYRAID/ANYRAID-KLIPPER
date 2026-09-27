@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "66ae9d40",
+  "reference": {
+    "matplotlib": "3.10.7",
+    "sourceSha256": "83aba47ab6799ffb03fc49e4d1e240e24913bce3a9f007d2181abad0f1e8b7e1",
+    "path": "host/contracts/motan-marker-reference.json",
+    "sha256": "5274949a71b5576cdc213d2c67b4bf9eb3d7647dc91d4416fdaf8d60642fd0d6",
+    "method": "MarkerStyle.get_path/get_transform and get_alt_path/get_alt_transform for 25 markers and six fill styles; transformed vertices/codes frozen once"
+  },
+  "sourceSha256": {
+    "host/src/motan/marker-data.ts": "c8c07a1282b86eb5c91d9c78314ac14d3b3360f66e209635cc38854422043b90",
+    "host/src/motan/markers.ts": "dedc23713da28fb32e9327722f57f9da5256c24859a3af28b64e068ce7dcd47b",
+    "host/src/motan/graph-render.ts": "93004971dcabc37ce7c8c86ec83adf887dcd2184a3246308ab266e9e56710e03",
+    "host/src/diagnostics/interactive-plot.ts": "980a2d31623000504368a8e6648cd6932202b87137c19b3f59d97955f61a7c20",
+    "host/test/motan-markers.test.ts": "5415de905540a90dbc5b3ad3ebca9eb4d606c14a137e2077c837987757625083",
+    "host/test/motan-standalone-graph.test.ts": "bab5ed2b160b09ebb98d1d492f6441b4c111f84d62fc6a762c1fb338904abba3",
+    "host/bench/motan-markers.ts": "f0daf7df2887bb1c8942acc6f780883556389ef119f57abc2406432ddab79083"
+  },
+  "tests": {
+    "regressions": 22,
+    "geometryCombinations": 150,
+    "standaloneFormats": [
+      "JSON",
+      "SVG",
+      "PNG",
+      "HTML",
+      "PDF"
+    ],
+    "visualGallery": "25 markers, left fill, curve and legend inspected"
+  },
+  "bench": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "style": "marker=none",
+        "points": 20000,
+        "bytes": 318182,
+        "medianMs": 7.180032000000011,
+        "p95Ms": 10.844479000000007
+      },
+      {
+        "style": "marker=s&fillstyle=left&mfc=red&mfcalt=blue",
+        "points": 20000,
+        "bytes": 7041657,
+        "medianMs": 35.207040000000006,
+        "p95Ms": 47.67441600000001
+      }
+    ],
+    "scope": "SVG construction with existing numeric panels; excludes analysis, raster encoding and printing. No Python render performance claim."
+  },
+  "exportBench": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "points": 15003,
+        "bytes": 244250,
+        "medianMs": 89.15934300000004,
+        "p95Ms": 92.20082200000002
+      },
+      {
+        "format": "png",
+        "points": 15003,
+        "bytes": 60588,
+        "medianMs": 114.78075499999977,
+        "p95Ms": 117.00921900000003
+      }
+    ],
+    "scope": "Synthetic capture file read, fresh analysis worker per job, full three-curve layout, SVG or PNG encoding and atomic write. Decode checks outside timer. No Python renderer comparison, browser frame rate or physical print timing."
+  },
+  "limitations": [
+    "Mathtext/custom paths and remaining Matplotlib parameters unported; Python graph entry retained",
+    "No new Python runtime or regression dependency",
+    "Offline renderer only; no print throughput or physical precision claim",
+    "Historical numerical/runtime failures remain unresolved"
+  ]
+}

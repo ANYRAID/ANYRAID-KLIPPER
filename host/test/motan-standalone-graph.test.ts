@@ -18,7 +18,7 @@ test('standalone compiled Motan graphs and CSV run with independently installed 
   await managerFixture(prefix,2,'cartesian');const original=await readFile(prefix+'.json.gz'),durations:Record<string,number>={};
   for(const format of ['json','svg','png','html','pdf']){
    const target=join(dir,'graph.'+format),begin=performance.now();
-   execFileSync(process.execPath,[join(output,'scripts/motan/motan_graph.js'),prefix,'-d','.2','--segment-time','.01','-o',target],{cwd:'/',env,timeout:15000});durations[format]=performance.now()-begin;
+   execFileSync(process.execPath,[join(output,'scripts/motan/motan_graph.js'),prefix,'-g',JSON.stringify([['trapq(toolhead,velocity)?marker=s&fillstyle=left&mfc=red&mfcalt=blue'],['trapq(toolhead,accel)?marker=%2B'],['deviation(stepq(stepper_x),kin(stepper_x))?marker=X']]),'-d','.2','--segment-time','.01','-o',target],{cwd:'/',env,timeout:15000});durations[format]=performance.now()-begin;
    const bytes=await readFile(target);assert(bytes.length>100);
    if(format==='json'){const panels=JSON.parse(bytes.toString());assert.equal(panels.length,3);assert(panels.every((p:any)=>p.curves[0].values.length>0));}
    if(format==='svg')assert.match(bytes.toString(),/Motion Analysis/);

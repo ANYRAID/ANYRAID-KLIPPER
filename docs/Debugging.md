@@ -160,13 +160,18 @@ panels. HTML provides offline zoom, pan and curve toggles. Supported styles
 are `color/c` (hex, CSS/XKCD names, shorthand, tab colors, grayscale, Cn or none), `label`,
 `alpha` (0..1), `linewidth/lw` (0..20), `linestyle/ls` (solid, dashed,
 dash-dot, dotted or none), `drawstyle/ds` (`default`, `steps`, `steps-pre`,
-`steps-post`, `steps-mid`), `marker` (none, dot or circle), and
-`markersize/ms` (0..40). Unsupported parameters fail before analysis; they
+`steps-post`, `steps-mid`), `marker` (the 25 standard character symbols listed
+in the [Matplotlib marker reference](https://matplotlib.org/3.10.0/api/markers_api.html),
+or none), `markersize/ms` (0..40), `fillstyle` (full, none, left, right, top, bottom),
+`markerfacecolor/mfc`, `markerfacecoloralt/mfcalt`, `markeredgecolor/mec` and
+`markeredgewidth/mew` (0..20). Marker colors accept `auto` or the same color
+syntax as lines; the alternate face defaults to none. Pixel markers keep unit
+size. Mathtext markers, custom paths and rcParams overrides remain unported. Unsupported parameters fail before analysis; they
 are not silently ignored. Use the legacy tool below for styles not yet ported.
 Colors follow the default Matplotlib palette (including case-insensitive multi-letter
 names). Grayscale strings range from 0 to 1. The default alpha of 0.8 overrides
-hex alpha; `none` always hides the curve and legend symbol while preserving
-legend text. Custom Matplotlib rcParams palettes are not loaded.
+hex alpha; `none` hides the line and markers inheriting its color while preserving
+legend text; an explicitly colored marker remains visible. Custom Matplotlib rcParams palettes are not loaded.
 `steps` is an alias for `steps-pre`. Markers stay on the original samples,
 while step vertices only change the displayed line; JSON keeps original data.
 The total expanded line budget is 500000 points across all panels.

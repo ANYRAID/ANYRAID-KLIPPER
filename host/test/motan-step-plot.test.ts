@@ -24,7 +24,7 @@ test('SVG stairs retain original sample markers and full JSON data',()=>{
   const panels=motanGraphPanels(analysis,parseMotanGraphs(`[['a?ds=${kind}&marker=o']]`),'capture'),before=JSON.stringify(panels),svg=renderMotanGraph(panels);
   const curve=/<g data-curve-label="A"[^>]*>([\s\S]*?)<\/g>/.exec(svg)![1];
   const path=/<path d="([^"]+)"/.exec(curve)![1];assert.equal((path.match(/[ML]/g)||[]).length,kind==='steps-mid'?6:5);
-  assert.equal((curve.match(/<circle/g)||[]).length,3);assert.equal(JSON.stringify(panels),before);
+  assert.equal((curve.match(/<use /g)||[]).length,3);assert.equal(JSON.stringify(panels),before);
   const coords=[...path.matchAll(/[ML](-?[\d.]+),(-?[\d.]+)/g)].map(m=>[Number(m[1]),Number(m[2])]);
   for(let i=1;i<coords.length;i++)assert.ok(coords[i][0]===coords[i-1][0]||coords[i][1]===coords[i-1][1]);
  }
@@ -34,6 +34,6 @@ test('single sample step curves have one marker instead of a duplicate implicit 
  const input={times:Float64Array.of(1),datasets:{a:Float64Array.of(2)},labels:{a:{name:'a',label:'A',units:'mm'}}};
  for(const kind of ['default','steps-pre','steps-post','steps-mid']){
   const svg=renderMotanGraph(motanGraphPanels(input,parseMotanGraphs(`[['a?drawstyle=${kind}&marker=o']]`),'capture'));
-  const curve=/<g data-curve-label="A"[^>]*>([\s\S]*?)<\/g>/.exec(svg)![1];assert.equal((curve.match(/<circle/g)||[]).length,1);
+  const curve=/<g data-curve-label="A"[^>]*>([\s\S]*?)<\/g>/.exec(svg)![1];assert.equal((curve.match(/<use /g)||[]).length,1);
  }
 });

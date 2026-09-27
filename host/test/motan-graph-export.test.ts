@@ -12,9 +12,9 @@ import {writePlotDocument} from '../src/diagnostics/graphstats-file.ts';
 import {managerFixture} from './helpers/motan-manager-fixture.ts';
 const panels=()=>motanGraphPanels({times:Float64Array.of(0,.25,.5),datasets:{a:Float64Array.of(1,2,3)},labels:{a:{name:'a',label:'unsafe </script> " &',units:'Position\n(mm)'}}},parseMotanGraphs("[['a?color=green&alpha=.4&ls=--&lw=2&marker=o&ms=4']]"),'capture');
 test('Motan styling preserves numeric axes, full labels, color, alpha, dashes and markers',()=>{
- const svg=renderMotanGraph(panels());assert.match(svg,/numeric horizontal axis/);assert.match(svg,/stroke="#008000"/);assert.match(svg,/opacity="0.4"/);assert.match(svg,/stroke-dasharray="6 4"/);assert.match(svg,/stroke-width="2"/);assert.equal((svg.match(/<circle/g)||[]).length,4);assert.match(svg,/Time \(s\)/);assert.ok(!svg.includes('</script>'));assert.match(svg,/&lt;\/script&gt;/);
- for(const parameter of ['color=url(x)','color=notacolor','alpha=2','lw=NaN','lw=2&linewidth=3','marker=x','drawstyle=unknown','label=ok&onload=bad'])assert.throws(()=>validateMotanGraphStyles(parseMotanGraphs(`[['a?${parameter}']]`)));
- const none=panels();none[0].curves[0].parameters.linestyle='none';delete none[0].curves[0].parameters.ls;const output=renderMotanGraph(none);assert.equal((output.match(/<circle/g)||[]).length,4);
+ const svg=renderMotanGraph(panels());assert.match(svg,/numeric horizontal axis/);assert.match(svg,/stroke="#008000"/);assert.match(svg,/opacity="0.4"/);assert.match(svg,/stroke-dasharray="6 4"/);assert.match(svg,/stroke-width="2"/);assert.equal((svg.match(/<use /g)||[]).length,4);assert.match(svg,/Time \(s\)/);assert.ok(!svg.includes('</script>'));assert.match(svg,/&lt;\/script&gt;/);
+ for(const parameter of ['color=url(x)','color=notacolor','alpha=2','lw=NaN','lw=2&linewidth=3','marker=invalid','drawstyle=unknown','label=ok&onload=bad'])assert.throws(()=>validateMotanGraphStyles(parseMotanGraphs(`[['a?${parameter}']]`)));
+ const none=panels();none[0].curves[0].parameters.linestyle='none';delete none[0].curves[0].parameters.ls;const output=renderMotanGraph(none);assert.equal((output.match(/<use /g)||[]).length,4);
 });
 test('Node Motan CLI exports actual captures in every main mode without a Python executable',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'motan-graph-cli-')),prefix=join(dir,'capture with spaces'),cli=fileURLToPath(new URL('../../scripts/motan/motan_graph.ts',import.meta.url));

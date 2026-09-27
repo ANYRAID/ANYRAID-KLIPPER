@@ -20,7 +20,7 @@ test('SVG color output preserves byte colors and exact fractional base/grayscale
 test('transparent color hides artists but not legend text; plot alpha overrides embedded alpha',()=>{
  const analysis={times:Float64Array.of(0,1),datasets:{a:Float64Array.of(1,2)},labels:{a:{name:'a',label:'Visible label',units:'mm'}}};
  const render=(color:string,extra='')=>renderMotanGraph(motanGraphPanels(analysis,parseMotanGraphs(`[['a?color=${encodeURIComponent(color)}${extra}']]`),'capture'));
- const none=render('none');assert.match(none,/<g data-curve-label="Visible label" opacity="0">/);assert.match(none,/<g><title>Visible label<\/title><path opacity="0"/);assert.ok(!none.includes('<g opacity="0"><title>'));
+ const none=render('none');assert.match(none,/stroke="none"/);assert.match(none,/<g data-curve-label="Visible label" opacity="0.8">/);assert.match(none,/<g><title>Visible label<\/title><path opacity="0.8"/);assert.ok(!none.includes('<g opacity="0.8"><title>'));
  assert.match(render('#12345600'),/data-curve-label="Visible label" opacity="0.8"/);
  assert.match(render('#123456ff','&alpha=.25'),/data-curve-label="Visible label" opacity="0.25"/);
  assert.match(render('xkcd:sky blue'),/stroke="#75bbfd"/);

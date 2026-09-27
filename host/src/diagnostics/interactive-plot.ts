@@ -3,10 +3,12 @@ import {createHash} from 'node:crypto';
  * escaped by the SVG renderer; the allowlist prevents active SVG constructs. */
 export function renderInteractivePlot(svg:string):string {
  if(Buffer.byteLength(svg)>60*1024**2||!svg.startsWith('<svg ')||!svg.endsWith('</svg>'))throw new RangeError('Invalid interactive SVG');
- const allowed=new Set(['svg','title','desc','style','rect','defs','clipPath','text','path','g','circle','line','polygon','polyline','ellipse','tspan','linearGradient','stop','image']);
+ const allowed=new Set(['svg','title','desc','style','rect','defs','clipPath','text','path','g','circle','line','polygon','polyline','ellipse','tspan','linearGradient','stop','image','use']);
+ const markerPaths=new Set<string>();
+ for(const match of svg.matchAll(/<path\b[^>]*\bid="(motan-marker-\d+-(?:main|alt))"/g)){if(markerPaths.has(match[1]))throw new Error('Duplicate marker definition');markerPaths.add(match[1]);}
  for(const match of svg.matchAll(/<\/?([A-Za-z][\w:-]*)\b([^>]*)>/g)){
   if(!allowed.has(match[1]))throw new Error('Active SVG is not supported');
-  const rest=match[2].replace(/\s+([\w:-]+)\s*=\s*("[^"]*"|'[^']*')/g,(_attribute,name:string,value:string)=>{if(/^on\w+/i.test(name))throw new Error('Active SVG is not supported');if(/^(?:xlink:)?href$/i.test(name)&&!(match[1]==='image'&&/^["']data:image\/png;base64,[A-Za-z0-9+/=]+["']$/.test(value)))throw new Error('External SVG references are not supported');return '';});
+  const rest=match[2].replace(/\s+([\w:-]+)\s*=\s*("[^"]*"|'[^']*')/g,(_attribute,name:string,value:string)=>{if(/^on\w+/i.test(name))throw new Error('Active SVG is not supported');if(/^(?:xlink:)?href$/i.test(name)&&!(match[1]==='use'&&/^["']#motan-marker-\d+-(?:main|alt)["']$/.test(value)&&markerPaths.has(value.slice(2,-1)))&&!(match[1]==='image'&&/^["']data:image\/png;base64,[A-Za-z0-9+/=]+["']$/.test(value)))throw new Error('External SVG references are not supported');return '';});
   if(!/^\s*\/?$/.test(rest))throw new Error('Invalid generated SVG attributes');
  }
  const script=String.raw`
