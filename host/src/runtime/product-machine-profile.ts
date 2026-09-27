@@ -26,18 +26,24 @@ export async function readProductMachine(path:string,signal:AbortSignal):Promise
  const file=await open(path,constants.O_RDONLY|constants.O_NONBLOCK);
  try{const stat=await file.stat();if(!stat.isFile()||stat.size>65536)throw new Error('Machine configuration must be a regular file of at most 65536 bytes');const bytes=Buffer.alloc(65537);let length=0;while(length<bytes.length){signal.throwIfAborted();const {bytesRead}=await file.read(bytes,length,bytes.length-length,null);if(!bytesRead)break;length+=bytesRead;}signal.throwIfAborted();if(length>65536)throw new Error('Machine configuration exceeds 65536 bytes');return parseProductMachine(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes.subarray(0,length))));}finally{await file.close();}
 }
-/** Assemble a versioned machine configuration without opening MCU transports.
- * Adapter factory owns partial acquisition; successful return transfers its
- * resources even when cancellation raced with the return. */
-export async function loadProductMachineProfile(path:string,createBindings:ProductMachineBindingsFactory,signal:AbortSignal):Promise<ProductHostProfile>{
- signal.throwIfAborted();if(typeof createBindings!=='function')throw new TypeError('Machine bindings factory is required');
+/** Shared read-only configuration and topology preflight. Does not acquire
+ * adapters, journals, transports, or validate MCU-dictionary-dependent options. */
+export async function preflightProductMachine(path:string,signal:AbortSignal){
+ signal.throwIfAborted();
  const config=await readProductMachine(path,signal);
  const configuration=await KlipperSaveSession.load(config.printerConfig,{signal});
  const reader=new ConfigurationReader(configuration.source,null);signal.throwIfAborted();
  const moonraker=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readNetworkBinding(moonraker);signal.throwIfAborted();
  // Validate topology and transport declarations before acquiring adapter resources.
  const provisional=new Map(Object.entries(config.mcus));
- planMCUConnections(reader,provisional);planLinearPrinter(reader,{...config.machine,mcus:[...provisional.keys()]});
+ const connections=planMCUConnections(reader,provisional),plan=planLinearPrinter(reader,{...config.machine,mcus:[...provisional.keys()]});
+ return {config,configuration,reader,provisional,connections,plan};
+}
+/** Adapter factory owns partial acquisition; successful return transfers its
+ * resources even when cancellation raced with the return. */
+export async function loadProductMachineProfile(path:string,createBindings:ProductMachineBindingsFactory,signal:AbortSignal):Promise<ProductHostProfile>{
+ signal.throwIfAborted();if(typeof createBindings!=='function')throw new TypeError('Machine bindings factory is required');
+ const {config,configuration,reader,provisional}=await preflightProductMachine(path,signal);
  let bindings:ProductMachineBindings|undefined,journal:PrintJournal|undefined,closing:Promise<void>|undefined;const gate=new MaintenanceGate();
  const release=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;gate.invalidate();

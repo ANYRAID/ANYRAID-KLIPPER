@@ -48,7 +48,7 @@ test('product publication is reproducible and preserves prior output on compiler
   assert(!(await readdir(dir)).some(name=>name.startsWith('.product-build-')||name.startsWith('.product-native-')||name.endsWith('.lock')));
  }finally{await rm(dir,{recursive:true,force:true});}
 });
-test('compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports',async()=>{
+test('compiled CLI uses bundled native owners and a JS profile to start and stop two real UART transports',async(t)=>{
  const dir=await mkdtemp(join(tmpdir(),'product-built-cli-')),output=join(dir,'app'),f=await configuredPrinterFixture(false,false),transport=await productTransports(f.reader);let child:ReturnType<typeof spawn>|undefined;
  try{
   await buildProductHost(output);await installProductDependencies(output);const profile=join(dir,'machine.mjs'),configPath=join(dir,'moonraker.conf');await writeFile(configPath,'[server]\nhost=127.0.0.1\nport=0');
@@ -56,6 +56,13 @@ test('compiled CLI uses bundled native owners and a JS profile to start and stop
   await writeFile(printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n'));
   const {output:discardOutput,open:discardOpen,lifecycle:discardLifecycle,...print}=f.options.print;
   await writeFile(manifest,JSON.stringify({version:1,deviceId:'printer',printerConfig,moonrakerConfig:configPath,journalPath:join(dir,'jobs.db'),mcus:Object.fromEntries([...transport.policies].map(([id,{stopDevice,...policy}])=>[id,policy])),machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},hardware:{heaterGcodeIds:f.options.hardware.heaterGcodeIds},print,limits:{maxNozzle:300,maxBed:130}}));
+  const preflightTimes:number[]=[];
+  for(let run=0;run<5;run++){
+   const begin=performance.now(),preflight=JSON.parse(execFileSync(process.execPath,[join(output,'scripts/product-preflight.js'),'--machine',manifest],{cwd:'/',env:environment(),encoding:'utf8',timeout:10000}));
+   preflightTimes.push(performance.now()-begin);assert.equal(preflight.state,'topology_validated');assert.equal(preflight.hardwareValidated,false);assert.equal(preflight.mcus.length,2);
+  }
+  preflightTimes.sort((a,b)=>a-b);t.diagnostic(JSON.stringify({preflight:{coldProcesses:5,medianMs:preflightTimes[2],maxMs:preflightTimes[4],scope:'Compiled read-only machine preflight without Python or TS loader; no MCU connection'}}));
+  assert(!((await readdir(dir)).includes('jobs.db')));assert(transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
   await writeFile(profile,`import {writeFile} from 'node:fs/promises';
 import {loadProductMachineProfile} from ${JSON.stringify(pathToFileURL(join(output,'host/src/runtime/product-machine-profile.js')).href)};
 import {ApiError} from ${JSON.stringify(pathToFileURL(join(output,'host/src/moonraker/rpc.js')).href)};

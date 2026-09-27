@@ -6,12 +6,26 @@ import {mkdtemp,rm,writeFile,readFile,access} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {parseProductMachine} from '../src/config/product-machine.ts';
 import {readProductMachine,loadProductMachineProfile} from '../src/runtime/product-machine-profile.ts';
 import {runProductHost} from '../src/runtime/product-host.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
 const signal=()=>new AbortController().signal;
+test('read-only preflight CLI validates included topology without journal or MCU acquisition',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'machine-preflight-')),f=await productMachineFixture(dir);
+ try{
+  const cli=fileURLToPath(new URL('../../scripts/product-preflight.ts',import.meta.url));
+  const result=JSON.parse(execFileSync(process.execPath,[cli,'--machine',f.path],{encoding:'utf8',timeout:10000,env:{...process.env,PATH:'/no-programs'}}));
+  assert.equal(result.state,'topology_validated');assert.equal(result.hardwareValidated,false);assert.equal(result.allOptionsValidated,false);
+  assert.equal(result.mcus.length,2);assert.equal(result.motors.length,4);await assert.rejects(access(f.config.journalPath));
+  assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
+  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[include legacy.cfg]\n');await writeFile(join(dir,'legacy.cfg'),'[gcode_macro PRINT_START]\ngcode: G28\n');
+  assert.throws(()=>execFileSync(process.execPath,[cli,'--machine',f.path],{encoding:'utf8',timeout:10000,stdio:'pipe'}),/unsupported.*gcode_macro PRINT_START/);
+  await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);
+ }finally{await f.close();await rm(dir,{recursive:true,force:true});}
+});
 test('machine configuration rejects unknown, nonfinite, ambiguous and out-of-range policy without changing numeric data',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'machine-schema-')),f=await productMachineFixture(dir);try{
   const source=JSON.parse(JSON.stringify(f.config));source.print.parking.parkXY=[1.005,-1e-9];source.print.homingTimeoutMs=120000;const parsed=parseProductMachine(source);assert.deepEqual(parsed,source);source.print.parking.parkXY[0]=123;assert.equal(parsed.print.parking.parkXY[0],1.005);
@@ -77,7 +91,7 @@ test('unsupported included printer components fail before adapter, journal or MC
   const original=await readFile(f.config.printerConfig,'utf8'),extra=join(dir,'unported.cfg');
   await writeFile(extra,'[gcode_macro PRINT_START]\ngcode: G28\n\n[temperature_fan chamber]\nsensor_type: Generic 3950\nsensor_pin: aux:PA15\n');
   await writeFile(f.config.printerConfig,original+'\n[include unported.cfg]\n');
-  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),error=>String(error).includes('[gcode_macro PRINT_START]')&&String(error).includes('[temperature_fan chamber]'));
+  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),error=>String(error).includes('[gcode_macro PRINT_START]')&&!String(error).includes('[temperature_fan chamber]'));
   assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });

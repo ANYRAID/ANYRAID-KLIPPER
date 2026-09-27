@@ -18,7 +18,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实机验收仍需继续完成。
 
 自动线性机器装配会检查合并 include 后的每个打印机配置节。尚未迁移的
-组件（例如 gcode_macro、temperature_fan、exclude_object）或没有
+组件（例如 gcode_macro、servo、output_pin）或没有
 对应设备的 verify_heater、TMC、endstop_phase、bed_mesh 配置会明确报错，
 不会在忽略这些配置后报告就绪。文件机器配置入口在创建适配器、作业
 数据库和连接 MCU 前执行此检查；已保存的网床配置仍需对应 [bed_mesh]。
@@ -199,6 +199,23 @@ C 源码/构建脚本、Node 头文件快照和插件输出摘要，以及编译
 暂停/恢复、取消及 SIGHUP 后再打印。测试 UART 对端为模拟 MCU。
 
 ## systemd 部署入口与默认服务切换
+
+在创建板卡适配器和切换服务前，可先检查版本化机器 JSON 及其引用的
+打印机、Moonraker 配置：
+
+```sh
+/opt/node26/bin/node --no-experimental-strip-types \
+  /opt/anyraid/scripts/product-preflight.js --machine /etc/anyraid/machine.json
+```
+
+源码入口是 `node scripts/product-preflight.ts --machine /绝对路径/machine.json`。
+它与实际启动共用配置、include／自动保存、网络绑定、MCU 策略和线性
+拓扑检查，失败返回非零退出码。成功输出 `state: topology_validated`
+及组件、MCU、运动电机和加热器清单；不输出配置值或认证信息。
+该命令不加载机器 JS 模块、不创建打印日志、不打开 MCU。
+`hardwareValidated` 和 `allOptionsValidated` 均为 false：完整引脚资源、
+依赖 MCU 字典的选项、真实输出和物理停止仍需启动与目标板验收。
+检查成功不授予打印权限，也不能作为启用服务的充分依据。
 
 编译包包含只读服务生成工具。在目标 Linux 主机使用最终部署的 Node.js
 26.9+ 26.x 执行，先安装运行包生产依赖，再生成待审核的服务文件：
