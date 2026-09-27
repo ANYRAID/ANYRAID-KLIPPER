@@ -16,6 +16,22 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- **SD 烧录 Python 入口已退役**：`scripts/flash-sdcard.sh` 现在直接
+  exec Node 入口并保留参数和退出码；移除 spi_flash.py、board_defs.py、
+  fatfs_lib.py 三个文件。Python 文件由 184 减至 181，主打印入口仍为
+  Python。此退役不代表真实打印机烧录已经验收。
+  下方按时间保留的阶段记录中“旧烧录入口仍保留”已由本项取代。
+  `host/bench/firmware.ts` 不再执行 Python、Git 或旧上传转换桥接；
+  30 个原始基线参考记录源提交、源文件哈希、输入／输出 SHA-256、
+  输出长度和 stdout，覆盖 0 字节至 1 MiB 及转换窗口／填充边界。
+  56 项 SD／转换／文件系统／CLI 回归通过。基准以无其他程序的 PATH
+  执行 Node 转换 CLI：3 次预热、11 次样本，1 MiB Robin 中位 68.088 ms、
+  P95 71.077 ms，Chitu 中位 96.948 ms、P95 99.992 ms，包含冷启动和文件 IO。
+  板卡目录维护、安装及退出码已同步到 SDCard_Updates.md。需要手动
+  断电的板卡返回 2，已 shutdown 的 MCU 须先手动复位；不会自动停止
+  打印服务或宣称串口关闭等于执行器安全。真实硬件重启与精度／速度
+  验收仍是整个迁移目标的未完成项。
+
 - 产品分发现在包含 `scripts/flash-sdcard.js`、板卡 JSON、原生
   `host/build/fatfs-helper` 和 FatFs 许可证。FatFs 从私有 C 源码快照
   构建，源码及可执行产物哈希纳入 native-build-info.json，整体产物

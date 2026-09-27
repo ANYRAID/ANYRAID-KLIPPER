@@ -219,3 +219,7 @@ MAX31855 独立温度输入与加热反馈已接入 Node 配置装配，要求 M
 提供 `MAX31855_SIGNED_RANGE=1` 能力。旧固件会被拒绝；当前已通过固件
 处理函数、模拟热控、两个编译产品变体和 ATmega2560 固件构建验证。
 真实热电偶验收仍待完成；项目 Kconfig 工具链已迁移到 Node。
+
+SD 卡烧录入口 `scripts/flash-sdcard.sh` 已改用 Node.js 26，支持独占串口、
+写后哈希校验和重连验证；不再依赖 Python/CFFI。安装、断电状态码和
+尚未完成的实机验收见 [SD 卡更新](docs/SDCard_Updates.md)。

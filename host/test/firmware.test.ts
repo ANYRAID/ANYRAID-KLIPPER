@@ -28,3 +28,8 @@ test('CLI handles spaces and same-path conversion; failures preserve existing ou
   const before=readFileSync(input),ok=spawnSync(process.execPath,[script,input,input]);assert.equal(ok.status,0,ok.stderr?.toString());assert.deepEqual(readFileSync(input),encodeRobin(before));
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+test('30 frozen original Python conversion cases match output size and SHA-256',async()=>{
+ const {default:reference}=await import('../contracts/firmware-conversion-reference.json',{with:{type:'json'}}),{createHash}=await import('node:crypto');
+ const sha=(bytes:Uint8Array)=>createHash('sha256').update(bytes).digest('hex');assert.equal(reference.fixtures.length,30);
+ for(const sample of reference.fixtures){const input=Buffer.alloc(sample.size);for(let i=0;i<input.length;i++)input[i]=(i*73+(i>>>8)*31)&255;assert.equal(sha(input),sample.inputSHA256);const out=sample.kind==='mks_robin'?encodeRobin(input):encodeChitu(input).firmware;assert.equal(out.length,sample.outputSize);assert.equal(sha(out),sample.outputSHA256,sample.kind+' '+sample.size);}
+});
