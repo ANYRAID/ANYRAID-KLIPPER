@@ -17,7 +17,8 @@ test('offline workflow uploads once, closes and resets, reconnects and verifies 
  const f=await fixture();try{
   // Obtain the simulated target build dictionary without opening an extra session.
   const fw=await serialFirmware(undefined,{reset:'ack',mcu:'stm32f103xe',extendedPins:true,tmcSpi(){return {data:new Uint8Array()};}});const dictionary=fw.dictionary.rawIdentify;await fw.close();
-  const start=performance.now(),result=await flashSDCard(f.io,{board:'btt-skr-mini',firmware:Buffer.alloc(4097,23),dictionary},signal());
+  const {mkdtemp,writeFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path'),{runSDFlash}=await import('../src/diagnostics/sd-flash-cli.ts');
+  const dir=await mkdtemp(join(tmpdir(),'sd-full-cli-'));let output='',code:number;const start=performance.now();try{await writeFile(join(dir,'firmware.bin'),Buffer.alloc(4097,23));await writeFile(join(dir,'klipper.dict'),dictionary);code=await runSDFlash(['-f',join(dir,'firmware.bin'),'-d',join(dir,'klipper.dict'),'/dev/simulated','btt-skr-mini'],dir,signal(),s=>output+=s,async(_device,_baud,r,s)=>flashSDCard(f.io,r,s));}finally{await rm(dir,{recursive:true,force:true});}assert.equal(code,0);const result=JSON.parse(output);
   assert.equal(result.state,'verified');if(result.state==='verified')assert.equal(result.verification.evidence,'running-dictionary');assert.deepEqual(f.reconnects,[false,true]);assert.equal(f.stops,2);assert(f.sessions.every(s=>s.status.state==='closed'));assert.equal(f.firmwares.flatMap(f=>f.outputs).filter(o=>o.name==='reset').length,2);
   t.diagnostic(JSON.stringify({workflowMs:performance.now()-start,scope:'Two native simulated MCU connections, FAT upload and dictionary verification; no physical reboot'}));
  }finally{await f.close();}
