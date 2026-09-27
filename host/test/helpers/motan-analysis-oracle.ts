@@ -1,8 +1,23 @@
-import {execFileSync} from 'node:child_process';
+// GPL-3.0-or-later. Captured original analysis results, without Python or Git.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {scipyReferenceEnvironment,scipyReferencePython} from './motan-sos-oracle.ts';
-export function analysisOracle(prefix:string,names:string[],segment:number,duration:number,bench=false):{times:number[];data:Record<string,number[]>;labels:Record<string,{label:string;units:string}>;ms:number[]}{
- const readlog=execFileSync('git',['show','2c7ba578:scripts/motan/readlog.py']),analyzers=execFileSync('git',['show','4127c89e:scripts/motan/analyzers.py']);if(createHash('sha256').update(readlog).digest('hex')!=='f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2'||createHash('sha256').update(analyzers).digest('hex')!=='8e47954f05da42f9f33fa14224080547c5a54f64ddd36930973f6e42a77421ab')throw new Error('Motan oracle source changed');const script=`import sys,json,types,time\nr=types.ModuleType('readlog');sys.modules['readlog']=r\nexec(${JSON.stringify(readlog.toString())},r.__dict__)\na={}\nexec(${JSON.stringify(analyzers.toString())},a)\nx=json.load(sys.stdin)\ndef run():\n m=r.LogManager(x['prefix'])\n try:\n  m.setup_index();m.seek_time(0);manager=a['AnalyzerManager'](m,x['segment']);manager.set_duration(x['duration'])\n  for name in x['names']: manager.setup_dataset(name)\n  manager.generate_datasets()\n  return manager.get_dataset_times(),manager.get_datasets(),{name:manager.get_label(name) for name in manager.get_datasets()}\n finally: m.index_reader.file.close();m.jdispatch.log_reader.file.close()\ntimes,data,labels=run();ms=[]\nif ${bench?'True':'False'}:\n for i in range(9):\n  start=time.perf_counter();run();elapsed=(time.perf_counter()-start)*1000\n  if i>=2: ms.append(elapsed)\nprint(json.dumps(dict(times=times,data=data,labels=labels,ms=ms)))`;
- return JSON.parse(execFileSync(scipyReferencePython(),['-c',script],{input:JSON.stringify({prefix,names,segment,duration}),encoding:'utf8',maxBuffer:64*1024**2,env:scipyReferenceEnvironment()}));
+import {gunzipSync} from 'node:zlib';
+interface AnalysisReference {times:number[];data:Record<string,number[]>;labels:Record<string,{label:string;units:string}>;ms:number[];}
+interface StoredReference {input:unknown;result:{times:string;data:Record<string,string>;labels:AnalysisReference['labels'];ms:number[]};}
+const sha=(value:Buffer|string)=>createHash('sha256').update(value).digest('hex');
+const metadata=JSON.parse(readFileSync(new URL('../../contracts/motan-analysis-reference.json',import.meta.url),'utf8'));
+let records:Record<string,StoredReference>|undefined;
+const decode=(text:string):number[]=>{const bytes=Buffer.from(text,'base64');assert.equal(bytes.length%8,0);return Array.from({length:bytes.length/8},(_,i)=>bytes.readDoubleBE(i*8));};
+export function analysisOracle(prefix:string,names:string[],segment:number,duration:number,bench=false):AnalysisReference{
+ if(!records){
+  assert.equal(sha(readFileSync(new URL('./motan-manager-fixture.ts',import.meta.url))),metadata.fixtureSha256);
+  const zip=readFileSync(new URL('../../contracts/motan-analysis-reference.json.gz',import.meta.url));assert.equal(sha(zip),metadata.gzipSha256);
+  const data=gunzipSync(zip,{maxOutputLength:64*1024**2});assert.equal(data.length,metadata.dataBytes);assert.equal(sha(data),metadata.dataSha256);
+  records=JSON.parse(data.toString());assert.equal(Object.keys(records!).length,metadata.caseCount);
+ }
+ const input={capture:['.json.gz','.index.gz'].map(s=>sha(readFileSync(prefix+s))),names,segment,duration,bench},key=sha(JSON.stringify(input)),row=records![key];
+ assert.ok(row,'Missing original analysis reference: '+key);assert.deepEqual(row.input,input);
+ return {times:decode(row.result.times),data:Object.fromEntries(Object.entries(row.result.data).map(([k,v])=>[k,decode(v)])),labels:structuredClone(row.result.labels),ms:[...row.result.ms]};
 }
 export const analysisNames=['derivative(trapq(toolhead,x))','integral(accelerometer(a,x),trapq(toolhead,velocity),0.015)','norm2(derivative(trapq(toolhead,x)),trapq(toolhead,y))','smooth(trapq(toolhead,x),0.05)','kin(stepper_x)','kin(stepper_y)','corexy(x,stepq(stepper_x),kin(stepper_y))','deviation(corexy(x,stepq(stepper_x),kin(stepper_y)),trapq(toolhead,x))'];

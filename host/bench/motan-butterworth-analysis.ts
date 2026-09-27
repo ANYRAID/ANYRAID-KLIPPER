@@ -1,3 +1,4 @@
+// Original Python results and timing are frozen; this benchmark runs Node only.
 import {mkdtemp,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -29,6 +30,6 @@ try {
    if(run>=2)ms.push(elapsed);
   }
   console.log(JSON.stringify({kind,mode,node:process.version,samples:reference.times.length,
-   nodeMs:stats(ms),pythonMs:stats(reference.ms),maxAbsoluteError:maxError}));
+   nodeMs:stats(ms),historicalPythonMs:stats(reference.ms),maxAbsoluteError:maxError}));
  }
 }finally{await rm(dir,{recursive:true,force:true});}
