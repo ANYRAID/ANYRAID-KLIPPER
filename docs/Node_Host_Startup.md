@@ -25,7 +25,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 ```sh
 npm --prefix host run build:product-host
 cd host/build/product-host
-npm ci --omit=dev --include=optional --ignore-scripts
+node --no-experimental-strip-types scripts/product-install.js --bundle "$PWD"
 node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyraid/machine.mjs
 ```
 
@@ -34,6 +34,19 @@ node --no-experimental-strip-types scripts/product-host.js --profile /etc/anyrai
 单独安装；构建命令不下载依赖，默认从私有源码快照重建 7 个原生插件，
 不再复制工作区遗留插件。可在命令末尾通过
 `-- /绝对路径/输出目录` 指定构建目录。
+
+运行包自带 product-install.js，源码入口为 scripts/product-install.ts。
+安装前后核对产物清单及当前 Node ABI；package.json 和锁文件必须在
+清单中。使用当前 Node 执行 npm ci，仅安装生产依赖与可选平台依赖，
+禁用生命周期脚本、TS 解析和外部 PATH 程序。默认查找当前 Node 附带
+的 npm，也可通过 `--npm /绝对路径/npm-cli.js` 指定 npm CLI。
+这不验证清单来源或替代依赖供应链审核。
+
+安装器拒绝已有 node_modules，使用目录锁阻止同一包并发安装；不覆盖
+现有运行服务。失败可能留下部分依赖目录，应对新的离线运行包重新
+安装，保留旧运行包用于恢复。意外强制终止可能留下锁目录，应确认没有
+安装进程后再清理该锁。此命令不安装 Node、不创建账号、不启停服务，
+也不替代下述默认服务切换门槛。
 
 `build-info.json` 记录 Node、TypeScript、平台、架构、模块 ABI 及各
 产物的 SHA-256。`host/build/native-build-info.json` 进一步记录本次

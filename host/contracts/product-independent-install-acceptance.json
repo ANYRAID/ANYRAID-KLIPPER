@@ -145,5 +145,151 @@
     "Native addon provenance and fresh target-machine build not established",
     "Historical motion precision anomaly unresolved",
     "Full Moonraker and real printer acceptance incomplete"
-  ]
+  ],
+  "formalInstaller": {
+    "date": "2026-09-27",
+    "source": "scripts/product-install.ts",
+    "compiled": "scripts/product-install.js",
+    "unitAndServiceTests": 8,
+    "compiledPackageTests": 3,
+    "compiledProductTests": 4,
+    "typecheck": true,
+    "whitespace": true,
+    "records": [
+      {
+        "installation": {
+          "durationMs": 723.96829,
+          "dependencies": 10
+        }
+      },
+      {
+        "loaded": false,
+        "historyNotifications": 32,
+        "historyRequests": 0,
+        "historyP99Ms": null,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 169,
+        "wireSteps": 3088,
+        "minimumStepLeadMs": 87.137,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.802239,
+              "maxMs": 14.172159
+            },
+            "cpu": {
+              "user": 836344,
+              "system": 95887
+            },
+            "rss": 164859904
+          },
+          {
+            "loop": {
+              "p99Ms": 1.833983,
+              "maxMs": 4.337663
+            },
+            "cpu": {
+              "user": 485900,
+              "system": 55319
+            },
+            "rss": 192385024
+          }
+        ]
+      },
+      {
+        "installation": {
+          "durationMs": 736.297069,
+          "dependencies": 10
+        }
+      },
+      {
+        "gridCalibration": {
+          "compiled": true,
+          "typedHoming": true,
+          "noPrintJob": true,
+          "points": 9,
+          "referencePoints": 1,
+          "durationMs": 8688.850446999997,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "configurationSave": {
+          "compiled": true,
+          "reinitialized": true,
+          "oldTokenRejected": true,
+          "removedAfterReinitialization": true,
+          "profile": "retained",
+          "implicitMeshActivation": false
+        }
+      },
+      {
+        "loaded": true,
+        "historyNotifications": 32,
+        "historyRequests": 644,
+        "historyP99Ms": 9.852535999998508,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.818487000004097,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.644138000003295,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 1.9291860000012093,
+        "metadataRequests": 16,
+        "metadataP95Ms": 26.25857299999916,
+        "downloads": 16,
+        "downloadP95Ms": 4.956909000000451,
+        "wireCommands": 331,
+        "wireSteps": 4446,
+        "minimumStepLeadMs": 87.374,
+        "directoryRequests": 2776,
+        "directoryP99Ms": 5.022408999997424,
+        "statusRequests": 11501,
+        "uploads": 16,
+        "statusP99Ms": 3.4819290000014007,
+        "uploadP95Ms": 21.454727000003913,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.029567,
+              "maxMs": 13.795327
+            },
+            "cpu": {
+              "user": 3013016,
+              "system": 363641
+            },
+            "rss": 260300800
+          },
+          {
+            "loop": {
+              "p99Ms": 1.944575,
+              "maxMs": 4.820991
+            },
+            "cpu": {
+              "user": 1385621,
+              "system": 164431
+            },
+            "rss": 274350080
+          }
+        ]
+      }
+    ],
+    "scope": "Formal compiled installer used by acceptance. Existing offline npm cache; not a clean target OS installation. Does not start system services or open hardware."
+  }
 }
