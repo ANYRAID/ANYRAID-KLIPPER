@@ -1,3 +1,4 @@
+import {SkewCorrection,type SkewFactors} from '../motion/skew.ts';
 import type {QuadGantryCalibrationPlan} from '../config/quad-gantry.ts';
 import {planQuadGantry} from '../motion/quad-gantry.ts';
 import type {planZAdjustments} from '../motion/z-adjustments.ts';
@@ -36,6 +37,7 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+ skewProfiles?:Readonly<Record<string,Readonly<SkewFactors>>>;
  bedTilt?:BedTilt;
  endstopPhases?:readonly ConfiguredEndstopPhase[];
  probeConfiguration?:Readonly<ProbeConfiguration>;
@@ -77,6 +79,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return position===undefined?undefined:Object.freeze({position,clock:tick,generation:binding.history});
  }
 
+ #skew:SkewCorrection|undefined;#skewRevision=0n;
  #tilt:BedTilt|undefined;
  #mesh:BedMesh|null=null;#meshSettings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number}={};
  #streamer:RebuiltMotionStreamer;
@@ -102,7 +105,16 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
- #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({tilt:physical?undefined:this.#tilt,mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({skew:physical?undefined:this.#skew,tilt:physical?undefined:this.#tilt,mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ get skewStatus(){return {configured:this.#o.skewProfiles!==undefined,factors:{...(this.#skew?.factors??{xy:0,xz:0,yz:0})},revision:String(this.#skewRevision)};}
+ setSkew(factors:SkewFactors|undefined,signal:AbortSignal):Promise<void>{
+  if(this.#o.skewProfiles===undefined)return Promise.reject(new Error('Skew correction is not configured'));
+  const next=factors?new SkewCorrection(factors):undefined;
+  return this.#operate('skew',signal,async s=>{
+   const admission=createGuardedBedMeshPort({skew:next,tilt:this.#tilt,mesh:this.#mesh,...this.#meshSettings,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Skew generation replaced'));this.#admission=admission;this.#skew=next;this.#skewRevision++;
+  });
+ }
  get safeZHoming(){return this.#o.safeZHoming;}
  get status(){return {busy:this.#busy,phase:this.#phase,failed:this.#failed,fault:this.#fault,observerErrors:this.#notice.errors,pendingMoves:this.#admission.pending,stream:this.#streamer.status,pauseMode:this.#pauseMode,pausedMotion:this.#pausedBusy,pausedClockMaintenance:this.#pausedClock!==undefined,pausePosition:this.#pausePosition?[...this.#pausePosition]:undefined};}
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
@@ -127,7 +139,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(typeof profileName!=='string'||profileName.length>128||/[\x00-\x1f\x7f]/.test(profileName))return Promise.reject(new RangeError('Invalid mesh profile name'));
   const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);
   return this.#operate('mesh',signal,async s=>{
-   const next=createGuardedBedMeshPort({tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   const next=createGuardedBedMeshPort({skew:this.#skew,tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
    await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;
   });
  }
@@ -540,7 +552,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   });
  }
  #applyBedTilt(samples:number[][]){
-  const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+  const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({skew:this.#skew,tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
   this.#admission.shutdown(new Error('Bed tilt calibration applied'));this.#admission=next;this.#tilt=tilt;this.#tiltRevision++;
   return {adjust:{...tilt.adjust},samples};
  }

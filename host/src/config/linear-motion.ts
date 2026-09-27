@@ -1,3 +1,4 @@
+import {readSkewProfiles} from './skew.ts';
 import {readBedTilt} from './bed-tilt.ts';
 import {readSafeZHoming} from './safe-z-home.ts';
 // Linear machine limits and homing defaults from klippy/toolhead.py,
@@ -41,7 +42,7 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  // Extrude-only defaults use the DEFAULT cross section, even when the configured
  // maximum cross section is overridden. Preserve Python's numerical contract.
  const extrusion=new ExtrusionGuard({nozzleDiameter,filamentDiameter,maxCrossSection:extruder.getFloat('max_extrude_cross_section',{defaultValue:defaultCrossSection,above:0}),maxVelocity:extruder.getFloat('max_extrude_only_velocity',{defaultValue:maxVelocity*defaultRatio,above:0}),maxAccel:extruder.getFloat('max_extrude_only_accel',{defaultValue:maxAccel*defaultRatio,above:0}),maxDistance:extruder.getFloat('max_extrude_only_distance',{defaultValue:50,minval:0}),instantCornerVelocity:extruder.getFloat('instantaneous_corner_velocity',{defaultValue:1,minval:0})});
- return {bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
+ return {skewProfiles:readSkewProfiles(reader),bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
 }
 export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};
 /** Validate machine semantics and solver identity before constructing the port.
