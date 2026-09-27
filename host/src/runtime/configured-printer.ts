@@ -1,3 +1,4 @@
+import {bindTmcCurrent} from '../gcode/tmc-current.ts';
 import {captureGroupPrintClocks} from '../timing/group-print-clocks.ts';
 import {startConfiguredHardware,type HardwareStartupOptions} from './configured-hardware.ts';
 import {initializeConfiguredMotion,type InitialMotionOptions,type ConfiguredPrintOptions} from './initial-motion.ts';
@@ -29,6 +30,7 @@ export async function startConfiguredPrinter(reader:ConfigurationReader,group:MC
   const initial=await initializeConfiguredMotion(hardware,settings.motion,signal);active();
   const linear=initial.createLinearPort(reader,settings.linear);active();
   const print=await linear.createPrint(settings.print);active();
+  bindTmcCurrent(print.gcode.dispatch,hardware.drivers);
   return Object.freeze({hardware,initial,linear,print,close:hardware.close});
  }catch(error){try{await hardware?.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured printer startup and cleanup failed',{cause:error});}throw error;}
  finally{signal.removeEventListener('abort',cancelled);}

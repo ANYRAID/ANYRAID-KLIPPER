@@ -31,7 +31,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   return {...thermal,pressure_advance:accepted.advance,smooth_time:accepted.smoothTime};
  });
  const drivers=new Map(printer.hardware.plan.tmcUarts.flatMap(u=>u.devices.map(d=>[d.model+' '+d.stepper,d] as const)));
- for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor));}
+ for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor,()=>driver.current.current));}
  for(const fan of printer.hardware.fans)readers.set(fan.section,()=>({speed:fan.runtime.status.speed,rpm:null}));
  for(const sensor of printer.filamentSensors)readers.set(sensor.section,()=>({...sensor.runtime.status}));
  return new NativeObjects(readers,serialClock.now);

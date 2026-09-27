@@ -11,7 +11,7 @@ test('all startup registers and quantized current match 256 original model const
  for(const row of reference.rows){const plan=planTmc220x(reader(row.model,row.driver,row.stepper),row.model+' stepper_x');assert.deepEqual(plan.registers,row.registers);assert.deepEqual(plan.current,row.current);assert(Object.isFrozen(plan.registers));}
 });
 test('current boundaries, invalid resolution, address and fields are rejected before I/O',()=>{
- for(const n of [0,-1,2.001,NaN,Infinity])assert.throws(()=>tmc220xCurrent(n));
+ for(const n of [-1,2.001,NaN,Infinity])assert.throws(()=>tmc220xCurrent(n));
  assert.throws(()=>tmc220xCurrent(1,1,Number.MAX_VALUE),/overflow/);
  for(const [model,driver,stepper] of [['tmc2209',{run_current:'1',driver_pwm_lim:'16'},{microsteps:'16',rotation_distance:'40'}],['tmc2208',{run_current:'1',uart_address:'1'},{microsteps:'16',rotation_distance:'40'}],['tmc2209',{run_current:'1'},{microsteps:'3',rotation_distance:'40'}]] as const)assert.throws(()=>planTmc220x(reader(model,driver,stepper),model+' stepper_x'));
 });

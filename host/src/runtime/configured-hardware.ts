@@ -1,3 +1,4 @@
+import {Tmc220xCurrent} from '../drivers/tmc220x-current.ts';
 import {Tmc220xMonitor} from '../drivers/tmc220x-monitor.ts';
 import {sessionTmcUart} from '../drivers/tmc-uart-mcu.ts';
 import {initializeTmc220x} from '../drivers/tmc220x.ts';
@@ -55,7 +56,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
  const fans:{section:string;runtime:ScheduledCoolingFan}[]=[],abort=new AbortController();
  const buttons:{section:string;input:SwitchInput}[]=[];
- const drivers:{section:string;monitor:Tmc220xMonitor}[]=[];
+ const drivers:{section:string;monitor:Tmc220xMonitor;current:Tmc220xCurrent}[]=[];
  let motorEnable:MotorEnable|undefined,state:'starting'|'ready'|'stopping'|'stopped'|'failed'='starting',fault:unknown,stopError:unknown,closing:Promise<void>|undefined,detach=()=>{};
  const close=(cause:unknown=new Error('Configured hardware closed')):Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;state='stopping';fault=cause;abort.abort(cause);detach();
@@ -78,7 +79,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
   // All enable GPIOs are configured/restarted off. No motion/output owner is
   // exposed until every driver has acknowledged its complete register plan.
-  for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
+  for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){const device=bus.register(uart.uart.oid,driver.address);await initializeTmc220x(device,driver,abort.signal);active();const monitor=new Tmc220xMonitor(device,error=>{void close(error).catch(()=>{});});drivers.push({section:driver.model+' '+driver.stepper,monitor,current:new Tmc220xCurrent(device,driver,abort.signal,error=>{void close(error).catch(()=>{});})});cleanup.add(cause=>monitor.stop(cause));await monitor.start(abort.signal);active();}}
   for(const [i,b] of plan.buttons.entries()){buttons[i].input.activate(group.commandQueue(b.mcu));active();}
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};

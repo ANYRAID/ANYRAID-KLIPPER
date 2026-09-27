@@ -4,7 +4,7 @@ import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readStepperDistance} from '../config/stepper.ts';
 import type {TmcUartDevice} from './tmc-uart.ts';
 export function tmc220xCurrent(run:number,hold=2,resistor=.110){
- if(![run,hold].every(v=>Number.isFinite(v)&&v>0&&v<=2)||!Number.isFinite(resistor)||resistor<=0)throw new RangeError('Invalid TMC current');
+ if(!Number.isFinite(run)||run<0||run>2||!Number.isFinite(hold)||hold<=0||hold>2||!Number.isFinite(resistor)||resistor<=0)throw new RangeError('Invalid TMC current');
  const resistance=resistor+.020;
  const bits=(current:number,vsense:boolean)=>{const scaled=32*resistance*current*Math.SQRT2/(vsense?.18:.32)+.5;if(!Number.isFinite(scaled))throw new RangeError('TMC current arithmetic overflow');return Math.max(0,Math.min(31,Math.trunc(scaled)-1));};
  const amps=(cs:number,vsense:boolean)=>(cs+1)*(vsense?.18:.32)/(32*resistance*Math.SQRT2);
@@ -24,7 +24,8 @@ export function planTmc220x(reader:ConfigurationReader,section:string){
  const match=/^(tmc2208|tmc2209) (.+)$/.exec(section);if(!match||!reader.hasSection(section)||!reader.hasSection(match[2]))throw new Error('Invalid TMC220x section');
  const model=match[1],driver=reader.section(section),stepper=readStepperDistance(reader.section(match[2])),microsteps=stepper.microsteps,mres=Math.log2(256/microsteps);
  if(!Number.isInteger(mres)||mres<0||mres>8)throw new Error('Invalid TMC microsteps');
- const current=tmc220xCurrent(driver.getFloat('run_current',{above:0,maxval:2}),driver.getFloat('hold_current',{defaultValue:2,above:0,maxval:2}),driver.getFloat('sense_resistor',{defaultValue:.110,above:0})),values=new Map<Register,number>();
+ const requestedHold=driver.getFloat('hold_current',{defaultValue:2,above:0,maxval:2}),resistor=driver.getFloat('sense_resistor',{defaultValue:.110,above:0});
+ const current=tmc220xCurrent(driver.getFloat('run_current',{above:0,maxval:2}),requestedHold,resistor),values=new Map<Register,number>();
  const set=(reg:Register,shift:number,value:number)=>values.set(reg,((values.get(reg)??0)+value*2**shift)>>>0);
  set('GCONF',6,1);if(model==='tmc2209')set('SLAVECONF',8,2);
  set('CHOPCONF',17,Number(current.vsense));set('CHOPCONF',24,mres);set('CHOPCONF',28,Number(driver.getBoolean('interpolate',{defaultValue:true})));
@@ -34,7 +35,7 @@ export function planTmc220x(reader:ConfigurationReader,section:string){
  if(model==='tmc2209')set('TCOOLTHRS',0,threshold(driver.getFloat('coolstep_threshold',{defaultValue:null,minval:0}),0));
  for(const [reg,name,shift,width,fallback] of fields){if(model==='tmc2208'&&(reg==='COOLCONF'||reg==='SGTHRS'))continue;const value=width===1?Number(driver.getBoolean('driver_'+name,{defaultValue:!!fallback})):driver.getInt('driver_'+name,{defaultValue:Number(fallback),minval:0,maxval:2**width-1});set(reg,shift,value);}
  const address=driver.getInt('uart_address',{defaultValue:0,minval:0,maxval:model==='tmc2209'?3:0});
- return Object.freeze({model,stepper:match[2],address,current,microsteps,registers:Object.freeze([...values].map(([name,value])=>Object.freeze({name,address:registers[name],value})))});
+ return Object.freeze({model,stepper:match[2],address,current,requestedHold,resistor,microsteps,registers:Object.freeze([...values].map(([name,value])=>Object.freeze({name,address:registers[name],value})))});
 }
 /** Call only with motors disabled. Failure propagates to startup owner; never
  * grants motion readiness or replays a partially initialized driver itself. */
