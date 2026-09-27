@@ -11,6 +11,13 @@ import {MotanTrapSampler} from '../src/motan/motion-samples.ts';
 import type {TrapMove} from '../src/motan/motion-samples.ts';
 const reader=(messages:MotanMessage[])=>{let at=0;return {pullMessage:async()=>messages[at++]??null};};
 const plain=(value:unknown)=>JSON.parse(JSON.stringify(value));
+test('scalar freeze fast path preserves exact depth, node and value validation limits',async()=>{
+ const consume=async(params:Record<string,unknown>)=>{const dispatch=new MotanDispatcher({...reader([{q:'x',params}]),encodedSize:()=>1});dispatch.addHandler('x','x');try{return await dispatch.pull(0,'x');}finally{dispatch.close();}};
+ for(const depth of [64,65]){let value:unknown=1;for(let i=1;i<depth;i++)value=[value];const operation=consume({value});if(depth===64)assert(await operation);else await assert.rejects(operation,/structure limit/);}
+ assert(await consume({values:Array(999998).fill(1)}));await assert.rejects(consume({values:Array(999999).fill(1)}),/structure limit/);
+ for(const value of [Infinity,NaN,undefined,Symbol('invalid'),()=>0])await assert.rejects(consume({values:[value]}),/Invalid Motan JSON/);
+ const value=await consume({values:[null,true,'text',5n,-0]});assert(Object.isFrozen(value));assert(Object.isFrozen(value!.values));assert(Object.is((value!.values as unknown[])[4],-0));
+});
 test('Motan dispatcher retains original ordering and status timing against frozen original Python output',async()=>{
  const messages=[{q:'ignored',params:{}},{q:'status',params:{status:{toolhead:{estimated_print_time:1},heater:{temperature:20}}}},{q:'stepq:x',params:{data:[[100,2,0]]}},{q:'status',params:{status:{toolhead:{estimated_print_time:2},heater:{target:200}}}},{q:'stepq:x',params:{data:[[200,-2,1]]}},{q:'status',params:{status:{heater:{temperature:25}}}}];
  const reference=JSON.parse(await readFile(new URL('../contracts/motan-dispatch-reference.json',import.meta.url),'utf8'));assert.deepEqual(messages,reference.messages);const expected=reference.expected;const dispatch=new MotanDispatcher(reader(messages));dispatch.addHandler('status','status');dispatch.addHandler('a','stepq:x');dispatch.addHandler('b','stepq:x');const tracker=new MotanStatusTracker({heater:{target:0}},time=>dispatch.pull(time,'status'));const out=[];for(const time of [0,1,1.5,2,3]){const snapshot=await tracker.sample(time);out.push(plain([snapshot.status,snapshot.nextTime]));}out.push([await dispatch.pull(10,'a'),await dispatch.pull(10,'b'),await dispatch.pull(10,'a'),await dispatch.pull(10,'b')]);assert.deepEqual(plain(out),expected);assert.equal(dispatch.status.endOfData,true);

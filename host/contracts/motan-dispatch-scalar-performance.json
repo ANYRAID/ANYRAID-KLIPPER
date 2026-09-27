@@ -1,0 +1,159 @@
+{
+  "node": "26.9.0",
+  "scope": "Motan offline dispatch scalar validation and immutable-cache overhead",
+  "changes": [
+    "Inline scalar depth/node checks instead of recursive calls",
+    "Cache frozen child objects used by status updates, not single-use message roots"
+  ],
+  "before": [
+    {
+      "node": "v26.9.0",
+      "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+      "warmup": 2,
+      "measured": 7,
+      "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+    },
+    {
+      "rounds": 10000,
+      "rows": 1,
+      "node": {
+        "median": 127.18237399999998,
+        "p95": 132.02398900000003
+      },
+      "maxEventLoopMs": 7.671807,
+      "checksum": 150260000
+    },
+    {
+      "rounds": 256,
+      "rows": 1000,
+      "node": {
+        "median": 291.4902189999998,
+        "p95": 292.93755899999996
+      },
+      "maxEventLoopMs": 3.037183,
+      "checksum": 872180
+    }
+  ],
+  "scalarAfter": [
+    {
+      "node": "v26.9.0",
+      "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+      "warmup": 2,
+      "measured": 7,
+      "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+    },
+    {
+      "rounds": 10000,
+      "rows": 1,
+      "node": {
+        "median": 119.92290400000002,
+        "p95": 124.47945599999997
+      },
+      "maxEventLoopMs": 7.860223,
+      "checksum": 150260000
+    },
+    {
+      "rounds": 256,
+      "rows": 1000,
+      "node": {
+        "median": 265.6851160000001,
+        "p95": 267.5825329999998
+      },
+      "maxEventLoopMs": 2.514943,
+      "checksum": 872180
+    }
+  ],
+  "finalAfter": [
+    {
+      "node": "v26.9.0",
+      "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+      "warmup": 2,
+      "measured": 7,
+      "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+    },
+    {
+      "rounds": 10000,
+      "rows": 1,
+      "node": {
+        "median": 115.12191199999995,
+        "p95": 118.25556400000005
+      },
+      "maxEventLoopMs": 7.741439,
+      "checksum": 150260000
+    },
+    {
+      "rounds": 256,
+      "rows": 1000,
+      "node": {
+        "median": 254.3761889999996,
+        "p95": 256.72692099999995
+      },
+      "maxEventLoopMs": 2.009087,
+      "checksum": 872180
+    }
+  ],
+  "cpuHotspots": [
+    {
+      "name": "parseRequestJson",
+      "hits": 249,
+      "source": "json.ts"
+    },
+    {
+      "name": "freezeJson",
+      "hits": 90,
+      "source": "dispatch.ts"
+    },
+    {
+      "name": "sample",
+      "hits": 89,
+      "source": "dispatch.ts"
+    },
+    {
+      "name": "",
+      "hits": 83,
+      "source": "motan-dispatch.ts"
+    },
+    {
+      "name": "freezeJson",
+      "hits": 65,
+      "source": "dispatch.ts"
+    },
+    {
+      "name": "(garbage collector)",
+      "hits": 49,
+      "source": ""
+    },
+    {
+      "name": "RegExp: (?:^|[\\s,:\\[])-?\\d{16}|[eE][+-]?\\d{3,}",
+      "hits": 49,
+      "source": ""
+    },
+    {
+      "name": "pull",
+      "hits": 45,
+      "source": "dispatch.ts"
+    },
+    {
+      "name": "freezeJson",
+      "hits": 43,
+      "source": "dispatch.ts"
+    },
+    {
+      "name": "#decode",
+      "hits": 42,
+      "source": "log-reader.ts"
+    }
+  ],
+  "tests": 24,
+  "checks": [
+    "Depth 64 accepted and depth 65 rejected",
+    "Exactly one million nodes accepted and the next rejected",
+    "Nonfinite values, undefined, functions and symbols rejected",
+    "Negative zero, BigInt, status snapshots, key ordering and queue accounting preserved"
+  ],
+  "limitations": [
+    "Small-record median 115.122 ms remains slower than historical Python 109.761 ms; performance gap is not closed",
+    "Local offline measurements; no target-board or concurrent-print proof",
+    "Existing runtime crashes and motion numerical mismatches remain open"
+  ]
+}

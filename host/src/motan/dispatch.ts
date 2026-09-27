@@ -13,7 +13,19 @@ function freezeJson(value:unknown,depth=0,budget={nodes:0}):void{
  if(!value||typeof value!=='object')throw new Error('Invalid Motan JSON value');
  if(depth===0&&immutable.has(value))return;
  if(!Array.isArray(value)){const prototype=Object.getPrototypeOf(value);if(prototype!==Object.prototype&&prototype!==null)throw new Error('Invalid Motan JSON object');}
- for(const child of Array.isArray(value)?value:Object.values(value))freezeJson(child,depth+1,budget);Object.freeze(value);if(depth<=1&&!Array.isArray(value))immutable.add(value);
+ const children=Array.isArray(value)?value:Object.values(value);
+ for(let i=0;i<children.length;i++){
+  const child=children[i],kind=typeof child;
+  // Sensor rows are mostly scalars. Preserve exactly the same depth/node
+  // accounting without a recursive call for every numeric coordinate.
+  if(child===null||kind==='string'||kind==='boolean'||kind==='bigint'||kind==='number'&&Number.isFinite(child)){
+   if(depth>=64||++budget.nodes>1000000)throw new Error('Motan JSON structure limit exceeded');
+  }else freezeJson(child,depth+1,budget);
+ }
+ // Only child objects are revisited as status updates. Parsed message roots
+ // are single-use; retaining a cache entry for each root adds weak-table work
+ // without helping normal fanout (which shares the already frozen entry).
+ Object.freeze(value);if(depth===1&&!Array.isArray(value))immutable.add(value);
 }
 interface Entry {value:MotanObject;bytes:number;}
 interface Queue {entries:(Entry|undefined)[];at:number;}
