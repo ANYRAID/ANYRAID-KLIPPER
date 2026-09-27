@@ -19,7 +19,8 @@ export class KlipperSaveSession {
  apply(changes:readonly SaveChange[]):void{if(this.#sealedForRestart)throw new Error('Configuration session sealed for restart');this.#changes.apply(changes);}
  sealForRestart():void{if(this.#state!=='saved'||this.#changes.status.save_config_pending||this.#sealedForRestart)throw new Error('Configuration is not ready for restart');this.#sealedForRestart=true;}
  get status(){return {...this.#changes.status,state:this.#state,restartRequired:this.#restartRequired,sealedForRestart:this.#sealedForRestart,error:this.#error};}
- async save(signal?:AbortSignal){
+ hasSavedSection(section:string):boolean{return Object.hasOwn(this.#changes.capture().values,section);}
+ async save(signal?:AbortSignal,options:{allowEmpty?:boolean;absentSections?:readonly string[]}={}){
   if(this.#sealedForRestart)throw new Error('Configuration session sealed for restart');
   if(this.#state==='saving')throw new Error('Configuration save already in progress');
   if(this.#state==='recovery-required')throw new Error('Configuration save requires recovery and reload',{cause:this.#error});
@@ -27,9 +28,10 @@ export class KlipperSaveSession {
   const signals=[this.#limits.signal,signal].filter((s):s is AbortSignal=>s!==undefined);
   const limits={...this.#limits,signal:signals.length?AbortSignal.any(signals):undefined};
   try{
-   const prepared=await prepareKlipperSave(this.#path,this.#current,snapshot.values,limits);
+   const prepared=await prepareKlipperSave(this.#path,this.#current,snapshot.values,limits,options.allowEmpty);
    // Match original SAVE_CONFIG: no non-default saved sections means no write.
    if(!prepared){this.#state='idle';return null;}
+   for(const section of options.absentSections??[])if(Object.hasOwn(prepared.source.original,section))throw new Error('Removed configuration section remains defined in ordinary configuration or includes');
    const committed=await commitKlipperSave(prepared,limits);
    this.#current=prepared.text;this.#restartRequired=true;this.#state='saved';
    // No await between version comparison and acknowledgement. New updates made

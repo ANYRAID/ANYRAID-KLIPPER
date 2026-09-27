@@ -7,9 +7,9 @@ const edges=new RegExp(`^[${ws}]+|[${ws}]+$`,'g'),right=new RegExp(`[${ws}]+$`);
 const trim=(s:string)=>s.replace(edges,'');
 /** Builds a reviewable candidate. The caller must still expand the resulting
  * regular text and reject include conflicts before any durable replacement. */
-export function buildKlipperSave(current:string,saved:SavedConfiguration):{text:string;regular:string;autosave:string}|null{
+export function buildKlipperSave(current:string,saved:SavedConfiguration,allowEmpty=false):{text:string;regular:string;autosave:string}|null{
  const parts=splitKlipperAutosave(current.replace(/\r\n|\r/g,'\n'));if(parts.status==='corrupt')throw new Error('Cannot save corrupted Klipper autosave');
- const names=Object.keys(saved);if(!names.some(n=>n!=='DEFAULT'))return null;
+ const names=Object.keys(saved);if(!allowEmpty&&!names.some(n=>n!=='DEFAULT'))return null;
  if(names.length>1024)throw new RangeError('Saved section budget exceeded');
  const expected:Record<string,Record<string,string>>=Object.create(null),blocks:string[]=[];let bytes=0,count=0;
  const order=[...names.filter(n=>n==='DEFAULT'&&Object.keys(saved[n]).length),...names.filter(n=>n!=='DEFAULT')];

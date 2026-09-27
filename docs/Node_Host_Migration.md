@@ -23940,3 +23940,18 @@ loadKlipperConfiguration，并传入启动取消信号；Moonraker 配置保持
 host/contracts/native-configuration-acceptance.json 的 compiledRoundTrip。
 这是软件保存与设备重建流程闭环，不是实机探针校准或硬件验收；
 完整迁移及历史稳定性异常仍待完成。
+
+### 原生保存网床的持久删除
+
+配置维护端点新增显式 action=remove，省略 action 的保存行为不变。
+删除仅针对自动保存区，使用原有维护准入、会话令牌和成功重试规则。
+空保存集合通过显式模式提交，旧兼容 SAVE_CONFIG 默认空集合行为
+保持不变。预检验证被删除节在最终有效配置中确实不存在；普通配置
+或 include 仍定义同名节时拒绝替换，避免重启后恢复被删除的数据。
+
+15 项相关回归覆盖最后一个网床、其他节保留、来源冲突和重复请求；
+4 项编译产品验收追加保存后重建、删除后再次重建并查询确认消失。
+独立保存/删除基准均按本机 100 ms P95 门槛检查，不代表目标板性能。
+具体结果见 host/contracts/native-configuration-remove-acceptance.json。
+实机探针校准、跨进程维护回执、完整 Moonraker 集成、历史稳定性异常
+与全面 Python 退役仍未完成。
