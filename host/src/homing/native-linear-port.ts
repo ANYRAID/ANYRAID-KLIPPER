@@ -251,7 +251,17 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  pause(signal:AbortSignal):Promise<StreamPause>{
   try{
    this.#check(signal);if(this.#resuming)throw new Error('Native motion stream is resuming');if(this.#pause)return this.#pause;
-   if(this.#busy)return this.pauseStream(signal);
+   if(this.#busy){
+    if(['stream','drain'].includes(this.#phase)&&!this.#streamer.status.busy){
+     // The prefix has finished submitting; its final drain still owns the
+     // port. Join that tail, then establish a stationary pause. File admission
+     // is already fenced, so no subsequent command can enter in between.
+     const idle=this.#idle,abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};
+     signal.addEventListener('abort',abort,{once:true});
+     return idle.then(()=>{this.#check(signal);return this.pause(signal);}).finally(()=>signal.removeEventListener('abort',abort));
+    }
+    return this.pauseStream(signal);
+   }
    const state=this.#g.source.status;
    if(this.#admission.pending||state.seeded&&!state.paused){
     const running=this.#operate('stream',this.#abort.signal,s=>this.#streamer.append(this.#admission.flush(),s));void running.catch(()=>{});

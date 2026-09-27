@@ -101,6 +101,15 @@
         "note": "Same loaded scenario passed in isolation; root cause unproven, original assertion retained with file-position failure context"
       },
       "fix": "Dispatch interruptible pre-command drain before BED_MESH_CLEAR/PROFILE/OFFSET; preserve pending command and compensation across pause"
+    },
+    {
+      "tests": 4,
+      "passed": 3,
+      "issues": [
+        "Explicit M400 enabled checkpoint pause while streamer finished but final drain still owned the port: No active native stream to pause"
+      ],
+      "status": "reproduced-and-fixed",
+      "fix": "Join final stream/drain ownership before stationary pause; cancellation stops and rejects"
     }
   ],
   "remaining": [
@@ -191,6 +200,59 @@
         "generationLoopP99Ms": [
           1.997823,
           1.977343
+        ]
+      }
+    ]
+  },
+  "explicitDrainPause": {
+    "before": {
+      "filePause": "No interruption hook called during M400",
+      "tailPause": "No active native stream to pause"
+    },
+    "nativeIntegrationTests": 26,
+    "focusedFinalTests": 3,
+    "compiledTests": 4,
+    "exactSteps": {
+      "axis": "X",
+      "distanceMm": 2,
+      "steps": 200,
+      "endpoint": [
+        52,
+        0,
+        0,
+        2
+      ]
+    },
+    "cancelDuringTail": "rejects pause and stops motion",
+    "benchmark": {
+      "node": "v26.9.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "commands": 10000,
+      "exact": true,
+      "nodeMedianMs": 18.782287999999994,
+      "nodeP95Ms": 21.18519100000003,
+      "pythonMedianMs": 38.61337999114767,
+      "pythonP95Ms": 39.92279904196039,
+      "speedup": 2.0558400547977795,
+      "eventLoopP99Ms": 1.852415,
+      "eventLoopMaxMs": 2.246655
+    },
+    "scope": "Real native queue and compiled host against simulated MCU; no physical printer",
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.09,
+        "generationLoopP99Ms": [
+          1.787903,
+          1.774591
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 87.339,
+        "generationLoopP99Ms": [
+          1.939455,
+          1.898495
         ]
       }
     ]

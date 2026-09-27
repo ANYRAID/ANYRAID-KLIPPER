@@ -40,7 +40,7 @@ export class NativeLinearGCode {
   this.homing=new LinearHomingCommand(kinematics,this.coordinates,port,rails,homingTimeoutMs);
   this.dispatch=new GCodeDispatch({output,unknownCommand:'shutdown',checkpoint:s=>port.flush(s),drain:s=>port.drain(s),shutdown:reason=>{void port.motorOff(new Error(reason)).catch(()=>{});}});
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
-  this.homing.register(this.dispatch);this.dispatch.register('M400',c=>port.drain(c.signal));
+  this.homing.register(this.dispatch);this.dispatch.register('M400',()=>{},{drainBefore:true});
   if(bedMesh){
    const settings=structuredClone(bedMesh.settings),profiles=bedMesh.profiles;let prior:object|undefined,cached:Readonly<Record<string,import('../moonraker/rpc.ts').Json>>;
    this.bedMeshStatus=()=>{const active=port.bedMeshStatus;if(prior!==active){cached=Object.freeze(Object.defineProperty(Object.defineProperties({},Object.getOwnPropertyDescriptors(active)),'profiles',{enumerable:true,get:()=>profiles.objectStatus}));prior=active;}return cached;};
