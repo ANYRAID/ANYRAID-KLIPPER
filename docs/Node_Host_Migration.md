@@ -16,7 +16,7 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
-- 默认安装和打印入口仍是 Python；受跟踪 Python 文件剩余 192 个。
+- 默认安装和打印入口仍是 Python；受跟踪 Python 文件剩余 189 个。
 - 编译产品在模拟 MCU 上已有打印、暂停恢复、故障停机和配置重载流程。
   最近新增 BLTouch 自动启动、Z 归零、网床，以及床面倾斜补偿和自动校准。
 - Node 运行时崩溃和瞬时运动数值失配仍未定位；目标板及真实打印机验收
@@ -70,7 +70,7 @@ Makefile 的 `autoconf.h` 生成现已切换到 Node 入口
 基线中位 48.26 ms；禁用编译缓存为 92.65 ms，仍慢于 Python。该开销
 位于构建阶段，不影响打印热路径，不宣称完整构建提速。头文件切换阶段
 的完整构建仍执行 Python 最小配置导出，该入口随后完成下述迁移。
-受跟踪 Python 文件仍为 192。证据见
+该阶段受跟踪 Python 文件为 192。证据见
 [头文件生成验收](../host/contracts/kconfig-genconfig-acceptance.json)，复现基准
 为 `node host/bench/kconfig-genconfig.ts`。真实硬件验收尚未执行。
 
@@ -79,12 +79,26 @@ Makefile 的 `autoconf.h` 生成现已切换到 Node 入口
 逐字节一致，重新加载后完整头文件也一致。16 项回归、类型和空白检查
 通过。使用已有完整配置、空输出目录和 `PYTHON=/nonexistent-python`
 完成 AVR ELF/HEX 编译，头文件与最小配置均与前一版一致。缺失或过期
-配置的初始化尚未覆盖，`olddefconfig` 与交互菜单仍为 Python。
+配置的初始化在该阶段尚未覆盖，随后完成下述迁移；交互菜单仍为 Python。
 STM32F446 非空最小配置完整命令行中位 50.76 ms、P95 57.39 ms，Python
 基线中位 47.13 ms；禁用编译缓存中位 94.91 ms。未宣称构建加速，打印
 运行路径与运动算术未变。证据见
 [最小配置验收](../host/contracts/kconfig-minimal-acceptance.json)，复现基准为
-`node host/bench/kconfig-genconfig.ts --minimal`。旧库保留至剩余入口退役。
+`node host/bench/kconfig-genconfig.ts --minimal`。
+
+`make olddefconfig` 与自动配置补全现已切换到 Node。84 组完整配置的
+字节、菜单注释、写出顺序与 Python 一致，往返加载稳定且固件头文件不变。
+18 项回归、类型和空白检查通过，覆盖 `.old` 备份、无变化时间戳、原权限、
+现存及悬空符号链接和解析失败不覆盖。最终入口从缺失配置与空输出目录
+开始，设置 `PYTHON=/nonexistent-python` 完成 ATmega2560 ELF/HEX 编译。
+已删除无调用方的 Python `genconfig.py`、`savedefconfig.py`、
+`olddefconfig.py`，文件数从 192 降至 189。交互菜单仍需旧 Kconfiglib，
+默认主机/打印入口也仍为 Python，不能宣称全项目迁移完成。
+STM32F446 完整补全（含启动、备份和写入）缓存中位 50.80 ms、P95
+55.66 ms，Python 基线中位 46.75 ms；禁用缓存中位 94.69 ms。此项不在
+打印热路径，未宣称构建加速。证据见
+[完整配置验收](../host/contracts/kconfig-olddefconfig-acceptance.json)，基准为
+`node host/bench/kconfig-genconfig.ts --full`。真实打印机验收仍未执行。
 
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。

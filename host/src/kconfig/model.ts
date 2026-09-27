@@ -15,6 +15,7 @@ const yes=kconfigYes;
 export class KconfigModel {
  readonly symbols=new Map<string,SymbolDefinition>();
  private readonly choices=new Map<string,Choice>();
+ private readonly nodes=new Map<KNode,Definition>();
  private readonly reverse=new Map<string,{source:string;condition:KExpression;weak:boolean}[]>();
  private readonly cache=new Map<string,KResolved>();
  private readonly memo=new Map<string,number|string|undefined>();
@@ -31,6 +32,7 @@ export class KconfigModel {
     if(property.kind==='visible')promptDependency=and(promptDependency,property.expression);
    }
    const definition={node,dependency,promptDependency};
+   this.nodes.set(node,definition);
    if(node.kind==='choice'){
     if(node.properties.some(p=>p.kind==='type'&&p.type==='tristate'))throw new Error('Tristate choices not yet supported');
     choice={id:'@choice:'+node.file+':'+node.line,definition,members:[]};
@@ -149,6 +151,10 @@ export class KconfigModel {
   });
  }
  resolve():Record<string,KResolved>{return Object.fromEntries([...this.symbols.keys()].map(name=>[name,this.value(name)]));}
+ nodeVisible(node:KNode):boolean{
+  const definition=this.nodes.get(node);if(!definition)throw new Error('Node does not belong to this Kconfig model');
+  return this.evaluate(definition.dependency)>0&&(node.kind!=='menu'||this.evaluate(definition.promptDependency)>0);
+ }
  /** savedefconfig compares defaults in the current dependency context, not
   * against a separate model with all user assignments removed. */
  minimalSymbols():string[]{

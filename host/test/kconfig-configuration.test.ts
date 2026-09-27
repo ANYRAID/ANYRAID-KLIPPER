@@ -1,14 +1,47 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdtemp,rm,stat} from 'node:fs/promises';
+import {readFile,writeFile,mkdtemp,rm,stat,symlink,lstat} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {parseKconfig} from '../src/kconfig/parser.ts';
-import {loadKconfigConfiguration,kconfigAutoconf,kconfigMinimal} from '../src/kconfig/configuration.ts';
+import {loadKconfigConfiguration,kconfigAutoconf,kconfigMinimal,kconfigFull} from '../src/kconfig/configuration.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url));
+test('84 full configurations match Python formatting and remain idempotent after reload',async()=>{
+ const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-full-reference.json',import.meta.url),'utf8'));
+ const tree=await parseKconfig(root);
+ assert.equal(createHash('sha256').update(await readFile(join(root,'lib/kconfiglib/kconfiglib.py'))).digest('hex'),reference.sourceSha256);
+ for(const c of reference.cases){
+  const input=await readFile(join(root,c.file),'utf8');
+  const {model}=loadKconfigConfiguration(tree,input+(c.lowlevel?'\nCONFIG_LOW_LEVEL_OPTIONS=y\n':''));
+  const full=kconfigFull(tree,model);
+  assert.equal(full,c.contents,c.file+' lowlevel='+c.lowlevel);
+  const reloaded=loadKconfigConfiguration(tree,full).model;
+  assert.equal(kconfigFull(tree,reloaded),full,c.file+' stable output');
+  assert.equal(kconfigAutoconf(reloaded),kconfigAutoconf(model),c.file+' firmware equivalence');
+ }
+ assert.equal(reference.cases.length,84);
+});
+test('olddefconfig creates missing config and preserves backup, mode, symlinks and unchanged timestamps',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'kconfig-olddef-'));
+ try{
+  await writeFile(join(dir,'Kconfig'),'config ENABLE\n bool "Enable"\n default y\n');
+  const path=join(dir,'.config');
+  const run=()=>spawnSync(process.execPath,[join(root,'scripts/kconfig-olddefconfig.mjs'),'Kconfig'],{encoding:'utf8',env:{...process.env,srctree:dir,KCONFIG_CONFIG:path,KCONFIG_CONFIG_HEADER:'',CONFIG_:'CONFIG_'}});
+  assert.equal(run().status,0);assert.equal(await readFile(path,'utf8'),'CONFIG_ENABLE=y\n');
+  await assert.rejects(stat(path+'.old'),{code:'ENOENT'});
+  await rm(path);const target=join(dir,'target');await writeFile(target,'# CONFIG_ENABLE is not set\n# retained backup\n',{mode:0o600});await symlink(target,path);
+  const before=await readFile(target,'utf8');const changed=run();assert.equal(changed.status,0,changed.stderr);
+  assert.equal(await readFile(path+'.old','utf8'),before);assert.equal((await lstat(path)).isSymbolicLink(),true);
+  assert.equal((await stat(target)).mode&0o777,0o600);assert.equal(await readFile(target,'utf8'),'# CONFIG_ENABLE is not set\n');
+  const time=(await stat(target,{bigint:true})).mtimeNs;assert.equal(run().status,0);assert.equal((await stat(target,{bigint:true})).mtimeNs,time);assert.equal(await readFile(path+'.old','utf8'),before);
+  await writeFile(join(dir,'Kconfig'),'invalid directive\n');assert.equal(run().status,1);assert.equal((await stat(target,{bigint:true})).mtimeNs,time);assert.equal(await readFile(path+'.old','utf8'),before);
+  await writeFile(join(dir,'Kconfig'),'config ENABLE\n bool "Enable"\n default y\n');await rm(target);
+  assert.equal(run().status,0);assert.equal((await lstat(path)).isSymbolicLink(),true);assert.equal(await readFile(target,'utf8'),'CONFIG_ENABLE=y\n');assert.equal(await readFile(path+'.old','utf8'),before);
+ }finally{await rm(dir,{recursive:true,force:true});}
+});
 test('84 minimal configurations match Python bytes and reload to identical firmware headers',async()=>{
  const reference=JSON.parse(await readFile(new URL('../contracts/kconfig-minimal-reference.json',import.meta.url),'utf8'));
  const tree=await parseKconfig(root);

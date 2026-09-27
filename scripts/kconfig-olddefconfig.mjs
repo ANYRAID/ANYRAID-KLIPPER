@@ -6,7 +6,7 @@ try {
     // Enable before loading TypeScript; unavailable caches only affect speed.
     enableCompileCache();
     const {generateKconfigOutput} = await import('../host/src/kconfig/genconfig-cli.ts');
-    await generateKconfigOutput('minimal');
+    await generateKconfigOutput('full');
 } catch (error) {
     console.error('Kconfig generation failed: ' + (error instanceof Error ? error.message : String(error)));
     process.exitCode = 1;

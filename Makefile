@@ -114,8 +114,9 @@ $(OUT)autoconf.h: $(KCONFIG_CONFIG) src/Kconfig $(wildcard src/*/Kconfig) \
 	$(Q)mkdir -p $(OUT)
 	$(Q) KCONFIG_AUTOHEADER=$@ $(NODE) scripts/kconfig-genconfig.mjs src/Kconfig
 
-$(KCONFIG_CONFIG) olddefconfig: src/Kconfig
-	$(Q)$(PYTHON) lib/kconfiglib/olddefconfig.py src/Kconfig
+$(KCONFIG_CONFIG) olddefconfig: src/Kconfig $(wildcard src/*/Kconfig) \
+    scripts/kconfig-olddefconfig.mjs $(wildcard host/src/kconfig/*.ts)
+	$(Q)$(NODE) scripts/kconfig-olddefconfig.mjs src/Kconfig
 
 menuconfig:
 	$(Q)$(PYTHON) lib/kconfiglib/menuconfig.py src/Kconfig

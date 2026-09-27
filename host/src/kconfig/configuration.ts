@@ -1,6 +1,6 @@
 import {KconfigModel} from './model.ts';
 import {kconfigInteger} from './evaluate.ts';
-import type {KTree} from './parser.ts';
+import type {KTree,KNode} from './parser.ts';
 
 export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG_'):{model:KconfigModel;warnings:string[]}{
  if(Buffer.byteLength(source)>8*1024*1024)throw new Error('Kconfig configuration byte limit');
@@ -39,12 +39,30 @@ export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG
 }
 
 const escape=(text:string)=>text.replaceAll('\\','\\\\').replaceAll('"','\\"');
+function configLine(model:KconfigModel,name:string,prefix:string):string{
+ const value=model.value(name);if(!value.write)return '';
+ if(value.type==='bool'||value.type==='tristate')return value.text==='n'?'# '+prefix+name+' is not set\n':prefix+name+'='+value.text+'\n';
+ return prefix+name+'='+(value.type==='string'?'"'+escape(value.text)+'"':value.text)+'\n';
+}
+export function kconfigFull(tree:KTree,model:KconfigModel,header='',prefix='CONFIG_'):string{
+ const chunks=[header],visited=new Set<string>();let afterEnd=false;
+ const walk=(node:KNode)=>{
+  if(node.kind==='config'||node.kind==='menuconfig'){
+   const name=node.name!;
+   if(!visited.has(name)){
+    visited.add(name);const line=configLine(model,name,prefix);
+    if(line){if(afterEnd){chunks.push('\n');afterEnd=false;}chunks.push(line);}
+   }
+  }
+  const visible=(node.kind==='menu'||node.kind==='comment')&&model.nodeVisible(node);
+  if(visible){chunks.push('\n#\n# '+node.title+'\n#\n');afterEnd=false;}
+  for(const child of node.children)walk(child);
+  if(visible&&node.kind==='menu'){chunks.push('# end of '+node.title+'\n');afterEnd=true;}
+ };
+ walk(tree.root);return chunks.join('');
+}
 export function kconfigMinimal(model:KconfigModel,header='',prefix='CONFIG_'):string{
- return header+model.minimalSymbols().map(name=>{
-  const value=model.value(name);
-  if(value.type==='bool'||value.type==='tristate')return value.text==='n'?'# '+prefix+name+' is not set\n':prefix+name+'='+value.text+'\n';
-  return prefix+name+'='+(value.type==='string'?'"'+escape(value.text)+'"':value.text)+'\n';
- }).join('');
+ return header+model.minimalSymbols().map(name=>configLine(model,name,prefix)).join('');
 }
 /** Repository Kconfiglib intentionally emits disabled bools and hidden symbols. */
 export function kconfigAutoconf(model:KconfigModel,header='',prefix='CONFIG_'):string{

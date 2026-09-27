@@ -90,8 +90,8 @@ systemd 服务文件，详见启动说明。生成不会启用服务；默认 Py
 
 本分支的固件构建现需 Node.js 26（`node` 可在 PATH 中找到，或通过
 `make NODE=/绝对路径/node` 指定）。构建生成器不需要安装 npm 依赖；
-`autoconf.h` 与最小配置已由 Node 生成；Kconfig 的 `olddefconfig`、
-菜单及其他尚未迁移的工具仍需要 Python。
+配置初始化/更新、`autoconf.h` 与最小配置已由 Node 生成；Kconfig
+交互菜单及其他尚未迁移的工具仍需要 Python。
 
 头文件入口为 `node scripts/kconfig-genconfig.mjs src/Kconfig`，支持
 `KCONFIG_CONFIG`、`KCONFIG_AUTOHEADER` 和 `--header-path`。无需 npm
@@ -101,8 +101,11 @@ systemd 服务文件，详见启动说明。生成不会启用服务；默认 Py
 
 最小配置入口为 `node scripts/kconfig-savedefconfig.mjs --kconfig src/Kconfig
 --out defconfig`，使用 `KCONFIG_CONFIG` 指定输入。84 组导出与旧实现一致，
-重新加载后头文件不变。已有完整配置时，禁用 Python 命令仍可完成 AVR
-编译；缺失或过期配置的初始化仍依赖 Python `olddefconfig`。
+重新加载后头文件不变。`make olddefconfig` 使用 Node 完成配置补全，
+变更前保留 `.old`，未变更时保持时间戳。直接入口为
+`node scripts/kconfig-olddefconfig.mjs src/Kconfig`。从缺失配置及空输出
+目录开始，设置 `PYTHON=/nonexistent-python` 仍已完成 AVR 编译。
+三个旧 Python 非交互入口已删除；`make menuconfig` 暂时仍依赖 Python。
 
 ATSAM、ATSAMD、LPC176x、RP2040/RP2350 和 STM32 的 USB `make flash`
 入口已切换为 Node；构建会使用本机 `HOSTCC`（默认 `cc`）生成串口
@@ -190,4 +193,4 @@ SOS 输入仍受上述整数范围限制；该模式当前不默认启用，详�
 MAX31855 独立温度输入与加热反馈已接入 Node 配置装配，要求 MCU 固件
 提供 `MAX31855_SIGNED_RANGE=1` 能力。旧固件会被拒绝；当前已通过固件
 处理函数、模拟热控、两个编译产品变体和 ATmega2560 固件构建验证。
-真实热电偶验收仍待完成；配置初始化和配置菜单还依赖 Python Kconfiglib。
+真实热电偶验收仍待完成；交互配置菜单还依赖 Python Kconfiglib。
