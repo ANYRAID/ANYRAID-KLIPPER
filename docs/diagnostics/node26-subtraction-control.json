@@ -1,0 +1,92 @@
+{
+  "directory": "/tmp/subtract-control-Spml8A",
+  "rounds": 2000,
+  "values": 12267,
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "kernel": "6.18.36-amd64-desktop-rolling",
+  "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "argv": [
+    "-std=c11",
+    "-O2",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/subtract-integrity.c",
+    "-o",
+    "/tmp/subtract-control-Spml8A/subtract"
+  ],
+  "hashes": {
+    "fixture": "7d25c852ae3e1426937c9c36de74f5b3a634500c2fcca62b674d9549007816c0",
+    "c": "2dcdcc4df400a00c97238e0b676852bc4e9b7aaa3159482813f2c7e185758f6d",
+    "js": "c1c2a5db848eecb9513def32e5056509a55f08e9f9a80461f17f0434f256bc2f",
+    "binary": "75ef9d28c5365947ee42a3f516592c66e1470c61e6c43cd5625a55933cac35ef",
+    "node": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59"
+  },
+  "runs": [
+    {
+      "variant": "C",
+      "control": true,
+      "status": 2,
+      "signal": null,
+      "elapsedMs": 5.784614000000033,
+      "stdout": "{\"run\":0,\"index\":0,\"a\":\"3ff0000000000000\",\"b\":\"0000000000000000\",\"difference\":\"3ff0000000000000\"}\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "C",
+      "control": false,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 35.99325399999998,
+      "stdout": "subtract:verified:2000:12267\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "Node-default",
+      "control": true,
+      "status": 2,
+      "signal": null,
+      "elapsedMs": 33.870146999999974,
+      "stdout": "{\"run\":0,\"index\":0,\"a\":\"3ff0000000000000\",\"b\":\"0000000000000000\",\"difference\":\"3ff0000000000000\"}\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "Node-default",
+      "control": false,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 90.03927999999996,
+      "stdout": "subtract:verified:2000:12267\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "Node-no-optimizers",
+      "control": true,
+      "status": 2,
+      "signal": null,
+      "elapsedMs": 43.92636600000003,
+      "stdout": "{\"run\":0,\"index\":0,\"a\":\"3ff0000000000000\",\"b\":\"0000000000000000\",\"difference\":\"3ff0000000000000\"}\n",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "variant": "Node-no-optimizers",
+      "control": false,
+      "status": 0,
+      "signal": null,
+      "elapsedMs": 1647.1994849999999,
+      "stdout": "subtract:verified:2000:12267\n",
+      "stderr": "",
+      "passed": true
+    }
+  ],
+  "scope": "Same binary64 operand pairs; C volatile loads versus standalone JS typed arrays. Finite passing runs do not clear prior arithmetic inconsistency or crashes.",
+  "state": "completed"
+}

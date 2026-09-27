@@ -35,10 +35,10 @@ test('motion runtime probe verifies original reference in bounded fresh Node chi
 
  }finally{rmSync(directory,{recursive:true,force:true});}
 });
-test('probe records explicit optimizing compiler controls without requiring a C compiler',()=>{
- const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--js-optimization','off','--runs','1','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2,env:{...process.env,CC:'/nonexistent-compiler'}});
+for(const optimization of ['off','jitless'])test(`probe records ${optimization} compiler controls without requiring a C compiler`,()=>{
+ const run=spawnSync(process.execPath,[cli,'--case','motion','--asan','off','--js-optimization',optimization,...(optimization==='jitless'?['--execution','compiled']:[]),'--runs','1','--workers','1'],{encoding:'utf8',timeout:30000,maxBuffer:1024**2,env:{...process.env,CC:'/nonexistent-compiler'}});
  const first=run.stdout.split('\n').find(line=>line.startsWith('{'));assert.ok(first,run.stderr);const {directory}=JSON.parse(first);
- try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.jsOptimization,'off');assert.deepEqual(report.args.slice(0,2),['--no-maglev','--no-turbofan']);assert.equal(report.runtime,undefined);assert.equal(report.results[0].stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');}finally{rmSync(directory,{recursive:true,force:true});}
+ try{assert.equal(run.status,0,run.stderr+'\n'+run.stdout);const report=JSON.parse(readFileSync(join(directory,'report.json'),'utf8'));assert.equal(report.jsOptimization,optimization);assert.deepEqual(report.args.slice(0,2),optimization==='jitless'?['--no-experimental-strip-types','--jitless']:['--no-maglev','--no-turbofan']);assert.equal(report.runtime,undefined);assert.equal(report.results[0].stdout,'motion:loading\nmotion:loaded\nmotion:verified\n');}finally{rmSync(directory,{recursive:true,force:true});}
 });
 test('probe preserves artifacts in an owned child directory and rejects silent successful exit',()=>{
  const parent=mkdtempSync(join(tmpdir(),'motion-ci-test-')),fake=join(parent,'silent-node');
