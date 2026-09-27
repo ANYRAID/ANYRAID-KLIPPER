@@ -1,0 +1,16 @@
+{
+  "scope": "Native serialqueue and SerialSession with local byte-stream firmware simulator; no physical UART driver or product startup",
+  "sourceSha256": {
+    "host/src/drivers/tmc-uart-mcu.ts": "6ababe6b48c6f6ebd393dae4d287f2e3cf39dd318035a0a6ea067f5027cdf44e",
+    "host/src/drivers/tmc-uart.ts": "e8d4df2722056eb91805f33108a8dd160deb168abc9ae8e718f2f2fb04fd6de9",
+    "host/test/tmc-uart-mcu.test.ts": "37cd95f5dd86b49f5c7cdf2329dc87e1be524c5fc456943ce3e7f41ac7098ea3",
+    "host/test/helpers/serial-firmware.ts": "b050e8408eb0fdabd54e94d5bf9a43a9824cb6f6af5af5b3a0d85dc9c3095f83"
+  },
+  "verification": "✔ native byte stream initializes dictionary and clock then serves acknowledged queries (419.5872ms)\n✔ cancellation during dictionary bootstrap fences native I/O and stops once (47.306396ms)\n✔ device stop errors survive reentrant shutdown and reject the caller (1.361375ms)\n✔ lost responses after initialization close the native session and reject outstanding query (421.653732ms)\nGot error -1 in read: (104)Connection reset by peer\n✔ EOF from the native receiver closes an initialized session (409.149371ms)\n✔ abort while awaiting a native ACK rejects initialization promptly (6.318426ms)\n✔ event-driven receive drains bursts beyond one batch without another wire wake (415.82302ms)\n✔ motion binding requires successful firmware configuration and cannot configure twice (410.249782ms)\n✔ MCU UART config uses firmware pins and AVR baud with strict clock validation (0.814109ms)\n✔ native serial MCU waits for UART completion before IFCNT and preserves scheduled write order (514.003681ms)\n✔ aborting a missing MCU response closes the real session and forbids later register traffic (449.020509ms)\n✔ missing UART response times out once without resending the MCU command (5408.038053ms)\n✔ native UART read path reports bounded benchmark samples with exact unsigned values (438.948716ms)\nℹ {\"scope\":\"Native serialqueue, dictionary, MCU framing and simulated UART reply; 20 warmups/200 sequential reads; excludes physical bit timing\",\"medianMs\":0.10168100000009872,\"p95Ms\":0.17872200000056182,\"maxMs\":1.490975000000617}\n✔ UART frames match 512 original Python cases and reject every single-bit response error (49.346688ms)\n✔ shared MCU bus serializes entire write verification across UARTs, including IFCNT wrap and clocks (0.879789ms)\n✔ corrupt replies retry at most five times; unacknowledged writes never report success (0.368403ms)\n✔ queued abort issues no command and transport failure fences every device (0.197132ms)\n✔ lost write acknowledgement retries with the newly observed count and corrupt reads recover (0.150032ms)\n✔ abort during a physical query does not release the bus before transport completion (0.201862ms)\nℹ tests 19\nℹ suites 0\nℹ pass 19\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 9073.156192\n",
+  "initialFailure": "Mixed process-relative performance.now with native monotonic MCU clock; scheduled write rejected Invalid TMC clock. Corrected to serialClock.now in production adapter and test.",
+  "limitations": [
+    "No model-specific register initialization or current calibration",
+    "No analog UART mux or printer configuration assembly",
+    "No physical printer acceptance; default Python entry remains"
+  ]
+}
