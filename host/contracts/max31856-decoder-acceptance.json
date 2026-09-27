@@ -1,0 +1,67 @@
+{
+  "date": "2026-09-28",
+  "scope": "MAX31856 scalar wire decoding and inward-quantized signed range encoding; not yet connected to configured sensors",
+  "datasheet": {
+    "url": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31856.pdf",
+    "revision": "Rev 0, 2/15",
+    "pages": [
+      24,
+      25
+    ],
+    "format": "D23..5: signed 19-bit value with 1/128 degree C resolution; D4..0 unspecified; fault status separate"
+  },
+  "tests": {
+    "includingExistingDecoders": 9,
+    "temperatureCodes": 524288,
+    "lowBitPatterns": 32,
+    "decodeAssertions": 16777216,
+    "rangeCases": 5,
+    "rangeCodeChecks": 5242880
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "positiveOnly": false,
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 2.7589380000000006,
+    "p95Ms": 9.885286000000008,
+    "checksum": -4096,
+    "scope": "MAX31856 scalar decoding with unspecified low bits; no SPI transport, firmware, heater control or actual hardware"
+  },
+  "positiveNode": {
+    "node": "v26.9.0",
+    "positiveOnly": true,
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 2.763058000000001,
+    "p95Ms": 9.887805999999998,
+    "checksum": 1073737728,
+    "scope": "MAX31856 scalar decoding with unspecified low bits; no SPI transport, firmware, heater control or actual hardware"
+  },
+  "positivePythonBaseline": {
+    "source": "klippy/extras/spi_temperature.py",
+    "sourceSha256": "0e3723b5cfc90f1cdbde957c5604680a605ba4ee487b5b78da53086fb8b8882f",
+    "domain": "Positive codes only: old negative decoding is incorrect",
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 157.53857599702314,
+    "p95Ms": 159.65187499750755,
+    "checksum": 1073737728,
+    "negativeExample": {
+      "raw": "0xffffe0",
+      "oldTemperature": -2048,
+      "expected": -0.0078125
+    }
+  },
+  "limitations": [
+    "MCU currently compares MAX31856 readings as unsigned; signed comparison capability required before configuration enablement",
+    "SPI initialization, transport hookup, heater integration and compiled product acceptance still pending",
+    "Separate fault register must be handled by transport; decoder only handles temperature bytes",
+    "Encoded range represents the wire format and absolute-zero floor, not each thermocouple type operating range",
+    "Original Python sensor remains active; no Python file retired",
+    "No target hardware validation or closure of historical runtime/motion numerical failures"
+  ]
+}
