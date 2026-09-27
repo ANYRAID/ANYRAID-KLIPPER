@@ -25,6 +25,7 @@ export class GCodeMove {
   readonly extrusionAccounting=new ExtrusionAccounting();
   #port:MovePort;
   #state:CoordinateState;
+  #zOffsetRevision=0;
   #axes=new Map([['X',0],['Y',1],['Z',2],['E',3]]);
   #saved=new Map<string,CoordinateState>();
   constructor(port:MovePort) {
@@ -34,6 +35,7 @@ export class GCodeMove {
     this.#state={absoluteCoordinates:true,absoluteExtrude:true,base:position.map(()=>0),position,homing:[0,0,0,0],speed:25,speedFactor:1/60,extrudeFactor:1};
   }
   get state():CoordinateState {return copy(this.#state);}
+  get zOffset(){return {value:this.#state.homing[2],revision:String(this.#zOffsetRevision)};}
   /** Read-only Klippy object view; commanded coordinates are not motor feedback. */
   get objectStatus(){const s=this.#state;return {speed_factor:s.speedFactor*60,speed:s.speed/s.speedFactor,extrude_factor:s.extrudeFactor,absolute_coordinates:s.absoluteCoordinates,absolute_extrude:s.absoluteExtrude,homing_origin:[...s.homing],position:[...s.position],gcode_position:this.gcodePosition,axis_map:Object.fromEntries(this.#axes)};}
   get gcodePosition():number[] {
@@ -115,7 +117,7 @@ export class GCodeMove {
           delta[i]=offset-s.homing[i];s.base[i]+=delta[i];s.homing[i]=offset;
         }
         if(moveRequested(params)) {moveSpeed=number(params,'MOVE_SPEED',s.speed,true)!;for(let i=0;i<4;i++)s.position[i]+=delta[i];target=s.position;}
-        break;
+        return this.#commitOffset(s,target,moveSpeed);
       }
       case 'SAVE_GCODE_STATE': {
         const key=String(params.NAME??'default');
@@ -129,7 +131,7 @@ export class GCodeMove {
         s.speed=saved.speed;s.speedFactor=saved.speedFactor;s.extrudeFactor=saved.extrudeFactor;
         s.base[3]+=s.position[3]-saved.position[3];
         if(moveRequested(params)) {moveSpeed=number(params,'MOVE_SPEED',s.speed,true)!;for(let i=0;i<3;i++)s.position[i]=saved.position[i];target=s.position;}
-        break;
+        return this.#commitOffset(s,target,moveSpeed);
       }
       default:throw new Error(`Unsupported coordinate command: ${command}`);
     }
@@ -138,4 +140,14 @@ export class GCodeMove {
     if(target){this.#port.move([...target],moveSpeed);this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
     this.#state=s;
   }
+  /** Only offset-producing commands need the revision fence. Keep the ordinary
+   * linear-move dispatch path free of offset comparisons and counters. */
+  #commitOffset(s:CoordinateState,target:number[]|undefined,speed:number):void {
+    if(![...s.position,...s.base,...s.homing,s.speed,s.speedFactor,s.extrudeFactor].every(Number.isFinite)||s.speed<=0||s.speedFactor<=0||s.extrudeFactor<=0)throw new RangeError('Coordinate state overflow');
+    const changed=s.homing[2]!==this.#state.homing[2];
+    if(changed&&this.#zOffsetRevision===Number.MAX_SAFE_INTEGER)throw new RangeError('Z offset revision exhausted');
+    if(target){this.#port.move([...target],speed);this.extrusionAccounting.accepted(this.#state.position[3],s.position[3],s.extrudeFactor);}
+    if(changed)this.#zOffsetRevision++;this.#state=s;
+  }
+
 }

@@ -1,0 +1,229 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "ecda0f46",
+  "sourceSha256": {
+    "host/src/gcode/move.ts": "1ef3831f342505c1d66571a81a435e86a2a2b47a2f97083663868284abd7f111",
+    "host/src/homing/z-endstop.ts": "8f912cb1b0cf900b422bee26b12ce60b5555ef182eccbc0c86a7c23e14fd73d1",
+    "host/src/moonraker/native-z-offset.ts": "08f3106c40d0edc124bb05895efbf8e0f80e8b76025840896b8d064eda6a9b53",
+    "host/src/runtime/product-service.ts": "44910031426210d9c7a9d67f7786f7654b1adb27f3e8a5dc47bfdeec67f6ef5f",
+    "host/test/z-offset-save.test.ts": "d03b4cbaa4a5c2d0dd789380e490e111731f08f106c90a9406879c5777d30c78",
+    "host/bench/gcode-move.ts": "41885ec69a8c4f566f22107bbb236f75dd0839c564f635c7efb6a8e05397cf58",
+    "host/contracts/gcode-move-reference.json": "74f3d6a6e59027a5effbc6a6ac98f2527a056320a148c98e6e62a28d90172acd",
+    "host/contracts/gcode-move-reference.json.gz": "54a095578a24aeb18b28cb0ae0358a594f664ac8f654bf55d4e6558ba957504e",
+    "host/acceptance/product-compiled-journey.test.ts": "e2c3c53e7487a6a83cfc97bc07d155c257b1e17606b620adf7c5efd9411bc233"
+  },
+  "tests": {
+    "regressions": 16,
+    "compiledProducts": 1,
+    "exactCoordinateStates": 12000,
+    "exactMoveOutputs": 3500,
+    "coverage": [
+      "偏移变更后恢复原值及状态恢复均更新版本",
+      "失败移动不更新坐标或版本",
+      "仅保存当前偏移，零值/越界/旧令牌/任意客户端数值拒绝",
+      "保存重试、外部文件冲突、在途保存取消",
+      "编译产品打印文件设置偏移，保存重初始化后临时偏移为零"
+    ]
+  },
+  "pairedBenchmark": {
+    "node": "v26.9.0",
+    "commands": 12000,
+    "rounds": 21,
+    "runsPerSample": 5,
+    "beforeMedianMs": 4.784745199999998,
+    "afterMedianMs": 4.812907399999983,
+    "medianRatio": 1.0058858306603213,
+    "samples": [
+      [
+        4.902300600000001,
+        9.953468599999997,
+        5.055490199999997,
+        4.762820800000009,
+        4.770322999999985,
+        4.810265400000003,
+        4.809377399999994,
+        4.828627600000004,
+        4.804179399999998,
+        4.7876670000000106,
+        4.784745199999998,
+        4.781810999999993,
+        4.758624800000007,
+        4.78270100000002,
+        4.767381000000023,
+        4.8838441999999755,
+        4.754716800000006,
+        4.788844999999992,
+        4.738892600000009,
+        4.744964600000003,
+        4.759034800000018
+      ],
+      [
+        5.0806984000000055,
+        9.626424799999995,
+        5.485087199999998,
+        4.812907399999983,
+        4.808025199999998,
+        4.847019799999998,
+        4.841431799999986,
+        4.812419399999999,
+        4.823149399999989,
+        4.797767399999998,
+        4.8210794000000075,
+        4.802931400000011,
+        4.801231200000006,
+        4.8211636,
+        4.796881199999961,
+        4.81006339999999,
+        4.808477399999992,
+        4.792629199999965,
+        4.815843600000017,
+        4.8162914,
+        4.805515400000013
+      ]
+    ],
+    "checksum": 2497.499999999992,
+    "scope": "Same process alternating pre-change and current modules, identical commands and copied move targets; excludes network and actual motion."
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "commands": 12000,
+    "statesExact": true,
+    "moves": 3500,
+    "nodeMedianMs": 6.052502000000004,
+    "nodeP95Ms": 9.710977000000014,
+    "historicalPythonMedianMs": 10.523690001718933,
+    "historicalPythonP95Ms": 16.9639969990385,
+    "sameReferenceCPU": true,
+    "speedup": 1.7387338330030995
+  },
+  "product": {
+    "phaseQueries": 3797,
+    "phaseP99Ms": 2.953426000000036,
+    "loaded": true,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": true,
+    "stressed": true,
+    "sensorless": true,
+    "tmc": [
+      {
+        "statusReads": 160,
+        "writes": 55
+      },
+      {
+        "statusReads": 64,
+        "writes": 54
+      },
+      {
+        "statusReads": 88,
+        "writes": 46
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      },
+      {
+        "statusReads": 16,
+        "writes": 46
+      },
+      {
+        "statusReads": 20,
+        "writes": 46
+      },
+      {
+        "statusReads": 50,
+        "writes": 54
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "tmc-reset",
+    "historyNotifications": 32,
+    "historyRequests": 848,
+    "historyP99Ms": 7.625452000000223,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 4.554185000000871,
+    "deleteRequests": 16,
+    "deleteP95Ms": 5.21063200000026,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 2.5785110000015266,
+    "metadataRequests": 16,
+    "metadataP95Ms": 30.140042999999423,
+    "downloads": 16,
+    "downloadP95Ms": 6.845352000000275,
+    "wireCommands": 476,
+    "wireSteps": 7220,
+    "minimumStepLeadMs": 76.42,
+    "directoryRequests": 3656,
+    "directoryP99Ms": 3.8269060000002355,
+    "statusRequests": 15188,
+    "uploads": 16,
+    "statusP99Ms": 2.799243999997998,
+    "uploadP95Ms": 6.806092000002536,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.957887,
+          "maxMs": 18.497535
+        },
+        "cpu": {
+          "user": 4683052,
+          "system": 506461
+        },
+        "rss": 281284608
+      },
+      {
+        "loop": {
+          "p99Ms": 1.924095,
+          "maxMs": 5.881855
+        },
+        "cpu": {
+          "user": 1395645,
+          "system": 217988
+        },
+        "rss": 256040960
+      }
+    ]
+  },
+  "offset": {
+    "zOffsetPersistence": {
+      "compiled": true,
+      "offset": -0.025,
+      "saved": 0.07500000000000001,
+      "offsetReset": true,
+      "retryWithoutWrite": true
+    }
+  },
+  "reference": "Frozen original Python result and 11 timings; routine benchmark now reads gzip reference and executes no Python.",
+  "fixtureCorrections": [
+    "新增打印代次补齐温度和耗材状态",
+    "新增一次打印对应一次文件打开，更新原零打开计数"
+  ],
+  "limits": [
+    "单独Z轴支持，Delta多塔偏移保存和其他自动探测路径尚未接通",
+    "保留完整二进制浮点精度，不进行显示用三位小数舍入",
+    "已验证当前坐标偏移的保存；本轮没有新增在线首层微调界面",
+    "本机模拟MCU及基准不证明真实硬件速度、首层质量或机械精度",
+    "默认Python入口及192个Python文件仍在",
+    "历史Node崩溃和瞬时运动数值异常仍未定位"
+  ]
+}
