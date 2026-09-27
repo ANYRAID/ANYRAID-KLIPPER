@@ -2,7 +2,7 @@ import {KconfigModel} from './model.ts';
 import {kconfigInteger} from './evaluate.ts';
 import type {KTree,KNode} from './parser.ts';
 
-export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG_'):{model:KconfigModel;warnings:string[]}{
+export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG_'):{model:KconfigModel;warnings:string[];assignments:Map<string,string>;selections:Map<string,string>}{
  if(Buffer.byteLength(source)>8*1024*1024)throw new Error('Kconfig configuration byte limit');
  const definitions=new KconfigModel(tree),assignments=new Map<string,string>(),selections=new Map<string,string>(),warnings:string[]=[];
  for(const [index,raw] of source.split(/\r?\n/).entries()){
@@ -35,7 +35,7 @@ export function loadKconfigConfiguration(tree:KTree,source:string,prefix='CONFIG
   assignments.delete(name);assignments.set(name,value);
   if(symbol.choice&&value==='y')selections.set(symbol.choice.id,name);
  }
- return {model:new KconfigModel(tree,assignments,selections),warnings};
+ return {model:new KconfigModel(tree,assignments,selections),warnings,assignments,selections};
 }
 
 const escape=(text:string)=>text.replaceAll('\\','\\\\').replaceAll('"','\\"');

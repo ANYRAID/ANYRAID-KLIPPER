@@ -100,6 +100,17 @@ STM32F446 完整补全（含启动、备份和写入）缓存中位 50.80 ms、P
 [完整配置验收](../host/contracts/kconfig-olddefconfig-acceptance.json)，基准为
 `node host/bench/kconfig-genconfig.ts --full`。真实打印机验收仍未执行。
 
+交互菜单的内存编辑状态层已实现：菜单层级、父级导航、可见/隐藏搜索、
+帮助、事务式赋值、加载/重置及未保存状态。用户偏好在架构切换或选项
+暂时隐藏时保留。跨 AVR、STM32F446、RP2350 的 15 步编辑，每一步的
+完整/最小配置均与旧实现一致；非法、隐藏或受约束的赋值不会修改状态。
+21 项 Kconfig 回归、类型和空白检查通过。包括状态重算、菜单、搜索和
+序列化的 15 步流程中位 14.91 ms、P95 17.75 ms，单步最大 1.60 ms；
+不包含终端绘制、配置解析及文件读写。终端交互与保存/加载文件界面尚未
+接入，`make menuconfig` 仍为 Python，本阶段没有退役 Python 文件。
+证据见 [菜单编辑状态验收](../host/contracts/kconfig-editor-acceptance.json)，
+基准为 `node host/bench/kconfig-editor.ts`。
+
 独立运行包的依赖安装已改为先暂存、校验，再发布完整 node_modules。
 普通失败和取消会回收子进程及半成品，支持直接重试，已有依赖仍拒绝覆盖。
 6 项安装回归、类型检查、编译包后台任务和一条模拟打印流程通过；本机

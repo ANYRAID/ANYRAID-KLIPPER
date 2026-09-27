@@ -155,6 +155,10 @@ export class KconfigModel {
   const definition=this.nodes.get(node);if(!definition)throw new Error('Node does not belong to this Kconfig model');
   return this.evaluate(definition.dependency)>0&&(node.kind!=='menu'||this.evaluate(definition.promptDependency)>0);
  }
+ promptVisible(node:KNode):boolean{
+  const definition=this.nodes.get(node);if(!definition)throw new Error('Node does not belong to this Kconfig model');
+  return node.properties.some(property=>property.kind==='prompt'&&this.evaluate(and(and(definition.dependency,definition.promptDependency),property.condition))>0);
+ }
  /** savedefconfig compares defaults in the current dependency context, not
   * against a separate model with all user assignments removed. */
  minimalSymbols():string[]{
