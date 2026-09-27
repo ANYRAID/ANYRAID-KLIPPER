@@ -16,7 +16,7 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
-- 默认安装和打印入口仍是 Python；受跟踪 Python 文件剩余 187 个。
+- 默认安装和打印入口仍是 Python；受跟踪 Python 文件剩余 184 个。
 - Kconfig 配置初始化、头文件、最小配置及交互菜单已全部切换为 Node，
   五个旧 Python Kconfig 文件已删除；这不等于主机打印入口已迁移完成。
 - 编译产品在模拟 MCU 上已有打印、暂停恢复、故障停机和配置重载流程。
@@ -24,6 +24,18 @@
 - Node 运行时崩溃和瞬时运动数值失配仍未定位；目标板及真实打印机验收
   尚未执行。成功样本不能关闭这些问题，也不能证明生产可用。
 - 完整 Moonraker、全部宏产品操作及全量 Python 退役仍未完成。
+
+Motan 的 `motan_graph.py`、`analyzers.py`、`readlog.py` 已删除，文档
+入口统一为 Node，写入器的工作树 Python 读取依赖改为 Node 精确读取与
+完整刷新位置恢复。18 项日志、数据集、绘图与独立包测试通过；独立
+包在无 Python、无 TS 加载器的环境中导出 JSON/SVG/PNG/HTML/PDF 与
+CSV，单次冷启动导出分别约 121/121/162/128/285 ms。相同压缩日志的
+读取基准中，30000 条小记录 Node 批量中位 51.564 ms、原 Python
+93.761 ms；128 条大记录 Node 49.210 ms、Python 119.351 ms。
+输出仍须显式 `-o`，交互查看用 HTML，不再提供 Matplotlib 桌面窗口；
+不支持的样式显式报错。部分开发测试和基准仍从 Git 历史调用 Python
+参考，不能称为整个测试环境已脱离 Python。验收与退役源码哈希见
+[Motan 入口退役记录](../host/contracts/motan-python-entrypoint-retirement.json)。
 
 温控风扇的纯控制层现支持水印与 PID：480 个原 Python 实际输出样本
 逐项比对了调度时间、占空比、导数和积分状态，6 项边界测试通过。

@@ -160,14 +160,15 @@ Motan 运动数据采集入口已切换为
 `.json.gz`/`.index.gz` 格式并使用批量压缩；需要 Node.js 26，采集过程
 不调用 Python。新采集的初始和增量索引保留状态数字的整数/浮点类型
 及 JSON 对象键的源顺序（包括数字形式的键）。
-输出文件必须不存在，重复采集请使用新前缀。Motan 后续分析和绘图
-尚未全部迁移，性能与剩余范围见迁移说明。
+输出文件必须不存在，重复采集请使用新前缀。Motan 日志读取、分析与
+绘图使用下述 Node 入口，旧 `readlog.py`、`analyzers.py` 和
+`motan_graph.py` 已退役。部分开发回归仍调用历史 Python 参考，尚需清理。
 
 Motan CSV 和图表均可使用独立编译包，包含 worker、字体、许可证和锁定
 依赖。复制到仓库外后运行 `npm ci --omit=dev --include=optional --ignore-scripts`，
 即可用 Node 执行 `scripts/motan/motan_graph.js` 和 `data_export.js`，无需
 Python 或 TS 运行时。构建会替换目标目录，捕获和输出文件应放在目录外。
-具体命令及未迁移样式见[调试说明](docs/Debugging.md#motion-analysis-and-data-logging)。
+具体命令及支持的样式见[调试说明](docs/Debugging.md#motion-analysis-and-data-logging)。
 
 Motan CSV 推荐使用预编译入口以减少启动开销。安装 `host/` 依赖后，
 先运行 `npm --prefix host run build:motan`，再执行

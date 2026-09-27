@@ -7,11 +7,13 @@ import {gunzipSync,inflateRawSync,constants} from 'node:zlib';
 import {randomBytes} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {MotanLogWriter} from '../src/motan/log-writer.ts';
-test('Motan full-flush positions restart original Python reader without changing integer or float lexemes',async()=>{
+import {MotanLogReader} from '../src/motan/log-reader.ts';
+test('Motan full-flush positions restart Node reader without changing integer or float lexemes',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'motan-log-')),path=join(dir,'capture.json.gz'),writer=await MotanLogWriter.open(path),first=Buffer.from('{"clock":9007199254740993,"x":1.0000000000000002}'),second=Buffer.from('{"clock":9007199254740995,"x":-0.00000000000000001}');
  try{assert.equal(await writer.flush(),0);await writer.addData(first);const at=await writer.flush();assert.equal((await stat(path)).size,at);assert.equal(gunzipSync(await readFile(path),{finishFlush:constants.Z_SYNC_FLUSH}).toString(),first+'\x03');await writer.addData(second);await writer.close();const data=await readFile(path);assert.equal(gunzipSync(data).toString(),first+'\x03'+second+'\x03');assert.equal(inflateRawSync(data.subarray(at)).toString(),second+'\x03');
-  const code="import sys,importlib.util,json\ns=importlib.util.spec_from_file_location('readlog',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)\nr=m.JsonLogReader(sys.argv[2]);a=r.pull_msg();b=r.pull_msg();assert r.pull_msg() is None\nassert a['clock']==9007199254740993 and b['clock']==9007199254740995\nr.file.close();r=m.JsonLogReader(sys.argv[2]);r.seek(int(sys.argv[3]));assert r.pull_msg()==b and r.pull_msg() is None\nr.file.close()\nprint('compatible')";
-  assert.equal(execFileSync('python3',['-c',code,new URL('../../scripts/motan/readlog.py',import.meta.url).pathname,path,String(at)],{encoding:'utf8'}).trim(),'compatible');assert.equal(writer.status.pending,0);assert.equal(writer.status.rawPosition,first.length+second.length+2);
+  const reader=await MotanLogReader.open(path);
+  try{assert.deepEqual(await reader.pullMessages(),[{clock:9007199254740993n,x:1.0000000000000002},{clock:9007199254740995n,x:-.00000000000000001}]);await reader.seek(at);assert.deepEqual(await reader.pullMessage(),{clock:9007199254740995n,x:-.00000000000000001});assert.equal(await reader.pullMessage(),null);}finally{await reader.close();}
+  assert.equal(writer.status.pending,0);assert.equal(writer.status.rawPosition,first.length+second.length+2);
  }finally{await writer.close();await rm(dir,{recursive:true,force:true});}
 });
 test('Motan incompressible chunks drain before index publication across many full flushes',async()=>{

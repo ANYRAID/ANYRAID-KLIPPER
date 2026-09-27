@@ -180,48 +180,32 @@ capture files are protected from replacement; failures/cancellation preserve
 prior output. Analysis is limited to 60 seconds per job. This is an offline
 diagnostic tool and does not drive a printer.
 
-The resulting files can be read and graphed using the `motan_graph.py`
-tool. To generate graphs on a Raspberry Pi, a one time step is
-necessary to install the "matplotlib" package:
-```
-sudo apt-get update
-sudo apt-get install python-matplotlib
-```
-However, it may be more convenient to copy the data files to a desktop
-class machine along with the Python code in the `scripts/motan/`
-directory. The motion analysis scripts should run on any machine with
-a recent version of [Python](https://python.org) and
-[Matplotlib](https://matplotlib.org/) installed.
+Read and graph captured files with Node.js 26 and the Motan TypeScript
+entry point (install the locked dependencies in `host/` first):
 
-Graphs can be generated with a command like the following:
-```
-~/klipper/scripts/motan/motan_graph.py mylog -o mygraph.png
+```sh
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o mygraph.png
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.html -g '[["trapq(toolhead,velocity)"], ["trapq(toolhead,accel)"]]'
+node ~/klipper/scripts/motan/motan_graph.ts -l
 ```
 
-One can use the `-g` option to specify the datasets to graph (it takes
-a Python literal containing a list of lists). For example:
-```
-~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)"], ["trapq(toolhead,accel)"]]'
+The `-g` option accepts a Python literal or JSON list of graph rows. The
+literal is parsed as data; no Python interpreter is invoked. Every export
+requires `-o`; use HTML for an interactive browser view. There is no desktop
+Matplotlib window. Supported exports include HTML, PDF, SVG, PNG, JPEG,
+WebP, TIFF and full-precision JSON.
+
+Style parameters are attached to each dataset:
+
+```sh
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.svg -g '[["trapq(toolhead,velocity)?color=red&alpha=0.4"]]'
 ```
 
-The list of available datasets can be found using the `-l` option -
-for example:
-```
-~/klipper/scripts/motan/motan_graph.py -l
-```
-
-It is also possible to specify matplotlib plot options for each
-dataset:
-```
-~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)?color=red&alpha=0.4"]]'
-```
-Many matplotlib options are available; some examples are "color",
-"label", "alpha", and "linestyle".
-
-The `motan_graph.py` tool supports several other command-line
-options - use the `--help` option to see a list. It may also be
-convenient to view/modify the
-[motan_graph.py](../scripts/motan/motan_graph.py) script itself.
+Use `--help` for supported colors, line and marker styles and analysis limits.
+Unsupported options fail explicitly. For a standalone JavaScript package,
+use the build instructions above; it can run without Python or a TypeScript
+loader. The old `motan_graph.py`, `readlog.py` and `analyzers.py` files have
+been retired. See [motan_graph.ts](../scripts/motan/motan_graph.ts).
 
 The raw data logs produced by the `data_logger.ts` tool follow the
 format described in the [API Server](API_Server.md). It may be useful
