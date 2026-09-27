@@ -1,0 +1,23 @@
+{
+  "scope": "SD 卡 SPI 协议迁移；不是完整烧录入口验收",
+  "node": "v26.9.0",
+  "tests": 8,
+  "originalPythonCRCFixtures": 50,
+  "performance": {
+    "warmups": 2,
+    "samples": 7,
+    "crc": {"bytes": 16777216, "medianMs": 57.455501, "maxMs": 57.576993},
+    "simulatedSPI": {"sectorsRead": 256, "sectorsWritten": 256, "medianMs": 34.726608, "maxMs": 40.403281},
+    "historicalPythonCRC": {"bytes": 1048576, "warmups": 1, "samples": 3, "medianMs": 658.980775, "maxMs": 659.539762, "crc": 36841}
+  },
+  "intentionalChanges": [
+    "CRC 启用失败、读后忙状态及写状态首字节错误均拒绝继续",
+    "主动拒绝写保护、非法容量及地址溢出",
+    "CID 修订号次版本使用低四位，修正旧实现使用整个字节",
+    "保留响应载荷末尾的 0xff 字节，避免 strip 丢失有效寄存器数据",
+    "完整初始化成功后才发布卡片状态，IO 失败撤销初始化状态",
+    "每次操作包含排队在内最多 30 秒、最多 8 个在途请求，传输实现须响应取消"
+  ],
+  "remaining": ["MCU 传输装配", "SDIO 协议", "FAT 文件系统", "板卡定义及完整烧录入口", "实际 SD 卡与固件重启验证"],
+  "pythonRetired": false
+}

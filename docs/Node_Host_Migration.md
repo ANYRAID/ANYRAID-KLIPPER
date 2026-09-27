@@ -16,6 +16,17 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- SD 卡固件烧录的 SPI 协议层已迁入
+  `host/src/diagnostics/sd-card-spi.ts`，包括 V1/V2 初始化、CID/CSD、
+  CRC7/CRC16、字节／扇区寻址、512 字节读写及复位。50 组原 Python
+  CRC 参考逐项匹配，8 项回归覆盖写保护、越界、损坏、忙状态、
+  取消后迟到响应、并发串行化和 2^32 扇区容量。CRC 使用预计算表，
+  16 MiB 中位 57.456 ms；256 个模拟扇区读写中位 34.727 ms，
+  不含 MCU 链路和真实卡延迟。传输实现必须响应 AbortSignal；失败
+  撤销初始化状态，不允许队列继续使用不确定的卡事务。
+  本轮没有执行刷写或退役 Python；FAT、SDIO、MCU 装配与完整入口
+  仍需迁移。行为差异及性能证据见
+  [SD SPI 验收](../host/contracts/sd-card-spi-acceptance.json)。
 - 新增 `scripts/product-preflight.ts` 及编译包 JS 入口，使用机器 JSON
   在获取板卡适配器、日志和 MCU 前执行与实际启动共用的配置拓扑检查。
   include 中未迁移组件会失败；通过不代表完整选项或硬件验收通过。
