@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {mkdir,mkdtemp,readFile,writeFile,readdir,rename,rm,lstat,copyFile,cp,access} from 'node:fs/promises';
 import {dirname,join,resolve,relative} from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
-import {buildProductNative,productAddons} from './build-product-native.ts';
+import {buildProductNative,productAddons,productExecutables} from './build-product-native.ts';
 const host=fileURLToPath(new URL('..',import.meta.url));
 const requiredAddons=[...productAddons] as string[];
 /** Build into a private staging directory; replace only a recognized, offline
@@ -19,17 +19,19 @@ export async function buildProductHost(output=join(host,'build/product-host'),co
   stage=await mkdtemp(join(parent,'.product-build-'));
   const result=spawnSync(process.execPath,[join(host,'node_modules/typescript/bin/tsc'),'-p',resolve(config),'--outDir',stage],{encoding:'utf8',timeout:60000,maxBuffer:4*1024**2});
   if(result.error||result.status!==0)throw new Error('Product TypeScript build failed: '+(result.error?.message??result.stdout+result.stderr));
-  for(const entry of ['scripts/product-host.js','host/src/runtime/product-host.js','host/src/runtime/host-recovery-journal-worker.js','host/src/operations/print-journal-worker.js','host/src/moonraker/database-worker.js','host/src/moonraker/metadata-extractor-worker.js','host/src/moonraker/file-list-worker.js','host/src/moonraker/thumbnail-process-child.js','host/src/calibration/spectrum-worker.js','host/src/calibration/shaper-fit-worker.js'])await access(join(stage,entry));
+  for(const entry of ['scripts/flash-sdcard.js','scripts/product-host.js','host/src/runtime/product-host.js','host/src/runtime/host-recovery-journal-worker.js','host/src/operations/print-journal-worker.js','host/src/moonraker/database-worker.js','host/src/moonraker/metadata-extractor-worker.js','host/src/moonraker/file-list-worker.js','host/src/moonraker/thumbnail-process-child.js','host/src/calibration/spectrum-worker.js','host/src/calibration/shaper-fit-worker.js'])await access(join(stage,entry));
   if(nativeDirectory===undefined){nativeScratch=await mkdtemp(join(parent,'.product-native-'));nativeDirectory=join(nativeScratch,'addons');await buildProductNative(nativeDirectory);}
   const addons=[...requiredAddons];try{await access(join(nativeDirectory,'template.node'));addons.push('template');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   await mkdir(join(stage,'host/build'),{recursive:true});
   for(const name of addons){const file=join(nativeDirectory,name+'.node'),info=await lstat(file);if(!info.isFile()||info.isSymbolicLink()||info.size===0)throw new Error('Invalid native addon: '+name);await copyFile(file,join(stage,'host/build',name+'.node'));}
+  for(const name of productExecutables){const file=join(nativeDirectory,name),info=await lstat(file);if(!info.isFile()||info.isSymbolicLink()||!info.size||(info.mode&0o111)===0)throw new Error('Invalid native executable: '+name);await copyFile(file,join(stage,'host/build',name));}
   try{await copyFile(join(nativeDirectory,'native-build-info.json'),join(stage,'host/build/native-build-info.json'));}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
   const project=JSON.parse(await readFile(join(host,'package.json'),'utf8'));
   await writeFile(join(stage,'package.json'),JSON.stringify({name:project.name,private:true,type:'module',engines:project.engines,dependencies:project.dependencies,scripts:{start:'node scripts/product-host.js'}},null,2)+'\n');
   await copyFile(join(host,'package-lock.json'),join(stage,'package-lock.json'));
   await copyFile(join(host,'../COPYING'),join(stage,'COPYING'));
   await cp(join(host,'licenses'),join(stage,'host/licenses'),{recursive:true});
+  await copyFile(join(host,'../lib/fatfs/LICENSE.txt'),join(stage,'host/licenses/FatFs.txt'));
   await cp(join(host,'assets'),join(stage,'host/assets'),{recursive:true});
   const files:Record<string,string>={};
   const inventory=async(dir:string):Promise<void>=>{for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name<b.name?-1:a.name>b.name?1:0)){const path=join(dir,entry.name);if(entry.isDirectory())await inventory(path);else{if(!entry.isFile())throw new Error('Unexpected product build entry');files[relative(stage!,path).replaceAll('\\','/')]=createHash('sha256').update(await readFile(path)).digest('hex');}}};

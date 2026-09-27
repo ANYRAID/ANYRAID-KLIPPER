@@ -16,6 +16,20 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 产品分发现在包含 `scripts/flash-sdcard.js`、板卡 JSON、原生
+  `host/build/fatfs-helper` 和 FatFs 许可证。FatFs 从私有 C 源码快照
+  构建，源码及可执行产物哈希纳入 native-build-info.json，整体产物
+  纳入 build-info.json；缺失或不可执行的 helper 拒绝分发。
+  `node host/scripts/build-product-host.ts` 构建后，可使用
+  `node host/build/product-host/scripts/flash-sdcard.js -l`；实际维护时
+  以 -f/-d 指定固件和字典文件。编译包无需 TypeScript 加载器。
+  新的独立目录验收在 PATH 排除所有程序、禁用 TS 加载器的环境中
+  完成板卡列表和真实 FatFs 写入、关闭、重新挂载及 4097 字节精确读回。
+  5 次编译 CLI 新进程中位 31.066 ms、最大 35.560 ms；未访问真实设备。
+  纯 C 工具 PATH 的原生构建检查通过，覆盖 FatFs 的来源和输出哈希。
+  Python 烧录入口仍未退役，原固件转换基准仍含 Python 桥接待清理；
+  实机复位／重连也未验收。
+
 - 新入口 `node scripts/flash-sdcard.ts` 已接入 Linux UART 适配器，支持
   `-h/-l/-c/-s/-b/-f/-d` 与 device、board 参数（可选第三个固件路径）。
   默认固件／字典为 out/klipper.bin 与 out/klipper.dict；指定其他固件时
