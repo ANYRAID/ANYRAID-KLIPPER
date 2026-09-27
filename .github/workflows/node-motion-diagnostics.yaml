@@ -5,6 +5,8 @@ on:
     paths:
       - '.github/workflows/node-motion-diagnostics.yaml'
       - 'host/scripts/diagnose-node-asan.ts'
+      - 'host/package.json'
+      - 'host/package-lock.json'
       - 'host/src/diagnostics/graph-motion.ts'
       - 'host/src/diagnostics/motion-filters.ts'
       - 'host/src/diagnostics/legacy-motion-shaper.ts'
@@ -16,6 +18,8 @@ on:
     paths:
       - '.github/workflows/node-motion-diagnostics.yaml'
       - 'host/scripts/diagnose-node-asan.ts'
+      - 'host/package.json'
+      - 'host/package-lock.json'
       - 'host/src/diagnostics/graph-motion.ts'
       - 'host/src/diagnostics/motion-filters.ts'
       - 'host/src/diagnostics/legacy-motion-shaper.ts'
@@ -35,6 +39,7 @@ jobs:
       matrix:
         node: ['26.9.0', '26.10.0']
         optimization: ['default', 'off']
+        execution: ['source', 'compiled']
     steps:
       - uses: actions/checkout@v5
         with:
@@ -42,15 +47,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Install pinned compiler for JavaScript control
+        if: matrix.execution == 'compiled'
+        working-directory: host
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify original motion reference in fresh processes
         shell: bash
         env:
           OPTIMIZATION: ${{ matrix.optimization }}
+          EXECUTION: ${{ matrix.execution }}
         run: |
           mkdir -p "$RUNNER_TEMP/motion-diagnostics"
           node host/scripts/diagnose-node-asan.ts \
             --case motion --asan off \
             --js-optimization "$OPTIMIZATION" \
+            --execution "$EXECUTION" \
             --runs 50 --workers 1 \
             --report-parent "$RUNNER_TEMP/motion-diagnostics" \
             2>&1 | tee "$RUNNER_TEMP/motion-diagnostics/run.log"
@@ -58,7 +69,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: motion-${{ matrix.node }}-${{ matrix.optimization }}-${{ github.run_attempt }}
+          name: motion-${{ matrix.node }}-${{ matrix.optimization }}-${{ matrix.execution }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/motion-diagnostics/
           retention-days: 30
           if-no-files-found: warn

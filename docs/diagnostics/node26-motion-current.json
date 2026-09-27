@@ -1,0 +1,239 @@
+{
+  "base": "70bae16f",
+  "scope": "Bounded local revalidation; historical integrity failures remain open",
+  "diagnosticScriptSha256": "54969875a15fbe4eec6b4297216ab7b4a69e13c01b6ae5c9340f9f09b846167e",
+  "reports": [
+    {
+      "path": "/tmp/anyraid-node-asan-KH8xpV/report.json",
+      "reportSha256": "b110854b3e6a85a8c762a66b7c6de92e2863c4e4796a88e7132bb1edb39f82ca",
+      "settings": {
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "compiledHashes": {
+          "src/diagnostics/graph-motion.js": "5550be22e21bb7a5c09c8cfe2ff6236f2c5766e7c070b59b64c3048e5584206a",
+          "src/diagnostics/motion-filters.js": "79d610c375c6f2dbfd3f0a1f79c3b663d6abe60c1115d0c8184437f10be58953",
+          "src/diagnostics/legacy-motion-shaper.js": "f31bf0c8c6165a07661381606ce560c39f53fb4a3961d79958bf865c7c056d9e",
+          "bench/motion-graph-reference.js": "2a91a6ce492aea07c4b89428cdf1ab3479f581d4fab8113c0f07e6d5d9a841de",
+          "contracts/motion-graph-fixtures.js": "cc4b327df1f28d851e36bb6b71d20154ea02ee746a3ace0dd2f87090df52d0ec"
+        },
+        "compilerVersion": "7.0.2",
+        "execution": "compiled",
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "--no-experimental-strip-types",
+          "/tmp/anyraid-node-asan-KH8xpV/fixture.mjs"
+        ],
+        "limit": 100,
+        "workers": 8,
+        "fixtureSha256": "2faeafe707392602921d30c2eaa3306576a5a9f688bc18bdcbcad405c0f5e1da"
+      },
+      "runs": 8,
+      "verified": 0,
+      "failures": [
+        {
+          "index": 0,
+          "pid": 29,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 6,
+          "pid": 54,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 3,
+          "pid": 37,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 7,
+          "pid": 56,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 1,
+          "pid": 30,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 4,
+          "pid": 38,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 2,
+          "pid": 31,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "index": 5,
+          "pid": 50,
+          "status": 0,
+          "signal": null,
+          "error": "Verification completion marker missing",
+          "stdout": "",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "path": "/tmp/anyraid-node-asan-t9EeU2/report.json",
+      "reportSha256": "e498935513d026807df5ff07869598cc32be1f8f44b3f2a1991e0f495008dc0f",
+      "settings": {
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "compiledHashes": {
+          "src/diagnostics/graph-motion.js": "5550be22e21bb7a5c09c8cfe2ff6236f2c5766e7c070b59b64c3048e5584206a",
+          "src/diagnostics/motion-filters.js": "79d610c375c6f2dbfd3f0a1f79c3b663d6abe60c1115d0c8184437f10be58953",
+          "src/diagnostics/legacy-motion-shaper.js": "f31bf0c8c6165a07661381606ce560c39f53fb4a3961d79958bf865c7c056d9e",
+          "bench/motion-graph-reference.js": "2a91a6ce492aea07c4b89428cdf1ab3479f581d4fab8113c0f07e6d5d9a841de",
+          "contracts/motion-graph-fixtures.js": "cc4b327df1f28d851e36bb6b71d20154ea02ee746a3ace0dd2f87090df52d0ec"
+        },
+        "compilerVersion": "7.0.2",
+        "execution": "compiled",
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "--no-experimental-strip-types",
+          "/tmp/anyraid-node-asan-t9EeU2/fixture.mjs"
+        ],
+        "limit": 100,
+        "workers": 8,
+        "fixtureSha256": "efced0b7292c38589f569319f918f70f4580b98edb14740d485519ff0b2c1849"
+      },
+      "runs": 100,
+      "verified": 100,
+      "failures": []
+    },
+    {
+      "path": "/tmp/anyraid-node-asan-UovUQe/report.json",
+      "reportSha256": "dfacb44450f076224878c8d768d6c23b83d214dd4e44b7d19cd8bba689485e22",
+      "settings": {
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "compiledHashes": {},
+        "execution": "source",
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "/tmp/anyraid-node-asan-UovUQe/fixture.mjs"
+        ],
+        "limit": 100,
+        "workers": 8,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e"
+      },
+      "runs": 33,
+      "verified": 32,
+      "failures": [
+        {
+          "index": 27,
+          "pid": 2790046,
+          "status": null,
+          "signal": "SIGSEGV",
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "conclusions": [
+    "Sandbox compiled attempt had 8 empty child outputs and is not accepted as a numerical run.",
+    "Normal host compiled JavaScript completed 100 processes, 16 numerical rounds each.",
+    "Normal host source TypeScript failed with SIGSEGV after motion:loaded; 33 processes were started before workers stopped, 32 completed.",
+    "Same Node binary and source hashes do not establish type stripping as the crash cause; independent-runner execution remains pending.",
+    "No core was captured: core size limit is 0 and no debugger is available in this environment.",
+    "Physical motion precision and historical numerical mismatches are not cleared."
+  ]
+}
