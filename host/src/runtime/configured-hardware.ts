@@ -1,3 +1,5 @@
+import {sessionTmcUart} from '../drivers/tmc-uart-mcu.ts';
+import {initializeTmc220x} from '../drivers/tmc220x.ts';
 import {compileConfiguredHardware,type HardwareLayout} from '../config/hardware.ts';
 import {attachConfiguredAnalogHeater} from '../config/analog-heater.ts';
 import type {FanClock} from '../config/cooling-fan.ts';
@@ -72,6 +74,9 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
+  // All enable GPIOs are configured/restarted off. No motion/output owner is
+  // exposed until every driver has acknowledged its complete register plan.
+  for(const uart of plan.tmcUarts){const bus=sessionTmcUart(group.session(uart.mcu));for(const driver of uart.devices){await initializeTmc220x(bus.register(uart.uart.oid,driver.address),driver,abort.signal);active();}}
   for(const [i,b] of plan.buttons.entries()){buttons[i].input.activate(group.commandQueue(b.mcu));active();}
   if(plan.steppers.length)motorEnable=new MotorEnable(group,plan.motors.lines,plan.motors.alwaysOn);
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
