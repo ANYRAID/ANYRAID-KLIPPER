@@ -39,6 +39,6 @@ export function planTmc220x(reader:ConfigurationReader,section:string){
 }
 /** Call only with motors disabled. Failure propagates to startup owner; never
  * grants motion readiness or replays a partially initialized driver itself. */
-export async function initializeTmc220x(device:TmcUartDevice,plan:ReturnType<typeof planTmc220x>,signal:AbortSignal):Promise<void>{
+export async function initializeTmc220x(device:Pick<TmcUartDevice,'write'>,plan:{registers:readonly {address:number;value:number}[]},signal:AbortSignal):Promise<void>{
  for(const register of plan.registers){signal.throwIfAborted();await device.write(register.address,register.value,signal);}
 }

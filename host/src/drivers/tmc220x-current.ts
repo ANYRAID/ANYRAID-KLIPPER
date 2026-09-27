@@ -5,7 +5,7 @@ import type {TmcUartDevice} from './tmc-uart.ts';
 export class Tmc220xCurrent {
  #current:ReturnType<typeof tmc220xCurrent>;#hold:number;#resistor:number;#chop:number;#ihold:number;
  #device:Pick<TmcUartDevice,'write'>;#lifetime:AbortSignal;#fault:(cause:unknown)=>void;#busy=false;#failed=false;#revision=0;
- constructor(device:Pick<TmcUartDevice,'write'>,plan:ReturnType<typeof planTmc220x>,lifetime:AbortSignal,fault:(cause:unknown)=>void){
+ constructor(device:Pick<TmcUartDevice,'write'>,plan:Pick<ReturnType<typeof planTmc220x>,'current'|'requestedHold'|'resistor'> & {registers:readonly {name:string;value:number}[]},lifetime:AbortSignal,fault:(cause:unknown)=>void){
   this.#device=device;this.#current=plan.current;this.#hold=plan.requestedHold;this.#resistor=plan.resistor;
   this.#chop=plan.registers.find(r=>r.name==='CHOPCONF')!.value;this.#ihold=plan.registers.find(r=>r.name==='IHOLD_IRUN')!.value;this.#lifetime=lifetime;this.#fault=fault;
  }

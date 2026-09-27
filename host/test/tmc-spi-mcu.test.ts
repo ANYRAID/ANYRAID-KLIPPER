@@ -43,3 +43,14 @@ test('maximum chain falls back to ordered packets without exceeding MCU payload 
  const firmware=await serialFirmware(undefined,{tmcSpi(_oid,data,read){events.push(read?'query':'preface');assert.equal(data.length,50);if(!read){expected=Buffer.from(data);for(let offset=0;offset<50;offset+=5)expected[offset]=0;}return {data:expected};}}),session=new SerialSession(firmware.fd,{async stopDevice(){}});
  try{await session.initialize(signal());await session.configure({oidCount:1,commands:[]},signal());const chain=sessionTmcSpi(session,0,10);await chain.register(10).write(0x6c,0xffffffff,signal());await chain.register(1).write(0x10,0x80000000,signal());assert.deepEqual(events,['preface','query','preface','query']);}finally{await session.stop();await firmware.close();}
 });
+test('TMC2130 native startup and runtime current adjustment verify complete register values',async()=>{
+ const {planTmc2130}=await import('../src/drivers/tmc2130.ts'),{initializeTmc220x}=await import('../src/drivers/tmc220x.ts'),{Tmc220xCurrent}=await import('../src/drivers/tmc220x-current.ts'),{ConfigurationReader}=await import('../src/moonraker/config-reader.ts'),{ConfigurationSource}=await import('../src/moonraker/config-source.ts');
+ const registers=new Map<number,number>();let latched=Buffer.alloc(5),writes=0;
+ const firmware=await serialFirmware(undefined,{tmcSpi(_oid,frame){const previous=latched,bytes=Buffer.from(frame),reg=bytes[0]&127;if(bytes[0]&128){registers.set(reg,bytes.readUInt32BE(1));writes++;}latched=Buffer.alloc(5);latched.writeUInt32BE(registers.get(reg)??0,1);return {data:previous};}}),session=new SerialSession(firmware.fd,{async stopDevice(){}});
+ try{
+  await session.initialize(signal());const config=compileTmcSpi(session,session.dictionary,0,pin(session),0);await session.configure({oidCount:1,commands:[config.select,config.configureBus]},signal());const device=sessionTmcSpi(session,0).register();
+  const reader=new ConfigurationReader(new ConfigurationSource('/spi.cfg',{'tmc2130 stepper_x':{run_current:'.8',driver_sgt:'-64',driver_mslut0:'4294967295'},stepper_x:{rotation_distance:'40',microsteps:'16'}},[]),null),plan=planTmc2130(reader,'tmc2130 stepper_x');
+  await initializeTmc220x(device,plan,signal());assert.equal(writes,plan.registers.length);for(const register of plan.registers)assert.equal(await device.read(register.address,signal()),register.value);
+  const current=new Tmc220xCurrent(device,plan,signal(),()=>assert.fail('current fault'));await current.set({run:1.5,hold:.3},signal());assert.equal(writes,plan.registers.length+2);assert.equal((await device.read(0x10,signal()))&0x1f1f,(current.current.irun<<8)|current.current.ihold);
+ }finally{await session.stop();await firmware.close();}
+});
