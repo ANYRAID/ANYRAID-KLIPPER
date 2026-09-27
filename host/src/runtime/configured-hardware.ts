@@ -6,6 +6,9 @@ import {MCUGroup} from './mcu-group.ts';
 import {AsyncPrinterHeaters} from '../thermal/async-heaters.ts';
 import {GenerationPWMOutput} from '../outputs/generation-pwm.ts';
 import {ScheduledCoolingFan} from '../outputs/fan.ts';
+import {readHeaterFanPolicy} from '../thermal/heater-fan.ts';
+import {HeaterFanRuntime} from '../thermal/heater-fan-runtime.ts';
+import {serialClock} from '../protocol/serial-queue.ts';
 import {MotorEnable} from '../outputs/motor-enable.ts';
 import {compileConfiguredMotionEmitters,type ConfiguredMotionRequest} from '../config/motion-emitters.ts';
 const owners=new WeakSet<MCUGroup>();
@@ -31,6 +34,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const timeout=options.timeoutMs??10000;
  if(owners.has(group)||(typeof options.beforeTarget!=='function'&&!(options.beforeTarget===undefined&&options.motion?.length))||!Number.isSafeInteger(timeout)||timeout<1||timeout>300000)throw new Error('Invalid or reused hardware startup ownership');
  const plan=compileConfiguredHardware(reader,group,clocks,layout),ids={...options.heaterGcodeIds};
+ const thermalPolicies=new Map(plan.fans.filter(f=>f.section.startsWith('heater_fan ')).map(f=>[f.section,readHeaterFanPolicy(reader,f.section,plan.heaters.map(h=>h.section))]));
  const emitters=options.motion?compileConfiguredMotionEmitters(reader,plan,options.motion):undefined;
  if(Object.keys(ids).some(name=>!plan.heaters.some(h=>h.section===name)))throw new Error('Unknown heater G-code mapping');
  let readyHardware:object|undefined;
@@ -63,6 +67,12 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   const output=(p:typeof plan.fans[number]['output'])=>{const s=group.session(p.mcu);return p.timeline?GenerationPWMOutput.withClock(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.timeline):new GenerationPWMOutput(p.pwm,s.dictionary,group.commandQueue(p.mcu),group.commandQueue(p.mcu),p.clock.clockAt,p.clock.printTimeAtClock);};
   for(const f of plan.fans){const runtime=new ScheduledCoolingFan(output(f.output),f.config,f.enable?output(f.enable):undefined);fans.push({section:f.section,runtime});await runtime.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of analog){a.sensor.activate();active();}
+  for(const f of fans){const policy=thermalPolicies.get(f.section);if(!policy)continue;
+   const p=plan.fans.find(p=>p.section===f.section)!;
+   const now=()=>Math.max(...[p.output,...p.enable?[p.enable]:[]].map(o=>o.clock.printTimeAtClock(group.session(o.mcu).clock.sync.getClock(serialClock.now()))));
+   const owner=new HeaterFanRuntime(f.runtime,policy,name=>heaters.getTemperature(name),now,error=>{void close(error).catch(()=>{});});
+   cleanup.add(cause=>owner.stop(cause));owner.start();active();
+  }
   state='ready';
   const result=Object.freeze({plan,emitters,heaters,analog:Object.freeze(analog),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
   hardwareOwners.set(result,{group,claimed:false,cleanup});readyHardware=result;return result;

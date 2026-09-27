@@ -33,3 +33,10 @@ test('fan validates times, capacity and safe defaults without truncating request
  const o=output();assert.throws(()=>new ScheduledCoolingFan({...o.port,configuration:{...o.port.configuration,maximumDuration:3}},{minimumScheduleTime:.02}));
  const f=new ScheduledCoolingFan(o.port,{capacity:1,minimumScheduleTime:.02});await f.start(signal());assert.throws(()=>f.enqueue(NaN,.5));f.enqueue(1,.5);assert.throws(()=>f.enqueue(2,.5),/capacity/);assert.throws(()=>f.enqueue(.5,.2),/Invalid/);await f.flush(2,signal());await assert.rejects(f.flush(1,signal()),/horizon/);await f.stop();
 });
+test('explicit thermal shutdown defaults remain on until an actual cold-speed write',async()=>{
+ const o=output(),e=output(),p={...o.port,configuration:{initialPower:0,defaultPower:.8,maximumDuration:0}},enable={...e.port,configuration:{initialPower:0,defaultPower:1,maximumDuration:0}};
+ assert.throws(()=>new ScheduledCoolingFan(p,{minimumScheduleTime:.02}),/defaults/);
+ const f=new ScheduledCoolingFan(p,{maxPower:.8,shutdownPower:.8,minimumScheduleTime:.02},enable);await f.start(signal());assert.equal(f.status.scheduledPower,.8);
+ f.enqueue(1,0);await f.flush(1,signal());assert.deepEqual(o.calls,[[1,0]]);assert.deepEqual(e.calls,[[1,0]]);
+ await assert.rejects(f.off(signal()),/not an off/);await f.resetToDefault(signal());assert.equal(f.status.scheduledPower,.8);assert.equal(f.status.speed,.8);await f.stop();assert.equal(o.stops,1);
+});

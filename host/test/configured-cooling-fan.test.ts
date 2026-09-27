@@ -56,3 +56,32 @@ test('compiled PWM plus enable run through native queues and confirm generation 
   await fan.off(signal);assert(adapters.every(a=>a.status.defaultConfirmed&&a.status.pendingWrites===0));assert.equal(fan.status.speed,0);assert.equal(stops,0);
  }finally{await group.stop();await fw.close();}
 });
+test('thermal shutdown is clamped, inverted and explicitly admitted by the scheduler',()=>{
+ for(const shutdown of [undefined,'.1','0']){
+  const f=stepperBatchFixture(),section='heater_fan hotend',r=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{[section]:{pin:'!PA2',hardware_pwm:'true',max_power:'.8',enable_pin:'!aux:PA3',...(shutdown===undefined?{}:{shutdown_speed:shutdown})}},[]),null);
+  const [p]=compileConfiguredCoolingFans(r,f.pins,f.mcus,clocks(),[{section,minimumScheduleTime:.1}]),expected=shutdown===undefined?.8:Number(shutdown);
+  assert.equal(p.config.shutdownPower,expected);assert.equal(p.output.pwm.shutdownValue,1-expected);assert.equal(p.enable!.pwm.shutdownValue,expected?0:1);
+  const port=(q:typeof p.output)=>({configuration:{initialPower:0,defaultPower:q.pwm.invert?1-q.pwm.shutdownValue:q.pwm.shutdownValue,maximumDuration:0},async reset(){},async setPWM(){},async stop(){}});
+  assert.doesNotThrow(()=>new ScheduledCoolingFan(port(p.output),p.config,port(p.enable!)));
+ }
+});
+test('thermal software PWM rejects fractional shutdown transactionally',()=>{
+ const f=stepperBatchFixture(),section='heater_fan hotend',r=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{[section]:{pin:'PA2',max_power:'.8'}},[]),null);
+ assert.throws(()=>compileConfiguredCoolingFans(r,f.pins,f.mcus,clocks(),[{section,minimumScheduleTime:.1}]),/Software PWM shutdown/);assert.equal(f.pins.claimedPins.length,0);assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount,0);
+});
+test('thermal default reset and cold write traverse native MCU generation queues',async()=>{
+ const fw=await serialFirmware(),signal=new AbortController().signal;
+ const group=new MCUGroup([{id:'mcu',async connect(s,stopDevice){const session=new SerialSession(fw.fd,{stopDevice});await session.initialize(s);return session;},async stopDevice(){}}]);
+ try{
+  await group.start(signal);const session=group.session('mcu'),chip={},pins=new PrinterPins<object>();pins.register('mcu',chip);
+  const section='heater_fan hotend',r=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{[section]:{pin:'!PA2',hardware_pwm:'true',enable_pin:'!PA1',max_power:'.8'}},[]),null);
+  const [p]=compileConfiguredCoolingFans(r,pins,new Map([['mcu',{chip,dictionary:session.dictionary}]]),new Map([['mcu',{currentPrintTime:Number(session.clock.sync.getClock(serialClock.now()))/1e6,calibration:{offset:0,frequency:1e6}}]]),[{section,minimumScheduleTime:.1}]),outputs=[p.output,p.enable!];
+  await session.configure({oidCount:mcuOids(pins).finalize('mcu').oidCount,commands:outputs.flatMap(o=>o.pwm.commands),restart:outputs.flatMap(o=>o.pwm.restart),init:outputs.flatMap(o=>o.pwm.init),reservedMoves:2},signal);
+  const adapters=outputs.map(o=>new GenerationPWMOutput(o.pwm,session.dictionary,group.commandQueue('mcu'),group.commandQueue('mcu'),o.clock.clockAt,o.clock.printTimeAtClock)),fan=new ScheduledCoolingFan(adapters[0],p.config,adapters[1]);await fan.start(signal);
+  assert.equal(fan.status.scheduledPower,.8);assert(adapters.every(a=>a.status.defaultConfirmed));
+  const time=Number(session.clock.sync.getClock(serialClock.now()))/1e6+.3;fan.enqueue(time,0);await fan.flush(time,signal);
+  assert.deepEqual(fw.outputs.filter(m=>m.name==='queue_pwm_out_generation').map(m=>m.parameters.value),[255]);assert.deepEqual(fw.outputs.filter(m=>m.name==='queue_digital_out_generation').map(m=>m.parameters.on_ticks),[10000]);
+  await fan.resetToDefault(signal);assert.equal(fan.status.scheduledPower,.8);assert(adapters.every(a=>a.status.defaultConfirmed&&a.status.pendingWrites===0));
+  assert.equal(fw.outputs.filter(m=>m.name==='reset_pwm_out_generation').length,2);
+ }finally{await group.stop();await fw.close();}
+});

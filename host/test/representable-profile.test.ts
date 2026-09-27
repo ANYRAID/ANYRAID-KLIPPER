@@ -18,7 +18,7 @@ for(const [start,end,a,b,time] of [[3.78,3.79,100,80.00000000000007,3.1993729999
 test('representable real phases, unbounded long-clock distortion remain protected',()=>{
  const m=move(3.78,3.79,100,80.00000000000007);assert.equal(representableProfile(m,0),undefined);
  const real=move(0,.01,100,90);assert.equal(representableProfile(real,1),undefined);assert.equal(representableProfile(real,1e14),undefined);
- using queue=new TrapQueue();assert.throws(()=>queue.appendPlanned([real],1e14),/time resolution/);assert.equal(queue.extract(10,0,1e14+1).length,0);
+ using queue=new TrapQueue();assert.throws(()=>queue.appendPlanned([real],1e14),error=>{assert(error instanceof RangeError);const detail=JSON.parse(error.message.slice(error.message.indexOf(': ')+2));assert.equal(detail.row[0],1e14);assert.equal(detail.row.length,13);assert.equal(detail.extrusionAxis,null);assert.equal(detail.replace,false);assert(detail.phase>=1&&detail.phase<=3);return true;});assert.equal(queue.extract(10,0,1e14+1).length,0);
 });
 test('coalescing respects reversed coordinates and synchronized extrusion endpoints',()=>{
  for(const sign of [-1,1])for(const extrusion of [false,true]){

@@ -65,3 +65,20 @@ test('assembled sensor and PWM reserve the shared timeline and release ADC histo
   await owner.close();aux.retireBefore(boundary);assert.equal(aux.status.fromClock,boundary);assert.equal(owner.analog[0].sensor.status.closed,true);assert.deepEqual(f.stops,[1,1]);
  }finally{await f.close();}
 });
+test('thermal fan follows heater target through native queues and closes its timer with hardware',async()=>{
+ const {ConfigurationReader}=await import('../src/moonraker/config-reader.ts'),{ConfigurationSource}=await import('../src/moonraker/config-source.ts');
+ const f=await hardwareStartupFixture(false,false,true);let interval:ReturnType<typeof setInterval>|undefined;
+ try{
+  const section='heater_fan hotend',reader=new ConfigurationReader(new ConfigurationSource('/thermal.cfg',{...hardwareReader().source.original,[section]:{pin:'PA4',heater:'extruder'}},[]),null);
+  const owner=await startConfiguredHardware(reader,f.group,f.clocks,{...hardwareLayout,fans:[...hardwareLayout.fans,{section,minimumScheduleTime:.1}]},{beforeTarget(){}},f.signal),aux=f.group.session('aux'),adc=owner.plan.heaters[0].sensor.adc.oid;
+  const heater=owner.plan.heaters[0],raw=Math.round(heater.configuration.converter.adc(25)*heater.sensor.adc.maximumSum);
+  const emit=()=>f.firmware[1].emit('analog_in_state',{oid:adc,next_clock:Number(BigInt.asUintN(32,aux.clock.sync.getClock(serialClock.now())+292000n)),values:Buffer.from([raw&255,raw>>8])});
+  emit();interval=setInterval(emit,100);
+  const fan=owner.fans.find(f=>f.section===section)!.runtime,oid=owner.plan.fans.find(f=>f.section===section)!.output.pwm.oid;
+  const writes=()=>f.firmware[0].outputs.filter(o=>o.name==='queue_digital_out_generation'&&o.parameters.oid===oid);
+  await until(()=>fan.status.speed===0&&writes().length>0);assert.equal(writes().at(-1)!.parameters.on_ticks,0);
+  await owner.heaters.setTarget('extruder',200,f.signal);await until(()=>fan.status.speed===1);assert.equal(writes().at(-1)!.parameters.on_ticks,10000);
+  await owner.heaters.turnOffAll();await until(()=>fan.status.speed===0);assert.equal(writes().at(-1)!.parameters.on_ticks,0);
+  clearInterval(interval);interval=undefined;await owner.close();const count=writes().length;await delay(150);assert.equal(writes().length,count);assert.equal(fan.status.phase,'stopped');assert.deepEqual(f.stops,[1,1]);
+ }finally{if(interval)clearInterval(interval);await f.close();}
+});

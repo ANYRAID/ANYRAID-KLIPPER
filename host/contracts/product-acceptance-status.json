@@ -3,13 +3,13 @@
   "implementationBase": "015c3aa5 plus process-lifetime durable recovery journal",
   "node": "26.9.0",
   "command": "npm --prefix host run test:product-acceptance",
-  "result": "passed_simulated_scope",
+  "result": "mixed_simulated_runs_stability_open",
   "tests": {
     "passed": 4,
     "failed": 0,
     "skipped": 0
   },
-  "firstUnpassedGate": null,
+  "firstUnpassedGate": "Intermittent Motion duration below time resolution during compatibility print after host reinitialization",
   "capture": {
     "startPosition": 3.78,
     "endPosition": 3.79,
@@ -89,5 +89,18 @@
     "printTime": 3.619281999999901,
     "cruiseT": 7.095019016745141e-17,
     "decelT": 0.0010557280900009367
+  },
+  "latestObservation": {
+    "date": "2026-09-27",
+    "evidence": "heater-fan-foundation.json",
+    "firstRun": {
+      "passed": 2,
+      "failed": 2
+    },
+    "diagnosticRun": {
+      "passed": 4,
+      "failed": 0
+    },
+    "resolved": false
   }
 }

@@ -21,10 +21,9 @@ export interface FanOutput {
  /** Confirm independent device stop and settle accepted host writes. */
  stop(cause:unknown):Promise<void>;
 }
-export interface FanConfig {maxPower?:number;kickStartTime?:number;offBelow?:number;minimumScheduleTime:number;capacity?:number;}
-/** Part-cooling only: zero start/shutdown and no watchdog. Heater/chamber fans
- * need different thermal ownership. Motion owns request timestamps and flush
- * horizons; queueing a command must not force a motion drain. */
+export interface FanConfig {shutdownPower?:number;maxPower?:number;kickStartTime?:number;offBelow?:number;minimumScheduleTime:number;capacity?:number;}
+/** Scheduled fan output. Nonzero shutdown requires explicit shutdownPower;
+ * thermal fans still need an independent temperature-driven owner. */
 export class ScheduledCoolingFan {
  #output:FanOutput;#enable:FanOutput|undefined;#max:number;#kick:number;#below:number;#interval:number;#capacity:number;
  #queue:{time:number;value:number}[]=[];#next=0;#lastRequest=0;#horizon=0;#value=0;#requested=0;
@@ -32,7 +31,11 @@ export class ScheduledCoolingFan {
  constructor(output:FanOutput,config:FanConfig,enable?:FanOutput){
   const max=config.maxPower??1,kick=config.kickStartTime??.1,below=config.offBelow??0,interval=config.minimumScheduleTime,capacity=config.capacity??1024;
   if(!Number.isFinite(max)||max<=0||max>1||!Number.isFinite(kick)||kick<0||!Number.isFinite(below)||below<0||below>1||!Number.isFinite(interval)||interval<=0||!Number.isInteger(capacity)||capacity<1||capacity>65536||enable===output)throw new RangeError('Invalid cooling fan configuration');
-  for(const item of [output,...enable?[enable]:[]])if(item.configuration.initialPower!==0||item.configuration.defaultPower!==0||item.configuration.maximumDuration!==0)throw new Error('Cooling fan requires zero defaults without a watchdog');
+  const shutdown=config.shutdownPower??0;if(!Number.isFinite(shutdown)||shutdown<0||shutdown>max)throw new RangeError('Invalid fan shutdown power');
+  for(const item of [output,...enable?[enable]:[]]){
+   const actual=item.configuration.defaultPower,expected=item===output?shutdown:shutdown?1:0;
+   if(item.configuration.initialPower!==0||!Number.isFinite(actual)||actual<0||actual>1||Math.abs(actual-expected)>Number.EPSILON||item.configuration.maximumDuration!==0)throw new Error('Fan output defaults differ from explicit shutdown policy');
+  }
   this.#output=output;this.#enable=enable;this.#max=max;this.#kick=kick;this.#below=below;this.#interval=interval;this.#capacity=capacity;
  }
  get status(){return {phase:this.#phase,busy:this.#busy,speed:this.#requested,scheduledPower:this.#value,pending:this.#queue.length,nextTime:this.#queue.length?Math.max(this.#queue[0].time,this.#next):null,fault:this.#fault,observerErrors:this.#notice.errors};}
@@ -42,14 +45,16 @@ export class ScheduledCoolingFan {
  async #reset(signal:AbortSignal){
   if(this.#busy)throw new Error('Cooling fan is busy');this.#check(signal);this.#busy=true;
   const local=AbortSignal.any([signal,this.#abort.signal]);
-  try{await Promise.all([this.#output,...this.#enable?[this.#enable]:[]].map(o=>o.reset(local)));this.#check(local);this.#queue=[];this.#next=this.#lastRequest=this.#horizon=this.#value=this.#requested=0;this.#phase='ready';}
+  try{await Promise.all([this.#output,...this.#enable?[this.#enable]:[]].map(o=>o.reset(local)));this.#check(local);this.#queue=[];this.#next=this.#lastRequest=this.#horizon=0;this.#value=this.#output.configuration.defaultPower;this.#requested=this.#value;this.#phase='ready';}
   catch(error){try{await this.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Cooling fan reset and stop failed');}throw error;}
   finally{this.#busy=false;}
  }
  start(signal:AbortSignal):Promise<void>{if(this.#phase!=='idle')return Promise.reject(new Error('Cooling fan cannot restart'));return this.#reset(signal);}
  /** Call after motion/flush admission is fenced. Cancels queued future duty by
   * generation reset; completion is an MCU ACK, not electrical pin feedback. */
- off(signal:AbortSignal):Promise<void>{if(this.#phase!=='ready')return Promise.reject(new Error('Cooling fan not ready'));return this.#reset(signal);}
+ resetToDefault(signal:AbortSignal):Promise<void>{if(this.#phase!=='ready')return Promise.reject(new Error('Cooling fan not ready'));return this.#reset(signal);}
+ /** Part-cooling only: thermal defaults must never be mistaken for zero duty. */
+ off(signal:AbortSignal):Promise<void>{if(this.#output.configuration.defaultPower!==0)return Promise.reject(new Error('Thermal fan reset is not an off operation'));return this.resetToDefault(signal);}
  enqueue(time:number,value:number):void{
   if(this.#phase!=='ready'||this.#busy)throw new Error('Cooling fan not ready or busy');
   if(!Number.isFinite(time)||time<Math.max(this.#lastRequest,this.#horizon)||!Number.isFinite(value)||value<0)throw new RangeError('Invalid cooling fan request');

@@ -61,7 +61,15 @@ export class TrapQueue {
       time=((time+p.accelT)+p.cruiseT)+p.decelT;
       if(!Number.isFinite(time)||time>=1e15) throw new RangeError('Print time overflow');
     }
-    const data=rows.subarray(0,count*13);if(replace)native.replaceFuture(this.#handle,startTime,data);else native.append(this.#handle,data);return time;
+    const data=rows.subarray(0,count*13);
+    try{if(replace)native.replaceFuture(this.#handle,startTime,data);else native.append(this.#handle,data);}
+    catch(error){
+      if(error instanceof RangeError&&error.message==='Motion duration below time resolution'){
+        for(let offset=0;offset<data.length;offset+=13){let phaseTime=data[offset];for(let phase=1;phase<=3;phase++){const duration=data[offset+phase];if(duration>0&&phaseTime+duration<=phaseTime)throw new RangeError(`${error.message}: ${JSON.stringify({row:Array.from(data.subarray(offset,offset+13)),phase,extrusionAxis:extrusionAxis??null,replace})}`,{cause:error});phaseTime+=duration;}}
+      }
+      throw error;
+    }
+    return time;
   }
   /** Rows of 10 doubles in reverse chronology, matching pull_move in trapq.h. */
   extract(capacity:number,start:number,end:number):Float64Array {return native.extract(this.#handle,capacity,start,end);}
