@@ -166,3 +166,29 @@ for(let run=0;run<benchRuns;run++)for(const filePrint of (run%2?[true,false]:[fa
   }finally{await hardware.close();}
  }finally{clearInterval(watch);for(const t of timers)clearTimeout(t);await f.close();if(temporary)await files.rm(temporary,{recursive:true,force:true});}
 });
+
+for(const reverse of [false,true])test(`automatic Delta connection owns configuration through print assembly (${reverse})`,async()=>{
+ const {planDeltaPrinter}=await import('../src/config/delta-printer.ts'),{connectConfiguredDeltaPrinter}=await import('../src/runtime/configured-delta-printer.ts');
+ const f=await initialMotionSetup(reverse,true,true,false);
+ try{
+  const r=reader(delta(f.reader.source.original)),p=planDeltaPrinter(r,policy);
+  const owner=await connectConfiguredDeltaPrinter(r,f.connections,'mcu',p.layout,{hardware:{...f.hardwareOptions,motion:p.motion},motion:p.initial,delta:p.delta,print:{output(){},motorCompletion:'hold',startupHoming:{mode:'home',axes:[0,1,2]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},open:async()=>{throw new Error('Unexpected file');}}},f.signal);
+  assert.equal(owner.group.status.state,'ready');assert.equal(owner.hardware.status.state,'ready');assert.equal(owner.delta.kinematics.status.homedAxes,'');assert(f.firmware.every(f=>f.motion.length===0));
+  await owner.close();assert.equal(owner.delta.port.status.failed,true);assert.equal(owner.hardware.heaters.status.closed,true);assert.deepEqual(f.stops,[1,1]);
+ }finally{await f.close();}
+});
+test('automatic Delta rejects unsupported sections before connecting and closes both MCUs on print assembly failure',async()=>{
+ const {planDeltaPrinter}=await import('../src/config/delta-printer.ts'),{connectConfiguredDeltaPrinter}=await import('../src/runtime/configured-delta-printer.ts');
+ const f=await initialMotionSetup(false,true,true,false);let connections=0;
+ try{
+  const raw=delta(f.reader.source.original),r=reader(raw),p=planDeltaPrinter(r,policy),configured={hardware:{...f.hardwareOptions,motion:p.motion},motion:p.initial,delta:p.delta,print:{output(){},motorCompletion:'hold' as const,startupHoming:{mode:'home' as const,axes:[0,1,2] as (0|1|2)[]},parking:{parkXY:[0,0] as const,retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},open:async()=>{throw new Error('Unexpected file');}}};
+  const links=f.connections.map(c=>({...c,connect:async(...args:Parameters<typeof c.connect>)=>{connections++;return c.connect(...args);}}));
+  for(const section of ['probe','gcode_macro START','endstop_phase stepper_a']){
+   const invalid=reader({...raw,[section]:{}});assert.throws(()=>planDeltaPrinter(invalid,policy),/unsupported/);
+   await assert.rejects(connectConfiguredDeltaPrinter(invalid,links,'mcu',p.layout,configured,f.signal),/unsupported/);
+  }
+  assert.equal(connections,0);assert.deepEqual(f.stops,[0,0]);
+  await assert.rejects(connectConfiguredDeltaPrinter(r,links,'mcu',p.layout,{...configured,print:{...configured.print,bedHeater:'missing'}},f.signal),/bed heater/);
+  assert.equal(connections,2);assert.deepEqual(f.stops,[1,1]);
+ }finally{await f.close();}
+});

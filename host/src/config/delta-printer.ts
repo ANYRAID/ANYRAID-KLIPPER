@@ -36,3 +36,20 @@ export function planDeltaHardware(reader:ConfigurationReader,policy:LinearPrinte
  return {config,layout,motion,homingSettings:Object.freeze({...config.rails[0].homing,endstops:Object.freeze(homing.map(g=>g.section))}),homing:Object.freeze(homing.map(g=>Object.freeze({...g,emitters:Object.freeze([...g.emitters])}))),kinematicIds:Object.freeze(['a','b','c'] as const)};
 }
 export const compileDeltaHoming=compileHomingGroups;
+
+import {validateNativePrinterSections} from './native-printer-sections.ts';
+import {readExtrusionConfiguration} from './extrusion.ts';
+import {readArcResolution} from './arcs.ts';
+import {readRetraction} from './retraction.ts';
+import {readNativeBedMesh} from './native-bed-mesh.ts';
+/** Preflight before acquiring physical connections. Unbound components fail. */
+export function validateDeltaPrinter(reader:ConfigurationReader){
+ validateNativePrinterSections(reader,'delta');
+ const config=readDeltaMotionConfiguration(reader);
+ readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
+ readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
+}
+export function planDeltaPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
+ validateDeltaPrinter(reader);const plan=planDeltaHardware(reader,policy);
+ return {...plan,delta:{homing:plan.homing,kinematicIds:plan.kinematicIds},initial:{position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})}};
+}

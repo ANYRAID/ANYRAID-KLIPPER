@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "configurationsPerSample": 1000,
+  "samplesMs": [
+    112.34557899999999,
+    114.25458399999991,
+    113.83382900000004,
+    110.633827,
+    111.81771199999991,
+    112.11935599999993,
+    108.86211400000002
+  ],
+  "medianMs": 112.11935599999993,
+  "scope": "Cold full Delta preflight, geometry, extrusion defaults, peripheral discovery and hardware planning; excludes device acquisition, native allocation, MCU IO and print throughput"
+}

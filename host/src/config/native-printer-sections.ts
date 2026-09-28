@@ -5,12 +5,14 @@ const named=/^(?:mcu|board_pins|output_pin|servo|heater_generic|fan_generic|heat
 /** Automatic native assembly must account for every declared component.
  * A supported section is not proof that every option has been implemented;
  * individual readers still own option and hardware validation. */
-export function validateNativePrinterSections(reader:ConfigurationReader):void{
+export function validateNativePrinterSections(reader:ConfigurationReader,kinematics:'linear'|'delta'='linear'):void{
  if(reader.hasSection('exclude_object')&&Object.keys(reader.section('exclude_object').options()).length)throw new ConfigurationError('[exclude_object] does not accept options');
  const sections=reader.sections(),known=new Set(sections);
- const motors=new Set(sections.filter(s=>/^stepper_[xyz](?:[1-9][0-9]*)?$/.test(s)||s==='extruder'));
+ const motorPattern=kinematics==='delta'?/^stepper_[abc](?:[1-9][0-9]*)?$/:/^stepper_[xyz](?:[1-9][0-9]*)?$/;
+ const motors=new Set(sections.filter(s=>motorPattern.test(s)||s==='extruder'));
  const heaters=new Set(sections.filter(s=>s==='extruder'||s==='heater_bed'||s.startsWith('heater_generic ')).map(s=>s.trim().split(/\s+/).at(-1)!));
  const unsupported=sections.filter(section=>{
+  if(kinematics==='delta'&&(/^(?:endstop_phase|skew_correction)(?: |$)/.test(section)||['probe','bltouch','safe_z_home','bed_tilt','z_tilt','quad_gantry_level','bed_screws','screws_tilt_adjust'].includes(section)))return true;
   if(single.has(section)||named.test(section)||motors.has(section))return false;
   if(section.startsWith('skew_correction '))return !known.has('skew_correction')||!section.slice(16).trim();
   if(section.startsWith('bed_mesh '))return !known.has('bed_mesh')||!section.slice(9).trim();

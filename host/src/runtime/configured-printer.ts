@@ -1,7 +1,7 @@
-import {bindTmcCurrent} from '../gcode/tmc-current.ts';
+import {startConfiguredMotionPrinter,snapshotMotionPrinterOptions} from './configured-motion-printer.ts';
 import {captureGroupPrintClocks} from '../timing/group-print-clocks.ts';
-import {startConfiguredHardware,type HardwareStartupOptions} from './configured-hardware.ts';
-import {initializeConfiguredMotion,type InitialMotionOptions,type ConfiguredPrintOptions} from './initial-motion.ts';
+import type {HardwareStartupOptions} from './configured-hardware.ts';
+import type {InitialMotionOptions,ConfiguredPrintOptions} from './initial-motion.ts';
 import {readLinearMotionConfiguration} from '../config/linear-motion.ts';
 import type {ConfiguredLinearHoming} from '../config/linear-homing.ts';
 import type {HardwareLayout} from '../config/hardware.ts';
@@ -22,18 +22,8 @@ export async function startConfiguredPrinter(reader:ConfigurationReader,group:MC
  if(!options.hardware.motion?.length)throw new Error('Configured printer requires motion descriptors');
  readLinearMotionConfiguration(reader);
  const settings=snapshotOptions(options);
- let hardware:Awaited<ReturnType<typeof startConfiguredHardware>>|undefined;
- const cancelled=()=>{void hardware?.close(signal.reason).catch(()=>{});};signal.addEventListener('abort',cancelled,{once:true});
- const active=()=>{signal.throwIfAborted();group.assertActive();if(hardware&&hardware.status.state!=='ready')throw new Error('Configured printer stopped during startup');};
- try{
-  hardware=await startConfiguredHardware(reader,group,clocks,layout,settings.hardware,signal);active();
-  const initial=await initializeConfiguredMotion(hardware,settings.motion,signal);active();
-  const linear=initial.createLinearPort(reader,settings.linear);active();
-  const print=await linear.createPrint(settings.print);active();
-  bindTmcCurrent(print.gcode.dispatch,hardware.drivers);
-  return Object.freeze({hardware,initial,linear,print,close:hardware.close});
- }catch(error){try{await hardware?.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured printer startup and cleanup failed',{cause:error});}throw error;}
- finally{signal.removeEventListener('abort',cancelled);}
+ const {motion,...result}=await startConfiguredMotionPrinter(reader,group,clocks,layout,settings,signal,initial=>initial.createLinearPort(reader,settings.linear));
+ return Object.freeze({...result,linear:motion});
 }
 
 /** Capture actual connected clocks instead of requiring caller-built mappings. */
@@ -42,7 +32,7 @@ export function startClockedPrinter(reader:ConfigurationReader,group:MCUGroup,pr
  return startConfiguredPrinter(reader,group,captureGroupPrintClocks(group,primaryId),layout,options,signal);
 }
 
-function snapshotOptions(options:ConfiguredPrinterOptions):ConfiguredPrinterOptions{return {hardware:{...options.hardware,motion:structuredClone(options.hardware.motion),heaterGcodeIds:{...options.hardware.heaterGcodeIds}},motion:structuredClone(options.motion),linear:structuredClone(options.linear),print:{...options.print,parking:{...options.print.parking,parkXY:[...options.print.parking.parkXY]},startupHoming:{...options.print.startupHoming,axes:[...options.print.startupHoming.axes]},lifecycle:{...options.print.lifecycle}}};}
+function snapshotOptions(options:ConfiguredPrinterOptions):ConfiguredPrinterOptions{return {...snapshotMotionPrinterOptions(options),linear:structuredClone(options.linear)};}
 
 /** Own connectors from acquisition through print shutdown. Connections must meet
  * MCUConnection's cancellation and independent safety contract (e.g. uartMCU).

@@ -18,7 +18,7 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实机验收仍需继续完成。
 
 自动线性机器装配会检查合并 include 后的每个打印机配置节。尚未迁移的
-组件（例如 gcode_macro、servo、output_pin）或没有
+组件（例如 gcode_macro、delayed_gcode、homing_override）或没有
 对应设备的 verify_heater、TMC、endstop_phase、bed_mesh 配置会明确报错，
 不会在忽略这些配置后报告就绪。文件机器配置入口在创建适配器、作业
 数据库和连接 MCU 前执行此检查；已保存的网床配置仍需对应 [bed_mesh]。
@@ -27,6 +27,20 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 尚未完成；具体数值、选项和硬件约束继续由各组件校验。
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
+
+## Delta 自动装配开发入口
+
+`planDeltaPrinter(reader, policy)` 生成硬件布局、运动描述、初始队列和
+三塔归零分组。`connectConfiguredDeltaPrinter` 获取 MCU 连接、捕获
+时钟、配置硬件并装配文件打印；已连接的 MCU 可使用
+`startClockedDeltaPrinter`。这些函数仍是机器集成层 API，当前
+`product-host` 的持久化控制器与 Moonraker 自动服务未切换到 Delta。
+
+连接前检查每个配置节，识别 A/B/C 塔、附加塔电机及相应 TMC 所有权。
+尚未接通的探针、相位、倾斜/龙门/螺钉/偏斜校准和原始宏明确拒绝。
+预检失败不打开设备；后续启动失败关闭已获取的 MCU 和输出所有者。
+成功启动保持未归零状态，实际归零由打印启动策略或受控操作执行。
+当前证据仅为模拟 MCU，不能据此跳过实机运动精度和打印验收。
 
 ## 独立模拟温度传感器
 
