@@ -401,6 +401,14 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
   this.#check(signal);if(this.#o.kinematics instanceof DeltaKinematics)this.#o.kinematics.resetPosition();const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
  }
+ /** Check the complete physical calibration path without scheduling any steps. */
+ preflightManualCalibration(points:readonly (readonly number[])[],height:number,speed:number){
+  this.assertActive();if(this.status.busy||this.status.pendingMoves||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Manual path requires idle homed printer');
+  if(!Number.isFinite(height)||!Number.isFinite(speed)||speed<=0||points.length<1||points.length>65536)throw new RangeError('Invalid manual path');
+  const current=[...this.homingPosition()],admission=this.#newAdmission(current,true);
+  try{for(const point of points){if(point.length!==2||!point.every(Number.isFinite))throw new RangeError('Invalid manual point');current[2]=Math.max(current[2],height);admission.move([...current],speed);current[0]=point[0];current[1]=point[1];admission.move([...current],speed);current[2]=height;admission.move([...current],speed);admission.flush();}}
+  finally{admission.shutdown(new Error('Manual path preflight complete'));}
+ }
  /** Physical safe-home travel preserves extrusion and ordinary axis authority. */
  homingTravel(position:readonly number[],speed:number,signal:AbortSignal){
   const target=[...position];return this.#operate('homing-travel',signal,async s=>{

@@ -8,6 +8,7 @@ import {fitBedTilt} from '../motion/bed-tilt.ts';
 import {manualProbeBounds,planManualProbe,type ManualProbeAdjustment} from '../homing/manual-probe.ts';
 export interface ManualScrewOptions {direction?:ScrewDirection;maximumDeviation?:number;}
 export interface ManualBedTiltMotion {
+ preflight?(points:readonly (readonly number[])[],height:number,speed:number):void;
  begin?(options:Readonly<ManualScrewOptions>):void;
  idle():boolean;planned():readonly number[];measured():readonly number[];
  limits:{axisMinimum:readonly number[];axisMaximum:readonly number[]};
@@ -63,6 +64,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
   if(action==='start'){
    if(!['ready','completed'].includes(state)||!gate.available||!motion.idle())throw new ApiError(409,'Manual calibration requires idle homed printer');
    const current=motion.planned();if(!multiPoint){validate(current);plan.points=[[current[0],current[1]]];plan.horizontalHeight=current[2];}for(const [x,y] of plan.points)validate([x,y,plan.horizontalHeight,current[3]]);
+   try{motion.preflight?.(plan.points,plan.horizontalHeight,plan.travelSpeed);}catch{throw new ApiError(400,'Manual calibration path outside reachable motion envelope');}
    try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks manual calibration');}
    screwOptions=Object.freeze({direction:params.direction as ScrewDirection|undefined,maximumDeviation:params.maximum_deviation as number|undefined});
    lifetime=new AbortController();stopping=undefined;samples=[];result=null;position=null;history=[];
