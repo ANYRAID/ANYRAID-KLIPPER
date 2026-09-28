@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "configurationsPerSample": 1000,
+  "samplesMs": [
+    79.22279600000002,
+    80.36175100000003,
+    80.68442500000003,
+    78.53943700000002,
+    77.37787100000003,
+    77.95461,
+    76.64924199999996
+  ],
+  "medianMs": 78.53943700000002,
+  "scope": "Cold Delta hardware planning and ownership validation only; excludes native allocation, MCU IO, homing and print throughput"
+}

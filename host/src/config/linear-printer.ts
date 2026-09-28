@@ -1,13 +1,10 @@
-import {readServo} from './servo.ts';
-import {readOutputPin} from './output-pin.ts';
+import {planPrinterPeripherals} from './printer-peripherals.ts';
 import {readBedScrews} from './bed-screws.ts';
 import {readScrewsTilt} from './screws-tilt.ts';
-import {readTemperatureFan} from './temperature-fan.ts';
 import {readQuadGantry} from './quad-gantry.ts';
 import {readZTilt} from './z-tilt.ts';
 import {readHomingPin} from './sensorless.ts';
 import {validateNativePrinterSections} from './native-printer-sections.ts';
-import {readFilamentEncoderPolicy} from '../inputs/filament-encoder.ts';
 import {readProbeGrid} from './probe-grid.ts';
 import {readProbeConfiguration,configuredProbeSection} from './probe.ts';
 import {readNativeBedMesh} from './native-bed-mesh.ts';
@@ -20,7 +17,6 @@ import type {ConfiguredMotionRequest} from './motion-emitters.ts';
 import type {ConfiguredLinearHoming} from './linear-homing.ts';
 import type {InitialMotionOptions} from '../runtime/initial-motion.ts';
 import {PrinterPins} from '../protocol/pins.ts';
-import {readFilamentPolicy} from '../inputs/filament-switch.ts';
 export interface LinearPrinterPolicy {mcus:readonly string[];enableLeadTime:number;fanMinimumScheduleTime:number;}
 /** Plan the supported single-extruder linear machine from section names and
  * physical pin ownership. Does not open devices or grant homing authority. */
@@ -53,16 +49,7 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
   if(!motors.some(m=>m.axis<3&&owner.get(m.emitter)===gpio))throw new Error('Probe GPIO requires a kinematic motor on its MCU');
   if(!homingLayout.some(h=>h.section===probeSection))homingLayout.push({section:probeSection!,mcus:[...new Set(owner.values())]});
  }
- for(const section of sections.filter(n=>n.startsWith('temperature_fan ')))readTemperatureFan(reader,section);
- const fans=sections.filter(n=>n==='fan'||n.startsWith('fan_generic ')||n.startsWith('heater_fan ')||n.startsWith('controller_fan ')||n.startsWith('temperature_fan ')).map(section=>({section,minimumScheduleTime:policy.fanMinimumScheduleTime}));
- const heaters=sections.filter(n=>n==='extruder'||n==='heater_bed'||n.startsWith('heater_generic ')).map(section=>({section}));
- // Canonical nozzle/bed ordering is independent of source section ordering.
- heaters.sort((a,b)=>a.section==='extruder'?-1:b.section==='extruder'?1:a.section==='heater_bed'?-1:b.section==='heater_bed'?1:a.section.localeCompare(b.section));
- const buttons=sections.filter(n=>/^filament_(switch|motion)_sensor /.test(n)).map(section=>{if(section.startsWith('filament_motion_sensor '))readFilamentEncoderPolicy(reader,section);else readFilamentPolicy(reader,section);return {section};});
- const sensors=sections.filter(n=>n.startsWith('temperature_sensor ')||n.startsWith('temperature_fan ')).map(section=>({section}));
- const servos=sections.filter(n=>n.startsWith('servo ')).map(section=>{readServo(reader,section);return {section};});
- const outputPins=sections.filter(n=>n.startsWith('output_pin ')).map(section=>{readOutputPin(reader,section,3);return {section};});
- const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters,sensors,...servos.length?{servos}:{},...outputPins.length?{outputPins}:{},...(buttons.length?{buttons}:{})};
+ const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,...planPrinterPeripherals(reader,policy.fanMinimumScheduleTime)};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode}));
  const linear:ConfiguredLinearHoming={...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
  const initial:InitialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})};
