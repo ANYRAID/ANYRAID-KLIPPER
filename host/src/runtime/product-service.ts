@@ -1,3 +1,7 @@
+import {readDeltaMotionConfiguration} from '../config/delta-motion.ts';
+import {readDeltaCalibrationPlan} from '../config/delta-calibration-plan.ts';
+import {readDeltaCalibrationState} from '../config/delta-calibration-state.ts';
+import {registerNativeDeltaCalibration} from '../moonraker/native-delta-calibration.ts';
 import {connectDeltaProductPrinter} from './product-delta-printer.ts';
 import type {ConfiguredDeltaPrinterOptions} from './configured-delta-printer.ts';
 import {planDeltaPrinter} from '../config/delta-printer.ts';
@@ -80,7 +84,9 @@ export function startConfiguredDeltaProductService(reader:ConfigurationReader,po
 async function startMachineProductService<T extends ProductServicePrinter>(reader:ConfigurationReader,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal,connect:()=>Promise<T>){
  signal.throwIfAborted();const bedScrews=readBedScrews(reader),screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
  const screwsStatus=new ScrewsCalibrationStatus();
+ const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
  const printer=await connect();
+ let closeDeltaCalibration:(()=>Promise<void>)|undefined;
  let closeBedScrews:(()=>Promise<void>)|undefined;
  let closeManualScrews:(()=>Promise<void>)|undefined;
  let closeScrews:(()=>Promise<void>)|undefined;
@@ -105,7 +111,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -152,6 +158,10 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
    adjust:(delta,signal)=>printer.print.gcode.dispatch.runExclusive(async s=>{await printer.machine.port.drain(s);printer.print.gcode.coordinates.execute('SET_GCODE_OFFSET',{Z_ADJUST:delta,MOVE:1,MOVE_SPEED:5});await printer.machine.port.drain(s);},signal),
    stop:cause=>printer.machine.port.motorOff(cause)
   });
+  if(deltaPlan){
+   const kinematics=readDeltaMotionConfiguration(reader).kinematics;
+   closeDeltaCalibration=registerNativeDeltaCalibration(server.endpoints,printer.maintenanceGate,{validateGeometry:g=>kinematics.validateCalibrationGeometry(g),idle:tiltIdle,measure:async s=>({geometry:kinematics.calibrationGeometry,probes:await printer.machine.port.measureDeltaCalibration(deltaPlan,kinematics.status.axisMinimum[2],s),manual:deltaState.manual,distances:deltaState.distances}),synchronize:()=>printer.print.gcode.coordinates.resetPosition()},product.configurationSession);
+  }
   if(bedScrews)closeBedScrews=registerNativeBedScrews(server.endpoints,printer.maintenanceGate,{idle:tiltIdle,planned:()=>printer.machine.port.homingPosition(),limits:printer.machine.kinematics.status,move:(p,speed,s)=>printer.machine.port.homingTravel(p,speed,s),synchronize:()=>printer.print.gcode.coordinates.resetPosition(),stop:cause=>printer.machine.port.motorOff(cause),subscribeStop:listener=>printer.machine.port.subscribeStop(listener)},bedScrews);
   if(screws)closeManualScrews=registerManualBedTilt(server.endpoints,printer.maintenanceGate,{begin:selection=>screwsStatus.begin(selection.maximumDeviation),idle:tiltIdle,planned:()=>printer.machine.port.homingPosition(),measured:()=>printer.machine.port.manualProbePosition(),limits:printer.machine.kinematics.status,move:(p,speed,s)=>printer.machine.port.homingTravel(p,speed,s),apply:async(samples,s,selection)=>{s.throwIfAborted();const result=calculateScrewTilt(samples.map(p=>p[2]),screws.thread,selection.direction,selection.maximumDeviation);screwsStatus.complete(result);return {...result,samples:samples.map(p=>[...p]),names:[...screws.names],thread:screws.thread,persisted:false};},synchronize:()=>printer.print.gcode.coordinates.resetPosition(),stop:cause=>{screwsStatus.fail();return printer.machine.port.motorOff(cause);},subscribeStop:listener=>printer.machine.port.subscribeStop(listener)},screws,300000,'screws_tilt');
   closeManualProbe=registerManualProbe(server.endpoints,printer.maintenanceGate,{idle:tiltIdle,planned:()=>printer.machine.port.homingPosition(),measured:()=>printer.machine.port.manualProbePosition(),limits:printer.machine.kinematics.status,move:(p,speed,s)=>printer.machine.port.homingTravel(p,speed,s),synchronize:()=>printer.print.gcode.coordinates.resetPosition(),stop:cause=>printer.machine.port.motorOff(cause),subscribeStop:listener=>printer.machine.port.subscribeStop(listener)});

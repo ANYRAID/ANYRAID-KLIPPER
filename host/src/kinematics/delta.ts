@@ -30,6 +30,8 @@ export class DeltaKinematics {
     const maxXY=Math.min(c.printRadius,this.#minArm-c.radius,ratioToXY(12));this.#maxXY2=maxXY**2;
     if(maxXY<=0||![...this.#arm2,...this.#endstops,this.#coneZ,this.#slow2,this.#verySlow2,this.#maxXY2].every(Number.isFinite))throw new RangeError('Invalid Delta build envelope');
   }
+  validateCalibrationGeometry(geometry:Pick<DeltaConfig,'radius'|'angles'|'arms'|'endstops'|'stepDistances'>){if(geometry.endstops.some(v=>v<0))throw new RangeError('Invalid calibrated Delta endstop');new DeltaKinematics({...this.#c,...geometry});}
+  get calibrationGeometry(){const c=this.#c;return {radius:c.radius,angles:triple(c.angles),arms:triple(c.arms),endstops:triple(c.endstops),stepDistances:triple(c.stepDistances)};}
   get kind(){return 'delta' as const;}
   setMotionLimits(maxVelocity:number,maxAccel:number):void {
     if(![maxVelocity,maxAccel].every(v=>Number.isFinite(v)&&v>0))throw new RangeError('Invalid dynamic motion limits');

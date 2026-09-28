@@ -1,3 +1,5 @@
+import {readDeltaCalibrationPlan} from './delta-calibration-plan.ts';
+import {readDeltaCalibrationState} from './delta-calibration-state.ts';
 import {readProbeGrid} from './probe-grid.ts';
 import {configuredProbeSection,readProbeConfiguration} from './probe.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -55,6 +57,7 @@ import {readNativeBedMesh} from './native-bed-mesh.ts';
 /** Preflight before acquiring physical connections. Unbound components fail. */
 export function validateDeltaPrinter(reader:ConfigurationReader){
  validateNativePrinterSections(reader,'delta');
+ if(readDeltaCalibrationPlan(reader)){if(!reader.hasSection('probe'))throw new Error('Delta calibration requires mechanical probe');readDeltaCalibrationState(reader);}
  const config=readDeltaMotionConfiguration(reader);
  readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
  readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);readProbeConfiguration(reader);if(configuredProbeSection(reader))readProbeGrid(reader);
