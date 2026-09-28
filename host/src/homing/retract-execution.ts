@@ -1,13 +1,14 @@
 import {LookAheadQueue} from '../motion/lookahead.ts';
-import {LinearKinematics,type Axis} from '../kinematics/linear.ts';
+import type {Axis} from '../kinematics/linear.ts';
+import type {HomingTrajectoryKinematics} from './trajectory-kinematics.ts';
 import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import {RebuiltMotionStreamer} from '../runtime/motion-streamer.ts';
 /** One retreat on a freshly recovered/bound generation. The owning G28 driver
  * must exclude all other producers, keep heaters/extrusion under their normal
  * guards, and retain this generation for the next coordinate rebase. */
 export class HomingRetractExecution {
- #generation:Awaited<ReturnType<typeof bindRebuiltMotion>>;#kinematics:LinearKinematics;#started=false;
- constructor(generation:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:LinearKinematics){this.#generation=generation;this.#kinematics=kinematics;}
+ #generation:Awaited<ReturnType<typeof bindRebuiltMotion>>;#kinematics:HomingTrajectoryKinematics;#started=false;
+ constructor(generation:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:HomingTrajectoryKinematics){this.#generation=generation;this.#kinematics=kinematics;}
  async run(target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,timeoutMs=30000):Promise<readonly number[]>{
   if(this.#started)throw new Error('Homing retract is single use');this.#started=true;
   const g=this.#generation;

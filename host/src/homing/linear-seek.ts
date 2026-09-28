@@ -1,3 +1,4 @@
+import {DeltaKinematics} from '../kinematics/delta.ts';
 import {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
 import {LinearKinematics,type Axis} from '../kinematics/linear.ts';
 import type {StoppedEmitter} from './rebuild-motion.ts';
@@ -16,20 +17,29 @@ export interface LinearSeekOptions {
  /** Representative rail motors, ordered as calcPosition's A/B/C inputs. */
  kinematicIds:readonly [string,string,string];
 }
+export interface DeltaSeekOptions extends Omit<LinearSeekOptions,'kinematics'> {kinematics:DeltaKinematics;}
 /** One actual seek and generation adoption. The G28 owner still decides first/
  * second pass, checks missing hits, sequences retract, and grants authority.
  * No independent producer/calibration may operate while this object owns it. */
 export class LinearHomingSeek {
- #o:LinearSeekOptions;#started=false;#cleanupPending=false;#cleanupError:unknown;
- constructor(o:LinearSeekOptions){this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],groups:o.groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))};}
+ #o:LinearSeekOptions|DeltaSeekOptions;#started=false;#cleanupPending=false;#cleanupError:unknown;
+ constructor(o:LinearSeekOptions|DeltaSeekOptions){this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],groups:o.groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))};}
  get status(){return {started:this.#started,cleanupPending:this.#cleanupPending,cleanupError:this.#cleanupError};}
  async run(target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,timeoutMs=60000){
   if(this.#started)throw new Error('Linear homing seek is single use');this.#started=true;
   const o=this.#o,g=o.generation,mode=o.mode??'home';let executor:HomingMoveExecution|undefined,motion:Awaited<ReturnType<HomingMoveExecution['run']>>['motion']|undefined;
   try{
    signal.throwIfAborted();if(mode!=='home'&&mode!=='probe')throw new Error('Invalid seek mode');
-   const expected=o.kinematics.kind==='cartesian'?['x','y','z']:o.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
-   if(new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>o.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Linear homing rail solvers differ from kinematics');
+   if(o.kinematics instanceof DeltaKinematics){
+    const geometry=o.kinematics.solverGeometry;
+    if(mode!=='home'||new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>{
+     const actual=o.emitters.find(e=>e.id===id)?.mode,expected=geometry[i];
+     return typeof actual!=='object'||actual.kind!=='delta'||actual.armLength!==expected.armLength||actual.towerX!==expected.towerX||actual.towerY!==expected.towerY;
+    }))throw new Error('Delta homing rail solvers differ from kinematics');
+   }else{
+    const expected=o.kinematics.kind==='cartesian'?['x','y','z']:o.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
+    if(new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>o.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Linear homing rail solvers differ from kinematics');
+   }
    const routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));
    const emitters=recoveryEmitters(g.motion.bindings,o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
    const prepared=await prepareHomingTrajectory(g,o.kinematics,target,speed,axis,signal),plan=planHomingGroups(g,emitters,prepared,o.groups);
@@ -40,7 +50,7 @@ export class LinearHomingSeek {
    const clockTimelines=g.clockTimelines?new Map(g.motion.bindings.map(b=>[b.id,g.clockMembers.find(m=>m.session===g.members[b.member].session)!.timeline!])):undefined;
    executor=new HomingMoveExecution({...plan,onTriggered:o.onTriggered,clockTimelines,prepareWindow:clockTimelines?until=>{prepared.prepareWindow(until);}:undefined,coordinator:g.coordinator,bindings:g.motion.bindings,startTime:prepared.startTime,endTime:prepared.endTime,timeoutMs,locate:readback=>{
     for(const a of actuators)if(a.extra){const offset=readback.offsets.find(p=>p.member===a.member&&p.oid===a.oid);if(!offset||offset.triggerOffset!==0n||offset.haltOffset!==0n)throw new Error('Unexpected extra-axis movement during homing');}
-    const located=homingToolheadPositions({mode,actuators,offsets:readback.offsets,reference:mode==='probe'?prepared.startPosition:prepared.endPosition,calculate:positions=>o.kinematics.calcPosition(o.kinematicIds.map(id=>positions.get(id)!))});halt=located.halt;trigger=located.trigger;
+    const located=homingToolheadPositions({mode,actuators,offsets:readback.offsets,reference:mode==='probe'?prepared.startPosition:prepared.endPosition,calculate:positions=>o.kinematics.calcPosition([positions.get(o.kinematicIds[0])!,positions.get(o.kinematicIds[1])!,positions.get(o.kinematicIds[2])!])});halt=located.halt;trigger=located.trigger;
     const now=serialClock.now(),printTime=Math.max(...g.clockMembers.map(m=>m.stepper.printTimeAtClock(m.session.clock.sync.getClock(now))))+.2;
     return {queues:routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?halt!.slice(0,3):[halt![r.extrusionAxis],0,0]) as [number,number,number]})),printTime};
    }});

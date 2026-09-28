@@ -29,3 +29,9 @@ test('Delta config rejects invalid geometry, travel and unrepresentable limits b
  const changes:Record<string,Record<string,string>>[]=[{printer:{delta_radius:'250'}},{printer:{minimum_z_position:'301'}},{printer:{max_z_velocity:'301'}},{stepper_b:{position_endstop:'-1'}},{stepper_a:{homing_positive_dir:'false'}},{stepper_b:{arm_length:'99'}},{stepper_c:{microsteps:'0'}},{stepper_a:{homing_speed:'5e-324'}},{printer:{max_velocity:'1e308'}}];
  for(const change of changes)assert.throws(()=>readDeltaMotionConfiguration(reader(change)),JSON.stringify(change));
 });
+test('privileged Delta homing accepts all-tower Z movement but rejects foreign XY, extrusion and invalid geometry',()=>{
+ const {kinematics:k}=readDeltaMotionConfiguration(reader()),home=k.homePosition,start=[home[0],home[1],home[2]-1,0],end=[...home,0];
+ const move=k.planHomingAxisMove(start,end,10,2);assert.equal(move.distance,1);assert.equal(k.status.homedAxes,'');
+ for(const target of [[home[0]+1,home[1],home[2],0],[...home,1],[home[0],home[1],home[2]+1,0],[home[0],home[1],k.homingMove().force[2]-1,0],start])assert.throws(()=>k.planHomingAxisMove(start,target,10,2));
+ assert.throws(()=>k.planHomingAxisMove(start,end,10,0));assert.throws(()=>k.planHomingAxisMove([1000,0,0,0],end,10,2));
+});

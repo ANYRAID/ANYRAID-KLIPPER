@@ -1,7 +1,8 @@
 // Delta geometry and admission port from klippy/kinematics/delta.py.
 // Copyright (C) 2016-2021 Kevin O'Connor. GPL-3.0-or-later.
 import {trilateration,type Vec3} from '../math/mathutil.ts';
-import type {Move} from '../motion/lookahead.ts';
+import {Move,motionLimits} from '../motion/lookahead.ts';
+import type {Axis} from './linear.ts';
 import {KinematicError} from './linear.ts';
 export interface DeltaConfig {
   radius:number;printRadius:number;arms:Vec3;angles:Vec3;endstops:Vec3;stepDistances:Vec3;
@@ -38,6 +39,16 @@ export class DeltaKinematics {
   resetPosition(homingAxes=''):void {if(!/^[xyz]*$/.test(homingAxes))throw new RangeError('Invalid homing axes');this.#cachedXY2=-1;if(homingAxes==='xyz')this.#needHome=false;}
   clearHoming():void {this.#needHome=true;this.#cachedXY2=-1;}
   homingMove():{force:Vec3;home:Vec3} {const force:Vec3=[this.#home[0],this.#home[1],-1.5*Math.sqrt(Math.max(...this.#arm2)-this.#maxXY2)];return {force,home:this.homePosition};}
+  /** All towers seek together toward the configured home XY. Recovery may
+   * start off-center after independently timed stops. Never extrude here. */
+  planHomingAxisMove(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
+    if(index!==2||start.length<4||start.length!==end.length||!start.every(Number.isFinite)||!end.every(Number.isFinite)||end[0]!==this.#home[0]||end[1]!==this.#home[1]||end[2]>this.#home[2]||end[2]<this.homingMove().force[2]||end.slice(3).some((v,i)=>v!==start[i+3]))throw new RangeError('Invalid Delta homing trajectory');
+    this.stablePosition([start[0],start[1],start[2]]);this.stablePosition([end[0],end[1],end[2]]);
+    const c=this.#c,move=new Move(motionLimits(c.maxVelocity,c.maxAccel),start,end,speed);
+    if(!move.isKinematic||!move.axesD[2])throw new RangeError('Delta homing must move Z');
+    const ratio=move.distance/Math.abs(move.axesD[2]);if(ratio!==Infinity)move.limitSpeed(c.maxZVelocity*ratio,c.maxZAccel*ratio);
+    return move;
+  }
   calcPosition(actuators:Vec3):Vec3 {
     triple(actuators);
     return trilateration(map3(this.#towers,(t,i):Vec3=>[t[0],t[1],actuators[i]]),this.#arm2);

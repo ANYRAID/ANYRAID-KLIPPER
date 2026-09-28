@@ -1,11 +1,12 @@
 import type {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
-import {LinearKinematics,type Axis} from '../kinematics/linear.ts';
+import type {Axis} from '../kinematics/linear.ts';
+import type {HomingTrajectoryKinematics} from './trajectory-kinematics.ts';
 import {LookAheadQueue} from '../motion/lookahead.ts';
 import {stationaryRows} from '../motion/stationary.ts';
 /** Transfer an unused recovered generation to HomingMoveExecution's exclusive
  * drip producer. Success prepares native source data and history coverage only;
  * no step generation, trigger arming or homing authority is issued here. */
-export async function prepareHomingTrajectory(g:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:LinearKinematics,target:readonly number[],speed:number,axis:Axis,signal:AbortSignal){
+export async function prepareHomingTrajectory(g:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:HomingTrajectoryKinematics,target:readonly number[],speed:number,axis:Axis,signal:AbortSignal){
  try{
   signal.throwIfAborted();g.assertFutureBaseline();const state=g.source.status,c=g.coordinator.status,startTime=g.motion.printTime;
   if(state.retired||state.failed||state.busy||state.paused||state.bufferedMoves||state.sourceTime!==startTime||c.busy||c.failed||c.retired||c.generatedTime!==startTime||c.committedTime!==startTime)throw new Error('Homing preparation requires an unused recovered generation');
