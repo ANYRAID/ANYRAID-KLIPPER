@@ -19,3 +19,12 @@ test('combination checks range, source exceptions and exact deviation boundary',
 test('scaled compensated mean stays finite near binary64 limits',()=>{
  const c=new CombinedTemperature({...config,minimum:0,maximum:Number.MAX_VALUE,maximumDeviation:Number.MAX_VALUE},Array.from({length:128},()=>()=>({temperature:Number.MAX_VALUE/2,stale:false})));assert.equal(c.sample(),Number.MAX_VALUE/2);
 });
+test('optional fields aggregate only available samples and publish valid zeros',()=>{
+ for(const [method,expected] of [['min',{humidity:0,pressure:10,gas:0}],['max',{humidity:50,pressure:20,gas:0}],['mean',{humidity:25,pressure:15,gas:0}]] as const){
+  const c=new CombinedTemperature({...config,method},[()=>({temperature:20,stale:false,humidity:0,pressure:10,gas:null}),()=>({temperature:20,stale:false,humidity:50,pressure:20,gas:0}),()=>({temperature:20,stale:false})]);c.sample();assert.deepEqual(c.additional,expected);
+  const snapshot:{gas?:number}=c.additional;snapshot.gas=100;assert.deepEqual(c.additional,expected);
+ }
+});
+test('optional field updates are atomic, missing values clear old fields, invalid values latch failure',()=>{
+ let humidity:number|null=50,pressure:number|undefined=10;const c=new CombinedTemperature(config,[()=>({temperature:20,stale:false,humidity,pressure})]);c.sample();humidity=0;pressure=undefined;c.sample();assert.deepEqual(c.additional,{humidity:0});humidity=null;c.sample();assert.deepEqual(c.additional,{});humidity=NaN;assert.throws(()=>c.sample(),/humidity/);assert(c.getTemperature().stale);assert.deepEqual(c.additional,{});
+});

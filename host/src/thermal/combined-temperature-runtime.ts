@@ -9,6 +9,9 @@ export class CombinedTemperatureRuntime {
  readonly #combined:CombinedTemperature;readonly #fault:(cause:unknown)=>void;readonly #schedule:Schedule;
  #cancel:(()=>void)|undefined;#started=false;#closed=false;
  constructor(section:string,config:CombinedTemperatureConfig,sources:readonly (()=>CombinedReading)[],fault:(cause:unknown)=>void,timer:Schedule=schedule){this.section=section;this.#combined=new CombinedTemperature(config,sources);this.#fault=fault;this.#schedule=timer;}
+ getTemperature(){return {...this.#combined.additional,...this.state.getTemperature()};}
+ get objectStatus(){return {...this.state.objectStatus,...this.#combined.additional};}
+ get combinedStatus(){return {temperature:this.state.objectStatus.temperature,...this.#combined.additional};}
  start():void{if(this.#started||this.#closed)throw new Error('Combined temperature cannot restart');this.#started=true;this.#cancel=this.#schedule(()=>this.#sample(),1000);}
  #sample():void{
   if(this.#closed)return;

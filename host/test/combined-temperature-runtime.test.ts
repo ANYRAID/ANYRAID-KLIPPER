@@ -19,5 +19,13 @@ test('combined planning sorts dependencies and rejects cycles and unknown source
  assert.deepEqual(planCombinedTemperatures(make('temperature_sensor b','extruder'),sections,available).map(p=>p.section),['temperature_sensor b','temperature_sensor a']);
  assert.throws(()=>planCombinedTemperatures(make('temperature_sensor b','temperature_sensor a'),sections,available),/cycle/);
  assert.throws(()=>planCombinedTemperatures(make('unknown','extruder'),sections,available),/unknown/);
+ assert.deepEqual(planCombinedTemperatures(make('temperature_combined b','extruder'),sections,available).map(p=>p.section),['temperature_sensor b','temperature_sensor a']);
+ assert.throws(()=>planCombinedTemperatures(make('temperature_combined b','temperature_combined a'),sections,available),/cycle/);
  assert.throws(()=>planCombinedTemperatures(make('extruder','extruder'),['temperature_sensor a','temperature_sensor duplicate a'],available),/Duplicate/);
+});
+test('runtime preserves optional fields through chained combined snapshots',()=>{
+ const callbacks:(()=>void)[]=[];const timer=(callback:()=>void)=>{callbacks.push(callback);return ()=>{};};
+ const parent=new CombinedTemperatureRuntime('temperature_sensor a',config,[()=>({temperature:20,stale:false,humidity:0,pressure:1000,gas:2})],()=>assert.fail(),timer);
+ const child=new CombinedTemperatureRuntime('temperature_sensor b',config,[()=>parent.getTemperature(),()=>({temperature:22,stale:false,pressure:1020})],()=>assert.fail(),timer);
+ parent.start();child.start();callbacks[0]();callbacks[1]();assert.deepEqual(child.combinedStatus,{temperature:21,humidity:0,pressure:1010,gas:2});assert.equal(child.objectStatus.pressure,1010);parent.close();child.close();assert(child.getTemperature().stale);
 });
