@@ -21,6 +21,9 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
+Node 主机现支持独立 AHT 温湿度传感器的 I²C 配置、周期采样与
+组合传感器输入；直接温控输出和物理硬件验收仍待完成，详见迁移说明。
+
 本机迁移验证还发现了离线计算进程崩溃和瞬时运动数值失配，单进程
 顺序运行也可复现，根因尚未定位。诊断证据见
 [运行时与运动数值异常记录](docs/diagnostics/node26-motion-failures.json)；

@@ -1,3 +1,4 @@
+import {compileConfiguredAhtSensors} from './aht-temperature.ts';
 import {compileConfiguredCombinedHeaters} from './combined-heater.ts';
 import {planCombinedTemperatures} from './combined-temperature.ts';
 import {readServo} from './servo.ts';
@@ -72,6 +73,9 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  if((layout.sensors?.length??0)>128||new Set(layout.sensors?.map(s=>s.section)).size!==(layout.sensors?.length??0))throw new Error('Invalid temperature sensor batch');
  const combinedSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_combined');
  const combinedSensors=planCombinedTemperatures(reader,[...combinedSections,...combinedHeaterSections].map(s=>s.section),[...layout.heaters,...layout.sensors??[]].map(s=>s.section));
+ const ahtSections=(layout.sensors??[]).filter(s=>['AHT10','AHT1X','AHT2X','AHT3X'].includes(reader.section(s.section).get('sensor_type')));
+ if(ahtSections.some(s=>!s.section.startsWith('temperature_sensor ')))throw new Error('AHT direct fan feedback is not wired yet');
+ const ahtSensors=compileConfiguredAhtSensors(reader,pins,mcus,ahtSections);
  const hostSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_host');
  if(new Set(hostSections.map(s=>s.section.trim().split(/\s+/).at(-1))).size!==hostSections.length)throw new Error('Duplicate host temperature object name');
  const hostSensors=Object.freeze(hostSections.map(s=>readHostTemperature(reader,s.section)));
@@ -79,7 +83,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const spiInputs=compileConfiguredSpiSensors(reader,pins,mcus,sharedClocks,[...spiSections,...spiHeaterSections]);
  const spiSensors=Object.freeze(spiInputs.filter(p=>spiSections.some(s=>s.section===p.section))),spiHeaters=compileConfiguredSpiHeaters(reader,pins,mcus,sharedClocks,spiInputs.filter(p=>spiHeaterSections.some(h=>h.section===p.section)));
  const allHeaters=Object.freeze(layout.heaters.map(h=>[...heaters,...spiHeaters,...combinedHeaters].find(p=>p.section===h.section)!));
- const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!hostSections.includes(s)&&!spiSections.includes(s)&&!combinedSections.includes(s)));
+ const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!ahtSections.includes(s)&&!hostSections.includes(s)&&!spiSections.includes(s)&&!combinedSections.includes(s)));
  const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
  if((layout.outputPins?.length??0)+(layout.servos?.length??0)>128)throw new Error('Output and servo capacity exceeded');
  const fixedOutputs=layout.outputPins?.length?compileConfiguredOutputPins(reader,pins,mcus,sharedClocks,layout.outputPins.map(p=>({section:p.section}))):Object.freeze([]);
@@ -98,6 +102,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  for(const h of heaters){add(h.output.mcu,h.output.pwm);add(h.sensor.mcu,h.sensor.adc);}
  for(const h of combinedHeaters)add(h.output.mcu,h.output.pwm);
  for(const h of spiHeaters)add(h.output.mcu,h.output.pwm);
+ for(const s of ahtSensors)add(s.mcu,{commands:[s.protocol.config,s.protocol.configureBus]});
  for(const s of sensors)add(s.mcu,s.adc);
  for(const b of buttons)add(b.mcu,b.buttons);
  for(const p of outputPins){const o=p.output;if(o.kind==='pwm')add(p.mcu,o.config);else add(p.mcu,{commands:[o.config.config],restart:[o.config.restart],reservedMoves:o.config.reservedMoves});}
@@ -111,5 +116,5 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({outputPins,temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,combinedHeaters,allHeaters,sensors,spiSensors,hostSensors,combinedSensors,buttons,tmcUarts,tmcSpis});
+ return Object.freeze({outputPins,temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,combinedHeaters,allHeaters,sensors,spiSensors,ahtSensors,hostSensors,combinedSensors,buttons,tmcUarts,tmcSpis});
 }

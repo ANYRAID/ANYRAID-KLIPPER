@@ -1,3 +1,5 @@
+import {attachConfiguredAhtSensor} from '../config/aht-temperature.ts';
+import {AhtTemperatureRuntime} from '../thermal/aht-runtime.ts';
 import {attachConfiguredCombinedHeater} from '../config/combined-heater.ts';
 import {CombinedTemperatureRuntime} from '../thermal/combined-temperature-runtime.ts';
 import {attachConfiguredOutputPin} from './configured-output-pin.ts';
@@ -78,6 +80,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   if(emitters){const barrier=readyHardware&&hardwareOwners.get(readyHardware)?.beforeTarget;if(!barrier)throw new Error('Configured motion target barrier is not ready');await barrier(signal);}
  }),analog:ReturnType<typeof attachConfiguredAnalogHeater>[]=[];
  const spiHeaters:ReturnType<typeof attachConfiguredSpiHeater>[]=[],thermal:{section:string;runtime:AsyncHeaterRuntime}[]=[];
+ const ahtSensors:AhtTemperatureRuntime[]=[];
  const hostSensors:HostTemperature[]=[],combinedSensors:CombinedTemperatureRuntime[]=[];
  const sensors:(ReturnType<typeof attachConfiguredAnalogSensor>|ReturnType<typeof attachConfiguredSpiSensor>)[]=[];
  const cleanup=new Set<(cause:unknown)=>Promise<void>>();
@@ -91,7 +94,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   const jobs:Promise<void>[]=[];
   // Start independent safety immediately; never wait for a graceful output
   // transaction before initiating the MCU stop. Callbacks must not await us.
-  for(const stop of [()=>group.stop(cause),()=>heaters.shutdown('Configured hardware stopped'),...analog.map(a=>()=>a.stop(cause)),...spiHeaters.map(a=>()=>a.stop(cause)),...sensors.map(s=>()=>s.sensor.stop(cause)),...hostSensors.map(s=>()=>s.close(cause)),...combinedSensors.map(s=>()=>s.close(cause)),...fans.map(f=>()=>f.runtime.stop(cause)),...outputPins.map(p=>()=>p.runtime.stop(cause)),...Array.from(cleanup,stop=>()=>stop(cause))])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  for(const stop of [()=>group.stop(cause),()=>heaters.shutdown('Configured hardware stopped'),...analog.map(a=>()=>a.stop(cause)),...spiHeaters.map(a=>()=>a.stop(cause)),...sensors.map(s=>()=>s.sensor.stop(cause)),...hostSensors.map(s=>()=>s.close(cause)),...ahtSensors.map(s=>()=>s.close(cause)),...combinedSensors.map(s=>()=>s.close(cause)),...fans.map(f=>()=>f.runtime.stop(cause)),...outputPins.map(p=>()=>p.runtime.stop(cause)),...Array.from(cleanup,stop=>()=>stop(cause))])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length){state='failed';stopError=new AggregateError(errors,'Configured hardware stop failed',{cause});done.reject(stopError);}else{state='stopped';done.resolve();}});
   return closing;
  };
@@ -105,10 +108,11 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    if(a){const owned=attachConfiguredAnalogHeater(group,a);analog.push(owned);binding=owned;}else if(plan.combinedHeaters.some(p=>p.section===h.section)){binding=attachConfiguredCombinedHeater(group,plan.combinedHeaters.find(p=>p.section===h.section)!);}else{const owned=attachConfiguredSpiHeater(group,plan.spiHeaters.find(p=>p.section===h.section)!);spiHeaters.push(owned);binding=owned;}
    thermal.push({section:h.section,runtime:binding.runtime});heaters.register(h.section,binding.runtime,ids[h.section]);
   }
+  for(const p of plan.ahtSensors){const sensor=attachConfiguredAhtSensor(group,p,error=>{void close(error).catch(()=>{});});ahtSensors.push(sensor);heaters.registerSensor(p.section,sensor,p.gcodeId);}
   for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}
   for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
   for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
-  const temperatureSources=new Map([...thermal.map(s=>[s.section,()=>s.runtime.getTemperature()] as const),...hostSensors.map(s=>[s.section,()=>s.state.getTemperature()] as const),...sensors.map(s=>[s.section,()=>s.state.getTemperature()] as const)]);
+  const temperatureSources=new Map([...ahtSensors.map(s=>[s.section,()=>s.getTemperature()] as const),...thermal.map(s=>[s.section,()=>s.runtime.getTemperature()] as const),...hostSensors.map(s=>[s.section,()=>s.state.getTemperature()] as const),...sensors.map(s=>[s.section,()=>s.state.getTemperature()] as const)]);
   for(const p of plan.combinedSensors){const inputs=p.sources.map(name=>{const read=temperatureSources.get(name);if(!read)throw new Error('Combined temperature binding missing');return read;});const sensor=new CombinedTemperatureRuntime(p.section,p,inputs,error=>{void close(error).catch(()=>{});});combinedSensors.push(sensor);temperatureSources.set('temperature_combined '+p.section.trim().split(/\s+/).at(-1),()=>sensor.getTemperature());const heater=thermal.find(h=>h.section===p.section);
    if(heater){const output=plan.combinedHeaters.find(h=>h.section===p.section)!.output,session=group.session(output.mcu);const detachSample=sensor.state.subscribeSample((_time,temp)=>heater.runtime.sample(output.clock.printTimeAtClock(session.clock.sync.getClock(serialClock.now())),temp));cleanup.add(async()=>detachSample());}
    else{temperatureSources.set(p.section,()=>sensor.getTemperature());heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}}
@@ -149,6 +153,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   if(plan.bltouch){bltouch=attachConfiguredBLTouch(group,plan);cleanup.add(cause=>bltouch!.close(cause));await bltouch.start(abort.signal);active();}
   await heaters.start(abort.signal);active();for(const a of [...analog,...spiHeaters]){a.sensor.activate();active();}
   for(const s of sensors){s.sensor.activate();active();}
+  for(const s of ahtSensors){await s.start(abort.signal);active();}
   for(const s of hostSensors){await s.start(abort.signal);active();}
   for(const s of combinedSensors){s.start();active();}
   for(const f of fans){const policy=thermalPolicies.get(f.section),controller=controllerPolicies.get(f.section);if(!policy&&!controller)continue;
@@ -166,7 +171,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const p of plan.outputPins)outputPins.push(attachConfiguredOutputPin(group,p));
   await Promise.all(outputPins.map(binding=>binding.start(abort.signal)));active();
   state='ready';
-  const result=Object.freeze({outputPins:Object.freeze(outputPins),temperatureFans:Object.freeze(temperatureFans.map(f=>Object.freeze(f))),plan,emitters,heaters,bltouch,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),spiHeaters:Object.freeze(spiHeaters),thermal:Object.freeze(thermal.map(h=>Object.freeze(h))),sensors:Object.freeze(sensors),hostSensors:Object.freeze(hostSensors),combinedSensors:Object.freeze(combinedSensors),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
+  const result=Object.freeze({outputPins:Object.freeze(outputPins),temperatureFans:Object.freeze(temperatureFans.map(f=>Object.freeze(f))),plan,emitters,heaters,bltouch,drivers:Object.freeze(drivers.map(d=>Object.freeze(d))),analog:Object.freeze(analog),spiHeaters:Object.freeze(spiHeaters),thermal:Object.freeze(thermal.map(h=>Object.freeze(h))),sensors:Object.freeze(sensors),ahtSensors:Object.freeze(ahtSensors),hostSensors:Object.freeze(hostSensors),combinedSensors:Object.freeze(combinedSensors),buttons:Object.freeze(buttons.map(b=>Object.freeze(b))),fans:Object.freeze(fans.map(f=>Object.freeze(f))),motorEnable,close,get status(){return {state,fault,stopError};}});
   hardwareOwners.set(result,{group,claimed:false,cleanup});readyHardware=result;return result;
  }catch(error){try{await close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Hardware startup and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',cancelled);}
