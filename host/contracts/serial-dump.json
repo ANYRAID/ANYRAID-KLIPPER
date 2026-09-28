@@ -1,0 +1,30 @@
+{
+  "node": "v26.9.0",
+  "frames": 100000,
+  "inputBytes": 1000000,
+  "samplesMs": [
+    343.3433,
+    336.35871799999995,
+    338.7182800000005,
+    337.2586730000003,
+    345.7199419999997
+  ],
+  "medianMs": 338.7182800000005,
+  "framesPerSecond": 295230.59694327647,
+  "outputSha256": "d050557565ff2938bf1101b5a1639966bccbc808c4f5a57a4025baf64318f440",
+  "scope": "Offline CLI subprocess including startup, file read, formatting and stdout hash; warm local filesystem. Not a printing hot path.",
+  "legacy": {
+    "runtime": "Python 3.12.13",
+    "samplesMs": [
+      464.718384,
+      467.5855059999999,
+      470.270348,
+      478.9655329999998,
+      465.6939739999998
+    ],
+    "medianMs": 467.5855059999999,
+    "outputSha256": "d050557565ff2938bf1101b5a1639966bccbc808c4f5a57a4025baf64318f440",
+    "source": "6822f113:klippy/parsedump.py"
+  },
+  "speedup": 1.3804554805840394
+}

@@ -238,3 +238,6 @@ SD 卡烧录入口 `scripts/flash-sdcard.sh` 已改用 Node.js 26，支持独占
 AVR 仿真工具已迁移为 `node scripts/avrsim.ts`，无需 Python/SWIG。
 构建、PTY、运行节拍和 VCD 波形导出见
 [仿真调试说明](docs/Debugging.md#testing-with-simulavr)。打印主机入口仍独立迁移。
+
+串口抓包离线解码使用 `node scripts/parsedump.ts out/klipper.dict test.serial`，
+旧 `klippy/parsedump.py` 已退役；此工具不连接或控制打印机。

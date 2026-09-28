@@ -94,11 +94,16 @@ The above will produce a file **test.serial** with the binary serial
 output. This output can be translated to readable text with:
 
 ```
-~/klippy-env/bin/python ./klippy/parsedump.py out/klipper.dict test.serial > test.txt
+node scripts/parsedump.ts out/klipper.dict test.serial > test.txt
 ```
 
 The resulting file **test.txt** contains a human readable list of
-micro-controller commands.
+micro-controller commands. The decoder requires Node.js 26.9 or later 26.x;
+it streams the capture with bounded buffering and does not require Python.
+Corrupt bytes are skipped with a diagnostic on stderr. Truncated captures or
+malformed message payloads return a non-zero exit status. Empty acknowledgement
+frames produce no command line; binary parameters use escaped byte literals.
+The batch generator above remains a separate Python entry point.
 
 The batch mode disables certain response / request commands in order
 to function. As a result, there will be some differences between
