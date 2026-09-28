@@ -23,3 +23,12 @@ test('accounting resumes after parking return and before a held command can cont
  f.port.resumeStream=async()=>{meter.accepted(.4,.401,1);};
  const parking=new NativePauseParking(f.port,config,()=>meter.setActive(true));await parking.pause(signal());await parking.resume(signal());meter.accepted(.401,1,1);assert.equal(meter.filamentUsed,1);
 });
+test('multi-tool parking retracts only the captured active axis and restores every coordinate',async()=>{
+ const f=fixture();f.port.pause=async()=>({position:[10,20,30,40,50,60],sourceTime:1});let axis=4;
+ const p=new NativePauseParking(f.port,config,undefined,()=>axis);await p.pause(signal());
+ assert.deepEqual(f.moves,[[10,20,30,40,49,60],[10,20,32,40,49,60],[5,6,32,40,49,60]]);await p.resume(signal());assert.deepEqual(f.moves.at(-1),[10,20,30,40,50,60]);
+ await p.pause(signal());axis=3;const before=f.moves.length;await assert.rejects(p.resume(signal()),/tool changed/);assert.equal(f.moves.length,before);assert.equal(f.events.at(-1),'stop');
+});
+test('a multi-axis pause without a configured active tool stops before parking',async()=>{
+ const f=fixture();f.port.pause=async()=>({position:[10,20,30,40,50],sourceTime:1});const p=new NativePauseParking(f.port,config);await assert.rejects(p.pause(signal()),/active extrusion/);assert.equal(f.moves.length,0);assert.deepEqual(f.events,['stop']);
+});

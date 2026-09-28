@@ -1,0 +1,164 @@
+{
+  "scope": "Existing single-extruder compiled product regression for paused thermal target snapshots; multi-tool native parking separately verifies four retract and four return pulses on second motor with no first motor pulses",
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 799.581954,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1259.1073130000004,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "dualCarriageSettings": {
+        "authenticated": true,
+        "primarySwitch": true,
+        "retry": true,
+        "staleRejected": true,
+        "positionRestored": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 21,
+        "samplesAfter": 24
+      }
+    },
+    {
+      "dual": true,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 292,
+      "wireSteps": 8436,
+      "minimumStepLeadMs": 87.281,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.776639,
+            "maxMs": 20.103167
+          },
+          "cpu": {
+            "user": 1387569,
+            "system": 160357
+          },
+          "rss": 186388480
+        },
+        {
+          "loop": {
+            "p99Ms": 1.719295,
+            "maxMs": 7.372799
+          },
+          "cpu": {
+            "user": 694443,
+            "system": 84286
+          },
+          "rss": 209854464
+        }
+      ]
+    }
+  ]
+}

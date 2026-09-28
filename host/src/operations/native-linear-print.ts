@@ -8,7 +8,7 @@ import {ThermalPrintDevice} from './thermal-print-device.ts';
 const owners=new WeakSet<NativeLinearGCode>();
 export interface NativeLinearPrintOptions {
  gcode:NativeLinearGCode;port:NativeLinearHomingPort;heaters:AsyncPrinterHeaters;
- mapping:{nozzle:string;bed:string};parking:PauseParkingConfig;lifecycle:NativeFileLifecycle;
+ mapping:{nozzle:string;bed:string;extruders?:readonly string[]};parking:PauseParkingConfig;lifecycle:NativeFileLifecycle;
  /** Machine policy after final output acknowledgement; never a file macro. */
  motorCompletion:'hold'|'release';
  startupHoming:PrintHomingPolicy;
@@ -26,6 +26,7 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
  const startupHoming:PrintHomingPolicy={mode:policy.mode,axes:[...policy.axes]};
  const names=heaters.status.available_heaters.map(name=>name.trim().split(/\s+/).at(-1));
  if(!heaters.status.started||heaters.status.closed||!names.includes(o.mapping.nozzle)||!names.includes(o.mapping.bed)||o.mapping.nozzle===o.mapping.bed)throw new Error('Native print heaters are not ready or mapped');
+ const tools=gcode.toolBindings.map(t=>t.name),mapped=o.mapping.extruders??[o.mapping.nozzle];if(tools.length&&(mapped.length!==tools.length||mapped.some((name,i)=>name!==tools[i])||o.mapping.nozzle!==tools[0]))throw new Error('Print tool heater ownership differs');
  for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof lifecycle[key]!=='function')throw new Error('Incomplete native print lifecycle');
  port.assertActive();owners.add(gcode);
  let device:ThermalPrintDevice|undefined,closing:Promise<void>|undefined;
@@ -46,9 +47,9 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
    gcode.objects?.finish();
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
-  }},()=>gcode.coordinates.extrusionAccounting.setActive(true));
+  }},()=>gcode.coordinates.extrusionAccounting.setActive(true),gcode.tools?()=>3+gcode.tools!.active:undefined);
   const file=new FilePrintDevice(motion,gcode.dispatch,async(id,signal)=>{const reader=await o.open(id,signal);try{signal.throwIfAborted();port.assertBedMeshFile(reader.identity);return reader;}catch(error){await reader.close();throw error;}});device=new ThermalPrintDevice(file,heaters,{...o.mapping},(work,signal)=>gcode.dispatch.runExclusive(work,signal));
-  heaters.attach(gcode.dispatch,{bed:o.mapping.bed,extruders:[o.mapping.nozzle]},async signal=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(signal);});
+  heaters.attach(gcode.dispatch,{bed:o.mapping.bed,extruders:o.mapping.extruders??[o.mapping.nozzle],activeExtruder:gcode.tools?()=>gcode.toolBindings[gcode.tools!.active].name:undefined},async signal=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(signal);});
   return {device,file,gcode,openForCalibration:o.open,close};
  }catch(error){try{await close();}catch(cleanupError){throw new AggregateError([error,cleanupError],'Native print assembly and cleanup failed');}throw error;}
 }

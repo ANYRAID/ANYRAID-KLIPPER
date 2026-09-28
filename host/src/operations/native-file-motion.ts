@@ -10,9 +10,9 @@ export interface NativeFileLifecycle {
 }
 /** Bind one native motion owner to both file pause paths and final drain.
  * FilePrintDevice owns dispatch cancellation; ThermalPrintDevice owns heaters. */
-export function bindNativeFileMotion(port:NativeLinearHomingPort,parking:PauseParkingConfig,lifecycle:NativeFileLifecycle,beforeStreamResume?:()=>void):FilePrintMotion {
+export function bindNativeFileMotion(port:NativeLinearHomingPort,parking:PauseParkingConfig,lifecycle:NativeFileLifecycle,beforeStreamResume?:()=>void,extrusionAxis?:()=>number):FilePrintMotion {
  for(const name of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof lifecycle[name]!=='function')throw new TypeError('Incomplete native file lifecycle');
- const operation=new NativePauseParking(port,parking,beforeStreamResume),abort=new AbortController();let stopped:Promise<void>|undefined;
+ const operation=new NativePauseParking(port,parking,beforeStreamResume,extrusionAxis),abort=new AbortController();let stopped:Promise<void>|undefined;
  const subscriptions=new Map<(cause:unknown)=>void,()=>void>();
  const run=async(signal:AbortSignal,work:(s:AbortSignal)=>Promise<void>)=>{const s=AbortSignal.any([signal,abort.signal]);s.throwIfAborted();port.assertActive();await work(s);s.throwIfAborted();port.assertActive();};
  return {

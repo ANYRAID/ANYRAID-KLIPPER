@@ -4,16 +4,18 @@ export type PrintCompletionAdmission=(work:(signal:AbortSignal)=>Promise<void>,s
 /** The underlying device owns file/EOF validation and motion/output safety.
  * It must not independently set heater targets or replay heater macros. */
 export class ThermalPrintDevice implements PrintDevice {
+ #extruders:readonly string[];#pausedTargets:readonly {name:string;target:number}[]|undefined;
  #listeners=new Set<(cause:unknown)=>void>();
  #device:PrintDevice;#heaters:AsyncPrinterHeaters;#nozzle:string;#bed:string;
  #prepared=false;#job:Readonly<StartPrint>|undefined;#epoch=0;#actions=new Set<AbortController>();
  #stopping:Promise<void>|undefined;#fault:unknown;
  #completion:PrintCompletionAdmission;
- constructor(device:PrintDevice,heaters:AsyncPrinterHeaters,mapping:{nozzle:string;bed:string},completion:PrintCompletionAdmission=(work,signal)=>work(signal)){
+ constructor(device:PrintDevice,heaters:AsyncPrinterHeaters,mapping:{nozzle:string;bed:string;extruders?:readonly string[]},completion:PrintCompletionAdmission=(work,signal)=>work(signal)){
   if(typeof completion!=='function')throw new TypeError('Invalid print completion admission');this.#completion=completion;
   for(const method of ['prepare','start','pause','resume','finish','stop'] as const)if(typeof device?.[method]!=='function')throw new TypeError('Incomplete print motion adapter');
   const names=heaters.status.available_heaters.map(name=>name.trim().split(/\s+/).at(-1));
   if(!names.includes(mapping.nozzle)||!names.includes(mapping.bed)||mapping.nozzle===mapping.bed||heaters.status.closed)throw new Error('Invalid print heater mapping');
+  const extruders=[...(mapping.extruders??[mapping.nozzle])];if(!extruders.length||extruders.length>13||new Set(extruders).size!==extruders.length||!extruders.includes(mapping.nozzle)||extruders.some(name=>!names.includes(name)||name===mapping.bed))throw new Error('Invalid print extruder mapping');this.#extruders=Object.freeze(extruders);
   this.#device=device;this.#heaters=heaters;this.#nozzle=mapping.nozzle;this.#bed=mapping.bed;
   heaters.subscribeShutdown(reason=>{this.#setFault(new Error(reason));void this.stop().catch(()=>{});});
   device.subscribeFault?.(cause=>{this.#setFault(cause);void this.stop().catch(()=>{});});
@@ -44,23 +46,23 @@ export class ThermalPrintDevice implements PrintDevice {
  prepare(request:Readonly<StartPrint>,signal:AbortSignal):Promise<void>{
   return this.#run(signal,async(local,guard)=>{
    if(this.#job)throw new Error('A print is already prepared');
-   const job=Object.freeze({...request});this.#prepared=false;this.#job=job;
+   const job=Object.freeze({...request});this.#prepared=false;this.#pausedTargets=undefined;this.#job=job;
    await this.#device.prepare(job,local);guard();
-   await this.#heaters.setTargets([{name:this.#nozzle,target:job.nozzle},{name:this.#bed,target:job.bed}],local);
+   await this.#heaters.setTargets([...this.#extruders.map(name=>({name,target:name===this.#nozzle?job.nozzle:0})),{name:this.#bed,target:job.bed}],local);
    guard();await this.#stable(local);guard();this.#prepared=true;
   });
  }
- async #stable(signal:AbortSignal):Promise<void>{
+ async #stable(signal:AbortSignal,targets?:readonly {name:string;target:number}[]):Promise<void>{
   const job=this.#job;if(!job)throw new Error('No prepared print');
-  const waits=[];if(job.nozzle!==0)waits.push(this.#heaters.waitUntilStable(this.#nozzle,signal));if(job.bed!==0)waits.push(this.#heaters.waitUntilStable(this.#bed,signal));
-  await Promise.all(waits);
-  if(this.#heaters.getTemperature(this.#nozzle).target!==job.nozzle||this.#heaters.getTemperature(this.#bed).target!==job.bed)throw new Error('Print heater targets changed during preparation or resume');
+  const expected=targets??[...this.#extruders.map(name=>({name,target:name===this.#nozzle?job.nozzle:0})),{name:this.#bed,target:job.bed}];
+  const unchanged=()=>{if(expected.some(t=>this.#heaters.getTemperature(t.name).target!==t.target))throw new Error('Print heater targets changed during preparation or resume');};
+  unchanged();await Promise.all(expected.filter(t=>t.target!==0).map(t=>this.#heaters.waitUntilStable(t.name,signal)));unchanged();
  }
  start(fileId:string,signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{
   if(!this.#prepared||!this.#job||this.#job.fileId!==fileId)throw new Error('Print file does not match prepared job');guard();await this.#device.start(fileId,local);
  });}
- pause(signal:AbortSignal):Promise<void>{return this.#run(signal,async local=>{if(!this.#job)throw new Error('No prepared print');await this.#device.pause(local);});}
- resume(signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{await this.#stable(local);guard();await this.#device.resume(local);});}
+ pause(signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{if(!this.#job||this.#pausedTargets)throw new Error('No running print to pause');await this.#device.pause(local);guard();this.#pausedTargets=Object.freeze([...this.#extruders,this.#bed].map(name=>Object.freeze({name,target:this.#heaters.getTemperature(name).target})));});}
+ resume(signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{if(!this.#pausedTargets)throw new Error('No paused heater state');await this.#stable(local,this.#pausedTargets);guard();await this.#device.resume(local);guard();this.#pausedTargets=undefined;});}
  finish(requestId:string,signal:AbortSignal):Promise<void>{return this.#run(signal,async(local,guard)=>{
   if(!this.#job||this.#job.requestId!==requestId)throw new Error('Print completion does not match prepared job');
   await this.#completion(async owned=>{
@@ -72,7 +74,7 @@ export class ThermalPrintDevice implements PrintDevice {
  });}
  stop():Promise<void>{
   if(this.#stopping)return this.#stopping;
-  const deferred=Promise.withResolvers<void>();this.#stopping=deferred.promise;this.#epoch++;this.#job=undefined;this.#prepared=false;
+  const deferred=Promise.withResolvers<void>();this.#stopping=deferred.promise;this.#epoch++;this.#pausedTargets=undefined;this.#job=undefined;this.#prepared=false;
   for(const controller of this.#actions)controller.abort(new Error('Print device stopped'));
   // Neither operation may prevent the other safety path from being attempted.
   const jobs:Promise<void>[]=[];

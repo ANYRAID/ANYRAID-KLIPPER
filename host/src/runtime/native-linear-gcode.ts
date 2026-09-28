@@ -121,7 +121,7 @@ export class NativeLinearGCode {
   const mode=policy.mode,axes=[...policy.axes];
   if(!['home','require_homed'].includes(mode)||!axes.length||axes.length>3||new Set(axes).size!==axes.length||axes.some(a=>!Number.isInteger(a)||a<0||a>2))return Promise.reject(new Error('Invalid print homing policy'));
   return this.dispatch.runExclusive(async s=>{
-   this.#port.assertActive();this.objects?.reset();await prepare(s);s.throwIfAborted();this.#port.assertActive();
+   this.#port.assertActive();this.objects?.reset();if(this.tools)await this.tools.select(0,this.coordinates,s);await prepare(s);s.throwIfAborted();this.#port.assertActive();
    if(mode==='home')await this.homing.home(axes,s);
    if(axes.some(a=>!this.#kinematics.status.homedAxes.includes('xyz'[a])))throw new Error('Print requires homed axes');
    s.throwIfAborted();this.enable();

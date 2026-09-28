@@ -1,3 +1,4 @@
+import {NativePauseParking} from '../src/operations/native-pause-parking.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -48,6 +49,10 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
     for(const trigger of h.triggers){const fw=f.firmware[trigger.mcu==='mcu'?0:1],oid=trigger.protocol.oid;fw.setTriggerReason(1,oid);fw.emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});}
    },1);
    try{await gcode.dispatch.execute('G28 X');assert(sent);assert.equal(machine.kinematics.status.homedAxes,'x');assert.deepEqual(port.position().slice(3),beforeHome);assert.equal(gcode.coordinates.state.position.length,4);assert.equal(gcode.coordinates.state.position[3],beforeHome[1]);}finally{clearInterval(homeTimer);}
+   const parkedFrom=[...port.position()],parking=new NativePauseParking(port,{parkXY:[parkedFrom[0],parkedFrom[1]],lift:0,retract:.05,travelSpeed:5,liftSpeed:5,retractSpeed:5},undefined,()=>3+gcode.tools!.active);
+   const pauseWire=f.firmware.map(fw=>fw.motion.length);await parking.pause(f.signal);assert.deepEqual(port.position(),parkedFrom);
+   const pulses=()=>f.firmware[1].motion.slice(pauseWire[1]).filter(m=>m.name==='queue_step'&&m.parameters.oid===e1.compressor.oid).reduce((n,m)=>n+Number(m.parameters.count),0);assert.equal(pulses(),4);assert.equal(f.firmware[0].motion.slice(pauseWire[0]).filter(m=>m.name==='queue_step').length,0);
+   await parking.resume(f.signal);assert.equal(pulses(),8);assert.deepEqual(port.position(),parkedFrom);
   }finally{await gcode.close();}
  }finally{if(timer)clearInterval(timer);await hardware?.close();await f.close();}
 });
