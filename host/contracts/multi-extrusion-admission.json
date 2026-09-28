@@ -1,0 +1,208 @@
+{
+  "baselineCommit": "a80b7d89",
+  "scope": "Sequential before/after on same host, three warmup rounds and five retained samples; no target-board or physical precision proof",
+  "before": {
+    "runtime": "v26.9.0",
+    "moves": 100000,
+    "scope": "Single extruder admission and lookahead flushing; no MCU IO",
+    "samplesMs": [
+      96.04771,
+      96.66682800000001,
+      96.65190800000005,
+      95.92133899999999,
+      96.00423999999998
+    ],
+    "medianMs": 96.04771
+  },
+  "after": {
+    "runtime": "v26.9.0",
+    "moves": 100000,
+    "scope": "Single extruder admission and lookahead flushing; no MCU IO",
+    "samplesMs": [
+      97.23429099999998,
+      97.93187899999998,
+      97.908279,
+      96.83980599999995,
+      96.99024800000007
+    ],
+    "medianMs": 97.23429099999998
+  },
+  "dual": {
+    "runtime": "v26.9.0",
+    "dual": true,
+    "moves": 100000,
+    "scope": "Extruder admission and lookahead flushing; no MCU IO",
+    "samplesMs": [
+      106.05993900000004,
+      108.09314300000005,
+      107.46301599999993,
+      106.000718,
+      105.40832999999998
+    ],
+    "medianMs": 106.05993900000004
+  },
+  "regression": {
+    "scope": "Existing single-extruder, dual-carriage compiled product journey; not multi-extruder product acceptance",
+    "diagnostics": [
+      {
+        "installation": {
+          "durationMs": 790.6243079999999,
+          "dependencies": 14
+        }
+      },
+      {
+        "filamentRunout": {
+          "sensor": "filament_switch_sensor tool",
+          "compiled": true,
+          "automaticPause": true,
+          "absentResumeRejected": true,
+          "runoutPauseMs": 1293.5151990000013,
+          "settledStepClock": true,
+          "noAutomaticResume": true
+        }
+      },
+      {
+        "objectCancellation": {
+          "compiled": true,
+          "firstCancellation": true,
+          "paused": true,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "dualCarriageSettings": {
+          "authenticated": true,
+          "primarySwitch": true,
+          "retry": true,
+          "staleRejected": true,
+          "positionRestored": true
+        }
+      },
+      {
+        "nativeTemperatureHistory": {
+          "samples": 11,
+          "sensors": [
+            "extruder",
+            "heater_bed"
+          ],
+          "authenticated": true
+        }
+      },
+      {
+        "idleTimeout": {
+          "heaterOff": true,
+          "motorRelease": true,
+          "hostRemainsReady": true
+        }
+      },
+      {
+        "pausedTimeout": {
+          "cancelled": true,
+          "resumeRejected": true
+        }
+      },
+      {
+        "temperatureHistoryRestart": {
+          "preserved": true,
+          "samplesBefore": 20,
+          "samplesAfter": 23
+        }
+      },
+      {
+        "dual": true,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 0,
+        "phaseP99Ms": null,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": false,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 0,
+        "historyP99Ms": null,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 289,
+        "wireSteps": 8416,
+        "minimumStepLeadMs": 87.912,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.780735,
+              "maxMs": 19.562495
+            },
+            "cpu": {
+              "user": 1323799,
+              "system": 153981
+            },
+            "rss": 186814464
+          },
+          {
+            "loop": {
+              "p99Ms": 1.745919,
+              "maxMs": 6.356991
+            },
+            "cpu": {
+              "user": 697176,
+              "system": 76772
+            },
+            "rss": 210624512
+          }
+        ]
+      }
+    ]
+  }
+}

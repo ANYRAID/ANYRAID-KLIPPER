@@ -6,7 +6,7 @@ export class BedTilt {
  readonly adjust:Readonly<BedTiltAdjust>;
  constructor(adjust:BedTiltAdjust){if(![adjust.x,adjust.y,adjust.z].every(Number.isFinite))throw new RangeError('Invalid bed tilt');this.adjust=Object.freeze({...adjust});Object.freeze(this);}
  #transform(position:readonly number[],inverse:boolean):number[]{
-  if(position.length!==4||!position.every(Number.isFinite))throw new RangeError('Invalid bed tilt position');
+  if(position.length<4||position.length>67||!position.every(Number.isFinite))throw new RangeError('Invalid bed tilt position');
   const p=[...position],a=this.adjust,correction=p[0]*a.x+p[1]*a.y+a.z;
   p[2]=inverse?p[2]-correction:p[2]+correction;
   if(!Number.isFinite(p[2]))throw new RangeError('Bed tilt coordinate overflow');return p;

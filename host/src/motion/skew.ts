@@ -8,9 +8,9 @@ export class SkewCorrection {
   this.factors=Object.freeze({xy:factors.xy,xz:factors.xz,yz:factors.yz});Object.freeze(this);
  }
  #transform(position:readonly number[],inverse:boolean):number[]{
-  if(position.length!==4||!position.every(Number.isFinite))throw new RangeError('Invalid skew position');
-  const [x,y,z,e]=position,{xy,xz,yz}=this.factors;
-  const result=inverse?[x+y*xy+z*xz,y+z*yz,z,e]:[x-y*xy-z*(xz-xy*yz),y-z*yz,z,e];
+  if(position.length<4||position.length>67||!position.every(Number.isFinite))throw new RangeError('Invalid skew position');
+  const [x,y,z]=position,{xy,xz,yz}=this.factors;
+  const result=[...position];result[0]=inverse?x+y*xy+z*xz:x-y*xy-z*(xz-xy*yz);result[1]=inverse?y+z*yz:y-z*yz;
   if(!result.every(Number.isFinite))throw new RangeError('Skew coordinate overflow');return result;
  }
  apply(position:readonly number[]){return this.#transform(position,false);}

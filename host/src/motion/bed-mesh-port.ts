@@ -30,7 +30,7 @@ export class BedMeshMovePort implements MovePort {
   this.#skew=options.skew?new SkewCorrection(options.skew.factors):undefined;
   this.#tilt=options.tilt?new BedTilt(options.tilt.adjust):undefined;
   if(options.fade&&options.fadeConfig)throw new RangeError('Specify resolved fade or fadeConfig, not both');
-  if(!Array.isArray(physicalPosition)||physicalPosition.length!==4||!physicalPosition.every(Number.isFinite)||typeof options.validate!=='function'||isAsyncFunction(options.validate))throw new RangeError('Invalid mesh port configuration');
+  if(!Array.isArray(physicalPosition)||physicalPosition.length<4||physicalPosition.length>67||!physicalPosition.every(Number.isFinite)||typeof options.validate!=='function'||isAsyncFunction(options.validate))throw new RangeError('Invalid mesh port configuration');
   this.#mesh=options.mesh?.copy()??null;this.#fade=options.fade??BedMeshFade.forMesh(this.#mesh,options.fadeConfig);this.#physical=[...physicalPosition];this.#limits={...options.limits,extraAxes:options.limits.extraAxes?[...options.limits.extraAxes]:undefined};this.#validate=options.validate;
   this.#split={splitDeltaZ:options.splitDeltaZ??.025,checkDistance:options.checkDistance??5};
   if(!Number.isFinite(this.#split.splitDeltaZ)||this.#split.splitDeltaZ<.01||!Number.isFinite(this.#split.checkDistance)||this.#split.checkDistance<3)throw new RangeError('Invalid mesh split configuration');
@@ -63,7 +63,7 @@ export class BedMeshMovePort implements MovePort {
  markPendingBoundary(id:number):boolean{this.#idle();const last=this.#queue.last;if(!last){validateEndMarkers([id]);return false;}markMoveEnd(last,id);return true;}
  markPendingPressureBoundary(change:PressureBoundary):boolean{this.#idle();validatePressureBoundaries([change]);const last=this.#queue.last;if(!last)return false;markPressureBoundary(last,change);return true;}
  move(position:readonly number[],speed:number):void{
-  this.#idle();if(!Array.isArray(position)||position.length!==4||!position.every(Number.isFinite)||!Number.isFinite(speed)||speed<=0)throw new RangeError('Invalid mesh motion');
+  this.#idle();if(!Array.isArray(position)||position.length!==this.#physical.length||!position.every(Number.isFinite)||!Number.isFinite(speed)||speed<=0)throw new RangeError('Invalid mesh motion');
   const logicalTarget=[...position],target=this.#skew?this.#skew.apply(logicalTarget):logicalTarget;this.#busy=true;
   try{
    let endpoints:number[][];
