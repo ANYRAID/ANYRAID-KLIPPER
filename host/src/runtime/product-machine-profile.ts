@@ -2,6 +2,7 @@ import {open,constants} from 'node:fs/promises';
 import {isAbsolute} from 'node:path';
 import {parseProductMachine,type ProductMachineConfiguration} from '../config/product-machine.ts';
 import {planLinearPrinter} from '../config/linear-printer.ts';
+import {planDeltaPrinter} from '../config/delta-printer.ts';
 import {loadConfiguration} from '../moonraker/config-source.ts';
 import {KlipperSaveSession} from '../config/klipper-save-session.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -36,7 +37,8 @@ export async function preflightProductMachine(path:string,signal:AbortSignal){
  const moonraker=new ConfigurationReader(await loadConfiguration(config.moonrakerConfig));readNetworkBinding(moonraker);signal.throwIfAborted();
  // Validate topology and transport declarations before acquiring adapter resources.
  const provisional=new Map(Object.entries(config.mcus));
- const connections=planMCUConnections(reader,provisional),plan=planLinearPrinter(reader,{...config.machine,mcus:[...provisional.keys()]});
+ const connections=planMCUConnections(reader,provisional),planner=reader.section('printer').get('kinematics')==='delta'?planDeltaPrinter:planLinearPrinter;
+ const plan=planner(reader,{...config.machine,mcus:[...provisional.keys()]});
  return {config,configuration,reader,provisional,connections,plan};
 }
 /** Adapter factory owns partial acquisition; successful return transfers its

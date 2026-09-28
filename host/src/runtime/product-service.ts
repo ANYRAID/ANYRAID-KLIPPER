@@ -57,6 +57,13 @@ export interface ProductServiceOptions {
  configPath:string;
  server:Omit<ConfiguredServerOptions,'productPrint'|'productPressure'|'maintenanceGate'|'nativeHost'|'nativeObjects'|'nativePrinterIdentity'>;
 }
+/** Select the configured machine for every host generation, including restart. */
+export function startConfiguredMachineService(reader:ConfigurationReader,policies:ReadonlyMap<string,MCUMachinePolicy>,product:ProductPrinterOptions,options:ConfiguredProductServiceOptions,signal:AbortSignal){
+ signal.throwIfAborted();
+ return reader.section('printer').get('kinematics')==='delta'
+  ?startConfiguredDeltaProductService(reader,policies,product,options,signal)
+  :startConfiguredProductService(reader,policies,product,options,signal);
+}
 /** Start native hardware, durable print control and the authorized Moonraker
  * listener as one owner. Journal remains external; server component ownership
  * follows ConfiguredMoonraker.load. No automatic reconnect or print replay. */

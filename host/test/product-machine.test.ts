@@ -13,13 +13,13 @@ import {runProductHost} from '../src/runtime/product-host.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
 const signal=()=>new AbortController().signal;
-test('read-only preflight CLI validates included topology without journal or MCU acquisition',async()=>{
- const dir=await mkdtemp(join(tmpdir(),'machine-preflight-')),f=await productMachineFixture(dir);
+for(const delta of [false,true])test(`read-only preflight CLI validates included topology without journal or MCU acquisition (delta=${delta})`,async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'machine-preflight-')),f=await productMachineFixture(dir,delta);
  try{
   const cli=fileURLToPath(new URL('../../scripts/product-preflight.ts',import.meta.url));
   const result=JSON.parse(execFileSync(process.execPath,[cli,'--machine',f.path],{encoding:'utf8',timeout:10000,env:{...process.env,PATH:'/no-programs'}}));
   assert.equal(result.state,'topology_validated');assert.equal(result.hardwareValidated,false);assert.equal(result.allOptionsValidated,false);
-  assert.equal(result.mcus.length,2);assert.equal(result.motors.length,4);await assert.rejects(access(f.config.journalPath));
+  assert.equal(result.mcus.length,2);assert.equal(result.motors.length,4);assert.deepEqual(result.motors.map((m:any)=>m.id),delta?['a','b','c','e']:['x','y','z','e']);await assert.rejects(access(f.config.journalPath));
   assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
   await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[include legacy.cfg]\n');await writeFile(join(dir,'legacy.cfg'),'[gcode_macro PRINT_START]\ngcode: G28\n');
   assert.throws(()=>execFileSync(process.execPath,[cli,'--machine',f.path],{encoding:'utf8',timeout:10000,stdio:'pipe'}),/unsupported.*gcode_macro PRINT_START/);
@@ -68,8 +68,8 @@ test('journal acquisition failure retains both assembly and adapter cleanup erro
   await writeFile(f.path,JSON.stringify({...f.config,journalPath:dir}));let cleaned=0;await assert.rejects(loadProductMachineProfile(f.path,async()=>({...f.bindings,async release(){cleaned++;throw new Error('adapter cleanup');}}),signal()),(e:unknown)=>e instanceof AggregateError&&e.errors.length===2&&String(e.errors[1]).includes('adapter cleanup'));assert.equal(cleaned,1);assert.deepEqual(f.transport.stops,[0,0]);
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });
-test('file-backed machine profile runs authenticated native service and retires both UARTs',async()=>{
- const dir=await mkdtemp(join(tmpdir(),'machine-host-')),f=await productMachineFixture(dir),abort=new AbortController();let observed:Promise<void>|undefined;try{
+for(const delta of [false,true])test(`file-backed machine profile runs authenticated native service and retires both UARTs (delta=${delta})`,async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'machine-host-')),f=await productMachineFixture(dir,delta),abort=new AbortController();let observed:Promise<void>|undefined;try{
   await runProductHost(s=>loadProductMachineProfile(f.path,async()=>({...f.bindings,server:{...f.bindings.server,authorize:(_m,_p,c)=>{assert.equal(c.request.headers['x-api-key'],'test');}}}),s),abort.signal,address=>{observed=(async()=>{try{const response=await fetch(`http://127.0.0.1:${address.port}/printer/print/status`,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);assert.equal((await response.json() as any).result.state,'idle');}finally{abort.abort(new Error('done'));}})();});await observed;assert.equal(f.releases,1);assert.deepEqual(f.transport.stops,[1,1]);assert(f.transport.firmware.every(f=>f.motion.length===0));
  }finally{abort.abort();await f.close();await rm(dir,{recursive:true,force:true});}
 });
@@ -93,5 +93,14 @@ test('unsupported included printer components fail before adapter, journal or MC
   await writeFile(f.config.printerConfig,original+'\n[include unported.cfg]\n');
   await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),error=>String(error).includes('[gcode_macro PRINT_START]')&&!String(error).includes('[temperature_fan chamber]'));
   assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
+ }finally{await f.close();await rm(dir,{recursive:true,force:true});}
+});
+
+test('Delta unsupported probe fails declarative preflight before adapters or journal',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'delta-preflight-')),f=await productMachineFixture(dir,true);let factories=0;
+ try{
+  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[probe]\npin: PA13\nz_offset: 0\n');
+  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),/unsupported.*probe/i);
+  assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0));
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });

@@ -16,6 +16,16 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 声明式预检及 product-host 现在按 printer.kinematics 选择 Delta 或
+  线性机型，每次重建重新读取配置。源码 CLI 验证了 Delta 的几何状态、
+  SIGHUP 重建、SIGINT/SIGTERM 关闭；未支持的 probe 在取得适配器和
+  作业日志前拒绝。编译产品包也通过两路 PTY MCU 的启动、状态查询与
+  退出清理。源码／编译各预热 1 轮、测量 3 轮，启动到 ready 中位分别
+  1003.832 / 783.659 ms，通过成对启动性能门禁。
+  见 [启动验收记录](../host/contracts/delta-startup-acceptance.json)。
+  编译测试复用了本机原生插件及依赖，不代表洁净安装、编译包完整打印
+  或物理停止能力；Python 仍为 179 个，数值与实机门禁仍未解决。
+
 - Delta 已接入共用持久化作业控制及 Moonraker 产品服务 API：
   connectDeltaProductPrinter、startDeltaProductService 和
   startConfiguredDeltaProductService 使用同一作业恢复、耗材、空闲
@@ -29,7 +39,7 @@
   增至 1258.077 ms（约 1.7%），CPU 从 78.840 增至 1551.746 ms
   （同进程客户端与服务端）。全部样本通过 8 步及关闭/完成检查。
   见 [验收记录](../host/contracts/delta-product-print-acceptance.json)。
-  此为模拟短任务；声明式 product-host 机型选择仍待接入 Delta，
+  此为模拟短任务；声明式 product-host 机型选择已在后续接入 Delta，
   探针/校准、目标板长时打印及已有精度问题未解决，Python 保持 179。
 
 - Delta 增加配置驱动的连接/启动 API：planDeltaPrinter 与
