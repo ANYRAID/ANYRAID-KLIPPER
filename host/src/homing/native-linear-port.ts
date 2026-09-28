@@ -98,7 +98,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
-  if(o.kinematics instanceof DeltaKinematics&&(o.probeHoming||o.probeDevice||o.safeZHoming||o.endstopPhases?.length))throw new Error('Delta probe and phase adapters are not configured');
+  if(o.kinematics instanceof DeltaKinematics&&(o.probeHoming||o.safeZHoming||o.endstopPhases?.length))throw new Error('Delta probe and phase adapters are not configured');
   if(o.probeDevice&&(o.probeGroups?.length!==1||o.probeGroups[0].endstop!==o.probeDevice.endstop||o.probeDevice.device.status.phase!=='idle'))throw new Error('Probe device must own the configured sensor and be initialized');
   if(o.probeHoming&&(!Number.isFinite(o.probeHoming.minimumZ)||!Number.isFinite(o.probeHoming.offset)||o.probeHoming.offset<o.probeHoming.minimumZ||o.groupsByAxis[2].length!==1||o.probeGroups?.length!==1||o.groupsByAxis[2][0].endstop!==o.probeGroups[0].endstop))throw new Error('Invalid probe homing configuration or ownership');
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');

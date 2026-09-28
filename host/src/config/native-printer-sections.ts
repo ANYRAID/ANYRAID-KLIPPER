@@ -12,7 +12,7 @@ export function validateNativePrinterSections(reader:ConfigurationReader,kinemat
  const motors=new Set(sections.filter(s=>motorPattern.test(s)||s==='extruder'));
  const heaters=new Set(sections.filter(s=>s==='extruder'||s==='heater_bed'||s.startsWith('heater_generic ')).map(s=>s.trim().split(/\s+/).at(-1)!));
  const unsupported=sections.filter(section=>{
-  if(kinematics==='delta'&&(/^(?:endstop_phase|skew_correction)(?: |$)/.test(section)||['bltouch','safe_z_home','bed_tilt','z_tilt','quad_gantry_level','bed_screws','screws_tilt_adjust'].includes(section)))return true;
+  if(kinematics==='delta'&&(/^(?:endstop_phase|skew_correction)(?: |$)/.test(section)||['safe_z_home','bed_tilt','z_tilt','quad_gantry_level','bed_screws','screws_tilt_adjust'].includes(section)))return true;
   if(section==='delta_calibrate')return kinematics!=='delta';
   if(single.has(section)||named.test(section)||motors.has(section))return false;
   if(section.startsWith('skew_correction '))return !known.has('skew_correction')||!section.slice(16).trim();

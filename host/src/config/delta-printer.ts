@@ -35,7 +35,7 @@ export function planDeltaHardware(reader:ConfigurationReader,policy:LinearPrinte
    homing.push(group);layoutHoming.push({section:group.section,mcus:[...new Set(group.emitters.map(id=>owner.get(id)!))]});
   }
  }
- const probeSection=configuredProbeSection(reader);if(probeSection==='bltouch')throw new Error('Delta BLTouch adapter is not configured');
+ const probeSection=configuredProbeSection(reader);
  const probe=probeSection?[{section:probeSection,emitters:motors.map(m=>m.emitter)}]:undefined;
  if(probe){
   readProbeConfiguration(reader);

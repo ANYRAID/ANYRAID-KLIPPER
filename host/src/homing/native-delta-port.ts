@@ -1,7 +1,7 @@
 import {DeltaKinematics} from '../kinematics/delta.ts';
 import {NativeLinearHomingPort,type NativeLinearPortOptions} from './native-linear-port.ts';
 import type {HomingGroupConfig} from './group-plan.ts';
-export interface NativeDeltaPortOptions extends Omit<NativeLinearPortOptions,'kinematics'|'groupsByAxis'|'probeHoming'|'probeDevice'|'safeZHoming'|'endstopPhases'> {
+export interface NativeDeltaPortOptions extends Omit<NativeLinearPortOptions,'kinematics'|'groupsByAxis'|'probeHoming'|'safeZHoming'|'endstopPhases'> {
  kinematics:DeltaKinematics;
  groups:readonly HomingGroupConfig[];
 }

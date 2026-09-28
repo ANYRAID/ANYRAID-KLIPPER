@@ -3,23 +3,26 @@ import {FrameDecoder} from '../../src/protocol/codec.ts';
 import {Thermistor} from '../../src/thermal/thermistor.ts';
 import type {productTransports} from './product-transports.ts';
 /** Test-only endstop/ADC model at the firmware wire boundary, with no host hooks. */
-export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTransports>>){
+export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTransports>>,options:{bltouch?:boolean;stuckProbe?:boolean}={}){
  const passes=new Map<string,number>(),timers=new Set<ReturnType<typeof setTimeout>>(),listeners:(()=>void)[]=[];
  const counts=new Map<string,number>();let probeHits=0;
  const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
  for(const [index,fw] of transport.firmware.entries()){
-  const decoder=new FrameDecoder(),directions=new Map<number,number>();let sequence=1;
+  const decoder=new FrameDecoder(),directions=new Map<number,number>(),moving=new Map<number,boolean>();let sequence=1;
   const onData=(chunk:Buffer|string)=>{for(const frame of decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk)){
    if((frame[1]&15)!==sequence)continue;sequence=(sequence+1)&15;
    for(const command of fw.dictionary.parseFrame(frame)){
     const p=command.parameters,oid=Number(p.oid),key=index+':'+oid;
+    if(options.bltouch&&command.name==='queue_digital_out_generation'&&Number(p.on_ticks)===650){for(const device of transport.firmware)for(const entry of device.outputs.filter(o=>o.name==='config_endstop'&&(o.parameters.pin===13||o.parameters.pin==='PA13')))device.setEndstopState({homing:0,pin_value:0,next_clock:0},Number(entry.parameters.oid));}
     if(command.name==='set_next_step_dir')directions.set(oid,Number(p.dir)?1:-1);
     if(command.name==='queue_step'){const count=(counts.get(key)??0)+(directions.get(oid)??1)*Number(p.count);counts.set(key,count);fw.setStepperPosition(oid,count);}
+    if(command.name==='trsync_start')moving.set(oid,Number(p.report_ticks)>0);
     if(command.name==='trsync_start'&&p.report_ticks===0)fw.setTriggerReason(2,Number(p.oid));
     if(command.name!=='endstop_home'||!Number(p.sample_count))continue;
     const cfg=fw.outputs.find(o=>o.name==='config_endstop'&&o.parameters.oid===p.oid);assert(cfg);
     if(cfg.parameters.pin===13||cfg.parameters.pin==='PA13'){
-     const hit=Number(p.clock)+50000,stopped=transport.firmware.flatMap((device,i)=>device.stepperConfigs.filter(m=>!(i===0&&(m.step_pin===4||m.step_pin==='PA4'))).map(m=>({i,oid:Number(m.oid),count:(counts.get(i+':'+m.oid)??0)-20})));
+     if(options.bltouch&&!moving.get(Number(p.trsync_oid))){fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:Number(p.pin_value),next_clock:(Number(p.clock)+Number(p.rest_ticks))>>>0},oid);continue;}
+     const hit=Number(p.clock)+(options.stuckProbe?0:50000),stopped=transport.firmware.flatMap((device,i)=>device.stepperConfigs.filter(m=>!(i===0&&(m.step_pin===4||m.step_pin==='PA4'))).map(m=>({i,oid:Number(m.oid),count:(counts.get(i+':'+m.oid)??0)-(options.stuckProbe?0:20)})));
      const timer=setTimeout(()=>{timers.delete(timer);probeHits++;for(const motor of stopped){counts.set(motor.i+':'+motor.oid,motor.count);transport.firmware[motor.i].setStepperPosition(motor.oid,motor.count);}fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});},Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);continue;
     }
     const tower=index===1?'b':Number(cfg.parameters.pin)===3||/^PA3(?:_ALIAS)?$/.test(String(cfg.parameters.pin))?'a':'c';

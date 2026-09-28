@@ -97,7 +97,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   const createDeltaPort=(reader:ConfigurationReader,settings:Pick<ReturnType<typeof planDeltaHardware>,'homing'|'kinematicIds'> & {probe?:ReturnType<typeof planDeltaHardware>['probe']})=>{
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
-   if(reader.sections().some(n=>['bltouch','safe_z_home'].includes(n)||n.startsWith('endstop_phase ')))throw new Error('Delta probe and phase adapters are not configured');
+   if(reader.sections().some(n=>['safe_z_home'].includes(n)||n.startsWith('endstop_phase ')))throw new Error('Delta probe and phase adapters are not configured');
    const config=readDeltaMotionConfiguration(reader),geometry=config.kinematics.solverGeometry;
    if(settings.kinematicIds.length!==3||new Set(settings.kinematicIds).size!==3||settings.kinematicIds.some((id,i)=>{
     const mode=emitters.find(e=>e.id===id)?.mode,wanted=geometry[i];
@@ -108,9 +108,9 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const groups=compileDeltaHoming(plan,generation,settings.homing,new Map(hardware.drivers.flatMap(d=>d.sensorless?[[d.section,d.sensorless] as const]:[])));
    const extrusion=readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
    const probeConfiguration=readProbeConfiguration(reader);
-   if(!!probeConfiguration!==!!settings.probe||settings.probe&&(settings.probe.length!==1||settings.probe[0].section!=='probe'))throw new Error('Delta probe configuration and stop groups differ');
+   if(!!probeConfiguration!==!!settings.probe||settings.probe&&(settings.probe.length!==1||!['probe','bltouch'].includes(settings.probe[0].section)))throw new Error('Delta probe configuration and stop groups differ');
    const probeGroups=settings.probe?compileDeltaHoming(plan,generation,settings.probe):undefined;
-   const owned=new NativeDeltaHomingPort({...config,probeConfiguration,probeGroups,extrusion,generation,emitters,kinematicIds:settings.kinematicIds,groups,canExtrude:()=>heater.canExtrude()});
+   const owned=new NativeDeltaHomingPort({...config,probeDevice:hardware.bltouch?{device:hardware.bltouch.device,endstop:hardware.bltouch.endstop}:undefined,probeConfiguration,probeGroups,extrusion,generation,emitters,kinematicIds:settings.kinematicIds,groups,canExtrude:()=>heater.canExtrude()});
    // Publish the lifetime owner before constructing any command adapters.
    port=owned;
    const homingSettings=Object.freeze({...config.rails[0].homing,endstops:Object.freeze(settings.homing.map(h=>h.section))});
