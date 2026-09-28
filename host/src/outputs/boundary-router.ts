@@ -8,7 +8,7 @@ export class BoundaryOutputRouter {
  #entries=new Map<number,{output:OutputBoundaryTimeline;local:number}>();#next=1;#retired=0;#clock=0;
  #busy=false;#stop:Promise<void>|undefined;#fault:unknown;#notice=new StopNotice();#detach:(()=>void)[]=[];
  constructor(outputs:readonly {name:string;output:OutputBoundaryTimeline}[],capacity=1024){
-  if(!outputs.length||outputs.length>128||new Set(outputs.map(o=>o.name)).size!==outputs.length||new Set(outputs.map(o=>o.output)).size!==outputs.length||!Number.isInteger(capacity)||capacity<1||capacity>65536)throw new Error('Invalid output router configuration');
+  if(!outputs.length||outputs.length>129||new Set(outputs.map(o=>o.name)).size!==outputs.length||new Set(outputs.map(o=>o.output)).size!==outputs.length||!Number.isInteger(capacity)||capacity<1||capacity>65536)throw new Error('Invalid output router configuration');
   for(const o of outputs)if(!o.name||owners.has(o.output)||o.output.status.stopped||o.output.status.busy||o.output.status.pending)throw new Error('Invalid output router ownership');
   this.#outputs=new Map(outputs.map(o=>[o.name,o.output]));this.#capacity=capacity;
   for(const {output} of outputs){owners.add(output);this.#detach.push(output.subscribeStop(cause=>{void this.stop(cause).catch(()=>{});}));}

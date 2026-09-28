@@ -72,3 +72,14 @@ test('boundary replacement resets nonzero defaults and reschedules only retained
  await timeline.deliver([{id:b,time:3}],3,signal());assert.deepEqual(f.calls,[[1,.5],[3,.7]]);
  await timeline.stop();assert.equal(f.runtime.status.phase,'stopped');
 });
+
+test('servo early alignment keeps nominal request spacing and rejects excess slack',async()=>{
+ const f=fixture({initialValue:.05,scale:1}),runtime=new ScheduledOutputPin(f.output,{section:'servo arm',name:'arm',pin:'PA2',pwm:true,hardware:false,cycleTime:.02,scale:1,initialValue:.05,shutdownValue:0},.1,1024,.0005);
+ f.output.align=t=>t-.0004;await runtime.start(()=>1,signal());
+ assert.deepEqual(f.calls,[[.9996,.05]]);
+ runtime.enqueue(1.01,.075);await runtime.flush(1.0999,signal());assert.equal(f.calls.length,1);
+ await runtime.flush(1.1,signal());assert.deepEqual(f.calls.at(-1),[1.1-.0004,.075]);
+ runtime.enqueue(1.11,.1);await runtime.flush(1.1999,signal());assert.equal(f.calls.length,2);
+ f.output.align=t=>t-.0006;await assert.rejects(runtime.flush(1.3,signal()),/alignment regressed/);
+ assert.equal(f.stops,1);assert.equal(f.calls.length,2);
+});

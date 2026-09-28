@@ -1,3 +1,5 @@
+import {bindServoCommands} from '../gcode/servo.ts';
+import type {ServoSettings} from '../config/servo.ts';
 import {bindOutputPinCommands} from '../gcode/output-pin.ts';
 import type {NativeBedMeshConfiguration} from '../config/native-bed-mesh.ts';
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
@@ -29,7 +31,7 @@ export class NativeLinearGCode {
  readonly bedMeshStatus:(()=>Readonly<Record<string,import('../moonraker/rpc.ts').Json>>)|undefined;
  #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration,excludeObjects=false){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration,excludeObjects=false,servos:readonly ServoSettings[]=[]){
   if(pressureBinding){
    const {stepper,name}=pressureBinding;
    if(typeof name!=='string'||!name.trim()||name.length>256||name.includes('\0'))throw new Error('Invalid pressure advance object name');
@@ -63,6 +65,8 @@ export class NativeLinearGCode {
   if(this.pressureAdvance)bindPressureAdvanceCommand(this.dispatch,this.pressureAdvance);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));
   this.dispatch.register('G4',c=>{let seconds=0;try{if(Object.hasOwn(c.params,'P'))seconds=parseConfigurationFloat(c.params.P)/1000;if(!Number.isFinite(seconds)||seconds<0||seconds>3600)throw new Error();}catch{throw new GCodeError('Invalid G4 P duration');}return port.dwell(seconds,c.signal);},{checkpoint:true});
+  if(port.servoNames.length!==servos.length||servos.some(s=>!port.servoNames.includes(s.name)))throw new Error('Servo command bindings differ from hardware');
+  if(servos.length)bindServoCommands(this.dispatch,servos,(name,value,signal)=>port.queueServoValue(name,value,signal));
   if(port.outputPinNames.length)bindOutputPinCommands(this.dispatch,port.outputPinNames,(name,value,signal)=>port.queueOutputPin(name,value,signal));
   if(port.hasCoolingFan)bindCoolingFanCommands(this.dispatch,(value,signal)=>port.queueCoolingFan(value,signal));
   if(port.hasMotorEnable)for(const name of ['M18','M84'])this.dispatch.register(name,c=>{if(c.params.M!==name.slice(1)||Object.keys(c.params).some(key=>!['M','N','*'].includes(key)))throw new GCodeError('M18/M84 releases all motors; parameters are unsupported');if(!port.canReleaseMotors)throw new GCodeError('Always-on motors cannot be released by software');return port.releaseMotors(c.signal);});

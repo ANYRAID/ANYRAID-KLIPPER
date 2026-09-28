@@ -1,3 +1,4 @@
+import {readServo} from './servo.ts';
 import {readTemperatureFan} from './temperature-fan.ts';
 import {compileConfiguredSpiHeaters} from './spi-heater.ts';
 import {compileConfiguredSpiSensors} from './spi-temperature.ts';
@@ -21,7 +22,7 @@ import {compileConfiguredHoming} from './homing.ts';
 import {compileConfiguredCoolingFans,type CoolingFanRequest,type FanClock} from './cooling-fan.ts';
 import {compileConfiguredAnalogHeaters} from './analog-heater.ts';
 import {compileConfiguredButtons} from './buttons.ts';
-import {compileConfiguredOutputPins} from './configured-output-pins.ts';
+import {compileConfiguredOutputPins,compileConfiguredPinSettings} from './configured-output-pins.ts';
 export interface HardwareLayout {
  steppers:readonly (Omit<StepperSectionRequest,'oid'>&{emitter:string;enableLeadTime:number})[];
  /** Explicit physical membership; homing runtime still binds its emitters. */
@@ -31,6 +32,7 @@ export interface HardwareLayout {
  sensors?:readonly {section:string}[];
  buttons?:readonly {section:string}[];
  outputPins?:readonly {section:string}[];
+ servos?:readonly {section:string}[];
  boards?:readonly {mcu:string;aliases?:Readonly<Record<string,string>>;reserved?:readonly string[]}[];
 }
 /** No MCU IO. A fresh private resource registry makes failures across device
@@ -73,7 +75,10 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const allHeaters=Object.freeze(layout.heaters.map(h=>[...heaters,...spiHeaters].find(p=>p.section===h.section)!));
  const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!hostSections.includes(s)&&!spiSections.includes(s)));
  const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
- const outputPins=layout.outputPins?.length?compileConfiguredOutputPins(reader,pins,mcus,sharedClocks,layout.outputPins.map(p=>({section:p.section}))):Object.freeze([]);
+ if((layout.outputPins?.length??0)+(layout.servos?.length??0)>128)throw new Error('Output and servo capacity exceeded');
+ const fixedOutputs=layout.outputPins?.length?compileConfiguredOutputPins(reader,pins,mcus,sharedClocks,layout.outputPins.map(p=>({section:p.section}))):Object.freeze([]);
+ const servoOutputs=layout.servos?.length?compileConfiguredPinSettings(pins,mcus,sharedClocks,layout.servos.map(p=>({settings:readServo(reader,p.section)}))):Object.freeze([]);
+ const outputPins=Object.freeze([...fixedOutputs,...servoOutputs]);
  const tmcSections=reader.sections().filter(s=>/^tmc\d+ /.test(s));if(tmcSections.length>128||new Set(tmcSections.map(s=>s.slice(s.indexOf(' ')+1))).size!==tmcSections.length)throw new Error('Duplicate or excessive TMC stepper owners');
  const tmcSpis=compileConfiguredTmcSpi(reader,pins,mcus,steppers);
  const tmcUarts=compileConfiguredTmcUart(reader,pins,mcus,steppers);

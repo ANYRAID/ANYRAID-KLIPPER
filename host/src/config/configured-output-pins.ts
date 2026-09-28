@@ -6,20 +6,26 @@ import { compilePWM } from '../outputs/pwm.ts';
 import { readPrintClock } from '../timing/print-clock-timeline.ts';
 import type { StepperMCU } from './stepper.ts';
 import type { FanClock } from './cooling-fan.ts';
-import { readOutputPin } from './output-pin.ts';
+import { readOutputPin, type OutputPinSettings } from './output-pin.ts';
 
 export interface OutputPinRequest { section: string; oid?: number }
 /** Build cold-start configuration only. No writes or template execution.
  * Generation commands are required before accepting physical ownership. */
 export function compileConfiguredOutputPins<T>(reader: ConfigurationReader, pins: PrinterPins<T>,
   mcus: ReadonlyMap<string, StepperMCU<T>>, clocks: ReadonlyMap<string, FanClock>, requests: readonly OutputPinRequest[]) {
-  if (!requests.length || requests.length > 128 || new Set(requests.map((r) => r.section)).size !== requests.length) {
+  return compileConfiguredPinSettings(pins, mcus, clocks, requests.map(request => ({
+    settings: readOutputPin(reader, request.section, 3), oid: request.oid,
+  })));
+}
+/** Shared compiler for validated fixed output and servo settings. */
+export function compileConfiguredPinSettings<T>(pins: PrinterPins<T>, mcus: ReadonlyMap<string, StepperMCU<T>>,
+  clocks: ReadonlyMap<string, FanClock>, requests: readonly { settings: Readonly<OutputPinSettings>; oid?: number }[]) {
+  if (!requests.length || requests.length > 128 || new Set(requests.map((r) => r.settings.section)).size !== requests.length) {
     throw new Error('Invalid output pin batch');
   }
   const maps = new Map<string, PhysicalPinMap>();
   const specifications = requests.map((request) => {
-    // The existing MCU host contract sets MAX_NOMINAL_DURATION to 3 seconds.
-    const settings = readOutputPin(reader, request.section, 3);
+    const settings = request.settings;
     const parsed = pins.parse(settings.pin, { canInvert: true });
     const mcu = mcus.get(parsed.chipName), mapping = clocks.get(parsed.chipName);
     if (!mcu || mcu.chip !== parsed.chip || !mapping) throw new Error('Output pin MCU or clock ownership differs');

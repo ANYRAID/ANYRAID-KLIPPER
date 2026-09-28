@@ -1,3 +1,4 @@
+import {readServo} from './servo.ts';
 import {readOutputPin} from './output-pin.ts';
 import {readBedScrews} from './bed-screws.ts';
 import {readScrewsTilt} from './screws-tilt.ts';
@@ -59,8 +60,9 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
  heaters.sort((a,b)=>a.section==='extruder'?-1:b.section==='extruder'?1:a.section==='heater_bed'?-1:b.section==='heater_bed'?1:a.section.localeCompare(b.section));
  const buttons=sections.filter(n=>/^filament_(switch|motion)_sensor /.test(n)).map(section=>{if(section.startsWith('filament_motion_sensor '))readFilamentEncoderPolicy(reader,section);else readFilamentPolicy(reader,section);return {section};});
  const sensors=sections.filter(n=>n.startsWith('temperature_sensor ')||n.startsWith('temperature_fan ')).map(section=>({section}));
+ const servos=sections.filter(n=>n.startsWith('servo ')).map(section=>{readServo(reader,section);return {section};});
  const outputPins=sections.filter(n=>n.startsWith('output_pin ')).map(section=>{readOutputPin(reader,section,3);return {section};});
- const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters,sensors,...outputPins.length?{outputPins}:{},...(buttons.length?{buttons}:{})};
+ const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,fans,heaters,sensors,...servos.length?{servos}:{},...outputPins.length?{outputPins}:{},...(buttons.length?{buttons}:{})};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode}));
  const linear:ConfiguredLinearHoming={...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
  const initial:InitialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})};

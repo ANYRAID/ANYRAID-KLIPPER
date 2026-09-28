@@ -198,6 +198,11 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
  get hasCoolingFan():boolean{const output=this.#g.boundaryOutput;return !!output&&(output.names===undefined||output.names.includes('fan'));}
+ get servoNames():readonly string[]{return (this.#g.boundaryOutput?.names??[]).filter(n=>n.startsWith('servo ')).map(n=>n.slice(6));}
+ queueServoValue(name:string,value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
+  const output=this.#g.boundaryOutput,route='servo '+name;if(!output?.names?.includes(route))throw new Error('Servo is not configured');
+  const id=output.register(value,route);if(!this.#admission.markPendingBoundary(id))this.#g.source.markBoundary(id);
+ });}
  get outputPinNames():readonly string[]{return (this.#g.boundaryOutput?.names??[]).filter(n=>n.startsWith('output_pin ')).map(n=>n.slice(11));}
  queueOutputPin(name:string,value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
   const output=this.#g.boundaryOutput,route='output_pin '+name;if(!output?.names?.includes(route))throw new Error('Output pin is not configured');

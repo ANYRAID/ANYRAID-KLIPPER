@@ -11,16 +11,16 @@ export interface PinOutput {
  * The motion owner supplies endpoint times and flush horizons. ACKed values
  * describe scheduled output, not physical feedback from the pin. */
 export class ScheduledOutputPin {
- #output:PinOutput;#settings:OutputPinSettings;#interval:number;#capacity:number;
+ #output:PinOutput;#settings:OutputPinSettings;#interval:number;#capacity:number;#earlySlack:number;
  #queue:{time:number;value:number}[]=[];#next=0;#lastRequest=0;#horizon=0;#value:number;
  #phase:'idle'|'ready'|'stopped'='idle';#busy=false;#abort=new AbortController();
  #stop:Promise<void>|undefined;#fault:unknown;#notice=new StopNotice();
- constructor(output:PinOutput,settings:OutputPinSettings,minimumScheduleTime:number,capacity=1024){
-  if(!Number.isFinite(minimumScheduleTime)||minimumScheduleTime<=0||!Number.isInteger(capacity)||capacity<1||capacity>65536)throw new RangeError('Invalid output pin scheduling limits');
+ constructor(output:PinOutput,settings:OutputPinSettings,minimumScheduleTime:number,capacity=1024,earlySlack=0){
+  if(!Number.isFinite(minimumScheduleTime)||minimumScheduleTime<=0||!Number.isInteger(capacity)||capacity<1||capacity>65536||!Number.isFinite(earlySlack)||earlySlack<0||earlySlack>minimumScheduleTime)throw new RangeError('Invalid output pin scheduling limits');
   for(const value of [settings.initialValue,settings.shutdownValue]){
    if(!Number.isFinite(value)||value<0||value>1||!settings.pwm&&value!==0&&value!==1)throw new RangeError('Invalid normalized output pin default');
   }
-  this.#output=output;this.#settings={...settings};this.#interval=minimumScheduleTime;this.#capacity=capacity;this.#value=settings.shutdownValue;
+  this.#output=output;this.#settings={...settings};this.#interval=minimumScheduleTime;this.#capacity=capacity;this.#earlySlack=earlySlack;this.#value=settings.shutdownValue;
  }
  get capacity(){return this.#capacity;}
  get status(){return {phase:this.#phase,busy:this.#busy,value:this.#value,pending:this.#queue.length,
@@ -36,8 +36,8 @@ export class ScheduledOutputPin {
    await this.#output.reset(local);this.#check(local);
    if(this.#settings.initialValue!==this.#value){
     const requested=futureTime(),time=this.#output.align(requested);
-    if(!Number.isFinite(requested)||requested<0||!Number.isFinite(time)||time<requested)throw new RangeError('Invalid output pin startup time');
-    const next=this.#after(time);await this.#output.setValue(time,this.#settings.initialValue,local);this.#check(local);
+    if(!Number.isFinite(requested)||requested<0||!Number.isFinite(time)||time<requested-this.#earlySlack||time<0)throw new RangeError('Invalid output pin startup time');
+    const next=this.#after(Math.max(time,requested));await this.#output.setValue(time,this.#settings.initialValue,local);this.#check(local);
     this.#value=this.#settings.initialValue;this.#next=next;
    }
    this.#phase='ready';
@@ -63,9 +63,9 @@ export class ScheduledOutputPin {
     const value=this.#queue[pos].value;
     if(value===this.#value){this.#queue.splice(0,pos+1);continue;}
     const aligned=this.#output.align(time);
-    if(!Number.isFinite(aligned)||aligned<time)throw new RangeError('Output pin alignment regressed');
+    if(!Number.isFinite(aligned)||aligned<time-this.#earlySlack||aligned<0)throw new RangeError('Output pin alignment regressed');
     if(aligned>time){this.#next=aligned;continue;}
-    time=aligned;const next=this.#after(time);
+    const next=this.#after(time);time=aligned;
     await this.#output.setValue(time,value,local);this.#check(local);
     this.#value=value;this.#next=next;this.#queue.splice(0,pos+1);
    }
