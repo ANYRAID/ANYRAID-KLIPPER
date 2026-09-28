@@ -1,27 +1,28 @@
 {
   "node": "v26.9.0",
   "compiled": true,
-  "generations": 4,
-  "calibrationMs": 10246.699784,
-  "extensionMs": 33.87646500000119,
-  "manualMs": 8723.200333999997,
-  "finalError": 0.00012574052294270246,
+  "generations": 5,
+  "calibrationMs": 10161.388733,
+  "extensionMs": 33.6635040000001,
+  "manualMs": 8732.134427,
+  "heightCaptureMs": 0.9920539999948232,
+  "finalError": 0.0001456252779380673,
   "geometry": {
-    "radius": 99.991183772818,
+    "radius": 99.98249031320965,
     "angles": [
-      209.9979201749464,
-      329.9976189557086,
+      209.99599836652934,
+      329.9953323967073,
       90
     ],
     "arms": [
-      249.99236977101492,
-      250.00795593107074,
-      250.00145098347417
+      249.9853364675634,
+      250.01563963796988,
+      250.00341428768388
     ],
     "endstops": [
-      280.5760508987544,
-      280.5688732289608,
-      280.57210624884834
+      280.5799503700987,
+      280.56598657990276,
+      280.57208309537157
     ],
     "stepDistances": [
       0.0125,
@@ -30,5 +31,5 @@
     ]
   },
   "passed": true,
-  "scope": "Compiled CLI, four independent simulated MCU generations, automatic, extended and probeless manual calibration with persisted observations, actual config reload and homing plus eight extruder steps per print. Existing native addons/dependencies reused; excludes real hardware, clean installation and stable performance acceptance."
+  "scope": "Compiled CLI, five independent simulated MCU generations, automatic, extended and probeless manual calibration with persisted observations, actual config reload and homing plus eight extruder steps per print. Existing native addons/dependencies reused; excludes real hardware, clean installation and stable performance acceptance."
 }

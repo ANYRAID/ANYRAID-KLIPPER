@@ -12,7 +12,7 @@ const endpoint='/printer/calibration/delta';
 async function fixture(restored=false){
  const dir=await mkdtemp('/tmp/delta-endpoint-'),path=dir+'/printer.cfg',original='[printer]\nkinematics: delta\ndelta_radius: 100\n[delta_calibrate]\nradius: 65\n';await writeFile(path,original);
  const {session}=await KlipperSaveSession.load(path),gate=new MaintenanceGate(),registry=new EndpointRegistry(new JsonRpcDispatcher()),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
- let measurements=0,idle=true;const motion={restored:()=>({...asymmetricDeltaCalibration()[0],...(!restored?{probes:[]}:{} )}),idle:()=>idle,measure:async(_s:AbortSignal)=>{measurements++;assert(gate.status.maintenance);return asymmetricDeltaCalibration()[1];},synchronize(){}};
+ let measurements=0,idle=true;const motion={captureStable:async(_s:AbortSignal)=>asymmetricDeltaCalibration()[0].probes[0].stable,restored:()=>({...asymmetricDeltaCalibration()[0],...(!restored?{probes:[]}:{} )}),idle:()=>idle,measure:async(_s:AbortSignal)=>{measurements++;assert(gate.status.maintenance);return asymmetricDeltaCalibration()[1];},synchronize(){}};
  const close=registerNativeDeltaCalibration(registry,gate,motion,session),invoke=(verb:string,body:any={})=>registry.invoke(endpoint,verb,body,context) as Promise<any>;
  return {session,gate,path,original,registry,context,motion,invoke,close,count:()=>measurements,setIdle(v:boolean){idle=v;},async dispose(){await close();await rm(dir,{recursive:true,force:true});}};
 }
@@ -51,4 +51,16 @@ test('Delta extension fits typed object dimensions without repeated probing',asy
 
 test('Delta extension reuses restored heights after restart without probe motion',async()=>{
  const f=await fixture(true);try{const state=await f.invoke('GET'),result=await f.invoke('POST',{version:1,state_token:state.state_token,action:'extend',measurements:measuredDeltaObject().measurements});assert.equal(result.state,'candidate');assert.equal(f.count(),0);assert.equal(result.candidate.distance_residuals.length,12);}finally{await f.dispose();}
+});
+
+for(const restored of [false,true])test('manual height is captured once and survives subsequent fitting; restored='+restored,async()=>{
+ const f=await fixture(restored);try{
+  const height=asymmetricDeltaCalibration()[0].probes[0].height,request={version:1,state_token:(await f.invoke('GET')).state_token,action:'height',height};
+  await assert.rejects(f.invoke('POST',{...request,stable:[1,2,3]}),/Expected/);await assert.rejects(f.invoke('POST',{...request,height:'0'}),/finite/);
+  const recorded=await f.invoke('POST',request);assert.equal(recorded.manual_count,1);assert.equal(recorded.candidate,null);assert.equal(f.count(),0);assert.deepEqual(await f.invoke('POST',request),recorded);await assert.rejects(f.invoke('POST',{...request,height:height+1}),/conflicts/);
+  await assert.rejects(f.invoke('POST',{version:1,state_token:recorded.state_token,action:'save'}),/candidate/);
+  if(!restored)await f.invoke('POST',{version:1,state_token:recorded.state_token,action:'calibrate'});
+  const fitted=await f.invoke('POST',{version:1,state_token:(await f.invoke('GET')).state_token,action:'extend',measurements:measuredDeltaObject().measurements});assert.equal(fitted.manual_count,1);assert.equal(fitted.candidate.height_residuals.length,8);
+  await f.invoke('POST',{version:1,state_token:fitted.state_token,action:'save'});const loaded=await KlipperSaveSession.load(f.path);assert.equal(Number(loaded.source.original.delta_calibrate.manual_height0),height);assert.equal(loaded.source.original.delta_calibrate.manual_height0_pos,asymmetricDeltaCalibration()[0].probes[0].stable.join(','));
+ }finally{await f.dispose();}
 });
