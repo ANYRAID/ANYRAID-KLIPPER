@@ -5,9 +5,10 @@ export class AVREngine {
  #child:ChildProcessWithoutNullStreams;#buffer:Buffer=Buffer.alloc(0);#fault:Error|undefined;#closed=false;#stderr='';#time=0n;
  #pending:{resolve:(v:SimulationStep)=>void;reject:(e:Error)=>void;minimum:bigint}[]=[];
  readonly exited:Promise<void>;
- constructor(binary:string,elf:string,{machine='atmega644',speed=16000000,baud=250000}:{machine?:string;speed?:number;baud?:number}={}){
+ constructor(binary:string,elf:string,{machine='atmega644',speed=16000000,baud=250000,trace}:{machine?:string;speed?:number;baud?:number;trace?:{file:string;signals:string}}={}){
   if(!/^[a-z0-9]+$/i.test(machine)||!Number.isInteger(speed)||speed<1||speed>1e9||!Number.isInteger(baud)||baud<1||baud>1e8)throw new RangeError('Invalid AVR simulation settings');
-  this.#child=spawn(binary,[machine,String(speed),String(baud),elf],{stdio:'pipe'});
+  if(trace&&(!trace.file||!trace.signals||trace.signals==='?'||/[\0\r\n]/.test(trace.file+trace.signals)))throw new RangeError('Invalid AVR trace settings');
+  this.#child=spawn(binary,[machine,String(speed),String(baud),elf,...trace?[trace.file,trace.signals]:[]],{stdio:'pipe'});
   this.#child.stderr.on('data',(data:Buffer)=>{this.#stderr=(this.#stderr+data.toString()).slice(-8192);});
   this.#child.stdout.on('data',(data:Buffer)=>{try{this.#receive(data);}catch(error){this.#fail(error as Error);}});
   this.#child.stdin.on('error',error=>this.#fail(error));

@@ -1,0 +1,94 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "baseCommit": "e6c21f87",
+  "simulavrRevision": "32985f745c237bf8dcd2718235d01c8b1fb0491d",
+  "sourceSha256": {
+    "scripts/avrsim.ts": "f607505de09e04558dd9504abaf49c09b49dcd3f5ac65f201d73b80fd201cadf",
+    "host/src/simulator/run.ts": "c64516bc09a7bd079f6e3c53b1da70f8096ec08099432b0c4b51acf039439cc8",
+    "host/src/simulator/terminal.ts": "24345ad11fe38875dc6350082064f039b8e6135c00a2c61d1df9870ffecf588c",
+    "host/src/simulator/engine.ts": "6595f48adc7c3f608fe43f56c3af53ab34998b5d2f3fdd6a4258163cb5e8f622",
+    "host/native/avrsim.cpp": "0857491782cc0c19e5d4eaca6a6869c191102e31343c5500129a6e49932f9dce",
+    "host/native/simulator-pty.c": "a92a86d6b9d9b929566bf0e544f8991283bd3fa979a1128a4278aae84a4e7754",
+    "host/scripts/build-avrsim.ts": "2c15b18a0f1a4f7a12d0060e19fc6ede7490ab09b379397ce0d2ef8ec3e2a529",
+    "host/acceptance/simulavr-terminal.test.ts": "6f12b8ea741f77b7514a13955648307766c501433fb3894ff9a99f45f2380e48"
+  },
+  "binarySha256": "1a47379455f99e9638d23eae091fd662b71b8a3c245df9258ba037f911011e3c",
+  "ptySha256": "b688089600a8eaf54f0dcc485c0738a302f9f78c15a6061b27c0b18a2d1f0163",
+  "logSha256": "2dd12ef2d1fad3729119a25dcbdb768d7b859d1067c5285a6ac8f64b80f03ffe",
+  "metrics": [
+    {
+      "node": "v26.9.0",
+      "warmups": 3,
+      "simulatedNs": 1000000,
+      "result": {
+        "edges": 5372,
+        "clockNs": 1000060,
+        "highNs": 124,
+        "lowNs": 248
+      },
+      "samplesMs": [
+        9.588325000000054,
+        9.733795999999984,
+        9.114238999999998,
+        11.221235000000092,
+        9.572783999999956,
+        9.653485000000046,
+        9.646576000000096
+      ],
+      "medianMs": 9.646576000000096,
+      "scope": "Native process startup, ELF loading, AVR execution and every pin-edge assertion; excludes Node serial bridge and PTY"
+    },
+    {
+      "node": "v26.9.0",
+      "bytes": 2560,
+      "warmups": 3,
+      "simulatedNsPerSample": 20000000,
+      "samplesMs": [
+        23.951819999999998,
+        23.43218300000001,
+        24.050782000000027,
+        24.210734000000002,
+        23.55060500000002,
+        23.551834999999983,
+        23.476384000000053
+      ],
+      "medianMs": 23.551834999999983,
+      "scope": "Node IPC, native AVR instructions and bidirectional bit-serial UART; no PTY or wall-clock pacing"
+    },
+    {
+      "bytes": 256,
+      "rate": 0.1,
+      "roundTripMs": 109.23785599999997
+    },
+    {
+      "bytes": 256,
+      "rate": 0,
+      "roundTripMs": 16.24358099999995
+    }
+  ],
+  "validation": {
+    "tests": 7,
+    "failures": 0,
+    "realAVRInstructions": true,
+    "uartAllBytes": true,
+    "rawPTY": true,
+    "pacing": true,
+    "sigint": true,
+    "sigterm": true,
+    "symlinkOwnership": true,
+    "vcdPrecisePulseIntervals": true,
+    "signalDiscovery": true,
+    "cliWithoutExternalProgramsOnPath": true
+  },
+  "retired": [
+    "scripts/avrsim.py"
+  ],
+  "remainingPythonFiles": 179,
+  "limitations": [
+    "No original Python frontend performance comparison.",
+    "Actual Klipper firmware printing and target hardware are not covered by these standalone AVR fixtures.",
+    "Existing Node crashes and motion numerical anomalies remain unresolved.",
+    "Legacy clock quantization preserved: 16 MHz means integer 62 ns per simulated cycle."
+  ]
+}

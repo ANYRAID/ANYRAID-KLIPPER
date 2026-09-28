@@ -1,5 +1,6 @@
 // Native instruction engine; Node owns CLI, pacing and terminal lifecycle.
-// UART sampling follows scripts/avrsim.py (GPL-3.0-or-later).
+// UART sampling derived from the former scripts/avrsim.py.
+// Copyright (C) 2015-2018 Kevin O'Connor. GPL-3.0-or-later.
 #include <vector>
 #include <map>
 #include <deque>
@@ -9,6 +10,9 @@
 #include <unistd.h>
 #include <cerrno>
 #include <limits>
+#include <fstream>
+#include <sstream>
+#include "traceval.h"
 #include "avrdevice.h"
 #include "avrfactory.h"
 #include "avrerror.h"
@@ -67,12 +71,23 @@ class Transmit : public Pin, public SimulationMember {
 };
 int main(int argc,char **argv) {
  try {
-    if(argc!=5) throw std::runtime_error("expected machine speed baud ELF");
+    if(argc!=5&&argc!=7) throw std::runtime_error("expected machine speed baud ELF");
     const auto speed=std::stoul(argv[2]),baud=std::stoul(argv[3]);
     if(speed<1||speed>1000000000||baud<1||baud>100000000) throw std::runtime_error("invalid frequency");
     sysConHandler.SetUseExit(false);sysConHandler.SetMessageStream(&std::cerr);
+    auto *dump=DumpManager::Instance();dump->SetSingleDeviceApp();
     AvrDevice *device=AvrFactory::instance().makeDevice(argv[1]);device->Load(argv[4]);
     device->SetClockFreq(1000000000/speed);
+    if(argc==7 && std::string(argv[6])=="?") { dump->save(std::cout);return 0; }
+    if(argc==7) {
+        std::string signals=argv[6],spec;std::istringstream input(signals);std::string name;
+        while(std::getline(input,name,',')) { if(name.empty())throw std::runtime_error("empty trace signal");spec+="+ "+name+"\n"; }
+        const auto selected=dump->load(spec);if(selected.empty())throw std::runtime_error("no trace signals selected");
+        auto *stream=new std::ofstream(argv[5]);
+        if(!*stream){delete stream;throw std::runtime_error("cannot open VCD output");}
+        stream->exceptions(std::ios::badbit|std::ios::failbit);
+        dump->addDumper(new DumpVCD(stream,"ns",false,false),selected);dump->start();
+    }
     auto &clock=SystemClock::Instance();Receive rx(baud);Transmit tx(baud);Net rxnet,txnet;
     rxnet.Add(&rx);rxnet.Add(device->GetPin("D1"));txnet.Add(device->GetPin("D0"));txnet.Add(&tx);
     clock.Add(device);clock.Add(&tx);
@@ -91,6 +106,6 @@ int main(int argc,char **argv) {
         for(unsigned i=0;i<4;i++)reply[8+i]=(length>>(i*8))&255;
         transfer(1,reply,12,true);if(length)transfer(1,rx.bytes.data(),length,true);rx.bytes.clear();
     }
-    clock.ResetClock();return 0;
+    dump->stopApplication();clock.ResetClock();return 0;
  }catch(const std::exception &e) { std::cerr<<e.what()<<std::endl;return 1; }
 }

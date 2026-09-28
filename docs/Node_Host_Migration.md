@@ -16,6 +16,23 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- AVR 仿真入口已完成替换，删除 scripts/avrsim.py，改用
+  `node scripts/avrsim.ts`；仓库 Python 文件由 180 降至 179，scripts/
+  已无 Python 工具。Node 负责 CLI、PTY、节拍和生命周期，独立原生
+  进程负责 simulavr 指令与串口位采样；支持模型、频率、波特率、
+  端口、速度比例、信号列表和 VCD 输出。现有 PTY 路径被拒绝，
+  SIGINT/SIGTERM 后只删除本次创建且仍匹配的链接，并关闭 VCD。
+  真实 AVR ELF 的七项完整验收通过：5,372 个脉冲边沿与 VCD 均保持
+  高 124 ns／低 248 ns，2,560 字节回环完全一致，异常输入、取消、
+  路径占用与替换保护通过。CLI 子进程 PATH 无外部程序，不依赖
+  Python 或运行时编译。UART 20 ms 仿真七轮测量中位 23.552 ms；
+  PTY 256 字节回环不限速 16.244 ms、0.1 倍节拍 109.238 ms。
+  这些是本机实际指标，不是旧 Python 前端的性能对照，也不证明
+  真机打印精度或既有 Node 数值异常已解决。类型及空白检查通过。
+  参见 [使用说明](Debugging.md#testing-with-simulavr) 和
+  [完整验收](../host/contracts/simulavr-retirement-acceptance.json)。
+
+
 - AVR 仿真已增加 Node 控制接口与独立原生进程，真实 AVR ELF 的
   UART 按位收发接通：0–255 全字节十轮共 2,560 字节完全一致，
   连续提交的批次保持顺序。接口使用 BigInt 时钟，每批推进最多

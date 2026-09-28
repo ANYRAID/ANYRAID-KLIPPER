@@ -462,89 +462,80 @@ and effect scenarios.
 
 ## Testing with simulavr
 
-The [simulavr](http://www.nongnu.org/simulavr/) tool enables one to
-simulate an Atmel ATmega micro-controller. This section describes how
-one can run test gcode files through simulavr. It is recommended to
-run this on a desktop class machine (not a Raspberry Pi) as it does
-require significant cpu to run efficiently.
+The [simulavr](https://www.nongnu.org/simulavr/) instruction engine can
+simulate an Atmel ATmega micro-controller. The frontend now uses Node.js
+26.9+ and a dedicated native engine process; it needs no Python or SWIG.
+Build on Linux with Git, a C++11 compiler, a C compiler, `ar`, and the Node
+headers matching the installed Node runtime. The separate `avr-gcc`
+toolchain is needed to build AVR firmware and run the acceptance fixtures.
 
-To use simulavr, download the simulavr package and compile with python
-support. Note that the build system may need to have some packages (such as
-swig) installed in order to build the python module.
-
-```
-git clone git://git.savannah.nongnu.org/simulavr.git
-cd simulavr
-make python
-make build
-```
-Make sure a file like **./build/pysimulavr/_pysimulavr.*.so** is present
-after the above compilation:
-```
-ls ./build/pysimulavr/_pysimulavr.*.so
-```
-This command should report a specific file (e.g.
-**./build/pysimulavr/_pysimulavr.cpython-39-x86_64-linux-gnu.so**) and
-not an error.
-
-If you are on a Debian-based system (Debian, Ubuntu, etc.) you can
-install the following packages and generate *.deb files for system-wide
-installation of simulavr:
-```
-sudo apt update
-sudo apt install g++ make cmake swig rst2pdf help2man texinfo
-make cfgclean python debian
-sudo dpkg -i build/debian/python3-simulavr*.deb
-```
-
-To compile Klipper for use in simulavr, run:
+Check out the pinned upstream revision in a separate, clean directory:
 
 ```
-cd /path/to/klipper
-make menuconfig
+git clone https://git.savannah.nongnu.org/git/simulavr.git /path/to/simulavr
+git -C /path/to/simulavr checkout 32985f745c237bf8dcd2718235d01c8b1fb0491d
+node host/scripts/build-avrsim.ts /path/to/simulavr
 ```
 
-and compile the micro-controller software for an AVR atmega644p and
-select SIMULAVR software emulation support. Then one can compile
-Klipper (run `make`) and then start the simulation with:
+The builder verifies the revision and refuses local changes. It builds
+`host/build/avrsim` and `host/build/simulator-pty.node` directly, without
+upstream's Python configuration steps. Set `CXX`, `CC`, `AR`, or
+`NODE_INCLUDE` if those tools or headers are outside their usual paths.
+
+Build Klipper for AVR atmega644p with SIMULAVR software emulation support
+using `make menuconfig` and `make`, then run:
 
 ```
-PYTHONPATH=/path/to/simulavr/build/pysimulavr/ ./scripts/avrsim.py out/klipper.elf
-```
-Note that if you have installed python3-simulavr system-wide, you do
-not need to set `PYTHONPATH`, and can simply run the simulator as
-```
-./scripts/avrsim.py out/klipper.elf
+node scripts/avrsim.ts out/klipper.elf
 ```
 
-Then, with simulavr running in another window, one can run the
-following to read gcode from a file (eg, "test.gcode"), process it
-with Klippy, and send it to Klipper running in simulavr (see
-[installation](Installation.md) for the steps necessary to build the
-python virtual environment):
+The default serial link is `/tmp/pseudoserial`. Existing paths are refused,
+not replaced; choose another with `--port /tmp/my-simulator`. SIGINT or
+SIGTERM stops the simulation and removes the link only if it still belongs
+to this process. `--rate 0` runs without pacing; `--rate 1` limits simulation
+to wall time, and `--rate 0.1` requests one tenth of wall time. A CPU that
+cannot keep up will run slower. Default model, clock and baud are
+`atmega644`, `16000000`, and `250000`; use `--help` for options.
+
+The simulator preserves the legacy integer nanosecond clock quantum:
+16 MHz uses 62 ns per simulated CPU cycle, not the ideal 62.5 ns. Account
+for this when interpreting absolute time measurements. The Node frontend
+retains full integer simulation time across the process boundary.
+
+The printing host remains a separate process. For the legacy Python host,
+[installation](Installation.md) still applies, and it can connect to the
+same PTY:
 
 ```
 ~/klippy-env/bin/python ./klippy/klippy.py config/generic-simulavr.cfg -i test.gcode -v
 ```
 
+Replacing this simulator frontend does not establish production readiness
+of the migrating Node printing host.
+
 ### Using simulavr with gtkwave
 
-One useful feature of simulavr is its ability to create signal wave
-generation files with the exact timing of events. To do this, follow
-the directions above, but run avrsim.py with a command-line like the
-following:
+List available signals or export selected signals with nanosecond timestamps:
 
 ```
-PYTHONPATH=/path/to/simulavr/src/python/ ./scripts/avrsim.py out/klipper.elf -t PORTA.PORT,PORTC.PORT
-```
-
-The above would create a file **avrsim.vcd** with information on each
-change to the GPIOs on PORTA and PORTB. This could then be viewed
-using gtkwave with:
-
-```
+node scripts/avrsim.ts out/klipper.elf --trace '?'
+node scripts/avrsim.ts out/klipper.elf --trace PORTA.PORT,PORTC.PORT --tracefile avrsim.vcd
 gtkwave avrsim.vcd
 ```
+
+The trace file is overwritten. Normal signal-driven shutdown flushes and
+closes the VCD writer. SIGKILL cannot provide that cleanup guarantee.
+
+To verify the native core, serial bridge, PTY, pacing, cleanup and precise
+VCD edge intervals using real AVR ELF fixtures:
+
+```
+node host/scripts/build-simulavr-core.ts /path/to/simulavr host/build/libsim.a
+SIMULAVR_SOURCE=/path/to/simulavr node --test --test-isolation=none --test-concurrency=1 host/acceptance/simulavr-core.test.ts host/acceptance/simulavr-serial.test.ts host/acceptance/simulavr-terminal.test.ts
+```
+
+Set `AVR_CC` if `avr-gcc` is outside PATH. These checks run local simulated
+firmware; they do not certify a physical printer or its motion precision.
 
 ## Reading MCU memory with the Node diagnostic tool
 
