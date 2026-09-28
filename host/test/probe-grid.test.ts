@@ -56,3 +56,20 @@ test('circular grids retain every row across tenth-millimeter radii and odd coun
  }
  assert.equal(grids,43815);
 });
+test('faulty region replaces a grid knot with ordered edge samples and their mean',async()=>{
+ const plan=planProbeGrid({...options,mesh:{...options.mesh,x_count:3,y_count:3},faultyRegions:[{min:[14,34],max:[16,36]}]},[2,3,0]);
+ const substitutes=plan.points.filter(p=>p.x===1&&p.y===1);assert.deepEqual(substitutes.map(p=>[p.nozzleX,p.nozzleY]),[[14,32],[13,31],[13,33],[12,32]]);
+ let position=[0,0,5,0];const mesh=await measureProbeGrid(plan,{position:()=>position,move:async p=>{position=[...p];},probe:async()=>{const x=position[0]+2,y=position[1]+3;return x*x+y*y;}},new AbortController().signal);
+ assert.equal(plan.points.length,12);assert.equal(mesh.probedValues()[4],1451);assert.equal(mesh.probedValues()[0],1000);
+});
+test('faulty regions reject overlaps, unavailable substitutes and faulty external reference before motion',()=>{
+ const region={min:[11,31] as const,max:[19,39] as const};
+ assert.throws(()=>planProbeGrid({...options,faultyRegions:[region,{min:[14,20],max:[16,45]}]},[0,0,0]),/Overlapping/);
+ assert.throws(()=>planProbeGrid({...options,faultyRegions:[{min:[0,0],max:[100,100]}]},[0,0,0]),/substitute/);
+ assert.throws(()=>planProbeGrid({...options,zeroReference:[25,35],faultyRegions:[{min:[24,34],max:[26,36]}]},[0,0,0]),/reference/);
+});
+test('circular faulty substitutes use translated bed origin and remain within disk',()=>{
+ const plan=planProbeGrid({...options,circle:{radius:20,origin:[100,100]},mesh:{...options.mesh,x_count:5,y_count:5},faultyRegions:[{min:[98,78],max:[102,82]}]},[2,3,0]);
+ const replaced=plan.points.filter(p=>p.x===2&&p.y===0);assert.equal(replaced.length,1);assert.deepEqual([replaced[0].nozzleX,replaced[0].nozzleY],[98,79]);
+ assert(plan.points.every(p=>Math.hypot(p.nozzleX+2-100,p.nozzleY+3-100)<=20));
+});

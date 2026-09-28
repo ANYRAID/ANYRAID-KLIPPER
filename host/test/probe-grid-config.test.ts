@@ -15,3 +15,8 @@ test('circular configuration rounds radius and spacing with translated origin',(
  assert.equal(grid.mesh.x_count,7);assert.equal(read({mesh_radius:'50'})!.mesh.x_count,5);
  for(const options of [{mesh_radius:'.09'},{mesh_radius:'1',round_probe_count:'5'},{mesh_radius:'20',mesh_origin:'1'}] as Record<string,string>[])assert.throws(()=>read(options));
 });
+test('faulty regions parse paired contiguous corners and reject silently ignored configuration',()=>{
+ const base={mesh_min:'0,0',mesh_max:'10,10'};
+ assert.equal(read({...base,faulty_region_1_min:'6,6',faulty_region_1_max:'4,4'})!.faultyRegions!.length,1);
+ for(const invalid of [{faulty_region_1_min:'1,1'},{faulty_region_2_min:'1,1',faulty_region_2_max:'2,2'},{faulty_region_100_min:'1,1'},{faulty_region_1_min:'1,1',faulty_region_1_max:'3,3',faulty_region_2_min:'2,2',faulty_region_2_max:'4,4'}] as Record<string,string>[])assert.throws(()=>read({...base,...invalid}));
+});

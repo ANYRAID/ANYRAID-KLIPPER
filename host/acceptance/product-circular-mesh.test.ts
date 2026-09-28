@@ -12,13 +12,13 @@ import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
 import {loadKlipperConfiguration} from '../src/config/klipper-files.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 const root=fileURLToPath(new URL('../..',import.meta.url));
-test('compiled circular mesh persists, reloads and compensates a Delta print',{timeout:120000},async t=>{
+for(const faulty of [false,true])test('compiled circular mesh persists, reloads and compensates a Delta print; faulty='+faulty,{timeout:120000},async t=>{
  const dir=await mkdtemp('/tmp/circular-mesh-product-'),app=join(dir,'app'),f=await productMachineFixture(dir,true);
  let replacement:Awaited<ReturnType<typeof productTransports>>|undefined,savedMatrix:unknown;
  const timings:number[]=[];let compensatedPosition:unknown;
  try{
   await buildProductHost(app,join(root,'host/tsconfig.product-host.json'),join(root,'host/build'));await symlink(join(root,'host/node_modules'),join(app,'node_modules'),'dir');
-  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8')).replace('homing_retract_dist: 0','homing_retract_dist: .2\nhoming_speed: 40\nsecond_homing_speed: 10')+'\n[probe]\npin: ^aux:PA13'+'\nz_offset: .123456789\nsamples: 2\nsamples_tolerance: 10\nsample_retract_dist: .2\n[bed_mesh]\nmesh_radius: 2\nround_probe_count: 3\nmesh_pps: 0\nhorizontal_move_z: 10\n');
+  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8')).replace('homing_retract_dist: 0','homing_retract_dist: .2\nhoming_speed: 40\nsecond_homing_speed: 10')+'\n[probe]\npin: ^aux:PA13'+'\nz_offset: .123456789\nsamples: 2\nsamples_tolerance: 10\nsample_retract_dist: .2\n[bed_mesh]\nmesh_radius: 2\nround_probe_count: 3\nmesh_pps: 0\nhorizontal_move_z: 10\n'+(faulty?'faulty_region_1_min: -.5,-.5\nfaulty_region_1_max: .5,.5\n':''));
   const gcode=join(dir,'job.gcode'),profile=join(dir,'profile.mjs');await writeFile(gcode,'G1 X0 Y0 Z10 E0.1 F6000\nM400\n');
   await writeFile(profile,`import {open} from 'node:fs/promises';
 import {GCodeFileReader} from ${JSON.stringify(pathToFileURL(join(app,'host/src/gcode/file-reader.js')).href)};
@@ -46,7 +46,7 @@ export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.s
     const fw=transport.firmware[0],extruder=fw.stepperConfigs.find(s=>s.step_pin===4||s.step_pin==='PA4')!;assert.equal(fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===extruder.oid).reduce((n,m)=>n+Number(m.parameters.count),0),8);
     if(!generation){
      let state:any;for(;;){state=await get('/printer/calibration/bed_mesh');if(state.available)break;assert(performance.now()<deadline);await new Promise(r=>setTimeout(r,10));}
-     const start=performance.now(),request={version:1,state_token:state.state_token},receipt=await post('/printer/calibration/bed_mesh',request);timings.push(performance.now()-start);assert.equal(simulation.probeHits,10);assert.deepEqual(await post('/printer/calibration/bed_mesh',request),receipt);assert.equal(simulation.probeHits,10);
+     const start=performance.now(),request={version:1,state_token:state.state_token},receipt=await post('/printer/calibration/bed_mesh',request);timings.push(performance.now()-start);assert.equal(simulation.probeHits,faulty?16:10);assert.deepEqual(await post('/printer/calibration/bed_mesh',request),receipt);assert.equal(simulation.probeHits,faulty?16:10);
      const mesh=(await get('/printer/objects/query?bed_mesh')).status.bed_mesh;assert.equal(mesh.profile_name,'measured');savedMatrix=mesh.probed_matrix;assert.equal((savedMatrix as number[][]).length,3);
      const configuration=await get('/printer/configuration');const saved=await post('/printer/configuration/bed_mesh',{version:1,state_token:configuration.state_token,profile:'retained'});assert.equal(saved.state,'saved');
      await writeFile(gcode,'BED_MESH_PROFILE LOAD=retained\nG1 X-1 Y0 Z10 E0.05 F6000\nG1 X1 Y0 Z10 E0.1 F6000\nM400\n');
@@ -58,6 +58,6 @@ export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.s
    }finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended.catch(()=>{});simulation.close();}
   }
   const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});try{for(let i=0;i<2;i++)assert.equal((await journal.get('generation-'+i))?.state,'completed');}finally{await journal.close();}
-  const evidence={node:process.version,compiled:true,generations:2,calibrationMs:timings[0],probedMatrix:savedMatrix,compensatedPosition,passed:true,scope:'Compiled CLI with PATH excluding Python, two independent simulated MCU generations, circular calibration, save, explicit profile reload, homing and compensated print. Existing native addons and dependencies reused; excludes clean installation, real hardware and physical precision.'};t.diagnostic(JSON.stringify(evidence));if(process.env.CIRCULAR_MESH_EVIDENCE)await writeFile(process.env.CIRCULAR_MESH_EVIDENCE,JSON.stringify(evidence,null,2)+'\n');
+  const evidence={node:process.version,compiled:true,faulty,generations:2,calibrationMs:timings[0],probedMatrix:savedMatrix,compensatedPosition,passed:true,scope:'Compiled CLI with PATH excluding Python, two independent simulated MCU generations, circular calibration, save, explicit profile reload, homing and compensated print. Existing native addons and dependencies reused; excludes clean installation, real hardware and physical precision.'};t.diagnostic(JSON.stringify(evidence));if(process.env.CIRCULAR_MESH_EVIDENCE)await writeFile(faulty?process.env.CIRCULAR_MESH_EVIDENCE.replace(/\.json$/,'-faulty.json'):process.env.CIRCULAR_MESH_EVIDENCE,JSON.stringify(evidence,null,2)+'\n');
  }finally{await replacement?.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });
