@@ -16,6 +16,18 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- Delta 声明式源码与编译包完成 HTTP 启动的短文件打印闭环。父进程
+  仅经双 PTY 协议注入限位与 ADC，不修改子进程的归零或运动对象。
+  各模式 4 轮均验证三塔双次归零、加热目标、0.1 mm 挤出恰好 8 步、
+  末端坐标 [0,0,299,0.1]、完成时温控目标归零、文件关闭，退出后
+  重开持久化日志仍为 completed，两个 MCU 停止后释放适配器。
+  各预热 1 轮、测量 3 轮，HTTP start 到观察到 completed 中位
+  源码 1269.415 ms／编译 1275.773 ms（约增加 0.5%），通过配对
+  时间门禁。见 [编译打印验收](../host/contracts/delta-compiled-journey-acceptance.json)。
+  测试复用本机依赖与原生插件，温度和停止均为模拟；不证明洁净安装、
+  目标板长时吞吐或打印精度。Delta 探针与校准尚未接通，Python 179 个
+  及既有数值／AVR 时序阻塞未改变。
+
 - 声明式预检及 product-host 现在按 printer.kinematics 选择 Delta 或
   线性机型，每次重建重新读取配置。源码 CLI 验证了 Delta 的几何状态、
   SIGHUP 重建、SIGINT/SIGTERM 关闭；未支持的 probe 在取得适配器和

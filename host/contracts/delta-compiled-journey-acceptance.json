@@ -1,0 +1,52 @@
+{
+  "node": "v26.9.0",
+  "warmupsPerMode": 1,
+  "samplesPerMode": 3,
+  "sourceMs": 1269.414589,
+  "compiledMs": 1275.7730300000003,
+  "maximumMs": 1700.2389657,
+  "passed": true,
+  "samples": [
+    {
+      "compiled": false,
+      "run": 0,
+      "printMs": 1265.9684709999997
+    },
+    {
+      "compiled": true,
+      "run": 0,
+      "printMs": 1287.7263199999998
+    },
+    {
+      "compiled": true,
+      "run": 1,
+      "printMs": 1293.9587940000001
+    },
+    {
+      "compiled": false,
+      "run": 1,
+      "printMs": 1240.2331619999986
+    },
+    {
+      "compiled": false,
+      "run": 2,
+      "printMs": 1276.4345200000007
+    },
+    {
+      "compiled": true,
+      "run": 2,
+      "printMs": 1275.7730300000003
+    },
+    {
+      "compiled": true,
+      "run": 3,
+      "printMs": 1219.9526090000018
+    },
+    {
+      "compiled": false,
+      "run": 3,
+      "printMs": 1269.414589
+    }
+  ],
+  "scope": "Delta source/compiled CLI heated short file print over two simulated PTY MCUs; wire-only endstop and ADC model, exact eight extruder steps, file close and durable completion after shutdown. Local native addons/dependencies reused. Excludes physical hardware and long-print throughput."
+}
