@@ -30,6 +30,8 @@ export class DeltaKinematics {
     if(maxXY<=0||![...this.#arm2,...this.#endstops,this.#coneZ,this.#slow2,this.#verySlow2,this.#maxXY2].every(Number.isFinite))throw new RangeError('Invalid Delta build envelope');
   }
   get status(){const r=Math.sqrt(this.#maxXY2);return {homedAxes:this.#needHome?'':'xyz',axisMinimum:[-r,-r,this.#c.minimumZ],axisMaximum:[r,r,this.#maxZ],coneStartZ:this.#coneZ};}
+  /** Same tower coordinates used by admission and the native C iterators. */
+  get solverGeometry(){return Object.freeze(this.#towers.map((tower,i)=>Object.freeze({kind:'delta' as const,armLength:this.#c.arms[i],towerX:tower[0],towerY:tower[1]})));}
   get homePosition():Vec3{return [...this.#home];}
   get thresholds(){return {slowXY2:this.#slow2,verySlowXY2:this.#verySlow2,maxXY2:this.#maxXY2,cachedXY2:this.#cachedXY2};}
   /** Reset after any physical position change; only xyz confirms all-tower homing. */

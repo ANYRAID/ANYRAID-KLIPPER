@@ -1,0 +1,17 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "configurationsPerSample": 250,
+  "nativeSolversPerSample": 750,
+  "samplesMs": [
+    51.338640999999996,
+    50.610941000000025,
+    52.21615300000002,
+    51.82570799999996,
+    50.886465000000044,
+    50.67123200000003,
+    50.704542999999944
+  ],
+  "medianMs": 50.886465000000044,
+  "scope": "Cold configuration reader, asymmetric Delta geometry, native solver allocation, vertical step generation/count validation and disposal; excludes MCU IO and homing"
+}
