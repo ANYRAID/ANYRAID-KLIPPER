@@ -10,10 +10,11 @@ export interface CompressedSteps {
 }
 export type StepperKinematics = 'x'|'y'|'z'|'corexy+'|'corexy-'|'corexz+'|'corexz-'|'extruder'|{kind:'delta';armLength:number;towerX:number;towerY:number};
 const solverModes={x:0,y:1,z:2,'corexy+':3,'corexy-':4,extruder:5,'corexz+':7,'corexz-':8} as const;
-interface Native {pressureSchedulePrefix(handle:object,changes:Float64Array):number;reconfigurePressureAdvance(handle:object,advance:number,smoothTime:number,apply:boolean):void;setPressureAdvanceAtTail(handle:object,time:number,advance:number):Float64Array;cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
+interface Native {configureCarriage(handle:object,parameters:Float64Array):void;pressureSchedulePrefix(handle:object,changes:Float64Array):number;reconfigurePressureAdvance(handle:object,advance:number,smoothTime:number,apply:boolean):void;setPressureAdvanceAtTail(handle:object,time:number,advance:number):Float64Array;cancelPressureAdvanceAfter(handle:object,time:number):Float64Array;coordinatePosition(handle:object,x:number,y:number,z:number):number;commandedPosition(handle:object):number;initializePosition(handle:object,clock:bigint,position:bigint):void;calibrateClock(handle:object,offset:number,frequency:number,apply:boolean):void;schedulePressureAdvance(handle:object,printTime:number,advance:number):void;configurePressureAdvance(handle:object,advance:number,smoothTime:number):void;configureShapers(handle:object,parameters:Float64Array):void;windows(handle:object):Float64Array;attachSolver(handle:object,queue:object,settings:Float64Array):void;generate(handle:object,until:number):number;create(settings:Float64Array,initialClock:bigint):object;append(handle:object,steps:Float64Array):void;flush(handle:object,time?:number):CompressedSteps;close(handle:object):void}
 const native=createRequire(import.meta.url)(process.env.ANYRAID_STEPCOMPRESS_ADDON??'../../build/stepcompress.node') as Native;
 export interface StepCompressorSettings {frequency:number;timeOffset:number;oid:number;maxError:number;queueStepTag:number;directionTag:number;invertDirection?:boolean;initialClock?:bigint}
-export interface MotionFilterSettings {shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
+export interface CarriageTransformSettings {xScale:number;xOffset:number;yScale:number;yOffset:number;}
+export interface MotionFilterSettings {carriage?:CarriageTransformSettings;shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;pressureAdvance?:{advance:number;smoothTime:number};}
 /** Native compression only: caller must provide validated steps and schedule returned packets. */
 export class StepCompressor {
   #handle:object;#closed=false;#offset:number;#frequency:number;
@@ -35,6 +36,12 @@ export class StepCompressor {
   bindQueue(queue:object,mode:StepperKinematics,stepDistance:number,position:readonly number[]):void {
     const delta=typeof mode==='object';
     native.attachSolver(this.#handle,queue,new Float64Array([delta&&mode.kind==='delta'?6:solverModes[mode as keyof typeof solverModes],stepDistance,...position,...(delta?[mode.armLength,mode.towerX,mode.towerY]:[])]));
+  }
+  /** Immutable within a generation; configure before shaping or position seeding. */
+  configureCarriage(transform:CarriageTransformSettings):void{
+    const {xScale,xOffset,yScale,yOffset}=transform;
+    native.configureCarriage(this.#handle,new Float64Array([xScale,xOffset,yScale,yOffset]));
+    this.#filters.carriage={xScale,xOffset,yScale,yOffset};
   }
   /** Configure an E-only queue before generation. Zero advance disables smoothing. */
   configurePressureAdvance(advance:number,smoothTime=.04):void{native.configurePressureAdvance(this.#handle,advance,smoothTime);this.#filters.pressureAdvance={advance,smoothTime};this.#pressureSettledAt=undefined;}

@@ -23,6 +23,8 @@ static napi_value configure_shapers(napi_env env,napi_callback_info info) {
         gain[axis]=n?absolute/sum:1.;
         if(!isfinite(gain[axis])||gain[axis]>2)REJECT("Shaper gain exceeds generation bound");
     }
+    // A fully parked affine solver is constant; no convolution is required.
+    if(h->carriage_base&&!h->sk->active_flags){napi_value result;CHECK(napi_get_undefined(env,&result));return result;}
     struct stepper_kinematics *base=h->orig_sk?h->orig_sk:h->sk,*wrapped=input_shaper_alloc();
     if(input_shaper_set_sk(wrapped,base)){free(wrapped);REJECT("Unsupported shaper kinematics");}
     for(int axis=0;axis<3;axis++) {
@@ -88,8 +90,8 @@ static napi_value generate_shaped(napi_env env,struct handle *h,double until) {
         if(m->print_time<=until&&end>=until)at_end=m;
     }
     if(!at_start||!at_end)REJECT("Incomplete shaper motion coverage");
-    double velocity=0,position_bound=0;
-    for(int i=0;i<3;i++){velocity+=max_v[i]*h->gain[i];position_bound+=bound[i]*h->gain[i];}
+    double velocity=0,position_bound=h->carriage_offset_bound;
+    for(int i=0;i<3;i++){velocity+=max_v[i]*h->gain[i]*h->carriage_scale[i];position_bound+=bound[i]*h->gain[i]*h->carriage_scale[i];}
     if(h->mode==6){
         // Each shaped axis can sample different source times. Bound its whole
         // interval, including small negative weights, before applying Delta's

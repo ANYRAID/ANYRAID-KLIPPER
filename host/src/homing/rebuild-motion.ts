@@ -1,7 +1,7 @@
 import {TrapQueue} from '../motion/trap-queue.ts';
 import {StepperPosition} from '../motion/stepper-position.ts';
 import {StepHistory} from '../motion/step-history.ts';
-import type {StepCompressorSettings,StepperKinematics} from '../motion/step-compressor.ts';
+import type {CarriageTransformSettings,StepCompressorSettings,StepperKinematics} from '../motion/step-compressor.ts';
 import type {MotionBinding} from '../motion/coordinator.ts';
 import type {Shaper} from '../motion/shaper.ts';
 import type {HomingStopResult} from './stop-confirmation.ts';
@@ -10,6 +10,7 @@ export interface StoppedEmitter {
  readonly id:string;readonly queueId:string;readonly member:number;
  readonly settings:Omit<StepCompressorSettings,'initialClock'>;
  readonly mode:StepperKinematics;readonly rotationDistance:number;readonly stepsPerRotation:number;
+ readonly carriage?:CarriageTransformSettings;
  readonly shapers?:Partial<Record<'x'|'y'|'z',Shaper>>;
  readonly pressureAdvance?:{advance:number;smoothTime:number};
 }
@@ -46,6 +47,7 @@ export function createStoppedMotion(result:HomingStopResult,queues:readonly Stop
    const stepper=queue.createStepper({...e.settings,initialClock:0n},e.mode,position.state.stepDistance,endpoints.get(e.queueId)!);
    try{
     if(stepper.printTimeAtClock(p.observedClock)>printTime||stepper.clockAt(printTime)<p.observedClock)throw new RangeError('Rebuild precedes stopped observation');
+    if(e.carriage)stepper.configureCarriage(e.carriage);
     if(e.shapers)stepper.configureShapers(e.shapers);
     if(e.pressureAdvance)stepper.configurePressureAdvance(e.pressureAdvance.advance,e.pressureAdvance.smoothTime);
     position.align(p.position,stepper.commandedPosition);stepper.initializePosition(p.observedClock,p.position);

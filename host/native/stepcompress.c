@@ -13,6 +13,9 @@ struct stepper_kinematics *cartesian_stepper_alloc(char);
 struct stepper_kinematics *corexy_stepper_alloc(char);
 struct stepper_kinematics *corexz_stepper_alloc(char);
 struct stepper_kinematics *extruder_stepper_alloc(void);
+struct stepper_kinematics *dual_carriage_alloc(void);
+void dual_carriage_set_sk(struct stepper_kinematics *,struct stepper_kinematics *);
+int dual_carriage_set_transform(struct stepper_kinematics *,char,double,double);
 struct stepper_kinematics *delta_stepper_alloc(double,double,double);
 void extruder_stepper_free(struct stepper_kinematics *);
 void extruder_set_pressure_advance(struct stepper_kinematics *,double,double,double);
@@ -22,6 +25,7 @@ static const napi_type_tag tag={0x4179726169645343ULL,0x323630393230ULL};
 struct handle {struct stepcompress *sc;struct list_head messages;double frequency,offset,last_time;size_t pending;uint64_t total,last_clock,flushed_clock,position_clock;int failed;
     struct stepper_kinematics *sk;struct trap_handle *queue;napi_ref queue_ref;
     struct solver_link link;double path_position;int mode,started,position_initialized;struct stepper_kinematics *orig_sk;double gain[3],pressure_advance,arm2,tower_x,tower_y;
+    struct stepper_kinematics *carriage_base;double initial_xyz[3],carriage_scale[3],carriage_offset_bound;
     double pa_times[128],pa_values[128],pa_last_time;size_t pa_count;};
 static void free_solver(struct stepper_kinematics *sk,int mode) {
     if(mode==5)extruder_stepper_free(sk);else free(sk);
@@ -29,6 +33,7 @@ static void free_solver(struct stepper_kinematics *sk,int mode) {
 static void detach(napi_env env,struct handle *h) {
     if(h->sk){free_solver(h->sk,h->mode);h->sk=NULL;}
     if(h->orig_sk){free(h->orig_sk);h->orig_sk=NULL;}
+    if(h->carriage_base){free(h->carriage_base);h->carriage_base=NULL;}
     if(h->queue){
         struct trap_handle *q=h->queue;struct solver_link **link=&q->solvers;
         while(*link && *link!=&h->link)link=&(*link)->next;
@@ -169,9 +174,28 @@ static napi_value attach_solver(napi_env env,napi_callback_info info) {
     if(!isfinite(sk->commanded_pos)||sk->commanded_pos+v[1]*.5==sk->commanded_pos||sk->commanded_pos-v[1]*.5==sk->commanded_pos){free_solver(sk,(int)v[0]);REJECT("Initial actuator position exceeds step resolution");}
     napi_status status=napi_create_reference(env,args[1],1,&h->queue_ref);if(status!=napi_ok){free_solver(sk,(int)v[0]);CHECK(status);}
     if(v[0]==6){h->arm2=v[5]*v[5];h->tower_x=v[6];h->tower_y=v[7];}
-    h->sk=sk;h->queue=q;h->mode=(int)v[0];h->path_position=sk->commanded_pos;for(int i=0;i<3;i++)h->gain[i]=1.;
+    h->sk=sk;h->queue=q;h->mode=(int)v[0];h->path_position=sk->commanded_pos;for(int i=0;i<3;i++){h->gain[i]=1.;h->carriage_scale[i]=1.;h->initial_xyz[i]=v[i+2];}
     itersolve_set_trapq(sk,q->q,v[1]);sk->last_flush_time=fmax(q->finalized,h->last_time);sk->last_move_time=sk->last_flush_time;
     h->link.generated=sk->last_flush_time;h->link.next=q->solvers;q->solvers=&h->link;
+    napi_value result;CHECK(napi_get_undefined(env,&result));return result;
+}
+// Startup-only affine wrapper. Each generation owns all three solver layers.
+static napi_value configure_carriage(napi_env env,napi_callback_info info) {
+    size_t argc=2;napi_value args[2];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=2)REJECT("Expected carriage transform");
+    struct handle *h=get(env,args[0],0);if(!h)return NULL;
+    if(!h->sk||h->mode==5||h->mode==6||h->started||h->pending||h->position_initialized||h->orig_sk||h->carriage_base)REJECT("Configure carriage once before shaping, position initialization and generation");
+    napi_typedarray_type type;size_t len,offset;void *data;napi_value backing;bool owned=false;
+    CHECK(napi_get_typedarray_info(env,args[1],&type,&len,&data,&backing,&offset));CHECK(napi_is_arraybuffer(env,backing,&owned));
+    if(type!=napi_float64_array||!owned||len!=4)REJECT("Invalid carriage transform");
+    double *v=data;for(int i=0;i<4;i++)if(!isfinite(v[i]))REJECT("Nonfinite carriage transform");
+    double offset_bound=fabs(v[1])+fabs(v[3]);if(!isfinite(offset_bound))REJECT("Carriage offset overflow");
+    struct stepper_kinematics *base=h->sk,*wrapped=dual_carriage_alloc();
+    dual_carriage_set_sk(wrapped,base);dual_carriage_set_transform(wrapped,'x',v[0],v[1]);dual_carriage_set_transform(wrapped,'y',v[2],v[3]);
+    itersolve_set_position(wrapped,h->initial_xyz[0],h->initial_xyz[1],h->initial_xyz[2]);
+    double p=wrapped->commanded_pos,half=base->step_dist*.5;
+    if(!isfinite(p)||p+half==p||p-half==p){free(wrapped);REJECT("Carriage position exceeds step resolution");}
+    itersolve_set_trapq(wrapped,h->queue->q,base->step_dist);wrapped->last_flush_time=base->last_flush_time;wrapped->last_move_time=base->last_move_time;
+    h->carriage_base=base;h->sk=wrapped;h->path_position=p;h->carriage_scale[0]=fabs(v[0]);h->carriage_scale[1]=fabs(v[2]);h->carriage_offset_bound=offset_bound;
     napi_value result;CHECK(napi_get_undefined(env,&result));return result;
 }
 #include "shaper.inc.c"
@@ -211,7 +235,7 @@ static napi_value generate_steps(napi_env env,napi_callback_info info) {
         if(!isfinite(p0)||!isfinite(p1)||fabs(p0-position)>h->sk->step_dist*.500001)REJECT("Discontinuous actuator path");
         double half_step=h->sk->step_dist*.5;
         if(p0+half_step==p0||p0-half_step==p0||p1+half_step==p1||p1-half_step==p1)REJECT("Actuator position exceeds step resolution");
-        double ratio=h->mode==5?1.:h->mode<3?fabs(m->axes_r.axis[h->mode]):fabs(m->axes_r.x)+(h->mode>=7?fabs(m->axes_r.z):fabs(m->axes_r.y));
+        double ratio=h->mode==5?1.:h->mode<3?fabs(m->axes_r.axis[h->mode])*h->carriage_scale[h->mode]:fabs(m->axes_r.x)*h->carriage_scale[0]+(h->mode>=7?fabs(m->axes_r.z):fabs(m->axes_r.y)*h->carriage_scale[1]);
         double velocity=fmax(fabs(m->start_v+2*m->half_accel*t0),fabs(m->start_v+2*m->half_accel*t1))*ratio;
         if(h->mode==6){
             // Distance along a quadratic segment can turn internally. Evaluate
@@ -260,6 +284,7 @@ static napi_value initialize_position(napi_env env,napi_callback_info info){
 }
 static napi_value init(napi_env env,napi_value exports) {
     napi_property_descriptor methods[]={
+      {"configureCarriage",NULL,configure_carriage,NULL,NULL,NULL,napi_default,NULL},
       {"create",NULL,create,NULL,NULL,NULL,napi_default,NULL},{"append",NULL,append,NULL,NULL,NULL,napi_default,NULL},
       {"attachSolver",NULL,attach_solver,NULL,NULL,NULL,napi_default,NULL},{"generate",NULL,generate_steps,NULL,NULL,NULL,napi_default,NULL},
       {"configurePressureAdvance",NULL,configure_pressure_advance,NULL,NULL,NULL,napi_default,NULL},
@@ -273,6 +298,6 @@ static napi_value init(napi_env env,napi_value exports) {
       {"coordinatePosition",NULL,coordinate_position,NULL,NULL,NULL,napi_default,NULL},
       {"initializePosition",NULL,initialize_position,NULL,NULL,NULL,napi_default,NULL},{"calibrateClock",NULL,calibrate_clock,NULL,NULL,NULL,napi_default,NULL},
       {"flush",NULL,flush,NULL,NULL,NULL,napi_default,NULL},{"close",NULL,close_handle,NULL,NULL,NULL,napi_default,NULL}};
-    CHECK(napi_define_properties(env,exports,18,methods));return exports;
+    CHECK(napi_define_properties(env,exports,sizeof(methods)/sizeof(methods[0]),methods));return exports;
 }
 NAPI_MODULE(NODE_GYP_MODULE_NAME,init)

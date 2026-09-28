@@ -5,5 +5,5 @@ import type {StoppedEmitter} from './rebuild-motion.ts';
 export function recoveryEmitters(bindings:readonly MotionBinding[],emitters:readonly StoppedEmitter[]):StoppedEmitter[]{
  const byId=new Map(bindings.map(b=>[b.id,b]));
  if(byId.size!==bindings.length||bindings.length!==emitters.length||new Set(emitters.map(e=>e.id)).size!==emitters.length)throw new Error('Recovery filter ownership differs');
- return emitters.map(e=>{const b=byId.get(e.id);if(!b)throw new Error('Missing recovery filter owner');const {shapers:_shapers,pressureAdvance:_pressure,...descriptor}=e,calibration=b.stepper.calibration;return {...structuredClone(descriptor),settings:{...e.settings,timeOffset:calibration.offset,frequency:calibration.frequency},...b.stepper.recoveryFilters()};});
+ return emitters.map(e=>{const b=byId.get(e.id);if(!b)throw new Error('Missing recovery filter owner');const {carriage:_carriage,shapers:_shapers,pressureAdvance:_pressure,...descriptor}=e,calibration=b.stepper.calibration;return {...structuredClone(descriptor),settings:{...e.settings,timeOffset:calibration.offset,frequency:calibration.frequency},...b.stepper.recoveryFilters()};});
 }

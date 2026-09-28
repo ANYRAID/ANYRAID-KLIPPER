@@ -56,3 +56,12 @@ test('incomplete groups and extra attached solvers never publish a replacement',
  assert.throws(()=>rebuildStoppedMotion(observation,[old],[{id:'xyz',position:[25,0,0]}],[emitter],1.6),/Detach/);
  assert.throws(()=>old.stepper.generate(2),/closed/);extra.dispose();old.queue.dispose();
 });
+
+test('stopped carriage generation aligns physical counters and preserves affine filters',async()=>{
+ const {recoveryEmitters}=await import('../src/homing/recovery-emitters.ts');
+ const carriage={xScale:-1,xOffset:180,yScale:1,yOffset:0};
+ const old=oldMotion();using rebuilt=rebuildStoppedMotion(observation,[old],[{id:'xyz',position:[25,0,0]}],[{...emitter,carriage}],1.6);
+ const b=rebuilt.bindings[0];assert.equal(b.stepper.commandedPosition,155);assert.equal(b.position.mcuPosition(155),2500n);
+ const descriptors=recoveryEmitters(rebuilt.bindings,[{...emitter,carriage:{...carriage,xOffset:999}}]);assert.deepEqual(descriptors[0].carriage,carriage);
+ b.queue.appendRaw(new Float64Array([1.6,0,.1,0,25,0,0,1,0,0,1,1,0]));b.stepper.generate(1.7);assert.equal(b.stepper.flush().position,2490n);
+});
