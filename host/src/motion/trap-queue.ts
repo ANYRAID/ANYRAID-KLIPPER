@@ -65,7 +65,7 @@ export class TrapQueue {
     try{if(replace)native.replaceFuture(this.#handle,startTime,data);else native.append(this.#handle,data);}
     catch(error){
       if(error instanceof RangeError&&error.message==='Motion duration below time resolution'){
-        for(let offset=0;offset<data.length;offset+=13){let phaseTime=data[offset];for(let phase=1;phase<=3;phase++){const duration=data[offset+phase];if(duration>0&&phaseTime+duration<=phaseTime)throw new RangeError(`${error.message}: ${JSON.stringify({row:Array.from(data.subarray(offset,offset+13)),phase,extrusionAxis:extrusionAxis??null,replace})}`,{cause:error});phaseTime+=duration;}}
+        for(let offset=0;offset<data.length;offset+=13){let phaseTime=data[offset];for(let phase=1;phase<=3;phase++){const duration=data[offset+phase];if(duration>0&&phaseTime+duration<=phaseTime)throw new RangeError(`${error.message}: ${JSON.stringify({row:Array.from(data.subarray(offset,offset+13)),phase,extrusionAxis:extrusionAxis??null,replace,move:(()=>{const m=moves.filter(m=>coverIdle||(extrusionAxis===undefined?m.isKinematic:m.axesD[extrusionAxis]!==0))[offset/13];return {start:m.startPos,end:m.endPos,ratio:m.axesR,distance:m.distance,accel:m.accel,profile:m.profile};})()})}`,{cause:error});phaseTime+=duration;}}
       }
       throw error;
     }

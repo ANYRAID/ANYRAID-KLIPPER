@@ -84,3 +84,14 @@ test('rounded triangular identities do not discard resolvable motion or pure cru
   m.setJunction(v2,peak,v2);assert(m.profile!.cruiseT>0);
  }
 });
+test('captured second-tool sub-clock ramp remains fail-closed until all-axis precision is representable',()=>{
+ const m=new Move(motionLimits(100,1000),[5.05,0,0,.5,.0050000000000000044],[5.06,0,0,.5,.006000000000000005],10);
+ m.profile={startV:9.999999999999982,cruiseV:10,endV:10,accelT:1.776356839400252e-17,cruiseT:.000999999999999961,decelT:0};
+ const time=12.165165;assert.equal(time+m.profile.accelT,time);assert.equal(representableProfile(m,time),undefined);
+ for(const axis of [undefined,4]){
+  using q=new TrapQueue();assert.throws(()=>q.appendPlanned([m],time,axis),error=>{
+   assert(error instanceof RangeError);assert.match(error.message,/Motion duration below time resolution/);
+   const detail=JSON.parse(error.message.slice(error.message.indexOf(': ')+2));assert.deepEqual(detail.move.start,m.startPos);assert.deepEqual(detail.move.end,m.endPos);assert.deepEqual(detail.move.profile,m.profile);return true;
+  });assert.equal(q.extract(10,0,time+1).length,0);
+ }
+});

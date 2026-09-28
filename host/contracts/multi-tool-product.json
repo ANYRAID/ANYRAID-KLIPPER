@@ -1,0 +1,49 @@
+{
+  "status": "failed: unrepresentable second-tool acceleration phase; not accepted",
+  "runtime": "Node.js 26.9.0",
+  "reproduced": 2,
+  "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^multi=true' host/acceptance/product-compiled-journey.test.ts",
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 798.14582,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1172.2246130000003,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "failureContext": {
+        "loaded": false,
+        "loadGeneration": 0,
+        "homed": 3,
+        "exitCode": null,
+        "signalCode": null,
+        "stderr": "",
+        "events": "{\"event\":\"factory\",\"generation\":1}\n{\"event\":\"open\",\"generation\":1}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"mcu\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"aux\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n"
+      }
+    }
+  ],
+  "remaining": [
+    "resolve all-axis motion representation without relaxing precision unconditionally",
+    "complete compiled multi-tool HTTP lifecycle including restart and second-heater fault",
+    "physical hardware acceptance"
+  ]
+}
