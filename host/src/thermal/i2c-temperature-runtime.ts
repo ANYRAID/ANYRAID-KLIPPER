@@ -1,7 +1,7 @@
 import {i2cTemperatureModel,i2cTemperaturePeriod} from './i2c-temperature-model.ts';
 import {fixedDecimal} from '../diagnostics/python-literal.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
-interface TemperatureReading {temperature:number;humidity:number;}
+interface TemperatureReading {temperature:number;humidity?:number;}
 import {TemperatureSensorState} from './temperature-sensor.ts';
 export function readI2cTemperature(reader:ConfigurationReader,section:string){
  const c=reader.section(section),model=c.get('sensor_type'),minimum=c.getFloat('min_temp',{defaultValue:-273.15,minval:-273.15}),maximum=c.getFloat('max_temp',{defaultValue:99999999.9,above:minimum}),reportTime=i2cTemperaturePeriod(reader,section),gcodeId=c.get('gcode_id',{defaultValue:null});
@@ -20,7 +20,7 @@ export class I2cTemperatureRuntime {
  #cancelPoll:(()=>void)|undefined;#cancelDeadline:(()=>void)|undefined;
  #requesting=false;
  constructor(config:ReturnType<typeof readI2cTemperature>,sampler:I2cTemperatureSampler,fault:(cause:unknown)=>void,timer:I2cTemperatureClock=clock){
-  if(![config.minimum,config.maximum].every(Number.isFinite)||config.minimum< -273.15||config.maximum<=config.minimum||!Number.isInteger(config.reportTime)||config.reportTime<i2cTemperatureModel(config.model).reportMinimum||config.reportTime>86400)throw new Error('Invalid I2C temperature runtime configuration');
+  if(![config.minimum,config.maximum].every(Number.isFinite)||config.minimum< -273.15||config.maximum<=config.minimum||(!Number.isFinite(config.reportTime)||config.model!=='LM75'&&!Number.isInteger(config.reportTime))||config.reportTime<i2cTemperatureModel(config.model).reportMinimum||config.reportTime>86400)throw new Error('Invalid I2C temperature runtime configuration');
   this.#config=Object.freeze({...config});this.section=config.section;this.#sampler=sampler;this.#clock=timer;this.#fault=fault;
  }
  getTemperature(){
@@ -52,7 +52,8 @@ export class I2cTemperatureRuntime {
     if(this.#last!==undefined&&started>this.#last+this.#config.reportTime+6)throw new Error('I2C temperature sample expired before poll');
     signal.throwIfAborted();const value=await (initial?this.#sampler.initialize(signal):this.#sampler.sample(signal));signal.throwIfAborted();
     if(this.#closed)throw new Error('I2C temperature runtime closed during sample');
-    if(!Number.isFinite(value.temperature)||value.temperature<this.#config.minimum||value.temperature>this.#config.maximum||!Number.isFinite(value.humidity)||this.#config.model!=='SHT3X'&&!Number.isInteger(value.humidity)||value.humidity<0||value.humidity>100)throw new Error('I2C temperature reading outside configured range');
+    const humidityKind=i2cTemperatureModel(this.#config.model).humidity,validHumidity=humidityKind==='none'?value.humidity===undefined:typeof value.humidity==='number'&&Number.isFinite(value.humidity)&&value.humidity>=0&&value.humidity<=100&&(humidityKind!=='integer'||Number.isInteger(value.humidity));
+    if(!Number.isFinite(value.temperature)||value.temperature<this.#config.minimum||value.temperature>this.#config.maximum||!validHumidity)throw new Error('I2C temperature reading outside configured range');
     const now=this.#clock.now();if(!Number.isFinite(started)||!Number.isFinite(now)||started<0||now<started||now-started>=6)throw new Error('Invalid or expired I2C temperature sample time');
     this.state.sample(now,value.temperature);this.#humidity=value.humidity;this.#last=now;
     if(!this.#closed)this.#cancelPoll=this.#clock.schedule(()=>{void this.#read(false).catch(()=>{});},this.#config.reportTime*1000);

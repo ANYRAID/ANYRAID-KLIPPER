@@ -3131,6 +3131,13 @@ sensor_type: LM75
 #   0.5.
 ```
 
+The candidate Node host decodes LM75 readings as signed 9-bit values
+(0.5 C resolution), correcting the legacy Python negative-temperature
+decoding. It waits at least 0.5 seconds between sensor accesses, including
+target-triggered readings, and rejects a device in shutdown mode. It does
+not probe the optional product-ID register or synthesize humidity values.
+See [migration status](Node_Host_Migration.md) for validation limits.
+
 ### Builtin micro-controller temperature sensor
 
 The atsam, atsamd, stm32 and rp2040 micro-controllers contain an internal
