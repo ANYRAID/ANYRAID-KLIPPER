@@ -1,0 +1,80 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "samples": [
+    {
+      "baseMs": 2.7971959999999854,
+      "outputsMs": 107.98003400000016
+    },
+    {
+      "baseMs": 3.8131499999999505,
+      "outputsMs": 108.77657399999953
+    },
+    {
+      "baseMs": 2.6132440000001225,
+      "outputsMs": 108.0424439999997
+    },
+    {
+      "baseMs": 4.229794999999285,
+      "outputsMs": 107.4831180000001
+    },
+    {
+      "baseMs": 3.76017899999988,
+      "outputsMs": 107.45323600000029
+    },
+    {
+      "baseMs": 2.442362000000685,
+      "outputsMs": 107.52410799999961
+    },
+    {
+      "baseMs": 2.4872729999988223,
+      "outputsMs": 108.34353899999951
+    }
+  ],
+  "medianBaseMs": 2.7971959999999854,
+  "medianOutputsMs": 107.98003400000016,
+  "scope": "Cold hardware startup after connection, two native serial queues with simulated MCU, base stepper/heater/fan versus three added output pins; not print throughput or real hardware",
+  "sequentialStartupBaseline": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samples": [
+      {
+        "baseMs": 2.7790970000005473,
+        "outputsMs": 317.0589880000002
+      },
+      {
+        "baseMs": 3.263972000000649,
+        "outputsMs": 317.9270110000007
+      },
+      {
+        "baseMs": 3.0021399999995992,
+        "outputsMs": 316.9375170000003
+      },
+      {
+        "baseMs": 3.0676500000008673,
+        "outputsMs": 316.2454680000001
+      },
+      {
+        "baseMs": 3.123391000000993,
+        "outputsMs": 316.47371100000055
+      },
+      {
+        "baseMs": 2.5001030000003084,
+        "outputsMs": 316.63551299999926
+      },
+      {
+        "baseMs": 2.497212000000218,
+        "outputsMs": 317.3404529999989
+      }
+    ],
+    "medianBaseMs": 3.0021399999995992,
+    "medianOutputsMs": 316.9375170000003,
+    "scope": "Cold hardware startup after connection, two native serial queues with simulated MCU, base stepper/heater/fan versus three added output pins; not print throughput or real hardware"
+  },
+  "validation": {
+    "relatedTests": 26,
+    "scope": "Hardware configuration, lifecycle, output pins and failure cleanup; failed assertion corrected to exercise configured alias conflict",
+    "typecheck": "passed",
+    "realHardware": false
+  }
+}

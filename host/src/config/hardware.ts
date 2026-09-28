@@ -21,6 +21,7 @@ import {compileConfiguredHoming} from './homing.ts';
 import {compileConfiguredCoolingFans,type CoolingFanRequest,type FanClock} from './cooling-fan.ts';
 import {compileConfiguredAnalogHeaters} from './analog-heater.ts';
 import {compileConfiguredButtons} from './buttons.ts';
+import {compileConfiguredOutputPins} from './configured-output-pins.ts';
 export interface HardwareLayout {
  steppers:readonly (Omit<StepperSectionRequest,'oid'>&{emitter:string;enableLeadTime:number})[];
  /** Explicit physical membership; homing runtime still binds its emitters. */
@@ -29,6 +30,7 @@ export interface HardwareLayout {
  heaters:readonly {section:string}[];
  sensors?:readonly {section:string}[];
  buttons?:readonly {section:string}[];
+ outputPins?:readonly {section:string}[];
  boards?:readonly {mcu:string;aliases?:Readonly<Record<string,string>>;reserved?:readonly string[]}[];
 }
 /** No MCU IO. A fresh private resource registry makes failures across device
@@ -71,6 +73,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const allHeaters=Object.freeze(layout.heaters.map(h=>[...heaters,...spiHeaters].find(p=>p.section===h.section)!));
  const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!hostSections.includes(s)&&!spiSections.includes(s)));
  const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
+ const outputPins=layout.outputPins?.length?compileConfiguredOutputPins(reader,pins,mcus,sharedClocks,layout.outputPins.map(p=>({section:p.section}))):Object.freeze([]);
  const tmcSections=reader.sections().filter(s=>/^tmc\d+ /.test(s));if(tmcSections.length>128||new Set(tmcSections.map(s=>s.slice(s.indexOf(' ')+1))).size!==tmcSections.length)throw new Error('Duplicate or excessive TMC stepper owners');
  const tmcSpis=compileConfiguredTmcSpi(reader,pins,mcus,steppers);
  const tmcUarts=compileConfiguredTmcUart(reader,pins,mcus,steppers);
@@ -85,6 +88,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  for(const h of spiHeaters)add(h.output.mcu,h.output.pwm);
  for(const s of sensors)add(s.mcu,s.adc);
  for(const b of buttons)add(b.mcu,b.buttons);
+ for(const p of outputPins){const o=p.output;if(o.kind==='pwm')add(p.mcu,o.config);else add(p.mcu,{commands:[o.config.config],restart:[o.config.restart],reservedMoves:o.config.reservedMoves});}
  for(const b of tmcSpis)add(b.mcu,{commands:[b.spi.select]});
  for(const s of spiInputs)add(s.mcu,{commands:[s.spi.select]});
  for(const b of tmcSpis)add(b.mcu,{commands:[b.spi.configureBus]});
@@ -95,5 +99,5 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,buttons,tmcUarts,tmcSpis});
+ return Object.freeze({outputPins,temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,buttons,tmcUarts,tmcSpis});
 }

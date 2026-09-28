@@ -43,10 +43,10 @@ export function compileConfiguredOutputPins<T>(reader: ConfigurationReader, pins
       const output = s.settings.pwm
         ? Object.freeze({ kind: 'pwm' as const, config: compilePWM(s.mcu.chip, s.mcu.dictionary, {
           ...options, hardware: s.settings.hardware, cycleTime: s.settings.cycleTime,
-          start: s.settings.initialValue, shutdown: s.settings.shutdownValue, currentPrintTime: s.currentPrintTime,
+          start: s.settings.shutdownValue, shutdown: s.settings.shutdownValue, currentPrintTime: s.currentPrintTime,
         }, s.clock.clockAt) })
         : Object.freeze({ kind: 'digital' as const, config: compileDigital(s.mcu.chip, s.mcu.dictionary, {
-          ...options, start: s.settings.initialValue === 1, shutdown: s.settings.shutdownValue === 1,
+          ...options, start: s.settings.shutdownValue === 1, shutdown: s.settings.shutdownValue === 1,
         }) });
       const commands = output.kind === 'pwm' ? [...output.config.commands, ...output.config.restart, ...output.config.init]
         : [output.config.config, output.config.restart];

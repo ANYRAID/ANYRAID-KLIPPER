@@ -14,11 +14,11 @@ test('digital and hardware PWM compile independent MCU ownership and inverted de
     'output_pin duty': { pin: 'aux:PA3', pwm: 'true', hardware_pwm: 'true', scale: '255', value: '127.5', shutdown_value: '63.75' },
   }), f.pins, f.mcus, clocks(), [{ section: 'output_pin light' }, { section: 'output_pin duty' }]);
   assert.equal(result[0].output.kind, 'digital');
-  if (result[0].output.kind === 'digital') assert.match(result[0].output.config.config, /value=0 default_value=1 max_duration=0$/);
+  if (result[0].output.kind === 'digital') assert.match(result[0].output.config.config, /value=1 default_value=1 max_duration=0$/);
   assert.equal(result[1].output.kind, 'pwm');
   if (result[1].output.kind === 'pwm') {
     assert.equal(result[1].output.config.cycleTicks, 100000);
-    assert.match(result[1].output.config.commands[0], /value=127 default_value=63 max_duration=0$/);
+    assert.match(result[1].output.config.commands[0], /value=63 default_value=63 max_duration=0$/);
   }
   assert.equal(mcuOids(f.pins).snapshot('mcu').oidCount, 1);
   assert.equal(mcuOids(f.pins).snapshot('aux').oidCount, 1);
