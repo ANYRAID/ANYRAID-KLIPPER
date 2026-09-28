@@ -1,0 +1,31 @@
+{
+  "node": "v26.9.0",
+  "compiled": true,
+  "generations": 2,
+  "calibrationMs": 7558.159317,
+  "probedMatrix": [
+    [
+      9.626543211,
+      9.626543211,
+      9.626543211
+    ],
+    [
+      9.626543211,
+      9.626543211,
+      9.626543210999957
+    ],
+    [
+      9.626543211000042,
+      9.626543211000042,
+      9.626543211000042
+    ]
+  ],
+  "compensatedPosition": [
+    1,
+    0,
+    19.626543210999976,
+    0.1
+  ],
+  "passed": true,
+  "scope": "Compiled CLI with PATH excluding Python, two independent simulated MCU generations, circular calibration, save, explicit profile reload, homing and compensated print. Existing native addons and dependencies reused; excludes clean installation, real hardware and physical precision."
+}
