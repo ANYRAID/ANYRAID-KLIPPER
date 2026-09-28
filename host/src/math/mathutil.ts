@@ -87,17 +87,23 @@ export function solveLinearEquations(eqs: Matrix, ans: Matrix, allowUnderdetermi
 }
 export function coordinateDescent(adj: readonly string[], initial: Readonly<Record<string,number>>,
   error: (params: Readonly<Record<string,number>>) => number): Record<string,number> {
+  return coordinateDescentReport(adj,initial,error).parameters;
+}
+/** Step convergence is distinct from hitting the work bound or residual quality. */
+export function coordinateDescentReport(adj:readonly string[],initial:Readonly<Record<string,number>>,error:(params:Readonly<Record<string,number>>)=>number,maximumRounds=10000){
+  if(!Number.isSafeInteger(maximumRounds)||maximumRounds<1||maximumRounds>10000)throw new RangeError('Invalid coordinate descent round limit');
+  let evaluations=0;
   const params={...initial};
   if (new Set(adj).size!==adj.length || adj.some(k => !Number.isFinite(params[k])))
     throw new RangeError('Adjustable parameters must be unique and finite');
   const dp=adj.map(() => 1);
   const evaluate=() => {
-    const e=error(params);
+    evaluations++;const e=error(params);
     if (!Number.isFinite(e)) throw new RangeError('Nonfinite calibration error');
     return e;
   };
   let best=evaluate(), rounds=0;
-  while (dp.reduce((a,b) => a+b,0)>0.00001 && rounds<10000) {
+  while (dp.reduce((a,b) => a+b,0)>0.00001 && rounds<maximumRounds) {
     rounds++;
     for (let i=0;i<adj.length;i++) {
       const key=adj[i], orig=params[key];
@@ -109,5 +115,6 @@ export function coordinateDescent(adj: readonly string[], initial: Readonly<Reco
       params[key]=orig; dp[i]*=0.9;
     }
   }
-  return params;
+  const stepSum=dp.reduce((a,b)=>a+b,0),converged=stepSum<=.00001;
+  return {parameters:params,rounds,evaluations,stepSum,error:best,converged,reason:converged?'step_threshold' as const:'round_limit' as const};
 }

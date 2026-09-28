@@ -1,3 +1,4 @@
+import {coordinateDescentReport} from '../src/math/mathutil.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as m from '../src/math/mathutil.ts';
@@ -33,4 +34,11 @@ test('coordinate descent converges without mutating initial parameters', () => {
   assert.deepEqual(initial,{x:0,y:0,fixed:7});
   assert.equal(result.fixed,7);
   assert.throws(() => m.coordinateDescent(['x'],initial,() => NaN),RangeError);
+});
+
+test('coordinate descent reports convergence separately from exhausted rounds',()=>{
+ const error=(p:Readonly<Record<string,number>>)=>(p.x-2)**2;
+ const short=coordinateDescentReport(['x'],{x:0},error,1);assert.equal(short.converged,false);assert.equal(short.reason,'round_limit');assert.equal(short.rounds,1);assert.equal(short.evaluations,2);assert.equal(short.error,1);
+ const complete=coordinateDescentReport(['x'],{x:0},error);assert.equal(complete.converged,true);assert.equal(complete.reason,'step_threshold');assert(complete.stepSum<=.00001);assert(complete.error<1e-9);
+ for(const limit of [0,10001,NaN])assert.throws(()=>coordinateDescentReport(['x'],{x:0},error,limit));
 });

@@ -1,3 +1,4 @@
+import {asymmetricDeltaCalibration} from './helpers/delta-calibration.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DeltaCalibration,fitDeltaCalibration} from '../src/calibration/delta-calibration.ts';
@@ -17,4 +18,8 @@ test('Delta worker isolates fitting and releases its slot after cancellation, ti
  const executor=new DeltaCalibrationExecutor(),input=fixture(),abort=new AbortController(),running=executor.fit(input,{signal:abort.signal});assert(executor.busy);await assert.rejects(executor.fit(input),/busy/);abort.abort(new Error('cancel calibration'));await assert.rejects(running,/cancel calibration/);assert.equal(executor.busy,false);
  await assert.rejects(executor.fit(input,{timeoutMs:1}),/timed out/);assert.equal(executor.busy,false);await assert.rejects(executor.fit({...input,probes:[]}),/measurement count/);
  const result=await executor.fit(input);assert(result.finalError<1e-9);assert.equal(executor.busy,false);
+});
+
+test('Delta worker refuses an extended fit that exhausts the iteration budget',async()=>{
+ const executor=new DeltaCalibrationExecutor();await assert.rejects(executor.fit(asymmetricDeltaCalibration()[1]),/iteration limit without convergence/);assert.equal(executor.busy,false);
 });
