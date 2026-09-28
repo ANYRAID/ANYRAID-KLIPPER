@@ -7,7 +7,7 @@ import {readProbeConfiguration} from './probe.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {LinearKinematics,type LinearConfig,type Axis,type Range} from '../kinematics/linear.ts';
 import {motionLimits} from '../motion/lookahead.ts';
-import {ExtrusionGuard} from '../motion/extrusion.ts';
+import {readExtrusionConfiguration} from './extrusion.ts';
 import type {LinearHomingRail} from '../homing/linear-command.ts';
 import {NativeLinearHomingPort,type NativeLinearPortOptions} from '../homing/native-linear-port.ts';
 /** Configuration only. Pin/OID ownership, step distances, sensors, and native
@@ -38,10 +38,7 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  const config:LinearConfig={kind,ranges:ranges as unknown as LinearConfig['ranges'],maxVelocity,maxAccel,maxZVelocity:printer.getFloat('max_z_velocity',{defaultValue:maxVelocity,above:0,maxval:maxVelocity}),maxZAccel:printer.getFloat('max_z_accel',{defaultValue:maxAccel,above:0,maxval:maxAccel})};
  const kinematics=new LinearKinematics(config);
  for(const [i,r] of rails.entries()){const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);if(geometry.home[i]===geometry.force[i]||![r.speed,r.secondSpeed,r.retractSpeed].every(v=>Number.isFinite(v)&&v>0))throw new Error('Unrepresentable homing configuration');}
- const extruder=reader.section('extruder'),nozzleDiameter=extruder.getFloat('nozzle_diameter',{above:0}),filamentDiameter=extruder.getFloat('filament_diameter',{minval:nozzleDiameter}),defaultCrossSection=4*nozzleDiameter**2,defaultRatio=defaultCrossSection/(Math.PI*(filamentDiameter*.5)**2);
- // Extrude-only defaults use the DEFAULT cross section, even when the configured
- // maximum cross section is overridden. Preserve Python's numerical contract.
- const extrusion=new ExtrusionGuard({nozzleDiameter,filamentDiameter,maxCrossSection:extruder.getFloat('max_extrude_cross_section',{defaultValue:defaultCrossSection,above:0}),maxVelocity:extruder.getFloat('max_extrude_only_velocity',{defaultValue:maxVelocity*defaultRatio,above:0}),maxAccel:extruder.getFloat('max_extrude_only_accel',{defaultValue:maxAccel*defaultRatio,above:0}),maxDistance:extruder.getFloat('max_extrude_only_distance',{defaultValue:50,minval:0}),instantCornerVelocity:extruder.getFloat('instantaneous_corner_velocity',{defaultValue:1,minval:0})});
+ const extrusion=readExtrusionConfiguration(reader,maxVelocity,maxAccel);
  return {skewProfiles:readSkewProfiles(reader),bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
 }
 export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};

@@ -1,3 +1,9 @@
+import {NativeDeltaHomingPort} from '../homing/native-delta-port.ts';
+import {DeltaHomingCommand} from '../homing/delta-command.ts';
+import {GCodeMove} from '../gcode/move.ts';
+import {readDeltaMotionConfiguration} from '../config/delta-motion.ts';
+import {readExtrusionConfiguration} from '../config/extrusion.ts';
+import {compileDeltaHoming,type planDeltaHardware} from '../config/delta-printer.ts';
 import {readServo} from '../config/servo.ts';
 import {BoundaryOutputRouter} from '../outputs/boundary-router.ts';
 import {OutputPinBoundaryTimeline} from '../outputs/output-pin-boundaries.ts';
@@ -89,7 +95,26 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    };
    return Object.freeze({...result,createPrint});
   };
-  return Object.freeze({generation,emitters,stopped,createLinearPort,close:hardware.close});
+  const createDeltaPort=(reader:ConfigurationReader,settings:Pick<ReturnType<typeof planDeltaHardware>,'homing'|'kinematicIds'>)=>{
+   group.assertActive();const state=generation.source.status;
+   if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
+   if(reader.sections().some(n=>['probe','bltouch','safe_z_home'].includes(n)||n.startsWith('endstop_phase ')))throw new Error('Delta probe and phase adapters are not configured');
+   const config=readDeltaMotionConfiguration(reader),geometry=config.kinematics.solverGeometry;
+   if(settings.kinematicIds.length!==3||new Set(settings.kinematicIds).size!==3||settings.kinematicIds.some((id,i)=>{
+    const mode=emitters.find(e=>e.id===id)?.mode,wanted=geometry[i];
+    return typeof mode!=='object'||mode.kind!=='delta'||mode.armLength!==wanted.armLength||mode.towerX!==wanted.towerX||mode.towerY!==wanted.towerY;
+   }))throw new Error('Configured Delta geometry differs from native solvers');
+   const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined,heater=hardware.thermal.find(h=>h.section===section)?.runtime;
+   if(!heater)throw new Error('Delta motion requires its configured extruder heater');
+   const groups=compileDeltaHoming(plan,generation,settings.homing,new Map(hardware.drivers.flatMap(d=>d.sensorless?[[d.section,d.sensorless] as const]:[])));
+   const extrusion=readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
+   const owned=new NativeDeltaHomingPort({...config,extrusion,generation,emitters,kinematicIds:settings.kinematicIds,groups,canExtrude:()=>heater.canExtrude()});
+   // Publish the lifetime owner before constructing any command adapters.
+   port=owned;
+   const coordinates=new GCodeMove(owned),homing=new DeltaHomingCommand(config.kinematics,coordinates,owned,{...config.rails[0].homing,endstops:settings.homing.map(h=>h.section)});
+   return Object.freeze({...config,port:owned,coordinates,homing});
+  };
+  return Object.freeze({generation,emitters,stopped,createLinearPort,createDeltaPort,close:hardware.close});
  }catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Initial motion and cleanup failed',{cause:error});}throw error;}
  finally{clearTimeout(timer);signal.removeEventListener('abort',abort);}
 }

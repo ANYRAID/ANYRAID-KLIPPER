@@ -1,3 +1,5 @@
+import {DeltaKinematics} from '../kinematics/delta.ts';
+import type {LinearKinematics} from '../kinematics/linear.ts';
 import {calculateScrewTilt,type ScrewDirection} from '../motion/screws-tilt.ts';
 import type {ScrewsTiltPlan} from '../config/screws-tilt.ts';
 import {SkewCorrection,type SkewFactors} from '../motion/skew.ts';
@@ -38,7 +40,8 @@ import {RebuiltMotionStreamer,type StreamPause} from '../runtime/motion-streamer
 import {serialClock} from '../protocol/serial-queue.ts';
 import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
-export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'> {
+export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'|'kinematics'> {
+ kinematics:LinearKinematics|DeltaKinematics;
  skewProfiles?:Readonly<Record<string,Readonly<SkewFactors>>>;
  bedTilt?:BedTilt;
  endstopPhases?:readonly ConfiguredEndstopPhase[];
@@ -95,6 +98,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #disposal:Promise<void>|undefined;
  #busy=false;#fault:unknown;#failed=false;#abort=new AbortController();#stop:Promise<void>|undefined;#idle=Promise.resolve();#phase='idle';
  constructor(o:NativeLinearPortOptions){
+  if(o.kinematics instanceof DeltaKinematics&&(o.probeGroups||o.probeConfiguration||o.probeHoming||o.probeDevice||o.safeZHoming||o.endstopPhases?.length))throw new Error('Delta probe and phase adapters are not configured');
   if(o.probeDevice&&(o.probeGroups?.length!==1||o.probeGroups[0].endstop!==o.probeDevice.endstop||o.probeDevice.device.status.phase!=='idle'))throw new Error('Probe device must own the configured sensor and be initialized');
   if(o.probeHoming&&(!Number.isFinite(o.probeHoming.minimumZ)||!Number.isFinite(o.probeHoming.offset)||o.probeHoming.offset<o.probeHoming.minimumZ||o.groupsByAxis[2].length!==1||o.probeGroups?.length!==1||o.groupsByAxis[2][0].endstop!==o.probeGroups[0].endstop))throw new Error('Invalid probe homing configuration or ownership');
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
@@ -395,7 +399,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   finally{this.#resuming=false;signal.removeEventListener('abort',abort);}
  }
  #adopt(next:NativeLinearPortOptions['generation'],position:readonly number[],signal:AbortSignal){
-  this.#check(signal);const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
+  this.#check(signal);if(this.#o.kinematics instanceof DeltaKinematics)this.#o.kinematics.resetPosition();const admission=this.#newAdmission(position);this.#admission.shutdown(new Error('Motion generation replaced'));this.#g=next;this.#streamer=new RebuiltMotionStreamer(next);this.#admission=admission;this.#watchGroup();
  }
  /** Physical safe-home travel preserves extrusion and ordinary axis authority. */
  homingTravel(position:readonly number[],speed:number,signal:AbortSignal){
@@ -431,7 +435,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return this.#operate('z-tilt',signal,async s=>{this.#zTiltApplied=false;const plan=await this.#adjustZTilt(measured,pivots,maximumTravel,speed,s);this.#zTiltApplied=true;return plan;});
  }
  async #adjustZTilt(measured:readonly (readonly number[])[],pivots:readonly ZTiltMotor[],maximumTravel:number,speed:number,s:AbortSignal){
-   if(this.#o.kinematics.kind==='corexz'||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
+   if((this.#o.kinematics.kind==='corexz'||this.#o.kinematics.kind==='delta')||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
    const z=this.#o.emitters.filter(e=>e.mode==='z');
    if(z.length!==pivots.length||z.some(e=>!pivots.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
    await this.#drain(s);const start=[...this.homingPosition()],plan=planZTilt(measured,pivots,start[2],maximumTravel);
@@ -555,7 +559,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  manualProbePosition(){
   this.assertActive();const source=this.#g.source.status;if(this.#busy||this.#admission.pending||source.seeded&&!source.paused||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Manual probe requires drained homed motion');
   const motors=this.#o.kinematicIds.map(id=>{const binding=this.#g.motion.bindings.find(b=>b.id===id);if(!binding)throw new Error('Missing manual probe motor');return binding.position.commandedPosition(binding.history.status.lastPlannedPosition);});
-  return [...this.#o.kinematics.calcPosition(motors),this.homingPosition()[3]];
+  return [...this.#o.kinematics.calcPosition([motors[0],motors[1],motors[2]]),this.homingPosition()[3]];
  }
  applyManualBedTilt(samples:readonly (readonly number[])[],signal:AbortSignal){
   const owned=samples.map(p=>[...p]);return this.#operate('manual-bed-tilt',signal,async s=>{
@@ -682,8 +686,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    this.#lastHoming={pass:result,axis,generation:this.#g,counts:result.triggerCounts};return result;
   });
  }
+ finishDeltaHoming(pass:HomingPass,signal:AbortSignal):Promise<void>{
+  return this.#operate('delta-homing-complete',signal,async()=>{
+   const last=this.#lastHoming;this.#lastHoming=undefined;
+   if(!(this.#o.kinematics instanceof DeltaKinematics)||!last||last.pass!==pass||last.axis!==2||last.generation!==this.#g)throw new Error('Stale or foreign Delta homing result');
+  });
+ }
  finishHoming(pass:HomingPass,axis:Axis,endstop:number,signal:AbortSignal):Promise<void>{
   return this.#operate('phase-correction',signal,async s=>{
+   if(this.#o.kinematics instanceof DeltaKinematics)throw new Error('Delta requires simultaneous homing completion');
    const last=this.#lastHoming;this.#lastHoming=undefined;
    if(!last||last.pass!==pass||last.axis!==axis||last.generation!==this.#g)throw new Error('Stale or foreign homing phase result');
    if(axis===2&&this.#o.probeHoming)return;

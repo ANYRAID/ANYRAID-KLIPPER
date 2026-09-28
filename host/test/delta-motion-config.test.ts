@@ -35,3 +35,9 @@ test('privileged Delta homing accepts all-tower Z movement but rejects foreign X
  for(const target of [[home[0]+1,home[1],home[2],0],[...home,1],[home[0],home[1],home[2]+1,0],[home[0],home[1],k.homingMove().force[2]-1,0],start])assert.throws(()=>k.planHomingAxisMove(start,target,10,2));
  assert.throws(()=>k.planHomingAxisMove(start,end,10,0));assert.throws(()=>k.planHomingAxisMove([1000,0,0,0],end,10,2));
 });
+test('Delta dynamic limits invalidate cached admission and clearing one axis revokes all tower authority',()=>{
+ const {kinematics:k}=readDeltaMotionConfiguration(reader());k.resetPosition('xyz');k.setMotionLimits(20,200);
+ assert.equal(k.kind,'delta');const move=k.planHomingAxisMove([0,0,299,0],[...k.homePosition,0],100,2);assert(move.maxCruiseV2<=400);assert(move.accel<=200);
+ k.clearHoming([]);assert.equal(k.status.homedAxes,'xyz');k.clearHoming([0]);assert.equal(k.status.homedAxes,'');
+ assert.throws(()=>k.setMotionLimits(Infinity,200));assert.throws(()=>k.clearHoming([3 as 0]));
+});

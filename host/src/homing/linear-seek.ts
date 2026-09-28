@@ -22,8 +22,8 @@ export interface DeltaSeekOptions extends Omit<LinearSeekOptions,'kinematics'> {
  * second pass, checks missing hits, sequences retract, and grants authority.
  * No independent producer/calibration may operate while this object owns it. */
 export class LinearHomingSeek {
- #o:LinearSeekOptions|DeltaSeekOptions;#started=false;#cleanupPending=false;#cleanupError:unknown;
- constructor(o:LinearSeekOptions|DeltaSeekOptions){this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],groups:o.groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))};}
+ #o:Omit<LinearSeekOptions,'kinematics'>&{kinematics:LinearKinematics|DeltaKinematics};#started=false;#cleanupPending=false;#cleanupError:unknown;
+ constructor(o:Omit<LinearSeekOptions,'kinematics'>&{kinematics:LinearKinematics|DeltaKinematics}){this.#o={...o,emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],groups:o.groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))};}
  get status(){return {started:this.#started,cleanupPending:this.#cleanupPending,cleanupError:this.#cleanupError};}
  async run(target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,timeoutMs=60000){
   if(this.#started)throw new Error('Linear homing seek is single use');this.#started=true;

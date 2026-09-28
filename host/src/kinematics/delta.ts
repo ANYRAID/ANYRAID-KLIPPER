@@ -30,6 +30,11 @@ export class DeltaKinematics {
     const maxXY=Math.min(c.printRadius,this.#minArm-c.radius,ratioToXY(12));this.#maxXY2=maxXY**2;
     if(maxXY<=0||![...this.#arm2,...this.#endstops,this.#coneZ,this.#slow2,this.#verySlow2,this.#maxXY2].every(Number.isFinite))throw new RangeError('Invalid Delta build envelope');
   }
+  get kind(){return 'delta' as const;}
+  setMotionLimits(maxVelocity:number,maxAccel:number):void {
+    if(![maxVelocity,maxAccel].every(v=>Number.isFinite(v)&&v>0))throw new RangeError('Invalid dynamic motion limits');
+    this.#c={...this.#c,maxVelocity,maxAccel};this.#cachedXY2=-1;
+  }
   get status(){const r=Math.sqrt(this.#maxXY2);return {homedAxes:this.#needHome?'':'xyz',axisMinimum:[-r,-r,this.#c.minimumZ],axisMaximum:[r,r,this.#maxZ],coneStartZ:this.#coneZ};}
   /** Same tower coordinates used by admission and the native C iterators. */
   get solverGeometry(){return Object.freeze(this.#towers.map((tower,i)=>Object.freeze({kind:'delta' as const,armLength:this.#c.arms[i],towerX:tower[0],towerY:tower[1]})));}
@@ -37,7 +42,7 @@ export class DeltaKinematics {
   get thresholds(){return {slowXY2:this.#slow2,verySlowXY2:this.#verySlow2,maxXY2:this.#maxXY2,cachedXY2:this.#cachedXY2};}
   /** Reset after any physical position change; only xyz confirms all-tower homing. */
   resetPosition(homingAxes=''):void {if(!/^[xyz]*$/.test(homingAxes))throw new RangeError('Invalid homing axes');this.#cachedXY2=-1;if(homingAxes==='xyz')this.#needHome=false;}
-  clearHoming():void {this.#needHome=true;this.#cachedXY2=-1;}
+  clearHoming(axes:readonly Axis[]=[0,1,2]):void {if(axes.some(a=>!Number.isInteger(a)||a<0||a>2))throw new RangeError('Invalid homing axes');if(axes.length){this.#needHome=true;this.#cachedXY2=-1;}}
   homingMove():{force:Vec3;home:Vec3} {const force:Vec3=[this.#home[0],this.#home[1],-1.5*Math.sqrt(Math.max(...this.#arm2)-this.#maxXY2)];return {force,home:this.homePosition};}
   /** All towers seek together toward the configured home XY. Recovery may
    * start off-center after independently timed stops. Never extrude here. */

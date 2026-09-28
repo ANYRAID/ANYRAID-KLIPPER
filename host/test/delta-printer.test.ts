@@ -99,3 +99,48 @@ test('Delta mismatched tower geometry stops before arming endstops',async()=>{
   }finally{await hardware.close();}
  }finally{await f.close();}
 });
+
+test('configured Delta lifetime owner executes two native homing passes, ordinary motion and shutdown',async()=>{
+ const f=await initialMotionSetup(false,true,true),timers:ReturnType<typeof setTimeout>[]=[];let watch:ReturnType<typeof setInterval>|undefined;
+ try{
+  const raw=delta(f.reader.source.original);Object.assign(raw.stepper_a,{homing_retract_dist:'.2',homing_speed:'40',second_homing_speed:'10'});
+  const r=reader(raw),p=planDeltaHardware(r,policy),hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
+  try{
+   const initial=await initializeConfiguredMotion(hardware,initialMotionOptions,f.signal);
+   const foreign=structuredClone(raw);foreign.stepper_b.arm_length='251';assert.throws(()=>initial.createDeltaPort(reader(foreign),p),/geometry differs/);
+   const owner=initial.createDeltaPort(r,p);
+   assert.throws(()=>initial.createDeltaPort(r,p),/already owned/);assert.throws(()=>owner.port.move([0,0,1,0],10),/home/);
+   const seek=owner.port.home.bind(owner.port);
+   owner.port.home=async(...args)=>{const result=await seek(...args);for(const h of hardware.plan.homing)for(const t of h.triggers)f.firmware[t.mcu==='mcu'?0:1].setTriggerReason(2,t.protocol.oid);return result;};
+   const cursors=[0,0],passes=new Map<string,number>();
+   watch=setInterval(()=>{
+    for(const [fi,fw] of f.firmware.entries())for(const output of fw.outputs.slice(cursors[fi])){
+     if(output.name!=='endstop_home'||Number(output.parameters.sample_count)===0)continue;
+     const h=hardware.plan.homing.find(h=>h.mcu===(fi===0?'mcu':'aux')&&h.endstop.oid===Number(output.parameters.oid));if(!h)continue;
+     const tower=h.section.slice(8),number=(passes.get(tower)??0)+1;passes.set(tower,number);
+     const motor=initial.generation.motion.bindings.find(b=>b.id===tower)!;
+     const count=Number(initial.stopped.positions.find(v=>v.oid===motor.oid&&v.member===motor.member)!.position)+number*50;
+     const hit=Number(output.parameters.clock)+(number===1?50000:15000)+['a','b','c'].indexOf(tower)*4000;
+     const trigger=h.triggers.find(t=>t.mcu===h.mcu)!.protocol;
+     timers.push(setTimeout(()=>{fw.setStepperPosition(motor.oid,count);fw.setTriggerReason(1,trigger.oid);fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(output.parameters.rest_ticks)},h.endstop.oid);fw.emit('trsync_state',{oid:trigger.oid,can_trigger:0,trigger_reason:1,clock:hit});},Math.max(0,(hit-fw.currentClock())/1000+10)));
+    }
+    for(let i=0;i<2;i++)cursors[i]=f.firmware[i].outputs.length;
+   },2);
+   await owner.homing.home(f.signal);clearInterval(watch);watch=undefined;
+   assert.deepEqual([...passes.values()],[2,2,2]);assert.equal(owner.kinematics.status.homedAxes,'xyz');
+   assert.throws(()=>owner.port.move([...owner.port.position().slice(0,3),1],10),/temperature/);
+   const home=owner.kinematics.homePosition,target=[home[0],home[1],home[2]-2,0];owner.port.move(target,10);await owner.port.drain(f.signal);
+   assert.deepEqual(owner.port.position(),target);assert.equal(owner.port.status.failed,false);
+   const count=(tower:string)=>{const motor=hardware.plan.steppers.find(s=>s.emitter===tower)!;return f.firmware[motor.mcu==='mcu'?0:1].motion.filter(m=>m.name==='queue_step'&&Number(m.parameters.oid)===motor.compressor.oid).reduce((n,m)=>n+Number(m.parameters.count),0);};
+   const before=['a','b','c'].map(count);
+   for(let n=1;n<=20;n++)owner.port.move([target[0],target[1],target[2]-n/20,0],.5);
+   const running=owner.port.drain(f.signal);void running.catch(()=>{});
+   const deadline=performance.now()+3000;while(count('a')===before[0]){if(performance.now()>deadline)throw new Error('Delta stream did not start');await new Promise(r=>setTimeout(r,2));}
+   const paused=await owner.port.pauseStream(f.signal);assert(paused.position[2]<target[2]&&paused.position[2]>target[2]-1);
+   const held=['a','b','c'].map(count);await new Promise(r=>setTimeout(r,30));assert.deepEqual(['a','b','c'].map(count),held);
+   await owner.port.resumeStream(f.signal);await running;await owner.port.drain(f.signal);
+   assert.deepEqual(['a','b','c'].map((id,i)=>count(id)-before[i]),[80,80,80]);assert.deepEqual(owner.port.position(),[target[0],target[1],target[2]-1,0]);
+   await hardware.close();assert.equal(owner.port.status.failed,true);assert.equal(owner.kinematics.status.homedAxes,'');assert.deepEqual(f.stops,[1,1]);
+  }finally{await hardware.close();}
+ }finally{clearInterval(watch);for(const t of timers)clearTimeout(t);await f.close();}
+});
