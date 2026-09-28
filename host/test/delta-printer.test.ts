@@ -187,3 +187,45 @@ test('automatic Delta rejects unsupported sections before connecting and closes 
   assert.equal(connections,2);assert.deepEqual(f.stops,[1,1]);
  }finally{await f.close();}
 });
+
+test('Delta native probe descent recovers off-center trigger and halt coordinates',async()=>{
+ const {LinearHomingSeek}=await import('../src/homing/linear-seek.ts');
+ const {serialClock}=await import('../src/protocol/serial-queue.ts');
+ const f=await initialMotionSetup(false,true,true),timers:ReturnType<typeof setTimeout>[]=[];
+ let recovered:Awaited<ReturnType<InstanceType<typeof LinearHomingSeek>['run']>>|undefined;
+ try{
+  const r=reader(delta(f.reader.source.original)),p=planDeltaHardware(r,policy),home=[25,-30,10];
+  const hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
+  try{
+   p.config.kinematics.resetPosition('xyz');
+   const initial=await initializeConfiguredMotion(hardware,{...initialMotionOptions,position:[home[0],home[1],home[2],0]},f.signal),g=initial.generation;
+   const groups=compileDeltaHoming(hardware.plan,g,p.homing);
+   for(const [index,group] of groups.entries()){
+    const member=group.members[group.primary],session=g.members[member.physicalMember].session;
+    const fw=f.firmware[session===f.group.session('mcu')?0:1];
+    const motor=g.motion.bindings.find(b=>b.id===p.kinematicIds[index])!,hit=motor.stepper.clockAt(g.motion.printTime+.052+index*.008);
+    const halt=Number(motor.history.status.lastPlannedPosition)-50-index;
+    timers.push(setTimeout(()=>{
+     fw.setTriggerReason(1,member.trigger.oid);fw.setStepperPosition(motor.oid,halt);
+     const command=fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.oid)===group.endstop.oid&&Number(m.parameters.sample_count)>0);
+     fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(hit)+Number(command?.parameters.rest_ticks??1000)},group.endstop.oid);
+     fw.emit('trsync_state',{oid:member.trigger.oid,can_trigger:0,trigger_reason:1,clock:Number(hit)});
+    },Math.max(0,Number(hit-session.clock.sync.getClock(serialClock.now()))/1e6+.01)*1000));
+   }
+   recovered=await new LinearHomingSeek({mode:'probe',generation:g,kinematics:p.config.kinematics,emitters:initial.emitters,kinematicIds:p.kinematicIds,groups}).run([home[0],home[1],0,0],10,2,f.signal);
+   assert.deepEqual(recovered.missingHits,[]);assert.equal(recovered.movingSteppers.length,3);
+   assert.equal(new Set(recovered.stop.groups.map(g=>String(g.hitClock))).size,3);
+   for(const [field,offsetField] of [['position','haltOffset'],['triggerPosition','triggerOffset']] as const){
+    const actuators=p.config.kinematics.solverGeometry.map((geometry,index)=>{
+     const binding=g.motion.bindings.find(b=>b.id===p.kinematicIds[index])!;
+     const offset=recovered!.offsets.find(o=>o.member===index&&o.oid===binding.oid)!;
+     return home[2]+Math.sqrt(geometry.armLength**2-(geometry.towerX-home[0])**2-(geometry.towerY-home[1])**2)+Number(offset[offsetField])*.0125;
+    });
+    const expected=p.config.kinematics.calcPosition([actuators[0],actuators[1],actuators[2]]);
+    for(let i=0;i<3;i++)assert(Math.abs(recovered[field][i]-expected[i])<1e-10);
+   }
+   assert(recovered.triggerPosition[2]<home[2]);assert.equal(recovered.position[3],0);
+   assert.equal(recovered.generation.source.status.retired,false);assert.equal(p.config.kinematics.status.homedAxes,'xyz');assert.deepEqual(f.stops,[0,0]);
+  }finally{recovered?.motion.dispose();await hardware.close();}
+ }finally{for(const timer of timers)clearTimeout(timer);await f.close();}
+});

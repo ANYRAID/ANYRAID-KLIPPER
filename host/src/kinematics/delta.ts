@@ -54,6 +54,19 @@ export class DeltaKinematics {
     const ratio=move.distance/Math.abs(move.axesD[2]);if(ratio!==Infinity)move.limitSpeed(c.maxZVelocity*ratio,c.maxZAccel*ratio);
     return move;
   }
+  /** Probe descent keeps bed XY fixed and requires existing all-tower authority.
+   * Unlike G28, it never admits the synthetic below-bed homing origin. */
+  planProbeAxisMove(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
+    if(index!==2||start.length<4||start.length!==end.length||!start.every(Number.isFinite)||!end.every(Number.isFinite)||end[2]>=start[2]||end.some((v,i)=>i!==2&&v!==start[i]))throw new RangeError('Invalid Delta probe trajectory');
+    if(this.#needHome)throw new KinematicError('unhomed');
+    const c=this.#c,limits=motionLimits(c.maxVelocity,c.maxAccel);
+    // Check both ends; a caller cannot use a valid destination to legitimize
+    // an out-of-envelope start. Vertical descent stays in the convex envelope.
+    this.check(new Move(limits,end,start,speed));
+    const move=new Move(limits,start,end,speed);this.check(move);
+    this.stablePosition([start[0],start[1],start[2]]);this.stablePosition([end[0],end[1],end[2]]);
+    return move;
+  }
   calcPosition(actuators:Vec3):Vec3 {
     triple(actuators);
     return trilateration(map3(this.#towers,(t,i):Vec3=>[t[0],t[1],actuators[i]]),this.#arm2);

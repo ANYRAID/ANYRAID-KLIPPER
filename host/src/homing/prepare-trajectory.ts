@@ -6,11 +6,12 @@ import {stationaryRows} from '../motion/stationary.ts';
 /** Transfer an unused recovered generation to HomingMoveExecution's exclusive
  * drip producer. Success prepares native source data and history coverage only;
  * no step generation, trigger arming or homing authority is issued here. */
-export async function prepareHomingTrajectory(g:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:HomingTrajectoryKinematics,target:readonly number[],speed:number,axis:Axis,signal:AbortSignal){
+export async function prepareHomingTrajectory(g:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:HomingTrajectoryKinematics,target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,mode:'home'|'probe'='home'){
  try{
   signal.throwIfAborted();g.assertFutureBaseline();const state=g.source.status,c=g.coordinator.status,startTime=g.motion.printTime;
   if(state.retired||state.failed||state.busy||state.paused||state.bufferedMoves||state.sourceTime!==startTime||c.busy||c.failed||c.retired||c.generatedTime!==startTime||c.committedTime!==startTime)throw new Error('Homing preparation requires an unused recovered generation');
-  const move=kinematics.planHomingAxisMove(state.position,target,speed,axis),lookahead=new LookAheadQueue();lookahead.add(move);const moves=lookahead.flush();
+  if(mode!=='home'&&mode!=='probe')throw new Error('Invalid trajectory mode');
+  const move=mode==='probe'&&kinematics.planProbeAxisMove?kinematics.planProbeAxisMove(state.position,target,speed,axis):kinematics.planHomingAxisMove(state.position,target,speed,axis),lookahead=new LookAheadQueue();lookahead.add(move);const moves=lookahead.flush();
   let future=0,delay=.001;for(const b of g.motion.bindings){const w=b.stepper.scanWindow;future=Math.max(future,w.future);delay=Math.max(delay,w.future,w.past);}
   // Original homing.py's 1ms dwell plus toolhead.drip_move's kin_flush_delay.
   // Delay the actual source so shaping cannot emit before endstop sampling.

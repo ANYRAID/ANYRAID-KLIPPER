@@ -24,3 +24,13 @@ test('Delta radial edge slows to half and quarter while cone and Z bounds reject
  assert.throws(()=>k.check(move([0,0,1,0],[20,0,299,0])),/range/);
  assert.throws(()=>k.check(move([0,0,1,0],[0,0,-.001,0])),/range/);
 });
+
+test('Delta probe descent preserves off-center XY, extrusion and Z limits only after full homing',()=>{
+ const k=new DeltaKinematics(deltaConfig),start=[25,-30,10,7],end=[25,-30,0,7];
+ assert.throws(()=>k.planProbeAxisMove(start,end,100,2),/home/);k.resetPosition('xyz');
+ const m=k.planProbeAxisMove(start,end,100,2);assert.deepEqual(m.axesD,[0,0,-10,0]);assert.equal(m.maxCruiseV2,400);assert.equal(m.accel,200);assert.equal(k.status.homedAxes,'xyz');
+ assert.throws(()=>k.planHomingAxisMove(start,end,10,2),/homing/);
+ for(const target of [[26,-30,0,7],[25,-30,0,8],[25,-30,11,7],[25,-30,-.01,7],[25,-30,NaN,7]])assert.throws(()=>k.planProbeAxisMove(start,target,10,2));
+ for(const origin of [[25,-30,299,7],[500,0,10,7]])assert.throws(()=>k.planProbeAxisMove(origin,[origin[0],origin[1],0,7],10,2));
+ assert.throws(()=>k.planProbeAxisMove(start,end,10,0));k.clearHoming([1]);assert.throws(()=>k.planProbeAxisMove(start,end,10,2),/home/);
+});

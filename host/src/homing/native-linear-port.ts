@@ -650,7 +650,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    if(this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Probe requires all axes homed');
    const start=this.homingPosition(),target=[...start];target[2]=z;
    if(!Number.isFinite(z)||z>=start[2])throw new RangeError('Probe target must be below the physical start');
-   this.#o.kinematics.planHomingAxisMove(start,target,speed,2);
+   if(this.#o.kinematics instanceof DeltaKinematics)this.#o.kinematics.planProbeAxisMove(start,target,speed,2);
+   else this.#o.kinematics.planHomingAxisMove(start,target,speed,2);
    await this.#drain(s);
    if(!owned.length||owned.length>16)throw new Error('Invalid probe stop groups');
    for(const group of owned){
