@@ -16,6 +16,17 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 组合温度已接通 temperature_fan 反馈：软件聚合采样时间映射到输出
+  MCU 的同步打印时钟，再进入既有 PID/水印控制和带确认 PWM 队列，
+  保持 300 ms 报告周期、采样期限及停机散热策略。15 项配置、时钟、
+  PWM 和停机回归通过；双模拟 MCU 验证低温关闭、高温开启、源偏差
+  超限整组停止且停机配置保持满速散热。编译 HTTP 产品流程验证
+  状态、受控目标/速度设置、幂等重试、非法参数原子拒绝、历史恢复
+  与重启配置目标恢复。见 `host/contracts/combined-temperature-fan-product.json`。
+  此次事件循环 P99 为 1.74/1.77 ms，仅为模拟观测；计算基准仍见
+  `host/contracts/combined-temperature.json`，不能替代真实散热和目标板
+  时序验收。组合加热器反馈及附加湿度/压力/气体字段仍未接通。
+
 - 组合温度已接入独立 temperature_sensor 配置、采样生命周期和状态
   服务：sensor_type=temperature_combined，sensor_list 使用逗号分隔的
   完整已注册名称，combination_method 为 min/max/mean，必须给定正数

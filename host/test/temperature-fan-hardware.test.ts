@@ -47,3 +47,19 @@ test('configured cross-MCU temperature fan drives PWM from ADC and stops all dev
   assert.deepEqual(f.stops,[1,1]);assert.equal(output.status.phase,'stopped');
  }finally{if(interval)clearInterval(interval);await f.close();}
 });
+test('combined temperature fan maps aggregate samples to output clock and restores shutdown cooling on disagreement',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'combined-fan-')),a=join(dir,'a'),b=join(dir,'b'),f=await hardwareStartupFixture(false,false,true);let owner:Awaited<ReturnType<typeof startConfiguredHardware>>|undefined;
+ try{
+  await writeFile(a,'25000');await writeFile(b,'25000');const base=reader({sensor_type:'temperature_combined',sensor_list:'temperature_sensor a, temperature_sensor b',combination_method:'mean',maximum_deviation:'5'});
+  const r=new ConfigurationReader(new ConfigurationSource('/combined-fan.cfg',{...base.source.original,'temperature_sensor a':{sensor_type:'temperature_host',sensor_path:a},'temperature_sensor b':{sensor_type:'temperature_host',sensor_path:b}},[]),null);
+  owner=await startConfiguredHardware(r,f.group,f.clocks,{...layout,sensors:[{section:'temperature_sensor a'},{section:'temperature_sensor b'},{section}]},{beforeTarget(){}},f.signal);
+  const fan=owner.temperatureFans[0],output=owner.fans.find(f=>f.section===section)!.runtime;
+  assert.equal(fan.control.reportDelay,.3);await until(()=>output.status.speed===0);assert.equal(owner.heaters.report(),'F:25.0 /40.0');
+  // Rise one source at a time within the configured agreement bound so normal
+  // asynchronous sampling does not create an artificial fault during warmup.
+  for(const temperature of [30,35,40,45]){await writeFile(a,String(temperature*1000));await writeFile(b,String(temperature*1000));await until(()=>fan.state.getTemperature().temperature===temperature);}
+  await until(()=>output.status.speed===1);assert.equal(fan.state.getTemperature().temperature,45);
+  await writeFile(b,'70000');await until(()=>owner!.status.state!=='ready');await owner.close();assert.deepEqual(f.stops,[1,1]);assert.equal(output.status.phase,'stopped');assert(owner.combinedSensors[0].state.getTemperature().stale);
+  assert.equal(owner.plan.fans.find(p=>p.section===section)!.config.shutdownPower,1);
+ }finally{await owner?.close();await f.close();await rm(dir,{recursive:true,force:true});}
+});

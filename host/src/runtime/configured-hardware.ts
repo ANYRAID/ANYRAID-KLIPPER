@@ -138,9 +138,9 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const p of plan.temperatureFans){
    const f=fans.find(f=>f.section===p.section)!,outputPlan=plan.fans.find(f=>f.section===p.section)!;
    const now=()=>Math.max(...[outputPlan.output,...outputPlan.enable?[outputPlan.enable]:[]].map(o=>o.clock.printTimeAtClock(group.session(o.mcu).clock.sync.getClock(serialClock.now()))));
-   const host=hostSensors.find(s=>s.section===p.section),source=host??sensors.find(s=>s.section===p.section);if(!source)throw new Error('Temperature fan source missing');
+   const softwareSource=hostSensors.find(s=>s.section===p.section)??combinedSensors.find(s=>s.section===p.section),source=softwareSource??sensors.find(s=>s.section===p.section);if(!source)throw new Error('Temperature fan source missing');
    const control=temperatureControls.get(p.section)!,runtime=new TemperatureFanRuntime(f.runtime,control,now,error=>{void close(error).catch(()=>{});});
-   const detachSample=source.state.subscribeSample((time,temp)=>runtime.sample(host?now():time,temp));
+   const detachSample=source.state.subscribeSample((time,temp)=>runtime.sample(softwareSource?now():time,temp));
    temperatureFans.push({section:p.section,control,runtime,state:source.state});cleanup.add(async cause=>{detachSample();await runtime.stop(cause);});runtime.start();active();
   }
   if(plan.bltouch){bltouch=attachConfiguredBLTouch(group,plan);cleanup.add(cause=>bltouch!.close(cause));await bltouch.start(abort.signal);active();}
