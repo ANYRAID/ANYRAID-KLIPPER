@@ -16,9 +16,9 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
-- MCU 调试控制台迁移已完成受限算术前置模块 `console-arithmetic.ts`。
-  旧控制台的 Python eval 尚未退役，Node 控制台传输及命令调度仍待接入；
-  本项不计为 Python 文件减少。新算术只接受数值、显式变量、括号及算术／
+- MCU 调试控制台已接通 `scripts/console.ts`，旧 `klippy/console.py` 已退役，
+  Python 文件从 178 减至 177，默认打印入口仍为 Python。新算术只接受
+  数值、显式变量、括号及算术／
   位运算，不执行函数、属性访问或代码。BigInt 分数保存十进制中间值，
   仅在命令替换时向零截断，避免大于 2^53 的 MCU 时钟因转成浮点数丢位。
   十进制分数采用精确算术，刻意不复刻 Python float 的舍入误差。
@@ -27,6 +27,19 @@
   表达式的 10,000 次命令替换中位 56.98 ms，约 17.55 万条/秒，见
   `host/contracts/console-arithmetic.json`。只计本地求值和结果断言，
   不是串口调度、真实打印吞吐或物理精度验收。
+  控制台支持 SET、DELAY、FLOOD、SUPPRESS、DUMP、FILEDUMP、STATS、LIST
+  和 HELP，并复用 UART、PTY/RPMsg、CAN 连接器。诊断会话显式选择，禁止
+  使用产品配置入口；普通会话不能取得诊断队列。FLOOD 上限 10,000 条
+  且预检 60 秒时域，内存读取单次上限 1 MiB，输出积压和等待均有上限。
+  FILEDUMP 完成后原子替换，部分读取取消保留旧文件。EOF 等待发送确认，
+  不证明 MCU 执行完毕；关闭只处理主机交通，不构成物理停止保证。
+  27 项唯一回归通过（含追加的部分写入取消），其中独立 Node CLI 经
+  UART 和 PTY 模拟器完成命令、转储、EOF 和 SIGINT，原打印队列回归
+  保持通过。CAN 当前只验证参数与连接前拒绝，未进行真实 CAN 验收。
+  1,000 条连续命令含精确求值、原生队列和模拟响应/ACK，五次中位
+  56.95 ms，约 17,559 条/秒，6,000 条响应逐一验证；见
+  `host/contracts/mcu-console.json`。该本地套接字基准不是 UART 线速、
+  目标硬件或实际运动时序证据，现有精度与稳定性门禁仍未关闭。
 
 - 串口抓包离线解码已迁移到 `scripts/parsedump.ts`，旧 `klippy/parsedump.py`
   已退役；Git 跟踪 Python 从 179 减至 178。默认打印入口仍为 Python。

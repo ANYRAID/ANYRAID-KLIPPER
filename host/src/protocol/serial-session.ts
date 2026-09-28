@@ -12,6 +12,8 @@ import {DictionaryClockTransport,type TimedResponse} from './clock-transport.ts'
 import {ClockRuntime} from '../timing/clock-runtime.ts';
 import type {ReleaseEstimate} from '../timing/clock-sync.ts';
 export interface SerialSessionOptions {
+ /** Exclusive diagnostic console; disables product configuration on this session. */
+ diagnosticCommands?:boolean;
  /** Already-bound Classical CAN socket; ID = 256 + 2 * node ID. */
  canClientId?:number;
  /** Independent device shutdown/watchdog path. The host queue is already closed
@@ -56,11 +58,13 @@ export class SerialSession {
  #subscriptions=new Map<string,Map<number,ResponseSubscription>>();#subscriptionCount=0;
  #state:'new'|'identifying'|'warming'|'ready'|'closed'='new';#fault:unknown;#stopError:unknown;#stopPromise:Promise<void>|undefined;
  constructor(fd:number,options:SerialSessionOptions){
+  if(options.diagnosticCommands!==undefined&&typeof options.diagnosticCommands!=='boolean')throw new TypeError('Invalid diagnostic mode');
   if(typeof options.stopDevice!=='function')throw new TypeError('Device stop handler is required');
   this.#options={...options};this.#queue=new NativeSerialQueue(fd,options.canClientId);
   this.#queries=new QueryConnection({send:(p,s)=>this.#send(p,s),setClockEstimate:e=>this.#estimate(e),stop:e=>this.stop(e)},serialClock);
   try{this.#queue.watch(()=>this.#pump(),error=>{void this.stop(error).catch(()=>{});});}catch(error){this.#queue.close();throw error;}
  }
+ get transportStats(){this.assertActive();return this.#queue.stats;}
  get status(){return {state:this.#state,pendingAcks:this.#pending.size,configured:!!this.#configuration,fault:this.#fault,stopError:this.#stopError};}
  get dictionary():MessageDictionary{if(this.#state!=='warming'&&this.#state!=='ready')throw new Error('Firmware dictionary is not ready');return this.#dictionary;}
  get clock():ClockRuntime{if(!this.#clock)throw new Error('Clock is not initialized');return this.#clock;}
@@ -115,6 +119,13 @@ export class SerialSession {
   * peripherals use 2..127 and at most 64 reserved control ACK slots in total. */
  commandQueue():TimedCommandQueue{
   this.assertActive();if(!this.#configuration||this.#nextCommandQueue>=128)throw new Error('Configured MCU and an available command queue are required');
+  return this.#createCommandQueue();
+ }
+ /** Explicitly opted-in offline console only; does not authorize product motion. */
+ diagnosticCommandQueue():TimedCommandQueue{
+  this.assertActive();if(!this.#options.diagnosticCommands||this.#configuration||this.#nextCommandQueue!==2)throw new Error('Exclusive diagnostic command queue required');return this.#createCommandQueue();
+ }
+ #createCommandQueue():TimedCommandQueue{
   const queue=this.#nextCommandQueue++;
   const result:TimedCommandQueue={send:(payload,min,req,signal)=>{
    try{this.assertActive();if(this.#configuring||this.#outputPending>=64)throw new Error('Scheduled command capacity exceeded');if(typeof min!=='bigint'||typeof req!=='bigint'||min<0n||req<min||req>=0x7fffffffffffffffn)throw new RangeError('Invalid scheduled command clocks');
@@ -149,7 +160,7 @@ export class SerialSession {
   }));
  }
  async configure(plan:MCUConfigPlan,signal:AbortSignal):Promise<ConfiguredMCU>{
-  if(this.#state!=='ready'||this.#resetting||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
+  if(this.#options.diagnosticCommands||this.#state!=='ready'||this.#resetting||this.#configuring||this.#configuration||this.#motionBound)throw new Error('MCU configuration requires an unconfigured ready session');
   this.#configuring=true;
   try{this.clock.assertActive();const result=await configureMCU(this.#dictionary,{query:(p,n,s)=>this.#queries.query(p,n,s,{retries:5}),send:(p,s)=>this.#send(p,s),stop:e=>this.stop(e)},plan,signal);this.#assertOpen();this.clock.assertActive();this.#configuration=result;return result;}
   catch(error){try{await this.stop(error);}catch{/* failure retained */}throw error;}

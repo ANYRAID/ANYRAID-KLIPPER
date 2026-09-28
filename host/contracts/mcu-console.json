@@ -1,0 +1,15 @@
+{
+  "node": "v26.9.0",
+  "commands": 1000,
+  "samplesMs": [
+    57.619839999999954,
+    59.02339399999994,
+    56.18234599999994,
+    54.76866199999995,
+    56.95152299999995
+  ],
+  "medianMs": 56.95152299999995,
+  "commandsPerSecond": 17558.79294044517,
+  "verifiedResponses": 6000,
+  "scope": "Sequential diagnostic commands including exact arithmetic, native serial queue, simulated firmware responses and ACK waits. Unix local socket; not target UART throughput or physical motion timing."
+}

@@ -11,5 +11,5 @@
   ],
   "medianMs": 56.98076000000003,
   "commandsPerSecond": 175497.8347077153,
-  "scope": "Local exact arithmetic substitution and result assertion only; no transport, scheduling or physical motion. Diagnostic console prerequisite; legacy console remains."
+  "scope": "Local exact arithmetic substitution and result assertion only; no transport, scheduling or physical motion. Arithmetic component of the diagnostic console."
 }

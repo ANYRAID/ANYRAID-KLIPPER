@@ -65,6 +65,7 @@ export class MessageDictionary {
     this.version=(data.version as string)??'';this.buildVersions=(data.build_versions as string)??'';this.kconfig=structuredClone(data.kconfig??null);
     this.#raw=Uint8Array.from(raw);
   }
+  get commandFormats():readonly string[]{return [...this.#byId.values()].filter(m=>m.kind==='command').map(m=>m.format).sort();}
   get rawIdentify():Uint8Array {return this.#raw.slice();}
   get constants():Readonly<Record<string,unknown>>{return structuredClone(this.#config);}
   /** Snapshot the common wire GPIO namespace. A shared ownership registry may

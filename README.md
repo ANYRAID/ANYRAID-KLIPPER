@@ -241,3 +241,7 @@ AVR 仿真工具已迁移为 `node scripts/avrsim.ts`，无需 Python/SWIG。
 
 串口抓包离线解码使用 `node scripts/parsedump.ts out/klipper.dict test.serial`，
 旧 `klippy/parsedump.py` 已退役；此工具不连接或控制打印机。
+
+MCU 离线调试控制台使用 `node scripts/console.ts --help`，支持受限精确
+算术、延时发送、批量发送和内存转储；旧 `klippy/console.py` 已退役。
+运行前停止占用设备的打印主机，控制台关闭不等于 MCU 物理停机。

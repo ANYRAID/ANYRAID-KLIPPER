@@ -17,7 +17,7 @@ export async function connectCAN(name:string,uuid:string,options:CANOptions,sign
  const lifetime=AbortSignal.any([signal,AbortSignal.timeout(timeout)]),native=createRequire(import.meta.url)(process.env.ANYRAID_SERIALQUEUE_ADDON??'../../build/serialqueue.node') as Native;
  let fd=-1,session:SerialSession|undefined;
  try{
-  lifetime.throwIfAborted();fd=native.openCAN(name,identity.clientId,identity.uuid);session=new SerialSession(fd,{stopDevice:options.stopDevice,onMessage:options.onMessage,canClientId:identity.clientId});const owned=fd;fd=-1;closeSync(owned);
+  lifetime.throwIfAborted();fd=native.openCAN(name,identity.clientId,identity.uuid);session=new SerialSession(fd,{stopDevice:options.stopDevice,onMessage:options.onMessage,diagnosticCommands:options.diagnosticCommands,canClientId:identity.clientId});const owned=fd;fd=-1;closeSync(owned);
   await session.initialize(lifetime);const dictionary=session.dictionary;const command=dictionary.lookup('get_canbus_id'),response=dictionary.lookup('canbus_id canbus_uuid=%*s canbus_nodeid=%u');
   const result=await session.query(dictionary.encode(command.name,{}),response.name,lifetime,{retries:0}),actual=result.message.parameters.canbus_uuid;
   if(!(actual instanceof Uint8Array)||actual.length!==6||!Buffer.from(actual).equals(identity.uuid)||result.message.parameters.canbus_nodeid!==identity.nodeId)throw new Error('CAN firmware identity mismatch');

@@ -55,14 +55,27 @@ possible to manually send these MCU commands (functions marked with
 the DECL_COMMAND() macro in the Klipper source code). To do so, run:
 
 ```
-~/klippy-env/bin/python ./klippy/console.py /tmp/pseudoserial
+node scripts/console.ts /tmp/pseudoserial
 ```
 
 See the "HELP" command within the tool for more information on its
-functionality.
+functionality. The console requires Node.js 26.9 or later 26.x and the built
+host native addons. UART, prepared PTY/RPMsg, and CAN connection adapters are
+available. Use this exclusive diagnostic connection with the printer host
+stopped; closing the console only closes host traffic, not MCU actions already
+accepted. It does not use the product print configuration API.
+
+SET, DELAY, FLOOD, SUPPRESS, DUMP, FILEDUMP, STATS and LIST are supported.
+Expressions in braces use bounded exact arithmetic and variables, not Python
+code. Decimal intermediate values remain exact; final substitutions truncate
+toward zero. FLOOD is limited to 10,000 commands and a 60-second schedule;
+DUMP/FILEDUMP are limited to 1 MiB per request with explicit 8/16/32-bit reads.
+FILEDUMP publishes atomically after successful reads; cancelled partial files
+are removed. EOF waits for command delivery acknowledgements, not physical
+execution. SIGINT cancels the active host operation without replay.
 
 Some command-line options are available. For more information run:
-`~/klippy-env/bin/python ./klippy/console.py --help`
+`node scripts/console.ts --help`
 
 ## Translating gcode files to micro-controller commands
 
