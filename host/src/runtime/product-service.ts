@@ -1,3 +1,4 @@
+import {registerNativeDualCarriage} from '../moonraker/native-dual-carriage.ts';
 import {registerNativeAdaptiveMesh} from '../moonraker/native-adaptive-mesh.ts';
 import {registerNativeBedMeshSelection} from '../moonraker/native-bed-mesh-selection.ts';
 import {planProbeGrid,buildProbeGridMesh} from '../homing/probe-grid.ts';
@@ -100,6 +101,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  let closeQuad:(()=>Promise<void>)|undefined;
  let closeTemperatureFans:(()=>void)|undefined;
  let closeSkewSave:(()=>Promise<void>)|undefined;
+ let closeCarriage:(()=>Promise<void>)|undefined;
  let closeSkew:(()=>Promise<void>)|undefined;
  let closeZTilt:(()=>Promise<void>)|undefined;
  let closeZAdjustment:(()=>Promise<void>)|undefined;
@@ -118,7 +120,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -141,6 +143,13 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
    fail:error=>{void printer.hardware.close(error).catch(()=>{});}
   });
   const skewProfiles=readSkewProfiles(reader);
+  if(printer.machine.port.carriageStatus)closeCarriage=registerNativeDualCarriage(server.endpoints,printer.maintenanceGate,{
+   snapshot:()=>{const state=printer.machine.port.carriageStatus!;return {generation:printer.machine.port.carriageGeneration,state:{primary:state.primary,carriages:state.carriages.map(c=>({...c})),homed:[...state.homed],position:[...printer.machine.port.homingPosition()]}};},
+   idle:()=>!closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,
+   validate:(index,mode)=>printer.machine.port.validateCarriageMode(index,mode),
+   set:async(index,mode,s)=>{await printer.machine.port.setCarriageMode(index,mode,s);printer.print.gcode.coordinates.resetPosition();},
+   fail:cause=>printer.machine.port.motorOff(cause)
+  });
   if(skewProfiles)closeSkewSave=registerNativeSkewSave(server.endpoints,printer.maintenanceGate,{snapshot:()=>printer.machine.port.skewStatus,idle:()=>!closing&&printer.hardware.status.state==='ready'&&['idle','completed','cancelled'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy},product.configurationSession);
   if(skewProfiles)closeSkew=registerNativeSkew(server.endpoints,printer.maintenanceGate,skewProfiles,{
    snapshot:()=>printer.machine.port.skewStatus,

@@ -127,6 +127,8 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
  get carriageStatus(){const k=this.#o.kinematics;return k instanceof DualCarriageLinearKinematics?{primary:k.primary,carriages:k.carriages,homed:k.homedCarriages}:undefined;}
+ get carriageGeneration():unknown{return this.#g;}
+ validateCarriageMode(index:0|1,mode:CarriageMode):void{const k=this.#o.kinematics;if(!(k instanceof DualCarriageLinearKinematics))throw new Error('Dual carriage is not configured');k.planMode(this.homingPosition()[k.geometry.axis],index,mode);}
  get carriageHoming():LinearHomingPort['carriageHoming']{const k=this.#o.kinematics,c=this.#o.carriages;if(!(k instanceof DualCarriageLinearKinematics)||!c?.homingRails)return undefined;return {axis:k.geometry.axis,primary:k.primary,order:carriageHomingOrder(k.geometry.rails),rails:structuredClone(c.homingRails),select:(index,signal)=>this.#carriageMode(index,'PRIMARY',signal,true)};}
  setCarriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal):Promise<void>{return this.#carriageMode(index,mode,signal,false);}
  #carriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal,homing:boolean):Promise<void>{

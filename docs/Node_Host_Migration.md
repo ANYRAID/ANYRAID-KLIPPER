@@ -16,6 +16,19 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 双小车受控接口 `/printer/settings/dual_carriage` 已接入产品服务：GET
+  返回状态令牌；POST 要求 version=1、state_token、carriage=0/1 及
+  mode=PRIMARY/INACTIVE/COPY/MIRROR。仅空闲且无待执行移动时允许切换，
+  几何与归零权限预检失败不进入硬件事务；事务失败则停机并关闭操作门。
+  状态、位置或运动代际变化使令牌失效，同一已接受请求重试不再次重建。
+  成功同步 G-code 坐标，服务关闭取消并等待事务。12 项接口和原生回归
+  通过；独立编译产品经认证 HTTP 验证切换、重试、过期拒绝及坐标恢复。
+  模拟 MCU 交替基准中位：直接切换 2.239 ms、接口读取/切换/重试
+  2.094 ms；波动不构成加速结论，未测真实硬件或 HTTP 性能。证据见
+  `host/contracts/dual-carriage-settings*.json`，基准包含后续第二小车
+  0.1 mm 的精确 10 步检查。本项未退役 Python，仍为 177 个；多挤出机、
+  整体默认入口切换、既有数值/时序异常及硬件验收仍未完成。
+
 - 双小车配置已接通自动硬件装配：Cartesian X/Y 与 hybrid_corexy/
   hybrid_corexz X 均解析第二电机、限位及所有 MCU 的停止组，运动描述
   携带初始原生变换，初始化/恢复在整形和物理计数对齐之前应用。
