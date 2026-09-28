@@ -1,6 +1,4 @@
 import {NativeDeltaHomingPort} from '../homing/native-delta-port.ts';
-import {DeltaHomingCommand} from '../homing/delta-command.ts';
-import {GCodeMove} from '../gcode/move.ts';
 import {readDeltaMotionConfiguration} from '../config/delta-motion.ts';
 import {readExtrusionConfiguration} from '../config/extrusion.ts';
 import {compileDeltaHoming,type planDeltaHardware} from '../config/delta-printer.ts';
@@ -111,8 +109,16 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const owned=new NativeDeltaHomingPort({...config,extrusion,generation,emitters,kinematicIds:settings.kinematicIds,groups,canExtrude:()=>heater.canExtrude()});
    // Publish the lifetime owner before constructing any command adapters.
    port=owned;
-   const coordinates=new GCodeMove(owned),homing=new DeltaHomingCommand(config.kinematics,coordinates,owned,{...config.rails[0].homing,endstops:settings.homing.map(h=>h.section)});
-   return Object.freeze({...config,port:owned,coordinates,homing});
+   const homingSettings=Object.freeze({...config.rails[0].homing,endstops:Object.freeze(settings.homing.map(h=>h.section))});
+   const createPrint=async(options:ConfiguredPrintOptions)=>{
+    group.assertActive();if(printPending)throw new Error('Configured print already owned');
+    const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
+    if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
+    const gcode=new NativeLinearGCode(owned,config.kinematics,homingSettings,options.output,options.homingTimeoutMs,readArcResolution(reader),readRetraction(reader),{stepper:extruders[0].id,name:section!},readNativeBedMesh(reader),reader.hasSection('exclude_object'),reader.sections().filter(s=>s.startsWith('servo ')).map(s=>readServo(reader,s)));
+    printPending=createNativeLinearPrint({...options,gcode,port:owned,heaters:hardware.heaters,mapping:{nozzle,bed}});
+    try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured Delta print and cleanup failed',{cause:error});}throw error;}
+   };
+   return Object.freeze({...config,port:owned,homingSettings,createPrint});
   };
   return Object.freeze({generation,emitters,stopped,createLinearPort,createDeltaPort,close:hardware.close});
  }catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Initial motion and cleanup failed',{cause:error});}throw error;}

@@ -2,6 +2,7 @@
 // GPL-3.0-or-later. A-tower timing controls the combined homing operation.
 import {GCodeDispatch,GCodeError} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
+import type {Axis} from '../kinematics/linear.ts';
 import {DeltaKinematics} from '../kinematics/delta.ts';
 import {observeRetirement} from '../motion/retired.ts';
 import {confirmHomingPass,homingRetract,type HomingPass,type LinearHomingPort} from './linear-command.ts';
@@ -25,7 +26,11 @@ export class DeltaHomingCommand {
  get status(){return {busy:this.#busy,cleanupPending:this.#cleanupPending,cleanupFailed:this.#cleanupFailed,cleanupError:this.#cleanupError};}
  register(dispatch:GCodeDispatch){dispatch.register('G28',command=>this.home(command.signal));}
  /** Any G28 axis selection homes all three towers, matching Delta geometry. */
- async home(signal:AbortSignal):Promise<void>{
+ home(signal:AbortSignal):Promise<void>;
+ home(axes:readonly Axis[],signal:AbortSignal):Promise<void>;
+ async home(axesOrSignal:readonly Axis[]|AbortSignal,suppliedSignal?:AbortSignal):Promise<void>{
+  const signal=suppliedSignal??axesOrSignal as AbortSignal;
+  if(suppliedSignal&&(!Array.isArray(axesOrSignal)||!axesOrSignal.length||new Set(axesOrSignal).size!==axesOrSignal.length||axesOrSignal.some(a=>!Number.isInteger(a)||a<0||a>2)))throw new RangeError('Invalid homing axes');
   if(this.#busy)throw new GCodeError('Homing is already active');
   if(this.#cleanupPending||this.#cleanupFailed)throw new GCodeError('Homing cleanup requires recovery');
   signal.throwIfAborted();this.#busy=true;this.#cleanupError=undefined;

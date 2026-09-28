@@ -1,3 +1,5 @@
+import {DeltaKinematics} from '../kinematics/delta.ts';
+import {DeltaHomingCommand,type DeltaHomingSettings} from '../homing/delta-command.ts';
 import {bindServoCommands} from '../gcode/servo.ts';
 import type {ServoSettings} from '../config/servo.ts';
 import {bindOutputPinCommands} from '../gcode/output-pin.ts';
@@ -22,16 +24,16 @@ export interface PrintHomingPolicy {mode:'home'|'require_homed';axes:readonly Ax
  * handlers must be registered before enabling; unsupported commands stop.
  * Readiness permits G28, but never grants homing or bypasses thermal guards. */
 export class NativeLinearGCode {
- readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand;
+ readonly dispatch:GCodeDispatch;readonly coordinates:GCodeMove;readonly homing:LinearHomingCommand|DeltaHomingCommand;
  readonly layers=new PrintLayerInfo();
  readonly display=new DisplayStatus();
  readonly objects:ObjectCommands|undefined;
  readonly retraction:FirmwareRetraction|undefined;
  readonly pressureAdvance:PressureAdvancePort|undefined;
  readonly bedMeshStatus:(()=>Readonly<Record<string,import('../moonraker/rpc.ts').Json>>)|undefined;
- #port:NativeLinearHomingPort;#kinematics:LinearKinematics;#off:()=>void;#closed=false;
+ #port:NativeLinearHomingPort;#kinematics:LinearKinematics|DeltaKinematics;#off:()=>void;#closed=false;
  #clockTimer:ReturnType<typeof setInterval>|undefined;#clockAbort=new AbortController();
- constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics,rails:readonly LinearHomingRail[],output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration,excludeObjects=false,servos:readonly ServoSettings[]=[]){
+ constructor(port:NativeLinearHomingPort,kinematics:LinearKinematics|DeltaKinematics,rails:readonly LinearHomingRail[]|DeltaHomingSettings,output:DispatchHooks['output'],homingTimeoutMs=120000,arcResolution=1,retraction?:RetractionSettings,pressureBinding?:{stepper:string;name:string},bedMesh?:NativeBedMeshConfiguration,excludeObjects=false,servos:readonly ServoSettings[]=[]){
   if(pressureBinding){
    const {stepper,name}=pressureBinding;
    if(typeof name!=='string'||!name.trim()||name.length>256||name.includes('\0'))throw new Error('Invalid pressure advance object name');
@@ -42,7 +44,13 @@ export class NativeLinearGCode {
   this.retraction=retraction?new FirmwareRetraction(retraction):undefined;
   if(owners.has(port)||!port.usesKinematics(kinematics)||typeof output!=='function')throw new Error('Invalid native G-code ownership');
   port.assertActive();this.#port=port;this.#kinematics=kinematics;this.coordinates=new GCodeMove(port);
-  this.homing=new LinearHomingCommand(kinematics,this.coordinates,port,rails,homingTimeoutMs);
+  if(kinematics instanceof DeltaKinematics){
+   if(Array.isArray(rails))throw new Error('Delta requires simultaneous homing settings');
+   this.homing=new DeltaHomingCommand(kinematics,this.coordinates,port,rails as DeltaHomingSettings,homingTimeoutMs);
+  }else{
+   if(!Array.isArray(rails))throw new Error('Linear homing requires three rails');
+   this.homing=new LinearHomingCommand(kinematics,this.coordinates,port,rails,homingTimeoutMs);
+  }
   this.dispatch=new GCodeDispatch({output,unknownCommand:'shutdown',checkpoint:s=>port.flush(s),drain:s=>port.drain(s),shutdown:reason=>{void port.motorOff(new Error(reason)).catch(()=>{});}});
   for(const name of ['G0','G1','G20','G21','G90','G91','G92','M82','M83','M220','M221','SET_GCODE_OFFSET','SAVE_GCODE_STATE','RESTORE_GCODE_STATE'])this.dispatch.register(name,c=>{port.assertActive();this.coordinates.execute(name,c.params);});
   this.homing.register(this.dispatch);this.dispatch.register('M400',()=>{},{drainBefore:true});

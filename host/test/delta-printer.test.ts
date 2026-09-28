@@ -100,8 +100,10 @@ test('Delta mismatched tower geometry stops before arming endstops',async()=>{
  }finally{await f.close();}
 });
 
-test('configured Delta lifetime owner executes two native homing passes, ordinary motion and shutdown',async()=>{
- const f=await initialMotionSetup(false,true,true),timers:ReturnType<typeof setTimeout>[]=[];let watch:ReturnType<typeof setInterval>|undefined;
+const benchRuns=process.env.DELTA_PRINT_BENCH?4:1,segments=process.env.DELTA_PRINT_BENCH?1000:20;
+for(let run=0;run<benchRuns;run++)for(const filePrint of (run%2?[true,false]:[false,true]))test(`configured Delta lifetime owner executes homing, pause and shutdown (file=${filePrint}, run=${run})`,async t=>{
+ const f=await initialMotionSetup(false,true,true),timers:ReturnType<typeof setTimeout>[]=[];let watch:ReturnType<typeof setInterval>|undefined,temporary:string|undefined;
+ const files=await import('node:fs/promises');
  try{
   const raw=delta(f.reader.source.original);Object.assign(raw.stepper_a,{homing_retract_dist:'.2',homing_speed:'40',second_homing_speed:'10'});
   const r=reader(raw),p=planDeltaHardware(r,policy),hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
@@ -126,21 +128,41 @@ test('configured Delta lifetime owner executes two native homing passes, ordinar
     }
     for(let i=0;i<2;i++)cursors[i]=f.firmware[i].outputs.length;
    },2);
-   await owner.homing.home(f.signal);clearInterval(watch);watch=undefined;
+   const home=owner.kinematics.homePosition,target=[home[0],home[1],home[2]-2,0];
+   let printing:Awaited<ReturnType<typeof owner.createPrint>>|undefined,finished=0;
+   const eof=Promise.withResolvers<void>();void eof.promise.catch(()=>{});
+   if(filePrint){
+    temporary=await files.mkdtemp('/tmp/delta-file-print-');const path=temporary+'/job.gcode';
+    await files.writeFile(path,Array.from({length:segments},(_,i)=>'G1 Z'+(target[2]-(i+1)/segments)+' F30').join('\n')+'\nM400\n');
+    const {GCodeFileReader}=await import('../src/gcode/file-reader.ts');
+    printing=await owner.createPrint({output(){},motorCompletion:'hold',startupHoming:{mode:'home',axes:[0]},parking:{parkXY:[home[0],home[1]],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{finished++;},stopOutputs:async()=>{}},open:async()=>GCodeFileReader.adopt(await files.open(path,'r'))});
+    printing.device.subscribeEOF(()=>eof.resolve());printing.device.subscribeFault(e=>eof.reject(e));
+    await printing.device.prepare({version:1,requestId:'delta-job',fileId:'delta-file',nozzle:0,bed:0},f.signal);
+   }else{
+    const {DeltaHomingCommand}=await import('../src/homing/delta-command.ts'),{GCodeMove}=await import('../src/gcode/move.ts');
+    await new DeltaHomingCommand(owner.kinematics,new GCodeMove(owner.port),owner.port,owner.homingSettings).home(f.signal);
+   }
+   clearInterval(watch);watch=undefined;
    assert.deepEqual([...passes.values()],[2,2,2]);assert.equal(owner.kinematics.status.homedAxes,'xyz');
    assert.throws(()=>owner.port.move([...owner.port.position().slice(0,3),1],10),/temperature/);
-   const home=owner.kinematics.homePosition,target=[home[0],home[1],home[2]-2,0];owner.port.move(target,10);await owner.port.drain(f.signal);
+   owner.port.move(target,10);await owner.port.drain(f.signal);printing?.gcode.coordinates.resetPosition();
    assert.deepEqual(owner.port.position(),target);assert.equal(owner.port.status.failed,false);
    const count=(tower:string)=>{const motor=hardware.plan.steppers.find(s=>s.emitter===tower)!;return f.firmware[motor.mcu==='mcu'?0:1].motion.filter(m=>m.name==='queue_step'&&Number(m.parameters.oid)===motor.compressor.oid).reduce((n,m)=>n+Number(m.parameters.count),0);};
-   const before=['a','b','c'].map(count);
-   for(let n=1;n<=20;n++)owner.port.move([target[0],target[1],target[2]-n/20,0],.5);
-   const running=owner.port.drain(f.signal);void running.catch(()=>{});
+   const before=['a','b','c'].map(count),start=performance.now(),cpu=process.cpuUsage();
+   let running:Promise<void>;
+   if(printing){await printing.device.start('delta-file',f.signal);running=eof.promise;}
+   else{for(let n=1;n<=segments;n++)owner.port.move([target[0],target[1],target[2]-n/segments,0],.5);running=owner.port.drain(f.signal);}
+   void running.catch(()=>{});
    const deadline=performance.now()+3000;while(count('a')===before[0]){if(performance.now()>deadline)throw new Error('Delta stream did not start');await new Promise(r=>setTimeout(r,2));}
-   const paused=await owner.port.pauseStream(f.signal);assert(paused.position[2]<target[2]&&paused.position[2]>target[2]-1);
+   if(printing)await printing.device.pause(f.signal);
+   else{const paused=await owner.port.pauseStream(f.signal);assert(paused.position[2]<target[2]&&paused.position[2]>target[2]-1);}
    const held=['a','b','c'].map(count);await new Promise(r=>setTimeout(r,30));assert.deepEqual(['a','b','c'].map(count),held);
-   await owner.port.resumeStream(f.signal);await running;await owner.port.drain(f.signal);
+   if(printing)await printing.device.resume(f.signal);else await owner.port.resumeStream(f.signal);
+   await running;await owner.port.drain(f.signal);
+   if(printing){await printing.device.finish('delta-job',f.signal);assert.equal(finished,1);assert.equal(printing.device.status.requestId,undefined);assert.equal(hardware.heaters.getTemperature('extruder').target,0);assert.equal(hardware.heaters.getTemperature('heater_bed').target,0);assert.equal(printing.file.status.file?.closed,true);}
    assert.deepEqual(['a','b','c'].map((id,i)=>count(id)-before[i]),[80,80,80]);assert.deepEqual(owner.port.position(),[target[0],target[1],target[2]-1,0]);
+   if(process.env.DELTA_PRINT_BENCH){const used=process.cpuUsage(cpu);t.diagnostic('DeltaPrintBenchmark '+JSON.stringify({run,filePrint,commands:segments,wallMs:performance.now()-start,cpuMs:(used.user+used.system)/1000}));}
    await hardware.close();assert.equal(owner.port.status.failed,true);assert.equal(owner.kinematics.status.homedAxes,'');assert.deepEqual(f.stops,[1,1]);
   }finally{await hardware.close();}
- }finally{clearInterval(watch);for(const t of timers)clearTimeout(t);await f.close();}
+ }finally{clearInterval(watch);for(const t of timers)clearTimeout(t);await f.close();if(temporary)await files.rm(temporary,{recursive:true,force:true});}
 });

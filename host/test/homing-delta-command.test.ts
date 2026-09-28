@@ -44,3 +44,7 @@ test('Delta zero retract skips second pass, while changed coordinate owner or mi
  const missing=fixture(async()=>homingPass());await assert.rejects(missing.command.home(signal()),/coverage/);assert.equal(missing.stops,1);
  const changed=fixture(async()=>{changed.coordinates.setPort({position:()=>[0,0,0,0],move(){}});return pass();});await assert.rejects(changed.command.home(signal()),/coordinate port changed/);assert.equal(changed.kin.status.homedAxes,'');assert.equal(changed.stops,1);
 });
+test('Delta shared startup signature validates axis requests before any motion',async()=>{
+ const f=fixture();for(const axes of [[],[0,0],[3]])await assert.rejects(f.command.home(axes as (0|1|2)[],signal()),/Invalid homing axes/);assert.equal(f.events.length,0);assert.equal(f.stops,0);
+ await f.command.home([1],signal());assert.equal(f.kin.status.homedAxes,'xyz');
+});
