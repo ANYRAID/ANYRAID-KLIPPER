@@ -1,0 +1,15 @@
+{
+  "node": "v26.9.0",
+  "iterations": 10000,
+  "expressionsPerCommand": 2,
+  "samplesMs": [
+    60.816935,
+    59.22746399999997,
+    56.98076000000003,
+    56.459946,
+    56.28652599999998
+  ],
+  "medianMs": 56.98076000000003,
+  "commandsPerSecond": 175497.8347077153,
+  "scope": "Local exact arithmetic substitution and result assertion only; no transport, scheduling or physical motion. Diagnostic console prerequisite; legacy console remains."
+}
