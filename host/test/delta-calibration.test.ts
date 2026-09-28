@@ -20,6 +20,15 @@ test('Delta worker isolates fitting and releases its slot after cancellation, ti
  const result=await executor.fit(input);assert(result.finalError<1e-9);assert.equal(executor.busy,false);
 });
 
-test('Delta worker refuses an extended fit that exhausts the iteration budget',async()=>{
- const executor=new DeltaCalibrationExecutor();await assert.rejects(executor.fit(asymmetricDeltaCalibration()[1]),/iteration limit without convergence/);assert.equal(executor.busy,false);
+test('Delta worker converges extended fit and rejects repeated constraints',async()=>{
+ const executor=new DeltaCalibrationExecutor(),input=asymmetricDeltaCalibration()[1];
+ const result=await executor.fit(input);assert(result.search.converged);assert(result.finalError<1e-18);assert(result.search.rounds<10);assert.equal(executor.busy,false);
+ await assert.rejects(executor.fit({...input,probes:Array(7).fill(input.probes[0]),distances:[]}),/independent calibration constraints/);assert.equal(executor.busy,false);
+ const original=new DeltaCalibration(input.geometry),actual=new DeltaCalibration(result.geometry),truth=new DeltaCalibration({...input.geometry,radius:100.2,endstops:[300.1,300.1,300.1]});
+ for(const z of [0,25,100])for(const x of [-40,0,40]){const stable=original.stable([x,20,z]),a=actual.position(stable),b=truth.position(stable);a.forEach((v,i)=>assert(Math.abs(v-b[i])<1e-7));}
+});
+test('Delta noisy overdetermined fit improves residuals with finite geometry',()=>{
+ const input=asymmetricDeltaCalibration()[1];
+ const noisy={...input,probes:input.probes.map((p,i)=>({...p,height:p.height+Math.sin(i*7)*.001})),distances:input.distances!.map((d,i)=>({...d,distance:d.distance+Math.cos(i*3)*.001}))};
+ const before=structuredClone(noisy),result=fitDeltaCalibration(noisy);assert.deepEqual(noisy,before);assert(result.search.converged);assert(result.finalError<result.initialError*.001);assert(result.heightResiduals.every(v=>Math.abs(v)<.002));assert(result.distanceResiduals.every(v=>Math.abs(v)<.003));
 });

@@ -1,6 +1,7 @@
 // Calibration geometry/objective derived from klippy/kinematics/delta.py and
 // klippy/extras/delta_calibrate.py. GPL-3.0-or-later; Kevin O'Connor, 2017-2021.
-import {trilateration,coordinateDescentReport,type Vec3} from '../math/mathutil.ts';
+import {trilateration,type Vec3} from '../math/mathutil.ts';
+import {calibrationLeastSquares} from '../math/calibration-least-squares.ts';
 export interface DeltaCalibrationGeometry {radius:number;angles:Vec3;arms:Vec3;endstops:Vec3;stepDistances:Vec3;}
 export interface DeltaHeightMeasurement {height:number;stable:Vec3;}
 export interface DeltaDistanceMeasurement {distance:number;first:Vec3;second:Vec3;}
@@ -45,7 +46,10 @@ export function fitDeltaCalibration(input:DeltaCalibrationInput){
   if(!Number.isFinite(total))throw new RangeError('Nonfinite Delta calibration error');return total;
  };
  const initialError=error(original),{adjustable,values}=original.parameters(distances.length>0);
- const search=coordinateDescentReport(adjustable,values,p=>{try{return error(original.withParameters(p));}catch(e){if(e instanceof RangeError)return 9999999999999.9;throw e;}});
+ const search=calibrationLeastSquares(adjustable,values,p=>{
+  const cal=original.withParameters(p);
+  return [...heights.map(h=>(cal.position(h.stable)[2]-h.height)*Math.sqrt(weight)),...distances.map(d=>{const a=cal.position(d.first),b=cal.position(d.second);return Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2])-d.distance;})];
+ });
  const calibrated=original.withParameters(search.parameters),finalError=error(calibrated);
  if(finalError>initialError)throw new Error('Delta calibration did not improve');
  return {search,geometry:calibrated.geometry,initialError,finalError,heightResiduals:heights.map(h=>calibrated.position(h.stable)[2]-h.height),distanceResiduals:distances.map(d=>{const a=calibrated.position(d.first),b=calibrated.position(d.second);return Math.sqrt((a[0]-b[0])**2+(a[1]-b[1])**2+(a[2]-b[2])**2)-d.distance;})};
