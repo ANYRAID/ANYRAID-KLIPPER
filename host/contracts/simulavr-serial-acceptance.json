@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "baseCommit": "61e27c2c",
+  "simulavrRevision": "32985f745c237bf8dcd2718235d01c8b1fb0491d",
+  "sourceSha256": {
+    "host/native/avrsim.cpp": "5d763407d6b5e86b2dfb3259368e82b04f79b4f6799c830b7ad6f1ae1c58ac6f",
+    "host/src/simulator/engine.ts": "747a6bab36e58325444da763dd6cbb4f5c2529ff764f1290f2b61936477ae980",
+    "host/scripts/build-avrsim.ts": "7ac0d00552898a6f6f09b7cf30283d0d0cb5f30f39918d04343cc539b1c8834e",
+    "host/acceptance/simulavr-serial.test.ts": "c9b1b41ca66cdeaf317b2f0015220266676f5203a1ebd13f6c35867d8b00640b",
+    "host/test/fixtures/simulavr/echo.c": "511827e40b0044855b3dbdbb9a3ee70227c6b06adebc931c4b09b010799568eb"
+  },
+  "binarySha256": "76947d682e69fd12740b117e510f1a5f268550eaba183e24f6337574f9142d8d",
+  "logSha256": "a8d0459655ec7834a91956ffe6a8723631bd498f8b6166d847a20188ef32ea1b",
+  "metrics": {
+    "node": "v26.9.0",
+    "bytes": 2560,
+    "warmups": 3,
+    "simulatedNsPerSample": 20000000,
+    "samplesMs": [
+      24.86953600000001,
+      24.446191,
+      24.868344999999977,
+      24.702054000000004,
+      24.671264000000008,
+      24.49882100000002,
+      24.492640999999992
+    ],
+    "medianMs": 24.671264000000008,
+    "scope": "Node IPC, native AVR instructions and bidirectional bit-serial UART; no PTY or wall-clock pacing"
+  },
+  "validation": {
+    "all256BytesTenRounds": true,
+    "orderedBatches": true,
+    "truncatedRequestRejected": true,
+    "oversizedRequestRejected": true,
+    "cancellation": true,
+    "missingEngine": true
+  },
+  "harnessNote": "Initial truncated-input check using spawnSync timed out; shell EOF and async stdin.end correctly reached rejection. Final harness uses explicit async pipe EOF, matching the engine client. Cause of synchronous input behavior not established.",
+  "limitations": [
+    "PTY, pacing and VCD not yet migrated; avrsim.py retained.",
+    "Measurements exclude PTY and do not compare original Python frontend.",
+    "Simulator uses legacy integer nanosecond timing; this is not physical printer acceptance."
+  ]
+}

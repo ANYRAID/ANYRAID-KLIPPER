@@ -16,6 +16,21 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- AVR 仿真已增加 Node 控制接口与独立原生进程，真实 AVR ELF 的
+  UART 按位收发接通：0–255 全字节十轮共 2,560 字节完全一致，
+  连续提交的批次保持顺序。接口使用 BigInt 时钟，每批推进最多
+  100 ms、数据最多 64 KiB、待处理最多 16 批；异常退出拒绝待处理
+  请求，取消终止并等待子进程。截断、超限、缺失引擎和取消验证通过。
+  构建命令为 `node host/scripts/build-avrsim.ts SIMULAVR_SOURCE`，
+  锁定干净的上游提交，产物为 host/build/avrsim，不调用 Python。
+  真实 UART 回环每轮推进 20 ms，3 轮预热和 7 轮测量中位 24.671 ms，
+  包含 Node IPC、AVR 指令和双向串口位采样，不含 PTY、节拍或 VCD。
+  运行 `node --test --test-isolation=none host/acceptance/simulavr-serial.test.ts`
+  可复核，AVR_CC 可指定交叉编译器。类型与空白检查通过；详见
+  [串口验收及初次测试问题](../host/contracts/simulavr-serial-acceptance.json)。
+  PTY、节拍和 VCD 尚待接入，旧 avrsim.py 及 Python 文件数保持不变。
+
+
 - 最后一个 Python 工具脚本 avrsim.py 的替换已开始：新增 Node 驱动
   的 simulavr 核心构建，锁定上游提交，拒绝修改过的源码；仅编译
   C++ 仿真核心，不调用上游 CMake 的 Python 探测或 SWIG。
