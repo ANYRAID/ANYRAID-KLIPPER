@@ -1,3 +1,4 @@
+import {Htu21dSensor,isHtu21d} from '../thermal/htu21d.ts';
 import {Lm75Sensor} from '../thermal/lm75.ts';
 import type {I2cDevice} from '../drivers/i2c-mcu.ts';
 import {Sht3xSensor} from '../thermal/sht3x.ts';
@@ -43,6 +44,6 @@ export function attachConfiguredI2cSensor<T>(group:MCUGroup,plan:ReturnType<type
  // Register the owner before configuration; allocate its FIFO only when
  // startup sampling begins after every MCU has finalized configuration.
  const device:I2cDevice={transfer:(bytes,n,signal)=>sessionI2c(session,plan.protocol.oid).transfer(bytes,n,signal)};
- const sampler=plan.model==='LM75'?new Lm75Sensor(device):plan.model==='SHT3X'?new Sht3xSensor(device):new AhtSensor(device,plan.model as AhtModel);
+ const sampler=isHtu21d(plan.model)?new Htu21dSensor(device,plan.model,plan.htuOptions!):plan.model==='LM75'?new Lm75Sensor(device):plan.model==='SHT3X'?new Sht3xSensor(device):new AhtSensor(device,plan.model as AhtModel);
  const sensor=new I2cTemperatureRuntime(plan,sampler,fault);owners.add(plan);return sensor;
 }

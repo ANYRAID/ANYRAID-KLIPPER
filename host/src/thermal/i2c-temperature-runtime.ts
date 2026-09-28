@@ -1,3 +1,4 @@
+import {isHtu21d,readHtuOptions} from './htu21d.ts';
 import {i2cTemperatureModel,i2cTemperaturePeriod} from './i2c-temperature-model.ts';
 import {fixedDecimal} from '../diagnostics/python-literal.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
@@ -6,7 +7,7 @@ import {TemperatureSensorState} from './temperature-sensor.ts';
 export function readI2cTemperature(reader:ConfigurationReader,section:string){
  const c=reader.section(section),model=c.get('sensor_type'),minimum=c.getFloat('min_temp',{defaultValue:-273.15,minval:-273.15}),maximum=c.getFloat('max_temp',{defaultValue:99999999.9,above:minimum}),reportTime=i2cTemperaturePeriod(reader,section),gcodeId=c.get('gcode_id',{defaultValue:null});
  if(gcodeId!==null&&!/^[A-Za-z][A-Za-z0-9_]{0,15}$/.test(gcodeId))throw new Error('Invalid I2C temperature G-code id');
- return Object.freeze({section,model,minimum,maximum,reportTime,gcodeId:gcodeId??undefined});
+ return Object.freeze({section,model,minimum,maximum,reportTime,...isHtu21d(model)?{htuOptions:readHtuOptions(reader,section)}:{},gcodeId:gcodeId??undefined});
 }
 export interface I2cTemperatureClock {now():number;schedule(callback:()=>void,milliseconds:number):()=>void;}
 const clock:I2cTemperatureClock={now:()=>performance.now()/1000,schedule(callback,ms){const timer=setTimeout(callback,ms);timer.unref();return ()=>clearTimeout(timer);}};

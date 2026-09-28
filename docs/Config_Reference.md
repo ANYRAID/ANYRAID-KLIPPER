@@ -3083,10 +3083,18 @@ sensor_type:
 #    'TEMP13_HUM10' -> 13bit for Temp and 10bit for humidity
 #    'TEMP12_HUM08' -> 12bit for Temp and 08bit for humidity
 #    'TEMP11_HUM11' -> 11bit for Temp and 11bit for humidity
-#   Default is: "TEMP11_HUM11"
+#   Default is: "TEMP12_HUM08"
 #htu21d_report_time:
 #   Interval in seconds between readings. Default is 30
 ```
+
+The candidate Node host verifies CRCs and resolution writes, uses full
+manufacturer conversion coefficients, and applies additional temperature
+compensation only to HTU21D. SHT21 No-Hold uses OTP reload before each
+measurement to avoid its documented offset erratum; this can restore
+default resolution and does not promise shorter conversion times.
+An active internal sensor heater is rejected. Target-bus clock stretching
+and physical acceptance remain pending; see [migration status](Node_Host_Migration.md).
 
 ### SHT3X sensor
 
