@@ -17,8 +17,9 @@ export interface ManualBedTiltMotion {
 }
 /** Interactive lease remains held between requests. Reconnect reads state;
  * generation restart never resumes unverified physical work. */
-export function registerManualBedTilt(registry:EndpointRegistry,gate:MaintenanceGate,motion:ManualBedTiltMotion,options:BedTiltProbePlan,idleTimeoutMs=300000,mode:'bed_tilt'|'probe'|'z_endstop'|'screws_tilt'='bed_tilt'){
- const multiPoint=mode==='bed_tilt'||mode==='screws_tilt';
+export function registerManualBedTilt(registry:EndpointRegistry,gate:MaintenanceGate,motion:ManualBedTiltMotion,options:BedTiltProbePlan,idleTimeoutMs=300000,mode:'bed_tilt'|'probe'|'z_endstop'|'screws_tilt'|'delta'='bed_tilt'){
+ const multiPoint=mode==='bed_tilt'||mode==='screws_tilt'||mode==='delta';
+ if(mode==='delta'&&(options.points.length<6||options.points.length>999||options.points.some(p=>p.length!==2||!p.every(Number.isFinite))))throw new RangeError('Invalid Delta manual calibration points');
  const plan=structuredClone(options),limits=structuredClone(motion.limits);
  if(mode==='bed_tilt')fitBedTilt(plan.points.map(p=>[...p,0]));
  if(!Number.isSafeInteger(idleTimeoutMs)||idleTimeoutMs<1||idleTimeoutMs>600000||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(plan.horizontalHeight))throw new RangeError('Invalid manual calibration settings');
@@ -45,7 +46,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
   current[0]=target[0];current[1]=target[1];await move(current,plan.travelSpeed,signal);current[2]=plan.horizontalHeight;await move(current,plan.travelSpeed,signal);
   readPosition();startZ=position![2];history=[];unchanged=false;state='awaiting';
  }
- const unregister=registry.register({endpoint:mode==='screws_tilt'?'/printer/calibration/screws_tilt/manual':mode==='z_endstop'?'/printer/calibration/z_endstop':mode==='probe'?'/printer/calibration/manual_probe':'/printer/calibration/bed_tilt/manual',methods:['GET','POST']},async(params,verb,context)=>{
+ const unregister=registry.register({endpoint:mode==='delta'?'/printer/calibration/delta/manual':mode==='screws_tilt'?'/printer/calibration/screws_tilt/manual':mode==='z_endstop'?'/printer/calibration/z_endstop':mode==='probe'?'/printer/calibration/manual_probe':'/printer/calibration/bed_tilt/manual',methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return copy();
   const action=params.action,actions=['start','adjust','bisect_up','bisect_down','previous_up','previous_down','accept','cancel'];
   if(params.version!==1||typeof params.state_token!=='string'||typeof action!=='string'||!actions.includes(action)||Object.keys(params).some(k=>!['version','state_token','action',...(action==='adjust'?['delta']:[]),...(mode==='screws_tilt'&&action==='start'?['direction','maximum_deviation']:[])].includes(k))||action==='adjust'&&typeof params.delta!=='number')throw new ApiError(400,'Expected version, state_token, action and optional numeric delta');

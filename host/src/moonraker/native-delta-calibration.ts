@@ -9,12 +9,12 @@ import {DeltaCalibrationExecutor} from '../calibration/delta-calibration-executo
 import type {DeltaCalibrationInput,fitDeltaCalibration} from '../calibration/delta-calibration.ts';
 
 /** Generation-owned measured candidate. Clients never submit geometry or G-code. */
-export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:MaintenanceGate,motion:{idle():boolean;measure(signal:AbortSignal):Promise<DeltaCalibrationInput>;synchronize():void;restored?():DeltaCalibrationInput;validateGeometry?(geometry:ReturnType<typeof fitDeltaCalibration>['geometry']):void},session?:KlipperSaveSession){
+export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:MaintenanceGate,motion:{canProbe?:boolean;idle():boolean;measure(signal:AbortSignal):Promise<DeltaCalibrationInput>;synchronize():void;restored?():DeltaCalibrationInput;validateGeometry?(geometry:ReturnType<typeof fitDeltaCalibration>['geometry']):void},session?:KlipperSaveSession){
  let token=randomUUID(),state:'ready'|'measuring'|'candidate'|'saving'|'saved'|'failed'='ready',closed=false;
  let candidate:{input:DeltaCalibrationInput;result:ReturnType<typeof fitDeltaCalibration>}|undefined;
  let pending:Promise<Json>|undefined,receipt:{token:string;action:string;value:Json}|undefined;
  const lifetime=new AbortController(),executor=new DeltaCalibrationExecutor();
- const snapshot=():Json=>({state_token:token,state,available:!closed&&['ready','candidate'].includes(state)&&gate.available&&motion.idle(),can_save:!!session&&state==='candidate',restart_required:state==='saved'||state==='failed',candidate:candidate?{geometry:{...candidate.result.geometry,angles:[...candidate.result.geometry.angles],arms:[...candidate.result.geometry.arms],endstops:[...candidate.result.geometry.endstops],stepDistances:[...candidate.result.geometry.stepDistances]},initial_error:candidate.result.initialError,final_error:candidate.result.finalError,height_residuals:[...candidate.result.heightResiduals],distance_residuals:[...candidate.result.distanceResiduals]}:null});
+ const snapshot=():Json=>({automatic:motion.canProbe!==false,state_token:token,state,available:!closed&&['ready','candidate'].includes(state)&&gate.available&&motion.idle(),can_save:!!session&&state==='candidate',restart_required:state==='saved'||state==='failed',candidate:candidate?{geometry:{...candidate.result.geometry,angles:[...candidate.result.geometry.angles],arms:[...candidate.result.geometry.arms],endstops:[...candidate.result.geometry.endstops],stepDistances:[...candidate.result.geometry.stepDistances]},initial_error:candidate.result.initialError,final_error:candidate.result.finalError,height_residuals:[...candidate.result.heightResiduals],distance_residuals:[...candidate.result.distanceResiduals]}:null});
  const unregister=registry.register({endpoint:'/printer/calibration/delta',methods:['GET','POST']},async(params,verb,context)=>{
   if(verb==='GET')return snapshot();
   if(Object.keys(params).some(k=>!['version','state_token','action','measurements'].includes(k))||params.version!==1||typeof params.state_token!=='string'||typeof params.action!=='string'||!['calibrate','extend','save'].includes(params.action))throw new ApiError(400,'Expected version, state_token and calibrate/extend/save action');
@@ -24,6 +24,7 @@ export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:Ma
   if(params.state_token!==token)throw new ApiError(409,'Stale Delta calibration token');
   if(!['ready','candidate'].includes(state)||!motion.idle())throw new ApiError(409,'Delta calibration requires an idle homed printer');
   if(params.action==='save'&&(!session||!candidate))throw new ApiError(409,'No measured Delta candidate or persistence');
+  if(params.action==='calibrate'&&motion.canProbe===false)throw new ApiError(409,'Use manual Delta calibration without a probe');
   let extended:DeltaCalibrationInput|undefined;
   if(params.action==='extend'){
    const base=candidate?.input??motion.restored?.();if(!base?.probes.length)throw new ApiError(409,'Run and save basic Delta calibration first');
@@ -47,5 +48,11 @@ export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:Ma
   finally{clearTimeout(timer);release();}})();
   try{return await pending;}finally{pending=undefined;}
  });
- return async()=>{closed=true;lifetime.abort(new Error('Delta calibration owner closed'));unregister();await pending?.catch(()=>{});};
+ const close=async()=>{closed=true;lifetime.abort(new Error('Delta calibration owner closed'));unregister();await pending?.catch(()=>{});};
+ return Object.assign(close,{async acceptManual(input:DeltaCalibrationInput,signal:AbortSignal):Promise<Json>{
+  if(closed||pending||!['ready','candidate'].includes(state)||!gate.status.maintenance||gate.status.closed)throw new Error('Delta manual result has no active maintenance owner');
+  state='measuring';candidate=undefined;const owned=structuredClone(input),combined=AbortSignal.any([signal,lifetime.signal]);
+  pending=(async()=>{try{const result=await executor.fit(owned,{signal:combined});combined.throwIfAborted();motion.validateGeometry?.(result.geometry);candidate={input:owned,result};state='candidate';token=randomUUID();receipt=undefined;return snapshot();}catch(error){state='failed';gate.invalidate();throw error;}})();
+  try{return await pending;}finally{pending=undefined;}
+ }});
 }

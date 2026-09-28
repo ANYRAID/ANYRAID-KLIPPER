@@ -24,10 +24,10 @@ test('compiled Delta calibration persists, reloads unhomed and prints with new g
 import {GCodeFileReader} from ${JSON.stringify(pathToFileURL(join(app,'host/src/gcode/file-reader.js')).href)};
 import {loadProductMachineProfile} from ${JSON.stringify(pathToFileURL(join(app,'host/src/runtime/product-machine-profile.js')).href)};
 export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.stringify(f.path)},async()=>({stops:new Map(['mcu','aux'].map(id=>[id,async()=>{}])),print:{output(){},async open(){return GCodeFileReader.adopt(await open(${JSON.stringify(gcode)},'r'));},lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}}},server:{information:${JSON.stringify(f.bindings.server.information)},authorize:(_m,_p,c)=>{if(c.request.headers['x-api-key']!=='test')throw Error('Denied');}},async release(){}}),signal);`);
-  for(let generation=0;generation<3;generation++){
+  for(let generation=0;generation<4;generation++){
    if(generation){
     const loaded=await loadKlipperConfiguration(f.config.printerConfig);await replacement?.close();replacement=await productTransports(new ConfigurationReader(loaded,null));
-    let text=await readFile(f.config.printerConfig,'utf8');for(const section of ['mcu','mcu aux'])text=text.replace(loaded.original[section].serial,replacement.reader.source.original[section].serial);await writeFile(f.config.printerConfig,text);
+    let text=await readFile(f.config.printerConfig,'utf8');for(const section of ['mcu','mcu aux'])text=text.replace(loaded.original[section].serial,replacement.reader.source.original[section].serial);if(generation===2)text=text.replace(/\n\[probe\][\s\S]*?(?=\n\[)/,'');await writeFile(f.config.printerConfig,text);
    }
    const transport=replacement??f.transport,simulation=simulateDeltaWire(transport),ready=Promise.withResolvers<number>();void ready.promise.catch(()=>{});
    const child=spawn(process.execPath,[join(app,'scripts/product-host.js'),'--profile',profile],{env:{...process.env,PATH:'/no-programs'},stdio:['ignore','pipe','pipe']});let output='',stderr='';
@@ -60,10 +60,19 @@ export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.s
      const save={version:1,state_token:receipt.state_token,action:'save'},saved=await post('/printer/calibration/delta',save);assert(saved.restart_required);assert.deepEqual(await post('/printer/calibration/delta',save),saved);
      const source=await loadKlipperConfiguration(f.config.printerConfig);assert.equal(Object.keys(source.original.delta_calibrate).filter(k=>/^distance[0-9]+$/.test(k)).length,12);
     }
+    if(generation===2){
+     let state:any;for(;;){state=await get('/printer/calibration/delta/manual');if(state.available)break;assert(performance.now()<deadline);await new Promise(r=>setTimeout(r,10));}
+     assert.equal((await get('/printer/calibration/delta')).automatic,false);
+     const start=performance.now(),manualPath='/printer/calibration/delta/manual';
+     const action=async(action:string,extra:object={})=>{const current=await get(manualPath);return post(manualPath,{version:1,state_token:current.state_token,action,...extra});};
+     await action('start');for(let i=0;i<7;i++){await action('adjust',{delta:-.2});const result=await action('accept');assert.equal(result.accepted.length,i+1);}
+     assert.equal((await get(manualPath)).state,'completed');const result=await get('/printer/calibration/delta');candidate=result.candidate;assert.equal(result.state,'candidate');assert.equal(simulation.probeHits,0);
+     await post('/printer/calibration/delta',{version:1,state_token:result.state_token,action:'save'});timings.push(performance.now()-start);
+    }
     child.kill('SIGTERM');assert.equal(await ended,0);
    }finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended.catch(()=>{});simulation.close();}
   }
-  const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});try{for(let i=0;i<3;i++)assert.equal((await journal.get('generation-'+i))?.state,'completed');}finally{await journal.close();}
-  const evidence={node:process.version,compiled:true,generations:3,calibrationMs:timings[0],extensionMs:timings[1],finalError:candidate.final_error,geometry:candidate.geometry,passed:true,scope:'Compiled CLI, three independent simulated MCU generations, basic and extended calibration with persisted observations, actual config reload and homing plus eight extruder steps per print. Existing native addons/dependencies reused; excludes real hardware, clean installation and stable performance acceptance.'};t.diagnostic(JSON.stringify(evidence));if(process.env.DELTA_CALIBRATION_EVIDENCE)await writeFile(process.env.DELTA_CALIBRATION_EVIDENCE,JSON.stringify(evidence,null,2)+'\n');
+  const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});try{for(let i=0;i<4;i++)assert.equal((await journal.get('generation-'+i))?.state,'completed');}finally{await journal.close();}
+  const evidence={node:process.version,compiled:true,generations:4,calibrationMs:timings[0],extensionMs:timings[1],manualMs:timings[2],finalError:candidate.final_error,geometry:candidate.geometry,passed:true,scope:'Compiled CLI, four independent simulated MCU generations, automatic, extended and probeless manual calibration with persisted observations, actual config reload and homing plus eight extruder steps per print. Existing native addons/dependencies reused; excludes real hardware, clean installation and stable performance acceptance.'};t.diagnostic(JSON.stringify(evidence));if(process.env.DELTA_CALIBRATION_EVIDENCE)await writeFile(process.env.DELTA_CALIBRATION_EVIDENCE,JSON.stringify(evidence,null,2)+'\n');
  }finally{await replacement?.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });

@@ -57,7 +57,7 @@ import {readNativeBedMesh} from './native-bed-mesh.ts';
 /** Preflight before acquiring physical connections. Unbound components fail. */
 export function validateDeltaPrinter(reader:ConfigurationReader){
  validateNativePrinterSections(reader,'delta');
- if(readDeltaCalibrationPlan(reader)){if(!reader.hasSection('probe'))throw new Error('Delta calibration requires mechanical probe');readDeltaCalibrationState(reader);}
+ if(readDeltaCalibrationPlan(reader))readDeltaCalibrationState(reader);
  const config=readDeltaMotionConfiguration(reader);
  readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
  readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);readProbeConfiguration(reader);if(configuredProbeSection(reader))readProbeGrid(reader);
