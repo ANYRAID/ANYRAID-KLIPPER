@@ -2,51 +2,104 @@
   "node": "v26.9.0",
   "warmupsPerMode": 1,
   "samplesPerMode": 3,
-  "sourceMs": 1269.414589,
-  "compiledMs": 1275.7730300000003,
-  "maximumMs": 1700.2389657,
+  "sourceMs": 1221.3011720000013,
+  "compiledMs": 1226.1790949999995,
+  "maximumMs": 1637.6915236000018,
   "passed": true,
+  "probeSourceMs": 859.2587270000004,
+  "probeCompiledMs": 859.4700709999997,
+  "probeMaximumMs": 1167.0363451000005,
   "samples": [
     {
       "compiled": false,
       "run": 0,
-      "printMs": 1265.9684709999997
+      "printMs": 1224.111961
     },
     {
       "compiled": true,
       "run": 0,
-      "printMs": 1287.7263199999998
+      "printMs": 1220.6815740000002
     },
     {
       "compiled": true,
       "run": 1,
-      "printMs": 1293.9587940000001
+      "printMs": 1226.1790949999995
     },
     {
       "compiled": false,
       "run": 1,
-      "printMs": 1240.2331619999986
+      "printMs": 1221.3011720000013
     },
     {
       "compiled": false,
       "run": 2,
-      "printMs": 1276.4345200000007
+      "printMs": 1238.1559500000003
     },
     {
       "compiled": true,
       "run": 2,
-      "printMs": 1275.7730300000003
+      "printMs": 1205.149564000003
     },
     {
       "compiled": true,
       "run": 3,
-      "printMs": 1219.9526090000018
+      "printMs": 1231.4559460000019
     },
     {
       "compiled": false,
       "run": 3,
-      "printMs": 1269.414589
+      "printMs": 1220.687038
     }
   ],
-  "scope": "Delta source/compiled CLI heated short file print over two simulated PTY MCUs; wire-only endstop and ADC model, exact eight extruder steps, file close and durable completion after shutdown. Local native addons/dependencies reused. Excludes physical hardware and long-print throughput."
+  "probeSamples": [
+    {
+      "compiled": false,
+      "run": 0,
+      "wallMs": 859.67184,
+      "readyWaitMs": 0.6740770000005796
+    },
+    {
+      "compiled": true,
+      "run": 0,
+      "wallMs": 862.1243440000007,
+      "readyWaitMs": 0.6375570000000153
+    },
+    {
+      "compiled": true,
+      "run": 1,
+      "wallMs": 859.4700709999997,
+      "readyWaitMs": 0.6247270000003482
+    },
+    {
+      "compiled": false,
+      "run": 1,
+      "wallMs": 863.0536199999988,
+      "readyWaitMs": 0.6067859999984648
+    },
+    {
+      "compiled": false,
+      "run": 2,
+      "wallMs": 857.425365000001,
+      "readyWaitMs": 0.7227980000006937
+    },
+    {
+      "compiled": true,
+      "run": 2,
+      "wallMs": 841.3495329999969,
+      "readyWaitMs": 0.5520260000012058
+    },
+    {
+      "compiled": true,
+      "run": 3,
+      "wallMs": 877.701046000002,
+      "readyWaitMs": 266.56826499999806
+    },
+    {
+      "compiled": false,
+      "run": 3,
+      "wallMs": 859.2587270000004,
+      "readyWaitMs": 0.5587860000014189
+    }
+  ],
+  "scope": "Delta source/compiled CLI heated short file print over two simulated PTY MCUs; wire-only endstop and ADC model, exact eight extruder steps, file close and durable completion after shutdown. After normal G28 and printing, completes two probe samples with retract and token replay, without seeding homing authority. Local native addons/dependencies reused. Excludes physical hardware and long-print throughput."
 }
