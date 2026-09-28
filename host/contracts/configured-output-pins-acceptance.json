@@ -1,0 +1,17 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "batchesPerSample": 1000,
+  "pinsPerBatch": 2,
+  "samplesMs": [
+    84.64928899999995,
+    82.18064700000014,
+    79.58686399999988,
+    80.82323900000006,
+    91.77066100000002,
+    77.76405,
+    72.85297600000013
+  ],
+  "medianMs": 80.82323900000006,
+  "scope": "Cold configuration compilation and ownership checks; excludes MCU IO and print scheduling"
+}

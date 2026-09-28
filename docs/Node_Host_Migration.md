@@ -18,14 +18,19 @@
 
 - 回到原生打印机缺口：新增 output_pin 配置和值归一化，保留 PWM
   scale、初始／shutdown 逻辑值、cycle_time 和 hardware_pwm，并拒绝
-  非有限值、数字输出的分数值、未知选项与缩放下溢。未分配引脚或
-  OID；四项回归包括原生自动装配仍拒绝未绑定 output_pin，不能仅凭
-  配置可读就宣称设备支持已完成。下一步仍需 MCU 编译、调度、停止
+  非有限值、数字输出的分数值、未知选项与缩放下溢。后续已补齐 MCU
+  编译、物理引脚独占与 OID 事务分配，编码检查和固件 generation 能力
+  检查完成后才发布资源；别名冲突与无效配置不会留下部分占用。
+  七项回归包括原生自动装配仍拒绝未绑定 output_pin，不能仅凭
+  配置可读就宣称设备支持已完成。下一步仍需运行时装配、调度、停止
   和产品命令绑定，旧 Python output_pin.py 尚未退役。
   预热 3 轮、采样 7 轮：一万次配置读取中位 19.429 ms，
   一百万次值归一化中位 3.862 ms，见
   [输出引脚配置基准](../host/contracts/output-pin-config-acceptance.json)。
   此微基准不包括串口／MCU 与打印调度，不作为整条打印性能证明。
+  MCU 编译基准预热 3 轮、采样 7 轮，每轮一千组数字输出加硬件 PWM，
+  中位 80.823 ms；设备字典与资源容器在计时前创建，测量包含命令编码
+  和独占检查。见 [编译基准](../host/contracts/configured-output-pins-acceptance.json)。
 
 - **文档 Python 构建链已退役**：build-website.sh 和 GitHub Pages 工作流
   改用 Node 26.9；移除 mkdocs_hooks.py 与 pip 依赖清单，配置迁至
