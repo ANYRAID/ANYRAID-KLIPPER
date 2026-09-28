@@ -1,3 +1,4 @@
+import {deltaPrinterSections as delta} from './helpers/delta-printer.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {planDeltaHardware,compileDeltaHoming} from '../src/config/delta-printer.ts';
@@ -7,13 +8,7 @@ import {initialMotionSetup,initialMotionOptions} from './helpers/initial-motion.
 import {startConfiguredHardware} from '../src/runtime/configured-hardware.ts';
 import {initializeConfiguredMotion} from '../src/runtime/initial-motion.ts';
 const policy={mcus:['mcu','aux'],enableLeadTime:.001,fanMinimumScheduleTime:.001};
-function delta(original:Record<string,Record<string,string>>){
- const raw=structuredClone(original);
- for(const [axis,tower] of [['x','a'],['y','b'],['z','c']]){raw[`stepper_${tower}`]={...raw[`stepper_${axis}`],position_endstop:'300'};delete raw[`stepper_${axis}`];}
- Object.assign(raw.printer,{kinematics:'delta',delta_radius:'100'});raw.stepper_a.arm_length='250';
- Object.assign(raw.stepper_b,{step_pin:'aux:PA6',dir_pin:'aux:PA7',endstop_pin:'aux:PA8',enable_pin:'!aux:PA9'});
- return raw;
-}
+
 const reader=(raw:Record<string,Record<string,string>>)=>new ConfigurationReader(new ConfigurationSource('/delta-hardware.cfg',structuredClone(raw),[]),null);
 test('Delta configured hardware resolves independent tower stops across MCU orderings',async()=>{
  for(const reverse of [false,true]){

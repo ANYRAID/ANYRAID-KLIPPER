@@ -1,0 +1,11 @@
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const test=fileURLToPath(new URL('../test/product-delta-printer.test.ts',import.meta.url));
+const result=spawnSync(process.execPath,['--test','--test-isolation=none','--test-concurrency=1','--test-reporter=tap','--test-name-pattern=Delta Moonraker start',test],{env:{...process.env,DELTA_PRODUCT_BENCH:'1'},encoding:'utf8',timeout:180000,maxBuffer:1024*1024});
+assert.equal(result.status,0,result.stdout+'\n'+result.stderr);
+const samples=[...result.stdout.matchAll(/DeltaProductBenchmark (\{[^\n]+\})/g)].map(m=>JSON.parse(m[1]) as {run:number;loaded:boolean;wallMs:number;cpuMs:number;queries:number;queryP99Ms:number|null});assert.equal(samples.length,8);
+const summary=(loaded:boolean)=>{const data=samples.filter(s=>s.loaded===loaded&&s.run>0),median=(key:'wallMs'|'cpuMs')=>data.map(s=>s[key]).sort((a,b)=>a-b)[1];assert.equal(data.length,3);return {wallMedianMs:median('wallMs'),cpuMedianMs:median('cpuMs'),queries:data.reduce((n,s)=>n+s.queries,0),maximumQueryP99Ms:Math.max(...data.map(s=>s.queryP99Ms??0))};};
+const baseline=summary(false),loaded=summary(true),maximumMs=baseline.wallMedianMs*1.3+50;
+console.log(JSON.stringify({node:process.version,warmupsPerMode:1,samplesPerMode:3,baseline,loaded,samples,wallGate:{maximumMs,passed:loaded.wallMedianMs<=maximumMs},scope:'Two simulated MCUs, HTTP start, two-pass Delta homing, live simulated ADC samples, 0.1 mm / 8-step extrusion, heater-off and durable completion. Loaded case continuously queries four Moonraker objects with one in-flight HTTP request. Excludes physical printer and long-print throughput.'},null,2));
+assert(loaded.queries>0);assert(loaded.wallMedianMs<=maximumMs,'Delta status polling exceeded paired completion wall-time gate');

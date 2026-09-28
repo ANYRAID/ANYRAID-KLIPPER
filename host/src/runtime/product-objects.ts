@@ -1,3 +1,4 @@
+import type {NativeLinearHomingPort} from '../homing/native-linear-port.ts';
 import {tmc220xStatusReader} from '../drivers/tmc220x-status.ts';
 import {nativePrinterState} from '../moonraker/native-printer-info.ts';
 import {NativeObjects,type NativeObjectReader} from '../moonraker/native-objects.ts';
@@ -8,7 +9,8 @@ import {productDisplayStatus} from './product-display-status.ts';
 import {productPrintStatus,productPauseStatus} from './product-print-status.ts';
 /** Publish only fields backed by the assembled native owners. Missing fields
  * retain the query protocol's null behavior; durations come from the controller. */
-export function productObjects(printer:Awaited<ReturnType<typeof connectProductPrinter>>,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false,quad=false,screws?:NativeObjectReader):NativeObjects{
+export type ProductServicePrinter=Omit<Awaited<ReturnType<typeof connectProductPrinter>>,'linear'|'machine'>&{machine:{port:NativeLinearHomingPort;kinematics:{readonly status:{homedAxes:string;axisMinimum:number[];axisMaximum:number[]}}}};
+export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHostStatusSource,filename:((fileId:string)=>string)|undefined=undefined,zTilt=false,quad=false,screws?:NativeObjectReader):NativeObjects{
  const pressure=printer.print.gcode.pressureAdvance;
  const readers=new Map<string,NativeObjectReader>([
   ['webhooks',()=>nativePrinterState(readNativeHostStatus(nativeHost))],
@@ -18,14 +20,14 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   ['display_status',eventtime=>productDisplayStatus(printer.print.gcode.display,printer.controller.state,printer.print.file.objectStatus.progress,eventtime)],
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers,filename)],
   ['pause_resume',()=>productPauseStatus(printer.controller.state)],
-  ['idle_timeout',()=>({...printer.idleTimeout.status,motors_releasable:printer.linear.port.canReleaseMotors})],
-  ['toolhead',()=>{const k=printer.linear.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.linear.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.linear.port.velocityStatus};}],
+  ['idle_timeout',()=>({...printer.idleTimeout.status,motors_releasable:printer.machine.port.canReleaseMotors})],
+  ['toolhead',()=>{const k=printer.machine.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.machine.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.machine.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
  if(screws)readers.set('screws_tilt_adjust',screws);
- if(quad)readers.set('quad_gantry_level',()=>printer.linear.port.quadGantryStatus);
- if(zTilt)readers.set('z_tilt',()=>printer.linear.port.zTiltStatus);
- if(printer.linear.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.linear.port.bedTiltStatus!);
+ if(quad)readers.set('quad_gantry_level',()=>printer.machine.port.quadGantryStatus);
+ if(zTilt)readers.set('z_tilt',()=>printer.machine.port.zTiltStatus);
+ if(printer.machine.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.machine.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());
  const objects=printer.print.gcode.objects;if(objects)readers.set('exclude_object',()=>objects.status);
  const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...retraction.status}));
@@ -36,7 +38,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
   return {...thermal,pressure_advance:accepted.advance,smooth_time:accepted.smoothTime};
  });
  const drivers=new Map<string,{model:string;current:Readonly<{runCurrent:number;holdCurrent:number}>}>([...printer.hardware.plan.tmcUarts.flatMap(u=>u.devices.map(d=>[d.model+' '+d.stepper,d] as const)),...printer.hardware.plan.tmcSpis.flatMap(b=>b.devices.map(({plan:d})=>[d.model+' '+d.stepper,d] as const))]);
- for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor,()=>driver.current.current,()=>{const sample=driver.phase.sample;if(!sample)return null;const stepper=printer.hardware.plan.steppers.find(s=>s.section===driver.section.slice(driver.section.indexOf(' ')+1))!;return {offset:sample.offset,position:printer.linear.port.phaseOffsetPosition(stepper.emitter,sample.offset)};}));}
+ for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor,()=>driver.current.current,()=>{const sample=driver.phase.sample;if(!sample)return null;const stepper=printer.hardware.plan.steppers.find(s=>s.section===driver.section.slice(driver.section.indexOf(' ')+1))!;return {offset:sample.offset,position:printer.machine.port.phaseOffsetPosition(stepper.emitter,sample.offset)};}));}
  for(const sensor of printer.hardware.hostSensors){readers.set(sensor.section,()=>sensor.state.objectStatus);readers.set('temperature_host '+sensor.section.trim().split(/\s+/).at(-1),()=>({temperature:sensor.state.objectStatus.temperature}));}
  for(const sensor of printer.hardware.sensors)readers.set(sensor.section,()=>sensor.state.objectStatus);
  for(const pin of printer.hardware.outputPins)readers.set(pin.settings.section,()=>({value:pin.runtime.status.value}));

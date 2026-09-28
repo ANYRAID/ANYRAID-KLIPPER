@@ -16,6 +16,22 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- Delta 已接入共用持久化作业控制及 Moonraker 产品服务 API：
+  connectDeltaProductPrinter、startDeltaProductService 和
+  startConfiguredDeltaProductService 使用同一作业恢复、耗材、空闲
+  及关闭所有者。HTTP 启动完成三塔双次归零、模拟温度到温、0.1 mm
+  挤出（8 步），等待加热器关闭确认后记录 completed 并关闭文件。
+  预留作业恢复冲突不重放运动；延迟准备的取消等待动作结束才落盘。
+  自动服务通过真实 PTY UART 配置、状态对象查询、授权拒绝及关闭。
+  Delta 与共用产品/服务共 25 项验证通过。
+  持续查询四个状态对象的配对基准，预热 1 轮、测量 3 轮；负载
+  样本共 11572 次查询，最大 P99 0.847 ms；完成中位从 1237.388
+  增至 1258.077 ms（约 1.7%），CPU 从 78.840 增至 1551.746 ms
+  （同进程客户端与服务端）。全部样本通过 8 步及关闭/完成检查。
+  见 [验收记录](../host/contracts/delta-product-print-acceptance.json)。
+  此为模拟短任务；声明式 product-host 机型选择仍待接入 Delta，
+  探针/校准、目标板长时打印及已有精度问题未解决，Python 保持 179。
+
 - Delta 增加配置驱动的连接/启动 API：planDeltaPrinter 与
   connectConfiguredDeltaPrinter 将连接、时钟捕获、硬件配置和文件
   打印装配接成一条启动流程；线性机型共用硬件到打印的事务及选项

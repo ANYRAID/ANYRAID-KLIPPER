@@ -33,8 +33,10 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 `planDeltaPrinter(reader, policy)` 生成硬件布局、运动描述、初始队列和
 三塔归零分组。`connectConfiguredDeltaPrinter` 获取 MCU 连接、捕获
 时钟、配置硬件并装配文件打印；已连接的 MCU 可使用
-`startClockedDeltaPrinter`。这些函数仍是机器集成层 API，当前
-`product-host` 的持久化控制器与 Moonraker 自动服务未切换到 Delta。
+`startClockedDeltaPrinter`。`connectDeltaProductPrinter` 再装配持久化作业、耗材与空闲策略；
+`startConfiguredDeltaProductService` 接入授权的 Moonraker 状态与受控
+操作服务。以上为机器集成层 API；`product-host` 的声明式机型选择
+仍待接入 Delta，不能仅替换配置就启动现有部署。
 
 连接前检查每个配置节，识别 A/B/C 塔、附加塔电机及相应 TMC 所有权。
 尚未接通的探针、相位、倾斜/龙门/螺钉/偏斜校准和原始宏明确拒绝。
