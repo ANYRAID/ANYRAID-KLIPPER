@@ -25,3 +25,10 @@ test('fault waits for delayed preparation and its late reservation before failed
 test('fault rejects when failed outcome cannot be written',async()=>{
  const f=await fixture(),transition=f.journal.transition.bind(f.journal);try{await f.controller.start(request);f.journal.transition=async(...args)=>{if(args[2]==='failed')throw new Error('storage write failed');return transition(...args);};await assert.rejects(f.controller.fault(new Error('ADC failure')),/storage write failed/);assert.equal((await f.journal.get('job'))?.state,'started');}finally{f.journal.transition=transition;await f.close();}
 });
+test('retirement retains failed outcome instead of recording an implicit user cancellation',async()=>{
+ for(const phase of ['prepare','device'] as const){const f=await fixture();try{
+  if(phase==='prepare'){f.device.prepare=async()=>{throw Error('rejected file identity');};await assert.rejects(f.controller.start(request));}
+  else{await f.controller.start(request);await f.controller.fault(Error('device failure'));}
+  const before=await f.journal.get('job');assert.equal(before?.state,'failed');await f.controller.retire();const after=await f.journal.get('job');assert.equal(after?.state,'failed');assert.equal(after?.revision,before?.revision);assert.equal(f.controller.state,'failed');
+ }finally{await f.close();}}
+});

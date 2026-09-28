@@ -18,6 +18,7 @@ type Action='start'|'pause'|'resume'|'cancel'|'reset'|'status'|'emergency_stop'|
 /** Explicit native-mode print owner. HTTP/WS/MQTT authorizers must authorize
  * file_id and controls. File acquisition independently authorizes/seals data. */
 export class ProductPrintApi {
+ #closingAsCancel:boolean|undefined;
  readonly #controller:PrintController;#closed=false;#closing:Promise<void>|undefined;
  readonly #gate:MaintenanceGate;
  readonly #observers=new AbortController();
@@ -97,7 +98,7 @@ export class ProductPrintApi {
   if(action==='start'&&state!=='idle')try{this.#controller.reset(current!.requestId);}catch{throw new ApiError(409,'Previous print cleanup is still pending');}
   await this.call(action,resolved.translated,resolved.authorized);return 'ok';
  }
- close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#gate.invalidate();this.#observers.abort();const attempt=this.#controller.cancel();this.#closing=attempt;void attempt.catch(()=>{if(this.#closing===attempt)this.#closing=undefined;});return attempt;}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#closed=true;this.#gate.invalidate();this.#observers.abort();this.#closingAsCancel??=this.#controller.state!=='failed';const attempt=this.#closingAsCancel?this.#controller.cancel():this.#controller.retire();this.#closing=attempt;void attempt.catch(()=>{if(this.#closing===attempt)this.#closing=undefined;});return attempt;}
 }
 export function registerProductPrintApi(registry:EndpointRegistry,api:ProductPrintApi):()=>void{
  const releases:(()=>void)[]=[];try{for(const action of ['start','pause','resume','cancel','reset','status','pressure_advance'] as const)releases.push(registry.register({endpoint:'/printer/print/'+action,methods:[action==='status'?'GET':'POST']},(params,_verb,context)=>api.call(action,params,context)));releases.push(registry.register({endpoint:'/printer/emergency_stop',methods:['POST']},(params,_verb,context)=>api.call('emergency_stop',params,context)));}catch(error){for(const release of releases.reverse())release();throw error;}

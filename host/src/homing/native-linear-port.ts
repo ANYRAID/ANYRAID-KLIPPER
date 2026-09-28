@@ -674,6 +674,9 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    for(const point of plan.points){const target=[point.nozzleX,point.nozzleY,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}
    admission.shutdown(new Error('Grid preflight complete'));
    await this.#drain(s);
+   // Delta homes at the cone apex: descend vertically before the first XY
+   // travel so a valid bed point is not attempted at the homing height.
+   if(this.#o.kinematics instanceof DeltaKinematics&&this.homingPosition()[2]>plan.horizontalHeight){const target=[...this.homingPosition()];target[2]=plan.horizontalHeight;await this.#probeTravel(target,plan.travelSpeed,s);}
    return this.#deviceSession((sample,ss)=>measureProbeGrid(plan,{position:()=>this.homingPosition(),move:async(target,speed)=>{
     await this.#probeTravel(target,speed,ss);
    },probe:async()=>{const measured=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample);return measured.position[2]-config.offsets[2];}},ss),s);

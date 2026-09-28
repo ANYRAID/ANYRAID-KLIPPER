@@ -1,0 +1,28 @@
+{
+  "node": "v26.9.0",
+  "compiled": true,
+  "change": "other",
+  "calibrationMs": 13473.654254,
+  "originalContacts": 13,
+  "adaptedContacts": 5,
+  "probedMatrix": [
+    [
+      9.626543211000042,
+      9.626543211000042,
+      9.626543211000042
+    ],
+    [
+      9.626543211000042,
+      9.626543211,
+      9.626543210999957
+    ],
+    [
+      9.626543211,
+      9.626543211,
+      9.626543211
+    ]
+  ],
+  "compensatedPosition": null,
+  "passed": true,
+  "scope": "Compiled simulated-MCU case: same means compensated print completes; other/modified means admitted request fails before new steps. Each case includes adaptive calibration and persistence rejection. Existing dependencies reused; excludes clean installation and physical precision."
+}

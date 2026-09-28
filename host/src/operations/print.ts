@@ -98,7 +98,8 @@ export class PrintController {
     this.#maintenanceGate?.invalidate();
     this.#eofPending=undefined;const errors=this.#detachDevice();
     for(const observer of [...this.#stateObservers])void observer.return();
-    const cancelled=this.#cancelOwned();void cancelled.catch(()=>{});
+    // Retirement is not a user cancellation: retain an already failed outcome.
+    const cancelled=this.#state==='failed'?Promise.resolve():this.#cancelOwned();void cancelled.catch(()=>{});
     void (async()=>{
       // cancel publishes its underlying task on the next microtask. Retain
       // that task, not its possibly timed-out user-facing observation promise.

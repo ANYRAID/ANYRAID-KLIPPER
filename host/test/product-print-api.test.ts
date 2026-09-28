@@ -93,3 +93,6 @@ test('standard websocket requests use the same durable controller and return the
   await call('start',{filename:'file.gcode'});const id=controller.currentRequest!.requestId;assert.equal((await journal.get(id))?.state,'reserved');release();for(let i=0;i<100&&controller.state!=='printing';i++)await new Promise(r=>setImmediate(r));assert.equal(controller.state,'printing');await call('pause');await call('resume');await call('cancel');assert.equal((await journal.get(id))?.state,'cancelled');const response=await fetch('http://127.0.0.1:'+address.port+'/printer/print/start?filename=file.gcode',{method:'POST'});assert.equal(response.status,200);assert.equal((await response.json() as any).result,'ok');assert.notEqual(controller.currentRequest!.requestId,id);
  }finally{socket.terminate();unregister();await service.close();}
 },undefined,compatibility));
+test('API shutdown preserves failed job and does not act as explicit cancellation',()=>fixture(async(controller,api,journal,_calls,release)=>{
+ release();await controller.start(input);await controller.fault(Error('rejected file identity'));const before=await journal.get(input.requestId);assert.equal(before?.state,'failed');await api.close();const after=await journal.get(input.requestId);assert.equal(after?.state,'failed');assert.equal(after?.revision,before?.revision);assert.equal(controller.state,'failed');
+}));
