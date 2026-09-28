@@ -1,3 +1,4 @@
+import {attachConfiguredCombinedHeater} from '../config/combined-heater.ts';
 import {CombinedTemperatureRuntime} from '../thermal/combined-temperature-runtime.ts';
 import {attachConfiguredOutputPin} from './configured-output-pin.ts';
 import {TemperatureFanControl} from '../thermal/temperature-fan.ts';
@@ -100,15 +101,17 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
  const active=()=>{signal.throwIfAborted();abort.signal.throwIfAborted();group.assertActive();};
  try{
   detach=group.subscribeStop(cause=>{void close(cause).catch(()=>{});});active();
-  for(const h of plan.allHeaters){const a=plan.heaters.find(p=>p.section===h.section);let binding:ReturnType<typeof attachConfiguredAnalogHeater>|ReturnType<typeof attachConfiguredSpiHeater>;
-   if(a){binding=attachConfiguredAnalogHeater(group,a);analog.push(binding);}else{binding=attachConfiguredSpiHeater(group,plan.spiHeaters.find(p=>p.section===h.section)!);spiHeaters.push(binding);}
+  for(const h of plan.allHeaters){const a=plan.heaters.find(p=>p.section===h.section);let binding:{runtime:AsyncHeaterRuntime};
+   if(a){const owned=attachConfiguredAnalogHeater(group,a);analog.push(owned);binding=owned;}else if(plan.combinedHeaters.some(p=>p.section===h.section)){binding=attachConfiguredCombinedHeater(group,plan.combinedHeaters.find(p=>p.section===h.section)!);}else{const owned=attachConfiguredSpiHeater(group,plan.spiHeaters.find(p=>p.section===h.section)!);spiHeaters.push(owned);binding=owned;}
    thermal.push({section:h.section,runtime:binding.runtime});heaters.register(h.section,binding.runtime,ids[h.section]);
   }
   for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}
   for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
   for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
   const temperatureSources=new Map([...thermal.map(s=>[s.section,()=>s.runtime.getTemperature()] as const),...hostSensors.map(s=>[s.section,()=>s.state.getTemperature()] as const),...sensors.map(s=>[s.section,()=>s.state.getTemperature()] as const)]);
-  for(const p of plan.combinedSensors){const inputs=p.sources.map(name=>{const read=temperatureSources.get(name);if(!read)throw new Error('Combined temperature binding missing');return read;});const sensor=new CombinedTemperatureRuntime(p.section,p,inputs,error=>{void close(error).catch(()=>{});});combinedSensors.push(sensor);temperatureSources.set(p.section,()=>sensor.state.getTemperature());heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}
+  for(const p of plan.combinedSensors){const inputs=p.sources.map(name=>{const read=temperatureSources.get(name);if(!read)throw new Error('Combined temperature binding missing');return read;});const sensor=new CombinedTemperatureRuntime(p.section,p,inputs,error=>{void close(error).catch(()=>{});});combinedSensors.push(sensor);const heater=thermal.find(h=>h.section===p.section);
+   if(heater){const output=plan.combinedHeaters.find(h=>h.section===p.section)!.output,session=group.session(output.mcu);const detachSample=sensor.state.subscribeSample((_time,temp)=>heater.runtime.sample(output.clock.printTimeAtClock(session.clock.sync.getClock(serialClock.now())),temp));cleanup.add(async()=>detachSample());}
+   else{temperatureSources.set(p.section,()=>sensor.state.getTemperature());heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}}
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
   for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}

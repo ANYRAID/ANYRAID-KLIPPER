@@ -4,7 +4,7 @@ export function planCombinedTemperatures(reader:ConfigurationReader,sections:rea
  if(new Set(sections.map(s=>s.trim().split(/\s+/).at(-1))).size!==sections.length)throw new Error('Duplicate combined temperature object name');
  const known=new Set(available),plans=sections.map(section=>{
   const c=reader.section(section),sources=c.getList('sensor_list',{separator:','}),method=c.getChoice('combination_method',['min','max','mean']) as CombinationMethod;
-  if(!/^temperature_(?:sensor|fan) /.test(section)||!sources.length||sources.length>128||sources.some(s=>!known.has(s)))throw new Error('Combined temperature source is unknown or unsupported');
+  if(!(/^(?:temperature_sensor|temperature_fan|heater_generic) /.test(section)||/^(?:extruder(?:[1-9][0-9]*)?|heater_bed)$/.test(section))||!sources.length||sources.length>128||sources.some(s=>!known.has(s)))throw new Error('Combined temperature source is unknown or unsupported');
   const minimum=c.getFloat('min_temp',{defaultValue:-273.15,minval:-273.15}),maximum=c.getFloat('max_temp',{defaultValue:99999999.9,above:minimum}),maximumDeviation=c.getFloat('maximum_deviation',{above:0}),gcodeId=c.get('gcode_id',{defaultValue:null});
   if(gcodeId!==null&&!/^[A-Za-z][A-Za-z0-9_]{0,15}$/.test(gcodeId))throw new Error('Invalid combined temperature G-code id');
   return Object.freeze({section,sources:Object.freeze(sources),method,minimum,maximum,maximumDeviation,gcodeId:gcodeId??undefined});
