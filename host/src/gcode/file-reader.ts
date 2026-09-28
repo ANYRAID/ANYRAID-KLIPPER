@@ -17,6 +17,8 @@ export class GCodeFileReader {
   const stat=await file.stat({bigint:true});if(!stat.isFile()||stat.size>BigInt(max)||stat.size>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('G-code source must be a bounded regular file');
   return new GCodeFileReader(file,stat,chunk,lines,options.onClosed);
  }
+ /** Identity of the authorized descriptor at adoption; storage still owns write exclusion. */
+ get identity(){const s=this.#snapshot;return Object.freeze({device:s.dev.toString(),inode:s.ino.toString(),size:s.size.toString(),mtimeNs:s.mtimeNs.toString(),ctimeNs:s.ctimeNs.toString()});}
  get status(){return {size:Number(this.#snapshot.size),readOffset:this.#readOffset,position:this.#position,pending:this.#pending!==undefined,eof:this.#eof,closed:this.#closed,fault:this.#fault};}
  async #unchanged():Promise<void>{
   const now=await this.#file.stat({bigint:true}),was=this.#snapshot;
