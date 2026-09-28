@@ -20,6 +20,7 @@ test('Delta configured hardware resolves independent tower stops across MCU orde
   const f=await initialMotionSetup(reverse,true,true);try{
    const r=reader(delta(f.reader.source.original)),p=planDeltaHardware(r,policy);
    assert.deepEqual(p.homing.map(h=>h.emitters),[['a','e'],['b'],['c']]);
+   assert.equal(p.homingSettings.speed,p.config.rails[0].homing.speed);assert.deepEqual(p.homingSettings.endstops,p.homing.map(g=>g.section));
    const hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
    try{
     const initial=await initializeConfiguredMotion(hardware,initialMotionOptions,f.signal),groups=compileDeltaHoming(hardware.plan,initial.generation,p.homing);

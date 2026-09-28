@@ -87,14 +87,7 @@ export class LinearHomingCommand {
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
   const position=()=>{const p=[...(this.#port.homingPosition?.()??this.#port.position())];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
   const fill=(coord:readonly (number|null)[])=>{const p=position();for(let i=0;i<coord.length;i++)if(coord[i]!==null)p[i]=coord[i]!;return p;};
-  const confirm=(pass:HomingPass,rail:LinearHomingRail,second:boolean)=>{
-   if(pass.stop.groups.length!==rail.endstops.length)throw new Error('Homing endstop coverage mismatch');
-   for(const [i,g] of pass.stop.groups.entries())if(g.hitClock===null)throw new HomingCommandError('no_trigger',rail.endstops[i]);
-   const offsets=homingSetPositionOffsets(pass.stop,pass.histories,pass.triggerClocks);
-   const moving=new Set(pass.movingSteppers.map(p=>`${p.member}:${p.oid}`));
-   if(!moving.size||moving.size!==pass.movingSteppers.length||pass.movingSteppers.some(p=>!offsets.some(o=>o.member===p.member&&o.oid===p.oid)))throw new Error('Invalid moving homing steppers');
-   if(second)for(const p of offsets)if(moving.has(`${p.member}:${p.oid}`)&&p.start===p.trigger){let group=pass.stop.memberOffsets.length-1;while(group>0&&pass.stop.memberOffsets[group]>p.member)group--;throw new HomingCommandError('still_triggered',rail.endstops[group]);}
-  };
+
   try{
    check();await run(this.#port.drain(s));
    const safe=this.#safe,travel=async(target:number[],speed:number)=>{if(target.every((v,i)=>v===position()[i]))return;await run(this.#port.homingTravel!(target,speed,s));this.#coordinates.resetPosition();};
@@ -108,11 +101,11 @@ export class LinearHomingCommand {
     if(axis===2&&safe){if(!this.#kin.status.homedAxes.includes('x')||!this.#kin.status.homedAxes.includes('y'))throw new GCodeError('Safe Z homing requires homed XY');const p=position();previousXY=p.slice(0,2);p[0]=safe.position[0];p[1]=safe.position[1];await travel(p,safe.speed);}
     const rail=this.#rails[axis],geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
     await run(this.#port.forcePosition(fill(geometry.force),s));
-    let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirm(finalPass,rail,false);
+    let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirmHomingPass(finalPass,rail.endstops,false);
     if(rail.retractDistance){
      const target=fill(geometry.home),{retract,start}=homingRetract(fill(geometry.force),target,rail.retractDistance);
      await run(this.#port.retract(retract,rail.retractSpeed,axis,s));await run(this.#port.forcePosition(start,s));
-     finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirm(finalPass,rail,true);
+     finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirmHomingPass(finalPass,rail.endstops,true);
     }
     await run(this.#port.drain(s));if(this.#port.finishHoming)await run(this.#port.finishHoming(finalPass,axis,rail.endstop,s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
     if(axis===2&&safe){let p=position();if(safe.hop&&p[2]<safe.hop){p[2]=safe.hop;await travel(p,safe.hopSpeed);}if(safe.moveToPrevious){p=position();p[0]=previousXY![0];p[1]=previousXY![1];await travel(p,safe.speed);}}
@@ -123,4 +116,13 @@ export class LinearHomingCommand {
    finally{clearTimeout(timer);}throw error;
   }finally{clearTimeout(timer);s.removeEventListener('abort',abort);this.#busy=false;}
  }
+}
+
+export function confirmHomingPass(pass:HomingPass,endstops:readonly string[],second:boolean){
+   if(pass.stop.groups.length!==endstops.length)throw new Error('Homing endstop coverage mismatch');
+   for(const [i,g] of pass.stop.groups.entries())if(g.hitClock===null)throw new HomingCommandError('no_trigger',endstops[i]);
+   const offsets=homingSetPositionOffsets(pass.stop,pass.histories,pass.triggerClocks);
+   const moving=new Set(pass.movingSteppers.map(p=>`${p.member}:${p.oid}`));
+   if(!moving.size||moving.size!==pass.movingSteppers.length||pass.movingSteppers.some(p=>!offsets.some(o=>o.member===p.member&&o.oid===p.oid)))throw new Error('Invalid moving homing steppers');
+   if(second)for(const p of offsets)if(moving.has(`${p.member}:${p.oid}`)&&p.start===p.trigger){let group=pass.stop.memberOffsets.length-1;while(group>0&&pass.stop.memberOffsets[group]>p.member)group--;throw new HomingCommandError('still_triggered',endstops[group]);}
 }

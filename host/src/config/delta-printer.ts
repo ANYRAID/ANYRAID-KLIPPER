@@ -33,6 +33,6 @@ export function planDeltaHardware(reader:ConfigurationReader,policy:LinearPrinte
  }
  const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:layoutHoming,...planPrinterPeripherals(reader,policy.fanMinimumScheduleTime)};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.emitter==='e'?'e':'xyz',mode:m.mode}));
- return {config,layout,motion,homing:Object.freeze(homing.map(g=>Object.freeze({...g,emitters:Object.freeze([...g.emitters])}))),kinematicIds:Object.freeze(['a','b','c'] as const)};
+ return {config,layout,motion,homingSettings:Object.freeze({...config.rails[0].homing,endstops:Object.freeze(homing.map(g=>g.section))}),homing:Object.freeze(homing.map(g=>Object.freeze({...g,emitters:Object.freeze([...g.emitters])}))),kinematicIds:Object.freeze(['a','b','c'] as const)};
 }
 export const compileDeltaHoming=compileHomingGroups;
