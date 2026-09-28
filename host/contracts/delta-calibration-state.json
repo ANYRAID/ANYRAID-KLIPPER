@@ -1,0 +1,14 @@
+{
+  "node": "v26.9.0",
+  "iterations": 1000,
+  "warmups": 1,
+  "samples": [
+    21.985219999999998,
+    21.668455999999992,
+    21.618526000000003,
+    21.488443999999987,
+    21.516744000000017
+  ],
+  "medianMs": 21.618526000000003,
+  "scope": "Geometry and 19 observations serialized to save operations; excludes filesystem durability, worker fitting and physical printer. Diagnostic only; not on the print hot path."
+}
