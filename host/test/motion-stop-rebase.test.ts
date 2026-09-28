@@ -88,3 +88,47 @@ test('phase observer joins stopped readback before rebase and failure prevents a
  });
  try{f.fs[0].setTriggerReason(2);await assert.rejects(new CoordinateRebase(f.options).recover(signal()),/phase read failed/);assert.equal(calls,1);assert.equal(f.stops,1);assert(!f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));}finally{detach();await f.close();}
 });
+
+test('confirmed coordinate rebase replaces carriage transforms without moving or losing counters',async()=>{
+ const f=await recoveryFixture(1);let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
+ try{
+  f.fs[0].setTriggerReason(2);const transform={xScale:-1,xOffset:180,yScale:1,yOffset:0};
+  const rebase=new CoordinateRebase({...f.options,carriageTransforms:[{id:'s0',transform}],locate:stop=>({...f.options.locate(stop),queues:[{id:'xyz',position:[50,0,0]}]})});
+  transform.xOffset=999;motion=(await rebase.recover(signal())).motion;
+  const b=motion.bindings[0],t=motion.printTime;assert.equal(b.stepper.commandedPosition,130);assert.equal(b.history.status.lastPlannedPosition,100n);assert.equal(f.fs[0].motion.length,0);
+  assert.equal(b.stepper.recoveryFilters().carriage!.xOffset,180);
+  b.queue.appendRaw(new Float64Array([t,0,.01,0,50,0,0,1,0,0,10,10,0]));b.stepper.generate(t+.01);assert.equal(b.stepper.flush().position,90n);assert.equal(f.stops,0);
+ }finally{motion?.dispose();await f.close();}
+});
+test('carriage replacement preflight rejects unknown, duplicate and nonfinite owners before IO',async()=>{
+ const f=await recoveryFixture(1);try{
+  const transform={xScale:-1,xOffset:180,yScale:1,yOffset:0},before=f.fs[0].outputs.length;
+  for(const carriageTransforms of [[{id:'missing',transform}],[{id:'s0',transform},{id:'s0',transform}],[{id:'s0',transform:{...transform,xScale:NaN}}]])assert.throws(()=>new CoordinateRebase({...f.options,carriageTransforms}),/carriage/);
+  assert.equal(f.fs[0].outputs.length,before);assert.equal(f.options.coordinator.status.retired,false);
+ }finally{await f.close();}
+});
+test('unrepresentable carriage replacement stops safely and sends no clock reset',async()=>{
+ const f=await recoveryFixture(1);try{
+  f.fs[0].setTriggerReason(2);
+  await assert.rejects(new CoordinateRebase({...f.options,carriageTransforms:[{id:'s0',transform:{xScale:1,xOffset:1e30,yScale:1,yOffset:0}}]}).recover(signal()),/resolution/);
+  assert.equal(f.stops,1);assert(!f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));
+ }finally{await f.close();}
+});
+
+test('two MCU carriage mode proposals rebuild together and emit only newly requested motion',async()=>{
+ const {planCarriageMode}=await import('../src/kinematics/dual-carriage.ts');
+ const {nativeCarriageTransforms}=await import('../src/kinematics/dual-carriage-projection.ts');
+ for(const mode of ['PRIMARY','COPY','MIRROR'] as const){
+  const f=await recoveryFixture(2);let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
+  try{
+   const initial=[{mode:'PRIMARY',scale:1,offset:0},{mode:'INACTIVE',scale:0,offset:180}] as const,topology={kind:'cartesian',axis:0} as const;
+   const old=nativeCarriageTransforms(topology,initial);f.options.bindings.forEach((b,i)=>b.stepper.configureCarriage(old[i]));f.fs.forEach(fw=>fw.setTriggerReason(2));
+   const plan=planCarriageMode(initial,0,1,mode,true),next=nativeCarriageTransforms(topology,plan.carriages);
+   motion=(await new CoordinateRebase({...f.options,carriageTransforms:next.map((transform,i)=>({id:`s${i}`,transform})),locate:stop=>({...f.options.locate(stop),queues:[{id:'xyz',position:[plan.position,0,0]}]})}).recover(signal())).motion;
+   assert.deepEqual(motion.bindings.map(b=>b.stepper.commandedPosition),[0,180]);assert.deepEqual(motion.bindings.map(b=>b.stepper.flush().position),[100n,101n]);assert(f.fs.every(fw=>fw.motion.length===0));
+   const t=motion.printTime;motion.queues[0].queue.appendRaw(new Float64Array([t,0,.01,0,plan.position,0,0,1,0,0,10,10,0]));
+   for(const b of motion.bindings)b.stepper.generate(t+.01);
+   assert.deepEqual(motion.bindings.map(b=>b.stepper.flush().position),mode==='PRIMARY'?[100n,111n]:mode==='COPY'?[110n,111n]:[110n,91n]);
+  }finally{motion?.dispose();await f.close();}
+ }
+});

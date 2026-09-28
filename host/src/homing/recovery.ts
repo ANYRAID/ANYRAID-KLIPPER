@@ -1,3 +1,4 @@
+import type {CarriageTransformSettings} from '../motion/step-compressor.ts';
 import {MotionStopConfirmation} from '../motion/stop-confirmation.ts';
 import {HomingStopSetConfirmation,type HomingStopGroup,type HomingStopSetResult} from './stop-set.ts';
 import {HomingStopConfirmation,type HomingMember,type HomingStopResult} from './stop-confirmation.ts';
@@ -30,10 +31,12 @@ class Recovery<T extends HomingStopResult> {
  #members:readonly HomingMember[];#stop:{finish(signal:AbortSignal):Promise<T>};#coordinator:MotionCoordinator;
  #bindings:readonly MotionBinding[];#emitters:readonly StoppedEmitter[];#locate:RecoveryOptions<T>['locate'];#timeout:number;
  #promise:Promise<{stop:T;motion:ReturnType<typeof rebuildStoppedMotion>}>|undefined;
+ #carriages:ReadonlyMap<string,CarriageTransformSettings>;
  #fault:unknown;#cleanupPending=false;#cleanupErrors:unknown[]=[];
- constructor(o:RecoveryOptions<T>,members:readonly HomingMember[],stop:{finish(signal:AbortSignal):Promise<T>}){
+ constructor(o:RecoveryOptions<T>,members:readonly HomingMember[],stop:{finish(signal:AbortSignal):Promise<T>},carriages:ReadonlyMap<string,CarriageTransformSettings>=new Map()){
   const timeout=o.timeoutMs??5000;
   if(!Number.isFinite(timeout)||timeout<1||timeout>60000||typeof o.locate!=='function'||!o.coordinator.usesBindings(o.bindings)||o.coordinator.status.retired||o.coordinator.status.failed||o.emitters.length!==o.bindings.length)throw new Error('Invalid homing recovery ownership');
+  this.#carriages=new Map([...carriages].map(([id,transform])=>[id,{...transform}]));
   this.#members=members.map(m=>({...m,steppers:m.steppers.map(s=>({...s}))}));
   this.#stop=stop;
   const ids=new Set<string>(),keys=new Set<string>();
@@ -57,7 +60,10 @@ class Recovery<T extends HomingStopResult> {
    const retirement=this.#coordinator.retire(s),confirmation=this.#stop.finish(s);
    const [,stop]=await Promise.all([observeRetirement(retirement,s),confirmation]);s.throwIfAborted();
    const located=this.#locate(stop);s.throwIfAborted();
-   motion=rebuildStoppedMotion(stop,this.#bindings,located.queues,recoveryEmitters(this.#bindings,this.#emitters),located.printTime);
+   const emitters=recoveryEmitters(this.#bindings,this.#emitters).map(e=>{
+    const carriage=this.#carriages.get(e.id);return carriage?{...e,carriage:{...carriage}}:e;
+   });
+   motion=rebuildStoppedMotion(stop,this.#bindings,located.queues,emitters,located.printTime);
    const resets=this.#members.map(m=>m.steppers.map(step=>m.session.dictionary.encode('reset_step_clock',{oid:step.oid,clock:0})));
    for(const m of this.#members)m.session.assertActive();
    await Promise.all(this.#members.map(async(m,i)=>{for(const payload of resets[i]){s.throwIfAborted();await m.queue.send(payload,0n,0n,s);}}));
@@ -86,6 +92,10 @@ export class HomingSetRecovery extends Recovery<HomingStopSetResult> {
 }
 
 export interface CoordinateRebaseOptions extends RecoveryOptions<HomingStopResult> {
+ /** Privileged affine replacement, applied only after confirmed stop and old
+  * generation retirement. Caller owns draining and logical rebase geometry.
+  * Every omitted emitter retains its live filters; no solver identity changes. */
+ carriageTransforms?:readonly {id:string;transform:CarriageTransformSettings}[];
  members:readonly HomingMember[];
 }
 /** Privileged coordinate rebase after normal motion has drained. Explicitly
@@ -94,10 +104,20 @@ export interface CoordinateRebaseOptions extends RecoveryOptions<HomingStopResul
  * move motors to those coordinates or grant any homed-axis permission. */
 export class CoordinateRebase extends Recovery<HomingStopResult> {
  constructor(o:CoordinateRebaseOptions){
+  const carriages=new Map<string,CarriageTransformSettings>();
+  if(o.carriageTransforms!==undefined){
+   if(!Array.isArray(o.carriageTransforms)||!o.carriageTransforms.length||o.carriageTransforms.length>o.bindings.length)throw new Error('Invalid carriage rebase ownership');
+   for(const item of o.carriageTransforms){
+    const emitter=o.emitters.find(e=>e.id===item.id),t=item.transform;
+    if(carriages.has(item.id)||!emitter||!o.bindings.some(b=>b.id===item.id)||emitter.mode==='extruder'||typeof emitter.mode==='object')throw new Error('Invalid carriage rebase emitter');
+    if(!t||![t.xScale,t.xOffset,t.yScale,t.yOffset].every(Number.isFinite))throw new RangeError('Nonfinite carriage rebase transform');
+    carriages.set(item.id,{xScale:t.xScale,xOffset:t.xOffset,yScale:t.yScale,yOffset:t.yOffset});
+   }
+  }
   const mappings=o.bindings.map(b=>{const emitter=o.emitters.find(e=>e.id===b.id);if(!emitter)throw new Error('Missing coordinate rebase emitter');return {stepper:b.stepper,member:emitter.member,offset:emitter.settings.timeOffset,frequency:emitter.settings.frequency};});
   const check=()=>{const members=new Map<number,{offset:number;frequency:number}>();for(const m of mappings){const actual=m.stepper.calibration,previous=members.get(m.member);if(actual.offset!==m.offset||actual.frequency!==m.frequency||previous&&(previous.offset!==m.offset||previous.frequency!==m.frequency))throw new Error('Coordinate rebase clock calibration differs');members.set(m.member,actual);}};
   check();const locate=o.locate;
-  super({...o,locate:stop=>{check();return locate(stop);}},o.members,new MotionStopConfirmation(o.members,o.timeoutMs??5000));
+  super({...o,locate:stop=>{check();return locate(stop);}},o.members,new MotionStopConfirmation(o.members,o.timeoutMs??5000),carriages);
  }
 
 }
