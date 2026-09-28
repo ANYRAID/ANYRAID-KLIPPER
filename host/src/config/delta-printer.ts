@@ -1,3 +1,4 @@
+import {configuredProbeSection,readProbeConfiguration} from './probe.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins} from '../protocol/pins.ts';
 import {readDeltaMotionConfiguration} from './delta-motion.ts';
@@ -7,8 +8,8 @@ import type {LinearPrinterPolicy} from './linear-printer.ts';
 import type {HardwareLayout} from './hardware.ts';
 import type {ConfiguredMotionRequest} from './motion-emitters.ts';
 import {compileHomingGroups,type ConfiguredHomingGroup} from './linear-homing.ts';
-/** Hardware/motion planning only. The product entrypoint remains closed until
- * the Delta simultaneous homing and print lifecycle adapters are connected. */
+/** Hardware/motion topology planning, including independent tower switches
+ * and a separate all-motor mechanical probe group. No IO or homing authority. */
 export function planDeltaHardware(reader:ConfigurationReader,policy:LinearPrinterPolicy){
  const config=readDeltaMotionConfiguration(reader),pins=new PrinterPins<object>();
  if(!policy.mcus.length||policy.mcus.length>16||new Set(policy.mcus).size!==policy.mcus.length||![policy.enableLeadTime,policy.fanMinimumScheduleTime].every(v=>Number.isFinite(v)&&v>0))throw new Error('Invalid Delta hardware policy');
@@ -31,9 +32,17 @@ export function planDeltaHardware(reader:ConfigurationReader,policy:LinearPrinte
    homing.push(group);layoutHoming.push({section:group.section,mcus:[...new Set(group.emitters.map(id=>owner.get(id)!))]});
   }
  }
+ const probeSection=configuredProbeSection(reader);if(probeSection==='bltouch')throw new Error('Delta BLTouch adapter is not configured');
+ const probe=probeSection?[{section:probeSection,emitters:motors.map(m=>m.emitter)}]:undefined;
+ if(probe){
+  readProbeConfiguration(reader);
+  const gpio=pins.parse(readHomingPin(reader,probeSection!).description,{canInvert:true,canPullup:true}).chipName;
+  if(!motors.some(m=>m.emitter!=='e'&&owner.get(m.emitter)===gpio))throw new Error('Delta probe GPIO requires a kinematic motor on its MCU');
+  layoutHoming.push({section:probeSection!,mcus:[...new Set(owner.values())]});
+ }
  const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:layoutHoming,...planPrinterPeripherals(reader,policy.fanMinimumScheduleTime)};
  const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.emitter==='e'?'e':'xyz',mode:m.mode}));
- return {config,layout,motion,homingSettings:Object.freeze({...config.rails[0].homing,endstops:Object.freeze(homing.map(g=>g.section))}),homing:Object.freeze(homing.map(g=>Object.freeze({...g,emitters:Object.freeze([...g.emitters])}))),kinematicIds:Object.freeze(['a','b','c'] as const)};
+ return {config,layout,motion,probe,homingSettings:Object.freeze({...config.rails[0].homing,endstops:Object.freeze(homing.map(g=>g.section))}),homing:Object.freeze(homing.map(g=>Object.freeze({...g,emitters:Object.freeze([...g.emitters])}))),kinematicIds:Object.freeze(['a','b','c'] as const)};
 }
 export const compileDeltaHoming=compileHomingGroups;
 

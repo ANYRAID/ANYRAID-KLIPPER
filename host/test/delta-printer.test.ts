@@ -229,3 +229,46 @@ test('Delta native probe descent recovers off-center trigger and halt coordinate
   }finally{recovered?.motion.dispose();await hardware.close();}
  }finally{for(const timer of timers)clearTimeout(timer);await f.close();}
 });
+
+for(const reverse of [false,true])for(const missingHit of [false,true])test(`Delta single probe owns every tower across MCU ordering (reverse=${reverse}, missingHit=${missingHit})`,async()=>{
+ const {LinearHomingSeek}=await import('../src/homing/linear-seek.ts'),{serialClock}=await import('../src/protocol/serial-queue.ts');
+ const f=await initialMotionSetup(reverse,true,true);let result:Awaited<ReturnType<InstanceType<typeof LinearHomingSeek>['run']>>|undefined,timer:ReturnType<typeof setTimeout>|undefined;
+ try{
+  const raw=delta(f.reader.source.original);raw.probe={pin:'^aux:PA13',z_offset:'0'};
+  const r=reader(raw),p=planDeltaHardware(r,policy);assert.deepEqual(p.probe,[{section:'probe',emitters:['a','b','c','e']}]);assert.deepEqual(p.homing.map(g=>g.section),['stepper_a','stepper_b','stepper_c']);
+  const hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
+  try{
+   const initial=await initializeConfiguredMotion(hardware,{...initialMotionOptions,position:[25,-30,10,0]},f.signal),g=initial.generation,groups=compileDeltaHoming(hardware.plan,g,p.probe!);
+   assert.equal(groups.length,1);assert.equal(groups[0].members.length,2);assert.deepEqual(groups[0].members.flatMap(m=>m.emitters).sort(),['a','b','c','e']);
+   p.config.kinematics.resetPosition('xyz');const group=groups[0],primary=group.members[group.primary],session=g.members[primary.physicalMember].session,fw=f.firmware[1],binding=g.motion.bindings.find(b=>b.id==='b')!,hit=binding.stepper.clockAt(g.motion.printTime+.052);
+   assert.equal(session,f.group.session('aux'));
+   if(missingHit){
+    for(const member of group.members)f.firmware[g.members[member.physicalMember].session===f.group.session('mcu')?0:1].setTriggerReason(3,member.trigger.oid);
+    await assert.rejects(new LinearHomingSeek({mode:'probe',generation:g,kinematics:p.config.kinematics,emitters:initial.emitters,kinematicIds:p.kinematicIds,groups}).run([25,-30,9,0],10,2,f.signal),/Probe did not trigger/);assert.deepEqual(f.stops,[1,1]);return;
+   }
+   timer=setTimeout(()=>{
+    for(const member of group.members){const device=f.firmware[g.members[member.physicalMember].session===f.group.session('mcu')?0:1];device.setTriggerReason(member===primary?1:2,member.trigger.oid);for(const id of member.emitters){const b=g.motion.bindings.find(b=>b.id===id)!;device.setStepperPosition(b.oid,Number(b.history.status.lastPlannedPosition)-(id==='e'?0:48));}}
+    const command=fw.outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0&&o.parameters.oid===group.endstop.oid);assert(command);
+    fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(hit)+Number(command.parameters.rest_ticks)},group.endstop.oid);fw.emit('trsync_state',{oid:primary.trigger.oid,can_trigger:0,trigger_reason:1,clock:Number(hit)});
+   },Math.max(0,Number(hit-session.clock.sync.getClock(serialClock.now()))/1e6+.01)*1000);
+   result=await new LinearHomingSeek({mode:'probe',generation:g,kinematics:p.config.kinematics,emitters:initial.emitters,kinematicIds:p.kinematicIds,groups}).run([25,-30,0,0],10,2,f.signal);
+   assert.deepEqual(result.missingHits,[]);assert.equal(result.movingSteppers.length,3);assert.equal(result.stop.groups.length,1);assert.equal(result.offsets.length,4);assert.equal(result.position[3],0);assert(result.triggerPosition[2]<10);
+   assert.equal(f.firmware.flatMap(fw=>fw.outputs).filter(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0).length,1);
+   assert.deepEqual(result.generation.motion.bindings.map(b=>[b.id,b.member]).sort(),g.motion.bindings.map(b=>[b.id,b.member]).sort());assert.deepEqual(f.stops,[0,0]);
+  }finally{clearTimeout(timer);result?.motion.dispose();await hardware.close();}
+ }finally{await f.close();}
+});
+
+for(const missing of [false,true])test(`Delta initial owner binds mechanical probe and rejects incomplete or unhomed use (missing=${missing})`,async()=>{
+ const f=await initialMotionSetup(false,true,true);
+ try{
+  const raw=delta(f.reader.source.original);raw.probe={pin:'^aux:PA13',z_offset:'.2'};const r=reader(raw),p=planDeltaHardware(r,policy);
+  const hardware=await startConfiguredHardware(r,f.group,f.clocks,p.layout,{...f.hardwareOptions,motion:p.motion},f.signal);
+  try{
+   const initial=await initializeConfiguredMotion(hardware,initialMotionOptions,f.signal);
+   if(missing)assert.throws(()=>initial.createDeltaPort(r,{homing:p.homing,kinematicIds:p.kinematicIds}),/configuration and stop groups differ/);
+   else{const port=initial.createDeltaPort(r,p);await assert.rejects(port.port.probeConfiguredZ(0,5,f.signal),/all axes homed/);assert.equal(port.kinematics.status.homedAxes,'');}
+   assert(f.firmware.every(fw=>fw.motion.length===0));assert(f.firmware.every(fw=>!fw.outputs.some(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0)));
+  }finally{await hardware.close();}
+ }finally{await f.close();}
+});
