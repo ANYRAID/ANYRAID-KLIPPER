@@ -12,11 +12,11 @@ const root=fileURLToPath(new URL('../..',import.meta.url));
 for(const change of ['same','other','modified'])test('compiled adaptive calibration binds subsequent print file; change='+change,{timeout:120000},async t=>{
  const dir=await mkdtemp('/tmp/adaptive-mesh-product-'),app=join(dir,'app'),f=await productMachineFixture(dir,true);
  let savedMatrix:unknown;
- const timings:number[]=[];let compensatedPosition:unknown;
+ const timings:number[]=[];let compensatedPosition:unknown;let successivePrintMs:number|undefined;
  try{
   await buildProductHost(app,join(root,'host/tsconfig.product-host.json'),join(root,'host/build'));await symlink(join(root,'host/node_modules'),join(app,'node_modules'),'dir');
   await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8')).replace('homing_retract_dist: 0','homing_retract_dist: .2\nhoming_speed: 40\nsecond_homing_speed: 10')+'\n[probe]\npin: ^aux:PA13'+'\nz_offset: .123456789\nsamples: 2\nsamples_tolerance: 10\nsample_retract_dist: .2\n[bed_mesh]\nmesh_radius: 20\nround_probe_count: 5\nmesh_pps: 0\nhorizontal_move_z: 10\n'+'\n[exclude_object]\n');
-  const gcode=join(dir,'job.gcode'),profile=join(dir,'profile.mjs');await writeFile(gcode,'EXCLUDE_OBJECT_DEFINE NAME=part POLYGON=[[-1,-1],[1,-1],[1,1],[-1,1]]\nG1 X0 Y0 Z10 E0.1 F6000\nM400\n');const other=join(dir,'other.gcode');await writeFile(other,await readFile(gcode));
+  const gcode=join(dir,'job.gcode'),profile=join(dir,'profile.mjs');await writeFile(gcode,'EXCLUDE_OBJECT_DEFINE NAME=part POLYGON=[[-1,-1],[1,-1],[1,1],[-1,1]]\nG92 E0\nG1 X0 Y0 Z10 E0.1 F6000\nM400\n');const other=join(dir,'other.gcode');await writeFile(other,await readFile(gcode));
   await writeFile(profile,`import {open} from 'node:fs/promises';
 import {GCodeFileReader} from ${JSON.stringify(pathToFileURL(join(app,'host/src/gcode/file-reader.js')).href)};
 import {loadProductMachineProfile} from ${JSON.stringify(pathToFileURL(join(app,'host/src/runtime/product-machine-profile.js')).href)};
@@ -47,10 +47,20 @@ export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.s
      const fw=transport.firmware[0],extruder=fw.stepperConfigs.find(s=>s.step_pin===4||s.step_pin==='PA4')!;assert.equal(fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===extruder.oid).reduce((n,m)=>n+Number(m.parameters.count),0),8);
     }else assert.deepEqual(transport.firmware.map(fw=>fw.motion.filter(m=>m.name==='queue_step').length),before);
     const settled=performance.now()+10000;for(;;){const result=await get('/printer/print/status?request_id=adapted-print');if(result.record?.state===(change==='same'?'completed':'failed')&&!result.current.safe_stop_pending&&!result.current.pending_device_actions)break;assert(performance.now()<settled,JSON.stringify(result));await new Promise(r=>setTimeout(r,10));}
+    if(change==='same'){
+     const current=await get('/printer/print/status'),resetBody={request_id:'adapted-print',state_token:current.state_token};
+     await post('/printer/print/reset',resetBody);assert.equal((await get('/printer/print/status')).state,'idle');
+     const nextStart=performance.now();await post('/printer/print/start',{version:1,request_id:'adapted-print-next',file_id:'file',nozzle:200,bed:60,expires_at:Date.now()+30000});
+     const nextDeadline=performance.now()+30000;for(;;){const result=await get('/printer/print/status?request_id=adapted-print-next');assert.notEqual(result.current.state,'failed',JSON.stringify(result));if(result.record?.state==='completed'&&!result.current.safe_stop_pending&&!result.current.pending_device_actions)break;assert(performance.now()<nextDeadline,JSON.stringify(result));await new Promise(r=>setTimeout(r,10));}
+     successivePrintMs=performance.now()-nextStart;assert.equal(simulation.probeHits,10);
+     const nextMesh=(await get('/printer/objects/query?bed_mesh')).status.bed_mesh;assert.equal(nextMesh.profile_name,'adaptive');assert.deepEqual(nextMesh.probed_matrix,savedMatrix);
+     const nextPosition=(await get('/printer/objects/query?toolhead')).status.toolhead.position;assert(Math.abs(nextPosition[2]-(10+(savedMatrix as number[][])[1][1]))<1e-12);
+     const fw=transport.firmware[0],extruder=fw.stepperConfigs.find(s=>s.step_pin===4||s.step_pin==='PA4')!;assert.equal(fw.motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===extruder.oid).reduce((n,m)=>n+Number(m.parameters.count),0),16);
+    }
     child.kill('SIGTERM');assert.equal(await ended,0);
    }finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended.catch(()=>{});simulation.close();}
   }
-  const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});try{assert.equal((await journal.get('adapted-print'))?.state,change==='same'?'completed':'interrupted');}finally{await journal.close();}
-  const evidence={node:process.version,compiled:true,change,calibrationMs:timings[0],originalContacts:13,adaptedContacts:5,probedMatrix:savedMatrix,compensatedPosition:compensatedPosition??null,passed:true,scope:'Compiled simulated-MCU case: same means compensated print completes; other/modified means admitted request fails before new steps. Each case includes adaptive calibration and persistence rejection. Existing dependencies reused; excludes clean installation and physical precision.'};t.diagnostic(JSON.stringify(evidence));if(process.env.ADAPTIVE_MESH_EVIDENCE)await writeFile(process.env.ADAPTIVE_MESH_EVIDENCE.replace(/\.json$/,'-'+change+'.json'),JSON.stringify(evidence,null,2)+'\n');
+  const journal=await PrintJournal.open({path:f.config.journalPath,deviceId:'printer'});try{assert.equal((await journal.get('adapted-print'))?.state,change==='same'?'completed':'interrupted');if(change==='same')assert.equal((await journal.get('adapted-print-next'))?.state,'completed');}finally{await journal.close();}
+  const evidence={node:process.version,compiled:true,change,successivePrintMs,completedJobs:change==='same'?2:0,calibrationMs:timings[0],originalContacts:13,adaptedContacts:5,probedMatrix:savedMatrix,compensatedPosition:compensatedPosition??null,passed:true,scope:'Compiled simulated-MCU case: same means two compensated prints complete across controlled reset with no additional probes and eight extrusion steps per job; other/modified means admitted request fails before new steps. Each case includes adaptive calibration and persistence rejection. Existing dependencies reused; excludes clean installation and physical precision.'};t.diagnostic(JSON.stringify(evidence));if(process.env.ADAPTIVE_MESH_EVIDENCE)await writeFile(process.env.ADAPTIVE_MESH_EVIDENCE.replace(/\.json$/,'-'+change+'.json'),JSON.stringify(evidence,null,2)+'\n');
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });
