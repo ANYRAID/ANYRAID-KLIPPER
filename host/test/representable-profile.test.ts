@@ -84,14 +84,33 @@ test('rounded triangular identities do not discard resolvable motion or pure cru
   m.setJunction(v2,peak,v2);assert(m.profile!.cruiseT>0);
  }
 });
-test('captured second-tool sub-clock ramp remains fail-closed until all-axis precision is representable',()=>{
+test('captured second-tool sub-clock ramp borrows cruise with exact endpoints and native counts',()=>{
  const m=new Move(motionLimits(100,1000),[5.05,0,0,.5,.0050000000000000044],[5.06,0,0,.5,.006000000000000005],10);
  m.profile={startV:9.999999999999982,cruiseV:10,endV:10,accelT:1.776356839400252e-17,cruiseT:.000999999999999961,decelT:0};
- const time=12.165165;assert.equal(time+m.profile.accelT,time);assert.equal(representableProfile(m,time),undefined);
+ const time=12.165165;assert.equal(time+m.profile.accelT,time);const p=representableProfile(m,time)!;assert(p);assert.equal(p.accel,10);assert.equal(p.startV,m.profile.startV);assert.equal(p.endV,m.profile.endV);assert.equal(time+p.accelT+p.cruiseT,time+m.profile.accelT+m.profile.cruiseT);
  for(const axis of [undefined,4]){
-  using q=new TrapQueue();assert.throws(()=>q.appendPlanned([m],time,axis),error=>{
-   assert(error instanceof RangeError);assert.match(error.message,/Motion duration below time resolution/);
-   const detail=JSON.parse(error.message.slice(error.message.indexOf(': ')+2));assert.deepEqual(detail.move.start,m.startPos);assert.deepEqual(detail.move.end,m.endPos);assert.deepEqual(detail.move.profile,m.profile);return true;
-  });assert.equal(q.extract(10,0,time+1).length,0);
+  const counts:bigint[]=[];
+  for(const t of [0,time]){
+   using q=new TrapQueue();const until=q.appendPlanned([m],t,axis),coordinate=axis??0;
+   using motor=q.createStepper({frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===4?.000125:.00125,[m.startPos[coordinate],0,0]);motor.generate(until);counts.push(motor.flush().position);
+   const rows=q.extract(10,t,until+1),row=rows.subarray(0,10);assert.equal(row[4]+row[7]*(row[2]+.5*row[3]*row[1])*row[1],m.endPos[coordinate]);
+  }
+  assert.deepEqual(counts,[8n,8n]);
+ }
+});
+test('second-tool sub-clock cruise uses monotone-ramp deviation bound with exact native endpoints',()=>{
+ const m=new Move(motionLimits(100,1000),[9.95,0,0,.5,.495],[9.96,0,0,.5,.496],10);m.setJunction(100,100,79.9999999999983);
+ const time=12.806810385087,p=representableProfile(m,time);assert(p);assert.equal(p.startV,m.profile!.startV);assert.equal(p.endV,m.profile!.endV);assert(p.accel<=m.accel);
+ for(const axis of [undefined,4]){
+  const counts:bigint[]=[];
+  for(const t of [0,time]){using q=new TrapQueue();const until=q.appendPlanned([m],t,axis),coordinate=axis??0;using motor=q.createStepper({frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===4?.000125:.00125,[m.startPos[coordinate],0,0]);motor.generate(until);counts.push(motor.flush().position);const row=q.extract(1,t,until+1);assert.equal(row[4]+row[7]*((row[2]+.5*row[3]*row[1])*row[1]),m.endPos[coordinate]);}
+  assert.deepEqual(counts,[8n,8n]);
+ }
+});
+test('borrowed ramp keeps signed multi-axis native endpoints across clock scales',()=>{
+ for(const sign of [-1,1])for(const time of [8,16,32]){
+  const m=new Move(motionLimits(100,1000),[sign*5.05,0,0,.5,sign*.0050000000000000044],[sign*5.06,0,0,.5,sign*.006000000000000005],10);
+  m.profile={startV:9.999999999999982,cruiseV:10,endV:10,accelT:1.776356839400252e-17,cruiseT:.000999999999999961,decelT:0};const p=representableProfile(m,time);assert(p);
+  for(const axis of [undefined,4]){using q=new TrapQueue();const until=q.appendPlanned([m],time,axis),i=axis??0;assert.equal(until,time+m.profile.accelT+m.profile.cruiseT);const row=q.extract(1,time,until+1);assert.equal(row[4]+row[7]*((row[2]+.5*row[3]*row[1])*row[1]),m.endPos[i]);using motor=q.createStepper({frequency:1e6,timeOffset:0,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===4?.000125:.00125,[m.startPos[i],0,0]);motor.generate(until);assert.equal(motor.flush().position,BigInt(sign*8));}
  }
 });

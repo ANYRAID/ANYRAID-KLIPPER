@@ -1,0 +1,18 @@
+{
+  "node": "v26.9.0",
+  "moves": 10000,
+  "warmups": 5,
+  "runs": 25,
+  "baselineCommit": "2246d604",
+  "baselineSha256": "8eabba9123f4c4249fd0616d292e3d6cfae446c82d8eb29773dabd88b28a3580",
+  "baseline": {
+    "medianMs": 3.331348999999989,
+    "p95Ms": 4.4242550000000165
+  },
+  "current": {
+    "medianMs": 3.03750500000001,
+    "p95Ms": 3.6787149999999826
+  },
+  "exactNativeRowsSha256": "6a0ee76802e252f6fa1c97cf52a84ca2c4b19d2440eda8838c0738492f5aa943",
+  "scope": "Alternating appendPlanned of 10000 ordinary moves into actual native queue. Queue allocation, extraction and hashing excluded. No physical printer throughput claim."
+}

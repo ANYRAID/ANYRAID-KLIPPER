@@ -1,12 +1,12 @@
 {
-  "status": "failed: unrepresentable second-tool acceleration phase; not accepted",
+  "status": "passed compiled simulated multi-tool HTTP lifecycle after bounded motion representation fixes",
   "runtime": "Node.js 26.9.0",
   "reproduced": 2,
   "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^multi=true' host/acceptance/product-compiled-journey.test.ts",
   "diagnostics": [
     {
       "installation": {
-        "durationMs": 798.14582,
+        "durationMs": 778.792692,
         "dependencies": 14
       }
     },
@@ -16,7 +16,216 @@
         "compiled": true,
         "automaticPause": true,
         "absentResumeRejected": true,
-        "runoutPauseMs": 1172.2246130000003,
+        "runoutPauseMs": 1148.5783940000001,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "multiTool": {
+        "compiled": true,
+        "secondToolSteps": true,
+        "selectedStatus": true,
+        "allHeatersOff": true,
+        "totalExtrusion": 1
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "extruder1"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "multi": true,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 193,
+      "wireSteps": 3591,
+      "minimumStepLeadMs": 87.916,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.763327,
+            "maxMs": 20.381695
+          },
+          "cpu": {
+            "user": 1269938,
+            "system": 147794
+          },
+          "rss": 179912704
+        },
+        {
+          "loop": {
+            "p99Ms": 1.757183,
+            "maxMs": 6.139903
+          },
+          "cpu": {
+            "user": 644175,
+            "system": 84320
+          },
+          "rss": 207736832
+        }
+      ]
+    }
+  ],
+  "remaining": [
+    "physical hardware acceptance",
+    "historical independent Node numeric/crash investigation",
+    "default Python entry retirement"
+  ],
+  "priorFailure": {
+    "status": "failed: unrepresentable second-tool acceleration phase; not accepted",
+    "diagnostics": [
+      {
+        "installation": {
+          "durationMs": 798.14582,
+          "dependencies": 14
+        }
+      },
+      {
+        "filamentRunout": {
+          "sensor": "filament_switch_sensor tool",
+          "compiled": true,
+          "automaticPause": true,
+          "absentResumeRejected": true,
+          "runoutPauseMs": 1172.2246130000003,
+          "settledStepClock": true,
+          "noAutomaticResume": true
+        }
+      },
+      {
+        "objectCancellation": {
+          "compiled": true,
+          "firstCancellation": true,
+          "paused": true,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "failureContext": {
+          "loaded": false,
+          "loadGeneration": 0,
+          "homed": 3,
+          "exitCode": null,
+          "signalCode": null,
+          "stderr": "",
+          "events": "{\"event\":\"factory\",\"generation\":1}\n{\"event\":\"open\",\"generation\":1}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"mcu\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"aux\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n"
+        }
+      }
+    ]
+  },
+  "intermediateFailure": [
+    {
+      "installation": {
+        "durationMs": 808.613346,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1371.628549000001,
         "settledStepClock": true,
         "noAutomaticResume": true
       }
@@ -37,13 +246,8 @@
         "exitCode": null,
         "signalCode": null,
         "stderr": "",
-        "events": "{\"event\":\"factory\",\"generation\":1}\n{\"event\":\"open\",\"generation\":1}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"mcu\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"aux\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.165165,1.776356839400252e-17,0.000999999999999961,0,5.05,0,0,1,0,0,9.999999999999982,10,1000],\\\"phase\\\":1,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[5.05,0,0,0.5,0.0050000000000000044],\\\"end\\\":[5.06,0,0,0.5,0.006000000000000005],\\\"ratio\\\":[1,0,0,0,0.10000000000000223],\\\"distance\\\":0.009999999999999787,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":9.999999999999982,\\\"cruiseV\\\":10,\\\"endV\\\":10,\\\"accelT\\\":1.776356839400252e-17,\\\"cruiseT\\\":0.000999999999999961,\\\"decelT\\\":0}}}\"}\n"
+        "events": "{\"event\":\"factory\",\"generation\":1}\n{\"event\":\"open\",\"generation\":1}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"mcu\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.806810385087,0,7.095019016745141e-17,0.0010557280900009367,9.95,0,0,1,0,0,10,10,1000],\\\"phase\\\":2,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[9.95,0,0,0.5,0.495],\\\"end\\\":[9.96,0,0,0.5,0.496],\\\"ratio\\\":[1,0,0,0,0.09999999999998446],\\\"distance\\\":0.010000000000001563,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":10,\\\"cruiseV\\\":10,\\\"endV\\\":8.944271909999063,\\\"accelT\\\":0,\\\"cruiseT\\\":7.095019016745141e-17,\\\"decelT\\\":0.0010557280900009367}}}\"}\n{\"event\":\"stop\",\"generation\":1,\"id\":\"aux\",\"cause\":\"RangeError: Motion duration below time resolution: {\\\"row\\\":[12.806810385087,0,7.095019016745141e-17,0.0010557280900009367,9.95,0,0,1,0,0,10,10,1000],\\\"phase\\\":2,\\\"extrusionAxis\\\":null,\\\"replace\\\":false,\\\"move\\\":{\\\"start\\\":[9.95,0,0,0.5,0.495],\\\"end\\\":[9.96,0,0,0.5,0.496],\\\"ratio\\\":[1,0,0,0,0.09999999999998446],\\\"distance\\\":0.010000000000001563,\\\"accel\\\":1000,\\\"profile\\\":{\\\"startV\\\":10,\\\"cruiseV\\\":10,\\\"endV\\\":8.944271909999063,\\\"accelT\\\":0,\\\"cruiseT\\\":7.095019016745141e-17,\\\"decelT\\\":0.0010557280900009367}}}\"}\n"
       }
     }
-  ],
-  "remaining": [
-    "resolve all-axis motion representation without relaxing precision unconditionally",
-    "complete compiled multi-tool HTTP lifecycle including restart and second-heater fault",
-    "physical hardware acceptance"
   ]
 }
