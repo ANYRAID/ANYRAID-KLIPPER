@@ -1,3 +1,4 @@
+import type {GCodeFileIdentity} from '../gcode/file-reader.ts';
 import {DeltaKinematics} from '../kinematics/delta.ts';
 import type {LinearKinematics} from '../kinematics/linear.ts';
 import {calculateScrewTilt,type ScrewDirection} from '../motion/screws-tilt.ts';
@@ -132,6 +133,9 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return binding.position.commandedPosition(BigInt(offset));
  }
  homingPosition(){return this.#admission.plannedPosition;}
+ #meshFile:Readonly<GCodeFileIdentity>|undefined;
+ get bedMeshFileBound(){return this.#meshFile!==undefined;}
+ assertBedMeshFile(identity:Readonly<GCodeFileIdentity>){if(this.#meshFile&&Object.keys(this.#meshFile).some(k=>this.#meshFile![k as keyof GCodeFileIdentity]!==identity[k as keyof GCodeFileIdentity]))throw new Error('Adaptive mesh belongs to another or modified print file');}
  currentBedMesh(){return this.#mesh?.copy()??null;}
  async offsetBedMesh(x:number|null,y:number|null,toolOffset:number|null,signal:AbortSignal):Promise<boolean>{
   this.assertActive();signal.throwIfAborted();
@@ -139,14 +143,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const mesh=this.currentBedMesh();if(!mesh)return false;
   mesh.setOffsets(x,y);const settings=structuredClone(this.#meshSettings);
   if(toolOffset!==null)settings.fadeConfig={...settings.fadeConfig,toolOffset};
-  await this.replaceBedMesh(mesh,settings,signal,String(this.#meshStatus.profile_name));return true;
+  await this.replaceBedMesh(mesh,settings,signal,String(this.#meshStatus.profile_name),this.#meshFile);return true;
  }
- replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal,profileName=''):Promise<void>{
+ replaceBedMesh(mesh:BedMesh|null,settings:{fadeConfig?:BedMeshFadeConfig;splitDeltaZ?:number;checkDistance?:number},signal:AbortSignal,profileName='',fileIdentity?:Readonly<GCodeFileIdentity>):Promise<void>{
   if(typeof profileName!=='string'||profileName.length>128||/[\x00-\x1f\x7f]/.test(profileName))return Promise.reject(new RangeError('Invalid mesh profile name'));
+  const file=mesh&&fileIdentity?Object.freeze({...fileIdentity}):undefined;
   const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);
   return this.#operate('mesh',signal,async s=>{
    const next=createGuardedBedMeshPort({skew:this.#skew,tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
-   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;
+   await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;this.#meshFile=file;
   });
  }
  move(position:readonly number[],speed:number){this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');this.#admission.move(position,speed);}
@@ -457,7 +462,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    let fixed='z-tilt-fixed';while(normal.routes.some(r=>r.id===fixed))fixed+='-';
    this.#zTiltApplied=false;this.#quadGantryApplied=false;
    // Mechanical changes invalidate the previous measured surface transform.
-   this.#mesh=null;this.#meshStatus=nativeBedMeshStatus(null,'');this.#tilt=undefined;
+   this.#mesh=null;this.#meshFile=undefined;this.#meshStatus=nativeBedMeshStatus(null,'');this.#tilt=undefined;
    this.#admission.shutdown(new Error('Mechanical Z calibration replaces surface compensation'));this.#admission=this.#newAdmission(start);
    for(const segment of plan.segments){
     if(segment.distance===0)continue;

@@ -47,8 +47,8 @@ export async function createNativeLinearPrint(o:NativeLinearPrintOptions){
    await lifecycle.finishOutputs(id,signal);signal.throwIfAborted();port.assertActive();
    if(motorCompletion==='release')await port.releaseMotors(signal);
   }},()=>gcode.coordinates.extrusionAccounting.setActive(true));
-  const file=new FilePrintDevice(motion,gcode.dispatch,o.open);device=new ThermalPrintDevice(file,heaters,{...o.mapping},(work,signal)=>gcode.dispatch.runExclusive(work,signal));
+  const file=new FilePrintDevice(motion,gcode.dispatch,async(id,signal)=>{const reader=await o.open(id,signal);try{signal.throwIfAborted();port.assertBedMeshFile(reader.identity);return reader;}catch(error){await reader.close();throw error;}});device=new ThermalPrintDevice(file,heaters,{...o.mapping},(work,signal)=>gcode.dispatch.runExclusive(work,signal));
   heaters.attach(gcode.dispatch,{bed:o.mapping.bed,extruders:[o.mapping.nozzle]},async signal=>{if(port.idleClockMaintenanceDue)await port.maintainIdleClocks(signal);});
-  return {device,file,gcode,close};
+  return {device,file,gcode,openForCalibration:o.open,close};
  }catch(error){try{await close();}catch(cleanupError){throw new AggregateError([error,cleanupError],'Native print assembly and cleanup failed');}throw error;}
 }

@@ -53,3 +53,14 @@ test('file pause during mesh-clear drain retains compensation and the unexecuted
   assert.equal(await g.dispatch.executePrefix('BED_MESH_CLEAR',()=>true),1);assert.equal(g.bedMeshStatus!().profile_name,'');assert.deepEqual(t.port.homingPosition(),[51,0,1,2]);assert.deepEqual(g.coordinates.state.position,[51,0,1,2]);assert.equal(t.f.stops,0);
  }finally{await g.close();await done?.catch(()=>{});await t.close();}
 });
+
+test('file-bound meshes reject other identities, retain binding through offsets and clear explicitly',async()=>{
+ const t=await nativeLinearFixture(),s=new AbortController().signal,identity={device:'1',inode:'2',size:'3',mtimeNs:'4',ctimeNs:'5'};
+ try{
+  t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,0],s);const mesh=configuration().profiles.load('saved');
+  await t.port.replaceBedMesh(mesh,{},s,'adaptive',identity);assert(t.port.bedMeshFileBound);t.port.assertBedMeshFile({...identity});
+  for(const key of Object.keys(identity))assert.throws(()=>t.port.assertBedMeshFile({...identity,[key]:'other'}),/another or modified/);
+  await t.port.offsetBedMesh(1,null,null,s);assert(t.port.bedMeshFileBound);assert.throws(()=>t.port.assertBedMeshFile({...identity,inode:'9'}));
+  await t.port.replaceBedMesh(null,{},s);assert.equal(t.port.bedMeshFileBound,false);t.port.assertBedMeshFile({...identity,inode:'9'});
+ }finally{await t.close();}
+});

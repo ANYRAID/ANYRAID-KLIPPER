@@ -1,5 +1,6 @@
 import type {FileHandle} from 'node:fs/promises';
 import type {BigIntStats} from 'node:fs';
+export interface GCodeFileIdentity {device:string;inode:string;size:string;mtimeNs:string;ctimeNs:string;}
 export interface GCodeFileBatch {readonly script:string;readonly lines:number;readonly endOffset:number;}
 /** Owns an already authorized, open regular file. The storage owner must prevent
  * concurrent writes. Metadata checks detect ordinary mutation, not hostile rewrites. */
@@ -18,12 +19,13 @@ export class GCodeFileReader {
   return new GCodeFileReader(file,stat,chunk,lines,options.onClosed);
  }
  /** Identity of the authorized descriptor at adoption; storage still owns write exclusion. */
- get identity(){const s=this.#snapshot;return Object.freeze({device:s.dev.toString(),inode:s.ino.toString(),size:s.size.toString(),mtimeNs:s.mtimeNs.toString(),ctimeNs:s.ctimeNs.toString()});}
+ get identity():Readonly<GCodeFileIdentity>{const s=this.#snapshot;return Object.freeze({device:s.dev.toString(),inode:s.ino.toString(),size:s.size.toString(),mtimeNs:s.mtimeNs.toString(),ctimeNs:s.ctimeNs.toString()});}
  get status(){return {size:Number(this.#snapshot.size),readOffset:this.#readOffset,position:this.#position,pending:this.#pending!==undefined,eof:this.#eof,closed:this.#closed,fault:this.#fault};}
  async #unchanged():Promise<void>{
   const now=await this.#file.stat({bigint:true}),was=this.#snapshot;
   if(now.dev!==was.dev||now.ino!==was.ino||now.size!==was.size||now.mtimeNs!==was.mtimeNs||now.ctimeNs!==was.ctimeNs)throw new Error('G-code file changed during printing');
  }
+ async assertUnchanged(signal:AbortSignal):Promise<void>{signal.throwIfAborted();if(this.#closed||this.#fault)throw new Error('G-code file unavailable');await this.#unchanged();signal.throwIfAborted();}
  /** At most one batch may be outstanding; commit only after dispatch succeeds. */
  async next(signal:AbortSignal):Promise<GCodeFileBatch|null>{
   signal.throwIfAborted();if(this.#closed||this.#fault)throw new Error('G-code file is unavailable',{cause:this.#fault});

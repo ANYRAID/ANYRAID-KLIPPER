@@ -8,7 +8,7 @@ import type {BedMesh} from '../motion/bed-mesh.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 /** Maintenance is separate from print-file G-code. A successful write fences
  * printing until explicit host reinitialization reloads the saved configuration. */
-export function registerNativeConfiguration(registry:EndpointRegistry,session:KlipperSaveSession,gate:MaintenanceGate,profiles:BedMeshProfiles,motion:{current():BedMesh|null;idle():boolean}){
+export function registerNativeConfiguration(registry:EndpointRegistry,session:KlipperSaveSession,gate:MaintenanceGate,profiles:BedMeshProfiles,motion:{current():BedMesh|null;idle():boolean;fileBound?():boolean}){
  const token=randomUUID();let state:'ready'|'saving'|'saved'|'failed'='ready',profile:string|null=null,action:'save'|'remove'='save',closed=false,pending:Promise<Json>|undefined;
  const lifetime=new AbortController();
  const snapshot=()=>({state_token:token,state,profile,action,restart_required:state==='saved'||state==='failed',available:!closed&&state==='ready'&&gate.available&&motion.idle()});
@@ -20,6 +20,7 @@ export function registerNativeConfiguration(registry:EndpointRegistry,session:Kl
   if(closed)throw new ApiError(503,'Configuration owner closed');
   if(state==='saved'&&params.profile===profile&&requestedAction===action)return snapshot();
   if(state!=='ready')throw new ApiError(409,'Configuration requires reinitialization or an operation is pending');
+  if(requestedAction==='save'&&motion.fileBound?.())throw new ApiError(409,'Adaptive mesh cannot be saved as a reusable profile');
   if(!motion.idle())throw new ApiError(409,'Configuration save requires an idle printer');
   let release:()=>void;try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks configuration save');}
   // Reject active printers before copying grids or serializing calibration.
