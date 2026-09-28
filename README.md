@@ -246,5 +246,9 @@ MCU 离线调试控制台使用 `node scripts/console.ts --help`，支持受限�
 算术、延时发送、批量发送和内存转储；旧 `klippy/console.py` 已退役。
 运行前停止占用设备的打印主机，控制台关闭不等于 MCU 物理停机。
 
-Node 产品装配现支持单小车 `hybrid_corexy` 和 `hybrid_corexz`，已通过
-编译产品模拟打印流程；双小车与实机验收仍未完成，不能据此切换生产入口。
+Node 产品装配支持 `hybrid_corexy` 和 `hybrid_corexz`，并已接入
+Cartesian X/Y 与混合 Core X 的 `dual_carriage` 配置、原生变换和双轨归零。
+当前双小车装配每台小车限一个电机，打印仍为单挤出机；消费级模式接口、
+多挤出机及实机验收尚未完成。Cartesian X 双小车已通过编译产品模拟打印、
+暂停、重启和故障停机流程；另有一次 Y 跨 MCU 测试停机原因未定位，后续
+复验通过不代表问题已修复。不能据此切换生产入口。

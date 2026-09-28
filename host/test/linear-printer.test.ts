@@ -72,9 +72,9 @@ test('probe virtual Z reuses the probe GPIO and trigger owners without duplicate
   raw.stepper_z1={step_pin:'aux:PA6',dir_pin:'aux:PA7',endstop_pin:'aux:PA8',rotation_distance:'40',microsteps:'16'};assert.throws(()=>planLinearPrinter(cfg(),policy),/mix/);
  }finally{await f.close();}
 });
-test('hybrid planners reject unimplemented dual carriage and coupled-Z independent leveling',async()=>{
+test('hybrid planners reject incomplete dual carriage and coupled-Z independent leveling',async()=>{
  const f=await configuredPrinterFixture();try{
-  for(const kind of ['hybrid_corexy','hybrid_corexz']){const original=f.reader.source.original,sections:Record<string,Record<string,string>>={...original,printer:{...original.printer,kinematics:kind},dual_carriage:{axis:'x'}};assert.throws(()=>planLinearPrinter(new ConfigurationReader(new ConfigurationSource('/dual.cfg',sections,[]),null),policy),/unsupported/i);}
+  for(const kind of ['hybrid_corexy','hybrid_corexz']){const original=f.reader.source.original,sections:Record<string,Record<string,string>>={...original,printer:{...original.printer,kinematics:kind},dual_carriage:{axis:'x'}};assert.throws(()=>planLinearPrinter(new ConfigurationReader(new ConfigurationSource('/dual.cfg',sections,[]),null),policy),/position_max|parse/i);}
   for(const section of ['z_tilt','quad_gantry_level']){const original=f.reader.source.original,sections:Record<string,Record<string,string>>={...original,printer:{...original.printer,kinematics:'hybrid_corexz'},probe:{pin:'PA13',z_offset:'0'},[section]:{}};assert.throws(()=>planLinearPrinter(new ConfigurationReader(new ConfigurationSource('/coupled-z.cfg',sections,[]),null),policy),/independent Z/);}
   assert.equal(f.group.session('mcu').status.configured,false);assert.equal(f.group.session('aux').status.configured,false);
  }finally{await f.close();}

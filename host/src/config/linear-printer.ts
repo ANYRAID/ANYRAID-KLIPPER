@@ -1,3 +1,5 @@
+import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
+import {carriageSolvers,nativeCarriageTransforms} from '../kinematics/dual-carriage-projection.ts';
 import {planPrinterPeripherals} from './printer-peripherals.ts';
 import {readBedScrews} from './bed-screws.ts';
 import {readScrewsTilt} from './screws-tilt.ts';
@@ -21,9 +23,8 @@ export interface LinearPrinterPolicy {mcus:readonly string[];enableLeadTime:numb
 /** Plan the supported single-extruder linear machine from section names and
  * physical pin ownership. Does not open devices or grant homing authority. */
 export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
- if(reader.hasSection('dual_carriage'))throw new Error('Unsupported dual_carriage runtime ownership; configuration geometry alone cannot start hardware');
  readBedScrews(reader);readScrewsTilt(reader);readZTilt(reader);readQuadGantry(reader);const probeSection=configuredProbeSection(reader);if(probeSection)readProbeGrid(reader);readProbeConfiguration(reader);readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
- const {kinematics,probeHoming}=readLinearMotionConfiguration(reader),pins=new PrinterPins<object>();
+ const {kinematics,probeHoming,dualCarriage}=readLinearMotionConfiguration(reader),pins=new PrinterPins<object>();
  if(!policy.mcus.length||policy.mcus.length>16||new Set(policy.mcus).size!==policy.mcus.length||![policy.enableLeadTime,policy.fanMinimumScheduleTime].every(n=>Number.isFinite(n)&&n>0))throw new Error('Invalid linear printer machine policy');
  for(const id of policy.mcus)pins.register(id,{});
  const sections=reader.sections(),axes=['x','y','z'] as const;
@@ -31,11 +32,15 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
  validateNativePrinterSections(reader);
  const modes:readonly ConfiguredMotionRequest['mode'][]=kinematics.solverModes;
  const motors=axes.flatMap((axis,i)=>sections.filter(n=>n===`stepper_${axis}`||new RegExp(`^stepper_${axis}[1-9][0-9]*$`).test(n)).sort((a,b)=>Number(a.slice(9)||0)-Number(b.slice(9)||0)).map(section=>({section,emitter:section.slice(8),axis:i,mode:modes[i]})));
+ if(dualCarriage){
+  if(motors.filter(m=>m.axis===dualCarriage.axis).length!==1)throw new Error('Dual carriage currently requires one motor per carriage');
+  motors.push({section:'dual_carriage',emitter:'dual_carriage',axis:dualCarriage.axis,mode:carriageSolvers(dualCarriage)[1]});
+ }
  motors.push({section:'extruder',emitter:'e',axis:3,mode:'extruder'});
  const owner=new Map(motors.map(m=>[m.emitter,pins.parse(reader.section(m.section).get('step_pin'),{canInvert:true}).chipName]));
  for(const m of motors){const dir=pins.parse(reader.section(m.section).get('dir_pin'),{canInvert:true});if(dir.chipName!==owner.get(m.emitter))throw new Error('Stepper pins must belong to the same MCU');}
  const ids=motors.map(m=>m.emitter),homingLayout:HardwareLayout['homing'][number][]=[],groups=axes.map((axis,index)=>{
-  const extra=motors.filter(m=>m.axis===index&&m.emitter!==axis&&reader.section(m.section).hasOption('endstop_pin'));
+  const extra=motors.filter(m=>m.axis===index&&m.emitter!==axis&&m.section!=='dual_carriage'&&reader.section(m.section).hasOption('endstop_pin'));
   if(index===2&&probeHoming&&extra.length)throw new Error('Cannot mix probe Z homing with independent endstops');
   const independent=new Set(extra.map(m=>m.emitter));
   return [{section:index===2&&probeHoming?probeSection!:`stepper_${axis}`,emitters:ids.filter(id=>!independent.has(id))},...extra.map(m=>({section:m.section,emitters:[m.emitter]}))].map(group=>{
@@ -44,6 +49,12 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
    const mcus=[...new Set(group.emitters.map(id=>owner.get(id)!))];homingLayout.push({section:group.section,mcus});return group;
   });
  });
+ const carriageGroups=dualCarriage?[{section:'dual_carriage',emitters:ids}]:undefined;
+ if(carriageGroups){
+  const gpio=pins.parse(readHomingPin(reader,'dual_carriage').description,{canInvert:true,canPullup:true}).chipName;
+  if(!motors.some(m=>m.axis<3&&owner.get(m.emitter)===gpio))throw new Error('Carriage homing GPIO requires a kinematic motor on its MCU');
+  homingLayout.push({section:'dual_carriage',mcus:[...new Set(owner.values())]});
+ }
  const probe=probeSection?[{section:probeSection,emitters:ids}]:undefined;
  if(probe){
   const gpio=pins.parse(readHomingPin(reader,probeSection!).description,{canInvert:true,canPullup:true}).chipName;
@@ -51,8 +62,9 @@ export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinte
   if(!homingLayout.some(h=>h.section===probeSection))homingLayout.push({section:probeSection!,mcus:[...new Set(owner.values())]});
  }
  const layout:HardwareLayout={steppers:motors.map(m=>({section:m.section,emitter:m.emitter,enableLeadTime:policy.enableLeadTime})),homing:homingLayout,...planPrinterPeripherals(reader,policy.fanMinimumScheduleTime)};
- const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode}));
- const linear:ConfiguredLinearHoming={...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
+ const transforms=kinematics instanceof DualCarriageLinearKinematics?nativeCarriageTransforms(kinematics.geometry,kinematics.carriages):undefined;
+ const motion:ConfiguredMotionRequest[]=motors.map(m=>({emitter:m.emitter,queueId:m.axis===3?'e':'xyz',mode:m.mode,...transforms&&dualCarriage&&m.axis===dualCarriage.axis?{carriage:transforms[m.section==='dual_carriage'?1:0]}:{}}));
+ const linear:ConfiguredLinearHoming={...(dualCarriage&&carriageGroups?{carriages:{emitterIds:[axes[dualCarriage.axis],'dual_carriage'] as const,homing:[groups[dualCarriage.axis],carriageGroups] as const}}:{}),...(probe?{probe}:{}),kinematicIds:['x','y','z'],homing:groups as unknown as ConfiguredLinearHoming['homing']};
  const initial:InitialMotionOptions={position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})};
  return {layout,motion,linear,initial};
 }

@@ -26,3 +26,10 @@ test('coupled and delta routing is copied while malformed solver geometry is rej
  const mode={kind:'delta' as const,armLength:250,towerX:50,towerY:75},e=compileConfiguredMotionEmitters(f.reader,f.hardware,[{...f.requests[0],mode},f.requests[1]])[0];mode.armLength=1;assert.deepEqual(e.mode,{kind:'delta',armLength:250,towerX:50,towerY:75});
  assert.throws(()=>compileConfiguredMotionEmitters(f.reader,f.hardware,[{...f.requests[0],mode:{...mode,armLength:NaN}},f.requests[1]]));
 });
+
+test('carriage transforms are owned snapshots and cannot attach to extrusion or Delta',()=>{
+ const f=configuredMotionFixture(),carriage={xScale:-1,xOffset:180,yScale:1,yOffset:0};
+ const emitted=compileConfiguredMotionEmitters(f.reader,f.hardware,[{...f.requests[0],carriage},f.requests[1]]);carriage.xOffset=0;
+ assert.equal(emitted[0].carriage!.xOffset,180);assert(Object.isFrozen(emitted[0].carriage));assert.equal(emitted[1].carriage,undefined);
+ for(const requests of [[{...f.requests[0],carriage:{...carriage,xScale:NaN}},f.requests[1]],[f.requests[0],{...f.requests[1],carriage}],[{...f.requests[0],mode:{kind:'delta' as const,armLength:250,towerX:0,towerY:0},carriage},f.requests[1]]])assert.throws(()=>compileConfiguredMotionEmitters(f.reader,f.hardware,requests),/carriage/);
+});

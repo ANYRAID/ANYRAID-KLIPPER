@@ -1,3 +1,4 @@
+import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
 import {readDualCarriage} from './dual-carriage.ts';
 import {readSkewProfiles} from './skew.ts';
 import {readBedTilt} from './bed-tilt.ts';
@@ -37,24 +38,27 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
   ranges.push(Object.freeze([low,high] as const));rails.push(Object.freeze({endstop,positiveDirection,speed,secondSpeed:section.getFloat('second_homing_speed',{defaultValue:speed/2,above:0}),retractSpeed:section.getFloat('homing_retract_speed',{defaultValue:speed,above:0}),retractDistance:section.getFloat('homing_retract_dist',{defaultValue:5,minval:0})}));
  }
  const config:LinearConfig={kind,ranges:ranges as unknown as LinearConfig['ranges'],maxVelocity,maxAccel,maxZVelocity:printer.getFloat('max_z_velocity',{defaultValue:maxVelocity,above:0,maxval:maxVelocity}),maxZAccel:printer.getFloat('max_z_accel',{defaultValue:maxAccel,above:0,maxval:maxAccel})};
- const kinematics=new LinearKinematics(config);
+ const dualCarriage=readDualCarriage(reader,kind,config.ranges,rails);
+ const kinematics=dualCarriage?new DualCarriageLinearKinematics(config,dualCarriage,[{mode:'PRIMARY',scale:1,offset:0},{mode:'INACTIVE',scale:0,offset:0}]):new LinearKinematics(config);
  for(const [i,r] of rails.entries()){const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);if(geometry.home[i]===geometry.force[i]||![r.speed,r.secondSpeed,r.retractSpeed].every(v=>Number.isFinite(v)&&v>0))throw new Error('Unrepresentable homing configuration');}
  const extrusion=readExtrusionConfiguration(reader,maxVelocity,maxAccel);
- const dualCarriage=readDualCarriage(reader,kind,config.ranges,rails);
  return {dualCarriage,skewProfiles:readSkewProfiles(reader),bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
 }
-export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};
+export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{carriageEndstopNames?:readonly [readonly string[],readonly string[]];endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};
 /** Validate machine semantics and solver identity before constructing the port.
  * Existing hardware ownership stays with the caller if validation fails. */
 export function createConfiguredNativeLinearPort(reader:ConfigurationReader,hardware:ConfiguredLinearHardware){
  if(reader.hasSection('bltouch')&&!hardware.probeDevice)throw new Error('BLTouch requires an initialized native probe device');
  const config=readLinearMotionConfiguration(reader),expected=config.kinematics.solverModes;
- if(config.dualCarriage)throw new Error('Dual carriage runtime ownership is not connected');
+ if(!!config.dualCarriage!==!!hardware.carriages||!!config.dualCarriage!==!!hardware.carriageEndstopNames)throw new Error('Dual carriage configuration differs from runtime ownership');
  if(hardware.kinematicIds.length!==3||new Set(hardware.kinematicIds).size!==3||hardware.kinematicIds.some((id,i)=>hardware.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Configured kinematics differs from native rail solvers');
  if(hardware.groupsByAxis.length!==3||hardware.endstopNames.length!==3)throw new Error('Three configured homing axes required');
  const rails=config.rails.map((rail,i)=>{
   const names=hardware.endstopNames[i];if(!names.length||names.length>16||names.length!==hardware.groupsByAxis[i].length||new Set(names).size!==names.length||names.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new Error('Configured endstop names differ from homing groups');
   return Object.freeze({...rail,endstops:Object.freeze([...names])});
  });
- const port=new NativeLinearHomingPort({...hardware,...config,probeConfiguration:readProbeConfiguration(reader)});return {port,...config,rails:Object.freeze(rails)};
+ const carriages=config.dualCarriage&&hardware.carriages?{...hardware.carriages,homingRails:[config.rails[config.dualCarriage.axis],config.dualCarriage.secondHoming].map((rail,i)=>{
+  const names=hardware.carriageEndstopNames![i];if(!names.length||names.length!==hardware.carriages!.groups[i].length||new Set(names).size!==names.length)throw new Error('Carriage endstop names differ from homing groups');return Object.freeze({...rail,endstops:Object.freeze([...names])});
+ }) as unknown as readonly [LinearHomingRail,LinearHomingRail]}:undefined;
+ const port=new NativeLinearHomingPort({...hardware,...config,carriages,probeConfiguration:readProbeConfiguration(reader)});return {port,...config,rails:Object.freeze(rails)};
 }

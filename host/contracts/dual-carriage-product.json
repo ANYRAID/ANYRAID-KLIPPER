@@ -1,0 +1,161 @@
+{
+  "scope": "Fresh compiled Cartesian X dual-carriage product with simulated MCU transports; one extruder, no physical precision or loaded-host claim",
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 803.960993,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1187.0921030000009,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 10,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "dual": true,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 287,
+      "wireSteps": 7936,
+      "minimumStepLeadMs": 87.059,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.774591,
+            "maxMs": 20.463615
+          },
+          "cpu": {
+            "user": 1333676,
+            "system": 140720
+          },
+          "rss": 187400192
+        },
+        {
+          "loop": {
+            "p99Ms": 1.743871,
+            "maxMs": 6.184959
+          },
+          "cpu": {
+            "user": 640593,
+            "system": 83722
+          },
+          "rss": 208654336
+        }
+      ]
+    }
+  ],
+  "unresolvedObservation": {
+    "scenario": "Initial source-level Cartesian Y two-MCU assembly journey",
+    "error": "Native file motion stopped",
+    "rootCause": "Not captured; cleanup obscured originating fault",
+    "followup": "Isolated Y run passed; three complete four-topology rounds and final 28-test regression passed; no production fix is attributed to those reruns"
+  }
+}

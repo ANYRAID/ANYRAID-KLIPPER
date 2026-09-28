@@ -5,7 +5,7 @@ import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {compileConfiguredHardware} from './hardware.ts';
 import type {StoppedEmitter} from '../homing/rebuild-motion.ts';
 import {inputShaper,parseShaperName,shaperConfigs,type Shaper} from '../motion/shaper.ts';
-export interface ConfiguredMotionRequest {emitter:string;queueId:string;mode:StoppedEmitter['mode']}
+export interface ConfiguredMotionRequest {emitter:string;queueId:string;mode:StoppedEmitter['mode'];carriage?:StoppedEmitter['carriage']}
 /** Produce recovery-compatible descriptors from the same stepper/OID/clock
  * owners used by hardware startup. No native allocation, IO or position grant.
  * Explicit solver/queue routing is required for coupled and extra motors. */
@@ -25,9 +25,11 @@ export function compileConfiguredMotionEmitters(reader:ConfigurationReader,hardw
   const mode=typeof request.mode==='object'?Object.freeze({...request.mode}):request.mode;
   if(typeof mode==='object'){if(mode.kind!=='delta'||![mode.armLength,mode.towerX,mode.towerY].every(Number.isFinite)||mode.armLength<=0)throw new Error('Invalid delta emitter geometry');}
   else if(!['x','y','z','corexy+','corexy-','corexz+','corexz-','extruder'].includes(mode))throw new Error('Unsupported motion solver');
+  const carriage=request.carriage?Object.freeze({...request.carriage}):undefined;
+  if(carriage&&(mode==='extruder'||typeof mode==='object'||![carriage.xScale,carriage.xOffset,carriage.yScale,carriage.yOffset].every(Number.isFinite)))throw new Error('Invalid carriage emitter transform');
   const extrusion=mode==='extruder',prior=queueKinds.get(request.queueId);if(prior!==undefined&&prior!==extrusion)throw new Error('Extrusion and kinematics cannot share a motion queue');queueKinds.set(request.queueId,extrusion);
   const owner=[...hardware.motors.lines,...hardware.motors.alwaysOn].find(m=>m.emitters.includes(step.emitter));if(!owner||owner.mcu!==step.mcu)throw new Error('Missing motion clock owner');
   const section=reader.section(step.section),pressureAdvance=extrusion?pressureAdvanceSettings(section.getFloat('pressure_advance',{defaultValue:0,minval:0}),section.getFloat('pressure_advance_smooth_time',{defaultValue:.04,above:0,maxval:.2})):undefined;
-  return Object.freeze({id:step.emitter,queueId:request.queueId,member:step.physicalMember,settings:Object.freeze({...step.compressor,frequency:owner.clock.frequency,timeOffset:owner.clock.offset}),mode,rotationDistance:step.rotationDistance,stepsPerRotation:step.stepsPerRotation,...extrusion?{pressureAdvance}:{shapers}});
+  return Object.freeze({id:step.emitter,queueId:request.queueId,member:step.physicalMember,settings:Object.freeze({...step.compressor,frequency:owner.clock.frequency,timeOffset:owner.clock.offset}),mode,rotationDistance:step.rotationDistance,stepsPerRotation:step.stepsPerRotation,...carriage?{carriage}:{},...extrusion?{pressureAdvance}:{shapers}});
  }));
 }
