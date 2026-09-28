@@ -1,0 +1,537 @@
+{
+  "status": "SHT3X compiled sensor, fan and bed heater journeys passed",
+  "runtime": "v26.9.0",
+  "tests": 3,
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 787.377152,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1174.9325329999992,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "i2cHeaterStatus": {
+        "heater_bed": {
+          "temperature": 80,
+          "target": 0,
+          "power": 0
+        },
+        "sht3x heater_bed": {
+          "temperature": 80,
+          "humidity": 51.2
+        }
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 21,
+        "samplesAfter": 24
+      }
+    },
+    {
+      "sht": true,
+      "shtHeater": true,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 78,
+          "writes": 43
+        }
+      ],
+      "faultInjected": "sht3x-humidity-crc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 217,
+      "wireSteps": 4124,
+      "minimumStepLeadMs": 87.623,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.719295,
+            "maxMs": 21.020671
+          },
+          "cpu": {
+            "user": 1298022,
+            "system": 135940
+          },
+          "rss": 180658176
+        },
+        {
+          "loop": {
+            "p99Ms": 1.710079,
+            "maxMs": 5.971967
+          },
+          "cpu": {
+            "user": 684457,
+            "system": 99000
+          },
+          "rss": 204804096
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 805.6354470000001,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1267.0684360000014,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "measured_min_temp": 42,
+        "measured_max_temp": 42,
+        "humidity": 51.2
+      },
+      "hostSensor": false,
+      "noHeaterAuthority": true
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_sensor chamber"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "sht": true,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3934,
+      "phaseP99Ms": 2.870185000007041,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 70,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "sht3x-humidity-crc",
+      "historyNotifications": 32,
+      "historyRequests": 878,
+      "historyP99Ms": 9.869310999994923,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.26226200000383,
+      "deleteRequests": 16,
+      "deleteP95Ms": 18.997543999998015,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 13.179281999997329,
+      "metadataRequests": 16,
+      "metadataP95Ms": 25.286879999999655,
+      "downloads": 16,
+      "downloadP95Ms": 2.920085999998264,
+      "wireCommands": 201,
+      "wireSteps": 4044,
+      "minimumStepLeadMs": 85.8,
+      "directoryRequests": 3792,
+      "directoryP99Ms": 4.553806000010809,
+      "statusRequests": 15739,
+      "uploads": 16,
+      "statusP99Ms": 3.0405070000051637,
+      "uploadP95Ms": 4.872968999996374,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.946623,
+            "maxMs": 21.118975
+          },
+          "cpu": {
+            "user": 4500196,
+            "system": 514529
+          },
+          "rss": 292028416
+        },
+        {
+          "loop": {
+            "p99Ms": 1.929215,
+            "maxMs": 5.910527
+          },
+          "cpu": {
+            "user": 1732684,
+            "system": 246771
+          },
+          "rss": 270462976
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 809.975783,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1276.2872520000092,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "target": 50,
+        "speed": 0,
+        "rpm": null
+      },
+      "hostSensor": false,
+      "noHeaterAuthority": true
+    },
+    {
+      "temperatureFanSettings": {
+        "compiled": true,
+        "spiSensor": false,
+        "outputSpeed": 0.6,
+        "atomicValidation": true,
+        "idempotentRetry": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 12,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_fan chamber"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 21,
+        "samplesAfter": 24
+      }
+    },
+    {
+      "sht": true,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4137,
+      "phaseP99Ms": 2.6770830000023125,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": true,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 70,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "sht3x-humidity-crc",
+      "historyNotifications": 32,
+      "historyRequests": 920,
+      "historyP99Ms": 5.439696999994339,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.244002000006731,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.524214999997639,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 18.318084999991697,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.197543999995105,
+      "downloads": 16,
+      "downloadP95Ms": 5.373336000004201,
+      "wireCommands": 200,
+      "wireSteps": 4040,
+      "minimumStepLeadMs": 79.966,
+      "directoryRequests": 3989,
+      "directoryP99Ms": 4.121461000002455,
+      "statusRequests": 16551,
+      "uploads": 16,
+      "statusP99Ms": 2.5249709999916377,
+      "uploadP95Ms": 5.333685999998124,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.902591,
+            "maxMs": 21.872639
+          },
+          "cpu": {
+            "user": 4719464,
+            "system": 578637
+          },
+          "rss": 293146624
+        },
+        {
+          "loop": {
+            "p99Ms": 1.850367,
+            "maxMs": 6.963199
+          },
+          "cpu": {
+            "user": 1689044,
+            "system": 239500
+          },
+          "rss": 280145920
+        }
+      ]
+    }
+  ],
+  "scope": [
+    "Actual compiled Node service with installed dependencies and authenticated HTTP",
+    "Simulated two-MCU transport; premature FETCH returns NACK",
+    "Heater status preserves target and power; SHT3X alias humidity rounds to 51.2",
+    "Print, runout pause/resume, object cancellation, idle shutdown and durable restart history",
+    "Injected humidity CRC fault fails print, closes host and refuses subsequent start",
+    "Standalone sensor and fan cases have concurrent HTTP and file load"
+  ],
+  "limitations": [
+    "No physical printer or SHT3X acceptance",
+    "Heater case has no additional concurrent HTTP load",
+    "Latency observations are not Python comparison or physical print-speed acceptance",
+    "Historical motion numerical anomalies remain unresolved",
+    "No Python retired"
+  ]
+}
