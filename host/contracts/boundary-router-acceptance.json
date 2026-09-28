@@ -1,0 +1,18 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "requestsPerSample": 10000,
+  "outputs": 3,
+  "batchSize": 100,
+  "samplesMs": [
+    11.35035999999998,
+    11.82578700000002,
+    9.236421000000007,
+    9.384401999999994,
+    9.796328000000017,
+    9.426632999999981,
+    8.930786000000012
+  ],
+  "medianMs": 9.426632999999981,
+  "scope": "Three-output motion marker routing, scaled scheduling and retirement with mock ACK; no transport or step generation"
+}

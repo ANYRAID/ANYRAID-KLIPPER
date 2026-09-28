@@ -13,10 +13,11 @@ import {serialClock} from '../protocol/serial-queue.ts';
 import {waitForMcuClocks} from '../timing/mcu-clock-barrier.ts';
 import {snapshotPrintClock} from '../timing/print-clock.ts';
 import type {MotorEnable} from '../outputs/motor-enable.ts';
-type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{readonly status:{pending:number;busy:boolean;stopped:boolean};register(value:number):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
+type ClockedBoundaryOutput=Omit<SourceBoundaryOutput,'settle'>&{readonly names?:readonly string[];readonly status:{pending:number;busy:boolean;stopped:boolean};register(value:number,name?:string):number;settleScheduled(signal:AbortSignal):Promise<number>;retireThrough(time:number):void;subscribeStop(listener:(cause:unknown)=>void):()=>void};
 const outputOwners=new WeakSet<ClockedBoundaryOutput>();
 const clockCadences=new WeakMap<SecondarySync,CalibrationCadence>();
-interface OutputContext {timeline?:PrintClockTimeline;target:ClockedBoundaryOutput;group:MCUGroup;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;owner:symbol|undefined;}
+interface OutputClock {timeline?:PrintClockTimeline;session:HomingMember['session'];clock:ReturnType<typeof snapshotPrintClock>;}
+interface OutputContext extends OutputClock {peers:readonly OutputClock[];target:ClockedBoundaryOutput;group:MCUGroup;owner:symbol|undefined;}
 /** Opaque, one-use handoff. Only releaseBoundaryOutput can create a valid token. */
 export interface BoundaryOutputTransfer {readonly kind:'boundary-output-transfer';}
 const transfers=new WeakMap<BoundaryOutputTransfer,{context:OutputContext;coordinator:MotionCoordinator}>();
@@ -31,7 +32,7 @@ export interface RebuiltMotionOptions {
  routes:readonly PlannedQueue[];
  position:readonly number[];
  /** Dedicated output with the same print-time calibration as this MCU member. */
- boundaryOutput?:{output:ClockedBoundaryOutput;member:number}|{output:ClockedBoundaryOutput;mcu:string};
+ boundaryOutput?:{output:ClockedBoundaryOutput;member:number}|{output:ClockedBoundaryOutput;mcu:string}|{output:ClockedBoundaryOutput;mcus:readonly string[]};
  boundaryTransfer?:BoundaryOutputTransfer;
  motorEnable?:MotorEnable;
 }
@@ -81,12 +82,17 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
     context=transfer.context;ownedOutput=context.target;member=clockMembers.findIndex(m=>m.session===context!.session);
     if(context.timeline!==clockMembers[member]?.timeline||context.group!==group||context.owner!==undefined||member<0||!transfer.coordinator.retirementComplete)throw new Error('Boundary output transfer requires retired motion on the same MCU group');
     const next=clockMembers[member].calibration();if(next.offset!==context.clock.offset||next.frequency!==context.clock.frequency)throw new Error('Boundary output transfer clock mapping differs');
+    for(const peer of context.peers){const binding=clockMembers.find(m=>m.session===peer.session),next=binding?.calibration();if(!next||binding!.timeline!==peer.timeline||next.offset!==peer.clock.offset||next.frequency!==peer.clock.frequency)throw new Error('Boundary output transfer clock mapping differs');}
     transfers.delete(o.boundaryTransfer);
    }else{
-    const selector=o.boundaryOutput!,target=selector.output;member='member' in selector?selector.member:clockMembers.findIndex(m=>m.mcu===selector.mcu);
+    const selector=o.boundaryOutput!,target=selector.output;
+    const selected='mcus' in selector?selector.mcus:undefined;
+    if(selected&&(!selected.length||new Set(selected).size!==selected.length||selected.some(id=>!clockMembers.some(m=>m.mcu===id))))throw new Error('Invalid boundary output MCU coverage');
+    member='member' in selector?selector.member:clockMembers.findIndex(m=>m.mcu===('mcu' in selector?selector.mcu:selected![0]));
     if('member' in selector&&!members[member])throw new Error('Invalid boundary output MCU or ownership');
     if(!Number.isInteger(member)||!clockMembers[member]||outputOwners.has(target)||target.status.stopped||target.status.busy)throw new Error('Invalid boundary output MCU or ownership');
-    outputOwners.add(target);ownedOutput=target;context={target,group,session:clockMembers[member].session,clock:readPrintClock(clockMembers[member].calibration(),clockMembers[member].timeline),timeline:clockMembers[member].timeline,owner:undefined};
+    const peers=Object.freeze((selected?selected.map(id=>clockMembers.find(m=>m.mcu===id)!):[clockMembers[member]]).map(m=>Object.freeze({session:m.session,clock:readPrintClock(m.calibration(),m.timeline),timeline:m.timeline})));
+    outputOwners.add(target);ownedOutput=target;context={target,group,...peers[0],peers,owner:undefined};
     let offGroup=()=>{},offOutput=()=>{};
     offGroup=group.subscribeStop(cause=>{void target.stop(cause).catch(()=>{});offGroup();offOutput();});
     offOutput=target.subscribeStop(cause=>{void group.stop(cause).catch(()=>{});});
@@ -97,18 +103,19 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    checkMapping=()=>{
     assertOwner();const current=binding.calibration();
     if(current.offset!==mapping.offset||current.frequency!==mapping.frequency)throw new Error('Boundary output clock calibration changed');
+    for(const peer of ctx.peers){const current=clockMembers.find(m=>m.session===peer.session)!.calibration();if(current.offset!==peer.clock.offset||current.frequency!==peer.clock.frequency)throw new Error('Boundary output clock calibration changed');}
    };
    output={deliver:async(boundaries,horizon,signal)=>{
     checkMapping();
-    target.retireThrough(mapping.printTimeAtClock(ctx.session.clock.sync.lastClock));
+    target.retireThrough(Math.min(...ctx.peers.map(p=>p.clock.printTimeAtClock(p.session.clock.sync.lastClock))));
     await target.deliver(boundaries,horizon,signal);group.assertActive();
    },settle:async signal=>{
     checkMapping();const horizon=await target.settleScheduled(signal);signal.throwIfAborted();checkMapping();
     if(!Number.isFinite(horizon)||horizon<0)throw new Error('Invalid boundary output settlement horizon');
-    await waitForMcuClocks([{clock:ctx.session.clock,tick:mapping.clockAt(horizon)}],signal);
-    signal.throwIfAborted();checkMapping();target.retireThrough(mapping.printTimeAtClock(ctx.session.clock.sync.lastClock));
+    await waitForMcuClocks(ctx.peers.map(p=>({clock:p.session.clock,tick:p.clock.clockAt(horizon)})),signal);
+    signal.throwIfAborted();checkMapping();target.retireThrough(Math.min(...ctx.peers.map(p=>p.clock.printTimeAtClock(p.session.clock.sync.lastClock))));
    },invalidateAfter:time=>{assertOwner();target.invalidateAfter(time);},stop:cause=>target.stop(cause)};
-   capability=Object.freeze({get status(){assertOwner();return target.status;},register:(value:number)=>{assertOwner();return target.register(value);},deliver:(...args:Parameters<ClockedBoundaryOutput['deliver']>)=>{assertOwner();return target.deliver(...args);},invalidateAfter:(time:number)=>{assertOwner();target.invalidateAfter(time);},settleScheduled:(signal:AbortSignal)=>{assertOwner();return target.settleScheduled(signal);},retireThrough:(time:number)=>{assertOwner();target.retireThrough(time);},subscribeStop:(listener:(cause:unknown)=>void)=>{assertOwner();return target.subscribeStop(listener);},stop:(cause:unknown)=>target.stop(cause)});
+   capability=Object.freeze({get names(){assertOwner();return target.names??['fan'];},get status(){assertOwner();return target.status;},register:(value:number,name?:string)=>{assertOwner();return target.register(value,name);},deliver:(...args:Parameters<ClockedBoundaryOutput['deliver']>)=>{assertOwner();return target.deliver(...args);},invalidateAfter:(time:number)=>{assertOwner();target.invalidateAfter(time);},settleScheduled:(signal:AbortSignal)=>{assertOwner();return target.settleScheduled(signal);},retireThrough:(time:number)=>{assertOwner();target.retireThrough(time);},subscribeStop:(listener:(cause:unknown)=>void)=>{assertOwner();return target.subscribeStop(listener);},stop:(cause:unknown)=>target.stop(cause)});
   }
   const byId=new Map(bindings.map(b=>[b.id,b]));
   const sink=new MoveQueueSink(grouped.map((owned,i)=>group.motionQueue(routes[i],owned.map(b=>b.id),t=>owned[0].stepper.clockAt(t))),async outputs=>{

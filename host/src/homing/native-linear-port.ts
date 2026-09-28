@@ -197,7 +197,12 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   this.#velocity.update(patch,limits=>{this.#admission.setMotionLimits(limits);this.#o.kinematics.setMotionLimits(limits.maxVelocity,limits.maxAccel);this.#o.limits=limits;});
  }
  markPendingBoundary(id:number):boolean{this.assertActive();if(this.#pause||this.#resuming||this.#busy&&!this.#ownedPauseRun)throw new Error('Native motion port busy or paused');return this.#admission.markPendingBoundary(id);}
- get hasCoolingFan():boolean{return this.#g.boundaryOutput!==undefined;}
+ get hasCoolingFan():boolean{const output=this.#g.boundaryOutput;return !!output&&(output.names===undefined||output.names.includes('fan'));}
+ get outputPinNames():readonly string[]{return (this.#g.boundaryOutput?.names??[]).filter(n=>n.startsWith('output_pin ')).map(n=>n.slice(11));}
+ queueOutputPin(name:string,value:number,signal:AbortSignal):Promise<void>{return this.#operate('output',signal,async()=>{
+  const output=this.#g.boundaryOutput,route='output_pin '+name;if(!output?.names?.includes(route))throw new Error('Output pin is not configured');
+  const id=output.register(value,route);if(!this.#admission.markPendingBoundary(id))this.#g.source.markBoundary(id);
+ });}
  get hasMotorEnable():boolean{return this.#g.motorEnable!==undefined;}
  get canReleaseMotors():boolean{return this.#g.motorEnable?.canReleaseAll??false;}
  releaseMotors(signal:AbortSignal):Promise<void>{if(this.#g.motorEnable&&!this.canReleaseMotors)return Promise.reject(new Error('Always-on motors cannot be released by software'));return this.#operate('release',signal,async s=>{

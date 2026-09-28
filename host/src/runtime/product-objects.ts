@@ -39,6 +39,7 @@ export function productObjects(printer:Awaited<ReturnType<typeof connectProductP
  for(const driver of printer.hardware.drivers){const plan=drivers.get(driver.section);if(!plan)throw new Error('TMC status configuration owner missing');readers.set(driver.section,tmc220xStatusReader(plan,driver.monitor,()=>driver.current.current,()=>{const sample=driver.phase.sample;if(!sample)return null;const stepper=printer.hardware.plan.steppers.find(s=>s.section===driver.section.slice(driver.section.indexOf(' ')+1))!;return {offset:sample.offset,position:printer.linear.port.phaseOffsetPosition(stepper.emitter,sample.offset)};}));}
  for(const sensor of printer.hardware.hostSensors){readers.set(sensor.section,()=>sensor.state.objectStatus);readers.set('temperature_host '+sensor.section.trim().split(/\s+/).at(-1),()=>({temperature:sensor.state.objectStatus.temperature}));}
  for(const sensor of printer.hardware.sensors)readers.set(sensor.section,()=>sensor.state.objectStatus);
+ for(const pin of printer.hardware.outputPins)readers.set(pin.settings.section,()=>({value:pin.runtime.status.value}));
  for(const fan of printer.hardware.fans)readers.set(fan.section,()=>({speed:fan.runtime.status.speed,rpm:null}));
  for(const fan of printer.hardware.temperatureFans)readers.set(fan.section,()=>({temperature:fan.state.objectStatus.temperature,target:fan.control.settings.target,speed:printer.hardware.fans.find(f=>f.section===fan.section)!.runtime.status.speed,rpm:null}));
  for(const sensor of printer.filamentSensors)readers.set(sensor.section,()=>({...sensor.runtime.status}));

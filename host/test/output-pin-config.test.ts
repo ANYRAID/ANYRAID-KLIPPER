@@ -39,6 +39,6 @@ test('PWM bounds and normalization reject nonfinite, out-of-range and underflowe
   assert.equal(normalizeOutputPinValue({ pwm: true, scale: 255 }, 255), 1);
 });
 
-test('unbound output pins remain rejected by automatic native assembly', () => {
-  assert.throws(() => validateNativePrinterSections(reader({})), /unsupported or unbound/);
+test('bound output pin sections are admitted by automatic native assembly', () => {
+  assert.doesNotThrow(() => validateNativePrinterSections(reader({})));
 });

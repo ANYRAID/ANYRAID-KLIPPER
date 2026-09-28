@@ -16,7 +16,7 @@ export class OutputBoundaryTimeline {
   if(owners.has(fan)||fan.status.phase!=='ready'||!Number.isInteger(capacity)||capacity<1||capacity>fan.capacity)throw new Error('Invalid fan timeline ownership');
   this.#fan=fan;this.#capacity=capacity;this.#reset=reset??(signal=>fan.resetToDefault(signal));this.#off=fan.subscribeStop(cause=>{void this.stop(cause).catch(()=>{});});owners.add(fan);
  }
- get status(){return {pending:this.#entries.size,busy:this.#busy||this.#settling,stopped:this.#stop!==undefined,fault:this.#fault,horizon:this.#horizon,clockThrough:this.#clock,nextTime:this.#fan.status.nextTime};}
+ get status(){return {pending:this.#entries.size,busy:this.#busy||this.#settling,stopped:this.#stop!==undefined,fault:this.#fault,horizon:this.#horizon,clockThrough:this.#clock,retiredThrough:this.#retired,nextTime:this.#fan.status.nextTime};}
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  #active(){if(this.#stop)throw new Error('Fan timeline stopped',{cause:this.#fault});}
  register(value:number):number{

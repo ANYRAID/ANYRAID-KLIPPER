@@ -1,3 +1,4 @@
+import {bindOutputPinCommands} from '../gcode/output-pin.ts';
 import type {NativeBedMeshConfiguration} from '../config/native-bed-mesh.ts';
 import {GCodeDispatch,GCodeError,type DispatchHooks} from '../gcode/dispatch.ts';
 import {GCodeMove} from '../gcode/move.ts';
@@ -62,6 +63,7 @@ export class NativeLinearGCode {
   if(this.pressureAdvance)bindPressureAdvanceCommand(this.dispatch,this.pressureAdvance);
   arcs.register(this.dispatch,this.coordinates,s=>port.flush(s));
   this.dispatch.register('G4',c=>{let seconds=0;try{if(Object.hasOwn(c.params,'P'))seconds=parseConfigurationFloat(c.params.P)/1000;if(!Number.isFinite(seconds)||seconds<0||seconds>3600)throw new Error();}catch{throw new GCodeError('Invalid G4 P duration');}return port.dwell(seconds,c.signal);},{checkpoint:true});
+  if(port.outputPinNames.length)bindOutputPinCommands(this.dispatch,port.outputPinNames,(name,value,signal)=>port.queueOutputPin(name,value,signal));
   if(port.hasCoolingFan)bindCoolingFanCommands(this.dispatch,(value,signal)=>port.queueCoolingFan(value,signal));
   if(port.hasMotorEnable)for(const name of ['M18','M84'])this.dispatch.register(name,c=>{if(c.params.M!==name.slice(1)||Object.keys(c.params).some(key=>!['M','N','*'].includes(key)))throw new GCodeError('M18/M84 releases all motors; parameters are unsupported');if(!port.canReleaseMotors)throw new GCodeError('Always-on motors cannot be released by software');return port.releaseMotors(c.signal);});
   this.#off=port.subscribeStop(()=>{this.#closed=true;this.#stopClockMaintenance();this.dispatch.emergencyStop('Native motion stopped');});

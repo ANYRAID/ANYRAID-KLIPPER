@@ -1,3 +1,5 @@
+import {BoundaryOutputRouter} from '../outputs/boundary-router.ts';
+import {OutputPinBoundaryTimeline} from '../outputs/output-pin-boundaries.ts';
 import {configureEndstopPhases} from '../config/endstop-phase.ts';
 import {readNativeBedMesh} from '../config/native-bed-mesh.ts';
 import {compileLinearHoming,type ConfiguredLinearHoming} from '../config/linear-homing.ts';
@@ -60,7 +62,10 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
   motion=createStoppedMotion(stopped,routes.map(r=>({id:r.id,position:(r.extrusionAxis===undefined?position.slice(0,3):[position[r.extrusionAxis],0,0]) as [number,number,number]})),emitters,printTime);
   for(const m of members)for(const s of m.steppers){await m.queue.send(m.session.dictionary.encode('reset_step_clock',{oid:s.oid,clock:0}),0n,0n,local.signal);active();}
   const timeline=fan?new FanBoundaryTimeline(fan.runtime):undefined;
-  pending=bindRebuiltMotion({group,clockTimelines:plan.configurations.map(c=>({id:c.mcu,timeline:c.timeline,synchronizer:c.synchronizer})),members,auxiliaryMCUs,motion,motorEnable:hardware.motorEnable,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position,...timeline?{boundaryOutput:{output:timeline,mcu:fanPlan!.output.mcu}}:{}});
+  const pinRoutes=hardware.outputPins.map(p=>({name:p.settings.section,output:new OutputPinBoundaryTimeline(p.runtime)}));
+  const routed=pinRoutes.length?new BoundaryOutputRouter([...timeline?[{name:'fan',output:timeline}]:[],...pinRoutes]):undefined;
+  const outputMCUs=[...new Set([...plan.outputPins.map(p=>p.mcu),...fanPlan?[fanPlan.output.mcu,...fanPlan.enable?[fanPlan.enable.mcu]:[]]:[]])];
+  pending=bindRebuiltMotion({group,clockTimelines:plan.configurations.map(c=>({id:c.mcu,timeline:c.timeline,synchronizer:c.synchronizer})),members,auxiliaryMCUs,motion,motorEnable:hardware.motorEnable,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis})),position,...routed?{boundaryOutput:{output:routed,mcus:outputMCUs}}:timeline?{boundaryOutput:{output:timeline,mcus:outputMCUs}}:{}});
   const generation=await pending;active();
   // Only a pristine initial source may be transferred. The port becomes the
   // lifetime owner of every later rebase/homing generation, not just this one.
