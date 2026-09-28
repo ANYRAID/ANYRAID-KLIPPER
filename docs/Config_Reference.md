@@ -3026,12 +3026,16 @@ sensor_type: BME280
 #   above parameters.
 ```
 
-Node 候选主机目前仅支持本节的 BME280 与 BMP280，均使用
+Node 候选主机目前支持本节的 BME280、BMP280 与 BMP180，均使用
 `sensor_type: BME280` 自动识别。`bme280_oversample_temp` 默认 2、范围
 1–5；`bme280_oversample_pressure` 和 `bme280_oversample_hum` 默认 2、
 范围 0–5，0 关闭相应输出。编码 1–5 对应 1／2／4／8／16 倍采样。
 `bme280_iir_filter` 默认 1、范围 0–4，对应关闭／2／4／8／16 系数。
 每次强制新转换并等待转换完成，随后间隔 0.8 秒采样；BMP280 无湿度。
+BMP180 须显式设置 `i2c_address: 119`；其
+`bme280_oversample_pressure` 默认 2、范围 0–3，对应 1／2／4／8 次采样，
+0 仍输出压力，与 BME280／BMP280 的关闭通道语义不同。
+BMP180 不使用温度过采样、湿度和 IIR 设置，且不发布湿度字段。
 此候选实现尚未完成物理器件和打印机验收。
 
 ### AHT10/AHT20/AHT21 temperature sensor
