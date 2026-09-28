@@ -16,6 +16,20 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 组合温度已接入独立 temperature_sensor 配置、采样生命周期和状态
+  服务：sensor_type=temperature_combined，sensor_list 使用逗号分隔的
+  完整已注册名称，combination_method 为 min/max/mean，必须给定正数
+  maximum_deviation。依赖拓扑排序，未知源、循环依赖、重复派生对象
+  名称在 MCU 配置前拒绝。启动等待 1 秒后每 300 ms 采样；源不可用、
+  偏差或范围超限锁存故障并停止整个 MCU 组，关闭时取消采样。
+  链式组合、双模拟 MCU 整组停机及相关回归 19 项通过；编译 HTTP
+  打印流程也通过，包含状态别名、温度历史及重启恢复。记录见
+  `host/contracts/combined-temperature-product.json`，事件循环 P99 约
+  1.75–1.76 ms，此值是本次模拟观测，不是目标板实时保证。
+  计算层性能对照仍见 `host/contracts/combined-temperature.json`。
+  当前不支持组合源直接控制加热器或 temperature_fan，附加湿度、
+  压力和气体聚合也未实现；不能据此退役完整 Python 模块。
+
 - Python 清点仍为 177 个，全部位于旧 klippy 主机中，不能从新实现的
   单项通过推断这些文件已可删除。开始补齐 temperature_combined：
   TypeScript 计算核心支持 min/max/mean、最大偏差和范围校验，平均值

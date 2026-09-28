@@ -1,3 +1,4 @@
+import {planCombinedTemperatures} from './combined-temperature.ts';
 import {readServo} from './servo.ts';
 import {readTemperatureFan} from './temperature-fan.ts';
 import {compileConfiguredSpiHeaters} from './spi-heater.ts';
@@ -66,6 +67,8 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const spiHeaterSections=layout.heaters.filter(h=>['MAX6675','MAX31855','MAX31856','MAX31865'].includes(reader.section(h.section).get('sensor_type'))),analogHeaterSections=layout.heaters.filter(h=>!spiHeaterSections.includes(h));
  const heaters=analogHeaterSections.length?compileConfiguredAnalogHeaters(reader,pins,mcus,sharedClocks,analogHeaterSections.map(h=>({section:h.section}))):Object.freeze([]);
  if((layout.sensors?.length??0)>128||new Set(layout.sensors?.map(s=>s.section)).size!==(layout.sensors?.length??0))throw new Error('Invalid temperature sensor batch');
+ const combinedSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_combined');
+ const combinedSensors=planCombinedTemperatures(reader,combinedSections.map(s=>s.section),[...layout.heaters,...layout.sensors??[]].map(s=>s.section));
  const hostSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_host');
  if(new Set(hostSections.map(s=>s.section.trim().split(/\s+/).at(-1))).size!==hostSections.length)throw new Error('Duplicate host temperature object name');
  const hostSensors=Object.freeze(hostSections.map(s=>readHostTemperature(reader,s.section)));
@@ -73,7 +76,7 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const spiInputs=compileConfiguredSpiSensors(reader,pins,mcus,sharedClocks,[...spiSections,...spiHeaterSections]);
  const spiSensors=Object.freeze(spiInputs.filter(p=>spiSections.some(s=>s.section===p.section))),spiHeaters=compileConfiguredSpiHeaters(reader,pins,mcus,sharedClocks,spiInputs.filter(p=>spiHeaterSections.some(h=>h.section===p.section)));
  const allHeaters=Object.freeze(layout.heaters.map(h=>[...heaters,...spiHeaters].find(p=>p.section===h.section)!));
- const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!hostSections.includes(s)&&!spiSections.includes(s)));
+ const sensors=compileConfiguredAnalogSensors(reader,pins,mcus,sharedClocks,(layout.sensors??[]).filter(s=>!hostSections.includes(s)&&!spiSections.includes(s)&&!combinedSections.includes(s)));
  const buttons=layout.buttons?.length?compileConfiguredButtons(reader,pins,mcus,sharedClocks,layout.buttons):Object.freeze([]);
  if((layout.outputPins?.length??0)+(layout.servos?.length??0)>128)throw new Error('Output and servo capacity exceeded');
  const fixedOutputs=layout.outputPins?.length?compileConfiguredOutputPins(reader,pins,mcus,sharedClocks,layout.outputPins.map(p=>({section:p.section}))):Object.freeze([]);
@@ -104,5 +107,5 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
   const plan:Readonly<MCUConfigPlan>=Object.freeze({oidCount:resources.oidCount,commands:Object.freeze(p.commands),restart:Object.freeze(p.restart),init:Object.freeze(p.init),reservedMoves:p.reservedMoves});
   return Object.freeze({mcu:id,physicalMember,clock:readPrintClock(sharedClocks.get(id)!.calibration,sharedClocks.get(id)!.timeline),timeline:sharedClocks.get(id)!.timeline,synchronizer:sharedClocks.get(id)!.synchronizer,session:mcus.get(id)!.chip,resources,plan});
  }));
- return Object.freeze({outputPins,temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,buttons,tmcUarts,tmcSpis});
+ return Object.freeze({outputPins,temperatureFans,configurations,steppers:Object.freeze(steppers.map((s,i)=>Object.freeze({...s,emitter:layout.steppers[i].emitter,physicalMember:devices.findIndex(d=>d.id===s.mcu)}))),motors,homing,bltouch,fans,heaters,spiHeaters,allHeaters,sensors,spiSensors,hostSensors,combinedSensors,buttons,tmcUarts,tmcSpis});
 }
