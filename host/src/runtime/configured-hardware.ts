@@ -89,7 +89,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   const jobs:Promise<void>[]=[];
   // Start independent safety immediately; never wait for a graceful output
   // transaction before initiating the MCU stop. Callbacks must not await us.
-  for(const stop of [()=>group.stop(cause),()=>heaters.shutdown('Configured hardware stopped'),...analog.map(a=>()=>a.stop(cause)),...spiHeaters.map(a=>()=>a.stop(cause)),...sensors.map(s=>()=>s.sensor.stop(cause)),...hostSensors.map(s=>()=>s.close(cause)),...fans.map(f=>()=>f.runtime.stop(cause)),...outputPins.map(p=>()=>p.output.runtime.stop(cause)),...Array.from(cleanup,stop=>()=>stop(cause))])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  for(const stop of [()=>group.stop(cause),()=>heaters.shutdown('Configured hardware stopped'),...analog.map(a=>()=>a.stop(cause)),...spiHeaters.map(a=>()=>a.stop(cause)),...sensors.map(s=>()=>s.sensor.stop(cause)),...hostSensors.map(s=>()=>s.close(cause)),...fans.map(f=>()=>f.runtime.stop(cause)),...outputPins.map(p=>()=>p.runtime.stop(cause)),...Array.from(cleanup,stop=>()=>stop(cause))])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length){state='failed';stopError=new AggregateError(errors,'Configured hardware stop failed',{cause});done.reject(stopError);}else{state='stopped';done.resolve();}});
   return closing;
  };

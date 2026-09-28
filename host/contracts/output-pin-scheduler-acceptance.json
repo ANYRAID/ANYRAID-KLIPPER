@@ -1,0 +1,17 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "requestsPerSample": 10000,
+  "batchSize": 100,
+  "samplesMs": [
+    8.938266999999996,
+    7.916653999999994,
+    7.478467999999992,
+    6.712216999999981,
+    6.7270579999999995,
+    6.731887999999998,
+    6.796720000000022
+  ],
+  "medianMs": 6.796720000000022,
+  "scope": "Motion marker registration, scaling, scheduled flushing and clock retirement with mock ACK; excludes transport and step generation"
+}

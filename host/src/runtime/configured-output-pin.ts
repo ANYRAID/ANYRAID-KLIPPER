@@ -1,3 +1,4 @@
+import {ScheduledOutputPin} from '../outputs/output-pin.ts';
 import type {compileConfiguredOutputPins} from '../config/configured-output-pins.ts';
 import {GenerationDigitalOutput} from '../outputs/generation-digital.ts';
 import {GenerationPWMOutput} from '../outputs/generation-pwm.ts';
@@ -15,19 +16,15 @@ export function attachConfiguredOutputPin(group:MCUGroup,plan:ReturnType<typeof 
   : {kind:'pwm' as const,runtime:plan.timeline
    ? GenerationPWMOutput.withClock(compiled.config,session.dictionary,data,control,plan.timeline)
    : new GenerationPWMOutput(compiled.config,session.dictionary,data,control,plan.clock.clockAt,plan.clock.printTimeAtClock)};
- let started=false;
- return Object.freeze({settings:plan.settings,output:Object.freeze(output),async start(signal:AbortSignal){
-  if(started)throw new Error('Output pin cannot restart');started=true;
-  try{
-   await output.runtime.reset(signal);signal.throwIfAborted();group.assertActive();
-   // Configuration starts at the shutdown default. Apply the requested initial
-   // value only after the hardware owner has finalized every MCU.
-   if(plan.settings.initialValue!==plan.settings.shutdownValue){
-    const now=plan.clock.printTimeAtClock(session.clock.sync.getClock(serialClock.now())),time=now+.2;
-    if(!Number.isFinite(time)||time<=now)throw new RangeError('Invalid output pin startup time');
-    if(output.kind==='digital')await output.runtime.setDigital(time,plan.settings.initialValue===1,signal);
-    else await output.runtime.setPWM(output.runtime.nextAlignedPrintTime(time),plan.settings.initialValue,signal);
-   }
-  }catch(error){try{await output.runtime.stop(error);}catch(stopError){throw new AggregateError([error,stopError],'Output pin startup and stop failed');}throw error;}
+ const runtime=new ScheduledOutputPin({
+  reset:signal=>output.runtime.reset(signal),stop:cause=>output.runtime.stop(cause),
+  align:time=>output.kind==='pwm'?output.runtime.nextAlignedPrintTime(time):time,
+  setValue:(time,value,signal)=>output.kind==='digital'?output.runtime.setDigital(time,value===1,signal):output.runtime.setPWM(time,value,signal),
+ },plan.settings,.1);
+ return Object.freeze({settings:plan.settings,output:Object.freeze(output),runtime,start(signal:AbortSignal){
+  return runtime.start(()=>{
+   group.assertActive();const now=plan.clock.printTimeAtClock(session.clock.sync.getClock(serialClock.now())),time=now+.2;
+   if(!Number.isFinite(time)||time<=now)throw new RangeError('Invalid output pin startup time');return time;
+  },signal);
  }});
 }

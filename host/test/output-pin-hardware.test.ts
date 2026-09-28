@@ -6,6 +6,7 @@ import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {hardwareStartupFixture} from './helpers/hardware-startup.ts';
 import {hardwareReader,hardwareLayout} from './helpers/configured-hardware.ts';
 import {encodeFrame} from '../src/protocol/codec.ts';
+import {serialClock} from '../src/protocol/serial-queue.ts';
 const layout={...hardwareLayout,outputPins:['light','duty','soft'].map(name=>({section:`output_pin ${name}`}))};
 const reader=(pin='!PA4')=>new ConfigurationReader(new ConfigurationSource('/outputs.cfg',{
  ...hardwareReader().source.original,
@@ -40,9 +41,18 @@ test('mixed output pins share hardware ownership and start only after all MCU co
    assert.equal(h.outputPins[i].output.runtime.status.phase,'ready');
    assert.ok(p.timeline!.status.reservedThrough>0n);
   }
+  for(const [i,p] of h.plan.outputPins.entries()){
+   const runtime=h.outputPins[i].runtime,session=f.group.session(p.mcu);
+   const time=p.clock.printTimeAtClock(session.clock.sync.getClock(serialClock.now()))+.5;
+   runtime.enqueue(time,p.settings.pwm?p.settings.scale*.75:0);await runtime.flush(time+.2,f.signal);
+   assert.equal(runtime.status.pending,0);
+   const fw=f.firmware[p.mcu==='mcu'?0:1],write=fw.outputs.filter(e=>e.parameters.oid===p.output.config.oid).at(-1)!;
+   assert.equal(write.parameters[p.settings.hardware?'value':'on_ticks'],[1,191,75000][i]);
+  }
   await f.group.stop(new Error('lost controller'));await h.close();
   assert.deepEqual(f.stops,[1,1]);
   assert.ok(h.outputPins.every(p=>p.output.runtime.status.phase==='failed'));
+  assert.ok(h.outputPins.every(p=>p.runtime.status.phase==='stopped'));
  }finally{await f.close();}
 });
 
