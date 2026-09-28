@@ -21,11 +21,13 @@ export class AsyncHeaterRuntime {
  #abort=new AbortController();#stop:Promise<void>|undefined;#writes=new Set<Promise<void>>();
  #listeners=new Set<(reason:string)=>void>();#errors:unknown[]=[];#cause:unknown;#outputStopped=false;#everStarted=false;
  #lastSystem=-Infinity;#lastPrint=-Infinity;#lastTick=0;#startTime=0;#nextCheck=0;
- constructor(config:TemperatureConfig&{maxPower:number;reportDelay:number},control:PIDControl|BangBangControl,output:ConfirmedHeaterOutput,clock:()=>ThermalClock,verification:HeaterCheckConfig={},schedule:ThermalTimer=timer){
+ #refreshOutput:boolean;
+ constructor(config:TemperatureConfig&{maxPower:number;reportDelay:number;refreshOutput?:boolean},control:PIDControl|BangBangControl,output:ConfirmedHeaterOutput,clock:()=>ThermalClock,verification:HeaterCheckConfig={},schedule:ThermalTimer=timer){
   const protection=output.configuration;
   if(protection.initialPower!==0||protection.defaultPower!==0||protection.maximumDuration!==3||!Number.isFinite(protection.cycleTime)||protection.cycleTime<=0||protection.cycleTime>config.reportDelay)throw new Error('Heater output requires zero initial/default power, three-second watchdog and valid PWM cycle');
   this.#state=new TemperatureState(config);this.#pwm=new HeaterPWM(config.maxPower,config.reportDelay);this.#check=new HeaterCheck(verification);
   this.#control=control;this.#output=output;this.#clock=clock;this.#timer=schedule;
+  if(config.refreshOutput!==undefined&&typeof config.refreshOutput!=='boolean')throw new Error('Invalid heater output refresh policy');this.#refreshOutput=config.refreshOutput??false;
  }
  /** Report the last smoothed sample and scheduled power, not electrical feedback. */
  get objectStatus(){const state=this.#state.state;return {temperature:Number(fixedDecimal(state.smoothedTemperature,2)),target:state.target,power:this.#outputStopped?0:this.#pwm.scheduledPower};}
@@ -67,6 +69,10 @@ export class AsyncHeaterRuntime {
    const requested=this.#control.update(time,temperature,target);
    if(this.#phase!=='active')return;
    const write=this.#pwm.update(time,requested,target);if(!write)return;
+   this.#send(write);
+  }catch(error){this.#trip(error);throw error;}
+ }
+ #send(write:{time:number;power:number}):void{
    if(this.#writes.size>=32)throw new Error('Heater pending output limit exceeded');
    // Track before calling the adapter: it may synchronously initiate shutdown.
    const deferred=Promise.withResolvers<void>(),pending=deferred.promise;
@@ -74,7 +80,6 @@ export class AsyncHeaterRuntime {
    const fail=(error:unknown)=>{if(!(error instanceof PWMGenerationSuperseded))this.#trip(error);deferred.resolve();};
    try{const sent=this.#output.setPWM(write.time,write.power,this.#abort.signal);if(!sent||typeof sent.then!=='function')throw new Error('Heater PWM must provide completion confirmation');void sent.then(deferred.resolve,fail);}
    catch(error){fail(error);throw error;}
-  }catch(error){this.#trip(error);throw error;}
  }
  getTemperature(){try{return this.#state.status(this.#now().print);}catch(error){this.#trip(error);throw error;}}
  canExtrude():boolean{if(this.#phase!=='active')return false;try{return this.getTemperature().canExtrude;}catch{return false;}}
@@ -86,7 +91,9 @@ export class AsyncHeaterRuntime {
    const status=this.#state.status(time.print);
    if(status.stale&&(this.#state.state.received||time.system-this.#startTime>7))throw new Error('Temperature sensor timed out');
    if(time.system>=this.#nextCheck&&this.#state.state.received){this.#nextCheck=this.#check.check(time.system,status.temperature,status.target);if(this.#nextCheck===Infinity)throw new Error('Heater not heating at expected rate');}
-   this.#pwm.heartbeat(time.print);this.#lastTick=time.system;
+   this.#pwm.heartbeat(time.print);
+   if(this.#refreshOutput&&this.#phase==='active'&&!status.stale){const write=this.#pwm.refresh(time.print,status.target);if(write)this.#send(write);}
+   this.#lastTick=time.system;
   }catch(error){this.#trip(error);}
  }
  subscribeShutdown(listener:(reason:string)=>void):()=>void{

@@ -48,7 +48,7 @@ export class BangBangControl {
 /** Pure scheduling gate. Caller must enforce hardware max-duration and actual shutdown. */
 export class HeaterPWM {
  #max:number;#delay:number;#validUntil=-999;#lastHeartbeat=-Infinity;#lastSample=0;
- #next=0;#value=0;#stopped=false;
+ #next=0;#value=0;#stopped=false;#scheduledTime=-Infinity;
  constructor(maxPower:number,reportDelay:number){power(maxPower);if(!positive(reportDelay)||reportDelay>=1)throw new RangeError('Invalid heater report delay');this.#max=maxPower;this.#delay=reportDelay;}
  get scheduledPower():number{return this.#value;}
  heartbeat(estimatedPrintTime:number):void {
@@ -59,13 +59,25 @@ export class HeaterPWM {
  shutdown():void {this.#stopped=true;this.#validUntil=-999;}
  /** Call only after the output adapter has cancelled queued power and forced zero. */
  confirmOff():void {this.#value=0;this.#next=0;}
+ /** Renew an unchanged output before its three-second firmware deadline.
+  * Caller independently checks sensor freshness and heating verification.
+  * This does not advance the sensor sample clock or run PID again. */
+ refresh(estimatedPrintTime:number,target:number):{time:number;power:number}|undefined {
+  if(!Number.isFinite(estimatedPrintTime)||estimatedPrintTime<0||!Number.isFinite(target)||target<0)throw new RangeError('Invalid PWM refresh');
+  if(this.#stopped||target<=0||this.#value===0)return;
+  const time=estimatedPrintTime+this.#delay;
+  if(estimatedPrintTime>this.#validUntil||time>=this.#scheduledTime+3)throw new Error('Heater PWM refresh deadline missed');
+  if(time+1<this.#scheduledTime+3)return;
+  this.#scheduledTime=time;this.#next=time+3-(3*this.#delay+.001);
+  return {time,power:this.#value};
+ }
  update(readTime:number,requested:number,target:number):{time:number;power:number}|undefined {
   if(![readTime,requested,target].every(Number.isFinite)||readTime<=this.#lastSample||requested<0||requested>this.#max||target<0)throw new RangeError('Invalid PWM request');
   const value=target<=0||readTime>this.#validUntil||this.#stopped?0:requested;
   this.#lastSample=readTime;
   // Never suppress an off transition, including previously small nonzero duty.
   if(!(value===0&&this.#value!==0)&&(readTime<this.#next||!this.#value)&&Math.abs(value-this.#value)<this.#max*.05)return;
-  const time=readTime+this.#delay;this.#next=time+3-(3*this.#delay+.001);this.#value=value;
+  const time=readTime+this.#delay;this.#next=time+3-(3*this.#delay+.001);this.#value=value;this.#scheduledTime=time;
   return {time,power:value};
  }
 }
