@@ -31,7 +31,7 @@ test('circular grid probes only disk points and pads edges without transposing s
 });
 test('circular spacing truncates hundredths and rejects even counts',()=>{
  const grid={...options,circle:{radius:50,origin:[0,0] as const},mesh:{...options.mesh,x_count:7,y_count:7}};
- const plan=planProbeGrid(grid,[0,0,0]);assert.equal(plan.mesh.max_x,3*16.66);assert.equal(plan.mesh.min_y,-3*16.66);
+ const plan=planProbeGrid(grid,[0,0,0]);assert.equal(plan.mesh.max_x,49.98);assert.equal(plan.mesh.min_y,-49.98);
  assert(plan.points.every(p=>Math.hypot(p.nozzleX,p.nozzleY)<=50));
  assert.throws(()=>planProbeGrid({...grid,mesh:{...grid.mesh,x_count:4,y_count:4}},[0,0,0]),/circular/);
 });
@@ -39,4 +39,20 @@ for(const external of [false,true])test(`circular zero reference is applied afte
  const reference:[number,number]=external?[30,0]:[0,0],plan=planProbeGrid({...options,zeroReference:reference,circle:{radius:20,origin:[0,0]},mesh:{...options.mesh,x_count:5,y_count:5}},[2,3,0]);let position=[0,0,5,0],samples=0;
  const mesh=await measureProbeGrid(plan,{position:()=>position,move:async p=>{position=[...p];},probe:async()=>{samples++;return position[0]+2+2*(position[1]+3);}},new AbortController().signal);
  assert.equal(samples,external?14:13);assert.equal(mesh.calcZ(0,0),external?-30:0);assert.equal(mesh.calcZ(-20,-20),external?-70:-40);
+});
+test('hundredth grid preserves circular boundary rows at floating point multiplication edges',()=>{
+ for(const radius of [3.9,4.8,6.3,7.8,50.1,99.9]){
+  const plan=planProbeGrid({...options,circle:{radius,origin:[12,-7]},mesh:{...options.mesh,x_count:7,y_count:7}},[0,0,0]);
+  for(let y=0;y<7;y++){const row=plan.points.filter(p=>p.y===y);assert(row.length>0,`missing row ${y} at radius ${radius}`);assert.equal(row.length%2,1);assert.equal(row[0].x+row.at(-1)!.x,6);}
+  assert(plan.points.some(p=>p.x===3&&p.y===0));assert(plan.points.some(p=>p.x===3&&p.y===6));
+ }
+});
+test('circular grids retain every row across tenth-millimeter radii and odd counts',()=>{
+ let grids=0;
+ for(let tenth=10;tenth<=3000;tenth++)for(let n=3;n<=31;n+=2){
+  const radius=tenth/10;if(Math.floor(2*radius/(n-1)*100)<100)continue;
+  const plan=planProbeGrid({...options,circle:{radius,origin:[0,0]},mesh:{...options.mesh,x_count:n,y_count:n}},[0,0,0]);
+  assert.equal(new Set(plan.points.map(p=>p.y)).size,n,`radius=${radius}, count=${n}`);grids++;
+ }
+ assert.equal(grids,43815);
 });

@@ -1,21 +1,21 @@
 {
   "node": "v26.9.0",
   "planning1000Ms": [
-    20.109836000000016,
-    20.057744999999983,
-    19.637507,
-    19.397681999999975,
-    19.343092000000013
+    20.500030999999993,
+    19.91275200000001,
+    19.322382000000005,
+    19.081289000000027,
+    18.935426000000007
   ],
   "lookupMillionMs": [
-    24.177922999999993,
-    24.099140000000006,
-    24.048929999999984,
-    19.101607,
-    19.188999000000024
+    24.065748999999983,
+    24.131399999999985,
+    24.390323999999993,
+    19.137828999999954,
+    19.302952000000005
   ],
-  "medianPlanningMs": 19.637507,
-  "medianLookupMs": 24.048929999999984,
+  "medianPlanningMs": 19.322382000000005,
+  "medianLookupMs": 24.065748999999983,
   "checksum": -25.43163584819636,
   "passed": true,
   "scope": "Circular grid planning and existing interpolated lookup on synthetic heights; excludes probe IO, concurrent print load and physical accuracy."

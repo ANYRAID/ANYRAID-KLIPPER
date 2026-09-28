@@ -4,12 +4,13 @@ export interface ProbeGrid {mesh:BedMeshParameters;horizontalHeight:number;trave
  * ascending bed XY order, independently of traversal direction. */
 export function planProbeGrid(options:ProbeGrid,offsets:readonly number[]){
  for(const count of [options.mesh.x_count,options.mesh.y_count])if(!Number.isInteger(count)||count<2||count>128)throw new RangeError('Invalid probe count');
- let parameters={...options.mesh};const circle=options.circle;let circleStep=0;
+ let parameters={...options.mesh};const circle=options.circle;let circleStepHundredths=0;
  if(circle){
   const {radius,origin}=circle,n=parameters.x_count;
   if(!Number.isFinite(radius)||radius<=0||origin.length!==2||!origin.every(Number.isFinite)||n!==parameters.y_count||n%2!==1)throw new RangeError('Invalid circular probe grid');
   const step=Math.floor(2*radius/(n-1)*100)/100;if(step<1)throw new RangeError('Circular probe spacing must be at least 1mm');
-  circleStep=step;const extent=Math.floor(n/2)*step;parameters={...parameters,min_x:origin[0]-extent,max_x:origin[0]+extent,min_y:origin[1]-extent,max_y:origin[1]+extent};
+  // Keep the rounded grid in integer hundredths so 3 * 1.3 cannot drop a boundary row.
+  circleStepHundredths=Math.floor(2*radius/(n-1)*100);const extent=Math.floor(n/2)*circleStepHundredths/100;parameters={...parameters,min_x:origin[0]-extent,max_x:origin[0]+extent,min_y:origin[1]-extent,max_y:origin[1]+extent};
  }
  const mesh=new BedMesh(parameters,Array.from({length:options.mesh.y_count},()=>Array(options.mesh.x_count).fill(0)));
  const p=mesh.params;
@@ -19,8 +20,8 @@ export function planProbeGrid(options:ProbeGrid,offsets:readonly number[]){
  const external=!!reference&&(reference[0]<p.min_x||reference[0]>p.max_x||reference[1]<p.min_y||reference[1]>p.max_y);
  const points=[];
  for(let y=0;y<p.y_count;y++)for(let i=0;i<p.x_count;i++){
-  const x=y%2?p.x_count-1-i:i,bedX=circle?circle.origin[0]+(x-(p.x_count-1)/2)*circleStep:p.min_x+(p.max_x-p.min_x)*x/(p.x_count-1),bedY=circle?circle.origin[1]+(y-(p.y_count-1)/2)*circleStep:p.min_y+(p.max_y-p.min_y)*y/(p.y_count-1),nozzleX=bedX-offsets[0],nozzleY=bedY-offsets[1];
-  if(circle){const dx=(x-(p.x_count-1)/2)*circleStep,dy=(y-(p.y_count-1)/2)*circleStep;if(Math.sqrt(dx*dx+dy*dy)>circle.radius)continue;}
+  const x=y%2?p.x_count-1-i:i,bedX=circle?circle.origin[0]+(x-(p.x_count-1)/2)*circleStepHundredths/100:p.min_x+(p.max_x-p.min_x)*x/(p.x_count-1),bedY=circle?circle.origin[1]+(y-(p.y_count-1)/2)*circleStepHundredths/100:p.min_y+(p.max_y-p.min_y)*y/(p.y_count-1),nozzleX=bedX-offsets[0],nozzleY=bedY-offsets[1];
+  if(circle){const dx=(x-(p.x_count-1)/2)*circleStepHundredths/100,dy=(y-(p.y_count-1)/2)*circleStepHundredths/100;if(Math.sqrt(dx*dx+dy*dy)>circle.radius)continue;}
   if(![nozzleX,nozzleY].every(Number.isFinite))throw new RangeError('Probe grid coordinate overflow');
   points.push(Object.freeze({x,y,nozzleX,nozzleY}));
  }

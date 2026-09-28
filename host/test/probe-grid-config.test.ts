@@ -11,7 +11,7 @@ test('saved-only mesh remains valid; rectangular calibration defaults and pairs 
 
 test('circular configuration rounds radius and spacing with translated origin',()=>{
  const grid=read({mesh_radius:'50.19',mesh_origin:'12,-7',round_probe_count:'7',algorithm:'bicubic'})!;
- assert.equal(grid.circle!.radius,50.1);assert.equal(grid.mesh.min_x,12-3*16.7);assert.equal(grid.mesh.max_y,-7+3*16.7);
+ assert.equal(grid.circle!.radius,50.1);assert.equal(grid.mesh.min_x,12-50.1);assert.equal(grid.mesh.max_y,-7+50.1);
  assert.equal(grid.mesh.x_count,7);assert.equal(read({mesh_radius:'50'})!.mesh.x_count,5);
  for(const options of [{mesh_radius:'.09'},{mesh_radius:'1',round_probe_count:'5'},{mesh_radius:'20',mesh_origin:'1'}] as Record<string,string>[])assert.throws(()=>read(options));
 });
