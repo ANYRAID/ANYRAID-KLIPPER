@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "sourceSnapshot": "1f172867",
+  "legacyGPIORef": "f34d7402e28707b8978fecbf05e90113e4b61cef",
+  "legacyGPIOPath": "src/gpiocmds.c",
+  "currentFirmwareSha256": "753c58c755117aa3b3f1a84dcacae58d6e5c65a544c5d860467898acc7d83f06",
+  "legacyFirmwareSha256": "72be579997455a08333f4e893593591bab82a61dbe1f86fd8de51fb73958a99f",
+  "legacyGPIOSha256": "3609c78951bda4bc25c4bde279f0ff64c3b94414ef06ff47dd24ce3f2bc51bcf",
+  "currentGPIOSha256": "242db2e20d79dbe5be46dd0f7bb1b2b23f89991d969b8f3fef4d920aa43dc26b",
+  "samples": [
+    {
+      "round": 0,
+      "variant": "legacy",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 17856,
+      "step50ResidualFromMedianNs": 17732,
+      "frequency": 5543972.90515211,
+      "logSha256": "a00c0d92596aba3f48e989b8d4c4539db8fce671a7041aa7cf79229d3a1ab16d",
+      "capture": "comparison-0-legacy"
+    },
+    {
+      "round": 0,
+      "variant": "current",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 19282,
+      "step50ResidualFromMedianNs": 19034,
+      "frequency": 5694451.685869857,
+      "logSha256": "7e023b1905168955f790c835ebe435acdc4d8321e50d8d4ae36dfd2e3534f491",
+      "capture": "comparison-0-current"
+    },
+    {
+      "round": 1,
+      "variant": "current",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 18414,
+      "step50ResidualFromMedianNs": 18476,
+      "frequency": 5582649.394812693,
+      "logSha256": "b21b13fb2664dc85e1e978a2ebe2ac24f55698f58269a7a9fe4883c1ccf34dd3",
+      "capture": "comparison-1-current"
+    },
+    {
+      "round": 1,
+      "variant": "legacy",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 17980,
+      "step50ResidualFromMedianNs": 17980,
+      "frequency": 5441019.327080241,
+      "logSha256": "5ee304211c1b294d51ee7058544a5fcf2873e69dac262f6e1ac9c62f855bda02",
+      "capture": "comparison-1-legacy"
+    },
+    {
+      "round": 2,
+      "variant": "legacy",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 17980,
+      "step50ResidualFromMedianNs": 17980,
+      "frequency": 5619893.455905696,
+      "logSha256": "1ea988dac90eea5756e398082bfed511b3be54aeba2bd57dbb1eecff4a9519eb",
+      "capture": "comparison-2-legacy"
+    },
+    {
+      "round": 2,
+      "variant": "current",
+      "exitCode": 1,
+      "maxIntervalDeviationNs": 19282,
+      "step50ResidualFromMedianNs": 19034,
+      "frequency": 5601440.573118782,
+      "logSha256": "14b403bcd94abe79eabf76ac7c61473b579bb86a6659bc3ef3de9a02f82cf2ad",
+      "capture": "comparison-2-current"
+    }
+  ],
+  "findings": [
+    "Both implementations exceed the unchanged exploratory 10 microsecond coincident-event threshold.",
+    "Current samples have slightly greater maximum interval deviation than the legacy GPIO comparison; no non-regression claim is made.",
+    "Current digital_load_event calls move_free; the legacy comparison inlines it. This is a candidate contributor, not a proven sole cause."
+  ],
+  "limitations": [
+    "Three pairs are descriptive, not a statistical worst-case estimate.",
+    "Only gpiocmds.c was restored; this is not a full old-host or old-firmware baseline.",
+    "ELF layout and UART event phases differ.",
+    "No physical printer or full G-code workflow acceptance."
+  ]
+}
