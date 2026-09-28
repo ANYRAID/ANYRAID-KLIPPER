@@ -23,7 +23,7 @@ test('extra Z motor with independent endstop gets complete disjoint stop ownersh
 });
 test('unsupported motor topology and GPIO-only homing ownership fail before configuration',async()=>{
  const f=await configuredPrinterFixture();try{
-  for(const name of ['stepper_a','extruder1']){const r=new ConfigurationReader(new ConfigurationSource('/bad.cfg',{...f.reader.source.original,[name]:{}},[]),null);assert.throws(()=>planLinearPrinter(r,policy),/topology/);}
+  for(const name of ['stepper_a','extruder01']){const r=new ConfigurationReader(new ConfigurationSource('/bad.cfg',{...f.reader.source.original,[name]:{}},[]),null);assert.throws(()=>planLinearPrinter(r,policy),/topology/);}
   const original=f.reader.source.original,r=new ConfigurationReader(new ConfigurationSource('/gpio.cfg',{...original,stepper_x:{...original.stepper_x,endstop_pin:'aux:PA8'}},[]),null);assert.throws(()=>planLinearPrinter(r,policy),/kinematic motor/);assert.equal(f.group.session('mcu').status.configured,false);assert.deepEqual(f.stops,[0,0]);
  }finally{await f.close();}
 });

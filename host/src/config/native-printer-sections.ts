@@ -9,8 +9,8 @@ export function validateNativePrinterSections(reader:ConfigurationReader,kinemat
  if(reader.hasSection('exclude_object')&&Object.keys(reader.section('exclude_object').options()).length)throw new ConfigurationError('[exclude_object] does not accept options');
  const sections=reader.sections(),known=new Set(sections);
  const motorPattern=kinematics==='delta'?/^stepper_[abc](?:[1-9][0-9]*)?$/:/^stepper_[xyz](?:[1-9][0-9]*)?$/;
- const motors=new Set(sections.filter(s=>motorPattern.test(s)||s==='extruder'||kinematics==='linear'&&s==='dual_carriage'));
- const heaters=new Set(sections.filter(s=>s==='extruder'||s==='heater_bed'||s.startsWith('heater_generic ')).map(s=>s.trim().split(/\s+/).at(-1)!));
+ const motors=new Set(sections.filter(s=>motorPattern.test(s)||(s==='extruder'||kinematics==='linear'&&/^extruder[1-9][0-9]*$/.test(s))||kinematics==='linear'&&s==='dual_carriage'));
+ const heaters=new Set(sections.filter(s=>(s==='extruder'||kinematics==='linear'&&/^extruder[1-9][0-9]*$/.test(s))||s==='heater_bed'||s.startsWith('heater_generic ')).map(s=>s.trim().split(/\s+/).at(-1)!));
  const unsupported=sections.filter(section=>{
   if(kinematics==='delta'&&(/^(?:endstop_phase|skew_correction)(?: |$)/.test(section)||['safe_z_home','bed_tilt','z_tilt','quad_gantry_level','bed_screws','screws_tilt_adjust'].includes(section)))return true;
   if(section==='delta_calibrate')return kinematics!=='delta';

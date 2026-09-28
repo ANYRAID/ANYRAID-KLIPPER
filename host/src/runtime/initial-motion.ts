@@ -1,7 +1,7 @@
+import {readExtrusionConfiguration,extrusionSections} from '../config/extrusion.ts';
 import {readProbeConfiguration} from '../config/probe.ts';
 import {NativeDeltaHomingPort} from '../homing/native-delta-port.ts';
 import {readDeltaMotionConfiguration} from '../config/delta-motion.ts';
-import {readExtrusionConfiguration} from '../config/extrusion.ts';
 import {compileDeltaHoming,type planDeltaHardware} from '../config/delta-printer.ts';
 import {readServo} from '../config/servo.ts';
 import {BoundaryOutputRouter} from '../outputs/boundary-router.ts';
@@ -79,13 +79,14 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const arcResolution=readArcResolution(reader),retraction=readRetraction(reader),bedMesh=readNativeBedMesh(reader);
    group.assertActive();const state=generation.source.status;
    if(port||hardware.status.state!=='ready'||state.seeded||state.busy||state.retired||state.failed||state.bufferedMoves||state.pendingBoundaries)throw new Error('Initial motion already owned or used');
-   const extruders=emitters.filter(e=>e.mode==='extruder'),section=extruders.length===1?plan.steppers.find(s=>s.emitter===extruders[0].id)?.section:undefined;
-   const heater=hardware.thermal.find(h=>h.section===section)?.runtime;
-   if(!heater)throw new Error('Linear motion requires its configured extruder heater');
+   const names=extrusionSections(reader),extruders=names.map(name=>{const stepper=plan.steppers.find(s=>s.section===name),emitter=emitters.find(e=>e.id===stepper?.emitter&&e.mode==='extruder');if(!emitter)throw new Error('Linear motion requires each configured extruder motor');return emitter;}),section=names[0];
+   const policies=names.map((name,i)=>{const heater=hardware.thermal.find(h=>h.section===name)?.runtime,binding=generation.motion.bindings.find(b=>b.id===extruders[i].id),route=generation.routes.find(r=>r.queue===binding?.queue);if(!heater||route?.extrusionAxis!==3+i)throw new Error('Linear extruder heater or queue ownership differs');return {extrusion:readExtrusionConfiguration(reader,reader.section('printer').getFloat('max_velocity'),reader.section('printer').getFloat('max_accel'),name),canExtrude:()=>heater.canExtrude()};});
+   const heater=hardware.thermal.find(h=>h.section===section)!.runtime;
    const resolved='homing' in settings?compileLinearHoming(plan,generation,settings,new Map(hardware.drivers.flatMap(d=>d.sensorless?[[d.section,d.sensorless] as const]:[]))):settings;
-   const result=createConfiguredNativeLinearPort(reader,{...resolved,probeDevice:hardware.bltouch?{device:hardware.bltouch.device,endstop:hardware.bltouch.endstop}:undefined,endstopPhases:configureEndstopPhases(reader,plan.steppers,hardware.drivers),generation,emitters,canExtrude:()=>heater.canExtrude()});port=result.port;
+   const result=createConfiguredNativeLinearPort(reader,{...resolved,probeDevice:hardware.bltouch?{device:hardware.bltouch.device,endstop:hardware.bltouch.endstop}:undefined,endstopPhases:configureEndstopPhases(reader,plan.steppers,hardware.drivers),generation,emitters,extruders:policies.length>1?policies:undefined,canExtrude:()=>heater.canExtrude()});port=result.port;
    const createPrint=async(options:ConfiguredPrintOptions)=>{
     group.assertActive();if(printPending)throw new Error('Configured print already owned');
+    if(policies.length>1)throw new Error('Multiple extruders require a configured tool-selection print adapter');
     const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
     if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
     const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction,{stepper:extruders[0].id,name:section!},bedMesh,reader.hasSection('exclude_object'),reader.sections().filter(s=>s.startsWith('servo ')).map(s=>readServo(reader,s)));

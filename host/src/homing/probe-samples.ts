@@ -4,11 +4,11 @@ export interface ProbeSamples {samples:number;retractDistance:number;liftSpeed:n
 export async function collectProbeSamples(options:ProbeSamples,seek:()=>Promise<{trigger:readonly number[];halt:readonly number[]}>,retract:(position:readonly number[],speed:number)=>Promise<void>,signal:AbortSignal){
  const o={...options};
  if(!Number.isInteger(o.samples)||o.samples<1||o.samples>1000||!Number.isInteger(o.retries)||o.retries<0||o.retries>100||!Number.isFinite(o.tolerance)||o.tolerance<0||![o.retractDistance,o.liftSpeed].every(v=>Number.isFinite(v)&&v>0)||!['average','median'].includes(o.result))throw new RangeError('Invalid probe sampling policy');
- let positions:readonly number[][]=[];let retries=0,attempts=0;
+ let positions:readonly number[][]=[];let retries=0,attempts=0,axes:number|undefined;
  while(positions.length<o.samples){
   signal.throwIfAborted();const hit=await seek();signal.throwIfAborted();attempts++;
-  if(hit.trigger.length!==4||hit.halt.length!==4||![...hit.trigger,...hit.halt].every(Number.isFinite))throw new Error('Invalid probe coordinates');
-  positions=[...positions,[...hit.trigger]];
+  if(hit.trigger.length<4||axes!==undefined&&hit.trigger.length!==axes||hit.halt.length!==hit.trigger.length||![...hit.trigger,...hit.halt].every(Number.isFinite))throw new Error('Invalid probe coordinates');
+  axes=hit.trigger.length;positions=[...positions,[...hit.trigger]];
   const zs=positions.map(p=>p[2]);if(Math.max(...zs)-Math.min(...zs)>o.tolerance){
    if(retries>=o.retries)throw new Error('Probe samples exceed tolerance');retries++;positions=[];
   }

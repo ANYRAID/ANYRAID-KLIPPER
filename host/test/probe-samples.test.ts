@@ -15,3 +15,8 @@ test('exhausted tolerance and cancellation do not return a partial result',async
  let i=0;await assert.rejects(collectProbeSamples({...policy,retries:0},async()=>({trigger:[0,0,i++,0],halt:[0,0,0,0]}),async()=>{},signal),/tolerance/);
  const c=new AbortController();await assert.rejects(collectProbeSamples(policy,async()=>{c.abort(new Error('cancel samples'));return {trigger:[0,0,0,0],halt:[0,0,0,0]};},async()=>assert.fail('must not retract'),c.signal),/cancel samples/);
 });
+test('probe batches preserve additional filament axes and reject a changing coordinate shape',async()=>{
+ const policy={samples:2,retractDistance:1,liftSpeed:5,tolerance:.1,retries:0,result:'average' as const},signal=new AbortController().signal;
+ const result=await collectProbeSamples(policy,async()=>({trigger:[1,2,3,4,5],halt:[1,2,3,4,5]}),async p=>{assert.deepEqual(p,[1,2,4,4,5]);},signal);assert.deepEqual(result.position,[1,2,3,4,5]);
+ let n=0;await assert.rejects(collectProbeSamples(policy,async()=>{const p=++n===1?[1,2,3,4]:[1,2,3,4,5];return {trigger:p,halt:p};},async()=>{},signal),/coordinates/);
+});

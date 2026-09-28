@@ -37,7 +37,7 @@ import {LinearHomingSeek,type LinearSeekOptions} from './linear-seek.ts';
 import {HomingRetractExecution} from './retract-execution.ts';
 import {CoordinateRebase} from './recovery.ts';
 import {bindRebuiltMotion} from '../runtime/rebuilt-motion.ts';
-import {createGuardedBedMeshPort,createMotionValidator} from '../motion/guarded-bed-mesh-port.ts';
+import {createGuardedBedMeshPort,createMotionValidator,createMultiExtrusionMeshPort,createMultiExtrusionValidator,type GuardedBedMeshOptions,type ExtrusionAxisPolicy} from '../motion/guarded-bed-mesh-port.ts';
 import type {ExtrusionGuard} from '../motion/extrusion.ts';
 import type {MotionLimits} from '../motion/lookahead.ts';
 import {VelocityLimits,VelocityUpdateUnavailable,type VelocitySettings,type VelocityUpdate} from '../motion/velocity-limits.ts';
@@ -58,6 +58,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  probeHoming?:Readonly<{minimumZ:number;offset:number}>;
  probeGroups?:LinearSeekOptions['groups'];
  groupsByAxis:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups'],LinearSeekOptions['groups']];
+ extruders?:readonly ExtrusionAxisPolicy[];
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
@@ -121,7 +122,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    }
   }else if(o.carriages)throw new Error('Carriage ownership requires dual carriage kinematics');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,carriages:o.carriages?{homingRails:o.carriages.homingRails?structuredClone(o.carriages.homingRails):undefined,emitterIds:[...o.carriages.emitterIds],groups:o.carriages.groups.map(gs=>gs.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NonNullable<NativeLinearPortOptions['carriages']>['groups']}:undefined,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,extruders:o.extruders?.map(p=>({...p})),carriages:o.carriages?{homingRails:o.carriages.homingRails?structuredClone(o.carriages.homingRails):undefined,emitterIds:[...o.carriages.emitterIds],groups:o.carriages.groups.map(gs=>gs.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NonNullable<NativeLinearPortOptions['carriages']>['groups']}:undefined,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#tilt=o.bedTilt?new BedTilt(o.bedTilt.adjust):undefined;
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
@@ -147,13 +148,14 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
  #watchGroup(){this.#unsubscribeGroup?.();this.#unsubscribeGroup=this.#g.group.subscribeStop(cause=>{void this.motorOff(cause).catch(()=>{});});}
- #newAdmission(position:readonly number[],physical=false){return createGuardedBedMeshPort({skew:physical?undefined:this.#skew,tilt:physical?undefined:this.#tilt,mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
+ #createAdmission(options:GuardedBedMeshOptions){return this.#o.extruders?createMultiExtrusionMeshPort({...options,extruders:this.#o.extruders}):createGuardedBedMeshPort(options);}
+ #newAdmission(position:readonly number[],physical=false){return this.#createAdmission({skew:physical?undefined:this.#skew,tilt:physical?undefined:this.#tilt,mesh:physical?null:this.#mesh,...this.#meshSettings,physicalPosition:position,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});}
  get skewStatus(){return {configured:this.#o.skewProfiles!==undefined,factors:{...(this.#skew?.factors??{xy:0,xz:0,yz:0})},revision:String(this.#skewRevision)};}
  setSkew(factors:SkewFactors|undefined,signal:AbortSignal):Promise<void>{
   if(this.#o.skewProfiles===undefined)return Promise.reject(new Error('Skew correction is not configured'));
   const next=factors?new SkewCorrection(factors):undefined;
   return this.#operate('skew',signal,async s=>{
-   const admission=createGuardedBedMeshPort({skew:next,tilt:this.#tilt,mesh:this.#mesh,...this.#meshSettings,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   const admission=this.#createAdmission({skew:next,tilt:this.#tilt,mesh:this.#mesh,...this.#meshSettings,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
    await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Skew generation replaced'));this.#admission=admission;this.#skew=next;this.#skewRevision++;
   });
  }
@@ -185,7 +187,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const file=mesh&&fileIdentity?Object.freeze({...fileIdentity}):undefined;
   const owned=mesh?.copy()??null,options=structuredClone(settings),status=nativeBedMeshStatus(owned,profileName);
   return this.#operate('mesh',signal,async s=>{
-   const next=createGuardedBedMeshPort({skew:this.#skew,tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+   const next=this.#createAdmission({skew:this.#skew,tilt:this.#tilt,mesh:owned,...options,physicalPosition:this.#admission.plannedPosition,limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
    await this.#drain(s);this.#check(s);this.#admission.shutdown(new Error('Mesh generation replaced'));this.#mesh=owned;this.#meshSettings=options;this.#admission=next;this.#meshStatus=status;this.#meshFile=file;
   });
  }
@@ -434,7 +436,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   const current=this.#g.source.status;if(!current.paused||!this.#pausePosition||current.position.length!==this.#pausePosition.length||current.position.some((v,i)=>v!==this.#pausePosition![i]))throw new Error('Must return to the drained pause position before resuming',{cause:{current,expected:this.#pausePosition}});
   this.#resuming=true;
   const abort=()=>{void this.motorOff(signal.reason).catch(()=>{});};signal.addEventListener('abort',abort,{once:true});
-  try{if(this.#pauseMode!=='stationary')await this.#streamer.resume(createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;this.#pausePosition=undefined;this.#pauseMode=undefined;}
+  try{if(this.#pauseMode!=='stationary')await this.#streamer.resume(this.#o.extruders?createMultiExtrusionValidator(this.#o.kinematics,this.#o.extruders):createMotionValidator(this.#o));this.#check(signal);this.#pause=undefined;this.#pauseReady=false;this.#pausePosition=undefined;this.#pauseMode=undefined;}
   catch(error){try{await this.motorOff(error);}catch(stop){throw new AggregateError([error,stop],'Native resume and stop failed');}throw error;}
   finally{this.#resuming=false;signal.removeEventListener('abort',abort);}
  }
@@ -475,7 +477,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    await this.#drain(s);const g=this.#g,routes=layout?.routes??g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition}));
    let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
    try{
-    if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
+    if(target.length!==this.homingPosition().length||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
     const emitters=recoveryEmitters(g.motion.bindings,layout?.emitters??this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
     motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,carriageTransforms:layout?.carriageTransforms,locate:()=>({queues:routes.map(r=>({id:r.id,position:r.stationaryPosition??(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
     this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
@@ -544,7 +546,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    // Probe points are nozzle XY, while fitting uses the probe's bed XY.
    solve(plan.points.map(p=>[p[0]+config.offsets[0],p[1]+config.offsets[1],0]),plan.horizontalHeight);
    const admission=this.#newAdmission(this.homingPosition(),true);
-   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
+   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,...this.homingPosition().slice(3)];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,...target.slice(3)],config.speed);}}
    finally{admission.shutdown(new Error('Z tilt preflight complete'));}
    await this.#drain(s);let previous:number|undefined,increasing=0;
    for(let pass=0;pass<=plan.retries;pass++){
@@ -622,7 +624,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   });
  }
  #applyBedTilt(samples:number[][]){
-  const tilt=fitBedTilt(samples),next=createGuardedBedMeshPort({skew:this.#skew,tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
+  const tilt=fitBedTilt(samples),next=this.#createAdmission({skew:this.#skew,tilt,mesh:null,physicalPosition:this.homingPosition(),limits:this.#o.limits,kinematics:this.#o.kinematics,extrusion:this.#o.extrusion,canExtrude:this.#o.canExtrude});
   this.#admission.shutdown(new Error('Bed tilt calibration applied'));this.#admission=next;this.#tilt=tilt;this.#tiltRevision++;
   return {adjust:{...tilt.adjust},samples};
  }
