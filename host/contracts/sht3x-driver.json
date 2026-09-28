@@ -1,0 +1,36 @@
+{
+  "status": "driver and native I2C verified; product wiring pending",
+  "tests": 11,
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 original Python sample callbacks vs TS async driver samples with fake I2C; Python includes range/callback/report handling, TS excludes periodic owner; no electrical IO; 4096 values and all 65536 CRCs match; 3 warmups and 5 alternating retained rounds",
+    "baseline": {
+      "samplesMs": [
+        484.99742099375,
+        485.1715040131239,
+        475.80595599720255,
+        483.6913870094577,
+        471.83152999787126
+      ],
+      "medianMs": 483.6913870094577
+    },
+    "current": {
+      "samplesMs": [
+        49.92625199999975,
+        50.55946900000026,
+        49.516937999999755,
+        49.32197499999984,
+        47.94082900000012
+      ],
+      "medianMs": 49.516937999999755
+    }
+  },
+  "limitations": [
+    "No physical SHT3X or printer acceptance",
+    "Configuration and periodic runtime not wired",
+    "CRC failure rejects instead of reusing old values",
+    "Failed I2C session is not retried",
+    "Python baseline includes callback/range/report work; TS timing excludes periodic owner",
+    "No Python retired"
+  ]
+}
