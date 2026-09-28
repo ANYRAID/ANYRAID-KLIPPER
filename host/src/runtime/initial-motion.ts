@@ -86,11 +86,10 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
    const result=createConfiguredNativeLinearPort(reader,{...resolved,probeDevice:hardware.bltouch?{device:hardware.bltouch.device,endstop:hardware.bltouch.endstop}:undefined,endstopPhases:configureEndstopPhases(reader,plan.steppers,hardware.drivers),generation,emitters,extruders:policies.length>1?policies:undefined,canExtrude:()=>heater.canExtrude()});port=result.port;
    const createPrint=async(options:ConfiguredPrintOptions)=>{
     group.assertActive();if(printPending)throw new Error('Configured print already owned');
-    if(policies.length>1)throw new Error('Multiple extruders require a configured tool-selection print adapter');
     const nozzle=section!.trim().split(/\s+/).at(-1)!,bed=options.bedHeater??'heater_bed';
     if(nozzle===bed||!hardware.heaters.status.available_heaters.some(name=>name.trim().split(/\s+/).at(-1)===bed))throw new Error('Configured print bed heater is missing');
-    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction,{stepper:extruders[0].id,name:section!},bedMesh,reader.hasSection('exclude_object'),reader.sections().filter(s=>s.startsWith('servo ')).map(s=>readServo(reader,s)));
-    printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed}});
+    const gcode=new NativeLinearGCode(result.port,result.kinematics,result.rails,options.output,options.homingTimeoutMs,arcResolution,retraction,{stepper:extruders[0].id,name:section!},bedMesh,reader.hasSection('exclude_object'),reader.sections().filter(s=>s.startsWith('servo ')).map(s=>readServo(reader,s)),names.length>1?names.map((name,i)=>({name,stepper:extruders[i].id})):undefined);
+    printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed,...names.length>1?{extruders:names}:{}}});
     try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured print and cleanup failed',{cause:error});}throw error;}
    };
    return Object.freeze({...result,toolBindings:Object.freeze(names.map((name,i)=>Object.freeze({name,stepper:extruders[i].id}))),createPrint});

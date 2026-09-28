@@ -21,7 +21,6 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
   hardware=await startConfiguredHardware(reader,f.group,f.clocks,plan.layout,{...f.options.hardware,motion:plan.motion},f.signal);
   const initial=await initializeConfiguredMotion(hardware,plan.initial,f.signal),machine=initial.createLinearPort(reader,plan.linear),port=machine.port;
   assert.deepEqual(port.position(),[0,0,0,0,0]);assert.equal(machine.kinematics.status.homedAxes,'');
-  await assert.rejects(machine.createPrint(f.options.print),/tool-selection/);
   assert.throws(()=>port.move([0,0,0,0,.1],5),/temperature/);assert.equal(port.status.failed,false);
   let secondHot=false;
   const emit=()=>{for(const section of ['extruder','extruder1']){const h=hardware!.plan.heaters.find(h=>h.section===section)!;const temperature=section==='extruder'||secondHot?200:20,raw=Math.round(h.configuration.converter.adc(temperature)*h.sensor.adc.maximumSum),session=f.group.session('aux'),next=session.clock.sync.getClock(serialClock.now())+292000n;f.firmware[1].emit('analog_in_state',{oid:h.sensor.adc.oid,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});}};
