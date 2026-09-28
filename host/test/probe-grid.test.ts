@@ -21,3 +21,22 @@ for(const external of [false,true])test(`zero reference ${external?'outside':'in
  assert.deepEqual([...mesh.probedValues()],[70-offset,80-offset,90-offset,100-offset]);if(!external)assert.equal(mesh.calcZ(...reference),0);
  assert.equal(position[2],5);if(external)assert.deepEqual(position.slice(0,2),[23,38]);
 });
+test('circular grid probes only disk points and pads edges without transposing snake rows',async()=>{
+ const plan=planProbeGrid({...options,circle:{radius:20,origin:[12,-7]},mesh:{...options.mesh,x_count:5,y_count:5}},[2,-3,0]);
+ assert.equal(plan.points.length,13);
+ assert.deepEqual(plan.points.map(p=>[p.x,p.y]),[[2,0],[3,1],[2,1],[1,1],[0,2],[1,2],[2,2],[3,2],[4,2],[3,3],[2,3],[1,3],[2,4]]);
+ let position=[0,0,5,17];const mesh=await measureProbeGrid(plan,{position:()=>position,move:async p=>{position=[...p];},probe:async()=>{const x=position[0]+2,y=position[1]-3;assert(Math.hypot(x-12,y+7)<=20);return x+2*y;}},new AbortController().signal);
+ assert.deepEqual([...mesh.probedValues()],[-42,-42,-42,-42,-42,-32,-32,-22,-12,-12,-22,-12,-2,8,18,8,8,18,28,28,38,38,38,38,38]);
+ assert.equal(mesh.calcZ(12,-7),-2);assert.equal(position[3],17);
+});
+test('circular spacing truncates hundredths and rejects even counts',()=>{
+ const grid={...options,circle:{radius:50,origin:[0,0] as const},mesh:{...options.mesh,x_count:7,y_count:7}};
+ const plan=planProbeGrid(grid,[0,0,0]);assert.equal(plan.mesh.max_x,3*16.66);assert.equal(plan.mesh.min_y,-3*16.66);
+ assert(plan.points.every(p=>Math.hypot(p.nozzleX,p.nozzleY)<=50));
+ assert.throws(()=>planProbeGrid({...grid,mesh:{...grid.mesh,x_count:4,y_count:4}},[0,0,0]),/circular/);
+});
+for(const external of [false,true])test(`circular zero reference is applied after edge padding; external=${external}`,async()=>{
+ const reference:[number,number]=external?[30,0]:[0,0],plan=planProbeGrid({...options,zeroReference:reference,circle:{radius:20,origin:[0,0]},mesh:{...options.mesh,x_count:5,y_count:5}},[2,3,0]);let position=[0,0,5,0],samples=0;
+ const mesh=await measureProbeGrid(plan,{position:()=>position,move:async p=>{position=[...p];},probe:async()=>{samples++;return position[0]+2+2*(position[1]+3);}},new AbortController().signal);
+ assert.equal(samples,external?14:13);assert.equal(mesh.calcZ(0,0),external?-30:0);assert.equal(mesh.calcZ(-20,-20),external?-70:-40);
+});

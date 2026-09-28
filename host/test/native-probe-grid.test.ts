@@ -4,7 +4,7 @@ import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {serialClock} from '../src/protocol/serial-queue.ts';
 import {BedMesh} from '../src/motion/bed-mesh.ts';
 const grid={mesh:{min_x:50,max_x:50.01,min_y:0,max_y:.01,x_count:2,y_count:2,mesh_x_pps:0,mesh_y_pps:0,algo:'direct' as const,tension:.2},horizontalHeight:1,travelSpeed:10};
-test('native grid travels and measures all four points without replacing the old mesh',async()=>{
+for(const circular of [false,true])test(`native grid measures without replacing old mesh; circular=${circular}`,async()=>{
  const t=await nativeLinearFixture(0,()=>false,false,undefined,false,false,false,{z_offset:'0'}),s=new AbortController().signal,handled=new Set<unknown>();let hits=0;
  const timer=setInterval(()=>{
   const output=t.f.fw.outputs,arm=output.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0&&!handled.has(m));
@@ -14,8 +14,8 @@ test('native grid travels and measures all four points without replacing the old
  },1);
  try{
   t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,0],s);const old=new BedMesh(grid.mesh,[[.1,.1],[.1,.1]]);await t.port.replaceBedMesh(old,{},s,'old');
-  const running=t.port.measureBedMesh(grid,0,s);assert.throws(()=>t.port.move([50,0,2,0],5),/busy/);const mesh=await running;
-  assert.equal(hits,4);assert.deepEqual([...mesh.probedValues()],[.88,.88,.88,.88]);assert.equal(t.port.bedMeshStatus.profile_name,'old');assert.equal(t.port.homingPosition()[2],1);assert.equal(t.port.status.failed,false);
+  const active=circular?{...grid,circle:{radius:1,origin:[50,2] as const},mesh:{...grid.mesh,x_count:3,y_count:3}}:grid;const running=t.port.measureBedMesh(active,0,s);assert.throws(()=>t.port.move([50,0,2,0],5),/busy/);const mesh=await running;
+  assert.equal(hits,circular?5:4);assert([...mesh.probedValues()].every(v=>Math.abs(v-.88)<1e-12));assert.equal(t.port.bedMeshStatus.profile_name,'old');assert.equal(t.port.homingPosition()[2],1);assert.equal(t.port.status.failed,false);
  }finally{clearInterval(timer);await t.close();}
 });
 for(const failure of ['range','reference','triggered'] as const)test(`failed native grid preserves old mesh (${failure})`,async()=>{
