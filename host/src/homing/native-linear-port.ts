@@ -1,3 +1,4 @@
+import {carriageHomingOrder} from '../kinematics/dual-carriage.ts';
 import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
 import {nativeCarriageTransforms,carriageSolvers} from '../kinematics/dual-carriage-projection.ts';
 import type {CarriageMode} from '../kinematics/dual-carriage.ts';
@@ -31,7 +32,7 @@ import {BedMesh} from '../motion/bed-mesh.ts';
 import type {BedMeshFadeConfig} from '../motion/bed-mesh-fade.ts';
 import {StopNotice} from '../runtime/stop-notice.ts';
 import {dwellMove} from '../motion/dwell.ts';
-import type {LinearHomingPort,HomingPass} from './linear-command.ts';
+import type {LinearHomingPort,LinearHomingRail,HomingPass} from './linear-command.ts';
 import {LinearHomingSeek,type LinearSeekOptions} from './linear-seek.ts';
 import {HomingRetractExecution} from './retract-execution.ts';
 import {CoordinateRebase} from './recovery.ts';
@@ -47,7 +48,7 @@ import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'|'kinematics'> {
  kinematics:LinearKinematics|DeltaKinematics;
- carriages?:{emitterIds:readonly [string,string];groups:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups']]};
+ carriages?:{homingRails?:readonly [LinearHomingRail,LinearHomingRail];emitterIds:readonly [string,string];groups:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups']]};
  skewProfiles?:Readonly<Record<string,Readonly<SkewFactors>>>;
  bedTilt?:BedTilt;
  endstopPhases?:readonly ConfiguredEndstopPhase[];
@@ -111,23 +112,30 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(o.kinematics instanceof DualCarriageLinearKinematics){
    const c=o.carriages,k=o.kinematics,modes=carriageSolvers(k.geometry),transforms=nativeCarriageTransforms(k.geometry,k.carriages);
    if(!c||c.emitterIds.length!==2||new Set(c.emitterIds).size!==2||c.groups.length!==2||c.groups.some(g=>!g.length)||o.kinematicIds[k.geometry.axis]!==c.emitterIds[k.primary])throw new Error('Invalid dual carriage port ownership');
+   if(c.homingRails){
+    if(c.homingRails.length!==2)throw new Error('Two carriage homing rails required');
+    for(const [i,r] of c.homingRails.entries())if(r.endstop!==k.geometry.rails[i].endstop||r.positiveDirection!==k.geometry.rails[i].positiveDirection||![r.speed,r.secondSpeed,r.retractSpeed].every(v=>Number.isFinite(v)&&v>0)||!Number.isFinite(r.retractDistance)||r.retractDistance<0||r.endstops.length!==c.groups[i].length||new Set(r.endstops).size!==r.endstops.length||r.endstops.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new Error('Invalid dual carriage homing rail');
+   }
    for(let i=0;i<2;i++){const e=o.emitters.find(e=>e.id===c.emitterIds[i]),b=o.generation.motion.bindings.find(b=>b.id===c.emitterIds[i]),live=b?.stepper.recoveryFilters().carriage;
     if(e?.mode!==modes[i]||e.queueId!==o.emitters.find(e=>e.id===c.emitterIds[0])?.queueId||!b||!o.generation.routes.some(r=>r.queue===b.queue&&r.extrusionAxis===undefined&&r.stationaryPosition===undefined)||!c.groups[i].some(g=>g.members.some(m=>m.emitters.includes(c.emitterIds[i])))||!live||Object.keys(transforms[i]).some(key=>live[key as keyof typeof live]!==transforms[i][key as keyof typeof live]))throw new Error('Native carriage solvers differ from configured state');
    }
   }else if(o.carriages)throw new Error('Carriage ownership requires dual carriage kinematics');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,carriages:o.carriages?{emitterIds:[...o.carriages.emitterIds],groups:o.carriages.groups.map(gs=>gs.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NonNullable<NativeLinearPortOptions['carriages']>['groups']}:undefined,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,carriages:o.carriages?{homingRails:o.carriages.homingRails?structuredClone(o.carriages.homingRails):undefined,emitterIds:[...o.carriages.emitterIds],groups:o.carriages.groups.map(gs=>gs.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NonNullable<NativeLinearPortOptions['carriages']>['groups']}:undefined,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#tilt=o.bedTilt?new BedTilt(o.bedTilt.adjust):undefined;
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
  }
  get carriageStatus(){const k=this.#o.kinematics;return k instanceof DualCarriageLinearKinematics?{primary:k.primary,carriages:k.carriages,homed:k.homedCarriages}:undefined;}
- setCarriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal):Promise<void>{
+ get carriageHoming():LinearHomingPort['carriageHoming']{const k=this.#o.kinematics,c=this.#o.carriages;if(!(k instanceof DualCarriageLinearKinematics)||!c?.homingRails)return undefined;return {axis:k.geometry.axis,primary:k.primary,order:carriageHomingOrder(k.geometry.rails),rails:structuredClone(c.homingRails),select:(index,signal)=>this.#carriageMode(index,'PRIMARY',signal,true)};}
+ setCarriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal):Promise<void>{return this.#carriageMode(index,mode,signal,false);}
+ #carriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal,homing:boolean):Promise<void>{
   const k=this.#o.kinematics,c=this.#o.carriages;if(!(k instanceof DualCarriageLinearKinematics)||!c)return Promise.reject(new Error('Dual carriage is not configured'));
   // Reject invalid user proposals before entering a transaction that owns IO.
-  k.planMode(this.homingPosition()[k.geometry.axis],index,mode);
+  const propose=(position:number)=>homing?k.planHomingPrimary(position,index):k.planMode(position,index,mode);
+  propose(this.homingPosition()[k.geometry.axis]);
   return this.#operate('carriage',signal,async s=>{
-   const target=[...this.homingPosition()],plan=k.planMode(target[k.geometry.axis],index,mode);target[k.geometry.axis]=plan.position;
+   const target=[...this.homingPosition()],plan=propose(target[k.geometry.axis]);target[k.geometry.axis]=plan.position;
    const transforms=nativeCarriageTransforms(k.geometry,plan.carriages),g=this.#g;
    await this.#rebase(target,s,{emitters:this.#o.emitters,routes:g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition})),carriageTransforms:transforms.map((transform,i)=>({id:c.emitterIds[i],transform}))});
    k.commitCarriages(plan.carriages);const ids=[...this.#o.kinematicIds] as [string,string,string];ids[k.geometry.axis]=c.emitterIds[k.primary];this.#o.kinematicIds=ids;

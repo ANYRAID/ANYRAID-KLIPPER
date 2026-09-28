@@ -1,0 +1,12 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "Two-carriage G28 with simulated immediate endstop hits and real host scheduling; excludes fixture startup; includes scheduled seek lead times, not physical travel",
+  "samplesMs": [
+    417.09233100000006,
+    413.49743000000035,
+    415.74818000000005,
+    413.00388099999964,
+    411.60163099999954
+  ],
+  "medianMs": 413.49743000000035
+}

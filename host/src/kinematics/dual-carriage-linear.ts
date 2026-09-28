@@ -17,6 +17,8 @@ export class DualCarriageLinearKinematics extends LinearKinematics {
  get carriages():CarriagePair{return this.#carriages;}
  get primary():0|1{return this.#carriages[0].mode==='PRIMARY'?0:1;}
  get solverModes():LinearKinematics['solverModes']{const modes=[...super.solverModes] as unknown as ['x'|'corexy+'|'corexy-'|'corexz+'|'corexz-','y'|'corexy-','z'|'corexz-'];if(this.geometry.axis===0)modes[0]=carriageSolvers(this.geometry)[this.primary] as typeof modes[0];return modes;}
+ /** Homing alone may select a rail before either parked coordinate is known. */
+ planHomingPrimary(position:number,index:0|1){return planCarriageMode(this.#carriages,position,index,'PRIMARY',false);}
  planMode(position:number,index:0|1,mode:CarriageMode){
   const plan=planCarriageMode(this.#carriages,position,index,mode,this.#homed.every(Boolean));
   if(plan.carriages.filter(c=>c.mode==='PRIMARY').length!==1)throw new Error('Carriage mode must retain one primary');

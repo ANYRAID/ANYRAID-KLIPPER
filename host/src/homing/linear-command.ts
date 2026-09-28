@@ -1,3 +1,4 @@
+import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
 import {safeZHomingSettings,type SafeZHoming} from './safe-z-home.ts';
 // Linear-axis G28 sequencing from klippy/extras/homing.py. GPL-3.0-or-later.
 import {GCodeDispatch,GCodeError} from '../gcode/dispatch.ts';
@@ -25,6 +26,7 @@ export interface HomingPass {
  * motorOff must fence pending work, including callbacks which settle late.
  * Every asynchronous operation must honor signal and check device health. */
 export interface LinearHomingPort extends MovePort {
+ readonly carriageHoming?:{readonly axis:0|1;readonly primary:0|1;readonly order:readonly [0|1,0|1];readonly rails:readonly [LinearHomingRail,LinearHomingRail];select(index:0|1,signal:AbortSignal):Promise<void>};
  readonly safeZHoming?:Readonly<SafeZHoming>;
  homingTravel?(position:readonly number[],speed:number,signal:AbortSignal):Promise<void>;
  /** Physical halt coordinates for privileged homing; ordinary position may be transformed. */
@@ -60,10 +62,12 @@ export class LinearHomingCommand {
  #cleanupPending=false;#cleanupFailed=false;#cleanupError:unknown;
  constructor(kinematics:LinearKinematics,coordinates:GCodeMove,port:LinearHomingPort,rails:readonly LinearHomingRail[],timeoutMs=120000){
   if(!coordinates.usesPort(port)||rails.length!==3||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new Error('Invalid linear homing ownership');
-  for(const [i,r] of rails.entries()){
+  for(const [i,configuredRail] of rails.entries()){
+   const r=kinematics instanceof DualCarriageLinearKinematics&&i===kinematics.geometry.axis?port.carriageHoming?.rails[kinematics.primary]??configuredRail:configuredRail;
    const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);
    if(typeof r.positiveDirection!=='boolean'||![r.speed,r.retractSpeed,r.secondSpeed].every(v=>Number.isFinite(v)&&v>0)||!Number.isFinite(r.retractDistance)||r.retractDistance<0||geometry.force[i]===geometry.home[i]||!r.endstops.length||r.endstops.length>16||new Set(r.endstops).size!==r.endstops.length||r.endstops.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new RangeError('Invalid linear homing rail');
   }
+  if(kinematics instanceof DualCarriageLinearKinematics&&(!port.carriageHoming||port.carriageHoming.axis!==kinematics.geometry.axis||port.carriageHoming.primary!==kinematics.primary))throw new Error('Dual carriage G28 requires both rail owners');
   if(port.safeZHoming){if(!port.homingTravel)throw new Error('Safe Z homing requires physical travel ownership');this.#safe=safeZHomingSettings(port.safeZHoming,kinematics.status);}
   this.#kin=kinematics;this.#coordinates=coordinates;this.#port=port;this.#rails=rails.map(r=>({...r,endstops:[...r.endstops]}));this.#timeout=timeoutMs;
  }
@@ -88,6 +92,17 @@ export class LinearHomingCommand {
   const position=()=>{const p=[...(this.#port.homingPosition?.()??this.#port.position())];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
   const fill=(coord:readonly (number|null)[])=>{const p=position();for(let i=0;i<coord.length;i++)if(coord[i]!==null)p[i]=coord[i]!;return p;};
 
+  const homeRail=async(axis:Axis,rail:LinearHomingRail)=>{
+    const geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
+    await run(this.#port.forcePosition(fill(geometry.force),s));
+    let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirmHomingPass(finalPass,rail.endstops,false);
+    if(rail.retractDistance){
+     const target=fill(geometry.home),{retract,start}=homingRetract(fill(geometry.force),target,rail.retractDistance);
+     await run(this.#port.retract(retract,rail.retractSpeed,axis,s));await run(this.#port.forcePosition(start,s));
+     finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirmHomingPass(finalPass,rail.endstops,true);
+    }
+    await run(this.#port.drain(s));if(this.#port.finishHoming)await run(this.#port.finishHoming(finalPass,axis,rail.endstop,s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
+  };
   try{
    check();await run(this.#port.drain(s));
    const safe=this.#safe,travel=async(target:number[],speed:number)=>{if(target.every((v,i)=>v===position()[i]))return;await run(this.#port.homingTravel!(target,speed,s));this.#coordinates.resetPosition();};
@@ -99,15 +114,11 @@ export class LinearHomingCommand {
    for(const axis of selected){
     check();let previousXY:readonly number[]|undefined;
     if(axis===2&&safe){if(!this.#kin.status.homedAxes.includes('x')||!this.#kin.status.homedAxes.includes('y'))throw new GCodeError('Safe Z homing requires homed XY');const p=position();previousXY=p.slice(0,2);p[0]=safe.position[0];p[1]=safe.position[1];await travel(p,safe.speed);}
-    const rail=this.#rails[axis],geometry=this.#kin.homingMove(axis,rail.endstop,rail.positiveDirection),home=fill(geometry.home);
-    await run(this.#port.forcePosition(fill(geometry.force),s));
-    let finalPass=await run(this.#port.home(home,rail.speed,axis,s));confirmHomingPass(finalPass,rail.endstops,false);
-    if(rail.retractDistance){
-     const target=fill(geometry.home),{retract,start}=homingRetract(fill(geometry.force),target,rail.retractDistance);
-     await run(this.#port.retract(retract,rail.retractSpeed,axis,s));await run(this.#port.forcePosition(start,s));
-     finalPass=await run(this.#port.home(target,rail.secondSpeed,axis,s));confirmHomingPass(finalPass,rail.endstops,true);
-    }
-    await run(this.#port.drain(s));if(this.#port.finishHoming)await run(this.#port.finishHoming(finalPass,axis,rail.endstop,s));check();this.#coordinates.home([axis]);check();this.#kin.markHomed([axis]);
+    const carriage=this.#port.carriageHoming;
+    if(carriage?.axis===axis){
+     for(const index of carriage.order){await run(carriage.select(index,s));this.#coordinates.resetPosition();await homeRail(axis,carriage.rails[index]);}
+     await run(carriage.select(carriage.primary,s));this.#coordinates.resetPosition();
+    }else await homeRail(axis,this.#rails[axis]);
     if(axis===2&&safe){let p=position();if(safe.hop&&p[2]<safe.hop){p[2]=safe.hop;await travel(p,safe.hopSpeed);}if(safe.moveToPrevious){p=position();p[0]=previousXY![0];p[1]=previousXY![1];await travel(p,safe.speed);}}
    }
   }catch(error){
