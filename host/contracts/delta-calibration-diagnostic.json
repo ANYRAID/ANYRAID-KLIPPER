@@ -1,0 +1,139 @@
+{
+  "node": "v26.9.0",
+  "warmups": 0,
+  "samples": 1,
+  "results": [
+    {
+      "extended": false,
+      "nodeMs": 37.82891500000187,
+      "pythonMs": 55.947478002053685,
+      "speedup": 1.4789606839649225,
+      "maxPositionError": 0,
+      "maxParameterError": 0,
+      "finalError": 5.363333196667824e-13,
+      "geometry": {
+        "radius": 100.19999923785382,
+        "angles": [
+          209.99999939094658,
+          329.99999819257243,
+          90
+        ],
+        "arms": [
+          250,
+          251,
+          250.5
+        ],
+        "endstops": [
+          300.099999840083,
+          300.100000169784,
+          300.0999993105693
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "pythonGeometry": {
+        "radius": 100.19999923785382,
+        "angles": [
+          209.99999939094658,
+          329.99999819257243,
+          90
+        ],
+        "arms": [
+          250,
+          251,
+          250.5
+        ],
+        "endstops": [
+          300.099999840083,
+          300.100000169784,
+          300.0999993105693
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "passed": true,
+      "nodeSamplesMs": [
+        37.82891500000187
+      ],
+      "pythonSamplesMs": [
+        55.947478002053685
+      ]
+    },
+    {
+      "extended": true,
+      "nodeMs": 6691.100585,
+      "pythonMs": 18724.74816400063,
+      "speedup": 2.798455639118244,
+      "maxPositionError": 0.00004371694188876063,
+      "maxParameterError": 0.000057195295113388056,
+      "finalError": 8.323881549957341e-8,
+      "geometry": {
+        "radius": 100.19992853414439,
+        "angles": [
+          210.00573711476505,
+          330.0044697554699,
+          90
+        ],
+        "arms": [
+          250.0102263895879,
+          250.98649572645886,
+          250.5027851520665
+        ],
+        "endstops": [
+          300.09846752626663,
+          300.1019443187206,
+          300.09956355021956
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "pythonGeometry": {
+        "radius": 100.19993143296601,
+        "angles": [
+          210.00571498383528,
+          330.0044455230465,
+          90
+        ],
+        "arms": [
+          250.0101795390059,
+          250.98655292175397,
+          250.5027954354956
+        ],
+        "endstops": [
+          300.0984763345624,
+          300.10193604645536,
+          300.09956340185767
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "passed": false,
+      "nodeSamplesMs": [
+        6691.100585
+      ],
+      "pythonSamplesMs": [
+        18724.74816400063
+      ]
+    }
+  ],
+  "scope": "Original Python DeltaCalibration and DeltaCalibrate.calculate_params vs TS kernel on asymmetric three-tower geometry, seven heights, with/without twelve distance constraints. Excludes worker startup, probe IO, persistence and physical accuracy.",
+  "passed": false,
+  "notes": [
+    "Single-run diagnostic; no stable performance acceptance.",
+    "Extended calibration fails position agreement 1e-5 mm and objective error 1e-8 gates. These are numerical comparison gates, not physical printer tolerances.",
+    "Initial restricted subprocess attempts timed out before case progress; file-backed input plus escalated process execution produced results. Cause not isolated.",
+    "No product API, geometry application or configuration persistence is connected."
+  ]
+}
