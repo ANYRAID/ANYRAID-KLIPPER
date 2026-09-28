@@ -16,6 +16,22 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 单小车 `hybrid_corexy` / `hybrid_corexz` 已接通 Node 配置、原生求解器
+  映射、位置还原和归零重建；分别使用 `(x-y,y,z)` / `(x-z,y,z)` 电机
+  坐标。共享映射用于硬件装配和归零校验，避免不同入口选错求解器。
+  20,000 组二进制分数坐标回算严格相等，31 项配置、运动、相位与回退
+  回归通过。双小车仍明确拒绝；混合 CoreXZ 的 Z 耦合不能进入独立 Z
+  电机调平，配置和执行两处均保留保护。Python 模块未退役，数量仍为 177。
+  两种机型均通过编译产品全流程：独立安装锁定依赖、上传、归零、打印、
+  对象取消、暂停超时、运行代重建、温度历史保持和 ADC 故障停机。见
+  `host/contracts/hybrid-core-product.json`；使用模拟 MCU，未施加并发负载，
+  不证明真实运动精度或硬件接线。
+  100,000 次位置还原、Move 创建及准入检查中位：Cartesian 60.79 ms，
+  CoreXY 58.69 ms，CoreXZ 57.64 ms，Hybrid CoreXY 65.36 ms，
+  Hybrid CoreXZ 60.98 ms。混合模式约 153／164 万次每秒；这是本机合成
+  基准，包含结果断言，不包含原生步进生成和设备 IO。证据见
+  `host/contracts/hybrid-core.json`，精度、运行时异常及实机门禁仍未关闭。
+
 - MCU 调试控制台已接通 `scripts/console.ts`，旧 `klippy/console.py` 已退役，
   Python 文件从 178 减至 177，默认打印入口仍为 Python。新算术只接受
   数值、显式变量、括号及算术／

@@ -454,7 +454,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return this.#operate('z-tilt',signal,async s=>{this.#zTiltApplied=false;const plan=await this.#adjustZTilt(measured,pivots,maximumTravel,speed,s);this.#zTiltApplied=true;return plan;});
  }
  async #adjustZTilt(measured:readonly (readonly number[])[],pivots:readonly ZTiltMotor[],maximumTravel:number,speed:number,s:AbortSignal){
-   if((this.#o.kinematics.kind==='corexz'||this.#o.kinematics.kind==='delta')||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
+   if(((this.#o.kinematics.kind==='corexz'||this.#o.kinematics.kind==='hybrid_corexz')||this.#o.kinematics.kind==='delta')||this.#o.kinematics.status.homedAxes!=='xyz'||!Number.isFinite(speed)||speed<=0)throw new Error('Z tilt requires homed independent Z motors and positive speed');
    const z=this.#o.emitters.filter(e=>e.mode==='z');
    if(z.length!==pivots.length||z.some(e=>!pivots.some(m=>m.id===e.id)))throw new Error('Z tilt must own every independent Z motor');
    await this.#drain(s);const start=[...this.homingPosition()],plan=planZTilt(measured,pivots,start[2],maximumTravel);
@@ -488,7 +488,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   return this.#operate('quad-gantry',signal,async s=>{
    this.#quadGantryApplied=false;
    const z=this.#o.emitters.filter(e=>e.mode==='z');
-   if(this.#o.kinematics.kind==='corexz'||this.#o.kinematics.status.homedAxes!=='xyz'||z.length!==4||z.some(e=>!ids.includes(e.id))||!Number.isFinite(speed)||speed<=0)throw new Error('Quad gantry requires homed independent four Z motors');
+   if((this.#o.kinematics.kind==='corexz'||this.#o.kinematics.kind==='hybrid_corexz')||this.#o.kinematics.status.homedAxes!=='xyz'||z.length!==4||z.some(e=>!ids.includes(e.id))||!Number.isFinite(speed)||speed<=0)throw new Error('Quad gantry requires homed independent four Z motors');
    await this.#drain(s);const plan=planQuadGantry(measured,geometry,ids,this.homingPosition()[2],maximumTravel);
    await this.#executeZAdjustment(plan,speed,s);this.#quadGantryApplied=true;return plan;
   });
@@ -505,7 +505,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    const solve=(samples:readonly (readonly number[])[],z:number)=>'corners' in plan?planQuadGantry(samples,plan.corners,ids,z,plan.maximumTravel):planZTilt(samples,plan.motors,z,plan.maximumTravel);
    if(!config||!this.#o.probeGroups||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Z tilt calibration requires configured probe and homed axes');
    if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2]||!Number.isInteger(plan.retries)||plan.retries<0||plan.retries>30||!Number.isFinite(plan.retryTolerance)||plan.retryTolerance<0||plan.retryTolerance>1)throw new RangeError('Invalid Z tilt calibration travel or retry policy');
-   const z=this.#o.emitters.filter(e=>e.mode==='z');if(this.#o.kinematics.kind==='corexz'||z.length!==ids.length||z.some(e=>!ids.includes(e.id)))throw new Error('Z tilt must own every independent Z motor');
+   const z=this.#o.emitters.filter(e=>e.mode==='z');if((this.#o.kinematics.kind==='corexz'||this.#o.kinematics.kind==='hybrid_corexz')||z.length!==ids.length||z.some(e=>!ids.includes(e.id)))throw new Error('Z tilt must own every independent Z motor');
    // Probe points are nozzle XY, while fitting uses the probe's bed XY.
    solve(plan.points.map(p=>[p[0]+config.offsets[0],p[1]+config.offsets[1],0]),plan.horizontalHeight);
    const admission=this.#newAdmission(this.homingPosition(),true);

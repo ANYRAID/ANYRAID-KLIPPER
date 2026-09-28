@@ -28,3 +28,9 @@ test('CoreXY transforms, homing approach and configuration ownership are explici
  assert.throws(()=>k.markHomed([0,3 as 0]));assert.equal(k.status.homedAxes,'');
  assert.throws(()=>new LinearKinematics({...config,maxZVelocity:301}));assert.throws(()=>k.calcPosition([Infinity,0,0]));
 });
+test('hybrid single-carriage position reconstruction retains coupling and linear admission',()=>{
+ for(const kind of ['hybrid_corexy','hybrid_corexz'] as const){const k=new LinearKinematics({...config,kind});assert.deepEqual(k.calcPosition([30,10,7]),kind==='hybrid_corexy'?[40,10,7]:[37,10,7]);assert.deepEqual(k.solverModes,kind==='hybrid_corexy'?['corexy-','y','z']:['corexz-','y','z']);
+ assert.throws(()=>k.check(move([0,0,0,0],[1,1,1,0])),/home/);k.markHomed([0,1,2]);const m=move([0,0,0,0],[30,40,10,0]);k.check(m);assert(Math.abs(Math.sqrt(m.maxCruiseV2)*Math.abs(m.axesR[2])-10)<1e-12);assert.throws(()=>k.check(move([0,0,0,0],[201,0,0,0])),/range/);
+ for(let i=0;i<10000;i++){const x=i/32-100,y=(i%71)/16,z=(i%97)/8,motors=kind==='hybrid_corexy'?[x-y,y,z]:[x-z,y,z];assert.deepEqual(k.calcPosition(motors),[x,y,z]);}
+ }
+});

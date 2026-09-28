@@ -7,7 +7,7 @@ export interface QuadGantryCalibrationPlan extends BedTiltProbePlan {motorIds:re
 export function readQuadGantry(reader:ConfigurationReader):QuadGantryCalibrationPlan|undefined{
  if(!reader.hasSection('quad_gantry_level'))return undefined;
  const probe=readProbeConfiguration(reader);if(!probe)throw new Error('Quad gantry requires a configured probe');
- if(reader.section('printer').get('kinematics')==='corexz'||reader.hasSection('bed_tilt')||reader.hasSection('z_tilt'))throw new Error('Quad gantry requires independent Z motors without bed_tilt compensation');
+ if(['corexz','hybrid_corexz'].includes(reader.section('printer').get('kinematics'))||reader.hasSection('bed_tilt')||reader.hasSection('z_tilt'))throw new Error('Quad gantry requires independent Z motors without bed_tilt compensation');
  const section=reader.section('quad_gantry_level'),allowed=new Set(['gantry_corners','points','speed','horizontal_move_z','retries','retry_tolerance','max_adjust']);
  if(Object.keys(section.options()).some(k=>!allowed.has(k)))throw new Error('Unsupported Quad gantry option');
  const ids=reader.sections().filter(n=>/^stepper_z(?:[1-9][0-9]*)?$/.test(n)).sort((a,b)=>Number(a.slice(9)||0)-Number(b.slice(9)||0)).map(n=>n.slice(8));

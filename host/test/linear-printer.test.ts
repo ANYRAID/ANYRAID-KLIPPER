@@ -6,11 +6,11 @@ import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {configuredPrinterFixture} from './helpers/configured-printer.ts';
 import {startClockedPrinter} from '../src/runtime/configured-printer.ts';
 const policy={mcus:['mcu','aux'],enableLeadTime:.001,fanMinimumScheduleTime:.001};
-for(const kind of ['cartesian','corexy','corexz'])test(`automatic linear plan starts native ${kind} hardware with no homing grant`,async()=>{
+for(const kind of ['cartesian','corexy','corexz','hybrid_corexy','hybrid_corexz'])test(`automatic linear plan starts native ${kind} hardware with no homing grant`,async()=>{
  const f=await configuredPrinterFixture();try{
   const original=f.reader.source.original,r=new ConfigurationReader(new ConfigurationSource('/linear.cfg',{...original,printer:{...original.printer,kinematics:kind}},[]),null),plan=planLinearPrinter(r,policy);
   const owner=await startClockedPrinter(r,f.group,'mcu',plan.layout,{...f.options,hardware:{...f.options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear},f.signal);
-  assert.equal(owner.hardware.status.state,'ready');assert.equal(owner.linear.kinematics.status.homedAxes,'');assert.equal(f.firmware[0].motion.length,0);assert.deepEqual(owner.initial.emitters.map(e=>e.mode),kind==='cartesian'?['x','y','z','extruder']:kind==='corexy'?['corexy+','corexy-','z','extruder']:['corexz+','y','corexz-','extruder']);await owner.close();
+  assert.equal(owner.hardware.status.state,'ready');assert.equal(owner.linear.kinematics.status.homedAxes,'');assert.equal(f.firmware[0].motion.length,0);assert.deepEqual(owner.initial.emitters.map(e=>e.mode),kind==='cartesian'?['x','y','z','extruder']:kind==='corexy'?['corexy+','corexy-','z','extruder']:kind==='corexz'?['corexz+','y','corexz-','extruder']:kind==='hybrid_corexy'?['corexy-','y','z','extruder']:['corexz-','y','z','extruder']);await owner.close();
  }finally{await f.close();}
 });
 test('extra Z motor with independent endstop gets complete disjoint stop ownership',async()=>{
@@ -70,5 +70,12 @@ test('probe virtual Z reuses the probe GPIO and trigger owners without duplicate
   raw.stepper_z.homing_positive_dir='true';assert.throws(()=>planLinearPrinter(cfg(),policy),/descend/);raw.stepper_z.homing_positive_dir='false';
   raw.safe_z_home={home_xy_position:'-1,50'};assert.throws(()=>planLinearPrinter(cfg(),policy),/safe Z/);delete raw.safe_z_home;
   raw.stepper_z1={step_pin:'aux:PA6',dir_pin:'aux:PA7',endstop_pin:'aux:PA8',rotation_distance:'40',microsteps:'16'};assert.throws(()=>planLinearPrinter(cfg(),policy),/mix/);
+ }finally{await f.close();}
+});
+test('hybrid planners reject unimplemented dual carriage and coupled-Z independent leveling',async()=>{
+ const f=await configuredPrinterFixture();try{
+  for(const kind of ['hybrid_corexy','hybrid_corexz']){const original=f.reader.source.original,sections:Record<string,Record<string,string>>={...original,printer:{...original.printer,kinematics:kind},dual_carriage:{axis:'x'}};assert.throws(()=>planLinearPrinter(new ConfigurationReader(new ConfigurationSource('/dual.cfg',sections,[]),null),policy),/unsupported/i);}
+  for(const section of ['z_tilt','quad_gantry_level']){const original=f.reader.source.original,sections:Record<string,Record<string,string>>={...original,printer:{...original.printer,kinematics:'hybrid_corexz'},probe:{pin:'PA13',z_offset:'0'},[section]:{}};assert.throws(()=>planLinearPrinter(new ConfigurationReader(new ConfigurationSource('/coupled-z.cfg',sections,[]),null),policy),/independent Z/);}
+  assert.equal(f.group.session('mcu').status.configured,false);assert.equal(f.group.session('aux').status.configured,false);
  }finally{await f.close();}
 });

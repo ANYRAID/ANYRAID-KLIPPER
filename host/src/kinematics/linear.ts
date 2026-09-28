@@ -1,10 +1,10 @@
-// Cartesian/CoreXY/CoreXZ admission and homing geometry from klippy/kinematics/*.py.
-// Copyright (C) 2016-2021 Kevin O'Connor, 2020 Maks Zolin. GPL-3.0-or-later.
+// Cartesian/CoreXY/CoreXZ and single-carriage hybrid admission and homing geometry from klippy/kinematics/*.py.
+// Copyright (C) 2016-2021 Kevin O'Connor, 2020 Maks Zolin, 2021 Fabrice Gallet. GPL-3.0-or-later.
 import {Move,motionLimits} from '../motion/lookahead.ts';
 export type Axis=0|1|2;
 export type Range=readonly [number,number];
 export interface LinearConfig {
-  kind:'cartesian'|'corexy'|'corexz';ranges:readonly [Range,Range,Range];
+  kind:'cartesian'|'corexy'|'corexz'|'hybrid_corexy'|'hybrid_corexz';ranges:readonly [Range,Range,Range];
   maxVelocity:number;maxAccel:number;maxZVelocity:number;maxZAccel:number;
 }
 export class KinematicError extends Error {
@@ -19,10 +19,13 @@ function range(value:Range):[number,number] {
 export class LinearKinematics {
   #config:LinearConfig;#ranges:[Range,Range,Range];#limits:([number,number]|null)[]=[null,null,null];
   constructor(config:LinearConfig) {
-    if(!['cartesian','corexy','corexz'].includes(config.kind)||config.ranges.length!==3
+    if(!['cartesian','corexy','corexz','hybrid_corexy','hybrid_corexz'].includes(config.kind)||config.ranges.length!==3
       ||![config.maxVelocity,config.maxAccel,config.maxZVelocity,config.maxZAccel].every(v=>Number.isFinite(v)&&v>0)
       ||config.maxZVelocity>config.maxVelocity||config.maxZAccel>config.maxAccel)throw new RangeError('Invalid linear kinematics configuration');
     this.#ranges=[range(config.ranges[0]),range(config.ranges[1]),range(config.ranges[2])];this.#config={...config,ranges:this.#ranges};
+  }
+  get solverModes():readonly ['x'|'corexy+'|'corexy-'|'corexz+'|'corexz-','y'|'corexy-','z'|'corexz-'] {
+    switch(this.kind){case 'corexy':return ['corexy+','corexy-','z'];case 'corexz':return ['corexz+','y','corexz-'];case 'hybrid_corexy':return ['corexy-','y','z'];case 'hybrid_corexz':return ['corexz-','y','z'];default:return ['x','y','z'];}
   }
   get kind():LinearConfig['kind']{return this.#config.kind;}
   /** Dynamic toolhead ceilings also apply to privileged homing moves; the
@@ -37,7 +40,7 @@ export class LinearKinematics {
   updateLimits(index:Axis,value:Range):void {axis(index);const next=range(value);if(this.#limits[index])this.#limits[index]=next;}
   calcPosition(steppers:readonly number[]):number[] {
     if(steppers.length!==3||!steppers.every(Number.isFinite))throw new RangeError('Invalid stepper positions');
-    const [a,b,z]=steppers,p=this.#config.kind==='corexy'?[.5*(a+b),.5*(a-b),z]:this.#config.kind==='corexz'?[.5*(a+z),b,.5*(a-z)]:[a,b,z];
+    const [a,b,z]=steppers,p=this.#config.kind==='corexy'?[.5*(a+b),.5*(a-b),z]:this.#config.kind==='corexz'?[.5*(a+z),b,.5*(a-z)]:this.#config.kind==='hybrid_corexy'?[a+b,b,z]:this.#config.kind==='hybrid_corexz'?[a+z,b,z]:[a,b,z];
     if(!p.every(Number.isFinite))throw new RangeError('Kinematic position overflow');return p;
   }
   homingMove(index:Axis,endstop:number,positiveDirection:boolean):{force:(number|null)[];home:(number|null)[]} {

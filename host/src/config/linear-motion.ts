@@ -18,7 +18,7 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  if(probeZ&&!probe)throw new Error('Probe Z homing requires a configured probe');
  if(probeZ&&reader.section('stepper_z').hasOption('position_endstop'))throw new Error('Probe Z homing uses probe z_offset, not position_endstop');
  if(probeZ&&reader.sections().some(n=>/^endstop_phase stepper_z(?:[1-9][0-9]*)?$/.test(n)))throw new Error('Probe Z homing cannot use endstop phase correction');
- if(kind!=='cartesian'&&kind!=='corexy'&&kind!=='corexz')throw new Error('Unsupported linear kinematics');
+ if(kind!=='cartesian'&&kind!=='corexy'&&kind!=='corexz'&&kind!=='hybrid_corexy'&&kind!=='hybrid_corexz')throw new Error('Unsupported linear kinematics');
  const maxVelocity=printer.getFloat('max_velocity',{above:0}),maxAccel=printer.getFloat('max_accel',{above:0});
  const velocitySettings=Object.freeze({squareCornerVelocity:printer.getFloat('square_corner_velocity',{defaultValue:5,minval:0}),minCruiseRatio:printer.getFloat('minimum_cruise_ratio',{defaultValue:.5,minval:0,below:1})});
  const limits=motionLimits(maxVelocity,maxAccel,velocitySettings.squareCornerVelocity,velocitySettings.minCruiseRatio);
@@ -46,7 +46,7 @@ export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'
  * Existing hardware ownership stays with the caller if validation fails. */
 export function createConfiguredNativeLinearPort(reader:ConfigurationReader,hardware:ConfiguredLinearHardware){
  if(reader.hasSection('bltouch')&&!hardware.probeDevice)throw new Error('BLTouch requires an initialized native probe device');
- const config=readLinearMotionConfiguration(reader),expected=config.kinematics.kind==='cartesian'?['x','y','z']:config.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
+ const config=readLinearMotionConfiguration(reader),expected=config.kinematics.solverModes;
  if(hardware.kinematicIds.length!==3||new Set(hardware.kinematicIds).size!==3||hardware.kinematicIds.some((id,i)=>hardware.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Configured kinematics differs from native rail solvers');
  if(hardware.groupsByAxis.length!==3||hardware.endstopNames.length!==3)throw new Error('Three configured homing axes required');
  const rails=config.rails.map((rail,i)=>{

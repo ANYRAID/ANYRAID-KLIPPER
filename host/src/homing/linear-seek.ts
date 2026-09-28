@@ -37,7 +37,7 @@ export class LinearHomingSeek {
      return typeof actual!=='object'||actual.kind!=='delta'||actual.armLength!==expected.armLength||actual.towerX!==expected.towerX||actual.towerY!==expected.towerY;
     }))throw new Error('Delta homing rail solvers differ from kinematics');
    }else{
-    const expected=o.kinematics.kind==='cartesian'?['x','y','z']:o.kinematics.kind==='corexy'?['corexy+','corexy-','z']:['corexz+','y','corexz-'];
+    const expected=o.kinematics.solverModes;
     if(new Set(o.kinematicIds).size!==3||o.kinematicIds.some((id,i)=>o.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Linear homing rail solvers differ from kinematics');
    }
    const routes=g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis}));

@@ -245,3 +245,6 @@ AVR 仿真工具已迁移为 `node scripts/avrsim.ts`，无需 Python/SWIG。
 MCU 离线调试控制台使用 `node scripts/console.ts --help`，支持受限精确
 算术、延时发送、批量发送和内存转储；旧 `klippy/console.py` 已退役。
 运行前停止占用设备的打印主机，控制台关闭不等于 MCU 物理停机。
+
+Node 产品装配现支持单小车 `hybrid_corexy` 和 `hybrid_corexz`，已通过
+编译产品模拟打印流程；双小车与实机验收仍未完成，不能据此切换生产入口。

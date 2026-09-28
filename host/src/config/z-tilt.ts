@@ -7,7 +7,7 @@ export interface ZTiltCalibrationPlan extends BedTiltProbePlan {motors:readonly 
 export function readZTilt(reader:ConfigurationReader):ZTiltCalibrationPlan|undefined{
  if(!reader.hasSection('z_tilt'))return undefined;
  const probe=readProbeConfiguration(reader);if(!probe)throw new Error('Z tilt requires a configured probe');
- if(reader.section('printer').get('kinematics')==='corexz'||reader.hasSection('bed_tilt'))throw new Error('Z tilt requires independent Z motors without bed_tilt compensation');
+ if(['corexz','hybrid_corexz'].includes(reader.section('printer').get('kinematics'))||reader.hasSection('bed_tilt'))throw new Error('Z tilt requires independent Z motors without bed_tilt compensation');
  const section=reader.section('z_tilt'),allowed=new Set(['z_positions','points','speed','horizontal_move_z','retries','retry_tolerance','max_adjust']);
  if(Object.keys(section.options()).some(k=>!allowed.has(k)))throw new Error('Unsupported Z tilt option');
  const ids=reader.sections().filter(n=>/^stepper_z(?:[1-9][0-9]*)?$/.test(n)).sort((a,b)=>Number(a.slice(9)||0)-Number(b.slice(9)||0)).map(n=>n.slice(8));

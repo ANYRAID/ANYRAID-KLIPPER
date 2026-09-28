@@ -18,7 +18,7 @@ test('native retreat from recovered coordinates preserves extrusion and waits fo
  }finally{await f.close();}
 });
 test('privileged retract enforces Z limits without granting ordinary homing authority',()=>{
- for(const kind of ['cartesian','corexy','corexz'] as const){const k=new LinearKinematics({kind,ranges:[[0,200],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:5,maxZAccel:100});
+ for(const kind of ['cartesian','corexy','corexz','hybrid_corexy','hybrid_corexz'] as const){const k=new LinearKinematics({kind,ranges:[[0,200],[0,200],[0,200]],maxVelocity:100,maxAccel:1000,maxZVelocity:5,maxZAccel:100});
   const move=k.planHomingAxisMove([0,0,-.01,2],[0,0,1,2],80,2);assert.equal(move.maxCruiseV2,25);assert.equal(move.accel,100);assert.throws(()=>k.check(move),/Must home/);assert.equal(k.status.homedAxes,'');
   for(const end of [[1,0,1,2],[0,0,1,3],[0,0,201,2],[0,0,-.01,2]])assert.throws(()=>k.planHomingAxisMove([0,0,-.01,2],end,10,2));
  }

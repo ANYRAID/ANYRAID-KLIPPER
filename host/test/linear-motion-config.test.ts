@@ -24,8 +24,8 @@ test('homing direction uses exact quarter-range boundaries and requires explicit
  assert.equal(readLinearMotionConfiguration(defaults({stepper_x:{position_endstop:'100',homing_positive_dir:'true'}})).rails[0].positiveDirection,true);
  for(const values of [{position_endstop:'0',homing_positive_dir:'true'},{position_endstop:'200',homing_positive_dir:'false'}])assert.throws(()=>readLinearMotionConfiguration(defaults({stepper_x:values})),/conflicts/);
 });
-test('all three supported kinematics accept explicit machine limits and independently scoped rails',()=>{
- for(const kind of ['cartesian','corexy','corexz']){
+test('all supported linear kinematics accept explicit machine limits and independently scoped rails',()=>{
+ for(const kind of ['cartesian','corexy','corexz','hybrid_corexy','hybrid_corexz']){
   const c=readLinearMotionConfiguration(linearMotionReader({printer:{kinematics:kind,square_corner_velocity:'0',minimum_cruise_ratio:'.75'},stepper_y:{homing_speed:'8',second_homing_speed:'3',homing_retract_speed:'7',homing_retract_dist:'2'}}));
   assert.equal(c.kinematics.kind,kind);assert.equal(c.limits.junctionDeviation,0);assert.equal(c.limits.mcrPseudoAccel,250);assert.equal(c.rails[1].secondSpeed,3);assert.equal(c.rails[1].retractSpeed,7);assert.equal(c.rails[0].speed,10);assert.equal(c.extrusion.limits.maxVelocity,30);
  }
