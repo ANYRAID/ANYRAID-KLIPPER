@@ -1,0 +1,798 @@
+{
+  "source": "220bea14:klippy/kinematics/idex_modes.py get_kin_range/get_dc_order",
+  "scope": "Feasible single-axis pairs, both primary selections, inactive/copy/mirror, reversed and same-direction homing. Does not include the intentionally rejected pre-existing copy collision.",
+  "cases": [
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 180
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        172
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": 140
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        80
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        106.0
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 40
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        48,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": -140
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        140,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        114.0,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 180
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        172
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": 140
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        80
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        106.0
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 40
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        48,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": -140
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        140,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        114.0,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 40
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        48,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": -140
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        140,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        114.0,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 180
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        172
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": 140
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        80
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 220,
+          "positiveDirection": true
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        106.0
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 40
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        48,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": -140
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        140,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        },
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        114.0,
+        220
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "INACTIVE",
+          "scale": 0,
+          "offset": 180
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        172
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "COPY",
+          "scale": 1,
+          "offset": 140
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        80
+      ]
+    },
+    {
+      "rails": [
+        {
+          "minimum": 0,
+          "maximum": 220,
+          "endstop": 10,
+          "positiveDirection": false
+        },
+        {
+          "minimum": 0,
+          "maximum": 200,
+          "endstop": 0,
+          "positiveDirection": false
+        }
+      ],
+      "carriages": [
+        {
+          "mode": "MIRROR",
+          "scale": -1,
+          "offset": 220
+        },
+        {
+          "mode": "PRIMARY",
+          "scale": 1,
+          "offset": 0
+        }
+      ],
+      "safeDistance": 8,
+      "expected": [
+        0,
+        106.0
+      ]
+    }
+  ]
+}

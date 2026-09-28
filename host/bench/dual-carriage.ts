@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';
+import {dualCarriageRange,planCarriageMode,type CarriagePair,type CarriageRail} from '../src/kinematics/dual-carriage.ts';
+const rails:readonly [CarriageRail,CarriageRail]=[{minimum:0,maximum:200,endstop:0,positiveDirection:false},{minimum:0,maximum:220,endstop:220,positiveDirection:true}],initial:CarriagePair=[{mode:'PRIMARY',scale:1,offset:0},{mode:'INACTIVE',scale:0,offset:180}],iterations=100000,samples:number[]=[];
+for(let run=0;run<6;run++){const start=performance.now();let total=0;for(let i=0;i<iterations;i++){const state=planCarriageMode(initial,40,1,i%2?'COPY':'MIRROR',true),range=dualCarriageRange(rails,state.carriages,10)!;total+=range[1];}assert.equal(total,9250000);if(run)samples.push(performance.now()-start);}
+const medianMs=[...samples].sort((a,b)=>a-b)[2];process.stdout.write(JSON.stringify({node:process.version,iterations,samplesMs:samples,medianMs,plansPerSecond:iterations/(medianMs/1000),scope:'Pure two-carriage transition proposal plus physical range/separation intersection; no native transform, queue draining, homing or hardware.'},null,2)+'\n');

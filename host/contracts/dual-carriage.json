@@ -1,0 +1,14 @@
+{
+  "node": "v26.9.0",
+  "iterations": 100000,
+  "samplesMs": [
+    107.38156600000002,
+    135.00634099999996,
+    111.630246,
+    105.69792600000005,
+    103.35638900000004
+  ],
+  "medianMs": 107.38156600000002,
+  "plansPerSecond": 931258.5364977819,
+  "scope": "Pure two-carriage transition proposal plus physical range/separation intersection; no native transform, queue draining, homing or hardware."
+}
