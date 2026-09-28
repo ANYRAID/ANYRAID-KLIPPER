@@ -18,8 +18,8 @@ export function decodeSht3x(data:Uint8Array){
 type Wait=(milliseconds:number,signal:AbortSignal)=>Promise<void>;
 const wait:Wait=async(ms,signal)=>{await delay(Math.ceil(ms),undefined,{signal});};
 export class Sht3xSensor {
- readonly #device:I2cDevice;readonly #wait:Wait;#started=false;#ready=false;#busy=false;#failed=false;#fault:unknown;
- constructor(device:I2cDevice,timer:Wait=wait){this.#device=device;this.#wait=timer;}
+ readonly #device:I2cDevice;readonly #wait:Wait;readonly #now:()=>number;#nextFetch=0;#started=false;#ready=false;#busy=false;#failed=false;#fault:unknown;
+ constructor(device:I2cDevice,timer:Wait=wait,now:()=>number=()=>performance.now()){this.#device=device;this.#wait=timer;this.#now=now;}
  async #pause(ms:number,signal:AbortSignal){signal.throwIfAborted();await this.#wait(ms,signal);signal.throwIfAborted();}
  async #transfer(bytes:readonly number[],n:number,signal:AbortSignal){signal.throwIfAborted();const result=await this.#device.transfer(Uint8Array.from(bytes),n,signal);signal.throwIfAborted();if(result.length!==n)throw new Error('Malformed SHT3X response');return result;}
  async initialize(signal:AbortSignal){
@@ -34,7 +34,14 @@ export class Sht3xSensor {
  }
  async sample(signal:AbortSignal){
   signal.throwIfAborted();if(this.#failed)throw this.#fault;if(!this.#ready)throw new Error('SHT3X not initialized');if(this.#busy)throw new Error('SHT3X measurement already active');this.#busy=true;
-  try{return decodeSht3x(await this.#transfer([0xe0,0],6,signal));}
+  try{
+   // FETCH clears the periodic result. Space reads by a full second (two
+   // nominal 2 Hz periods), including forced reads after target changes.
+   // This conservative host policy still requires physical timing acceptance.
+   while(this.#nextFetch>this.#now())await this.#pause(this.#nextFetch-this.#now(),signal);
+   const reading=decodeSht3x(await this.#transfer([0xe0,0],6,signal));
+   this.#nextFetch=this.#now()+1000;return reading;
+  }
   catch(error){this.#failed=true;this.#fault=error;throw error;}finally{this.#busy=false;}
  }
 }

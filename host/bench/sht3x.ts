@@ -33,7 +33,7 @@ for(let round=0;round<8;round++)for(const which of round%2?['current','python']:
   assert.equal(Buffer.from(Array.from({length:65536},(_,i)=>sht3xCrc(i))).toString('hex'),result.crc);
   assert.deepEqual(frames.map(f=>{const r=decodeSht3x(f);return [r.temperature,r.humidity];}),result.values);
  }else{
-  const sensor=new Sht3xSensor({async transfer(_bytes,n){return n===3?Uint8Array.of(0,0,sht3xCrc(0)):n===6?frames[123]:Buffer.alloc(0);}},async()=>{});await sensor.initialize(signal);
+  let time=0;const sensor=new Sht3xSensor({async transfer(_bytes,n){return n===3?Uint8Array.of(0,0,sht3xCrc(0)):n===6?frames[123]:Buffer.alloc(0);}},async ms=>{time+=ms;},()=>time);await sensor.initialize(signal);
   const start=performance.now();for(let i=0;i<100000;i++)await sensor.sample(signal);ms=performance.now()-start;
  }
  if(round>=3)(which==='python'?baseline:current).push(ms);

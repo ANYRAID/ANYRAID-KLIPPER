@@ -15,9 +15,9 @@ test('configured AHT publishes humidity into combined sensors and bus faults sto
  const until=async(check:()=>boolean)=>{const end=performance.now()+6500;while(!check()){assert(performance.now()<end);await delay(10);}};
  try{
   owner=await startConfiguredHardware(reader(sections),f.group,f.clocks,layout(Object.keys(sections)),{beforeTarget(){}},f.signal);
-  assert.equal(owner.status.state,'ready');assert.deepEqual(owner.ahtSensors[0].sensorStatus,{temperature:25,humidity:50});assert.equal(owner.heaters.report(),'C:25.0 /0.0');
+  assert.equal(owner.status.state,'ready');assert.deepEqual(owner.i2cSensors[0].sensorStatus,{temperature:25,humidity:50});assert.equal(owner.heaters.report(),'C:25.0 /0.0');
   await until(()=>!owner!.combinedSensors[0].getTemperature().stale);assert.equal(owner.combinedSensors[0].getTemperature().humidity,50);
-  fault=true;await until(()=>owner!.status.state!=='ready');await owner.close();assert.deepEqual(f.stops,[1,1]);assert.equal(owner.ahtSensors[0].getTemperature().stale,true);assert.equal(owner.combinedSensors[0].getTemperature().stale,true);
+  fault=true;await until(()=>owner!.status.state!=='ready');await owner.close();assert.deepEqual(f.stops,[1,1]);assert.equal(owner.i2cSensors[0].getTemperature().stale,true);assert.equal(owner.combinedSensors[0].getTemperature().stale,true);
  }finally{await owner?.close();await f.close();}
 });
 test('AHT configuration reserves shared bus wiring and rejects duplicate addresses or GPIO conflicts before IO',async()=>{
@@ -25,10 +25,10 @@ test('AHT configuration reserves shared bus wiring and rejects duplicate address
  try{
   const a='temperature_sensor a',b='temperature_sensor b',base={...source,gcode_id:'A'};
   assert.throws(()=>compileConfiguredHardware(reader({[a]:base,[b]:{...base,gcode_id:'B'}}),f.group,f.clocks,layout([a,b])),/Duplicate I2C/);
-  const plan=compileConfiguredHardware(reader({[a]:base,[b]:{...base,gcode_id:'B',i2c_address:'57'}}),f.group,f.clocks,layout([a,b]));assert.equal(plan.ahtSensors.length,2);assert.notEqual(plan.ahtSensors[0].protocol.oid,plan.ahtSensors[1].protocol.oid);
+  const plan=compileConfiguredHardware(reader({[a]:base,[b]:{...base,gcode_id:'B',i2c_address:'57'}}),f.group,f.clocks,layout([a,b]));assert.equal(plan.i2cSensors.length,2);assert.notEqual(plan.i2cSensors[0].protocol.oid,plan.i2cSensors[1].protocol.oid);
   assert.throws(()=>compileConfiguredHardware(reader({[a]:base,fan:{pin:'aux:PA17'}}),f.group,f.clocks,{...layout([a]),fans:[{section:'fan',minimumScheduleTime:.001}]}));
   const software={...base,i2c_software_scl_pin:'aux:PA17',i2c_software_sda_pin:'aux:PA18'};delete (software as Partial<typeof software>).i2c_bus;
-  assert.match(compileConfiguredHardware(reader({[a]:software}),f.group,f.clocks,layout([a])).ahtSensors[0].protocol.configureBus,/i2c_set_sw_bus.*pulse_ticks=5/);
+  assert.match(compileConfiguredHardware(reader({[a]:software}),f.group,f.clocks,layout([a])).i2cSensors[0].protocol.configureBus,/i2c_set_sw_bus.*pulse_ticks=5/);
   assert.equal(f.firmware.flatMap(s=>s.outputs).length,0);
  }finally{await f.close();}
 });
@@ -39,7 +39,7 @@ test('AHT cross-MCU fan survives slow reporting, controls PWM and stops on bus f
  try{
   owner=await startConfiguredHardware(reader({[section]:settings}),f.group,f.clocks,{...layout([section]),fans:[{section,minimumScheduleTime:.02}]},{beforeTarget(){}},f.signal);
   const fan=owner.fans[0].runtime;await until(()=>fan.status.speed===0);assert.equal(owner.heaters.report(),'C:25.0 /40.0');assert.equal(owner.plan.temperatureFans[0].sensorTimeout,11);assert.equal(owner.temperatureFans[0].control.reportDelay,.3);
-  await delay(3300);assert.equal(owner.status.state,'ready');temperature=60;await until(()=>fan.status.speed===1);assert.equal(owner.ahtSensors[0].sensorStatus.humidity,50);
+  await delay(3300);assert.equal(owner.status.state,'ready');temperature=60;await until(()=>fan.status.speed===1);assert.equal(owner.i2cSensors[0].sensorStatus.humidity,50);
   fault=true;await until(()=>owner!.status.state!=='ready');await owner.close();assert.deepEqual(f.stops,[1,1]);assert.equal(fan.status.phase,'stopped');assert.equal(owner.plan.fans[0].config.shutdownPower,1);
  }finally{await owner?.close();await f.close();}
 });

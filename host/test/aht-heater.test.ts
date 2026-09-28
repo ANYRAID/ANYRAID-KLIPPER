@@ -10,7 +10,7 @@ for(const pin of ['PA4','aux:PA4'])test(`AHT heater requests fresh target feedba
  const section='heater_generic chamber',reader=new ConfigurationReader(new ConfigurationSource('/aht-heater.cfg',{[section]:{sensor_type:'AHT2X',i2c_mcu:'aux',i2c_bus:'i2c1',heater_pin:pin,min_temp:'0',max_temp:'100',min_extrude_temp:'0',control:'watermark'}},[]),null);
  try{
   owner=await startConfiguredHardware(reader,f.group,f.clocks,{steppers:[],homing:[],fans:[],heaters:[{section}]},{beforeTarget(){}},f.signal);
-  const heater=owner.thermal[0].runtime,p=owner.plan.ahtHeaters[0],fw=f.firmware[p.output.mcu==='mcu'?0:1],writes=()=>fw.outputs.filter(e=>e.name==='queue_digital_out_generation'&&e.parameters.oid===p.output.pwm.oid&&Number(e.parameters.on_ticks)>0);
+  const heater=owner.thermal[0].runtime,p=owner.plan.i2cHeaters[0],fw=f.firmware[p.output.mcu==='mcu'?0:1],writes=()=>fw.outputs.filter(e=>e.name==='queue_digital_out_generation'&&e.parameters.oid===p.output.pwm.oid&&Number(e.parameters.on_ticks)>0);
   assert.equal(heater.getTemperature().temperature,25);assert.equal(writes().length,0);assert.equal(p.configuration.settings.sampleTimeout,36);assert.equal(p.configuration.verification.checkGainTime,36);
   await owner.heaters.setTarget('chamber',40,f.signal);const deadline=performance.now()+1500;while(!writes().length){assert(performance.now()<deadline,JSON.stringify(heater.status));await delay(10);}assert.equal(reads,2);const measured=heater.status.lastTime;
   await delay(4300);assert.equal(owner.status.state,'ready');assert.equal(reads,2);assert.equal(heater.status.lastTime,measured);assert(writes().length>=2);

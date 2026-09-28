@@ -1,3 +1,4 @@
+import {isI2cTemperature,i2cTemperaturePeriod} from './i2c-temperature-model.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {AnalogSensorRegistry} from './sensor-config.ts';
 import {ADCTemperature} from './adc.ts';
@@ -10,7 +11,7 @@ export function readHeaterControlConfiguration(reader:ConfigurationReader,name:s
  const section=reader.section(name),minimum=section.getFloat('min_temp',{minval:-273.15}),maximum=section.getFloat('max_temp',{above:minimum});
  const minimumExtrude=section.getFloat('min_extrude_temp',{defaultValue:170,minval:minimum,maxval:maximum});
  const smoothTime=section.getFloat('smooth_time',{defaultValue:1,above:0}),maxPower=section.getFloat('max_power',{defaultValue:1,above:0,maxval:1});
- const slow=['AHT10','AHT1X','AHT2X','AHT3X'].includes(section.get('sensor_type',{defaultValue:''})),sampleTimeout=slow?section.getInt('aht10_report_time',{defaultValue:30,minval:5,maxval:86400})+6:7;
+ const slow=isI2cTemperature(section.get('sensor_type',{defaultValue:''})),sampleTimeout=slow?i2cTemperaturePeriod(reader,name)+6:7;
  const algorithm=section.get('control'),reportDelay=.3;
  const control=algorithm==='pid'?new PIDControl({kp:section.getFloat('pid_Kp',{minval:0}),ki:section.getFloat('pid_Ki',{minval:0}),kd:section.getFloat('pid_Kd',{minval:0}),smoothTime,maxPower}):algorithm==='watermark'?new BangBangControl(maxPower,section.getFloat('max_delta',{defaultValue:2,above:0})):undefined;
  if(!control)throw new Error('Unsupported heater control algorithm');
