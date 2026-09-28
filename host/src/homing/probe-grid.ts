@@ -44,18 +44,25 @@ export function planProbeGrid(options:ProbeGrid,offsets:readonly number[]){
  return Object.freeze({reference,external,circular:!!circle,mesh:p,horizontalHeight:options.horizontalHeight,travelSpeed:options.travelSpeed,points:Object.freeze(points)});
 }
 export async function measureProbeGrid(plan:ReturnType<typeof planProbeGrid>,port:{position():readonly number[];move(target:readonly number[],speed:number):Promise<void>;probe():Promise<number>},signal:AbortSignal){
- let referenceHeight:number|undefined;
- const counts=Array.from({length:plan.mesh.y_count},()=>Array<number>(plan.mesh.x_count).fill(0));
- const matrix=Array.from({length:plan.mesh.y_count},()=>Array<number>(plan.mesh.x_count));
+ const heights:number[]=[];
  for(const point of plan.points){
   signal.throwIfAborted();const start=port.position(),raised=[...start];raised[2]=Math.max(start[2],plan.horizontalHeight);
   await port.move(raised,plan.travelSpeed);const xy=[...raised];xy[0]=point.nozzleX;xy[1]=point.nozzleY;await port.move(xy,plan.travelSpeed);
   // Never lower during XY travel; approach the configured probe height only
   // once the nozzle is over the next measurement point.
   xy[2]=plan.horizontalHeight;await port.move(xy,plan.travelSpeed);
-  const z=await port.probe();if(!Number.isFinite(z))throw new Error('Invalid grid probe height');if(point.x<0)referenceHeight=z;else {matrix[point.y][point.x]=(matrix[point.y][point.x]??0)+z;counts[point.y][point.x]++;}
+  const z=await port.probe();if(!Number.isFinite(z))throw new Error('Invalid grid probe height');heights.push(z);
  }
  signal.throwIfAborted();const finish=[...port.position()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await port.move(finish,plan.travelSpeed);signal.throwIfAborted();
+ return buildProbeGridMesh(plan,heights);
+}
+/** Shared reconstruction for automatic and explicitly confirmed manual contacts. */
+export function buildProbeGridMesh(plan:ReturnType<typeof planProbeGrid>,heights:readonly number[]):BedMesh{
+ if(heights.length!==plan.points.length||!heights.every(Number.isFinite))throw new RangeError('Invalid grid probe heights');
+ let referenceHeight:number|undefined;
+ const counts=Array.from({length:plan.mesh.y_count},()=>Array<number>(plan.mesh.x_count).fill(0));
+ const matrix=Array.from({length:plan.mesh.y_count},()=>Array<number>(plan.mesh.x_count));
+ for(let i=0;i<plan.points.length;i++){const point=plan.points[i],z=heights[i];if(point.x<0)referenceHeight=z;else{matrix[point.y][point.x]=(matrix[point.y][point.x]??0)+z;counts[point.y][point.x]++;}}
  for(let y=0;y<matrix.length;y++)for(let x=0;x<matrix[y].length;x++)if(counts[y][x])matrix[y][x]/=counts[y][x];
  if(plan.circular)for(const row of matrix){
   const first=row.findIndex(Number.isFinite);let last=row.length-1;while(last>=0&&!Number.isFinite(row[last]))last--;

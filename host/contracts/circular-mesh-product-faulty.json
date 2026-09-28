@@ -2,8 +2,9 @@
   "node": "v26.9.0",
   "compiled": true,
   "faulty": true,
+  "manual": false,
   "generations": 2,
-  "calibrationMs": 11735.635151999999,
+  "calibrationMs": 11904.812955999998,
   "probedMatrix": [
     [
       9.626543211,
