@@ -32,3 +32,14 @@ test('AHT configuration reserves shared bus wiring and rejects duplicate address
   assert.equal(f.firmware.flatMap(s=>s.outputs).length,0);
  }finally{await f.close();}
 });
+test('AHT cross-MCU fan survives slow reporting, controls PWM and stops on bus fault',async()=>{
+ let temperature=25,fault=false;const f=await hardwareStartupFixture(false,false,true,true,false,(_oid,_bytes,n)=>{const raw=Math.round((temperature+50)*1048576/200);return {data:n?Uint8Array.of(8,128,0,raw>>>16,raw>>>8&255,raw&255):Buffer.alloc(0),status:fault?'NACK':'SUCCESS'};});let owner:Awaited<ReturnType<typeof startConfiguredHardware>>|undefined;
+ const section='temperature_fan chamber',settings={...source,pin:'PA4',control:'watermark',min_temp:'0',max_temp:'100',kick_start_time:'0'};
+ const until=async(check:()=>boolean)=>{const end=performance.now()+6500;while(!check()){assert(performance.now()<end,'AHT fan observation timeout');await delay(10);}};
+ try{
+  owner=await startConfiguredHardware(reader({[section]:settings}),f.group,f.clocks,{...layout([section]),fans:[{section,minimumScheduleTime:.02}]},{beforeTarget(){}},f.signal);
+  const fan=owner.fans[0].runtime;await until(()=>fan.status.speed===0);assert.equal(owner.heaters.report(),'C:25.0 /40.0');assert.equal(owner.plan.temperatureFans[0].sensorTimeout,11);assert.equal(owner.temperatureFans[0].control.reportDelay,.3);
+  await delay(3300);assert.equal(owner.status.state,'ready');temperature=60;await until(()=>fan.status.speed===1);assert.equal(owner.ahtSensors[0].sensorStatus.humidity,50);
+  fault=true;await until(()=>owner!.status.state!=='ready');await owner.close();assert.deepEqual(f.stops,[1,1]);assert.equal(fan.status.phase,'stopped');assert.equal(owner.plan.fans[0].config.shutdownPower,1);
+ }finally{await owner?.close();await f.close();}
+});

@@ -13,7 +13,7 @@ export class TemperatureFanRuntime {
  #clockTime=0;
  private fan:ScheduledCoolingFan;readonly control:TemperatureFanControl;private now:()=>number;private fault:(cause:unknown)=>void;private timeout:number;private clock:HeaterFanTimer;
  constructor(fan:ScheduledCoolingFan,control:TemperatureFanControl,now:()=>number,fault:(cause:unknown)=>void,timeout=3,clock:HeaterFanTimer=timer){
-  if(control.reportDelay<=.05||!Number.isFinite(timeout)||timeout<=control.reportDelay||timeout>30)throw new RangeError('Invalid temperature fan runtime timing');
+  if(control.reportDelay<=.05||!Number.isFinite(timeout)||timeout<=control.reportDelay||timeout>86406)throw new RangeError('Invalid temperature fan runtime timing');
   this.fan=fan;this.control=control;this.now=now;this.fault=fault;this.timeout=timeout;this.clock=clock;
  }
  start():void{

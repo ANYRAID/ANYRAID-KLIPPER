@@ -1,0 +1,35 @@
+{
+  "status": "configured AHT fan feedback verified with simulated MCUs",
+  "relatedTests": 15,
+  "additionalChecks": 2,
+  "overlap": 1,
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": 10000,
+    "outputWrites": 10000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 32.37630199999995,
+    "maxMs": 32.92420800000002,
+    "checksum": 15014000,
+    "scope": "Sensor callback, control, bounded runtime queue, watchdog, scheduled fan, async mock output and setImmediate settlement; no physical MCU or serial transport"
+  },
+  "historicalBaseline": {
+    "samples": 10000,
+    "outputWrites": 10000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 30.072623999999962,
+    "maxMs": 30.735141000000027,
+    "checksum": 15014000,
+    "scope": "Control, bounded queue, watchdog, scheduled output, async mock writes and setImmediate settlement; no serial transport"
+  },
+  "medianRatio": 1.0766038241292144,
+  "limitations": [
+    "No physical fan cooling or printer speed claim",
+    "Historical baseline not a contemporaneous alternating comparison",
+    "Compiled HTTP product journey pending",
+    "Direct AHT heater feedback pending",
+    "No Python retired"
+  ]
+}

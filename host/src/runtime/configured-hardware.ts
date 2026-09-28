@@ -108,7 +108,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    if(a){const owned=attachConfiguredAnalogHeater(group,a);analog.push(owned);binding=owned;}else if(plan.combinedHeaters.some(p=>p.section===h.section)){binding=attachConfiguredCombinedHeater(group,plan.combinedHeaters.find(p=>p.section===h.section)!);}else{const owned=attachConfiguredSpiHeater(group,plan.spiHeaters.find(p=>p.section===h.section)!);spiHeaters.push(owned);binding=owned;}
    thermal.push({section:h.section,runtime:binding.runtime});heaters.register(h.section,binding.runtime,ids[h.section]);
   }
-  for(const p of plan.ahtSensors){const sensor=attachConfiguredAhtSensor(group,p,error=>{void close(error).catch(()=>{});});ahtSensors.push(sensor);heaters.registerSensor(p.section,sensor,p.gcodeId);}
+  for(const p of plan.ahtSensors){const sensor=attachConfiguredAhtSensor(group,p,error=>{void close(error).catch(()=>{});});ahtSensors.push(sensor);heaters.registerSensor(p.section,{getTemperature:()=>({...sensor.getTemperature(),target:temperatureControls.get(p.section)?.settings.target??0})},p.gcodeId);}
   for(const p of plan.hostSensors){const sensor=await HostTemperature.open(p,error=>{void close(error).catch(()=>{});},abort.signal);hostSensors.push(sensor);if(abort.signal.aborted)await sensor.close(abort.signal.reason);active();heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}
   for(const p of plan.sensors){const binding=attachConfiguredAnalogSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
   for(const p of plan.spiSensors){const binding=attachConfiguredSpiSensor(group,p);sensors.push(binding);heaters.registerSensor(p.section,sensorView(p.section,binding.state),p.gcodeId);}
@@ -145,8 +145,8 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
   for(const p of plan.temperatureFans){
    const f=fans.find(f=>f.section===p.section)!,outputPlan=plan.fans.find(f=>f.section===p.section)!;
    const now=()=>Math.max(...[outputPlan.output,...outputPlan.enable?[outputPlan.enable]:[]].map(o=>o.clock.printTimeAtClock(group.session(o.mcu).clock.sync.getClock(serialClock.now()))));
-   const softwareSource=hostSensors.find(s=>s.section===p.section)??combinedSensors.find(s=>s.section===p.section),source=softwareSource??sensors.find(s=>s.section===p.section);if(!source)throw new Error('Temperature fan source missing');
-   const control=temperatureControls.get(p.section)!,runtime=new TemperatureFanRuntime(f.runtime,control,now,error=>{void close(error).catch(()=>{});});
+   const softwareSource=ahtSensors.find(s=>s.section===p.section)??hostSensors.find(s=>s.section===p.section)??combinedSensors.find(s=>s.section===p.section),source=softwareSource??sensors.find(s=>s.section===p.section);if(!source)throw new Error('Temperature fan source missing');
+   const control=temperatureControls.get(p.section)!,runtime=new TemperatureFanRuntime(f.runtime,control,now,error=>{void close(error).catch(()=>{});},p.sensorTimeout);
    const detachSample=source.state.subscribeSample((time,temp)=>runtime.sample(softwareSource?now():time,temp));
    temperatureFans.push({section:p.section,control,runtime,state:source.state});cleanup.add(async cause=>{detachSample();await runtime.stop(cause);});runtime.start();active();
   }

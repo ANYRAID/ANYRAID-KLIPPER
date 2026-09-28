@@ -74,7 +74,6 @@ export function compileConfiguredHardware(reader:ConfigurationReader,group:MCUGr
  const combinedSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_combined');
  const combinedSensors=planCombinedTemperatures(reader,[...combinedSections,...combinedHeaterSections].map(s=>s.section),[...layout.heaters,...layout.sensors??[]].map(s=>s.section));
  const ahtSections=(layout.sensors??[]).filter(s=>['AHT10','AHT1X','AHT2X','AHT3X'].includes(reader.section(s.section).get('sensor_type')));
- if(ahtSections.some(s=>!s.section.startsWith('temperature_sensor ')))throw new Error('AHT direct fan feedback is not wired yet');
  const ahtSensors=compileConfiguredAhtSensors(reader,pins,mcus,ahtSections);
  const hostSections=(layout.sensors??[]).filter(s=>reader.section(s.section).get('sensor_type')==='temperature_host');
  if(new Set(hostSections.map(s=>s.section.trim().split(/\s+/).at(-1))).size!==hostSections.length)throw new Error('Duplicate host temperature object name');

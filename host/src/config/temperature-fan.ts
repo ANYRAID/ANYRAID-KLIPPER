@@ -6,7 +6,9 @@ export function readTemperatureFan(reader:ConfigurationReader,section:string){
  const settings={minimumTemperature,maximumTemperature,target:c.getFloat('target_temp',{defaultValue:Math.min(40,maximumTemperature),minval:minimumTemperature,maxval:maximumTemperature}),minimumSpeed:c.getFloat('min_speed',{defaultValue:.3,minval:0,maxval:1}),maximumSpeed:c.getFloat('max_speed',{defaultValue:1,above:0,maxval:1})};
  const kind=c.getChoice('control',['watermark','pid']);
  const algorithm:TemperatureFanAlgorithm=kind==='watermark'?{kind,delta:c.getFloat('max_delta',{defaultValue:2,above:0})}:{kind:'pid',kp:c.getFloat('pid_Kp',{minval:0}),ki:c.getFloat('pid_Ki',{minval:0}),kd:c.getFloat('pid_Kd',{minval:0}),derivativeTime:c.getFloat('pid_deriv_time',{defaultValue:2,above:0})};
- const reportDelay=c.get('sensor_type')==='temperature_host'?1:.3;
+ const sensorType=c.get('sensor_type'),reportDelay=sensorType==='temperature_host'?1:.3;
+ // Keep PWM scheduling short even when the physical sensor reports slowly.
+ const sensorTimeout=['AHT10','AHT1X','AHT2X','AHT3X'].includes(sensorType)?c.getInt('aht10_report_time',{defaultValue:30,minval:5,maxval:86400})+6:3;
  new TemperatureFanControl(settings,algorithm,reportDelay);
- return Object.freeze({section,settings:Object.freeze(settings),algorithm:Object.freeze(algorithm),reportDelay});
+ return Object.freeze({section,settings:Object.freeze(settings),algorithm:Object.freeze(algorithm),reportDelay,sensorTimeout});
 }

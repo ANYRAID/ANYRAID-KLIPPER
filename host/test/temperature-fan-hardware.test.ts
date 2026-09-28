@@ -18,6 +18,8 @@ const until=async(check:()=>boolean)=>{const end=performance.now()+4000;while(!c
 test('temperature fan policy validates required range, control and speed limits before IO',()=>{
  const p=readTemperatureFan(reader(),section);assert.equal(p.settings.target,40);assert.equal(p.reportDelay,.3);
  assert.equal(readTemperatureFan(reader({sensor_type:'temperature_host'}),section).reportDelay,1);
+ assert.equal(readTemperatureFan(reader({sensor_type:'AHT2X'}),section).sensorTimeout,36);
+ assert.equal(readTemperatureFan(reader({sensor_type:'AHT2X'}),section).reportDelay,.3);
  for(const options of [{min_speed:'.9',max_speed:'.5'},{control:'unknown'},{control:'pid'},{max_speed:'0'},{max_temp:'-1'},{target_temp:'101'}] as Record<string,string>[])assert.throws(()=>readTemperatureFan(reader(options),section));
 });
 test('host temperature fan maps host readings to MCU print time and stops on source failure',async()=>{
