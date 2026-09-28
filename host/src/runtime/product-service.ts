@@ -1,3 +1,4 @@
+import {registerNativeBedMeshSelection} from '../moonraker/native-bed-mesh-selection.ts';
 import {planProbeGrid,buildProbeGridMesh} from '../homing/probe-grid.ts';
 import {readDeltaMotionConfiguration} from '../config/delta-motion.ts';
 import {readDeltaCalibrationPlan} from '../config/delta-calibration-plan.ts';
@@ -88,6 +89,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
  const printer=await connect();
  let closeDeltaCalibration:ReturnType<typeof registerNativeDeltaCalibration>|undefined;
+ let closeMeshSelection:(()=>Promise<void>)|undefined;
  let closeManualMesh:(()=>Promise<void>)|undefined;
  let closeManualDelta:(()=>Promise<void>)|undefined;
  let closeBedScrews:(()=>Promise<void>)|undefined;
@@ -114,7 +116,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
+  const jobs:Promise<void>[]=[];if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
   void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
@@ -156,6 +158,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeHome=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&!printer.print.gcode.homing.status.busy,measure:async s=>{await printer.print.gcode.homing.home([0,1,2],s);return {homed_axes:printer.machine.kinematics.status.homedAxes,position:[...printer.machine.port.homingPosition()]};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()},'home');
   const tilt=readBedTilt(reader),tiltIdle=()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&printer.machine.kinematics.status.homedAxes==='xyz';
   const manualGrid=readProbeGrid(reader),manualMeshConfiguration=readNativeBedMesh(reader);
+  if(manualMeshConfiguration)closeMeshSelection=registerNativeBedMeshSelection(server.endpoints,printer.maintenanceGate,manualMeshConfiguration.profiles,{snapshot:()=>({revision:printer.machine.port.bedMeshStatus,profile:String(printer.machine.port.bedMeshStatus.profile_name)}),idle:tiltIdle,set:async(mesh,name,s)=>{await printer.machine.port.replaceBedMesh(mesh,manualMeshConfiguration.settings,s,name);printer.print.gcode.coordinates.resetPosition();},fail:cause=>printer.machine.port.motorOff(cause)});
   if(manualGrid&&manualMeshConfiguration){
    // Manual contacts use the nozzle directly, with no probe offsets or zero reference.
    const plan=planProbeGrid({...manualGrid,zeroReference:undefined},[0,0,0]);

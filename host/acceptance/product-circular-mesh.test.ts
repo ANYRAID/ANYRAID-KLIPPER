@@ -63,6 +63,13 @@ export const createProductHostProfile=signal=>loadProductMachineProfile(${JSON.s
     }else{
      const mesh=(await get('/printer/objects/query?bed_mesh')).status.bed_mesh;assert.equal(mesh.profile_name,'retained');assert.deepEqual(mesh.probed_matrix,savedMatrix);assert.equal(simulation.probeHits,0);const position=(await get('/printer/objects/query?toolhead')).status.toolhead.position;compensatedPosition=position;const matrix=savedMatrix as number[][];assert.equal(position[0],1);assert.equal(position[1],0);assert(Math.abs(position[2]-(10+(matrix[1][1]+matrix[1][2])/2))<1e-12);
     }
+    if(generation){
+     const path='/printer/settings/bed_mesh',before=transport.firmware.map(fw=>fw.motion.length),position=(await get('/printer/objects/query?toolhead')).status.toolhead.position;
+     let state=await get(path);assert.deepEqual(state.profiles,['retained']);assert.equal(state.profile,'retained');
+     const clear={version:1,state_token:state.state_token,action:'clear'},cleared=await post(path,clear);assert.equal(cleared.profile,'');assert.deepEqual(await post(path,clear),cleared);
+     state=await get(path);const load={version:1,state_token:state.state_token,action:'load',profile:'retained'},loaded=await post(path,load);assert.equal(loaded.profile,'retained');assert.deepEqual(await post(path,load),loaded);
+     assert.deepEqual(transport.firmware.map(fw=>fw.motion.length),before);assert.deepEqual((await get('/printer/objects/query?toolhead')).status.toolhead.position,position);
+    }
     child.kill('SIGTERM');assert.equal(await ended,0);
    }finally{clearTimeout(timer);if(child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended.catch(()=>{});simulation.close();}
   }
