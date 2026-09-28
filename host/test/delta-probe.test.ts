@@ -1,3 +1,4 @@
+import {Thermistor} from '../src/thermal/thermistor.ts';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
 import {startConfiguredDeltaProductService} from '../src/runtime/product-service.ts';
 import {productTransports} from './helpers/product-transports.ts';
@@ -14,12 +15,17 @@ import {planDeltaHardware} from '../src/config/delta-printer.ts';
 import {startConfiguredHardware} from '../src/runtime/configured-hardware.ts';
 import {initializeConfiguredMotion} from '../src/runtime/initial-motion.ts';
 const benchmark=!!process.env.DELTA_PROBE_BENCH;
-for(let run=0;run<(benchmark?4:1);run++)test(`Delta mechanical probe completes two off-center samples with a vertical retract (run=${run})`,async t=>{
+for(const calibration of (benchmark?[false]:[false,true]))for(let run=0;run<(benchmark?4:1);run++)test(`Delta mechanical probe completes two off-center samples with a vertical retract (run=${run}, calibration=${calibration})`,async t=>{
  const f=await initialMotionSetup(false,true,true),timers=new Set<ReturnType<typeof setTimeout>>(),detach:(()=>void)[]=[];let hits=0;
  try{
   const raw=deltaPrinterSections(f.reader.source.original);raw.probe={pin:'^aux:PA13',z_offset:'.123456789',x_offset:'-2',y_offset:'3',samples:'2',sample_retract_dist:'.2',samples_tolerance:'10'};
   const reader=new ConfigurationReader(new ConfigurationSource('/delta.cfg',raw,[]),null),plan=planDeltaHardware(reader,{mcus:['mcu','aux'],enableLeadTime:.001,fanMinimumScheduleTime:.001});
   const hw=await startConfiguredHardware(reader,f.group,f.clocks,plan.layout,{...f.hardwareOptions,motion:plan.motion},f.signal);
+  const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
+  const thermal=setInterval(()=>{if(!calibration)return;for(const fw of f.firmware)for(const entry of fw.outputs.filter(o=>o.name==='query_analog_in'&&Number(o.parameters.rest_ticks)>0)){
+   const p=entry.parameters,raw=Math.round(converter.adc(25)*4095*Number(p.sample_count)),next=fw.currentClock()+Number(p.rest_ticks)-Number(p.sample_ticks)*Number(p.sample_count);
+   fw.emit('analog_in_state',{oid:Number(p.oid),next_clock:next>>>0,values:Buffer.from([raw&255,raw>>8])});
+  }},100);
   try{
    const initial=await initializeConfiguredMotion(hw,{...initialMotionOptions,position:[25,-30,10,0]},f.signal),owner=initial.createDeltaPort(reader,plan),probe=hw.plan.homing.find(h=>h.section==='probe')!;
    const counts=new Map<string,number>();
@@ -33,18 +39,28 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta mechanical probe completes t
       if(command.name==='queue_step'){const count=(counts.get(key)??0)+(directions.get(oid)??1)*Number(p.count);counts.set(key,count);fw.setStepperPosition(oid,count);}
       if(command.name==='trsync_start'&&p.report_ticks===0)fw.setTriggerReason(2,oid);
       if(command.name==='endstop_home'&&Number(p.sample_count)>0&&index===1&&oid===probe.endstop.oid){
-       const hit=Number(p.clock)+50000,timer=setTimeout(()=>{timers.delete(timer);hits++;
-        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=f.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=-20*hits+16*(hits-1);counts.set(i+':'+binding.oid,count);f.firmware[i].setStepperPosition(binding.oid,count);}
+       const atArm=new Map(counts),hit=Number(p.clock)+50000,timer=setTimeout(()=>{timers.delete(timer);hits++;
+        for(const binding of initial.generation.motion.bindings){if(binding.id==='e')continue;const i=f.group.session('mcu')===initial.generation.members[binding.member].session?0:1,count=calibration?(atArm.get(i+':'+binding.oid)??0)-20:-20*hits+16*(hits-1);counts.set(i+':'+binding.oid,count);f.firmware[i].setStepperPosition(binding.oid,count);}
         fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});
        },Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);
       }
      }
     }};fw.peer.on('data',data);detach.push(()=>{if('off' in fw.peer&&typeof fw.peer.off==='function')fw.peer.off('data',data);});
    }
+   if(calibration){
+    owner.kinematics.resetPosition('xyz');const started=performance.now();
+    const positions:[[number,number],[number,number],[number,number],[number,number],[number,number],[number,number]]=[[0,0],[2,0],[1,2],[-2,0],[-1,-2],[0,2]];
+    const result=await owner.port.measureDeltaCalibration({points:positions,horizontalHeight:10,travelSpeed:50},0,f.signal);
+    result.forEach((p,i)=>{const xyz=owner.kinematics.positionFromStable(p.stable);assert(Math.abs(xyz[0]-positions[i][0])<.05);assert(Math.abs(xyz[1]-positions[i][1])<.05);});
+    assert.equal(result.length,6);assert.equal(hits,12);assert(result.every(p=>p.height===.123456789&&p.stable.every(Number.isFinite)));
+    assert.equal(owner.port.status.failed,false);assert.equal(owner.port.homingPosition()[3],0);assert.equal(owner.kinematics.status.homedAxes,'xyz');assert.deepEqual(f.stops,[0,0]);
+    t.diagnostic('DeltaCalibrationProbe '+JSON.stringify({wallMs:performance.now()-started,points:result.length,hits}));
+   }else{
    owner.kinematics.resetPosition('xyz');const started=performance.now();const pending=owner.port.measureProbe(0,f.signal);assert.throws(()=>owner.port.move([25,-30,11,0],5),/busy/);
    const result=await pending;t.diagnostic('DeltaProbeBenchmark '+JSON.stringify({run,api:false,wallMs:performance.now()-started}));assert.equal(hits,2);assert.equal(result.attempts,2);assert.equal(result.samples.length,2);assert.equal(result.retries,0);assert.equal(owner.port.status.failed,false);assert.equal(owner.kinematics.status.homedAxes,'xyz');
    assert.deepEqual(result.bedPosition,[result.position[0]-2,result.position[1]+3,result.position[2]-.123456789]);assert.equal(result.position[3],0);assert(Math.abs(owner.port.homingPosition()[0]-25)<1e-10);assert(Math.abs(owner.port.homingPosition()[1]+30)<1e-10);assert.deepEqual(f.stops,[0,0]);
-  }finally{for(const timer of timers)clearTimeout(timer);for(const off of detach)off();await hw.close();}
+   }
+  }finally{clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of detach)off();await hw.close();}
  }finally{await f.close();}
 });
 

@@ -574,6 +574,30 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  }
  get bedTiltStatus(){return this.#tilt?{...this.#tilt.adjust,revision:String(this.#tiltRevision),calibrated:this.#tiltRevision>0n}:undefined;}
  #tiltRevision=0n;
+ measureDeltaCalibration(options:BedTiltProbePlan,minimumZ:number,signal:AbortSignal){
+  const config=this.#o.probeConfiguration,plan=structuredClone(options);
+  return this.#operate('delta-calibration',signal,async s=>{
+   if(this.#o.kinematics.kind!=='delta'||!config||this.#o.kinematics.status.homedAxes!=='xyz')throw new Error('Delta calibration requires configured probe and homed Delta axes');
+   if(!Number.isFinite(plan.horizontalHeight)||!Number.isFinite(plan.travelSpeed)||plan.travelSpeed<=0||!Number.isFinite(minimumZ)||minimumZ>=plan.horizontalHeight||plan.horizontalHeight<config.offsets[2])throw new Error('Invalid Delta calibration travel');
+   if(plan.points.length<6||plan.points.length>999||plan.points.some(p=>p.length!==2||!p.every(Number.isFinite)))throw new Error('Invalid Delta calibration points');
+   const kinematics=this.#o.kinematics;
+   const admission=this.#newAdmission(this.homingPosition(),true);
+   try{for(const point of plan.points){const target=[...point,plan.horizontalHeight,this.homingPosition()[3]];admission.move(target,plan.travelSpeed);admission.move([target[0],target[1],minimumZ,target[3]],config.speed);}}
+   finally{admission.shutdown(new Error('Delta calibration preflight complete'));}
+   await this.#drain(s);
+   const samples=await this.#deviceSession(async(sample,ss)=>{
+    const points:{height:number;stable:readonly [number,number,number]}[]=[];
+    for(const [x,y] of plan.points){
+     const raised=[...this.homingPosition()];raised[2]=Math.max(raised[2],plan.horizontalHeight);await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     raised[0]=x;raised[1]=y;await this.#probeTravel(raised,plan.travelSpeed,ss);raised[2]=plan.horizontalHeight;await this.#probeTravel(raised,config.sampling.liftSpeed,ss);
+     const result=await this.#sampleProbe(minimumZ,config.speed,config.sampling,ss,sample),p=result.position,o=config.offsets;
+     points.push({height:o[2],stable:kinematics.stablePosition([p[0],p[1],p[2]])});
+    }
+    const finish=[...this.homingPosition()];finish[2]=Math.max(finish[2],plan.horizontalHeight);await this.#probeTravel(finish,config.sampling.liftSpeed,ss);return points;
+   },s);
+   this.#check(s);return samples;
+  });
+ }
  calibrateBedTilt(options:BedTiltProbePlan,minimumZ:number,signal:AbortSignal){
   const config=this.#o.probeConfiguration,plan=structuredClone(options);
   return this.#operate('bed-tilt',signal,async s=>{
