@@ -1634,3 +1634,17 @@ idle 开始，不将上一次服务的建议当作当前测量。
 会话要求空闲且 XYZ 已归零，并在等待用户期间独占运动；同一成功
 请求重试不移动。完成后抬升喷嘴，取消、超时或失败要求重新初始化。
 这是一项用户手动旋转螺丝的引导，不会自动调整电机或保存补偿。
+
+## 服务启动前的编译包校验
+
+重新生成的 systemd 单元使用 ExecStartPre，在加载机器模块前检查编译包
+清单 SHA-256 和运行时 ABI；失败时 systemd 不执行主入口。可单独运行：
+
+```sh
+node --no-experimental-strip-types scripts/product-service-unit.js --verify-bundle /opt/anyraid/product-host
+```
+
+该命令不导入机器配置、不打开硬件。已有服务单元须重新生成并按部署
+流程安装后才包含此检查；直接运行 product-host 不会自动执行它。
+清单用于本地产物完整性校验，不是签名认证；部署期间仍须避免在校验
+和启动之间修改文件。默认 Python 服务尚未切换。

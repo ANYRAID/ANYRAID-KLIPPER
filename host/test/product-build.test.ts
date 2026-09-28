@@ -30,6 +30,12 @@ test('compiled product workers, addons, assets and mathematical output run witho
   for(let run=0;run<12;run++){const begin=performance.now();serviceUnit=execFileSync(process.execPath,[join(output,'scripts/product-service-unit.js'),'--bundle',output,'--profile',serviceProfile,'--user','printer'],{env:environment(),encoding:'utf8',timeout:10000});if(run)serviceTimes.push(performance.now()-begin);}
   serviceTimes.sort((a,b)=>a-b);assert.match(serviceUnit,/Restart=no/);assert.match(serviceUnit,/--no-experimental-strip-types/);assert(serviceTimes[10]<2000);
   t.diagnostic(JSON.stringify({servicePreparation:{coldProcesses:11,warmups:1,medianMs:serviceTimes[5],p95Ms:serviceTimes[10],scope:'Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation'}}));
+  const verificationTimes:number[]=[];
+  for(let run=0;run<12;run++){const begin=performance.now();assert.equal(execFileSync(process.execPath,[join(output,'scripts/product-service-unit.js'),'--verify-bundle',output],{env:environment(),encoding:'utf8',timeout:10000}),'Product bundle verified\n');if(run)verificationTimes.push(performance.now()-begin);}
+  verificationTimes.sort((a,b)=>a-b);assert(verificationTimes[10]<2000);
+  t.diagnostic(JSON.stringify({startupVerification:{coldProcesses:11,warmups:1,medianMs:verificationTimes[5],p95Ms:verificationTimes[10],scope:'Compiled pre-start command; no PATH programs, Python, TypeScript loading, machine imports or hardware'}}));
+  const checked=join(output,'scripts/product-host.js'),original=await readFile(checked);await writeFile(checked,'corrupted');
+  assert.throws(()=>execFileSync(process.execPath,[join(output,'scripts/product-service-unit.js'),'--verify-bundle',output],{env:environment(),encoding:'utf8',timeout:10000,stdio:'pipe'}),/digest mismatch/);await writeFile(checked,original);
   const result=JSON.parse(execFileSync(process.execPath,[await productBuildSmoke(output,work)],{env:environment(),encoding:'utf8',timeout:15000,maxBuffer:4*1024**2}));
   const samples=Float64Array.from({length:4096*4},(_,i)=>i%4===0?Math.floor(i/4)/1024:Math.sin(2*Math.PI*64*Math.floor(i/4)/1024));
   const dataset={frequencies:Float64Array.from({length:128},(_,i)=>i*2),psd:Float64Array.from({length:128},(_,i)=>Math.exp(-(((i*2-45)/8)**2))+.01)};

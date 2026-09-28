@@ -9,13 +9,13 @@ import {productServiceUnit,productServiceUnitCLI} from '../src/runtime/product-s
 async function fixture(run:(f:{root:string;bundle:string;profile:string;entry:string;marker:Record<string,unknown>})=>Promise<void>){
  const root=await mkdtemp(join(tmpdir(),'native-service-'));
  try{const bundle=join(root,'bundle %u $HOME "quoted"'),profile=join(root,'machine %u $HOME "quoted".mjs'),entry=join(bundle,'scripts/product-host.js');await mkdir(join(bundle,'scripts'),{recursive:true});
- await writeFile(profile,'throw new Error("MUST NOT IMPORT MACHINE DURING PREPARATION");');await writeFile(entry,'process.exit(0);');
+ await writeFile(profile,'throw new Error("MUST NOT IMPORT MACHINE DURING PREPARATION");');await writeFile(entry,'process.exit(0);');await writeFile(join(bundle,'scripts/product-service-unit.js'),'process.exit(0);');
  const marker={schema:1,product:'anyraid-product-host',platform:process.platform,arch:process.arch,modules:process.versions.modules,files:{'scripts/product-host.js':createHash('sha256').update(await readFile(entry)).digest('hex')}};
  await writeFile(join(bundle,'build-info.json'),JSON.stringify(marker));await run({root,bundle,profile,entry,marker});}finally{await rm(root,{recursive:true,force:true});}
 }
 test('read-only unit generation escapes systemd paths and passes installed parser',async()=>fixture(async({root,bundle,profile})=>{
  const unit=await productServiceUnit({bundle,profile,user:'printer'});
- assert.match(unit,/Restart=no\n/);assert.match(unit,/KillMode=mixed\n/);assert.match(unit,/Conflicts=klipper.service moonraker.service/);
+ assert.match(unit,/ExecStartPre=.*--no-experimental-strip-types .*--verify-bundle/);assert.match(unit,/Restart=no\n/);assert.match(unit,/KillMode=mixed\n/);assert.match(unit,/Conflicts=klipper.service moonraker.service/);
  assert.match(unit,/ExecStart=.*--no-experimental-strip-types/);assert(unit.includes(String.raw`%%u $HOME \"quoted\"`));assert(!unit.includes('ExecReload='));
  const path=join(root,'anyraid-host.service');await writeFile(path,unit);const result=spawnSync('systemd-analyze',['verify',path],{encoding:'utf8'});
  assert.equal(result.error,undefined);assert.equal(result.status,0,result.stderr);assert(!/Failed to parse|Unknown|Invalid/u.test(result.stderr),result.stderr);
@@ -37,3 +37,10 @@ test('CLI rejects missing, duplicate and unknown flags before producing any unit
  for(const args of [[],['--bundle','/tmp'],['--bundle','/tmp','--bundle','/tmp','--user','printer'],['--install','true']])await assert.rejects(productServiceUnitCLI(args,write),/Expected exactly/);
  assert.equal(output,'');
 });
+
+test('startup verification rejects post-generation corruption without loading machine code',async()=>fixture(async({bundle,profile,entry})=>{
+ await productServiceUnit({bundle,profile,user:'printer'});
+ let output='';await productServiceUnitCLI(['--verify-bundle',bundle],text=>{output+=text;});assert.equal(output,'Product bundle verified\n');
+ await writeFile(entry,'corrupted after service generation');output='';
+ await assert.rejects(productServiceUnitCLI(['--verify-bundle',bundle],text=>{output+=text;}),/digest mismatch/);assert.equal(output,'');
+}));

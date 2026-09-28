@@ -37,10 +37,11 @@ export async function productServiceUnit(options:ProductServiceUnitOptions):Prom
  await verifyProductBundle(bundle);
  await access(node,constants.X_OK);
  const executable=join(bundle,'scripts/product-host.js');
- return `[Unit]\nDescription=ANYRAID Node product host\nAfter=network.target\nConflicts=klipper.service moonraker.service\n\n[Service]\nType=exec\nUser=${options.user}\nWorkingDirectory=/\nExecStart=${quote(node,true)} --no-experimental-strip-types ${quote(executable,true)} --profile ${quote(profile,true)}\nRestart=no\nKillSignal=SIGTERM\nKillMode=mixed\nTimeoutStopSec=90s\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\n`;
+ return `[Unit]\nDescription=ANYRAID Node product host\nAfter=network.target\nConflicts=klipper.service moonraker.service\n\n[Service]\nType=exec\nUser=${options.user}\nWorkingDirectory=/\nExecStartPre=${quote(node,true)} --no-experimental-strip-types ${quote(join(bundle,'scripts/product-service-unit.js'),true)} --verify-bundle ${quote(bundle,true)}\nExecStart=${quote(node,true)} --no-experimental-strip-types ${quote(executable,true)} --profile ${quote(profile,true)}\nRestart=no\nKillSignal=SIGTERM\nKillMode=mixed\nTimeoutStopSec=90s\nUMask=0077\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\n`;
 }
 export async function productServiceUnitCLI(args:readonly string[],write:(text:string)=>void):Promise<void>{
- if(args.length===1&&['--help','-h'].includes(args[0])){write('Usage: node scripts/product-service-unit.ts --bundle /absolute/product-host --profile /absolute/machine.mjs --user printer\nWrites a verified systemd unit to stdout. Does not install or start services.\n');return;}
+ if(args.length===1&&['--help','-h'].includes(args[0])){write('Usage: node scripts/product-service-unit.ts --bundle /absolute/product-host --profile /absolute/machine.mjs --user printer\nUse --verify-bundle /absolute/product-host for a read-only startup check.\nWrites a verified systemd unit to stdout. Does not install or start services.\n');return;}
+ if(args.length===2&&args[0]==='--verify-bundle'){await verifyProductBundle(args[1]);write('Product bundle verified\n');return;}
  const parsed:Record<string,string>={};for(let i=0;i<args.length;i+=2){const key=args[i];if(!['--bundle','--profile','--user'].includes(key)||key in parsed||!args[i+1])throw new Error('Expected exactly --bundle, --profile and --user');parsed[key]=args[i+1];}
  if(Object.keys(parsed).length!==3)throw new Error('Expected exactly --bundle, --profile and --user');
  write(await productServiceUnit({bundle:parsed['--bundle'],profile:parsed['--profile'],user:parsed['--user']}));
