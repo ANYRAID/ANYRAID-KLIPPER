@@ -16,6 +16,23 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 最后一个 Python 工具脚本 avrsim.py 的替换已开始：新增 Node 驱动
+  的 simulavr 核心构建，锁定上游提交，拒绝修改过的源码；仅编译
+  C++ 仿真核心，不调用上游 CMake 的 Python 探测或 SWIG。
+  已编译并运行真实 atmega644 ELF，固定六周期汇编循环在十个独立
+  进程中均产生相同的 5,372 个边沿，逐个验证高 124 ns、低 248 ns。
+  保留旧入口 16 MHz → 整数 62 ns 的时钟量化（不是理想 62.5 ns）。
+  3 轮预热、7 轮测量，仿真 1 ms 的进程启动、ELF 加载与边沿检查
+  中位 9.429 ms；不是串口桥或 Python 性能对照。类型与空白检查通过。
+  Node 串口桥、PTY、节拍和 VCD 入口尚待接入，avrsim.py 未删除，
+  Python 数量仍为 180。见 [核心验收](../host/contracts/simulavr-core-acceptance.json)。
+  开发验证：将官方源码检出到上述证据锁定的提交，执行
+  `node host/scripts/build-simulavr-core.ts SIMULAVR_SOURCE host/build/libsim.a`，
+  再设置 `SIMULAVR_SOURCE` 执行 `node --test --test-isolation=none
+  host/acceptance/simulavr-core.test.ts`；需要 C++ 编译器、ar 和 avr-gcc，
+  可用 CXX、AR、AVR_CC 指定路径。当前不替代 Debugging 中的使用入口。
+
+
 - 舵机已补齐独立编译产品验收：普通、并发负载和同版本无舵机对照
   三个流程全部通过，约 134.7 秒。打印交错设置两个 MCU 的舵机与
   三路输出引脚，完成热控打印、断料暂停恢复、暂停超时取消、重新
