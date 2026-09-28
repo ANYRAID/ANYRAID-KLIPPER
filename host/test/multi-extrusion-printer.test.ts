@@ -1,3 +1,4 @@
+import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -33,6 +34,21 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
   assert.deepEqual(port.position(),[0,0,0,0,.1]);
   await port.forcePosition([1,2,3,0,.1],f.signal);assert.deepEqual(port.position(),[1,2,3,0,.1]);
   port.move([1,2,3,0,.2],5);await port.drain(f.signal);assert.deepEqual(port.position(),[1,2,3,0,.2]);
+  assert.throws(()=>new NativeLinearGCode(port,machine.kinematics,machine.rails,()=>{},120000,1,undefined,undefined,undefined,false,[],[{name:'extruder',stepper:'e1'},{name:'extruder1',stepper:'e'}]),/bindings/);
+  const gcode=new NativeLinearGCode(port,machine.kinematics,machine.rails,()=>{},120000,1,{retract_length:.1,retract_speed:5,unretract_extra_length:0,unretract_speed:5},undefined,undefined,false,[],machine.toolBindings);
+  try{
+   gcode.enable();await gcode.dispatch.execute('T1\nM83\nG1 E0.1 F300\nG10');assert.equal(gcode.tools!.active,1);assert.equal(gcode.retraction!.retracted,true);assert.equal(gcode.pressureAdvance!.name,'extruder1');
+   const afterSecond=[...port.position()];assert.equal(afterSecond[3],0);assert(Math.abs(afterSecond[4]-.2)<1e-12);
+   await gcode.dispatch.execute('T0\nG1 E0.1 F300\nG11');assert.equal(gcode.retraction!.retracted,false);assert(Math.abs(port.position()[3]-.1)<1e-12);assert.equal(port.position()[4],afterSecond[4]);
+   await gcode.dispatch.execute('ACTIVATE_EXTRUDER EXTRUDER=extruder1\nG11');assert.equal(gcode.retraction!.retracted,false);assert(Math.abs(port.position()[4]-.3)<1e-12);
+   await gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0.05\nSET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0.02');assert.equal(port.pressureAdvanceSettings('e1').advance,.05);assert.equal(port.pressureAdvanceSettings('e').advance,.02);
+   const beforeHome=port.position().slice(3),h=hardware.plan.homing.find(h=>h.section==='stepper_x')!;let sent=false;
+   const homeTimer=setInterval(()=>{const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;const clock=BigInt(Number(arm.parameters.clock));if(f.group.session('mcu').clock.sync.getClock(serialClock.now())<clock)return;sent=true;
+    f.firmware[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},h.endstop.oid);
+    for(const trigger of h.triggers){const fw=f.firmware[trigger.mcu==='mcu'?0:1],oid=trigger.protocol.oid;fw.setTriggerReason(1,oid);fw.emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});}
+   },1);
+   try{await gcode.dispatch.execute('G28 X');assert(sent);assert.equal(machine.kinematics.status.homedAxes,'x');assert.deepEqual(port.position().slice(3),beforeHome);assert.equal(gcode.coordinates.state.position.length,4);assert.equal(gcode.coordinates.state.position[3],beforeHome[1]);}finally{clearInterval(homeTimer);}
+  }finally{await gcode.close();}
  }finally{if(timer)clearInterval(timer);await hardware?.close();await f.close();}
 });
 test('tool numbering rejects aliases and holes rather than silently assigning a different heater',()=>{

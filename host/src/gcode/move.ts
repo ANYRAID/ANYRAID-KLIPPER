@@ -66,7 +66,7 @@ export class GCodeMove {
     if(axes.some(i=>!Number.isInteger(i)||i<0||i>2)) throw new RangeError('Invalid homing axis');
     this.resetPosition();for(const i of axes)this.#state.base[i]=this.#state.homing[i];
   }
-  activateExtruder():void {this.resetPosition();this.#state.extrudeFactor=1;this.#state.base[3]=this.#state.position[3];}
+  activateExtruder():void {this.resetPosition();this.#saved.clear();this.#state.extrudeFactor=1;this.#state.base[3]=this.#state.position[3];}
   updateExtraAxes(axes:Readonly<Record<string,number>>):void {
     const position=[...this.#port.position()];
     if(position.length<4||!position.every(Number.isFinite)) throw new RangeError('Invalid axis position');

@@ -93,7 +93,7 @@ export async function initializeConfiguredMotion(hardware:Awaited<ReturnType<typ
     printPending=createNativeLinearPrint({...options,gcode,port:result.port,heaters:hardware.heaters,mapping:{nozzle,bed}});
     try{return await printPending;}catch(error){try{await hardware.close(error);}catch(cleanup){throw new AggregateError([error,cleanup],'Configured print and cleanup failed',{cause:error});}throw error;}
    };
-   return Object.freeze({...result,createPrint});
+   return Object.freeze({...result,toolBindings:Object.freeze(names.map((name,i)=>Object.freeze({name,stepper:extruders[i].id}))),createPrint});
   };
   const createDeltaPort=(reader:ConfigurationReader,settings:Pick<ReturnType<typeof planDeltaHardware>,'homing'|'kinematicIds'> & {probe?:ReturnType<typeof planDeltaHardware>['probe']})=>{
    group.assertActive();const state=generation.source.status;

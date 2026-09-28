@@ -18,8 +18,9 @@ export interface PressureAdvancePort {
 }
 /** Explicit opt-in only: the native product host must not register this until
  * it owns continuous scheduling, window barriers and pause recovery together. */
-export function bindPressureAdvanceCommand(dispatch:GCodeDispatch,port:PressureAdvancePort):void{
+export function bindPressureAdvanceCommand(dispatch:GCodeDispatch,binding:PressureAdvancePort|((name?:string)=>PressureAdvancePort)):void{
  dispatch.register('SET_PRESSURE_ADVANCE',async c=>{
+  const port=typeof binding==='function'?binding(c.params.EXTRUDER):binding;
   const change=pressureAdvanceCommand(c.params,port.pressureAdvance,port.name);await port.applyPressureAdvance(change,c.signal);c.signal.throwIfAborted();
   c.respondInfo(`pressure_advance: ${fixed6(change.next.advance)}\npressure_advance_smooth_time: ${fixed6(change.next.smoothTime)}`);
  });

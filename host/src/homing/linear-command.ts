@@ -1,3 +1,4 @@
+import {ToolMovePort} from '../gcode/tool-move.ts';
 import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
 import {safeZHomingSettings,type SafeZHoming} from './safe-z-home.ts';
 // Linear-axis G28 sequencing from klippy/extras/homing.py. GPL-3.0-or-later.
@@ -57,11 +58,13 @@ export function homingRetract(force:readonly number[],home:readonly number[],dis
 /** Cartesian/CoreXY/CoreXZ only. The owning runtime must supply the concrete
  * native driver; registering this class alone does not wire printer hardware. */
 export class LinearHomingCommand {
+ #projection:ToolMovePort|undefined;
  #kin:LinearKinematics;#coordinates:GCodeMove;#port:LinearHomingPort;#rails:readonly LinearHomingRail[];#busy=false;#timeout:number;
  #safe:Readonly<SafeZHoming>|undefined;
  #cleanupPending=false;#cleanupFailed=false;#cleanupError:unknown;
- constructor(kinematics:LinearKinematics,coordinates:GCodeMove,port:LinearHomingPort,rails:readonly LinearHomingRail[],timeoutMs=120000){
-  if(!coordinates.usesPort(port)||rails.length!==3||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new Error('Invalid linear homing ownership');
+ constructor(kinematics:LinearKinematics,coordinates:GCodeMove,port:LinearHomingPort,rails:readonly LinearHomingRail[],timeoutMs=120000,projection?:ToolMovePort){
+  if(projection&&!projection.usesPort(port))throw new Error('Homing tool projection ownership differs');this.#projection=projection;
+  if(!coordinates.usesPort(projection??port)||rails.length!==3||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000)throw new Error('Invalid linear homing ownership');
   for(const [i,configuredRail] of rails.entries()){
    const r=kinematics instanceof DualCarriageLinearKinematics&&i===kinematics.geometry.axis?port.carriageHoming?.rails[kinematics.primary]??configuredRail:configuredRail;
    const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);
@@ -87,7 +90,7 @@ export class LinearHomingCommand {
   };
   const abort=()=>{void stop(s.reason);};s.addEventListener('abort',abort,{once:true});
   const timer=setTimeout(()=>deadline.abort(new GCodeError('Homing timed out')),this.#timeout);
-  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#port))throw new Error('Homing coordinate port changed');};
+  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
   const position=()=>{const p=[...(this.#port.homingPosition?.()??this.#port.position())];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
   const fill=(coord:readonly (number|null)[])=>{const p=position();for(let i=0;i<coord.length;i++)if(coord[i]!==null)p[i]=coord[i]!;return p;};
@@ -123,7 +126,7 @@ export class LinearHomingCommand {
    }
   }catch(error){
    const local=new AbortController(),timer=setTimeout(()=>local.abort(new Error('Homing motor-off cleanup timed out')),5000);
-   try{await observeRetirement(stop(error),local.signal);if(this.#coordinates.usesPort(this.#port))this.#coordinates.resetPosition();}catch(stopError){throw new AggregateError([error,stopError],'Homing and motor-off failed');}
+   try{await observeRetirement(stop(error),local.signal);if(this.#coordinates.usesPort(this.#projection??this.#port))this.#coordinates.resetPosition();}catch(stopError){throw new AggregateError([error,stopError],'Homing and motor-off failed');}
    finally{clearTimeout(timer);}throw error;
   }finally{clearTimeout(timer);s.removeEventListener('abort',abort);this.#busy=false;}
  }

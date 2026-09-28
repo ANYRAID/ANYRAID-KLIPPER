@@ -1,3 +1,4 @@
+import {ToolMovePort} from '../gcode/tool-move.ts';
 // Simultaneous Delta G28 sequencing from klippy/extras/homing.py.
 // GPL-3.0-or-later. A-tower timing controls the combined homing operation.
 import {GCodeDispatch,GCodeError} from '../gcode/dispatch.ts';
@@ -17,10 +18,12 @@ export interface DeltaHomingSettings {
 /** This command requires a lifetime-owning native port; it alone does not
  * assemble hardware or enable the Delta product entrypoint. */
 export class DeltaHomingCommand {
+ #projection:ToolMovePort|undefined;
  #kin:DeltaKinematics;#coordinates:GCodeMove;#port:DeltaHomingPort;#settings:DeltaHomingSettings;#timeout:number;
  #busy=false;#cleanupPending=false;#cleanupFailed=false;#cleanupError:unknown;
- constructor(kin:DeltaKinematics,coordinates:GCodeMove,port:DeltaHomingPort,settings:DeltaHomingSettings,timeoutMs=120000){
-  if(!coordinates.usesPort(port)||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000||![settings.speed,settings.secondSpeed,settings.retractSpeed].every(v=>Number.isFinite(v)&&v>0)||!Number.isFinite(settings.retractDistance)||settings.retractDistance<0||settings.endstops.length<3||settings.endstops.length>16||new Set(settings.endstops).size!==settings.endstops.length||settings.endstops.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new Error('Invalid Delta homing ownership or settings');
+ constructor(kin:DeltaKinematics,coordinates:GCodeMove,port:DeltaHomingPort,settings:DeltaHomingSettings,timeoutMs=120000,projection?:ToolMovePort){
+  if(projection&&!projection.usesPort(port))throw new Error('Homing tool projection ownership differs');this.#projection=projection;
+  if(!coordinates.usesPort(projection??port)||!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>3600000||![settings.speed,settings.secondSpeed,settings.retractSpeed].every(v=>Number.isFinite(v)&&v>0)||!Number.isFinite(settings.retractDistance)||settings.retractDistance<0||settings.endstops.length<3||settings.endstops.length>16||new Set(settings.endstops).size!==settings.endstops.length||settings.endstops.some(n=>typeof n!=='string'||!n.length||n.length>128||/[\r\n\0]/.test(n)))throw new Error('Invalid Delta homing ownership or settings');
   this.#kin=kin;this.#coordinates=coordinates;this.#port=port;this.#settings={...settings,endstops:[...settings.endstops]};this.#timeout=timeoutMs;
  }
  get status(){return {busy:this.#busy,cleanupPending:this.#cleanupPending,cleanupFailed:this.#cleanupFailed,cleanupError:this.#cleanupError};}
@@ -41,7 +44,7 @@ export class DeltaHomingCommand {
   };
   const abort=()=>{void stop(s.reason);};s.addEventListener('abort',abort,{once:true});
   const timer=setTimeout(()=>deadline.abort(new GCodeError('Homing timed out')),this.#timeout);
-  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#port))throw new Error('Homing coordinate port changed');};
+  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
   try{
    check();this.#kin.clearHoming();await run(this.#port.drain(s));
@@ -60,7 +63,7 @@ export class DeltaHomingCommand {
    check();this.#coordinates.home([0,1,2]);check();this.#kin.resetPosition('xyz');
   }catch(error){
    const local=new AbortController(),timer=setTimeout(()=>local.abort(new Error('Homing motor-off cleanup timed out')),5000);
-   try{await observeRetirement(stop(error),local.signal);if(this.#coordinates.usesPort(this.#port))this.#coordinates.resetPosition();}
+   try{await observeRetirement(stop(error),local.signal);if(this.#coordinates.usesPort(this.#projection??this.#port))this.#coordinates.resetPosition();}
    catch(stopError){throw new AggregateError([error,stopError],'Homing and motor-off failed');}
    finally{clearTimeout(timer);}throw error;
   }finally{clearTimeout(timer);s.removeEventListener('abort',abort);this.#busy=false;}
