@@ -1,0 +1,585 @@
+{
+  "status": "BME280/BMP280 simulated driver, control feedback and three compiled HTTP product journeys passed",
+  "tests": {
+    "unitNativeRegression": 24,
+    "compiledProduct": 3
+  },
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 complete forced samples per round with register simulator and virtual waits; 3 warmups and 5 retained rounds per chip; no electrical IO; not a Python comparison",
+    "maximumMicrosecondsPerSample": 10,
+    "results": [
+      {
+        "chip": "BMP280",
+        "samplesMs": [
+          269.88861800000006,
+          280.8323169999999,
+          288.840825,
+          290.8281920000002,
+          292.74660700000004
+        ],
+        "medianMs": 288.840825,
+        "microsecondsPerSample": 2.88840825
+      },
+      {
+        "chip": "BME280",
+        "samplesMs": [
+          261.4043109999998,
+          269.9164230000001,
+          271.9025200000001,
+          277.1960389999995,
+          261.90217699999994
+        ],
+        "medianMs": 269.9164230000001,
+        "microsecondsPerSample": 2.6991642300000014
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 799.510214,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1316.5402119999999,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "i2cHeaterStatus": {
+        "heater_bed": {
+          "temperature": 80,
+          "target": 0,
+          "power": 0
+        },
+        "bme280 heater_bed": {
+          "temperature": 80,
+          "humidity": 50,
+          "pressure": 1000
+        }
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 21,
+        "samplesAfter": 24
+      }
+    },
+    {
+      "bme": true,
+      "bmeHeater": true,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 170,
+          "writes": 43
+        },
+        {
+          "statusReads": 74,
+          "writes": 43
+        }
+      ],
+      "faultInjected": "bme-i2c-nack",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 205,
+      "wireSteps": 4122,
+      "minimumStepLeadMs": 87.375,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.721343,
+            "maxMs": 21.037055
+          },
+          "cpu": {
+            "user": 1327785,
+            "system": 136706
+          },
+          "rss": 180158464
+        },
+        {
+          "loop": {
+            "p99Ms": 1.729535,
+            "maxMs": 6.426623
+          },
+          "cpu": {
+            "user": 716702,
+            "system": 96838
+          },
+          "rss": 205152256
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 804.912751,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1286.5161980000048,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "measured_min_temp": 42,
+        "measured_max_temp": 42,
+        "humidity": 50,
+        "pressure": 1000
+      },
+      "hostSensor": false,
+      "noHeaterAuthority": true
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_sensor chamber"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "bme": true,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3992,
+      "phaseP99Ms": 3.5520790000009583,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 72,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "bme-i2c-nack",
+      "historyNotifications": 32,
+      "historyRequests": 886,
+      "historyP99Ms": 11.914437999999791,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.578603000001749,
+      "deleteRequests": 16,
+      "deleteP95Ms": 16.573979000007967,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.8821739999984857,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.315054000006057,
+      "downloads": 16,
+      "downloadP95Ms": 4.281776000003447,
+      "wireCommands": 202,
+      "wireSteps": 4044,
+      "minimumStepLeadMs": 87.666,
+      "directoryRequests": 3844,
+      "directoryP99Ms": 4.120763999999326,
+      "statusRequests": 15976,
+      "uploads": 16,
+      "statusP99Ms": 2.693531000004441,
+      "uploadP95Ms": 18.4980710000018,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.913855,
+            "maxMs": 22.708223
+          },
+          "cpu": {
+            "user": 4570995,
+            "system": 543996
+          },
+          "rss": 288452608
+        },
+        {
+          "loop": {
+            "p99Ms": 1.906687,
+            "maxMs": 7.622655
+          },
+          "cpu": {
+            "user": 1822000,
+            "system": 256532
+          },
+          "rss": 276566016
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 855.1263120000001,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1196.1374839999917,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "target": 50,
+        "speed": 0,
+        "rpm": null
+      },
+      "hostSensor": false,
+      "noHeaterAuthority": true
+    },
+    {
+      "temperatureFanSettings": {
+        "compiled": true,
+        "spiSensor": false,
+        "outputSpeed": 0.6,
+        "atomicValidation": true,
+        "idempotentRetry": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 11,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_fan chamber"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 21,
+        "samplesAfter": 24
+      }
+    },
+    {
+      "bme": true,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4145,
+      "phaseP99Ms": 2.8930949999921722,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": true,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 72,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "bme-i2c-nack",
+      "historyNotifications": 32,
+      "historyRequests": 925,
+      "historyP99Ms": 5.549296000011964,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 6.063110999995843,
+      "deleteRequests": 16,
+      "deleteP95Ms": 13.019140000003972,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 4.458457999993698,
+      "metadataRequests": 16,
+      "metadataP95Ms": 33.58937400000286,
+      "downloads": 16,
+      "downloadP95Ms": 5.665527999997721,
+      "wireCommands": 200,
+      "wireSteps": 3944,
+      "minimumStepLeadMs": 86.311,
+      "directoryRequests": 4002,
+      "directoryP99Ms": 4.172275000004447,
+      "statusRequests": 16587,
+      "uploads": 16,
+      "statusP99Ms": 2.635513000001083,
+      "uploadP95Ms": 12.64074800000526,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.927167,
+            "maxMs": 22.872063
+          },
+          "cpu": {
+            "user": 4843155,
+            "system": 561607
+          },
+          "rss": 295485440
+        },
+        {
+          "loop": {
+            "p99Ms": 1.884159,
+            "maxMs": 7.122943
+          },
+          "cpu": {
+            "user": 1729805,
+            "system": 208388
+          },
+          "rss": 297082880
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Simulated MCU registers and virtual waits in driver benchmark; no electrical IO or physical printing acceptance.",
+    "Heater journey exercises control software only; these ambient sensors are not recommended for actual bed or extruder control.",
+    "BME680, BMP180 and BMP388 remain unsupported by the Node driver.",
+    "Forced fresh conversions differ from legacy normal periodic mode; physical filter response remains unverified.",
+    "Python default entry and historical Node numerical anomalies remain unresolved."
+  ]
+}

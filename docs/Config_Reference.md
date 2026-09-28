@@ -3026,6 +3026,14 @@ sensor_type: BME280
 #   above parameters.
 ```
 
+Node 候选主机目前仅支持本节的 BME280 与 BMP280，均使用
+`sensor_type: BME280` 自动识别。`bme280_oversample_temp` 默认 2、范围
+1–5；`bme280_oversample_pressure` 和 `bme280_oversample_hum` 默认 2、
+范围 0–5，0 关闭相应输出。编码 1–5 对应 1／2／4／8／16 倍采样。
+`bme280_iir_filter` 默认 1、范围 0–4，对应关闭／2／4／8／16 系数。
+每次强制新转换并等待转换完成，随后间隔 0.8 秒采样；BMP280 无湿度。
+此候选实现尚未完成物理器件和打印机验收。
+
 ### AHT10/AHT20/AHT21 temperature sensor
 
 AHT10/AHT15/AHT20/AHT21/AHT30 two wire interface (I2C) environmental sensors.
