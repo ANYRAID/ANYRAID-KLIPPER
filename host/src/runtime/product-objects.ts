@@ -21,7 +21,7 @@ export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHo
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers,filename)],
   ['pause_resume',()=>productPauseStatus(printer.controller.state)],
   ['idle_timeout',()=>({...printer.idleTimeout.status,motors_releasable:printer.machine.port.canReleaseMotors})],
-  ['toolhead',()=>{const k=printer.machine.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:[...printer.machine.port.homingPosition()],extruder:pressure?.name??'extruder',...printer.machine.port.velocityStatus};}],
+  ['toolhead',()=>{const k=printer.machine.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:(()=>{const p=printer.machine.port.homingPosition();return [p[0],p[1],p[2],p[3+(printer.print.gcode.tools?.active??0)]];})(),extruder:pressure?.name??'extruder',...printer.machine.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
  if(screws)readers.set('screws_tilt_adjust',screws);
@@ -30,11 +30,11 @@ export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHo
  if(printer.machine.port.bedTiltStatus)readers.set('bed_tilt',()=>printer.machine.port.bedTiltStatus!);
  const bedMesh=printer.print.gcode.bedMeshStatus;if(bedMesh)readers.set('bed_mesh',()=>bedMesh());
  const objects=printer.print.gcode.objects;if(objects)readers.set('exclude_object',()=>objects.status);
- const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...retraction.status}));
+ const retraction=printer.print.gcode.retraction;if(retraction)readers.set('firmware_retraction',()=>({...printer.print.gcode.retraction!.status}));
  for(const heater of printer.hardware.thermal)readers.set(heater.section,()=>{
   const thermal=heater.runtime.objectStatus;
-  if(pressure?.name!==heater.section)return thermal;
-  const accepted=pressure.pressureAdvance;
+  const tool=printer.print.gcode.toolBindings.find(t=>t.name===heater.section);if(!tool&&pressure?.name!==heater.section)return thermal;
+  const accepted=tool?printer.machine.port.pressureAdvanceSettings(tool.stepper):pressure!.pressureAdvance;
   return {...thermal,pressure_advance:accepted.advance,smooth_time:accepted.smoothTime};
  });
  const drivers=new Map<string,{model:string;current:Readonly<{runCurrent:number;holdCurrent:number}>}>([...printer.hardware.plan.tmcUarts.flatMap(u=>u.devices.map(d=>[d.model+' '+d.stepper,d] as const)),...printer.hardware.plan.tmcSpis.flatMap(b=>b.devices.map(({plan:d})=>[d.model+' '+d.stepper,d] as const))]);

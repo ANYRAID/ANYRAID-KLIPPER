@@ -90,7 +90,7 @@ export class LinearHomingCommand {
   };
   const abort=()=>{void stop(s.reason);};s.addEventListener('abort',abort,{once:true});
   const timer=setTimeout(()=>deadline.abort(new GCodeError('Homing timed out')),this.#timeout);
-  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
+  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(this.#projection?.hasObjectExclusion||!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
   const position=()=>{const p=[...(this.#port.homingPosition?.()??this.#port.position())];if(p.length<4||!p.every(Number.isFinite))throw new Error('Invalid homing toolhead position');return p;};
   const fill=(coord:readonly (number|null)[])=>{const p=position();for(let i=0;i<coord.length;i++)if(coord[i]!==null)p[i]=coord[i]!;return p;};

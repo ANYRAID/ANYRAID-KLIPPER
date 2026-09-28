@@ -1,3 +1,4 @@
+import {productObjects,type ProductServicePrinter} from '../src/runtime/product-objects.ts';
 import {NativePauseParking} from '../src/operations/native-pause-parking.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
 import test from 'node:test';
@@ -36,7 +37,7 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
   await port.forcePosition([1,2,3,0,.1],f.signal);assert.deepEqual(port.position(),[1,2,3,0,.1]);
   port.move([1,2,3,0,.2],5);await port.drain(f.signal);assert.deepEqual(port.position(),[1,2,3,0,.2]);
   assert.throws(()=>new NativeLinearGCode(port,machine.kinematics,machine.rails,()=>{},120000,1,undefined,undefined,undefined,false,[],[{name:'extruder',stepper:'e1'},{name:'extruder1',stepper:'e'}]),/bindings/);
-  const gcode=new NativeLinearGCode(port,machine.kinematics,machine.rails,()=>{},120000,1,{retract_length:.1,retract_speed:5,unretract_extra_length:0,unretract_speed:5},undefined,undefined,false,[],machine.toolBindings);
+  const gcode=new NativeLinearGCode(port,machine.kinematics,machine.rails,()=>{},120000,1,{retract_length:.1,retract_speed:5,unretract_extra_length:0,unretract_speed:5},undefined,undefined,true,[],machine.toolBindings);
   try{
    gcode.enable();await gcode.dispatch.execute('T1\nM83\nG1 E0.1 F300\nG10');assert.equal(gcode.tools!.active,1);assert.equal(gcode.retraction!.retracted,true);assert.equal(gcode.pressureAdvance!.name,'extruder1');
    const afterSecond=[...port.position()];assert.equal(afterSecond[3],0);assert(Math.abs(afterSecond[4]-.2)<1e-12);
@@ -53,6 +54,16 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
    const pauseWire=f.firmware.map(fw=>fw.motion.length);await parking.pause(f.signal);assert.deepEqual(port.position(),parkedFrom);
    const pulses=()=>f.firmware[1].motion.slice(pauseWire[1]).filter(m=>m.name==='queue_step'&&m.parameters.oid===e1.compressor.oid).reduce((n,m)=>n+Number(m.parameters.count),0);assert.equal(pulses(),4);assert.equal(f.firmware[0].motion.slice(pauseWire[0]).filter(m=>m.name==='queue_step').length,0);
    await parking.resume(f.signal);assert.equal(pulses(),8);assert.deepEqual(port.position(),parkedFrom);
+   const beforeExclude=[...port.position()],wireBefore=f.firmware.map(fw=>fw.motion.length);
+   await gcode.dispatch.execute('M83\nEXCLUDE_OBJECT NAME=skip\nG1 E0.0125\nG1 E0.0125\nG1 E0.0125\nG1 E0.0125\nG1 E0.0125\nEXCLUDE_OBJECT_START NAME=skip\nG1 E0.125\nT0\nG1 E0.25\nEXCLUDE_OBJECT_END\nG1 E0.0125\nT1\nG1 E0.0125');
+   assert(Math.abs(port.position()[3]-beforeExclude[3]-.0125)<1e-12);assert(Math.abs(port.position()[4]-beforeExclude[4]-.075)<1e-12);
+   const emitted=f.firmware.map((fw,i)=>fw.motion.slice(wireBefore[i]).filter(m=>m.name==='queue_step').reduce((n,m)=>n+Number(m.parameters.count),0));assert.deepEqual(emitted,[1,6]);
+   const objects=productObjects({machine,hardware,print:{gcode},filamentSensors:[]} as unknown as ProductServicePrinter,()=>{throw Error('Unexpected host query');});
+   let status=objects.query({toolhead:['extruder','position'],extruder:['pressure_advance'],extruder1:['pressure_advance'],firmware_retraction:['retract_length']}).status;
+   assert.equal(status.toolhead.extruder,'extruder1');assert.deepEqual(status.toolhead.position,[...port.homingPosition().slice(0,3),port.homingPosition()[4]]);assert.equal(status.extruder.pressure_advance,.02);assert.equal(status.extruder1.pressure_advance,.05);
+   await gcode.dispatch.execute('SET_RETRACTION RETRACT_LENGTH=0.2\nT0');status=objects.query({toolhead:['extruder'],firmware_retraction:['retract_length']}).status;assert.equal(status.toolhead.extruder,'extruder');assert.equal(status.firmware_retraction.retract_length,.1);
+   gcode.objects!.finish();assert.equal(gcode.tools!.hasObjectExclusion,false);
+
   }finally{await gcode.close();}
  }finally{if(timer)clearInterval(timer);await hardware?.close();await f.close();}
 });

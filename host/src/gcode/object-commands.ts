@@ -1,3 +1,5 @@
+import {ToolMovePort} from './tool-move.ts';
+import type {MultiExtrusionObjectExclusion} from './multi-extrusion-exclusion.ts';
 // GPL-3.0-or-later. Object commands from klippy/extras/exclude_object.py.
 // Original Copyright (C) 2019 Eric Callahan; (C) 2021 Troy Jacobson.
 import {GCodeError,type GCodeDispatch} from './dispatch.ts';
@@ -13,16 +15,16 @@ export class ObjectCommands {
  readonly #coordinates:GCodeMove;readonly #downstream:MovePort;
  #revision=0n;
  get revision(){return this.#revision.toString();}
- #transform:ObjectExclusionTransform|undefined;#objects:Definition[]=[];#completedExcluded:string[]=[];#current:string|null=null;
+ #transform:ObjectExclusionTransform|MultiExtrusionObjectExclusion|undefined;#objects:Definition[]=[];#completedExcluded:string[]=[];#current:string|null=null;
  constructor(coordinates:GCodeMove,downstream:MovePort){if(!coordinates.usesPort(downstream))throw new Error('Object coordinate ownership mismatch');this.#coordinates=coordinates;this.#downstream=downstream;}
  get status(){return {objects:structuredClone(this.#objects),excluded_objects:this.#transform?.status.excluded_objects??[...this.#completedExcluded],current_object:this.#current};}
  exclude(value:string):void{
   const name=canonical(value);let transform=this.#transform;
-  if(!transform){if(!this.#coordinates.usesPort(this.#downstream))throw new Error('Object transform ownership changed');transform=new ObjectExclusionTransform(this.#downstream);if(this.#current)transform.start(this.#current);transform.exclude(name);this.#coordinates.setPort(transform);this.#transform=transform;}
+  if(!transform){if(!this.#coordinates.usesPort(this.#downstream))throw new Error('Object transform ownership changed');transform=this.#downstream instanceof ToolMovePort?this.#downstream.installObjectExclusion():new ObjectExclusionTransform(this.#downstream);if(this.#current)transform.start(this.#current);transform.exclude(name);if(!(this.#downstream instanceof ToolMovePort))this.#coordinates.setPort(transform);this.#transform=transform;}
   else transform.exclude(name);
   this.#revision++;
  }
- finish():void{if(this.#transform){if(!this.#coordinates.usesPort(this.#transform))throw new Error('Object transform ownership changed');this.#completedExcluded=this.#transform.status.excluded_objects;this.#coordinates.setPort(this.#downstream);this.#coordinates.resetPosition();this.#transform=undefined;}this.#current=null;}
+ finish():void{if(this.#transform){if(!this.#coordinates.usesPort(this.#downstream instanceof ToolMovePort?this.#downstream:this.#transform))throw new Error('Object transform ownership changed');this.#completedExcluded=this.#transform.status.excluded_objects;if(this.#downstream instanceof ToolMovePort)this.#downstream.removeObjectExclusion(this.#transform as MultiExtrusionObjectExclusion);else this.#coordinates.setPort(this.#downstream);this.#coordinates.resetPosition();this.#transform=undefined;}this.#current=null;}
  reset():void{this.#revision++;this.finish();this.#objects=[];this.#completedExcluded=[];}
  #add(definition:Definition):void{if(this.#objects.length>=1024)throw new GCodeError('Object definition capacity exceeded');this.#revision++;this.#objects=[...this.#objects,definition].sort((a,b)=>compare(a.name,b.name));}
  register(dispatch:GCodeDispatch):void{

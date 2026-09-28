@@ -44,7 +44,7 @@ export class DeltaHomingCommand {
   };
   const abort=()=>{void stop(s.reason);};s.addEventListener('abort',abort,{once:true});
   const timer=setTimeout(()=>deadline.abort(new GCodeError('Homing timed out')),this.#timeout);
-  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
+  const check=()=>{s.throwIfAborted();this.#port.assertActive();if(this.#projection?.hasObjectExclusion||!this.#coordinates.usesPort(this.#projection??this.#port))throw new Error('Homing coordinate port changed');};
   const run=async<T>(work:Promise<T>):Promise<T>=>{let result!:T;await observeRetirement(work.then(value=>{result=value;}),s);check();return result;};
   try{
    check();this.#kin.clearHoming();await run(this.#port.drain(s));
