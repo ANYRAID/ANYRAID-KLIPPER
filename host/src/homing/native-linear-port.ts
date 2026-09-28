@@ -549,7 +549,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  #sampleProbe(z:number,speed:number,policy:ProbeSamples,s:AbortSignal,sample:BLTouchSample){
    if(!this.#o.probeGroups)throw new Error('No configured probe');
    return collectProbeSamples(policy,()=>sample((ss,onTriggered)=>this.#probeZ(z,speed,this.#o.probeGroups!,ss,onTriggered)),async(target,liftSpeed)=>{
-    const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,liftSpeed,2,s);this.#check(s);
+    const halt=await new HomingRetractExecution(this.#g,this.#o.kinematics).run(target,liftSpeed,2,s,30000,'probe');this.#check(s);
     const next=this.#newAdmission(halt);this.#admission.shutdown(new Error('Probe retract completed'));this.#admission=next;
    },s);
  }

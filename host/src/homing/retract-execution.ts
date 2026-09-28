@@ -9,7 +9,7 @@ import {RebuiltMotionStreamer} from '../runtime/motion-streamer.ts';
 export class HomingRetractExecution {
  #generation:Awaited<ReturnType<typeof bindRebuiltMotion>>;#kinematics:HomingTrajectoryKinematics;#started=false;
  constructor(generation:Awaited<ReturnType<typeof bindRebuiltMotion>>,kinematics:HomingTrajectoryKinematics){this.#generation=generation;this.#kinematics=kinematics;}
- async run(target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,timeoutMs=30000):Promise<readonly number[]>{
+ async run(target:readonly number[],speed:number,axis:Axis,signal:AbortSignal,timeoutMs=30000,mode:'home'|'probe'='home'):Promise<readonly number[]>{
   if(this.#started)throw new Error('Homing retract is single use');this.#started=true;
   const g=this.#generation;
   try{
@@ -20,7 +20,8 @@ export class HomingRetractExecution {
    if(state.retired||state.failed||state.busy||state.paused||state.bufferedMoves||state.sourceTime!==g.motion.printTime||c.busy||c.failed||c.retired||c.generatedTime!==g.motion.printTime)throw new Error('Homing retract requires an unused recovered generation');
    // The source drain checks all MCU health and waits for sampled clock passage.
    // Planning cannot use the ordinary unhomed-axis admission bypass elsewhere.
-   const move=this.#kinematics.planHomingAxisMove(state.position,target,speed,axis),queue=new LookAheadQueue();queue.add(move);
+   if(mode!=='home'&&mode!=='probe')throw new Error('Invalid retract mode');
+   const move=mode==='probe'&&this.#kinematics.planProbeRetract?this.#kinematics.planProbeRetract(state.position,target,speed,axis):this.#kinematics.planHomingAxisMove(state.position,target,speed,axis),queue=new LookAheadQueue();queue.add(move);
    // Establish fresh motion lead and stationary filter coverage before the
    // retreat, just as ordinary motion does after a coordinate rebuild.
    await new RebuiltMotionStreamer(g).append(queue.flush(),signal,remaining());

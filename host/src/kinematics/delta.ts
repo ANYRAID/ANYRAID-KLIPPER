@@ -67,6 +67,10 @@ export class DeltaKinematics {
     this.stablePosition([start[0],start[1],start[2]]);this.stablePosition([end[0],end[1],end[2]]);
     return move;
   }
+  planProbeRetract(start:readonly number[],end:readonly number[],speed:number,index:Axis):Move {
+    this.planProbeAxisMove(end,start,speed,index);
+    const move=new Move(motionLimits(this.#c.maxVelocity,this.#c.maxAccel),start,end,speed);this.check(move);return move;
+  }
   calcPosition(actuators:Vec3):Vec3 {
     triple(actuators);
     return trilateration(map3(this.#towers,(t,i):Vec3=>[t[0],t[1],actuators[i]]),this.#arm2);

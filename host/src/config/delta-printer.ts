@@ -1,3 +1,4 @@
+import {readProbeGrid} from './probe-grid.ts';
 import {configuredProbeSection,readProbeConfiguration} from './probe.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {PrinterPins} from '../protocol/pins.ts';
@@ -56,9 +57,9 @@ export function validateDeltaPrinter(reader:ConfigurationReader){
  validateNativePrinterSections(reader,'delta');
  const config=readDeltaMotionConfiguration(reader);
  readExtrusionConfiguration(reader,config.limits.maxVelocity,config.limits.maxAccel);
- readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
+ readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);readProbeConfiguration(reader);if(configuredProbeSection(reader))readProbeGrid(reader);
 }
 export function planDeltaPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
  validateDeltaPrinter(reader);const plan=planDeltaHardware(reader,policy);
- return {...plan,delta:{homing:plan.homing,kinematicIds:plan.kinematicIds},initial:{position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})}};
+ return {...plan,delta:{homing:plan.homing,kinematicIds:plan.kinematicIds,...(plan.probe?{probe:plan.probe}:{})},initial:{position:[0,0,0,0],routes:[{id:'xyz'},{id:'e',extrusionAxis:3}],...(reader.hasSection('fan')?{fanSection:'fan'}:{})}};
 }

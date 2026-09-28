@@ -96,11 +96,11 @@ test('unsupported included printer components fail before adapter, journal or MC
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });
 
-test('Delta unsupported probe fails declarative preflight before adapters or journal',async()=>{
+test('Delta unsupported BLTouch fails declarative preflight before adapters or journal',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'delta-preflight-')),f=await productMachineFixture(dir,true);let factories=0;
  try{
-  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[probe]\npin: PA13\nz_offset: 0\n');
-  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),/unsupported.*probe/i);
+  await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[bltouch]\nsensor_pin: PA13\ncontrol_pin: PA14\nz_offset: 0\n');
+  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),/unsupported.*bltouch/i);
   assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0));
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });

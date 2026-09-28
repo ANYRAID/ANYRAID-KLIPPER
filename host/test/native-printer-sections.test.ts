@@ -15,6 +15,6 @@ test('native component preflight rejects unknown components, misspellings and or
  }
 });
 test('Delta preflight recognizes tower ownership and rejects unbound calibration or macros',()=>{
- validateNativePrinterSections(reader(['printer','mcu','stepper_a','stepper_b','stepper_c','stepper_a1','extruder','tmc2209 stepper_a1','verify_heater extruder','bed_mesh','bed_mesh saved','servo latch']),'delta');
- for(const section of ['stepper_x','tmc2209 stepper_z','probe','bltouch','endstop_phase','endstop_phase stepper_a','z_tilt','quad_gantry_level','safe_z_home','bed_tilt','bed_screws','screws_tilt_adjust','skew_correction','skew_correction saved','gcode_macro START'])assert.throws(()=>validateNativePrinterSections(reader(['printer','stepper_a','stepper_b','stepper_c',section]),'delta'),error=>String(error).includes('['+section+']'));
+ validateNativePrinterSections(reader(['printer','mcu','stepper_a','stepper_b','stepper_c','stepper_a1','extruder','tmc2209 stepper_a1','verify_heater extruder','bed_mesh','bed_mesh saved','servo latch','probe']),'delta');
+ for(const section of ['stepper_x','tmc2209 stepper_z','bltouch','endstop_phase','endstop_phase stepper_a','z_tilt','quad_gantry_level','safe_z_home','bed_tilt','bed_screws','screws_tilt_adjust','skew_correction','skew_correction saved','gcode_macro START'])assert.throws(()=>validateNativePrinterSections(reader(['printer','stepper_a','stepper_b','stepper_c',section]),'delta'),error=>String(error).includes('['+section+']'));
 });

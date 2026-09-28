@@ -34,3 +34,10 @@ test('Delta probe descent preserves off-center XY, extrusion and Z limits only a
  for(const origin of [[25,-30,299,7],[500,0,10,7]])assert.throws(()=>k.planProbeAxisMove(origin,[origin[0],origin[1],0,7],10,2));
  assert.throws(()=>k.planProbeAxisMove(start,end,10,0));k.clearHoming([1]);assert.throws(()=>k.planProbeAxisMove(start,end,10,2),/home/);
 });
+
+test('Delta probe retract raises at fixed bed XY within the envelope',()=>{
+ const k=new DeltaKinematics(deltaConfig);k.resetPosition('xyz');
+ const move=k.planProbeRetract([25,-30,1,7],[25,-30,3,7],100,2);assert.deepEqual(move.axesD,[0,0,2,0]);assert.equal(move.maxCruiseV2,400);assert.equal(move.accel,200);
+ for(const target of [[25,-30,0,7],[26,-30,3,7],[25,-30,299,7],[25,-30,3,8]])assert.throws(()=>k.planProbeRetract([25,-30,1,7],target,10,2));
+ k.clearHoming();assert.throws(()=>k.planProbeRetract([25,-30,1,7],[25,-30,3,7],10,2),/home/);
+});

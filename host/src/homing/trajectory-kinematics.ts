@@ -4,4 +4,5 @@ import type {Move} from '../motion/lookahead.ts';
 export interface HomingTrajectoryKinematics {
  planHomingAxisMove(start:readonly number[],end:readonly number[],speed:number,axis:Axis):Move;
  planProbeAxisMove?(start:readonly number[],end:readonly number[],speed:number,axis:Axis):Move;
+ planProbeRetract?(start:readonly number[],end:readonly number[],speed:number,axis:Axis):Move;
 }

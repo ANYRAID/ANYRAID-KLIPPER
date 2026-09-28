@@ -178,7 +178,7 @@ test('automatic Delta rejects unsupported sections before connecting and closes 
  try{
   const raw=delta(f.reader.source.original),r=reader(raw),p=planDeltaPrinter(r,policy),configured={hardware:{...f.hardwareOptions,motion:p.motion},motion:p.initial,delta:p.delta,print:{output(){},motorCompletion:'hold' as const,startupHoming:{mode:'home' as const,axes:[0,1,2] as (0|1|2)[]},parking:{parkXY:[0,0] as const,retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{},stopOutputs:async()=>{}},open:async()=>{throw new Error('Unexpected file');}}};
   const links=f.connections.map(c=>({...c,connect:async(...args:Parameters<typeof c.connect>)=>{connections++;return c.connect(...args);}}));
-  for(const section of ['probe','gcode_macro START','endstop_phase stepper_a']){
+  for(const section of ['bltouch','gcode_macro START','endstop_phase stepper_a']){
    const invalid=reader({...raw,[section]:{}});assert.throws(()=>planDeltaPrinter(invalid,policy),/unsupported/);
    await assert.rejects(connectConfiguredDeltaPrinter(invalid,links,'mcu',p.layout,configured,f.signal),/unsupported/);
   }
