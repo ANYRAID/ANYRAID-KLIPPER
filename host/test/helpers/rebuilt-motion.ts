@@ -14,9 +14,9 @@ import {serialFirmware} from './serial-firmware.ts';
 import {TrapQueue} from '../../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../../src/motion/coordinator.ts';
 import {MoveQueueSink} from '../../src/motion/move-queue-sink.ts';
-import {CoordinateRebase} from '../../src/homing/recovery.ts';
+import {CoordinateRebase,type CoordinateRebaseOptions} from '../../src/homing/recovery.ts';
 import {serialClock} from '../../src/protocol/serial-queue.ts';
-export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,extraZ=0){
+export async function rebuiltFixture(dual=false,complete=false,partFan=false,motorPower:boolean|'always'|'mixed'=false,auxiliary=false,extraZ=0,carriageTransforms?:CoordinateRebaseOptions['carriageTransforms']){
  const fw=await serialFirmware(undefined,{triggerSync:true}),auxFw=auxiliary?await serialFirmware():undefined,signal=new AbortController().signal;let stops=0;
  const group=new MCUGroup([{id:'m',async connect(signal,stopDevice){const s=new SerialSession(fw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}},...auxFw?[{id:'a',async connect(signal:AbortSignal,stopDevice:(cause:unknown)=>Promise<void>){const s=new SerialSession(auxFw.fd,{stopDevice});await s.initialize(signal);return s;},async stopDevice(){stops++;}}]:[]]);
  const xyz=new TrapQueue(),extrusion=new TrapQueue();let motion:Awaited<ReturnType<CoordinateRebase['recover']>>['motion']|undefined;
@@ -51,7 +51,7 @@ export async function rebuiltFixture(dual=false,complete=false,partFan=false,mot
   if(dual){members[0].steppers.push({oid:5,inverted:false});emitters.push({id:'x2',queueId:'xyz',member:0,settings:{...settings,oid:5},mode:'x',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(5,300);}
   if(complete)for(const [id,oid] of [['y',1],['z',2]] as const){members[0].steppers.push({oid,inverted:false});emitters.push({id,queueId:'xyz',member:0,settings:{...settings,oid},mode:id,rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(oid,0);}
   for(let i=0;i<extraZ;i++){members[0].steppers.push({oid:10+i,inverted:false});emitters.push({id:'z'+(i+1),queueId:'xyz',member:0,settings:{...settings,oid:10+i},mode:'z',rotationDistance:distance.rotationDistance,stepsPerRotation:distance.stepsPerRotation});fw.setStepperPosition(10+i,0);}
-  const result=await new CoordinateRebase({coordinator,bindings,members,emitters,locate:()=>({queues:[{id:'xyz',position:[50,0,0]},{id:'e',position:[2,0,0]}],printTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6+.2})}).recover(signal);
+  const result=await new CoordinateRebase({coordinator,bindings,members,emitters,carriageTransforms,locate:()=>({queues:[{id:'xyz',position:[50,0,0]},{id:'e',position:[2,0,0]}],printTime:Number(s.clock.sync.getClock(serialClock.now()))/1e6+.2})}).recover(signal);
   motion=result.motion;const options={group,members,motion,motorEnable,auxiliaryMCUs:auxFw?[{id:'a',calibration:{offset:0,frequency:1e6}}]:[],routes:[{queue:motion.bindings[0].queue},{queue:motion.bindings[1].queue,extrusionAxis:3}],position:[50,0,0,2]};
   return {options,fw,auxFw,fanMCU,emitters,endstop,get secondTrigger(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.triggers[0].protocol;},get secondEndstop(){if(!secondary)throw new Error('Secondary homing group is not configured');return secondary.endstop;},fanPlan,motorPlan,get stops(){return stops;},async close(){await group.stop();motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();await auxFw?.close();}};
  }catch(error){await group.stop().catch(()=>{});motion?.dispose();xyz.dispose();extrusion.dispose();await fw.close();throw error;}

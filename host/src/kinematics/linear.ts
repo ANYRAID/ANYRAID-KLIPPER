@@ -38,6 +38,8 @@ export class LinearKinematics {
   markHomed(axes:readonly Axis[]):void {axes.forEach(axis);for(const i of axes)this.#limits[i]=[...this.#ranges[i]];}
   clearHoming(axes:readonly Axis[]):void {axes.forEach(axis);for(const i of axes)this.#limits[i]=null;}
   updateLimits(index:Axis,value:Range):void {axis(index);const next=range(value);if(this.#limits[index])this.#limits[index]=next;}
+  /** Active physical rail replacement preserves the existing homing authority. */
+  protected replaceRailRange(index:Axis,value:Range):void{axis(index);const next=range(value);this.#ranges[index]=next;if(this.#limits[index])this.#limits[index]=[...next];}
   calcPosition(steppers:readonly number[]):number[] {
     if(steppers.length!==3||!steppers.every(Number.isFinite))throw new RangeError('Invalid stepper positions');
     const [a,b,z]=steppers,p=this.#config.kind==='corexy'?[.5*(a+b),.5*(a-b),z]:this.#config.kind==='corexz'?[.5*(a+z),b,.5*(a-z)]:this.#config.kind==='hybrid_corexy'?[a+b,b,z]:this.#config.kind==='hybrid_corexz'?[a+z,b,z]:[a,b,z];

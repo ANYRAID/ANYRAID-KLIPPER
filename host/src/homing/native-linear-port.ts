@@ -1,3 +1,7 @@
+import {DualCarriageLinearKinematics} from '../kinematics/dual-carriage-linear.ts';
+import {nativeCarriageTransforms,carriageSolvers} from '../kinematics/dual-carriage-projection.ts';
+import type {CarriageMode} from '../kinematics/dual-carriage.ts';
+import type {CoordinateRebaseOptions} from './recovery.ts';
 import type {GCodeFileIdentity} from '../gcode/file-reader.ts';
 import {DeltaKinematics} from '../kinematics/delta.ts';
 import type {LinearKinematics} from '../kinematics/linear.ts';
@@ -43,6 +47,7 @@ import {recoveryEmitters} from './recovery-emitters.ts';
 import {copyPressureWindowChanges,pressureAdvanceSettings,planPressureAdvance,type PressureWindowChange,type PressureAdvanceSettings} from '../motion/pressure-advance-settings.ts';
 export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'|'mode'|'kinematics'> {
  kinematics:LinearKinematics|DeltaKinematics;
+ carriages?:{emitterIds:readonly [string,string];groups:readonly [LinearSeekOptions['groups'],LinearSeekOptions['groups']]};
  skewProfiles?:Readonly<Record<string,Readonly<SkewFactors>>>;
  bedTilt?:BedTilt;
  endstopPhases?:readonly ConfiguredEndstopPhase[];
@@ -55,7 +60,7 @@ export interface NativeLinearPortOptions extends Omit<LinearSeekOptions,'groups'
  limits:MotionLimits;extrusion:ExtrusionGuard;canExtrude:()=>boolean;
  velocitySettings?:Pick<VelocitySettings,'squareCornerVelocity'|'minCruiseRatio'>;
 }
-interface RebaseLayout {routes:readonly {id:string;extrusionAxis?:number;stationaryPosition?:readonly [number,number,number]}[];emitters:readonly StoppedEmitter[];}
+interface RebaseLayout {carriageTransforms?:CoordinateRebaseOptions['carriageTransforms'];routes:readonly {id:string;extrusionAxis?:number;stationaryPosition?:readonly [number,number,number]}[];emitters:readonly StoppedEmitter[];}
 export interface PausedMove {position:readonly number[];speed:number;}
 /** Native XYZE port for LinearHomingCommand. The runtime must provide configured
  * MCU/actuator ownership and a live thermal guard. Ordinary moves are admitted
@@ -103,11 +108,31 @@ export class NativeLinearHomingPort implements LinearHomingPort {
   if(o.probeDevice&&(o.probeGroups?.length!==1||o.probeGroups[0].endstop!==o.probeDevice.endstop||o.probeDevice.device.status.phase!=='idle'))throw new Error('Probe device must own the configured sensor and be initialized');
   if(o.probeHoming&&(!Number.isFinite(o.probeHoming.minimumZ)||!Number.isFinite(o.probeHoming.offset)||o.probeHoming.offset<o.probeHoming.minimumZ||o.groupsByAxis[2].length!==1||o.probeGroups?.length!==1||o.groupsByAxis[2][0].endstop!==o.probeGroups[0].endstop))throw new Error('Invalid probe homing configuration or ownership');
   if(o.groupsByAxis.length!==3)throw new Error('Three homing axis configurations required');
+  if(o.kinematics instanceof DualCarriageLinearKinematics){
+   const c=o.carriages,k=o.kinematics,modes=carriageSolvers(k.geometry),transforms=nativeCarriageTransforms(k.geometry,k.carriages);
+   if(!c||c.emitterIds.length!==2||new Set(c.emitterIds).size!==2||c.groups.length!==2||c.groups.some(g=>!g.length)||o.kinematicIds[k.geometry.axis]!==c.emitterIds[k.primary])throw new Error('Invalid dual carriage port ownership');
+   for(let i=0;i<2;i++){const e=o.emitters.find(e=>e.id===c.emitterIds[i]),b=o.generation.motion.bindings.find(b=>b.id===c.emitterIds[i]),live=b?.stepper.recoveryFilters().carriage;
+    if(e?.mode!==modes[i]||e.queueId!==o.emitters.find(e=>e.id===c.emitterIds[0])?.queueId||!b||!o.generation.routes.some(r=>r.queue===b.queue&&r.extrusionAxis===undefined&&r.stationaryPosition===undefined)||!c.groups[i].some(g=>g.members.some(m=>m.emitters.includes(c.emitterIds[i])))||!live||Object.keys(transforms[i]).some(key=>live[key as keyof typeof live]!==transforms[i][key as keyof typeof live]))throw new Error('Native carriage solvers differ from configured state');
+   }
+  }else if(o.carriages)throw new Error('Carriage ownership requires dual carriage kinematics');
   this.#velocity=new VelocityLimits(o.limits,o.velocitySettings);
-  this.#o={...o,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
+  this.#o={...o,carriages:o.carriages?{emitterIds:[...o.carriages.emitterIds],groups:o.carriages.groups.map(gs=>gs.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NonNullable<NativeLinearPortOptions['carriages']>['groups']}:undefined,probeDevice:o.probeDevice?Object.freeze({...o.probeDevice}):undefined,probeHoming:o.probeHoming?Object.freeze({...o.probeHoming}):undefined,endstopPhases:o.endstopPhases?.map(p=>({...p})),probeConfiguration:o.probeConfiguration?structuredClone(o.probeConfiguration):undefined,probeGroups:o.probeGroups?.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))})),emitters:structuredClone(o.emitters),kinematicIds:[...o.kinematicIds],limits:{...o.limits},groupsByAxis:o.groupsByAxis.map(groups=>groups.map(g=>({...g,members:g.members.map(m=>({...m,emitters:[...m.emitters]}))}))) as unknown as NativeLinearPortOptions['groupsByAxis']};
   this.#tilt=o.bedTilt?new BedTilt(o.bedTilt.adjust):undefined;
   this.#g=o.generation;this.#streamer=new RebuiltMotionStreamer(this.#g);this.#admission=this.#newAdmission(this.#g.source.status.position);this.assertActive();this.#watchGroup();
   for(const b of this.#g.motion.bindings){const p=b.stepper.recoveryFilters().pressureAdvance;if(p)this.#pressure.set(b.id,pressureAdvanceSettings(p.advance,p.smoothTime));}
+ }
+ get carriageStatus(){const k=this.#o.kinematics;return k instanceof DualCarriageLinearKinematics?{primary:k.primary,carriages:k.carriages,homed:k.homedCarriages}:undefined;}
+ setCarriageMode(index:0|1,mode:CarriageMode,signal:AbortSignal):Promise<void>{
+  const k=this.#o.kinematics,c=this.#o.carriages;if(!(k instanceof DualCarriageLinearKinematics)||!c)return Promise.reject(new Error('Dual carriage is not configured'));
+  // Reject invalid user proposals before entering a transaction that owns IO.
+  k.planMode(this.homingPosition()[k.geometry.axis],index,mode);
+  return this.#operate('carriage',signal,async s=>{
+   const target=[...this.homingPosition()],plan=k.planMode(target[k.geometry.axis],index,mode);target[k.geometry.axis]=plan.position;
+   const transforms=nativeCarriageTransforms(k.geometry,plan.carriages),g=this.#g;
+   await this.#rebase(target,s,{emitters:this.#o.emitters,routes:g.routes.map(r=>({id:g.motion.queues.find(q=>q.queue===r.queue)!.id,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition})),carriageTransforms:transforms.map((transform,i)=>({id:c.emitterIds[i],transform}))});
+   k.commitCarriages(plan.carriages);const ids=[...this.#o.kinematicIds] as [string,string,string];ids[k.geometry.axis]=c.emitterIds[k.primary];this.#o.kinematicIds=ids;
+   const groups=[...this.#o.groupsByAxis];groups[k.geometry.axis]=c.groups[k.primary];this.#o.groupsByAxis=groups as unknown as NativeLinearPortOptions['groupsByAxis'];
+  });
  }
  subscribeStop(listener:(cause:unknown)=>void):()=>void{return this.#notice.subscribe(listener);}
  usesKinematics(kinematics:NativeLinearPortOptions['kinematics']):boolean{return this.#o.kinematics===kinematics;}
@@ -442,7 +467,7 @@ export class NativeLinearHomingPort implements LinearHomingPort {
    try{
     if(target.length!==4||!target.every(Number.isFinite))throw new RangeError('Invalid forced XYZE position');
     const emitters=recoveryEmitters(g.motion.bindings,layout?.emitters??this.#o.emitters),boundaryTransfer=g.releaseBoundaryOutput();
-    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,locate:()=>({queues:routes.map(r=>({id:r.id,position:r.stationaryPosition??(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
+    motion=(await new CoordinateRebase({coordinator:g.coordinator,bindings:g.motion.bindings,members:g.members,emitters,carriageTransforms:layout?.carriageTransforms,locate:()=>({queues:routes.map(r=>({id:r.id,position:r.stationaryPosition??(r.extrusionAxis===undefined?target.slice(0,3):[target[r.extrusionAxis],0,0]) as [number,number,number]})),printTime:this.#futureTime()})}).recover(s)).motion;
     this.#check(s);const next=await bindRebuiltMotion({group:g.group,clockTimelines:g.clockTimelines,members:g.members,auxiliaryMCUs:g.auxiliaryMCUs,motion,routes:routes.map(r=>({queue:motion!.queues.find(q=>q.id===r.id)!.queue,extrusionAxis:r.extrusionAxis,stationaryPosition:r.stationaryPosition})),position:target,boundaryTransfer,motorEnable:g.motorEnable});this.#adopt(next,target,s);
    }catch(error){motion?.dispose();throw error;}
  }
