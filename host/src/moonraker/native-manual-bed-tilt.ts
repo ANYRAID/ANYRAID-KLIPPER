@@ -8,6 +8,7 @@ import {fitBedTilt} from '../motion/bed-tilt.ts';
 import {manualProbeBounds,planManualProbe,type ManualProbeAdjustment} from '../homing/manual-probe.ts';
 export interface ManualScrewOptions {direction?:ScrewDirection;maximumDeviation?:number;}
 export interface ManualBedTiltMotion {
+ travelHeight?(current:number,height:number):number;
  preflight?(points:readonly (readonly number[])[],height:number,speed:number):void;
  begin?(options:Readonly<ManualScrewOptions>):void;
  idle():boolean;planned():readonly number[];measured():readonly number[];
@@ -44,7 +45,7 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
  function readPosition(){const p=[...motion.measured()];validate(p);position=p;expected=[...motion.planned()];motion.synchronize();}
  async function move(target:readonly number[],speed:number,signal:AbortSignal){validate(target);await motion.move(target,speed,signal);signal.throwIfAborted();}
  async function nextPoint(signal:AbortSignal){
-  const current=[...motion.planned()],target=plan.points[samples.length];current[2]=Math.max(current[2],plan.horizontalHeight);await move(current,plan.travelSpeed,signal);
+  const current=[...motion.planned()],target=plan.points[samples.length];current[2]=motion.travelHeight?.(current[2],plan.horizontalHeight)??Math.max(current[2],plan.horizontalHeight);await move(current,plan.travelSpeed,signal);
   current[0]=target[0];current[1]=target[1];await move(current,plan.travelSpeed,signal);current[2]=plan.horizontalHeight;await move(current,plan.travelSpeed,signal);
   readPosition();startZ=position![2];history=[];unchanged=false;state='awaiting';
  }
