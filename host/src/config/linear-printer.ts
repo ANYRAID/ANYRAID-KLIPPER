@@ -21,6 +21,7 @@ export interface LinearPrinterPolicy {mcus:readonly string[];enableLeadTime:numb
 /** Plan the supported single-extruder linear machine from section names and
  * physical pin ownership. Does not open devices or grant homing authority. */
 export function planLinearPrinter(reader:ConfigurationReader,policy:LinearPrinterPolicy){
+ if(reader.hasSection('dual_carriage'))throw new Error('Unsupported dual_carriage runtime ownership; configuration geometry alone cannot start hardware');
  readBedScrews(reader);readScrewsTilt(reader);readZTilt(reader);readQuadGantry(reader);const probeSection=configuredProbeSection(reader);if(probeSection)readProbeGrid(reader);readProbeConfiguration(reader);readArcResolution(reader);readRetraction(reader);readNativeBedMesh(reader);
  const {kinematics,probeHoming}=readLinearMotionConfiguration(reader),pins=new PrinterPins<object>();
  if(!policy.mcus.length||policy.mcus.length>16||new Set(policy.mcus).size!==policy.mcus.length||![policy.enableLeadTime,policy.fanMinimumScheduleTime].every(n=>Number.isFinite(n)&&n>0))throw new Error('Invalid linear printer machine policy');

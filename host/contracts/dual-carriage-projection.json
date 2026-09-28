@@ -1,0 +1,45 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "Validated four-motor logical coordinate readback, second carriage primary; no MCU IO or homing authority",
+  "results": [
+    {
+      "kind": "cartesian",
+      "iterations": 100000,
+      "samples": [
+        13.356144999999998,
+        14.870951999999988,
+        14.447738000000015,
+        14.52239800000001,
+        13.037960999999996
+      ],
+      "medianMs": 14.447738000000015,
+      "projectionsPerSecond": 6921498.714885326
+    },
+    {
+      "kind": "hybrid_corexy",
+      "iterations": 100000,
+      "samples": [
+        12.715358000000009,
+        13.519386999999995,
+        12.586466000000001,
+        12.516935000000018,
+        12.528234999999995
+      ],
+      "medianMs": 12.586466000000001,
+      "projectionsPerSecond": 7945041.920424684
+    },
+    {
+      "kind": "hybrid_corexz",
+      "iterations": 100000,
+      "samples": [
+        11.691546000000017,
+        13.48862600000001,
+        12.633095999999966,
+        11.778426999999965,
+        11.826977
+      ],
+      "medianMs": 11.826977,
+      "projectionsPerSecond": 8455246.002423104
+    }
+  ]
+}

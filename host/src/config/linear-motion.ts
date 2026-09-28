@@ -1,3 +1,4 @@
+import {readDualCarriage} from './dual-carriage.ts';
 import {readSkewProfiles} from './skew.ts';
 import {readBedTilt} from './bed-tilt.ts';
 import {readSafeZHoming} from './safe-z-home.ts';
@@ -39,7 +40,8 @@ export function readLinearMotionConfiguration(reader:ConfigurationReader){
  const kinematics=new LinearKinematics(config);
  for(const [i,r] of rails.entries()){const geometry=kinematics.homingMove(i as Axis,r.endstop,r.positiveDirection);if(geometry.home[i]===geometry.force[i]||![r.speed,r.secondSpeed,r.retractSpeed].every(v=>Number.isFinite(v)&&v>0))throw new Error('Unrepresentable homing configuration');}
  const extrusion=readExtrusionConfiguration(reader,maxVelocity,maxAccel);
- return {skewProfiles:readSkewProfiles(reader),bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
+ const dualCarriage=readDualCarriage(reader,kind,config.ranges,rails);
+ return {dualCarriage,skewProfiles:readSkewProfiles(reader),bedTilt:readBedTilt(reader)?.tilt,safeZHoming:readSafeZHoming(reader,kinematics.status),probeHoming:probeZ?Object.freeze({minimumZ:ranges[2][0],offset:probe!.offsets[2]}):undefined,kinematics,limits:Object.freeze(limits),velocitySettings,extrusion,rails:Object.freeze(rails)};
 }
 export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'limits'|'extrusion'>&{endstopNames:readonly [readonly string[],readonly string[],readonly string[]]};
 /** Validate machine semantics and solver identity before constructing the port.
@@ -47,6 +49,7 @@ export type ConfiguredLinearHardware=Omit<NativeLinearPortOptions,'kinematics'|'
 export function createConfiguredNativeLinearPort(reader:ConfigurationReader,hardware:ConfiguredLinearHardware){
  if(reader.hasSection('bltouch')&&!hardware.probeDevice)throw new Error('BLTouch requires an initialized native probe device');
  const config=readLinearMotionConfiguration(reader),expected=config.kinematics.solverModes;
+ if(config.dualCarriage)throw new Error('Dual carriage runtime ownership is not connected');
  if(hardware.kinematicIds.length!==3||new Set(hardware.kinematicIds).size!==3||hardware.kinematicIds.some((id,i)=>hardware.emitters.find(e=>e.id===id)?.mode!==expected[i]))throw new Error('Configured kinematics differs from native rail solvers');
  if(hardware.groupsByAxis.length!==3||hardware.endstopNames.length!==3)throw new Error('Three configured homing axes required');
  const rails=config.rails.map((rail,i)=>{

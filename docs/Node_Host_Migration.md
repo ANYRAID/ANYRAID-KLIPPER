@@ -16,6 +16,21 @@
 
 ## 当前交付状态（2026-09-28 复核）
 
+- 双小车配置几何已接入 `readLinearMotionConfiguration` 的返回值：
+  Cartesian 的 X/Y 或混合 Core 的 X，第二轨范围、限位、归零速度、
+  方向推断、安全间距与归零次序均在硬件接管前验证。配置解析不授予
+  归零权限，也不等于运行支持；自动硬件规划和原生端口仍明确拒绝
+  双小车，等待模式所有者与完整归零流程接入。
+  `dual-carriage-projection.ts` 定义第一/第二小车原生求解器映射，混合
+  Core 第二小车采用加号耦合，回读按唯一 PRIMARY 对四个电机坐标
+  还原逻辑位置；无主小车、多个主小车和非有限结果拒绝。20,000 组
+  二进制分数坐标经实际原生求解器正向变换再回算精确相等，覆盖两台
+  小车分别作为主小车、X/Y Cartesian 和两种混合 Core。配置及现有
+  打印机装配等 28 项回归通过。100,000 次回算中位 Cartesian 14.45 ms、
+  hybrid_corexy 12.59 ms、hybrid_corexz 11.83 ms，见
+  `host/contracts/dual-carriage-projection.json`。这是主机数学基准，
+  没有执行实际双小车归零、切换或打印；Python 数量仍为 177。
+
 - 双小车计算层已新增 `host/src/kinematics/dual-carriage.ts`：单轴两台
   小车的 PRIMARY/INACTIVE/COPY/MIRROR 切换提案、逻辑坐标重定位、
   同方向归零顺序、轨道范围与安全间距交集。提案不发送运动、不改变
