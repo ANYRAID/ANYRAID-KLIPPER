@@ -10,7 +10,7 @@ import {createHeaterOutputRuntime} from './heater-output.ts';
 import type {MCUGroup} from '../runtime/mcu-group.ts';
 import type {ThermalTimer} from '../thermal/runtime.ts';
 const owners=new WeakSet<object>(),dictionaries=new WeakMap<object,object>();
-/** Output-only plan for a combined sensor. Input dependency validation and
+/** Output-only plan shared by combined and AHT sensors. Input validation and
  * sampling are owned by the configured hardware lifecycle. */
 export function compileConfiguredCombinedHeaters<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,clocks:ReadonlyMap<string,HeaterClock>,sections:readonly string[]){
  if(sections.length>64||new Set(sections).size!==sections.length)throw new Error('Invalid Combined heater batch');

@@ -16,6 +16,7 @@ export class AhtTemperatureRuntime {
  readonly #config:ReturnType<typeof readAhtTemperature>;readonly #sampler:AhtSampler;readonly #clock:AhtRuntimeClock;readonly #fault:(cause:unknown)=>void;
  readonly #abort=new AbortController();#started=false;#closed=false;#humidity:number|undefined;#last:number|undefined;#pending:Promise<void>|undefined;
  #cancelPoll:(()=>void)|undefined;#cancelDeadline:(()=>void)|undefined;
+ #requesting=false;
  constructor(config:ReturnType<typeof readAhtTemperature>,sampler:AhtSampler,fault:(cause:unknown)=>void,timer:AhtRuntimeClock=clock){
   if(![config.minimum,config.maximum].every(Number.isFinite)||config.minimum< -273.15||config.maximum<=config.minimum||!Number.isInteger(config.reportTime)||config.reportTime<5||config.reportTime>86400)throw new Error('Invalid AHT runtime configuration');
   this.#config=Object.freeze({...config});this.section=config.section;this.#sampler=sampler;this.#clock=timer;this.#fault=fault;
@@ -29,6 +30,15 @@ export class AhtTemperatureRuntime {
  async start(signal:AbortSignal):Promise<void>{
   if(this.#started||this.#closed)throw new Error('AHT runtime cannot restart');signal.throwIfAborted();this.#started=true;
   await this.#read(true,signal);
+ }
+ async requestSample(signal:AbortSignal):Promise<void>{
+  signal.throwIfAborted();if(!this.#started||this.#closed)throw new Error('AHT runtime is not active');
+  if(this.#requesting)throw new Error('AHT sample request pending');this.#requesting=true;
+  // A target change waits for the previous acquisition, then requests its own
+  // fresh measurement. It never assigns a new time to an old reading.
+  try{this.#cancelPoll?.();await this.#pending;signal.throwIfAborted();if(this.#closed)throw new Error('AHT runtime closed');
+   this.#cancelPoll?.();await this.#read(false,signal);
+  }finally{this.#requesting=false;}
  }
  #read(initial:boolean,external?:AbortSignal):Promise<void>{
   const signal=external?AbortSignal.any([external,this.#abort.signal]):this.#abort.signal;

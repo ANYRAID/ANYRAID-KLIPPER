@@ -1,12 +1,13 @@
 // Temperature state from klippy/extras/heaters.py; GPL-3.0-or-later.
 // Original Copyright (C) 2016-2025 Kevin O'Connor.
-export interface TemperatureConfig {minimum:number;maximum:number;minimumExtrude:number;smoothTime:number;}
+export interface TemperatureConfig {minimum:number;maximum:number;minimumExtrude:number;smoothTime:number;sampleTimeout?:number;}
 /** All times are MCU-estimated print time, not wall-clock or host monotonic time. */
 export class TemperatureState {
  #config:TemperatureConfig;#inverseSmooth:number;#target=0;#last=0;#time=0;#smooth=0;#received=false;#fault:string|undefined;
  constructor(config:TemperatureConfig) {
   if(![config.minimum,config.maximum,config.minimumExtrude,config.smoothTime].every(Number.isFinite)||config.minimum< -273.15||config.maximum<=config.minimum
    ||config.minimumExtrude<config.minimum||config.smoothTime<=0)throw new RangeError('Invalid temperature configuration');
+  if(!Number.isFinite(config.sampleTimeout??7)||(config.sampleTimeout??7)<=0||(config.sampleTimeout??7)>86406)throw new RangeError('Invalid temperature sample timeout');
   this.#config={...config};this.#inverseSmooth=1/config.smoothTime;
   if(!Number.isFinite(this.#inverseSmooth))throw new RangeError('Temperature smoothing overflow');
  }
@@ -28,7 +29,7 @@ export class TemperatureState {
  }
  status(estimatedPrintTime:number):{temperature:number;target:number;canExtrude:boolean;stale:boolean;fault:string|undefined} {
   if(!Number.isFinite(estimatedPrintTime)||estimatedPrintTime<0)throw new RangeError('Invalid temperature query time');
-  const stale=!this.#received||this.#time<estimatedPrintTime-7;
+  const stale=!this.#received||this.#time<estimatedPrintTime-(this.#config.sampleTimeout??7);
   return {temperature:stale?0:this.#smooth,target:this.#target,canExtrude:!this.#fault&&!stale&&this.#smooth>=this.#config.minimumExtrude,stale,fault:this.#fault};
  }
 }

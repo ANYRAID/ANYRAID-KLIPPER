@@ -28,3 +28,23 @@ test('pure PWM refresh does not consume or fabricate sample timestamps',()=>{
  const pwm=new HeaterPWM(1,.3);pwm.heartbeat(1);assert.deepEqual(pwm.update(1,1,200),{time:1.3,power:1});assert.equal(pwm.refresh(2,200),undefined);
  pwm.heartbeat(3);assert.deepEqual(pwm.refresh(3,200),{time:3.3,power:1});assert.deepEqual(pwm.update(3,0,0),{time:3.3,power:0});assert.equal(pwm.refresh(4,200),undefined);
 });
+test('slow-source authorization expires on original measurement time while PWM keeps its three-second deadline',async()=>{
+ let now=1,tick=()=>{},stops=0;const writes:{time:number;power:number}[]=[];
+ const runtime=new AsyncHeaterRuntime({minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3,refreshOutput:true,sampleTimeout:36},new BangBangControl(1),{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},async reset(){},async setPWM(time,power){writes.push({time,power});},async stop(){stops++;}},()=>({system:now,print:now}),{},cb=>{tick=cb;return ()=>{};});
+ runtime.bindSampleRequest(async()=>{now=1.1;runtime.sample(now,197);});await runtime.start();runtime.sample(1,197);await runtime.setTarget(200);await settle();
+ for(now=2;now<=37;now++){tick();await settle();assert.equal(runtime.status.phase,'active');}
+ assert.equal(runtime.status.lastTime,1.1);assert(writes.length>10);for(let i=1;i<writes.length;i++)assert(writes[i].time-writes[i-1].time<3);
+ const count=writes.length;now=38;tick();await settle();assert.equal(runtime.status.phase,'stopped');assert.equal(stops,1);assert.equal(writes.length,count);assert.match(String(runtime.status.cause),/sensor timed out/);
+});
+test('zero target during requested sampling remains off and rejects concurrent nonzero requests',async()=>{
+ let now=1;const gate=Promise.withResolvers<void>();let writes=0;
+ const runtime=new AsyncHeaterRuntime({minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3,refreshOutput:true,sampleTimeout:36},new BangBangControl(1),{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},async reset(){},async setPWM(){writes++;},async stop(){}},()=>({system:now,print:now}),{},()=>()=>{});
+ runtime.bindSampleRequest(async()=>{await gate.promise;now=2;runtime.sample(now,25);});await runtime.start();runtime.sample(1,25);const heating=runtime.setTarget(200);await assert.rejects(runtime.setTarget(210),/pending/);await runtime.setTarget(0);gate.resolve();await heating;await settle();assert.equal(runtime.getTemperature().target,0);assert.equal(writes,0);await runtime.shutdown();
+});
+test('slow but fresh readings cannot bypass failed heating verification',async()=>{
+ let now=1,tick=()=>{};
+ const runtime=new AsyncHeaterRuntime({minimum:0,maximum:100,minimumExtrude:0,smoothTime:1,maxPower:1,reportDelay:.3,refreshOutput:true,sampleTimeout:36},new BangBangControl(1),{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},async reset(){},async setPWM(){},async stop(){}},()=>({system:now,print:now}),{checkGainTime:36},cb=>{tick=cb;return ()=>{};});
+ runtime.bindSampleRequest(async()=>{now=1.1;runtime.sample(now,25);});await runtime.start();runtime.sample(1,25);await runtime.setTarget(40);
+ for(now=2;now<=41&&runtime.status.phase==='active';now++){if(now===30)runtime.sample(now,25);tick();await settle();}
+ assert.equal(runtime.status.phase,'stopped');assert.equal(runtime.status.lastTime,30);assert.match(String(runtime.status.cause),/not heating/);assert.equal(runtime.getTemperature().target,0);
+});

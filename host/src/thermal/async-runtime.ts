@@ -22,6 +22,9 @@ export class AsyncHeaterRuntime {
  #listeners=new Set<(reason:string)=>void>();#errors:unknown[]=[];#cause:unknown;#outputStopped=false;#everStarted=false;
  #lastSystem=-Infinity;#lastPrint=-Infinity;#lastTick=0;#startTime=0;#nextCheck=0;
  #refreshOutput:boolean;
+ #requestSample:((signal:AbortSignal)=>Promise<void>)|undefined;
+ #targetRequest=false;
+ bindSampleRequest(request:(signal:AbortSignal)=>Promise<void>):void{if(this.#phase!=='idle'||this.#requestSample||typeof request!=='function')throw new Error('Invalid heater sample requester');this.#requestSample=request;}
  constructor(config:TemperatureConfig&{maxPower:number;reportDelay:number;refreshOutput?:boolean},control:PIDControl|BangBangControl,output:ConfirmedHeaterOutput,clock:()=>ThermalClock,verification:HeaterCheckConfig={},schedule:ThermalTimer=timer){
   const protection=output.configuration;
   if(protection.initialPower!==0||protection.defaultPower!==0||protection.maximumDuration!==3||!Number.isFinite(protection.cycleTime)||protection.cycleTime<=0||protection.cycleTime>config.reportDelay)throw new Error('Heater output requires zero initial/default power, three-second watchdog and valid PWM cycle');
@@ -52,11 +55,15 @@ export class AsyncHeaterRuntime {
  }
  async setTarget(target:number,signal:AbortSignal=this.#abort.signal):Promise<void>{
   signal.throwIfAborted();this.#active();
+  if(target!==0&&this.#targetRequest)throw new Error('Heater target sample request pending');
   let time:ThermalClock;try{time=this.#now();}catch(error){this.#trip(error);throw error;}
   signal.throwIfAborted();this.#active();
   if(target!==0&&this.#state.status(time.print).stale)throw new Error('Fresh temperature required before heating');
   this.#state.setTarget(target);
-  if(target!==0)return;
+  if(target!==0){
+   if(this.#requestSample){this.#targetRequest=true;try{await this.#requestSample(AbortSignal.any([signal,this.#abort.signal]));signal.throwIfAborted();this.#active();}catch(error){try{await this.shutdown(error);}catch(stop){throw new AggregateError([error,stop],'Heater sample request and stop failed',{cause:error});}throw error;}finally{this.#targetRequest=false;}}
+   return;
+  }
   this.#phase='resetting';
   try{
    await this.#resetOutput(AbortSignal.any([signal,this.#abort.signal]));signal.throwIfAborted();this.#expect('resetting');this.#pwm.confirmOff();this.#phase='active';
