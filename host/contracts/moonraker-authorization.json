@@ -1,0 +1,97 @@
+{
+  "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "source": "moonraker/components/authorization.py",
+  "status": "partial-native-api-key-owner",
+  "tests": {
+    "networkCompiledAndInitialOwner": 14,
+    "ownerIncludingPersistenceFailure": 3,
+    "uniqueTests": 15
+  },
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 HTTP header authentications per round; 3 warmups and 5 retained rounds; includes live database owner state checks, SHA-256 and constant-time digest comparison; excludes sockets and IO; not a Python comparison",
+    "samplesMs": [
+      183.774269,
+      178.58460500000012,
+      177.711638,
+      176.9336609999998,
+      177.247975
+    ],
+    "medianMs": 177.711638,
+    "microsecondsPerRequest": 1.7771163799999998,
+    "maximumMicrosecondsPerRequest": 10
+  },
+  "diagnostics": [
+    {
+      "compiled": true,
+      "unauthorizedRejected": true,
+      "rotationRevokesOldKey": true,
+      "statusRequests": 200,
+      "statusP99Ms": 1.860036999999977,
+      "scope": "Sequential local HTTP requests; no physical MCU or concurrent printing"
+    }
+  ],
+  "endpoints": [
+    {
+      "path": "/access/api_key",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "state": "implemented for native API-key identity",
+      "transports": [
+        "http",
+        "websocket"
+      ]
+    },
+    {
+      "path": "/access/info",
+      "methods": [
+        "GET"
+      ],
+      "state": "partial: public capability response; available_sources is empty until native user login is implemented"
+    },
+    {
+      "path": "/access/login",
+      "state": "pending"
+    },
+    {
+      "path": "/access/logout",
+      "state": "pending"
+    },
+    {
+      "path": "/access/refresh_jwt",
+      "state": "pending"
+    },
+    {
+      "path": "/access/user",
+      "state": "pending"
+    },
+    {
+      "path": "/access/users/list",
+      "state": "pending"
+    },
+    {
+      "path": "/access/user/password",
+      "state": "pending"
+    },
+    {
+      "path": "/access/oneshot_token",
+      "state": "pending"
+    }
+  ],
+  "verified": [
+    "Independent random key persists across database restart; private namespace is forbidden to public database APIs.",
+    "HTTP X-Api-Key and WebSocket identify api_key supply a real authorization identity.",
+    "Committed rotation invalidates old header credentials and cached WebSocket identities.",
+    "Persistence failures close authorization; damaged persisted keys are not silently regenerated.",
+    "Compiled configured service runs without TS loading or PATH programs."
+  ],
+  "limitations": [
+    "This is not complete Moonraker authorization: users, JWT, LDAP, trusted networks/proxies, one-shot tokens, authorization events and configuration policy options remain pending.",
+    "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
+    "Requires an explicit component owner, endpoint registration and local provisioning; not yet the default Cycnumbris 500 machine adapter.",
+    "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
+    "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance."
+  ]
+}

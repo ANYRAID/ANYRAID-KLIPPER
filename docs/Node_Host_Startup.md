@@ -1648,3 +1648,27 @@ node --no-experimental-strip-types scripts/product-service-unit.js --verify-bund
 流程安装后才包含此检查；直接运行 product-host 不会自动执行它。
 清单用于本地产物完整性校验，不是签名认证；部署期间仍须避免在校验
 和启动之间修改文件。默认 Python 服务尚未切换。
+
+## 原生 API Key 授权组件（初步接入）
+
+机器适配器可用 `ApiKeyAuthorization` 替代固定测试密钥回调。组件通过
+已有 DatabaseStore Worker 持久化随机密钥，使用禁止公开访问的
+`native_authorization` 命名空间；需保证一个数据库只有一个活动授权
+所有者。创建顺序为：打开数据库 → `ApiKeyAuthorization.open(database)`
+→ 将 `auth.networkOptions` 传给 ConfiguredMoonraker →
+`auth.register(server.endpoints)` → 启动服务。关闭时先等待网络请求退场，
+再关闭授权所有者和数据库；如果数据库由配置服务持有，不重复转移所有权。
+
+`localApiKey()` 仅供本地配置凭据，不写入日志或诊断报告。实际客户端
+使用 X-Api-Key；WebSocket 可在 server.connection.identify 中提交 api_key。
+GET／POST /access/api_key 分别读取和轮换密钥，均要求已认证身份。
+轮换持久化完成后使旧密钥及旧 WebSocket 认证失效；写入失败使授权关闭，
+损坏数据不会静默重置。公开 /access/info 的 available_sources 暂为空，
+不广告尚未实现的用户登录；Authorization Bearer 当前明确拒绝。
+
+本阶段尚无用户登录、JWT、LDAP、可信网络／代理、一次性令牌、授权事件
+和完整配置策略，也不导入上游用户表。此组件不应标记为完整 Moonraker
+授权或默认机器部署完成。源码和独立编译 HTTP 流程已通过；CPU 鉴权
+中位 1.777 微秒／请求，200 次本机顺序状态请求 P99 1.860 ms，不代表
+目标板或并发打印验收。证据见
+[授权组件清单](../host/contracts/moonraker-authorization.json)。
