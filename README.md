@@ -18,7 +18,8 @@ depend on the generous support from our
 
 ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonraker
 集成范围见 [迁移说明](docs/Node_Host_Migration.md)，当前执行顺序与验收出口见
-[交付计划](docs/Node_Host_Delivery_Plan.md)。host 运行需要
+[交付计划](docs/Node_Host_Delivery_Plan.md)。当前适配 ANYRAID Cycnumbris 500
+系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
