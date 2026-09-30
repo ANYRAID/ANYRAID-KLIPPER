@@ -1799,9 +1799,12 @@ node host/acceptance/client-probe.ts /absolute/path/to/frontend 18326
 ```
 
 打开输出的本地地址；一次性夹具用户信息见脚本中的 bootstrap。夹具启动
-时通过原生 API 预置 client-sample.gcode（G4 P1000），这不代表页面上传
-已验收。温度输入
-固定模拟为 25°C，不模拟加热或归零，不使用页面运动／加热按钮验证打印。
+时通过原生 API 预置 client-sample.gcode（千段短直线与挤出运动），这不代表
+页面上传已验收。探针会构建并独立安装编译包依赖，在禁用 TS 加载和外部
+PATH 工具的子进程中运行产品；PTY、限位与温度模拟留在父进程。
+限位事件遵循 MCU 时钟，加热器输出 PWM 后 ADC 切换为固定热态值；
+这只是软件流程模拟，不是物理升温／冷却模型。重新初始化会创建新的
+模拟设备，复用持久身份、文件和历史，不绕过产品的停止与就绪检查。
 只能在无物理设备接入的开发环境使用。标准编译产品流程仍使用既有
 `product-compiled-journey.test.ts`。
 
@@ -1866,5 +1869,10 @@ UI 测试清除停止状态。夹具取消后的可用性回归可执行：
 node --test --test-isolation=none host/acceptance/client-probe.test.ts
 ```
 
-该回归使用临时静态页面和模拟 MCU，验证取消后 15 秒接口存活及清理，
-不代表 Fluidd 页面、物理升温／归零或完整打印完成验收。
+该回归使用临时静态页面和模拟 MCU，验证同包打印、暂停恢复、完成、
+原生受控重新初始化、第二代准备阶段取消后 15 秒接口存活及清理。
+IPC 通道在无工作时不保持子进程存活；退出超时会停止本轮测试子进程。
+另已用 Fluidd 1.37.6 实际页面验证同一编译产物的文件选择、开始、暂停、
+恢复、100% 与就绪，持久历史为 completed。文件仍由 API 预置；页面上传、
+标准客户端重启衔接、Mainsail 和实机验收待完成，详见
+[客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。

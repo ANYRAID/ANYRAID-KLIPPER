@@ -1,3 +1,4 @@
+import {atFirmwareClock} from '../test/helpers/firmware-clock-timer.ts';
 import {bmp180Device,bmp180Calibration} from '../test/helpers/bmp180-device.ts';
 import {Bmp180Compensation} from '../src/thermal/bmp180.ts';
 import {bme280Device} from '../test/helpers/bme280-device.ts';
@@ -107,13 +108,11 @@ for(const {nativeAuthorization=false,apiLoad=false,loaded,spi,bmp180=false,bme=f
    const inject=()=>{
     // Host lead changes when stopped drivers are sampled. Never inject a hit
     // before its firmware clock; a fixed wall delay alone cannot ensure this.
-    const remaining=(clock+5000-firmware.currentClock())/1000;
-    if(remaining>0){schedule(Math.ceil(remaining));return;}
     assert(clock<=firmware.currentClock());if(!verification)homed++;
     if(isProbe&&!verification){probed++;const z=firmware.stepperConfigs.find(e=>e.step_pin==='PA9'||e.step_pin===9)!;assert(z);firmware.setStepperPosition(Number(z.oid),-10*probed);}
     firmware.setTriggerReason(1,oid);firmware.setEndstopState({homing:0,pin_value:verification?Number(p.pin_value):0,next_clock:clock+Number(p.rest_ticks)},Number(p.oid));firmware.emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock});
    };
-   const schedule=(ms:number)=>{const timer=setTimeout(()=>{timers.delete(timer);inject();},ms);timers.add(timer);};schedule(verification?1:150);
+   atFirmwareClock(timers,()=>firmware.currentClock(),clock,verification?1:150,inject);
   }},2);
   const aux=transport.firmware[1];
   if(bltouch){const controlDecoder=new FrameDecoder();let controlSequence=1;aux.peer.on('data',chunk=>{for(const frame of controlDecoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk)){

@@ -1,6 +1,6 @@
 {
   "implementationBase": "58969f0a",
-  "scope": "Desktop source product with native authorization and simulated MCU; not compiled client or physical printer acceptance",
+  "scope": "Source and independent compiled product observations with simulated MCU; no physical printer acceptance",
   "clients": [
     {
       "name": "Fluidd",
@@ -143,6 +143,48 @@
       "Full homing and heating simulation followed by pause/resume/completion",
       "Mapping native controlled recovery to actual client restart workflow",
       "Physical printer and target-board acceptance"
+    ]
+  },
+  "compiledUiRecheck": {
+    "implementationBase": "dff31cd5",
+    "bundleManifestSha256": "fbd0c13fe45b14271d0157c4dd40c0f73aff39646fa2d418f2b17a69e22c9657",
+    "client": "Fluidd 1.37.6",
+    "runtime": "Node.js 26.9.0; emitted JS child with PATH=/no-programs and type stripping disabled; PTY simulator stays in parent",
+    "verified": [
+      "Actual page login and ready dashboard",
+      "API-seeded client-sample.gcode selected and started from page",
+      "Firmware endstop events and PWM-triggered ADC simulation permit preparation",
+      "Page shows printing, paused, resumed printing, then 100 percent and ready",
+      "Native status and history confirm completed; no pending device actions or safe stop",
+      "Probe exits 0 on SIGINT"
+    ],
+    "automatedRegression": {
+      "command": "node --test --test-isolation=none host/acceptance/client-probe.test.ts",
+      "result": "1 passed",
+      "durationMs": 38094.846187,
+      "coverage": [
+        "Independent product build and dependencies",
+        "Standard file start, pause, resume and completion",
+        "Native versioned host reinitialize creates second MCU generation",
+        "Login token and completed history survive reinitialization",
+        "Preparation cancel on second generation; API stays alive 15 seconds",
+        "Normal child and parent shutdown"
+      ]
+    },
+    "loadRegression": {
+      "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true' host/acceptance/product-compiled-journey.test.ts",
+      "result": "1 passed",
+      "statusP99Ms": 4.323892999998861,
+      "minimumStepLeadMs": 84.061,
+      "statusRequests": 16072,
+      "scope": "Existing desktop concurrent workload; no target-board or Python comparison"
+    },
+    "limitations": [
+      "Sample seeded via API; page upload unverified",
+      "Fixed temperatures after PWM, not a physical heating/cooling model",
+      "Native reinitialize API verified; standard client restart buttons unverified",
+      "Mainsail initialization and full journey pending",
+      "Target hardware, numerical faults and Python retirement pending"
     ]
   }
 }

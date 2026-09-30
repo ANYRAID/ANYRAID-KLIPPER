@@ -1,20 +1,16 @@
+import {startCompiledClientHost} from '../test/helpers/compiled-client-host.ts';
 import {createServer,request} from 'node:http';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
 import {join,extname,resolve} from 'node:path';
 import {WebSocket,WebSocketServer} from 'ws';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {ApiKeyAuthorization} from '../src/moonraker/api-key-authorization.ts';
-import {productMachineFixture} from '../test/helpers/product-machine.ts';
-import {loadNativeProductMachineProfile} from '../src/runtime/native-product-machine.ts';
-import {emitClientTemperatures} from '../test/helpers/client-temperature.ts';
-import {runProductHost} from '../src/runtime/product-host.ts';
 // Local UI acceptance only. All machine transports below come from the PTY fixture.
 // No physical device path or production credential is accepted.
 const assets=process.argv[2];if(!assets)throw new Error('Usage: node host/acceptance/client-probe.ts /absolute/frontend/assets');
 const assetRoot=resolve(assets);await readFile(join(assetRoot,'index.html'));
 const port=Number(process.argv[3]??18326);if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('Invalid loopback port');
-const dir=await mkdtemp('/tmp/anyraid-client-data-'),f=await productMachineFixture(dir),abort=new AbortController(),issuer='http://printer.test';let db=await DatabaseStore.open({path:join(dir,'auth.sqlite')}),api=await ApiKeyAuthorization.open(db,{issuer});const key=api.localApiKey();await api.close();await db.close();db=await DatabaseStore.open({path:join(dir,'auth.sqlite')});
-const thermal=setInterval(()=>emitClientTemperatures(f.transport.firmware,f.transport.stops),100);
+const dir=await mkdtemp('/tmp/anyraid-client-data-'),abort=new AbortController(),issuer='http://printer.test';const db=await DatabaseStore.open({path:join(dir,'auth.sqlite')}),api=await ApiKeyAuthorization.open(db,{issuer});const key=api.localApiKey();await api.close();await db.close();
 // This is a short interactive check, not a long-running firmware simulator.
 const deadline=setTimeout(()=>{console.log('CLIENT_TIMEOUT');abort.abort();},15*60*1000);
 let upstream='';const sockets=new Set<WebSocket>(),wss=new WebSocketServer({noServer:true});
@@ -23,4 +19,15 @@ const server=createServer(async(req,res)=>{const path=new URL(req.url!,'http://l
 server.on('upgrade',(req,socket,head)=>{const peer=new WebSocket(upstream.replace('http:','ws:')+req.url);peer.on('error',()=>socket.destroy());peer.once('open',()=>wss.handleUpgrade(req,socket,head,client=>{sockets.add(client);sockets.add(peer);client.on('error',()=>peer.close());client.on('message',data=>{try{const value=JSON.parse(String(data));console.log(JSON.stringify({rpc:value.method}));}catch{}if(peer.readyState===WebSocket.OPEN)peer.send(data,{binary:false});});peer.on('message',data=>{try{const value=JSON.parse(String(data));if(value.error)console.log(JSON.stringify({rpcError:value.error,id:value.id}));}catch{}if(client.readyState===WebSocket.OPEN)client.send(data,{binary:false});});client.on('close',()=>{peer.close();sockets.delete(client);});peer.on('close',()=>{client.close();sockets.delete(peer);});}));});
 server.on('error',()=>{console.error('Client proxy failed');abort.abort();});
 for(const signal of ['SIGINT','SIGTERM'] as const)process.on(signal,()=>abort.abort());
-try{await runProductHost(s=>loadNativeProductMachineProfile(f.path,{filesRoot:join(dir,'files'),metadataRoot:join(dir,'metadata'),standardPrint:{nozzle:200,bed:60},createAdapter:async()=>({stops:f.bindings.stops,lifecycle:f.bindings.print.lifecycle,output:f.bindings.print.output,async authorizePrintFile(){},server:{information:f.bindings.server.information,database:db,authorization:{issuer}},async release(){await db.close();}})},s),abort.signal,address=>{void (async()=>{upstream=`http://127.0.0.1:${address.port}`;const response=await fetch(upstream+'/access/user',{method:'POST',headers:{'content-type':'application/json','x-api-key':key},body:JSON.stringify({username:'operator',password:'client-test-only'})});if(response.status!==200){console.log('bootstrap failed');abort.abort();return;}await response.arrayBuffer();const sample=new FormData();sample.append('file',new Blob(['G4 P1000\n']),'client-sample.gcode');sample.append('file_id','client-sample');sample.append('root','gcodes');const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==200)throw new Error('Sample upload failed');await uploaded.arrayBuffer();console.log('CLIENT_SAMPLE client-sample.gcode (seeded by API)');server.listen(port,'127.0.0.1',()=>console.log('CLIENT_READY http://127.0.0.1:'+port));})().catch(()=>{console.error('Client bootstrap failed');abort.abort();});});}finally{clearTimeout(deadline);clearInterval(thermal);for(const socket of sockets)socket.terminate();server.close();wss.close();await db.close();await f.close();await rm(dir,{recursive:true,force:true});}
+let host:Awaited<ReturnType<typeof startCompiledClientHost>>|undefined,bootstrap:Promise<void>=Promise.resolve(),initialized=false;
+try{
+ host=await startCompiledClientHost(dir,abort.signal,base=>{upstream=base;if(initialized)return;
+  bootstrap=(async()=>{
+   const response=await fetch(upstream+'/access/user',{method:'POST',headers:{'content-type':'application/json','x-api-key':key},body:JSON.stringify({username:'operator',password:'client-test-only'})});if(response.status!==200)throw new Error('User bootstrap failed');await response.arrayBuffer();
+   const sample=new FormData();sample.append('file',new Blob(['G90\nG92 E0\n'+Array.from({length:1000},(_,i)=>'G1 X'+((i+1)/100)+' E'+((i+1)/1000)+' F60\n').join('')+'M400\n']),'client-sample.gcode');sample.append('file_id','client-sample');sample.append('root','gcodes');
+   const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==200)throw new Error('Sample upload failed');await uploaded.arrayBuffer();initialized=true;
+   console.log('CLIENT_SAMPLE client-sample.gcode (seeded by API)');server.listen(port,'127.0.0.1',()=>console.log('CLIENT_READY http://127.0.0.1:'+port));
+  })().catch(error=>{console.error(error);abort.abort();});
+ });
+ await host.lifetime;
+}finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await rm(dir,{recursive:true,force:true});}}
