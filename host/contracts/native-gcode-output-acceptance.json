@@ -1,0 +1,278 @@
+{
+  "base": "9d57b185",
+  "implementation": "Native product owns bounded G-code response store, authenticated queries and notify_gcode_response; observer failures cannot stop dispatch; subscription detached on service close",
+  "tests": {
+    "dispatch": 17,
+    "productAndAuthorization": 18,
+    "compiledProductJourneys": 2
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 2,
+    "runs": 9,
+    "responsesPerRun": 100000,
+    "baseline": {
+      "medianMs": 175.7949020000001,
+      "p95Ms": 179.61902099999998
+    },
+    "history": {
+      "medianMs": 213.26128399999993,
+      "p95Ms": 218.93617799999993
+    },
+    "addedMedianMicrosecondsPerResponse": 0.37466381999999837,
+    "scope": "Alternating same-process dispatch without observer versus bounded history observer. No network fanout, Python, target board or physical motion comparison."
+  },
+  "journeys": [
+    {
+      "nativeAuthorization": true,
+      "apiLoad": false,
+      "completedStatistics": {
+        "total_duration": 7.500338185,
+        "print_duration": 2.5505603360000006,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "d8451cc3e03e2c9b75f4a7d238a33dbd8f068ee58ea6ce9f240e931ea5aeb53d",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 189,
+      "wireSteps": 3698,
+      "minimumStepLeadMs": 87.898,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.803263,
+            "maxMs": 20.217855
+          },
+          "cpu": {
+            "user": 1269427,
+            "system": 147975
+          },
+          "rss": 189382656
+        },
+        {
+          "loop": {
+            "p99Ms": 1.719295,
+            "maxMs": 6.668287
+          },
+          "cpu": {
+            "user": 670584,
+            "system": 59018
+          },
+          "rss": 211574784
+        }
+      ]
+    },
+    {
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.575431156999999,
+        "print_duration": 2.4533570679999994,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "d8451cc3e03e2c9b75f4a7d238a33dbd8f068ee58ea6ce9f240e931ea5aeb53d",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3873,
+      "phaseP99Ms": 2.927707000002556,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 869,
+      "historyP99Ms": 5.600642000004882,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.670559999998659,
+      "deleteRequests": 16,
+      "deleteP95Ms": 18.555146999999124,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.1392809999961173,
+      "metadataRequests": 16,
+      "metadataP95Ms": 34.46123099999386,
+      "downloads": 16,
+      "downloadP95Ms": 3.1224100000035833,
+      "wireCommands": 188,
+      "wireSteps": 3580,
+      "minimumStepLeadMs": 87.493,
+      "directoryRequests": 3716,
+      "directoryP99Ms": 8.16304400000081,
+      "statusRequests": 15495,
+      "uploads": 16,
+      "statusP99Ms": 3.017568000002939,
+      "uploadP95Ms": 5.61214199999813,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.125823,
+            "maxMs": 19.759103
+          },
+          "cpu": {
+            "user": 5055578,
+            "system": 532084
+          },
+          "rss": 298434560
+        },
+        {
+          "loop": {
+            "p99Ms": 1.898495,
+            "maxMs": 5.607423
+          },
+          "cpu": {
+            "user": 1742251,
+            "system": 210977
+          },
+          "rss": 279638016
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "Desktop simulated MCU only; no Python or target-board comparison",
+    "No physical print-speed or precision completion claim",
+    "Native script command admission and printer.gcode.help remain incomplete",
+    "Response history is per service generation; retention across product reinitialization remains pending",
+    "No browser acceptance added in this change"
+  ]
+}

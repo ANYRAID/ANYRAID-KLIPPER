@@ -1807,6 +1807,14 @@ Fluidd 1.37.6 实际通过登录、就绪页面和 gcodes 根目录工具启用�
 现接受一次性 token 查询参数，并返回 item/action 及既有不可变文件回执。
 HTTP 回归验证上传与重放拒绝；修复后页面上传受文件选择器工具失败影响，
 尚未确认。Mainsail 2.19.0 在本轮强制用户授权下停留初始化；未关闭鉴权。
-配置根目录、系统信息、进程统计、GCode 日志和帮助的原生绑定仍有缺口，
+配置根目录、系统信息、进程统计和 GCode 帮助的原生绑定仍有缺口，
 不能宣称完整客户端兼容。发布包哈希、测试与性能边界见
 [客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。
+
+原生产品服务现默认启用 `/server/gcode_store`，记录真实分派器响应，
+并通过现有通知鉴权发送 `notify_gcode_response`。条数遵循
+`[data_store] gcode_store_size`（默认 1000），字节上限默认 8 MiB，
+可由服务所有者的 `gcodeStore.maxBytes` 配置。设条数为 0 关闭历史保留，
+不关闭即时通知。查询仍须身份准入；此接口不执行 G-code。
+记录仅在当前服务代际内保留，重初始化会清空；跨代保留仍待实现。
+验证与开销见[原生控制台验收](../host/contracts/native-gcode-output-acceptance.json)。

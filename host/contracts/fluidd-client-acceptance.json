@@ -26,7 +26,6 @@
   "missingNativeBindings": [
     "machine.proc_stats",
     "machine.system_info",
-    "server.gcode_store",
     "printer.gcode.help",
     "server.files.list root=config"
   ],
@@ -101,5 +100,9 @@
     },
     "typecheck": "passed",
     "scope": "Test fixture only; does not resolve existing production motion diagnostics; no wall-clock endurance acceptance"
+  },
+  "nativeConsoleFollowUp": {
+    "evidence": "native-gcode-output-acceptance.json",
+    "browserRecheck": "pending"
   }
 }

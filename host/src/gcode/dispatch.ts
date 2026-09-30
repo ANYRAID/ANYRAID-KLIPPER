@@ -23,8 +23,20 @@ export interface DispatchHooks {
 export class GCodeDispatch {
   #handlers=new Map<string,Registration>();#ready=false;#reason='Printer is not ready';
   #tail:Promise<void>=Promise.resolve();#pending=0;#active:AbortController|undefined;#generation=0;
+  readonly #outputObservers=new Set<(message:string)=>void>();#outputObserverFailures=0;
   #hooks:DispatchHooks;#stopping=false;
   constructor(hooks:DispatchHooks) {this.#hooks=hooks;this.register('M110',()=>{}, {whenNotReady:true});}
+  /** Diagnostic observers must be synchronous and bounded. Their failures cannot stop motion. */
+  observeOutput(listener:(message:string)=>void):()=>void {
+    if(typeof listener!=='function'||this.#outputObservers.size>=16)throw new TypeError('Invalid or excessive output observer');
+    const owned=(message:string)=>listener(message);this.#outputObservers.add(owned);
+    return ()=>{this.#outputObservers.delete(owned);};
+  }
+  get outputObservation(){return {listeners:this.#outputObservers.size,failures:this.#outputObserverFailures};}
+  #output(message:string):void {
+    this.#hooks.output(message);
+    for(const observer of this.#outputObservers)try{observer(message);}catch{this.#outputObserverFailures++;}
+  }
   hasCommand(name:string):boolean {return this.#handlers.has(name);}
   register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean;drainBefore?:boolean}={}):void {
     if(!/^[A-Z_][A-Z0-9_]*$/.test(name)||this.#handlers.has(name))throw new Error('Invalid or duplicate command registration');
@@ -99,7 +111,7 @@ export class GCodeDispatch {
         let acknowledged=false;
         const ack=(message?:string):boolean=>{
           if(!needAck||acknowledged)return false;
-          acknowledged=true;this.#hooks.output(message?'ok '+message:'ok');return true;
+          acknowledged=true;this.#output(message?'ok '+message:'ok');return true;
         };
         try {
           let parsed:ParsedCommand;
@@ -110,7 +122,7 @@ export class GCodeDispatch {
             parsed.command=parsed.command.split(/\s/)[0];registration=this.#handlers.get(parsed.command);
           }
           const context:CommandContext={...parsed,signal:controller.signal,rawParameters:()=>rawParameters(parsed),
-            respondRaw:message=>this.#hooks.output(message),respondInfo:message=>this.#hooks.output('// '+message.trim().split('\n').map(s=>s.trim()).join('\n// ')),ack};
+            respondRaw:message=>this.#output(message),respondInfo:message=>this.#output('// '+message.trim().split('\n').map(s=>s.trim()).join('\n// ')),ack};
           if(!registration&&parsed.command==='M105'&&this.#hooks.unknownCommand!=='shutdown')ack('T:0');
           else if(!registration&&parsed.command==='M21'&&this.#hooks.unknownCommand!=='shutdown'){}
           else {
@@ -136,7 +148,7 @@ export class GCodeDispatch {
           const expected=error instanceof GCodeError;
           const message=expected?error.message:'Internal error processing G-code';
           if(!expected&&!controller.signal.aborted)this.emergencyStop(message);
-          this.#hooks.output('!! '+message.split('\n')[0].trim());this.#hooks.commandError?.();
+          this.#output('!! '+message.split('\n')[0].trim());this.#hooks.commandError?.();
           if(!needAck||controller.signal.aborted)throw error;
         }
         ack();completed++;

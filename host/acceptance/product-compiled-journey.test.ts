@@ -181,6 +181,7 @@ export async function createProductHostProfile(signal){
    tasks.push(own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/server/files/directory?extended=true',{headers,signal:abort.signal});assert.equal(response.status,200);const entries=(await response.json() as any).result.files;assert.equal(entries.find((entry:any)=>entry.file_id==='authorized-file')?.sha256,sha256);assert.equal(new Set(entries.map((entry:any)=>entry.filename)).size,entries.length);directoryTimes.push(performance.now()-begin);await delay(5,undefined,{signal:abort.signal});}}));
    tasks.push(own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/server/history/list?limit=50',{headers,signal:abort.signal});assert.equal(response.status,200);const body=await response.json() as any;assert.equal(body.result.count,body.result.jobs.length);historyTimes.push(performance.now()-begin);await delay(25,undefined,{signal:abort.signal});}}));
    tasks.push(own(async()=>{while(!abort.signal.aborted){const begin=performance.now(),response=await checkedFetch(base+'/printer/calibration/endstop_phase',{headers,signal:abort.signal});assert.equal(response.status,200);const body=await response.json() as any;assert.equal(body.result.steppers.length,3);assert(body.result.steppers.every((s:any)=>typeof s.samples==='string'));phaseTimes.push(performance.now()-begin);await delay(5,undefined,{signal:abort.signal});}}));
+   tasks.push(own(async()=>{while(!abort.signal.aborted){const response=await checkedFetch(base+'/server/gcode_store?count=20',{headers,signal:abort.signal});assert.equal(response.status,200);const rows=(await response.json() as any).result.gcode_store;assert(Array.isArray(rows)&&rows.length<=20);assert(rows.every((row:any)=>row.type==='response'&&typeof row.message==='string'&&Number.isFinite(row.time)));await delay(25,undefined,{signal:abort.signal});}}));
    stopLoad=async()=>{abort.abort();await Promise.all(tasks);if(failure)throw failure;};
   }
   const request=(id:string)=>({version:1,request_id:id,file_id:'authorized-file',nozzle:200,bed:60,expires_at:Date.now()+60000});
@@ -192,6 +193,7 @@ export async function createProductHostProfile(signal){
    const login=await access('login',{username:'operator',password:'compiled-test-password'});delete requestAuth['x-api-key'];delete headers['x-api-key'];requestAuth.authorization='Bearer '+login.token;headers.authorization=requestAuth.authorization;
    assert((await get('/server/info')).components.includes('authorization'));
   }
+  assert(Array.isArray((await get('/server/gcode_store?count=20')).gcode_store));
   await connectFileEvents();
   const driverNames=['stepper_x','stepper_y','stepper_z','extruder'].map(n=>(model2240?'tmc2240 ':model5160?'tmc5160 ':spi?'tmc2130 ':'tmc2209 ')+n),driverQuery='/printer/objects/query?'+driverNames.map(encodeURIComponent).join('&');
   const catalog=(await get('/printer/objects/list')).objects;assert(driverNames.every(n=>catalog.includes(n)));

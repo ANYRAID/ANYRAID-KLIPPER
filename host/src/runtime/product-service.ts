@@ -95,6 +95,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  const screwsStatus=new ScrewsCalibrationStatus();
  const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
  const printer=await connect();
+ let closeGcodeOutput:(()=>void)|undefined;
  let closeDeltaCalibration:ReturnType<typeof registerNativeDeltaCalibration>|undefined;
  let closeAdaptiveMesh:(()=>Promise<void>)|undefined;
  let closeMeshSelection:(()=>Promise<void>)|undefined;
@@ -120,6 +121,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.machine.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
  const close=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
+  closeGcodeOutput?.();
   closeIdleSettings?.();
   closeTemperatureFans?.();
   closeObjectCancellation?.();
@@ -135,8 +137,9 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   signal.throwIfAborted();
   if(zTilt){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==zTilt.motors.length||z.some(e=>!zTilt.motors.some(m=>m.id===e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Z tilt hardware ownership differs');}
   if(quad){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==quad.motorIds.length||z.some(e=>!quad.motorIds.includes(e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Quad gantry hardware ownership differs');}
-  const ownedServer={productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)};
+  const ownedServer={gcodeStore:serverOptions.gcodeStore??{},productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)};
   server=serverOptions.authorization?await ConfiguredMoonraker.loadAuthorized(configPath,{...serverOptions,...ownedServer}):await ConfiguredMoonraker.load(configPath,{...serverOptions,...ownedServer});
+  closeGcodeOutput=printer.print.gcode.dispatch.observeOutput(response=>server!.recordNativeGcodeResponse(response));
   signal.throwIfAborted();printer.group.assertActive();
   if(printer.print.gcode.objects)closeObjectCancellation=registerNativeObjectCancellation(server.endpoints,printer.print.gcode.objects,{
    snapshot:()=>({requestId:printer.controller.currentRequest?.requestId??null,state:printer.controller.state,stateToken:printer.controller.stateToken,available:!closing&&!printer.maintenanceGate.status.closed&&!printer.controller.safeStopPending}),

@@ -98,3 +98,13 @@ test('failed or cancelled pre-command drain cannot publish the state change',asy
   await assert.rejects(d.execute('CHANGE_STATE'),abort?/cancelled/:/drain failed/);assert.equal(changes,0);assert.equal(stops,1);
  }
 });
+test('output observers see responses and errors without changing acknowledgements or motion failure handling',async()=>{
+ const {d,output,shutdown}=setup(),seen:string[]=[];
+ const stop=d.observeOutput(message=>seen.push(message)),broken=d.observeOutput(()=>{throw new Error('diagnostic failed');});
+ d.register('REPORT',c=>{c.respondInfo('ready\n next');c.respondRaw('raw');});d.setReady(true);
+ await d.execute('REPORT',{acknowledge:true});assert.deepEqual(seen,['// ready\n// next','raw','ok']);assert.deepEqual(output,seen);assert.deepEqual(shutdown,[]);assert.equal(d.outputObservation.failures,3);
+ stop();stop();broken();await d.execute('REPORT');assert.equal(seen.length,3);assert.equal(d.outputObservation.listeners,0);
+ const errors:string[]=[],detach=d.observeOutput(message=>errors.push(message));d.setReady(false);
+ await assert.rejects(d.execute('REPORT'),/not ready/);assert.deepEqual(errors,['!! Printer is not ready']);detach();
+ const releases=Array.from({length:16},()=>d.observeOutput(()=>{}));assert.throws(()=>d.observeOutput(()=>{}),/excessive/);for(const release of releases)release();
+});

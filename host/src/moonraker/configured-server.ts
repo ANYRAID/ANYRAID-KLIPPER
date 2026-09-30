@@ -359,6 +359,12 @@ export class ConfiguredMoonraker {
  /** Only a retired sampler may hand history to the next service generation. */
  retiredTemperatureHistory():TemperatureStore|undefined{if(this.#temperatureStore&&!this.#temperatureStore.status.closed)throw new Error('Temperature sampler is still active');return this.#temperatureStore?.store;}
  get temperatureStoreStatus(){return this.#temperatureStore?.status??null;}
+ /** Trusted native dispatch output; never a network command admission path. */
+ recordNativeGcodeResponse(response:string):void{
+  if(!(this.#printApi instanceof ProductPrintApi))throw new Error('Native G-code output requires a native print owner');
+  if(this.#stopping)return;
+  this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);
+ }
  get gcodeStoreStatus(){return this.#gcodeStore?.status??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
  get klippyNotifications(){return {...this.#klippyNotifications};}

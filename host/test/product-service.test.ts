@@ -158,12 +158,15 @@ test('native WebSocket subscriptions deliver real deltas and disconnect after no
  try{
   owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);
   ws=new WebSocket(`ws://127.0.0.1:${owner.address.port}/websocket`,{headers:{'x-api-key':'test'}});await once(ws,'open');
-  const receive=()=>once(ws!,'message',{signal:AbortSignal.timeout(3000)}).then(([data])=>JSON.parse(String(data)));
+  const receive=(method?:string)=>new Promise<any>((resolve,reject)=>{
+   const socket=ws!,timer=setTimeout(()=>{socket.off('message',message);reject(new Error('WebSocket response timeout'));},3000);
+   const message=(data:unknown)=>{const value=JSON.parse(String(data));if(method&&value.method!==method)return;clearTimeout(timer);socket.off('message',message);resolve(value);};socket.on('message',message);
+  });
   let reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{gcode_move:['speed_factor'],native_host:['ready'],display_status:['message','progress']}}}));const initial=await reply;assert.deepEqual(initial.result.status,{gcode_move:{speed_factor:1},native_host:{ready:true},display_status:{message:null,progress:0}});
   reply=receive();owner.printer.print.gcode.coordinates.execute('M220',{S:150});const update=await reply;assert.equal(update.method,'notify_status_update');assert.deepEqual(update.params[0],{gcode_move:{speed_factor:1.5}});assert(update.params[1]>initial.result.eventtime);
   reply=receive();owner.printer.print.gcode.display.setMessage('准备完成');owner.printer.print.gcode.display.updateProgress({P:'25'});const display=await reply;assert.deepEqual(display.params[0],{display_status:{message:'准备完成',progress:.25}});
   reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'printer.objects.subscribe',params:{objects:{extruder:['pressure_advance','smooth_time']}}}));assert.deepEqual((await reply).result.status,{extruder:{pressure_advance:0,smooth_time:.04}});
-  reply=receive();owner.printer.print.gcode.enable();await owner.printer.print.gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0 SMOOTH_TIME=0.12',{boundary:'checkpoint'});const pressureUpdate=await reply;assert.equal(pressureUpdate.method,'notify_status_update');assert.deepEqual(pressureUpdate.params[0],{extruder:{smooth_time:.12}});
+  reply=receive('notify_status_update');owner.printer.print.gcode.enable();await owner.printer.print.gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0 SMOOTH_TIME=0.12',{boundary:'checkpoint'});const pressureUpdate=await reply;assert.equal(pressureUpdate.method,'notify_status_update');assert.deepEqual(pressureUpdate.params[0],{extruder:{smooth_time:.12}});
   allowed=false;const closed=once(ws,'close',{signal:AbortSignal.timeout(3000)});await owner.printer.print.gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0 SMOOTH_TIME=0.04',{boundary:'checkpoint'});await closed;assert(f.firmware.every(f=>f.motion.length===0));
  }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
@@ -242,4 +245,24 @@ test('skew HTTP persistence reloads exact server coefficients and fences previou
   const activated=await post(settings,{version:1,state_token:current.state_token,action:'load',profile:'calibrated'});assert.equal(activated.status,200);assert.deepEqual(activated.body.result.factors,factors);
   const remove=await post(configuration,{version:1,state_token:(await get(configuration)).state_token,action:'remove',profile:'calibrated'});assert.equal(remove.status,200,JSON.stringify(remove));const deleted=await KlipperSaveSession.load(path);assert.equal(deleted.source.original['skew_correction calibrated'],undefined);
  }finally{await owner?.close();await next?.dispose();await f.dispose();}
+});
+test('native dispatch responses enter authorized console history and detach on service close',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined;
+ f.serviceOptions.server.authorizeNotification=()=>{};
+ try{
+  await writeFile(f.serviceOptions.configPath,'[server]\nhost=127.0.0.1\nport=0\n[data_store]\ngcode_store_size=2');
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);
+  const url=`http://127.0.0.1:${owner.address.port}/server/gcode_store`,dispatch=owner.printer.print.gcode.dispatch;
+  const denied=await fetch(url);assert.equal(denied.status,401);await denied.arrayBuffer();
+  ws=new WebSocket(`ws://127.0.0.1:${owner.address.port}/websocket`,{headers:{'x-api-key':'test'}});await once(ws,'open');
+  const ready=once(ws,'message',{signal:AbortSignal.timeout(3000)});ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.info'}));await ready;
+  const notifications:string[]=[];ws.on('message',data=>{const message=JSON.parse(String(data));if(message.method==='notify_gcode_response')notifications.push(message.params[0]);});
+  dispatch.register('REPORT_CONSOLE',c=>{c.respondInfo('first');c.respondRaw('second');c.respondRaw('third');});
+  dispatch.setReady(true);await dispatch.execute('REPORT_CONSOLE');
+  const response=await fetch(url,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);
+  const rows=(await response.json()).result.gcode_store;assert.deepEqual(rows.map((row:{message:string;type:string})=>[row.message,row.type]),[['second','response'],['third','response']]);assert(rows.every((row:{time:number})=>Number.isFinite(row.time)&&row.time>0));
+  for(let i=0;i<100&&notifications.length<3;i++)await delay(10);assert.deepEqual(notifications,['// first','second','third']);
+  assert.equal(owner.server.gcodeStoreStatus?.records,2);assert.equal(dispatch.outputObservation.listeners,1);ws.terminate();await owner.close();assert.equal(dispatch.outputObservation.listeners,0);
+  owner.server.recordNativeGcodeResponse('late');assert.equal(owner.server.gcodeStoreStatus?.records,2);
+ }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
