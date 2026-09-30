@@ -237,5 +237,35 @@
       "Final drained-position refinement has compiled regression, not repeated page acceptance",
       "Controlled performance A/B and target hardware"
     ]
+  },
+  "compiledReconnect": {
+    "base": "13fef960",
+    "command": "node --test --test-isolation=none --test-concurrency=1 host/acceptance/client-probe.test.ts",
+    "passed": 2,
+    "durationMs": 81825.735968,
+    "typecheck": "passed",
+    "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+    "logSha256": "d006e5d991595d9a015ab5b814f3f7f5cd8fb9c14b5c3a5fc9d30223c0434e80",
+    "modes": [
+      "JWT token through server.connection.identify",
+      "Explicit trusted loopback"
+    ],
+    "verified": [
+      "Subscribe before printing and receive printing delta",
+      "Abrupt disconnect during printing; new connection identifies again and receives fresh printing snapshot",
+      "Request identity and filename survive reconnection without duplicate start",
+      "Reconnected subscription receives paused and complete deltas",
+      "Controlled reinitialization closes previous socket; same JWT or explicit trust authenticates new generation",
+      "Fresh subscription after reinitialization reports standby and not paused",
+      "Completed history survives; second-generation cancellation remains available for 15 seconds"
+    ],
+    "scope": "Protocol clients against independent compiled product with simulated MCU; not actual frontend reconnection or physical printer acceptance",
+    "performance": "No production runtime change; prior same-artifact ABBA evidence remains applicable. This test does not quantify reconnect latency.",
+    "remaining": [
+      "Actual frontend reload/reconnection flow",
+      "Standard restart and firmware_restart semantics versus native controlled reinitialization",
+      "Browser file upload",
+      "Physical hardware, Python retirement and target performance"
+    ]
   }
 }

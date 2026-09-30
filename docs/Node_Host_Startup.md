@@ -28,6 +28,19 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
+## 客户端断连与受控恢复
+
+WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`；
+新订阅返回完整当前快照，后续通知是增量，不重放断连期间的事件。
+客户端连接与打印作业生命周期独立：重连不重新开始文件，也不改变作业
+请求身份。JWT 和显式可信回环模式均通过独立编译产品的协议回归。
+
+原生 `/printer/host/reinitialize` 使用版本、请求 ID 和主机状态令牌，
+响应发出后才切换设备代际；原连接会关闭，客户端应重连并重新订阅。
+回归验证了新代际 standby、未暂停状态和历史保留。此接口不等同于
+标准 Klippy `restart`／`firmware_restart`，实际前端按钮衔接仍待完成。
+以上是模拟 MCU 的协议证据，实际前端刷新／重连与实机恢复应分别验收。
+
 ## 实时运动状态
 
 原生产品的 `motion_report` 提供 `live_position`、`live_velocity` 与
