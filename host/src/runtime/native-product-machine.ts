@@ -2,18 +2,20 @@ import {isAbsolute,relative,resolve,sep} from 'node:path';
 import {PublishedPrintFiles} from '../storage/published-files.ts';
 import {NativePrintUploads,type NativeUploadOptions} from '../moonraker/native-print-uploads.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
+import {assertProductAuthorization} from './product-authorization.ts';
 import {ApiError} from '../moonraker/rpc.ts';
 import type {ProductMachineConfiguration} from '../config/product-machine.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {loadProductMachineProfile,type ProductMachineBindings} from './product-machine-profile.ts';
 
+type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'>:never;
 export interface NativeMachineAdapter {
  stops:ProductMachineBindings['stops'];
  lifecycle:ProductMachineBindings['print']['lifecycle'];
  output:ProductMachineBindings['print']['output'];
  /** Source admission policy in addition to RPC authorization. Must not move or heat. */
  authorizePrintFile(fileId:string,signal:AbortSignal):Promise<void>;
- server:Omit<ProductMachineBindings['server'],'nativeUploads'|'productPrintCompatibility'>;
+ server:NativeAdapterServer<ProductMachineBindings['server']>;
  /** Adapter owns its own partial failure; a successful factory return transfers ownership. */
  release():Promise<void>;
 }
@@ -45,7 +47,8 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
  };
  try{
   adapter=await createAdapter(structuredClone(config),signal,gate);signal.throwIfAborted();
-  if(!adapter||typeof adapter.release!=='function'||typeof adapter.output!=='function'||typeof adapter.authorizePrintFile!=='function'||typeof adapter.server?.authorize!=='function'||typeof adapter.server?.authorizeNotification!=='function'||!adapter.stops||adapter.stops.size!==ids.length||ids.some(id=>typeof adapter!.stops.get(id)!=='function'))throw new TypeError('Incomplete native machine adapter');
+  if(!adapter||typeof adapter.release!=='function'||typeof adapter.output!=='function'||typeof adapter.authorizePrintFile!=='function'||!adapter.stops||adapter.stops.size!==ids.length||ids.some(id=>typeof adapter!.stops.get(id)!=='function'))throw new TypeError('Incomplete native machine adapter');
+  assertProductAuthorization(adapter.server,true);
   for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof adapter.lifecycle?.[key]!=='function')throw new TypeError('Incomplete native machine output lifecycle');
   if('nativeUploads' in adapter.server||'productPrintCompatibility' in adapter.server)throw new TypeError('Native product owns file and standard print bindings');
   new ServerInformation(adapter.server.information);

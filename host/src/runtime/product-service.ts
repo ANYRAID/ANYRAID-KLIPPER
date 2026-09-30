@@ -41,8 +41,10 @@ import {productObjects,type ProductServicePrinter} from './product-objects.ts';
 import type {NativeHostSnapshot} from '../moonraker/native-host-status.ts';
 import {connectProductPrinter,type ProductPrinterOptions} from './product-printer.ts';
 import type {ConfiguredPrinterOptions} from './configured-printer.ts';
-import {ConfiguredMoonraker,type ConfiguredServerOptions} from '../moonraker/configured-server.ts';
-import type {ConfigurationReader} from '../moonraker/config-reader.ts';
+import {ConfiguredMoonraker,type ConfiguredServerOptions,type ConfiguredAuthorizationOptions} from '../moonraker/configured-server.ts';
+import {assertProductAuthorization} from './product-authorization.ts';
+import {loadConfiguration} from '../moonraker/config-source.ts';
+import {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {MCUConnection} from './mcu-group.ts';
 import type {HardwareLayout} from '../config/hardware.ts';
 import {planLinearPrinter,type LinearPrinterPolicy} from '../config/linear-printer.ts';
@@ -61,9 +63,11 @@ export function startConfiguredProductService(reader:ConfigurationReader,policie
  const printerOptions:ConfiguredPrinterOptions={hardware:{...options.hardware,motion:plan.motion},motion:plan.initial,linear:plan.linear,print:options.print};
  return startProductService(reader,connections,'mcu',plan.layout,printerOptions,product,options,signal);
 }
+type ProductOwnedServerFields='productPrint'|'productPressure'|'maintenanceGate'|'nativeHost'|'nativeObjects'|'nativePrinterIdentity';
+export type ProductServerOptions=(Omit<ConfiguredServerOptions,ProductOwnedServerFields>&{authorization?:never})|Omit<ConfiguredAuthorizationOptions,ProductOwnedServerFields>;
 export interface ProductServiceOptions {
  configPath:string;
- server:Omit<ConfiguredServerOptions,'productPrint'|'productPressure'|'maintenanceGate'|'nativeHost'|'nativeObjects'|'nativePrinterIdentity'>;
+ server:ProductServerOptions;
 }
 /** Select the configured machine for every host generation, including restart. */
 export function startConfiguredMachineService(reader:ConfigurationReader,policies:ReadonlyMap<string,MCUMachinePolicy>,product:ProductPrinterOptions,options:ConfiguredProductServiceOptions,signal:AbortSignal){
@@ -87,6 +91,7 @@ export function startConfiguredDeltaProductService(reader:ConfigurationReader,po
 }
 async function startMachineProductService<T extends ProductServicePrinter>(reader:ConfigurationReader,product:ProductPrinterOptions,options:ProductServiceOptions,signal:AbortSignal,connect:()=>Promise<T>){
  signal.throwIfAborted();const bedScrews=readBedScrews(reader),screws=readScrewsTilt(reader),zTilt=readZTilt(reader),quad=readQuadGantry(reader);const configPath=options.configPath,serverOptions={...options.server};
+ assertProductAuthorization(serverOptions,false,serverOptions.authorization?new ConfigurationReader(await loadConfiguration(configPath)):undefined);
  const screwsStatus=new ScrewsCalibrationStatus();
  const deltaPlan=readDeltaCalibrationPlan(reader),deltaState=readDeltaCalibrationState(reader);
  const printer=await connect();
@@ -130,7 +135,8 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   signal.throwIfAborted();
   if(zTilt){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==zTilt.motors.length||z.some(e=>!zTilt.motors.some(m=>m.id===e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Z tilt hardware ownership differs');}
   if(quad){const z=printer.initial.emitters.filter(e=>e.mode==='z');if(z.length!==quad.motorIds.length||z.some(e=>!quad.motorIds.includes(e.id))||!printer.hardware.plan.homing.some(h=>h.section==='probe'||h.section==='bltouch'))throw new Error('Configured Quad gantry hardware ownership differs');}
-  server=await ConfiguredMoonraker.load(configPath,{...serverOptions,productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)});
+  const ownedServer={productPrint:printer.controller,productPressure:printer.print.gcode.pressureAdvance,maintenanceGate:printer.maintenanceGate,nativePrinterIdentity:serverOptions.productPrintCompatibility?{configFile:reader.source.primaryFile,softwareVersion:serverOptions.information.version}:undefined,nativeHost,nativeObjects:productObjects(printer,nativeHost,serverOptions.nativeUploads?id=>serverOptions.nativeUploads!.filename(id):undefined,!!zTilt,!!quad,screws?()=>screwsStatus.status:undefined)};
+  server=serverOptions.authorization?await ConfiguredMoonraker.loadAuthorized(configPath,{...serverOptions,...ownedServer}):await ConfiguredMoonraker.load(configPath,{...serverOptions,...ownedServer});
   signal.throwIfAborted();printer.group.assertActive();
   if(printer.print.gcode.objects)closeObjectCancellation=registerNativeObjectCancellation(server.endpoints,printer.print.gcode.objects,{
    snapshot:()=>({requestId:printer.controller.currentRequest?.requestId??null,state:printer.controller.state,stateToken:printer.controller.stateToken,available:!closing&&!printer.maintenanceGate.status.closed&&!printer.controller.safeStopPending}),

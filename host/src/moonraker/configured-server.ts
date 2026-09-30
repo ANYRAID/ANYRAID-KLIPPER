@@ -99,6 +99,7 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
 export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'> {
+ authorize?:never;authorizeNotification?:never;authorizeSubscriptionConnection?:never;
  /** Persistent database ownership transfers when assembly is constructed. */
  database:DatabaseStore;
  /** Stable externally provisioned origin, independent of an ephemeral listener. */

@@ -56,11 +56,11 @@ test('configuration-driven product service opens real UARTs and owns the complet
   const first=owner.close();assert.equal(owner.close(),first);await first;assert.deepEqual(transport.stops,[1,1]);assert.equal(f.product.maintenanceGate.status.closed,true);await assert.rejects(fetch(url));
  }finally{await owner?.close();await transport.close();await f.dispose();}
 });
-test('configuration-driven startup rejects topology before any UART acquisition',async()=>{
+test('configuration-driven startup rejects incomplete extruder configuration before any UART acquisition',async()=>{
  const f=await fixture(),transport=await productTransports(f.reader);
  try{
   const reader=new ConfigurationReader(new ConfigurationSource('/bad.cfg',{...transport.reader.source.original,extruder1:{}},[]),null);
-  assert.throws(()=>startConfiguredProductService(reader,transport.policies,f.product,{...f.serviceOptions,machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print:f.options.print},f.signal),/topology/);
+  assert.throws(()=>startConfiguredProductService(reader,transport.policies,f.product,{...f.serviceOptions,machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print:f.options.print},f.signal),/\[extruder1\].*nozzle_diameter/);
   assert(transport.firmware.every(f=>f.stepperConfigs.length===0&&f.outputs.length===0));assert.deepEqual(transport.stops,[0,0]);assert.equal(f.product.maintenanceGate.status.closed,false);
  }finally{await transport.close();await f.dispose();}
 });
@@ -92,10 +92,10 @@ test('configuration load failure closes connected native product',async()=>{
 });
 test('cancelled startup closes a server returned late from configuration loading',async t=>{
  const f=await fixture(),controller=new AbortController(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>(),load=ConfiguredMoonraker.load;let late:ConfiguredMoonraker|undefined;
- t.mock.method(ConfiguredMoonraker,'load',async(...args:Parameters<typeof load>)=>{late=await load(...args);entered.resolve();await release.promise;return late;});
+ t.mock.method(ConfiguredMoonraker,'load',async(...args:Parameters<typeof load>)=>{late=await load.apply(ConfiguredMoonraker,args);entered.resolve();await release.promise;return late;});
  try{
   let settled=false;const pending=startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,controller.signal).finally(()=>{settled=true;}),rejected=assert.rejects(pending);
-  await entered.promise;controller.abort(new Error('cancel service loading'));await Promise.resolve();assert.equal(settled,false);release.resolve();await rejected;
+  await Promise.race([entered.promise,pending.then(()=>{throw new Error('Startup bypassed the held loader');})]);controller.abort(new Error('cancel service loading'));await Promise.resolve();assert.equal(settled,false);release.resolve();await rejected;
   assert.deepEqual(f.stops,[1,1]);assert.equal(f.product.maintenanceGate.status.closed,true);await assert.rejects(late!.start(),/stopping/);
  }finally{release.resolve();await late?.close();await f.dispose();}
 });

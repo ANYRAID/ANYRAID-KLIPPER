@@ -7,6 +7,7 @@ import {loadConfiguration} from '../moonraker/config-source.ts';
 import {KlipperSaveSession} from '../config/klipper-save-session.ts';
 import {ConfigurationReader} from '../moonraker/config-reader.ts';
 import {readNetworkBinding} from '../moonraker/configured-server.ts';
+import {assertProductAuthorization} from './product-authorization.ts';
 import {ServerInformation} from '../moonraker/metadata.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
@@ -39,13 +40,13 @@ export async function preflightProductMachine(path:string,signal:AbortSignal){
  const provisional=new Map(Object.entries(config.mcus));
  const connections=planMCUConnections(reader,provisional),planner=reader.section('printer').get('kinematics')==='delta'?planDeltaPrinter:planLinearPrinter;
  const plan=planner(reader,{...config.machine,mcus:[...provisional.keys()]});
- return {config,configuration,reader,provisional,connections,plan};
+ return {config,configuration,reader,moonraker,provisional,connections,plan};
 }
 /** Adapter factory owns partial acquisition; successful return transfers its
  * resources even when cancellation raced with the return. */
 export async function loadProductMachineProfile(path:string,createBindings:ProductMachineBindingsFactory,signal:AbortSignal):Promise<ProductHostProfile>{
  signal.throwIfAborted();if(typeof createBindings!=='function')throw new TypeError('Machine bindings factory is required');
- const {config,configuration,reader,provisional}=await preflightProductMachine(path,signal);
+ const {config,configuration,reader,moonraker,provisional}=await preflightProductMachine(path,signal);
  let bindings:ProductMachineBindings|undefined,journal:PrintJournal|undefined,closing:Promise<void>|undefined;const gate=new MaintenanceGate();
  const release=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;gate.invalidate();
@@ -53,7 +54,8 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
  };
  try{
   bindings=await createBindings(structuredClone(config),signal,gate);signal.throwIfAborted();
-  if(!bindings||typeof bindings.release!=='function'||!bindings.stops||bindings.stops.size!==provisional.size||typeof bindings.server?.authorize!=='function'||typeof bindings.print?.open!=='function'||typeof bindings.print?.output!=='function')throw new TypeError('Incomplete machine bindings');
+  if(!bindings||typeof bindings.release!=='function'||!bindings.stops||bindings.stops.size!==provisional.size||typeof bindings.print?.open!=='function'||typeof bindings.print?.output!=='function')throw new TypeError('Incomplete machine bindings');
+  assertProductAuthorization(bindings.server,false,moonraker);
   for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof bindings.print.lifecycle?.[key]!=='function')throw new TypeError('Incomplete machine lifecycle');
   new ServerInformation(bindings.server.information);
   const policies=new Map<string,MCUMachinePolicy>();for(const [id,p] of Object.entries(config.mcus)){const stopDevice=bindings.stops.get(id);if(typeof stopDevice!=='function')throw new TypeError('Missing physical stop binding: '+id);policies.set(id,{...p,stopDevice} as MCUMachinePolicy);}

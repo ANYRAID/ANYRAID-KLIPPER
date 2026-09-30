@@ -70,7 +70,8 @@ test('journal acquisition failure retains both assembly and adapter cleanup erro
 });
 for(const delta of [false,true])test(`file-backed machine profile runs authenticated native service and retires both UARTs (delta=${delta})`,async()=>{
  const dir=await mkdtemp(join(tmpdir(),'machine-host-')),f=await productMachineFixture(dir,delta),abort=new AbortController();let observed:Promise<void>|undefined;try{
-  await runProductHost(s=>loadProductMachineProfile(f.path,async()=>({...f.bindings,server:{...f.bindings.server,authorize:(_m,_p,c)=>{assert.equal(c.request.headers['x-api-key'],'test');}}}),s),abort.signal,address=>{observed=(async()=>{try{const response=await fetch(`http://127.0.0.1:${address.port}/printer/print/status`,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);assert.equal((await response.json() as any).result.state,'idle');}finally{abort.abort(new Error('done'));}})();});await observed;assert.equal(f.releases,1);assert.deepEqual(f.transport.stops,[1,1]);assert(f.transport.firmware.every(f=>f.motion.length===0));
+  const server=f.bindings.server;assert.equal(server.authorization,undefined);if(server.authorization!==undefined)throw new Error('Expected callback fixture');
+  await runProductHost(s=>loadProductMachineProfile(f.path,async()=>({...f.bindings,server:{...server,authorize:(_m,_p,c)=>{assert.equal(c.request.headers['x-api-key'],'test');}}}),s),abort.signal,address=>{observed=(async()=>{try{const response=await fetch(`http://127.0.0.1:${address.port}/printer/print/status`,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);assert.equal((await response.json() as any).result.state,'idle');}finally{abort.abort(new Error('done'));}})();});await observed;assert.equal(f.releases,1);assert.deepEqual(f.transport.stops,[1,1]);assert(f.transport.firmware.every(f=>f.motion.length===0));
  }finally{abort.abort();await f.close();await rm(dir,{recursive:true,force:true});}
 });
 
@@ -96,11 +97,11 @@ test('unsupported included printer components fail before adapter, journal or MC
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });
 
-test('Delta unsupported BLTouch fails declarative preflight before adapters or journal',async()=>{
+test('Delta BLTouch profile assembly does not acquire MCU hardware',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'delta-preflight-')),f=await productMachineFixture(dir,true);let factories=0;
  try{
   await writeFile(f.config.printerConfig,(await readFile(f.config.printerConfig,'utf8'))+'\n[bltouch]\nsensor_pin: PA13\ncontrol_pin: PA14\nz_offset: 0\n');
-  await assert.rejects(loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal()),/unsupported.*bltouch/i);
-  assert.equal(factories,0);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0));
+  const profile=await loadProductMachineProfile(f.path,async()=>{factories++;return f.bindings;},signal());
+  try{assert.equal(factories,1);assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0));}finally{await profile.release();}
  }finally{await f.close();await rm(dir,{recursive:true,force:true});}
 });
