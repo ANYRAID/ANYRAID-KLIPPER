@@ -48,7 +48,16 @@ test('native product owns login and authenticated printer state across service r
       if(!generation){const created=await request('/access/user',{'x-api-key':key},{username:'operator',password:'test-password'});assert.equal(created.status,200);token=created.body.result.token;}
       const state=await request('/printer/print/status',{authorization:'Bearer '+token});assert.equal(state.status,200);assert.equal(state.body.result.state,'idle');
       const login=await request('/access/login',{}, {username:'operator',password:'test-password'});assert.equal(login.status,200);token=login.body.result.token;
-      const info=await request('/server/info',{authorization:'Bearer '+token});assert.equal(info.status,200);assert(info.body.result.components.includes('authorization'));
+      const info=await request('/server/info',{authorization:'Bearer '+token});assert.equal(info.status,200);assert(info.body.result.components.includes('authorization'));assert.deepEqual(info.body.result.registered_directories,['gcodes']);
+      if(!generation){
+       const issued=await request('/access/oneshot_token',{authorization:'Bearer '+token});assert.equal(issued.status,200);
+       const form=()=>{const body=new FormData();body.append('file',new Blob(['G1 X1 F600\n']),'client.gcode');body.append('path','');body.append('root','gcodes');return body;};
+       const urlWithToken=url+'/server/files/upload?token='+issued.body.result;
+       const uploaded=await fetch(urlWithToken,{method:'POST',body:form()});assert.equal(uploaded.status,200);const receipt=(await uploaded.json() as any).result;
+       assert.equal(receipt.action,'create_file');assert.equal(receipt.item.root,'gcodes');assert.equal(receipt.item.path,receipt.file.id+'.gcode');assert.equal(receipt.item.size,11);assert(receipt.item.modified>0);
+       const replay=await fetch(urlWithToken,{method:'POST',body:form()});assert.equal(replay.status,401);await replay.arrayBuffer();
+       const listing=await request('/server/files/list',{authorization:'Bearer '+token});assert.equal(listing.body.result.length,1);assert.equal(listing.body.result[0].path,receipt.item.path);
+      }
       if(generation){assert.equal((await request('/access/logout',{authorization:'Bearer '+token},{})).status,200);assert.equal((await request('/printer/print/status',{authorization:'Bearer '+token})).status,401);}
      })().catch(error=>{failure=error;}).finally(()=>abort.abort(new Error('acceptance complete')));
     });await observed;if(failure)throw failure;

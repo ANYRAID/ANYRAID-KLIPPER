@@ -86,7 +86,8 @@ export class NativePrintUploads {
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let directory:string|undefined,file:FileHandle|undefined;
   try{
-   if(request.url?.includes('?')||!/^multipart\/form-data(?:;|$)/i.test(request.headers['content-type']??''))throw new ApiError(400,'Expected multipart upload without query parameters');
+   const query=new URL(request.url??'','http://localhost').searchParams;
+   if([...query.keys()].some(key=>key!=='token')||query.getAll('token').length>1||query.has('token')&&!/^[A-Z2-7]{32}$/.test(query.get('token')!)||!/^multipart\/form-data(?:;|$)/i.test(request.headers['content-type']??''))throw new ApiError(400,'Expected multipart upload with at most one access token');
    const length=request.headers['content-length'];if(length!==undefined&&(!/^\d+$/.test(length)||Number(length)>this.#max+65536))throw new ApiError(413,'Upload body limit exceeded');
    await this.#authorize(context,{},signal);signal.throwIfAborted();
    directory=await mkdtemp(join(this.#root,'anyraid-upload-'));file=await open(join(directory,'source'),'wx+',0o600);
@@ -113,7 +114,8 @@ export class NativePrintUploads {
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');
    await this.#authorize(context,{root:'gcodes',filename,file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
    let record;try{record=await this.#files.publish(id,filename,file,signal);}catch(error){if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID exists; query its receipt');throw error;}
-   this.#published++;return {file:record as unknown as Json,print_started:false,print_queued:false};
+   this.#published++;const published=await this.#files.describe(id,signal);
+   return {item:{path:id+'.gcode',root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
   }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{release();}}}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{

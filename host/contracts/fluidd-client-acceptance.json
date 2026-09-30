@@ -1,0 +1,86 @@
+{
+  "implementationBase": "58969f0a",
+  "scope": "Desktop source product with native authorization and simulated MCU; not compiled client or physical printer acceptance",
+  "clients": [
+    {
+      "name": "Fluidd",
+      "version": "1.37.6",
+      "commit": "d894c50d580212c245a7c552ae695008c441683b",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "verified": [
+        "WebSocket login",
+        "ready dashboard with periodic simulated ADC",
+        "gcodes root enables upload menu"
+      ],
+      "uploadBeforeFix": "HTTP 400",
+      "uploadAfterFix": "HTTP regression passed; browser file chooser failed, UI recheck pending"
+    },
+    {
+      "name": "Mainsail",
+      "version": "2.19.0",
+      "commit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "result": "Unauthenticated identify rejected; initialization did not complete in mandatory native user authorization mode"
+    }
+  ],
+  "missingNativeBindings": [
+    "machine.proc_stats",
+    "machine.system_info",
+    "server.gcode_store",
+    "printer.gcode.help",
+    "server.files.list root=config"
+  ],
+  "regressions": {
+    "rootDiscovery": 17,
+    "uploadAndAuthorization": 19
+  },
+  "performance": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "size": 4194304,
+        "results": {
+          "direct": {
+            "medianMs": 5.606882999999982,
+            "p95Ms": 10.162210999999957,
+            "medianMiBPerSecond": 713.4088583621261,
+            "eventLoopMaximumMs": 2.271231
+          },
+          "http": {
+            "medianMs": 21.945951999999977,
+            "p95Ms": 24.655467999999985,
+            "medianMiBPerSecond": 182.26595957195224,
+            "eventLoopMaximumMs": 2.934783
+          }
+        }
+      },
+      {
+        "size": 16777216,
+        "results": {
+          "direct": {
+            "medianMs": 22.55012499999998,
+            "p95Ms": 31.35229799999979,
+            "medianMiBPerSecond": 709.5304349754165,
+            "eventLoopMaximumMs": 5.144575
+          },
+          "http": {
+            "medianMs": 69.13168399999995,
+            "p95Ms": 74.23135500000001,
+            "medianMiBPerSecond": 231.4423586151903,
+            "eventLoopMaximumMs": 7.475199
+          }
+        }
+      }
+    ],
+    "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+  },
+  "limitations": [
+    "No complete UI printing journey",
+    "No Python baseline or target board performance",
+    "Browser file chooser blocked for hours despite requested timeout",
+    "Long-running simulated firmware eventually failed encoding unwrapped get_clock ticks; not a physical MCU result; helper now limited to 15 minutes"
+  ]
+}
