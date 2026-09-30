@@ -1798,7 +1798,9 @@ JWT 缓存验证约 0.205 微秒，首次验签约 111.618 微秒。200 次本�
 node host/acceptance/client-probe.ts /absolute/path/to/frontend 18326
 ```
 
-打开输出的本地地址；一次性夹具用户信息见脚本中的 bootstrap。温度输入
+打开输出的本地地址；一次性夹具用户信息见脚本中的 bootstrap。夹具启动
+时通过原生 API 预置 client-sample.gcode（G4 P1000），这不代表页面上传
+已验收。温度输入
 固定模拟为 25°C，不模拟加热或归零，不使用页面运动／加热按钮验证打印。
 只能在无物理设备接入的开发环境使用。标准编译产品流程仍使用既有
 `product-compiled-journey.test.ts`。
@@ -1855,3 +1857,14 @@ shell 脚本执行。虚拟化检测不可用时明确返回 unknown。
 自身的受控生命周期接口继续使用既有入口。网络变化通知、其他发行版
 数据源回退及目标 SD/CAN 硬件验证仍待完成。详情与性能见
 [系统信息验收](../host/contracts/native-system-information-acceptance.json)。
+
+交互夹具收到某 MCU 的停止确认后，不再向它的 PTY 发送 ADC 数据。
+准备阶段取消可能使设备需要重新初始化；状态应如实保留，不为了通过
+UI 测试清除停止状态。夹具取消后的可用性回归可执行：
+
+```sh
+node --test --test-isolation=none host/acceptance/client-probe.test.ts
+```
+
+该回归使用临时静态页面和模拟 MCU，验证取消后 15 秒接口存活及清理，
+不代表 Fluidd 页面、物理升温／归零或完整打印完成验收。

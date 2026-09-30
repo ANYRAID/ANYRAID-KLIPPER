@@ -10,7 +10,9 @@
       "verified": [
         "WebSocket login",
         "ready dashboard with periodic simulated ADC",
-        "gcodes root enables upload menu"
+        "gcodes root enables upload menu",
+        "System information and process load display after native bindings",
+        "Seeded file selection, start request and cancellation during preparation"
       ],
       "uploadBeforeFix": "HTTP 400",
       "uploadAfterFix": "HTTP regression passed; browser file chooser failed, UI recheck pending"
@@ -100,18 +102,47 @@
   },
   "nativeConsoleFollowUp": {
     "evidence": "native-gcode-output-acceptance.json",
-    "browserRecheck": "pending"
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
   },
   "nativeHelpFollowUp": {
     "evidence": "native-gcode-help-acceptance.json",
-    "browserRecheck": "pending"
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
   },
   "nativeProcStatsFollowUp": {
     "evidence": "native-proc-stats-acceptance.json",
-    "browserRecheck": "pending"
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
   },
   "nativeSystemInformationFollowUp": {
     "evidence": "native-system-information-acceptance.json",
-    "browserRecheck": "pending"
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
+  },
+  "uiRecheck": {
+    "base": "716e1a3a",
+    "client": "Fluidd 1.37.6-d894c50",
+    "fixture": "host/acceptance/client-probe.ts",
+    "file": "client-sample.gcode",
+    "seed": "Native API upload during fixture bootstrap, not browser upload",
+    "verified": [
+      "Local-user login and ready dashboard",
+      "Seeded immutable file listed and selectable",
+      "File menu sends printer.print.start; dashboard shows selected filename and printing state during preparation",
+      "Confirmed cancellation reaches native cancelled with zero pending device actions and safe_stop_pending false",
+      "System page displays actual CPU, memory, distribution, network and process load"
+    ],
+    "remainingErrors": [
+      "server.files.list root=config returns Native file root not found"
+    ],
+    "cancellationBoundary": "Cancellation during unsimulated homing invalidates device readiness; UI reports Shutdown and requires device reinitialization. Not a completed print or return-to-ready acceptance.",
+    "fixtureFailure": {
+      "observed": "ADC emitter continued after MCU stop and filled unread PTY; EAGAIN terminated fixture and caused later browser connection errors",
+      "fix": "Stop ADC emissions per confirmed MCU stop count",
+      "verified": "Unit test checks stopped MCU emits no data; child-process regression cancels preparation, observes API availability for 15 seconds and exits 0 on SIGINT"
+    },
+    "pending": [
+      "Browser file upload",
+      "Full homing and heating simulation followed by pause/resume/completion",
+      "Mapping native controlled recovery to actual client restart workflow",
+      "Physical printer and target-board acceptance"
+    ]
   }
 }
