@@ -30,6 +30,31 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 
 ## 客户端断连与受控恢复
 
+### 原生设备退役边界
+
+产品服务现在提供 `retirePrinter()`，用于机器集成层单独退役当前设备。
+调用同步封住旧代际端点，取消并等待已接收工作，停止订阅和温度采样；
+HTTP/WebSocket、鉴权、数据库及进程统计继续运行。重复调用返回同一
+Promise。忽略取消的文件策略仍须真正结束，不能把超时或取消当作已排空。
+整体 `close()` 继续关闭设备与服务。
+
+退役期间 server.info／printer.info 显示 disconnected；没有附着 MCU，
+不保留旧 ready 或归零状态。仅 API 清理完成仍标记设备 stopping，由产品
+所有者等物理停止及资源清理全部结束后确认 stopped；失败保持 failed。
+旧代际打印／对象查询拒绝请求，延迟鉴权不能调用已移除的端点所有者，
+旧状态通知不会在退役后发送。温度历史可查询，停止采样不意味着温度测量
+已经变为零。此接口是可信集成 API，不是新增的远程重启路由。
+
+释放机器依赖前须完成设备退役；监听器仍运行时，数据库、身份及其他进程
+资源须继续保留。当前 profile 的 adapter.release 可能还持有这些资源，
+不能直接将其全部释放。新代际重新绑定与进程资源所有权拆分仍待实现；
+退役后的原生文件／历史代际接口暂不可用。runProductHost 的 reinitialize
+仍重建整个服务，标准重启按钮的兼容状态如下文，未因本接口而改变。
+实现、源码网络测试、模拟停止失败及独立编译打印回归见
+[退役边界验收](../host/contracts/native-generation-retirement-acceptance.json)。
+
+### 客户端连接与重新初始化
+
 WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`；
 新订阅返回完整当前快照，后续通知是增量，不重放断连期间的事件。
 客户端连接与打印作业生命周期独立：重连不重新开始文件，也不改变作业

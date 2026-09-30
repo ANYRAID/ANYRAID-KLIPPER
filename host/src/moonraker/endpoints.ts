@@ -5,6 +5,7 @@ import {JsonRpcDispatcher,ApiError,validateJson,authorizedContext,type Json,type
 export type RequestVerb='GET'|'POST'|'DELETE';
 export interface EndpointOptions{endpoint:string;methods:readonly RequestVerb[];transports?:readonly Transport[];remote?:boolean;rpcVerbPrefix?:boolean;}
 export type EndpointHandler=(params:Readonly<Record<string,Json>>,verb:RequestVerb,context:RpcContext)=>Json|Promise<Json>;
+export type EndpointWrapper=(path:string,handler:EndpointHandler)=>EndpointHandler;
 interface Entry{path:string;methods:readonly RequestVerb[];rpcNames:readonly string[];objects:boolean;handler:EndpointHandler;transports:ReadonlySet<Transport>;}
 const verbs:readonly RequestVerb[]=['GET','POST','DELETE'];
 const excluded=new Set(['_','token','access_token','connection_id']);
@@ -31,7 +32,8 @@ export function parseRestArguments(query:string,body:Uint8Array,contentType:stri
  * every route and RPC name has passed duplicate validation. */
 export class EndpointRegistry{
  readonly dispatcher:JsonRpcDispatcher;#entries=new Map<string,Entry>();#http=new Map<string,Entry>();
- constructor(dispatcher:JsonRpcDispatcher){this.dispatcher=dispatcher;}
+ readonly #wrap:EndpointWrapper|undefined;
+ constructor(dispatcher:JsonRpcDispatcher,wrap?:EndpointWrapper){this.dispatcher=dispatcher;this.#wrap=wrap;}
  register(options:EndpointOptions,handler:EndpointHandler):()=>void{
   const {endpoint,remote=false}=options,path=remote?`/printer/${endpoint.replace(/^\/+|\/+$/g,'')}`:endpoint,transports=new Set<Transport>(options.transports??['http','websocket','unix','mqtt']);
   if(path==='/server/jsonrpc'||!/^\/(?:printer|server|machine|access|api|debug)\/[A-Za-z0-9_/-]+$/.test(path)||path.includes('//')||path.endsWith('/')||path.length>512||typeof handler!=='function'||!transports.size||[...transports].some(t=>!['http','websocket','unix','mqtt'].includes(t)))throw new Error('Invalid endpoint definition');
@@ -40,8 +42,10 @@ export class EndpointRegistry{
   const methods=remote?['GET','POST'] as const:verbs.filter(v=>options.methods.includes(v));if(!methods.length||!remote&&(methods.length!==options.methods.length))throw new Error('Invalid endpoint request methods');
   const parts=path.slice(1).split('/'),name=parts.at(-1)!,names=remote||methods.length===1&&!options.rpcVerbPrefix?[parts.join('.')]:methods.map(v=>[...parts.slice(0,-1),`${v.toLowerCase()}_${name}`].join('.'));
   const rpcEnabled=remote||!(transports.size===1&&transports.has('http'));if(rpcEnabled&&names.some(n=>this.dispatcher.has(n)))throw new Error('RPC method already registered');
-  const entry:Entry={path,methods:[...methods],rpcNames:names,objects:remote&&endpoint.startsWith('objects/'),handler,transports};
-  if(rpcEnabled)for(let i=0;i<names.length;i++)this.dispatcher.register(names[i],[...transports],(params,context)=>handler(params,methods[i],context));
+  const wrapped=this.#wrap?.(path,handler)??handler;
+  const invoke:EndpointHandler=(params,verb,context)=>{if(this.#entries.get(path)!==entry)throw new ApiError(503,'Endpoint owner has retired');return wrapped(params,verb,context);};
+  const entry:Entry={path,methods:[...methods],rpcNames:names,objects:remote&&endpoint.startsWith('objects/'),handler:invoke,transports};
+  if(rpcEnabled)for(let i=0;i<names.length;i++)this.dispatcher.register(names[i],[...transports],(params,context)=>invoke(params,methods[i],context));
   this.#entries.set(path,entry);if(transports.has('http'))this.#http.set(path,entry);
   return ()=>{if(this.#entries.get(path)!==entry)return;this.#entries.delete(path);this.#http.delete(path);if(rpcEnabled)for(const name of names)this.dispatcher.remove(name);};
  }

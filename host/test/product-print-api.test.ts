@@ -83,7 +83,7 @@ test('held standard policies remain counted after disconnect and cannot run afte
  await fixture(async(_controller,api,_journal,calls)=>{
   const aborts=Array.from({length:4},()=>new AbortController()),requests=aborts.map(abort=>api.call('start',{filename:'file.gcode'},context(abort.signal)));const rejected=requests.map(p=>assert.rejects(p,/cancelled/));
   await new Promise(r=>setImmediate(r));assert.equal(policyCalls,4);aborts.forEach(a=>a.abort());await Promise.all(rejected);assert.equal(api.status.pending_compatibility,4);
-  await assert.rejects(api.call('start',{filename:'file.gcode'},context()),/capacity/);await api.close();releasePolicy.resolve();await new Promise(r=>setImmediate(r));assert.equal(api.status.pending_compatibility,0);assert.equal(calls.includes('prepare'),false);
+  await assert.rejects(api.call('start',{filename:'file.gcode'},context()),/capacity/);let closed=false;const closing=api.close().then(()=>{closed=true;});await new Promise(r=>setImmediate(r));assert.equal(closed,false);releasePolicy.resolve();await closing;assert.equal(api.status.pending_compatibility,0);assert.equal(calls.includes('prepare'),false);
  },undefined,{async start(){policyCalls++;await releasePolicy.promise;return {fileId:'file',nozzle:200,bed:60};}});
 });
 

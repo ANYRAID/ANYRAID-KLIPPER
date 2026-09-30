@@ -24,6 +24,9 @@ export class TemperatureStoreRuntime {
   this.#native=objects;this.#nativeQuery=query;this.#initializationError=null;if(all.length)this.#schedule();
  }
  get status(){return {...this.store.status,running:!!this.#timer,initializing:!!this.#pending,samples:this.#samples,error:this.#initializationError??this.#sampleError,closed:this.#abort.signal.aborted};}
+ /** Freeze native history without sampling a retired device or closing the
+  * process-owned store. A subsequent readyNative discovers a fresh source. */
+ detachNative(){this.#stopTimer();this.#native=undefined;this.#nativeQuery={};}
  ready(runtime:KlippyLifecycle):void{
   if(this.#native)throw new Error('Temperature source already owned');
   if(this.#abort.signal.aborted||this.#seen.has(runtime)||!runtime.snapshot.initialized||runtime.snapshot.state!=='ready')return;

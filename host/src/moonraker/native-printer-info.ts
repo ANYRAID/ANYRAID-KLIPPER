@@ -3,6 +3,7 @@ import {isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {readNativeHostStatus} from './native-host-status.ts';
 export function nativePrinterState(status:ReturnType<typeof readNativeHostStatus>){
+ if(status.closing)return {state:'disconnected',state_message:'Native printer generation is disconnected'};
  if(status.closing||status.admission_closed||['failed','stopping','stopped'].includes(status.group_state)||['failed','stopping','stopped'].includes(status.hardware_state)||status.print_state==='failed'||status.mcus.some(m=>['closed','unavailable'].includes(m.state)))return {state:'shutdown',state_message:'Native printer requires device reinitialization'};
  if(status.print_state==='interrupted')return {state:'error',state_message:'Interrupted print requires explicit recovery'};
  if(status.ready)return {state:'ready',state_message:'Native printer is ready'};

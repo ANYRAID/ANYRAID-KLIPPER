@@ -118,10 +118,12 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
  let closeManualProbe:(()=>Promise<void>)|undefined;
  let closeManualTilt:(()=>Promise<void>)|undefined;
  let closeTilt:(()=>Promise<void>)|undefined,closeTiltSave:(()=>Promise<void>)|undefined;
- let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined;let closeEndstopPhase:(()=>Promise<void>)|undefined;let closeDriverCurrent:(()=>Promise<void>)|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
+ let server:ConfiguredMoonraker|undefined,closing:Promise<void>|undefined,retiring:Promise<void>|undefined;let closeEndstopPhase:(()=>Promise<void>)|undefined;let closeDriverCurrent:(()=>Promise<void>)|undefined;let closeIdleSettings:(()=>void)|undefined;let closeConfiguration:(()=>Promise<void>)|undefined,closeProbe:(()=>Promise<void>)|undefined,closeGrid:(()=>Promise<void>)|undefined,closeHome:(()=>Promise<void>)|undefined;
  const nativeHost=():NativeHostSnapshot=>{const group=printer.group.status,gate=printer.maintenanceGate.status;return {group_state:group.state,hardware_state:printer.hardware.status.state,print_state:printer.controller.state,homed_axes:printer.machine.kinematics.status.homedAxes,closing:!!closing,admission_closed:gate.closed,maintenance:gate.maintenance,mcus:group.devices.map(({id,state})=>({id,state:state as NativeHostSnapshot['mcus'][number]['state']}))};};
- const close=():Promise<void>=>{
-  if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
+ const retirePrinter=():Promise<void>=>{
+  if(retiring)return retiring;const done=Promise.withResolvers<void>();retiring=done.promise;
+  printer.maintenanceGate.invalidate();
+  const apiRetired=server?.retireNativePrinter();
   closeGcodeHelp?.();
   closeGcodeOutput?.();
   closeIdleSettings?.();
@@ -129,8 +131,12 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
   closeObjectCancellation?.();
   const driverCurrentClosed=closeDriverCurrent?.(),endstopPhaseClosed=closeEndstopPhase?.();
   const configurationClosed=closeConfiguration?.(),probeClosed=closeProbe?.(),gridClosed=closeGrid?.(),homeClosed=closeHome?.();
-  const jobs:Promise<void>[]=[];if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);for(const stop of [()=>server?.close(),()=>printer.close()])try{jobs.push(Promise.resolve(stop()));}catch(error){jobs.push(Promise.reject(error));}
-  void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return closing;
+  const jobs:Promise<void>[]=[];if(apiRetired)jobs.push(apiRetired);if(closeCarriage)jobs.push(closeCarriage());if(closeAdaptiveMesh)jobs.push(closeAdaptiveMesh());if(closeMeshSelection)jobs.push(closeMeshSelection());if(closeManualMesh)jobs.push(closeManualMesh());if(closeManualDelta)jobs.push(closeManualDelta());if(closeDeltaCalibration)jobs.push(closeDeltaCalibration());if(closeBedScrews)jobs.push(closeBedScrews());if(closeScrews)jobs.push(closeScrews());if(closeManualScrews)jobs.push(closeManualScrews());if(closeSkew)jobs.push(closeSkew());if(closeSkewSave)jobs.push(closeSkewSave());if(closeQuad)jobs.push(closeQuad());if(closeZTilt)jobs.push(closeZTilt());if(closeZAdjustment)jobs.push(closeZAdjustment());if(closeZOffset)jobs.push(closeZOffset());if(closeZEndstop)jobs.push(closeZEndstop());if(closeManualProbe)jobs.push(closeManualProbe());if(closeManualTilt)jobs.push(closeManualTilt());if(closeTilt)jobs.push(closeTilt());if(closeTiltSave)jobs.push(closeTiltSave());if(endstopPhaseClosed)jobs.push(endstopPhaseClosed);if(driverCurrentClosed)jobs.push(driverCurrentClosed);if(homeClosed)jobs.push(homeClosed);if(gridClosed)jobs.push(gridClosed);if(probeClosed)jobs.push(probeClosed);if(configurationClosed)jobs.push(configurationClosed);try{jobs.push(printer.close());}catch(error){jobs.push(Promise.reject(error));}
+  void Promise.allSettled(jobs).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);server?.confirmNativeRetirement(errors.length?'failed':'stopped');if(errors.length)done.reject(new AggregateError(errors,'Product printer cleanup failed'));else done.resolve();}).catch(done.reject);return retiring;
+ };
+ const close=():Promise<void>=>{
+  if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;
+  void Promise.allSettled([retirePrinter(),server?.close()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)done.reject(new AggregateError(errors,'Product service cleanup failed'));else done.resolve();});return done.promise;
  };
  // Loading can still return an owner after cancellation. Only trigger printer
  // stop here; the sequential catch below closes any late server before rejecting.
@@ -219,7 +225,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
    closeProbe=registerNativeProbe(server.endpoints,printer.maintenanceGate,{idle:()=>['idle','completed'].includes(printer.controller.state)&&!printer.controller.pendingDeviceActions&&!printer.controller.safeStopPending&&!printer.machine.port.status.busy&&!printer.machine.port.status.pendingMoves&&printer.machine.kinematics.status.homedAxes==='xyz',measure:async s=>{const r=await printer.machine.port.measureProbe(minimum,s);return {position:[...r.position],bed_position:[...r.bedPosition],samples:r.samples.map(p=>[...p]),retries:r.retries,attempts:r.attempts};},synchronize:()=>printer.print.gcode.coordinates.resetPosition()});
   }
   const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
-  return Object.freeze({printer,server,address,close});
+  return Object.freeze({printer,server,address,retirePrinter,close});
  }catch(error){try{await close();}catch(cleanup){throw new AggregateError([error,cleanup],'Product service startup and cleanup failed',{cause:error});}throw error;}
  finally{signal.removeEventListener('abort',aborted);}
 }

@@ -10,7 +10,7 @@ for(let run=0;run<14;run++)for(const mode of run%2?[2,1,0]:[0,1,2]){
  const used=process.cpuUsage(),start=performance.now();let ready=0;
  for(let i=0;i<iterations;i++){
   source.closing=i%17===0;const result=info.read(false,i%50);checksum+=result.websocket_count as number;
-  if(mode){const full={...result,native_host:readNativeHostStatus(()=>source)};if(full.native_host.ready)ready++;checksum+=full.native_host.mcus.length;if(mode===2){const printer=identity.read(full.native_host);assert.equal(printer.state,source.closing?'shutdown':'ready');checksum+=printer.process_id>0?1:0;}}
+  if(mode){const full={...result,native_host:readNativeHostStatus(()=>source)};if(full.native_host.ready)ready++;checksum+=full.native_host.mcus.length;if(mode===2){const printer=identity.read(full.native_host);assert.equal(printer.state,source.closing?'disconnected':'ready');checksum+=printer.process_id>0?1:0;}}
  }
  const elapsed=(performance.now()-start)*1000/iterations,usage=process.cpuUsage(used);if(run>=3){wall[mode].push(elapsed);cpu[mode].push((usage.user+usage.system)/iterations);}
  if(mode)assert.equal(ready,iterations-Math.ceil(iterations/17));

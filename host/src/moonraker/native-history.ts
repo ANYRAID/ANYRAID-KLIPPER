@@ -11,7 +11,7 @@ export function registerNativeHistory(registry:EndpointRegistry,controller:Print
  const release:(()=>void)[]=[];
  const lifetime=new AbortController();let pending=0,dropped=0,error:string|null=null,closed=false,tail=Promise.resolve();
  const status=()=>({pending,dropped,error,closed});
- const cleanup=Object.assign(()=>{if(closed)return;closed=true;lifetime.abort(new Error('Native history closed'));for(const undo of release.reverse())undo();},{status});
+ const cleanup=Object.assign(()=>{if(closed)return;closed=true;lifetime.abort(new Error('Native history closed'));for(const undo of release.reverse())undo();},{status,drain:async()=>{cleanup();await tail;}});
  const prepare=async(record:JournalHistoryRecord,signal:AbortSignal,live=true)=>{
   signal.throwIfAborted();let exists=true;try{await files.info({file_id:record.request.fileId},signal);}catch(error){if(error instanceof ApiError&&error.status===404)exists=false;else throw error;}signal.throwIfAborted();
   const active=live&&controller.currentRequest?.requestId===record.request.requestId&&['reserved','started'].includes(record.state);

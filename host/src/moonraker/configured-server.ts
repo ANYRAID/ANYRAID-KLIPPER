@@ -2,12 +2,13 @@ import {Webcams} from './webcams.ts';
 import {SystemInformation,type SystemInformationSource} from './system-information.ts';
 import {ProcStats,type ProcStatsSource} from './proc-stats.ts';
 import {NativeHostNotifications} from './native-host-notifications.ts';
+import {NativeRequestScope} from './native-request-scope.ts';
 import {NativePrinterInformation,type NativePrinterIdentity} from './native-printer-info.ts';
 import {ProductHostControl} from '../runtime/product-host-control.ts';
 import {registerProductHostControl} from './product-host-api.ts';
 import {NativeSubscriptions} from './native-subscriptions.ts';
 import {NativeObjects,registerNativeObjects} from './native-objects.ts';
-import type {NativeHostStatusSource} from './native-host-status.ts';
+import type {NativeHostStatusSource,NativeHostSnapshot} from './native-host-status.ts';
 import {NativePrintUploads,registerNativeFileInfo} from './native-print-uploads.ts';
 import {ProductPrintApi,registerProductPrintApi,type NativePrintCompatibility} from './product-print-api.ts';
 import type {PrintController} from '../operations/print.ts';
@@ -62,6 +63,7 @@ const uploadOwners=new WeakSet<NativePrintUploads>();
 const fileOwners=new WeakSet<MetadataFiles>();
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
+const nativeGenerationNotifications=new Set(['notify_gcode_response','notify_print_state_changed','notify_history_changed','notify_filelist_changed','notify_klippy_ready','notify_klippy_shutdown']);
 export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'endpoints'|'maxConnections'> {
  /** Supplied by actual component/Klippy owners, never inferred from listening. */
  information:InformationSnapshot;
@@ -153,6 +155,8 @@ export class ConfiguredMoonraker {
  #nativeUploads:NativePrintUploads|undefined;
  #printApi:PrintApi|ProductPrintApi;
  #nativeLifecycle:NativeHostNotifications|undefined;
+ #nativeScope:NativeRequestScope|undefined;#nativeHost:NativeHostStatusSource|undefined;
+ #nativeRetiredSnapshot:NativeHostSnapshot|undefined;#nativeRetirement:Promise<void>|undefined;
  #printStateTask:Promise<void>|undefined;#printNotifications=notificationMetrics();
  #fileNotifications=notificationMetrics();
  #releaseFileChanges:()=>void=()=>{};
@@ -178,7 +182,9 @@ export class ConfiguredMoonraker {
   if(reader.prefixSections('webcam ').length&&!options.database)throw new ConfigurationError('Webcam configuration requires a database');
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc);
+  this.#nativeScope=options.productPrint?new NativeRequestScope():undefined;this.#nativeHost=options.nativeHost;
+  const nativeHost=options.nativeHost?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
+  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,this.#nativeScope?.wrap);
   this.#network=new MoonrakerNetwork(this.rpc,{...options,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
@@ -207,12 +213,12 @@ export class ConfiguredMoonraker {
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
   if(options.nativeObjects){
    const owner=new NativeSubscriptions(options.nativeObjects,{deliver:(id,status,time)=>this.#subscriptions?.deliver(id,status,time),disconnect:id=>this.#network.disconnectClient(id)});this.#nativeSubscriptions=owner;
-   this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>owner.subscribe(id,objects,signal),remove:id=>owner.remove(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time]),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});
+   this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>owner.subscribe(id,objects,signal),remove:id=>owner.remove(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time],this.#nativeScope?.signal),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});
   }
   const releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
   const releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
-  if(options.nativePrinterIdentity&&options.nativeHost)this.#nativeLifecycle=new NativeHostNotifications(options.nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
-  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,options.nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
+  if(options.nativePrinterIdentity&&nativeHost)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
+  const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
@@ -359,6 +365,32 @@ export class ConfiguredMoonraker {
  }
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
+ get nativeGenerationStatus(){return this.#nativeScope?{...this.#nativeScope.status,detached:!!this.#nativeRetirement,state:this.#nativeRetiredSnapshot?.hardware_state??'attached'}:null;}
+ /** Called only by the physical owner after its device cleanup has settled. */
+ confirmNativeRetirement(outcome:'stopped'|'failed'):void{
+  if(!this.#nativeRetiredSnapshot||this.#nativeScope?.status.pending||!['stopped','failed'].includes(outcome))throw new Error('Native retirement is not drained');
+  this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot,group_state:outcome,hardware_state:outcome};
+ }
+ /** Retire the device-facing owners while retaining listener, authentication,
+  * database and process telemetry. Caller must also retire the physical printer
+  * before releasing its profile. Reattachment is a separate lifecycle step. */
+ retireNativePrinter():Promise<void>{
+  if(this.#nativeRetirement)return this.#nativeRetirement;
+  if(!(this.#printApi instanceof ProductPrintApi)||!this.#nativeScope)return Promise.reject(new Error('Native printer is not attached'));
+  const done=Promise.withResolvers<void>();this.#nativeRetirement=done.promise;
+  this.#nativeRetiredSnapshot={group_state:'stopping',hardware_state:'stopping',print_state:this.#printApi.status.state,homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};
+  this.#nativeHost=undefined;this.maintenanceGate.invalidate();this.#nativeScope.retire();
+  this.#nativeLifecycle?.sample();this.#nativeLifecycle?.close();
+  this.#subscriptions?.close();this.#nativeSubscriptions?.close();
+  this.#nativeTemperatureObjects=undefined;this.#temperatureStore?.detachNative();
+  this.#nativeHistory?.();this.#releaseFileChanges();
+  const tasks:(()=>void|Promise<void>)[]=[()=>this.#printApi.close(),()=>this.#nativeUploads?.close(),()=>this.#nativeScope!.drain(),()=>this.#nativeHistory?.drain(),()=>this.#printStateTask];
+  void Promise.allSettled(tasks.map(task=>Promise.resolve().then(task))).then(results=>{
+   const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);
+   this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot!,...(errors.length?{group_state:'failed' as const,hardware_state:'failed' as const}:{}),print_state:(this.#printApi as ProductPrintApi).status.state};
+   if(errors.length)done.reject(new AggregateError(errors,'Native API retirement failed'));else done.resolve();
+  });return done.promise;
+ }
  get printNotifications(){return {...this.#printNotifications};}
  get fileNotifications(){return {...this.#fileNotifications};}
  get mqttRpcStatus(){return this.#mqttRpc?.status??null;}
@@ -377,7 +409,7 @@ export class ConfiguredMoonraker {
  /** Trusted native dispatch output; never a network command admission path. */
  recordNativeGcodeResponse(response:string):void{
   if(!(this.#printApi instanceof ProductPrintApi))throw new Error('Native G-code output requires a native print owner');
-  if(this.#stopping)return;
+  if(this.#stopping||this.#nativeScope?.signal.aborted)return;
   this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);
  }
  get systemInformationStatus(){return this.#systemInformation?.status??null;}
@@ -394,7 +426,7 @@ export class ConfiguredMoonraker {
    // Fanout/authorization runs in a later event-loop turn, after already queued
    // device safety microtasks. The stream coalesces intervening state changes.
    await new Promise<void>(resolve=>setImmediate(resolve));
-   if(this.#stopping)break;
+   if(this.#stopping||this.#nativeScope?.signal.aborted)break;
    // Read after the transition stack has unwound (reset also clears request).
    // More than one transition can occur before delivery; expose only current state.
    this.#nativeLifecycle?.sample();
@@ -407,7 +439,7 @@ export class ConfiguredMoonraker {
   const consume=(report:DeliveryReport)=>{for(const key of ['sent','denied','closed','overflow','failed'] as const)metrics[key]+=report[key];};
   // Client output cannot hold the Klippy callback lane or stop a print.
   // The network owns bounded authorization/output work and waits for it on close.
-  try{const result=this.#network.dispatchBroadcast(method,params);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
+  try{const result=this.#network.dispatchBroadcast(method,params,[],nativeGenerationNotifications.has(method)?this.#nativeScope?.signal:undefined);if('then' in result)void result.then(consume,()=>{metrics.rejected++;});else consume(result);}catch{metrics.rejected++;}
  }
  get klippy(){return this.#klippy?.snapshot??null;}
  get klippyPeerCredentials(){return this.#klippy?.peerCredentials??null;}
@@ -469,6 +501,7 @@ export class ConfiguredMoonraker {
  requestClient(id:number,method:string,params:ClientArguments=null,options:ClientRequestOptions={}){return this.#network.requestClient(id,method,params,options);}
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
+  this.#nativeScope?.retire();
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
   this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,databaseClosed,this.#systemInformation?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }

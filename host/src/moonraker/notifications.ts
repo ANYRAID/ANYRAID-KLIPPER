@@ -32,8 +32,8 @@ export class OutboundNotifications<P> {
  publish(method:string,params:P,excluded:readonly number[]=[]):Promise<DeliveryReport>{
   return Promise.resolve(this.dispatch(method,params,excluded));
  }
- dispatch(method:string,params:P,excluded:readonly number[]=[]):DeliveryReport|Promise<DeliveryReport>{
-  return this.#publish(method,params,[...this.#clients.values()],false,excluded);
+ dispatch(method:string,params:P,excluded:readonly number[]=[],signal?:AbortSignal):DeliveryReport|Promise<DeliveryReport>{
+  return this.#publish(method,params,[...this.#clients.values()],false,excluded,signal);
  }
  /** Target one connection without scanning or authorizing unrelated clients.
   * Shares the broadcast queue, ordering, cancellation and capacity accounting. */

@@ -1,0 +1,461 @@
+{
+  "implementationBase": "62f79097",
+  "date": "2026-09-30",
+  "node": "v26.9.0",
+  "scope": "First native device-retirement boundary, source real-network tests with simulated PTY MCU and a separately built concurrent-print regression. No physical printer or full standard-restart acceptance.",
+  "sourceSha256": {
+    "host/src/moonraker/native-request-scope.ts": "f3546e091b5c53531d2dcff581d5932ddfe39d9a6ccbd6e5b040acd4d179fb42",
+    "host/src/moonraker/configured-server.ts": "6927f2ea72a6e8bacf5d09be2d834677f3bfe2ca8bab97fa6756d0841b23bc84",
+    "host/src/moonraker/endpoints.ts": "21cd6597b1c44dd625225c53fea72caa25d5478f67145b1ac84c52f144d988eb",
+    "host/src/moonraker/native-host-status.ts": "6aff50ba1add0b95f3caf717b0c73c8cf8f49687560f96fc03d015a55edc990e",
+    "host/src/moonraker/native-printer-info.ts": "9577ccdb540c8b7df5f618ef3eb91ea035a37e5d4caf865d9e6b4dcf5b8157d5",
+    "host/src/moonraker/notifications.ts": "d02d046e2ace5f0f6a9ee4b9fef588e8d58e315bd7e8a86eec1df26c9ec7263e",
+    "host/src/moonraker/native-history.ts": "ac7324bfc89e4a263a1786728014c9c9536f638cfb86e18b8a9dd1d4acf6e357",
+    "host/src/moonraker/product-print-api.ts": "eb6953bc7eba2bdc418ad8a22883c3e3e9479df7398917de21cec66cba343df0",
+    "host/src/moonraker/server.ts": "0b857b4ffe472917069dd3e7f76de6dfd4c5452913abaa7523e615b6a14c16ff",
+    "host/src/moonraker/temperature-store-runtime.ts": "18cad4df2d263673fce39765a0d966639290d15b2bed62a9ca6e6cbac1b1e283",
+    "host/src/runtime/product-service.ts": "a928cd737098eb386f60fa3102b10da1955e622dc28bf6b16f8941c7a3e11bd4"
+  },
+  "verified": [
+    "Product service exposes idempotent retirePrinter separately from whole-service close.",
+    "Generation-scoped handlers reject late authorization, cannot execute removed route owners and drain accepted asynchronous work before device dependency release.",
+    "Held standard file policies remain counted and block API cleanup until their actual completion; cancellation cannot admit a later print.",
+    "A native disconnected snapshot has no attached MCU and never reports ready; API cleanup alone remains stopping until the physical owner confirms retirement.",
+    "Native subscriptions and temperature sampling stop; old status under held notification authorization is suppressed while disconnection can reach the same connection.",
+    "Native JWT, key, refresh, database reads, system information and an identified WebSocket remain available after explicit API retirement.",
+    "Product service retires both simulated MCU transports; failed stop acknowledgement is preserved as failed and does not report ready.",
+    "After fixture profile release, retained source-test service still serves metadata without reading the old device or executing old object queries."
+  ],
+  "regressions": {
+    "commands": [
+      "node --test --test-concurrency=1 host/test/native-request-scope.test.ts host/test/native-generation-retirement.test.ts host/test/product-print-api.test.ts host/test/native-host-status.test.ts host/test/native-host-notifications.test.ts host/test/moonraker-endpoints.test.ts host/test/product-service.test.ts host/test/product-host-reinitialize.test.ts host/test/configured-authorization.test.ts host/test/native-history.test.ts",
+      "node --test --test-concurrency=1 host/test/native-generation-retirement.test.ts host/test/notifications.test.ts host/test/native-temperature-store.test.ts host/test/configured-print-notifications.test.ts host/test/native-history-events.test.ts"
+    ],
+    "batches": [
+      {
+        "passed": 57,
+        "logSha256": "1afba2bdd8489fe4f2ec99f1d6bf568017e0a4cd210a6bcad3789d54fd7be48b",
+        "cases": [
+          "configuration-owned authorization registers routes and events, publishes policy, and persists across restart",
+          "configuration rejection retains caller ownership; failed authorization initialization and listen release transferred database",
+          "server shutdown drains in-flight authorization persistence before closing its database",
+          "endpoint mapping shares verbs across REST and RPC with atomic duplicate checks",
+          "HTTP-only and remote endpoints retain their transport and naming rules",
+          "REST parsing uses the final duplicate value, type hints, exclusions, form fields and JSON precedence",
+          "REST rejects malformed encodings and non-object JSON while preserving unrepresentable numeric hints as strings",
+          "REST invocation authorizes the canonical method, checks cancellation and validates JSON results",
+          "network REST endpoints share business handlers and authorization with websocket RPC",
+          "native retirement retains JWT, database and socket; drains held work and never samples released devices",
+          "product owner retires actual transport group but retains query service (stop failure=false)",
+          "product owner retires actual transport group but retains query service (stop failure=true)",
+          "native standard history reads actual live and durable jobs through authenticated HTTP and RPC without erasing requests",
+          "native lifecycle reports each live transition once, recovers observation and stops sampling on close",
+          "observation and emitter failures do not escape to the device safety path",
+          "authorized native lifecycle broadcasts reach clients while held policy cannot delay physical stop",
+          "native readiness describes configured owners, not homing or permission to start a print",
+          "invalid or failed native sources report unavailable without cached readiness or private fault details",
+          "authenticated metadata reads live native snapshots and leaves Klippy fields unchanged",
+          "native printer protocol state distinguishes readiness, interruption, startup and shutdown",
+          "opt-in discovery reports truthful Node identity and coherent live server/printer state after authorization",
+          "retirement aborts accepted handlers, drains ignored cancellation and retains process routes",
+          "late http authorization cannot invoke a removed route after replacement",
+          "late websocket authorization cannot invoke a removed route after replacement",
+          "broadcast retirement suppresses held old status while the same connection receives disconnection",
+          "reinitialization waits for old dependency release and respects shutdown (cancel=false)",
+          "reinitialization waits for old dependency release and respects shutdown (cancel=true)",
+          "dependency release failure rejects recovery without opening a replacement generation",
+          "typed pressure admission rejects invalid and stale controls; disconnected client cannot replay or cancel accepted tuning",
+          "Native admission responds after durable reservation while preparation continues and retries cannot change identity",
+          "Client cancellation stops receipt waiting without undoing an admitted print; server close performs safe cancellation",
+          "Native control rejects missing expiry, legacy start shape and expired requests before effects",
+          "Native API requires a durable single owner and matching maintenance gate",
+          "Native close retains failure and allows an explicit cleanup retry",
+          "standard printing maps to durable typed operations, returns ok and can start after completion",
+          "standard authorization binds current state, refuses denied files and stops after client cancellation",
+          "held standard policies remain counted after disconnect and cannot run after close",
+          "standard websocket requests use the same durable controller and return the Moonraker result shape",
+          "API shutdown preserves failed job and does not act as explicit cancellation",
+          "authorized HTTP pressure tuning completes while a paused native file retains its dispatch",
+          "configuration-driven product service opens real UARTs and owns the complete shutdown",
+          "configuration-driven startup rejects incomplete extruder configuration before any UART acquisition",
+          "native service listens only with ready hardware and applies authorization",
+          "listener failure closes already configured native hardware",
+          "configuration load failure closes connected native product",
+          "cancelled startup closes a server returned late from configuration loading",
+          "native server information follows physical stop while cleanup acknowledgement is pending",
+          "temperature fan product object combines live temperature, target and cooling speed",
+          "native object queries expose actual coordinate state and configured sensors without movement",
+          "native WebSocket subscriptions deliver real deltas and disconnect after notification authorization loss",
+          "configured Z tilt HTTP calibration owns probe, motor adjustment and duplicate receipts",
+          "explicit product layout cannot advertise Z tilt without bound probe and motors",
+          "configured quad gantry HTTP calibration owns probe, motor adjustment and duplicate receipts",
+          "skew HTTP persistence reloads exact server coefficients and fences previous service tokens",
+          "native dispatch responses enter authorized console history and detach on service close",
+          "native process statistics use real Linux values behind authorization and stop their sampler",
+          "native system information is initialized before listening and authorized over HTTP and RPC"
+        ]
+      },
+      {
+        "passed": 25,
+        "logSha256": "9062cfe51c9b4001f2a3230e005eed71076ea7badb7d0a1752da75f87aeed121",
+        "cases": [
+          "native HTTP file print publishes authorized lifecycle states through EOF drain and reset",
+          "held notification authorization cannot hold native start or emergency stop",
+          "native retirement retains JWT, database and socket; drains held work and never samples released devices",
+          "product owner retires actual transport group but retains query service (stop failure=false)",
+          "product owner retires actual transport group but retains query service (stop failure=true)",
+          "history observers receive committed immutable snapshots once, without changing durable acknowledgements",
+          "notification queue bounds slow delivery, reports failure and cancels pending work on release",
+          "native temperature history discovers sensors, samples fresh objects, filters monitors and retires its timer",
+          "native history capacity failure does not retain a source or start a timer",
+          "broadcast snapshots payload once, authorizes recipients and honors exclusions",
+          "async authorization preserves order per client without blocking other clients",
+          "queue overflow cancels waiting messages and closes the overloaded recipient",
+          "disconnect and timeout keep ignored authorization accounted for until it settles",
+          "global byte limits, malformed messages and transport exceptions cannot leak jobs",
+          "live agent events are authorized, exclude their sender and release disconnected identity",
+          "network closes only after asynchronous notification authorization has settled",
+          "broadcast requires an explicit notification policy",
+          "empty notifications omit params and non-array parameters are rejected",
+          "global WebSocket output budget bounds aggregate fanout and disconnects overflow recipients",
+          "a long queued burst drains iteratively without reordering or retaining tasks",
+          "late authorization from a removed client cannot disconnect a replacement with the same ID",
+          "targeted notifications authorize only the selected client and share broadcast ordering",
+          "targeted queue overflow disconnects only the target and retains active authorization accounting",
+          "authorized unicast uses live WebSocket identity and lifetime aborts on disconnect",
+          "authorized unicast cannot bypass absent notification policy"
+        ]
+      }
+    ],
+    "uniqueCases": 79,
+    "fixtureCorrection": {
+      "firstRun": {
+        "passed": 24,
+        "failed": 1,
+        "reason": "Test client omitted required identify.url; method returned 400 No data for argument: url."
+      },
+      "fix": "Supply identify.url in the disposable test client; production identify validation was not weakened."
+    },
+    "retirementDiagnostics": [
+      {
+        "nativeRetirement": {
+          "failStop": false,
+          "wallMs": 9.12660300000016,
+          "scope": {
+            "closed": true,
+            "pending": 0,
+            "detached": true,
+            "state": "stopped"
+          },
+          "physicalStopCallbacks": [
+            1,
+            1
+          ],
+          "listener": "listening"
+        }
+      },
+      {
+        "nativeRetirement": {
+          "failStop": true,
+          "wallMs": 5.125458999999864,
+          "scope": {
+            "closed": true,
+            "pending": 0,
+            "detached": true,
+            "state": "failed"
+          },
+          "physicalStopCallbacks": [
+            1,
+            1
+          ],
+          "listener": "listening"
+        }
+      }
+    ],
+    "retirementTimingScope": "Wall time from retirePrinter call through fixture dependency release and retained-service queries. Stop callbacks are simulated; not physical timing."
+  },
+  "performance": {
+    "requestScope": {
+      "command": "node host/bench/native-request-scope.ts",
+      "result": {
+        "node": "v26.9.0",
+        "iterations": 8000,
+        "warmup": "one ABBA block",
+        "samples": [
+          {
+            "mode": "plain",
+            "wallUs": 5.719912749999999,
+            "cpuUs": 6.93175,
+            "rss": 138944512,
+            "heapUsed": 28956888
+          },
+          {
+            "mode": "fenced",
+            "wallUs": 6.806382499999998,
+            "cpuUs": 7.851125,
+            "rss": 139862016,
+            "heapUsed": 31654024
+          },
+          {
+            "mode": "fenced",
+            "wallUs": 6.794620000000002,
+            "cpuUs": 8.4015,
+            "rss": 140386304,
+            "heapUsed": 27045528
+          },
+          {
+            "mode": "plain",
+            "wallUs": 5.504447374999998,
+            "cpuUs": 5.634375,
+            "rss": 140386304,
+            "heapUsed": 27750768
+          },
+          {
+            "mode": "plain",
+            "wallUs": 5.540578625000009,
+            "cpuUs": 5.53975,
+            "rss": 140386304,
+            "heapUsed": 28257624
+          },
+          {
+            "mode": "fenced",
+            "wallUs": 6.581860750000004,
+            "cpuUs": 6.666125,
+            "rss": 140779520,
+            "heapUsed": 30456648
+          },
+          {
+            "mode": "fenced",
+            "wallUs": 6.624643374999991,
+            "cpuUs": 6.749125,
+            "rss": 140910592,
+            "heapUsed": 32837528
+          },
+          {
+            "mode": "plain",
+            "wallUs": 5.518766249999999,
+            "cpuUs": 5.54,
+            "rss": 140910592,
+            "heapUsed": 33624296
+          }
+        ],
+        "summary": {
+          "plain": {
+            "medianBatchUs": 5.529672437500004,
+            "maxBatchUs": 5.719912749999999,
+            "maxRss": 140910592,
+            "maxHeapUsed": 33624296
+          },
+          "fenced": {
+            "medianBatchUs": 6.709631687499996,
+            "maxBatchUs": 6.806382499999998,
+            "maxRss": 140910592,
+            "maxHeapUsed": 32837528
+          }
+        },
+        "scope": "Desktop synchronous two-object response construction with fresh request lifetimes. No Python, target-board or physical print comparison; high-frequency cost also requires a compiled concurrent-print regression."
+      },
+      "interpretation": "Added median batch-average query construction cost about 1.180 microseconds. Finite single-process ABBA microbenchmark, not per-request P99 or strict no-regression proof."
+    },
+    "metadata": {
+      "command": "node host/bench/native-host-status.ts",
+      "result": {
+        "node": "v26.9.0",
+        "warmup": 3,
+        "samples": 11,
+        "iterations": 100000,
+        "variants": [
+          "existingMetadata",
+          "metadataWithNativeSnapshot",
+          "nativeSnapshotAndPrinterIdentity"
+        ],
+        "timing": [
+          {
+            "medianUs": 0.02391104999999925,
+            "p95Us": 0.10452852000000007
+          },
+          {
+            "medianUs": 0.45144295000000056,
+            "p95Us": 0.4985406599999999
+          },
+          {
+            "medianUs": 0.6025922800000012,
+            "p95Us": 0.6420503600000007
+          }
+        ],
+        "cpu": [
+          {
+            "medianUs": 0.02392,
+            "p95Us": 0.20132
+          },
+          {
+            "medianUs": 0.45106,
+            "p95Us": 0.69318
+          },
+          {
+            "medianUs": 0.60452,
+            "p95Us": 0.83173
+          }
+        ],
+        "maximumAddedUs": 5,
+        "checksum": 109900000,
+        "scope": "Synchronous metadata response construction and bounded validation of a two-MCU snapshot. Third variant also constructs printer.info identity and protocol state; identity captured once. Excludes HTTP/RPC serialization, device getters and physical printing."
+      }
+    },
+    "compiled": {
+      "command": "node --test --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true load=false spi=false ' host/acceptance/product-compiled-journey.test.ts",
+      "passed": 1,
+      "logSha256": "64d72b8d99b358ae1b514580f95ecba7f5083396403c1cf0a929dddcd34e98ad",
+      "metrics": {
+        "motionReportLoad": true,
+        "liveMotionSamples": 2514,
+        "liveExtrusionSamples": 1464,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.296538387999998,
+          "print_duration": 2.4355140790000003,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "b18b14da50f041910f43687697b5b374fb7784986c158eae4d013b8f9f9d4a26",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 4191,
+        "phaseP99Ms": 4.2073920000002545,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 176,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 938,
+        "historyP99Ms": 11.231372000002011,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.631202000000485,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.514094999998633,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 19.671594000001278,
+        "metadataRequests": 16,
+        "metadataP95Ms": 28.585908000000927,
+        "downloads": 16,
+        "downloadP95Ms": 3.1873880000002828,
+        "wireCommands": 188,
+        "wireSteps": 3600,
+        "minimumStepLeadMs": 87.395,
+        "directoryRequests": 4032,
+        "directoryP99Ms": 8.441792999999961,
+        "statusRequests": 16764,
+        "uploads": 16,
+        "statusP99Ms": 4.137082000001101,
+        "uploadP95Ms": 16.6072570000033,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.941503,
+              "maxMs": 19.824639
+            },
+            "cpu": {
+              "user": 5751619,
+              "system": 762271
+            },
+            "rss": 303443968
+          },
+          {
+            "loop": {
+              "p99Ms": 1.912831,
+              "maxMs": 8.880127
+            },
+            "cpu": {
+              "user": 1848602,
+              "system": 274390
+            },
+            "rss": 299646976
+          }
+        ]
+      },
+      "nativeAuthorizationRestart": {
+        "compiled": true,
+        "processRestart": true,
+        "persistedLogin": true,
+        "priorTokenAccepted": true,
+        "filesAndHistory": true,
+        "noReplay": true,
+        "interruptedResumeRejected": true,
+        "explicitCancel": true,
+        "logoutRevoked": true
+      },
+      "assertedBudgets": {
+        "minimumStepLeadMs": "> 0",
+        "eventLoopP99Ms": "< 50",
+        "eventLoopMaximumMs": "< 100"
+      },
+      "interpretation": "Fresh independent compiled package with no Python or TS loading in child; existing upload/print/pause/reinitialize/fault/process-restart regression passed. Retained-listener retirement method is directly covered by source product-service tests, not a new compiled restart-button journey."
+    }
+  },
+  "remaining": [
+    "runProductHost still uses whole-generation service replacement for reinitialize; standard printer.restart and printer.firmware_restart routes remain absent.",
+    "Attach a fresh native generation to the retained server with new gate, print API, objects, subscriptions and hardware bindings.",
+    "Separate process-owned database/authentication/files from generation/profile adapter.release; a profile that owns the database cannot be released under a live listener.",
+    "Retired native file/history generation routes are unavailable until a fresh binding; this is not full Moonraker offline file/history compatibility.",
+    "Distinguish actual MCU reset strategies from host reload, verify fixed frontend recovery and complete browser upload.",
+    "Target-board/Python performance, Cycnumbris 500 assembly, numerical/crash closure and physical printing remain unverified."
+  ]
+}

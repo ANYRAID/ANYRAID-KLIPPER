@@ -29,7 +29,8 @@ test('native printer protocol state distinguishes readiness, interruption, start
  const {nativePrinterState}=await import('../src/moonraker/native-printer-info.ts');
  const state=(change:Partial<NativeHostSnapshot>)=>nativePrinterState(readNativeHostStatus(()=>({...snapshot(),...change}))).state;
  assert.equal(state({}),'ready');assert.equal(state({print_state:'paused'}),'ready');assert.equal(state({print_state:'interrupted'}),'error');assert.equal(state({group_state:'connecting'}),'startup');
- for(const change of [{print_state:'failed'},{hardware_state:'failed'},{group_state:'stopped'},{closing:true},{admission_closed:true},{mcus:[{id:'mcu',state:'unavailable'}]}] as Partial<NativeHostSnapshot>[])assert.equal(state(change),'shutdown');
+ assert.equal(state({closing:true}),'disconnected');
+ for(const change of [{print_state:'failed'},{hardware_state:'failed'},{group_state:'stopped'},{admission_closed:true},{mcus:[{id:'mcu',state:'unavailable'}]}] as Partial<NativeHostSnapshot>[])assert.equal(state(change),'shutdown');
 });
 test('opt-in discovery reports truthful Node identity and coherent live server/printer state after authorization',async()=>{
  const {NativePrinterInformation}=await import('../src/moonraker/native-printer-info.ts'),identity=new NativePrinterInformation({configFile:'/printer.cfg',softwareVersion:'native-test'});
