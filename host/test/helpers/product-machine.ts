@@ -7,8 +7,8 @@ import {configuredPrinterFixture} from './configured-printer.ts';
 import {productTransports} from './product-transports.ts';
 import type {ProductMachineConfiguration} from '../../src/config/product-machine.ts';
 import type {ProductMachineBindings} from '../../src/runtime/product-machine-profile.ts';
-export async function productMachineFixture(dir:string,delta=false){
- const f=await configuredPrinterFixture(false,false),transport=await productTransports(delta?new ConfigurationReader(new ConfigurationSource('/printer.cfg',deltaPrinterSections(f.reader.source.original),[]),null):f.reader);
+export async function productMachineFixture(dir:string,delta=false,reset?:'ack'|'starting'){
+ const f=await configuredPrinterFixture(false,false),transport=await productTransports(delta?new ConfigurationReader(new ConfigurationSource('/printer.cfg',deltaPrinterSections(f.reader.source.original),[]),null):f.reader,false,false,false,false,false,false,false,false,undefined,reset);
  const {output,open,lifecycle,...print}=f.options.print;
  const config:ProductMachineConfiguration={version:1,deviceId:'printer',printerConfig:join(dir,'printer.cfg'),moonrakerConfig:join(dir,'moonraker.conf'),journalPath:join(dir,'jobs.db'),mcus:Object.fromEntries([...transport.policies].map(([id,{stopDevice,...p}])=>[id,p])),machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print,limits:{maxNozzle:300,maxBed:130},hardware:{heaterGcodeIds:f.options.hardware.heaterGcodeIds}};
  await writeFile(config.printerConfig,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n\n'));

@@ -10,6 +10,14 @@ export interface MCUConfigTransport {
  stop(cause:unknown):Promise<void>;
 }
 export interface ConfiguredMCU {crc:number;moveCount:number;moveSlots:number;reused:boolean}
+/** Stable recovery classification, independent of diagnostic message text. */
+export class MCUConfigurationFault extends Error {
+ readonly code:'shutdown'|'crc_mismatch';
+ constructor(code:'shutdown'|'crc_mismatch'){
+  super(code==='shutdown'?'MCU is shutdown during configuration':'MCU configuration CRC mismatch; reset required');
+  this.name='MCUConfigurationFault';this.code=code;
+ }
+}
 function uint(value:unknown,max:number):number{if(typeof value!=='number'||!Number.isInteger(value)||value<0||value>max)throw new Error('Malformed MCU configuration response');return value;}
 /** Resolve caller aliases and firmware reservations before hashing the plan.
  * No automatic reset on mismatch: configuration commands must never be replayed. */
@@ -32,10 +40,10 @@ export async function configureMCU(dictionary:MessageDictionary,transport:MCUCon
   const encoded=full.map(c=>dictionary.encodeCommand(c)),encodedRestart=restart.map(c=>dictionary.encodeCommand(c)),encodedInit=init.map(c=>dictionary.encodeCommand(c));
   const request=dictionary.encode('get_config',{});
   const read=async()=>{signal.throwIfAborted();const response=await transport.query(request.slice(),'config',signal);signal.throwIfAborted();if(response.message.name!=='config')throw new Error('Unexpected MCU configuration response');const p=response.message.parameters;
-   const result={configured:uint(p.is_config,1),crc:uint(p.crc,0xffffffff),shutdown:uint(p.is_shutdown,1),moveCount:uint(p.move_count,65535)};if(result.shutdown)throw new Error('MCU is shutdown during configuration');return result;};
+   const result={configured:uint(p.is_config,1),crc:uint(p.crc,0xffffffff),shutdown:uint(p.is_shutdown,1),moveCount:uint(p.move_count,65535)};if(result.shutdown)throw new MCUConfigurationFault('shutdown');return result;};
   const before=await read();
   if(before.configured&&firmwareRestart)throw new Error('MCU firmware restart did not clear configuration');
-  if(before.configured&&before.crc!==crc)throw new Error('MCU configuration CRC mismatch; reset required');
+  if(before.configured&&before.crc!==crc)throw new MCUConfigurationFault('crc_mismatch');
   for(const payload of [...(before.configured?encodedRestart:encoded),...encodedInit]){signal.throwIfAborted();await transport.send(payload.slice(),signal);}
   const after=await read();if(!after.configured||after.crc!==crc)throw new Error('MCU did not finalize expected configuration');
   if(after.moveCount<reserved)throw new Error('Too few MCU move slots for reservations');

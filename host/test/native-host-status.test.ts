@@ -45,3 +45,10 @@ test('opt-in discovery reports truthful Node identity and coherent live server/p
   fail=true;for(const path of ['/server/info','/printer/info']){const response=await fetch(url+path,{headers});assert.equal(response.status,503);assert(!(await response.text()).includes('secret'));}
  }finally{detach();await service.close();}assert.equal(rpc.has('printer.info'),false);
 });
+test('bounded MCU recovery classification appears only while detached and never serializes provider text',()=>{
+ for(const failure of ['device_startup_failed','cleanup_unconfirmed','mcu_shutdown','mcu_configuration_mismatch'] as const){
+  const owner:NativeHostSnapshot={...snapshot(),group_state:'stopped',hardware_state:'stopped',closing:true,admission_closed:true,mcus:[],startup_failure:failure};const result=readNativeHostStatus(()=>({...owner,error:'private failure'}));assert.equal(result.ready,false);assert.equal(result.startup_failure,failure);assert.equal(result.firmware_restart_required,['mcu_shutdown','mcu_configuration_mismatch'].includes(failure)?true:undefined);assert(!('error' in result));
+  assert.throws(()=>readNativeHostStatus(()=>({...snapshot(),startup_failure:failure})),error=>error instanceof ApiError&&error.status===503);
+ }
+ assert.throws(()=>readNativeHostStatus(()=>({...snapshot(),closing:true,admission_closed:true,mcus:[],startup_failure:'/private/serial password'}) as any),error=>error instanceof ApiError&&error.status===503&&!error.message.includes('private'));
+});

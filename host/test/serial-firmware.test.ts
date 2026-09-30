@@ -82,3 +82,13 @@ test('firmware clock replies wrap low bits and preserve uptime across multiple r
     }
   } finally {await fw.close();}
 });
+test('shutdown stays latched in config replies, refuses outputs and is cleared only by an explicit reset',async()=>{
+ const peer=new EventEmitter() as EventEmitter&{write(data:Uint8Array):void},received:Uint8Array[]=[];peer.write=data=>{received.push(data);};const fw=await serialFirmware({fd:-1,peer,close:async()=>{}},{reset:'ack'});let sequence=1;
+ const send=(name:string,params:Parameters<typeof fw.dictionary.encode>[1]={})=>{received.length=0;peer.emit('data',encodeFrame(sequence++&15,fw.dictionary.encode(name,params)));return received.flatMap(frame=>fw.dictionary.parseFrame(frame));};
+ try{
+  send('allocate_oids',{count:1});send('finalize_config',{crc:123});assert.deepEqual(fw.configuration,{configured:true,crc:123,shutdown:false});fw.emit('shutdown',{clock:42,static_string_id:'Timer too close'});
+  for(let i=0;i<3;i++)assert.deepEqual({...send('get_config').find(m=>m.name==='config')!.parameters},{is_config:1,crc:123,is_shutdown:1,move_count:512});
+  const traffic=fw.configurationTraffic;assert.equal(send('queue_step',{oid:0,interval:1000,count:1,add:0})[0].name,'is_shutdown');assert.equal(send('allocate_oids',{count:2})[0].name,'is_shutdown');assert.equal(fw.motion.length,0);assert.equal(fw.configurationTraffic.writes,traffic.writes);assert.equal(fw.configurationTraffic.rejectedShutdownCommands,2);assert.equal(send('get_clock')[0].name,'clock');
+  send('reset');assert.deepEqual(fw.configuration,{configured:false,crc:0,shutdown:false});assert.deepEqual({...send('get_config').find(m=>m.name==='config')!.parameters},{is_config:0,crc:0,is_shutdown:0,move_count:512});assert.equal(fw.configurationTraffic.resets,1);
+ }finally{await fw.close();}
+});

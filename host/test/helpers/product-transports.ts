@@ -5,11 +5,11 @@ import {ConfigurationSource} from '../../src/moonraker/config-source.ts';
 import {ptyPair} from './pty.ts';
 import {serialFirmware} from './serial-firmware.ts';
 import type {MCUMachinePolicy} from '../../src/runtime/configured-mcu-connections.ts';
-export async function productTransports(reader:ConfigurationReader,buttons=false,tmc=false,spi=false,software=false,max6675=false,max31855=false,max31856=false,max31865=false,i2c?:NonNullable<Parameters<typeof serialFirmware>[1]>['i2c']){
+export async function productTransports(reader:ConfigurationReader,buttons=false,tmc=false,spi=false,software=false,max6675=false,max31855=false,max31856=false,max31865=false,i2c?:NonNullable<Parameters<typeof serialFirmware>[1]>['i2c'],reset?:'ack'|'starting'){
  const tmcState=[0,1].map(()=>({fault:0,statusReads:0,writes:0,counts:new Map<number,number>(),registers:new Map<string,number>()}));
  const thermocoupleRegisters=[new Map<number,Buffer>(),new Map<number,Buffer>()];
  const spiLatched=[Buffer.alloc(20),Buffer.alloc(20)];
- const pairs=[ptyPair(),ptyPair()],firmware=await Promise.all(pairs.map((p,index)=>serialFirmware(p,{i2c,max6675,max31855,max31856,max31865,spiSoftware:max6675&&software?'modern':undefined,spiPins:max6675?'PA15,PA16,PA17':undefined,triggerSync:true,stepperBytePins:true,extendedPins:true,buttons,...spi?{spiSoftware:software?'modern' as const:undefined,spiPins:'PA15,PA16,PA17',tmcSpi:(_oid:number,frame:Uint8Array,read:boolean)=>{
+ const pairs=[ptyPair(),ptyPair()],firmware=await Promise.all(pairs.map((p,index)=>serialFirmware(p,{reset,i2c,max6675,max31855,max31856,max31865,spiSoftware:max6675&&software?'modern':undefined,spiPins:max6675?'PA15,PA16,PA17':undefined,triggerSync:true,stepperBytePins:true,extendedPins:true,buttons,...spi?{spiSoftware:software?'modern' as const:undefined,spiPins:'PA15,PA16,PA17',tmcSpi:(_oid:number,frame:Uint8Array,read:boolean)=>{
   if(max31865&&frame.length!==20){
    assert(frame.length===2||frame.length===5);let registers=thermocoupleRegisters[index].get(_oid);if(!registers){registers=Buffer.from([0xd1,0,0,1,2,3,4,0]);thermocoupleRegisters[index].set(_oid,registers);}
    const data=Buffer.alloc(frame.length),address=frame[0]&127;for(let i=1;i<frame.length;i++){if(read)data[i]=registers[address+i-1];else registers[address+i-1]=frame[i];}if(!read&&address===0){registers[0]&=~2;if(frame[1]&2)registers[7]=0;}return {data};

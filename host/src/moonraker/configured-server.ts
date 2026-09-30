@@ -430,9 +430,9 @@ export class ConfiguredMoonraker {
  }
  /** A failed device attempt has settled. The host alone decides whether its
   * cleanup is confirmed; failed cleanup must never reuse a stopped snapshot. */
- recordNativeStartupFailure(cleanupFailed:boolean):void{
+ recordNativeStartupFailure(cleanupFailed:boolean,failure:NativeHostSnapshot['startup_failure']='device_startup_failed'):void{
   if(!this.#nativeRetiredSnapshot||!this.#nativeRetirementDrained)throw new Error('Native startup failure requires a drained detached owner');
-  this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot,startup_failure:cleanupFailed?'cleanup_unconfirmed':'device_startup_failed',...cleanupFailed?{group_state:'failed',hardware_state:'failed'}:{}};
+  this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot,startup_failure:cleanupFailed?'cleanup_unconfirmed':failure,...cleanupFailed?{group_state:'failed',hardware_state:'failed'}:{}};
  }
  /** Retire the device-facing owners while retaining listener, authentication,
   * database and process telemetry. Caller must also retire the physical printer

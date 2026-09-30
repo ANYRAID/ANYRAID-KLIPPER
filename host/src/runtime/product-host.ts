@@ -6,6 +6,19 @@ import type {MCUMachinePolicy} from './configured-mcu-connections.ts';
 import type {ConfigurationReader} from '../moonraker/config-reader.ts';
 import type {AddressInfo} from 'node:net';
 import type {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
+import {MCUConfigurationFault} from '../protocol/mcu-config.ts';
+import {FirmwareFault} from '../protocol/firmware-fault.ts';
+/** Inspect bounded trusted causes, never classify by arbitrary message text. */
+function firmwareRecoveryFailure(error:unknown):'mcu_shutdown'|'mcu_configuration_mismatch'|undefined{
+ const pending:unknown[]=[error],seen=new Set<Error>();
+ while(pending.length&&seen.size<32){
+  const item=pending.pop();if(!(item instanceof Error)||seen.has(item))continue;seen.add(item);
+  if(item instanceof MCUConfigurationFault)return item.code==='shutdown'?'mcu_shutdown':'mcu_configuration_mismatch';
+  if(item instanceof FirmwareFault&&item.details.event!=='starting')return 'mcu_shutdown';
+  if(item instanceof AggregateError)pending.push(...item.errors.slice(0,32).toReversed());
+  if(item.cause instanceof Error)pending.push(item.cause);
+ }
+}
 /** Trusted machine integration, never supplied by an uploaded print file.
  * The factory cleans up its own partial failure. On success, resource lifetime
  * transfers to the host; release runs after all service owners have retired. */
@@ -84,7 +97,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     completion??=activeRequest;
     completion?.reject(new AggregateError(errors,'Product reinitialization failed'));completion=activeRequest=undefined;
     if(!processServer||signal.aborted)break;
-    if(processServer.nativeGenerationStatus?.drained)processServer.recordNativeStartupFailure(cleanupFailed);
+    if(processServer.nativeGenerationStatus?.drained)processServer.recordNativeStartupFailure(cleanupFailed,firmwareRecoveryFailure(error));
     // Only an explicitly requested retry may create a replacement. A failed
     // physical/dependency retirement cannot be made safe by a host reload.
     if(cleanupFailed||processServer.nativeGenerationStatus?.state!=='stopped'){await stopped.promise;break;}

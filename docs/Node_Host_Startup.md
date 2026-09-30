@@ -182,6 +182,12 @@ UART leaveBootloader=false，复用 MCU 的现有 CRC 配置，不执行固件 r
 包装工厂须转发这个第二参数。adapter 不得将普通 restart 转换成固件复位。
 配置 CRC 不匹配或 MCU shutdown 不会被主机重载自动修复；等待 A3 的显式
 FIRMWARE_RESTART。停止失败与部分启动清理失败拒绝新设备接入。
+安全清理后的这些失败分别暴露 mcu_configuration_mismatch、mcu_shutdown，
+并附带 firmware_restart_required=true；该字段说明当前固件不能接受期望配置，
+不代表固件重启路由已实现或复位已成功。恢复原 CRC 对应配置后可显式
+RESTART 复用原 MCU；持续 shutdown 不会因此消失。主／辅 MCU 的连续
+HTTP／RPC 失败均保留原连接和查询，不发送 reset 或虚假 ready 通知，见
+[普通重启固件故障验收](../host/contracts/native-standard-restart-fault-acceptance.json)。
 
 允许取消活动作业后重载；忽略取消的已受理动作仍必须真正结束，日志
 保留取消结果，不重放文件。维护期间拒绝重载。queued 时的第二个标准
@@ -223,8 +229,10 @@ FIRMWARE_RESTART。停止失败与部分启动清理失败拒绝新设备接入�
 首次配置、adapter 或 MCU 启动失败后，服务保留原身份和连接；完成已取得
 资源的停止／清理后才提供显式 RESTART。server.info.native_host 中
 ready=false、closing=true、admission_closed=true、mcus=[]；可选的
-startup_failure 为 device_startup_failed 或 cleanup_unconfirmed，不包含
-异常文本、路径或凭据。清理未确认时硬件状态 failed，restart_available=false，
+startup_failure 为 device_startup_failed、cleanup_unconfirmed、mcu_shutdown
+或 mcu_configuration_mismatch，不包含异常文本、路径或凭据。仅已识别的 MCU
+配置／固件异常使用后两种分类；普通错误文本不能冒充固件故障。
+清理未确认优先暴露 cleanup_unconfirmed，硬件状态 failed，restart_available=false，
 不会凭空声称物理停止。修复设备配置后，HTTP／RPC 标准 RESTART 绑定真实
 新设备并发送一次就绪通知；迟到正文和旧授权不能进入新代际。
 
@@ -721,6 +729,8 @@ createProcess 产品主机在鉴权及进程资源就绪、实际监听完成后
 - `mcus`：各 MCU 的 id 与会话 state；不含串口路径或底层故障文本。
 - `print_state`、`homed_axes`：当前打印生命周期及已归零轴。
 - `startup_failure`：仅在设备断开且启动失败时出现的有界分类，不含故障文本。
+- `firmware_restart_required`：仅在 mcu_shutdown／mcu_configuration_mismatch
+  分类时为 true；其他状态省略，不表示复位能力或操作成功。
 - `closing`、`admission_closed`、`maintenance`：服务退场、永久关闭准入
   和维护占用状态。
 - `ready`：MCU 组、所有会话及硬件均 ready，且服务未退场、准入未永久
