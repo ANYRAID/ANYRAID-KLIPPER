@@ -183,6 +183,7 @@ export async function createProductHostProfile(signal){
    tasks.push(own(async()=>{while(!abort.signal.aborted){const response=await checkedFetch(base+'/server/gcode_store?count=20',{headers,signal:abort.signal});assert.equal(response.status,200);const rows=(await response.json() as any).result.gcode_store;assert(Array.isArray(rows)&&rows.length<=20);assert(rows.every((row:any)=>row.type==='response'&&typeof row.message==='string'&&Number.isFinite(row.time)));await delay(25,undefined,{signal:abort.signal});}}));
    tasks.push(own(async()=>{while(!abort.signal.aborted){const response=await checkedFetch(base+'/machine/proc_stats',{headers,signal:abort.signal});assert.equal(response.status,200);const stats=(await response.json() as any).result;assert(Array.isArray(stats.moonraker_stats)&&stats.moonraker_stats.length<=30);assert(Number.isFinite(stats.system_uptime)&&stats.system_uptime>0);await delay(25,undefined,{signal:abort.signal});}}));
    tasks.push(own(async()=>{while(!abort.signal.aborted){const response=await checkedFetch(base+'/machine/system_info',{headers,signal:abort.signal});assert.equal(response.status,200);assert.equal((await response.json() as any).result.system_info.runtime.name,'node');await delay(100,undefined,{signal:abort.signal});}}));
+   if(nativeAuthorization)tasks.push(own(async()=>{while(!abort.signal.aborted){const response=await checkedFetch(base+'/server/webcams/list',{headers,signal:abort.signal});assert.equal(response.status,200);assert((await response.json() as any).result.webcams.some((cam:any)=>cam.name==='compiled-camera'));await delay(25,undefined,{signal:abort.signal});}}));
    stopLoad=async()=>{abort.abort();await Promise.all(tasks);if(failure)throw failure;};
   }
   const request=(id:string)=>({version:1,request_id:id,file_id:'authorized-file',nozzle:200,bed:60,expires_at:Date.now()+60000});
@@ -194,6 +195,7 @@ export async function createProductHostProfile(signal){
    const login=await access('login',{username:'operator',password:'compiled-test-password'});delete requestAuth['x-api-key'];delete headers['x-api-key'];requestAuth.authorization='Bearer '+login.token;headers.authorization=requestAuth.authorization;
    assert((await get('/server/info')).components.includes('authorization'));
   }
+  if(nativeAuthorization){const added=await checkedFetch(base+'/server/webcams/item',{method:'POST',headers,body:JSON.stringify({name:'compiled-camera',stream_url:'/webcam/stream'})});assert.equal(added.status,200);assert.equal((await get('/server/webcams/list')).webcams[0].name,'compiled-camera');}
   const nativeSystem=(await get('/machine/system_info')).system_info;assert.equal(nativeSystem.runtime.name,'node');assert.equal(nativeSystem.python,undefined);assert(nativeSystem.cpu_info.cpu_count>0);
   assert(Array.isArray((await get('/machine/proc_stats')).moonraker_stats));
   assert.equal((await get('/printer/gcode/help')).SET_PRESSURE_ADVANCE,'Set pressure advance and smoothing time');

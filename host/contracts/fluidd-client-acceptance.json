@@ -22,7 +22,7 @@
       "version": "2.19.0",
       "commit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
       "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
-      "result": "Unauthenticated identify rejected; initialization did not complete in mandatory native user authorization mode"
+      "result": "Latest explicit trusted-loopback recheck reaches dashboard and first short print Complete; pause observed on second job. Full journey pending; see mainsailWebcamRecheck."
     }
   ],
   "missingNativeBindings": [
@@ -76,7 +76,7 @@
     "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
   },
   "limitations": [
-    "No complete UI printing journey",
+    "Full client acceptance remains pending; partial compiled UI printing evidence is recorded in follow-up sections",
     "No Python baseline or target board performance",
     "Browser file chooser blocked for hours despite requested timeout",
     "Original long-running simulated firmware failed encoding unwrapped get_clock ticks; deterministic rollover fix verified separately, not a long-duration or physical MCU result; interactive helper remains limited to 15 minutes"
@@ -203,5 +203,24 @@
       "https://github.com/mainsail-crew/mainsail/blob/5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70/src/store/gui/webcams/actions.ts",
       "https://github.com/mainsail-crew/gb-docs/blob/main/setup/installation/manual-setup.md"
     ]
+  },
+  "mainsailWebcamRecheck": {
+    "implementationBase": "a0063d7e",
+    "client": "Mainsail 2.19.0",
+    "bundleManifestSha256": "04792ea7023fe5ef3217b88c1dd226abb041520c7937bb2c281f7c890d8eed53",
+    "authentication": "Explicit temporary loopback trusted_clients; no login or default anonymous access claim",
+    "verified": [
+      "Webcam list resolves and dashboard reaches Standby",
+      "API-seeded file selected and started from page",
+      "First short print reaches Complete",
+      "Second print started; page pause reaches 63 percent Paused",
+      "Probe exits 0 on SIGINT"
+    ],
+    "pending": [
+      "Second print resume and completion not verified",
+      "Speed displays NaN mm/s; flow displays null mm3/s during printing",
+      "Page upload, client recovery and physical hardware acceptance"
+    ],
+    "scope": "Compiled product child with simulated MCU; UI observations do not prove physical printing"
   }
 }

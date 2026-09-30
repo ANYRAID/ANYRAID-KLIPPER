@@ -186,7 +186,8 @@
     {
       "name": "webcam",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/contracts/native-webcams-acceptance.json"
     },
     {
       "name": "websockets",
@@ -1235,28 +1236,32 @@
       "line": 53,
       "method": "register_endpoint",
       "targetExpression": "\"/server/webcams/list\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
     },
     {
       "file": "moonraker/components/webcam.py",
       "line": 56,
       "method": "register_endpoint",
       "targetExpression": "\"/server/webcams/item\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
     },
     {
       "file": "moonraker/components/webcam.py",
       "line": 60,
       "method": "register_endpoint",
       "targetExpression": "\"/server/webcams/test\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
     },
     {
       "file": "moonraker/components/webcam.py",
       "line": 63,
       "method": "register_notification",
       "targetExpression": "\"webcam:webcams_changed\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
     },
     {
       "file": "moonraker/components/websockets.py",

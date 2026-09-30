@@ -28,6 +28,21 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
+## 原生摄像头管理
+
+提供数据库的配置服务会启用 `/server/webcams/list`、`/server/webcams/item`
+和 `/server/webcams/test`，适用现有 HTTP／WebSocket 授权规则。
+`[webcam 名称]` 配置至少提供 `stream_url`；配置来源不可通过接口修改。
+接口创建的摄像头持久化到 `webcams` 命名空间，支持按 UID／名称查询、
+修改和删除；写入成功后发送 `notify_webcams_changed`。原始数据库接口
+不能绕过管理接口修改该命名空间。关闭等待已接受写入，并终止快照探测。
+
+快照探测限制为 1 秒、8 MiB 和最多 4 个并发请求，相对地址目前基于
+`http://127.0.0.1`。上游公网地址变化、DNS／本地监听地址转换和原实例
+UUID 迁移尚未闭合；不要把当前管理接口视为完整摄像头组件兼容。
+本地 HTTP 快照测试不代表真实摄像头验收。实现、边界与并发打印回归见
+[摄像头验收记录](../host/contracts/native-webcams-acceptance.json)。
+
 ## Delta 自动装配开发入口
 
 `planDeltaPrinter(reader, policy)` 生成硬件布局、运动描述、初始队列和
