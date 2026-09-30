@@ -23,6 +23,10 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
+原生 Moonraker 已接入持久 API Key 及可选本地用户／JWT 登录、刷新和退出，
+包含 HTTP、WebSocket 与独立编译包验证；完整授权策略和真实机器装配仍待
+完成。接入方式与兼容边界见[启动说明](docs/Node_Host_Startup.md#原生-api-key-授权组件初步接入)。
+
 Node 主机现支持 AHT、SHT3X 温湿度传感器及 LM75 温度传感器的
 I²C 配置、周期采样、组合输入、温控风扇及直接加热反馈。三类传感器
 的三类编译产品流程均已通过模拟 MCU 验收。LM75 修正了原实现的

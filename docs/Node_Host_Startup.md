@@ -1663,12 +1663,35 @@ node --no-experimental-strip-types scripts/product-service-unit.js --verify-bund
 使用 X-Api-Key；WebSocket 可在 server.connection.identify 中提交 api_key。
 GET／POST /access/api_key 分别读取和轮换密钥，均要求已认证身份。
 轮换持久化完成后使旧密钥及旧 WebSocket 认证失效；写入失败使授权关闭，
-损坏数据不会静默重置。公开 /access/info 的 available_sources 暂为空，
-不广告尚未实现的用户登录；Authorization Bearer 当前明确拒绝。
+损坏数据不会静默重置。
 
-本阶段尚无用户登录、JWT、LDAP、可信网络／代理、一次性令牌、授权事件
-和完整配置策略，也不导入上游用户表。此组件不应标记为完整 Moonraker
-授权或默认机器部署完成。源码和独立编译 HTTP 流程已通过；CPU 鉴权
-中位 1.777 微秒／请求，200 次本机顺序状态请求 P99 1.860 ms，不代表
-目标板或并发打印验收。证据见
-[授权组件清单](../host/contracts/moonraker-authorization.json)。
+启用本地用户时使用
+`ApiKeyAuthorization.open(database, {issuer: 'http://打印机主机名:7125'})`，
+issuer 必须为完整 HTTP(S) origin，跨重启保持一致；不要使用示例地址上线。
+可选 loginTimeoutDays 默认为 90，forceLogins 默认为 false。此参数接口
+尚未绑定 authorization 配置节；可信网络准入尚未实现，forceLogins 不会
+使匿名请求获得权限。未传用户选项时保持仅 API Key 模式。
+
+启用后支持 /access/user 的创建、查询与删除，/access/users/list、
+/access/login、/access/logout、/access/refresh_jwt 和 /access/user/password。
+首次创建用户需要本地配置的 API Key，后续可用已认证用户。用户数据存入
+禁止公开访问的 native_users 命名空间，密码使用异步 PBKDF2-SHA256，
+JWT 使用 Ed25519 签名，访问令牌有效期一小时。
+HTTP 接受 Bearer、X-Access-Token 和 access_token 查询参数；优先使用请求头，
+避免令牌出现在 URL 记录。WebSocket 可使用 access.login 或 identify 的
+access_token，创建用户不会切换当前连接身份。退出／删除持久化后撤销
+该用户令牌和连接授权，重启后仍生效；修改密码按上游语义保留已有令牌。
+HTTP 订阅必须与目标 WebSocket 属于同一用户名。
+
+当前限定 128 用户、32 个排队写操作、1024 个缓存令牌；用户名上限为
+256 字节，非空密码上限为 4096 字节。写入失败使用户授权关闭，需排查
+存储后重启。JWT 会话的过期检查也应用于已有 WebSocket 连接，连接续期
+与上游长连接语义仍待闭合，不能声称全兼容。
+
+LDAP、可信网络／代理、一次性令牌、授权事件、登录失败策略、完整配置
+绑定及上游用户表导入仍待完成。此组件尚非默认机器部署。
+18 项测试通过，含独立编译包的创建、登录、刷新、退出；JWT 缓存验证
+约 0.202 微秒，首次验签约 112.589 微秒。200 次本机顺序 JWT 状态请求
+P99 为 2.177 ms。API Key CPU 基准由此前 1.777 增至 1.965 微秒／请求，
+仍在开发预算内，不据此声称无性能回退。上述结果不代表目标板或并发打印
+验收。证据见[授权组件清单](../host/contracts/moonraker-authorization.json)。

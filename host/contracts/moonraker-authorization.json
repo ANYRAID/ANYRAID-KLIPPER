@@ -1,33 +1,39 @@
 {
   "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
   "source": "moonraker/components/authorization.py",
-  "status": "partial-native-api-key-owner",
+  "status": "partial-native-api-key-and-local-users",
   "tests": {
-    "networkCompiledAndInitialOwner": 14,
-    "ownerIncludingPersistenceFailure": 3,
-    "uniqueTests": 15
+    "uniqueTests": 18,
+    "files": [
+      "host/test/api-key-authorization.test.ts",
+      "host/test/local-user-authorization.test.ts",
+      "host/test/api-key-authorization-compiled.test.ts",
+      "host/test/moonraker-network.test.ts"
+    ]
   },
   "benchmark": {
     "runtime": "v26.9.0",
     "scope": "100000 HTTP header authentications per round; 3 warmups and 5 retained rounds; includes live database owner state checks, SHA-256 and constant-time digest comparison; excludes sockets and IO; not a Python comparison",
     "samplesMs": [
-      183.774269,
-      178.58460500000012,
-      177.711638,
-      176.9336609999998,
-      177.247975
+      196.64266599999996,
+      196.0599880000001,
+      196.46882400000004,
+      194.82792300000006,
+      198.9482250000001
     ],
-    "medianMs": 177.711638,
-    "microsecondsPerRequest": 1.7771163799999998,
+    "medianMs": 196.46882400000004,
+    "microsecondsPerRequest": 1.9646882400000003,
     "maximumMicrosecondsPerRequest": 10
   },
   "diagnostics": [
     {
       "compiled": true,
+      "jwtLifecycle": true,
+      "jwtStatusP99Ms": 2.1769969999999716,
       "unauthorizedRejected": true,
       "rotationRevokesOldKey": true,
       "statusRequests": 200,
-      "statusP99Ms": 1.860036999999977,
+      "statusP99Ms": 1.878893000000005,
       "scope": "Sequential local HTTP requests; no physical MCU or concurrent printing"
     }
   ],
@@ -49,31 +55,55 @@
       "methods": [
         "GET"
       ],
-      "state": "partial: public capability response; available_sources is empty until native user login is implemented"
+      "state": "partial: reports moonraker login source when explicitly configured; no trusted network policy"
     },
     {
       "path": "/access/login",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/logout",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/refresh_jwt",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/user",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/users/list",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/user/password",
-      "state": "pending"
+      "state": "native local-user route implemented; authorization events and full policy pending",
+      "transports": [
+        "http",
+        "websocket"
+      ]
     },
     {
       "path": "/access/oneshot_token",
@@ -85,13 +115,39 @@
     "HTTP X-Api-Key and WebSocket identify api_key supply a real authorization identity.",
     "Committed rotation invalidates old header credentials and cached WebSocket identities.",
     "Persistence failures close authorization; damaged persisted keys are not silently regenerated.",
-    "Compiled configured service runs without TS loading or PATH programs."
+    "Compiled configured service runs without TS loading or PATH programs.",
+    "Local users persist in private native_users namespace; asynchronous PBKDF2-SHA256 with 100000 iterations and Ed25519 JWTs.",
+    "HTTP Bearer, X-Access-Token, query access_token, WebSocket identify and login authenticate users; WebSocket user creation preserves caller identity.",
+    "Signed wrong issuer, audience, token type, username, fractional time and expired tokens reject; public request decoding can admit expired access tokens for refresh.",
+    "Logout and deletion revoke user keys and cached sessions; revocation survives restart; other users remain independent. Password changes preserve tokens as upstream does.",
+    "Subscription connection authorization requires matching usernames; notifications recheck authorization.",
+    "Compiled local user create/login/refresh/logout works without Python or TS loading."
   ],
   "limitations": [
-    "This is not complete Moonraker authorization: users, JWT, LDAP, trusted networks/proxies, one-shot tokens, authorization events and configuration policy options remain pending.",
+    "Incomplete authorization: LDAP, trusted networks/proxies, one-shot tokens, authorization events, failed-login policy and configuration-file binding remain pending.",
     "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
     "Requires an explicit component owner, endpoint registration and local provisioning; not yet the default Cycnumbris 500 machine adapter.",
     "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
-    "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance."
-  ]
+    "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance.",
+    "Native users have bounded input, 128-user capacity, 32 queued mutations and 1024 cached JWTs. These native limits differ from unrestricted upstream storage.",
+    "User creation requires a provisioned API key or authenticated user; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
+    "WebSocket cached JWT sessions currently enforce access-token expiry on protected methods and notifications, requiring reauthentication; renewal and upstream long-lived session semantics remain to be closed.",
+    "Raw authorization headers and error text are not claimed to match all upstream edge cases. HTTP optional authentication accepts signed expired tokens, but rejects invalid signatures.",
+    "API-key microbenchmark rose from the prior 1.777 to 1.965 microseconds per request; both are within the 10 microsecond development budget, not proof of zero regression."
+  ],
+  "localUserBenchmark": {
+    "runtime": "v26.9.0",
+    "scope": "Desktop development regression only; no Python comparison or concurrent printing; hot cache 100000 decodes per round, 3 warmups and 5 retained rounds; cold 2000 distinct tokens; 20 sequential asynchronous password logins",
+    "warmMicroseconds": 0.2020979399999999,
+    "coldMicroseconds": 112.58871300000001,
+    "loginTotalMs": 299.192548,
+    "loginCount": 20,
+    "timerTicks": 283,
+    "maxTimerGapMs": 1.5654799999999796,
+    "budgets": {
+      "warmMicroseconds": 10,
+      "coldMicroseconds": 500,
+      "maxTimerGapMs": 50
+    }
+  }
 }
