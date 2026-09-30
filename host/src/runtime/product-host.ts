@@ -16,13 +16,18 @@ export interface ProductHostProfile {
  options:ConfiguredProductServiceOptions;
  release():Promise<void>;
 }
-export type ProductHostFactory=(signal:AbortSignal)=>Promise<ProductHostProfile>;
+export interface ProductHostFactory {
+ (signal:AbortSignal):Promise<ProductHostProfile>;
+ /** Process resources outlive profiles. The host invokes this only after the
+  * final generation retires, including startup and retirement failures. */
+ close?():Promise<void>;
+}
 /** One process lifetime: load -> connect -> listen -> stop -> release dependencies.
  * Hardware stop does not close the API: keep durable outcomes and unavailable
  * hardware status observable until explicit process shutdown. No automatic reconnect or replay. */
 export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void,control?:ProductHostControl):Promise<void>{
  control??=new ProductHostControl();
- signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function')throw new TypeError('Invalid product host callbacks');
+ signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.close!==undefined&&typeof factory.close!=='function')throw new TypeError('Invalid product host callbacks');
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
  let temperatureHistory:TemperatureStore|undefined;
  let profile:ProductHostProfile|undefined,service:Awaited<ReturnType<typeof startConfiguredMachineService>>|undefined,detach=()=>{},completion:ReturnType<typeof Promise.withResolvers<void>>|undefined,activeRequest:ReturnType<typeof Promise.withResolvers<void>>|undefined;
@@ -62,6 +67,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   completion??=activeRequest;
   if(completion)completion.reject(errors.length?new AggregateError(errors,'Product reinitialization failed'):signal.reason??new Error('Product host stopped before reinitialization'));
  }
+ try{await factory.close?.();}catch(error){errors.push(error);}
  try{await control.close();}catch(error){errors.push(error);}
  if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Product host and resource cleanup failed');
 }

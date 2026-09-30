@@ -1,0 +1,621 @@
+{
+  "implementationBase": "316043d0",
+  "date": "2026-09-30",
+  "node": "v26.9.0",
+  "scope": "Process-owned native file store integrated into the actual host factory and independently compiled native-authorization product fixture. Software-only PTY/simulated MCU evidence; standard restart, retained Moonraker listener/auth/database and physical machine acceptance are incomplete.",
+  "sourceSha256": {
+    "host/src/runtime/product-host.ts": "4132a38f7a558008e70712d72a239aa59b496572120a21398535423d7c21f125",
+    "host/src/runtime/native-product-machine.ts": "f6ac49d456fcc5a817c09d932428cf08bfeae1505980366e5bf6eabd02396c9e",
+    "host/test/native-product-machine.test.ts": "20a13308d25f7d4b2730f40522001ad3e2c86240033ed5794025950cca7b7b29",
+    "host/test/native-product-file-lifetime.test.ts": "c887a493897b96dda1f7a7af13cf23b078e2c250ff55eea9f597799b4b16a240",
+    "host/acceptance/product-compiled-journey.test.ts": "2e1fc32d2a781d54306564ecb9132807e26b4802953c50b47a4851b12a7a140a",
+    "host/bench/native-product-files.ts": "1ed45cc6a6424f42a78eefc1a55e745ca858bac59fa4f852e95c3b0433a88611"
+  },
+  "verified": [
+    "One process file directory descriptor, lock and recovered catalog survive profile release and native reinitialization; final host shutdown releases them.",
+    "An exclusive generation lease rejects overlap and storage-root identity changes before adapter acquisition.",
+    "Old native file admission is closed; ignored cancellation drains before adapter retirement and lease transfer.",
+    "Partial metadata startup releases the lease without destroying process storage. Adapter retirement failure remains a rejected generation outcome.",
+    "The actual two-MCU PTY product host uploads, reinitializes, lists and downloads the same bytes, rejects old-generation access and stops each simulated device once.",
+    "Process factory cleanup executes after final profile retirement and on startup/retirement failures; errors remain observable.",
+    "An independently compiled JWT/API-load product journey uses the process factory, verifies the retained file lock in its second device generation and records exactly one process file close after profile retirement."
+  ],
+  "regressions": {
+    "commands": [
+      "node --test --test-concurrency=1 host/test/native-product-machine.test.ts host/test/native-product-file-lifetime.test.ts host/test/product-host-reinitialize.test.ts host/test/product-machine.test.ts host/test/product-native-authorization.test.ts",
+      "node --test --test-concurrency=1 host/test/native-product-machine.test.ts host/test/native-product-file-lifetime.test.ts"
+    ],
+    "distinctSourceCases": 36,
+    "batches": [
+      {
+        "logSha256": "30791c33fdb8de57b001ffe8de147c010d63d6d9214b1eecb644bf1bd7fcc604",
+        "passed": 35,
+        "cases": [
+          "product host keeps one process file lock through reinitialization and releases it on final exit",
+          "failed generation assembly and cancelled late adapter cannot leak process file locks",
+          "invalid preflight does not acquire process files or an adapter",
+          "host closes process resources after startup failure and preserves their cleanup error",
+          "failed generation retirement still closes process owner exactly once after profile release",
+          "shared native ownership resolves canonical files, seals print bytes and preserves policy snapshots",
+          "invalid temperatures and overlapping stores fail before adapter acquisition",
+          "failed metadata startup closes the already opened store and releases the adapter",
+          "late cancelled adapter return and invalid policy release acquired resources",
+          "closing cancels delayed file admission and waits for its callback before adapter release",
+          "adapter cleanup failure is reported after native stores release their locks",
+          "file admission is bounded and a closed shared gate rejects late authorization",
+          "standard print remains opt-in and adapters cannot override native ownership",
+          "process files retain the actual lock and bytes across exclusive generation leases",
+          "process close waits for ignored cancellation and adapter release before unlocking files",
+          "failed generation metadata startup releases its lease without destroying process storage",
+          "process storage rejects identity changes and option overrides before adapter acquisition",
+          "reinitialization waits for old dependency release and respects shutdown (cancel=false)",
+          "reinitialization waits for old dependency release and respects shutdown (cancel=true)",
+          "dependency release failure rejects recovery without opening a replacement generation",
+          "read-only preflight CLI validates included topology without journal or MCU acquisition (delta=false)",
+          "read-only preflight CLI validates included topology without journal or MCU acquisition (delta=true)",
+          "machine configuration rejects unknown, nonfinite, ambiguous and out-of-range policy without changing numeric data",
+          "machine data reads are bounded, UTF-8 strict, abortable and do not block on FIFOs",
+          "profile preflight rejects topology and network errors before adapter or journal acquisition",
+          "profile snapshots declarations, shares the maintenance gate and owns journal cleanup exactly once",
+          "late cancellation and invalid bindings release transferred resources before rejecting",
+          "journal acquisition failure retains both assembly and adapter cleanup errors",
+          "file-backed machine profile runs authenticated native service and retires both UARTs (delta=false)",
+          "file-backed machine profile runs authenticated native service and retires both UARTs (delta=true)",
+          "product profile reads saved calibration with ordinary precedence and rejects corrupt autosave before acquisition",
+          "unsupported included printer components fail before adapter, journal or MCU acquisition",
+          "Delta BLTouch profile assembly does not acquire MCU hardware",
+          "native product rejects invalid authorization before MCU and journal acquisition, releasing the adapter database",
+          "native product owns login and authenticated printer state across service restart without external authorization callbacks"
+        ],
+        "simulatedReinitializeMs": 722.511551
+      },
+      {
+        "logSha256": "d2437380afce4e0aad7bca4cd7b9d54756e52d4c6b3ac1569ecb9e7b23503a38",
+        "passed": 18,
+        "cases": [
+          "product host keeps one process file lock through reinitialization and releases it on final exit",
+          "failed generation assembly and cancelled late adapter cannot leak process file locks",
+          "invalid preflight does not acquire process files or an adapter",
+          "host closes process resources after startup failure and preserves their cleanup error",
+          "failed generation retirement still closes process owner exactly once after profile release",
+          "shared native ownership resolves canonical files, seals print bytes and preserves policy snapshots",
+          "invalid temperatures and overlapping stores fail before adapter acquisition",
+          "failed metadata startup closes the already opened store and releases the adapter",
+          "late cancelled adapter return and invalid policy release acquired resources",
+          "closing cancels delayed file admission and waits for its callback before adapter release",
+          "adapter cleanup failure is reported after native stores release their locks",
+          "file admission is bounded and a closed shared gate rejects late authorization",
+          "standard print remains opt-in and adapters cannot override native ownership",
+          "process files retain the actual lock and bytes across exclusive generation leases",
+          "process close waits for ignored cancellation and adapter release before unlocking files",
+          "failed generation metadata startup releases its lease without destroying process storage",
+          "process storage rejects identity changes and option overrides before adapter acquisition",
+          "adapter cleanup failure releases the lease but remains a failed generation outcome"
+        ],
+        "simulatedReinitializeMs": 717.712601
+      }
+    ]
+  },
+  "compiled": {
+    "command": "node --test --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true load=false spi=false ' host/acceptance/product-compiled-journey.test.ts",
+    "passed": 1,
+    "logSha256": "62bf741da2ab58ee3170e88f3659c2513691971cc205aff7e24386948a0bb326",
+    "durationMs": 36934.468498,
+    "childRuntime": {
+      "independentDependencyInstallation": true,
+      "PATH": "/no-programs",
+      "NODE_OPTIONS": "--no-experimental-strip-types",
+      "devices": "PTY models owned by test parent; no physical machine"
+    },
+    "diagnostics": [
+      {
+        "installation": {
+          "durationMs": 798.531424,
+          "dependencies": 14
+        }
+      },
+      {
+        "pausedMotionReport": {
+          "live_position": [
+            0,
+            0,
+            0,
+            0.4408050688642917
+          ],
+          "live_velocity": 0,
+          "live_extruder_velocity": 0
+        }
+      },
+      {
+        "filamentRunout": {
+          "sensor": "filament_switch_sensor tool",
+          "compiled": true,
+          "automaticPause": true,
+          "absentResumeRejected": true,
+          "runoutPauseMs": 1324.7483429999993,
+          "settledStepClock": true,
+          "noAutomaticResume": true
+        }
+      },
+      {
+        "objectCancellation": {
+          "compiled": true,
+          "firstCancellation": true,
+          "paused": true,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "nativeTemperatureHistory": {
+          "samples": 10,
+          "sensors": [
+            "extruder",
+            "heater_bed"
+          ],
+          "authenticated": true
+        }
+      },
+      {
+        "idleTimeout": {
+          "heaterOff": true,
+          "motorRelease": true,
+          "hostRemainsReady": true
+        }
+      },
+      {
+        "pausedTimeout": {
+          "cancelled": true,
+          "resumeRejected": true
+        }
+      },
+      {
+        "temperatureHistoryRestart": {
+          "preserved": true,
+          "samplesBefore": 20,
+          "samplesAfter": 23
+        }
+      },
+      {
+        "nativeAuthorizationRestart": {
+          "compiled": true,
+          "processRestart": true,
+          "persistedLogin": true,
+          "priorTokenAccepted": true,
+          "filesAndHistory": true,
+          "noReplay": true,
+          "interruptedResumeRejected": true,
+          "explicitCancel": true,
+          "logoutRevoked": true
+        }
+      }
+    ],
+    "metrics": {
+      "motionReportLoad": true,
+      "liveMotionSamples": 2643,
+      "liveExtrusionSamples": 1455,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 7.525251342,
+        "print_duration": 2.5262744359999996,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "c0f53ce6bd9237da2d27bb5e11dd4554220efd78296d26e02d06eae0e01ee8b3",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3881,
+      "phaseP99Ms": 3.180685999999696,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 867,
+      "historyP99Ms": 11.039764000001014,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 11.956214999998338,
+      "deleteRequests": 16,
+      "deleteP95Ms": 12.61510200000157,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.416756999999052,
+      "metadataRequests": 16,
+      "metadataP95Ms": 27.363908000001175,
+      "downloads": 16,
+      "downloadP95Ms": 18.727521000000706,
+      "wireCommands": 192,
+      "wireSteps": 3702,
+      "minimumStepLeadMs": 80.37,
+      "directoryRequests": 3734,
+      "directoryP99Ms": 7.380503000000317,
+      "statusRequests": 15525,
+      "uploads": 16,
+      "statusP99Ms": 3.475948999999673,
+      "uploadP95Ms": 12.673713000003772,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.955839,
+            "maxMs": 20.332543
+          },
+          "cpu": {
+            "user": 5316451,
+            "system": 661926
+          },
+          "rss": 306307072
+        },
+        {
+          "loop": {
+            "p99Ms": 1.912831,
+            "maxMs": 8.335359
+          },
+          "cpu": {
+            "user": 1891994,
+            "system": 275560
+          },
+          "rss": 278032384
+        }
+      ]
+    }
+  },
+  "fileOwnershipBenchmark": {
+    "command": "node host/bench/native-product-files.ts",
+    "primary": {
+      "node": "v26.9.0",
+      "scope": "File generation acquisition/catalog/release on cached local storage. Cold initial process opens excluded from retained samples and reported separately. No motion or hardware performance claim.",
+      "files": 256,
+      "inputSha256": "09134ea3db770c61543db134e5f76ed7704b612c1e06ff406cd87a4f7e78124d",
+      "order": "ABBA ABBA",
+      "reopen": {
+        "samples": 40,
+        "medianMs": 23.327146999999968,
+        "p95Ms": 55.972097000000076,
+        "p99Ms": 56.54533399999991
+      },
+      "retained": {
+        "samples": 40,
+        "medianMs": 0.05038999999999305,
+        "p95Ms": 0.10031099999991966,
+        "p99Ms": 0.20901199999991604
+      },
+      "blocks": [
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            25.348100000000045,
+            21.615189000000044,
+            23.327146999999968,
+            21.59346800000003,
+            21.11857299999997,
+            29.519586000000004,
+            26.472601999999938,
+            22.451717999999914,
+            21.856200999999942,
+            25.616191999999955
+          ]
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.20901199999991604,
+            0.06892100000004575,
+            0.05988000000002103,
+            0.062320999999997184,
+            0.0677810000000818,
+            0.058179999999993015,
+            0.05538100000001123,
+            0.05497099999990951,
+            0.06384000000002743,
+            0.0751109999999926
+          ],
+          "coldOpenMs": 21.8485619999999
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.07457099999999173,
+            0.05268100000000686,
+            0.05030999999996766,
+            0.05101100000001679,
+            0.050070000000005166,
+            0.050281000000040876,
+            0.05038999999999305,
+            0.04970100000002731,
+            0.050070000000005166,
+            0.06851099999994403
+          ],
+          "coldOpenMs": 22.50041800000008
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            21.170014000000037,
+            25.18287799999996,
+            21.64394900000002,
+            22.712499999999977,
+            22.34624699999995,
+            22.503548000000023,
+            21.053172000000018,
+            23.363278000000037,
+            23.17757599999993,
+            21.763770000000022
+          ]
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            22.366456000000085,
+            22.103703999999993,
+            22.239156000000094,
+            20.901090000000067,
+            24.667392000000063,
+            23.05144499999983,
+            46.2836299999999,
+            56.54533399999991,
+            55.972097000000076,
+            44.571402000000035
+          ]
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.10031099999991966,
+            0.04941099999996368,
+            0.045909999999821594,
+            0.04575099999988197,
+            0.04575999999997293,
+            0.04550100000005841,
+            0.04542000000014923,
+            0.04515100000003258,
+            0.046579999999948996,
+            0.04427099999998063
+          ],
+          "coldOpenMs": 34.54607099999998
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.09075099999995473,
+            0.049359999999978754,
+            0.07168099999989863,
+            0.05755100000010316,
+            0.04669000000012602,
+            0.04602100000010978,
+            0.05277000000000953,
+            0.04646099999990838,
+            0.04601999999999862,
+            0.046321000000034473
+          ],
+          "coldOpenMs": 21.890961999999945
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            27.007477999999992,
+            19.16487099999995,
+            22.93060300000002,
+            28.6347659999999,
+            33.842693000000054,
+            24.430869999999913,
+            29.78387900000007,
+            31.575818000000027,
+            26.29142999999999,
+            55.83451600000012
+          ]
+        }
+      ]
+    },
+    "primaryRunConditions": "Sequential run after all test/build handles completed. Cached local filesystem; both modes return the same 256-file catalog. Initial retained-store cold open is separately reported, not eliminated.",
+    "exploratory": {
+      "node": "v26.9.0",
+      "scope": "File generation acquisition/catalog/release on cached local storage. Cold initial process opens excluded from retained samples and reported separately. No motion or hardware performance claim.",
+      "files": 256,
+      "inputSha256": "09134ea3db770c61543db134e5f76ed7704b612c1e06ff406cd87a4f7e78124d",
+      "order": "ABBA ABBA",
+      "reopen": {
+        "samples": 40,
+        "medianMs": 24.164993000000095,
+        "p95Ms": 30.859977999999956,
+        "p99Ms": 33.21718499999997
+      },
+      "retained": {
+        "samples": 40,
+        "medianMs": 0.05820099999982631,
+        "p95Ms": 0.11602100000004612,
+        "p99Ms": 0.21393200000011348
+      },
+      "blocks": [
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            25.696410000000014,
+            26.484979000000067,
+            25.201563999999962,
+            24.547887999999944,
+            24.318574000000012,
+            25.89849300000003,
+            23.676967000000104,
+            24.118412000000035,
+            24.34169499999996,
+            25.671119999999974
+          ]
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.21393200000011348,
+            0.06947100000002138,
+            0.0618010000000595,
+            0.06282099999998536,
+            0.07364000000006854,
+            0.05820099999982631,
+            0.05791099999987637,
+            0.055219999999962965,
+            0.0618010000000595,
+            0.07618100000013328
+          ],
+          "coldOpenMs": 25.331845999999814
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.08488099999999577,
+            0.052680999999893174,
+            0.05059999999980391,
+            0.049400999999988926,
+            0.04962999999997919,
+            0.04959099999996397,
+            0.049430000000029395,
+            0.05000100000006569,
+            0.05117100000006758,
+            0.08528100000012273
+          ],
+          "coldOpenMs": 23.84399899999994
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            33.21718499999997,
+            30.859977999999956,
+            24.971532000000025,
+            24.073081999999886,
+            22.973838999999998,
+            25.50036799999998,
+            24.525827000000163,
+            23.747288000000026,
+            22.748566999999866,
+            25.50798800000007
+          ]
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            23.178562000000056,
+            23.321482999999944,
+            22.396633000000065,
+            24.875921000000062,
+            23.04219000000012,
+            23.41854400000011,
+            22.94151899999997,
+            25.829071999999996,
+            22.81279799999993,
+            29.174218999999994
+          ]
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.09448100000008708,
+            0.04903100000001359,
+            0.05573099999992337,
+            0.045720000000073924,
+            0.06995099999994636,
+            0.11602100000004612,
+            0.07221100000015213,
+            0.06404100000008839,
+            0.0781010000000606,
+            0.06628000000000611
+          ],
+          "coldOpenMs": 22.149539999999888
+        },
+        {
+          "mode": "retained",
+          "samplesMs": [
+            0.09453100000018821,
+            0.0477610000000368,
+            0.07296999999994114,
+            0.06090100000005805,
+            0.04669100000000981,
+            0.052049999999780994,
+            0.047180999999909545,
+            0.04560000000014952,
+            0.04609099999993305,
+            0.04630999999994856
+          ],
+          "coldOpenMs": 26.111484999999902
+        },
+        {
+          "mode": "reopen",
+          "samplesMs": [
+            22.944868999999926,
+            23.81859899999995,
+            25.171354000000065,
+            24.164993000000095,
+            23.280123000000003,
+            29.167658999999958,
+            22.064758999999867,
+            22.87397800000008,
+            22.400442999999996,
+            23.44801499999994
+          ]
+        }
+      ]
+    },
+    "exploratoryRunConditions": "Overlapped the product build/typecheck; retained for provenance, not the primary controlled measurement."
+  },
+  "limitations": [
+    "This implements the file-ownership portion of L1, not the complete L1-L4 restart batch. runProductHost still closes/rebuilds the server, authorization/database and native upload/metadata layer.",
+    "Legacy one-shot loadNativeProductMachineProfile retains its existing ownership; process retention requires the new factory or explicit borrowed file resources. Wrappers must forward factory.close.",
+    "The file benchmark measures reacquisition/catalog/release only; it does not include metadata layer initialization, MCU configuration or whole printer restart.",
+    "The 40 samples per mode on a cached desktop filesystem do not establish target-device tails or printer throughput.",
+    "One compiled API-load case passes the existing regression gates; no Python/target-board performance comparison or strict no-regression claim.",
+    "No physical stop, numerical anomaly closure, real-client standard restart or full Python retirement was established."
+  ]
+}

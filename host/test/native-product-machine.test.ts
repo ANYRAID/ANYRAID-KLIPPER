@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm,writeFile,open,access} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {createNativeProductBindings,type NativeMachineAdapter,type NativeProductMachineOptions} from '../src/runtime/native-product-machine.ts';
+import {createNativeProductBindings,NativeProductFileResources,type NativeMachineAdapter,type NativeProductMachineOptions} from '../src/runtime/native-product-machine.ts';
 import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import type {ProductMachineConfiguration} from '../src/config/product-machine.ts';
@@ -59,4 +59,62 @@ test('standard print remains opt-in and adapters cannot override native ownershi
  const invalid={...f.adapter,server:{...f.adapter.server,productPrintCompatibility:{start:async()=>({fileId:'outside',nozzle:0,bed:0})}}};
  await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,createAdapter:async()=>invalid}),/owns file/);assert.equal(f.releases,2);
  }finally{await bindings?.release();await f.close();}
+});
+test('process files retain the actual lock and bytes across exclusive generation leases',async()=>{
+ const f=await fixture();let resources:NativeProductFileResources|undefined,first:Awaited<ReturnType<typeof createNativeProductBindings>>|undefined,second:typeof first;
+ try{
+  await f.seed();resources=await NativeProductFileResources.open(f.options);
+  const options={...f.options,files:undefined,fileResources:resources};first=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),options);
+  assert(resources.status.leased);await assert.rejects(PublishedPrintFiles.open(f.options.filesRoot),/Lock published file directory/);
+  await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),options),/not retired/);assert.equal(f.releases,0);
+  await first.release();assert.equal(resources.status.leased,false);assert.equal(resources.status.files.closed,false);assert.equal(f.releases,1);
+  await assert.rejects(PublishedPrintFiles.open(f.options.filesRoot),/Lock published file directory/);
+  second=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),options);
+  await assert.rejects(first.print.open('job',signal()),/closed/);
+  assert.deepEqual(await second.server.productPrintCompatibility!.start('job.gcode',signal()),{fileId:'job',nozzle:200,bed:60});
+  const reader=await second.print.open('job',signal());try{assert.equal((await reader.next(signal()))!.script,'G1 X1');}finally{await reader.close();}
+  await second.release();await resources.close();assert.equal(resources.status.files.closed,true);assert.equal(f.releases,2);
+  const reopened=await PublishedPrintFiles.open(f.options.filesRoot);await reopened.close();
+ }finally{await first?.release();await second?.release();await resources?.close();await f.close();}
+});
+test('process close waits for ignored cancellation and adapter release before unlocking files',async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),held=Promise.withResolvers<void>(),adapterEntered=Promise.withResolvers<void>(),adapterHeld=Promise.withResolvers<void>();let resources:NativeProductFileResources|undefined,bindings:Awaited<ReturnType<typeof createNativeProductBindings>>|undefined;
+ try{
+  await f.seed();resources=await NativeProductFileResources.open(f.options);f.adapter.authorizePrintFile=async()=>{entered.resolve();await held.promise;};f.adapter.release=async()=>{adapterEntered.resolve();await adapterHeld.promise;};
+  bindings=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,fileResources:resources});
+  const opening=bindings.print.open('job',signal()),rejected=assert.rejects(opening,/closed/);await entered.promise;
+  const retiring=bindings.release(),closing=resources.close();assert.equal(resources.close(),closing);
+  await Promise.resolve();assert(resources.status.leased);assert.equal(resources.status.files.closed,false);assert.throws(()=>resources!.acquire(f.options),/closed/);
+  held.resolve();await rejected;await adapterEntered.promise;assert(resources.status.leased);await assert.rejects(PublishedPrintFiles.open(f.options.filesRoot),/Lock published file directory/);
+  adapterHeld.resolve();await retiring;await closing;assert.equal(resources.status.files.closed,true);
+ }finally{held.resolve();adapterHeld.resolve();await bindings?.release();await resources?.close();await f.close();}
+});
+test('failed generation metadata startup releases its lease without destroying process storage',async()=>{
+ const f=await fixture();let resources:NativeProductFileResources|undefined,bindings:Awaited<ReturnType<typeof createNativeProductBindings>>|undefined;
+ try{
+  await f.seed();resources=await NativeProductFileResources.open(f.options);await writeFile(f.options.metadataRoot,'not a directory');
+  await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,fileResources:resources}));
+  assert.equal(f.releases,1);assert.equal(resources.status.leased,false);assert.equal(resources.status.files.closed,false);
+  await rm(f.options.metadataRoot);bindings=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,fileResources:resources});
+  assert.equal((await bindings.server.productPrintCompatibility!.start('job.gcode',signal())).fileId,'job');await bindings.release();
+ }finally{await bindings?.release();await resources?.close();await f.close();}
+});
+test('process storage rejects identity changes and option overrides before adapter acquisition',async()=>{
+ const f=await fixture();let resources:NativeProductFileResources|undefined,calls=0;
+ try{
+  resources=await NativeProductFileResources.open(f.options);f.options.createAdapter=async()=>{calls++;return f.adapter;};
+  await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,fileResources:resources,files:{maxFileBytes:1}}),/override/);
+  for(const roots of [{filesRoot:join(f.root,'other-files')},{metadataRoot:join(f.root,'other-metadata')}])await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,...roots,fileResources:resources}),/identity/);
+  assert.equal(calls,0);assert.equal(resources.status.leased,false);
+ }finally{await resources?.close();await f.close();}
+});
+test('adapter cleanup failure releases the lease but remains a failed generation outcome',async()=>{
+ const f=await fixture();let resources:NativeProductFileResources|undefined;
+ try{
+  await f.seed();resources=await NativeProductFileResources.open(f.options);f.adapter.release=async()=>{throw new Error('adapter retirement failed');};
+  const bindings=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,fileResources:resources});
+  const failed=bindings.release();await assert.rejects(failed,(error:unknown)=>error instanceof AggregateError&&error.errors.some(e=>String(e).includes('adapter retirement failed')));assert.equal(bindings.release(),failed);
+  assert.equal(resources.status.leased,false);assert.equal(resources.status.files.closed,false);assert(bindings.server.nativeUploads!.status.closed);
+  await resources.close();const reopened=await PublishedPrintFiles.open(f.options.filesRoot);await reopened.close();
+ }finally{await resources?.close();await f.close();}
 });

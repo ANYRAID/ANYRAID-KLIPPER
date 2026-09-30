@@ -47,11 +47,35 @@ Promise。忽略取消的文件策略仍须真正结束，不能把超时或取�
 
 释放机器依赖前须完成设备退役；监听器仍运行时，数据库、身份及其他进程
 资源须继续保留。当前 profile 的 adapter.release 可能还持有这些资源，
-不能直接将其全部释放。新代际重新绑定与进程资源所有权拆分仍待实现；
+不能直接将其全部释放。文件库已支持下文的独立保留；新代际重新绑定与
+其余进程资源所有权拆分仍待实现；
 退役后的原生文件／历史代际接口暂不可用。runProductHost 的 reinitialize
 仍重建整个服务，标准重启按钮的兼容状态如下文，未因本接口而改变。
 实现、源码网络测试、模拟停止失败及独立编译打印回归见
 [退役边界验收](../host/contracts/native-generation-retirement-acceptance.json)。
+
+### 进程文件库与设备代际
+
+`createNativeProductHostFactory(machinePath, options)` 可直接作为机器模块的
+`createProductHostProfile` 导出；参数沿用原生装配的文件路径、限额、准备
+温度和真实 `createAdapter`。配置预检通过后才打开文件库，进程持有同一个
+目录句柄、锁和已恢复的文件目录。每个设备代际借用文件库，创建自己的
+上传／元数据层和门禁；旧代际释放后才允许创建下一代际。
+
+`runProductHost` 在最终设备／profile 退役后调用工厂的 `close()`，包括启动
+和清理失败路径；错误保留并继续关闭主机控制器。profile 的 `release()`
+排空文件准入、关闭上传层及 adapter 后释放借用，不能关闭进程文件库。
+包装工厂时须转发 `close()`；单独使用工厂时由调用者先释放 profile，再
+关闭工厂。存储路径不能跨代改变，文件限额在工厂创建时固定。
+
+底层 `NativeProductFileResources` 支持显式借用；同时只允许一代际，关闭
+时拒绝新借用并等待旧借用结束。迟到授权仍须真正排空；清理失败不会被
+转写成成功。原有 `loadNativeProductMachineProfile` 保留一次性所有权。
+
+实际产品入口的双 MCU 模拟重初始化、独立编译 JWT／并发打印回归及
+文件交接性能见[进程文件库验收](../host/contracts/native-process-files-acceptance.json)。
+本增量保留文件库；监听器、数据库与身份仍按旧主机流程重建，原生文件／
+历史接口尚不能在设备退役窗口连续服务，标准重启尚未完成。
 
 ### 客户端连接与重新初始化
 
