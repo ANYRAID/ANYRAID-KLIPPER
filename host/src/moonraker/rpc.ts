@@ -19,6 +19,8 @@ export interface RpcContext {
   /** Internal device lifetime captured at network admission, never client data.
    * Process methods ignore it; native handlers reject stale request bodies. */
   nativeGenerationSignal?:AbortSignal;
+  /** Whether this network request entered an already detached device window. */
+  nativeGenerationRetiredAtAdmission?:boolean;
   connectionId?:number;
   /** Required authorization hook, called before each method invocation. */
   authorize(method:string,params:Readonly<Record<string,Json>>):AuthorizationResult|Promise<AuthorizationResult>;

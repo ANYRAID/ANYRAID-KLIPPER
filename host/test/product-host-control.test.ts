@@ -1,6 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
+test('standard restart fences retired admissions, keeps one running receipt and rejects queued duplicates',async()=>{
+ const control=new ProductHostControl(),scope=new AbortController(),done=Promise.withResolvers<void>();let calls=0,sent:((sent:boolean)=>void)|undefined;
+ const detach=control.attach(kind=>{assert.equal(kind,'restart');calls++;return done.promise;},()=>{},{generationSignal:scope.signal});
+ const record=await control.requestRestart(scope.signal,false,cb=>{sent=cb;});assert.equal(record.state,'queued');assert.equal(calls,0);
+ await assert.rejects(control.requestRestart(scope.signal,false,()=>assert.fail()),/already pending/);assert.equal(control.status.restart_operation?.request_id,record.request_id);
+ sent!(true);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);assert.equal((await control.requestRestart(scope.signal,false,()=>assert.fail())).request_id,record.request_id);
+ scope.abort();await assert.rejects(control.requestRestart(scope.signal,false,()=>assert.fail()),/retired/);detach();done.resolve();await new Promise(resolve=>setImmediate(resolve));
+ control.attach(async kind=>{assert.equal(kind,'restart');calls++;},()=>{},{kinds:['restart'],generationSignal:scope.signal});assert.equal(control.status.available,false);assert.equal(control.status.restart_available,true);
+ const retry=await control.requestRestart(scope.signal,true,cb=>cb(true));assert.notEqual(retry.request_id,record.request_id);await new Promise(resolve=>setImmediate(resolve));assert.equal(control.operation(retry.request_id)?.state,'succeeded');assert.equal(calls,2);await control.close();
+});
+test('rejected standard admission retains the preceding durable outcome',async()=>{
+ const control=new ProductHostControl();let allowed=true;control.attach(async()=>{},()=>{if(!allowed)throw new Error('Active maintenance');});const accepted=await control.requestRestart(undefined,undefined,cb=>cb(true));await new Promise(resolve=>setImmediate(resolve));assert.equal(control.operation(accepted.request_id)?.state,'succeeded');allowed=false;await assert.rejects(control.requestRestart(undefined,undefined,()=>assert.fail()),/maintenance/);assert.equal(control.status.restart_operation?.request_id,accepted.request_id);assert.equal(control.status.restart_operation?.state,'succeeded');await control.close();
+});
 test('local reinitialization waits for owner completion and coalesces duplicate requests',async()=>{
  const control=new ProductHostControl();await assert.rejects(control.reinitialize(),/not ready/);
  const done=Promise.withResolvers<void>();let calls=0;const off=control.attach(()=>{calls++;return done.promise;});assert.throws(()=>control.attach(()=>Promise.resolve()),/already owned/);

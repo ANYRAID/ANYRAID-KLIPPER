@@ -4,6 +4,15 @@ import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {registerProductHostControl} from '../src/moonraker/product-host-api.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
 import {JsonRpcDispatcher,ApiError,type RpcContext} from '../src/moonraker/rpc.ts';
+test('standard RESTART returns ok for authorized POST and RPC only after durable admission',async()=>{
+ const control=new ProductHostControl(),registry=new EndpointRegistry(new JsonRpcDispatcher());const release=registerProductHostControl(registry,control);let calls=0,sent:((sent:boolean)=>void)|undefined;
+ control.attach(async kind=>{assert.equal(kind,'restart');calls++;});const context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){},afterResponse(cb){sent=cb;}};
+ await assert.rejects(registry.invoke('/printer/restart','POST',{}, {...context,authorize(){throw new ApiError(401,'Denied');}}),e=>e instanceof ApiError&&e.status===401);
+ await assert.rejects(registry.invoke('/printer/restart','POST',{unexpected:true},context),e=>e instanceof ApiError&&e.status===400);
+ assert.equal(await registry.invoke('/printer/restart','POST',{},context),'ok');assert.equal(control.status.restart_operation?.state,'queued');assert.equal(calls,0);sent!(true);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);
+ const reply=JSON.parse((await registry.dispatcher.dispatch(JSON.stringify({jsonrpc:'2.0',id:2,method:'printer.restart'}),{...context,transport:'websocket'}))!);assert.equal(reply.result,'ok');assert.equal(calls,1);sent!(false);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);assert.equal(control.status.restart_operation?.state,'failed');
+ release();assert.equal(registry.allowed('/printer/restart'),undefined);assert.equal(registry.allowed('/printer/firmware_restart'),undefined);await control.close();
+});
 test('host endpoints require authorization, versioned identity, state token and response handoff',async()=>{
  const control=new ProductHostControl(),registry=new EndpointRegistry(new JsonRpcDispatcher()),release=registerProductHostControl(registry,control),methods:string[]=[];let calls=0;control.attach(async()=>{calls++;});
  const params={version:1,request_id:'recover',state_token:control.status.state_token},context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(method){methods.push(method);}};

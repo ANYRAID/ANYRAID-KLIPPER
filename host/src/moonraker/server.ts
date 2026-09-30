@@ -119,8 +119,8 @@ export class MoonrakerNetwork {
   // Publish the task before invoking handlers so reentrant shutdown sees it.
   const job=Promise.resolve().then(()=>run(abort.signal)).catch(()=>{}).finally(()=>{clearTimeout(timeout);parent?.removeEventListener('abort',cancel);this.#requests.delete(abort);});this.#requests.set(abort,job);
  }
- #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number,nativeGenerationSignal=this.#nativeLifetime):RpcContext{
-  return {transport,signal,nativeGenerationSignal,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
+ #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number,nativeGenerationSignal=this.#nativeLifetime,nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted):RpcContext{
+  return {transport,signal,nativeGenerationSignal,nativeGenerationRetiredAtAdmission,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
  }
  async #subscriptionConnection(request:IncomingMessage,body:Uint8Array,signal:AbortSignal):Promise<{id:number;signal:AbortSignal}>{
   if(!this.#options.authorizeSubscriptionConnection)throw new ApiError(503,'Subscription connection authorization is required');signal.throwIfAborted();
@@ -129,7 +129,7 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload();
+  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
@@ -146,12 +146,12 @@ export class MoonrakerNetwork {
      signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
-     const result=await receiveUpload!(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal));signal.throwIfAborted();
+     const result=await receiveUpload!(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission));signal.throwIfAborted();
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
     }
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
-    const body=Buffer.concat(chunks),context=this.#context(request,'http',signal,undefined,nativeGenerationSignal);
+    const body=Buffer.concat(chunks),context=this.#context(request,'http',signal,undefined,nativeGenerationSignal,nativeGenerationRetiredAtAdmission);
     if(isDownload&&request.method==='DELETE'){
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
      const result=await nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
@@ -220,7 +220,8 @@ export class MoonrakerNetwork {
    const decoded=this.#clientRequests?.acceptFrame(id,bytes(data));if(decoded&&decoded.value===undefined)return;
    if(this.#buffered+size>this.#maxBuffered){peer.abort.abort(new Error('Request buffer capacity exceeded'));socket.terminate();return;}
    if(this.#phase!=='listening'||peer.active>=this.#perSocket||this.#requests.size>=this.#maxRequests){peer.abort.abort(new Error('WebSocket request capacity exceeded'));socket.terminate();return;}
-   peer.active++;this.#buffered+=size;this.#launch(async signal=>{let completion:ResponseCompletion|undefined;const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const context=this.#context(request,'websocket',signal,id);context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};const result=decoded?await this.#rpc.dispatchValue(decoded.value,context):await this.#rpc.dispatch(bytes(data),context);signal.throwIfAborted();const sent=result===null||this.#send(peer,result);if(completion&&!completion.complete(sent))socket.terminate();}finally{if(completion&&!completion.complete(false))socket.terminate();signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
+   const nativeGenerationSignal=this.#nativeLifetime,nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
+   peer.active++;this.#buffered+=size;this.#launch(async signal=>{let completion:ResponseCompletion|undefined;const cancelled=()=>socket.terminate();signal.addEventListener('abort',cancelled,{once:true});try{signal.throwIfAborted();const context=this.#context(request,'websocket',signal,id,nativeGenerationSignal,nativeGenerationRetiredAtAdmission);context.afterResponse=callback=>{(completion??=new ResponseCompletion(signal)).add(callback);};const result=decoded?await this.#rpc.dispatchValue(decoded.value,context):await this.#rpc.dispatch(bytes(data),context);signal.throwIfAborted();const sent=result===null||this.#send(peer,result);if(completion&&!completion.complete(sent))socket.terminate();}finally{if(completion&&!completion.complete(false))socket.terminate();signal.removeEventListener('abort',cancelled);peer.active--;this.#buffered-=size; }},peer.abort.signal);
   });
  }
  #send(peer:Peer,message:string):boolean{

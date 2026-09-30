@@ -50,8 +50,8 @@ Promise。忽略取消的文件策略仍须真正结束，不能把超时或取�
 释放机器依赖前须完成设备退役；监听器仍运行时，数据库、身份及其他进程
 资源须继续保留。旧模式 profile 的 adapter.release 可能还持有这些资源，
 不能直接将其全部释放；应使用下文的 `createProcess` 模式拆分生命周期。
-退役后的原生文件／历史代际接口暂不可用。标准重启按钮的兼容状态如下文，
-未因退役接口或主机入口贯通而改变。
+旧一次性适配器的设备文件／历史接口在退役后不可用；createProcess 模式
+的进程资源继续提供这些服务。标准重启与实际按钮验收边界如下文。
 实现、源码网络测试、模拟停止失败及独立编译打印回归见
 [退役边界验收](../host/contracts/native-generation-retirement-acceptance.json)。
 
@@ -70,7 +70,8 @@ JSON-RPC 延迟正文仍归属入站时的设备代际，不能在重建后启�
 忽略取消的授权实际结束，再释放数据库、文件和 adapter。未结束的策略会
 阻止退役完成，不能用超时声明已排空。源码双模拟 MCU 和性能回归见
 [绑定接口验证](../host/contracts/native-generation-attachment-acceptance.json)。
-`runProductHost` 已在进程模式使用该接口；标准重启语义及按钮仍未交付。
+`runProductHost` 已在进程模式使用该接口；标准 RESTART 的软件增量如下，
+固件重启与实际按钮验收仍待完成。
 
 ### 进程服务与设备代际
 
@@ -160,7 +161,36 @@ createProcess 的旧适配器保留原有一次性服务语义，不隐式改变
 文件交接性能见[进程文件库验收](../host/contracts/native-process-files-acceptance.json)。
 该文件库证据属于旧主机流程；保留监听器、数据库与身份的新模式见上节。
 createProcess 模式已通过设备退役窗口的文件／历史连续服务验证；标准
-重启尚未完成。
+RESTART 已接通，完整恢复批次尚未完成。
+
+### 标准主机 RESTART 软件增量
+
+createProcess 模式提供授权 POST /printer/restart 与 WebSocket RPC
+printer.restart，无参数。响应为 `ok`，表示持久化 queued 回执已受理；
+完整响应交给网络层后才重载，并不表示设备已经 ready。
+GET /printer/host/status 返回 restart_available 和 restart_operation；
+只在新设备 ready 且回执提交后报告 succeeded。原 reinitialize 的版本／
+请求 ID／状态令牌和静止准入语义继续保留。
+
+主机重新读取配置、排空并释放旧设备，再打开新会话。标准 RESTART 强制
+UART leaveBootloader=false，复用 MCU 的现有 CRC 配置，不执行固件 reset。
+原生工厂与进程 adapter 收到可选 `{reason: 'initial' | 'reinitialize' | 'restart'}`；
+包装工厂须转发这个第二参数。adapter 不得将普通 restart 转换成固件复位。
+配置 CRC 不匹配或 MCU shutdown 不会被主机重载自动修复；等待 A3 的显式
+FIRMWARE_RESTART。停止失败与部分启动清理失败拒绝新设备接入。
+
+允许取消活动作业后重载；忽略取消的已受理动作仍必须真正结束，日志
+保留取消结果，不重放文件。维护期间拒绝重载。queued 时的第二个标准
+请求返回 409；已 running 且同代际的重复请求返回同一次受理结果。旧入站
+请求不能作用于新设备；安全退役后的配置失败可修复配置并显式重试，
+不会自动重试。WebSocket 保留，设备订阅清空后需要重新订阅。
+
+当前边界：首次启动在监听器建立前失败，仍退出且没有可查询服务；回执
+沿用最多 128 条的持久容量，达到后拒绝新重载，日常重启的保留策略仍待
+处理；额外参数返回 400（固定上游路由忽略额外参数），旧一次性工厂拒绝
+标准重载。`ok`、ready 与成功回执分别表示不同阶段，不能混用。
+实际 Fluidd／Mainsail 按钮和物理 MCU 尚未验收。软件证据见
+[标准主机重启增量](../host/contracts/native-standard-restart-acceptance.json)。
 
 ### 客户端连接与重新初始化
 
@@ -176,8 +206,8 @@ WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`
 标准 Klippy `restart`／`firmware_restart`，实际前端按钮衔接仍待完成。
 实际 Mainsail 2.19.0 已验证打印中刷新后继续至完成且历史不重复；原生
 重新初始化后需点击 TRY AGAIN 才恢复 Standby，本轮没有自动重连通过
-证据。标准 `/printer/restart` 与 `/printer/firmware_restart` 当前返回 404，
-不能把原生受控操作当作这两个按钮已兼容。Fluidd 页面重连、页面上传和
+证据。该页面记录属于旧包：当前标准 `/printer/restart` 已接入软件产品，
+`/printer/firmware_restart` 尚未实现，两个按钮的当前包页面验收均未完成。Fluidd 页面重连、页面上传和
 实机恢复仍应分别验收，证据见客户端记录的 mainsailPageReconnect。
 
 ## 实时运动状态
@@ -789,8 +819,9 @@ cancelled/failed 终态、无待处理设备动作或维护活动且物理停止
 接受请求；先封闭旧会话准入，等待服务和依赖完整退场，再调用机器工厂
 建立新会话。重复请求合并，只有新会话 ready 后才报告 reinitialized。
 旧会话清理失败或进程退出不会启动替代会话；重新启动失败会报告错误。
-API 监听在此期间关闭并重建，客户端须重新连接，工厂应复用相同持久化
-日志路径以保留历史。不会重放旧文件，新作业必须重新归零。
+旧一次性模式在此期间关闭并重建 API，客户端须重新连接；createProcess
+模式保留监听器与连接。工厂应复用相同持久化日志路径以保留历史。不会
+重放旧文件，新作业必须重新归零。
 远程控制使用原有鉴权策略，必须单独授权 printer.host.status 与
 printer.host.reinitialize。GET /printer/host/status 返回当前 state_token、
 available（控制入口可用）、busy、durable、storage_failed；available
@@ -809,7 +840,9 @@ HTTP 或 WebSocket JSON-RPC 的方法名为 printer.host.reinitialize；
 客户端重连后用 GET /printer/host/status?request_id=recover-001 查询
 queued/running/succeeded/failed/interrupted；只有新会话 ready 且成功
 回执提交完成后才变为 succeeded。
-机器重建失败可能使进程退出，此时不能把失联当成恢复成功。
+旧一次性模式的机器重建失败可能使进程退出。createProcess 模式保留服务；
+确认安全退役后的配置失败允许显式标准 RESTART 重试。停止或清理失败
+拒绝重试，不以旧设备的 stopped 快照推定部分新设备已安全清理。
 
 同 request_id 与原 state_token 重试返回原记录，不再次执行；冲突身份
 或旧会话令牌返回 409。未鉴权请求不产生恢复动作。恢复日志保留最多

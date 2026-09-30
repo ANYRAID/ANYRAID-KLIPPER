@@ -1,4 +1,4 @@
-import type {ProductHostControl} from '../runtime/product-host-control.ts';
+import {RestartAdmissionError,type ProductHostControl} from '../runtime/product-host-control.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import {ApiError} from './rpc.ts';
 /** Explicit product operation, separate from legacy Klippy restart semantics.
@@ -14,5 +14,11 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
   try{return {accepted:true,operation:{...await control.request(params.request_id,params.state_token,callback=>context.afterResponse!(callback))}};}
   catch(error){throw new ApiError(control.status.storage_failed?503:409,error instanceof Error?error.message:'Reinitialization rejected');}
  });
- return ()=>{reinitialize();status();};
+ const restart=registry.register({endpoint:'/printer/restart',methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
+  if(Object.keys(params).length)throw new ApiError(400,'RESTART takes no arguments');
+  if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
+  try{await control.requestRestart(context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
+  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:control.status.storage_failed?503:409,error instanceof Error?error.message:'Restart rejected');}
+ });
+ return ()=>{restart();reinitialize();status();};
 }

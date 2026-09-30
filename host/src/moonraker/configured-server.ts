@@ -410,6 +410,8 @@ export class ConfiguredMoonraker {
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
  get nativeGenerationStatus(){return this.#nativeScope?{...this.#nativeScope.status,generation:this.#nativeGeneration,attaching:this.#nativeReattaching,drained:this.#nativeRetirementDrained,detached:!!this.#nativeRetirement,state:this.#nativeRetiredSnapshot?.hardware_state??'attached'}:null;}
+ /** Trusted host composition only; never exposed in API payloads. */
+ get nativeGenerationSignal(){return this.#nativeScope?.signal;}
  get nativeSubscriptionStatus(){return this.#nativeSubscriptions?.metrics??null;}
  /** Called only by the physical owner after its device cleanup has settled. */
  confirmNativeRetirement(outcome:'stopped'|'failed'):void{

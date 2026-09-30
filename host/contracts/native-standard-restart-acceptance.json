@@ -1,0 +1,231 @@
+{
+  "date": "2026-10-01",
+  "implementationBase": "a2613b51",
+  "node": "v26.9.0",
+  "pinnedMoonraker": "Arksine/moonraker@1cfb0c41e468645951a371621f06d32777b6107c",
+  "scope": "A2 software increment: standard HTTP/RPC RESTART with same simulated MCU config and explicit replacement failure recovery. A2 and the whole recovery/client batch remain incomplete; no physical printer or target-board acceptance.",
+  "sourceSha256": {
+    "host/src/runtime/product-host.ts": "9c59eb6f195bdb741a07cbe331a0ea3ddddb2f63451b4aa8b25708157fc85e25",
+    "host/src/runtime/product-host-control.ts": "c0223119c0087d4eb81506fc69d21c12c7d6fa0329c3a4c95c13485b0e8b5c6d",
+    "host/src/runtime/native-product-machine.ts": "5d250c006bff2bff2c58edb98a2a57ec5cd796fcfeec6b77d3287ec9b6a8e322",
+    "host/src/moonraker/product-host-api.ts": "91e20480df4cdd04a1e11ea35335d61685e237ce1a630b234a5e3929af5ce7d5",
+    "host/src/moonraker/configured-server.ts": "beea0e3872e54d4ae0396390052b22cb0439d7863ee651168779674a6b2304dc",
+    "host/src/moonraker/native-request-scope.ts": "d7d92957f24ca0fba741ff90a0e53f23ba8a53dcfa2491447b028dbaf62b8dbb",
+    "host/src/moonraker/rpc.ts": "b9b06c3429cccdfb8696413b77ca219aec35812441f9c98d3dd3d3662b4e3943",
+    "host/src/moonraker/server.ts": "56b84ee23de7c27ae6518faf99f46318ad7b379078df5db6419449336f579114",
+    "host/test/native-product-restart.test.ts": "6c8aef56e109d6a31ea53e38afbba85a73aa259849675678a46ad0284cc95f50",
+    "host/test/product-host-control.test.ts": "70e2d10f5c23cea3162d95ffb9ed87d4295240140697652990857e7466efe7d0",
+    "host/test/product-host-api.test.ts": "dcb0260c00a52ae3ef00a3981d48e2795cd8c2d17272eb113aeb43a2696f2d95",
+    "host/acceptance/product-compiled-restart.test.ts": "99f9571e049dde687d1faf393cc3368bdce257681924ddddc070ddd5ed4f4bc5",
+    "host/acceptance/product-compiled-journey.test.ts": "9ff3ecc14ef862f3c7b7b60754fc58d56dafb23d710569daacbb7a68ab5ab9e8"
+  },
+  "verified": [
+    "Authorized standard POST /printer/restart and WebSocket printer.restart return ok after queued journal admission; device reload starts only after response handoff. A lost handoff does not invoke the device; failed admissions retain the last committed outcome.",
+    "The actual host loop retains process server, identity, socket, files and journal. A failed configuration replacement stays queryable, never auto-retries, and can be explicitly retried after repair; the failed receipt remains queryable.",
+    "Standard restart opens new sessions with UART leaveBootloader=false. Source four and compiled five ready host generations retain the same two PTY firmware models. Stepper config counts stay [4,0]; no firmware reset or print replay; configuration CRC reuse uses the actual serial handshake.",
+    "A preparing job is cancelled, but ignored cancellation must actually drain before a new host attaches; the canonical job receipt is cancelled. Standard restart is refused during maintenance.",
+    "Late HTTP request bodies cannot restart a newer generation. Queued duplicates return 409; running duplicates within the same generation share admission. Shutdown during replacement prevents attachment and records failure.",
+    "Unconfirmed physical stop, dependency cleanup failure and aggregated partial replacement startup/cleanup failure prohibit retry even when the prior server snapshot is stopped. Query resources remain live.",
+    "Final independently compiled/installed packages produce identical manifest hashes for standard restart and concurrent heated printing acceptance. Runtime has PATH=/no-programs and TypeScript loading disabled. The latter exercises print, pause/resume, cancel, retirement window, process recovery, persistent JWT/history, uploads/downloads and ADC fault under concurrent API/subscription load."
+  ],
+  "sourceRegressions": {
+    "distinctCases": 97,
+    "fullAffected": {
+      "passed": 96,
+      "failed": 0,
+      "logSha256": "852fd6dced3dcbd55641644de86d3fb3d1cc5d0cf147f18fc8ae80ff88534bcd"
+    },
+    "finalControlAndRestartClosure": {
+      "passed": 15,
+      "failed": 0,
+      "logSha256": "2ec0f8e695a43b2564e567034f1c7efa494eed214f5c1cb118d20553f37be5de"
+    },
+    "explanation": "The final closure reruns changed control/API and all six standard restart cases, adding one rejected-admission outcome case to the earlier 96-case affected suite."
+  },
+  "compiled": {
+    "passed": 2,
+    "failed": 0,
+    "logSha256": "e89e0a582de2b060c4cf70d840baf30c29d62795f74b9a137ec1c17ca35f7d86",
+    "bundleManifestSha256": "8c7e39fcbcdf9e21e02270943e3025888b7d672af5da85e6e82b8960f03a9027",
+    "standardRestart": {
+      "bundleSha256": "8c7e39fcbcdf9e21e02270943e3025888b7d672af5da85e6e82b8960f03a9027",
+      "queries": 1986,
+      "queryP99Ms": 4.565638000000035,
+      "restartMs": [
+        519.9483170000021,
+        503.77956200000335,
+        514.191813999998
+      ],
+      "readyFileDescriptors": [
+        77,
+        77,
+        77,
+        77
+      ],
+      "sameMCUFirmware": true,
+      "stepperConfigurations": [
+        4,
+        0
+      ],
+      "hardwareAcceptance": false
+    },
+    "printLoad": {
+      "motionReportLoad": true,
+      "liveMotionSamples": 2675,
+      "liveExtrusionSamples": 1484,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.705901886,
+        "print_duration": 2.517380322000001,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "8c7e39fcbcdf9e21e02270943e3025888b7d672af5da85e6e82b8960f03a9027",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4016,
+      "phaseP99Ms": 7.731448000000455,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 895,
+      "historyP99Ms": 11.391434999999547,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.714002000000619,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.060214000000997,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.812155999999959,
+      "metadataRequests": 16,
+      "metadataP95Ms": 29.062098000000333,
+      "downloads": 16,
+      "downloadP95Ms": 3.833639000004041,
+      "wireCommands": 190,
+      "wireSteps": 3702,
+      "minimumStepLeadMs": 80.399,
+      "directoryRequests": 3876,
+      "directoryP99Ms": 9.11157600000297,
+      "statusRequests": 16055,
+      "uploads": 16,
+      "statusP99Ms": 5.746892999999545,
+      "uploadP95Ms": 6.678114000002097,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.955839,
+            "maxMs": 20.037631
+          },
+          "cpu": {
+            "user": 5520738,
+            "system": 698475
+          },
+          "rss": 308994048
+        },
+        {
+          "loop": {
+            "p99Ms": 1.900543,
+            "maxMs": 9.625599
+          },
+          "cpu": {
+            "user": 1794143,
+            "system": 249578
+          },
+          "rss": 298164224
+        }
+      ]
+    }
+  },
+  "supersededFailures": [
+    {
+      "logSha256": "dd81568e6e92feb8ae6a84d96da231327de509c18d40f18d8900f6d830d1ff97",
+      "passed": 1,
+      "failed": 1,
+      "observed": {
+        "parkingXmm": -1.8041124150158794e-16,
+        "parkingYmm": 0
+      },
+      "cause": "Compiled parking assertion demanded exact floating zero. The bounded live trapq position is now required finite and within 1e-12 mm of configured zero; physical motion code and broader precision gates were not changed.",
+      "finalRerunPassed": true
+    }
+  ],
+  "checks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diffCheck": true
+  },
+  "remaining": [
+    "A2: first-generation failure before a listener exists still exits; a queryable process bootstrap failure path remains to be designed/verified.",
+    "A2: the pre-existing recovery journal still has 128 durable receipt capacity and no archival policy; ordinary restarts must not permanently exhaust it.",
+    "A2: additional actual fault/shutdown/CRC rejection observability is not proven by these reload tests.",
+    "A3: /printer/firmware_restart is not implemented; MCU reset must clear actual config/shutdown and require physical stop and transport capability.",
+    "A4: current compiled package has not passed actual Fluidd/Mainsail standard restart/upload/reconnect button flows.",
+    "Parameter policy differs from pinned upstream: native restart rejects extra parameters with 400. Legacy generation-owned factories reject standard restart.",
+    "These tests do not close known numerical/crash failures, retire remaining Python, switch the default entry/CI/install, prove complete Moonraker, or prove Cycnumbris 500 physical safety/performance."
+  ]
+}

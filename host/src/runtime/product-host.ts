@@ -1,5 +1,5 @@
 import type {TemperatureStore} from '../moonraker/temperature-store.ts';
-import {ProductHostControl} from './product-host-control.ts';
+import {ProductHostControl,type HostReloadKind} from './product-host-control.ts';
 import {startConfiguredMachineService,type ConfiguredProductServiceOptions} from './product-service.ts';
 import type {ProductPrinterOptions} from './product-printer.ts';
 import type {MCUMachinePolicy} from './configured-mcu-connections.ts';
@@ -17,8 +17,9 @@ export interface ProductHostProfile {
  options:ConfiguredProductServiceOptions;
  release():Promise<void>;
 }
+export interface HostReloadContext {readonly reason:'initial'|HostReloadKind;}
 export interface ProductHostFactory {
- (signal:AbortSignal):Promise<ProductHostProfile>;
+ (signal:AbortSignal,context?:HostReloadContext):Promise<ProductHostProfile>;
  /** Explicit process dependency ownership. Must also provide final cleanup. */
  readonly serverLifetime?:'process';
  /** Process resources outlive profiles. The host invokes this only after the
@@ -44,26 +45,49 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  };
  signal.addEventListener('abort',abort,{once:true});
  try{
+  const reload:{reason:HostReloadContext['reason']}={reason:'initial'};
   while(!signal.aborted){
-   profile=await factory(signal);
+   try{
+   profile=await factory(signal,{reason:reload.reason});
    if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
-   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredMachineService(profile.reader,profile.policies,profile.product,{...profile.options,serverLifetime:processLifetime?'process':'generation',existingServer:processServer,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
+   // A host reload must not enter the UART bootloader/reset startup path.
+   const policies=reload.reason==='restart'?new Map([...profile.policies].map(([id,p])=>[id,p.transport==='uart'?{...p,leaveBootloader:false}:p])):profile.policies;
+   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredMachineService(profile.reader,policies,profile.product,{...profile.options,serverLifetime:processLifetime?'process':'generation',existingServer:processServer,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
    if(processLifetime)processServer??=service.server;
    temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
-   const validate=()=>{
+   const validate=(kind:HostReloadKind)=>{
     signal.throwIfAborted();const printer=generation.printer,state=printer.controller.state,gate=printer.maintenanceGate.status;
+    if(kind==='restart'){if(!processLifetime||gate.maintenance)throw new Error('Restart requires process ownership and no active maintenance');return;}
     if(!['idle','completed','cancelled','failed'].includes(state)||printer.controller.pendingDeviceActions||printer.controller.safeStopPending||gate.activities||gate.maintenance||printer.group.status.state==='failed')throw new Error('Reinitialization requires a quiescent printer and confirmed physical stop');
    };
-   detach=control.attach(()=>{validate();const printer=generation.printer;
+   detach=control.attach(kind=>{validate(kind);const printer=generation.printer;
     // Fence producers synchronously before yielding to any HTTP request.
-    printer.maintenanceGate.invalidate();requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
-   },validate);
-   ready({...service.address});completion?.resolve();completion=undefined;
+    printer.maintenanceGate.invalidate();reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
+   },validate,{kinds:processLifetime?['reinitialize','restart']:['reinitialize'],generationSignal:service.server.nativeGenerationSignal});
+   ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
    await Promise.race([stopped.promise,change.promise]);
    completion=requested;activeRequest=undefined;await closeGeneration();
    if(!requested)break;
+   }catch(error){
+    // Startup owners aggregate their primary error with failed stop/cleanup.
+    // That failure can precede transfer into `service`/`profile`; do not infer
+    // safe retirement merely from the previous server's stopped snapshot.
+    let cleanupFailed=error instanceof AggregateError;
+    if(!signal.aborted||error!==signal.reason){if(error instanceof AggregateError&&error.message==='Product generation cleanup failed')errors.push(...error.errors);else errors.push(error);}
+    try{await closeGeneration();}catch(cleanup){cleanupFailed=true;if(cleanup instanceof AggregateError)errors.push(...cleanup.errors);else errors.push(cleanup);}
+    completion??=activeRequest;
+    completion?.reject(new AggregateError(errors,'Product reinitialization failed'));completion=activeRequest=undefined;
+    if(!processServer||signal.aborted)break;
+    // Only an explicitly requested retry may create a replacement. A failed
+    // physical/dependency retirement cannot be made safe by a host reload.
+    if(cleanupFailed||processServer.nativeGenerationStatus?.state!=='stopped'){await stopped.promise;break;}
+    const change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
+    detach=control.attach(kind=>{signal.throwIfAborted();if(kind!=='restart')throw new Error('Only explicit RESTART can retry a failed replacement');reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;},()=>signal.throwIfAborted(),{kinds:['restart'],generationSignal:processServer.nativeGenerationSignal});
+    await Promise.race([stopped.promise,change.promise]);detach();detach=()=>{};completion=requested;activeRequest=undefined;
+    if(!requested)break;
+   }
   }
  }catch(error){
   if(!signal.aborted||error!==signal.reason){if(error instanceof AggregateError&&error.message==='Product generation cleanup failed')errors.push(...error.errors);else errors.push(error);}

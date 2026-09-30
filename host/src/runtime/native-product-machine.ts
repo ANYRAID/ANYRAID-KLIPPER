@@ -7,7 +7,7 @@ import {ApiError} from '../moonraker/rpc.ts';
 import type {ProductMachineConfiguration} from '../config/product-machine.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {loadProductMachineProfile,type ProductMachineBindings} from './product-machine-profile.ts';
-import type {ProductHostFactory,ProductHostProfile} from './product-host.ts';
+import type {ProductHostFactory,ProductHostProfile,HostReloadContext} from './product-host.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
 
 type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'>:never;
@@ -43,7 +43,7 @@ export interface NativeProductProcessResources {
 export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'processFiles'|'createAdapter'> {
  createProcess(configuration:ProductMachineConfiguration,signal:AbortSignal):Promise<NativeProductProcessResources>;
  /** Device resources only. Returning a server would mix the two lifetimes. */
- createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>):Promise<Omit<NativeMachineAdapter,'server'>>;
+ createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>,reload?:HostReloadContext):Promise<Omit<NativeMachineAdapter,'server'>>;
 }
 function overlapping(a:string,b:string):boolean {const rel=relative(a,b);return rel===''||!isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..'+sep);}
 function storageRoots(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>){
@@ -128,7 +128,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
- const factory:ProductHostFactory=(incoming)=>{
+ const factory:ProductHostFactory=(incoming,reload)=>{
   if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);
   if(active)return Promise.reject(new Error('Previous native profile has not retired'));
   incoming.throwIfAborted();active=true;const signal=AbortSignal.any([incoming,stopped.signal]);
@@ -143,7 +143,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
      if(['nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
     })();await processOpening;s.throwIfAborted();
     createAdapter=async(c,signal,g)=>{
-     const device=await processOptions.createAdapter(c,signal,g,processResources!.server);
+     const device=await processOptions.createAdapter(c,signal,g,processResources!.server,reload);
      if(device&&'server' in device){const error=new TypeError('Process-mode adapter must own only device resources');try{await device.release?.();}catch(cleanup){throw new AggregateError([error,cleanup],'Invalid native device cleanup failed');}throw error;}
      return {...device,server:processResources!.server};
     };
