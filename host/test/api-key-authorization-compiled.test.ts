@@ -18,7 +18,7 @@ import {DatabaseStore} from ${module('database')};
 import {ApiKeyAuthorization} from ${module('api-key-authorization')};
 import {ConfiguredMoonraker} from ${module('configured-server')};
 let now=10000;
-const database=await DatabaseStore.open({path:${JSON.stringify(join(root,'auth.sqlite'))}}),auth=await ApiKeyAuthorization.open(database,{issuer:'http://compiled-printer.test',now:()=>now});
+const database=await DatabaseStore.open({path:${JSON.stringify(join(root,'auth.sqlite'))}}),auth=await ApiKeyAuthorization.open(database,{issuer:'http://compiled-printer.test',now:()=>now,maxLoginAttempts:2});
 const server=await ConfiguredMoonraker.load(${JSON.stringify(config)},{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled-auth',missingRequirements:[]},...auth.networkOptions});
 auth.register(server.endpoints,server);
 try{const address=await server.start(),url='http://127.0.0.1:'+address.port;
@@ -47,7 +47,10 @@ const logout=await call('access.logout');assert.equal(logout.result.action,'user
 const notice=await wait(value=>value.method==='notify_user_logged_out');assert(frames.indexOf(logout)<frames.indexOf(notice));assert((await call('access.get_user')).error);ws.close();
 assert.equal(auth.eventStatus.pending,0);assert.equal(auth.eventStatus.failed,0);
 const revoked=await post('/access/refresh_jwt',{refresh_token:login.body.result.refresh_token});assert.equal(revoked.status,401);
-console.log(JSON.stringify({compiled:true,jwtLifecycle:true,websocketSurvivesTokenExpiry:true,logoutEventAfterResponse:true,websocketStatusP99Ms:wsTimes[198],jwtStatusP99Ms:jwtTimes[198],unauthorizedRejected:true,rotationRevokesOldKey:true,statusRequests:200,statusP99Ms:times[198],scope:'Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing'}));
+const oneShotTimes=[];for(let i=0;i<50;i++){const issued=await fetch(url+'/access/oneshot_token',{headers:{'x-api-key':next}});assert.equal(issued.status,200);const oneShot=(await issued.json()).result;assert.match(oneShot,/^[A-Z2-7]{32}$/);const start=performance.now(),accepted=await fetch(url+'/server/info?token='+oneShot);assert.equal(accepted.status,200);await accepted.arrayBuffer();oneShotTimes.push(performance.now()-start);const replay=await fetch(url+'/server/info?token='+oneShot);assert.equal(replay.status,401);await replay.arrayBuffer();}oneShotTimes.sort((a,b)=>a-b);assert(oneShotTimes[49]<50,'One-shot authorized status exceeds development budget');
+for(let i=0;i<2;i++)assert.equal((await post('/access/login',{username:'compiled-user',password:'wrong'})).status,400);
+assert.equal((await post('/access/login',{username:'compiled-user',password:'compiled-password'})).status,401);
+console.log(JSON.stringify({compiled:true,oneShotAndLoginPolicy:true,oneShotStatusMaxMs:oneShotTimes[49],jwtLifecycle:true,websocketSurvivesTokenExpiry:true,logoutEventAfterResponse:true,websocketStatusP99Ms:wsTimes[198],jwtStatusP99Ms:jwtTimes[198],unauthorizedRejected:true,rotationRevokesOldKey:true,statusRequests:200,statusP99Ms:times[198],scope:'Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing'}));
 }finally{await server.close();await auth.close();await database.close();}`);
   const result=JSON.parse(execFileSync(process.execPath,[script],{env:{...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'},encoding:'utf8',timeout:30000}));assert.equal(result.compiled,true);t.diagnostic(JSON.stringify(result));
  }finally{await rm(root,{recursive:true,force:true});}

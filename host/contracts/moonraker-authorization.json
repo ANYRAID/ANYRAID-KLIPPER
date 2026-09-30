@@ -3,43 +3,48 @@
   "source": "moonraker/components/authorization.py",
   "status": "partial-native-api-key-and-local-users",
   "tests": {
-    "uniqueTests": 37,
+    "uniqueTests": 41,
     "files": [
       "host/test/api-key-authorization.test.ts",
       "host/test/local-user-authorization.test.ts",
       "host/test/api-key-authorization-compiled.test.ts",
       "host/test/moonraker-network.test.ts",
       "host/test/authorization-events.test.ts",
-      "host/test/notifications.test.ts"
+      "host/test/notifications.test.ts",
+      "host/test/authorization-policy.test.ts",
+      "host/test/authorization-policy-network.test.ts"
     ],
-    "execution": "36-test affected suite passed; added durable-cancellation test then ran all 3 event tests, yielding 37 distinct tests without rerunning unchanged tests."
+    "execution": "41-test affected authorization, notifications and network suite passed, including the independent compiled product."
   },
   "benchmark": {
     "runtime": "v26.9.0",
     "scope": "100000 HTTP header authentications per round; 3 warmups and 5 retained rounds; includes live database owner state checks, SHA-256 and constant-time digest comparison; excludes sockets and IO; not a Python comparison",
     "samplesMs": [
-      188.62659200000007,
-      189.9566319999999,
-      191.76104400000008,
-      189.21074699999986,
-      190.01530200000002
+      189.140673,
+      190.52860799999985,
+      190.16190299999994,
+      189.158954,
+      190.2906250000001
     ],
-    "medianMs": 189.9566319999999,
-    "microsecondsPerRequest": 1.899566319999999,
+    "medianMs": 190.16190299999994,
+    "microsecondsPerRequest": 1.9016190299999993,
     "maximumMicrosecondsPerRequest": 10
   },
   "diagnostics": [
     {
       "compiled": true,
+      "oneShotAndLoginPolicy": true,
+      "oneShotStatusMaxMs": 0.8300280000000271,
+      "oneShotStatusRequests": 50,
       "jwtLifecycle": true,
       "websocketSurvivesTokenExpiry": true,
       "logoutEventAfterResponse": true,
-      "websocketStatusP99Ms": 0.178641999999968,
-      "jwtStatusP99Ms": 2.111635999999976,
+      "websocketStatusP99Ms": 0.3380329999999958,
+      "jwtStatusP99Ms": 2.1107809999999745,
       "unauthorizedRejected": true,
       "rotationRevokesOldKey": true,
       "statusRequests": 200,
-      "statusP99Ms": 1.8308719999999994,
+      "statusP99Ms": 1.9544089999999983,
       "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
     }
   ],
@@ -113,7 +118,14 @@
     },
     {
       "path": "/access/oneshot_token",
-      "state": "pending"
+      "state": "implemented: authenticated issuance, peer-address binding, 5-second monotonic expiry, single consumption and live credential revocation",
+      "methods": [
+        "GET"
+      ],
+      "transports": [
+        "http",
+        "websocket"
+      ]
     }
   ],
   "verified": [
@@ -131,10 +143,14 @@
     "Established authenticated WebSocket sessions survive access JWT expiry; new connections and HTTP protected requests reject expired access JWTs. Refresh returns new HTTP credentials without changing established connection identity.",
     "Failed identify authentication clears prior session authority; logout/deletion still revoke established sessions immediately after commit.",
     "User-created, deleted and logged-out notifications use authorized bounded fanout; terminal revocation events reach matching old sessions after response handoff; the temporary delivery grant then ends.",
-    "Failed writes emit no event; invalid requests release event capacity; disconnect during committed persistence still emits exactly once in the running process."
+    "Failed writes emit no event; invalid requests release event capacity; disconnect during committed persistence still emits exactly once in the running process.",
+    "Per-address login serialization enforces failure thresholds under concurrency; successful login resets pre-threshold failures; other addresses and API-key service access are independent.",
+    "Forwarded address spoofing does not bypass socket-peer login limits. Disabled API-key policy rejects persisted key credentials.",
+    "One-shot tokens admit HTTP and WebSocket clients, expire at five seconds, consume even on address mismatch, and reject replay, logged-out users or rotated keys. HTTP batch authorization reuses only its admitted request identity.",
+    "Independent compiled package validates one-shot issue/use/replay and login lockout; bounded token issue/consume benchmark meets desktop development budget."
   ],
   "limitations": [
-    "Incomplete authorization: LDAP, trusted networks/proxies, one-shot tokens, failed-login policy and configuration-file binding remain pending.",
+    "Incomplete authorization: LDAP, trusted networks/proxies and configuration-file binding remain pending.",
     "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
     "Requires an explicit component owner, endpoint registration and local provisioning; not yet the default Cycnumbris 500 machine adapter.",
     "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
@@ -143,7 +159,9 @@
     "User creation requires a provisioned API key or authenticated user; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
     "Raw authorization headers and error text are not claimed to match all upstream edge cases. HTTP optional authentication accepts signed expired tokens, but rejects invalid signatures.",
     "Event delivery must be explicitly wired to the configured server. Network shutdown or process loss may drop notifications; clients must re-query after reconnect. No durable event replay is claimed.",
-    "Latest API-key microbenchmark is 1.900 microseconds per request, versus 1.965 in the preceding run and 1.777 before JWT support. All meet the 10 microsecond desktop gate; this is not proof of zero regression."
+    "Login policy and API-key enablement are programmatic options only; no authorization configuration section binding yet. Failure counts are not durable and currently have no administrative per-address reset API.",
+    "One-shot query authentication is implemented; form-body token authentication and trusted-proxy address resolution are not yet supported. A WebSocket query token is consumed at first authorized traffic rather than at HTTP upgrade.",
+    "Latest API-key microbenchmark is 1.902 microseconds per request versus 1.900 in the preceding run; both meet the 10 microsecond desktop gate, not proof of target-board performance."
   ],
   "localUserBenchmark": {
     "runtime": "v26.9.0",
@@ -175,5 +193,34 @@
     "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py",
     "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/websockets.py",
     "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/common.py"
-  ]
+  ],
+  "oneShotBenchmark": {
+    "runtime": "v26.9.0",
+    "scope": "10000 random 20-byte token issue/consume pairs per round; 3 warmups and 5 retained rounds; no IO, Python comparison or printing",
+    "samplesMs": [
+      28.069938000000008,
+      29.178789000000023,
+      28.80604600000001,
+      30.707814000000013,
+      32.034617000000026
+    ],
+    "microsecondsPerPair": 2.9178789000000025,
+    "budgetMicroseconds": 20
+  },
+  "policy": {
+    "maxLoginAttempts": "optional positive integer, disabled by default; per socket peer; reset by successful login before lockout or process restart; lockout itself persists until restart",
+    "loginCapacity": {
+      "addresses": 4096,
+      "pending": 32
+    },
+    "enableApiKey": "boolean, default true; disables header and identify API-key admission",
+    "oneShot": {
+      "bytes": 20,
+      "encoding": "base32",
+      "lifetimeMs": 5000,
+      "capacity": 1024,
+      "address": "canonical socket remoteAddress; forwarded headers ignored",
+      "consumption": "query token, shared across methods in one HTTP request; a new request cannot replay it; WebSocket keeps admitted connection identity"
+    }
+  }
 }

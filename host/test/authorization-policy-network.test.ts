@@ -1,0 +1,40 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {once} from 'node:events';
+import {IncomingMessage} from 'node:http';
+import {Socket} from 'node:net';
+import {WebSocket} from 'ws';
+import {ApiKeyAuthorization} from '../src/moonraker/api-key-authorization.ts';
+import {DatabaseStore} from '../src/moonraker/database.ts';
+import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
+const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'policy-test',missingRequirements:[]};
+const call=async(ws:WebSocket,method:string,params={})=>{const response=once(ws,'message');ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method,params}));return JSON.parse(String((await response)[0]));};
+test('HTTP and WS one-shot admission binds address and live identity; login lockout rejects forwarded spoofing',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'policy-network-')),path=join(root,'auth.sqlite');let db=await DatabaseStore.open({path}),time=0,auth=await ApiKeyAuthorization.open(db,{issuer:'http://printer.test',maxLoginAttempts:2,monotonicNow:()=>time}),server:ConfiguredMoonraker|undefined;const sockets:WebSocket[]=[];
+ try{
+  const config=join(root,'moonraker.conf');await writeFile(config,'[server]\nhost: 127.0.0.1\nport: 0\n');server=await ConfiguredMoonraker.load(config,{information,...auth.networkOptions});auth.register(server.endpoints);const address=await server.start(),url=`http://127.0.0.1:${address.port}`,key=auth.localApiKey();
+  const http=async(path:string,body?:object,headers:Record<string,string>={})=>{const r=await fetch(url+path,{method:body?'POST':'GET',headers:{'content-type':'application/json',...headers},body:body?JSON.stringify(body):undefined});return {status:r.status,body:await r.json() as any};};
+  const alice=(await http('/access/user',{username:'alice',password:'pass'},{'x-api-key':key})).body.result;
+  assert.equal((await http('/access/oneshot_token')).status,401);
+  const shot=async(headers:Record<string,string>={'x-api-key':key})=>(await http('/access/oneshot_token',undefined,headers)).body.result as string;
+  const first=await shot();assert.match(first,/^[A-Z2-7]{32}$/);assert.equal((await http('/server/info?token='+first)).status,200);assert.equal((await http('/server/info?token='+first)).status,401);
+  const batchToken=await shot(),batch=await http('/server/jsonrpc?token='+batchToken,[{jsonrpc:'2.0',id:1,method:'server.info'},{jsonrpc:'2.0',id:2,method:'server.info'}]);assert(batch.body.every((item:any)=>item.result));assert.equal((await http('/server/info?token='+batchToken)).status,401);
+  const expires=await shot();time+=5000;assert.equal((await http('/server/info?token='+expires)).status,401);
+  const wrong=await shot(),socket=new Socket();Object.defineProperty(socket,'remoteAddress',{value:'127.0.0.2'});const request=new IncomingMessage(socket);request.url='/server/info?token='+wrong;
+  assert.throws(()=>auth.authorize('server.info',{}, {request,transport:'http',signal:new AbortController().signal}),/Unauthorized/);socket.destroy();assert.equal((await http('/server/info?token='+wrong)).status,401);
+  const userShot=await shot({authorization:'Bearer '+alice.token});await http('/access/logout',{}, {authorization:'Bearer '+alice.token});assert.equal((await http('/access/user?token='+userShot)).status,401);
+  const wsShot=await shot(),ws=new WebSocket(url.replace('http:','ws:')+'/websocket?token='+wsShot);sockets.push(ws);await once(ws,'open');assert((await call(ws,'server.websocket.id')).result);time+=6000;assert((await call(ws,'server.websocket.id')).result);assert.equal((await http('/server/info?token='+wsShot)).status,401);
+  const issued=(await call(ws,'access.oneshot_token')).result;assert.match(issued,/^[A-Z2-7]{32}$/);assert.equal((await http('/server/info?token='+issued)).status,200);
+  const rotateShot=await shot();const rotated=(await http('/access/api_key',{}, {'x-api-key':key})).body.result;assert.equal((await http('/server/info?token='+rotateShot)).status,401);assert((await call(ws,'server.websocket.id')).error);
+  assert.equal((await http('/access/login',{username:'alice',password:'wrong'})).status,400);
+  assert.equal((await http('/access/login',{username:'alice',password:'pass'})).status,200,'success before threshold clears failures');
+  const attempts=[];for(const i of [1,2,3])attempts.push(await http('/access/login',{username:'alice',password:i===3?'pass':'wrong'},{'x-forwarded-for':'192.0.2.'+i}));
+  assert.deepEqual(attempts.map(x=>x.status),[400,400,401]);assert.equal((await http('/access/login',{username:'alice',password:'pass'})).status,401);
+  assert.equal((await http('/server/info',undefined,{'x-api-key':rotated})).status,200);
+  await server.close();server=undefined;await auth.close();await db.close();db=await DatabaseStore.open({path});auth=await ApiKeyAuthorization.open(db,{issuer:'http://printer.test',maxLoginAttempts:2,enableApiKey:false});
+  assert.equal(auth.policyStatus.login.addresses,0);const req=new IncomingMessage(new Socket());req.headers['x-api-key']=rotated;assert.throws(()=>auth.authorize('server.info',{}, {request:req,transport:'http',signal:new AbortController().signal}),/Invalid API Key/);req.socket.destroy();
+ }finally{for(const ws of sockets)ws.terminate();await server?.close();await auth.close();await db.close();await rm(root,{recursive:true,force:true});}
+});

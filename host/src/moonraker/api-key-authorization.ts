@@ -7,8 +7,10 @@ import type {EndpointRegistry} from './endpoints.ts';
 import type {NetworkAuthorization,MoonrakerNetworkOptions} from './server.ts';
 import {LocalUserAuthorization,type LocalUserOptions,type UserChange,type UserCommitted} from './local-user-authorization.ts';
 import {ApiError,type Json,type AuthorizedUser,type RpcContext} from './rpc.ts';
+import {authorizationAddress,LoginAttempts,OneShotTokens} from './authorization-policy.ts';
 import type {DeliveryReport} from './notifications.ts';
 export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
+export interface AuthorizationOptions extends LocalUserOptions {maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
 interface UserSession {token:string;username:string;kid:string;}
 const namespace='native_authorization',identity=Object.freeze({username:'_API_KEY_USER_'});
 const digest=(key:string)=>createHash('sha256').update(key).digest();
@@ -18,42 +20,49 @@ export class ApiKeyAuthorization {
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
  readonly #connections=new WeakMap<IncomingMessage,number|UserSession|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
+ readonly #principals=new WeakMap<AbortSignal,number|UserSession>();readonly #oneShotRequests=new WeakMap<IncomingMessage,number|UserSession>();
+ readonly #attempts:LoginAttempts;readonly #oneShots:OneShotTokens<number|UserSession>;readonly #enableApiKey:boolean;
+ get policyStatus(){return {login:this.#attempts.status,oneShotTokens:this.#oneShots.count};}
  #users?:LocalUserAuthorization;
  readonly #eventGrants=new Set<UserChange>();readonly #eventTasks=new Set<Promise<void>>();readonly #eventTickets=new Set<()=>void>();
  readonly #eventTotals={published:0,failed:0,closed:0,sent:0,denied:0,overflow:0};
  get eventStatus(){return {...this.#eventTotals,pending:this.#eventTickets.size};}
 
  #key:string;#digest:Buffer;#generation=0;#closed=false;#rotation:Promise<string>|undefined;
- private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string){this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
- static async open(database:DatabaseStore,options?:LocalUserOptions){
+ private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string,options?:AuthorizationOptions){this.#attempts=new LoginAttempts(options?.maxLoginAttempts);this.#oneShots=new OneShotTokens(options?.monotonicNow);this.#enableApiKey=options?.enableApiKey??true;this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
+ static async open(database:DatabaseStore,options?:AuthorizationOptions){
+  if(options?.enableApiKey!==undefined&&typeof options.enableApiKey!=='boolean')throw new ApiError(400,'Invalid API key policy');new LoginAttempts(options?.maxLoginAttempts);
   const store=await database.registerLocalNamespace(namespace,{forbidden:true,parseKeys:false});
   const saved=await store.get('api_key');let key:string;
   if(saved===null){key=randomBytes(16).toString('hex');await store.insert('api_key',key);}
   else{if(typeof saved!=='string'||!(/^[a-f0-9]{32}$/u.test(saved)))throw new ApiError(500,'Invalid persisted API key');key=saved;}
-  const owner=new ApiKeyAuthorization(database,store,key);if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;
+  const owner=new ApiKeyAuthorization(database,store,key,options);if(options)owner.#users=await LocalUserAuthorization.open(database,options);return owner;
  }
  #active(){const status=this.#database.status;if(this.#closed||status.closed||status.closing||status.restoreState!=='ready')throw new ApiError(503,'Authorization unavailable');}
  /** Local provisioning only. Never include this value in diagnostics or logs. */
  localApiKey(){this.#active();return this.#key;}
- #matches(value:unknown){return typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
+ #matches(value:unknown){return this.#enableApiKey&&typeof value==='string'&&/^[a-f0-9]{32}$/u.test(value)&&timingSafeEqual(digest(value),this.#digest);}
  authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
-  if(context.transport==='websocket')this.#requests.set(context.signal,context.request);
+  this.#requests.set(context.signal,context.request);
+  const remember=(principal:number|UserSession)=>{this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);return typeof principal==='number'?identity:{username:principal.username};};
+  const validate=(principal:number|UserSession)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);
-  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket'){this.#users.decode(token);this.#connections.set(context.request,{token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});}return user;};
-  const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');if(context.transport==='websocket')this.#connections.set(context.request,this.#generation);return identity;};
+  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#users.decode(token);return remember({token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});};
+  const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');return remember(this.#generation);};
   if(identify){try{if(params.access_token!==undefined)return acceptToken(params.access_token);if(params.api_key!==undefined)return acceptKey(params.api_key);}catch(error){if(context.transport==='websocket')this.#connections.set(context.request,null);throw error;}}
   // A successful WS login supersedes credentials from the upgrade request.
   if(context.transport==='websocket'&&session!==undefined){
    if(method==='access.login'||method==='access.refresh_jwt'||method==='access.info')return;
-   if(session&&typeof session==='object')return this.#users!.decode(session.token,'access',false);
-   if(session===this.#generation)return identity;
+   if(session!==null)return validate(session);
    throw new ApiError(401,'Invalid API Key');
   }
   const authorization=context.request.headers.authorization;
   const query=authorization===undefined&&context.request.headers['x-access-token']===undefined&&context.request.url?.includes('access_token')?new URL(context.request.url, 'http://localhost').searchParams.getAll('access_token'):[];
   const token=authorization!==undefined?(authorization.startsWith('Bearer ')?authorization.slice(7):authorization):context.request.headers['x-access-token']??query.at(-1);
   if(token!==undefined)return acceptToken(token);
+  const cached=this.#oneShotRequests.get(context.request);if(cached!==undefined)return validate(cached);
+  if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){const principal=this.#oneShots.consume(oneShot,authorizationAddress(context.request.socket.remoteAddress));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
   const header=context.request.headers['x-api-key'];if(header!==undefined)return acceptKey(header);
   if(method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
   throw new ApiError(401,'Unauthorized');
@@ -101,11 +110,14 @@ export class ApiKeyAuthorization {
   const remove:Array<()=>void>=[];
   try{
    remove.push(endpoints.register({endpoint:'/access/api_key',methods:['GET','POST'],transports:['http','websocket']},async(_params,verb)=>{this.#active();return verb==='POST'?await this.rotate():this.localApiKey();}));
+   remove.push(endpoints.register({endpoint:'/access/oneshot_token',methods:['GET'],transports:['http','websocket']},(_params,_verb,ctx)=>{
+    this.#active();const request=this.#requests.get(ctx.signal),principal=this.#principals.get(ctx.signal);if(!request||principal===undefined)throw new ApiError(401,'Authenticated request context required');return this.#oneShots.issue(authorizationAddress(request.socket.remoteAddress),principal);
+   }));
    // Trusted-network policy is not implicitly enabled.
    remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},()=>{this.#active();return {default_source:'moonraker',available_sources:this.#users?['moonraker']:[],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:false};}));
    const users=this.#users;
    if(users){
-    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const result=await this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
+    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const operation=()=>this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));const result=await (create?operation():this.#attempts.run(this.#attempts.enabled?authorizationAddress(this.#requests.get(ctx.signal)?.socket.remoteAddress):'',ctx.signal,operation));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&ctx.transport==='websocket'&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
     remove.push(endpoints.register({endpoint:'/access/login',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>login(params,ctx)));
     remove.push(endpoints.register({endpoint:'/access/refresh_jwt',methods:['POST'],transports:['http','websocket']},params=>users.refresh(params.refresh_token)));
     remove.push(endpoints.register({endpoint:'/access/logout',methods:['POST'],transports:['http','websocket']},(_params,_verb,ctx)=>this.#mutation(ctx,delivery,committed=>users.logout(ctx.user?.username??'',ctx.signal,committed))));
@@ -120,5 +132,5 @@ export class ApiKeyAuthorization {
    return ()=>{for(const dispose of remove.reverse())dispose();};
   }catch(error){for(const dispose of remove.reverse())dispose();throw error;}
  }
- async close(){this.#closed=true;await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
+ async close(){this.#closed=true;this.#attempts.close();this.#oneShots.close();await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
 }
