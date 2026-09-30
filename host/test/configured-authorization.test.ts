@@ -17,7 +17,7 @@ test('configuration-owned authorization registers routes and events, publishes p
   server=await ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization});assert.equal(server.status.phase,'new');const key=server.authorization!.localApiKey(),address=await server.start(),url=`http://127.0.0.1:${address.port}`;
   const post=async(route:string,body:object,headers:Record<string,string>={})=>{const response=await fetch(url+route,{method:'POST',headers:{'content-type':'application/json',...headers},body:JSON.stringify(body)});return {status:response.status,body:await response.json() as any};};
   const denied=await fetch(url+'/server/info');assert.equal(denied.status,401);await denied.arrayBuffer();
-  const configBody:any=await(await fetch(url+'/server/config',{headers:{'x-api-key':key}})).json();assert.deepEqual(configBody.result.config.authorization,{default_source:'moonraker',max_login_attempts:1,login_timeout:1,force_logins:true,enable_api_key:true});assert(!JSON.stringify(configBody).includes(key));
+  const configBody:any=await(await fetch(url+'/server/config',{headers:{'x-api-key':key}})).json();assert.deepEqual(configBody.result.config.authorization,{default_source:'moonraker',max_login_attempts:1,login_timeout:1,force_logins:true,enable_api_key:true,trusted_clients:[]});assert(!JSON.stringify(configBody).includes(key));
   server.setInformation(information);
   const state:any=await(await fetch(url+'/server/info',{headers:{'x-api-key':key}})).json();assert(state.result.components.includes('authorization'));assert.equal(state.result.warnings.length,0);
   ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':key}});await once(ws,'open');const notification=once(ws,'message',{signal:AbortSignal.timeout(2000)});
@@ -35,7 +35,7 @@ test('configuration-owned authorization registers routes and events, publishes p
 test('configuration rejection retains caller ownership; failed authorization initialization and listen release transferred database',async()=>{
  const root=await mkdtemp(join(tmpdir(),'configured-auth-failure-')),config=join(root,'main.conf'),path=join(root,'auth.sqlite');let db=await DatabaseStore.open({path}),server:ConfiguredMoonraker|undefined;const blocker=createServer();
  try{
-  await writeFile(config,'[server]\nport: 0\n[authorization]\ntrusted_clients: 127.0.0.1\n');await assert.rejects(ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization}),/Unsupported/);assert.equal(db.status.closed,false);
+  await writeFile(config,'[server]\nport: 0\n[authorization]\ncors_domains: *\n');await assert.rejects(ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization}),/Unsupported/);assert.equal(db.status.closed,false);
   await writeFile(config,'[server]\nhost: 127.0.0.1\nport: 0\n');await assert.rejects(ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization,authorize:()=>{}} as any),/external/);assert.equal(db.status.closed,false);
   await db.insert('native_authorization','api_key','corrupt');await assert.rejects(ConfiguredMoonraker.loadAuthorized(config,{information,database:db,authorization}),/Invalid persisted/);assert.equal(db.status.closed,true);
   db=await DatabaseStore.open({path:join(root,'listen.sqlite')});blocker.listen(0,'127.0.0.1');await once(blocker,'listening');await writeFile(config,`[server]\nhost: 127.0.0.1\nport: ${(blocker.address() as any).port}\n`);

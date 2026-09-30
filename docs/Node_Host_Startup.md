@@ -1667,8 +1667,8 @@ default_source: moonraker
 
 省略 max_login_attempts 表示不限失败次数。稳定 issuer 由产品配置提供，
 不会从临时监听端口推导。未知 default_source 警告后回退到 moonraker；
-LDAP、trusted_clients、cors_domains 和其他尚未实现的授权规则会在装配前
-明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
+trusted_clients 已支持显式数字 IP／CIDR；LDAP、域名信任、cors_domains
+和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
 
 loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从本地
 `server.authorization.localApiKey()` 获取，不能写入日志。装配构造完成后，
@@ -1731,9 +1731,9 @@ GET／POST /access/api_key 分别读取和轮换密钥，均要求已认证身�
 `ApiKeyAuthorization.open(database, {issuer: 'http://打印机主机名:7125'})`，
 issuer 必须为完整 HTTP(S) origin，跨重启保持一致；不要使用示例地址上线。
 可选 loginTimeoutDays 默认为 90，forceLogins 默认为 false。手工接入时
-直接传这些参数；配置文件绑定使用上面的 loadAuthorized。可信网络准入
-尚未实现，forceLogins 不会
-使匿名请求获得权限。未传用户选项时保持仅 API Key 模式。
+直接传这些参数；配置文件绑定使用上面的 loadAuthorized。未显式配置
+trusted_clients 时，forceLogins=false 也不授予匿名访问；未传用户选项
+时保持仅 API Key 模式。
 
 可选 maxLoginAttempts 为正整数，默认不限制失败次数；配置后按真实连接
 地址累计登录失败，同一地址的并发登录串行判断。达到阈值前成功登录会
@@ -1776,7 +1776,7 @@ notify_user_deleted、notify_user_logged_out，参数为包含 username 的单�
 不能继续接收普通状态通知。待处理事件上限 128；eventStatus 提供待处理、
 已发布及送达／拒绝／失败等计数。事件不做持久重放，断线重连须重新查询。
 
-LDAP、可信网络／代理、CORS、完整配置及请求兼容性、上游用户表导入
+LDAP、域名信任／代理委托、CORS、完整配置及请求兼容性、上游用户表导入
 仍待完成。此组件尚非默认机器部署。
 67 项不同测试通过，含独立编译包的配置授权、策略生效及重启；
 JWT 缓存验证约 0.205 微秒，首次验签约 111.618 微秒。200 次本机顺序
@@ -1876,3 +1876,32 @@ IPC 通道在无工作时不保持子进程存活；退出超时会停止本轮�
 恢复、100% 与就绪，持久历史为 completed。文件仍由 API 预置；页面上传、
 标准客户端重启衔接、Mainsail 和实机验收待完成，详见
 [客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。
+
+### 显式数字地址信任与 Mainsail 联调
+
+原生授权支持 trusted_clients 中的 IPv4、IPv6 和 CIDR，手工装配对应
+trustedClients 数组。默认列表为空，没有内置信任网段。CIDR 必须是网络
+地址；带主机位的网段、无效地址、域名及区域标识会明确拒绝。IPv4 映射
+IPv6 地址可匹配对应 IPv4 规则。最多支持 1024 条配置，运行时不进行 DNS。
+
+匹配真实 socket 地址且未提供错误凭据时，请求可取得 _TRUSTED_USER_
+身份。force_logins=true 且至少存在一个本地用户时禁用此准入；已有可信
+WebSocket 和一次性令牌再次使用时也重新检查。access.info.trusted 报告
+地址规则是否匹配，login_required 单独报告强制登录状态。
+
+当前没有实现代理委托；带 Forwarded、X-Forwarded-For 或 X-Real-IP 的
+请求不能单凭网络信任获得权限，仍可使用有效 JWT／API Key。不得在
+公共代理后仅配置代理的地址并据此声称支持可信代理。域名、CORS 与完整
+上游代理语义继续保留迁移待办。
+
+Mainsail 2.19.0 固定版本初始化不发送登录凭据。仅用于隔离本机模拟
+设备的验收可以运行以下入口，选项只写入本轮临时配置，监听地址仍为
+127.0.0.1，不改变任何现有服务：
+
+~~~sh
+node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-loopback
+~~~
+
+该模式已越过客户端识别与授权，后续初始化仍等待尚未实现的
+server.webcams.list。不能据此宣称 Mainsail 完整流程通过。默认探针仍
+使用凭据模式，Fluidd 的登录验收入口不变。

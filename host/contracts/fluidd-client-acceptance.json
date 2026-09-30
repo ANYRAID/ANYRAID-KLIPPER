@@ -186,5 +186,22 @@
       "Mainsail initialization and full journey pending",
       "Target hardware, numerical faults and Python retirement pending"
     ]
+  },
+  "mainsailTrustedRecheck": {
+    "version": "2.19.0",
+    "bundleManifestSha256": "9420510b0ba64c782748758f15bdbeb987ad5a32cbc15c7bd935bed40cd63f18",
+    "authentication": "Explicit temporary trusted_clients=127.0.0.1, force_logins=false; no change to default credential mode",
+    "verified": [
+      "server.connection.identify accepted",
+      "server.info/config, system info/proc stats and database calls proceed",
+      "printer object queries/subscriptions proceed"
+    ],
+    "remainingBlocker": "server.webcams.list returns Method not found; Mainsail gui/webcams/initStore never clears gui/webcam/init",
+    "result": "Still Initializing; full UI acceptance pending",
+    "sourceEvidence": [
+      "https://github.com/mainsail-crew/mainsail/blob/5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70/src/store/server/actions.ts",
+      "https://github.com/mainsail-crew/mainsail/blob/5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70/src/store/gui/webcams/actions.ts",
+      "https://github.com/mainsail-crew/gb-docs/blob/main/setup/installation/manual-setup.md"
+    ]
   }
 }

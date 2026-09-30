@@ -9,6 +9,7 @@ import {ApiKeyAuthorization} from '../src/moonraker/api-key-authorization.ts';
 // No physical device path or production credential is accepted.
 const assets=process.argv[2];if(!assets)throw new Error('Usage: node host/acceptance/client-probe.ts /absolute/frontend/assets');
 const assetRoot=resolve(assets);await readFile(join(assetRoot,'index.html'));
+const trustedLoopback=process.argv[4]==='--trusted-loopback';if(process.argv[4]&&!trustedLoopback||process.argv.length>5)throw new Error('Unknown client probe option');
 const port=Number(process.argv[3]??18326);if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('Invalid loopback port');
 const dir=await mkdtemp('/tmp/anyraid-client-data-'),abort=new AbortController(),issuer='http://printer.test';const db=await DatabaseStore.open({path:join(dir,'auth.sqlite')}),api=await ApiKeyAuthorization.open(db,{issuer});const key=api.localApiKey();await api.close();await db.close();
 // This is a short interactive check, not a long-running firmware simulator.
@@ -28,6 +29,6 @@ try{
    const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==200)throw new Error('Sample upload failed');await uploaded.arrayBuffer();initialized=true;
    console.log('CLIENT_SAMPLE client-sample.gcode (seeded by API)');server.listen(port,'127.0.0.1',()=>console.log('CLIENT_READY http://127.0.0.1:'+port));
   })().catch(error=>{console.error(error);abort.abort();});
- });
+ },trustedLoopback);
  await host.lifetime;
 }finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await rm(dir,{recursive:true,force:true});}}

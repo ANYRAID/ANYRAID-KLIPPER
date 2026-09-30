@@ -8,7 +8,7 @@ import {installProductDependencies} from './product-install.ts';
 import {productMachineFixture} from './product-machine.ts';
 import {simulateClientFirmware} from './client-firmware.ts';
 /** Separate emitted product process. All PTY and test code stays in the parent. */
-export async function startCompiledClientHost(dir:string,signal:AbortSignal,onReady:(base:string)=>void){
+export async function startCompiledClientHost(dir:string,signal:AbortSignal,onReady:(base:string)=>void,trustedLoopback=false){
  const app=join(dir,'app');await buildProductHost(app);await installProductDependencies(app);signal.throwIfAborted();
  console.log('CLIENT_ARTIFACT '+createHash('sha256').update(await readFile(join(app,'build-info.json'))).digest('hex'));
  const profile=join(dir,'client-machine.mjs'),moduleUrl=(path:string)=>JSON.stringify(pathToFileURL(join(app,path)).href);
@@ -37,7 +37,7 @@ export async function createProductHostProfile(signal){
  let requests=Promise.resolve();child.on('message',(message:any)=>{requests=requests.then(async()=>{
   let result:unknown,error:string|undefined;
   try{if(message.method==='prepare'){
-   simulation?.close();if(fixture)await fixture.close();fixture=await productMachineFixture(dir);simulation=simulateClientFirmware(fixture);generation++;result={path:fixture.path,generation};
+   simulation?.close();if(fixture)await fixture.close();fixture=await productMachineFixture(dir);if(trustedLoopback)await writeFile(fixture.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\ntrusted_clients: 127.0.0.1\nforce_logins: false\n');simulation=simulateClientFirmware(fixture);generation++;result={path:fixture.path,generation};
   }else if(message.method==='stop'){
    if(message.params.generation!==generation||!fixture)throw new Error('Stale simulated device generation');const index=['mcu','aux'].indexOf(message.params.id);if(index<0)throw new Error('Unknown simulated device');fixture.transport.stops[index]++;result=true;
   }else throw new Error('Unknown simulation request');}catch(cause){error=String(cause);}

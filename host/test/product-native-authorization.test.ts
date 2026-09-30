@@ -22,7 +22,7 @@ test('native product rejects invalid authorization before MCU and journal acquis
  try{
   for(const mode of ['unsupported','mixed','closed','issuer']){
    const db=await DatabaseStore.open({path:join(root,mode+'.sqlite')}),config=options(f,root,db,()=>releases++);
-   await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n'+(mode==='unsupported'?'[authorization]\ntrusted_clients: 127.0.0.1\n':''));
+   await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n'+(mode==='unsupported'?'[authorization]\ncors_domains: *\n':''));
    const factory=config.createAdapter;
    config.createAdapter=async()=>{const adapter=await factory();if(mode==='mixed')Object.assign(adapter.server,{authorize:()=>{}});if(mode==='issuer')adapter.server.authorization={issuer:'not-an-origin'};return adapter;};
    if(mode==='closed')await db.close();

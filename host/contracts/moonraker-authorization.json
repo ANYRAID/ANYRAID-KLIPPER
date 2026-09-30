@@ -1,7 +1,7 @@
 {
   "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
   "source": "moonraker/components/authorization.py",
-  "status": "partial-native-api-key-and-local-users",
+  "status": "partial-native-api-key-local-users-and-numeric-trusted-clients",
   "tests": {
     "uniqueTests": 67,
     "files": [
@@ -79,7 +79,7 @@
       "methods": [
         "GET"
       ],
-      "state": "partial: reports moonraker login source when explicitly configured; no trusted network policy"
+      "state": "partial: local source, login requirement and explicit numeric address match; DNS/proxy/CORS pending"
     },
     {
       "path": "/access/login",
@@ -167,18 +167,18 @@
     "Independent compiled configuration-owned service applies login limit and token lifetime, preserves users and tokens across restart, and meets the 50 ms local status P99 development gate."
   ],
   "limitations": [
-    "Incomplete authorization: LDAP, trusted networks/proxies, CORS policy configuration and full upstream request semantics remain pending.",
+    "Incomplete authorization: LDAP, hostname trust/proxy delegation, CORS policy configuration and full upstream request semantics remain pending.",
     "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
     "ConfiguredMoonraker.loadAuthorized owns component registration; local credential provisioning remains explicit. The native printer product adapter is not yet wired to this entry.",
     "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
     "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance.",
     "Native users have bounded input, 128-user capacity, 32 queued mutations and 1024 cached JWTs. These native limits differ from unrestricted upstream storage.",
-    "User creation requires a provisioned API key or authenticated user; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
+    "User creation requires a provisioned API key, authenticated user or explicitly trusted numeric peer; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
     "Raw authorization headers and error text are not claimed to match all upstream edge cases. HTTP optional authentication accepts signed expired tokens, but rejects invalid signatures.",
     "Event delivery must be explicitly wired to the configured server. Network shutdown or process loss may drop notifications; clients must re-query after reconnect. No durable event replay is claimed.",
     "One-shot query authentication is implemented; form-body token authentication and trusted-proxy address resolution are not yet supported. A WebSocket query token is consumed at first authorized traffic rather than at HTTP upgrade.",
     "Latest API-key microbenchmark is 1.902 microseconds per request versus 1.900 in the preceding run; both meet the 10 microsecond desktop gate, not proof of target-board performance.",
-    "Configuration binding covers implemented local-user policy only; trusted_clients, cors_domains and other unsupported options reject instead of being ignored.",
+    "Configuration binding includes numeric trusted_clients; hostnames, cors_domains and other unsupported options reject instead of being ignored.",
     "Failure counts are in memory and reset at restart; no administrative per-address reset API yet.",
     "Configuration-owned service success is not Cycnumbris 500 product assembly, physical printing or real frontend-client acceptance."
   ],
@@ -256,5 +256,50 @@
     "unsupportedPolicy": "Unknown authorization options and LDAP reject before resource transfer",
     "lifetime": "Constructed server owns authorization and database; initialization/listen failure closes them; shutdown drains network and authorization before database close",
     "productEntry": "Not yet connected to loadNativeProductMachineProfile/product-service; existing machine adapters still require external authorization callbacks"
+  },
+  "numericTrustedClients": {
+    "implementationBase": "ba426126",
+    "source": "moonraker/components/authorization.py at pinned upstreamCommit",
+    "implemented": [
+      "Explicit IPv4/IPv6 addresses and canonical CIDR networks",
+      "Socket peer identity; IPv4-mapped IPv6 support",
+      "No implicit trusted entries",
+      "Invalid credentials precede trust",
+      "force_logins with a local user revokes trusted admission including existing WS sessions",
+      "Address match exposed separately from login_required",
+      "Forwarded headers do not create trust or proxy delegation"
+    ],
+    "pending": [
+      "Hostname resolution and caching",
+      "Trusted proxy delegation and upstream forwarded-address semantics",
+      "Full CORS policy"
+    ],
+    "tests": [
+      "host/test/trusted-clients.test.ts",
+      "host/test/trusted-clients-network.test.ts"
+    ],
+    "hotPath": {
+      "calls": 80000,
+      "retainedRounds": 7,
+      "medianUs": 0.5056516999999985,
+      "scope": "Desktop numeric trusted-address authorization; not target-board or Python comparison"
+    },
+    "verification": {
+      "authorizationAffectedSuite": "12 passed; final added origin/one-shot boundaries 2 passed",
+      "configurationAndProduct": "6 passed across affected files after updating expected default config",
+      "compiledClient": "2 passed: credential mode and explicit trusted loopback; print, pause/resume, reinitialize and cancel",
+      "bundleManifestSha256": "9420510b0ba64c782748758f15bdbeb987ad5a32cbc15c7bd935bed40cd63f18",
+      "loadedCompiledJourney": {
+        "passed": 1,
+        "statusP99Ms": 4.195062999999209,
+        "minimumStepLeadMs": 86.841,
+        "statusRequests": 15347,
+        "scope": "Desktop native JWT concurrent workload; trusted mode full printing separately verified; no target-board or Python comparison"
+      },
+      "checks": [
+        "typecheck",
+        "whitespace"
+      ]
+    }
   }
 }
