@@ -108,7 +108,8 @@
     {
       "name": "machine",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native cached Linux system information: host/contracts/native-system-information-acceptance.json. Runtime reports Node, provider none; service/provider operations, network events and full platform coverage remain pending."
     },
     {
       "name": "mqtt",
@@ -793,7 +794,8 @@
       "line": 142,
       "method": "register_endpoint",
       "targetExpression": "\"/machine/system_info\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native cached Linux system information: host/contracts/native-system-information-acceptance.json. Runtime reports Node, provider none; service/provider operations, network events and full platform coverage remain pending."
     },
     {
       "file": "moonraker/components/machine.py",

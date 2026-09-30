@@ -284,3 +284,14 @@ test('native process statistics use real Linux values behind authorization and s
   assert(value.moonraker_stats.length>0&&value.moonraker_stats.length<=30);assert(value.system_uptime>0);assert.equal(value.websocket_connections,1);assert(value.system_memory.total>0);assert.equal(value.moonraker_stats[0].mem_units,'kB');assert(value.moonraker_stats[0].memory>0);await owner.close();assert.equal(owner.server.procStatsStatus?.closed,true);assert.equal(owner.server.procStatsStatus?.pending,false);
  }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });
+test('native system information is initialized before listening and authorized over HTTP and RPC',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined;
+ try{
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const base=`http://127.0.0.1:${owner.address.port}`;
+  const denied=await fetch(base+'/machine/system_info');assert.equal(denied.status,401);await denied.arrayBuffer();
+  const response=await fetch(base+'/machine/system_info',{headers:{'x-api-key':'test'}});assert.equal(response.status,200);const value=(await response.json()).result.system_info;
+  assert.equal(value.runtime.name,'node');assert.equal(value.runtime.version,process.version);assert.equal(value.python,undefined);assert(value.cpu_info.cpu_count>0);assert(value.cpu_info.total_memory>0);assert.equal(value.provider,'none');assert.deepEqual(value.available_services,[]);
+  ws=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(ws,'open');const received=once(ws,'message',{signal:AbortSignal.timeout(3000)});ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'machine.system_info'}));const [message]=await received;assert.deepEqual(JSON.parse(String(message)).result.system_info,value);
+  ws.terminate();await owner.close();assert.equal(owner.server.systemInformationStatus?.closed,true);assert.equal(owner.server.systemInformationStatus?.pending,false);
+ }finally{ws?.terminate();await owner?.close();await f.dispose();}
+});

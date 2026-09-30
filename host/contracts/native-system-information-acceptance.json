@@ -1,0 +1,160 @@
+{
+  "base": "5bede826",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/machine.py",
+    "sha256": "2ad8c81824d487c58f6dd92d08ad8a013c255a5a88a251ba99d75188cd7d1dbe"
+  },
+  "implemented": [
+    "Authenticated HTTP/JSON-RPC system_info",
+    "Async bounded CPU, memory, os-release and SD CID/CSD reads",
+    "Optional bounded ip and systemd-detect-virt commands",
+    "Initialized before listening, atomic cached refresh every ten seconds, pending work retired on close",
+    "Reports actual Node runtime rather than claiming a Python runtime"
+  ],
+  "tests": {
+    "metadataAndLifetime": 4,
+    "productAndAuthorization": 20,
+    "compiledLoadedNativeProduct": 1
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "runs": 7,
+    "warmups": 2,
+    "refreshMedianMs": 7.490273000000002,
+    "refreshP95Ms": 9.10251500000004,
+    "snapshotMedianMicroseconds": 12.797649400000001,
+    "snapshotP95Microseconds": 12.941677400000003,
+    "scope": "Real local Linux metadata and optional ip/systemd-detect-virt commands; cached snapshot cloning. No Python, target-board or physical printer comparison."
+  },
+  "journey": {
+    "nativeAuthorization": true,
+    "apiLoad": true,
+    "completedStatistics": {
+      "total_duration": 8.72719195,
+      "print_duration": 2.511665315000002,
+      "filament_used": 1
+    },
+    "bundleManifestSha256": "fbd0c13fe45b14271d0157c4dd40c0f73aff39646fa2d418f2b17a69e22c9657",
+    "bmp180": false,
+    "bme": false,
+    "bmeHeater": false,
+    "htu": false,
+    "htuHeater": false,
+    "htuModel": null,
+    "lm75": false,
+    "lm75Heater": false,
+    "sht": false,
+    "shtHeater": false,
+    "aht": false,
+    "ahtHeater": false,
+    "combinedHeater": false,
+    "combined": false,
+    "multi": false,
+    "dual": false,
+    "servos": false,
+    "outputPins": false,
+    "phaseQueries": 4025,
+    "phaseP99Ms": 4.89514699999927,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": false,
+    "manualScrews": false,
+    "bedScrews": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 168,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 899,
+    "historyP99Ms": 11.568038000001252,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 7.093477000000348,
+    "deleteRequests": 16,
+    "deleteP95Ms": 4.358588999999483,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 10.62577500000043,
+    "metadataRequests": 16,
+    "metadataP95Ms": 31.90445600000021,
+    "downloads": 16,
+    "downloadP95Ms": 6.752033000000665,
+    "wireCommands": 192,
+    "wireSteps": 3706,
+    "minimumStepLeadMs": 84.569,
+    "directoryRequests": 3873,
+    "directoryP99Ms": 5.5344159999986005,
+    "statusRequests": 16102,
+    "uploads": 16,
+    "statusP99Ms": 3.6196390000004612,
+    "uploadP95Ms": 19.45174600000064,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.967103,
+          "maxMs": 20.463615
+        },
+        "cpu": {
+          "user": 5264391,
+          "system": 682785
+        },
+        "rss": 305930240
+      },
+      {
+        "loop": {
+          "p99Ms": 1.912831,
+          "maxMs": 7.327743
+        },
+        "cpu": {
+          "user": 1759366,
+          "system": 272745
+        },
+        "rss": 283738112
+      }
+    ]
+  },
+  "limits": [
+    "provider none, no available service control or fabricated service instance names",
+    "Legacy python field intentionally omitted; runtime reports Node",
+    "Unknown virtualization stays unknown when detection is unavailable",
+    "Network change events, service management, provider integration and distro-specific release fallbacks remain pending",
+    "SD/CAN data parsing tested with fixtures; no target SD/CAN hardware acceptance",
+    "No browser recheck, Python comparison, target-board or physical motion acceptance"
+  ]
+}

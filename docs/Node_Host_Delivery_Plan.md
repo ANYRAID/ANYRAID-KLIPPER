@@ -190,8 +190,9 @@ G5 的通用功能迁移与 G6 的机型适配验收分开记录，不通过删�
 1. **推进真实客户端的 D1/D2 验收**。源码产品装配、独立编译包正常及
    故障恢复流程已通过模拟 MCU 验证。Fluidd 已实际登录并显示就绪，
    上传接口兼容修复已通过回归，页面上传仍待复验。先完成文件与打印
-   页面契约，再接入已发现缺少的 machine.system_info。machine.proc_stats、
-   server.gcode_store、printer.gcode.help 已接入原生产品，页面复验待做。
+   页面契约。machine.system_info、machine.proc_stats、server.gcode_store、
+   printer.gcode.help 已接入原生产品；下一项复验实际客户端初始化、
+   文件选择与打印路径，补齐仍阻塞该流程的差异。
    不扩充 LDAP 等非当前出口阻塞项。
 2. **维护同一编译产物的 D1/D2 负载门槛**。原生授权空载、负载及回调
    负载三组已有证据，目标板和旧 Python 对照仍待验。客户端联调发现
@@ -307,6 +308,19 @@ BigInt 差分；内存为 kB，网络带宽为字节／秒，缺失温度为 nul
 看门狗日志、停机统计日志与内部回调契约仍待闭合。采样延迟计数不作为
 事件循环看门狗。无旧 Python、目标板或实机速度结论。详见
 [进程统计验收](../host/contracts/native-proc-stats-acceptance.json)。
+
+### 原生系统信息接入
+
+machine.system_info 现提供真实 CPU、内存、发行版、SD 和网络信息，
+读取先完成再监听，后续十秒异步刷新，查询使用缓存。明确报告 Node
+运行时并省略旧 python 字段；provider 为 none，未配置的服务与实例名
+不伪造。网络变化通知、服务管理、完整发行版回退及目标硬件仍待闭合。
+4 项元数据／生命周期测试、20 项产品／授权回归与带系统信息轮询的
+编译打印恢复流程通过。本机刷新中位数 7.490 ms，缓存查询
+12.798 微秒；编译负载状态 P99 3.620 ms，最小步进
+提前量 84.569 ms。真实客户端仍待复验，不据此声称完整
+Moonraker、目标板速度或实机精度通过。详见
+[系统信息验收](../host/contracts/native-system-information-acceptance.json)。
 
 ## 实现与验证的任务准入
 

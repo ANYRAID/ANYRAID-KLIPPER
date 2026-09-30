@@ -1807,7 +1807,7 @@ Fluidd 1.37.6 实际通过登录、就绪页面和 gcodes 根目录工具启用�
 现接受一次性 token 查询参数，并返回 item/action 及既有不可变文件回执。
 HTTP 回归验证上传与重放拒绝；修复后页面上传受文件选择器工具失败影响，
 尚未确认。Mainsail 2.19.0 在本轮强制用户授权下停留初始化；未关闭鉴权。
-配置根目录和系统信息的原生绑定仍有缺口，
+配置根目录仍有缺口，新增原生系统信息接口尚待实际客户端复验，
 不能宣称完整客户端兼容。发布包哈希、测试与性能边界见
 [客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。
 
@@ -1842,3 +1842,16 @@ null／空集合，不伪造正常温度。网络计数器超出 JS 安全整数
 上游的未知标志。该适配尚未进行 Raspberry Pi 实测，不能作为硬件健康
 保证。采样关闭会撤销定时器并等待正在进行的读取退出。
 证据与未完成契约见[进程统计验收](../host/contracts/native-proc-stats-acceptance.json)。
+
+原生产品提供 `/machine/system_info`／`machine.system_info`。首次异步读取
+完成后才监听，之后每十秒刷新，查询返回隔离的缓存快照。CPU、内存、
+发行版和 SD 信息来自固定 Linux 文件；可用时调用固定参数的 ip 与
+systemd-detect-virt，限定一秒和 1 MiB 输出。配置文本仅解析，不作为
+shell 脚本执行。虚拟化检测不可用时明确返回 unknown。
+
+字段 `runtime` 报告 Node 名称与版本，不伪造旧 `python` 运行时字段。
+当前 `provider: none`，服务控制列表为空，未知的服务实例名为空字符串；
+这表示尚未接入系统服务管理，并不表示操作系统没有运行服务。原生产品
+自身的受控生命周期接口继续使用既有入口。网络变化通知、其他发行版
+数据源回退及目标 SD/CAN 硬件验证仍待完成。详情与性能见
+[系统信息验收](../host/contracts/native-system-information-acceptance.json)。

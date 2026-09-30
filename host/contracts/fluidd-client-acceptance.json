@@ -24,7 +24,6 @@
     }
   ],
   "missingNativeBindings": [
-    "machine.system_info",
     "server.files.list root=config"
   ],
   "regressions": {
@@ -109,6 +108,10 @@
   },
   "nativeProcStatsFollowUp": {
     "evidence": "native-proc-stats-acceptance.json",
+    "browserRecheck": "pending"
+  },
+  "nativeSystemInformationFollowUp": {
+    "evidence": "native-system-information-acceptance.json",
     "browserRecheck": "pending"
   }
 }
