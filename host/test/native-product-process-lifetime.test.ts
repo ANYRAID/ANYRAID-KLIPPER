@@ -4,6 +4,7 @@ import {mkdtemp,rm,readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {once} from 'node:events';
+import {request} from 'node:http';
 import {setTimeout as delay} from 'node:timers/promises';
 import {WebSocket} from 'ws';
 import {DatabaseStore} from '../src/moonraker/database.ts';
@@ -14,10 +15,10 @@ import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
 async function until(check:()=>boolean){const end=performance.now()+5000;while(!check()){assert(performance.now()<end,'Process host timeout');await delay(5);}}
 const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'process-test',missingRequirements:[]};
-async function fixture(failure?:'replacement'|'stop'){
+async function fixture(failure?:'replacement'|'stop',holdReplacement=false){
  const root=await mkdtemp(join(tmpdir(),'native-process-')),abort=new AbortController(),control=new ProductHostControl(),ready=Promise.withResolvers<string>();
  let current=await productMachineFixture(root),processOpens=0,processReleases=0,databaseCloses=0,calls=0,key='',db:DatabaseStore|undefined;
- const fixtures=[current],profiles:ProductHostProfile[]=[],addresses:string[]=[];
+ const fixtures=[current],profiles:ProductHostProfile[]=[],addresses:string[]=[],detached=Promise.withResolvers<void>(),replacement=Promise.withResolvers<void>();
  const native=createNativeProductHostFactory(current.path,{
   filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),standardPrint:{nozzle:200,bed:60},
   async createProcess(){
@@ -31,7 +32,7 @@ async function fixture(failure?:'replacement'|'stop'){
   }
  });
  const factory:ProductHostFactory=async signal=>{
-  if(calls++){assert(profiles.every(p=>p.product.maintenanceGate.status.closed));if(failure==='replacement')throw new Error('Replacement configuration failed');current=await productMachineFixture(root);fixtures.push(current);}
+  if(calls++){assert(profiles.every(p=>p.product.maintenanceGate.status.closed));detached.resolve();if(holdReplacement)await replacement.promise;if(failure==='replacement')throw new Error('Replacement configuration failed');current=await productMachineFixture(root);fixtures.push(current);}
   const profile=await native(signal);profiles.push(profile);return profile;
  };
  Object.defineProperty(factory,'serverLifetime',{value:native.serverLifetime});factory.close=()=>native.close!();
@@ -39,8 +40,49 @@ async function fixture(failure?:'replacement'|'stop'){
  const running=runProductHost(factory,abort.signal,address=>{const base=`http://127.0.0.1:${address.port}`;addresses.push(base);ready.resolve(base);},control);
  void running.then(()=>{terminal=true;},error=>{terminal=true;ready.reject(error);});
  const available=ready.promise.then(async base=>{key=await (await db!.wrapNamespace('native_authorization',false)).get('api_key') as string;return base;});
- return {root,abort,control,ready:available,running,profiles,fixtures,addresses,get key(){return key;},get db(){return db!;},get counts(){return {processOpens,processReleases,databaseCloses,calls,terminal};},async close(){abort.abort();await running.catch(()=>{});for(const p of profiles)await p.release().catch(()=>{});await native.close!().catch(()=>{});for(const f of fixtures)await f.close();await rm(root,{recursive:true,force:true});}};
+ return {root,abort,control,ready:available,running,profiles,fixtures,addresses,detached:detached.promise,replacement,get key(){return key;},get db(){return db!;},get counts(){return {processOpens,processReleases,databaseCloses,calls,terminal};},async close(){replacement.resolve();abort.abort();await running.catch(()=>{});for(const p of profiles)await p.release().catch(()=>{});await native.close!().catch(()=>{});for(const f of fixtures)await f.close();await rm(root,{recursive:true,force:true});}};
 }
+test('released device window retains authorized file queries, uploads, authoritative history and socket events',async t=>{
+ const f=await fixture(undefined,true);let socket:WebSocket|undefined,rebuilding:Promise<void>|undefined,pending:ReturnType<typeof request>|undefined;
+ try{
+  const base=await f.ready,headers={'x-api-key':f.key},events:any[]=[],profile=f.profiles[0],journal=profile.product.journal!,files=profile.options.server.nativeProcessFiles!;
+  const get=async(path:string)=>{const response=await fetch(base+path,{headers});assert.equal(response.status,200,path);return (await response.json() as any).result;};
+  const upload=async(id:string)=>{const form=new FormData();form.append('file',new Blob(['; layer_height = 0.2\nG1 X1\n']),id+'.gcode');form.append('file_id',id);const response=await fetch(base+'/server/files/upload',{method:'POST',headers,body:form});assert.equal(response.status,200);assert.equal((await response.json() as any).result.print_started,false);};
+  await upload('retained');await journal.reserve({version:1,requestId:'history',fileId:'retained',nozzle:0,bed:0});await journal.transition('history',1,'cancelled');
+  const original=await get('/server/history/list');assert.equal(original.count,1);const job=original.jobs[0];
+  socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers});socket.on('message',bytes=>events.push(JSON.parse(bytes.toString())));await once(socket,'open');socket.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'server.connection.identify',params:{client_name:'detached-test',version:'1',type:'web',url:'https://process.invalid'}}));await until(()=>events.some(e=>e.id===1));
+  const outcome=Promise.withResolvers<{status:number;body:any}>();pending=request(base+'/server/files/delete_file',{method:'DELETE',headers:{...headers,'content-type':'application/json','transfer-encoding':'chunked'}},response=>{let bytes='';response.on('data',b=>bytes+=b);response.on('end',()=>outcome.resolve({status:response.statusCode!,body:JSON.parse(bytes)}));});pending.on('error',outcome.reject);pending.write('{"path":');await delay(25);
+  rebuilding=f.control.reinitialize();await f.detached;
+  assert.equal(profile.options.server.nativeUploads!.status.closed,true);assert.equal(journal.closed,false);assert.equal(files.status.closed,false);assert(f.fixtures[0].transport.stops.every(n=>n===1));assert.equal(f.addresses.length,1);assert.equal(socket.readyState,WebSocket.OPEN);
+  await assert.rejects(profile.options.server.nativeUploads!.metadata({filename:'retained.gcode'},new AbortController().signal),/closed/);await assert.rejects(profile.options.server.nativeUploads!.thumbnails({filename:'retained.gcode'},new AbortController().signal),/closed/);
+  assert.equal((await get('/server/info')).native_host.ready,false);assert.equal((await fetch(base+'/server/files/list')).status,401);
+  for(const path of ['/printer/files/info?file_id=retained','/server/files/list','/server/files/directory?path=gcodes&extended=true','/server/files/metadata?filename=retained.gcode','/server/files/thumbnails?filename=retained.gcode','/server/history/job?uid='+job.job_id,'/server/history/totals'])await get(path);
+  assert.equal((await get('/server/history/list')).jobs[0].job_id,job.job_id);assert.equal(await (await fetch(base+'/server/files/gcodes/retained.gcode',{headers})).text(),'; layer_height = 0.2\nG1 X1\n');
+  assert.equal((await fetch(base+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"filename":"retained.gcode"}'})).status,503);
+  assert.equal((await fetch(base+'/server/files/delete_file?path=gcodes/retained.gcode',{method:'DELETE',headers})).status,503);
+  await upload('offline');await until(()=>events.some(e=>e.method==='notify_filelist_changed'&&e.params[0].item.file_id==='offline'));
+  socket.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'server.history.list'}));await until(()=>events.some(e=>e.id===2));assert.equal(events.find(e=>e.id===2).result.count,1);
+  const deleted=await fetch(base+'/server/history/job?uid='+job.job_id,{method:'DELETE',headers});assert.equal(deleted.status,200);assert.equal((await get('/server/history/list')).count,0);assert.equal((await journal.get('history'))!.state,'cancelled');
+  assert.equal((await fetch(base+'/server/history/reset_totals',{method:'POST',headers})).status,200);assert.equal((await get('/server/history/totals')).job_totals.total_jobs,0);
+  await journal.reserve({version:1,requestId:'offline-history',fileId:'retained',nozzle:0,bed:0});await journal.transition('offline-history',1,'cancelled');await until(()=>events.some(e=>e.method==='notify_history_changed'&&e.params[0].action==='finished'&&e.params[0].job.metadata.native_request_id==='offline-history'));
+  f.replacement.resolve();await rebuilding;assert.equal(f.profiles[1].product.journal,journal);assert.equal(f.profiles[1].options.server.nativeProcessFiles,files);assert.equal((await get('/server/info')).native_host.ready,true);assert.equal((await get('/server/files/list')).length,2);
+  pending.end('"gcodes/retained.gcode"}');assert.equal((await outcome.promise).status,503);assert.equal((await get('/printer/files/info?file_id=retained')).id,'retained');
+  assert.equal((await fetch(base+'/server/files/gcodes/offline.gcode',{method:'DELETE',headers})).status,200);assert.equal((await get('/server/files/list')).length,1);
+  t.diagnostic('Actual product host paused after old profile release; same process files/journal, prior API key and socket retained; no hardware motion acceptance.');
+ }finally{f.replacement.resolve();pending?.destroy();socket?.terminate();await rebuilding?.catch(()=>{});await f.close();}
+});
+test('process download admitted before retirement survives attachment, and final shutdown waits ignored process authorization',async()=>{
+ const f=await fixture(),held=Promise.withResolvers<void>(),final=Promise.withResolvers<void>();let transfer:Promise<void>|undefined,stopping:Promise<void>|undefined;
+ try{
+  const base=await f.ready,headers={'x-api-key':f.key},form=new FormData();form.append('file',new Blob(['G1 X1\n']),'part.gcode');form.append('file_id','retained');assert.equal((await fetch(base+'/server/files/upload',{method:'POST',headers,body:form})).status,200);
+  const files=f.profiles[0].options.server.nativeProcessFiles!,signal=new AbortController().signal;let consumed=false;
+  transfer=files.download('/server/files/gcodes/retained.gcode',{transport:'http',signal,authorize:()=>held.promise},async()=>{consumed=true;});await until(()=>files.status.authorizing===1);
+  await f.control.reinitialize();assert.equal(files.status.closed,false);assert.equal(files.status.downloads,1);assert.equal(consumed,false);held.resolve();await transfer;assert.equal(consumed,true);
+  const blocked=files.download('/server/files/gcodes/retained.gcode',{transport:'http',signal,authorize:()=>final.promise},async()=>{throw Error('Cancelled download must not consume');});const rejected=assert.rejects(blocked,/closed/);await until(()=>files.status.authorizing===1);
+  let terminal=false;stopping=f.running.then(()=>{terminal=true;});f.abort.abort();await rejected;await delay(25);assert.equal(terminal,false);assert.equal(f.db.status.closed,false);assert.equal(f.counts.processReleases,0);
+  final.resolve();await stopping;assert.equal(f.db.status.closed,true);assert.equal(f.counts.databaseCloses,1);assert.equal(files.status.authorizing,0);
+ }finally{held.resolve();final.resolve();await transfer?.catch(()=>{});f.abort.abort();await stopping?.catch(()=>{});await f.close();}
+});
 test('actual host loop retains JWT, database, file lock and identified socket across three device generations',async t=>{
  const f=await fixture();let socket:WebSocket|undefined;const times:number[]=[],fds:number[]=[];
  try{
@@ -70,6 +112,7 @@ for(const failure of ['replacement','stop'] as const)test(`failed ${failure} sta
   const response=await fetch(base+'/printer/host/reinitialize',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({version:1,request_id:'failed-rebuild',state_token:status.state_token})});assert.equal(response.status,200);assert.equal((await response.json() as any).result.operation.state,'queued');
   await until(()=>f.control.operation('failed-rebuild')?.state==='failed');assert.equal(f.counts.terminal,false);assert.equal(f.db.status.closed,false);assert.equal(f.counts.processReleases,0);assert.equal(f.counts.calls, failure==='stop'?1:2);
   const info=await fetch(base+'/server/info',{headers});assert.equal(info.status,200);const host=(await info.json() as any).result.native_host;assert.equal(host.ready,false);assert.equal(host.hardware_state,failure==='stop'?'failed':'stopped');
+  for(const path of ['/server/files/list','/server/files/directory','/server/history/list','/server/history/totals'])assert.equal((await fetch(base+path,{headers})).status,200,path);
   const failed=(await (await fetch(base+'/printer/host/status?request_id=failed-rebuild',{headers})).json() as any).result;assert.equal(failed.operation.state,'failed');assert.equal(failed.available,false);assert.equal(failed.durable,true);
   f.abort.abort();await assert.rejects(f.running,/failed/);assert.equal(f.counts.processReleases,1);assert.equal(f.db.status.closed,true);
  }finally{await f.close();}

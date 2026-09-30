@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,writeFile,readdir,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,writeFile,readdir,readFile,rm,open} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
@@ -19,6 +19,14 @@ import {FilePrintDevice} from '../src/operations/file-print-device.ts';
 import {GCodeDispatch} from '../src/gcode/dispatch.ts';
 const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert.ok(Date.now()<end,'Upload condition timed out');await new Promise(r=>setTimeout(r,5));}};
 const multipart=(data:string|Uint8Array='G1 X1\n',fields:Record<string,string>={},name='part.gcode')=>{const form=new FormData();form.append('file',new Blob([typeof data==='string'?data:new Uint8Array(data)]),name);for(const [key,value] of Object.entries(fields))form.append(key,value);return form;};
+test('closed process files reject deletion even while their device delegate remains open',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'closed-process-files-')),files=await PublishedPrintFiles.open(join(dir,'files')),root=new NativePrintUploads(files,new MaintenanceGate()),gate=new MaintenanceGate(),borrower=new NativePrintUploads(files,gate,{},root),signal=new AbortController();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate});borrower.bindPrintController(controller);root.bindDeviceFiles(borrower,signal.signal);
+ try{
+  const path=join(dir,'source');await writeFile(path,'G1 X1\n');const input=await open(path,'r');try{await files.publish('retained','part.gcode',input,signal.signal);}finally{await input.close();}
+  await root.close();assert.equal(borrower.status.closed,false);await assert.rejects(root.remove({path:'gcodes/retained.gcode'},{transport:'http',signal:signal.signal,authorize(){}}),/closed/);assert.equal((await files.inspect('retained')).id,'retained');
+ }finally{signal.abort();await controller.retire();await borrower.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
+});
 async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize'];removal?:boolean}={}){
  const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
  if(options.removal)uploads.bindPrintController(new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}));

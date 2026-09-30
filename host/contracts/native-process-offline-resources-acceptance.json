@@ -1,0 +1,250 @@
+{
+  "implementationBase": "d81fe7cc",
+  "date": "2026-09-30",
+  "node": "v26.9.0",
+  "scope": "A1 process-owned file metadata and authoritative history through the actual native product host and independently installed compiled JS package. Software-only simulated PTY MCUs. This does not prove standard restart, complete Moonraker, target-board performance, numerical integrity or physical printer acceptance.",
+  "sourceSha256": {
+    "host/src/moonraker/configured-server.ts": "fe4c44e15cbea7847a2ea0ef6fbc756ab2613aa4cb06e7e220c3ab1fc1a8517b",
+    "host/src/moonraker/native-history.ts": "21ccf1c8d202242faea8599e18818a13a0ca3ec813de78dec63779a99ea62d95",
+    "host/src/moonraker/native-print-uploads.ts": "edf46d7d91543b6b53e4343222ac5482b4993f4ad39e61e58cd5d066ac134dc8",
+    "host/src/moonraker/server.ts": "077ee9e59f6ebb78309f768c0030b0967ff641b5a585c47c421f13ceabaac342",
+    "host/src/operations/print-journal.ts": "a59f0cfc1bf27f9a0b469cceef9bc97146b6da8b134f3e8d1ec28c5a6382aaa0",
+    "host/src/operations/print.ts": "0272a992ab6c566c945fce363ac66803d34e4d1098683e35cb58a943b5a546a2",
+    "host/src/runtime/native-product-machine.ts": "e44fe16e5c1061003ae716c15e9aab38f11b265d4abdcec5013dc132c8cccf3b",
+    "host/src/runtime/product-machine-profile.ts": "f8d42c376602fee4719108d5ea11fafceb28546f2fb91b766007094920a7908d",
+    "host/test/native-product-process-lifetime.test.ts": "571e01214fece9ed2d21acb05d4ae07a2b40a182be3929ec555d42aa590c4d62",
+    "host/test/native-print-uploads.test.ts": "b86c24f660f86af80b93acdd873d4805547a98175bc664f1ca23575709cfa624",
+    "host/test/print-retirement.test.ts": "da172c100462b8343ef5fe077d0fdd0e6ce961f50cecdf818b95eb4aa826bd6e",
+    "host/acceptance/product-compiled-journey.test.ts": "f0c8ff8acbcdb4b6048da60e3d9ef8e6168aaed3d687e1814daf73d919a71b0e"
+  },
+  "verified": [
+    "createProcess mode opens one canonical NativePrintUploads metadata owner and one authoritative PrintJournal worker; each device borrows these resources. No history replica or second journal open on generation replacement.",
+    "Actual runProductHost is held after the old profile releases and before the new fixture exists: prior authorization and original identified WebSocket remain usable for file info, catalog, directory, metadata, thumbnail query, download, immutable upload without print, history queries, deletion of finished history visibility and totals reset. History request receipts remain durable; offline file/history events reach the same socket.",
+    "An HTTP DELETE admitted to the old device, with its body completed only after replacement ready, returns 503 and does not delete the fresh generation file. Ready-device deletion works. Print and file deletion require usable device ownership during the detached window.",
+    "Process downloads with held authorization survive device replacement. Final shutdown cancels the request but waits for the ignored authorization to finish before database closure and process release.",
+    "Only successful permanent PrintController retirement releases its journal lease; old history mutations and observer admission are rejected, subscriptions detach, and a new controller restores from the same live journal. Controller stop failure retains its journal lease. Product stop failures prohibit device attachment while retained file/history APIs remain queryable.",
+    "Borrower closure cannot close canonical metadata; closed borrower metadata/thumbnail queries reject. A closed canonical file owner rejects removal even if its device delegate remains open.",
+    "Final compiled package pauses replacement after prior generation release. The retained JWT, sockets, file catalog, metadata, thumbnail query, authoritative history and hash-verified G-code download work while not-ready, and print start returns 503. Replacement does not replay motion.",
+    "Final independently installed compiled package passes the existing heated-print, pause/resume, cancel, history, thumbnail, process recovery and ADC fault journey with concurrent API, subscription, upload, download and delete load; only one process resource open/close and original socket ownership are asserted."
+  ],
+  "sourceRegressions": {
+    "distinctCases": 110,
+    "fullAffected": {
+      "logSha256": "f10eeafd7be30be0d49523eb9386b1943735f7df7976b0ec38df1aa8d6a236cb",
+      "passed": 109,
+      "failed": 0,
+      "durationMs": 46324.899131
+    },
+    "finalClosureAndFailurePaths": {
+      "logSha256": "160e52c07afac102ef3dc7394089b4a96c8e0ae06ddda1e84e46176afd7f4b2f",
+      "passed": 25,
+      "failed": 0,
+      "durationMs": 8365.513718
+    },
+    "commands": [
+      "node --test --test-concurrency=1 host/test/native-product-process-lifetime.test.ts host/test/native-product-file-lifetime.test.ts host/test/native-generation-attachment.test.ts host/test/print-retirement.test.ts host/test/print-durable.test.ts host/test/print-fault-journal.test.ts host/test/native-history.test.ts host/test/native-history-events.test.ts host/test/native-history-delete.test.ts host/test/native-history-totals.test.ts host/test/native-product-machine.test.ts host/test/product-machine-profile.test.ts host/test/native-print-uploads.test.ts host/test/native-persistent-metadata.test.ts host/test/product-server-generation.test.ts host/test/product-service.test.ts host/test/product-host-reinitialize.test.ts",
+      "node --test --test-concurrency=1 host/test/native-product-process-lifetime.test.ts host/test/native-print-uploads.test.ts"
+    ],
+    "initialFailure": {
+      "logSha256": "ffa9f9010b888a0c2b18b080cbdc26b741fb2c45eb9589876876d0b8fbdaba72",
+      "passed": 38,
+      "failed": 1,
+      "durationMs": 15516.232021,
+      "cause": "New test used /owner/ but actual error says journal already owned. Changed only the expected regex to /owned/.",
+      "correctionVerified": {
+        "logSha256": "f10eeafd7be30be0d49523eb9386b1943735f7df7976b0ec38df1aa8d6a236cb",
+        "passed": 109,
+        "failed": 0,
+        "durationMs": 46324.899131
+      }
+    },
+    "scope": "109 affected cases passed before final closed-layer guards; 25 affected file/process cases passed on the final runtime, including one additional closed-owner deletion case."
+  },
+  "sourceReinitialization": {
+    "reinitializeMs": [
+      518.5761029999994,
+      508.55556400000023
+    ],
+    "readyFileDescriptors": [
+      83,
+      83,
+      83
+    ],
+    "scope": "Three actual host generations with two simulated PTY MCUs each; native JWT and identified WebSocket retained"
+  },
+  "compiledAcceptance": {
+    "logSha256": "8db8d103ae0416da867ff9905de140ea60f765e7c9c73ab9261a9273cc245897",
+    "passed": 1,
+    "failed": 0,
+    "durationMs": 37802.37719,
+    "command": "node --test --test-concurrency=1 --test-name-pattern=\"^nativeAuthorization=true apiLoad=true \" host/acceptance/product-compiled-journey.test.ts",
+    "detachedWindow": {
+      "sameListener": true,
+      "priorJwt": true,
+      "originalSockets": true,
+      "metadataAndHistory": true,
+      "downloadSha256": "85c54197d1abee71ed4b84cbbcbdea6f92e9a2204a5a1b1b0efad7a0dfb5ab85",
+      "noPrintReplay": true,
+      "fileQueries": 50,
+      "fileQueryP99Ms": 0.3031140000020969
+    },
+    "retainedProcessServer": {
+      "sameAddress": true,
+      "priorJwtAccepted": true,
+      "originalSocketsOpen": true,
+      "reinitializeMs": 2945.4532459999973
+    },
+    "metrics": {
+      "motionReportLoad": true,
+      "liveMotionSamples": 2569,
+      "liveExtrusionSamples": 1475,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.358977609999998,
+        "print_duration": 2.443371286999998,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "7b37e332d769e2ae13305b8c40a597d34bd5055b955638d334717b6c696bbbd8",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4016,
+      "phaseP99Ms": 5.112247999997635,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 898,
+      "historyP99Ms": 10.999917000001005,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.174723000000085,
+      "deleteRequests": 16,
+      "deleteP95Ms": 8.674055999999837,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.352641000001313,
+      "metadataRequests": 16,
+      "metadataP95Ms": 27.410867999999027,
+      "downloads": 16,
+      "downloadP95Ms": 21.080261000002793,
+      "wireCommands": 188,
+      "wireSteps": 3600,
+      "minimumStepLeadMs": 86.845,
+      "directoryRequests": 3856,
+      "directoryP99Ms": 7.398618999999599,
+      "statusRequests": 16067,
+      "uploads": 16,
+      "statusP99Ms": 4.56427099999928,
+      "uploadP95Ms": 15.886372999999367,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.946623,
+            "maxMs": 20.856831
+          },
+          "cpu": {
+            "user": 5537291,
+            "system": 666003
+          },
+          "rss": 315039744
+        },
+        {
+          "loop": {
+            "p99Ms": 1.885183,
+            "maxMs": 7.483391
+          },
+          "cpu": {
+            "user": 1780936,
+            "system": 229340
+          },
+          "rss": 302829568
+        }
+      ]
+    },
+    "timingScope": "Reinitialize timing includes the deliberately held device-offline window and 50 file queries, post-ready setting checks and filament sampling; not pure reload latency.",
+    "earlierCompiledPass": {
+      "logSha256": "7ebc5fbdbde757ac9a774b0bfabd2e63bbf5bf6bf28381b52c93244b989c2f09",
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 38652.220278,
+      "bundleManifestSha256": "42e7644ba19935449bd16f2b0be5d331d0fd95e7ad262d768651dd052f146fe0",
+      "note": "Earlier valid runtime before the final closed-layer guards. Final package was rebuilt and rerun after that review change."
+    }
+  },
+  "staticChecks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "compatibilityLimits": [
+    "Offline device-dependent file deletion remains rejected: standard /server/files/delete_file returns 503; download-path DELETE returns 405 while no device delegate is available. Complete pinned Moonraker file-management equivalence remains to be audited.",
+    "Standard /printer/restart and /printer/firmware_restart and explicit post-failure restart are not implemented; A2/A3 remain next.",
+    "Actual Fluidd/Mainsail page recovery and uploads on this final package remain unverified; A4 is incomplete.",
+    "No Python dependency was removed by this lifecycle increment; default install/CI and 177 tracked klippy Python files remain.",
+    "Known numerical mismatch/crash observations remain unresolved. Desktop metrics are necessary regression evidence, not target-board budgets, print-quality proof or speed improvement.",
+    "No real printer was connected, no production entrypoint switched, and no remote push or deployment occurred."
+  ]
+}

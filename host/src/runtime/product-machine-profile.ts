@@ -14,6 +14,8 @@ import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {planMCUConnections,type MCUMachinePolicy} from './configured-mcu-connections.ts';
 import type {ProductHostProfile} from './product-host.ts';
 export interface ProductMachineBindings {
+ /** Borrowed process journal; profile release cannot close it. */
+ journal?:PrintJournal;
  stops:ReadonlyMap<string,MCUMachinePolicy['stopDevice']>;
  print:Pick<ProductHostProfile['options']['print'],'lifecycle'|'open'|'output'>;
  server:ProductHostProfile['options']['server'];
@@ -50,7 +52,7 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
  let bindings:ProductMachineBindings|undefined,journal:PrintJournal|undefined,closing:Promise<void>|undefined;const gate=new MaintenanceGate();
  const release=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;gate.invalidate();
-  void (async()=>{const errors:unknown[]=[];if(bindings&&typeof bindings.release==='function')try{await bindings.release();}catch(error){errors.push(error);}if(journal)try{await journal.close();}catch(error){errors.push(error);}if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Machine profile cleanup failed');})().then(done.resolve,done.reject);return closing;
+  void (async()=>{const errors:unknown[]=[];if(bindings&&typeof bindings.release==='function')try{await bindings.release();}catch(error){errors.push(error);}if(journal&&!bindings?.journal)try{await journal.close();}catch(error){errors.push(error);}if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Machine profile cleanup failed');})().then(done.resolve,done.reject);return closing;
  };
  try{
   bindings=await createBindings(structuredClone(config),signal,gate);signal.throwIfAborted();
@@ -59,7 +61,8 @@ export async function loadProductMachineProfile(path:string,createBindings:Produ
   for(const key of ['prepare','start','finishOutputs','stopOutputs'] as const)if(typeof bindings.print.lifecycle?.[key]!=='function')throw new TypeError('Incomplete machine lifecycle');
   new ServerInformation(bindings.server.information);
   const policies=new Map<string,MCUMachinePolicy>();for(const [id,p] of Object.entries(config.mcus)){const stopDevice=bindings.stops.get(id);if(typeof stopDevice!=='function')throw new TypeError('Missing physical stop binding: '+id);policies.set(id,{...p,stopDevice} as MCUMachinePolicy);}
-  journal=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});signal.throwIfAborted();
+  if(bindings.journal&&(!(bindings.journal instanceof PrintJournal)||bindings.journal.closed||bindings.journal.identity.path!==config.journalPath||bindings.journal.identity.deviceId!==config.deviceId))throw new TypeError('Invalid borrowed process journal');
+  journal=bindings.journal??await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});signal.throwIfAborted();
   return {recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId},reader,policies,product:{journal,configurationSession:configuration.session,maintenanceGate:gate,limits:{...config.limits},deadlines:{...config.deadlines}},options:{configPath:config.moonrakerConfig,machine:{...config.machine},hardware:config.hardware,print:{...config.print,open:bindings.print.open,output:bindings.print.output,lifecycle:{...bindings.print.lifecycle}},server:{...bindings.server}},release};
  }catch(error){try{await release();}catch(cleanup){throw new AggregateError([error,cleanup],'Machine profile assembly and cleanup failed',{cause:error});}throw error;}
 }

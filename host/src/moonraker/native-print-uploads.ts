@@ -28,14 +28,18 @@ export class NativePrintUploads {
  #closed=false;#published=0;
  #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
- constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions={}){
+ readonly #metadataOwner:NativePrintUploads|undefined;
+ #deviceFiles:{owner:NativePrintUploads;signal:AbortSignal}|undefined;
+ get metadataOwner(){return this.#metadataOwner;}
+ constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions={},metadataOwner?:NativePrintUploads){
   if(!(files instanceof PublishedPrintFiles)||!(gate instanceof MaintenanceGate))throw new Error('Invalid native upload owner');
   const max=options.maxFileBytes??Math.min(files.status.maxFileBytes,64*1024**2),capacity=options.maxUploads??2,root=options.stagingRoot??tmpdir();
   if(!(files instanceof PublishedPrintFiles)||files.status.closed||!(gate instanceof MaintenanceGate)||gate.status.closed||!isAbsolute(root)||!Number.isSafeInteger(max)||max<1||max>64*1024**2||max>files.status.maxFileBytes||!Number.isSafeInteger(capacity)||capacity<1||capacity>4)throw new Error('Invalid native upload owner or limits');
   const downloads=options.maxDownloads??2,downloadBytes=options.maxDownloadBytes??64*1024**2;
   if(!Number.isSafeInteger(downloads)||downloads<1||downloads>4||!Number.isSafeInteger(downloadBytes)||downloadBytes<1||downloadBytes>1024**3)throw new Error('Invalid native download limits');
   this.#maxDownloads=downloads;this.#downloadBudget=new PrintSnapshotBudget({maxBytes:downloadBytes,maxSnapshots:downloads});
-  this.#metadata=new NativeFileMetadata(files);this.#files=files;this.#gate=gate;this.#root=root;this.#max=max;this.#capacity=capacity;
+  if(metadataOwner&&(!(metadataOwner instanceof NativePrintUploads)||metadataOwner.#files!==files||metadataOwner.#closed||metadataOwner.#metadataOwner))throw new Error('Invalid process metadata owner');
+  this.#metadataOwner=metadataOwner;this.#metadata=metadataOwner?metadataOwner.#metadata:new NativeFileMetadata(files);this.#files=files;this.#gate=gate;this.#root=root;this.#max=max;this.#capacity=capacity;
  }
  static async open(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions&{metadataRoot:string}):Promise<NativePrintUploads>{
   const owner=new NativePrintUploads(files,gate,options);
@@ -46,7 +50,13 @@ export class NativePrintUploads {
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  acceptsController(controller:PrintController):boolean{return controller instanceof PrintController&&controller.usesMaintenanceGate(this.#gate)&&(!this.#print||this.#print===controller);}
  bindPrintController(controller:PrintController):void{if(!this.acceptsController(controller))throw new Error('Invalid native file print owner');this.#print=controller;}
- get canRemove():boolean{return !!this.#print&&!this.#closed;}
+ get canRemove():boolean{return !this.#closed&&(!!this.#print||!!this.#deviceFiles?.owner.canRemove);}
+ /** Process reads/metadata outlive this replaceable mutation delegate. */
+ bindDeviceFiles(owner:NativePrintUploads,signal:AbortSignal):void{
+  if(this.#closed||this.#deviceFiles||!(owner instanceof NativePrintUploads)||owner.metadataOwner!==this||owner.#closed||!owner.#print||!(signal instanceof AbortSignal)||signal.aborted)throw new Error('Invalid device file binding');
+  const binding={owner,signal};this.#deviceFiles=binding;
+  signal.addEventListener('abort',()=>{if(this.#deviceFiles===binding)this.#deviceFiles=undefined;},{once:true});
+ }
  observeChanges(observer:(event:Json)=>void):()=>void{
   if(this.#closed)throw new ApiError(503,'Native files closed');
   return this.#files.observeChanges(({action,file,modified})=>{
@@ -55,6 +65,8 @@ export class NativePrintUploads {
   });
  }
  remove(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
+  if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.remove(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
   if(this.#closed||!this.#print)return Promise.reject(new ApiError(503,'Native file removal requires its print owner'));
   if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
@@ -76,16 +88,20 @@ export class NativePrintUploads {
   void pending.then(()=>this.#authorizing.delete(pending),()=>this.#authorizing.delete(pending));
   await new Promise<void>((resolve,reject)=>{const aborted=()=>reject(signal.reason);signal.addEventListener('abort',aborted,{once:true});if(signal.aborted)aborted();void pending.then(value=>{try{authorizedContext(context,value);resolve();}catch(error){reject(error);}},reject).finally(()=>signal.removeEventListener('abort',aborted));});signal.throwIfAborted();
  }
- receive(request:IncomingMessage,context:RpcContext):Promise<Json>{
+ /** Capture device ownership at HTTP admission, before the network work queue. */
+ captureUpload(){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding);}
+ receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
+ #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
   if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
-  const signal=AbortSignal.any([context.signal,this.#abort.signal]);
-  const task=Promise.resolve().then(()=>this.#receive(request,context,signal));this.#pending.add(task);
+  const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
+  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined));this.#pending.add(task);
   void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
+  let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
   let directory:string|undefined,file:FileHandle|undefined;
   try{
    const query=new URL(request.url??'','http://localhost').searchParams;
@@ -118,7 +134,7 @@ export class NativePrintUploads {
    let record;try{record=await this.#files.publish(id,filename,file,signal);}catch(error){if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID exists; query its receipt');throw error;}
    this.#published++;const published=await this.#files.describe(id,signal);
    return {item:{path:id+'.gcode',root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
-  }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{release();}}}
+  }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseDevice?.();release();}}}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
@@ -154,10 +170,12 @@ export class NativePrintUploads {
   const task=this.#metadata.resolveThumbnail(path,{...context,signal,authorize:(method,params)=>this.#authorize(context,{...params,...(typeof params.filename==='string'&&/^[A-Za-z0-9_-]{1,128}\.gcode$/.test(params.filename)?{file_id:params.filename.slice(0,-6)}:{})},signal,method)});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }
  thumbnails(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json[]>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native thumbnails closed'));
   if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
   return this.#metadata.thumbnails(params.filename,signal);
  }
  metadata(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Record<string,Json>>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native metadata closed'));
   if(typeof params.filename!=='string'||Object.keys(params).some(key=>key!=='filename'))return Promise.reject(new ApiError(400,'Expected filename'));
   return this.#metadata.metadata(params.filename,signal);
  }
@@ -185,7 +203,7 @@ export class NativePrintUploads {
  }
  /** Cancel requests and staging promptly. External policies may ignore their
   * signal; the dependency owner must drain them before releasing resources. */
- close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadata.close()]).then(()=>{});}
+ close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadataOwner?undefined:this.#metadata.close()]).then(()=>{});}
  drain():Promise<void>{
   return this.#draining??=(async()=>{
    const [closed]=await Promise.allSettled([this.close()]);
@@ -194,14 +212,15 @@ export class NativePrintUploads {
   })();
  }
 }
-export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean}={}):()=>void{
+export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean;reads?:NativePrintUploads}={}):()=>void{
+ const reads=options.reads??uploads;
  const release:(()=>void)[]=[];
  try{
-  release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>uploads.info(params,context.signal)));
-  release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>uploads.list(params,context.signal)));
+  release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
+  release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>reads.list(params,context.signal)));
   release.push(registry.register({endpoint:'/server/files/delete_file',methods:['DELETE']},(params,_verb,context)=>uploads.remove(params,context)));
-  release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>uploads.directory(params,context.signal)));
-  if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>uploads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>uploads.thumbnails(params,context.signal)));}
+  release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>reads.directory(params,context.signal)));
+  if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));}
   return ()=>{for(const remove of release.reverse())remove();};
  }catch(error){for(const remove of release.reverse())remove();throw error;}
 }

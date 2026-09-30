@@ -27,6 +27,9 @@ export type {
 } from './print-journal-types.ts';
 /** Durable request metadata only. No device commands or automatic print replay. */
 export class PrintJournal {
+  readonly #identity:{path:string;deviceId:string};
+  get identity(){return {...this.#identity};}
+  get closed(){return this.#closed||!!this.#closing;}
   #worker: Worker;
   #historyListeners=new Set<(event:JournalHistoryEvent)=>void>();
   #historyObserverErrors=0;
@@ -59,6 +62,7 @@ export class PrintJournal {
     return this.#pending.size;
   }
   private constructor(options: JournalOptions) {
+    this.#identity={path:options.path,deviceId:options.deviceId};
     this.#worker = new Worker(
       workerEntry('./print-journal-worker.ts',import.meta.url),
       { workerData: options, execArgv: [] },

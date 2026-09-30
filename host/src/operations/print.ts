@@ -80,7 +80,7 @@ interface PrintRecord {
   completed?: Promise<void>;
 }
 // A journal represents one persistent printer owner within this process.
-// Never release it on reset/failure: old controller references remain callable.
+// Release only after permanent retirement has drained all writes and actions.
 const journalOwners = new WeakSet<PrintJournal>();
 export class PrintController {
   #beforeStart:(()=>void)|undefined;
@@ -89,6 +89,7 @@ export class PrintController {
   get filamentUsed():number|null{return this.#extrusionAccounting?.filamentUsed??null;}
   get printDuration():number|null{return this.#extrusionAccounting?.printDuration??null;}
   #retirement:Promise<void>|undefined;
+  #historySubscriptions=new Set<()=>void>();
   /** Permanent owner shutdown. Unlike cancel's observation deadline, completion
    * proves that accepted actions, safety cleanup and journal writes retired.
    * Keep the external journal open until this promise settles. */
@@ -96,7 +97,7 @@ export class PrintController {
     if(this.#retirement)return this.#retirement;
     const done=Promise.withResolvers<void>();this.#retirement=done.promise;
     this.#maintenanceGate?.invalidate();
-    this.#eofPending=undefined;const errors=this.#detachDevice();
+    this.#eofPending=undefined;const errors=this.#detachDevice();for(const release of [...this.#historySubscriptions])release();
     for(const observer of [...this.#stateObservers])void observer.return();
     // Retirement is not a user cancellation: retain an already failed outcome.
     const cancelled=this.#state==='failed'?Promise.resolve():this.#cancelOwned();void cancelled.catch(()=>{});
@@ -111,6 +112,7 @@ export class PrintController {
       // User-visible cancellation/fault observations may still update state.
       await Promise.allSettled([cancelled,this.#faultStop]);
       if(errors.length)throw new AggregateError([...new Set(errors)],'Print retirement failed');
+      if(this.#journal)journalOwners.delete(this.#journal);
     })().then(done.resolve,done.reject);
     return done.promise;
   }
@@ -150,13 +152,14 @@ export class PrintController {
   #lastReset: string | undefined;
   /** Read durable request metadata without replaying or changing device state. */
   requestRecord(requestId:string):Promise<JournalRecord|null>{return this.#journal?this.#journal.get(requestId):Promise.resolve(null);}
-  subscribeHistory(listener:(event:import('./print-journal-types.ts').JournalHistoryEvent)=>void){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.subscribeHistory(listener);}
+  subscribeHistory(listener:(event:import('./print-journal-types.ts').JournalHistoryEvent)=>void){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');const undo=this.#journal.subscribeHistory(listener),release=()=>{undo();this.#historySubscriptions.delete(release);};this.#historySubscriptions.add(release);return release;}
   historyList(query:import('./print-journal-types.ts').JournalHistoryQuery){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyList(query);}
   historyGet(id:string){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyGet(id);}
-  historyDelete(id:string,all=false){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyDelete(id,all);}
+  historyDelete(id:string,all=false){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyDelete(id,all);}
   historyTotals(){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyTotals();}
-  historyResetTotals(){if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyResetTotals();}
+  historyResetTotals(){if(this.#retirement)throw new Error('Print controller retired');if(!this.#journal)throw new Error('History requires a durable journal');return this.#journal.historyResetTotals();}
   get durable():boolean{return !!this.#journal;}
+  usesJournal(journal:PrintJournal):boolean{return this.#journal===journal;}
   usesMaintenanceGate(gate:MaintenanceGate):boolean{return this.#maintenanceGate===gate;}
   get rememberedRequests(): number {
     return this.#history.size;

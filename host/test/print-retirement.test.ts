@@ -35,3 +35,13 @@ test('retirement retains actual safety failure after cleanup settles',async()=>{
  let settled=false;const retiring=controller.retire().finally(()=>{settled=true;}),rejected=assert.rejects(retiring,error=>error instanceof AggregateError&&error.errors.some(e=>e.message==='physical stop failed'));
  await entered.promise;assert.equal(settled,false);release.resolve();await rejected;assert.equal(controller.pendingDeviceActions,0);await assert.rejects(controller.start(request),/retired/);
 });
+test('only fully retired controllers release a live journal to the next device owner',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'journal-handoff-')),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'});let next:PrintController|undefined;
+ const first=new PrintController(device(),{maxNozzle:300,maxBed:130},{},{journal});let oldEvents=0;first.subscribeHistory(()=>{oldEvents++;});
+ try{
+  assert.throws(()=>new PrintController(device(),{maxNozzle:300,maxBed:130},{},{journal}),/owned/);
+  await first.retire();assert.equal(journal.closed,false);assert.throws(()=>first.historyDelete('1'),/retired/);assert.throws(()=>first.historyResetTotals(),/retired/);assert.throws(()=>first.subscribeHistory(()=>{}),/retired/);
+  next=await PrintController.restore(device(),{maxNozzle:300,maxBed:130},{},{journal});await next.start(request);await next.cancel();assert.equal(oldEvents,0);assert.equal((await journal.historyList()).length,1);await next.retire();
+  const failed=new PrintController(device({async stop(){throw Error('physical stop failed');}}),{maxNozzle:300,maxBed:130},{},{journal});await assert.rejects(failed.retire(),/retirement failed/);assert.throws(()=>new PrintController(device(),{maxNozzle:300,maxBed:130},{},{journal}),/owned/);
+ }finally{await next?.retire().catch(()=>{});await first.retire();await journal.close();await rm(dir,{recursive:true,force:true});}
+});

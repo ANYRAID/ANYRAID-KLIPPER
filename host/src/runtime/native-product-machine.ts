@@ -8,8 +8,9 @@ import type {ProductMachineConfiguration} from '../config/product-machine.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {loadProductMachineProfile,type ProductMachineBindings} from './product-machine-profile.ts';
 import type {ProductHostFactory,ProductHostProfile} from './product-host.ts';
+import {PrintJournal} from '../operations/print-journal.ts';
 
-type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'>:never;
+type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'>:never;
 export interface NativeMachineAdapter {
  stops:ProductMachineBindings['stops'];
  lifecycle:ProductMachineBindings['print']['lifecycle'];
@@ -27,6 +28,7 @@ export interface NativeProductMachineOptions {
  /** Borrowed process storage. A profile closes its admission/metadata layer,
   * releases its lease and adapter, but cannot close the file store. */
  fileResources?:NativeProductFileResources;
+ processFiles?:NativePrintUploads;
  /** Explicit preparation temperatures for filename-only client requests. No file macro inference. */
  standardPrint?:{nozzle:number;bed:number};
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate):Promise<NativeMachineAdapter>;
@@ -38,7 +40,7 @@ export interface NativeProductProcessResources {
   * and close any components that never transferred. Must be idempotent. */
  release():Promise<void>;
 }
-export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'createAdapter'> {
+export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'processFiles'|'createAdapter'> {
  createProcess(configuration:ProductMachineConfiguration,signal:AbortSignal):Promise<NativeProductProcessResources>;
  /** Device resources only. Returning a server would mix the two lifetimes. */
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>):Promise<Omit<NativeMachineAdapter,'server'>>;
@@ -55,6 +57,11 @@ function storageRoots(options:Pick<NativeProductMachineOptions,'filesRoot'|'meta
 export class NativeProductFileResources {
  readonly #files:PublishedPrintFiles;readonly #filesRoot:string;readonly #metadataRoot:string;
  #lease:ReturnType<typeof Promise.withResolvers<void>>|undefined;#closed=false;#closing:Promise<void>|undefined;
+ #processFiles:NativePrintUploads|undefined;#openingFiles:Promise<NativePrintUploads>|undefined;
+ async processFiles(options:NativeUploadOptions):Promise<NativePrintUploads>{
+  if(this.#closed)throw new Error('Native process files closed');
+  this.#openingFiles??=NativePrintUploads.open(this.#files,new MaintenanceGate(),{...options,metadataRoot:this.#metadataRoot}).then(owner=>this.#processFiles=owner);return this.#openingFiles;
+ }
  private constructor(files:PublishedPrintFiles,filesRoot:string,metadataRoot:string){this.#files=files;this.#filesRoot=filesRoot;this.#metadataRoot=metadataRoot;}
  static async open(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'|'files'>):Promise<NativeProductFileResources>{
   const {filesRoot,metadataRoot}=storageRoots(options),files=await PublishedPrintFiles.open(filesRoot,{...options.files});
@@ -71,7 +78,7 @@ export class NativeProductFileResources {
  }
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;
-  this.#closing=(async()=>{await this.#lease?.promise;await this.#files.close();})();return this.#closing;
+  this.#closing=(async()=>{await this.#lease?.promise;await this.#openingFiles?.catch(()=>{});const results=await Promise.allSettled([this.#processFiles?.drain()]);try{await this.#files.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process files cleanup failed');})();return this.#closing;
  }
 }
 /** Assemble native file/metadata ownership once for real machine profiles and
@@ -100,7 +107,7 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
   new ServerInformation(adapter.server.information);
   const authorize=adapter.authorizePrintFile.bind(adapter),output=adapter.output.bind(adapter),lifecycle={...adapter.lifecycle},stops=new Map(adapter.stops),server={...adapter.server,information:structuredClone(adapter.server.information)};
   files=fileLease?.files??await PublishedPrintFiles.open(filesRoot,filesOptions);signal.throwIfAborted();
-  uploads=await NativePrintUploads.open(files,gate,{...uploadOptions,metadataRoot});signal.throwIfAborted();
+  uploads=options.processFiles?new NativePrintUploads(files,gate,uploadOptions,options.processFiles):await NativePrintUploads.open(files,gate,{...uploadOptions,metadataRoot});signal.throwIfAborted();
   const ownedFiles=files,ownedUploads=uploads;
   const active=(incoming:AbortSignal)=>{const combined=AbortSignal.any([incoming,stopped.signal]);combined.throwIfAborted();if(gate.status.closed)throw new ApiError(503,'Machine admission closed');return combined;};
   const resolveFile=async(id:string,incoming:AbortSignal)=>{const s=active(incoming);if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new ApiError(400,'Invalid native file ID');await authorize(id,s);s.throwIfAborted();if(gate.status.closed)throw new ApiError(503,'Machine admission closed');return s;};
@@ -119,7 +126,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  storageRoots(options);
  const snapshot={...options,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
  const processOptions='createProcess' in snapshot?snapshot:undefined;
- let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined;
+ let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
  const factory:ProductHostFactory=(incoming)=>{
   if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);
@@ -133,7 +140,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
      processResources=await processOptions.createProcess(structuredClone(config),s);s.throwIfAborted();
      if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
      assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
-     if('nativeUploads' in processResources.server||'productPrintCompatibility' in processResources.server)throw new TypeError('Native process resources cannot own device file bindings');
+     if(['nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
     })();await processOpening;s.throwIfAborted();
     createAdapter=async(c,signal,g)=>{
      const device=await processOptions.createAdapter(c,signal,g,processResources!.server);
@@ -141,7 +148,13 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
      return {...device,server:processResources!.server};
     };
    }else createAdapter=(snapshot as NativeProductMachineOptions).createAdapter;
-   return createNativeProductBindings(config,s,gate,{...snapshot,createAdapter,files:undefined,fileResources:resources});
+   const processFiles=processOptions?await resources.processFiles(snapshot.uploads):undefined;s.throwIfAborted();
+   if(processOptions){
+    processJournal??=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});s.throwIfAborted();
+    if(processJournal.identity.path!==config.journalPath||processJournal.identity.deviceId!==config.deviceId)throw new Error('Native process journal identity cannot change');
+   }
+   const bindings=await createNativeProductBindings(config,s,gate,{...snapshot,createAdapter,files:undefined,fileResources:resources,processFiles});
+   return processOptions?{...bindings,journal:processJournal,server:{...bindings.server,nativeProcessFiles:processFiles,nativeProcessHistory:processJournal}}:bindings;
   },signal).then(profile=>{
    const release=profile.release;let retiring:Promise<void>|undefined;
    profile.release=()=>retiring??=(async()=>{try{await release();}finally{active=false;}})();return profile;
@@ -150,7 +163,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);try{await processResources?.release?.();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
  if(processOptions)Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
  return factory;

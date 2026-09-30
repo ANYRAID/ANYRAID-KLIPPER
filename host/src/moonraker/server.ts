@@ -95,8 +95,9 @@ export class MoonrakerNetwork {
   * owner before body/authorization awaits; it cannot switch to a new printer. */
  replaceNativeUploads(next?:NativePrintUploads,nativeLifetime?:AbortSignal):void{
   const previous=this.#options.nativeUploads,status=previous?.status;
-  if(this.#phase!=='listening'||previous&&(!status!.closed||status!.pending||status!.downloads||status!.authorizing||status!.metadata.pending))throw new Error('Native upload generation has not retired');
-  if(next!==undefined&&(!(next instanceof NativePrintUploads)||next.status.closed||next.status.pending||next.status.downloads||next.status.authorizing||next.status.metadata.pending))throw new Error('New native uploads are unavailable');
+  const retained=previous!==undefined&&previous===next&&!status!.closed;
+  if(this.#phase!=='listening'||previous&&!retained&&(!status!.closed||status!.pending||status!.downloads||status!.authorizing||status!.metadata.pending))throw new Error('Native upload generation has not retired');
+  if(next!==undefined&&(!(next instanceof NativePrintUploads)||next.status.closed||!retained&&(next.status.pending||next.status.downloads||next.status.authorizing||next.status.metadata.pending)))throw new Error('New native uploads are unavailable');
   if(this.#nativeLifetime&&!this.#nativeLifetime.aborted||nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Native request lifetime is not retired');
   this.#options.nativeUploads=next;this.#nativeLifetime=nativeLifetime;
  }
@@ -128,7 +129,7 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime;
+  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload();
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
@@ -145,7 +146,7 @@ export class MoonrakerNetwork {
      signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
-     const result=await nativeUploads!.receive(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal));signal.throwIfAborted();
+     const result=await receiveUpload!(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal));signal.throwIfAborted();
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
     }
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
