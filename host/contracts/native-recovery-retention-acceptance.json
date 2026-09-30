@@ -1,0 +1,322 @@
+{
+  "date": "2026-10-01",
+  "implementationBase": "1443cfd5",
+  "node": "v26.9.0",
+  "scope": "A2 durable restart receipt retention increment. Authoritative controlled idempotency records remain distinct from bounded standard receipts; no Python or motion-kernel behavior change. Tests use desktop SQLite workers and simulated PTY MCUs, not target-board or physical printer acceptance.",
+  "sourceSha256": {
+    "host/src/runtime/host-recovery-journal.ts": "7ff2c9a0f2646fd187c924dd9f9a4ca66a2734f5bc4631eecbf88d846fd4636f",
+    "host/src/runtime/host-recovery-journal-worker.ts": "1086eeaa2fe87d3c32dfff15d9e0b83cb19e04711ca772a122f0b50c4525c32f",
+    "host/src/runtime/product-host-control.ts": "eec13e0c4e428b7c75e72a67fd26520b90880d63e20735726f5b711a5e786ab0",
+    "host/test/host-recovery-retention.test.ts": "2f14eed778294ca1e6aa0043fa355af944676e4e6d95439f20fdb414f95c87df",
+    "host/test/host-recovery-journal.test.ts": "30da862eab7f5c9be93d1ecd8f4056e57e4315ff336f0a5021072c6c6de0cb9f",
+    "host/test/helpers/recovery-journal-v1.ts": "4e87de21ffa5811021bd2a239313fd9ad1940aba40ea733740e41cadb35a9112",
+    "host/bench/host-recovery-retention.ts": "b795f06ec0f6990ce0517075450f4d4a90df2d0138f28b86f7116edb66b59d4d",
+    "host/acceptance/product-compiled-restart.test.ts": "fe4f5daeebb8109dbb7887d2076957a05453619cf791fcdc805e47c22761f691",
+    "host/acceptance/product-compiled-journey.test.ts": "9ff3ecc14ef862f3c7b7b60754fc58d56dafb23d710569daacbb7a68ab5ab9e8",
+    "host/package.json": "7a72196ab9a7f0469de838557cd59d97cd2dc0da4b5016f750e006be8f0a0acd"
+  },
+  "verified": [
+    "Known schema v1 migrates atomically to v2 after identity/schema/integrity validation; all v1 IDs, tokens and completed outcomes are retained as controlled operations without inferring kind from a prefix. Pending outcomes become interrupted and never replay. Wrong device or malformed/unknown schema does not mutate the file.",
+    "Controlled idempotency records have capacity 128 and never expire automatically; standard RESTART records have a separate capacity 64. Full controlled history does not block standard RESTART.",
+    "Oldest terminal standard receipt expiration and new queued admission share the same synchronous SQLite transaction. The global unique pending-operation index spans both kinds. Pending-conflict admission rolls expiration back; queued/running records never expire.",
+    "Memory drops expired IDs only after the worker confirms commit. In-memory test controls implement the same bounds. Typed latest standard status is restored after process reopen; SIGKILL across committed expiration/admission yields interrupted with no replay.",
+    "Operation kind is immutable for an existing identity. New controlled request IDs cannot use the generated restart- namespace; expired standard IDs cannot be reinterpreted as controlled requests. Existing v1 controlled receipts with such prefixes remain accessible by their original token.",
+    "Source actual-control integration preserves 128 migrated controlled records across 151 settled standard requests, then reopens and continues; direct worker and crash tests exercise steady capacity and transactional rollback.",
+    "Independently installed emitted JS migrates a full v1 history and fills 64 typed standard receipts. The actual compiled host crosses that full persisted boundary with same MCU models, original listener/socket/identity/files/history, configuration failure and explicit recovery; expired standard IDs query null while controlled IDs remain.",
+    "The same compiled artifact fingerprint passes concurrent heated printing, pause/resume/cancel, retained resource window, process recovery, ADC fault, status/subscriptions/files/history load."
+  ],
+  "source": {
+    "cases": 72,
+    "passed": 72,
+    "failed": 0,
+    "logSha256": "a3093e78c73c02b9ef651aa147f1c4deb24bac78181c6a57d14da87167cbf39f"
+  },
+  "bench": {
+    "logSha256": "84d62d9e61cbd4451261af271bf856e27fd316bb0b4ddd17bcdb3786767ebd62",
+    "result": {
+      "node": "v26.9.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "iterations": 1000,
+      "statusReads": 100000,
+      "durationMs": 460.563484,
+      "durableAdmission": {
+        "medianMs": 0.12294199999996636,
+        "p99Ms": 0.17619200000001456,
+        "maxMs": 0.8207310000000234
+      },
+      "durableSettlement": {
+        "medianMs": 0.25667400000003227,
+        "p99Ms": 0.8366320000000087,
+        "maxMs": 1.6793330000000424
+      },
+      "statusRead": {
+        "medianMs": 0.001841929999999934,
+        "p99Ms": 0.002062829999999849,
+        "maxMs": 0.0031796499999995832
+      },
+      "eventLoop": {
+        "p99Ms": 1.192959,
+        "maxMs": 1.234943
+      },
+      "cpuUsage": {
+        "user": 580111,
+        "system": 56198
+      },
+      "history": {
+        "controlled": {
+          "retained": 128,
+          "capacity": 128
+        },
+        "standard_restart": {
+          "retained": 64,
+          "capacity": 64
+        }
+      },
+      "databaseBytes": 49152,
+      "scope": "Desktop full-capacity durable control benchmark with no-op reload handler; not MCU reload duration, target-board or physical motion validation."
+    },
+    "thresholds": {
+      "maximumAdmissionP99Ms": 25,
+      "maximumEventLoopP99Ms": 10
+    },
+    "command": "node host/bench/host-recovery-retention.ts"
+  },
+  "compiled": {
+    "passedDistinctCases": 2,
+    "failedFinalCases": 0,
+    "bundleManifestSha256": "2517639d83c44ef76d386c73080e6aab0144c35e69a7883175c2010857703405",
+    "standardRestart": {
+      "logSha256": "ccefb5e090b16e133101e0e73957185e7ba05fe6afcd60c2074b98a846e4e7f1",
+      "result": {
+        "bundleSha256": "2517639d83c44ef76d386c73080e6aab0144c35e69a7883175c2010857703405",
+        "queries": 1994,
+        "queryP99Ms": 5.362240000000384,
+        "restartMs": [
+          525.8150839999998,
+          521.691769,
+          506.37859899999967
+        ],
+        "readyFileDescriptors": [
+          76,
+          77,
+          77,
+          77
+        ],
+        "descriptorSamples": [
+          {
+            "total": 76,
+            "persistent": 57,
+            "sockets": 19,
+            "cachedJournal": 0,
+            "steadyPersistent": 57
+          },
+          {
+            "total": 77,
+            "persistent": 58,
+            "sockets": 19,
+            "cachedJournal": 1,
+            "steadyPersistent": 57
+          },
+          {
+            "total": 77,
+            "persistent": 58,
+            "sockets": 19,
+            "cachedJournal": 1,
+            "steadyPersistent": 57
+          },
+          {
+            "total": 77,
+            "persistent": 58,
+            "sockets": 19,
+            "cachedJournal": 1,
+            "steadyPersistent": 57
+          }
+        ],
+        "canonicalDeviceAndDatabaseDescriptors": 5,
+        "sameMCUFirmware": true,
+        "stepperConfigurations": [
+          4,
+          0
+        ],
+        "recoveryHistory": {
+          "controlled": {
+            "retained": 128,
+            "capacity": 128
+          },
+          "standard_restart": {
+            "retained": 64,
+            "capacity": 64
+          }
+        },
+        "compiledV1Migration": true,
+        "expiredStandardIDsAbsent": true,
+        "hardwareAcceptance": false
+      }
+    },
+    "concurrentPrint": {
+      "logSha256": "4a35ff3222574b2f81ae611df6593c6593e9f68a9d9745421a6f50c5247e567d",
+      "result": {
+        "motionReportLoad": true,
+        "liveMotionSamples": 2670,
+        "liveExtrusionSamples": 1481,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.767683297,
+          "print_duration": 2.5426695180000025,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "2517639d83c44ef76d386c73080e6aab0144c35e69a7883175c2010857703405",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 4206,
+        "phaseP99Ms": 3.358385999999882,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 176,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 937,
+        "historyP99Ms": 9.968167000002722,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 13.843537999993714,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.755735000000641,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 10.787967000000208,
+        "metadataRequests": 16,
+        "metadataP95Ms": 20.902696000001015,
+        "downloads": 16,
+        "downloadP95Ms": 3.851773000000321,
+        "wireCommands": 190,
+        "wireSteps": 3704,
+        "minimumStepLeadMs": 80.739,
+        "directoryRequests": 4049,
+        "directoryP99Ms": 7.494762000002083,
+        "statusRequests": 16829,
+        "uploads": 16,
+        "statusP99Ms": 3.506987000000663,
+        "uploadP95Ms": 19.386625000001004,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.950719,
+              "maxMs": 19.562495
+            },
+            "cpu": {
+              "user": 5844786,
+              "system": 648675
+            },
+            "rss": 313884672
+          },
+          {
+            "loop": {
+              "p99Ms": 1.874943,
+              "maxMs": 10.084351
+            },
+            "cpu": {
+              "user": 1761213,
+              "system": 238330
+            },
+            "rss": 304533504
+          }
+        ]
+      }
+    },
+    "note": "Concurrent print passed before FD-test instrumentation; production source did not change afterwards and both independent builds have the same manifest hash."
+  },
+  "supersededFailures": [
+    {
+      "logSha256": "4a35ff3222574b2f81ae611df6593c6593e9f68a9d9745421a6f50c5247e567d",
+      "passed": 1,
+      "failed": 1,
+      "observed": "Unclassified total FD variation of 2 failed the original exact-total assertion. No descriptor categories were captured, so the precise cause of that earlier variation is unproven."
+    },
+    {
+      "logSha256": "fee2a12bec30066bf429c2200e070a0185118af3878fd03a1f3ca9a1340e764b",
+      "passed": 0,
+      "failed": 1,
+      "observed": "Classified retry found one additional cached host-recovery.sqlite-journal descriptor after the first actual write; later generations stable. Final checks account only for this exact cached resource, keep all other persistent FD counts equal, prohibit socket-count growth and require one descriptor per MCU and canonical database. Upload response is explicitly consumed in the test."
+    }
+  ],
+  "checks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diffCheck": true
+  },
+  "compatibility": [
+    "Worker journal schema is now 2. Old runtime rejects it; downgrade requires a deployment backup of the previous offline journal, not deleting/overwriting current records.",
+    "Controlled REINITIALIZE new-ID capacity/archival remains bounded; its existing tokens and idempotency are preserved. Standard daily RESTART no longer consumes that capacity.",
+    "Expired standard receipt queries return null. No operation is auto-replayed; unknown new controlled IDs in the standard namespace are rejected."
+  ],
+  "remaining": [
+    "A2 first device startup failure before listener construction still has no queryable process server; bootstrap failure ownership/recovery is not closed.",
+    "A2 additional hardware-shutdown/CRC-rejection observability remains to be sealed.",
+    "A3 independent firmware restart/reset and A4 actual Fluidd/Mainsail current-artifact button flows remain incomplete.",
+    "Complete Moonraker, all Python retirement/default install/CI, controlled macro scenario replacement, unresolved numerical/crash gates, target-board performance and Cycnumbris 500 physical acceptance remain required."
+  ]
+}

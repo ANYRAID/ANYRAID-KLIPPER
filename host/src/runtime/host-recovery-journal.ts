@@ -1,7 +1,9 @@
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
 import {workerEntry} from './worker-entry.ts';
-export interface RecoveryRecord {request_id:string;state_token:string;state:'queued'|'running'|'succeeded'|'failed'|'interrupted';error:string|null;}
+export interface RecoveryRecord {request_id:string;state_token:string;state:'queued'|'running'|'succeeded'|'failed'|'interrupted';error:string|null;kind?:'restart';}
+export interface RecoveryWrite {record:RecoveryRecord;expired:string[];}
+export const recoveryCapacity={reinitialize:128,restart:64} as const;
 export interface RecoveryJournalOptions {path:string;deviceId:string;}
 /** Process-lifetime journal; all SQLite work runs off the motion event loop. */
 export class HostRecoveryJournal {
@@ -22,6 +24,8 @@ export class HostRecoveryJournal {
   if(this.#pending.size>=16&&!closing)return Promise.reject(new Error('Recovery journal capacity exceeded'));
   const id=++this.#next;return new Promise((resolve,reject)=>{this.#pending.set(id,{resolve,reject});try{this.#worker.postMessage({id,method,args});}catch(error){this.#pending.delete(id);reject(error);}});
  }
- save(record:RecoveryRecord):Promise<RecoveryRecord>{return this.#call('save',[record]);}
+ /** Expiration and admission commit together; consumers drop cache entries only
+  * after this acknowledgement, never before a failed or interrupted write. */
+ save(record:RecoveryRecord):Promise<RecoveryWrite>{return this.#call('save',[record]);}
  close():Promise<void>{if(this.#closing)return this.#closing;this.#closing=(async()=>{if(!this.#closed)await this.#call('close',[],true);await this.#exit;})();return this.#closing;}
 }

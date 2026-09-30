@@ -269,6 +269,7 @@
     "bench:native-product-machine": "node bench/native-product-machine.ts",
     "bench:product-machine": "node bench/product-machine.ts",
     "bench:native-host-status": "node bench/native-host-status.ts",
+    "bench:host-recovery-retention": "node bench/host-recovery-retention.ts",
     "bench:native-objects": "node bench/native-objects.ts",
     "bench:native-subscriptions": "node bench/native-subscriptions.ts",
     "bench:native-file-progress": "node bench/native-file-progress.ts",
