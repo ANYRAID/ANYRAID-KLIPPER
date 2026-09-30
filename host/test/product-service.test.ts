@@ -166,8 +166,8 @@ test('native WebSocket subscriptions deliver real deltas and disconnect after no
    const message=(data:unknown)=>{const value=JSON.parse(String(data));if(method&&value.method!==method)return;clearTimeout(timer);socket.off('message',message);resolve(value);};socket.on('message',message);
   });
   let reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{gcode_move:['speed_factor'],native_host:['ready'],display_status:['message','progress']}}}));const initial=await reply;assert.deepEqual(initial.result.status,{gcode_move:{speed_factor:1},native_host:{ready:true},display_status:{message:null,progress:0}});
-  reply=receive();owner.printer.print.gcode.coordinates.execute('M220',{S:150});const update=await reply;assert.equal(update.method,'notify_status_update');assert.deepEqual(update.params[0],{gcode_move:{speed_factor:1.5}});assert(update.params[1]>initial.result.eventtime);
-  reply=receive();owner.printer.print.gcode.display.setMessage('准备完成');owner.printer.print.gcode.display.updateProgress({P:'25'});const display=await reply;assert.deepEqual(display.params[0],{display_status:{message:'准备完成',progress:.25}});
+  reply=receive('notify_status_update');owner.printer.print.gcode.coordinates.execute('M220',{S:150});const update=await reply;assert.equal(update.method,'notify_status_update');assert.deepEqual(update.params[0],{gcode_move:{speed_factor:1.5}});assert(update.params[1]>initial.result.eventtime);
+  reply=receive('notify_status_update');owner.printer.print.gcode.display.setMessage('准备完成');owner.printer.print.gcode.display.updateProgress({P:'25'});const display=await reply;assert.deepEqual(display.params[0],{display_status:{message:'准备完成',progress:.25}});
   reply=receive();ws.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'printer.objects.subscribe',params:{objects:{extruder:['pressure_advance','smooth_time']}}}));assert.deepEqual((await reply).result.status,{extruder:{pressure_advance:0,smooth_time:.04}});
   reply=receive('notify_status_update');owner.printer.print.gcode.enable();await owner.printer.print.gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0 SMOOTH_TIME=0.12',{boundary:'checkpoint'});const pressureUpdate=await reply;assert.equal(pressureUpdate.method,'notify_status_update');assert.deepEqual(pressureUpdate.params[0],{extruder:{smooth_time:.12}});
   allowed=false;const closed=once(ws,'close',{signal:AbortSignal.timeout(3000)});await owner.printer.print.gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0 SMOOTH_TIME=0.04',{boundary:'checkpoint'});await closed;assert(f.firmware.every(f=>f.motion.length===0));
@@ -267,5 +267,20 @@ test('native dispatch responses enter authorized console history and detach on s
   for(let i=0;i<100&&notifications.length<3;i++)await delay(10);assert.deepEqual(notifications,['// first','second','third']);
   assert.equal(owner.server.gcodeStoreStatus?.records,2);assert.equal(dispatch.outputObservation.listeners,1);ws.terminate();await owner.close();assert.equal(dispatch.outputObservation.listeners,0);
   owner.server.recordNativeGcodeResponse('late');assert.equal(owner.server.gcodeStoreStatus?.records,2);
+ }finally{ws?.terminate();await owner?.close();await f.dispose();}
+});
+test('native process statistics use real Linux values behind authorization and stop their sampler',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,ws:WebSocket|undefined;
+ f.serviceOptions.server.authorizeNotification=()=>{};
+ try{
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);const url=`http://127.0.0.1:${owner.address.port}/machine/proc_stats`;
+  const denied=await fetch(url);assert.equal(denied.status,401);await denied.arrayBuffer();
+  ws=new WebSocket(url.replace('http:','ws:').replace('/machine/proc_stats','/websocket'),{headers:{'x-api-key':'test'}});await once(ws,'open');
+  const ready=once(ws,'message',{signal:AbortSignal.timeout(3000)});ws.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'machine.proc_stats'}));const [rpc]=await ready;assert(Array.isArray(JSON.parse(String(rpc)).result.moonraker_stats));
+  const notification=new Promise<any>((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Process notification timeout')),3000);ws!.on('message',data=>{const message=JSON.parse(String(data));if(message.method==='notify_proc_stat_update'){clearTimeout(timer);resolve(message.params[0]);}});});
+  const event=await notification;assert(!Array.isArray(event.moonraker_stats));assert(Number.isFinite(event.moonraker_stats.cpu_usage));assert.equal(event.websocket_connections,1);
+  for(let i=0;i<200&&!owner.server.procStatsStatus?.samples;i++)await delay(10);
+  const response=await fetch(url,{headers:{'x-api-key':'test'}});assert.equal(response.status,200);const value=(await response.json()).result;
+  assert(value.moonraker_stats.length>0&&value.moonraker_stats.length<=30);assert(value.system_uptime>0);assert.equal(value.websocket_connections,1);assert(value.system_memory.total>0);assert.equal(value.moonraker_stats[0].mem_units,'kB');assert(value.moonraker_stats[0].memory>0);await owner.close();assert.equal(owner.server.procStatsStatus?.closed,true);assert.equal(owner.server.procStatsStatus?.pending,false);
  }finally{ws?.terminate();await owner?.close();await f.dispose();}
 });

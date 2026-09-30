@@ -139,7 +139,8 @@
     {
       "name": "proc_stats",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
     },
     {
       "name": "secrets",
@@ -1040,21 +1041,24 @@
       "line": 88,
       "method": "register_endpoint",
       "targetExpression": "\"/machine/proc_stats\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
     },
     {
       "file": "moonraker/components/proc_stats.py",
       "line": 94,
       "method": "register_notification",
       "targetExpression": "\"proc_stats:proc_stat_update\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
     },
     {
       "file": "moonraker/components/proc_stats.py",
       "line": 79,
       "method": "register_notification",
       "targetExpression": "\"proc_stats:cpu_throttled\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
     },
     {
       "file": "moonraker/components/sensor.py",

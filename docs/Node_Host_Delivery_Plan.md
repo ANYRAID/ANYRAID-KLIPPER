@@ -190,7 +190,7 @@ G5 的通用功能迁移与 G6 的机型适配验收分开记录，不通过删�
 1. **推进真实客户端的 D1/D2 验收**。源码产品装配、独立编译包正常及
    故障恢复流程已通过模拟 MCU 验证。Fluidd 已实际登录并显示就绪，
    上传接口兼容修复已通过回归，页面上传仍待复验。先完成文件与打印
-   页面契约，再接入已发现缺少的 machine.proc_stats 与 machine.system_info。
+   页面契约，再接入已发现缺少的 machine.system_info。machine.proc_stats、
    server.gcode_store、printer.gcode.help 已接入原生产品，页面复验待做。
    不扩充 LDAP 等非当前出口阻塞项。
 2. **维护同一编译产物的 D1/D2 负载门槛**。原生授权空载、负载及回调
@@ -293,6 +293,20 @@ printer.gcode.help 与 GET /printer/gcode/help 现从实际命令注册表生成
 最小步进提前量 87.074 ms。没有目标板或旧 Python 对照，
 不能据此标记精度／速度门槛完成。证据见
 [命令帮助验收](../host/contracts/native-gcode-help-acceptance.json)。
+
+### 原生进程统计接入
+
+machine.proc_stats 已接入原生产品：异步读取 Linux 进程／系统资源，
+保留最近 30 条记录并发送授权 notify_proc_stat_update。CPU 总计数先用
+BigInt 差分；内存为 kB，网络带宽为字节／秒，缺失温度为 null。
+支持读取可用的 vcgencmd 降频标记，但 Raspberry Pi 硬件尚未验收。
+23 项回归和带统计轮询的独立编译打印／恢复流程通过。本机采样中位数
+0.719 ms，缓存查询中位数 27.817 微秒；编译负载组
+状态查询 P99 3.310 ms，最小步进提前量 87.553 ms。
+查询使用最新完成的采样，与上游请求时读取温度／降频的语义不同；
+看门狗日志、停机统计日志与内部回调契约仍待闭合。采样延迟计数不作为
+事件循环看门狗。无旧 Python、目标板或实机速度结论。详见
+[进程统计验收](../host/contracts/native-proc-stats-acceptance.json)。
 
 ## 实现与验证的任务准入
 

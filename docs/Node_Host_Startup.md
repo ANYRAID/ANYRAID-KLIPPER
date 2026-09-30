@@ -1807,7 +1807,7 @@ Fluidd 1.37.6 实际通过登录、就绪页面和 gcodes 根目录工具启用�
 现接受一次性 token 查询参数，并返回 item/action 及既有不可变文件回执。
 HTTP 回归验证上传与重放拒绝；修复后页面上传受文件选择器工具失败影响，
 尚未确认。Mainsail 2.19.0 在本轮强制用户授权下停留初始化；未关闭鉴权。
-配置根目录、系统信息和进程统计的原生绑定仍有缺口，
+配置根目录和系统信息的原生绑定仍有缺口，
 不能宣称完整客户端兼容。发布包哈希、测试与性能边界见
 [客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。
 
@@ -1825,3 +1825,20 @@ HTTP 回归验证上传与重放拒绝；修复后页面上传受文件选择器
 运动和授权门槛仍生效，远程任意 G-code 执行接口没有因此开放。
 扩展命令可在注册时提供 description，返回的字典修改不会改变分派器。
 验证见[命令帮助验收](../host/contracts/native-gcode-help-acceptance.json)。
+
+原生产品默认启用 `/machine/proc_stats`／`machine.proc_stats`。每轮异步
+采样完成一秒后启动下一轮，不允许重叠采样；HTTP/JSON-RPC 查询只复制
+最近采样，不在每次请求重新读取系统文件。进程 CPU 与内存对应整个
+Node 产品进程，包含集成的打印与 Moonraker 工作；百分比允许超过 100。
+
+保留 30 条历史，内存单位 kB，CPU 温度为 °C；不存在或不可读时使用
+null／空集合，不伪造正常温度。网络计数器超出 JS 安全整数范围时省略
+对应接口，计数器回绕或重置后的带宽从零重新建立基线。CPU 使用 BigInt
+差分，避免长期累计值损失精度。单个输入文件限制 1 MiB。
+
+已认证连接接收 `notify_proc_stat_update`。同时检测到 vcgencmd 与
+/dev/vcio 时每十轮检查降频，子进程限定一秒和 1 KiB 输出；状态变化
+发送 `notify_cpu_throttled`。未检测到设备时状态为 null，读取失败保留
+上游的未知标志。该适配尚未进行 Raspberry Pi 实测，不能作为硬件健康
+保证。采样关闭会撤销定时器并等待正在进行的读取退出。
+证据与未完成契约见[进程统计验收](../host/contracts/native-proc-stats-acceptance.json)。

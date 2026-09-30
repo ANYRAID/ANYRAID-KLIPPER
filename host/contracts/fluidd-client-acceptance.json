@@ -24,7 +24,6 @@
     }
   ],
   "missingNativeBindings": [
-    "machine.proc_stats",
     "machine.system_info",
     "server.files.list root=config"
   ],
@@ -106,6 +105,10 @@
   },
   "nativeHelpFollowUp": {
     "evidence": "native-gcode-help-acceptance.json",
+    "browserRecheck": "pending"
+  },
+  "nativeProcStatsFollowUp": {
+    "evidence": "native-proc-stats-acceptance.json",
     "browserRecheck": "pending"
   }
 }
