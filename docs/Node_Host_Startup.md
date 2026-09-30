@@ -36,7 +36,9 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 调用同步封住旧代际端点，取消并等待已接收工作，停止订阅和温度采样；
 HTTP/WebSocket、鉴权、数据库及进程统计继续运行。重复调用返回同一
 Promise。忽略取消的文件策略仍须真正结束，不能把超时或取消当作已排空。
-整体 `close()` 继续关闭设备与服务。
+默认 `close()` 继续关闭设备与服务。显式 `serverLifetime: 'process'` 模式
+只退役设备，由进程所有者在最终退出时关闭服务器；首代启动失败仍清理
+已创建的服务，借用已有监听器的启动失败不会关闭它。
 
 退役期间 server.info／printer.info 显示 disconnected；没有附着 MCU，
 不保留旧 ready 或归零状态。仅 API 清理完成仍标记设备 stopping，由产品
@@ -47,12 +49,29 @@ Promise。忽略取消的文件策略仍须真正结束，不能把超时或取�
 
 释放机器依赖前须完成设备退役；监听器仍运行时，数据库、身份及其他进程
 资源须继续保留。当前 profile 的 adapter.release 可能还持有这些资源，
-不能直接将其全部释放。文件库已支持下文的独立保留；新代际重新绑定与
-其余进程资源所有权拆分仍待实现；
+不能直接将其全部释放。文件库已支持下文的独立保留；其余进程资源的工厂
+所有权和主机入口接入仍待完成；
 退役后的原生文件／历史代际接口暂不可用。runProductHost 的 reinitialize
 仍重建整个服务，标准重启按钮的兼容状态如下文，未因本接口而改变。
 实现、源码网络测试、模拟停止失败及独立编译打印回归见
 [退役边界验收](../host/contracts/native-generation-retirement-acceptance.json)。
+
+显式产品集成可在完成旧服务退役及 profile 释放后，将同一服务器作为
+`existingServer` 传给 `startConfiguredMachineService`，并指定
+`serverLifetime: 'process'`。Moonraker 配置路径、进程配置、回调和数据库
+身份必须保持一致；新控制器、门禁、对象与上传层必须空闲且未被占用。
+不满足条件时在取得新 MCU 前拒绝。低层 `attachNativePrinter` 等待旧工作
+排空及真实停止确认，产品专用路由同步装配后才发布 ready；装配失败保留
+监听器及不可用状态，不自动重试或重放作业。
+
+同一 WebSocket 保持连接，但旧设备订阅会清空，客户端须重新订阅。REST／
+JSON-RPC 延迟正文仍归属入站时的设备代际，不能在重建后启动新设备。
+数据库维护在请求开始时取得当前设备门禁，并保持它到操作结束。
+上传层 `close()` 先取消请求和清除暂存；依赖所有者使用 `drain()` 等待
+忽略取消的授权实际结束，再释放数据库、文件和 adapter。未结束的策略会
+阻止退役完成，不能用超时声明已排空。源码双模拟 MCU 和性能回归见
+[绑定接口验证](../host/contracts/native-generation-attachment-acceptance.json)。
+该接口尚未由 `runProductHost` 使用，不能据此宣称标准重启已交付。
 
 ### 进程文件库与设备代际
 
@@ -887,7 +906,7 @@ MCU 模拟器在父进程，子进程不导入源码测试夹具。编译包请�
 `await NativePrintUploads.open(files, maintenanceGate, {metadataRoot: '/绝对路径/metadata'})`，
 将返回值作为 `server.nativeUploads`。`metadataRoot` 必须是服务用户所有的
 私有目录（0700），不能是符号链接；工厂初始化失败须释放此前创建的文件
-存储。释放顺序为 `await uploads.close()`，然后 `await files.close()`。
+存储。释放顺序为 `await uploads.drain()`，然后 `await files.close()`。
 `files` 是借用资源，uploads 不会替调用方关闭它。
 
 该模式使用持久扫描意图、快照、选中版本和图片存储。重启后先协调遗留

@@ -15,7 +15,8 @@ export class NativeRequestScope {
  #bind(handler:EndpointHandler):EndpointHandler{
   if(this.signal.aborted)return ()=>{throw new ApiError(503,'Native printer generation has retired');};
   const owner={handler:handler as EndpointHandler|undefined};this.#handlers.add(owner);return (params,verb,context)=>{
-  this.signal.throwIfAborted();context.signal.throwIfAborted();
+  this.signal.throwIfAborted();context.signal.throwIfAborted();context.nativeGenerationSignal?.throwIfAborted();
+  if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==this.signal)throw new ApiError(503,'Native request belongs to another generation');
   const bound:RpcContext={...context,signal:AbortSignal.any([context.signal,this.signal])};
   const value=owner.handler!(params,verb,bound);
   if(!value||typeof value!=='object'||!('then' in value)||typeof value.then!=='function'){bound.signal.throwIfAborted();return value;}

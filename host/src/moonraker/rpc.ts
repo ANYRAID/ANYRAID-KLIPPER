@@ -16,6 +16,9 @@ export interface RpcContext {
   subscriptionConnection?():Promise<{id:number;signal:AbortSignal}>;
   transport:Transport;
   signal:AbortSignal;
+  /** Internal device lifetime captured at network admission, never client data.
+   * Process methods ignore it; native handlers reject stale request bodies. */
+  nativeGenerationSignal?:AbortSignal;
   connectionId?:number;
   /** Required authorization hook, called before each method invocation. */
   authorize(method:string,params:Readonly<Record<string,Json>>):AuthorizationResult|Promise<AuthorizationResult>;

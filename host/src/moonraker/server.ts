@@ -1,5 +1,5 @@
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
-import type {NativePrintUploads} from './native-print-uploads.ts';
+import {NativePrintUploads} from './native-print-uploads.ts';
 import {discardRejectedUploadBody} from './rejected-upload-body.ts';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
@@ -55,7 +55,9 @@ export class MoonrakerNetwork {
  #outputBytes=0;#maximumOutputBytes:number;
  #buffered=0;#maxBuffered:number;#maxConnections:number;#maxRequests:number;#perSocket:number;#timeout:number;#shutdownTimeout:number;#origins:Set<string>;
  #opening:Promise<void>|undefined;#heartbeat:ReturnType<typeof setInterval>|undefined;#phase:'new'|'starting'|'listening'|'closing'|'closed'='new';#close:Promise<void>|undefined;
- constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions){
+ #nativeLifetime:AbortSignal|undefined;
+ constructor(rpc:JsonRpcDispatcher,options:MoonrakerNetworkOptions,nativeLifetime?:AbortSignal){
+  if(nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Invalid native request lifetime');this.#nativeLifetime=nativeLifetime;
   if(rpc.has('server.websocket.id')||rpc.has('server.connection.identify'))throw new Error('Network RPC method already registered');
   if(typeof options.authorize!=='function')throw new TypeError('Network authorization is required');if(options.endpoints&&options.endpoints.dispatcher!==rpc)throw new Error('Endpoint registry must share the network dispatcher');this.#rpc=rpc;this.#options={...options};
   this.#maximumOutputBytes=bounded(options.maxOutputBytes,8*maxBytes,64*maxBytes);
@@ -89,6 +91,15 @@ export class MoonrakerNetwork {
  getAgents(){return this.#clients.agents();}
  getAgent(name:string){return this.#clients.agent(name);}
  get status(){return {phase:this.#phase,connections:this.#peers.size,requests:this.#requests.size,bufferedBytes:this.#buffered,outputBufferedBytes:this.#outputBytes,notifications:this.#notifications?.status??null,clientCalls:this.#clientCalls?.status??null,clientRequests:this.#clientRequests?.status??null};}
+ /** Composition-only handoff. Every admitted HTTP request captures its old
+  * owner before body/authorization awaits; it cannot switch to a new printer. */
+ replaceNativeUploads(next?:NativePrintUploads,nativeLifetime?:AbortSignal):void{
+  const previous=this.#options.nativeUploads,status=previous?.status;
+  if(this.#phase!=='listening'||previous&&(!status!.closed||status!.pending||status!.downloads||status!.authorizing||status!.metadata.pending))throw new Error('Native upload generation has not retired');
+  if(next!==undefined&&(!(next instanceof NativePrintUploads)||next.status.closed||next.status.pending||next.status.downloads||next.status.authorizing||next.status.metadata.pending))throw new Error('New native uploads are unavailable');
+  if(this.#nativeLifetime&&!this.#nativeLifetime.aborted||nativeLifetime!==undefined&&(!(nativeLifetime instanceof AbortSignal)||nativeLifetime.aborted))throw new Error('Native request lifetime is not retired');
+  this.#options.nativeUploads=next;this.#nativeLifetime=nativeLifetime;
+ }
  async listen(port=0,host='127.0.0.1'):Promise<AddressInfo>{
   if(this.#phase!=='new'||!Number.isInteger(port)||port<0||port>65535)throw new Error('Invalid network listen state or port');
   this.#phase='starting';try{this.#opening=new Promise<void>((resolve,reject)=>{const fail=(e:Error)=>{this.#server.off('listening',ready);reject(e);},ready=()=>{this.#server.off('error',fail);resolve();};this.#server.once('error',fail);this.#server.once('listening',ready);this.#server.listen(port,host);});await this.#opening;if(this.#phase!=='starting')throw new Error('Network startup cancelled');this.#phase='listening';}
@@ -107,8 +118,8 @@ export class MoonrakerNetwork {
   // Publish the task before invoking handlers so reentrant shutdown sees it.
   const job=Promise.resolve().then(()=>run(abort.signal)).catch(()=>{}).finally(()=>{clearTimeout(timeout);parent?.removeEventListener('abort',cancel);this.#requests.delete(abort);});this.#requests.set(abort,job);
  }
- #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number):RpcContext{
-  return {transport,signal,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
+ #context(request:IncomingMessage,transport:'http'|'websocket',signal:AbortSignal,id?:number,nativeGenerationSignal=this.#nativeLifetime):RpcContext{
+  return {transport,signal,nativeGenerationSignal,connectionId:id,authorize:(method,params)=>this.#options.authorize(method,params,{request,transport,connectionId:id,signal}),receiveResponse:transport==='websocket'&&id!==undefined?(responseId,value)=>{this.#clientRequests?.receive(id,responseId,value);}:undefined};
  }
  async #subscriptionConnection(request:IncomingMessage,body:Uint8Array,signal:AbortSignal):Promise<{id:number;signal:AbortSignal}>{
   if(!this.#options.authorizeSubscriptionConnection)throw new ApiError(503,'Subscription connection authorization is required');signal.throwIfAborted();
@@ -117,7 +128,8 @@ export class MoonrakerNetwork {
  }
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!this.#options.nativeUploads&&path==='/server/files/upload',isDownload=this.#options.nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!this.#options.nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||this.#options.nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&this.#options.nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime;
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
@@ -133,21 +145,21 @@ export class MoonrakerNetwork {
      signal.throwIfAborted();response.setHeader('connection','close');
      const budget=8*65536;if(this.#buffered+budget>this.#maxBuffered)throw new ApiError(429,'Request buffer capacity exceeded');
      this.#buffered+=budget;reserved=budget;
-     const result=await this.#options.nativeUploads!.receive(request,this.#context(request,'http',signal));signal.throwIfAborted();
+     const result=await nativeUploads!.receive(request,this.#context(request,'http',signal,undefined,nativeGenerationSignal));signal.throwIfAborted();
      response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
     }
     signal.throwIfAborted();const chunks:Buffer[]=[];let length=0;
     for await(const chunk of request){signal.throwIfAborted();length+=chunk.length;if(length>maxBytes){this.#error(response,413,'Request too large');return;}if(this.#buffered+chunk.length>this.#maxBuffered){this.#error(response,429,'Request buffer capacity exceeded');return;}this.#buffered+=chunk.length;reserved+=chunk.length;chunks.push(chunk);}
-    const body=Buffer.concat(chunks),context=this.#context(request,'http',signal);
+    const body=Buffer.concat(chunks),context=this.#context(request,'http',signal,undefined,nativeGenerationSignal);
     if(isDownload&&request.method==='DELETE'){
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
-     const result=await this.#options.nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
+     const result=await nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
     }
     if(isDownload){
      // Source copy, generator and transport each hold bounded chunks. Kernel
      // snapshot content has an independent owner quota, not this JS buffer pool.
      const budget=3*65536;if(budget>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');this.#outputBytes+=budget;outputReserved=budget;
-     await this.#options.nativeUploads!.download(path,context,async(file,downloadSignal)=>{
+     await nativeUploads!.download(path,context,async(file,downloadSignal)=>{
       const etag='"'+file.sha256+'"';response.setHeader('content-type','application/octet-stream');response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');response.setHeader('etag',etag);response.setHeader('accept-ranges','bytes');
       const encoded=encodeURIComponent(file.record.name).replace(/['()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase());
       response.setHeader('content-disposition',`attachment; filename="${file.record.id}.gcode"; filename*=UTF-8''${encoded}`);
@@ -167,7 +179,7 @@ export class MoonrakerNetwork {
      });return;
     }
     if(isThumbnail){
-     const download=isNativeThumbnail?await this.#options.nativeUploads!.resolveThumbnail(path,context):await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
+     const download=isNativeThumbnail?await nativeUploads!.resolveThumbnail(path,context):await this.#options.thumbnails!.resolve(path,context);signal.throwIfAborted();
      if(!Number.isSafeInteger(download.size)||download.size<1||download.size>8*maxBytes)throw new ApiError(500,'Invalid thumbnail size');
      response.setHeader('content-type',download.contentType);response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');
      if(request.method==='HEAD'&&!request.headers['if-none-match']){response.setHeader('content-length',download.size);response.end();return;}

@@ -26,6 +26,7 @@ export class NativePrintUploads {
  #metadata:NativeFileMetadata|NativePersistentMetadata;
  readonly #downloads=new Set<Promise<void>>();readonly #downloadBudget:PrintSnapshotBudget;readonly #maxDownloads:number;
  #closed=false;#published=0;
+ #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
  constructor(files:PublishedPrintFiles,gate:MaintenanceGate,options:NativeUploadOptions={}){
   if(!(files instanceof PublishedPrintFiles)||!(gate instanceof MaintenanceGate))throw new Error('Invalid native upload owner');
@@ -43,7 +44,8 @@ export class NativePrintUploads {
  get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
  filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return fileId+'.gcode';}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
- bindPrintController(controller:PrintController):void{if(!(controller instanceof PrintController)||!controller.usesMaintenanceGate(this.#gate)||this.#print&&this.#print!==controller)throw new Error('Invalid native file print owner');this.#print=controller;}
+ acceptsController(controller:PrintController):boolean{return controller instanceof PrintController&&controller.usesMaintenanceGate(this.#gate)&&(!this.#print||this.#print===controller);}
+ bindPrintController(controller:PrintController):void{if(!this.acceptsController(controller))throw new Error('Invalid native file print owner');this.#print=controller;}
  get canRemove():boolean{return !!this.#print&&!this.#closed;}
  observeChanges(observer:(event:Json)=>void):()=>void{
   if(this.#closed)throw new ApiError(503,'Native files closed');
@@ -181,7 +183,16 @@ export class NativePrintUploads {
   const result=entries.map(({file,modified})=>({path:file.id+'.gcode',modified,size:file.size,permissions:this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256}));
   if(Buffer.byteLength(JSON.stringify(result))>900000)throw new ApiError(413,'Native file catalog exceeds response limit');return result;
  }
+ /** Cancel requests and staging promptly. External policies may ignore their
+  * signal; the dependency owner must drain them before releasing resources. */
  close():Promise<void>{this.#closed=true;this.#abort.abort(new ApiError(503,'Native uploads closed'));return Promise.all([Promise.allSettled([...this.#pending,...this.#downloads]),this.#metadata.close()]).then(()=>{});}
+ drain():Promise<void>{
+  return this.#draining??=(async()=>{
+   const [closed]=await Promise.allSettled([this.close()]);
+   await Promise.allSettled([...this.#authorizing]);
+   if(closed.status==='rejected')throw closed.reason;
+  })();
+ }
 }
 export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean}={}):()=>void{
  const release:(()=>void)[]=[];

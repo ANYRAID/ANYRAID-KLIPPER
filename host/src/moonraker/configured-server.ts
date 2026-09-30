@@ -8,10 +8,10 @@ import {ProductHostControl} from '../runtime/product-host-control.ts';
 import {registerProductHostControl} from './product-host-api.ts';
 import {NativeSubscriptions} from './native-subscriptions.ts';
 import {NativeObjects,registerNativeObjects} from './native-objects.ts';
-import type {NativeHostStatusSource,NativeHostSnapshot} from './native-host-status.ts';
+import {readNativeHostStatus,type NativeHostStatusSource,type NativeHostSnapshot} from './native-host-status.ts';
 import {NativePrintUploads,registerNativeFileInfo} from './native-print-uploads.ts';
 import {ProductPrintApi,registerProductPrintApi,type NativePrintCompatibility} from './product-print-api.ts';
-import type {PrintController} from '../operations/print.ts';
+import {PrintController} from '../operations/print.ts';
 import type {PressureAdvancePort} from '../gcode/pressure-advance.ts';
 import {MqttRpc,type MqttAuthorization} from './mqtt-rpc.ts';
 import {MqttStatusRuntime} from './mqtt-status-runtime.ts';
@@ -60,6 +60,19 @@ type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnaps
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
 const uploadOwners=new WeakSet<NativePrintUploads>();
+const nativeDeviceFields=new Set(['productPrint','productPressure','productPrintCompatibility','nativeHost','nativeObjects','maintenanceGate','nativeUploads']);
+function plainProcessValue(value:unknown):value is Record<string,unknown>{return !!value&&typeof value==='object'&&(Array.isArray(value)||[Object.prototype,null].includes(Object.getPrototypeOf(value)));}
+function copyProcessValue(value:unknown,seen=new Map<object,Record<string,unknown>>()):unknown{
+ if(!plainProcessValue(value))return value;if(seen.has(value))return seen.get(value);
+ const copy=Array.isArray(value)?[]:Object.create(Object.getPrototypeOf(value));seen.set(value,copy);
+ for(const [key,item]of Object.entries(value))Object.defineProperty(copy,key,{value:copyProcessValue(item,seen),enumerable:true,writable:true,configurable:true});return copy;
+}
+function sameProcessValue(previous:unknown,next:unknown,seen=new Map<object,object>()):boolean{
+ if(Object.is(previous,next))return true;if(!plainProcessValue(previous)||!plainProcessValue(next)||Object.getPrototypeOf(previous)!==Object.getPrototypeOf(next))return false;
+ if(seen.has(previous))return seen.get(previous)===next;seen.set(previous,next);
+ const keys=Object.keys(previous);return keys.length===Object.keys(next).length&&keys.every(key=>Object.hasOwn(next,key)&&sameProcessValue(previous[key],next[key],seen));
+}
+function nativeProcessOptions(options:ConfiguredServerOptions|ConfiguredAuthorizationOptions):Record<string,unknown>{return Object.fromEntries(Object.entries(options).filter(([key,value])=>value!==undefined&&!nativeDeviceFields.has(key)).map(([key,value])=>[key,copyProcessValue(value)]));}
 const fileOwners=new WeakSet<MetadataFiles>();
 const databaseOwners=new WeakSet<DatabaseStore>();
 const notificationMetrics=()=>({received:0,disabled:0,rejected:0,sent:0,denied:0,closed:0,overflow:0,failed:0});
@@ -112,6 +125,12 @@ export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOpt
  /** Stable externally provisioned origin, independent of an ephemeral listener. */
  authorization:{issuer:string};
 }
+/** Device generation only. Process identity, authorization and database remain
+ * with the listening server; the caller owns physical startup and cleanup. */
+export interface NativePrinterBinding {
+ controller:PrintController;gate:MaintenanceGate;host:NativeHostStatusSource;objects:NativeObjects;
+ pressure?:PressureAdvancePort;compatibility?:NativePrintCompatibility;uploads?:NativePrintUploads;
+}
 /** Pinned server.py host/port and application.py PrimaryRouter capacity defaults.
  * Port zero is valid for an ephemeral listener, as in Tornado/Node listen(). */
 export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
@@ -126,7 +145,8 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  * does not listen. Components consume config/register methods before start;
  * startup publishes their records and unused-option warnings together. */
 export class ConfiguredMoonraker {
- readonly maintenanceGate:MaintenanceGate;
+ #maintenanceGate:MaintenanceGate;
+ get maintenanceGate(){return this.#maintenanceGate;}
  #webcams:Webcams|undefined;#webcamNotifications=notificationMetrics();
  #authorization:ApiKeyAuthorization|undefined;#releaseAuthorization:()=>void=()=>{};
  /** Local provisioning only; never serialized into server information. */
@@ -157,6 +177,9 @@ export class ConfiguredMoonraker {
  #nativeLifecycle:NativeHostNotifications|undefined;
  #nativeScope:NativeRequestScope|undefined;#nativeHost:NativeHostStatusSource|undefined;
  #nativeRetiredSnapshot:NativeHostSnapshot|undefined;#nativeRetirement:Promise<void>|undefined;
+ #nativeReleases:(()=>void)[]=[];#nativeReattaching=false;#nativeCanAttach=false;#nativeGeneration=0;
+ #nativeRetirementDrained=false;#nativeLifecycleEnabled=false;
+ #nativeProcessOptions:Record<string,unknown>|undefined;#configurationPath:string|undefined;
  #printStateTask:Promise<void>|undefined;#printNotifications=notificationMetrics();
  #fileNotifications=notificationMetrics();
  #releaseFileChanges:()=>void=()=>{};
@@ -166,6 +189,7 @@ export class ConfiguredMoonraker {
  #supervisor:KlippySupervisor|undefined;
  #automatic:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}|undefined;
  private constructor(reader:ConfigurationReader,options:ConfiguredServerOptions,automatic?:{path:string;retryDelayMs:number;initialization:KlippyAttachmentOptions}){
+  options={...options};
   if(options.sensorTransport!==undefined&&(!(options.sensorTransport instanceof MqttSensors)||!options.sensors||!options.sensorTransport.owns(options.sensors)||options.sensorTransport.status.closed||options.sensorTransport.status.started||options.sensorTransport.status.rpcBound||mqttSensorOwners.has(options.sensorTransport)))throw new ConfigurationError('Invalid or already owned sensor transport');
   if(options.sensors&&(sensorOwners.has(options.sensors)||options.sensors.status.closed))throw new ConfigurationError('Invalid or already owned sensor store');
   if(options.history?.auxiliary&&options.history.auxiliaryTotals)throw new ConfigurationError('History auxiliary source must own its reset fields');
@@ -176,16 +200,18 @@ export class ConfiguredMoonraker {
   if(mqttApi&&!options.mqttAuthorize)throw new ConfigurationError('MQTT API requires explicit broker authorization');
   const mqttApiQos=mqttApi?reader.section('mqtt').getInt('api_qos',{defaultValue:0,minval:0,maxval:2}) as 0|1|2:0;
   if(options.nativeUploads!==undefined&&(!(options.nativeUploads instanceof NativePrintUploads)||!options.productPrint||!options.maintenanceGate||!options.nativeUploads.usesGate(options.maintenanceGate)||options.nativeUploads.status.closed||options.nativeUploads.status.pending||options.nativeUploads.status.metadata.pending||options.nativeUploads.status.downloads||options.nativeUploads.status.authorizing||uploadOwners.has(options.nativeUploads)))throw new ConfigurationError('Native uploads require an unowned admission layer and the native print gate');
-  this.maintenanceGate=options.maintenanceGate??new MaintenanceGate();
+  this.#maintenanceGate=options.maintenanceGate??new MaintenanceGate();
   if(options.productPrint&&(automatic||options.history||options.onPrintStartComplete))throw new ConfigurationError('Native print owner cannot share Klippy or legacy history/start hooks');
   this.#automatic=automatic;this.#metadataFiles=options.metadataFiles;this.#discoverMetadata=options.discoverMetadataOnStart??false;if(options.metadataMonitor)this.#metadataMonitor=new MetadataMonitor(options.metadataFiles!,options.metadataMonitor,()=>{if(!this.#stopping)this.setInformation(this.#base);});
   if(reader.prefixSections('webcam ').length&&!options.database)throw new ConfigurationError('Webcam configuration requires a database');
   this.reader=reader;this.binding=readNetworkBinding(reader);
   this.#base=structuredClone(options.information);this.#information=new ServerInformation(this.#base);
-  this.#nativeScope=options.productPrint?new NativeRequestScope():undefined;this.#nativeHost=options.nativeHost;
+  this.#nativeScope=options.productPrint?new NativeRequestScope():undefined;this.#nativeHost=options.nativeHost;this.#nativeCanAttach=!!options.productPrint&&!!options.nativeHost&&!!options.nativeObjects;this.#nativeGeneration=options.productPrint?1:0;this.#nativeLifecycleEnabled=!!options.nativePrinterIdentity&&!!options.nativeHost;
+  const initialScope=this.#nativeScope;
   const nativeHost=options.nativeHost?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,this.#nativeScope?.wrap);
-  this.#network=new MoonrakerNetwork(this.rpc,{...options,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections});
+  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>this.#nativeScope?.wrap(path,handler)??handler);
+  const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate'] as const)delete networkOptions[key];
+  this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections},this.#nativeScope?.signal);
   if(options.gcodeStore)this.#gcodeStore=new GcodeStore(reader.section('data_store').getInt('gcode_store_size',{defaultValue:1000,minval:0,maxval:100000}),options.gcodeStore.maxBytes);
   this.#nativeTemperatureObjects=options.nativeObjects;
   if(options.temperatureStore||options.nativeObjects)this.#temperatureStore=new TemperatureStoreRuntime(new TemperatureStore({...options.temperatureStore,capacity:reader.section('data_store').getInt('temperature_store_size',{defaultValue:1200,minval:1,maxval:100000})},options.temperatureStore?.previous),()=>this.#klippy?.cachedStatus??{});
@@ -198,13 +224,13 @@ export class ConfiguredMoonraker {
    if(this.#stopping)return;const signal=this.#startupAbort.signal;signal.throwIfAborted();const exists=await options.history!.fileExists(event.job.filename,event.job.metadata.modified,signal);signal.throwIfAborted();if(typeof exists!=='boolean')throw new ApiError(502,'Invalid history file existence result');
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
-  this.#nativeUploads=options.nativeUploads;this.#nativeUploads?.bindPrintController(options.productPrint!);const releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles}):()=>{};
+  this.#nativeUploads=options.nativeUploads;this.#nativeUploads?.bindPrintController(options.productPrint!);let releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles}):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure,options.productPrintCompatibility):new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
   const releaseHostControl=options.productHostControl?registerProductHostControl(this.endpoints,options.productHostControl):()=>{};
-  const releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
+  let releasePrint=this.#printApi instanceof ProductPrintApi?registerProductPrintApi(this.endpoints,this.#printApi):registerPrintApi(this.endpoints,this.#printApi);
   const releaseHistoryIdle=this.#historyRuntime?this.maintenanceGate.registerIdle(()=>!this.#historyRuntime!.status.awaitingPrintStart):()=>{};
-  const releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):options.productPrint&&this.#nativeUploads?(this.#nativeHistory=registerNativeHistory(this.endpoints,options.productPrint,this.#nativeUploads,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);})):()=>{};
-  const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,this.maintenanceGate):()=>{};
+  let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):options.productPrint&&this.#nativeUploads?(this.#nativeHistory=registerNativeHistory(this.endpoints,options.productPrint,this.#nativeUploads,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);})):()=>{};
+  const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,()=>this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
   if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source);
   const releaseSystem=this.#systemInformation?this.endpoints.register({endpoint:'/machine/system_info',methods:['GET']},()=>this.#systemInformation!.snapshot()):()=>{};
@@ -213,26 +239,28 @@ export class ConfiguredMoonraker {
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
   if(options.nativeObjects){
    const owner=new NativeSubscriptions(options.nativeObjects,{deliver:(id,status,time)=>this.#subscriptions?.deliver(id,status,time),disconnect:id=>this.#network.disconnectClient(id)});this.#nativeSubscriptions=owner;
-   this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>owner.subscribe(id,objects,signal),remove:id=>owner.remove(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time],this.#nativeScope?.signal),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});
+   this.#subscriptions=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,objects,signal)=>owner.subscribe(id,objects,signal),remove:id=>owner.remove(id),send:(id,status,time)=>this.#network.dispatchNotification(id,'notify_status_update',[status as Json,time],initialScope?.signal),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});
   }
-  const releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
-  const releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
+  let releaseNativeSubscribe=options.nativeObjects?this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>this.#subscriptions!.subscribe(params,context)):()=>{};
+  let releaseObjects=options.nativeObjects?registerNativeObjects(this.endpoints,options.nativeObjects):()=>{};
   if(options.nativePrinterIdentity&&nativeHost)this.#nativeLifecycle=new NativeHostNotifications(nativeHost,method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
   const releaseMetadata=registerServerMetadata(this.endpoints,this.#information,this.#configuration,()=>this.#network.status.connections,nativeHost,options.nativePrinterIdentity?new NativePrinterInformation(options.nativePrinterIdentity):undefined);
   const releaseExtensions=registerExtensions(this.endpoints,this.#network);
   this.#agentMethods=new AgentMethods(this.endpoints,this.#network,()=>this.#klippy,new Set(this.#mqttMacros?['publish_mqtt_topic']:[]));
   const releaseFiles=this.#metadataFiles?registerFileMetadata(this.endpoints,options.history?new HistoryFileMetadata(this.#metadataFiles,options.history.repository):this.#metadataFiles):()=>{};
   const releaseScan=this.#metadataFiles?registerFileMetascan(this.endpoints,this.#metadataFiles):()=>{};
-  const releaseFileChanges=this.#nativeUploads?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
+  let releaseFileChanges=this.#nativeUploads?.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications))??(()=>{});
   this.#releaseFileChanges=releaseFileChanges;
-  this.#release=()=>{releaseWebcams();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
+  if(options.productPrint){this.#nativeReleases.push(releaseFileChanges,releaseNativeSubscribe,releaseObjects,releaseUploads,releasePrint,releaseHistory);releaseFileChanges=releaseNativeSubscribe=releaseObjects=releaseUploads=releasePrint=releaseHistory=()=>{};}
+  this.#release=()=>{this.#releaseNativeBindings();releaseWebcams();releaseFileChanges();releaseHostControl();releaseNativeSubscribe();releaseObjects();releaseUploads();releaseMqttSubscribe();releaseMqtt();releaseSensors();releaseHistoryIdle();releasePrint();releaseHistory();releaseMaintenance();releaseDatabase();releaseTemperature();releaseSystem();releaseProc();releaseGcode();releaseScan();releaseFiles();this.#agentMethods.close();releaseExtensions();releaseMetadata();};
   if(mqttApi)this.#mqttRpc=new MqttRpc(this.rpc,this.#sensorTransport!,this.#sensorTransport!.instanceName,options.mqttAuthorize!,mqttApiQos);
   if(this.#sensorTransport){if(this.#mqttRpc)this.#sensorTransport.bindRpc(this.#mqttRpc.receive,mqttApiQos);this.#sensorTransport.enablePresence();mqttSensorOwners.add(this.#sensorTransport);}
   if(this.#metadataFiles)fileOwners.add(this.#metadataFiles);
   if(this.#database)databaseOwners.add(this.#database);
   if(this.#sensors)sensorOwners.add(this.#sensors);
   if(this.#nativeUploads)uploadOwners.add(this.#nativeUploads);
-
+  // Constructor closures retain process options only, not old device readers.
+  for(const key of nativeDeviceFields)delete (options as unknown as Record<string,unknown>)[key];
  }
  static async #prepare(filename:string,options:ConfiguredServerOptions){
   if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint))throw new ConfigurationError('Host control requires a native print owner');
@@ -264,7 +292,7 @@ export class ConfiguredMoonraker {
   return {reader,automatic};
  }
  static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
-  const {reader,automatic}=await this.#prepare(filename,options);return new ConfiguredMoonraker(reader,options,automatic);
+  const {reader,automatic}=await this.#prepare(filename,options),server=new ConfiguredMoonraker(reader,options,automatic);server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);return server;
  }
  /** Configuration-owned native authorization; does not listen or switch any
   * printer entry point. Failed initialization closes transferred resources. */
@@ -280,6 +308,7 @@ export class ConfiguredMoonraker {
   };
   const {reader,automatic}=await this.#prepare(filename,resolved),policy=readAuthorizationOptions(reader,options.authorization.issuer);
   const server=new ConfiguredMoonraker(reader,resolved,automatic);
+  server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
   try{
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
    server.#releaseAuthorization=auth.register(server.endpoints,server);
@@ -365,10 +394,11 @@ export class ConfiguredMoonraker {
  }
  get klippySupervisor(){return this.#supervisor?.status??null;}
  get printControlStatus(){return this.#printApi.status;}
- get nativeGenerationStatus(){return this.#nativeScope?{...this.#nativeScope.status,detached:!!this.#nativeRetirement,state:this.#nativeRetiredSnapshot?.hardware_state??'attached'}:null;}
+ get nativeGenerationStatus(){return this.#nativeScope?{...this.#nativeScope.status,generation:this.#nativeGeneration,attaching:this.#nativeReattaching,drained:this.#nativeRetirementDrained,detached:!!this.#nativeRetirement,state:this.#nativeRetiredSnapshot?.hardware_state??'attached'}:null;}
+ get nativeSubscriptionStatus(){return this.#nativeSubscriptions?.metrics??null;}
  /** Called only by the physical owner after its device cleanup has settled. */
  confirmNativeRetirement(outcome:'stopped'|'failed'):void{
-  if(!this.#nativeRetiredSnapshot||this.#nativeScope?.status.pending||!['stopped','failed'].includes(outcome))throw new Error('Native retirement is not drained');
+  if(!this.#nativeRetiredSnapshot||!this.#nativeRetirementDrained||this.#nativeScope?.status.pending||!['stopped','failed'].includes(outcome))throw new Error('Native retirement is not drained');
   this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot,group_state:outcome,hardware_state:outcome};
  }
  /** Retire the device-facing owners while retaining listener, authentication,
@@ -381,15 +411,67 @@ export class ConfiguredMoonraker {
   this.#nativeRetiredSnapshot={group_state:'stopping',hardware_state:'stopping',print_state:this.#printApi.status.state,homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};
   this.#nativeHost=undefined;this.maintenanceGate.invalidate();this.#nativeScope.retire();
   this.#nativeLifecycle?.sample();this.#nativeLifecycle?.close();
-  this.#subscriptions?.close();this.#nativeSubscriptions?.close();
+  this.#subscriptions?.close();this.#nativeSubscriptions?.close();this.#subscriptions=undefined;this.#nativeSubscriptions=undefined;
   this.#nativeTemperatureObjects=undefined;this.#temperatureStore?.detachNative();
   this.#nativeHistory?.();this.#releaseFileChanges();
-  const tasks:(()=>void|Promise<void>)[]=[()=>this.#printApi.close(),()=>this.#nativeUploads?.close(),()=>this.#nativeScope!.drain(),()=>this.#nativeHistory?.drain(),()=>this.#printStateTask];
+  const tasks:(()=>void|Promise<void>)[]=[()=>this.#printApi.close(),()=>this.#nativeUploads?.drain(),()=>this.#nativeScope!.drain(),()=>this.#nativeHistory?.drain(),()=>this.#printStateTask];
   void Promise.allSettled(tasks.map(task=>Promise.resolve().then(task))).then(results=>{
    const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);
    this.#nativeRetiredSnapshot={...this.#nativeRetiredSnapshot!,...(errors.length?{group_state:'failed' as const,hardware_state:'failed' as const}:{}),print_state:(this.#printApi as ProductPrintApi).status.state};
+   this.#nativeRetirementDrained=true;
    if(errors.length)done.reject(new AggregateError(errors,'Native API retirement failed'));else done.resolve();
   });return done.promise;
+ }
+ #releaseNativeBindings():void{for(const release of this.#nativeReleases.splice(0).reverse())release();this.#releaseFileChanges=()=>{};}
+ /** Reusing this listener cannot change its process-owned components or identity.
+  * Compare resource/callback identity, not opaque objects' private fields. */
+ assertNativeReuse(filename:string,options:ConfiguredServerOptions|ConfiguredAuthorizationOptions):void{
+  const previous=this.#nativeProcessOptions,next=nativeProcessOptions(options);
+  if(!this.#nativeCanAttach||this.#stopping||this.status.phase!=='listening'||filename!==this.#configurationPath||!previous||Object.keys(previous).length!==Object.keys(next).length)throw new ConfigurationError('Native process configuration cannot change');
+  if(!sameProcessValue(previous,next))throw new ConfigurationError('Native process component identity cannot change');
+ }
+ /** Trusted composition handoff, not a remote restart command. Rejected input
+  * remains caller-owned; ownership transfers after ProductPrintApi accepts it. */
+ async attachNativePrinter(binding:NativePrinterBinding,prepare?:()=>void):Promise<void>{
+  if(!this.#nativeCanAttach||this.#stopping||this.status.phase!=='listening'||this.#nativeReattaching||!this.#nativeRetirement)throw new ApiError(409,'Native printer is not ready for attachment');
+  this.#nativeReattaching=true;const retirement=this.#nativeRetirement;
+  try{
+   await retirement;
+   if(this.#stopping||this.#nativeRetirement!==retirement||this.#nativeRetiredSnapshot?.hardware_state!=='stopped'||this.maintenanceGate.status.activities||this.maintenanceGate.status.maintenance)throw new ApiError(409,'Native printer retirement is not confirmed');
+   const {controller,gate,host,objects,uploads}=binding;if(prepare!==undefined&&typeof prepare!=='function')throw new ApiError(400,'Invalid native route preparation');
+   if(!(controller instanceof PrintController)||!(gate instanceof MaintenanceGate)||gate===this.maintenanceGate||gate.status.closed||gate.status.activities||gate.status.maintenance||!(objects instanceof NativeObjects)||typeof host!=='function'||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(400,'Invalid fresh native printer binding');
+   const status=readNativeHostStatus(host);
+   if(status.group_state!=='ready'||status.hardware_state!=='ready'||status.closing||status.admission_closed||status.maintenance||!status.mcus.length||status.mcus.some(m=>m.state!=='ready')||status.print_state!==controller.state)throw new ApiError(409,'New native hardware is not ready');
+   if(uploads!==undefined&&(!(uploads instanceof NativePrintUploads)||!uploads.usesGate(gate)||!uploads.acceptsController(controller)||uploads.status.closed||uploads.status.pending||uploads.status.downloads||uploads.status.authorizing||uploads.status.metadata.pending||uploadOwners.has(uploads)))throw new ApiError(400,'Invalid fresh native uploads');
+   this.#startupAbort.signal.throwIfAborted();
+   const api=new ProductPrintApi(controller,gate,binding.pressure,binding.compatibility),scope=new NativeRequestScope();
+   this.#releaseNativeBindings();this.#nativeScope=scope;this.#printApi=api;this.#maintenanceGate=gate;this.#nativeHost=host;this.#nativeUploads=uploads;this.#nativeGeneration++;
+   this.#nativeRetirement=undefined;this.#nativeRetirementDrained=false;this.#nativeHistory=undefined;
+   try{
+    uploads?.bindPrintController(controller);if(uploads)uploadOwners.add(uploads);
+    this.#nativeReleases.push(registerProductPrintApi(this.endpoints,api));this.#nativeReleases.push(registerNativeObjects(this.endpoints,objects));
+    const owner=new NativeSubscriptions(objects,{deliver:(id,value,time)=>delivery.deliver(id,value,time),disconnect:id=>this.#network.disconnectClient(id)});
+    const delivery=new SubscriptionDelivery({signal:id=>this.#network.connectionSignal(id),subscribe:(id,value,signal)=>owner.subscribe(id,value,signal),remove:id=>owner.remove(id),send:(id,value,time)=>this.#network.dispatchNotification(id,'notify_status_update',[value as Json,time],scope.signal),disconnect:id=>this.#network.disconnectClient(id),enabled:()=>!!this.#network.status.notifications});
+    this.#nativeSubscriptions=owner;this.#subscriptions=delivery;
+    this.#nativeReleases.push(this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>delivery.subscribe(params,context)));
+    if(uploads){
+     this.#nativeReleases.push(registerNativeFileInfo(this.endpoints,uploads,{metadata:!this.#metadataFiles}));
+     this.#nativeHistory=registerNativeHistory(this.endpoints,controller,uploads,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);});this.#nativeReleases.push(this.#nativeHistory);
+     this.#releaseFileChanges=uploads.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications));this.#nativeReleases.push(this.#releaseFileChanges);
+    }
+    // Product-specific routes register synchronously before readiness publication.
+    prepare?.();
+    this.#nativeTemperatureObjects=objects;this.#temperatureStore!.readyNative(objects);
+    this.#startupAbort.signal.throwIfAborted();const fresh=readNativeHostStatus(host);scope.signal.throwIfAborted();
+    if(gate.status.closed||gate.status.activities||gate.status.maintenance||fresh.group_state!=='ready'||fresh.hardware_state!=='ready'||fresh.closing||fresh.admission_closed||fresh.maintenance||fresh.mcus.some(m=>m.state!=='ready')||fresh.print_state!==controller.state||!['idle','interrupted'].includes(controller.state)||controller.pendingDeviceActions||controller.safeStopPending)throw new ApiError(409,'New native hardware changed during attachment');
+    this.#network.replaceNativeUploads(uploads,scope.signal);
+    if(this.#nativeLifecycleEnabled)this.#nativeLifecycle=new NativeHostNotifications(()=>this.#nativeRetiredSnapshot??this.#nativeHost!(),method=>this.#broadcastTracked(method,[],this.#klippyNotifications));
+    this.#nativeRetiredSnapshot=undefined;
+    this.#printStateTask=this.#observePrintState(api,api.watchState(this.#startupAbort.signal));this.#nativeLifecycle?.start();
+   }catch(error){
+    try{await this.retireNativePrinter();}catch(cleanup){throw new AggregateError([error,cleanup],'Native attachment and cleanup failed');}throw error;
+   }
+  }finally{this.#nativeReattaching=false;}
  }
  get printNotifications(){return {...this.#printNotifications};}
  get fileNotifications(){return {...this.#fileNotifications};}
@@ -472,6 +554,7 @@ export class ConfiguredMoonraker {
  async #start():Promise<AddressInfo>{
   try{
    await this.#webcams?.start();
+   if(this.#startupAbort.signal.aborted)throw new Error('Configured server startup cancelled',{cause:this.#startupAbort.signal.reason});
    this.reader.validate();this.reader.publish(this.#configuration);this.setInformation(this.#base);
    if(this.#metadataFiles)this.#metadataRecovery=await this.#metadataFiles.restoreSelected(this.#startupAbort.signal);
    if(this.#metadataMonitor)await this.#metadataMonitor.start();else if(this.#discoverMetadata)this.#metadataDiscovery=await this.#metadataFiles!.scanDiscovered(this.#startupAbort.signal);
@@ -503,6 +586,6 @@ export class ConfiguredMoonraker {
  async close():Promise<void>{
   this.#nativeScope?.retire();
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,databaseClosed,this.#systemInformation?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([this.#nativeUploads?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,nativeClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,databaseClosed,this.#systemInformation?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }

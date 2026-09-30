@@ -76,7 +76,7 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
  const track=<T>(work:()=>Promise<T>):Promise<T>=>{if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);if(pending.size>=8)return Promise.reject(new ApiError(429,'Native file admission capacity exceeded'));const task=Promise.resolve().then(work);pending.add(task);void task.then(()=>pending.delete(task),()=>pending.delete(task));return task;};
  const release=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;stopped.abort(new Error('Native machine bindings closed'));
-  void (async()=>{await Promise.allSettled([...pending]);const errors:unknown[]=[];for(const close of [()=>uploads?.close(),()=>resources?undefined:files?.close(),()=>adapter?.release()])try{await close();}catch(error){errors.push(error);}fileLease?.release();if(errors.length)throw new AggregateError(errors,'Native machine bindings cleanup failed');})().then(done.resolve,done.reject);return closing;
+  void (async()=>{await Promise.allSettled([...pending]);const errors:unknown[]=[];for(const close of [()=>uploads?.drain(),()=>resources?undefined:files?.close(),()=>adapter?.release()])try{await close();}catch(error){errors.push(error);}fileLease?.release();if(errors.length)throw new AggregateError(errors,'Native machine bindings cleanup failed');})().then(done.resolve,done.reject);return closing;
  };
  try{
   fileLease=resources?.acquire({filesRoot,metadataRoot});

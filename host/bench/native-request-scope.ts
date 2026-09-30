@@ -11,7 +11,7 @@ const params={objects:{toolhead:null,motion_report:null}};let checksum=0;
 for(let batch=0;batch<3;batch++)for(const mode of ['plain','fenced','fenced','plain']){
  const call=mode==='fenced'?wrapped:handler,cpu=process.cpuUsage(),start=performance.now();
  for(let i=0;i<iterations;i++){
-  const context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
+  const context:RpcContext={transport:'http',signal:new AbortController().signal,nativeGenerationSignal:scope.signal,authorize(){}};
   const value=call(params,'GET',context) as ReturnType<NativeObjects['query']>;checksum+=value.status.toolhead.position instanceof Array?1:0;
  }
  const wallUs=(performance.now()-start)*1000/iterations,usage=process.cpuUsage(cpu),memory=process.memoryUsage();
@@ -20,4 +20,4 @@ for(let batch=0;batch<3;batch++)for(const mode of ['plain','fenced','fenced','pl
 }
 assert.equal(checksum,iterations*12);scope.retire();assert.throws(()=>wrapped(params,'GET',{transport:'http',signal:new AbortController().signal,authorize(){}}),/retired/);
 const summary=Object.fromEntries(['plain','fenced'].map(mode=>{const selected=samples.filter(s=>s.mode===mode),sorted=selected.map(s=>s.wallUs).sort((a,b)=>a-b);return [mode,{medianBatchUs:(sorted[1]+sorted[2])/2,maxBatchUs:sorted.at(-1),maxRss:Math.max(...selected.map(s=>s.rss)),maxHeapUsed:Math.max(...selected.map(s=>s.heapUsed))}];}));
-console.log(JSON.stringify({node:process.version,iterations,warmup:'one ABBA block',samples,summary,scope:'Desktop synchronous two-object response construction with fresh request lifetimes. No Python, target-board or physical print comparison; high-frequency cost also requires a compiled concurrent-print regression.'}));
+console.log(JSON.stringify({node:process.version,iterations,warmup:'one ABBA block',samples,summary,scope:'Desktop synchronous two-object response construction with fresh request lifetimes and the current native generation signal in both variants. No Python, target-board or physical print comparison; high-frequency cost also requires a compiled concurrent-print regression.'}));

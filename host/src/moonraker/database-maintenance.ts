@@ -5,10 +5,11 @@ import type {EndpointRegistry} from './endpoints.ts';
 export function databaseBackupName(value:unknown):string{if(typeof value!=='string'||!value||value==='.'||value==='..'||!value.isWellFormed()||Buffer.byteLength(value)>255||/[\\/\0]/.test(value))throw new ApiError(400,'Invalid database backup filename');return value;}
 function timestamp():string{const now=new Date(),pad=(n:number)=>String(n).padStart(2,'0');return `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;}
 /** Share this gate with every local producer; assertIdle checks the actual printer owner. */
-export function registerDatabaseMaintenance(registry:EndpointRegistry,store:DatabaseStore,assertIdle:()=>void|Promise<void>,requestRestart?:()=>void,gate=new MaintenanceGate()):()=>void{
+export function registerDatabaseMaintenance(registry:EndpointRegistry,store:DatabaseStore,assertIdle:()=>void|Promise<void>,requestRestart?:()=>void,gate:MaintenanceGate|(()=>MaintenanceGate)=new MaintenanceGate()):()=>void{
  const maintained=async<T>(operation:()=>Promise<T>):Promise<T>=>{
-  let release:()=>void;try{release=gate.acquire();}catch(error){if(error instanceof MaintenanceBusyError)throw new ApiError(409,error.message);throw error;}
-  try{await assertIdle();return await operation();}finally{if(store.status.restoreState!=='ready')gate.invalidate();release();}
+  const current=typeof gate==='function'?gate():gate;
+  let release:()=>void;try{release=current.acquire();}catch(error){if(error instanceof MaintenanceBusyError)throw new ApiError(409,error.message);throw error;}
+  try{await assertIdle();return await operation();}finally{if(store.status.restoreState!=='ready')current.invalidate();release();}
  };
  const releases:(()=>void)[]=[];let restartIssued=false;
  try{
