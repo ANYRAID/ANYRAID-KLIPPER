@@ -193,6 +193,7 @@ export async function createProductHostProfile(signal){
    const login=await access('login',{username:'operator',password:'compiled-test-password'});delete requestAuth['x-api-key'];delete headers['x-api-key'];requestAuth.authorization='Bearer '+login.token;headers.authorization=requestAuth.authorization;
    assert((await get('/server/info')).components.includes('authorization'));
   }
+  assert.equal((await get('/printer/gcode/help')).SET_PRESSURE_ADVANCE,'Set pressure advance and smoothing time');
   assert(Array.isArray((await get('/server/gcode_store?count=20')).gcode_store));
   await connectFileEvents();
   const driverNames=['stepper_x','stepper_y','stepper_z','extruder'].map(n=>(model2240?'tmc2240 ':model5160?'tmc5160 ':spi?'tmc2130 ':'tmc2209 ')+n),driverQuery='/printer/objects/query?'+driverNames.map(encodeURIComponent).join('&');

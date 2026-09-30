@@ -190,8 +190,8 @@ G5 的通用功能迁移与 G6 的机型适配验收分开记录，不通过删�
 1. **推进真实客户端的 D1/D2 验收**。源码产品装配、独立编译包正常及
    故障恢复流程已通过模拟 MCU 验证。Fluidd 已实际登录并显示就绪，
    上传接口兼容修复已通过回归，页面上传仍待复验。先完成文件与打印
-   页面契约，再接入已发现缺少的 machine.proc_stats、machine.system_info、
-   与 printer.gcode.help；server.gcode_store 已接入原生输出，页面复验待做。
+   页面契约，再接入已发现缺少的 machine.proc_stats 与 machine.system_info。
+   server.gcode_store、printer.gcode.help 已接入原生产品，页面复验待做。
    不扩充 LDAP 等非当前出口阻塞项。
 2. **维护同一编译产物的 D1/D2 负载门槛**。原生授权空载、负载及回调
    负载三组已有证据，目标板和旧 Python 对照仍待验。客户端联调发现
@@ -281,6 +281,18 @@ get_uptime 高低位，get_clock 只返回低 32 位，内部 currentClock 保�
 这些结果仅用于桌面回归，不构成旧 Python、目标板或实机速度结论。
 当前日志属于服务代际；跨产品重初始化保留、命令帮助及完整客户端
 操作仍待验收。证据见[原生控制台验收](../host/contracts/native-gcode-output-acceptance.json)。
+
+### 原生命令帮助接入
+
+printer.gcode.help 与 GET /printer/gcode/help 现从实际命令注册表生成
+描述，未配置或未实现的命令不因文档目录而被暴露；描述覆盖原生实现的
+功能边界。查询经过现有鉴权，不执行命令，不改变未就绪拒绝行为，
+也不开放远程脚本入口。34 项回归和原生鉴权并发负载编译流程通过。
+25 个描述的进程内查询中位数 2.797 微秒，
+描述仅在注册时解析；编译流程状态查询 P99 3.612 ms、
+最小步进提前量 87.074 ms。没有目标板或旧 Python 对照，
+不能据此标记精度／速度门槛完成。证据见
+[命令帮助验收](../host/contracts/native-gcode-help-acceptance.json)。
 
 ## 实现与验证的任务准入
 

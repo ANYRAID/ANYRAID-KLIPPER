@@ -1,3 +1,4 @@
+import {nativeCommandHelp} from './command-help.ts';
 import {parseCommand,extendedParameters,rawParameters,type ParsedCommand} from './parser.ts';
 export class GCodeError extends Error {}
 export interface CommandContext extends ParsedCommand {
@@ -8,7 +9,7 @@ export interface CommandContext extends ParsedCommand {
   ack(message?:string):boolean;
 }
 export type Handler=(command:CommandContext)=>void|Promise<void>;
-interface Registration {handler:Handler;extended:boolean;whenNotReady:boolean;checkpoint:boolean;drainBefore:boolean;}
+interface Registration {description?:string;handler:Handler;extended:boolean;whenNotReady:boolean;checkpoint:boolean;drainBefore:boolean;}
 export interface DispatchHooks {
   /** Native product files must not silently skip unimplemented commands. */
   unknownCommand?:'ignore'|'shutdown';
@@ -38,9 +39,12 @@ export class GCodeDispatch {
     for(const observer of this.#outputObservers)try{observer(message);}catch{this.#outputObserverFailures++;}
   }
   hasCommand(name:string):boolean {return this.#handlers.has(name);}
-  register(name:string,handler:Handler,options:{extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean;drainBefore?:boolean}={}):void {
+  commandHelp():Record<string,string>{return Object.fromEntries([...this.#handlers].filter(([,entry])=>entry.description!==undefined).map(([name,entry])=>[name,entry.description!]));}
+  register(name:string,handler:Handler,options:{description?:string;extended?:boolean;whenNotReady?:boolean;checkpoint?:boolean;drainBefore?:boolean}={}):void {
     if(!/^[A-Z_][A-Z0-9_]*$/.test(name)||this.#handlers.has(name))throw new Error('Invalid or duplicate command registration');
-    this.#handlers.set(name,{handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false,checkpoint:options.checkpoint??false,drainBefore:options.drainBefore??false});
+    const description=options.description??(Object.hasOwn(nativeCommandHelp,name)?nativeCommandHelp[name]:undefined);
+    if(description!==undefined&&(typeof description!=='string'||!description.trim()||description.length>4096))throw new TypeError('Invalid command description');
+    this.#handlers.set(name,{description,handler,extended:options.extended??!(/^[A-Z][0-9]+$/.test(name)),whenNotReady:options.whenNotReady??false,checkpoint:options.checkpoint??false,drainBefore:options.drainBefore??false});
   }
   setReady(ready:boolean,reason='Printer is not ready'):void {this.#ready=ready;this.#reason=reason;}
   emergencyStop(reason='Shutdown due to M112 command'):void {

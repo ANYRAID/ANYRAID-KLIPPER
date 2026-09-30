@@ -72,6 +72,9 @@ test('native service listens only with ready hardware and applies authorization'
   const url=`http://127.0.0.1:${owner.address.port}`;
   const denied=await fetch(url+'/printer/print/status');assert.equal(denied.status,401);await denied.arrayBuffer();
   const accepted=await fetch(url+'/printer/print/status',{headers:{'x-api-key':'test'}});assert.equal(accepted.status,200);assert.equal((await accepted.json() as any).result.state,'idle');
+  const deniedHelp=await fetch(url+'/printer/gcode/help');assert.equal(deniedHelp.status,401);await deniedHelp.arrayBuffer();
+  const help=await fetch(url+'/printer/gcode/help',{headers:{'x-api-key':'test'}});assert.equal(help.status,200);const descriptions=(await help.json()).result;
+  assert.equal(descriptions.SET_PRESSURE_ADVANCE,'Set pressure advance and smoothing time');assert.equal(descriptions.SET_SERVO,undefined);assert.equal(descriptions.START_PRINT,undefined);
   assert.equal(owner.printer.hardware.status.state,'ready');assert.equal(owner.printer.controller.durable,true);assert.equal(f.firmware[0].motion.length,0);
   controller.abort(new Error('startup complete'));assert.equal(owner.printer.hardware.status.state,'ready');
   const first=owner.close();assert.equal(owner.close(),first);await first;assert.deepEqual(f.stops,[1,1]);assert.equal(owner.printer.maintenanceGate.status.closed,true);await assert.rejects(fetch(url+'/printer/print/status'));

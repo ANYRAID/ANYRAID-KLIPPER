@@ -108,3 +108,12 @@ test('output observers see responses and errors without changing acknowledgement
  await assert.rejects(d.execute('REPORT'),/not ready/);assert.deepEqual(errors,['!! Printer is not ready']);detach();
  const releases=Array.from({length:16},()=>d.observeOutput(()=>{}));assert.throws(()=>d.observeOutput(()=>{}),/excessive/);for(const release of releases)release();
 });
+
+test('command help reflects registrations and isolates returned descriptions from command admission',async()=>{
+ const {d}=setup();assert.deepEqual(d.commandHelp(),{});
+ d.register('SET_RETRACTION',()=>{});assert.equal(d.commandHelp().SET_RETRACTION,'Set firmware retraction parameters');
+ assert.equal(d.commandHelp().SET_PIN,undefined);d.register('CUSTOM',()=>{},{description:'Custom test command'});
+ const help=d.commandHelp();help.CUSTOM='changed';delete help.SET_RETRACTION;assert.equal(d.commandHelp().CUSTOM,'Custom test command');assert(d.commandHelp().SET_RETRACTION);
+ assert.throws(()=>d.register('BAD',()=>{},{description:' '}),/description/);assert.equal(d.hasCommand('BAD'),false);
+ await assert.rejects(d.execute('CUSTOM'),/not ready/);assert.equal(d.commandHelp().CUSTOM,'Custom test command');
+});

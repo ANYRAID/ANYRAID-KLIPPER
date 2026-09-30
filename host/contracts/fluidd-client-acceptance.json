@@ -26,7 +26,6 @@
   "missingNativeBindings": [
     "machine.proc_stats",
     "machine.system_info",
-    "printer.gcode.help",
     "server.files.list root=config"
   ],
   "regressions": {
@@ -103,6 +102,10 @@
   },
   "nativeConsoleFollowUp": {
     "evidence": "native-gcode-output-acceptance.json",
+    "browserRecheck": "pending"
+  },
+  "nativeHelpFollowUp": {
+    "evidence": "native-gcode-help-acceptance.json",
     "browserRecheck": "pending"
   }
 }
