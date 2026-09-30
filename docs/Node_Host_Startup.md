@@ -39,7 +39,11 @@ WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`
 响应发出后才切换设备代际；原连接会关闭，客户端应重连并重新订阅。
 回归验证了新代际 standby、未暂停状态和历史保留。此接口不等同于
 标准 Klippy `restart`／`firmware_restart`，实际前端按钮衔接仍待完成。
-以上是模拟 MCU 的协议证据，实际前端刷新／重连与实机恢复应分别验收。
+实际 Mainsail 2.19.0 已验证打印中刷新后继续至完成且历史不重复；原生
+重新初始化后需点击 TRY AGAIN 才恢复 Standby，本轮没有自动重连通过
+证据。标准 `/printer/restart` 与 `/printer/firmware_restart` 当前返回 404，
+不能把原生受控操作当作这两个按钮已兼容。Fluidd 页面重连、页面上传和
+实机恢复仍应分别验收，证据见客户端记录的 mainsailPageReconnect。
 
 ## 实时运动状态
 

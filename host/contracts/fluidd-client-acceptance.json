@@ -267,5 +267,48 @@
       "Browser file upload",
       "Physical hardware, Python retirement and target performance"
     ]
+  },
+  "mainsailPageReconnect": {
+    "base": "2a900928",
+    "client": "Mainsail 2.19.0",
+    "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+    "logSha256": "2782464c1c7f79fc432ccb0e5ebeecc40ff4174c018ac54cb9081d30cb10ea36",
+    "authentication": "Explicit trusted loopback in disposable fixture",
+    "verified": [
+      "Started API-seeded sample from page",
+      "Reloaded during printing; page recovered and reached Complete",
+      "Persistent history contains exactly one completed job after reload",
+      "Native host reinitialize receipt reached succeeded and fixture reached generation 2",
+      "Page displayed Connection failed; explicit TRY AGAIN returned Standby",
+      "History still contains the single completed job after reinitialization",
+      "Probe exits 0 on SIGINT"
+    ],
+    "notVerified": [
+      "Automatic frontend reconnect after service generation replacement",
+      "Fluidd page reload/reconnect under JWT",
+      "Browser upload",
+      "Standard restart buttons working end-to-end",
+      "Physical printer recovery"
+    ],
+    "restartGap": {
+      "clientSource": "mainsail-crew/mainsail@5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70 src/components/panels/KlippyStatePanel.vue:146,150",
+      "rpc": [
+        "printer.restart",
+        "printer.firmware_restart"
+      ],
+      "http": [
+        {
+          "path": "/printer/restart",
+          "status": 404
+        },
+        {
+          "path": "/printer/firmware_restart",
+          "status": 404
+        }
+      ],
+      "nativeOperation": "POST /printer/host/reinitialize",
+      "next": "Audit host reload and MCU firmware reset ownership, stop acknowledgments and restart transport before mapping standard routes. Do not label a fresh simulated MCU generation a hardware firmware reset."
+    },
+    "scope": "Actual browser observations against compiled host with simulated MCU, not physical printing"
   }
 }
