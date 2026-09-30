@@ -23,6 +23,11 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
 
+近期交付按集成候选包、Cycnumbris 500 受控实机试验、完整退役与发布
+三个出口推进。当前优先分离 Moonraker 服务与打印机重建的生命周期，
+接通标准重启和实际客户端恢复／上传；目标板运动精度与时序是实机准入
+门槛。完整 Moonraker 和全部 Python 替代仍须闭合后才能宣称完整交付。
+
 原生 Moonraker 已接入持久 API Key 及可选本地用户／JWT 登录、刷新和退出，
 包含 HTTP、WebSocket 与独立编译包验证；完整授权策略和真实机器装配仍待
 完成。接入方式与兼容边界见[启动说明](docs/Node_Host_Startup.md#原生-api-key-授权组件初步接入)。
