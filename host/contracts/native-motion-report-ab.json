@@ -1,0 +1,233 @@
+{
+  "base": "223271cf",
+  "command": "node host/bench/product-motion-report-ab.ts /tmp/anyraid-motion-report-ab-223271cf",
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "sequence": [
+    "off",
+    "on",
+    "on",
+    "off"
+  ],
+  "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+  "controls": [
+    "Same compiled product SHA-256 in all four runs",
+    "Same authenticated native product fixture, file, four concurrent status clients and auxiliary workload",
+    "Only repeated status-query motion_report selection toggled; default acceptance still includes it",
+    "Sequential ABBA; no parallel typecheck, compilation job or browser probe launched by this task"
+  ],
+  "limitations": [
+    "Two observations per mode; insufficient to prove a strict regression bound",
+    "Closed-loop query clients produce different request counts; not a fixed arrival-rate load test",
+    "Host load is recorded but uncontrolled; historical latency increase root cause remains unproven",
+    "Same-product query-cost comparison, not old/new product or Python comparison",
+    "Target-board, actual print speed and motion precision acceptance remain pending"
+  ],
+  "conclusion": "No consistent tail-latency increase attributable to selecting motion_report in this ABBA sample. Do not claim a speedup or zero regression. All four print/recovery journeys pass with positive step lead.",
+  "runs": [
+    {
+      "run": 1,
+      "mode": "off",
+      "started": "2026-09-30T10:33:19.519Z",
+      "loadBefore": [
+        1.44,
+        1.27,
+        1.14
+      ],
+      "loadAfter": [
+        1.88,
+        1.43,
+        1.2
+      ],
+      "logSha256": "999bfa78680f583dbe30238b7b0bb0ca4e41ac0645d3b73a41a9fc27991ae337",
+      "statusRequests": 14570,
+      "statusP99Ms": 7.99605800000063,
+      "minimumStepLeadMs": 75.691,
+      "completedStatistics": {
+        "total_duration": 8.784045470999999,
+        "print_duration": 2.560110844000001,
+        "filament_used": 1
+      },
+      "liveMotionSamples": 0,
+      "liveExtrusionSamples": 0,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.983487,
+            "maxMs": 19.939327
+          },
+          "cpu": {
+            "user": 5169222,
+            "system": 653524
+          },
+          "rss": 305827840
+        },
+        {
+          "loop": {
+            "p99Ms": 2.762751,
+            "maxMs": 12.156927
+          },
+          "cpu": {
+            "user": 1649121,
+            "system": 248768
+          },
+          "rss": 274268160
+        }
+      ],
+      "uploads": 16
+    },
+    {
+      "run": 2,
+      "mode": "on",
+      "started": "2026-09-30T10:33:55.456Z",
+      "loadBefore": [
+        1.88,
+        1.43,
+        1.2
+      ],
+      "loadAfter": [
+        1.77,
+        1.48,
+        1.23
+      ],
+      "logSha256": "e50f9a695a7a0faae837bf3296e0d65a62838812569e8d86549db27cd930504d",
+      "statusRequests": 15294,
+      "statusP99Ms": 4.369000000002416,
+      "minimumStepLeadMs": 86.912,
+      "completedStatistics": {
+        "total_duration": 8.768197606000001,
+        "print_duration": 2.5376537720000014,
+        "filament_used": 1
+      },
+      "liveMotionSamples": 2648,
+      "liveExtrusionSamples": 1471,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.984511,
+            "maxMs": 21.168127
+          },
+          "cpu": {
+            "user": 5358384,
+            "system": 668299
+          },
+          "rss": 304308224
+        },
+        {
+          "loop": {
+            "p99Ms": 1.925119,
+            "maxMs": 7.532543
+          },
+          "cpu": {
+            "user": 1870538,
+            "system": 281479
+          },
+          "rss": 281169920
+        }
+      ],
+      "uploads": 16
+    },
+    {
+      "run": 3,
+      "mode": "on",
+      "started": "2026-09-30T10:34:32.371Z",
+      "loadBefore": [
+        1.77,
+        1.48,
+        1.23
+      ],
+      "loadAfter": [
+        4.99,
+        2.24,
+        1.49
+      ],
+      "logSha256": "eff51abdb8f90de6820d098a140f2a30aba972b569b1fced2a7c517986dc1d87",
+      "statusRequests": 16232,
+      "statusP99Ms": 5.929084999996121,
+      "minimumStepLeadMs": 85.442,
+      "completedStatistics": {
+        "total_duration": 8.523952155000002,
+        "print_duration": 2.478909498000001,
+        "filament_used": 1
+      },
+      "liveMotionSamples": 2483,
+      "liveExtrusionSamples": 1402,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.127871,
+            "maxMs": 19.660799
+          },
+          "cpu": {
+            "user": 5865207,
+            "system": 725567
+          },
+          "rss": 306716672
+        },
+        {
+          "loop": {
+            "p99Ms": 3.661823,
+            "maxMs": 13.524991
+          },
+          "cpu": {
+            "user": 1951910,
+            "system": 273774
+          },
+          "rss": 294182912
+        }
+      ],
+      "uploads": 16
+    },
+    {
+      "run": 4,
+      "mode": "off",
+      "started": "2026-09-30T10:35:11.296Z",
+      "loadBefore": [
+        4.99,
+        2.24,
+        1.49
+      ],
+      "loadAfter": [
+        3.18,
+        2.1,
+        1.47
+      ],
+      "logSha256": "c0a2027c67bb669e1c7c9d15b49af7031c9f8d7c9bc013b961bde1e878c55a9d",
+      "statusRequests": 16029,
+      "statusP99Ms": 3.9468530000012834,
+      "minimumStepLeadMs": 87.288,
+      "completedStatistics": {
+        "total_duration": 8.3161833,
+        "print_duration": 2.440623281,
+        "filament_used": 1
+      },
+      "liveMotionSamples": 0,
+      "liveExtrusionSamples": 0,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.988607,
+            "maxMs": 19.677183
+          },
+          "cpu": {
+            "user": 5367239,
+            "system": 736862
+          },
+          "rss": 302415872
+        },
+        {
+          "loop": {
+            "p99Ms": 1.944575,
+            "maxMs": 6.787071
+          },
+          "cpu": {
+            "user": 1814420,
+            "system": 251320
+          },
+          "rss": 287604736
+        }
+      ],
+      "uploads": 16
+    }
+  ]
+}

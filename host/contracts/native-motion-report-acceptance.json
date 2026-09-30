@@ -153,10 +153,11 @@
         }
       ]
     },
-    "comparisonStatus": "unresolved tail-latency increase; controlled A/B required",
+    "comparisonStatus": "No consistent tail-latency increase attributable to selecting motion_report in this ABBA sample. Do not claim a speedup or zero regression. All four print/recovery journeys pass with positive step lead.",
     "priorWebcamStatusP99Ms": 3.7749710000025516,
     "firstLiveReportStatusP99Ms": 7.019763000000239,
-    "scope": "Desktop simulated MCU only. Different runs are not controlled comparisons; no Python or target-board result."
+    "scope": "Desktop simulated MCU only. Different runs are not controlled comparisons; no Python or target-board result.",
+    "comparisonEvidence": "host/contracts/native-motion-report-ab.json"
   },
   "failuresAndCorrections": [
     {
@@ -183,7 +184,7 @@
     "scope": "Pre-final drained-position refinement bundle; final bundle verified by compiled regression. Loopback trusted configuration, API-seeded file and simulated MCU."
   },
   "remaining": [
-    "Controlled A/B tail-latency investigation before no-regression claim",
+    "Target-board fixed-arrival-rate and Python performance comparison; small desktop ABBA does not establish a strict no-regression bound",
     "Motion queue/stepper dump endpoints and shutdown diagnostic reporting",
     "Physical precision, target-board and Python performance comparison",
     "Browser file upload and client disconnect/restart recovery",

@@ -43,6 +43,12 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 固定数值、生命周期、客户端和性能证据见
 [实时运动状态验收](../host/contracts/native-motion-report-acceptance.json)。
 
+可用 `node host/bench/product-motion-report-ab.ts /tmp/anyraid-motion-report-ab`
+顺序复验同产物 ABBA 查询负载。A 仅从重复查询中移除 `motion_report`，
+B 保持默认完整查询，生产功能不关闭；每轮核对产物摘要并保存原始日志。
+当前四轮没有一致的尾延迟升高，但样本不足以保证严格无回退；这是桌面
+查询成本对照，不是 Python、目标板或真实打印速度对照。
+
 ## 原生摄像头管理
 
 提供数据库的配置服务会启用 `/server/webcams/list`、`/server/webcams/item`
