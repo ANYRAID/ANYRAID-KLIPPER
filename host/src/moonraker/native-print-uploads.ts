@@ -212,15 +212,17 @@ export class NativePrintUploads {
   })();
  }
 }
-export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean;reads?:NativePrintUploads}={}):()=>void{
+export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean;reads?:NativePrintUploads;readRoutes?:boolean;deleteRoute?:boolean}={}):()=>void{
  const reads=options.reads??uploads;
  const release:(()=>void)[]=[];
  try{
-  release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
-  release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>reads.list(params,context.signal)));
-  release.push(registry.register({endpoint:'/server/files/delete_file',methods:['DELETE']},(params,_verb,context)=>uploads.remove(params,context)));
-  release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>reads.directory(params,context.signal)));
-  if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));}
+  if(options.readRoutes!==false){
+   release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
+   release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>reads.list(params,context.signal)));
+   release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>reads.directory(params,context.signal)));
+   if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));}
+  }
+  if(options.deleteRoute!==false)release.push(registry.register({endpoint:'/server/files/delete_file',methods:['DELETE']},(params,_verb,context)=>uploads.remove(params,context)));
   return ()=>{for(const remove of release.reverse())remove();};
  }catch(error){for(const remove of release.reverse())remove();throw error;}
 }

@@ -37,8 +37,9 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 HTTP/WebSocket、鉴权、数据库及进程统计继续运行。重复调用返回同一
 Promise。忽略取消的文件策略仍须真正结束，不能把超时或取消当作已排空。
 默认 `close()` 继续关闭设备与服务。显式 `serverLifetime: 'process'` 模式
-只退役设备，由进程所有者在最终退出时关闭服务器；首代启动失败仍清理
-已创建的服务，借用已有监听器的启动失败不会关闭它。
+只退役设备，由进程所有者在最终退出时关闭服务器。直接调用产品服务、
+未传 existingServer 时，启动失败仍清理该调用创建的服务；产品主机的
+createProcess 工厂现预先建立进程服务，首代设备失败借用并保留该监听器。
 
 退役期间 server.info／printer.info 显示 disconnected；没有附着 MCU，
 不保留旧 ready 或归零状态。仅 API 清理完成仍标记设备 stopping，由产品
@@ -91,8 +92,9 @@ export const createProductHostProfile = createNativeProductHostFactory('/etc/any
 });
 ```
 
-准备温度仍为示例。`createProcess(configuration, signal)` 在配置预检之后
-只调用一次，返回 `NativeProductProcessResources`：`server` 提供持久数据库、
+准备温度仍为示例。`createProcess(configuration, signal)` 在有界机器清单
+解析之后、打印机配置预检和设备取得之前只调用一次，返回
+`NativeProductProcessResources`：`server` 提供持久数据库、
 原生授权或显式策略及进程组件配置，`release()` 管理失败启动与最终清理。
 创建函数负责返回前的部分失败；成功返回后，即使启动取消，也由工厂清理。
 不得在这些回调中依赖已退役的设备。Moonraker 配置在进程首次启动时加载，
@@ -107,7 +109,8 @@ release 应幂等，关闭错误不得丢弃。
 
 工厂声明 `serverLifetime: 'process'`，主机循环以相同服务器绑定新设备，
 保持 HTTP/WebSocket、身份、温度历史和文件锁。包装工厂须同时转发这个
-属性及 close；否则不能将进程所有者作为一次性 profile 使用。省略
+属性、bootstrap、close 及调用的 signal／reload context；遗漏 bootstrap
+会失去首代失败的服务出口，不能将进程所有者作为一次性 profile 使用。省略
 createProcess 的旧适配器保留原有一次性服务语义，不隐式改变资源归属。
 
 该模式还持有同一文件元数据层和权威作业日志 Worker。设备 profile 借用
@@ -132,8 +135,9 @@ createProcess 的旧适配器保留原有一次性服务语义，不隐式改变
 [断开窗口资源验收](../host/contracts/native-process-offline-resources-acceptance.json)。
 
 设备重建失败立即结束该恢复请求并记录持久失败回执，监听器继续可查询
-且不 ready，不自动重试或重放打印。当前失败后的控制器不再接收重初始化；
-需显式退出进程再启动，标准故障恢复仍属于待完成批次。SIGTERM／SIGINT
+且不 ready，不自动重试或重放打印。已确认清理后的配置／启动失败可显式
+RESTART；停止或清理未确认时拒绝新设备，仍需显式退出并处理故障。
+SIGTERM／SIGINT
 先结束设备及在途工作，再关闭服务器、工厂和主机控制器；最终关闭只发生
 一次。源码三代交接、HTTP 故障回执、取消与独立编译并发打印证据见
 [进程服务验收](../host/contracts/native-process-server-acceptance.json)。
@@ -201,10 +205,34 @@ FIRMWARE_RESTART。停止失败与部分启动清理失败拒绝新设备接入�
 的日志拒绝迁移。容量／迁移及编译产品证据见
 [恢复回执保留验收](../host/contracts/native-recovery-retention-acceptance.json)。
 
-当前边界：首次启动在监听器建立前失败，仍退出且没有可查询服务；
-额外参数返回 400（固定上游路由忽略额外参数），旧一次性工厂拒绝标准重载。`ok`、ready 与成功回执分别表示不同阶段，不能混用。
+当前边界：机器清单、Moonraker／授权配置或进程持久资源无法建立时，
+不能承诺查询服务，也不补充默认放行策略。首代设备失败的出口见下节。
+额外参数返回 400（固定上游路由忽略额外参数），旧一次性工厂拒绝标准重载。
+`ok`、ready 与成功回执分别表示不同阶段，不能混用。
 实际 Fluidd／Mainsail 按钮和物理 MCU 尚未验收。软件证据见
 [标准主机重启增量](../host/contracts/native-standard-restart-acceptance.json)。
+
+### 首代设备启动失败与显式恢复
+
+`runProductHost` 先调用进程工厂 bootstrap，初始化真实进程文件、权威作业
+日志与恢复日志、鉴权和 Moonraker 监听器，再读取 printer.cfg 并创建设备。
+服务未绑定设备时没有 PrintController、运动对象或模拟 MCU，不启动设备
+生命周期采样。打印、对象和文件删除接口不可用，授权文件查询、下载、
+上传与历史管理可用；上传不自动打印，旧作业和旧恢复回执不自动重放。
+
+首次配置、adapter 或 MCU 启动失败后，服务保留原身份和连接；完成已取得
+资源的停止／清理后才提供显式 RESTART。server.info.native_host 中
+ready=false、closing=true、admission_closed=true、mcus=[]；可选的
+startup_failure 为 device_startup_failed 或 cleanup_unconfirmed，不包含
+异常文本、路径或凭据。清理未确认时硬件状态 failed，restart_available=false，
+不会凭空声称物理停止。修复设备配置后，HTTP／RPC 标准 RESTART 绑定真实
+新设备并发送一次就绪通知；迟到正文和旧授权不能进入新代际。
+
+运行中不能改变 deviceId、日志路径、打印机配置路径或 Moonraker 配置路径；
+修复相同路径下的设备配置可以重试，进程身份变化在取得 adapter 前拒绝。
+首次 adapter 忽略取消时，SIGTERM 仍等待它返回并真正释放，然后关闭服务
+数据库和工厂资源，不把取消当作已清理。源码与独立编译证据见
+[首代失败恢复验收](../host/contracts/native-process-bootstrap-acceptance.json)。
 
 ### 客户端连接与重新初始化
 
@@ -674,8 +702,9 @@ NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契�
 
 ## 就绪、故障与退出
 
-只有完成 MCU 连接、原生硬件装配、持久化状态恢复和 HTTP 监听后，
-标准输出才发出一行 JSON：
+createProcess 产品主机在鉴权及进程资源就绪、实际监听完成后先输出
+`{"event":"listening","address":{...}}`，只报告服务可访问。只有完成 MCU
+连接、原生硬件装配和持久化状态恢复后，才输出设备就绪 JSON：
 
 ```json
 {"event":"ready","address":{"address":"127.0.0.1","family":"IPv4","port":7125}}
@@ -691,6 +720,7 @@ NativePrintUploads 等组件使用；所有组件仍遵循各自的所有权契�
 - `group_state`、`hardware_state`：MCU 组与已装配硬件的生命周期状态。
 - `mcus`：各 MCU 的 id 与会话 state；不含串口路径或底层故障文本。
 - `print_state`、`homed_axes`：当前打印生命周期及已归零轴。
+- `startup_failure`：仅在设备断开且启动失败时出现的有界分类，不含故障文本。
 - `closing`、`admission_closed`、`maintenance`：服务退场、永久关闭准入
   和维护占用状态。
 - `ready`：MCU 组、所有会话及硬件均 ready，且服务未退场、准入未永久

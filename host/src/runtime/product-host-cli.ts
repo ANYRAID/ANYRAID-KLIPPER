@@ -17,5 +17,5 @@ export async function runProductHostCLI(args:readonly string[],signal:AbortSigna
  const module=await import(pathToFileURL(options.profile).href) as {createProductHostProfile?:ProductHostFactory};
  signal.throwIfAborted();if(typeof module.createProductHostProfile!=='function')throw new Error('Machine module must export createProductHostProfile');
  const {runProductHost}=await import('./product-host.ts');
- await runProductHost(module.createProductHostProfile,signal,address=>write(JSON.stringify({event:'ready',address})+'\n'),control);
+ await runProductHost(module.createProductHostProfile,signal,address=>write(JSON.stringify({event:'ready',address})+'\n'),control,address=>write(JSON.stringify({event:'listening',address})+'\n'));
 }

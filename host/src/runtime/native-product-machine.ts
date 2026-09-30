@@ -6,9 +6,10 @@ import {assertProductAuthorization} from './product-authorization.ts';
 import {ApiError} from '../moonraker/rpc.ts';
 import type {ProductMachineConfiguration} from '../config/product-machine.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
-import {loadProductMachineProfile,type ProductMachineBindings} from './product-machine-profile.ts';
+import {loadProductMachineProfile,readProductMachine,type ProductMachineBindings} from './product-machine-profile.ts';
 import type {ProductHostFactory,ProductHostProfile,HostReloadContext} from './product-host.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
+import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
 
 type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'>:never;
 export interface NativeMachineAdapter {
@@ -126,33 +127,37 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  storageRoots(options);
  const snapshot={...options,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
  const processOptions='createProcess' in snapshot?snapshot:undefined;
- let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined;
+ let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
+ let bootstrapping:ReturnType<NonNullable<ProductHostFactory['bootstrap']>>|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
+ const ensureProcess=async(config:ProductMachineConfiguration,s:AbortSignal)=>{
+  if(processIdentity&&(['deviceId','journalPath','moonrakerConfig','printerConfig'] as const).some(key=>processIdentity![key]!==config[key]))throw new Error('Native process configuration identity cannot change');
+  processIdentity??=structuredClone(config);
+  resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();
+  processOpening??=(async()=>{
+   processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
+   if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
+   assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
+   if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
+   await resources!.processFiles(snapshot.uploads);s.throwIfAborted();
+   processJournal=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});s.throwIfAborted();
+  })();await processOpening;s.throwIfAborted();
+ };
  const factory:ProductHostFactory=(incoming,reload)=>{
   if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);
   if(active)return Promise.reject(new Error('Previous native profile has not retired'));
   incoming.throwIfAborted();active=true;const signal=AbortSignal.any([incoming,stopped.signal]);
   const task=loadProductMachineProfile(path,async(config,s,gate)=>{
-   resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();
    let createAdapter:NativeProductMachineOptions['createAdapter'];
    if(processOptions){
-    processOpening??=(async()=>{
-     processResources=await processOptions.createProcess(structuredClone(config),s);s.throwIfAborted();
-     if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
-     assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
-     if(['nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
-    })();await processOpening;s.throwIfAborted();
+    await ensureProcess(config,s);
     createAdapter=async(c,signal,g)=>{
      const device=await processOptions.createAdapter(c,signal,g,processResources!.server,reload);
      if(device&&'server' in device){const error=new TypeError('Process-mode adapter must own only device resources');try{await device.release?.();}catch(cleanup){throw new AggregateError([error,cleanup],'Invalid native device cleanup failed');}throw error;}
      return {...device,server:processResources!.server};
     };
-   }else createAdapter=(snapshot as NativeProductMachineOptions).createAdapter;
-   const processFiles=processOptions?await resources.processFiles(snapshot.uploads):undefined;s.throwIfAborted();
-   if(processOptions){
-    processJournal??=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});s.throwIfAborted();
-    if(processJournal.identity.path!==config.journalPath||processJournal.identity.deviceId!==config.deviceId)throw new Error('Native process journal identity cannot change');
-   }
+   }else{resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();createAdapter=(snapshot as NativeProductMachineOptions).createAdapter;}
+   const processFiles=processOptions?await resources!.processFiles(snapshot.uploads):undefined;s.throwIfAborted();
    const bindings=await createNativeProductBindings(config,s,gate,{...snapshot,createAdapter,files:undefined,fileResources:resources,processFiles});
    return processOptions?{...bindings,journal:processJournal,server:{...bindings.server,nativeProcessFiles:processFiles,nativeProcessHistory:processJournal}}:bindings;
   },signal).then(profile=>{
@@ -163,8 +168,23 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
- if(processOptions)Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
+ if(processOptions){
+  Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
+  factory.bootstrap=(incoming,control)=>{
+   if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);incoming.throwIfAborted();
+   if(active)return Promise.reject(new Error('Native process bootstrap must precede device acquisition'));
+   return bootstrapping??=(async()=>{
+    const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);await ensureProcess(config,signal);
+    const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads);
+    const serverOptions={nativeDetached:true as const,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
+     nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
+    const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
+    return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};
+   })();
+  };
+ }
+
  return factory;
 }

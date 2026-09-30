@@ -25,13 +25,16 @@ export interface ProductHostFactory {
  /** Process resources outlive profiles. The host invokes this only after the
   * final generation retires, including startup and retirement failures. */
  close?():Promise<void>;
+ /** Validated process resources independent of printer configuration/hardware. */
+ bootstrap?(signal:AbortSignal,control:ProductHostControl):Promise<{server:ConfiguredMoonraker;recoveryJournal:{path:string;deviceId:string}}>;
 }
 /** One process lifetime: load -> connect -> listen -> stop -> release dependencies.
  * Hardware stop does not close the API: keep durable outcomes and unavailable
  * hardware status observable until explicit process shutdown. No automatic reconnect or replay. */
-export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void,control?:ProductHostControl):Promise<void>{
+export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void,control?:ProductHostControl,listening?:(address:AddressInfo)=>void):Promise<void>{
  control??=new ProductHostControl();
  signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.close!==undefined&&typeof factory.close!=='function'||factory.serverLifetime!==undefined&&factory.serverLifetime!=='process'||factory.serverLifetime==='process'&&!factory.close)throw new TypeError('Invalid product host callbacks');
+ if(factory.bootstrap!==undefined&&(typeof factory.bootstrap!=='function'||factory.serverLifetime!=='process')||listening!==undefined&&typeof listening!=='function')throw new TypeError('Invalid product process bootstrap');
  const processLifetime=factory.serverLifetime==='process';let processServer:ConfiguredMoonraker|undefined;
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
  let temperatureHistory:TemperatureStore|undefined;
@@ -45,6 +48,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
  };
  signal.addEventListener('abort',abort,{once:true});
  try{
+  if(factory.bootstrap){const process=await factory.bootstrap(signal,control);processServer=process.server;await control.configure(process.recoveryJournal);signal.throwIfAborted();const address=await processServer.start();signal.throwIfAborted();listening?.({...address});}
   const reload:{reason:HostReloadContext['reason']}={reason:'initial'};
   while(!signal.aborted){
    try{
@@ -80,6 +84,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     completion??=activeRequest;
     completion?.reject(new AggregateError(errors,'Product reinitialization failed'));completion=activeRequest=undefined;
     if(!processServer||signal.aborted)break;
+    if(processServer.nativeGenerationStatus?.drained)processServer.recordNativeStartupFailure(cleanupFailed);
     // Only an explicitly requested retry may create a replacement. A failed
     // physical/dependency retirement cannot be made safe by a host reload.
     if(cleanupFailed||processServer.nativeGenerationStatus?.state!=='stopped'){await stopped.promise;break;}
@@ -96,7 +101,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
   if(completion){completion.reject(new AggregateError(errors,'Product reinitialization failed'));completion=activeRequest=undefined;}
   // A failed replacement must stay observable. Only explicit process shutdown
   // closes the retained listener; there is no automatic device retry or replay.
-  if(processServer&&!signal.aborted)await stopped.promise;
+  if(processServer?.status.phase==='listening'&&!signal.aborted)await stopped.promise;
  }
  finally{
   signal.removeEventListener('abort',abort);
