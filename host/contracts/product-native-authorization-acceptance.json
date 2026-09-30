@@ -1,0 +1,209 @@
+{
+  "schema": 1,
+  "implementationBase": "47979120",
+  "node": "v26.9.0",
+  "platform": "linux",
+  "arch": "x64",
+  "scope": "Desktop simulated dual MCU, compiled JavaScript product with independently installed production dependencies; no Python or TypeScript loader in the child.",
+  "commands": [
+    "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true ' host/acceptance/product-compiled-journey.test.ts",
+    "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^(nativeAuthorization=true |apiLoad=true )' host/acceptance/product-compiled-journey.test.ts"
+  ],
+  "validation": {
+    "nativeAuthorizationPassed": 2,
+    "callbackLoadPassed": 1,
+    "callbackProvenance": "Passed before correcting the native-only restart assertion; callback path unchanged.",
+    "scope": [
+      "JWT login",
+      "sealed upload and metadata",
+      "heating and completed print",
+      "filament pause and explicit resume",
+      "timeout cancellation",
+      "service reload",
+      "ADC fault stop",
+      "process restart preserves users, files and history",
+      "interrupted job cannot resume or replay",
+      "explicit interrupted-job cancellation",
+      "logout revocation"
+    ],
+    "limits": {
+      "minimumStepLeadMs": "> 0",
+      "eventLoopP99Ms": "< 50",
+      "eventLoopMaxMs": "< 100",
+      "loadedUploads": 16,
+      "loadedMetadata": 16,
+      "loadedDownloads": 16
+    },
+    "priorFailure": {
+      "cause": "Test expected idle after a faulted job process restart; journal intentionally restores interrupted.",
+      "resolution": "Assert interrupted, rejected resume, no motion replay, explicit cancellation; product state machine unchanged."
+    }
+  },
+  "hashes": {
+    "host/src/runtime/product-service.ts": "cfc123b200e3f0327e5cd2fbc0f9dd915090d85a98420631eab242e776489ed3",
+    "host/src/runtime/product-authorization.ts": "6ee6fb76fe675733f802cf6ba9d25718d3d2f59cc9972dbfef691c84e2d566be",
+    "host/src/runtime/native-product-machine.ts": "5ed46e0eefd2262e7c1944072a4e356d77cc86dce0fd9761ac5710de34fec335",
+    "host/acceptance/product-compiled-journey.test.ts": "29cfa16b62325cee83d2140ecec34a320f7bfcae9648871a29f97a3a2edccbf3"
+  },
+  "records": [
+    {
+      "nativeAuthorization": true,
+      "apiLoad": false,
+      "completedStatistics": {
+        "total_duration": 7.27835604,
+        "print_duration": 2.388318832,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "33d9fe1f4aa97816bf192aed6f0a56616cf347eb5f207b14d9f3dfa5d89b32df",
+      "statusRequests": 0,
+      "statusP99Ms": null,
+      "uploads": 0,
+      "uploadP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "historyNotifications": 32,
+      "wireCommands": 188,
+      "wireSteps": 3600,
+      "minimumStepLeadMs": 86.802,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.752063,
+            "maxMs": 21.381119
+          },
+          "cpu": {
+            "user": 1289515,
+            "system": 141153
+          },
+          "rss": 187813888
+        },
+        {
+          "loop": {
+            "p99Ms": 2.787327,
+            "maxMs": 9.469951
+          },
+          "cpu": {
+            "user": 801044,
+            "system": 86462
+          },
+          "rss": 213483520
+        }
+      ]
+    },
+    {
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 7.310495347,
+        "print_duration": 2.3899050849999983,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "33d9fe1f4aa97816bf192aed6f0a56616cf347eb5f207b14d9f3dfa5d89b32df",
+      "statusRequests": 15931,
+      "statusP99Ms": 4.448720000000321,
+      "uploads": 16,
+      "uploadP95Ms": 24.77301599999919,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.73801000000094,
+      "directoryRequests": 3830,
+      "directoryP99Ms": 6.511278999998467,
+      "historyRequests": 894,
+      "historyP99Ms": 11.09212000000116,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.264652000005299,
+      "historyNotifications": 32,
+      "wireCommands": 188,
+      "wireSteps": 3600,
+      "minimumStepLeadMs": 86.446,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.103295,
+            "maxMs": 21.184511
+          },
+          "cpu": {
+            "user": 5104277,
+            "system": 543076
+          },
+          "rss": 300814336
+        },
+        {
+          "loop": {
+            "p99Ms": 1.959935,
+            "maxMs": 6.672383
+          },
+          "cpu": {
+            "user": 1670978,
+            "system": 213288
+          },
+          "rss": 306290688
+        }
+      ]
+    },
+    {
+      "nativeAuthorization": false,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.480760783,
+        "print_duration": 2.465924088,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "33d9fe1f4aa97816bf192aed6f0a56616cf347eb5f207b14d9f3dfa5d89b32df",
+      "statusRequests": 16161,
+      "statusP99Ms": 2.691967000006116,
+      "uploads": 16,
+      "uploadP95Ms": 14.366920000000391,
+      "metadataRequests": 16,
+      "metadataP95Ms": 18.882641000003787,
+      "directoryRequests": 3896,
+      "directoryP99Ms": 4.943749000012758,
+      "historyRequests": 898,
+      "historyP99Ms": 8.087621999991825,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 6.30204799999774,
+      "historyNotifications": 32,
+      "wireCommands": 187,
+      "wireSteps": 3580,
+      "minimumStepLeadMs": 85.988,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.941503,
+            "maxMs": 21.315583
+          },
+          "cpu": {
+            "user": 4682071,
+            "system": 579887
+          },
+          "rss": 293822464
+        },
+        {
+          "loop": {
+            "p99Ms": 1.898495,
+            "maxMs": 6.905855
+          },
+          "cpu": {
+            "user": 1582364,
+            "system": 200812
+          },
+          "rss": 286769152
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "One observed full journey per variant, not repeated throughput certification.",
+    "Fixed test input, PTY firmware, no-op physical stop and lifecycle adapters; not Cycnumbris 500 hardware acceptance.",
+    "HTTP/WebSocket harness, not a real frontend client acceptance.",
+    "No Python baseline or target-board speed/precision conclusion.",
+    "Print duration includes the scenario scheduling and pauses; samples do not establish a speed regression ratio.",
+    "Generation CPU/RSS and loop metrics cover the first two generations only; fresh process recovery is asserted separately.",
+    "Unresolved historical motion integrity failures remain open."
+  ]
+}
