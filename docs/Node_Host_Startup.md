@@ -1651,6 +1651,34 @@ node --no-experimental-strip-types scripts/product-service-unit.js --verify-bund
 
 ## 原生 API Key 授权组件（初步接入）
 
+配置服务可用 `ConfiguredMoonraker.loadAuthorized(configPath, options)`
+自动装配本地授权；options 提供已打开的 database、真实 information 和
+`authorization: {issuer: 'http://打印机主机名:7125'}`。此入口自动创建授权
+所有者、注册接口与事件，并读取配置文件（含 include）的下列策略：
+
+```ini
+[authorization]
+login_timeout: 90
+force_logins: false
+enable_api_key: true
+max_login_attempts: 5
+default_source: moonraker
+```
+
+省略 max_login_attempts 表示不限失败次数。稳定 issuer 由产品配置提供，
+不会从临时监听端口推导。未知 default_source 警告后回退到 moonraker；
+LDAP、trusted_clients、cors_domains 和其他尚未实现的授权规则会在装配前
+明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
+
+loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从本地
+`server.authorization.localApiKey()` 获取，不能写入日志。装配构造完成后，
+服务持有数据库及授权组件；授权初始化或监听失败会清理它们，调用者需
+重新打开数据库后重试。配置校验失败发生在所有权转移前。正常关闭先等待
+网络与授权工作结束，再关闭数据库，无需手工关闭授权组件。
+原生打印产品装配仍待接入此入口；这不是默认部署切换或实机验收。
+
+需要已有外部组件所有者时，可继续使用以下手工接入方式。
+
 机器适配器可用 `ApiKeyAuthorization` 替代固定测试密钥回调。组件通过
 已有 DatabaseStore Worker 持久化随机密钥，使用禁止公开访问的
 `native_authorization` 命名空间；需保证一个数据库只有一个活动授权
@@ -1669,8 +1697,9 @@ GET／POST /access/api_key 分别读取和轮换密钥，均要求已认证身�
 启用本地用户时使用
 `ApiKeyAuthorization.open(database, {issuer: 'http://打印机主机名:7125'})`，
 issuer 必须为完整 HTTP(S) origin，跨重启保持一致；不要使用示例地址上线。
-可选 loginTimeoutDays 默认为 90，forceLogins 默认为 false。此参数接口
-尚未绑定 authorization 配置节；可信网络准入尚未实现，forceLogins 不会
+可选 loginTimeoutDays 默认为 90，forceLogins 默认为 false。手工接入时
+直接传这些参数；配置文件绑定使用上面的 loadAuthorized。可信网络准入
+尚未实现，forceLogins 不会
 使匿名请求获得权限。未传用户选项时保持仅 API Key 模式。
 
 可选 maxLoginAttempts 为正整数，默认不限制失败次数；配置后按真实连接
@@ -1714,12 +1743,13 @@ notify_user_deleted、notify_user_logged_out，参数为包含 username 的单�
 不能继续接收普通状态通知。待处理事件上限 128；eventStatus 提供待处理、
 已发布及送达／拒绝／失败等计数。事件不做持久重放，断线重连须重新查询。
 
-LDAP、可信网络／代理、完整配置
-绑定及上游用户表导入仍待完成。此组件尚非默认机器部署。
-41 项不同测试通过，含独立编译包的登录限制和一次性令牌消费；
+LDAP、可信网络／代理、CORS、完整配置及请求兼容性、上游用户表导入
+仍待完成。此组件尚非默认机器部署。
+67 项不同测试通过，含独立编译包的配置授权、策略生效及重启；
 JWT 缓存验证约 0.205 微秒，首次验签约 111.618 微秒。200 次本机顺序
-JWT HTTP 状态请求 P99 为 2.111 ms，已认证 WebSocket 为 0.338 ms。
-50 次一次性令牌状态请求最大耗时为 0.830 ms，令牌生成加消费约
+配置授权入口的 JWT HTTP 状态请求 P99 为 1.465 ms；手工接入路径同轮
+为 3.057 ms、WebSocket 为 0.256 ms。样本来自独立顺序运行，不作为
+两种入口速度差异的结论。50 次一次性令牌状态请求最大耗时为 0.795 ms，令牌生成加消费约
 2.918 微秒。API Key CPU 基准为 1.902 微秒／请求，原初步实现为 1.777 微秒，
 均在开发预算内，不据此声称无性能回退。上述结果不代表目标板或并发打印
 验收。证据见[授权组件清单](../host/contracts/moonraker-authorization.json)。

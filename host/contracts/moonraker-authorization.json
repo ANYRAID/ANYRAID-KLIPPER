@@ -3,7 +3,7 @@
   "source": "moonraker/components/authorization.py",
   "status": "partial-native-api-key-and-local-users",
   "tests": {
-    "uniqueTests": 41,
+    "uniqueTests": 67,
     "files": [
       "host/test/api-key-authorization.test.ts",
       "host/test/local-user-authorization.test.ts",
@@ -12,9 +12,13 @@
       "host/test/authorization-events.test.ts",
       "host/test/notifications.test.ts",
       "host/test/authorization-policy.test.ts",
-      "host/test/authorization-policy-network.test.ts"
+      "host/test/authorization-policy-network.test.ts",
+      "host/test/authorization-config.test.ts",
+      "host/test/configured-authorization.test.ts",
+      "host/test/configured-server.test.ts",
+      "host/test/history-runtime.test.ts"
     ],
-    "execution": "41-test affected authorization, notifications and network suite passed, including the independent compiled product."
+    "execution": "67-test affected suite passed, including manual and configuration-owned independent compiled service flows; typecheck and whitespace checks passed."
   },
   "benchmark": {
     "runtime": "v26.9.0",
@@ -34,18 +38,27 @@
     {
       "compiled": true,
       "oneShotAndLoginPolicy": true,
-      "oneShotStatusMaxMs": 0.8300280000000271,
+      "oneShotStatusMaxMs": 0.7945189999999798,
       "oneShotStatusRequests": 50,
       "jwtLifecycle": true,
       "websocketSurvivesTokenExpiry": true,
       "logoutEventAfterResponse": true,
-      "websocketStatusP99Ms": 0.3380329999999958,
-      "jwtStatusP99Ms": 2.1107809999999745,
+      "websocketStatusP99Ms": 0.25573300000002064,
+      "jwtStatusP99Ms": 3.0570040000000063,
       "unauthorizedRejected": true,
       "rotationRevokesOldKey": true,
       "statusRequests": 200,
-      "statusP99Ms": 1.9544089999999983,
+      "statusP99Ms": 1.683159000000046,
       "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
+    },
+    {
+      "compiled": true,
+      "configurationOwned": true,
+      "policyApplied": true,
+      "persistentIdentityAfterRestart": true,
+      "statusRequests": 200,
+      "statusP99Ms": 1.4645270000000323,
+      "scope": "Sequential local HTTP on independent compiled configured service; no printing or target hardware"
     }
   ],
   "endpoints": [
@@ -147,21 +160,27 @@
     "Per-address login serialization enforces failure thresholds under concurrency; successful login resets pre-threshold failures; other addresses and API-key service access are independent.",
     "Forwarded address spoofing does not bypass socket-peer login limits. Disabled API-key policy rejects persisted key credentials.",
     "One-shot tokens admit HTTP and WebSocket clients, expire at five seconds, consume even on address mismatch, and reject replay, logged-out users or rotated keys. HTTP batch authorization reuses only its admitted request identity.",
-    "Independent compiled package validates one-shot issue/use/replay and login lockout; bounded token issue/consume benchmark meets desktop development budget."
+    "Independent compiled package validates one-shot issue/use/replay and login lockout; bounded token issue/consume benchmark meets desktop development budget.",
+    "Configuration-owned service automatically opens native authorization, registers routes and event delivery, publishes parsed policy without credentials and reports authorization component readiness.",
+    "Invalid/unsupported policy rejects before database ownership transfer; corrupted authorization storage and occupied listener close transferred resources.",
+    "Shutdown waits for in-flight authorization persistence before closing SQLite; reopening confirms the committed user record.",
+    "Independent compiled configuration-owned service applies login limit and token lifetime, preserves users and tokens across restart, and meets the 50 ms local status P99 development gate."
   ],
   "limitations": [
-    "Incomplete authorization: LDAP, trusted networks/proxies and configuration-file binding remain pending.",
+    "Incomplete authorization: LDAP, trusted networks/proxies, CORS policy configuration and full upstream request semantics remain pending.",
     "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
-    "Requires an explicit component owner, endpoint registration and local provisioning; not yet the default Cycnumbris 500 machine adapter.",
+    "ConfiguredMoonraker.loadAuthorized owns component registration; local credential provisioning remains explicit. The native printer product adapter is not yet wired to this entry.",
     "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
     "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance.",
     "Native users have bounded input, 128-user capacity, 32 queued mutations and 1024 cached JWTs. These native limits differ from unrestricted upstream storage.",
     "User creation requires a provisioned API key or authenticated user; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
     "Raw authorization headers and error text are not claimed to match all upstream edge cases. HTTP optional authentication accepts signed expired tokens, but rejects invalid signatures.",
     "Event delivery must be explicitly wired to the configured server. Network shutdown or process loss may drop notifications; clients must re-query after reconnect. No durable event replay is claimed.",
-    "Login policy and API-key enablement are programmatic options only; no authorization configuration section binding yet. Failure counts are not durable and currently have no administrative per-address reset API.",
     "One-shot query authentication is implemented; form-body token authentication and trusted-proxy address resolution are not yet supported. A WebSocket query token is consumed at first authorized traffic rather than at HTTP upgrade.",
-    "Latest API-key microbenchmark is 1.902 microseconds per request versus 1.900 in the preceding run; both meet the 10 microsecond desktop gate, not proof of target-board performance."
+    "Latest API-key microbenchmark is 1.902 microseconds per request versus 1.900 in the preceding run; both meet the 10 microsecond desktop gate, not proof of target-board performance.",
+    "Configuration binding covers implemented local-user policy only; trusted_clients, cors_domains and other unsupported options reject instead of being ignored.",
+    "Failure counts are in memory and reset at restart; no administrative per-address reset API yet.",
+    "Configuration-owned service success is not Cycnumbris 500 product assembly, physical printing or real frontend-client acceptance."
   ],
   "localUserBenchmark": {
     "runtime": "v26.9.0",
@@ -222,5 +241,20 @@
       "address": "canonical socket remoteAddress; forwarded headers ignored",
       "consumption": "query token, shared across methods in one HTTP request; a new request cannot replay it; WebSocket keeps admitted connection identity"
     }
+  },
+  "configuration": {
+    "entry": "ConfiguredMoonraker.loadAuthorized",
+    "options": [
+      "login_timeout",
+      "force_logins",
+      "enable_api_key",
+      "max_login_attempts",
+      "default_source"
+    ],
+    "issuer": "Explicit stable HTTP(S) origin supplied by product owner, not derived from ephemeral listener",
+    "defaultSource": "moonraker; unknown value warns and falls back; LDAP rejects until implemented",
+    "unsupportedPolicy": "Unknown authorization options and LDAP reject before resource transfer",
+    "lifetime": "Constructed server owns authorization and database; initialization/listen failure closes them; shutdown drains network and authorization before database close",
+    "productEntry": "Not yet connected to loadNativeProductMachineProfile/product-service; existing machine adapters still require external authorization callbacks"
   }
 }

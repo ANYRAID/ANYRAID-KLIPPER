@@ -53,5 +53,24 @@ assert.equal((await post('/access/login',{username:'compiled-user',password:'com
 console.log(JSON.stringify({compiled:true,oneShotAndLoginPolicy:true,oneShotStatusMaxMs:oneShotTimes[49],jwtLifecycle:true,websocketSurvivesTokenExpiry:true,logoutEventAfterResponse:true,websocketStatusP99Ms:wsTimes[198],jwtStatusP99Ms:jwtTimes[198],unauthorizedRejected:true,rotationRevokesOldKey:true,statusRequests:200,statusP99Ms:times[198],scope:'Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing'}));
 }finally{await server.close();await auth.close();await database.close();}`);
   const result=JSON.parse(execFileSync(process.execPath,[script],{env:{...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'},encoding:'utf8',timeout:30000}));assert.equal(result.compiled,true);t.diagnostic(JSON.stringify(result));
+  const configured=join(root,'owned.conf');await writeFile(configured,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\nforce_logins: true\nlogin_timeout: 2\nmax_login_attempts: 1\n');
+  const ownedScript=join(root,'owned-check.mjs');await writeFile(ownedScript,`import assert from 'node:assert/strict';
+import {DatabaseStore} from ${module('database')};
+import {ConfiguredMoonraker} from ${module('configured-server')};
+const path=${JSON.stringify(join(root,'owned.sqlite'))},config=${JSON.stringify(configured)},information={connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled-owned-auth',missingRequirements:[]};
+let database=await DatabaseStore.open({path}),server=await ConfiguredMoonraker.loadAuthorized(config,{database,information,authorization:{issuer:'http://owned-printer.test'}});
+try{
+ const address=await server.start(),url='http://127.0.0.1:'+address.port,key=server.authorization.localApiKey();
+ const created=await fetch(url+'/access/user',{method:'POST',headers:{'content-type':'application/json','x-api-key':key},body:JSON.stringify({username:'owned',password:'pass'})});assert.equal(created.status,200);const user=(await created.json()).result;
+ const claims=JSON.parse(Buffer.from(user.refresh_token.split('.')[1],'base64url').toString());assert.equal(claims.exp-claims.iat,2*86400);
+ const configuration=await (await fetch(url+'/server/config',{headers:{authorization:'Bearer '+user.token}})).json();assert.equal(configuration.result.config.authorization.max_login_attempts,1);assert.equal(configuration.result.config.authorization.force_logins,true);assert(!JSON.stringify(configuration).includes(key));
+ const times=[];for(let i=0;i<250;i++){const start=performance.now(),response=await fetch(url+'/server/info',{headers:{authorization:'Bearer '+user.token}});assert.equal(response.status,200);const info=(await response.json()).result;assert(info.components.includes('authorization'));if(i>=50)times.push(performance.now()-start);}times.sort((a,b)=>a-b);assert(times[198]<50,'Configured authorization status exceeds desktop budget');
+ const login=async(password)=>{const r=await fetch(url+'/access/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'owned',password})});await r.arrayBuffer();return r.status;};assert.equal(await login('wrong'),400);assert.equal(await login('pass'),401);
+ await server.close();assert.equal(database.status.closed,true);assert.equal(server.rpc.has('access.login'),false);
+ database=await DatabaseStore.open({path});server=await ConfiguredMoonraker.loadAuthorized(config,{database,information,authorization:{issuer:'http://owned-printer.test'}});assert.equal(server.authorization.localApiKey(),key);const restarted=await server.start();
+ const restored=await fetch('http://127.0.0.1:'+restarted.port+'/access/user',{headers:{authorization:'Bearer '+user.token}});assert.equal(restored.status,200);assert.equal((await restored.json()).result.username,'owned');
+ console.log(JSON.stringify({compiled:true,configurationOwned:true,policyApplied:true,persistentIdentityAfterRestart:true,statusRequests:200,statusP99Ms:times[198],scope:'Sequential local HTTP on independent compiled configured service; no printing or target hardware'}));
+}finally{await server.close();await database.close();}`);
+  const ownedResult=JSON.parse(execFileSync(process.execPath,[ownedScript],{env:{...process.env,PATH:'/no-programs',NODE_PATH:'',NODE_OPTIONS:'--no-experimental-strip-types',NODE_DISABLE_COMPILE_CACHE:'1'},encoding:'utf8',timeout:30000}));assert.equal(ownedResult.configurationOwned,true);t.diagnostic(JSON.stringify(ownedResult));
  }finally{await rm(root,{recursive:true,force:true});}
 });

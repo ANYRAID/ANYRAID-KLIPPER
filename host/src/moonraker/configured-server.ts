@@ -44,6 +44,8 @@ import {registerExtensions} from './extensions.ts';
 import type {ClientArguments,ClientRequestOptions} from './client-requests.ts';
 import type {AddressInfo} from 'node:net';
 import {loadConfiguration,ConfigurationError,type ConfigurationLimits} from './config-source.ts';
+import {ApiKeyAuthorization} from './api-key-authorization.ts';
+import {readAuthorizationOptions} from './authorization-config.ts';
 import {ConfigurationReader} from './config-reader.ts';
 import {ApiError,JsonRpcDispatcher,type Json} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
@@ -96,6 +98,12 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  /** Enables configuration-owned Klippy supervision when the network starts. */
  klippy?:{initialization?:KlippyAttachmentOptions;retryDelayMs?:number;pathContext?:KlippyPathContext};
 }
+export interface ConfiguredAuthorizationOptions extends Omit<ConfiguredServerOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'> {
+ /** Persistent database ownership transfers when assembly is constructed. */
+ database:DatabaseStore;
+ /** Stable externally provisioned origin, independent of an ephemeral listener. */
+ authorization:{issuer:string};
+}
 /** Pinned server.py host/port and application.py PrimaryRouter capacity defaults.
  * Port zero is valid for an ephemeral listener, as in Tornado/Node listen(). */
 export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
@@ -111,6 +119,9 @@ export function readNetworkBinding(reader:ConfigurationReader):NetworkBinding{
  * startup publishes their records and unused-option warnings together. */
 export class ConfiguredMoonraker {
  readonly maintenanceGate:MaintenanceGate;
+ #authorization:ApiKeyAuthorization|undefined;#releaseAuthorization:()=>void=()=>{};
+ /** Local provisioning only; never serialized into server information. */
+ get authorization(){return this.#authorization;}
  readonly reader:ConfigurationReader;readonly binding:NetworkBinding;
  readonly rpc:JsonRpcDispatcher;readonly endpoints:EndpointRegistry;
  #metadataMonitor:MetadataMonitor|undefined;
@@ -203,7 +214,7 @@ export class ConfiguredMoonraker {
   if(this.#nativeUploads)uploadOwners.add(this.#nativeUploads);
 
  }
- static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+ static async #prepare(filename:string,options:ConfiguredServerOptions){
   if(options.productHostControl!==undefined&&(!(options.productHostControl instanceof ProductHostControl)||!options.productPrint))throw new ConfigurationError('Host control requires a native print owner');
   if(options.nativeObjects!==undefined&&(!(options.nativeObjects instanceof NativeObjects)||!options.productPrint))throw new ConfigurationError('Native objects require a native print owner');
   if(options.productPrintCompatibility!==undefined&&(!options.productPrint||typeof options.productPrintCompatibility.start!=='function'))throw new ConfigurationError('Standard print compatibility requires a native owner and policy');
@@ -228,7 +239,30 @@ export class ConfiguredMoonraker {
   if(options.klippy!==undefined&&(!options.klippy||typeof options.klippy!=='object'||Array.isArray(options.klippy)))throw new ConfigurationError('Invalid Klippy configuration owner');
   const reader=new ConfigurationReader(await loadConfiguration(filename,options.configurationLimits));
   const automatic=options.klippy?{...await readKlippyBinding(reader,options.klippy.pathContext,options.klippy.retryDelayMs),initialization:options.klippy.initialization??{}}:undefined;
-  return new ConfiguredMoonraker(reader,options,automatic);
+  return {reader,automatic};
+ }
+ static async load(filename:string,options:ConfiguredServerOptions):Promise<ConfiguredMoonraker>{
+  const {reader,automatic}=await this.#prepare(filename,options);return new ConfiguredMoonraker(reader,options,automatic);
+ }
+ /** Configuration-owned native authorization; does not listen or switch any
+  * printer entry point. Failed initialization closes transferred resources. */
+ static async loadAuthorized(filename:string,options:ConfiguredAuthorizationOptions):Promise<ConfiguredMoonraker>{
+  if(!options.database||!options.authorization||typeof options.authorization.issuer!=='string')throw new ConfigurationError('Native authorization requires a database and stable issuer');
+  for(const name of ['authorize','authorizeNotification','authorizeSubscriptionConnection'])if(name in options)throw new ConfigurationError('Native authorization cannot share external authorization callbacks');
+  let auth:ApiKeyAuthorization|undefined;
+  const owner=()=>{if(!auth)throw new ApiError(503,'Authorization is not initialized');return auth;};
+  const resolved:ConfiguredServerOptions={...options,
+   authorize:(method,params,context)=>owner().authorize(method,params,context),
+   authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
+   authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
+  };
+  const {reader,automatic}=await this.#prepare(filename,resolved),policy=readAuthorizationOptions(reader,options.authorization.issuer);
+  const server=new ConfiguredMoonraker(reader,resolved,automatic);
+  try{
+   auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
+   server.#releaseAuthorization=auth.register(server.endpoints,server);
+   server.setInformation({...server.#base,components:[...new Set([...server.#base.components,'authorization'])]});return server;
+  }catch(error){try{await server.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Authorization initialization and cleanup failed');}throw error;}
  }
  /** Explicitly attach one Klippy generation; no implicit device connection,
   * retry or replay is performed by HTTP server startup. */
@@ -372,7 +406,7 @@ export class ConfiguredMoonraker {
  /** Lifecycle owners may replace real state; serving HTTP never implies Klippy ready. */
  setInformation(snapshot:InformationSnapshot):void{
   if(this.#stopping)throw new Error('Configured server is stopping');
-  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,components:[...new Set([...copy.components,...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
+  const current=this.#klippy?.snapshot,copy=structuredClone(current?{...snapshot,connected:current.connected,state:current.state,missingRequirements:current.missingRequirements}:snapshot);const faulted=this.#metadataMonitor?.status.phase==='faulted';this.#information.replace({...copy,components:[...new Set([...copy.components,...this.#authorization?['authorization']:[],...this.#metadataMonitor?['metadata_monitor']:[]])],failedComponents:[...new Set([...copy.failedComponents,...faulted?['metadata_monitor']:[],...this.#historyRuntime?.status.failure?['history']:[],...this.#sensorError?['sensor']:[]])],warnings:[...new Set([...copy.warnings,...this.#historyRuntime?.status.failure?['History persistence failed; tracking requires restart']:[],...this.#sensorError?['Sensor sampling failed; restart required']:[],...faulted?['File metadata monitoring failed; cached file metadata is unavailable']:[],...this.reader.warnings(),...this.klippyRemoteMethodFailures.map(f=>`Klippy remote method registration failed: ${f.name}`)])]});this.#base=copy;
  }
  start():Promise<AddressInfo>{
   if(this.#stopping)return Promise.reject(new Error('Configured server is stopping'));
@@ -410,6 +444,6 @@ export class ConfiguredMoonraker {
  broadcast(method:string,params:readonly Json[],excluded:readonly number[]=[]){return this.#network.broadcast(method,params,excluded);}
  async close():Promise<void>{
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const databaseClosed=historyClosed.then(()=>this.#database?.close(),async error=>{try{await this.#database?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'History and database cleanup failed');}throw error;});const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#network.close(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
+  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([this.#nativeUploads?.close(),printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,databaseClosed,this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close()]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);
  }
 }
