@@ -31,6 +31,18 @@ export interface NativeProductMachineOptions {
  standardPrint?:{nozzle:number;bed:number};
  createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate):Promise<NativeMachineAdapter>;
 }
+export interface NativeProductProcessResources {
+ server:NativeMachineAdapter['server'];
+ /** Runs after final server closure, or failed pre-server startup. Managed
+  * server components have transferred to the server; release other resources
+  * and close any components that never transferred. Must be idempotent. */
+ release():Promise<void>;
+}
+export interface NativeProductProcessOptions extends Omit<NativeProductMachineOptions,'fileResources'|'createAdapter'> {
+ createProcess(configuration:ProductMachineConfiguration,signal:AbortSignal):Promise<NativeProductProcessResources>;
+ /** Device resources only. Returning a server would mix the two lifetimes. */
+ createAdapter(configuration:ProductMachineConfiguration,signal:AbortSignal,gate:MaintenanceGate,process:Readonly<NativeMachineAdapter['server']>):Promise<Omit<NativeMachineAdapter,'server'>>;
+}
 function overlapping(a:string,b:string):boolean {const rel=relative(a,b);return rel===''||!isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..'+sep);}
 function storageRoots(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>){
  for(const path of [options.filesRoot,options.metadataRoot])if(typeof path!=='string'||!isAbsolute(path)||/[\0\r\n]/u.test(path))throw new TypeError('Native product storage requires absolute paths');
@@ -98,13 +110,16 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
 export function loadNativeProductMachineProfile(path:string,options:NativeProductMachineOptions,signal:AbortSignal){
  return loadProductMachineProfile(path,(config,s,gate)=>createNativeProductBindings(config,s,gate,options),signal);
 }
-/** Product entry factory: process files survive profile release/reinitialization.
- * The existing server and adapter still belong to each generation; retaining
- * them across native restart requires the separate server rebinding boundary. */
-export function createNativeProductHostFactory(path:string,options:Omit<NativeProductMachineOptions,'fileResources'>):ProductHostFactory{
+/** Product entry factory. createProcess selects one server/dependency lifetime
+ * across device generations. Without it, legacy adapters retain their existing
+ * one-generation server ownership while sharing only the file store. */
+export function createNativeProductHostFactory(path:string,options:Omit<NativeProductMachineOptions,'fileResources'>|NativeProductProcessOptions):ProductHostFactory{
  if(typeof options.createAdapter!=='function')throw new TypeError('Native machine adapter factory is required');
+ if('createProcess' in options&&typeof options.createProcess!=='function')throw new TypeError('Native process resource factory is required');
  storageRoots(options);
  const snapshot={...options,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
+ const processOptions='createProcess' in snapshot?snapshot:undefined;
+ let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
  const factory:ProductHostFactory=(incoming)=>{
   if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);
@@ -112,7 +127,21 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
   incoming.throwIfAborted();active=true;const signal=AbortSignal.any([incoming,stopped.signal]);
   const task=loadProductMachineProfile(path,async(config,s,gate)=>{
    resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();
-   return createNativeProductBindings(config,s,gate,{...snapshot,files:undefined,fileResources:resources});
+   let createAdapter:NativeProductMachineOptions['createAdapter'];
+   if(processOptions){
+    processOpening??=(async()=>{
+     processResources=await processOptions.createProcess(structuredClone(config),s);s.throwIfAborted();
+     if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
+     assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
+     if('nativeUploads' in processResources.server||'productPrintCompatibility' in processResources.server)throw new TypeError('Native process resources cannot own device file bindings');
+    })();await processOpening;s.throwIfAborted();
+    createAdapter=async(c,signal,g)=>{
+     const device=await processOptions.createAdapter(c,signal,g,processResources!.server);
+     if(device&&'server' in device){const error=new TypeError('Process-mode adapter must own only device resources');try{await device.release?.();}catch(cleanup){throw new AggregateError([error,cleanup],'Invalid native device cleanup failed');}throw error;}
+     return {...device,server:processResources!.server};
+    };
+   }else createAdapter=(snapshot as NativeProductMachineOptions).createAdapter;
+   return createNativeProductBindings(config,s,gate,{...snapshot,createAdapter,files:undefined,fileResources:resources});
   },signal).then(profile=>{
    const release=profile.release;let retiring:Promise<void>|undefined;
    profile.release=()=>retiring??=(async()=>{try{await release();}finally{active=false;}})();return profile;
@@ -121,7 +150,8 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});await resources?.close();})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);try{await processResources?.release?.();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
+ if(processOptions)Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
  return factory;
 }

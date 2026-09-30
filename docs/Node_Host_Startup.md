@@ -48,11 +48,10 @@ Promise。忽略取消的文件策略仍须真正结束，不能把超时或取�
 已经变为零。此接口是可信集成 API，不是新增的远程重启路由。
 
 释放机器依赖前须完成设备退役；监听器仍运行时，数据库、身份及其他进程
-资源须继续保留。当前 profile 的 adapter.release 可能还持有这些资源，
-不能直接将其全部释放。文件库已支持下文的独立保留；其余进程资源的工厂
-所有权和主机入口接入仍待完成；
-退役后的原生文件／历史代际接口暂不可用。runProductHost 的 reinitialize
-仍重建整个服务，标准重启按钮的兼容状态如下文，未因本接口而改变。
+资源须继续保留。旧模式 profile 的 adapter.release 可能还持有这些资源，
+不能直接将其全部释放；应使用下文的 `createProcess` 模式拆分生命周期。
+退役后的原生文件／历史代际接口暂不可用。标准重启按钮的兼容状态如下文，
+未因退役接口或主机入口贯通而改变。
 实现、源码网络测试、模拟停止失败及独立编译打印回归见
 [退役边界验收](../host/contracts/native-generation-retirement-acceptance.json)。
 
@@ -71,7 +70,51 @@ JSON-RPC 延迟正文仍归属入站时的设备代际，不能在重建后启�
 忽略取消的授权实际结束，再释放数据库、文件和 adapter。未结束的策略会
 阻止退役完成，不能用超时声明已排空。源码双模拟 MCU 和性能回归见
 [绑定接口验证](../host/contracts/native-generation-attachment-acceptance.json)。
-该接口尚未由 `runProductHost` 使用，不能据此宣称标准重启已交付。
+`runProductHost` 已在进程模式使用该接口；标准重启语义及按钮仍未交付。
+
+### 进程服务与设备代际
+
+推荐原生机器模块通过 `createProcess` 明确拆开资源所有权：
+
+```js
+import {createNativeProductHostFactory} from '/opt/anyraid/host/src/runtime/native-product-machine.js';
+import {createProcessResources, createMachineDeviceAdapter} from './board-adapter.mjs';
+
+export const createProductHostProfile = createNativeProductHostFactory('/etc/anyraid/machine.json', {
+  filesRoot: '/var/lib/anyraid/files',
+  metadataRoot: '/var/lib/anyraid/metadata',
+  uploads: {stagingRoot: '/var/lib/anyraid/staging'},
+  standardPrint: {nozzle: 200, bed: 60},
+  createProcess: createProcessResources,
+  createAdapter: createMachineDeviceAdapter,
+});
+```
+
+准备温度仍为示例。`createProcess(configuration, signal)` 在配置预检之后
+只调用一次，返回 `NativeProductProcessResources`：`server` 提供持久数据库、
+原生授权或显式策略及进程组件配置，`release()` 管理失败启动与最终清理。
+创建函数负责返回前的部分失败；成功返回后，即使启动取消，也由工厂清理。
+不得在这些回调中依赖已退役的设备。Moonraker 配置在进程首次启动时加载，
+设备重建不会重新加载它或改变服务监听配置。
+
+`createAdapter(configuration, signal, gate, processServer)` 每轮返回设备侧
+stops、lifecycle、output、authorizePrintFile 和 release；不能再返回 server，
+也不能关闭进程数据库。仍须实现真实停止及文件准入，不能套用测试中的
+空回调。数据库等托管组件成功传给服务器后由服务器在最终退出时关闭；
+进程 release 再释放其他依赖，只有未移交／未关闭的组件才需自行关闭。
+release 应幂等，关闭错误不得丢弃。
+
+工厂声明 `serverLifetime: 'process'`，主机循环以相同服务器绑定新设备，
+保持 HTTP/WebSocket、身份、温度历史和文件锁。包装工厂须同时转发这个
+属性及 close；否则不能将进程所有者作为一次性 profile 使用。省略
+createProcess 的旧适配器保留原有一次性服务语义，不隐式改变资源归属。
+
+设备重建失败立即结束该恢复请求并记录持久失败回执，监听器继续可查询
+且不 ready，不自动重试或重放打印。当前失败后的控制器不再接收重初始化；
+需显式退出进程再启动，标准故障恢复仍属于待完成批次。SIGTERM／SIGINT
+先结束设备及在途工作，再关闭服务器、工厂和主机控制器；最终关闭只发生
+一次。源码三代交接、HTTP 故障回执、取消与独立编译并发打印证据见
+[进程服务验收](../host/contracts/native-process-server-acceptance.json)。
 
 ### 进程文件库与设备代际
 
@@ -84,7 +127,7 @@ JSON-RPC 延迟正文仍归属入站时的设备代际，不能在重建后启�
 `runProductHost` 在最终设备／profile 退役后调用工厂的 `close()`，包括启动
 和清理失败路径；错误保留并继续关闭主机控制器。profile 的 `release()`
 排空文件准入、关闭上传层及 adapter 后释放借用，不能关闭进程文件库。
-包装工厂时须转发 `close()`；单独使用工厂时由调用者先释放 profile，再
+包装工厂时须转发 `close()` 和存在的 `serverLifetime`；单独使用工厂时由调用者先释放 profile，再
 关闭工厂。存储路径不能跨代改变，文件限额在工厂创建时固定。
 
 底层 `NativeProductFileResources` 支持显式借用；同时只允许一代际，关闭
@@ -93,8 +136,8 @@ JSON-RPC 延迟正文仍归属入站时的设备代际，不能在重建后启�
 
 实际产品入口的双 MCU 模拟重初始化、独立编译 JWT／并发打印回归及
 文件交接性能见[进程文件库验收](../host/contracts/native-process-files-acceptance.json)。
-本增量保留文件库；监听器、数据库与身份仍按旧主机流程重建，原生文件／
-历史接口尚不能在设备退役窗口连续服务，标准重启尚未完成。
+该文件库证据属于旧主机流程；保留监听器、数据库与身份的新模式见上节。
+原生文件／历史接口尚不能在设备退役窗口连续服务，标准重启尚未完成。
 
 ### 客户端连接与重新初始化
 
