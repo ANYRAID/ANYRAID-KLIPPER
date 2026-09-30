@@ -16,6 +16,7 @@ export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHo
   ['webhooks',()=>nativePrinterState(readNativeHostStatus(nativeHost))],
   ['native_host',()=>readNativeHostStatus(nativeHost)],
   ['gcode_move',()=>printer.print.gcode.coordinates.objectStatus],
+  ['motion_report',eventtime=>printer.machine.port.motionReport(eventtime,3+(printer.print.gcode.tools?.active??0))],
   ['virtual_sdcard',()=>printer.print.file.objectStatus],
   ['display_status',eventtime=>productDisplayStatus(printer.print.gcode.display,printer.controller.state,printer.print.file.objectStatus.progress,eventtime)],
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers,filename)],

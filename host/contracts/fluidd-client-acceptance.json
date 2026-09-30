@@ -222,5 +222,20 @@
       "Page upload, client recovery and physical hardware acceptance"
     ],
     "scope": "Compiled product child with simulated MCU; UI observations do not prove physical printing"
+  },
+  "mainsailMotionRecheck": {
+    "evidence": "host/contracts/native-motion-report-acceptance.json",
+    "bundleManifestSha256": "95bd9e382cd4b78c8b0ae2a5cab592d2a6498a923c5653430e84dfbd6ce011bb",
+    "verified": [
+      "Printing speed 1 mm/s and flow 0.2 mm3/s",
+      "Page pause at 76 percent reports zero speed and flow",
+      "Page resume reaches Complete"
+    ],
+    "remaining": [
+      "Page upload",
+      "Client disconnect/restart recovery",
+      "Final drained-position refinement has compiled regression, not repeated page acceptance",
+      "Controlled performance A/B and target hardware"
+    ]
   }
 }

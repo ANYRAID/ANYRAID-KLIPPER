@@ -24,6 +24,7 @@ import {probeHomingPosition} from './probe-home.ts';
 import {endstopPhasePosition} from './endstop-phase-position.ts';
 import type {ConfiguredEndstopPhase} from '../config/endstop-phase.ts';
 import {observedStepperPosition} from '../motion/observed-position.ts';
+import {liveMotionStatus} from '../motion/live-status.ts';
 import {planProbeGrid,measureProbeGrid,type ProbeGrid} from './probe-grid.ts';
 import type {ProbeConfiguration} from '../config/probe.ts';
 import {collectProbeSamples,type ProbeSamples} from './probe-samples.ts';
@@ -165,6 +166,17 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.logicalPosition;}
+ /** Read current generation only; stopped/disposed queues are never sampled. */
+ motionReport(eventtime:number,extrusionAxis=3){
+  if(this.#failed||this.#g.coordinator.status.retired)return {live_position:null,live_velocity:null,live_extruder_velocity:null};
+  // C extraction intentionally omits stationary rows. After the MCU drain
+  // barrier use its confirmed requested endpoint, not an older moving phase.
+  const source=this.#g.source.status;
+  if(source.paused)return {live_position:[...source.position.slice(0,3),source.position[extrusionAxis]],live_velocity:0,live_extruder_velocity:0};
+  const clock=this.#g.clockMembers[0];
+  const printTime=clock.stepper.printTimeAtClock(clock.session.clock.sync.getClock(eventtime));
+  return liveMotionStatus(this.#g.routes,Math.max(0,printTime),extrusionAxis);
+ }
  phaseOffsetPosition(id:string,offset:number):number|null{
   if(this.#failed)return null;const binding=this.#g.motion.bindings.find(b=>b.id===id);
   if(!binding||!Number.isInteger(offset)||offset<0||offset>=1024)throw new Error('Invalid phase position binding');

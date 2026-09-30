@@ -28,6 +28,21 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 实现清单见 [配置节校验器](../host/src/config/native-printer-sections.ts)，
 验证结果见 [配置预检验收](../host/contracts/native-printer-sections-acceptance.json)。
 
+## 实时运动状态
+
+原生产品的 `motion_report` 提供 `live_position`、`live_velocity` 与
+`live_extruder_velocity`，通过原有对象查询／订阅和鉴权路径发布。
+运动时使用同步 MCU 时间读取当前 C trapq 的轨迹阶段；排空完成后使用
+已确认的源轨迹停止位置，速度为零。活动挤出轴随工具选择变化，回抽速度
+保留负号。队列退役、停止或没有可用历史时返回 null，不读取已释放资源。
+
+这些值是请求轨迹，单位为 mm 和 mm/s，不是编码器测量，也不含输入整形
+或压力提前对电机步进的修正。暂停停靠时实时坐标是停车位置，`toolhead`
+规划坐标仍可能保留待恢复的打印位置；不能把两者混用。当前不提供
+`motion_report` 的队列导出接口与关机诊断日志，不能称完整组件迁移。
+固定数值、生命周期、客户端和性能证据见
+[实时运动状态验收](../host/contracts/native-motion-report-acceptance.json)。
+
 ## 原生摄像头管理
 
 提供数据库的配置服务会启用 `/server/webcams/list`、`/server/webcams/item`

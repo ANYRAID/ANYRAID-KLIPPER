@@ -1,0 +1,192 @@
+{
+  "implementationBase": "68917078",
+  "status": "partial",
+  "reference": {
+    "file": "klippy/extras/motion_report.py",
+    "sha256": "dffd175775703b10179f6d4d08832b19af29e2899cef3c49e02b36748db94f2a",
+    "method": "DumpTrapQ.get_trapq_position"
+  },
+  "implemented": [
+    "Current native generation XYZ and active extrusion velocity sampled at synchronized MCU print time",
+    "Requested XYZE position from retained C trapq phase",
+    "Confirmed drained source position after parking; no substitution of retained print endpoint",
+    "Null during generation retirement, stop or missing coverage; no freed native queue reads",
+    "Authenticated product object query and subscription"
+  ],
+  "tests": {
+    "typecheck": "passed",
+    "unitCommand": "node --test --test-isolation=none host/test/live-motion-status.test.ts",
+    "unitPassed": 1,
+    "coverage": [
+      "Analytical acceleration, cruise, deceleration and idle positions/speeds",
+      "Negative retraction velocity and active extra axis selection",
+      "Missing history, invalid time and read-only queue invariance",
+      "Compiled parking coordinates, nonzero motion/extrusion, pause/resume, fault and process recovery"
+    ],
+    "compiledCommand": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true' host/acceptance/product-compiled-journey.test.ts",
+    "compiledPassed": 1
+  },
+  "performance": {
+    "sampleMeanUs": 1.9181167999999997,
+    "queries": 10000,
+    "compiled": {
+      "liveMotionSamples": 2599,
+      "liveExtrusionSamples": 1488,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 7.524661253999999,
+        "print_duration": 2.510076740999999,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3739,
+      "phaseP99Ms": 8.255141999999978,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 844,
+      "historyP99Ms": 15.55945900000006,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 14.065575000000536,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.558818999999858,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.8691220000000612,
+      "metadataRequests": 16,
+      "metadataP95Ms": 25.924134999999296,
+      "downloads": 16,
+      "downloadP95Ms": 4.563952999997127,
+      "wireCommands": 191,
+      "wireSteps": 3698,
+      "minimumStepLeadMs": 87.766,
+      "directoryRequests": 3560,
+      "directoryP99Ms": 10.498758000001544,
+      "statusRequests": 14958,
+      "uploads": 16,
+      "statusP99Ms": 8.161090999999942,
+      "uploadP95Ms": 14.972620000000461,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.848767,
+            "maxMs": 40.108031
+          },
+          "cpu": {
+            "user": 5358643,
+            "system": 704503
+          },
+          "rss": 308916224
+        },
+        {
+          "loop": {
+            "p99Ms": 1.913855,
+            "maxMs": 11.198463
+          },
+          "cpu": {
+            "user": 1810179,
+            "system": 279056
+          },
+          "rss": 301662208
+        }
+      ]
+    },
+    "comparisonStatus": "unresolved tail-latency increase; controlled A/B required",
+    "priorWebcamStatusP99Ms": 3.7749710000025516,
+    "firstLiveReportStatusP99Ms": 7.019763000000239,
+    "scope": "Desktop simulated MCU only. Different runs are not controlled comparisons; no Python or target-board result."
+  },
+  "failuresAndCorrections": [
+    {
+      "failure": "First compiled run returned 503 during motion generation replacement",
+      "cause": "Retired old generation remained visible while replacement awaited IO",
+      "fix": "Return unavailable motion fields before touching retired generation clocks or queues",
+      "verified": "Final compiled lifecycle and load journey passes"
+    },
+    {
+      "failure": "New assertion incorrectly required positive X while paused",
+      "cause": "Fixture explicitly parks at X0/Y0; toolhead retains print endpoint for resume",
+      "fix": "Assert configured parking coordinates and zero velocity; use drained source endpoint after MCU barrier",
+      "verified": "Final compiled parked position regression passes"
+    }
+  ],
+  "client": {
+    "name": "Mainsail 2.19.0",
+    "bundleManifestSha256": "95bd9e382cd4b78c8b0ae2a5cab592d2a6498a923c5653430e84dfbd6ce011bb",
+    "verified": [
+      "Movement page shows 1 mm/s and 0.2 mm3/s",
+      "Pause reaches 76 percent Paused with zero speed/flow",
+      "Resume from page reaches Complete"
+    ],
+    "scope": "Pre-final drained-position refinement bundle; final bundle verified by compiled regression. Loopback trusted configuration, API-seeded file and simulated MCU."
+  },
+  "remaining": [
+    "Controlled A/B tail-latency investigation before no-regression claim",
+    "Motion queue/stepper dump endpoints and shutdown diagnostic reporting",
+    "Physical precision, target-board and Python performance comparison",
+    "Browser file upload and client disconnect/restart recovery",
+    "Python reference component retained until remaining functionality is migrated"
+  ]
+}
