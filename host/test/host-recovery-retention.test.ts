@@ -8,10 +8,20 @@ import {tmpdir} from 'node:os';
 import {setTimeout as delay} from 'node:timers/promises';
 import {HostRecoveryJournal,type RecoveryRecord} from '../src/runtime/host-recovery-journal.ts';
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
-import {recoveryJournalV1} from './helpers/recovery-journal-v1.ts';
+import {recoveryJournalV1,recoveryJournalV2} from './helpers/recovery-journal-v1.ts';
 const record=(id:string,standard=false):RecoveryRecord=>({request_id:id,state_token:'original-token',state:'queued',error:null,...standard?{kind:'restart'}:{}});
 async function finish(journal:HostRecoveryJournal,r:RecoveryRecord){await journal.save(r);await journal.save({...r,state:'running'});await journal.save({...r,state:'succeeded'});}
 async function settled(control:ProductHostControl){const end=performance.now()+5000;while(control.status.busy){assert(performance.now()<end,'Receipt settlement timeout');await delay(1);}}
+test('v2 full histories migrate atomically and firmware capacity cannot evict either older kind',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'firmware-journal-')),options={path:join(root,'recovery.db'),deviceId:'printer'},old=[...Array.from({length:128},(_,i)=>({...record('controlled-'+i),state:'succeeded' as const})),...Array.from({length:64},(_,i)=>({...record('restart-old-'+i,true),state:'succeeded' as const}))];recoveryJournalV2(options.path,options.deviceId,old);let control=new ProductHostControl();
+ try{
+  const before=await readFile(options.path);await assert.rejects(HostRecoveryJournal.open({...options,deviceId:'wrong'}),/device mismatch/);assert.deepEqual(await readFile(options.path),before);
+  await control.configure(options);control.attach(async()=>{},()=>{},{kinds:['restart','firmware_restart']});const ids:string[]=[];
+  for(let i=0;i<70;i++){ids.push((await control.requestFirmwareRestart(undefined,undefined,cb=>cb(true))).request_id);await settled(control);}
+  assert.equal(control.status.recovery_history.standard_firmware_restart.retained,64);assert.equal(control.status.recovery_history.standard_restart.retained,64);assert.equal(control.status.recovery_history.controlled.retained,128);for(const r of old)assert.deepEqual(control.operation(r.request_id),r);assert.equal(control.operation(ids[0]),null);await assert.rejects(control.request(ids[0],control.status.state_token,()=>assert.fail()),/reserved/);await control.close();
+  control=new ProductHostControl();await control.configure(options);assert.equal(control.status.firmware_restart_operation?.request_id,ids.at(-1));assert.equal(control.status.firmware_restart_operation?.state,'succeeded');assert.equal(control.status.restart_operation?.request_id,'restart-old-63');assert.equal(control.status.busy,false);
+ }finally{await control.close();await rm(root,{recursive:true,force:true});}
+});
 test('v1 migration preserves all old identities, including generated-looking IDs and pending receipts',async()=>{
  const root=await mkdtemp(join(tmpdir(),'recovery-v1-')),options={path:join(root,'recovery.db'),deviceId:'printer'};
  const old=[{...record('restart-not-a-standard-record'),state:'succeeded' as const},record('pending')];recoveryJournalV1(options.path,options.deviceId,old);let opened:Awaited<ReturnType<typeof HostRecoveryJournal.open>>|undefined;
@@ -20,7 +30,7 @@ test('v1 migration preserves all old identities, including generated-looking IDs
   opened=await HostRecoveryJournal.open(options);assert.deepEqual(opened.records,[old[0],{...old[1],state:'interrupted',error:'Process ended before acknowledged recovery completion'}]);
   for(let i=0;i<150;i++)await finish(opened.journal,record('standard-'+i,true));await opened.journal.close();opened=await HostRecoveryJournal.open(options);
   assert.equal(opened.records.filter(r=>r.kind==='restart').length,64);assert.deepEqual(opened.records.find(r=>r.request_id===old[0].request_id),old[0]);assert.equal(opened.records.find(r=>r.request_id==='pending')?.state,'interrupted');assert.equal(opened.records.find(r=>r.request_id==='standard-85'),undefined);assert.equal(opened.records.find(r=>r.request_id==='standard-86')?.state,'succeeded');
-  await opened.journal.close();const db=new DatabaseSync(options.path,{readOnly:true});try{assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,2);}finally{db.close();}
+  await opened.journal.close();const db=new DatabaseSync(options.path,{readOnly:true});try{assert.equal(db.prepare('PRAGMA user_version').get()!.user_version,3);}finally{db.close();}
  }finally{await opened?.journal.close();await rm(root,{recursive:true,force:true});}
 });
 test('unknown or malformed legacy schemas are rejected without migrating their contents',async()=>{
@@ -63,5 +73,12 @@ test('SIGKILL after expiration and queued admission restores the latest standard
   const source=`import {HostRecoveryJournal} from ${JSON.stringify(new URL('../src/runtime/host-recovery-journal.ts',import.meta.url).href)};const {journal}=await HostRecoveryJournal.open(${JSON.stringify(options)});for(let i=0;i<64;i++){const r={request_id:'restart-old-'+i,state_token:'original-token',kind:'restart',state:'queued',error:null};await journal.save(r);await journal.save({...r,state:'running'});await journal.save({...r,state:'succeeded'});}await journal.save({request_id:'restart-crashed',state_token:'original-token',kind:'restart',state:'queued',error:null});process.kill(process.pid,'SIGKILL');`;
   assert.throws(()=>execFileSync(process.execPath,['--input-type=module','-e',source],{stdio:'pipe',timeout:15000}),error=>(error as NodeJS.ErrnoException&{signal?:string}).signal==='SIGKILL');
   control=new ProductHostControl();await control.configure(options);let calls=0;control.attach(async()=>{calls++;});assert.equal(control.status.restart_operation?.request_id,'restart-crashed');assert.equal(control.status.restart_operation?.state,'interrupted');assert.equal(control.operation('restart-old-0'),null);assert.equal(control.status.recovery_history.standard_restart.retained,64);assert.equal(calls,0);await control.requestRestart(undefined,undefined,cb=>cb(true));await settled(control);assert.equal(calls,1);assert.equal(control.operation('restart-crashed')?.state,'interrupted');
+ }finally{await control?.close();await rm(root,{recursive:true,force:true});}
+});
+test('SIGKILL with queued firmware restart restores its separate interrupted receipt without reset replay',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'firmware-retention-kill-')),options={path:join(root,'recovery.db'),deviceId:'printer'};let control:ProductHostControl|undefined;
+ try{
+  const source=`import {HostRecoveryJournal} from ${JSON.stringify(new URL('../src/runtime/host-recovery-journal.ts',import.meta.url).href)};const {journal}=await HostRecoveryJournal.open(${JSON.stringify(options)});await journal.save({request_id:'firmware-restart-crashed',state_token:'original-token',kind:'firmware_restart',state:'queued',error:null});process.kill(process.pid,'SIGKILL');`;
+  assert.throws(()=>execFileSync(process.execPath,['--input-type=module','-e',source],{stdio:'pipe',timeout:15000}),e=>(e as {signal?:string}).signal==='SIGKILL');control=new ProductHostControl();await control.configure(options);let calls=0;control.attach(async()=>{calls++;},()=>{},{kinds:['restart','firmware_restart']});assert.equal(control.status.firmware_restart_operation?.state,'interrupted');assert.equal(control.status.restart_operation,null);assert.equal(calls,0);await control.requestFirmwareRestart(undefined,undefined,cb=>cb(true));await settled(control);assert.equal(calls,1);assert.equal(control.operation('firmware-restart-crashed')?.state,'interrupted');
  }finally{await control?.close();await rm(root,{recursive:true,force:true});}
 });

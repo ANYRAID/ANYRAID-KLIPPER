@@ -10,6 +10,7 @@ import {loadProductMachineProfile,readProductMachine,type ProductMachineBindings
 import type {ProductHostFactory,ProductHostProfile,HostReloadContext} from './product-host.ts';
 import {PrintJournal} from '../operations/print-journal.ts';
 import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
+import {resetConfiguredFirmware} from './firmware-restart.ts';
 
 type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'>:never;
 export interface NativeMachineAdapter {
@@ -172,6 +173,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  if(processOptions){
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
+  factory.resetFirmware=(profile,signal)=>resetConfiguredFirmware(profile.reader,profile.policies,signal);
   factory.bootstrap=(incoming,control)=>{
    if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);incoming.throwIfAborted();
    if(active)return Promise.reject(new Error('Native process bootstrap must precede device acquisition'));

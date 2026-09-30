@@ -1,5 +1,5 @@
 import type {TemperatureStore} from '../moonraker/temperature-store.ts';
-import {ProductHostControl,type HostReloadKind} from './product-host-control.ts';
+import {ProductHostControl,RestartAdmissionError,type HostReloadKind} from './product-host-control.ts';
 import {startConfiguredMachineService,type ConfiguredProductServiceOptions} from './product-service.ts';
 import type {ProductPrinterOptions} from './product-printer.ts';
 import type {MCUMachinePolicy} from './configured-mcu-connections.ts';
@@ -38,6 +38,9 @@ export interface ProductHostFactory {
  /** Process resources outlive profiles. The host invokes this only after the
   * final generation retires, including startup and retirement failures. */
  close?():Promise<void>;
+ /** Explicit diagnostic reset after old owners have stopped and released.
+  * Must reconnect and prove cleared firmware, never substitute new hardware. */
+ resetFirmware?(profile:ProductHostProfile,signal:AbortSignal):Promise<unknown>;
  /** Validated process resources independent of printer configuration/hardware. */
  bootstrap?(signal:AbortSignal,control:ProductHostControl):Promise<{server:ConfiguredMoonraker;recoveryJournal:{path:string;deviceId:string}}>;
 }
@@ -47,7 +50,7 @@ export interface ProductHostFactory {
 export async function runProductHost(factory:ProductHostFactory,signal:AbortSignal,ready:(address:AddressInfo)=>void,control?:ProductHostControl,listening?:(address:AddressInfo)=>void):Promise<void>{
  control??=new ProductHostControl();
  signal.throwIfAborted();if(typeof factory!=='function'||typeof ready!=='function'||factory.close!==undefined&&typeof factory.close!=='function'||factory.serverLifetime!==undefined&&factory.serverLifetime!=='process'||factory.serverLifetime==='process'&&!factory.close)throw new TypeError('Invalid product host callbacks');
- if(factory.bootstrap!==undefined&&(typeof factory.bootstrap!=='function'||factory.serverLifetime!=='process')||listening!==undefined&&typeof listening!=='function')throw new TypeError('Invalid product process bootstrap');
+ if(factory.bootstrap!==undefined&&(typeof factory.bootstrap!=='function'||factory.serverLifetime!=='process')||factory.resetFirmware!==undefined&&(typeof factory.resetFirmware!=='function'||factory.serverLifetime!=='process')||listening!==undefined&&typeof listening!=='function')throw new TypeError('Invalid product process bootstrap');
  const processLifetime=factory.serverLifetime==='process';let processServer:ConfiguredMoonraker|undefined;
  const stopped=Promise.withResolvers<void>(),abort=()=>stopped.resolve(),errors:unknown[]=[];
  let temperatureHistory:TemperatureStore|undefined;
@@ -68,21 +71,27 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
    profile=await factory(signal,{reason:reload.reason});
    if(!profile||typeof profile.release!=='function')throw new TypeError('Machine profile must own dependency cleanup');
    // A host reload must not enter the UART bootloader/reset startup path.
-   const policies=reload.reason==='restart'?new Map([...profile.policies].map(([id,p])=>[id,p.transport==='uart'?{...p,leaveBootloader:false}:p])):profile.policies;
-   await control.configure(profile.recoveryJournal);signal.throwIfAborted();service=await startConfiguredMachineService(profile.reader,policies,profile.product,{...profile.options,serverLifetime:processLifetime?'process':'generation',existingServer:processServer,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
+   const policies=reload.reason==='restart'||reload.reason==='firmware_restart'?new Map([...profile.policies].map(([id,p])=>[id,p.transport==='uart'?{...p,leaveBootloader:false}:p])):profile.policies;
+   await control.configure(profile.recoveryJournal);signal.throwIfAborted();
+   if(reload.reason==='firmware_restart'){if(!factory.resetFirmware)throw new Error('Firmware reset strategy unavailable');await factory.resetFirmware(profile,signal);signal.throwIfAborted();}
+   service=await startConfiguredMachineService(profile.reader,policies,profile.product,{...profile.options,hardware:{...profile.options.hardware,...reload.reason==='firmware_restart'?{firmwareRestart:true}:{}},serverLifetime:processLifetime?'process':'generation',existingServer:processServer,server:{...profile.options.server,temperatureStore:{...profile.options.server.temperatureStore,previous:temperatureHistory},productHostControl:control}},signal);
    if(processLifetime)processServer??=service.server;
    temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
    const validate=(kind:HostReloadKind)=>{
     signal.throwIfAborted();const printer=generation.printer,state=printer.controller.state,gate=printer.maintenanceGate.status;
-    if(kind==='restart'){if(!processLifetime||gate.maintenance)throw new Error('Restart requires process ownership and no active maintenance');return;}
+    if(kind==='restart'||kind==='firmware_restart'){
+     if(!processLifetime||gate.maintenance)throw new Error('Restart requires process ownership and no active maintenance');
+     if(kind==='firmware_restart'&&printer.group.status.state==='ready')try{for(const id of profile!.policies.keys())printer.group.session(id).dictionary.lookup('reset');}catch{throw new RestartAdmissionError(503,'Configured MCU firmware reset capability is unavailable');}
+     return;
+    }
     if(!['idle','completed','cancelled','failed'].includes(state)||printer.controller.pendingDeviceActions||printer.controller.safeStopPending||gate.activities||gate.maintenance||printer.group.status.state==='failed')throw new Error('Reinitialization requires a quiescent printer and confirmed physical stop');
    };
    detach=control.attach(kind=>{validate(kind);const printer=generation.printer;
     // Fence producers synchronously before yielding to any HTTP request.
     printer.maintenanceGate.invalidate();reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;
-   },validate,{kinds:processLifetime?['reinitialize','restart']:['reinitialize'],generationSignal:service.server.nativeGenerationSignal});
+   },validate,{kinds:processLifetime?['reinitialize','restart',...factory.resetFirmware?['firmware_restart' as const]:[]]:['reinitialize'],generationSignal:service.server.nativeGenerationSignal});
    ready({...service.address});errors.length=0;completion?.resolve();completion=undefined;
    await Promise.race([stopped.promise,change.promise]);
    completion=requested;activeRequest=undefined;await closeGeneration();
@@ -102,7 +111,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     // physical/dependency retirement cannot be made safe by a host reload.
     if(cleanupFailed||processServer.nativeGenerationStatus?.state!=='stopped'){await stopped.promise;break;}
     const change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
-    detach=control.attach(kind=>{signal.throwIfAborted();if(kind!=='restart')throw new Error('Only explicit RESTART can retry a failed replacement');reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;},()=>signal.throwIfAborted(),{kinds:['restart'],generationSignal:processServer.nativeGenerationSignal});
+    detach=control.attach(kind=>{signal.throwIfAborted();if(kind!=='restart'&&kind!=='firmware_restart')throw new Error('Only explicit restart can retry a failed replacement');reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;},()=>signal.throwIfAborted(),{kinds:['restart',...factory.resetFirmware?['firmware_restart' as const]:[]],generationSignal:processServer.nativeGenerationSignal});
     await Promise.race([stopped.promise,change.promise]);detach();detach=()=>{};completion=requested;activeRequest=undefined;
     if(!requested)break;
    }

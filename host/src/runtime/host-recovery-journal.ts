@@ -1,9 +1,9 @@
 import {Worker} from 'node:worker_threads';
 import {isAbsolute} from 'node:path';
 import {workerEntry} from './worker-entry.ts';
-export interface RecoveryRecord {request_id:string;state_token:string;state:'queued'|'running'|'succeeded'|'failed'|'interrupted';error:string|null;kind?:'restart';}
+export interface RecoveryRecord {request_id:string;state_token:string;state:'queued'|'running'|'succeeded'|'failed'|'interrupted';error:string|null;kind?:'restart'|'firmware_restart';}
 export interface RecoveryWrite {record:RecoveryRecord;expired:string[];}
-export const recoveryCapacity={reinitialize:128,restart:64} as const;
+export const recoveryCapacity={reinitialize:128,restart:64,firmware_restart:64} as const;
 export interface RecoveryJournalOptions {path:string;deviceId:string;}
 /** Process-lifetime journal; all SQLite work runs off the motion event loop. */
 export class HostRecoveryJournal {

@@ -56,6 +56,8 @@ export interface HardwareStartupOptions {
  heaterGcodeIds?:Readonly<Record<string,string>>;
  timeoutMs?:number;
  motion?:readonly ConfiguredMotionRequest[];
+ /** Host-owned explicit reset path must rebuild rather than reuse MCU config. */
+ firmwareRestart?:boolean;
 }
 /** Own an already connected MCU group for the rest of its lifetime. Planning
  * errors have no IO effects; after transfer every failure stops all devices.
@@ -118,7 +120,7 @@ export async function startConfiguredHardware(reader:ConfigurationReader,group:M
    else{temperatureSources.set(p.section,()=>sensor.getTemperature());heaters.registerSensor(p.section,sensorView(p.section,sensor.state),p.gcodeId);}}
   for(const b of plan.buttons){b.timeline?.reserveClock(b.buttons.initialClock);const input=new SwitchInput(group.session(b.mcu),b.buttons,error=>{void close(error).catch(()=>{});});buttons.push({section:b.section,input});cleanup.add(cause=>input.close(cause));}
   // No generation reset or output activation until EVERY MCU finalized.
-  for(const c of plan.configurations){await c.session.configure(c.plan,abort.signal);active();}
+  for(const c of plan.configurations){await c.session.configure({...c.plan,...options.firmwareRestart?{firmwareRestart:true}:{}},abort.signal);active();}
   await Promise.all([...plan.spiSensors,...plan.spiHeaters.map(h=>h.sensor)].filter(p=>p.model==='MAX31856'||p.model==='MAX31865').map(p=>(p.model==='MAX31865'?startMax31865:startMax31856)(group.session(p.mcu),p,abort.signal)));active();
   // All enable GPIOs are configured/restarted off. No motion/output owner is
   // exposed until every driver has acknowledged its complete register plan.

@@ -1,0 +1,586 @@
+{
+  "date": "2026-10-01",
+  "implementationBase": "b4681b84",
+  "node": "v26.9.0",
+  "scope": "A3 software closure: explicit firmware restart in actual native host/process factory and standard HTTP/RPC, resets original two MCU models and verifies cleared firmware before product configuration. Actual UI, physical boards and full migration remain incomplete.",
+  "sourceSha256": {
+    "host/src/runtime/firmware-restart.ts": "f0b7ab12a001a808d97cbbf04857e7f536571fae71f0640dc3bcb5ccef1f25a4",
+    "host/src/runtime/product-host.ts": "52fccb285ce2747a55657fc2e67f8c8f500bce967704c19aa984a96c3d3e11f4",
+    "host/src/runtime/product-host-control.ts": "de6f12b75d923dfd152db915e7dc835d6d7adff9d7991f5ee541e8943b9073f8",
+    "host/src/runtime/native-product-machine.ts": "8356a7ff9b22ccc32bc5e9df4fff7c32b514d6b327bee9a89cf1ffcbd4c14cf3",
+    "host/src/runtime/configured-hardware.ts": "b3e2f9762f898f2941b457975742abdf9aa116758e48bef7f45b217ebc893bb5",
+    "host/src/moonraker/product-host-api.ts": "387af35dd9c6c7cf1c51b523a6a8b44d9be720d7f29b6f1f2494d9a95db8abe8",
+    "host/src/runtime/host-recovery-journal.ts": "033d715d13d47e25013cfeedcfd9467d2c21606a3c3c0ba4d380f3c3d5c2807f",
+    "host/src/runtime/host-recovery-journal-worker.ts": "3451d56e0a6f59ff38d071dc6a122f0856f537ea17b175fc88f4567441e44b10",
+    "host/test/native-product-restart.test.ts": "f55accdcb95ae2be6b2b75d9de61e00ae5fc860b3e27b937042183d9c27d6337",
+    "host/test/firmware-restart.test.ts": "9208d85cd8e16c367e0c976b24cd81e63ed9f6dff622b809e97012321e7fa0a5",
+    "host/test/product-host-api.test.ts": "7b73418412514f9c9fe653bc13b76521ed3aa48eda18aae785baa15365c584df",
+    "host/test/product-host-control.test.ts": "c859aacec7dd201c58c502d7e2754f72dbc4d1e7efead13000baf11796cdca72",
+    "host/test/host-recovery-retention.test.ts": "0b751c2668341752dd11c7e167fc7986686e93d2b69fc2321101d2c4175fc83b",
+    "host/test/helpers/recovery-journal-v1.ts": "f1af2892fba600eb4225b00f1bc263c5c03a80bf97de9dac0c215ede1b652279",
+    "host/test/helpers/serial-firmware.ts": "7841d3d70da9dfe221511a3688a8bee2e6eedd3838bafc77788bad3d06c6cd5f",
+    "host/acceptance/product-compiled-restart-faults.test.ts": "76cf0183c39bb7860b7428dcd22ea1bb41f2b0fef9dc679bf5145cadf5e3d0c6",
+    "host/acceptance/product-compiled-restart.test.ts": "d25852325b30f29eb708e8e4052c10844bc8990eadbb11096527feb6cc5531a3",
+    "host/acceptance/product-compiled-journey.test.ts": "9ff3ecc14ef862f3c7b7b60754fc58d56dafb23d710569daacbb7a68ab5ab9e8",
+    "host/bench/host-recovery-retention.ts": "7051965bb310cc45f918ef4ae58d4108e4e6396da223b3cc98d4e8f075b65012"
+  },
+  "verified": [
+    "ProductHostFactory resetFirmware strategy is distinct from ordinary host reload. Process-native factory supplies it; wrappers must forward it and reload context. Host fences/cancels/drains old work and awaits old service/profile retirement before acquiring replacement profile and diagnostic reset. Ordinary RESTART never invokes reset.",
+    "Ready hardware with any missing reset capability is rejected with HTTP 503 before device retirement and without a receipt/reset. Retained detached service admits a durable request, probes all dictionaries before any reset, and fails explicitly if unsupported. An independently tested first-capable/second-incapable pair sends zero resets.",
+    "Diagnostic admission confirms replacement safety, opens exclusive sessions with UART bootloader disabled, preflights every reset command, then resets sequentially. ACK/starting is not sufficient: fresh verification sessions require get_config is_config=0, crc=0 and is_shutdown=0. Final product MCU configuration also requires unconfigured firmware before rebuilding. Diagnostic owners close and stop confirmation drains before normal product startup.",
+    "Source exercises ACK and starting paths across main/aux CRC drift and persistent shutdown; original serial models mutate their configuration and shutdown state. Test model reset also clears position/trigger/endstop maps, delayed replies/held echoes and restarts its clock origin. No replacement MCU model is used to simulate the reset.",
+    "Preparing print cancellation ignoring its signal is drained before either kind of restart; journal records cancellation and no print is replayed. Process exit while the first reset stop acknowledgement is held waits for it, does not reset the second MCU and never attaches another device.",
+    "Old physical-stop failure, new diagnostic admission failure and post-reset physical-stop failure forbid further retries, retain queries and expose cleanup_unconfirmed. ACK with unchanged aux firmware fails ready verification after partial reset; explicit subsequent FIRMWARE_RESTART repairs both and preserves failed receipt.",
+    "Firmware receipts use kind firmware_restart and independent 64-record bounded retention, separate from standard 64 and controlled 128. Single pending operation across all kinds, same-kind running coalescing, cross-kind rejection, authorization/arguments/response handoff and retired admissions are validated. v1/v2 migrate atomically to v3 with identities/order/kinds preserved; wrong device rejected unchanged. Queued firmware SIGKILL becomes interrupted without reset replay.",
+    "One emitted artifact manifest fingerprint passes heated concurrent printing, bootstrap/ordinary recovery, ordinary-fault negatives and firmware-fault recovery. All four main/aux CRC/shutdown scenarios perform two HTTP/RPC firmware resets, configure original MCU models three times total, maintain listener/socket/identity/files/history, release all device profiles and close process dependencies once. Two ready firmware generations have equal 57 steady non-network descriptors, excluding transient cached journal fd."
+  ],
+  "source": {
+    "runs": {
+      "main": {
+        "cases": 83,
+        "passed": 83,
+        "failed": 0,
+        "logSha256": "55ce76437c7231363799baa7cb0260696aa37f4205769b9c4d7de63cde589403"
+      },
+      "host": {
+        "cases": 12,
+        "passed": 12,
+        "failed": 0,
+        "logSha256": "ae1bd102a16bc011243e8ade7a9b9b82632c73aec370c50dd19008c07508d3fc"
+      },
+      "diagnostic": {
+        "cases": 3,
+        "passed": 3,
+        "failed": 0,
+        "logSha256": "3cafbe9be47643a31d9578022f822918214b12a8bc62f59bef22bd28ab009012"
+      }
+    },
+    "coverage": "83-case main regression plus 12 legacy host cases; later diagnostic expansion replaces one admission-only case with two phases and adds one mixed-capability case. Diagnostic final run has three passes; counts are per invocation, not a completion percentage."
+  },
+  "compiled": {
+    "cases": 4,
+    "passed": 4,
+    "failed": 0,
+    "logSha256": "fe44dce8d5f270cf70bb2f2cc026eea0501c95ffaf7dcdf5380dfea260c854ce",
+    "artifactManifestSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+    "ordinaryFaults": {
+      "bundleSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+      "results": [
+        {
+          "firmwareRestart": false,
+          "fault": "crc",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 2,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 6,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 4,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [],
+          "deviceAcquisitions": 4,
+          "deviceReleases": 4,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": false,
+          "fault": "crc",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 2,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 8,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 6,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [],
+          "deviceAcquisitions": 4,
+          "deviceReleases": 4,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": false,
+          "fault": "shutdown",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 1,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": true
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 4,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 2,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [],
+          "deviceAcquisitions": 3,
+          "deviceReleases": 3,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": false,
+          "fault": "shutdown",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 1,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": true
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 6,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 4,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [],
+          "deviceAcquisitions": 3,
+          "deviceReleases": 3,
+          "sameSocket": true,
+          "sameListener": true
+        }
+      ],
+      "queries": 891,
+      "queryP99Ms": 3.7146210000009887,
+      "hardwareAcceptance": false,
+      "firmwareRestartRouteImplemented": true
+    },
+    "firmwareFaults": {
+      "bundleSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+      "results": [
+        {
+          "firmwareRestart": true,
+          "fault": "crc",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 3,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 1787748000,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 10,
+              "writes": 39,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 8,
+              "writes": 21,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [
+            57,
+            57
+          ],
+          "deviceAcquisitions": 5,
+          "deviceReleases": 5,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": true,
+          "fault": "crc",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 3,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 3722333363,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 12,
+              "writes": 39,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 10,
+              "writes": 21,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [
+            57,
+            57
+          ],
+          "deviceAcquisitions": 5,
+          "deviceReleases": 5,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": true,
+          "fault": "shutdown",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 3,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 10,
+              "writes": 39,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 8,
+              "writes": 21,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [
+            57,
+            57
+          ],
+          "deviceAcquisitions": 5,
+          "deviceReleases": 5,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "firmwareRestart": true,
+          "fault": "shutdown",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 3,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 12,
+              "writes": 39,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 10,
+              "writes": 21,
+              "finalizations": 3,
+              "resets": 2,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "readyPersistentDescriptors": [
+            57,
+            57
+          ],
+          "deviceAcquisitions": 5,
+          "deviceReleases": 5,
+          "sameSocket": true,
+          "sameListener": true
+        }
+      ],
+      "queries": 3441,
+      "queryP99Ms": 1.5892779999994673,
+      "hardwareAcceptance": false,
+      "firmwareRestartRouteImplemented": true
+    },
+    "recovery": {
+      "bundleSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+      "queries": 2090,
+      "queryP99Ms": 5.201987000000372,
+      "restartMs": [
+        514.6503519999997,
+        512.6060800000005,
+        512.1449960000009
+      ],
+      "readyFileDescriptors": [
+        77,
+        77,
+        77,
+        77
+      ],
+      "descriptorSamples": [
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        }
+      ],
+      "canonicalDeviceAndDatabaseDescriptors": 5,
+      "sameMCUFirmware": true,
+      "stepperConfigurations": [
+        4,
+        0
+      ],
+      "recoveryHistory": {
+        "controlled": {
+          "retained": 128,
+          "capacity": 128
+        },
+        "standard_restart": {
+          "retained": 64,
+          "capacity": 64
+        },
+        "standard_firmware_restart": {
+          "retained": 0,
+          "capacity": 64
+        }
+      },
+      "compiledV1Migration": true,
+      "initialConfigurationFailureRecovered": true,
+      "bootstrapListeners": 1,
+      "bootstrapRecoveryMs": 557.7121440000001,
+      "expiredStandardIDsAbsent": true,
+      "hardwareAcceptance": false
+    },
+    "concurrentPrint": {
+      "statusRequests": 16072,
+      "statusP99Ms": 4.029953000001115,
+      "minimumStepLeadMs": 85.381,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 20.070399
+          },
+          "cpu": {
+            "user": 5506171,
+            "system": 672963
+          },
+          "rss": 316203008
+        },
+        {
+          "loop": {
+            "p99Ms": 1.949695,
+            "maxMs": 9.789439
+          },
+          "cpu": {
+            "user": 1856620,
+            "system": 259372
+          },
+          "rss": 307044352
+        }
+      ],
+      "motionReportLoad": true,
+      "liveMotionSamples": 2514,
+      "liveExtrusionSamples": 1463
+    }
+  },
+  "benchmark": {
+    "logSha256": "30d896ca074a61a30af9648e2173b4c6b2fff9a3579a4dd742954188cbbdeb2a",
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "iterations": 1000,
+    "statusReads": 100000,
+    "durationMs": 701.237695,
+    "durableAdmission": {
+      "medianMs": 0.13682100000005448,
+      "p99Ms": 0.5956760000000259,
+      "maxMs": 1.588659000000007
+    },
+    "durableSettlement": {
+      "medianMs": 0.28035299999999097,
+      "p99Ms": 1.376636000000019,
+      "maxMs": 3.3117579999999975
+    },
+    "statusRead": {
+      "medianMs": 0.0038126399999998738,
+      "p99Ms": 0.004242349999999533,
+      "maxMs": 0.004414450000000443
+    },
+    "eventLoop": {
+      "p99Ms": 1.373183,
+      "maxMs": 2.125823
+    },
+    "cpuUsage": {
+      "user": 816884,
+      "system": 65289
+    },
+    "history": {
+      "controlled": {
+        "retained": 128,
+        "capacity": 128
+      },
+      "standard_restart": {
+        "retained": 64,
+        "capacity": 64
+      },
+      "standard_firmware_restart": {
+        "retained": 64,
+        "capacity": 64
+      }
+    },
+    "databaseBytes": 61440,
+    "scope": "Desktop full-capacity durable control benchmark with no-op reload handler; not MCU reload duration, target-board or physical motion validation."
+  },
+  "checks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "unverified": [
+    "A4 actual Fluidd/Mainsail same-package upload, job controls, standard buttons and reconnect/process recovery",
+    "Physical Cycnumbris 500 board reset methods, stop adapters, exclusive wiring, installation and rollback",
+    "Known numerical divergence and process crash G3; target motion precision/timing",
+    "CAN/pipe physical reset and UART board-specific reset alternatives; software helper uses declared transports and firmware reset command only",
+    "Complete pinned Moonraker contract, controlled macro scenarios, default installation/CI and all remaining klippy Python",
+    "Integration PRs to develop and release mainline"
+  ]
+}

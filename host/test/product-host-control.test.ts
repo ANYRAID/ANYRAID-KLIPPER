@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
+test('firmware and ordinary requests have separate receipts and coalesce only the same running kind',async()=>{
+ const control=new ProductHostControl(),scope=new AbortController(),done=Promise.withResolvers<void>();let sent:((sent:boolean)=>void)|undefined,calls=0;
+ control.attach(kind=>{assert.equal(kind,'firmware_restart');calls++;return done.promise;},()=>{},{kinds:['restart','firmware_restart'],generationSignal:scope.signal});
+ const first=await control.requestFirmwareRestart(scope.signal,false,cb=>{sent=cb;});assert.equal(first.kind,'firmware_restart');assert.equal(control.status.restart_operation,null);await assert.rejects(control.requestFirmwareRestart(scope.signal,false,()=>assert.fail()),/pending/);sent!(true);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);assert.equal((await control.requestFirmwareRestart(scope.signal,false,()=>assert.fail())).request_id,first.request_id);await assert.rejects(control.requestRestart(scope.signal,false,()=>assert.fail()),/pending/);scope.abort();await assert.rejects(control.requestFirmwareRestart(scope.signal,false,()=>assert.fail()),/retired/);done.resolve();await new Promise(resolve=>setImmediate(resolve));assert.equal(control.status.firmware_restart_operation?.state,'succeeded');await control.close();
+});
 test('standard restart fences retired admissions, keeps one running receipt and rejects queued duplicates',async()=>{
  const control=new ProductHostControl(),scope=new AbortController(),done=Promise.withResolvers<void>();let calls=0,sent:((sent:boolean)=>void)|undefined;
  const detach=control.attach(kind=>{assert.equal(kind,'restart');calls++;return done.promise;},()=>{},{generationSignal:scope.signal});

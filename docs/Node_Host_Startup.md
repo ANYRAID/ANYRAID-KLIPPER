@@ -109,7 +109,7 @@ release 应幂等，关闭错误不得丢弃。
 
 工厂声明 `serverLifetime: 'process'`，主机循环以相同服务器绑定新设备，
 保持 HTTP/WebSocket、身份、温度历史和文件锁。包装工厂须同时转发这个
-属性、bootstrap、close 及调用的 signal／reload context；遗漏 bootstrap
+属性、bootstrap、resetFirmware、close 及调用的 signal／reload context；遗漏 bootstrap
 会失去首代失败的服务出口，不能将进程所有者作为一次性 profile 使用。省略
 createProcess 的旧适配器保留原有一次性服务语义，不隐式改变资源归属。
 
@@ -178,13 +178,14 @@ GET /printer/host/status 返回 restart_available 和 restart_operation；
 
 主机重新读取配置、排空并释放旧设备，再打开新会话。标准 RESTART 强制
 UART leaveBootloader=false，复用 MCU 的现有 CRC 配置，不执行固件 reset。
-原生工厂与进程 adapter 收到可选 `{reason: 'initial' | 'reinitialize' | 'restart'}`；
+原生工厂与进程 adapter 收到可选
+`{reason: 'initial' | 'reinitialize' | 'restart' | 'firmware_restart'}`；
 包装工厂须转发这个第二参数。adapter 不得将普通 restart 转换成固件复位。
-配置 CRC 不匹配或 MCU shutdown 不会被主机重载自动修复；等待 A3 的显式
+配置 CRC 不匹配或 MCU shutdown 不会被主机重载自动修复；需要显式
 FIRMWARE_RESTART。停止失败与部分启动清理失败拒绝新设备接入。
 安全清理后的这些失败分别暴露 mcu_configuration_mismatch、mcu_shutdown，
 并附带 firmware_restart_required=true；该字段说明当前固件不能接受期望配置，
-不代表固件重启路由已实现或复位已成功。恢复原 CRC 对应配置后可显式
+不代表当前机器具有 reset 能力或复位已成功。恢复原 CRC 对应配置后可显式
 RESTART 复用原 MCU；持续 shutdown 不会因此消失。主／辅 MCU 的连续
 HTTP／RPC 失败均保留原连接和查询，不发送 reset 或虚假 ready 通知，见
 [普通重启固件故障验收](../host/contracts/native-standard-restart-fault-acceptance.json)。
@@ -199,14 +200,15 @@ HTTP／RPC 失败均保留原连接和查询，不发送 reset 或虚假 ready �
 插入且已结束的记录；淘汰与新 queued 受理在同一持久事务中提交，失败
 一起回滚，queued／running 不被淘汰。后者保留最多 128 条幂等记录，
 不会被普通重启挤出。GET /printer/host/status 的 recovery_history 显示
-两类保留数量与上限；restart_operation 在重新打开日志后恢复最近一条
+三类保留数量与上限；restart_operation 在重新打开日志后恢复最近一条
 有类型的普通回执，未完成操作转为 interrupted，仍不自动执行。
 
 已淘汰普通回执的查询返回 operation:null；新受控请求禁止使用 restart-
-前缀，保留的两类记录不能互相冒充，避免将过期普通 ID 重新解释为新操作。
-格式 v1 原子迁移到 v2，完整保留所有原记录并视作受控类型，不按名称
+及 firmware-restart- 前缀，保留的三类记录不能互相冒充，避免将过期标准
+ID 重新解释为新操作。当前格式为 v3：v1 原子迁移并将所有原记录视作受控
+类型，v2 原子迁移并完整保留原 kind、身份和顺序；均不按名称
 猜测；即使旧 128 条全部占满，普通重启仍可使用独立保留容量。旧包不能
-打开 v2 日志；部署前应在停止日志所有者后保留可恢复副本，降级需要对应
+打开 v3 日志；部署前应在停止日志所有者后保留可恢复副本，降级需要对应
 旧格式副本，不删除新日志来绕过检查。未知格式、结构、损坏或不同设备
 的日志拒绝迁移。容量／迁移及编译产品证据见
 [恢复回执保留验收](../host/contracts/native-recovery-retention-acceptance.json)。
@@ -217,6 +219,42 @@ HTTP／RPC 失败均保留原连接和查询，不发送 reset 或虚假 ready �
 `ok`、ready 与成功回执分别表示不同阶段，不能混用。
 实际 Fluidd／Mainsail 按钮和物理 MCU 尚未验收。软件证据见
 [标准主机重启增量](../host/contracts/native-standard-restart-acceptance.json)。
+
+### 显式 FIRMWARE_RESTART 软件路径
+
+createProcess 原生工厂已接入授权 POST /printer/firmware_restart 和
+WebSocket printer.firmware_restart，无参数。`ok` 仅表示 queued 回执受理；
+GET /printer/host/status 的 firmware_restart_operation 分别显示 queued、
+running、succeeded 或 failed。firmware_restart_available 表示当前主机
+拥有显式复位策略；实际 MCU 字典、维护占用、停止与配置仍须核验。
+就绪设备的任一 MCU 缺少 reset 时，在退役前返回 503。没有该工厂策略的
+旧入口也返回 503。断开阶段先受理持久回执，再探测全部 MCU；不支持时
+回执 failed，不报告 ready，也不先复位支持的其他 MCU。
+
+主机先取消并排空活动作业，确认旧输出停止、旧会话和 adapter 释放，再
+取得新 adapter 的停止确认。随后打开全部独占诊断会话，预检全部字典中的
+reset，逐台调用 resetOffline；UART 不执行 bootloader 启动序列。
+ACK 或 starting 仅作为送达／重启观察。再次连接查询 get_config，要求
+is_config=0、crc=0、is_shutdown=0；关闭诊断所有者后，产品配置握手再次
+要求 MCU 未配置，再创建新运动／热控对象并报告就绪。任何阶段均不自动
+归零、加热或重放打印。诊断阶段有 15 秒取消期限；实际停止确认必须排空，
+不能因观察超时或进程退出而丢弃它。
+
+安全清理后的复位／配置失败保持原服务和失败回执，可显式重试；旧停止、
+新诊断停止或清理无法确认时暴露 cleanup_unconfirmed，禁止两种重启。
+进程退出等待已发送复位的停止确认，不再复位后续 MCU，不接入新设备。
+resetFirmware 是工厂提供的独立路径，包装工厂不能遗漏或用普通重载冒充。
+目前支持字典中的 reset 命令，其他板卡复位方式须单独实现和验收。
+
+固件重启回执有 kind=firmware_restart，独立滚动保留 64 条，既不挤出普通
+重启 64 条，也不挤出受控幂等记录 128 条；任一种 queued／running 时只
+允许一个持久操作。相同种类、同代际的 running 请求复用原回执，不同种类
+返回 409。进程崩溃后未完成回执转 interrupted，不执行 reset 重放。
+源码覆盖 ACK／starting、主／辅 MCU 故障、能力缺失、停止失败、部分复位
+无效、作业取消和退出竞争。编译产品对同一双 MCU 分别执行两次真实模型
+复位并重建，保留监听器、身份、连接、文件和历史，验证资源回收及并发打印。
+这封存 A3 软件判据；实际 Fluidd／Mainsail 按钮及物理 MCU 仍待验收。
+证据见[固件重启验收](../host/contracts/native-firmware-restart-acceptance.json)。
 
 ### 首代设备启动失败与显式恢复
 
@@ -257,7 +295,7 @@ WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`
 实际 Mainsail 2.19.0 已验证打印中刷新后继续至完成且历史不重复；原生
 重新初始化后需点击 TRY AGAIN 才恢复 Standby，本轮没有自动重连通过
 证据。该页面记录属于旧包：当前标准 `/printer/restart` 已接入软件产品，
-`/printer/firmware_restart` 尚未实现，两个按钮的当前包页面验收均未完成。Fluidd 页面重连、页面上传和
+`/printer/firmware_restart` 已接入独立复位路径，两个按钮的当前包页面验收均未完成。Fluidd 页面重连、页面上传和
 实机恢复仍应分别验收，证据见客户端记录的 mainsailPageReconnect。
 
 ## 实时运动状态

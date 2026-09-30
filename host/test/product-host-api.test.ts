@@ -4,6 +4,16 @@ import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {registerProductHostControl} from '../src/moonraker/product-host-api.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
 import {JsonRpcDispatcher,ApiError,type RpcContext} from '../src/moonraker/rpc.ts';
+test('firmware restart authorizes POST/RPC, rejects unavailable strategies and waits for response handoff',async()=>{
+ const control=new ProductHostControl(),registry=new EndpointRegistry(new JsonRpcDispatcher());const remove=registerProductHostControl(registry,control);let calls=0,sent:((sent:boolean)=>void)|undefined;
+ const context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){},afterResponse(cb){sent=cb;}};
+ await assert.rejects(registry.invoke('/printer/firmware_restart','POST',{},context),e=>e instanceof ApiError&&e.status===503);
+ control.attach(async kind=>{assert.equal(kind,'firmware_restart');calls++;},()=>{},{kinds:['firmware_restart']});
+ await assert.rejects(registry.invoke('/printer/firmware_restart','POST',{}, {...context,authorize(){throw new ApiError(401,'Denied');}}),e=>e instanceof ApiError&&e.status===401);
+ await assert.rejects(registry.invoke('/printer/firmware_restart','POST',{unexpected:true},context),e=>e instanceof ApiError&&e.status===400);
+ assert.equal(await registry.invoke('/printer/firmware_restart','POST',{},context),'ok');assert.equal(calls,0);assert.equal(control.status.firmware_restart_operation?.kind,'firmware_restart');sent!(true);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);
+ const reply=JSON.parse((await registry.dispatcher.dispatch(JSON.stringify({jsonrpc:'2.0',id:2,method:'printer.firmware_restart'}),{...context,transport:'websocket'}))!);assert.equal(reply.result,'ok');sent!(false);await new Promise(resolve=>setImmediate(resolve));assert.equal(calls,1);assert.equal(control.status.firmware_restart_operation?.state,'failed');remove();await control.close();
+});
 test('standard RESTART returns ok for authorized POST and RPC only after durable admission',async()=>{
  const control=new ProductHostControl(),registry=new EndpointRegistry(new JsonRpcDispatcher());const release=registerProductHostControl(registry,control);let calls=0,sent:((sent:boolean)=>void)|undefined;
  control.attach(async kind=>{assert.equal(kind,'restart');calls++;});const context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){},afterResponse(cb){sent=cb;}};
