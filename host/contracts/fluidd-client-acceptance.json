@@ -81,6 +81,25 @@
     "No complete UI printing journey",
     "No Python baseline or target board performance",
     "Browser file chooser blocked for hours despite requested timeout",
-    "Long-running simulated firmware eventually failed encoding unwrapped get_clock ticks; not a physical MCU result; helper now limited to 15 minutes"
-  ]
+    "Original long-running simulated firmware failed encoding unwrapped get_clock ticks; deterministic rollover fix verified separately, not a long-duration or physical MCU result; interactive helper remains limited to 15 minutes"
+  ],
+  "simulatorClockFollowUp": {
+    "cause": "Unwrapped simulated 1 MHz clock encoded in a uint32 wire field",
+    "reference": "src/basecmd.c command_get_clock and command_get_uptime",
+    "reproduction": "Controllable monotonic clock reproduces Integer outside MCU wire range before fix",
+    "fix": "get_clock low 32 bits; get_uptime high and low words; currentClock remains full ticks",
+    "coverage": [
+      "0xfffffffe",
+      "0xffffffff",
+      "0x100000000",
+      "0x100000001",
+      "5 * 0x100000000 + 123"
+    ],
+    "tests": {
+      "firmware": 3,
+      "clockSerialNativeAuthorization": 13
+    },
+    "typecheck": "passed",
+    "scope": "Test fixture only; does not resolve existing production motion diagnostics; no wall-clock endurance acceptance"
+  }
 }

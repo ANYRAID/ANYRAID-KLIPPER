@@ -61,3 +61,24 @@ test('timer-delayed firmware response frames use sequence at send time', async (
     await fw.close();
   }
 });
+test('firmware clock replies wrap low bits and preserve uptime across multiple rollovers', async () => {
+  const peer = new EventEmitter() as EventEmitter & {write(data: Uint8Array): void};
+  const received: Uint8Array[] = [];
+  peer.write = data => {received.push(data);};
+  let now = 100;
+  const fw = await serialFirmware({fd: -1, peer, close: async () => {}}, {now: () => now});
+  let sequence = 1;
+  const query = (command: string) => {
+    received.length = 0;
+    peer.emit('data', encodeFrame(sequence++ & 15, fw.dictionary.encode(command, {})));
+    return {...received.flatMap(frame => fw.dictionary.parseFrame(frame)).find(message => message.name === (command === 'get_clock' ? 'clock' : 'uptime'))!.parameters};
+  };
+  try {
+    for (const ticks of [1_000_000, 0xffffffff - 1, 0xffffffff, 0x100000000, 0x100000001, 5 * 0x100000000 + 123]) {
+      now = 100 + (ticks - 1_000_000) / 1e6;
+      assert.equal(fw.currentClock(), ticks);
+      assert.deepEqual(query('get_clock'), {clock: ticks >>> 0});
+      assert.deepEqual(query('get_uptime'), {high: Math.floor(ticks / 0x100000000), clock: ticks >>> 0});
+    }
+  } finally {await fw.close();}
+});
