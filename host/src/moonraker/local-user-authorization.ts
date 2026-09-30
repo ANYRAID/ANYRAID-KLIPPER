@@ -4,6 +4,8 @@ import {ApiError,type Json} from './rpc.ts';
 import type {DatabaseStore} from './database.ts';
 import type {DatabaseNamespace} from './database-namespace.ts';
 export interface LocalUserOptions {issuer:string;loginTimeoutDays?:number;forceLogins?:boolean;now?:()=>number;}
+export interface UserChange {kind:'user_created'|'user_logged_out'|'user_deleted';username:string;revokedKid?:string|null;}
+export type UserCommitted=(change:UserChange)=>void;
 interface User {username:string;password:string;salt:string;created_on:number;source:'moonraker';jwt_secret:string|null;jwk_id:string|null;}
 interface Keys {privateKey:KeyObject;publicKey:KeyObject;}
 interface Claim {username:string;kid:string;exp:number;}
@@ -53,21 +55,22 @@ export class LocalUserAuthorization {
    if(this.#cache.size>=1024)this.#cache.delete(this.#cache.keys().next().value!);this.#cache.set(key,{username:u.username,kid:h.kid,exp:p.exp});return {username:u.username};
   }catch{throw new ApiError(401,'Invalid or expired JWT');}
  }
- login(params:Readonly<Record<string,Json>>,signal:AbortSignal,create=false){
+ login(params:Readonly<Record<string,Json>>,signal:AbortSignal,create=false,committed?:UserCommitted){
   const name=username(params.username),password=text(params.password,'password'),source=params.source??'moonraker';if(typeof source!=='string'||source.toLowerCase()!=='moonraker')throw new ApiError(401,'Authentication source unavailable');
   return this.#run(signal,async()=>{
    let u:User;
    if(create){if(this.#users.has(name))throw new ApiError(400,'User already exists');if(this.#users.size>=128)throw new ApiError(429,'User capacity exceeded');const salt=randomBytes(32).toString('hex');u={username:name,password:await hash(password,salt),salt,created_on:this.#time(),source:'moonraker',jwt_secret:null,jwk_id:null};}
    else{u=this.#user(name);if(!equal(await hash(password,u.salt),u.password))throw new ApiError(400,'Invalid Password');}
    signal.throwIfAborted();if(!u.jwt_secret){u={...u,jwt_secret:randomBytes(32).toString('hex'),jwk_id:randomBytes(32).toString('base64url')};const next=new Map(this.#users);next.set(name,u);await this.#save(next);}
+   if(create)committed?.({kind:'user_created',username:name});
    return {username:name,token:this.#token(u,'access'),source:u.source,refresh_token:this.#token(u,'refresh'),action:create?'user_created':'user_logged_in'};
   });
  }
  refresh(token:unknown){this.#active();const {username}=this.decode(token,'refresh'),u=this.#user(username);return {username,token:this.#token(u,'access'),source:u.source,action:'user_jwt_refresh'};}
  user(name:string){this.#active();return publicUser(this.#user(name));}
  list(){this.#active();return {users:[...this.#users.values()].map(publicUser)};}
- logout(name:string,signal:AbortSignal){username(name);return this.#run(signal,async()=>{const u=this.#user(name),next=new Map(this.#users);next.set(name,{...u,jwt_secret:null,jwk_id:null});await this.#save(next);return {username:name,action:'user_logged_out'};});}
- delete(name:unknown,actor:string,signal:AbortSignal){const target=username(name);if(target===actor)throw new ApiError(400,'Cannot delete logged in user');return this.#run(signal,async()=>{this.#user(target);const next=new Map(this.#users);next.delete(target);await this.#save(next);return {username:target,action:'user_deleted'};});}
+ logout(name:string,signal:AbortSignal,committed?:UserCommitted){username(name);return this.#run(signal,async()=>{const u=this.#user(name),next=new Map(this.#users);next.set(name,{...u,jwt_secret:null,jwk_id:null});await this.#save(next);committed?.({kind:'user_logged_out',username:name,revokedKid:u.jwk_id});return {username:name,action:'user_logged_out'};});}
+ delete(name:unknown,actor:string,signal:AbortSignal,committed?:UserCommitted){const target=username(name);if(target===actor)throw new ApiError(400,'Cannot delete logged in user');return this.#run(signal,async()=>{const u=this.#user(target);const next=new Map(this.#users);next.delete(target);await this.#save(next);committed?.({kind:'user_deleted',username:target,revokedKid:u.jwk_id});return {username:target,action:'user_deleted'};});}
  password(name:string,params:Readonly<Record<string,Json>>,signal:AbortSignal){username(name);const old=text(params.password,'password'),nextPassword=text(params.new_password,'new_password');return this.#run(signal,async()=>{const u=this.#user(name);if(!equal(await hash(old,u.salt),u.password))throw new ApiError(400,'Invalid Password');const password=await hash(nextPassword,u.salt);signal.throwIfAborted();const next=new Map(this.#users);next.set(name,{...u,password});await this.#save(next);return {username:name,action:'user_password_reset'};});}
  async close(){this.#closed=true;await this.#tail;this.#cache.clear();}
 }

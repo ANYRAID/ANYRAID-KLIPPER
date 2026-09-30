@@ -5,17 +5,24 @@ import type {DatabaseStore} from './database.ts';
 import type {DatabaseNamespace} from './database-namespace.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import type {NetworkAuthorization,MoonrakerNetworkOptions} from './server.ts';
-import {LocalUserAuthorization,type LocalUserOptions} from './local-user-authorization.ts';
-import {ApiError,type Json,type AuthorizedUser} from './rpc.ts';
+import {LocalUserAuthorization,type LocalUserOptions,type UserChange,type UserCommitted} from './local-user-authorization.ts';
+import {ApiError,type Json,type AuthorizedUser,type RpcContext} from './rpc.ts';
+import type {DeliveryReport} from './notifications.ts';
+export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
+interface UserSession {token:string;username:string;kid:string;}
 const namespace='native_authorization',identity=Object.freeze({username:'_API_KEY_USER_'});
 const digest=(key:string)=>createHash('sha256').update(key).digest();
 /** One owner per DatabaseStore; credentials never enter the public namespace API.
  * No trust-by-address, test password, or implicit anonymous admission. */
 export class ApiKeyAuthorization {
  readonly #database:DatabaseStore;readonly #store:DatabaseNamespace;
- readonly #connections=new WeakMap<IncomingMessage,number|string>();
+ readonly #connections=new WeakMap<IncomingMessage,number|UserSession|null>();
  readonly #requests=new WeakMap<AbortSignal,IncomingMessage>();
  #users?:LocalUserAuthorization;
+ readonly #eventGrants=new Set<UserChange>();readonly #eventTasks=new Set<Promise<void>>();readonly #eventTickets=new Set<()=>void>();
+ readonly #eventTotals={published:0,failed:0,closed:0,sent:0,denied:0,overflow:0};
+ get eventStatus(){return {...this.#eventTotals,pending:this.#eventTickets.size};}
+
  #key:string;#digest:Buffer;#generation=0;#closed=false;#rotation:Promise<string>|undefined;
  private constructor(database:DatabaseStore,store:DatabaseNamespace,key:string){this.#database=database;this.#store=store;this.#key=key;this.#digest=digest(key);}
  static async open(database:DatabaseStore,options?:LocalUserOptions){
@@ -33,14 +40,13 @@ export class ApiKeyAuthorization {
   this.#active();context.signal.throwIfAborted();
   if(context.transport==='websocket')this.#requests.set(context.signal,context.request);
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);
-  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#connections.set(context.request,token as string);return user;};
+  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket'){this.#users.decode(token);this.#connections.set(context.request,{token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});}return user;};
   const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');if(context.transport==='websocket')this.#connections.set(context.request,this.#generation);return identity;};
-  if(identify&&params.access_token!==undefined)return acceptToken(params.access_token);
-  if(identify&&params.api_key!==undefined)return acceptKey(params.api_key);
+  if(identify){try{if(params.access_token!==undefined)return acceptToken(params.access_token);if(params.api_key!==undefined)return acceptKey(params.api_key);}catch(error){if(context.transport==='websocket')this.#connections.set(context.request,null);throw error;}}
   // A successful WS login supersedes credentials from the upgrade request.
   if(context.transport==='websocket'&&session!==undefined){
    if(method==='access.login'||method==='access.refresh_jwt'||method==='access.info')return;
-   if(typeof session==='string')return acceptToken(session);
+   if(session&&typeof session==='object')return this.#users!.decode(session.token,'access',false);
    if(session===this.#generation)return identity;
    throw new ApiError(401,'Invalid API Key');
   }
@@ -54,7 +60,18 @@ export class ApiKeyAuthorization {
  }
  readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'>={
   authorize:(method,params,context)=>this.authorize(method,params,context),
-  authorizeNotification:(_method,_params,context)=>{this.authorize('notification',{},context);},
+  authorizeNotification:(method,params,context)=>{
+   try{this.authorize('notification',{},context);}catch(error){
+    // A committed revocation may deliver only its own terminal event to the
+    // old session. This grant never authorizes RPCs or other notifications.
+    if(!(error instanceof ApiError)||error.status!==401)throw error;
+    const session=this.#connections.get(context.request),payload=params[0];
+    if(session&&typeof session==='object'&&params.length===1&&payload&&typeof payload==='object'&&!Array.isArray(payload)&&Object.keys(payload).length===1&&payload.username===session.username){
+     for(const event of this.#eventGrants)if(event.kind!=='user_created'&&method==='notify_'+event.kind&&event.username===session.username&&event.revokedKid===session.kid)return;
+    }
+    throw error;
+   }
+  },
   authorizeSubscriptionConnection:(source,target)=>{const from=this.authorize('subscription',{},source),to=this.authorize('subscription',{},target);if(!from||from.username!==to?.username)throw new ApiError(403,'Subscription identity mismatch');}
  };
  rotate():Promise<string>{
@@ -63,7 +80,24 @@ export class ApiKeyAuthorization {
   const work=(async()=>{try{await this.#store.insert('api_key',next);this.#key=next;this.#digest=digest(next);this.#generation++;return next;}catch(error){this.#closed=true;throw error;}})();
   this.#rotation=work;void work.finally(()=>{if(this.#rotation===work)this.#rotation=undefined;}).catch(()=>{});return work;
  }
- register(endpoints:EndpointRegistry):()=>void{
+ /** Reserve bounded event work before mutation, then publish only committed
+  * changes after response handoff (also after a failed/disconnected handoff). */
+ #mutation<T>(context:RpcContext,delivery:AuthorizationEvents|undefined,operation:(committed:UserCommitted)=>Promise<T>):Promise<T>{
+  if(!delivery)return operation(()=>{});
+  if(this.#eventTickets.size>=128)throw new ApiError(429,'Authorization event capacity exceeded');
+  let change:UserChange|undefined,completed=!context.afterResponse,released=false,started=false;
+  const release=()=>{if(released)return;released=true;this.#eventTickets.delete(release);};this.#eventTickets.add(release);
+  const publish=()=>{
+   if(!change||!completed||started||released)return;started=true;
+   if(this.#closed){this.#eventTotals.closed++;release();return;}
+   const event=change;this.#eventGrants.add(event);this.#eventTotals.published++;
+   const task=(async()=>{try{const report=await delivery.broadcast('notify_'+event.kind,[{username:event.username}]);for(const name of ['sent','denied','closed','overflow','failed'] as const)this.#eventTotals[name]+=report[name];}catch{this.#eventTotals.failed++;}finally{this.#eventGrants.delete(event);release();}})();
+   this.#eventTasks.add(task);void task.finally(()=>this.#eventTasks.delete(task));
+  };
+  try{context.afterResponse?.(()=>{completed=true;publish();});}catch(error){release();throw error;}
+  try{return operation(event=>{change=event;publish();}).finally(()=>{if(!change)release();});}catch(error){release();throw error;}
+ }
+ register(endpoints:EndpointRegistry,delivery?:AuthorizationEvents):()=>void{
   const remove:Array<()=>void>=[];
   try{
    remove.push(endpoints.register({endpoint:'/access/api_key',methods:['GET','POST'],transports:['http','websocket']},async(_params,verb)=>{this.#active();return verb==='POST'?await this.rotate():this.localApiKey();}));
@@ -71,13 +105,13 @@ export class ApiKeyAuthorization {
    remove.push(endpoints.register({endpoint:'/access/info',methods:['GET'],transports:['http','websocket']},()=>{this.#active();return {default_source:'moonraker',available_sources:this.#users?['moonraker']:[],login_required:!!this.#users?.forceLogins&&this.#users.count>0,trusted:false};}));
    const users=this.#users;
    if(users){
-    const login=async(params:Readonly<Record<string,Json>>,signal:AbortSignal,create=false)=>{const result=await users.login(params,signal,create);this.#active();signal.throwIfAborted();const request=this.#requests.get(signal);if(request&&!create)this.#connections.set(request,result.token);return result;};
-    remove.push(endpoints.register({endpoint:'/access/login',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>login(params,ctx.signal)));
+    const login=async(params:Readonly<Record<string,Json>>,ctx:RpcContext,create=false)=>{const result=await this.#mutation(ctx,create?delivery:undefined,committed=>users.login(params,ctx.signal,create,committed));this.#active();ctx.signal.throwIfAborted();const request=this.#requests.get(ctx.signal);if(request&&!create)this.#connections.set(request,{token:result.token,username:result.username,kid:JSON.parse(Buffer.from(result.token.split('.')[0],'base64url').toString()).kid});return result;};
+    remove.push(endpoints.register({endpoint:'/access/login',methods:['POST'],transports:['http','websocket']},(params,_verb,ctx)=>login(params,ctx)));
     remove.push(endpoints.register({endpoint:'/access/refresh_jwt',methods:['POST'],transports:['http','websocket']},params=>users.refresh(params.refresh_token)));
-    remove.push(endpoints.register({endpoint:'/access/logout',methods:['POST'],transports:['http','websocket']},(_params,_verb,ctx)=>users.logout(ctx.user?.username??'',ctx.signal)));
+    remove.push(endpoints.register({endpoint:'/access/logout',methods:['POST'],transports:['http','websocket']},(_params,_verb,ctx)=>this.#mutation(ctx,delivery,committed=>users.logout(ctx.user?.username??'',ctx.signal,committed))));
     remove.push(endpoints.register({endpoint:'/access/user',methods:['GET','POST','DELETE'],transports:['http','websocket']},(params,verb,ctx)=>{
-     if(verb==='POST')return login(params,ctx.signal,true);
-     if(verb==='DELETE')return users.delete(params.username,ctx.user?.username??'',ctx.signal);
+     if(verb==='POST')return login(params,ctx,true);
+     if(verb==='DELETE')return this.#mutation(ctx,delivery,committed=>users.delete(params.username,ctx.user?.username??'',ctx.signal,committed));
      return ctx.user&&ctx.user.username!==identity.username?users.user(ctx.user.username):{username:null,source:null,created_on:null};
     }));
     remove.push(endpoints.register({endpoint:'/access/users/list',methods:['GET'],transports:['http','websocket']},()=>users.list()));
@@ -86,5 +120,5 @@ export class ApiKeyAuthorization {
    return ()=>{for(const dispose of remove.reverse())dispose();};
   }catch(error){for(const dispose of remove.reverse())dispose();throw error;}
  }
- async close(){this.#closed=true;await this.#rotation;await this.#users?.close();}
+ async close(){this.#closed=true;await this.#rotation;await this.#users?.close();for(const release of this.#eventTickets)release();await Promise.all(this.#eventTasks);this.#eventGrants.clear();}
 }

@@ -3,38 +3,44 @@
   "source": "moonraker/components/authorization.py",
   "status": "partial-native-api-key-and-local-users",
   "tests": {
-    "uniqueTests": 18,
+    "uniqueTests": 37,
     "files": [
       "host/test/api-key-authorization.test.ts",
       "host/test/local-user-authorization.test.ts",
       "host/test/api-key-authorization-compiled.test.ts",
-      "host/test/moonraker-network.test.ts"
-    ]
+      "host/test/moonraker-network.test.ts",
+      "host/test/authorization-events.test.ts",
+      "host/test/notifications.test.ts"
+    ],
+    "execution": "36-test affected suite passed; added durable-cancellation test then ran all 3 event tests, yielding 37 distinct tests without rerunning unchanged tests."
   },
   "benchmark": {
     "runtime": "v26.9.0",
     "scope": "100000 HTTP header authentications per round; 3 warmups and 5 retained rounds; includes live database owner state checks, SHA-256 and constant-time digest comparison; excludes sockets and IO; not a Python comparison",
     "samplesMs": [
-      196.64266599999996,
-      196.0599880000001,
-      196.46882400000004,
-      194.82792300000006,
-      198.9482250000001
+      188.62659200000007,
+      189.9566319999999,
+      191.76104400000008,
+      189.21074699999986,
+      190.01530200000002
     ],
-    "medianMs": 196.46882400000004,
-    "microsecondsPerRequest": 1.9646882400000003,
+    "medianMs": 189.9566319999999,
+    "microsecondsPerRequest": 1.899566319999999,
     "maximumMicrosecondsPerRequest": 10
   },
   "diagnostics": [
     {
       "compiled": true,
       "jwtLifecycle": true,
-      "jwtStatusP99Ms": 2.1769969999999716,
+      "websocketSurvivesTokenExpiry": true,
+      "logoutEventAfterResponse": true,
+      "websocketStatusP99Ms": 0.178641999999968,
+      "jwtStatusP99Ms": 2.111635999999976,
       "unauthorizedRejected": true,
       "rotationRevokesOldKey": true,
       "statusRequests": 200,
-      "statusP99Ms": 1.878893000000005,
-      "scope": "Sequential local HTTP requests; no physical MCU or concurrent printing"
+      "statusP99Ms": 1.8308719999999994,
+      "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
     }
   ],
   "endpoints": [
@@ -59,7 +65,7 @@
     },
     {
       "path": "/access/login",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -67,7 +73,7 @@
     },
     {
       "path": "/access/logout",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -75,7 +81,7 @@
     },
     {
       "path": "/access/refresh_jwt",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -83,7 +89,7 @@
     },
     {
       "path": "/access/user",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -91,7 +97,7 @@
     },
     {
       "path": "/access/users/list",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -99,7 +105,7 @@
     },
     {
       "path": "/access/user/password",
-      "state": "native local-user route implemented; authorization events and full policy pending",
+      "state": "native local-user route implemented; full policy pending",
       "transports": [
         "http",
         "websocket"
@@ -121,33 +127,53 @@
     "Signed wrong issuer, audience, token type, username, fractional time and expired tokens reject; public request decoding can admit expired access tokens for refresh.",
     "Logout and deletion revoke user keys and cached sessions; revocation survives restart; other users remain independent. Password changes preserve tokens as upstream does.",
     "Subscription connection authorization requires matching usernames; notifications recheck authorization.",
-    "Compiled local user create/login/refresh/logout works without Python or TS loading."
+    "Compiled local user create/login/refresh/logout works without Python or TS loading.",
+    "Established authenticated WebSocket sessions survive access JWT expiry; new connections and HTTP protected requests reject expired access JWTs. Refresh returns new HTTP credentials without changing established connection identity.",
+    "Failed identify authentication clears prior session authority; logout/deletion still revoke established sessions immediately after commit.",
+    "User-created, deleted and logged-out notifications use authorized bounded fanout; terminal revocation events reach matching old sessions after response handoff; the temporary delivery grant then ends.",
+    "Failed writes emit no event; invalid requests release event capacity; disconnect during committed persistence still emits exactly once in the running process."
   ],
   "limitations": [
-    "Incomplete authorization: LDAP, trusted networks/proxies, one-shot tokens, authorization events, failed-login policy and configuration-file binding remain pending.",
+    "Incomplete authorization: LDAP, trusted networks/proxies, one-shot tokens, failed-login policy and configuration-file binding remain pending.",
     "Native key storage uses a private namespace, not migration of the upstream authorized_users SQL table.",
     "Requires an explicit component owner, endpoint registration and local provisioning; not yet the default Cycnumbris 500 machine adapter.",
     "One active authorization owner per database is required; cross-process key cache coherence is not implemented.",
     "Sequential local HTTP and CPU microbenchmarks do not prove concurrent print performance or target-board acceptance.",
     "Native users have bounded input, 128-user capacity, 32 queued mutations and 1024 cached JWTs. These native limits differ from unrestricted upstream storage.",
     "User creation requires a provisioned API key or authenticated user; no implicit trusted-network bootstrap. Issuer must be configured consistently across restarts.",
-    "WebSocket cached JWT sessions currently enforce access-token expiry on protected methods and notifications, requiring reauthentication; renewal and upstream long-lived session semantics remain to be closed.",
     "Raw authorization headers and error text are not claimed to match all upstream edge cases. HTTP optional authentication accepts signed expired tokens, but rejects invalid signatures.",
-    "API-key microbenchmark rose from the prior 1.777 to 1.965 microseconds per request; both are within the 10 microsecond development budget, not proof of zero regression."
+    "Event delivery must be explicitly wired to the configured server. Network shutdown or process loss may drop notifications; clients must re-query after reconnect. No durable event replay is claimed.",
+    "Latest API-key microbenchmark is 1.900 microseconds per request, versus 1.965 in the preceding run and 1.777 before JWT support. All meet the 10 microsecond desktop gate; this is not proof of zero regression."
   ],
   "localUserBenchmark": {
     "runtime": "v26.9.0",
     "scope": "Desktop development regression only; no Python comparison or concurrent printing; hot cache 100000 decodes per round, 3 warmups and 5 retained rounds; cold 2000 distinct tokens; 20 sequential asynchronous password logins",
-    "warmMicroseconds": 0.2020979399999999,
-    "coldMicroseconds": 112.58871300000001,
-    "loginTotalMs": 299.192548,
+    "warmMicroseconds": 0.20504200999999994,
+    "coldMicroseconds": 111.61841100000001,
+    "loginTotalMs": 297.1503889999999,
     "loginCount": 20,
-    "timerTicks": 283,
-    "maxTimerGapMs": 1.5654799999999796,
+    "timerTicks": 280,
+    "maxTimerGapMs": 1.3883990000000495,
     "budgets": {
       "warmMicroseconds": 10,
       "coldMicroseconds": 500,
       "maxTimerGapMs": 50
     }
-  }
+  },
+  "events": {
+    "binding": "auth.register(server.endpoints, server)",
+    "methods": [
+      "notify_user_created",
+      "notify_user_deleted",
+      "notify_user_logged_out"
+    ],
+    "payload": "[{username}]",
+    "capacity": 128,
+    "semantics": "Publish committed changes after response handoff, including failed/disconnected handoffs; no durable replay. Revoked recipients may receive only their matching committed terminal event while delivery is in flight. Normal RPCs and notifications remain denied. eventStatus reports pending and delivery totals."
+  },
+  "sources": [
+    "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py",
+    "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/websockets.py",
+    "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/common.py"
+  ]
 }
