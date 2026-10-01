@@ -265,8 +265,47 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Close firmware ROM overflow and inspect exact new PR-head full CI before extending M2a. Earlier intermittent failures remain separately unresolved.",
+    "next": "Finish discriminating firmware link-mode comparison, then reproduce and fix the two probe/calibration failures. Preserve ROM bounds, stop protections, numerical tolerances and deadlines. Complete exact-head required CI before resuming M2a.",
     "current": {
+      "revision": "82f7d8da6d1da1be2cb14c2d179e4a9e1884e828",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428683/job/110410098124",
+      "result": "failure",
+      "tests": 3803,
+      "passed": 3801,
+      "failed": 2,
+      "failures": [
+        {
+          "test": "host/test/delta-bltouch.test.ts",
+          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "actualStatus": 503,
+          "error": "Probe failed; reinitialize before further motion",
+          "rootCause": "unresolved"
+        },
+        {
+          "test": "host/test/delta-probe.test.ts",
+          "name": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "actualStatus": 503,
+          "error": "Delta calibration failed; reinitialize and inspect configuration",
+          "rootCause": "unresolved"
+        }
+      ],
+      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428544/job/110410097415",
+      "romOverflowBytes": 628,
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428527",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+      },
+      "scope": "Exact PR-head completed checks. Truncated host log includes final summary and both failures; firmware log includes STM32F042 linker overflow. Later host protocol/sanitizer steps and remaining firmware matrix are not inferred as passed. No merge or hardware approval."
+    },
+    "stopStateRepair": {
+      "reference": "ci-stop-state-acceptance.json",
+      "regressionPassed": 73,
+      "isolatedTypecheck": true,
+      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
+    },
+    "previous": {
       "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
       "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
       "result": "failure",
@@ -276,12 +315,6 @@
       "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
       "romOverflowBytes": 624,
       "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
-    },
-    "stopStateRepair": {
-      "reference": "ci-stop-state-acceptance.json",
-      "regressionPassed": 73,
-      "isolatedTypecheck": true,
-      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
     }
   },
   "mergeReady": false,
