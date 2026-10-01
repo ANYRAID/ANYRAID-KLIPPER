@@ -10,6 +10,8 @@
 本次目标复核进一步将 M2 拆成三个用户路径，并把集成依赖核查放到下一
 功能扩展前。M1 软件出口已通过；当前 M2 路径索引草稿尚无产品、客户端
 及性能验收，不纳入已交付基线。当前目标继续保持 active。
+集成准备现已完成已提交快照的依赖解析、独立构建／安装与无运动启动
+核验，进入 develop 草稿审阅；远程 CI 与合并状态须以 GitHub 为准。
 
 ## 目标与范围
 
@@ -98,7 +100,7 @@ Moonraker 声明。B 只使用已验收契约，G3 准入仍须通过；不得�
 | 当前机型出口 | Cycnumbris 500 系列 | 提前取得配置与停止方案；其他机型最后适配，已有通用代码保留 |
 | 实机准入 | 已知精度／崩溃问题关闭或隔离获证、目标时序达标 | 限制真实运动；不阻塞不依赖运动的 Moonraker 开发 |
 | 测试与记录 | 每项替代的必要性能与正确性证据 | 按受影响路径选检查；批次完成封存同一编译产物，失败保留，不无理由重复已有对照 |
-| 集成准备 | 任务 PR → develop → 主线 | 已通过软件增量先整理依赖、差异与验证，不等待 A4、实机或全部退役才准备审阅；本次仅本地文档提交 |
+| 集成准备 | 任务 PR → develop → 主线 | 已通过软件增量先整理依赖、差异与验证，不等待 A4、实机或全部退役才准备审阅；当前候选进入 develop 草稿审阅 |
 
 | 核查事项 | 已核实状态 | 对交付的影响 |
 | --- | --- | --- |
@@ -396,6 +398,21 @@ Python 入口和实机门槛。每批完成即更新候选清单与证据，只�
 流程需要重验；全部候选封存时再完成一次同包完整客户端验收。目标设备
 资料、G3 或页面工具受阻均不阻塞这项集成准备，也不能据此绕过 PR。
 
+本地候选核验已完成，见[集成候选证据](../host/contracts/node-host-integration-candidate.json)。
+从 `f4715a3a` 的 Git 归档独立构建，未包含 M2 工作区草稿；643 个清单文件
+逐一验证，清单摘要与 M1 完全一致，因此沿用该产物的 91 项源码、两种
+授权恢复及并发打印证据，不重跑相同产物负载。新完成 4 项构建／安装／
+无运动 CLI 回归、独立生产依赖安装及禁用 Python 的 Linux MCU 编译。
+源码快照只在开发编译阶段借用已安装依赖，产品运行依赖独立安装。
+
+编译器解析显示 `native-product-machine` 关联 450 个模块，
+`configured-server` 关联 137 个模块；这些包含类型依赖，不是运行时加载
+计数。Moonraker、文件库、作业、运行时和 C 插件具有共同依赖，所以当前
+提交一个保留依赖的候选，按四个主题审阅。构建与安装检查不能代替动态
+机型装配、旧 Python 主机的 C 接口兼容或完整契约验收。默认安装脚本与
+develop 内容相同，但共享 C 改动仍须兼容 CI。候选保持不可合并状态，
+直到精确 PR 头的规定集成检查通过；实机、G3 和最终退役门槛继续保留。
+
 ### 4. 装配与精度准入（准备并执行 B）
 
 提前核实系列内硬件版本、printer.cfg／include、运动上限、MCU 固件、
@@ -501,7 +518,8 @@ L4 必须记录新代际就绪耗时、重复重启后的连接／定时器／�
 
 沿用当前任务工作树与分支，不重置既有历史或丢弃未提交草稿；中文提交，
 身份沿用已核实 GitHub 登录身份。按任务 PR → develop → master 集成，
-合并前核查实时远程状态。本次审计仅本地文档提交，不推送、合并或部署。
+合并前核查实时远程状态。当前候选可推送任务分支并创建 develop 草稿 PR；
+合并须完成规定集成检查，不在本次候选准备中切换默认入口或部署。
 已通过软件增量可以先准备 develop 审阅，不要求等待 A4、实机或全部
 Python 退役才开始集成准备。已有大分支先梳理共同基线、提交依赖、逻辑
 审阅批次及每批检查；依赖不独立时如实标明，不能盲目挑提交或把分批
@@ -522,6 +540,7 @@ Python 退役才开始集成准备。已有大分支先梳理共同基线、提�
 | 编译／原生授权打印 | [独立安装](../host/contracts/product-independent-install-acceptance.json)、[同包授权验收](../host/contracts/product-native-authorization-acceptance.json) |
 | 当前配置增量 | [读取验收](../host/contracts/native-config-files-read-acceptance.json)、[保存验收](../host/contracts/native-config-files-save-acceptance.json)；保存产物清单 SHA-256 为 `789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07`，不含未验收草稿 |
 | 当前已提交备份基线 | `eda47eda`；[备份管理验收](../host/contracts/native-config-backups-acceptance.json)，清单 SHA-256 为 `e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79`；M2 草稿不属于该产物 |
+| develop 候选准备 | [依赖与独立构建／安装核验](../host/contracts/node-host-integration-candidate.json)；软件来源 `f4715a3a`，运行产物与 M1 相同；远程 CI、合并及最终交付仍未证明 |
 | 实际页面与协议恢复 | [客户端证据](../host/contracts/fluidd-client-acceptance.json)，读取 compiledReconnect／mainsailPageReconnect 等适用版本 |
 | 摄像头与运动状态 | [摄像头](../host/contracts/native-webcams-acceptance.json)、[运动状态](../host/contracts/native-motion-report-acceptance.json)、[同产物 ABBA 对照](../host/contracts/native-motion-report-ab.json) |
 | 数值／崩溃阻碍 | [异常汇总](diagnostics/node26-motion-failures.json)，当前 unresolved，不以短期成功覆盖 |

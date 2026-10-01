@@ -1,0 +1,256 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
+  "scope": "Pre-develop draft integration candidate. Committed source snapshot only; M2 working-tree draft excluded. Local Linux x64 build/install and no-motion CLI acceptance, not full migration, complete Moonraker, production release or target hardware approval.",
+  "remote": {
+    "repository": "ANYRAID/ANYRAID-KLIPPER",
+    "base": "develop",
+    "defaultBranch": "master",
+    "developSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
+    "masterSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
+    "verification": "Authenticated git ls-remote; no branch fetch, merge or default-entry switch performed."
+  },
+  "isolation": {
+    "source": "git archive of softwareBase in /tmp; uncommitted published-files.ts and untracked published-paths.ts absent",
+    "developmentDependencies": "Existing locked compiler/development dependency tree linked only into source snapshot; emitted product independently installs production dependencies.",
+    "productRuntime": {
+      "typescriptLoader": false,
+      "python": false,
+      "externalPath": "/no-programs",
+      "nodePath": "",
+      "sharedNodeModules": false,
+      "lifecycleScripts": false,
+      "offlineCache": true
+    }
+  },
+  "product": {
+    "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+    "inventoriedFiles": 643,
+    "node": "v26.9.0",
+    "typescript": "7.0.2",
+    "platform": "linux",
+    "arch": "x64",
+    "modules": "147",
+    "addons": [
+      "trapq",
+      "stepcompress",
+      "serialqueue",
+      "unix-peer",
+      "sealed-file",
+      "can-query",
+      "ar100-flash"
+    ],
+    "nativeSourceFiles": 63,
+    "nodeHeaderFiles": 2810,
+    "nativeOutputs": {
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "276f236e4ce2be26395041ceeb1c3e939329cd707c2e1da88bc1cc67387afdfb",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "fatfs-helper": "262fccdaeb2d9733f48b4d2b0ec47319bc05ed8f57c61d02e4080478a4c80c7b"
+    },
+    "sourceHashes": {
+      "host/scripts/build-product-host.ts": "23f04f8173e8c10dae011553a001f0b4e5cb47c5fca09a066b61566747fad1ca",
+      "host/scripts/build-product-native.ts": "c1891d71e8a1c32ac09ca9b21e4968eed28a4b2c0f9496ceaaac2aa20636f722",
+      "host/tsconfig.product-host.json": "b400374d4c656b2d2603023cf3fa98a4a2d473c8621a1ccc25aa18d963c8f33f",
+      "host/package.json": "7a72196ab9a7f0469de838557cd59d97cd2dc0da4b5016f750e006be8f0a0acd",
+      "host/package-lock.json": "c4ef51fceb922a42ad38738e1c12503ed9c6d33e67cd7d02ac5e0c9706ec6b53",
+      "scripts/product-host.ts": "2c9b6e3d4d267ba7003abd3b1567c875afef178c4921622ac34c8892249ac736",
+      "host/src/runtime/native-product-machine.ts": "395b6993dc7a2f517fa88e5977fc25ef6177954804e888e6bf0f059fa673fdc9",
+      "host/src/moonraker/configured-server.ts": "e1e31cabf209f753871cdbfc1f4f5e1a2e9bcdcc329b34113cb4c4e750914555",
+      "host/src/moonraker/native-config-files.ts": "ed3014b2ce4cf259bcb8f7b286b247de573e21d849cfd5154fe8768f916ee7a5"
+    }
+  },
+  "dependencies": {
+    "scope": "Compiler --listFilesOnly resolved file closure including type imports. Does not prove dynamic machine adapter, Worker URL or native ABI closure.",
+    "entries": {
+      "scripts/product-host.ts": {
+        "modules": 448,
+        "areas": {
+          "host": 3,
+          "calibration": 3,
+          "config": 60,
+          "diagnostics": 1,
+          "drivers": 18,
+          "gcode": 23,
+          "homing": 34,
+          "inputs": 9,
+          "kinematics": 5,
+          "math": 3,
+          "moonraker": 124,
+          "motion": 42,
+          "operations": 13,
+          "outputs": 11,
+          "protocol": 16,
+          "runtime": 27,
+          "storage": 2,
+          "thermal": 45,
+          "timing": 8,
+          "scripts": 1
+        }
+      },
+      "host/src/runtime/native-product-machine.ts": {
+        "modules": 450,
+        "areas": {
+          "host": 3,
+          "calibration": 3,
+          "config": 61,
+          "diagnostics": 1,
+          "drivers": 18,
+          "gcode": 23,
+          "homing": 34,
+          "inputs": 9,
+          "kinematics": 5,
+          "math": 3,
+          "moonraker": 124,
+          "motion": 42,
+          "operations": 13,
+          "outputs": 11,
+          "protocol": 16,
+          "runtime": 29,
+          "storage": 2,
+          "thermal": 45,
+          "timing": 8
+        }
+      },
+      "host/src/moonraker/configured-server.ts": {
+        "modules": 137,
+        "areas": {
+          "host": 3,
+          "config": 8,
+          "gcode": 9,
+          "math": 1,
+          "moonraker": 103,
+          "motion": 1,
+          "operations": 7,
+          "runtime": 3,
+          "storage": 2
+        }
+      },
+      "host/src/moonraker/native-config-files.ts": {
+        "modules": 30,
+        "areas": {
+          "config": 8,
+          "gcode": 4,
+          "moonraker": 10,
+          "operations": 7,
+          "runtime": 1
+        }
+      }
+    },
+    "reportSha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b",
+    "decision": "Review as one dependency-preserving candidate, with separate review areas. Counts include type references and are not proof that every dependency is loaded at runtime. Do not cherry-pick Moonraker independently from shared storage, operation, runtime and native owners.",
+    "manualDependencies": [
+      "Worker entrypoints validated in product build inventory and compiled worker tests",
+      "C addons consume host/native, klippy/chelper, src/compiler.h and Node headers",
+      "FatFs helper consumes lib/fatfs with license included",
+      "Actual machine adapter and physical stop remain external unverified requirements"
+    ]
+  },
+  "checks": {
+    "nativeDevelopmentBuild": true,
+    "typecheck": true,
+    "sourceWhitespace": true,
+    "productBuildTests": {
+      "passed": 4,
+      "failed": 0,
+      "command": "npm_config_offline=true node --test --test-isolation=none --test-concurrency=1 host/test/product-native-build.test.ts host/test/product-build.test.ts",
+      "coverage": [
+        "fresh C-only native build and output/source hashes",
+        "reproducible independent package and prior-output preservation on failures",
+        "independently installed compiled workers, bundled assets and mathematical smoke equivalence",
+        "compiled CLI no-motion preflight plus authenticated HTTP/WS and two PTY MCU startup/stop"
+      ]
+    },
+    "independentCandidateInstall": {
+      "durationMs": 802.340838,
+      "dependencies": 14
+    },
+    "candidateBundleVerification": {
+      "passed": true,
+      "checkedFiles": 643,
+      "noPyOrTs": true
+    },
+    "linuxMcuBuild": {
+      "passed": true,
+      "configuration": "test/configs/linuxprocess.config",
+      "python": "/nonexistent-python",
+      "commands": [
+        "make olddefconfig",
+        "make all"
+      ],
+      "elfSha256": "58b35812a369f28b70f1f77f9a4d523e606046769532390684cc116ef4e519d3",
+      "scope": "Host Linux build from git archive, no flashing or physical device. Archive has no Git metadata so embedded firmware version is an archive timestamp, not release provenance."
+    },
+    "legacyInstallers": {
+      "unchangedFromDevelop": [
+        "scripts/install-debian.sh",
+        "scripts/install-octopi.sh",
+        "scripts/ci-install.sh",
+        "scripts/Dockerfile"
+      ],
+      "scope": "Source hashes/diff checked; not a runtime or target installation pass. Shared C helper changes still require affected compatibility CI."
+    }
+  },
+  "reusedEvidence": {
+    "reference": "native-config-backups-acceptance.json",
+    "basis": "Fresh candidate build-info SHA-256 exactly equals M1 manifest, all 643 emitted files verified, M1 implementation source hashes also match.",
+    "sourceRegressionPassed": 91,
+    "compiledRecoveryPassed": 2,
+    "compiledLoadPassed": 1,
+    "performance": {
+      "backupQueries": 861,
+      "backupQueryP99Ms": 5.774835,
+      "statusP99Ms": 4.493798,
+      "minimumStepLeadMs": 80.903
+    },
+    "limits": "Historical same-artifact local simulated performance only. Not new measurements, target-board proof, full module regression or complete A4 UI acceptance."
+  },
+  "mergeReady": false,
+  "remaining": [
+    "Full Node host, native sanitizer/protocol, original firmware/legacy host compatibility and documentation CI on the exact PR head; no CI pass assumed.",
+    "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
+    "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
+    "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
+    "Unresolved G3 motion numerical/process failures, Cycnumbris 500 configuration, physical stop, target precision/timing/install/rollback and real acceptance.",
+    "Develop integration, subsequent mainline PR and prescribed release gates; other machine families last."
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-develop-native-build.log",
+      "sha256": "b95907e96f5bb97d22f20349fedfcff125ed26702a3f02a2e414f0facaa661ac"
+    },
+    {
+      "path": "/tmp/anyraid-develop-typecheck.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    {
+      "path": "/tmp/anyraid-develop-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-develop-build-tests.log",
+      "sha256": "e6419a6229fdb4d5607b2de766dd285ebed3aff80890b66a70854443e80f3296"
+    },
+    {
+      "path": "/tmp/anyraid-develop-candidate-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-develop-candidate-install.log",
+      "sha256": "fccb554219e5b18943f182b84bcc70c4baf9b2134dbe6298e1b762d65f741695"
+    },
+    {
+      "path": "/tmp/anyraid-develop-linux-firmware.log",
+      "sha256": "9fbe30e317b515fdbdf373e55436d107766c897bf5c02f78cbbf66e3da3f9811"
+    },
+    {
+      "path": "/tmp/anyraid-develop-import-graph.json",
+      "sha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b"
+    }
+  ]
+}
