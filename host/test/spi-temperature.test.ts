@@ -100,7 +100,12 @@ for(const pid of [false,true])test(`MAX31856 automatic ${pid?'PID':'watermark'} 
 test('MAX31856 startup abort does not arm sampling or enable conversion',async()=>{
  const f=await fixture(undefined,false,true),abort=new AbortController();try{
   const starting=startConfiguredHardware(reader({sensor_type:'MAX31856'}),f.group,f.clocks,layout,{beforeTarget(){}},abort.signal);void starting.catch(()=>{});
-  await until(()=>f.transactions.some(t=>!t.read));abort.abort(new Error('startup cancelled'));await assert.rejects(starting,{name:'AbortError'});assert.equal(f.stops,1);
+  await until(()=>f.transactions.some(t=>!t.read));const cause=new Error('startup cancelled');abort.abort(cause);
+  await assert.rejects(starting,error=>{
+   // A synchronous signal fence throws the reason; an abortable timer wraps
+   // that same reason. Both paths must retain the exact cancellation cause.
+   assert(error===cause||error instanceof Error&&error.name==='AbortError'&&error.cause===cause);return true;
+  });assert.equal(f.stops,1);
   assert.equal(f.transactions.filter(t=>!t.read).length,1);assert(f.firmware.outputs.filter(o=>o.name==='query_thermocouple').every(o=>o.parameters.rest_ticks===0));
  }finally{await f.close();}
 });

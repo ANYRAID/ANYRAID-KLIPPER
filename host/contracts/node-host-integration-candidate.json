@@ -265,7 +265,24 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Verify native stop aggregation and cleanup ordering, then remaining state/configuration and firmware size failures before extending M2a; preserve full Python-free verification and all precision/stop gates."
+    "next": "Close firmware ROM overflow and inspect exact new PR-head full CI before extending M2a. Earlier intermittent failures remain separately unresolved.",
+    "current": {
+      "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
+      "result": "failure",
+      "tests": 3802,
+      "passed": 3796,
+      "failed": 6,
+      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
+      "romOverflowBytes": 624,
+      "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
+    },
+    "stopStateRepair": {
+      "reference": "ci-stop-state-acceptance.json",
+      "regressionPassed": 73,
+      "isolatedTypecheck": true,
+      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
+    }
   },
   "mergeReady": false,
   "remaining": [

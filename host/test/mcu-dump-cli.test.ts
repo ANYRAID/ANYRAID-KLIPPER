@@ -32,5 +32,5 @@ test('dump CLI aborts active reads, preserves old output, and removes temporary 
 });
 test('dump CLI rejects non-regular output and regular-file pipe devices without altering files',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'dump-path-')),device=join(dir,'device'),output=join(dir,'out');
- try{await writeFile(device,'unchanged');await symlink(device,output);await assert.rejects(runMcuDump(['--pipe',device,output],new AbortController().signal,()=>{}),/regular file/);await rm(output);await assert.rejects(runMcuDump(['--pipe',device,output],new AbortController().signal,()=>{}),/character device/);assert.equal(await readFile(device,'utf8'),'unchanged');assert.deepEqual(await readdir(dir),['device']);}finally{await rm(dir,{recursive:true,force:true});}
+ try{await writeFile(device,'unchanged');await symlink(device,output);await assert.rejects(runMcuDump(['--pipe',device,output],new AbortController().signal,()=>{}),/regular file/);await rm(output);await assert.rejects(runMcuDump(['--pipe',device,output],new AbortController().signal,()=>{}),/^Error: Inspect pipe:/);assert.equal(await readFile(device,'utf8'),'unchanged');assert.deepEqual(await readdir(dir),['device']);}finally{await rm(dir,{recursive:true,force:true});}
 });

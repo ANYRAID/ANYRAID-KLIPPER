@@ -65,6 +65,9 @@ test('authenticated config HTTP preserves exact bytes, HEAD, ETag and byte range
   assert.equal((await fetch(url,{headers:{...headers,range:'bytes=1000-1001'}})).status,416);
   assert.equal((await fetch(url,{headers,method:'DELETE'})).status,405);assert.equal((await fetch(url,{headers,method:'POST'})).status,405);
   await writeFile(join(f.root,'中文.cfg'),'\ufeff[printer]\n');const named=await fetch(url.replace('printer.cfg',encodeURIComponent('中文.cfg')),{headers});assert.equal(named.status,200);assert(named.headers.get('content-disposition')!.includes(encodeURIComponent('中文.cfg')));assert.equal(Buffer.from(await named.arrayBuffer()).toString(),'\ufeff[printer]\n');
+  // The client can consume the response before the server finishes closing
+  // its sealed snapshot. Observe owner completion before testing release.
+  await f.files.drainWrites();assert.equal(f.files.status.pending,0);
   assert.equal(f.files.status.snapshots.reservations,0);
  }finally{await network.close();await f.close();}
 });
