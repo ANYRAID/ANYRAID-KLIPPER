@@ -310,5 +310,115 @@
       "next": "Audit host reload and MCU firmware reset ownership, stop acknowledgments and restart transport before mapping standard routes. Do not label a fresh simulated MCU generation a hardware firmware reset."
     },
     "scope": "Actual browser observations against compiled host with simulated MCU, not physical printing"
+  },
+  "currentEvidence": "nativeRestartPageAcceptance",
+  "nativeRestartPageAcceptance": {
+    "date": "2026-10-01",
+    "implementationBase": "3622c532",
+    "stage": "A4 partial; not sealed",
+    "node": "v26.9.0",
+    "artifactManifestSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+    "productionChanges": false,
+    "fixture": {
+      "entry": "host/acceptance/client-probe.ts",
+      "mode": "Independent emitted host process with TS loading disabled and external PATH tools unavailable; createProcess resource lifetime; original two PTY MCU models across all generations",
+      "changes": [
+        "Acquire/release IPC enforces one device lease. Stop counters remain monotonic; simulation pauses on confirmed stops and resumes only at actual product ready.",
+        "Observe commands accepted by firmware instead of a second decoder with stale reconnect sequence.",
+        "Ignore prior ADC requests and heater activation. Reuse latest retained sensor/output configuration across ordinary RESTART.",
+        "Ordinary-restart complete heated printing regression prevents false preparation failures caused by missing historical simulator configuration."
+      ],
+      "fileOrigin": "client-sample.gcode and ui-controls-seeded.gcode were API seeded. Neither is evidence of browser upload."
+    },
+    "protocolRegression": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "log": "/tmp/anyraid-client-probe-current-final.log",
+      "logSha256": "22192c6d70e3d12126e3cdd96184951f9bad3a39a9a8fff95c71bcdee551c067",
+      "verified": [
+        "JWT and explicit loopback trust modes",
+        "Print, pause, reconnect with same job ID, resume and completion",
+        "Same authenticated WebSocket survives controlled reinitialize, RESTART and FIRMWARE_RESTART; resubscribe obtains fresh snapshot",
+        "Ordinary RESTART followed by a complete heated print",
+        "Original MCU reset counts [0,0],[0,0],[0,0],[1,1]; configuration finalizations [1,1],[1,1],[1,1],[2,2]",
+        "Files and completed history preserved; preparation cancellation remains queryable for 15 seconds; exit 0 without EAGAIN",
+        "ADC only reaches current live owners; stale-generation query suppression"
+      ]
+    },
+    "clients": {
+      "fluidd": {
+        "version": "1.37.6-d894c50",
+        "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+        "authorization": "Ephemeral local user JWT",
+        "log": "/tmp/anyraid-fluidd-controls-current.log",
+        "logSha256": "05452113b081fe23eee8c361a74dd5a5f0b38b02f79c0fdc1f262a3c1c8b7ddb",
+        "verified": [
+          "Login and ready dashboard",
+          "Seeded page-selected print completes; authoritative history includes completed",
+          "Page pause, refresh restores paused job, resume, confirmed cancel",
+          "Page standard printer.restart restores ready automatically; no manual reconnect or new login",
+          "Page standard printer.firmware_restart restores ready automatically; same files remain",
+          "Original MCU counts at ready: resets [0,0],[0,0],[1,1]; finalizations [1,1],[1,1],[2,2]",
+          "Both durable recovery receipts succeeded; completed and cancelled history remain"
+        ],
+        "screenshot": {
+          "path": "/tmp/anyraid-fluidd-current-ready.jpg",
+          "sha256": "4531bb54f90a6f164060174079e483d150d8d1431690e4043c80b5ba41f0cf85"
+        }
+      },
+      "mainsail": {
+        "version": "2.19.0",
+        "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+        "authorization": "Explicit numeric loopback trust in disposable test config only",
+        "log": "/tmp/anyraid-mainsail-current-final.log",
+        "logSha256": "e7fdce094a25dab024f3b532af34c45d03aae0f22a7f702b85c458e2fcd3087f",
+        "verified": [
+          "Standby, seeded page-selected print reaches Complete with 1 mm filament and 10 second print duration",
+          "Page pause, refresh restores paused job, resume, pause and cancel",
+          "Page standard printer.restart restores Standby automatically and retains files",
+          "A second page-selected heated print after ordinary restart reaches Complete",
+          "Page standard printer.firmware_restart restores Standby automatically and retains files",
+          "Original MCU counts at ready: resets [0,0],[0,0],[1,1]; finalizations [1,1],[1,1],[2,2]"
+        ],
+        "screenshot": {
+          "path": "/tmp/anyraid-mainsail-current-ready.jpg",
+          "sha256": "0521d40641613c57d15233397682752ce9e1a176922b6ad0e7ee8f65cc678e92"
+        }
+      }
+    },
+    "uploadToolBlock": {
+      "fluiddLog": "/tmp/anyraid-fluidd-current.log",
+      "fluiddLogSha256": "355822818d75b511f1d0c5b90e139215ea8e7a8ba41d9a13b1132d6096299220",
+      "mainsailChooserEstablished": true,
+      "observed": "Browser file chooser setFiles did not complete within requested execution/chooser deadlines. No browser upload HTTP request reached either fixture; 15-minute watchdog ended each affected fixture normally. API seeded upload is separately logged and excluded.",
+      "classification": "Unverified browser upload; tool blockage is not evidence that the product upload endpoint failed."
+    },
+    "differences": [
+      "config root and optional config/.theme files remain unavailable; these are not complete file-management acceptance.",
+      "Mainsail initially loaded cached Fluidd assets on 127.0.0.1; localhost origin displayed verified Mainsail assets. No backend change was made for this browser observation.",
+      "Mainsail displays preparation as Printing, initially NaN velocity/null flow; pause before actual execution returned 409. Retry only after positive job progress succeeded; consumer preparation UX remains incomplete.",
+      "Pointer clicks on some tooltip-backed buttons did not send RPC; keyboard activation sent standard client methods. This records the interaction method, not a diagnosed production pointer defect."
+    ],
+    "performance": {
+      "evidence": "native-firmware-restart-acceptance.json",
+      "scope": "Same production manifest as A3. Only test fixtures/docs changed; no unneeded production benchmark rerun. Desktop/PTy measurements do not prove target hardware.",
+      "statusP99Ms": 4.029953,
+      "minimumStepLeadMs": 85.381
+    },
+    "pending": [
+      "Successful real browser upload and uploaded-file metadata/printing in both fixed clients",
+      "Actual page history/reconnection and process recovery completion on the final candidate, beyond partial page and compiled protocol evidence",
+      "Full Moonraker/config/peripheral contracts",
+      "Target board, Cycnumbris 500 physical safety/precision/performance, known G3 numerical/crash issues",
+      "Whole-repository Python retirement and integration/release PR flow"
+    ],
+    "sourceSha256": {
+      "host/acceptance/client-probe.test.ts": "7e444b2c1a315e5a2c5d7ae1d04c8174e3f19f14095b9eee1627dbfb126ad16e",
+      "host/test/client-temperature.test.ts": "16042a4aca1d6f276f37fc800efeac659d316dd0e8143d20668a9815668d496c",
+      "host/test/helpers/client-firmware.ts": "1ca7525cf508d6183c90bde4d488be2ac60f615aa2f651347bdc76320d827ff8",
+      "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32",
+      "host/test/helpers/compiled-client-host.ts": "27409003cb0141f8ebdc9443e79b25bb01ca830ec14f915cdf836fd964bf0589"
+    }
   }
 }

@@ -9,7 +9,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
-for(const trustedLoopback of [false,true])test(`compiled client fixture prints, pauses, resumes, reinitializes and survives cancelled preparation (trusted=${trustedLoopback})`, {timeout:150000},async t=>{
+for(const trustedLoopback of [false,true])test(`compiled client fixture preserves service and MCU identity across reinitialize, restart and firmware restart (trusted=${trustedLoopback})`, {timeout:180000},async t=>{
  const sockets:WebSocket[]=[];
  const root=await mkdtemp(join(tmpdir(),'client-probe-check-')),reserve=createServer();await writeFile(join(root,'index.html'),'<!doctype html><title>Fixture</title>');
  await new Promise<void>(resolve=>reserve.listen(0,'127.0.0.1',resolve));const address=reserve.address();assert(address&&typeof address!=='string');const port=address.port;await new Promise<void>((resolve,reject)=>reserve.close(error=>error?reject(error):resolve()));
@@ -40,11 +40,16 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture prints, 
   assert.equal((await invoke('/printer/objects/query?toolhead')).status.toolhead.homed_axes,'xyz');
   assert.equal(await invoke('/printer/print/pause',{}),'ok');await waitState('paused');await waitNotification(peer,'paused');await delay(200);assert.equal((await invoke('/printer/print/status')).state,'paused');
   assert.equal(await invoke('/printer/print/resume',{}),'ok');await waitState('completed');await waitNotification(peer,'complete');
-  const retired=once(peer.ws,'close',{signal:AbortSignal.timeout(15000)});
   const hostState=await invoke('/printer/host/status');assert.equal((await invoke('/printer/host/reinitialize',{version:1,request_id:'client-reinitialize',state_token:hostState.state_token})).accepted,true);
   const until=performance.now()+10000;while(!output.includes('CLIENT_GENERATION 2')){assert(performance.now()<until,stderr);await delay(50);}
-  await retired;peer=await connect();assert.equal(peer.snapshot.status.print_stats.state,'standby');assert.equal(peer.snapshot.status.pause_resume.is_paused,false);
-  t.diagnostic(JSON.stringify({clientRecovery:{trustedLoopback,printingReconnect:true,jobIdentityPreserved:true,freshSubscription:true,oldConnectionClosed:true,newGenerationAuthenticated:true}}));
+  assert.equal(peer.ws.readyState,WebSocket.OPEN);const renewed=await peer.call('printer.objects.subscribe',{objects:{print_stats:['state','filename'],pause_resume:['is_paused']}});assert.equal(renewed.status.print_stats.state,'standby');assert.equal(renewed.status.pause_resume.is_paused,false);
+  for(const [route,expected] of [['restart',3],['firmware_restart',4]] as const){
+   assert.equal(await invoke('/printer/'+route,{}),'ok');const deadline=performance.now()+15000;while(!output.includes('CLIENT_GENERATION '+expected)){assert(performance.now()<deadline,stderr);await delay(50);}
+   assert.equal(peer.ws.readyState,WebSocket.OPEN);const snapshot=await peer.call('printer.objects.subscribe',{objects:{print_stats:['state']}});assert.equal(snapshot.status.print_stats.state,'standby');assert((await invoke('/server/files/list')).some((file:any)=>file.path==='client-sample.gcode'));
+   if(route==='restart'){assert.equal(await invoke('/printer/print/start',{filename:'client-sample.gcode'}),'ok');await waitState('printing');await waitState('completed');}
+  }
+  const traffic=output.split('\n').filter(line=>line.startsWith('CLIENT_FIRMWARE ')).map(line=>JSON.parse(line.slice('CLIENT_FIRMWARE '.length)));assert.equal(traffic.length,4);assert.deepEqual(traffic.map(devices=>devices.map((d:any)=>d.resets)),[[0,0],[0,0],[0,0],[1,1]]);assert.deepEqual(traffic.map(devices=>devices.map((d:any)=>d.configurations)),[[1,1],[1,1],[1,1],[2,2]]);
+  t.diagnostic(JSON.stringify({clientRecovery:{trustedLoopback,printingReconnect:true,jobIdentityPreserved:true,freshSubscription:true,sameConnectionPreserved:true,newGenerationAuthenticated:true,originalFirmwareReset:true}}));
   assert.equal((await invoke('/printer/print/status')).state,'idle');assert.equal((await invoke('/server/history/list')).jobs[0].status,'completed');
   assert.equal(await invoke('/printer/print/start',{filename:'client-sample.gcode'}),'ok');await delay(150);assert.equal(await invoke('/printer/print/cancel',{}),'ok');
   for(let i=0;i<15;i++){await delay(1000);assert.equal((await invoke('/printer/print/status')).state,'cancelled');assert.equal(child.exitCode,null);}
