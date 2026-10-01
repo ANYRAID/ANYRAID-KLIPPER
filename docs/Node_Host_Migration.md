@@ -16521,7 +16521,12 @@ padlen=12 的恰好失败/成功边界、输入所有权、奇异/溢出与工�
 完整曲线误差门限为 2e-10×max(1,参考最大绝对值)，恒定/冲激边缘为
 1e-12。系数由参考 SciPy 生成，**这验证滤波内核，不验证 TS 系数设计**。
 
-测试参考固定 SciPy 1.17.1，使用 `MOTAN_SCIPY_PYTHON` 指定解释器，
+**此段为已退役的历史参考方式。** 当前 SOS 测试与基准使用有摘要校验的
+固定独立参考，无需解释器；原有精度与整数逐位检查保留，当前验证和
+参考更新要求见[交付计划](Node_Host_Delivery_Plan.md#3a-提前集成与候选维护在下一功能扩展前准备)
+及[固定参考清单](../host/contracts/motan-sos-reference.json)。
+
+历史测试参考固定 SciPy 1.17.1，使用 `MOTAN_SCIPY_PYTHON` 指定解释器，
 缺省 `python3`；找不到依赖或版本不同会明确失败，不跳过。支持在
 可用的 Python 环境中安装 `scipy==1.17.1`，也可安装到忽略目录
 `host/node_modules/.cache/scipy-reference`；辅助代码同时复用已有

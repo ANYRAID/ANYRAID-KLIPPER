@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registerNativeTemperatureFans} from '../src/moonraker/native-temperature-fan.ts';
 import {TemperatureFanControl} from '../src/thermal/temperature-fan.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
-import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
+import {ApiError,JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 const path='/printer/settings/temperature_fan',name='temperature_fan chamber';
 function fixture(){
  const control=new TemperatureFanControl({minimumTemperature:0,maximumTemperature:100,target:40,minimumSpeed:.3,maximumSpeed:1},{kind:'watermark',delta:2},.3),registry=new EndpointRegistry(new JsonRpcDispatcher());
@@ -28,7 +28,7 @@ test('external updates, maintenance, reload and delayed authorization cannot reu
   f.control.configure({target:45});f.control.configure({target:40});await assert.rejects(f.invoke('POST',request),/Stale/);f.control.configure({target:45});
   const latest=await f.invoke('GET');f.setAvailable(false);await assert.rejects(f.invoke('POST',{...request,state_token:latest.state_token}),/unavailable/);f.setAvailable(true);
   let release!:()=>void;const authorized=new Promise<void>(r=>{release=r;});
-  const pending=f.registry.invoke(path,'POST',{...request,state_token:latest.state_token},{...f.context,authorize:()=>authorized});close();release();await assert.rejects(pending,/unavailable/);
+  const pending=f.registry.invoke(path,'POST',{...request,state_token:latest.state_token},{...f.context,authorize:()=>authorized});close();release();await assert.rejects(pending,e=>e instanceof ApiError&&e.status===503);assert.equal(f.control.settings.target,45);
   close=f.bind();await assert.rejects(f.invoke('POST',{...request,state_token:latest.state_token}),/Stale/);assert.equal(f.control.settings.target,45);
  }finally{close();}
 });

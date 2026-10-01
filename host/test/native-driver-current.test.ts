@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registerNativeDriverCurrent} from '../src/moonraker/native-driver-current.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
-import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
+import {ApiError,JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 const path='/printer/settings/driver_current';
 function setup(max=2){
  const gate=new MaintenanceGate(),registry=new EndpointRegistry(new JsonRpcDispatcher()),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
@@ -39,7 +39,7 @@ test('close aborts and joins active writes, failure invalidates admission and re
 test('authorization completing after disposal cannot mutate a retired generation',async()=>{
  const f=setup(),authorized=Promise.withResolvers<void>(),body=request(await f.invoke('GET'));
  const pending=f.registry.invoke(path,'POST',body,{...f.context,authorize:()=>authorized.promise});
- await f.close();authorized.resolve();await assert.rejects(pending,/unavailable/);assert.equal(f.calls,0);
+ await f.close();authorized.resolve();await assert.rejects(pending,e=>e instanceof ApiError&&e.status===503);assert.equal(f.calls,0);assert.equal(f.faults,0);
 });
 test('invalidated hardware cannot return a successful retry receipt',async()=>{
  const f=setup();try{const body=request(await f.invoke('GET'));await f.invoke('POST',body);f.gate.invalidate();await assert.rejects(f.invoke('POST',body),/unavailable/);assert.equal(f.calls,1);}finally{await f.close();}

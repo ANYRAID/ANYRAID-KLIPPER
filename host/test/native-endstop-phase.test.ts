@@ -5,7 +5,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {registerNativeEndstopPhase} from '../src/moonraker/native-endstop-phase.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
-import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
+import {ApiError,JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 import {KlipperSaveSession} from '../src/config/klipper-save-session.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 const endpoint='/printer/calibration/endstop_phase';
@@ -34,7 +34,7 @@ test('external configuration changes fail closed without overwriting user edits'
  const f=await fixture();try{const request=body(await f.invoke('GET'));await writeFile(f.path,f.original+'# external\n');await assert.rejects(f.invoke('POST',request),/failed/);assert.equal(await readFile(f.path,'utf8'),f.original+'# external\n');assert(f.gate.status.closed);assert.equal((await f.invoke('GET')).state,'failed');}finally{await f.dispose();}
 });
 test('authorization resolving after close cannot save retired phase observations',async()=>{
- const f=await fixture(),authorized=Promise.withResolvers<void>();try{const request=body(await f.invoke('GET')),pending=f.registry.invoke(endpoint,'POST',request,{...f.context,authorize:()=>authorized.promise});await f.close();authorized.resolve();await assert.rejects(pending,/closed/);assert.equal(await readFile(f.path,'utf8'),f.original);}finally{authorized.resolve();await f.dispose();}
+ const f=await fixture(),authorized=Promise.withResolvers<void>();try{const request=body(await f.invoke('GET')),pending=f.registry.invoke(endpoint,'POST',request,{...f.context,authorize:()=>authorized.promise});await f.close();authorized.resolve();await assert.rejects(pending,e=>e instanceof ApiError&&e.status===503);assert.equal(await readFile(f.path,'utf8'),f.original);assert.equal(f.loaded.session.status.save_config_pending,false);assert.equal(f.gate.status.maintenance,false);}finally{authorized.resolve();await f.dispose();}
 });
 test('closing joins an in-flight phase save and fences further print admission',async()=>{
  const f=await fixture();try{

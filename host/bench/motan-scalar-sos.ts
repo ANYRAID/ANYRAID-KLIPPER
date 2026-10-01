@@ -26,6 +26,6 @@ try{
    if(run>=20)(variant==='current'?ms:old).push(elapsed);result=value;
   }
   assert.deepEqual(scalarBits(result).map(([,bits])=>bits),reference.bits);
-  console.log(JSON.stringify({node:process.version,kind,mode,dtype:reference.dtype,samples:source.length,pythonMs:stats(reference.ms!),nodeMs:stats(ms),previousNumericMs:old.length?stats(old):undefined,exactBits:true,warmups:{node:20,python:2},runs:{node:15,python:7},scope:'Two fixed dyadic sections; includes input inference/conversion, initialization, padding and filtering. Excludes coefficient design, startup and source setup. Previous numeric kernel pinned to 8903c16d; no target printer proof.'}));
+  console.log(JSON.stringify({node:process.version,kind,mode,dtype:reference.dtype,samples:source.length,capturedScipyMs:stats(reference.ms!),nodeMs:stats(ms),previousNumericMs:old.length?stats(old):undefined,exactBits:true,warmups:{node:20,capturedScipy:2},runs:{node:15,capturedScipy:7},scope:'Two fixed dyadic sections; includes input inference/conversion, initialization, padding and filtering. Excludes coefficient design, startup and source setup. Previous numeric kernel pinned to 8903c16d. SciPy timing is a fixed independent Linux x64 capture, not a current run; no target printer proof.'}));
  }
 }finally{await rm(dir,{recursive:true,force:true});}

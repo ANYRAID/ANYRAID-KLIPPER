@@ -246,7 +246,26 @@
       "statusAtObservation": "incomplete",
       "scope": "Automatically triggered PR runs on the same revision; not an agent-initiated retry. Re-read exact revision for final results. Successful diagnostic job exit alone does not close unresolved G3 failures."
     },
-    "next": "Resolve reproduced current CI failures before extending the M2a runtime draft; preserve final Python-free verification and all precision/stop gates."
+    "followup": {
+      "revision": "6b1027b0a631ad79b6a9ffc97ef5b5479c1d717a",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36866162712/job/110382078692",
+      "result": "failure",
+      "tests": 3799,
+      "passed": 3784,
+      "failed": 15,
+      "scope": "Subsequent exact-head PR run completed; failure count varies and does not close intermittent failures."
+    },
+    "localRepair": {
+      "reference": "ci-reference-lifecycle-acceptance.json",
+      "sos": "Six Python-reference failures addressed with 175 independently captured bounded records; all original precision and scalar-bit assertions retained.",
+      "authorization": "Four stale delayed-authorization assertions now require the existing ApiError status 503 and no hardware/configuration/state mutation.",
+      "regressionPassed": 28,
+      "routeAndRetirementPassed": 9,
+      "typecheck": true,
+      "performanceRows": 27,
+      "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
+    },
+    "next": "Verify native stop aggregation and cleanup ordering, then remaining state/configuration and firmware size failures before extending M2a; preserve full Python-free verification and all precision/stop gates."
   },
   "mergeReady": false,
   "remaining": [

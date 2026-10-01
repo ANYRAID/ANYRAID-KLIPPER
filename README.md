@@ -46,6 +46,10 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 [集成候选证据](host/contracts/node-host-integration-candidate.json)。
 目标板运动精度与时序是实机准入
 门槛。完整 Moonraker 和全部 Python 替代仍须闭合后才能宣称完整交付。
+SOS 测试及三个滤波基准现已采用有摘要校验的固定独立数值参考，无需
+运行 Python／NumPy／SciPy；高精度与整数逐位检查保留。四项迟到授权
+检查亦已对齐既有代际拒绝并验证零副作用。该批本地回归通过，完整远程
+CI 及其他集成失败仍待收口，见[修复验收](host/contracts/ci-reference-lifecycle-acceptance.json)。
 原生主机工厂的 `createProcess` 模式已贯通主机循环：设备重建时保留同一
 Moonraker 监听器、身份、数据库、文件元数据和作业日志；旧设备释放后仍可
 查询文件、下载、上传及读取／管理历史，上传不自动打印。启动／停止失败

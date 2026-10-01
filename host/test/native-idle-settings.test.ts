@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {ProductIdleTimeout} from '../src/operations/product-idle.ts';
 import {registerNativeIdleSettings} from '../src/moonraker/native-idle-settings.ts';
 import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
-import {JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
+import {ApiError,JsonRpcDispatcher,type RpcContext} from '../src/moonraker/rpc.ts';
 const path='/printer/settings/idle_timeout';
 test('idle setting authenticates, fences generations, and retry does not extend expiry',async()=>{
  let now=0,calls=0,available=true;const timers=new Map<()=>void,number>(),idle=new ProductIdleTimeout(600,{now:()=>now,schedule(fn,delay){timers.set(fn,now+delay);return ()=>{timers.delete(fn);};}},()=>({busy:false,printing:false,key:'idle'}),async()=>{calls++;},e=>{throw e;});
@@ -19,7 +19,7 @@ test('idle setting authenticates, fences generations, and retry does not extend 
   available=false;await assert.rejects(invoke('POST',{version:1,state_token:receipt.state_token,timeout:10}),/unavailable/);available=true;
   let authorize!:()=>void;const authorization=new Promise<void>(resolve=>{authorize=resolve;});
   const pending=registry.invoke(path,'POST',{version:1,state_token:receipt.state_token,timeout:10},{...context,authorize:()=>authorization});
-  close();authorize();await assert.rejects(pending,/unavailable/);assert.equal(idle.status.idle_timeout,3);
+  close();authorize();await assert.rejects(pending,e=>e instanceof ApiError&&e.status===503);assert.equal(idle.status.idle_timeout,3);assert.equal(calls,1);
   close();close=registerNativeIdleSettings(registry,idle,()=>available);await assert.rejects(invoke('POST',{...request,state_token:receipt.state_token}),/Stale/);
   idle.close();await assert.rejects(invoke('POST',request),/unavailable/);
  }finally{close();idle.close();}

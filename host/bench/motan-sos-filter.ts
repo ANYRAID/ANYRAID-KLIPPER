@@ -26,7 +26,8 @@ for (const count of [20000, 200000]) {
       if(i>=2) ms.push(elapsed);
     }
     console.log(JSON.stringify({node:process.version,input:input.constructor.name,samples:count,sections:reference.sos.length,
-      mode:cases[c].mode,nodeMs:stats(ms),scipyMs:stats(reference.ms),maxAbsoluteError:maxError}));
+      mode:cases[c].mode,nodeMs:stats(ms),capturedScipyMs:stats(reference.ms),maxAbsoluteError:maxError,
+      referenceScope:'Fixed independent Linux x64 SciPy capture; historical timing, not a current or target-printer run.'}));
   }
   }
 }
