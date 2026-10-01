@@ -9,7 +9,11 @@
     "defaultBranch": "master",
     "developSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
     "masterSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
-    "verification": "Authenticated git ls-remote; no branch fetch, merge or default-entry switch performed."
+    "verification": "Authenticated git ls-remote; candidate branch pushed and draft PR created. No merge or default-entry switch performed.",
+    "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/1",
+    "head": "devac/node26-moonraker-integration",
+    "observedRevision": "6706944d25f383e20c1ff57be1433239af8132b8",
+    "draft": true
   },
   "isolation": {
     "source": "git archive of softwareBase in /tmp; uncommitted published-files.ts and untracked published-paths.ts absent",
@@ -209,6 +213,40 @@
       "minimumStepLeadMs": 80.903
     },
     "limits": "Historical same-artifact local simulated performance only. Not new measurements, target-board proof, full module regression or complete A4 UI acceptance."
+  },
+  "remoteCiObservation": {
+    "revision": "6706944d25f383e20c1ff57be1433239af8132b8",
+    "host": {
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36864092851/job/110375171415",
+      "result": "failure",
+      "tests": 3799,
+      "passed": 3782,
+      "failed": 17,
+      "observedGroups": [
+        "Six Motan SOS Python reference tests fail with ModuleNotFoundError: numpy; reference version assertions remain NumPy 2.5.3 and SciPy 1.17.1.",
+        "Four delayed authorization tests expect unavailable/closed messages but receive Endpoint owner has retired; verify lifecycle contract and side-effect fencing before changing assertions.",
+        "Delta BLTouch probe 503 and obsolete unsupported-section expectation; investigate separately.",
+        "HTU21D heater sees PWM refresh deadline instead of checksum fault; no deadline relaxation without cause.",
+        "Pipe inspection rejects with No such device instead of character device; native stop reports AggregateError instead of expected identity.",
+        "Durable recovery reports cancel timeout; WebSocket print status remains preparing instead of printing."
+      ],
+      "logScope": "Codex CI job log response is truncated; summary and listed 17 failure records are present. Complete root causes and preceding protocol/sanitizer steps are not inferred."
+    },
+    "firmware": {
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36864092621/job/110375169777",
+      "result": "failure",
+      "mcu": "STM32F042",
+      "romOverflowBytes": 624,
+      "scope": "Matrix stops at linker failure; remaining firmware and original host compatibility are not treated as passed."
+    },
+    "pullRequestRuns": {
+      "hostRunId": 36865273180,
+      "firmwareRunId": 36865273064,
+      "motionRunId": 36865273036,
+      "statusAtObservation": "incomplete",
+      "scope": "Automatically triggered PR runs on the same revision; not an agent-initiated retry. Re-read exact revision for final results. Successful diagnostic job exit alone does not close unresolved G3 failures."
+    },
+    "next": "Resolve reproduced current CI failures before extending the M2a runtime draft; preserve final Python-free verification and all precision/stop gates."
   },
   "mergeReady": false,
   "remaining": [
