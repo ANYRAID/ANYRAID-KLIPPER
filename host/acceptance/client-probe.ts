@@ -5,6 +5,7 @@ import {join,extname,resolve} from 'node:path';
 import {WebSocket,WebSocketServer} from 'ws';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {ApiKeyAuthorization} from '../src/moonraker/api-key-authorization.ts';
+import {productMachineFixture} from '../test/helpers/product-machine.ts';
 // Local UI acceptance only. All machine transports below come from the PTY fixture.
 // No physical device path or production credential is accepted.
 const assets=process.argv[2];if(!assets)throw new Error('Usage: node host/acceptance/client-probe.ts /absolute/frontend/assets');
@@ -21,14 +22,24 @@ server.on('upgrade',(req,socket,head)=>{const peer=new WebSocket(upstream.replac
 server.on('error',()=>{console.error('Client proxy failed');abort.abort();});
 for(const signal of ['SIGINT','SIGTERM'] as const)process.on(signal,()=>abort.abort());
 let host:Awaited<ReturnType<typeof startCompiledClientHost>>|undefined,bootstrap:Promise<void>=Promise.resolve(),initialized=false;
+const fixture=await productMachineFixture(dir,false,'ack');let processGeneration=0,restartRequested=false;
+console.log('CLIENT_PARENT '+process.pid);
+// Test supervisor controls only; no product HTTP route or physical device.
+process.on('SIGUSR1',()=>{if(!initialized||restartRequested||abort.signal.aborted)return;restartRequested=true;console.log('CLIENT_PROCESS_RESTART');void host?.close().catch(error=>{console.error(error);abort.abort();});});
+process.on('SIGUSR2',()=>{if(!initialized||abort.signal.aborted)return;console.log('CLIENT_CONNECTIONS_DROPPED');for(const socket of sockets)socket.close(1012,'Local acceptance reconnect');});
 try{
- host=await startCompiledClientHost(dir,abort.signal,base=>{upstream=base;if(initialized)return;
+ do{restartRequested=false;processGeneration++;
+ host=await startCompiledClientHost(dir,abort.signal,base=>{upstream=base;console.log('CLIENT_PROCESS_READY '+processGeneration);if(initialized)return;
   bootstrap=(async()=>{
    const response=await fetch(upstream+'/access/user',{method:'POST',headers:{'content-type':'application/json','x-api-key':key},body:JSON.stringify({username:'operator',password:'client-test-only'})});if(response.status!==200)throw new Error('User bootstrap failed');await response.arrayBuffer();
    const sample=new FormData();sample.append('file',new Blob(['G90\nG92 E0\n'+Array.from({length:1000},(_,i)=>'G1 X'+((i+1)/100)+' E'+((i+1)/1000)+' F60\n').join('')+'M400\n']),'client-sample.gcode');sample.append('file_id','client-sample');sample.append('root','gcodes');
    const uploaded=await fetch(upstream+'/server/files/upload',{method:'POST',headers:{'x-api-key':key},body:sample});if(uploaded.status!==200)throw new Error('Sample upload failed');await uploaded.arrayBuffer();initialized=true;
    console.log('CLIENT_SAMPLE client-sample.gcode (seeded by API)');server.listen(port,'127.0.0.1',()=>console.log('CLIENT_READY http://127.0.0.1:'+port));
   })().catch(error=>{console.error(error);abort.abort();});
- },trustedLoopback);
+ },trustedLoopback,{fixture,reuseBuild:processGeneration>1});
+ // Child ready is logged separately from initial proxy readiness, and the same
+ // emitted app/storage/MCU objects are reused after verified child termination.
+ console.log('CLIENT_PROCESS '+processGeneration);
  await host.lifetime;
-}finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await rm(dir,{recursive:true,force:true});}}
+ }while(restartRequested&&!abort.signal.aborted);
+}finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await fixture.close();await rm(dir,{recursive:true,force:true});}}

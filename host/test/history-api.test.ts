@@ -18,6 +18,7 @@ test('configured history REST and JSON-RPC authorize reads and writes with real 
  try{
   const job=await history.start(data);await history.finish(job.job_id,'completed',data,130);
   const address=await server.start(),url='http://127.0.0.1:'+address.port,headers={'x-key':'test','content-type':'application/json'};
+  assert((await(await fetch(url+'/server/info',{headers})).json()).result.components.includes('history'));
   assert.equal((await fetch(url+'/server/history/list')).status,401);assert.equal(checks,0);
   assert.equal((await fetch(url+'/server/history/job?all=true',{method:'DELETE'})).status,401);assert.equal((await history.list()).count,1);
   const get:any=await(await fetch(url+'/server/history/job?uid=1',{headers})).json();assert.equal(get.result.job.job_id,'1');assert.equal(get.result.job.exists,true);

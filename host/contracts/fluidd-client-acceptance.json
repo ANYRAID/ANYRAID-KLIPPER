@@ -311,7 +311,7 @@
     },
     "scope": "Actual browser observations against compiled host with simulated MCU, not physical printing"
   },
-  "currentEvidence": "nativeRestartPageAcceptance",
+  "currentEvidence": "historyDiscoveryProcessAcceptance",
   "nativeRestartPageAcceptance": {
     "date": "2026-10-01",
     "implementationBase": "3622c532",
@@ -420,5 +420,205 @@
       "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32",
       "host/test/helpers/compiled-client-host.ts": "27409003cb0141f8ebdc9443e79b25bb01ca830ec14f915cdf836fd964bf0589"
     }
+  },
+  "historyDiscoveryProcessAcceptance": {
+    "date": "2026-10-01",
+    "implementationBase": "4e582f67",
+    "stage": "A4 partial; not sealed",
+    "node": "v26.9.0",
+    "artifactManifestSha256": "e4d0e9198f2fd227f7f4e17511b57ae7a8a65fe71d1984f1cac36bef12b277f3",
+    "productionChanges": [
+      "Declare history in server.info.components only when native or legacy history is actually registered. Fluidd used this discovery result to hide the history page before the fix."
+    ],
+    "protocolRegression": {
+      "command": "node --test --test-concurrency=1 host/test/configured-server.test.ts host/test/history-api.test.ts host/acceptance/client-probe.test.ts",
+      "passed": 19,
+      "failed": 0,
+      "log": "/tmp/anyraid-client-history-process-final.log",
+      "logSha256": "f5a270ea9b49aa7bd32a66893d1c17c0a11f69fc5e0082f58949251c75e83e5e",
+      "verified": [
+        "History discovery present for registered native/legacy history and absent for an unregistered service",
+        "JWT and explicit numeric loopback trust modes",
+        "Server-side WebSocket drop during active printing; reconnect preserves original job identity",
+        "Controlled reinitialize, standard RESTART and FIRMWARE_RESTART retain original service and MCU ownership",
+        "Independent emitted product process terminates before next process starts; same build manifest, original two MCU models and persistent storage reused",
+        "Original JWT works after process restart; exact files and history unchanged; standby/idle does not replay printing",
+        "Original MCU reset/configuration counters after process restart remain [1,2] for each model",
+        "No physical device, abrupt kill or power-loss acceptance"
+      ]
+    },
+    "actualPage": {
+      "client": "Fluidd 1.37.6-d894c50",
+      "authorization": "Ephemeral local-user JWT",
+      "log": "/tmp/anyraid-fluidd-history-recovery-final.log",
+      "logSha256": "3849b08ac399cf7ddad225607e2eeec83a1ca03eb3cb7f918e326ea6b5320016",
+      "verified": [
+        "History navigation appears after component discovery fix",
+        "Actual history page shows one completed client-sample.gcode, 14 seconds total, 10 seconds print time and 1 mm filament"
+      ],
+      "fileOrigin": "API-seeded sample; not browser upload",
+      "screenshot": {
+        "path": "/tmp/anyraid-fluidd-history-before.jpg",
+        "sha256": "f2616b54a38f91998a7ddbf9b26a4e8eef7ed815a02d7032c8a5eb21372d3051"
+      },
+      "exit": "Interactive test parent stopped with SIGINT and returned 0",
+      "remaining": "Final full page job/control/disconnect/process recovery not completed on this manifest; later interaction menu keyboard action timed out. This is not diagnosed as a production defect."
+    },
+    "performance": {
+      "command": "node --test --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true ' host/acceptance/product-compiled-journey.test.ts",
+      "passed": 1,
+      "failed": 0,
+      "log": "/tmp/anyraid-history-discovery-compiled-performance.log",
+      "logSha256": "c7d7f2ec959fa70ecd8a9ece8d3d054f40f9dc30733fb8993fd58a40eff2a521",
+      "scope": "Same production manifest, independent emitted process and original simulated MCU; concurrent authorization, status, files, upload, subscriptions, history and printing. No target-board/Python comparison.",
+      "metrics": {
+        "motionReportLoad": true,
+        "liveMotionSamples": 2578,
+        "liveExtrusionSamples": 1474,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 7.389455056,
+          "print_duration": 2.473775364,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "e4d0e9198f2fd227f7f4e17511b57ae7a8a65fe71d1984f1cac36bef12b277f3",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 3856,
+        "phaseP99Ms": 4.440580000000409,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 862,
+        "historyP99Ms": 9.605858999999327,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.867175999999745,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.303339000000051,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.0908330000020214,
+        "metadataRequests": 16,
+        "metadataP95Ms": 28.770606999998563,
+        "downloads": 16,
+        "downloadP95Ms": 7.36198400000103,
+        "wireCommands": 189,
+        "wireSteps": 3600,
+        "minimumStepLeadMs": 79.261,
+        "directoryRequests": 3709,
+        "directoryP99Ms": 9.113443000002007,
+        "statusRequests": 15430,
+        "uploads": 16,
+        "statusP99Ms": 3.4868490000008023,
+        "uploadP95Ms": 6.61024499999985,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.948671,
+              "maxMs": 19.578879
+            },
+            "cpu": {
+              "user": 5178470,
+              "system": 689096
+            },
+            "rss": 315097088
+          },
+          {
+            "loop": {
+              "p99Ms": 1.898495,
+              "maxMs": 9.035775
+            },
+            "cpu": {
+              "user": 1749554,
+              "system": 278284
+            },
+            "rss": 310669312
+          }
+        ]
+      },
+      "existingHardGates": {
+        "minimumStepLeadMs": "> 0",
+        "eachGenerationEventLoopP99Ms": "< 50",
+        "eachGenerationEventLoopMaximumMs": "< 100"
+      },
+      "statusAndHistoryQuantiles": "Observations, not a target-board performance budget"
+    },
+    "typecheck": "passed",
+    "sourceSha256": {
+      "host/src/moonraker/configured-server.ts": "c75b62e90bcaea3cf4816510934a63019d6ff8037ed26ce74785398896e31c43",
+      "host/acceptance/client-probe.ts": "15b3c58528c2cf99a85712e3912f06d7dcde1822d7fab7f89ef28f2aec928262",
+      "host/acceptance/client-probe.test.ts": "0ff0597329d3944cf936d733fa747a33151aab793b22a1deec959551f5d82186",
+      "host/test/helpers/compiled-client-host.ts": "e443c5157335ad967b6a195f4bbbb76a573fd5f249cb5ae5ee209fd8ab5bec21",
+      "host/test/configured-server.test.ts": "b68ea0901c76d578497b718b637f517742c8b3f2dcb9499322ab9852ccf5d837",
+      "host/test/history-api.test.ts": "165075a6e076fe2c8c1f10428260ce4ea71f5783a238f413468060bf93d28717"
+    },
+    "pending": [
+      "Actual uploaded-file complete page journey in both fixed clients; known chooser tool block remains unresolved",
+      "Both fixed clients final same-manifest page disconnect/process recovery and standard controls",
+      "Config root/read-write and complete Moonraker contracts",
+      "Cycnumbris 500 machine configuration, physical safety, target-board precision/timing and G3 failures",
+      "177 remaining tracked klippy Python files/default-install and CI retirement",
+      "Reviewable integration batches and develop/mainline release"
+    ]
   }
 }

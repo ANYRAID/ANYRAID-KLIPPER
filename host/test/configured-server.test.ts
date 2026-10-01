@@ -26,7 +26,7 @@ test('file-backed startup binds settings, metadata, authorization and actual Web
   await rm(path);const url=`http://127.0.0.1:${address.port}`;assert.equal((await fetch(url+'/server/config')).status,401);
   let body:any=await (await fetch(url+'/server/config',{headers:{'x-api-key':'test'}})).json();assert.deepEqual(body.result.config,{server:{host:'127.0.0.1',port:0,max_websocket_connections:1},consumer:{speed:120.5}});assert.equal(body.result.orig.consumer.speed,'120.5');
   ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{'x-api-key':'test'}});await once(ws,'open');const extra=new WebSocket(url.replace('http:','ws:')+'/websocket');await assert.rejects(once(extra,'open'),/503/);extra.terminate();
-  body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.websocket_count,1);assert.equal(body.result.klippy_state,'disconnected');
+  body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.websocket_count,1);assert.equal(body.result.klippy_state,'disconnected');assert(!body.result.components.includes('history'),'unregistered history cannot be advertised');
   service.setInformation({...info(),connected:true,state:'shutdown'});body=await (await fetch(url+'/server/info',{headers:{'x-api-key':'test'}})).json();assert.equal(body.result.klippy_state,'shutdown');
  }finally{ws?.terminate();await service.close();}
  assert.equal(service.rpc.has('server.config'),false);assert.equal(service.rpc.has('server.websocket.id'),false);await service.close();await assert.rejects(service.start(),/stopping/);
