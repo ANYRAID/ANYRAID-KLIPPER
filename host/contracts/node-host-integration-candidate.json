@@ -12,7 +12,7 @@
     "verification": "Authenticated git ls-remote; candidate branch pushed and draft PR created. No merge or default-entry switch performed.",
     "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/1",
     "head": "devac/node26-moonraker-integration",
-    "observedRevision": "6706944d25f383e20c1ff57be1433239af8132b8",
+    "observedRevision": "a33aa11335c675797618a40afbee641e2b66efa2",
     "draft": true
   },
   "isolation": {
@@ -265,8 +265,82 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Inspect exact new PR-head full CI after STM32 link repair. Use preserved internal motion/hardware fault diagnostics to determine the two probe/calibration causes without relaxing deadlines or numerical/safety checks. M2a remains gated on required integration checks.",
+    "next": "Check complete exact new PR-head CI after per-file sanitizer scheduling repair, then determine mapped trigger/readback clock and PWM refresh failures. Prior calibration 503 remains unresolved. M2a resumes after required integration checks.",
     "current": {
+      "revision": "a33aa11335c675797618a40afbee641e2b66efa2",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058994/job/110432617886",
+      "result": "failure",
+      "tests": 3803,
+      "passed": 3801,
+      "failed": 2,
+      "failures": [
+        {
+          "test": "host/test/delta-bltouch.test.ts",
+          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "actualStatus": 503,
+          "hardwareFault": "Invalid mapped trigger clock",
+          "motionFault": "Native file motion stopped",
+          "probeHits": 1,
+          "rootCause": "unresolved"
+        },
+        {
+          "test": "host/test/htu21d-hardware.test.ts",
+          "name": "configured HTU21D heater publishes fractional humidity and CRC fault stops both MCUs",
+          "actualFault": "Heater PWM refresh deadline missed",
+          "expectedFault": "checksum",
+          "rootCause": "unresolved"
+        }
+      ],
+      "pushHost": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881048729/job/110432581924",
+        "tests": 3803,
+        "passed": 3803,
+        "failed": 0,
+        "result": "failure",
+        "failure": "First sanitized child exceeded the 60000 ms aggregate invocation deadline while later files were still running",
+        "scope": "Ordinary tests and protocol step passed; full sanitizer and subsequent Linux MCU step did not complete."
+      },
+      "firmware": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058832/job/110432616444",
+        "status": "in_progress",
+        "observedStep": "Prepare tests",
+        "testStarted": false
+      },
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058833",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+      },
+      "scope": "Decoded complete host logs obtained from the GitHub connector. PR and push ordinary-test outcomes differ on the same source revision. Firmware result is pending; no merge or hardware approval."
+    },
+    "stopStateRepair": {
+      "reference": "ci-stop-state-acceptance.json",
+      "regressionPassed": 73,
+      "isolatedTypecheck": true,
+      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
+    },
+    "previous": {
+      "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
+      "result": "failure",
+      "tests": 3802,
+      "passed": 3796,
+      "failed": 6,
+      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
+      "romOverflowBytes": 624,
+      "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
+    },
+    "firmwareLtoRepair": {
+      "reference": "stm32-lto-acceptance.json",
+      "sourceBase": "1313377c",
+      "configurationsPassed": 19,
+      "cSafetyAndGeneratorRegressionPassed": 14,
+      "criticalFunctionOperationsSame": 52,
+      "strictFinalRomRejection": true,
+      "scope": "Local STM32 link repair only; full exact-head CI and two probe failure causes remain unproven. No physical timing or merge approval."
+    },
+    "preLtoCi": {
       "revision": "82f7d8da6d1da1be2cb14c2d179e4a9e1884e828",
       "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428683/job/110410098124",
       "result": "failure",
@@ -299,31 +373,120 @@
       },
       "scope": "Exact PR-head completed checks. Truncated host log includes final summary and both failures; firmware log includes STM32F042 linker overflow. Later host protocol/sanitizer steps and remaining firmware matrix are not inferred as passed. No merge or hardware approval."
     },
-    "stopStateRepair": {
-      "reference": "ci-stop-state-acceptance.json",
-      "regressionPassed": 73,
-      "isolatedTypecheck": true,
-      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
-    },
-    "previous": {
-      "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
-      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
-      "result": "failure",
-      "tests": 3802,
-      "passed": 3796,
-      "failed": 6,
-      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
-      "romOverflowBytes": 624,
-      "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
-    },
-    "firmwareLtoRepair": {
-      "reference": "stm32-lto-acceptance.json",
-      "sourceBase": "1313377c",
-      "configurationsPassed": 19,
-      "cSafetyAndGeneratorRegressionPassed": 14,
-      "criticalFunctionOperationsSame": 52,
-      "strictFinalRomRejection": true,
-      "scope": "Local STM32 link repair only; full exact-head CI and two probe failure causes remain unproven. No physical timing or merge approval."
+    "ciSchedulingRepair": {
+      "scope": "Validation orchestration and mapped-trigger error diagnostics. Runtime algorithms, safety deadlines, precision tolerances and endpoint status/shape unchanged; M2 drafts excluded.",
+      "triggers": "Task branches run through pull_request; push runs remain on develop and master. All job definitions, PR path filters, motion matrix and workflow_dispatch retained.",
+      "sanitizer": "Each original test file runs once per UBSan/ASan configuration in a separate child with the original 60000 ms deadline; no retries or omissions.",
+      "validation": "local_passed",
+      "probeExperiments": [
+        {
+          "log": "/tmp/anyraid-a33-targeted-two-cpu.log",
+          "tests": 10,
+          "passed": 9,
+          "failed": 1,
+          "failure": "Delta calibration returned 503 after 16 hits; hardware/motion fault fields undefined; internal fit/geometry cause not captured."
+        },
+        {
+          "log": "/tmp/anyraid-a33-calibration-cause.log",
+          "tests": 1,
+          "passed": 1,
+          "failed": 0,
+          "scope": "Temporary capture of calibration input/catch; successful rerun does not close failure."
+        },
+        {
+          "log": "/tmp/anyraid-a33-calibration-concurrent-cause.log",
+          "tests": 10,
+          "passed": 10,
+          "failed": 0,
+          "scope": "Independent CPU pair with temporary input/catch capture; successful rerun does not close failure."
+        }
+      ],
+      "limits": "No claim that scheduling changes fix runtime timing or numerical failures. Exact new PR-head checks remain required.",
+      "mappedClockDiagnostics": "Failure text retains the rejection and adds member, OID, mapped tick and observed tick. No clamping, fallback or tolerance change.",
+      "sourceBase": "a33aa11335c675797618a40afbee641e2b66efa2",
+      "node": "v26.9.0",
+      "cpuAffinity": "0,1",
+      "sourceHashes": {
+        "host/scripts/test-native-sanitized.ts": "393b478398b5acd5af720985a624616effe9fb954dae46677f17a64b6f911cad",
+        "host/src/homing/position-offsets.ts": "cb9b14a55d504b6a6e5aaf683d4430f2314f2f77ee86e626f420c1e25adddbbf",
+        ".github/workflows/node-host.yaml": "d97116e4a4fb9b27a3fe6e26ff5b16daaad53c20029ed023b5e6825b79366b4c",
+        ".github/workflows/build-test.yaml": "56eec190c08715690e50cf32cacc94856aa838d31b94d7e9f33154e03a7bedbb",
+        ".github/workflows/node-motion-diagnostics.yaml": "308a9a7216835b2987ffee35ad5130b21feba7c3346212b22a0abe013a2b7015"
+      },
+      "sanitizerResults": [
+        {
+          "configuration": "UBSan",
+          "files": 149,
+          "tests": 1178,
+          "pass": 1178,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "totalElapsedMs": 574399.2172179999,
+          "maxFileMs": 45531.42812199998
+        },
+        {
+          "configuration": "ASan plus UBSan",
+          "files": 149,
+          "tests": 1178,
+          "pass": 1178,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "totalElapsedMs": 608129.5556569999,
+          "maxFileMs": 45826.50583499996
+        }
+      ],
+      "typecheck": {
+        "passed": true,
+        "scope": "Isolated source archive with exact runner and mapped-trigger diagnostics overlays; M2 drafts excluded."
+      },
+      "workflowValidation": {
+        "passed": true,
+        "scope": "YAML syntax, unchanged complete job definitions/PR filters/matrix/manual entry, develop and master push filters."
+      },
+      "failedBatchExperiment": {
+        "fileCount": 8,
+        "deadlineMs": 60000,
+        "result": "timeout",
+        "scope": "Eight-file attempt still timed out with queued timed cases; superseded by per-file execution, not accepted as passed."
+      },
+      "logArtifacts": [
+        {
+          "path": "/tmp/anyraid-a33-sanitizer-per-file.log",
+          "sha256": "b21a78fecda9957aae28832ceb9a6000020c0e93d890c6a8c91cc8e3b9082787"
+        },
+        {
+          "path": "/tmp/anyraid-a33-sanitizer-bounded.log",
+          "sha256": "3a2ac417f79a21d501727908700aa69fe15429ff81863eb505e1b7c07b8c8588"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-workflows.log",
+          "sha256": "b7f2dee16f24f885680be4856bab36bf94a1596a11261e6d61906e7ec699ebf5"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-whitespace.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/tmp/anyraid-a33-targeted-two-cpu.log",
+          "sha256": "fac697d670da8b02fab103999039afda258675aeb6aacade4f754f50b0e67d73"
+        },
+        {
+          "path": "/tmp/anyraid-a33-calibration-cause.log",
+          "sha256": "f266075f81c16b5f2c3999fe902868f27c9ec308f1871e78eff633423010e0f5"
+        },
+        {
+          "path": "/tmp/anyraid-a33-calibration-concurrent-cause.log",
+          "sha256": "2a2bb8641b5845f84ae034cb6a8e17bb1a2c70c2092f447ffe9da8d3082eba42"
+        }
+      ]
     }
   },
   "mergeReady": false,

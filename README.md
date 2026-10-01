@@ -45,6 +45,8 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 准入持续后移；当前未提交文件路径草稿不计入已验收候选。
 候选来源、产物摘要、可复用证据与未通过门槛见
 [集成候选证据](host/contracts/node-host-integration-candidate.json)。
+任务分支通过 PR 执行 CI，develop／master 保留推送检查；避免同次任务
+推送重复执行两套矩阵。sanitizer 按文件保留原 60 秒期限并覆盖全部用例。
 目标板运动精度与时序是实机准入
 门槛。完整 Moonraker 和全部 Python 替代仍须闭合后才能宣称完整交付。
 SOS 测试及三个滤波基准现已采用有摘要校验的固定独立数值参考，无需

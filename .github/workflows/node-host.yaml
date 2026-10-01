@@ -1,5 +1,8 @@
 name: Node host
-on: [push, pull_request]
+on:
+  push:
+    branches: [develop, master]
+  pull_request:
 jobs:
   host:
     runs-on: ubuntu-latest

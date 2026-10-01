@@ -3,8 +3,10 @@ import {existsSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const host=fileURLToPath(new URL('..',import.meta.url));
 function run(args:string[],env:NodeJS.ProcessEnv=process.env):void {
+  const started=performance.now();
   const result=spawnSync(process.execPath,args,{cwd:host,stdio:'inherit',timeout:60000,env});
-  if(result.status!==0)throw new Error(`Sanitized check failed: ${result.error??result.status}; signal=${result.signal??'none'}`);
+  console.log(JSON.stringify({sanitizedCommand:args,elapsedMs:performance.now()-started,status:result.status,signal:result.signal}));
+  if(result.status!==0)throw new Error(`Sanitized check failed: ${result.error??result.status}; signal=${result.signal??'none'}; command=${JSON.stringify(args)}`);
 }
 const lookup=spawnSync(process.env.CC??'cc',['-print-file-name=libasan.so'],{encoding:'utf8'});
 const runtime=lookup.stdout.trim();
@@ -46,9 +48,9 @@ for(const address of [false,true]) {
   tests.push('test/retraction.test.ts');
   tests.push('test/display-status.test.ts');
   tests.push('test/pressure-advance-settings.test.ts');
-  // Physically paced long cases start together in their own batch. Keep the
-  // same 60-second deadline and all other assignments; no test is omitted.
-  const longMotion=new Set(['test/motion-streamer.test.ts','test/homing-clock-calibration.test.ts','test/product-host.test.ts','test/product-machine.test.ts','test/native-host-status.test.ts','test/native-objects.test.ts','test/gcode-move.test.ts','test/async-heater-runtime.test.ts','test/native-subscriptions.test.ts','test/print-layer-info.test.ts','test/dwell.test.ts','test/arcs.test.ts']);
-  for(let batch=0;batch<2;batch++)run(['--test','--test-reporter=tap',...tests.filter((file,i)=>i%2===batch&&!longMotion.has(file))],env);
-  run(['--test','--test-reporter=tap',...longMotion],env);
+  // The deadline covers the whole invocation, including queued files. Give
+  // each file its own child so earlier paced cases cannot consume its budget.
+  // Keep every test and the original 60-second deadline, without retrying.
+  if(new Set(tests).size!==tests.length)throw new Error('Duplicate sanitized test file');
+  for(const file of tests)run(['--test','--test-reporter=tap',file],env);
 }

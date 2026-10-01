@@ -15,7 +15,7 @@ function positionOffsets(result:HomingStopResult,bindings:readonly HomingHistory
  for(const b of bindings){if(!Number.isInteger(b.member)||b.member<0||b.member>=triggerClocks.length||!Number.isInteger(b.oid)||b.oid<0||b.oid>254||!(b.history instanceof StepHistory))throw new Error('Invalid homing history binding');const key=`${b.member}:${b.oid}`;if(byKey.has(key))throw new Error('Duplicate homing history');byKey.set(key,b.history);}
  const positions=result.positions.map(p=>{
   const key=`${p.member}:${p.oid}`,history=byKey.get(key);if(!history)throw new Error('Missing or duplicate homing position');byKey.delete(key);
-  const clock=triggerClocks[p.member];if(typeof clock!=='bigint'||clock>p.observedClock)throw new Error('Invalid mapped trigger clock');
+  const clock=triggerClocks[p.member];if(typeof clock!=='bigint'||clock>p.observedClock)throw new Error(`Invalid mapped trigger clock: member=${p.member}, oid=${p.oid}, mapped=${clock}, observed=${p.observedClock}`);
   const start=history.at(history.status.fromClock),trigger=history.at(clock),halt=p.position;
   return Object.freeze({member:p.member,oid:p.oid,start,trigger,halt,triggerOffset:trigger-start,haltOffset:halt-start,overshoot:halt-trigger});
  });
