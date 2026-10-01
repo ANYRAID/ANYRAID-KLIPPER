@@ -21,5 +21,11 @@ export function registerProductHostControl(registry:EndpointRegistry,control:Pro
   catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:control.status.storage_failed?503:409,error instanceof Error?error.message:'Restart rejected');}
  });
  const restart=standard('restart'),firmwareRestart=standard('firmware_restart');
- return ()=>{firmwareRestart();restart();reinitialize();status();};
+ const script=registry.register({endpoint:'/printer/gcode/script',methods:['POST'],transports:['http','websocket']},async(params,_verb,context)=>{
+  if(Object.keys(params).some(k=>k!=='script')||typeof params.script!=='string'||!['RESTART','FIRMWARE_RESTART'].includes(params.script.trim().toUpperCase()))throw new ApiError(400,'Native script compatibility supports only standard restart commands');
+  if(!context.afterResponse)throw new ApiError(503,'Response handoff is unavailable');
+  try{const request=params.script.trim().toUpperCase()==='RESTART'?control.requestRestart.bind(control):control.requestFirmwareRestart.bind(control);await request(context.nativeGenerationSignal,context.nativeGenerationRetiredAtAdmission,callback=>context.afterResponse!(callback));return 'ok';}
+  catch(error){throw new ApiError(error instanceof RestartAdmissionError?error.status:control.status.storage_failed?503:409,error instanceof Error?error.message:'Restart rejected');}
+ });
+ return ()=>{script();firmwareRestart();restart();reinitialize();status();};
 }

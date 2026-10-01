@@ -79,7 +79,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
    temperatureHistory=undefined;
    service.printer.group.assertActive();signal.throwIfAborted();
    const generation=service,change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
-   const validate=(kind:HostReloadKind)=>{
+   const validate=(kind:HostReloadKind)=>{generation.server.requireConfigWriteIdle();
     signal.throwIfAborted();const printer=generation.printer,state=printer.controller.state,gate=printer.maintenanceGate.status;
     if(kind==='restart'||kind==='firmware_restart'){
      if(!processLifetime||gate.maintenance)throw new Error('Restart requires process ownership and no active maintenance');
@@ -111,7 +111,7 @@ export async function runProductHost(factory:ProductHostFactory,signal:AbortSign
     // physical/dependency retirement cannot be made safe by a host reload.
     if(cleanupFailed||processServer.nativeGenerationStatus?.state!=='stopped'){await stopped.promise;break;}
     const change=Promise.withResolvers<void>();let requested:ReturnType<typeof Promise.withResolvers<void>>|undefined;
-    detach=control.attach(kind=>{signal.throwIfAborted();if(kind!=='restart'&&kind!=='firmware_restart')throw new Error('Only explicit restart can retry a failed replacement');reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;},()=>signal.throwIfAborted(),{kinds:['restart',...factory.resetFirmware?['firmware_restart' as const]:[]],generationSignal:processServer.nativeGenerationSignal});
+    detach=control.attach(kind=>{signal.throwIfAborted();if(kind!=='restart'&&kind!=='firmware_restart')throw new Error('Only explicit restart can retry a failed replacement');reload.reason=kind;requested=Promise.withResolvers<void>();activeRequest=requested;change.resolve();return requested.promise;},()=>{signal.throwIfAborted();processServer!.requireConfigWriteIdle();},{kinds:['restart',...factory.resetFirmware?['firmware_restart' as const]:[]],generationSignal:processServer.nativeGenerationSignal});
     await Promise.race([stopped.promise,change.promise]);detach();detach=()=>{};completion=requested;activeRequest=undefined;
     if(!requested)break;
    }

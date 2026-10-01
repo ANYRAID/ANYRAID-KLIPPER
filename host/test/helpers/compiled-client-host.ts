@@ -28,7 +28,7 @@ process.on('disconnect',()=>{for(const item of pending.values()){clearTimeout(it
 process.channel?.unref();
 function call(method,params){return new Promise((resolve,reject)=>{const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(new Error('Simulation request timeout'));},10000);pending.set(id,{resolve,reject,timer});process.send({id,method,params});});}
 export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(fixture.path)},{
- filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},configFiles:{root:${JSON.stringify(configRoot)}},standardPrint:{nozzle:200,bed:60},
+ filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},configFiles:{root:${JSON.stringify(configRoot)},writable:['printer.cfg','parts/machine.cfg']},standardPrint:{nozzle:200,bed:60},
  async createProcess(){const database=await DatabaseStore.open({path:${JSON.stringify(join(dir,'auth.sqlite'))}});return {
   server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled-client-fixture',missingRequirements:[]},database,authorization:{issuer:'http://printer.test'}},
   async release(){await database.close();}

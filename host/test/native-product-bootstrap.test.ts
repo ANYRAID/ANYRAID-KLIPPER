@@ -13,13 +13,13 @@ import {runProductHost} from '../src/runtime/product-host.ts';
 import {ProductHostControl} from '../src/runtime/product-host-control.ts';
 import {productMachineFixture} from './helpers/product-machine.ts';
 async function until(check:()=>boolean){const end=performance.now()+10000;while(!check()){assert(performance.now()<end,'Bootstrap timeout');await delay(5);}}
-async function fixture(failure:'configuration'|'adapter'|'cleanup'|'hardware'|'hardware-stop'='configuration'){
+async function fixture(failure:'configuration'|'adapter'|'cleanup'|'hardware'|'hardware-stop'='configuration',writes=false){
  const root=await mkdtemp(join(tmpdir(),'native-bootstrap-')),f=await productMachineFixture(root),configuration=await readFile(f.config.printerConfig,'utf8'),abort=new AbortController(),control=new ProductHostControl(),listening=Promise.withResolvers<string>(),addresses:string[]=[];
  let db:DatabaseStore|undefined,devices=0,processOpens=0,processReleases=0,deviceReleases=0;
  const configRoot=join(root,'config');await mkdir(configRoot);f.config.printerConfig=join(configRoot,'printer.cfg');await writeFile(f.config.printerConfig,configuration);await writeFile(f.path,JSON.stringify(f.config));
  if(failure==='configuration')await writeFile(f.config.printerConfig,'[printer]\nkinematics: invalid\n');
  if(failure==='hardware'||failure==='hardware-stop')await writeFile(f.config.printerConfig,configuration.replace(/step_pin: [^\n]+/u,'step_pin: NO_SUCH_PIN'));
- const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),configFiles:{root:configRoot},standardPrint:{nozzle:200,bed:60},
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),configFiles:{root:configRoot,...writes?{writable:['printer.cfg']}:{} },standardPrint:{nozzle:200,bed:60},
   async createProcess(){processOpens++;db=await DatabaseStore.open({path:join(root,'api.db')});return {server:{information:f.bindings.server.information,database:db,authorization:{issuer:'https://bootstrap.invalid'}},async release(){processReleases++;if(!db!.status.closed)await db!.close();}};},
   async createAdapter(){devices++;if(devices===1&&['adapter','cleanup'].includes(failure)){if(failure==='cleanup')throw new AggregateError([Error('Adapter acquisition failed'),Error('Adapter cleanup failed')],'Unconfirmed startup cleanup');throw Error('Adapter acquisition failed after confirmed cleanup');}
    return {stops:new Map([...f.bindings.stops].map(([id,stop])=>[id,async(cause:unknown)=>{await stop(cause);if(failure==='hardware-stop'&&id==='mcu')throw Error('Physical stop unconfirmed');}])),output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){deviceReleases++;}};}
@@ -27,7 +27,7 @@ async function fixture(failure:'configuration'|'adapter'|'cleanup'|'hardware'|'h
  const running=runProductHost(factory,abort.signal,address=>addresses.push(`http://127.0.0.1:${address.port}`),control,address=>listening.resolve(`http://127.0.0.1:${address.port}`));void running.catch(listening.reject);
  let base:string;try{base=await listening.promise;}catch(error){abort.abort();await running.catch(()=>{});await factory.close!().catch(()=>{});await f.close();await rm(root,{recursive:true,force:true});throw error;}const key=await (await db!.wrapNamespace('native_authorization',false)).get('api_key') as string,headers={'x-api-key':key};
  const get=async(path:string)=>{const response=await fetch(base+path,{headers});assert.equal(response.status,200,path);return (await response.json() as any).result;};
- return {root,f,factory,abort,control,running,base,headers,addresses,db:db!,get,get counts(){return {devices,processOpens,processReleases,deviceReleases};},async repair(){await writeFile(f.config.printerConfig,configuration);},async restart(){const response=await fetch(base+'/printer/restart',{method:'POST',headers});assert.equal(response.status,200);assert.equal((await response.json() as any).result,'ok');},async close(){abort.abort();await running.catch(()=>{});await factory.close!().catch(()=>{});await f.close();await rm(root,{recursive:true,force:true});}};
+ return {root,f,configuration,factory,abort,control,running,base,headers,addresses,db:db!,get,get counts(){return {devices,processOpens,processReleases,deviceReleases};},async repair(){await writeFile(f.config.printerConfig,configuration);},async restart(){const response=await fetch(base+'/printer/restart',{method:'POST',headers});assert.equal(response.status,200);assert.equal((await response.json() as any).result,'ok');},async close(){abort.abort();await running.catch(()=>{});await factory.close!().catch(()=>{});await f.close();await rm(root,{recursive:true,force:true});}};
 }
 for(const failure of ['configuration','adapter','hardware'] as const)test(`initial ${failure} failure retains authorized Moonraker and explicitly recovers actual MCU ownership`,async t=>{
  const f=await fixture(failure);let socket:WebSocket|undefined,pending:ReturnType<typeof request>|undefined;try{
@@ -72,4 +72,26 @@ test('shutdown waits for ignored first adapter cancellation before closing the b
  const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),async createProcess(){db=await DatabaseStore.open({path:join(root,'api.db')});return {server:{information:f.bindings.server.information,database:db,authorization:{issuer:'https://bootstrap.invalid'}},async release(){order.push('process');if(!db!.status.closed)await db!.close();}};},async createAdapter(){entered.resolve();await release.promise;return {stops:f.bindings.stops,output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){order.push('device');}};}});
  let finished=false;const running=runProductHost(factory,abort.signal,()=>ready++,undefined,()=>listeners++);void running.then(()=>finished=true,()=>finished=true);
  try{await entered.promise;assert.equal(listeners,1);assert.equal(ready,0);abort.abort();await delay(25);assert.equal(finished,false);assert.equal(db!.status.closed,false);release.resolve();await running;assert.equal(db!.status.closed,true);assert.deepEqual(order,['device','process']);assert.equal(ready,0);}finally{release.resolve();abort.abort();await running.catch(()=>{});await factory.close!();await f.close();await rm(root,{recursive:true,force:true});}
+});
+
+test('product config save repairs failed startup and standard script restart applies it without printing',async()=>{
+ const f=await fixture('configuration',true);try{
+  await until(()=>f.control.status.restart_available);const original=await readFile(f.f.config.printerConfig,'utf8');
+  const read=await fetch(f.base+'/server/files/config/printer.cfg',{headers:f.headers}),etag=read.headers.get('etag')!;await read.text();
+  const repaired='[printer]\nkinematics: invalid\n# saved with standard upload\n';
+  const form=new FormData();form.append('file',new Blob([repaired]),'printer.cfg');form.append('root','config');form.append('path','');
+  const saved=await fetch(f.base+'/server/files/upload',{method:'POST',headers:{...f.headers,'if-match':etag},body:form});assert.equal(saved.status,200,await saved.clone().text());const uploadReceipt=await saved.json() as any;assert.deepEqual(uploadReceipt.item,uploadReceipt.result.item);const receipt=uploadReceipt.result;
+  assert.equal(receipt.item.permissions,'rw');assert.equal(receipt.print_started,false);assert.equal(await readFile(join(f.root,'config',receipt.backup),'utf8'),original);
+  const post=async(path:string,body:unknown)=>fetch(f.base+path,{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify(body)});
+  const strong={version:1,path:'printer.cfg',content:original,expected_sha256:etag.slice(1,-1)};assert.equal((await post('/printer/host/config/save',strong)).status,409);
+  assert.equal((await post('/printer/gcode/script',{script:'RESTART\nG1 X1'})).status,400);
+  assert.equal((await post('/printer/gcode/script',{script:'RESTART'})).status,200);await until(()=>f.control.status.restart_operation?.state==='failed');assert.equal((await f.get('/server/info')).native_host.ready,false);
+  const broken=await fetch(f.base+'/server/files/config/printer.cfg',{headers:f.headers});await broken.text();assert.equal((await post('/printer/host/config/save',{version:1,path:'printer.cfg',content:f.configuration,expected_sha256:broken.headers.get('etag')!.slice(1,-1)})).status,200);assert.equal((await post('/printer/gcode/script',{script:'RESTART'})).status,200);await until(()=>f.addresses.length===1);await until(()=>f.control.status.restart_operation?.state==='succeeded');
+  const current=await fetch(f.base+'/server/files/config/printer.cfg',{headers:f.headers});const bytes=await current.text(),currentDigest=current.headers.get('etag')!.slice(1,-1);
+  const written=await post('/printer/host/config/save',{version:1,path:'printer.cfg',content:bytes+'# controlled save\n',expected_sha256:currentDigest});assert.equal(written.status,200,await written.clone().text());assert.equal((await f.get('/printer/print/status')).state,'idle');assert.equal(f.counts.processOpens,1);
+ }finally{await f.close();}
+});
+
+for(const failure of ['cleanup','hardware-stop'] as const)test('config save refuses unconfirmed '+failure,async()=>{
+ const f=await fixture(failure,true);try{await until(()=>!f.control.status.busy&&(failure==='cleanup'?f.counts.devices===1:f.counts.deviceReleases===1));const before=await readFile(f.f.config.printerConfig,'utf8'),response=await fetch(f.base+'/printer/host/config/save',{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify({version:1,path:'printer.cfg',content:before+'# unsafe save\n',expected_sha256:'0'.repeat(64)})});assert.equal(response.status,409);assert.equal(await readFile(f.f.config.printerConfig,'utf8'),before);}finally{await f.close();}
 });

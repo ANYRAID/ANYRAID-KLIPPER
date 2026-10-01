@@ -91,16 +91,16 @@ export class NativePrintUploads {
   await new Promise<void>((resolve,reject)=>{const aborted=()=>reject(signal.reason);signal.addEventListener('abort',aborted,{once:true});if(signal.aborted)aborted();void pending.then(value=>{try{authorizedContext(context,value);resolve();}catch(error){reject(error);}},reject).finally(()=>signal.removeEventListener('abort',aborted));});signal.throwIfAborted();
  }
  /** Capture device ownership at HTTP admission, before the network work queue. */
- captureUpload(){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding);}
+ captureUpload(configFiles?:NativeConfigFiles){const binding=this.#deviceFiles;return (request:IncomingMessage,context:RpcContext)=>this.#receiveOwned(request,context,binding,configFiles);}
  receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
- #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined):Promise<Json>{
+ #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
   if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
-  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined));this.#pending.add(task);
+  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles));this.#pending.add(task);
   void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
@@ -118,7 +118,7 @@ export class NativePrintUploads {
    for(const event of ['filesLimit','fieldsLimit','partsLimit'] as const)parser.on(event,()=>invalid('Multipart part capacity exceeded'));
    parser.on('file',(name,source,info)=>{
     source.on('error',()=>{});
-    if(fileTask||name!=='file'||!info.filename||info.filename.length>256||!info.filename.isWellFormed()||/[\\/\u0000-\u001f\u007f]/u.test(info.filename)||!/\.(gcode|gco|g)$/i.test(info.filename)||!['7bit','8bit','binary'].includes(info.encoding)){source.resume();invalid('Expected one named G-code file');return;}
+    if(fileTask||name!=='file'||!info.filename||info.filename.length>256||!info.filename.isWellFormed()||/[\\/\u0000-\u001f\u007f]/u.test(info.filename)||!configFiles&&!/\.(gcode|gco|g)$/i.test(info.filename)||!['7bit','8bit','binary'].includes(info.encoding)){source.resume();invalid('Expected one named G-code file');return;}
     filename=info.filename;
     fileTask=(async()=>{for await(const chunk of source){signal.throwIfAborted();const buffer=chunk as Buffer;bytes+=buffer.length;if(bytes>this.#max)throw new ApiError(413,'Upload file limit exceeded');hash.update(buffer);let offset=0;while(offset<buffer.length){signal.throwIfAborted();const result=await file!.write(buffer,offset,buffer.length-offset);if(!result.bytesWritten)throw new Error('Upload staging write stalled');offset+=result.bytesWritten;}}if(source.truncated)throw new ApiError(413,'Upload file limit exceeded');})();
     void fileTask.catch(error=>parser.destroy(error));
@@ -129,6 +129,13 @@ export class NativePrintUploads {
    catch(error){await fileTask?.catch(()=>{});if(signal.aborted)throw signal.reason;if(error instanceof ApiError)throw error;throw new ApiError(400,'Invalid multipart upload');}
    finally{request.unpipe(limiter);request.removeListener('error',failed);}
    signal.throwIfAborted();if(!filename||!fileTask)throw new ApiError(400,'Upload file is missing');
+   if(fields.root==='config'&&configFiles){
+    if(fields.file_id!==undefined||fields.print!==undefined&&!['false','0',''].includes(fields.print)||fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==hash.digest('hex')))throw new ApiError(422,'Invalid config upload fields or checksum');
+    if(bytes>configFiles.status.maxFileBytes)throw new ApiError(413,'Config size limit exceeded');const content=Buffer.alloc(bytes);let at=0;while(at<bytes){signal.throwIfAborted();const r=await file.read(content,at,Math.min(65536,bytes-at),at);if(!r.bytesRead)throw new ApiError(400,'Config staging truncated');at+=r.bytesRead;}
+    const name=fields.path?fields.path+'/'+filename:filename;const condition=request.headers['if-match'];if(condition!==undefined&&typeof condition!=='string')throw new ApiError(400,'Expected one config version digest');
+    releaseDevice?.();releaseDevice=undefined;release();return await configFiles.save(name,content,condition?.replace(/^"|"$/g,''),context);
+   }
+   if(!/\.(gcode|gco|g)$/i.test(filename))throw new ApiError(400,'Expected one named G-code file');
    if(fields.root!==undefined&&fields.root!=='gcodes'||fields.path!==undefined&&fields.path!==''||fields.print!==undefined&&!['false','0',''].includes(fields.print))throw new ApiError(400,'Native upload uses flat gcodes storage; start printing with a separate durable request');
    const id=fields.file_id??randomUUID(),sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');

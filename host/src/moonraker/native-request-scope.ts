@@ -9,7 +9,7 @@ export class NativeRequestScope {
  get signal(){return this.#abort.signal;}
  get status(){return {closed:this.signal.aborted,pending:this.#pending.size};}
  readonly wrap:EndpointWrapper=(path,handler)=>{
-  if(!(path.startsWith('/printer/')&&!['/printer/info','/printer/restart','/printer/firmware_restart'].includes(path)&&!path.startsWith('/printer/host/')||path.startsWith('/server/history/')||path.startsWith('/server/files/')))return handler;
+  if(!(path.startsWith('/printer/')&&!['/printer/info','/printer/restart','/printer/firmware_restart','/printer/gcode/script'].includes(path)&&!path.startsWith('/printer/host/')||path.startsWith('/server/history/')||path.startsWith('/server/files/')))return handler;
   return this.#bind(handler);
  };
  #bind(handler:EndpointHandler):EndpointHandler{

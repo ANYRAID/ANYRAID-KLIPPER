@@ -626,5 +626,10 @@
     "manifestSha256": "7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d",
     "result": "Both fixed actual clients list and open real main/include config from the same production fingerprint. Read-only increment passed; writes and complete A4 remain pending.",
     "historicalMissingNativeBindings": "Top-level missingNativeBindings describes the original baseline; config read missing item superseded by this evidence."
+  },
+  "nativeConfigSaveAcceptance": {
+    "evidence": "native-config-files-save-acceptance.json",
+    "manifestSha256": "789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07",
+    "result": "Both actual fixed editors saved, restarted and reread configuration; Mainsail also repaired unsupported config in the retained service. Full A4 and G1 remain pending."
   }
 }

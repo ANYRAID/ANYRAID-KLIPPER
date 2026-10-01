@@ -1,0 +1,361 @@
+{
+  "implementationBase": "cc627da7",
+  "date": "2026-10-01",
+  "scope": "Product config editor save, backup, explicit standard restart and repair. Desktop simulated MCU only; full Moonraker and physical acceptance remain pending.",
+  "manifestSha256": "789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07",
+  "upstream": {
+    "repository": "ANYRAID-MOONRAKER",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "source": "moonraker/components/file_manager/file_manager.py",
+    "uploadLines": [
+      844,
+      937,
+      948
+    ],
+    "clients": {
+      "fluidd": {
+        "version": "1.37.6",
+        "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+        "saveSource": "src/mixins/files.ts serverFilesUploadPost",
+        "fields": [
+          "file",
+          "path",
+          "root"
+        ],
+        "oldDigest": false
+      },
+      "mainsail": {
+        "version": "2.19.0",
+        "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+        "saveSource": "src/store/editor/actions.ts saveFile",
+        "fields": [
+          "file",
+          "root",
+          "path",
+          "checksum"
+        ],
+        "oldDigest": false
+      }
+    }
+  },
+  "implementation": {
+    "processEntry": "createNativeProductHostFactory with createProcess and configFiles.writable relative allowlist",
+    "default": "Read-only when writable omitted",
+    "save": "POST /server/files/upload root=config; optional If-Match previous ETag; optional submitted-content checksum",
+    "controlled": "POST /printer/host/config/save or printer.host.config.save: version=1, path, UTF-8 content, expected_sha256",
+    "response": "Multipart top-level item/action for fixed clients; existing result alias retained for native callers",
+    "concurrency": "One active save including actual authorization settlement; immutable input copy; current device gate held through transaction; stale generation rejected; confirmed detached failed startup can be repaired",
+    "protection": [
+      "Print, pause, pending device work, unconfirmed stop, reload and shutdown reject writes.",
+      "Pinned parent descriptors, no path traversal, symlink or reserved source; only explicit existing files.",
+      "NUL/invalid UTF-8 rejected; invalid textual config allowed for explicit failure-and-repair workflow."
+    ],
+    "transaction": [
+      "Shared cooperative SAVE_CONFIG lock basename",
+      "Exact original byte backup at 0600",
+      "Temporary replacement preserves source mode/owner; file and parent directory sync before replace",
+      "Revalidate source inode, size, times, mode and owner immediately before atomic rename",
+      "Sync directory after replacement; replaced phase uncertainty never reports success",
+      "Cleanup checks ownership; final close waits actual work; standard file change notification only on success"
+    ],
+    "backupLimit": "16 copies per file; no automatic deletion. Product backup retention/manage/restore remain pending.",
+    "restart": "RESTART and FIRMWARE_RESTART script-only compatibility delegates to existing standard host control, durable response handoff and receipts; arbitrary script remains rejected."
+  },
+  "verification": {
+    "source": {
+      "passed": 77,
+      "command": "node --test --test-isolation=none host/test/native-config-save.test.ts host/test/native-config-files.test.ts host/test/native-product-bootstrap.test.ts host/test/native-product-process-lifetime.test.ts host/test/product-host-control.test.ts host/test/product-host-api.test.ts host/test/native-print-uploads.test.ts host/test/native-request-scope.test.ts host/test/configured-server.test.ts",
+      "checks": [
+        "Fault injection at each file/directory sync phase; source unchanged before rename, uncertain replaced phase retains exact backup.",
+        "External source mutation during transaction causes conflict without overwrite.",
+        "Existing source/include reads, auth, reservations and current gcodes upload retained.",
+        "First startup failure repair through actual HTTP save, standard script restart and same MCU ownership.",
+        "Unconfirmed cleanup and stop refuse config writes."
+      ]
+    },
+    "compiledRecovery": {
+      "passed": 2,
+      "command": "node --test --test-isolation=none host/acceptance/client-probe.test.ts",
+      "modes": [
+        "JWT",
+        "explicit trusted loopback"
+      ],
+      "saveMeasurements": [
+        {
+          "trustedLoopback": false,
+          "saveMs": 11.636011000002327,
+          "exactBackup": true,
+          "scriptRestart": true,
+          "noPrintReplay": true
+        },
+        {
+          "trustedLoopback": true,
+          "saveMs": 9.958769999997457,
+          "exactBackup": true,
+          "scriptRestart": true,
+          "noPrintReplay": true
+        }
+      ],
+      "checks": [
+        "Initial config byte and exact listing/stat persistence through normal/FW/independent process recovery.",
+        "Same compiled artifact and original MCU; JWT/files/history retained; no print replay.",
+        "If-Match multipart save, exact original backup download, standard RESTART script and saved bytes after reload."
+      ]
+    },
+    "compiledLoad": {
+      "passed": 1,
+      "command": "node --test --test-isolation=none --test-name-pattern='nativeAuthorization=true apiLoad=true ' host/acceptance/product-compiled-journey.test.ts",
+      "metrics": {
+        "motionReportLoad": true,
+        "configListRequests": 811,
+        "configListP99Ms": 8.14622099999906,
+        "configDownloads": 811,
+        "configDownloadP99Ms": 10.936413999996148,
+        "liveMotionSamples": 2645,
+        "liveExtrusionSamples": 1464,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.77781333,
+          "print_duration": 2.570602903000001,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 3840,
+        "phaseP99Ms": 4.043170000004466,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 860,
+        "historyP99Ms": 11.756749000000127,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 17.38423900000089,
+        "deleteRequests": 16,
+        "deleteP95Ms": 9.359339999999065,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.533259999996517,
+        "metadataRequests": 16,
+        "metadataP95Ms": 16.024730000001,
+        "downloads": 16,
+        "downloadP95Ms": 4.707205000000613,
+        "wireCommands": 190,
+        "wireSteps": 3700,
+        "minimumStepLeadMs": 81.055,
+        "directoryRequests": 3681,
+        "directoryP99Ms": 5.657922999998846,
+        "statusRequests": 15367,
+        "uploads": 16,
+        "statusP99Ms": 4.344983000002685,
+        "uploadP95Ms": 21.04867699999886,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.967103,
+              "maxMs": 19.791871
+            },
+            "cpu": {
+              "user": 6099859,
+              "system": 943559
+            },
+            "rss": 323284992
+          },
+          {
+            "loop": {
+              "p99Ms": 2.031615,
+              "maxMs": 9.986047
+            },
+            "cpu": {
+              "user": 2120644,
+              "system": 387538
+            },
+            "rss": 296902656
+          }
+        ]
+      },
+      "checks": [
+        "Concurrent auth/upload/status/subscription/history and config list/download while simulated printing",
+        "Config save attempt rejected while actual active print state",
+        "Minimum step lead > 0; loop P99 < 50 ms and max < 100 ms"
+      ],
+      "interpretation": "Desktop timing observations, no target-board budget or matched Python comparison."
+    },
+    "maintenanceBenchmark": {
+      "command": "node host/bench/native-config-save.ts",
+      "filesystem": "tmpfs",
+      "filesystemMagic": "0x01021994",
+      "node": "v26.9.0",
+      "bytes": 262144,
+      "warmups": 2,
+      "runs": 8,
+      "medianMs": 1.9071950000000015,
+      "minMs": 1.6558009999999967,
+      "maxMs": 4.323295999999999,
+      "samplesMs": [
+        1.6558009999999967,
+        1.8113840000000039,
+        1.813163000000003,
+        1.8240040000000022,
+        1.9903860000000009,
+        2.000156000000004,
+        3.989611999999994,
+        4.323295999999999
+      ],
+      "exactSource": true,
+      "backup": true,
+      "fileAndDirectorySynced": true,
+      "interpretation": "Returned file/directory fsync calls on tmpfs do not prove physical-storage latency or power-loss durability."
+    },
+    "actualClients": [
+      {
+        "name": "Mainsail",
+        "mode": "explicit trusted loopback",
+        "verified": [
+          "Actual editor modifies main configuration and clicks Save & Restart; upload HTTP 200 and standard printer.gcode.script.",
+          "Same original MCU resets/configurations 0/1 -> 1/2, new generation ready and saved bytes reread in actual editor.",
+          "Unsupported textual config saved and startup fails without counterfeit ready; same Moonraker page reopens, edits and saves config.",
+          "Explicit Save & Restart after repair reaches generation 3, original MCU resets/configurations 2/3; repaired bytes reread."
+        ]
+      },
+      {
+        "name": "Fluidd",
+        "mode": "JWT",
+        "verified": [
+          "Actual Monaco EditContext editor modified through focused native browser keyboard input.",
+          "Actual Save & Restart performs multipart upload HTTP 200 and standard printer.firmware_restart.",
+          "Original MCU resets/configurations 0/1 -> 1/2; generation 2 ready and saved bytes reread in actual editor."
+        ]
+      }
+    ],
+    "typecheck": "Node.js v26.9.0 typecheck passed",
+    "whitespace": "scripts/check_whitespace.sh and git diff --check passed",
+    "temporaryProofs": [
+      {
+        "path": "/tmp/anyraid-mainsail-config-save-current.jpg",
+        "sha256": "f76fc265f94c1af3814fdf73e6b2f02b41fbe7b138d76668b57f9a738f8741df"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-save-failed.jpg",
+        "sha256": "6e363b58bd723f828c9b930d999963b70344810ba828cb773c2cf5aa9b4411c1"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-save-repaired.jpg",
+        "sha256": "9b62e8dbd0e85191186c71280b9c180c9226b358ce975fd14ff7eef4e625e078"
+      },
+      {
+        "path": "/tmp/anyraid-fluidd-config-save-current.jpg",
+        "sha256": "93cf70c7379d8915c0835bec0491cbee30ef5e4842a6c1f1f5cda851c814ec5a"
+      }
+    ],
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-config-save-product-regression-current.log",
+        "sha256": "7cca670e49eacb5ef626b4182e94a96d1d79ce434f38b2c73f2b81bd23d36918"
+      },
+      {
+        "path": "/tmp/anyraid-config-save-compiled-load-current.log",
+        "sha256": "84a1a4ef4474511906682e70448de9bdd60ec23507992c52466905126576b733"
+      },
+      {
+        "path": "/tmp/anyraid-config-save-client-recovery-current.log",
+        "sha256": "295447ab2a771780c69191c39894268457206e103f51b53a84937058a5d9a726"
+      },
+      {
+        "path": "/tmp/anyraid-config-save-bench.log",
+        "sha256": "32c45102d293c18bb37ba17dd82548c3c8ababfa9bd685589b6569e0f93ddf6e"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-save-current.log",
+        "sha256": "5bf87810949c5a497de61698ca3d081890a72ef6afc63aa8aae634dea0848b78"
+      },
+      {
+        "path": "/tmp/anyraid-fluidd-config-save-current.log",
+        "sha256": "a7e70ac9e4a4a3bcd86a1ac310fd72ee7575e1d78fbea40ed5ef8d60977fcbdc"
+      }
+    ]
+  },
+  "diagnosticFindings": [
+    {
+      "failure": "Initial actual Mainsail save reported upload failed after HTTP 200 and source changed.",
+      "cause": "Fixed client consumes top-level item; native multipart response originally wrapped it only in result.",
+      "resolution": "Top-level upload fields exposed and original native result alias retained; actual page rerun passed."
+    },
+    {
+      "failure": "First compiled load permission assertion expected r after writable allowlist enabled.",
+      "resolution": "Corrected fixture contract to rw; final affected load rerun passed."
+    },
+    {
+      "failure": "First added compiled multipart save sent JSON Content-Type from default request headers.",
+      "resolution": "Test now lets FormData create its multipart Content-Type; both final mode reruns passed."
+    }
+  ],
+  "remaining": [
+    "Fixed clients omit old digest; cross-editor stale-content conflicts require consumer UI/API adoption or client integration.",
+    "Noncooperating external writers can race final recheck/rename; no filesystem-wide compare/swap guarantee.",
+    "Backup rotation/restore management; arbitrary file creation, directory mutation, copy/move and full file roots remain pending.",
+    "Moonraker config component reload/process restart; keep those files read-only for current device reload.",
+    "Complete same-candidate A4 upload/job/reconnect/process page acceptance; known filechooser blockage not replaced by this config editor path.",
+    "Full Moonraker, all Python retirement, unresolved numerical mismatch/crash, target-board storage/scheduling/precision and Cycnumbris 500 physical install/stop/rollback plus normal PR integration."
+  ]
+}
