@@ -13,7 +13,7 @@ async function fixture(){
  const config:ProductMachineConfiguration={version:1,deviceId:'test',printerConfig:join(root,'printer.cfg'),moonrakerConfig:join(root,'moonraker.conf'),journalPath:join(root,'jobs.db'),mcus:{mcu:{transport:'uart',rts:true,leaveBootloader:false}},machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print:{motorCompletion:'hold',startupHoming:{mode:'home',axes:[0,1,2]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:10,retractSpeed:10}},limits:{maxNozzle:300,maxBed:130}};
  const adapter:NativeMachineAdapter={stops:new Map([['mcu',async()=>{}]]),lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}},output(){},async authorizePrintFile(id){authorized.push(id);if(id==='denied')throw new Error('File denied');},server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(){},authorizeNotification(){}},async release(){releases++;}};
  const options:NativeProductMachineOptions={filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),standardPrint:{nozzle:200,bed:60},createAdapter:async()=>adapter};
- return {root,config,adapter,options,authorized,get releases(){return releases;},async seed(){const files=await PublishedPrintFiles.open(options.filesRoot),path=join(root,'source');await writeFile(path,'G1 X1\n');const file=await open(path,'r');try{await files.publish('job','part.gcode',file,signal());}finally{await file.close();await files.close();}},async close(){await rm(root,{recursive:true,force:true});}};
+ return {root,config,adapter,options,authorized,get releases(){return releases;},async seed(visible?:string){const files=await PublishedPrintFiles.open(options.filesRoot),path=join(root,'source');await writeFile(path,'G1 X1\n');const file=await open(path,'r');try{if(visible)await files.mutateDirectory('零件',false,signal());await files.publish('job','part.gcode',file,signal(),visible);}finally{await file.close();await files.close();}},async close(){await rm(root,{recursive:true,force:true});}};
 }
 test('shared native ownership resolves canonical files, seals print bytes and preserves policy snapshots',async()=>{
  const f=await fixture();let bindings:Awaited<ReturnType<typeof createNativeProductBindings>>|undefined;
@@ -29,6 +29,15 @@ test('invalid temperatures and overlapping stores fail before adapter acquisitio
  for(const standardPrint of [{nozzle:301,bed:60},{nozzle:200,bed:NaN},{nozzle:-1,bed:60}])await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,standardPrint}),/temperatures/);
  await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),{...f.options,metadataRoot:join(f.options.filesRoot,'metadata')}),/separate/);assert.equal(calls,0);await assert.rejects(access(f.options.filesRoot));
  }finally{await f.close();}
+});
+test('standard print selection resolves a visible directory path to the authorized immutable receipt',async()=>{
+ const f=await fixture();let bindings:Awaited<ReturnType<typeof createNativeProductBindings>>|undefined;
+ try{
+  await f.seed('零件/50% test.gcode');bindings=await createNativeProductBindings(f.config,signal(),new MaintenanceGate(),f.options);
+  assert.deepEqual(await bindings.server.productPrintCompatibility!.start('零件/50% test.gcode',signal()),{fileId:'job',nozzle:200,bed:60});assert.deepEqual(f.authorized,['job']);assert.equal(bindings.server.nativeUploads!.filename('job'),'零件/50% test.gcode');
+  await assert.rejects(bindings.server.productPrintCompatibility!.start('job.gcode',signal()),/Published file not found/);assert.deepEqual(f.authorized,['job'],'An internal ID is not a second visible path');
+  const reader=await bindings.print.open('job',signal());try{assert.equal((await reader.next(signal()))!.script,'G1 X1');}finally{await reader.close();}
+ }finally{await bindings?.release();await f.close();}
 });
 test('failed metadata startup closes the already opened store and releases the adapter',async()=>{
  const f=await fixture();try{await writeFile(f.options.metadataRoot,'not a directory');await assert.rejects(createNativeProductBindings(f.config,signal(),new MaintenanceGate(),f.options));assert.equal(f.releases,1);const reopened=await PublishedPrintFiles.open(f.options.filesRoot);await reopened.close();}finally{await f.close();}

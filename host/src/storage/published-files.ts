@@ -1,26 +1,32 @@
 import {createRequire} from 'node:module';
-import {open,mkdir,link,unlink,opendir,lstat,statfs,readlink,type FileHandle} from 'node:fs/promises';
+import {open,mkdir,link,unlink,rename,opendir,lstat,statfs,readlink,type FileHandle} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {createSealedPrintReader,createSealedBinaryReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
+import {publishedPath,visibleFilePath,pathParent,PublishedDirectoryCommitError} from './published-paths.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
-export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;}
+export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;readonly path?:string;}
 export class PublishedFileChangedError extends Error {}
 /** Identity of the durable receipt, never the content blob or a temporary memfd. */
 export interface PublishedSourceIdentity {readonly dev:bigint;readonly ino:bigint;readonly mtimeNs:bigint;readonly ctimeNs:bigint;}
 export interface PublishedFileChange {readonly action:'create_file'|'delete_file';readonly file:PublishedPrintFile;readonly modified:number;}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
-/** Private flat storage. Caller authenticates/authorizes IDs; no client paths.
+export interface PublishedDirectoryChange {readonly action:'create_dir'|'delete_dir';readonly path:string;readonly modified:number;}
+/** Private flat storage behind a separate visible namespace. Clients never
+ * supply blob/receipt filesystem paths; callers authenticate/authorize IDs.
  * Content and receipts are immutable publications. Root descriptor anchors IO. */
 export class PublishedPrintFiles {
  #storedBytes=0;#reservedBytes=0;#records=new Map<string,StoredReceipt>();#references=new Map<string,number>();#publishing=new Set<string>();#maxStorage:number;#maxFiles:number;#writeFault:unknown;
  #queue:StorageOperation[]=[];#active=0;#exclusive=false;
+ #paths=new Map<string,string>();#publishingPaths=new Set<string>();#directories=new Map<string,number>();#directoryBytes=0;
  #root:FileHandle;#maxBytes:number;#maxOperations:number;#budget:PrintSnapshotBudget;
  #pending=new Set<Promise<unknown>>();#closed=false;#closing:Promise<void>|undefined;
  readonly #observers=new Set<(change:PublishedFileChange)=>void>();#observerFailures=0;
+ readonly #directoryObservers=new Set<(change:PublishedDirectoryChange)=>void>();
+ observeDirectories(observer:(change:PublishedDirectoryChange)=>void):()=>void{if(this.#closed||typeof observer!=='function'||this.#directoryObservers.size>=8||this.#directoryObservers.has(observer))throw new Error('Published directory observer unavailable');this.#directoryObservers.add(observer);return ()=>this.#directoryObservers.delete(observer);}
  /** Internal synchronous commit observers. Transport delivery must enqueue work
   * without awaiting clients; an observer failure cannot undo durable storage. */
  observeChanges(observer:(change:PublishedFileChange)=>void):()=>void{
@@ -47,17 +53,45 @@ export class PublishedPrintFiles {
    if(++count>32768)throw new Error('Published directory entry limit exceeded');
    const stat=await lstat(this.#path(entry.name));if(!stat.isFile()||stat.uid!==process.getuid!()||!Number.isSafeInteger(stat.size)||stat.size>1024**3)throw new Error('Unexpected published storage entry');
    if(/^[a-f0-9]{64}\.gcode$/.test(entry.name))blobs.set(entry.name,stat.size);
+   else if(entry.name==='.directories.json')await this.#loadDirectories();
    else if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name))receipts.set(entry.name,stat.size);
+   else if(/^\.directories-[a-f0-9-]{36}$/.test(entry.name))temporary.push(entry.name);
    else if(/^\.(?:upload|receipt)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
    else throw new Error('Unknown published storage entry');
   }
   const referenced=new Set<string>();let receiptBytes=0;
   // Validate ALL references before deleting anything, including temporary names.
-  for(const [name,size] of receipts){const id=name.slice(0,-5),record=await this.#record(id),blob=record.sha256+'.gcode';if(blobs.get(blob)!==record.size)throw new Error('Published receipt references missing or invalid content');referenced.add(blob);this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes:size,record,modified:(await lstat(this.#path(name))).mtimeMs/1000});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);receiptBytes+=size;}
+  for(const [name,size] of receipts){const id=name.slice(0,-5),record=await this.#record(id),blob=record.sha256+'.gcode',path=visibleFilePath(record);if(blobs.get(blob)!==record.size||this.#paths.has(path)||this.#directories.has(path)||pathParent(path)&&!this.#directories.has(pathParent(path)))throw new Error('Published receipt namespace or content is invalid');this.#paths.set(path,id);referenced.add(blob);this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes:size,record,modified:(await lstat(this.#path(name))).mtimeMs/1000});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);receiptBytes+=size;}
+  for(const path of this.#directories.keys())if(this.#paths.has(path))throw new Error('Directory collides with a published file');
   const garbage=[...temporary,...[...blobs.keys()].filter(name=>!referenced.has(name))];
   for(const name of garbage)await unlink(this.#path(name));if(garbage.length)await this.#root.sync();
-  this.#storedBytes=receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
+  this.#storedBytes=this.#directoryBytes+receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
  }
+ async #loadDirectories():Promise<void>{
+  const file=await open(this.#path('.directories.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const stat=await file.stat();if(!stat.isFile()||stat.uid!==process.getuid!()||stat.nlink!==1||(stat.mode&0o7777)!==0o600||stat.size>2*1024**2)throw new Error('Invalid published directory metadata');const buffer=Buffer.alloc(stat.size+1);let at=0;while(at<buffer.length){const r=await file.read(buffer,at,buffer.length-at,at);if(!r.bytesRead)break;at+=r.bytesRead;}if(at!==stat.size)throw new Error('Directory metadata changed while reading');
+   const data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(buffer.subarray(0,at)));if(!data||data.version!==1||Object.keys(data).some(k=>!['version','directories'].includes(k))||!Array.isArray(data.directories)||data.directories.length>1024)throw new Error('Invalid directory metadata schema');
+   for(const entry of data.directories){const path=publishedPath(entry?.path);if(Object.keys(entry).some(k=>!['path','modified'].includes(k))||!Number.isFinite(entry.modified)||entry.modified<0||this.#directories.has(path))throw new Error('Invalid directory metadata entry');this.#directories.set(path,entry.modified);}
+   for(const path of this.#directories.keys())if(pathParent(path)&&!this.#directories.has(pathParent(path)))throw new Error('Published directory parent is missing');this.#directoryBytes=stat.size;
+  }finally{await file.close();}
+ }
+ async #commitDirectories(next:Map<string,number>,signal:AbortSignal):Promise<void>{
+  const bytes=Buffer.from(JSON.stringify({version:1,directories:[...next].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>({path,modified}))}));if(bytes.length>2*1024**2||bytes.length-this.#directoryBytes>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published directory quota exceeded');
+  const temp=this.#path('.directories-'+randomUUID());let file:FileHandle|undefined,replaced=false,failure:unknown;
+  try{signal.throwIfAborted();file=await open(temp,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);await file.writeFile(bytes);await file.sync();await file.close();file=undefined;signal.throwIfAborted();await rename(temp,this.#path('.directories.json'));replaced=true;await this.#root.sync();this.#storedBytes+=bytes.length-this.#directoryBytes;this.#directoryBytes=bytes.length;this.#directories=next;}
+  catch(error){failure=error;if(replaced)this.#writeFault=error;throw new PublishedDirectoryCommitError(replaced?'replaced':'before-replace',error);}
+  finally{try{await file?.close();if(!replaced){await unlink(temp).catch(e=>{if(e.code!=='ENOENT')throw e;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Directory cleanup failed');throw new PublishedDirectoryCommitError(replaced?'replaced':'before-replace',this.#writeFault);}}
+ }
+ directoryCatalog(path:string,signal:AbortSignal):Promise<{directories:readonly {path:string;modified:number}[];files:readonly {file:PublishedPrintFile;modified:number}[]}>{return this.#run(async()=>{publishedPath(path,true);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');if(path&&!this.#directories.has(path))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});return {directories:[...this.#directories].filter(([name])=>pathParent(name)===path).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>({path,modified})),files:[...this.#records.values()].filter(entry=>pathParent(visibleFilePath(entry.record))===path).sort((a,b)=>visibleFilePath(a.record).localeCompare(visibleFilePath(b.record))).map(entry=>({file:entry.record,modified:entry.modified}))};},true,signal);}
+ mutateDirectory(path:string,remove:boolean,signal:AbortSignal):Promise<PublishedDirectoryChange>{return this.#run(async()=>{
+  publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const next=new Map(this.#directories),modified=Date.now()/1000;
+  if(remove){if(!next.has(path))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});if([...next.keys()].some(name=>name.startsWith(path+'/'))||[...this.#paths.keys()].some(name=>name.startsWith(path+'/')))throw Object.assign(new Error('Directory is not empty'),{code:'ENOTEMPTY'});next.delete(path);}
+  else{if(next.has(path)||this.#paths.has(path))throw Object.assign(new Error('Directory already exists'),{code:'EEXIST'});if(pathParent(path)&&!next.has(pathParent(path)))throw Object.assign(new Error('Directory parent not found'),{code:'ENOENT'});if(next.size>=1024)throw new Error('Published directory limit exceeded');next.set(path,modified);}
+  await this.#commitDirectories(next,signal);const event=Object.freeze({action:remove?'delete_dir' as const:'create_dir' as const,path,modified:remove?0:modified});for(const observer of this.#directoryObservers)try{observer(event);}catch{this.#observerFailures++;}return event;
+ },true,signal);}
+ resolvePath(path:string,signal:AbortSignal):Promise<string>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const id=this.#paths.get(path);if(!id)throw Object.assign(new Error('Published file path not found'),{code:'ENOENT'});return id;},true,signal);}
+ /** Display only; cached naming does not authorize opening or printing bytes. */
+ filename(id:string):string{this.#id(id);const file=this.#records.get(id)?.record;return file?visibleFilePath(file):id+'.gcode';}
  #id(id:string):void{if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new Error('Invalid published file identifier');}
  #path(name:string):string{return `/proc/self/fd/${this.#root.fd}/${name}`;}
  #run<T>(operation:()=>Promise<T>,exclusive=false,signal?:AbortSignal):Promise<T>{
@@ -89,7 +123,8 @@ export class PublishedPrintFiles {
    if(value===null||typeof value!=='object'||Array.isArray(value)||value.version!==1||value.id!==id||typeof value.sha256!=='string'||!/^[a-f0-9]{64}$/.test(value.sha256)||!Number.isSafeInteger(value.size)||value.size<0||value.size>this.#maxBytes||typeof value.name!=='string'||!value.name||value.name.length>256||/[\u0000-\u001f\u007f]/u.test(value.name))throw new Error('Invalid published file receipt');
    let source:PublishedSourceIdentity|undefined;
    if(capture){const after=await file.stat({bigint:true});if(stat.dev!==after.dev||stat.ino!==after.ino||stat.size!==BigInt(bytesRead)||stat.size!==after.size||stat.mtimeNs!==after.mtimeNs||stat.ctimeNs!==after.ctimeNs)throw new PublishedFileChangedError('Published receipt changed while reading its identity');source=Object.freeze({dev:stat.dev,ino:stat.ino,mtimeNs:stat.mtimeNs,ctimeNs:stat.ctimeNs});}
-   return {file:Object.freeze({version:1,id,sha256:value.sha256,size:value.size,name:value.name}),...source?{source}:{}};
+   if(value.path!==undefined)publishedPath(value.path);
+   return {file:Object.freeze({version:1,id,sha256:value.sha256,size:value.size,name:value.name,...value.path===undefined?{}:{path:value.path}}),...source?{source}:{}};
   }finally{await file.close();}
  }
  async #verifyExisting(record:PublishedPrintFile,signal:AbortSignal):Promise<void>{
@@ -110,7 +145,7 @@ export class PublishedPrintFiles {
  },true,signal);}
  describe(id:string,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number}>{return this.#run(async()=>{
   this.#id(id);signal.throwIfAborted();const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published file not found'),{code:'ENOENT'});
-  const file=await this.#record(id);signal.throwIfAborted();if(file.sha256!==stored.record.sha256||file.name!==stored.record.name||file.size!==stored.record.size)throw new Error('Published receipt changed outside store');return {file,modified:stored.modified};
+  const file=await this.#record(id);signal.throwIfAborted();if(file.sha256!==stored.record.sha256||file.name!==stored.record.name||file.size!==stored.record.size||visibleFilePath(file)!==visibleFilePath(stored.record))throw new Error('Published receipt changed outside store');return {file,modified:stored.modified};
  },true,signal);}
  /** Source identity is sampled with the receipt bytes from the same no-follow
   * descriptor behind the mutation barrier. Ordinary cached reads avoid the
@@ -118,7 +153,7 @@ export class PublishedPrintFiles {
  describeSource(id:string,signal:AbortSignal):Promise<{file:PublishedPrintFile;modified:number;source:PublishedSourceIdentity}>{return this.#run(async()=>{
   this.#id(id);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published source requires recovery',{cause:this.#writeFault});
   const stored=this.#records.get(id);if(!stored)throw Object.assign(new Error('Published file not found'),{code:'ENOENT'});
-  const result=await this.#receipt(id,true);signal.throwIfAborted();if(result.file.sha256!==stored.record.sha256||result.file.name!==stored.record.name||result.file.size!==stored.record.size)throw new PublishedFileChangedError('Published receipt changed outside store');return {file:result.file,modified:stored.modified,source:result.source!};
+  const result=await this.#receipt(id,true);signal.throwIfAborted();if(result.file.sha256!==stored.record.sha256||result.file.name!==stored.record.name||result.file.size!==stored.record.size||visibleFilePath(result.file)!==visibleFilePath(stored.record))throw new PublishedFileChangedError('Published receipt changed outside store');return {file:result.file,modified:stored.modified,source:result.source!};
  },true,signal);}
  diskUsage(signal:AbortSignal):Promise<{total:number;used:number;free:number}>{return this.#run(async()=>{signal.throwIfAborted();const fs=await statfs(this.#path('.'),{bigint:true});signal.throwIfAborted();const result={total:Number(fs.blocks*fs.bsize),used:Number((fs.blocks-fs.bfree)*fs.bsize),free:Number(fs.bavail*fs.bsize)};if(Object.values(result).some(value=>!Number.isSafeInteger(value)||value<0))throw new Error('Disk usage exceeds exact JSON integer range');return result;},false,signal);}
  inspect(id:string):Promise<PublishedPrintFile>{return this.#run(async()=>{this.#id(id);return this.#record(id);});}
@@ -135,13 +170,14 @@ export class PublishedPrintFiles {
    return {record,bytes};
   }finally{await file.close();}
  },false,signal);}
- publish(id:string,name:string,source:FileHandle,signal:AbortSignal):Promise<PublishedPrintFile>{return this.#run(async()=>{
+ publish(id:string,name:string,source:FileHandle,signal:AbortSignal,path?:string):Promise<PublishedPrintFile>{return this.#run(async()=>{
   this.#id(id);if(this.#writeFault)throw new Error('Published writes require recovery',{cause:this.#writeFault});if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});if(typeof name!=='string'||!name||name.length>256||/[\u0000-\u001f\u007f]/u.test(name))throw new Error('Invalid published file name');signal.throwIfAborted();
   const before=await source.stat({bigint:true});signal.throwIfAborted();if(!before.isFile()||before.size>BigInt(this.#maxBytes))throw new Error('Published source exceeds regular file limit');
   if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});
+  const visible=publishedPath(path??id+'.gcode');if(this.#paths.has(visible)||this.#publishingPaths.has(visible)||this.#directories.has(visible))throw Object.assign(new Error('Published path already exists'),{code:'EEXIST'});if(pathParent(visible)&&!this.#directories.has(pathParent(visible)))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});
   let reserved=Number(before.size)+2048;if(this.#records.size+this.#publishing.size>=this.#maxFiles||reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published storage quota exceeded');
   const temp=this.#path('.upload-'+randomUUID()),receiptTemp=this.#path('.receipt-'+randomUUID());let file:FileHandle|undefined,receipt:FileHandle|undefined,failure:unknown;
-  this.#reservedBytes+=reserved;this.#publishing.add(id);
+  this.#reservedBytes+=reserved;this.#publishing.add(id);this.#publishingPaths.add(visible);
   try{
    file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
    const buffer=Buffer.alloc(65536),hash=createHash('sha256');let position=0;
@@ -150,18 +186,18 @@ export class PublishedPrintFiles {
     while(written<bytesRead){signal.throwIfAborted();const result=await file.write(buffer,written,bytesRead-written,position+written);if(!result.bytesWritten)throw new Error('Published file write stalled');written+=result.bytesWritten;}position+=bytesRead;
    }
    const after=await source.stat({bigint:true});signal.throwIfAborted();if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Published source changed during copy');
-   const record:PublishedPrintFile=Object.freeze({version:1,id,name,sha256:hash.digest('hex'),size:position});
+   const record:PublishedPrintFile=Object.freeze({version:1,id,name,sha256:hash.digest('hex'),size:position,...path===undefined?{}:{path:visible}});if(Buffer.byteLength(JSON.stringify(record))>2048)throw new Error('Published receipt exceeds limit');
    await file.chmod(0o400);await file.sync();await file.close();file=undefined;signal.throwIfAborted();
    // Link is atomic and never replaces content already published under its digest.
    try{await link(temp,this.#path(record.sha256+'.gcode'));this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(record,signal);}
    await this.#root.sync();signal.throwIfAborted();
    receipt=await open(receiptTemp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await receipt.writeFile(JSON.stringify(record));await receipt.chmod(0o400);await receipt.sync();const modified=(await receipt.stat()).mtimeMs/1000;await receipt.close();receipt=undefined;signal.throwIfAborted();
-   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
+   await link(receiptTemp,this.#path(id+'.json'));const receiptBytes=Buffer.byteLength(JSON.stringify(record));this.#storedBytes+=receiptBytes;this.#reservedBytes-=receiptBytes;reserved-=receiptBytes;this.#records.set(id,{sha256:record.sha256,size:record.size,receiptBytes,record,modified});this.#paths.set(visible,id);this.#references.set(record.sha256,(this.#references.get(record.sha256)??0)+1);this.#publishing.delete(id);await this.#root.sync();this.#changed('create_file',record,modified);return record;
   }catch(error){failure=error;throw error;}finally{
    const closed=await Promise.allSettled([file?.close(),receipt?.close()]);
    const removed=await Promise.allSettled([unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;}),unlink(receiptTemp).catch(error=>{if(error.code!=='ENOENT')throw error;})]);
    const errors=[...closed,...removed].filter(result=>result.status==='rejected').map(result=>result.reason);
-   this.#publishing.delete(id);
+   this.#publishing.delete(id);this.#publishingPaths.delete(visible);
    if(errors.length){this.#writeFault=new AggregateError([...(failure===undefined?[]:[failure]),...errors],'Published file cleanup failed',{cause:failure});throw this.#writeFault;}
    this.#reservedBytes-=reserved;
   }
@@ -187,13 +223,13 @@ export class PublishedPrintFiles {
   const stored=this.#records.get(id);
   if(!stored)throw Object.assign(new Error('Published identifier does not exist'),{code:'ENOENT'});
   const record=await this.#record(id),receipt=await lstat(this.#path(id+'.json'));
-  if(record.sha256!==stored.sha256||record.size!==stored.size||record.name!==stored.record.name||!receipt.isFile()||receipt.size!==stored.receiptBytes)throw new Error('Published receipt changed outside store');
-  if(expected&&(record.id!==expected.id||record.sha256!==expected.sha256||record.size!==expected.size||record.name!==expected.name))throw new PublishedFileChangedError('Authorized file changed before removal');
+  if(record.sha256!==stored.sha256||record.size!==stored.size||record.name!==stored.record.name||visibleFilePath(record)!==visibleFilePath(stored.record)||!receipt.isFile()||receipt.size!==stored.receiptBytes)throw new Error('Published receipt changed outside store');
+  if(expected&&(record.id!==expected.id||record.sha256!==expected.sha256||record.size!==expected.size||record.name!==expected.name||visibleFilePath(record)!==visibleFilePath(expected)))throw new PublishedFileChangedError('Authorized file changed before removal');
   const references=this.#references.get(stored.sha256);
   if(!references)throw new Error('Published content reference invariant failed');
   signal.throwIfAborted();let removed=false;
   try{
-   await unlink(this.#path(id+'.json'));removed=true;this.#records.delete(id);
+   await unlink(this.#path(id+'.json'));removed=true;this.#records.delete(id);this.#paths.delete(visibleFilePath(record));
    // Never delete content until the absence of its receipt is durable.
    // After unlink begins, finish durability even if cancellation arrives.
    await this.#root.sync();this.#storedBytes-=stored.receiptBytes;
@@ -207,6 +243,6 @@ export class PublishedPrintFiles {
  },true,signal);}
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;
-  this.#closing=Promise.allSettled([...this.#pending]).then(()=>{this.#observers.clear();return this.#root.close();});return this.#closing;
+  this.#closing=Promise.allSettled([...this.#pending]).then(()=>{this.#observers.clear();this.#directoryObservers.clear();return this.#root.close();});return this.#closing;
  }
 }

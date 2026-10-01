@@ -10,7 +10,9 @@ import {MetadataSnapshots} from './metadata-snapshots.ts';
 import {MetadataVersions} from './metadata-versions.ts';
 import {ThumbnailProcessor} from './thumbnail-process.ts';
 import {ThumbnailStorage} from './thumbnail-storage.ts';
-import {FileMetadataStore} from './file-metadata.ts';
+import {FileMetadataStore,thumbnailPath} from './file-metadata.ts';
+import {visibleFilePath} from '../storage/published-paths.ts';
+import {nativeFilename} from './native-file-path.ts';
 import {extractPublishedMetadata,samePublishedSource} from './native-metadata-source.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
 import type {ThumbnailDownload} from './thumbnail-download.ts';
@@ -56,8 +58,8 @@ export class NativePersistentMetadata {
    const extractor=await MetadataExtractor.open({maxPending:2,maxFileBytes:files.status.maxFileBytes});closers.push(()=>extractor.close());
    const processor=await ThumbnailProcessor.open({maxPending:2,maxQueuedBytes:4*1024**2});closers.push(()=>processor.close());
    const owner=new NativePersistentMetadata(files,root,extractor,processor,images,intents,snapshots,versions);closers.push(()=>owner.#life.close());
-   const signal=owner.#stop.signal,ids=new Set(await files.listIds(signal));
-   for(const version of versions.entries())if(version.state!=='invalidated'&&(version.state==='pending'||!ids.has(version.filename.slice(0,-6))))await owner.#life.invalidate(version.filename,signal);
+   const signal=owner.#stop.signal,paths=new Set((await files.catalog(signal)).map(entry=>visibleFilePath(entry.file)));
+   for(const version of versions.entries())if(version.state!=='invalidated'&&(version.state==='pending'||!paths.has(version.filename)))await owner.#life.invalidate(version.filename,signal);
    for(const intent of intents.unresolved())if(!versions.current(intent.filename))await owner.#life.invalidate(intent.filename,signal);
    await owner.#life.retireSuperseded(signal);owner.#index();return owner;
   }catch(error){const failed:unknown[]=[error];for(const close of closers.reverse())try{await close();}catch(cleanup){failed.push(cleanup);}if(failed.length>1)throw new AggregateError(failed,'Native metadata startup cleanup failed');throw error;}
@@ -79,12 +81,12 @@ export class NativePersistentMetadata {
  }
  #room(){while(this.#keys.size&&(this.#keys.size>=128||this.#cache.status.bytes>this.#cache.status.maxBytes-this.#cache.status.maxRecordBytes-256)){this.#drop(this.#keys.keys().next().value!);}}
  metadata(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  if(!/^[A-Za-z0-9_-]{1,128}\.gcode$/.test(filename))return Promise.reject(new ApiError(400,'Invalid native metadata filename'));
+  try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
   const combined=AbortSignal.any([signal,this.#stop.signal]);return this.#admit(()=>this.#get(filename,combined));
  }
  async #get(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  signal.throwIfAborted();const id=filename.slice(0,-6);let initial:Awaited<ReturnType<PublishedPrintFiles['describeSource']>>;
-  try{initial=await this.files.describeSource(id,signal);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT'){this.#drop(filename);throw new ApiError(404,'Published file not found');}throw error;}
+  signal.throwIfAborted();let id:string,initial:Awaited<ReturnType<PublishedPrintFiles['describeSource']>>;
+  try{id=await this.files.resolvePath(filename,signal);initial=await this.files.describeSource(id,signal);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT'){this.#drop(filename);throw new ApiError(404,'Published file not found');}throw error;}
   const key=this.#keys.get(filename);if(key&&samePublishedSource(key,initial.source)&&this.peek(filename,initial.file,initial.modified)){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
   this.#drop(filename);this.#room();
   const validate=async(source:PublishedSourceIdentity,s:AbortSignal)=>{try{return samePublishedSource(source,(await this.files.describeSource(id,s)).source);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')return false;throw error;}};
@@ -100,13 +102,17 @@ export class NativePersistentMetadata {
   this.#keys.set(filename,current.source);await this.#life.retireSuperseded(signal,filename);this.#index();return this.#cache.metadata(filename);
  }
  async thumbnails(filename:string,signal:AbortSignal):Promise<Json[]>{await this.metadata(filename,signal);return this.#cache.thumbnails(filename);}
- #owner(path:string):string|undefined{const match=/^\/server\/files\/gcodes\/\.thumbs\/(thumb-[a-f0-9-]{36})\/(?:0|[1-9][0-9]?)\.(?:png|jpg)$/.exec(path);return match?this.#bundles.get(match[1]):undefined;}
+ #owner(path:string):string|undefined{
+  if(!path.startsWith('/server/files/gcodes/'))return;let decoded:string;try{decoded=decodeURIComponent(path.slice('/server/files/gcodes/'.length));}catch{return;}
+  const at=decoded.lastIndexOf('.thumbs/'),relative=decoded.slice(at),match=/^\.thumbs\/(thumb-[a-f0-9-]{36})\/(?:0|[1-9][0-9]?)\.(?:png|jpg)$/.exec(relative),filename=match&&this.#bundles.get(match[1]);
+  return filename&&thumbnailPath(filename,relative)===decoded?filename:undefined;
+ }
  hasThumbnail(path:string):boolean{return !!this.#owner(path);}
  async resolveThumbnail(path:string,context:RpcContext):Promise<ThumbnailDownload>{
   await context.authorize('server.files.download',{path});const filename=this.#owner(path);if(!filename)throw new ApiError(404,'Thumbnail not found');
   await context.authorize('server.files.download',{path,filename});await this.metadata(filename,context.signal);
   const download=await this.#life.thumbnailDownloads(()=>this.#stop.signal.throwIfAborted()).resolve(path,context),snapshot=this.#cache.peek(filename);
-  const validate=async()=>{context.signal.throwIfAborted();this.#stop.signal.throwIfAborted();const current=await this.files.describeSource(filename.slice(0,-6),context.signal).catch(error=>{if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Thumbnail source removed');throw error;});const source=this.#keys.get(filename);if(!source||this.#cache.peek(filename)!==snapshot||!samePublishedSource(source,current.source))throw new ApiError(404,'Thumbnail source changed');};
+  const validate=async()=>{context.signal.throwIfAborted();this.#stop.signal.throwIfAborted();const current=await this.files.resolvePath(filename,context.signal).then(id=>this.files.describeSource(id,context.signal)).catch(error=>{if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Thumbnail source removed');throw error;});const source=this.#keys.get(filename);if(!source||this.#cache.peek(filename)!==snapshot||!samePublishedSource(source,current.source))throw new ApiError(404,'Thumbnail source changed');};
   await validate();return {...download,read:async()=>{await validate();const value=await download.read();await validate();return value;}};
  }
  close():Promise<void>{if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Native metadata closed'));this.#closing=(async()=>{await Promise.allSettled([...this.#pending]);await this.#life.close();const results=await Promise.allSettled([this.extractor.close(),this.processor.close(),this.images.close(),this.intents.close(),this.snapshots.close(),this.versions.close()]);this.#cache.clear();this.#keys.clear();this.#bundles.clear();try{await this.root.close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native metadata close failed');})();return this.#closing;}

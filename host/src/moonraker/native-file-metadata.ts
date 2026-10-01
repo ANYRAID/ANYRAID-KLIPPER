@@ -8,6 +8,7 @@ import {MetadataExtractor} from './metadata-extractor.ts';
 import {extractPublishedMetadata,samePublishedSource} from './native-metadata-source.ts';
 import {FileMetadataStore} from './file-metadata.ts';
 import {ApiError,type Json,type RpcContext} from './rpc.ts';
+import {nativeFilename} from './native-file-path.ts';
 const identity=(file:PublishedPrintFile,modified:number)=>JSON.stringify([file.sha256,file.name,file.size,modified]);
 /** Metadata and bounded derived previews for the immutable native namespace. Worker parsing shares the
  * existing slicer implementations; verified byte windows do not retain memfd leases. */
@@ -27,7 +28,7 @@ export class NativeFileMetadata {
  hasThumbnail(path:string):boolean{try{return !!this.#cache.thumbnailOwner(decodeURIComponent(path.slice('/server/files/gcodes/'.length)));}catch{return false;}}
  async #validateThumbnail(filename:string,snapshot:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<void>{
   signal.throwIfAborted();this.#stop.signal.throwIfAborted();
-  try{const current=await this.#files.describe(filename.slice(0,-6),signal);if(this.#cache.peek(filename)!==snapshot||!this.peek(filename,current.file,current.modified))throw new ApiError(404,'Native thumbnail reference changed');}
+  try{const current=await this.#files.describe(await this.#files.resolvePath(filename,signal),signal);if(this.#cache.peek(filename)!==snapshot||!this.peek(filename,current.file,current.modified))throw new ApiError(404,'Native thumbnail reference changed');}
   catch(error){if((error instanceof ApiError&&error.status===404||(error as NodeJS.ErrnoException)?.code==='ENOENT')&&this.#cache.peek(filename)===snapshot)this.#drop(filename);if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Native thumbnail source removed');throw error;}
  }
  async #readImage(id:string,index:number,signal:AbortSignal,maxBytes=8*1024**2){
@@ -44,13 +45,14 @@ export class NativeFileMetadata {
  async thumbnails(filename:string,signal:AbortSignal):Promise<Json[]>{await this.metadata(filename,signal);signal.throwIfAborted();return this.#cache.thumbnails(filename);}
  metadata(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
   if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Native metadata closed'));
-  if(!/^[A-Za-z0-9_-]{1,128}\.gcode$/.test(filename))return Promise.reject(new ApiError(400,'Invalid native metadata filename'));
+  try{nativeFilename(filename);}catch(error){return Promise.reject(error);}
   if(this.#pending.size>=2)return Promise.reject(new ApiError(503,'Native metadata queue full'));
   const combined=AbortSignal.any([signal,this.#stop.signal]);const task=this.#extract(filename,combined);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }
  async #extract(filename:string,signal:AbortSignal):Promise<Record<string,Json>>{
-  signal.throwIfAborted();const id=filename.slice(0,-6);
+  signal.throwIfAborted();
   try{
+   const id=await this.#files.resolvePath(filename,signal);
    const initial=await this.#files.describe(id,signal),key=identity(initial.file,initial.modified),cached=this.peek(filename,initial.file,initial.modified);
    if(cached){this.#keys.delete(filename);this.#keys.set(filename,key);return this.#cache.metadata(filename);}
    const worker=await(this.#worker??=MetadataExtractor.open({maxPending:2,maxFileBytes:this.#files.status.maxFileBytes}));signal.throwIfAborted();

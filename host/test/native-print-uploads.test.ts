@@ -92,10 +92,42 @@ test('streaming native upload exceeds JSON limit and publishes exact immutable b
   assert.equal((await f.post(multipart('changed',{file_id:'large'}))).status,409);assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await fetch(f.url+'/printer/files/info?file_id=missing')).status,404);
  }finally{await f.clean();}
 });
+test('directory upload keeps visible names, immutable IDs, metadata, encoded downloads and empty-directory removal aligned',async()=>{
+ const f=await fixture({removal:true});try{
+  const directory=async(path:string,method='POST')=>fetch(f.url+'/server/files/directory',{method,headers:{'content-type':'application/json'},body:JSON.stringify({path})});
+  assert.equal((await directory('gcodes/零件')).status,200);assert.equal((await directory('gcodes/零件/首批')).status,200);
+  assert.equal((await directory('gcodes/零件')).status,409);assert.equal((await directory('gcodes')).status,400);
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png),path='零件/首批/50% test.gcode';
+  const uploaded=await f.post(multipart(data,{file_id:'nested',path:'零件/首批'},'50% test.gcode'));assert.equal(uploaded.status,200);const receipt=await uploaded.json();assert.equal(receipt.item.path,path);assert.equal(receipt.file.id,'nested');assert.equal(receipt.file.path,path);
+  const listing=(await (await fetch(f.url+'/server/files/list')).json()).result;assert.equal(listing[0].path,path);assert.equal(listing[0].file_id,'nested');
+  const meta=(await (await fetch(f.url+'/server/files/metadata?filename='+encodeURIComponent(path))).json()).result;assert.equal(meta.file_id,'nested');assert.equal(meta.filename,path);assert.equal(meta.thumbnails.length,2);
+  const contents=(await (await fetch(f.url+'/server/files/directory?path='+encodeURIComponent('gcodes/零件/首批')+'&extended=true')).json()).result;assert.equal(contents.files[0].filename,'50% test.gcode');assert.equal(contents.files[0].file_id,'nested');assert.equal(contents.files[0].thumbnails.length,2);
+  const encode=(value:string)=>value.split('/').map(encodeURIComponent).join('/'),download=f.url+'/server/files/gcodes/'+encode(path);assert.equal(await (await fetch(download)).text(),data);
+  const thumbs=(await (await fetch(f.url+'/server/files/thumbnails?filename='+encodeURIComponent(path))).json()).result,preview=f.url+'/server/files/gcodes/'+encode(thumbs[1].thumbnail_path);
+  assert.ok(thumbs[1].thumbnail_path.startsWith('零件/首批/.thumbs/'));const image=await fetch(preview);assert.equal(image.status,200);assert.deepEqual(Buffer.from(await image.arrayBuffer()),png);
+  assert.equal((await fetch(f.url+'/server/files/gcodes/'+encode(meta.thumbnails[1].relative_path))).status,404,'A bundle cannot be downloaded from a different directory');
+  assert.equal((await directory('gcodes/零件/首批','DELETE')).status,409);assert.equal((await f.post(multipart('different',{file_id:'other',path:'零件/首批'},'50% test.gcode'))).status,409);
+  assert.equal((await fetch(download,{method:'DELETE'})).status,200);assert.equal((await fetch(preview)).status,404);assert.equal((await directory('gcodes/零件/首批','DELETE')).status,200);assert.equal((await directory('gcodes/零件','DELETE')).status,200);
+ }finally{await f.clean();}
+});
+for(const failedSync of [1,2])test(`directory sync failure ${failedSync} reports its commit phase and recovers without a success event`,async t=>{
+ const f=await fixture(),handle=await open(join(f.dir,'files'),'r'),prototype=Object.getPrototypeOf(handle) as import('node:fs/promises').FileHandle,original=prototype.sync;let calls=0,events=0;await handle.close();
+ const release=f.files.observeDirectories(()=>events++),injected=t.mock.method(prototype,'sync',async function(this:import('node:fs/promises').FileHandle){if(++calls===failedSync)throw Error('Injected namespace sync failure');return original.call(this);});
+ try{
+  const response=await fetch(f.url+'/server/files/directory',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:'gcodes/parts'})});assert.equal(response.status,500);assert.equal((await response.json()).error.data.phase,failedSync===1?'before-replace':'replaced');assert.equal(events,0);
+  injected.mock.restore();assert.equal((await readdir(join(f.dir,'files'))).some(name=>name.startsWith('.directories-')),false);
+  if(failedSync===2){assert(f.files.status.writeFault);await assert.rejects(f.files.directoryCatalog('',new AbortController().signal),/requires recovery/);}
+  else{assert.equal(f.files.status.writeFault,undefined);assert.deepEqual((await f.files.directoryCatalog('',new AbortController().signal)).directories,[]);}
+  await f.uploads.close();await f.files.close();const recovered=await PublishedPrintFiles.open(join(f.dir,'files'));try{assert.deepEqual((await recovered.directoryCatalog('',new AbortController().signal)).directories.map(d=>d.path),failedSync===2?['parts']:[]);}finally{await recovered.close();}
+ }finally{injected.mock.restore();release();await f.clean();}
+});
+test('standard multipart filename is visible without a client-supplied receipt ID',async()=>{
+ const f=await fixture();try{const response=await f.post(multipart('G1 X1\n',{},'零件.gcode'));assert.equal(response.status,200);const value=await response.json();assert.equal(value.item.path,'零件.gcode');assert.notEqual(value.file.id,'零件');assert.equal(await f.files.resolvePath('零件.gcode',new AbortController().signal),value.file.id);assert.equal(await (await fetch(f.url+'/server/files/gcodes/'+encodeURIComponent('零件.gcode'))).text(),'G1 X1\n');}finally{await f.clean();}
+});
 test('multipart bounds, fields, paths, digest and auto-print fail without publication or staging leftovers',async()=>{
  const f=await fixture({max:100});try{
   assert.equal((await f.post(multipart('x'.repeat(100),{file_id:'exact'}))).status,200);
-  const cases:[FormData,number][]=[[multipart('x'.repeat(101)),413],[multipart('G1',{print:'true'}),400],[multipart('G1',{path:'sub'}),400],[multipart('G1',{root:'config'}),400],[multipart('G1',{checksum:'0'.repeat(64)}),422],[multipart('G1',{},'../bad.gcode'),400],[multipart('G1',{},'bad.py'),400],[multipart('G1',{unexpected:'x'}),400],[multipart('G1',{file_id:'../id'}),400]];
+  const cases:[FormData,number][]=[[multipart('x'.repeat(101)),413],[multipart('G1',{print:'true'}),400],[multipart('G1',{path:'sub'}),404],[multipart('G1',{path:'../sub'}),400],[multipart('G1',{root:'config'}),400],[multipart('G1',{checksum:'0'.repeat(64)}),422],[multipart('G1',{},'../bad.gcode'),400],[multipart('G1',{},'bad.py'),400],[multipart('G1',{unexpected:'x'}),400],[multipart('G1',{file_id:'../id'}),400]];
   const duplicate=multipart();duplicate.append('root','gcodes');duplicate.append('root','gcodes');cases.push([duplicate,400]);const extra=multipart();extra.append('file',new Blob(['G1']),'other.gcode');cases.push([extra,400]);cases.push([new FormData(),400]);
   for(const [body,status] of cases){const response=await f.post(body);assert.equal(response.status,status,await response.text());assert.equal(f.files.status.publishedFiles,1);assert.deepEqual(await readdir(f.dir),['files']);}
   const truncated=await fetch(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'},body:'--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\n\r\nG1'});assert.equal(truncated.status,400);assert.deepEqual(await readdir(f.dir),['files']);

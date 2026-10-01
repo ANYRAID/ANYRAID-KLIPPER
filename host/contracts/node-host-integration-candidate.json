@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "date": "2026-10-01",
+  "date": "2026-10-02",
   "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
   "scope": "Pre-develop draft integration candidate. Committed source snapshot only; M2 working-tree draft excluded. Local Linux x64 build/install and no-motion CLI acceptance, not full migration, complete Moonraker, production release or target hardware approval.",
   "remote": {
@@ -12,7 +12,7 @@
     "verification": "Authenticated git ls-remote; candidate branch pushed and draft PR created. No merge or default-entry switch performed.",
     "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/1",
     "head": "devac/node26-moonraker-integration",
-    "observedRevision": "a33aa11335c675797618a40afbee641e2b66efa2",
+    "observedRevision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
     "draft": true
   },
   "isolation": {
@@ -265,54 +265,122 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Check complete exact new PR-head CI after per-file sanitizer scheduling repair, then determine mapped trigger/readback clock and PWM refresh failures. Prior calibration 503 remains unresolved. M2a resumes after required integration checks.",
+    "next": "1b80 prescribed CI passed. M2a namespace software/API and compiled-product evidence is separate in native-file-namespace-acceptance.json; obtain exact new-head CI and complete fixed-client same-bundle page acceptance. Historical mapped-clock, PWM, Delta calibration and G3 failures remain unresolved; no merge or real motion approval inferred.",
     "current": {
-      "revision": "a33aa11335c675797618a40afbee641e2b66efa2",
-      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058994/job/110432617886",
-      "result": "failure",
-      "tests": 3803,
-      "passed": 3801,
-      "failed": 2,
-      "failures": [
-        {
-          "test": "host/test/delta-bltouch.test.ts",
-          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
-          "actualStatus": 503,
-          "hardwareFault": "Invalid mapped trigger clock",
-          "motionFault": "Native file motion stopped",
-          "probeHits": 1,
-          "rootCause": "unresolved"
+      "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
+      "baseRevision": "ce7002bedf37e938bb483572949f3703ac6476cb",
+      "testedMergeRevision": "e89940d",
+      "observedAt": "2026-10-01T16:24:28Z",
+      "host": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798204/job/110455449310",
+        "status": "completed",
+        "steps": {
+          "typecheck": "success",
+          "whitespace": "success",
+          "ordinaryTests": "success",
+          "protocolNative": "success",
+          "nativeSanitized": "success",
+          "linuxMcu": "success"
         },
-        {
-          "test": "host/test/htu21d-hardware.test.ts",
-          "name": "configured HTU21D heater publishes fractional humidity and CRC fault stops both MCUs",
-          "actualFault": "Heater PWM refresh deadline missed",
-          "expectedFault": "checksum",
-          "rootCause": "unresolved"
-        }
-      ],
-      "pushHost": {
-        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881048729/job/110432581924",
-        "tests": 3803,
-        "passed": 3803,
-        "failed": 0,
-        "result": "failure",
-        "failure": "First sanitized child exceeded the 60000 ms aggregate invocation deadline while later files were still running",
-        "scope": "Ordinary tests and protocol step passed; full sanitizer and subsequent Linux MCU step did not complete."
+        "scope": "Complete decoded job log and terminal step conclusions; historical intermittent failures remain unresolved.",
+        "conclusion": "success",
+        "ordinaryTests": {
+          "tests": 3803,
+          "pass": 3803,
+          "fail": 0
+        },
+        "sanitizer": [
+          {
+            "configuration": "UBSan",
+            "files": 149,
+            "uniqueFiles": 149,
+            "tests": 1178,
+            "pass": 1178,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "maxFileMs": 45853.81712600001,
+            "allWithinOriginalDeadline": true
+          },
+          {
+            "configuration": "ASan plus UBSan",
+            "files": 149,
+            "uniqueFiles": 149,
+            "tests": 1178,
+            "pass": 1178,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "maxFileMs": 46239.61033199995,
+            "allWithinOriginalDeadline": true
+          }
+        ]
       },
       "firmware": {
-        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058832/job/110432616444",
-        "status": "in_progress",
-        "observedStep": "Prepare tests",
-        "testStarted": false
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798133/job/110455447715",
+        "status": "completed",
+        "conclusion": "success",
+        "configurations": [
+          "test/configs/ar100.config",
+          "test/configs/at90usb1286.config",
+          "test/configs/atmega1280.config",
+          "test/configs/atmega1284p.config",
+          "test/configs/atmega2560.config",
+          "test/configs/atmega328.config",
+          "test/configs/atmega644p.config",
+          "test/configs/hc32f460-serial-PA3PA2.config",
+          "test/configs/hc32f460-serial-PA7PA8.config",
+          "test/configs/hostsimulator.config",
+          "test/configs/lgt8f328p.config",
+          "test/configs/linuxprocess.config",
+          "test/configs/lpc176x.config",
+          "test/configs/n32g45x-canbus.config",
+          "test/configs/n32g45x.config",
+          "test/configs/pru.config",
+          "test/configs/rp2040.config",
+          "test/configs/rp2350.config",
+          "test/configs/sam3x8c.config",
+          "test/configs/sam3x8e.config",
+          "test/configs/sam4e8e.config",
+          "test/configs/sam4s8c.config",
+          "test/configs/samd21g18.config",
+          "test/configs/samd51p20.config",
+          "test/configs/same70q20b.config",
+          "test/configs/stm32f031.config",
+          "test/configs/stm32f042.config",
+          "test/configs/stm32f070.config",
+          "test/configs/stm32f103-serial.config",
+          "test/configs/stm32f103.config",
+          "test/configs/stm32f401.config",
+          "test/configs/stm32f405.config",
+          "test/configs/stm32f407.config",
+          "test/configs/stm32f429.config",
+          "test/configs/stm32f446.config",
+          "test/configs/stm32f765.config",
+          "test/configs/stm32g0b1.config",
+          "test/configs/stm32g431.config",
+          "test/configs/stm32g474.config",
+          "test/configs/stm32h723.config",
+          "test/configs/stm32h743.config",
+          "test/configs/stm32l412.config"
+        ],
+        "legacyImports": {
+          "Python3": "success",
+          "Python2": "success"
+        },
+        "legacyCasesPerRuntime": 239,
+        "legacyFilesPerRuntime": 37,
+        "source": "Decoded complete GitHub job log verifies checkout merge includes the exact candidate revision; all build sections finished and both legacy invocation summaries passed."
       },
       "motionDiagnostics": {
-        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058833",
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798165",
         "completed": 8,
         "successfulExit": 8,
-        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+        "scope": "Finite observations do not close historical numerical mismatches or crashes and do not establish physical precision or timing."
       },
-      "scope": "Decoded complete host logs obtained from the GitHub connector. PR and push ordinary-test outcomes differ on the same source revision. Firmware result is pending; no merge or hardware approval."
+      "scope": "No merge, default switch, Python retirement or real motion approval. Historical mapped-clock, PWM and Delta calibration failures remain unresolved."
     },
     "stopStateRepair": {
       "reference": "ci-stop-state-acceptance.json",
@@ -487,11 +555,59 @@
           "sha256": "2a2bb8641b5845f84ae034cb6a8e17bb1a2c70c2092f447ffe9da8d3082eba42"
         }
       ]
+    },
+    "preSchedulingCi": {
+      "revision": "a33aa11335c675797618a40afbee641e2b66efa2",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058994/job/110432617886",
+      "result": "failure",
+      "tests": 3803,
+      "passed": 3801,
+      "failed": 2,
+      "failures": [
+        {
+          "test": "host/test/delta-bltouch.test.ts",
+          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "actualStatus": 503,
+          "hardwareFault": "Invalid mapped trigger clock",
+          "motionFault": "Native file motion stopped",
+          "probeHits": 1,
+          "rootCause": "unresolved"
+        },
+        {
+          "test": "host/test/htu21d-hardware.test.ts",
+          "name": "configured HTU21D heater publishes fractional humidity and CRC fault stops both MCUs",
+          "actualFault": "Heater PWM refresh deadline missed",
+          "expectedFault": "checksum",
+          "rootCause": "unresolved"
+        }
+      ],
+      "pushHost": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881048729/job/110432581924",
+        "tests": 3803,
+        "passed": 3803,
+        "failed": 0,
+        "result": "failure",
+        "failure": "First sanitized child exceeded the 60000 ms aggregate invocation deadline while later files were still running",
+        "scope": "Ordinary tests and protocol step passed; full sanitizer and subsequent Linux MCU step did not complete."
+      },
+      "firmware": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058832/job/110432616444",
+        "status": "in_progress",
+        "observedStep": "Prepare tests",
+        "testStarted": false
+      },
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058833",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+      },
+      "scope": "Decoded complete host logs obtained from the GitHub connector. PR and push ordinary-test outcomes differ on the same source revision. Firmware result is pending; no merge or hardware approval."
     }
   },
   "mergeReady": false,
   "remaining": [
-    "Full Node host, native sanitizer/protocol, original firmware/legacy host compatibility and documentation CI on the exact PR head; no CI pass assumed.",
+    "Run prescribed full CI on the new M2a source revision; the exact 1b80 host, firmware and compatibility jobs have completed successfully.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
@@ -531,5 +647,12 @@
       "path": "/tmp/anyraid-develop-import-graph.json",
       "sha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b"
     }
-  ]
+  ],
+  "increments": {
+    "m2a": {
+      "evidence": "host/contracts/native-file-namespace-acceptance.json",
+      "status": "software validation; full fixed-client same-bundle pages and exact new-source CI pending",
+      "scope": "Separate source hashes and compiled manifest; initial M1 product and 1b80 CI are not attributed to this increment."
+    }
+  }
 }

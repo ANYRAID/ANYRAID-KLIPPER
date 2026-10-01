@@ -11,6 +11,7 @@ import {PrintController} from '../src/operations/print.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import {PublishedPrintFiles} from '../src/storage/published-files.ts';
+import {ApiError} from '../src/moonraker/rpc.ts';
 const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert(Date.now()<end,'File notification timed out');await new Promise(r=>setTimeout(r,5));}};
 test('durable file events have per-file authorization and ordered delivery; held clients cannot block files or stop',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'native-file-events-')),gate=new MaintenanceGate(),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'}),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir});
@@ -35,4 +36,19 @@ test('durable file events have per-file authorization and ordered delivery; held
   // Unsettled policy work remains accounted for; shutdown reports its deadline.
   await assert.rejects(service.close(),/shutdown deadline/);assert.equal(files.changeObservers.count,0);assert.equal(files.changeObservers.failures,0);held.resolve();await service.close();
  }finally{held.resolve();for(const socket of sockets)socket.terminate();await service?.close();await uploads.close();await files.close();await journal.close();await rm(dir,{recursive:true,force:true});}
+});
+test('directory HTTP and verb-prefixed RPC changes publish only durable authorized events',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'native-directory-events-')),gate=new MaintenanceGate(),journal=await PrintJournal.open({path:join(dir,'jobs.db'),deviceId:'printer'}),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate),controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{journal,maintenanceGate:gate});
+ const sockets:WebSocket[]=[],events:any[][]=[[],[]];let service:ConfiguredMoonraker|undefined;
+ try{
+  const config=join(dir,'moonraker.conf');await writeFile(config,'[server]\nhost=127.0.0.1\nport=0');
+  service=await ConfiguredMoonraker.load(config,{nativeUploads:uploads,productPrint:controller,maintenanceGate:gate,information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize(method,params){if(method==='server.files.post_directory'&&params.path==='gcodes/private')throw new ApiError(403,'Denied directory');},authorizeNotification(method,_params,context){if(method!=='notify_filelist_changed'||context.request.headers['x-role']!=='allowed')throw new Error('Denied notification');}});
+  const {port}=await service.start(),base=`http://127.0.0.1:${port}`;
+  for(const [i,role] of ['allowed','denied'].entries()){const socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers:{'x-role':role}});socket.on('message',data=>{const message=JSON.parse(data.toString());if(message.method==='notify_filelist_changed')events[i].push(message.params[0]);});sockets.push(socket);await once(socket,'open');}
+  const rpc=async(method:string,path:string)=>(await (await fetch(base+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params:{path}})})).json());
+  const denied=await rpc('server.files.post_directory','gcodes/private');assert(denied.error);assert.deepEqual((await files.directoryCatalog('',new AbortController().signal)).directories,[]);assert.equal(service.fileNotifications.received,0);
+  const created=await rpc('server.files.post_directory','gcodes/parts');assert.equal(created.result.action,'create_dir');assert.equal(created.result.item.path,'parts');await until(()=>events[0].length===1);
+  const duplicate=await rpc('server.files.post_directory','gcodes/parts');assert(duplicate.error);assert.equal(service.fileNotifications.received,1);
+  const removed=await fetch(base+'/server/files/directory',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({path:'gcodes/parts'})});assert.equal(removed.status,200);await until(()=>events[0].length===2);assert.deepEqual(events[0].map(e=>e.action),['create_dir','delete_dir']);assert.equal(events[0][1].item.permissions,'');assert.equal(events[1].length,0);assert.deepEqual((await files.directoryCatalog('',new AbortController().signal)).directories,[]);
+ }finally{for(const socket of sockets)socket.terminate();await service?.close();await uploads.drain();await files.close();await journal.close();await rm(dir,{recursive:true,force:true});}
 });

@@ -1,0 +1,542 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "implementationBase": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
+  "scope": "M2a native Moonraker namespace software/API increment and independent compiled simulated-product validation. Full fixed-client same-bundle page acceptance and exact new-head full CI pending. No complete Moonraker, Python retirement, target timing or real motion claim.",
+  "runtime": {
+    "node": "v26.9.0",
+    "typescript": "7.0.2",
+    "platform": "linux",
+    "arch": "x64"
+  },
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "source": "moonraker/components/file_manager/file_manager.py",
+    "url": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/file_manager/file_manager.py",
+    "reviewedRanges": {
+      "directory": [
+        492,
+        550
+      ],
+      "upload": [
+        844,
+        883
+      ]
+    },
+    "fixedClients": {
+      "fluidd": "1.37.6",
+      "mainsail": "2.19.0"
+    }
+  },
+  "implemented": {
+    "journey": [
+      "POST/RPC post_directory creates an existing-parent child",
+      "GET/RPC get_directory lists immediate children; extended metadata retains full lookup path",
+      "Multipart root=gcodes plus optional relative path publishes actual filename with an opaque immutable ID",
+      "Metadata, thumbnails, percent-encoded downloads and standard print/start resolve canonical path to original ID",
+      "DELETE/RPC delete_file preserves active-job guards; DELETE/RPC delete_directory removes only empty directories",
+      "Persistent directories, named receipts and original nested thumbnail URLs recover after process restart"
+    ],
+    "identity": "Logical visible namespace never becomes a blob/receipt filesystem path. Content, receipt ID and sealed print snapshots remain immutable; opaque ID literals are not alternate names for named files.",
+    "legacy": "Explicit file_id with absent path retains ID.gcode and existing v1 receipt schema. Standard multipart or explicit empty path publishes actual filename.",
+    "limits": {
+      "pathUtf8Bytes": 1024,
+      "componentUtf8Bytes": 255,
+      "maxComponents": 32,
+      "maxDirectories": 1024,
+      "maxDirectoryManifestBytes": 2097152,
+      "receiptBytes": 2048
+    },
+    "protection": [
+      "Relative POSIX paths; well-formed UTF-16; no dot/dotdot/empty segments, backslash, NUL/control, .thumbs or .git segments",
+      "Path collision claims reserved across admitted concurrent publication; directory mutations wait behind publication barrier",
+      "Raw/resolved-ID authorization retained; download/delete/start revalidate path binding after authorization",
+      "Directory mutations use bounded admission, cancellation and shared maintenance activity; committed events use existing authorized bounded queues",
+      "Commit failure reports ApiError 500 data.phase before-replace/replaced through HTTP and RPC; replaced uncertainty requires recovery",
+      "Recovery validates all parent/collision/receipt invariants before deleting owned temporary or unreferenced content"
+    ]
+  },
+  "verification": {
+    "files": {
+      "command": "node --test --test-concurrency=1 test/published-namespace.test.ts test/native-print-uploads.test.ts test/native-file-download.test.ts test/native-file-previews.test.ts test/native-persistent-metadata.test.ts test/native-product-machine.test.ts test/moonraker-network.test.ts",
+      "tests": 60,
+      "pass": 60,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "existingStorage": {
+      "command": "node --test --test-concurrency=1 test/published-files.test.ts test/published-delete.test.ts test/published-recovery.test.ts",
+      "tests": 26,
+      "pass": 26,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "lifecycle": {
+      "files": [
+        "native-file-notifications",
+        "native-process-offline-resources",
+        "native-product-process-lifetime",
+        "native-product-restart",
+        "native-history"
+      ],
+      "initial": {
+        "tests": 38,
+        "pass": 37,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "initialFailure": "New directory notification fixture omitted required durable PrintJournal; 37 existing tests passed. Fixture corrected without changing product ownership constraints.",
+      "affectedFileAfterRepair": {
+        "tests": 2,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "scope": "Separate runs; initially failed invocation remains recorded as failed."
+    },
+    "durability": "Two actual filesystem sync failures through HTTP verify phase data, no success events, temporary cleanup, replaced write fault and reopen recovery.",
+    "compiled": {
+      "command": "node --test --test-concurrency=1 --test-name-pattern='^namespace=true nativeAuthorization=true apiLoad=true ' acceptance/product-compiled-journey.test.ts",
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "manifestSha256": "6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582",
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 821,
+        "configListP99Ms": 8.879582999998092,
+        "configDownloads": 820,
+        "configDownloadP99Ms": 9.781374999998661,
+        "liveMotionSamples": 2612,
+        "liveExtrusionSamples": 1466,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.706916114,
+          "print_duration": 2.503643622,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 3977,
+        "phaseP99Ms": 5.664452000000892,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 168,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 894,
+        "historyP99Ms": 11.228864000000613,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.803454000000784,
+        "deleteRequests": 16,
+        "deleteP95Ms": 7.62819799999852,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 4.58527900000081,
+        "metadataRequests": 16,
+        "metadataP95Ms": 44.32075600000098,
+        "downloads": 16,
+        "downloadP95Ms": 5.967315999994753,
+        "wireCommands": 190,
+        "wireSteps": 3704,
+        "minimumStepLeadMs": 84.245,
+        "directoryRequests": 3810,
+        "directoryP99Ms": 8.064202000001387,
+        "statusRequests": 15910,
+        "uploads": 16,
+        "statusP99Ms": 6.190778999998656,
+        "uploadP95Ms": 10.4734040000003,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.119679,
+              "maxMs": 25.198591
+            },
+            "cpu": {
+              "user": 6820638,
+              "system": 1028968
+            },
+            "rss": 333697024
+          },
+          {
+            "loop": {
+              "p99Ms": 1.995775,
+              "maxMs": 11.968511
+            },
+            "cpu": {
+              "user": 2157325,
+              "system": 389055
+            },
+            "rss": 334991360
+          }
+        ]
+      },
+      "processProof": [
+        {
+          "compiledDetachedWindow": {
+            "sameListener": true,
+            "priorJwt": true,
+            "originalSockets": true,
+            "metadataAndHistory": true,
+            "downloadSha256": "85c54197d1abee71ed4b84cbbcbdea6f92e9a2204a5a1b1b0efad7a0dfb5ab85",
+            "noPrintReplay": true,
+            "fileQueries": 50,
+            "fileQueryP99Ms": 0.3901349999978265
+          }
+        },
+        {
+          "retainedProcessServer": {
+            "sameAddress": true,
+            "priorJwtAccepted": true,
+            "originalSocketsOpen": true,
+            "reinitializeMs": 2937.249136999999
+          }
+        },
+        {
+          "nativeAuthorizationRestart": {
+            "compiled": true,
+            "processRestart": true,
+            "persistedLogin": true,
+            "priorTokenAccepted": true,
+            "filesAndHistory": true,
+            "noReplay": true,
+            "interruptedResumeRejected": true,
+            "explicitCancel": true,
+            "logoutRevoked": true
+          }
+        }
+      ],
+      "productRuntime": "Emitted JavaScript and bundled native addons, independently installed production dependencies; Python and TypeScript loaders unavailable. Test/PTY MCU simulation stays in parent.",
+      "hardGates": {
+        "minimumStepLeadMs": "> 0",
+        "eachGenerationEventLoopP99Ms": "< 50",
+        "eachGenerationEventLoopMaximumMs": "< 100"
+      },
+      "scope": "Existing cartesian fixture is software compatibility/simulation, not another machine adaptation or target-board result."
+    },
+    "typecheck": {
+      "command": "node host/node_modules/typescript/bin/tsc --noEmit -p host/tsconfig.json",
+      "result": "passed"
+    },
+    "whitespace": {
+      "command": "node scripts/check_whitespace.ts",
+      "result": "passed"
+    },
+    "failuresFixed": [
+      "Initial invalid-directory GET returned 400 instead of established 404; corrected and final regressions passed.",
+      "Fault-injection HTTP initially discarded ApiError.data despite RPC retaining it; fixed and final 60-test network/file suite passed.",
+      "Initial benchmark slicer signature was incomplete; corrected to established Prusa fixture before any benchmark result was accepted."
+    ],
+    "performance": {
+      "benchmark": {
+        "baseline": {
+          "node": "v26.9.0",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "filesystemType": 61267,
+          "namespace": "legacy-flat",
+          "files": 1024,
+          "warmups": 3,
+          "runs": 11,
+          "requestsPerRun": 100,
+          "stats": {
+            "catalog": {
+              "requests": 1100,
+              "medianMs": 0.46013700000003155,
+              "p95Ms": 0.5087579999999434,
+              "p99Ms": 0.6278290000000197
+            },
+            "directory": {
+              "requests": 1100,
+              "medianMs": 1.2522180000005392,
+              "p95Ms": 1.5008419999994658,
+              "p99Ms": 1.6540240000003905
+            },
+            "metadata": {
+              "requests": 1100,
+              "medianMs": 0.0790210000004663,
+              "p95Ms": 0.11381099999925937,
+              "p99Ms": 0.3917460000002393
+            },
+            "download": {
+              "requests": 55,
+              "medianMs": 0.35623499999928754,
+              "p95Ms": 1.1879470000003494,
+              "p99Ms": 1.9593589999994947
+            }
+          },
+          "eventLoop": {
+            "p99Ms": 2.107391,
+            "maxMs": 4.227071
+          },
+          "scope": "Same explicit-ID workload supports isolated previous/current source comparison; includes JSON serialization and hot receipt checks on the workspace filesystem. Nested mode additionally exercises visible paths. Not target-board timing, cold storage, power-loss or actual printing proof."
+        },
+        "current": {
+          "node": "v26.9.0",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "filesystemType": 61267,
+          "namespace": "legacy-flat",
+          "files": 1024,
+          "warmups": 3,
+          "runs": 11,
+          "requestsPerRun": 100,
+          "stats": {
+            "catalog": {
+              "requests": 1100,
+              "medianMs": 0.4587759999994887,
+              "p95Ms": 0.5411170000006678,
+              "p99Ms": 0.6404880000000048
+            },
+            "directory": {
+              "requests": 1100,
+              "medianMs": 1.336475999999493,
+              "p95Ms": 1.5957799999996496,
+              "p99Ms": 1.7514719999999215
+            },
+            "metadata": {
+              "requests": 1100,
+              "medianMs": 0.08597099999951752,
+              "p95Ms": 0.13671200000044337,
+              "p99Ms": 0.4551949999995486
+            },
+            "download": {
+              "requests": 55,
+              "medianMs": 0.3771550000001298,
+              "p95Ms": 0.92960100000073,
+              "p99Ms": 1.1116140000003725
+            }
+          },
+          "eventLoop": {
+            "p99Ms": 2.207743,
+            "maxMs": 3.051519
+          },
+          "scope": "Same explicit-ID workload supports isolated previous/current source comparison; includes JSON serialization and hot receipt checks on the workspace filesystem. Nested mode additionally exercises visible paths. Not target-board timing, cold storage, power-loss or actual printing proof."
+        },
+        "nested": {
+          "node": "v26.9.0",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "filesystemType": 61267,
+          "namespace": "nested",
+          "files": 1024,
+          "warmups": 3,
+          "runs": 11,
+          "requestsPerRun": 100,
+          "stats": {
+            "catalog": {
+              "requests": 1100,
+              "medianMs": 0.46703600000000733,
+              "p95Ms": 0.5642870000001494,
+              "p99Ms": 0.6993790000005902
+            },
+            "directory": {
+              "requests": 1100,
+              "medianMs": 1.2455159999999523,
+              "p95Ms": 1.5620290000006207,
+              "p99Ms": 1.8320119999998496
+            },
+            "metadata": {
+              "requests": 1100,
+              "medianMs": 0.10285099999964586,
+              "p95Ms": 0.15627200000017183,
+              "p99Ms": 0.7709899999999834
+            },
+            "download": {
+              "requests": 55,
+              "medianMs": 0.4156650000004447,
+              "p95Ms": 0.5585670000000391,
+              "p99Ms": 1.0889329999999973
+            }
+          },
+          "eventLoop": {
+            "p99Ms": 2.121727,
+            "maxMs": 3.706879
+          },
+          "scope": "Same explicit-ID workload supports isolated previous/current source comparison; includes JSON serialization and hot receipt checks on the workspace filesystem. Nested mode additionally exercises visible paths. Not target-board timing, cold storage, power-loss or actual printing proof."
+        }
+      },
+      "comparison": {
+        "catalog": {
+          "p99BeforeMs": 0.6278290000000197,
+          "p99AfterMs": 0.6404880000000048,
+          "p99DeltaMs": 0.012658999999985099
+        },
+        "directory": {
+          "p99BeforeMs": 1.6540240000003905,
+          "p99AfterMs": 1.7514719999999215,
+          "p99DeltaMs": 0.09744799999953102
+        },
+        "metadata": {
+          "p99BeforeMs": 0.3917460000002393,
+          "p99AfterMs": 0.4551949999995486,
+          "p99DeltaMs": 0.06344899999930931
+        },
+        "download": {
+          "p99BeforeMs": 1.9593589999994947,
+          "p99AfterMs": 1.1116140000003725,
+          "p99DeltaMs": -0.8477449999991222
+        }
+      },
+      "commands": {
+        "baseline": "Archive implementationBase into an isolated directory, link unchanged locked dependencies/native build, copy identical bench/native-file-namespace.ts; run node bench/native-file-namespace.ts",
+        "current": "node host/bench/native-file-namespace.ts",
+        "nested": "ANYRAID_BENCH_NAMESPACE=nested node host/bench/native-file-namespace.ts"
+      },
+      "method": "Sequential old/current/nested runs on same workspace filesystem. Each has 3 warmup and 11 measured batches of 100 catalog/directory/hot-metadata requests; every twentieth iteration verifies download byte length. Includes JSON serialization, fsync publication and receipt checks. 55 download samples are limited observations.",
+      "localApiBudgetMs": 50,
+      "scope": "Desktop local software budget only. Added resolution overhead is measured rather than claimed free; no target-board, cold/power-loss storage or real-print throughput approval."
+    }
+  },
+  "deferred": [
+    "Two actual fixed-client full same-bundle page upload/print/reconnect/process-recovery outlet (M2a/A4)",
+    "Copy/move/rename/same-name overwrite (M2b)",
+    "Nonempty recursive deletion and complete detached management (M2c)",
+    "Upstream implicit upload-parent creation, UFP and upload print=true behavior; full Moonraker scope retained",
+    "Exact new-source complete required CI, develop review and mainline release",
+    "G3 historical numerical/process failures and mapped-clock/PWM/Delta calibration causes; real motion forbidden",
+    "Cycnumbris 500 traceable configurations, boards, physical stop, installation/rollback and target precision/performance",
+    "Remaining Python and typed controlled operation scenarios; other machine adaptation last"
+  ],
+  "sourceSha256": {
+    "host/src/storage/published-paths.ts": "6d58df1adb1772048bfeb1010e3ef97327a3a1647011af223656e054e9e5ba06",
+    "host/src/storage/published-files.ts": "b45aa3e585b4da623bd41ab491aa1eaf62d1e9a367c386fe971eda1ff3901486",
+    "host/src/moonraker/native-file-path.ts": "dab81010b0d16365e206d2c67963e1dd0a18c531293a267edb3130747810cc24",
+    "host/src/moonraker/native-print-uploads.ts": "ff6ea0f862d773aa605d55a4e368f781c1f433a8a9ab1395f5b4860b2909cabe",
+    "host/src/moonraker/native-file-metadata.ts": "46290da299759ac245fb42e25255d17177ffb2734683f676bc1a51d1ccea0388",
+    "host/src/moonraker/native-persistent-metadata.ts": "5ea5fcce76422c3c3d29064e0d4dc9f015b24110eccc3c05ad5e8bea326a53be",
+    "host/src/moonraker/server.ts": "13805d62607468557e4770eda1a8749dc1d07aa688c7d351a8f725c907047460",
+    "host/src/runtime/native-product-machine.ts": "dafe9dbfa4f7d74217badfdb05f0f0d97246b123baa1d7c252663368154c4855",
+    "host/bench/native-file-namespace.ts": "d7bfa1138902eab0f1451aeec4d97d171441080c23fcb4fce1736efd6467015c",
+    "host/test/published-namespace.test.ts": "16a15d8ec75ffdbc74c6ad68b02b2af4cb99408db936dbef4fc814df13b6bc2e",
+    "host/test/native-print-uploads.test.ts": "910367056a7165f9e11b40f1da9ef5dfa63d183e6cb1e365bfbde387bb88fbaa",
+    "host/test/native-file-notifications.test.ts": "ffdaf25c415bca72ebb1bcafb89d431a85edfa76874b6eb85bc9992101de4348",
+    "host/test/native-persistent-metadata.test.ts": "936e2c261d1c6ae1b279ff9d109d140f61c964c20eee0b05262b139267825a69",
+    "host/test/native-product-machine.test.ts": "485947e107f93c79a527a0fd65f86a8bc9912964d760f85efd5572435fcfc63d",
+    "host/acceptance/product-compiled-journey.test.ts": "df21281e31307746f9a2a4c39c027bd250c92459e9f82a4e6b15bdbc0ce04d9f",
+    "host/test/helpers/compiled-client-host.ts": "88df06b81b5362b888797899be484ae36efc7a2dd66815088142a20f2ce7d77e",
+    "host/scripts/build-product-host.ts": "23f04f8173e8c10dae011553a001f0b4e5cb47c5fca09a066b61566747fad1ca",
+    "host/package.json": "7a72196ab9a7f0469de838557cd59d97cd2dc0da4b5016f750e006be8f0a0acd",
+    "host/package-lock.json": "c4ef51fceb922a42ad38738e1c12503ed9c6d33e67cd7d02ac5e0c9706ec6b53"
+  },
+  "logArtifacts": [
+    {
+      "name": "files",
+      "path": "/tmp/anyraid-m2a-files-final-fixed.log",
+      "sha256": "3aa29f4feed023a09b3eb0288a85cf1a1570cb89d169b2f93ed93c6eddb8c650"
+    },
+    {
+      "name": "storage",
+      "path": "/tmp/anyraid-m2a-storage-regression.log",
+      "sha256": "adaa58868247ac7cca5181fe538a496f6d20a208006faa4564d6dc976c543f49"
+    },
+    {
+      "name": "lifecycle",
+      "path": "/tmp/anyraid-m2a-lifecycle-regression.log",
+      "sha256": "9b28a71c6c9b5b0d01559492a936628428327dffdac74caa3a539635dfb23164"
+    },
+    {
+      "name": "directoryEvents",
+      "path": "/tmp/anyraid-m2a-directory-events-fixed.log",
+      "sha256": "c9792edb7835633379a0374ca79811f720f88cf6c2d3041cecf3729680c97237"
+    },
+    {
+      "name": "compiled",
+      "path": "/tmp/anyraid-m2a-compiled-namespace-final-fixed.log",
+      "sha256": "3f18afac0b24a6dbb6528800f8dfcbcf04cac6ca4517507e890f4796500336f5"
+    },
+    {
+      "name": "typecheck",
+      "path": "/tmp/anyraid-m2a-typecheck-final-fixed.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "whitespace",
+      "path": "/tmp/anyraid-m2a-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "baseline",
+      "path": "/tmp/anyraid-m2a-benchmark-baseline-fixed.json",
+      "sha256": "b296d0627cd2a593876ac53e4f8c9d416940a7347afd2d697971409c4208aecf"
+    },
+    {
+      "name": "current",
+      "path": "/tmp/anyraid-m2a-benchmark-current-final.json",
+      "sha256": "079995505423d3131d1b4afcdf5ce77560e9e77806f7257f32a517fea7a1c08f"
+    },
+    {
+      "name": "nested",
+      "path": "/tmp/anyraid-m2a-benchmark-nested-final.json",
+      "sha256": "e1abbb20cdaef1e72038c99195e93bfbf30b564ec0b12c1d1b006eba0c9bcf2b"
+    }
+  ]
+}

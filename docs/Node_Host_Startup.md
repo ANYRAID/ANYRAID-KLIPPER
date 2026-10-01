@@ -758,7 +758,7 @@ export function createProductHostProfile(signal) {
 
 温度只是示例，必须按机型与材料确定。省略 standardPrint 时只保留类型化
 打印请求，不猜测 filename-only 请求的温度。提供时检查机器温度上限，
-只解析已发布的 `<fileId>.gcode`；上传文件不会因此自动开印或执行宏。
+只解析文件列表返回的已发布路径，并绑定原不可变 fileId；上传文件不会因此自动开印或执行宏。
 可用 files 和 uploads 配置现有存储与传输配额；两个持久根目录必须是
 绝对且互不包含的配置路径，stagingRoot 必须预先存在。
 
@@ -1298,7 +1298,8 @@ pause/resume/cancel 接受空参数；对应 WebSocket JSON-RPC 方法相同。
 [Moonraker 打印管理接口](https://moonraker.readthedocs.io/en/latest/external_api/printer/#print-job-management)。
 现有版本化 request_id/file_id/温度/有效期及状态令牌请求继续受支持，
 不允许混合标准字段和类型化字段。文件路径支持范围取决于已实现的文件
-存储；当前原生存储使用列表返回的 `<file_id>.gcode`，不是显示文件名。
+存储；当前原生存储使用列表返回的规范相对路径，包括目录内的真实文件名。
+旧的显式 file_id 且未提供 path 的上传仍保留 `<file_id>.gcode` 地址。
 
 适配器生成 `compat-...` 请求标识并持久保留，状态接口可查询该标识。
 授权先按原始接口参数执行，再按解析后的 file_id、请求标识与参数执行；
@@ -1343,10 +1344,39 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 通过查询及 webhooks 状态对象描述，不伪装成 ready。
 
 原生上传所有者装配后，`print_stats.filename` 返回发布回执对应的规范
-`<fileId>.gcode` 路径；空闲或重置后为空，完成及故障状态保留当前作业名。
+可见路径；空闲或重置后为空，完成及故障状态保留当前作业名。
 未装配该所有者时不猜测自定义文件命名。`pause_resume.is_paused` 在暂停
 确认后为 true，恢复确认前仍为 true；仅发起暂停时不能声称已暂停。
 当前未提供实际累计打印时间或耗材统计，不能从文件进度推算这些字段。
+
+### 原生 G-code 目录与上传
+
+`POST /server/files/directory` 创建目录，`GET` 列出直接子项，`DELETE`
+只删除空目录；对应 RPC 为 `server.files.post_directory`、
+`server.files.get_directory` 和 `server.files.delete_directory`。
+path 使用 `gcodes/相对目录`，先创建父目录；根目录不可删除。
+目录通知在耐久提交后发送，沿用用户授权与有界通知队列。落盘失败返回
+500 和 `error.data.phase`：`before-replace` 或 `replaced`；后者要求恢复
+文件库，不能把失败视为未修改并直接重试。HTTP 和 RPC 均保留此信息。
+
+`POST /server/files/upload` 使用 multipart 的 root=gcodes、path=相对目录
+和带名称的 file。常规客户端无需提供 file_id，上传回执、列表、元数据、
+下载、缩略图及标准开始打印使用同一可见路径；内部仍以独立不可变 ID
+绑定内容摘要和打印作业。显式 file_id 且省略 path 的旧请求保留原 ID 地址；
+显式空 path 则使用根目录的实际文件名。URL 路径逐段编码，允许中文、
+空格和百分号；JSON 查询传入未编码的规范相对路径。下载只解码一次。
+拒绝绝对路径、空段、`.`／`..`、反斜线、控制字符及保留目录，限制
+32 段、单段 255 UTF-8 字节、总长 1,024 字节；回执另受原 2,048 字节限额。
+命名空间与私有 blob／回执目录分离，可见名字不会作为真实存储路径打开。
+
+同名发布返回 409，不替换内容；目录不存在返回 404。删除文件沿用活动
+作业保护，删除后撤销路径与预览，已持有的不可变读取快照保持原字节。
+目录与命名回执、原缩略图 URL 可在进程恢复后使用。目录最多 1,024 个，
+元数据清单不超过 2 MiB；文件、上传、快照与响应限额仍沿用已有配置。
+复制／移动／覆盖、自动创建上传父目录、UFP、上传后自动打印和递归删除
+尚未在本增量闭合，完整 Moonraker 目标仍保留这些差异。API 验收不代替
+固定 Fluidd／Mainsail 页面流程或实机性能。命令和结果见
+[目录文件验收](../host/contracts/native-file-namespace-acceptance.json)。
 
 ## 原生打印加载已保存网床
 

@@ -4,6 +4,7 @@ import {NativePrintUploads,type NativeUploadOptions} from '../moonraker/native-p
 import {ServerInformation} from '../moonraker/metadata.ts';
 import {assertProductAuthorization} from './product-authorization.ts';
 import {ApiError} from '../moonraker/rpc.ts';
+import {nativeFilename} from '../moonraker/native-file-path.ts';
 import type {ProductMachineConfiguration} from '../config/product-machine.ts';
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {loadProductMachineProfile,readProductMachine,type ProductMachineBindings} from './product-machine-profile.ts';
@@ -116,7 +117,7 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
   const ownedFiles=files,ownedUploads=uploads;
   const active=(incoming:AbortSignal)=>{const combined=AbortSignal.any([incoming,stopped.signal]);combined.throwIfAborted();if(gate.status.closed)throw new ApiError(503,'Machine admission closed');return combined;};
   const resolveFile=async(id:string,incoming:AbortSignal)=>{const s=active(incoming);if(!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new ApiError(400,'Invalid native file ID');await authorize(id,s);s.throwIfAborted();if(gate.status.closed)throw new ApiError(503,'Machine admission closed');return s;};
-  return {stops,print:{lifecycle,output,open(id,incoming){return track(async()=>ownedFiles.acquire(id,await resolveFile(id,incoming)));}},server:{...server,nativeUploads:ownedUploads,...standard?{productPrintCompatibility:{start(filename,incoming){return track(async()=>{if(!/^[A-Za-z0-9_-]{1,128}[.]gcode$/.test(filename))throw new ApiError(400,'Invalid native filename');const fileId=filename.slice(0,-6),s=await resolveFile(fileId,incoming);try{await ownedFiles.describe(fileId,s);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}s.throwIfAborted();return {fileId,...standard};});}}}:{}},release};
+  return {stops,print:{lifecycle,output,open(id,incoming){return track(async()=>ownedFiles.acquire(id,await resolveFile(id,incoming)));}},server:{...server,nativeUploads:ownedUploads,...standard?{productPrintCompatibility:{start(filename,incoming){return track(async()=>{nativeFilename(filename);const initial=active(incoming);let fileId:string;try{fileId=await ownedFiles.resolvePath(filename,initial);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}const s=await resolveFile(fileId,incoming);try{if(await ownedFiles.resolvePath(filename,s)!==fileId)throw new ApiError(409,'Published path changed during authorization');await ownedFiles.describe(fileId,s);}catch(error){if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}s.throwIfAborted();return {fileId,...standard};});}}}:{}},release};
  }catch(error){try{await release();}catch(cleanup){throw new AggregateError([error,cleanup],'Native machine assembly and cleanup failed',{cause:error});}throw error;}
 }
 export function loadNativeProductMachineProfile(path:string,options:NativeProductMachineOptions,signal:AbortSignal){

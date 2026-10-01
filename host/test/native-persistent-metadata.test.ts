@@ -37,3 +37,15 @@ test('persistent assembly rejects public directories and releases startup locks 
  const dir=await mkdtemp(join(tmpdir(),'native-persistent-root-')),files=await PublishedPrintFiles.open(join(dir,'files'));
  try{await mkdir(join(dir,'metadata'));await chmod(join(dir,'metadata'),0o755);await assert.rejects(NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')}),/private/);await chmod(join(dir,'metadata'),0o700);const owner=await NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')});await owner.close();assert.equal(files.status.closed,false);}finally{await files.close();await rm(dir,{recursive:true,force:true});}
 });
+test('nested native previews keep their original URLs and source ID after reopening the file and metadata stores',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'native-nested-persistent-')),signal=new AbortController().signal,context:RpcContext={signal,transport:'http',authorize(){}},filename='零件/50% test.gcode';
+ let files=await PublishedPrintFiles.open(join(dir,'files')),owner=await NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')});
+ try{
+  await files.mutateDirectory('零件',false,signal);const png=await sharp({create:{width:32,height:32,channels:3,background:'#3a6'}}).png().toBuffer(),data=png.toString('base64');await writeFile(join(dir,'source'),`; thumbnail_png begin 32x32 ${data.length}\n; ${data}\n; thumbnail_png end\nG1 X1\n`);
+  const source=await open(join(dir,'source'),'r');try{await files.publish('part','50% test.gcode',source,signal,filename);}finally{await source.close();}
+  const fields=await owner.metadata({filename},signal),thumbs=await owner.thumbnails({filename},signal),path='/server/files/gcodes/'+String((thumbs.at(-1) as Record<string,Json>).thumbnail_path).split('/').map(encodeURIComponent).join('/');assert.equal(fields.file_id,'part');assert.equal(owner.filename('part'),filename);
+  assert.deepEqual((await (await owner.resolveThumbnail(path,context)).read()).bytes,png);await owner.close();await files.close();
+  files=await PublishedPrintFiles.open(join(dir,'files'));owner=await NativePrintUploads.open(files,new MaintenanceGate(),{metadataRoot:join(dir,'metadata')});assert(owner.hasThumbnail(path));assert.deepEqual((await (await owner.resolveThumbnail(path,context)).read()).bytes,png);assert.deepEqual(await owner.metadata({filename},signal),fields);
+  assert('scans' in owner.status.metadata);assert.equal(owner.status.metadata.scans,0);assert.equal(owner.filename('part'),filename);await assert.rejects(owner.resolveThumbnail('/server/files/gcodes/'+String((fields.thumbnails as Record<string,Json>[]).at(-1)!.relative_path),context),error=>error instanceof ApiError&&error.status===404);
+ }finally{await owner.close();await files.close();await rm(dir,{recursive:true,force:true});}
+});
