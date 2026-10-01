@@ -485,7 +485,8 @@
     "host/test/helpers/compiled-client-host.ts": "88df06b81b5362b888797899be484ae36efc7a2dd66815088142a20f2ce7d77e",
     "host/scripts/build-product-host.ts": "23f04f8173e8c10dae011553a001f0b4e5cb47c5fca09a066b61566747fad1ca",
     "host/package.json": "7a72196ab9a7f0469de838557cd59d97cd2dc0da4b5016f750e006be8f0a0acd",
-    "host/package-lock.json": "c4ef51fceb922a42ad38738e1c12503ed9c6d33e67cd7d02ac5e0c9706ec6b53"
+    "host/package-lock.json": "c4ef51fceb922a42ad38738e1c12503ed9c6d33e67cd7d02ac5e0c9706ec6b53",
+    "host/test/product-native-authorization.test.ts": "aaa448e229008e4fe055e0e6ed87abf0116fbd3eea9d800c181271cbc9fc9c80"
   },
   "logArtifacts": [
     {
@@ -537,6 +538,79 @@
       "name": "nested",
       "path": "/tmp/anyraid-m2a-benchmark-nested-final.json",
       "sha256": "e1abbb20cdaef1e72038c99195e93bfbf30b564ec0b12c1d1b006eba0c9bcf2b"
+    },
+    {
+      "name": "authorizationNameRegression",
+      "path": "/tmp/anyraid-m2a-authorization-name-regression.log",
+      "sha256": "c1d889f38bc18d080c1f57ba3a1e9abf4f6b6c98856e4ee9751dc03c4dd2b587"
+    },
+    {
+      "name": "authorizationNameTypecheck",
+      "path": "/tmp/anyraid-m2a-auth-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
-  ]
+  ],
+  "ciObservation": {
+    "source": "d8f9e4f8e34236064d4bf965d73848b9ac4b5b70",
+    "testedMerge": "00569711",
+    "host": {
+      "run": 36898620285,
+      "job": 110491853119,
+      "conclusion": "failure",
+      "ordinary": {
+        "tests": 3814,
+        "pass": 3813,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "failure": {
+        "file": "host/test/product-native-authorization.test.ts",
+        "actual": "client.gcode",
+        "expected": "opaque receipt ID + .gcode",
+        "cause": "Stale assertion predating standard multipart visible filename publication; product behavior matches M2a contract"
+      },
+      "notExecuted": [
+        "native protocol",
+        "UBSan",
+        "ASan+UBSan",
+        "Linux MCU build"
+      ]
+    },
+    "firmware": {
+      "run": 36898620299,
+      "job": 110491852699,
+      "observedStatus": "in_progress",
+      "terminalVerified": false
+    },
+    "motion": {
+      "run": 36898620295,
+      "jobs": 8,
+      "conclusion": "success",
+      "scope": "Finite observations do not close historical numerical/process failures or G3"
+    },
+    "repair": {
+      "kind": "Test-only canonical-name correction and stronger persistent immutable-ID authorization checks",
+      "file": "host/test/product-native-authorization.test.ts",
+      "sha256": "aaa448e229008e4fe055e0e6ed87abf0116fbd3eea9d800c181271cbc9fc9c80",
+      "node": "v26.9.0",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "coverage": [
+        "Both service generations list the same visible name and immutable ID",
+        "Metadata resolves original immutable ID",
+        "Unauthenticated file download returns 401",
+        "Authenticated download preserves original bytes",
+        "Opaque-ID literal is not an alternative visible address",
+        "One-shot replay and logout revocation remain rejected",
+        "No simulated motion issued"
+      ],
+      "typecheck": "passed",
+      "newExactHeadFullCi": "pending",
+      "productSourceChanged": false,
+      "evidenceReuse": "Recorded product source fingerprints unchanged; compiled-product manifest 6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582 and necessary namespace performance evidence remain scoped to the original product/environment"
+    }
+  }
 }

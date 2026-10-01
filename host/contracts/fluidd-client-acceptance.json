@@ -636,5 +636,51 @@
     "evidence": "native-config-backups-acceptance.json",
     "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
     "result": "Two authorization modes of the compiled protocol fixture passed query/restore/cleanup/rotation and failed-startup explicit recovery; no actual backup management page acceptance or full A4/G1 claim."
+  },
+  "nativeNamespacePageObservation": {
+    "date": "2026-10-02",
+    "source": "d8f9e4f8e34236064d4bf965d73848b9ac4b5b70",
+    "productManifestSha256": "6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582",
+    "client": "Fluidd 1.37.6",
+    "authorization": "Local user/JWT; no trusted-loopback bypass",
+    "machine": "PTY MCU fixture only",
+    "verified": [
+      "Create directory from actual page",
+      "Browse into page-parts",
+      "Upload actual local file through documented browser file chooser",
+      "Display page-parts/anyraid-m2a-page 50%.gcode, layer height 0.2 mm, filament 1.0 mm and PrusaSlicer metadata",
+      "Select page-uploaded file and call standard printer.print.start",
+      "Observe completion and matching actual page history record"
+    ],
+    "input": {
+      "bytes": 20288,
+      "sha256": "58061a73953c32d29d00f3749ac0e54d46c41346816e1e4eed7bf1e7f7dad304"
+    },
+    "chooser": "Completed this invocation; earlier chooser blockage retained as historical observation",
+    "remaining": [
+      "Unauthenticated thumbnail image GET returns 401 in JWT mode; page preview is not passed",
+      "Same-upload pause/resume/cancel",
+      "Page refresh, WebSocket disconnect and same-package process restart",
+      "Complete fixed Mainsail flow on same product"
+    ],
+    "thumbnailCause": {
+      "fluiddSource": "src/mixins/files.ts:36-53,181-200 at d894c50d580212c245a7c552ae695008c441683b",
+      "observation": "Thumbnail uses createFileUrl without bearer/one-shot; ordinary download uses createFileUrlWithToken",
+      "upstream": "moonraker/components/application.py:554-600 at 1cfb0c41e468645951a371621f06d32777b6107c",
+      "contract": "AuthorizedFileHandler._check_need_auth permits GET of AUTHORIZED_EXTS without required authentication; native downloads currently require authentication",
+      "status": "Pinned-source contract gap identified; compatibility implementation and security/regression/page checks pending"
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/anyraid-m2a-fluidd-page-history.jpg",
+        "sha256": "038b0ed7ce4edc2952601d1ae7992a857823c8b6a5b9fa225a14622e850e66ae"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-fluidd-client.log",
+        "sha256": "cde67d8ef16b7074a5bfa0db2e85af15b7364e61574ada1a7e59443804debcef"
+      }
+    ],
+    "fixtureExit": "Original 15-minute watchdog terminated; exec session terminal exit 0. No process-recovery claim",
+    "scope": "Partial actual page proof, not full M2a/A4, real hardware or Python retirement"
   }
 }
