@@ -2,10 +2,11 @@ import {constants} from 'node:fs';
 import {open,type FileHandle} from 'node:fs/promises';
 import {basename,dirname,isAbsolute,resolve,relative,sep} from 'node:path';
 import {createHash} from 'node:crypto';
+import {configBackupCapacity,isConfigBackup,managedConfigBackup,deleteNativeConfigBackup} from '../config/native-config-backups.ts';
 import {replaceNativeConfig} from '../config/native-config-replace.ts';
 import {KlipperSaveCommitError} from '../config/klipper-save-commit.ts';
 import type {EndpointRegistry} from './endpoints.ts';
-import {FileListing,type FileListingOptions} from './file-list.ts';
+import {FileListing,type FileListingOptions,type FileDirectory} from './file-list.ts';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import {createSealedBinaryReader} from '../gcode/sealed-file.ts';
 import {PrintSnapshotBudget,defaultPrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
@@ -27,6 +28,7 @@ export class NativeConfigFiles {
  readonly #max:number;readonly #capacity:number;readonly #budget:PrintSnapshotBudget;
  readonly #writable=new Set<string>();#writer:((context:RpcContext)=>{release:()=>void;signal:AbortSignal})|undefined;#writing=false;
  readonly #changes=new Set<(event:Json)=>void>();
+ #backupReads=0;
  readonly #stop=new AbortController();readonly #pending=new Set<Promise<unknown>>();#closing:Promise<void>|undefined;
  private constructor(root:FileHandle,listing:FileListing,reserved:readonly string[],max:number,capacity:number){this.#root=root;this.#listing=listing;this.#reserved=reserved;this.#max=max;this.#capacity=capacity;const page=defaultPrintSnapshotBudget.status.pageBytes;this.#budget=new PrintSnapshotBudget({maxSnapshots:capacity,maxBytes:Math.ceil(max/page)*page*capacity});}
  static async open(options:NativeConfigFilesOptions):Promise<NativeConfigFiles>{
@@ -92,26 +94,64 @@ export class NativeConfigFiles {
   let parent=await open('/proc/self/fd/'+this.#root.fd,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NONBLOCK);
   try{for(const part of dirname(name)==='.'?[]:dirname(name).split('/')){signal.throwIfAborted();const next=await open('/proc/self/fd/'+parent.fd+'/'+part,constants.O_RDONLY|constants.O_DIRECTORY|constants.O_NOFOLLOW|constants.O_NONBLOCK);try{await parent.close();}catch(e){await next.close();throw e;}parent=next;}return parent;}catch(e){await parent.close();throw e;}
  }
+ #emit(event:Json){for(const observer of this.#changes)try{observer(event);}catch{}}
+ #mutate(context:RpcContext,run:(signal:AbortSignal)=>Promise<Json>):Promise<Json>{
+  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Config files closed'));if(this.#writing)return Promise.reject(new ApiError(409,'Another config mutation is pending'));
+  this.#writing=true;const signal=AbortSignal.any([context.signal,this.#stop.signal]),task=Promise.resolve().then(()=>run(signal));this.#pending.add(task);return task.finally(()=>{this.#pending.delete(task);this.#writing=false;});
+ }
  save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext):Promise<Json>{
-  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Config files closed'));
-  if(!Buffer.isBuffer(bytes)||bytes.length>this.#max)return Promise.reject(new ApiError(413,'Config size limit exceeded'));bytes=Buffer.from(bytes);
-  if(this.#writing)return Promise.reject(new ApiError(409,'Another config save is pending'));
-  this.#writing=true;const signal=AbortSignal.any([context.signal,this.#stop.signal]);
-  const task=Promise.resolve().then(async()=>{
+  if(!Buffer.isBuffer(bytes)||bytes.length>this.#max)return Promise.reject(new ApiError(413,'Config size limit exceeded'));if(this.#writing)return Promise.reject(new ApiError(409,'Another config mutation is pending'));const copy=Buffer.from(bytes);return this.#mutate(context,signal=>this.#save(name,copy,expected,context,signal));
+ }
+ async #save(name:string,bytes:Buffer,expected:string|undefined,context:RpcContext,signal:AbortSignal,held?:{release:()=>void;signal:AbortSignal}):Promise<Json>{
    authorizedContext(context,await context.authorize('server.files.upload',{root:'config',path:name,size:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')}));signal.throwIfAborted();this.#allowed(name);
    if(!this.#writable.has(name))throw new ApiError(403,'Config file is read-only');
    if(bytes.length>this.#max)throw new ApiError(413,'Config size limit exceeded');if(expected!==undefined&&!/^[a-f0-9]{64}$/.test(expected))throw new ApiError(400,'Invalid previous config digest');
    // Binary and invalid UTF-8 config cannot enter the parser; invalid textual
    // config remains saveable so failed startup can be repaired explicitly.
    try{new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{throw new ApiError(400,'Expected UTF-8 config');}if(bytes.includes(0))throw new ApiError(400,'Config contains NUL');
-   if(!this.#writer)throw new ApiError(503,'Config writer is not attached');const lease=this.#writer(context),owned=AbortSignal.any([signal,lease.signal]);let parent:FileHandle|undefined;
+   if(!this.#writer&&!held)throw new ApiError(503,'Config writer is not attached');const lease=held??this.#writer!(context),owned=AbortSignal.any([signal,lease.signal]);let parent:FileHandle|undefined;
    try{owned.throwIfAborted();parent=await this.#parent(name,owned);const result=await replaceNativeConfig(parent,basename(name),bytes,expected,this.#max,owned),stat=result.modified;
-    const item={path:name,root:'config',modified:stat,size:bytes.length,permissions:'rw'},event={item,action:'create_file'};for(const observer of this.#changes)try{observer(event);}catch{}
-    return {...event,...result,backup:dirname(name)==='.'?result.backup:dirname(name)+'/'+result.backup,print_started:false,print_queued:false};
-   }catch(e){if(e instanceof KlipperSaveCommitError)throw new ApiError(500,'Configuration save durability is uncertain',{phase:e.phase,backup:e.backupPath??null});if(['ENOENT','ENOTDIR','ELOOP'].includes((e as NodeJS.ErrnoException).code??''))throw new ApiError(409,'Config source or parent unavailable');throw e;}finally{try{await parent?.close();}finally{lease.release();}}
-  });this.#pending.add(task);return task.finally(()=>{this.#pending.delete(task);this.#writing=false;});
+    const item={path:name,root:'config',modified:stat,size:bytes.length,permissions:'rw'},event={item,action:'create_file'};this.#emit(event);
+    const rotatedBackup=result.rotatedBackup?(dirname(name)==='.'?result.rotatedBackup:dirname(name)+'/'+result.rotatedBackup):null;
+    if(rotatedBackup)this.#emit({action:'delete_file',item:{path:rotatedBackup,root:'config',size:0,modified:0,permissions:''}});
+    return {...event,...result,rotatedBackup,backup:dirname(name)==='.'?result.backup:dirname(name)+'/'+result.backup,print_started:false,print_queued:false};
+   }catch(e){if(e instanceof KlipperSaveCommitError)throw new ApiError(500,'Configuration save durability is uncertain',{phase:e.phase,backup:e.backupPath??null});if(['ENOENT','ENOTDIR','ELOOP'].includes((e as NodeJS.ErrnoException).code??''))throw new ApiError(409,'Config source or parent unavailable');throw e;}finally{try{await parent?.close();}finally{if(!held)lease.release();}}
  }
- registerSave(endpoints:EndpointRegistry):()=>void{return endpoints.register({endpoint:'/printer/host/config/save',methods:['POST']},async(params,_verb,context)=>{if(Object.keys(params).some(k=>!['version','path','content','expected_sha256'].includes(k))||params.version!==1||typeof params.path!=='string'||typeof params.content!=='string'||!params.content.isWellFormed()||typeof params.expected_sha256!=='string')throw new ApiError(400,'Expected versioned config save with previous digest');return this.save(params.path,Buffer.from(params.content),params.expected_sha256,context);});}
+ backups(name:string,context:RpcContext):Promise<Json>{
+  if(this.#stop.signal.aborted)return Promise.reject(new ApiError(503,'Config files closed'));
+  if(this.#backupReads>=4)return Promise.reject(new ApiError(429,'Config backup query capacity exceeded'));
+  this.#backupReads++;const signal=AbortSignal.any([context.signal,this.#stop.signal]),task=Promise.resolve().then(async()=>{
+   signal.throwIfAborted();authorizedContext(context,await context.authorize('printer.host.config.backups',{path:name}));signal.throwIfAborted();this.#allowed(name);
+   const prefix=dirname(name)==='.'?'':dirname(name)+'/',result=await this.directory({path:'config/'+dirname(name).replace(/^\.$/,'')},signal) as unknown as FileDirectory;
+   // Listing is observational. Mutation validates exact type, owner, links and
+   // digest again under the writer gate; a listed pathname grants no authority.
+   const backups=result.files.filter(file=>file.permissions!==''&&typeof file.filename==='string'&&isConfigBackup(basename(name),file.filename)).map(file=>({path:prefix+file.filename,size:Number(file.size),modified:Number(file.modified),permissions:'r'}));backups.sort((a,b)=>b.modified-a.modified||a.path.localeCompare(b.path));
+   return {path:name,capacity:configBackupCapacity,backups};
+  });this.#pending.add(task);return task.finally(()=>{this.#pending.delete(task);this.#backupReads--;});
+ }
+ #backup(name:string,backup:string){this.#allowed(name);this.#allowed(backup);if(!this.#writable.has(name))throw new ApiError(403,'Config file is read-only');if(dirname(name)!==dirname(backup)||!isConfigBackup(basename(name),basename(backup)))throw new ApiError(400,'Backup does not belong to the selected config');}
+ restore(name:string,backup:string,expected:string,backupDigest:string,context:RpcContext):Promise<Json>{return this.#mutate(context,async signal=>{
+  authorizedContext(context,await context.authorize('printer.host.config.restore',{path:name,backup}));signal.throwIfAborted();this.#backup(name,backup);if(!/^[a-f0-9]{64}$/.test(expected)||!/^[a-f0-9]{64}$/.test(backupDigest))throw new ApiError(400,'Expected current and backup digests');
+  if(!this.#writer)throw new ApiError(503,'Config writer is not attached');const lease=this.#writer(context);signal=AbortSignal.any([signal,lease.signal]);
+  let source:FileHandle|undefined,snapshot:Awaited<ReturnType<typeof createSealedBinaryReader>>|undefined;
+  try{authorizedContext(context,await context.authorize('server.files.download',{root:'config',path:backup}));signal.throwIfAborted();source=await this.#source(backup,signal);const stat=await source.stat({bigint:true});if(stat.size>BigInt(this.#max))throw new ApiError(413,'Backup size limit exceeded');if(!managedConfigBackup(stat))throw new ApiError(409,'Backup ownership or type changed');try{snapshot=await createSealedBinaryReader(source,backupDigest,signal,{maxBytes:this.#max,budget:this.#budget});}catch(e){signal.throwIfAborted();if(e instanceof Error&&e.message==='Print snapshot quota exceeded')throw new ApiError(429,'Config snapshot capacity exceeded');if(e instanceof Error&&/source (changed|digest|truncated)/i.test(e.message))throw new ApiError(409,'Backup digest conflicts');throw e;}
+   const parts:Buffer[]=[];for await(const part of snapshot.reader.chunks(signal))parts.push(Buffer.from(part));const result=await this.#save(name,Buffer.concat(parts),expected,context,signal,lease) as Record<string,Json>;return {...result,restoredFrom:backup,applied:false,restartRequired:true};
+  }finally{try{await snapshot?.reader.close();}finally{try{await source?.close();}finally{lease.release();}}}
+ });}
+ deleteBackup(name:string,backup:string,expected:string,context:RpcContext):Promise<Json>{return this.#mutate(context,async signal=>{
+  authorizedContext(context,await context.authorize('printer.host.config.delete_backup',{path:name,backup}));signal.throwIfAborted();this.#backup(name,backup);if(!this.#writer)throw new ApiError(503,'Config writer is not attached');const lease=this.#writer(context),owned=AbortSignal.any([signal,lease.signal]);let parent:FileHandle|undefined;
+  try{parent=await this.#parent(name,owned);const result=await deleteNativeConfigBackup(parent,basename(name),basename(backup),expected,this.#max,owned);const event={action:'delete_file',item:{path:backup,root:'config',size:0,modified:0,permissions:''}};this.#emit(event);return {...result,backup,...event};}finally{try{await parent?.close();}finally{lease.release();}}
+ });}
+ registerSave(endpoints:EndpointRegistry):()=>void{
+  const releases:(()=>void)[]=[];try{
+   releases.push(endpoints.register({endpoint:'/printer/host/config/save',methods:['POST']},async(params,_verb,context)=>{if(Object.keys(params).some(k=>!['version','path','content','expected_sha256'].includes(k))||params.version!==1||typeof params.path!=='string'||typeof params.content!=='string'||!params.content.isWellFormed()||typeof params.expected_sha256!=='string')throw new ApiError(400,'Expected versioned config save with previous digest');return this.save(params.path,Buffer.from(params.content),params.expected_sha256,context);}));
+   releases.push(endpoints.register({endpoint:'/printer/host/config/backups',methods:['GET','DELETE'],rpcVerbPrefix:true},(params,verb,context)=>{
+    if(verb==='GET'){if(Object.keys(params).some(k=>k!=='path')||typeof params.path!=='string')throw new ApiError(400,'Expected config path');return this.backups(params.path,context);}
+    if(Object.keys(params).some(k=>!['version','path','backup','backup_sha256'].includes(k))||params.version!==1||typeof params.path!=='string'||typeof params.backup!=='string'||typeof params.backup_sha256!=='string')throw new ApiError(400,'Expected versioned backup removal with digest');return this.deleteBackup(params.path,params.backup,params.backup_sha256,context);
+   }));
+   releases.push(endpoints.register({endpoint:'/printer/host/config/restore',methods:['POST']},(params,_verb,context)=>{if(Object.keys(params).some(k=>!['version','path','backup','backup_sha256','expected_sha256'].includes(k))||params.version!==1||typeof params.path!=='string'||typeof params.backup!=='string'||typeof params.backup_sha256!=='string'||typeof params.expected_sha256!=='string')throw new ApiError(400,'Expected current config and selected backup digests');return this.restore(params.path,params.backup,params.expected_sha256,params.backup_sha256,context);}));
+  }catch(e){for(const release of releases.reverse())release();throw e;}let closed=false;return ()=>{if(closed)return;closed=true;for(const release of releases.reverse())release();};
+ }
  async drainWrites():Promise<void>{await Promise.allSettled([...this.#pending]);}
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#stop.abort(new ApiError(503,'Config files closed'));

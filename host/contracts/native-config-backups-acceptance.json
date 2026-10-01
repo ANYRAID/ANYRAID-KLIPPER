@@ -1,0 +1,290 @@
+{
+  "implementationBase": "9ea0bda3",
+  "date": "2026-10-01",
+  "scope": "M1 process-owned native configuration backup query, bounded rotation, explicit restore and digest-confirmed cleanup. Software product outlet; full Moonraker, actual backup management UI and physical acceptance remain pending.",
+  "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+  "upstream": {
+    "reference": "moonraker-upstream.json",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "note": "These printer.host.config routes are controlled native additions, not proof that the full upstream file-manager contract is closed."
+  },
+  "implementation": {
+    "sourceHashes": {
+      "host/src/config/native-config-backups.ts": "952f1b565fe0b146e3bfb5f7206d2bd3879f0e43546f8d61a399efde3197776c",
+      "host/src/config/native-config-replace.ts": "af61e2977318e2084a49186723870ac96b558d3bb24c9b14406611d6492e1aaf",
+      "host/src/moonraker/native-config-files.ts": "ed3014b2ce4cf259bcb8f7b286b247de573e21d849cfd5154fe8768f916ee7a5"
+    },
+    "capacity": 16,
+    "rotation": "Create and fsync exact old bytes, fsync replacement and parent, then remove the oldest managed backup and sync the directory. Unknown prefix entries count toward capacity and are never automatically deleted.",
+    "managed": "UUID v4 naming in the source directory; regular file, single hardlink, exact 0600 mode and current service uid. List metadata is observational; mutation revalidates.",
+    "restore": "Current-source SHA-256 and selected-backup SHA-256 required; bounded immutable snapshot; hold the current writer gate through download/upload authorization and transaction settlement; save current version; applied=false and restartRequired=true. No implicit printer operation.",
+    "delete": "Same writer lock and gate as save; selected digest must match; keep at least one managed recovery copy; post-unlink sync failure returns phase=removed uncertainty.",
+    "lifecycle": "Track at most four backup metadata authorizations; close waits for actual ignored cancellation settlement. Restore/delete reuse the existing generation, printer-idle, confirmed-stop and host-transition writer fences."
+  },
+  "verification": {
+    "source": {
+      "passed": 91,
+      "command": "node --test --test-isolation=none host/test/native-config-backups.test.ts host/test/native-config-save.test.ts host/test/native-config-files.test.ts host/test/native-product-bootstrap.test.ts host/test/native-product-process-lifetime.test.ts host/test/product-host-control.test.ts host/test/product-host-api.test.ts host/test/native-print-uploads.test.ts host/test/native-request-scope.test.ts host/test/configured-server.test.ts",
+      "newBackupCases": 13,
+      "checks": [
+        "24 repeated saves; 16-copy capacity; oldest removal happens only after replacement and recovery fsync.",
+        "Nested root descriptor survives replacement of the pathname; full-capacity restore uses selected immutable bytes even when that copy rotates.",
+        "Both digest conflicts preserve source and release snapshots; links/mode/read-only/activity/authorization reject.",
+        "Metadata authorization capacity and ignored restore download cancellation drain before close; held gate releases only at settlement.",
+        "Full-capacity pre/post replacement, rotation and lock-cleanup sync injection; truthful phase, no success events, new recovery copy retained.",
+        "17-copy uncertain replacement can be repaired by confirmed backup cleanup before another save.",
+        "Post-unlink deletion sync failure reports removed and preserves source/remaining recovery; last recovery copy cannot be deleted.",
+        "Actual product startup failure repaired through authorized HTTP restore and explicit standard RESTART; unconfirmed stop refuses save/restore/delete.",
+        "Atomic endpoint registration rollback and idempotent release."
+      ]
+    },
+    "compiledRecovery": {
+      "passed": 2,
+      "command": "node --test --test-isolation=none host/acceptance/client-probe.test.ts",
+      "modes": [
+        "JWT",
+        "explicit trusted loopback"
+      ],
+      "sameArtifact": true,
+      "measurements": [
+        {
+          "trustedLoopback": false,
+          "restoreMs": 5.3803590000025,
+          "rpcQuery": true,
+          "rpcRestore": true,
+          "failedStartupRepair": true,
+          "explicitRestart": true,
+          "httpDelete": true,
+          "currentVersionBackedUp": true,
+          "capacity": 16,
+          "repeatedSaves": 18,
+          "rotation": true,
+          "noPrintReplay": true
+        },
+        {
+          "trustedLoopback": true,
+          "restoreMs": 5.047214999998687,
+          "rpcQuery": true,
+          "rpcRestore": true,
+          "failedStartupRepair": true,
+          "explicitRestart": true,
+          "httpDelete": true,
+          "currentVersionBackedUp": true,
+          "capacity": 16,
+          "repeatedSaves": 18,
+          "rotation": true,
+          "noPrintReplay": true
+        }
+      ],
+      "checks": [
+        "Retain original MCU, identity, files/history across device and independent process recovery.",
+        "Real WebSocket backup query/restore after failed configuration; HTTP delete; current bytes backed up and no print replay.",
+        "18 further authorized saves at full capacity rotate rather than permanently block; 16 managed copies remain."
+      ]
+    },
+    "compiledLoad": {
+      "passed": 1,
+      "command": "node --test --test-isolation=none --test-name-pattern='nativeAuthorization=true apiLoad=true ' host/acceptance/product-compiled-journey.test.ts",
+      "metrics": {
+        "motionReportLoad": true,
+        "configListRequests": 861,
+        "configListP99Ms": 5.951387000000977,
+        "configDownloads": 860,
+        "configDownloadP99Ms": 11.472877999998673,
+        "liveMotionSamples": 2633,
+        "liveExtrusionSamples": 1451,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.418821408,
+          "print_duration": 2.4341841750000004,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 4156,
+        "phaseP99Ms": 4.745370999997249,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 176,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 934,
+        "historyP99Ms": 11.205454999999347,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 20.370053000000553,
+        "deleteRequests": 16,
+        "deleteP95Ms": 13.959249999999884,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.4721949999984645,
+        "metadataRequests": 16,
+        "metadataP95Ms": 15.402029000000766,
+        "downloads": 16,
+        "downloadP95Ms": 3.9530720000002475,
+        "wireCommands": 190,
+        "wireSteps": 3702,
+        "minimumStepLeadMs": 80.903,
+        "directoryRequests": 3990,
+        "directoryP99Ms": 9.337690000000293,
+        "statusRequests": 16628,
+        "uploads": 16,
+        "statusP99Ms": 4.493798000001334,
+        "uploadP95Ms": 23.31782099999873,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.988607,
+              "maxMs": 19.365887
+            },
+            "cpu": {
+              "user": 6774098,
+              "system": 1114084
+            },
+            "rss": 334409728
+          },
+          {
+            "loop": {
+              "p99Ms": 1.967103,
+              "maxMs": 11.575295
+            },
+            "cpu": {
+              "user": 2014566,
+              "system": 375581
+            },
+            "rss": 345554944
+          }
+        ]
+      },
+      "backupQuery": {
+        "requests": 861,
+        "p99Ms": 5.7748349999983475,
+        "mutationsBlockedDuringPrint": true
+      },
+      "checks": [
+        "Concurrent auth/subscriptions/upload/history/config reads and backup metadata while simulated printing.",
+        "Save, restore and backup-delete requests reject while printing.",
+        "Minimum step lead > 0; observed loop P99 < 50 ms and max < 100 ms."
+      ],
+      "interpretation": "Desktop simulated timing, not target-board compliance or matched Python whole-printer performance."
+    },
+    "maintenanceBenchmark": {
+      "command": "node host/bench/native-config-backups.ts",
+      "node": "v26.9.0",
+      "bytes": 262144,
+      "warmupSaves": 18,
+      "filesystemType": "0xef53",
+      "rotation": {
+        "runs": 8,
+        "medianMs": 10.242667499999982,
+        "minMs": 9.783337000000017,
+        "maxMs": 13.746537999999987
+      },
+      "restore": {
+        "runs": 8,
+        "medianMs": 10.990127000000001,
+        "minMs": 10.556856000000039,
+        "maxMs": 12.462950000000035
+      },
+      "query": {
+        "runs": 8,
+        "medianMs": 0.5254959999999755,
+        "minMs": 0.4807260000000042,
+        "maxMs": 2.2669589999999857
+      },
+      "exactBytes": true,
+      "capacity": 16,
+      "noImplicitApply": true,
+      "interpretation": "Desktop maintenance on the tagged filesystem; not physical power-loss durability, target-board printing or Python comparison.",
+      "filesystemNote": "Linux filesystem magic 0xef53 for this workspace. Eight samples each; actual fsync calls, not physical power-loss proof."
+    },
+    "typecheck": "Passed with Node.js v26.9.0",
+    "whitespace": "scripts/check_whitespace.sh and git diff --check passed; Markdown parsed and 96 local links resolved."
+  },
+  "observedFailure": {
+    "initialSandbox": "26 filesystem tests passed; the HTTP config read test returned listen EPERM on loopback. The subsequent authorized source/network run passed all 91; not classified as a product regression."
+  },
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-config-backups-product-regression.log",
+      "sha256": "b23284e9032f4ffb63c7eb316d2b5a7dd34e7b95408536705cd2e9b5a00f65a9"
+    },
+    {
+      "path": "/tmp/anyraid-config-backups-compiled-load.log",
+      "sha256": "5ab70abf2758cb55f14132b2381c0e76e3616ddf948903051cde86063e1976f6"
+    },
+    {
+      "path": "/tmp/anyraid-config-backups-client-recovery.log",
+      "sha256": "7ff14d50b6e45a4d7491dbcc72fcfceac6031c60867a1c2f35349992f39d18e7"
+    },
+    {
+      "path": "/tmp/anyraid-config-backups-bench.log",
+      "sha256": "deb037bcafc27d1c876778e339c9bf7448ad64671d923e5b48e44c4d98c55f77"
+    }
+  ],
+  "remaining": [
+    "Actual fixed Fluidd/Mainsail backup-management UI and adoption of strong cross-editor conflict checks. Earlier actual editor-save evidence remains tied to its previous manifest.",
+    "Full A4 same-candidate page G-code upload/jobs/reconnect/process recovery; known filechooser tool blockage remains unclosed.",
+    "Full file-manager roots/directory/create/copy/move and detached management, queue/machine and remaining G1 contracts.",
+    "Noncooperating external writers can race final recheck/rename; no filesystem-wide compare-and-swap guarantee.",
+    "177 tracked klippy Python files, default install/CI retirement, controlled macro scenario completion, unresolved G3 numerical/crash issues, Cycnumbris 500 assembly/stop/target-board precision/timing/install/rollback and normal PR integration."
+  ]
+}

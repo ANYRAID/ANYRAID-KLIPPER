@@ -631,5 +631,10 @@
     "evidence": "native-config-files-save-acceptance.json",
     "manifestSha256": "789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07",
     "result": "Both actual fixed editors saved, restarted and reread configuration; Mainsail also repaired unsupported config in the retained service. Full A4 and G1 remain pending."
+  },
+  "nativeConfigBackupAcceptance": {
+    "evidence": "native-config-backups-acceptance.json",
+    "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+    "result": "Two authorization modes of the compiled protocol fixture passed query/restore/cleanup/rotation and failed-startup explicit recovery; no actual backup management page acceptance or full A4/G1 claim."
   }
 }

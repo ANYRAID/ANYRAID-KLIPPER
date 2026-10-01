@@ -4,6 +4,7 @@ import {mkdtemp,rm,readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {once} from 'node:events';
+import {createHash} from 'node:crypto';
 import {request} from 'node:http';
 import {setTimeout as delay} from 'node:timers/promises';
 import {WebSocket} from 'ws';
@@ -92,6 +93,20 @@ test('product config save repairs failed startup and standard script restart app
  }finally{await f.close();}
 });
 
+test('product backup restore repairs failed startup with both digests and explicit restart',async()=>{
+ const f=await fixture('configuration',true),hash=(value:string)=>createHash('sha256').update(value).digest('hex');try{
+  await until(()=>f.control.status.restart_available);
+  const post=async(path:string,body:unknown)=>{const response=await fetch(f.base+path,{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify(body)});assert.equal(response.status,200,await response.clone().text());return (await response.json() as any).result;};
+  const initial=await readFile(f.f.config.printerConfig,'utf8');await post('/printer/host/config/save',{version:1,path:'printer.cfg',content:f.configuration,expected_sha256:hash(initial)});
+  const invalid=f.configuration+'\n[unsupported_backup_restore]\n',broken=await post('/printer/host/config/save',{version:1,path:'printer.cfg',content:invalid,expected_sha256:hash(f.configuration)});await f.restart();await until(()=>f.control.status.restart_operation?.state==='failed');
+  const listed=await f.get('/printer/host/config/backups?path=printer.cfg');assert(listed.backups.some((b:any)=>b.path===broken.backup));assert.equal((await fetch(f.base+'/printer/host/config/backups?path=printer.cfg')).status,401);
+  const restored=await post('/printer/host/config/restore',{version:1,path:'printer.cfg',backup:broken.backup,backup_sha256:hash(f.configuration),expected_sha256:hash(invalid)});assert.equal(restored.applied,false);assert.equal(restored.print_started,false);assert.equal((await f.get('/server/info')).native_host.ready,false);assert.equal(await readFile(join(f.root,'config',restored.backup),'utf8'),invalid);
+  await f.restart();await until(()=>f.control.status.restart_operation?.state==='succeeded');assert.equal((await f.get('/server/info')).native_host.ready,true);assert.equal((await f.get('/printer/print/status')).state,'idle');assert.equal(f.counts.processOpens,1);
+ }finally{await f.close();}
+});
+
 for(const failure of ['cleanup','hardware-stop'] as const)test('config save refuses unconfirmed '+failure,async()=>{
- const f=await fixture(failure,true);try{await until(()=>!f.control.status.busy&&(failure==='cleanup'?f.counts.devices===1:f.counts.deviceReleases===1));const before=await readFile(f.f.config.printerConfig,'utf8'),response=await fetch(f.base+'/printer/host/config/save',{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify({version:1,path:'printer.cfg',content:before+'# unsafe save\n',expected_sha256:'0'.repeat(64)})});assert.equal(response.status,409);assert.equal(await readFile(f.f.config.printerConfig,'utf8'),before);}finally{await f.close();}
+ const f=await fixture(failure,true);try{await until(()=>!f.control.status.busy&&(failure==='cleanup'?f.counts.devices===1:f.counts.deviceReleases===1));const before=await readFile(f.f.config.printerConfig,'utf8'),response=await fetch(f.base+'/printer/host/config/save',{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify({version:1,path:'printer.cfg',content:before+'# unsafe save\n',expected_sha256:'0'.repeat(64)})});assert.equal(response.status,409);
+  for(const [path,method] of [['restore','POST'],['backups','DELETE']]){const denied=await fetch(f.base+'/printer/host/config/'+path,{method,headers:{...f.headers,'content-type':'application/json'},body:JSON.stringify({version:1,path:'printer.cfg',backup:'.printer.cfg.save-backup-00000000-0000-4000-8000-000000000000',backup_sha256:'0'.repeat(64),...method==='POST'?{expected_sha256:'0'.repeat(64)}:{}})});assert.equal(denied.status,409);}
+  assert.equal(await readFile(f.f.config.printerConfig,'utf8'),before);}finally{await f.close();}
 });
