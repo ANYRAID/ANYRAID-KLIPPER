@@ -1,5 +1,5 @@
 import {createRequire} from 'node:module';
-import {open,mkdir,link,unlink,opendir,lstat,statfs,type FileHandle} from 'node:fs/promises';
+import {open,mkdir,link,unlink,opendir,lstat,statfs,readlink,type FileHandle} from 'node:fs/promises';
 import {constants} from 'node:fs';
 import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
@@ -39,6 +39,7 @@ export class PublishedPrintFiles {
   try{const stat=await root.stat();if(stat.uid!==process.getuid!()||(stat.mode&0o077)!==0)throw new Error('Published file directory must be private and owned by service');native.lockDirectory(root.fd);const store=new PublishedPrintFiles(root,max,count,options.budget??defaultPrintSnapshotBudget,storage,files);await store.#recover();return store;}catch(error){await root.close();throw error;}
  }
  get status(){return {storedBytes:this.#storedBytes,reservedBytes:this.#reservedBytes,publishedFiles:this.#records.size,pendingPublications:this.#publishing.size,maxStorageBytes:this.#maxStorage,maxPublishedFiles:this.#maxFiles,writeFault:this.#writeFault,closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
+ async directoryPath(signal:AbortSignal):Promise<string>{signal.throwIfAborted();if(this.#closed)throw new Error('Published files closed');const path=await readlink(`/proc/self/fd/${this.#root.fd}`);signal.throwIfAborted();return path;}
  async #recover():Promise<void>{
   const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0;
   const directory=await opendir(this.#path('.'));

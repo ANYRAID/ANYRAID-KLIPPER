@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtemp,rm,readFile,writeFile} from 'node:fs/promises';
+import {mkdtemp,rm,readFile,writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {once} from 'node:events';
@@ -16,9 +16,10 @@ async function until(check:()=>boolean){const end=performance.now()+10000;while(
 async function fixture(failure:'configuration'|'adapter'|'cleanup'|'hardware'|'hardware-stop'='configuration'){
  const root=await mkdtemp(join(tmpdir(),'native-bootstrap-')),f=await productMachineFixture(root),configuration=await readFile(f.config.printerConfig,'utf8'),abort=new AbortController(),control=new ProductHostControl(),listening=Promise.withResolvers<string>(),addresses:string[]=[];
  let db:DatabaseStore|undefined,devices=0,processOpens=0,processReleases=0,deviceReleases=0;
+ const configRoot=join(root,'config');await mkdir(configRoot);f.config.printerConfig=join(configRoot,'printer.cfg');await writeFile(f.config.printerConfig,configuration);await writeFile(f.path,JSON.stringify(f.config));
  if(failure==='configuration')await writeFile(f.config.printerConfig,'[printer]\nkinematics: invalid\n');
  if(failure==='hardware'||failure==='hardware-stop')await writeFile(f.config.printerConfig,configuration.replace(/step_pin: [^\n]+/u,'step_pin: NO_SUCH_PIN'));
- const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),standardPrint:{nozzle:200,bed:60},
+ const factory=createNativeProductHostFactory(f.path,{filesRoot:join(root,'files'),metadataRoot:join(root,'metadata'),configFiles:{root:configRoot},standardPrint:{nozzle:200,bed:60},
   async createProcess(){processOpens++;db=await DatabaseStore.open({path:join(root,'api.db')});return {server:{information:f.bindings.server.information,database:db,authorization:{issuer:'https://bootstrap.invalid'}},async release(){processReleases++;if(!db!.status.closed)await db!.close();}};},
   async createAdapter(){devices++;if(devices===1&&['adapter','cleanup'].includes(failure)){if(failure==='cleanup')throw new AggregateError([Error('Adapter acquisition failed'),Error('Adapter cleanup failed')],'Unconfirmed startup cleanup');throw Error('Adapter acquisition failed after confirmed cleanup');}
    return {stops:new Map([...f.bindings.stops].map(([id,stop])=>[id,async(cause:unknown)=>{await stop(cause);if(failure==='hardware-stop'&&id==='mcu')throw Error('Physical stop unconfirmed');}])),output:f.bindings.print.output,lifecycle:f.bindings.print.lifecycle,async authorizePrintFile(){},async release(){deviceReleases++;}};}
@@ -32,6 +33,8 @@ for(const failure of ['configuration','adapter','hardware'] as const)test(`initi
  const f=await fixture(failure);let socket:WebSocket|undefined,pending:ReturnType<typeof request>|undefined;try{
   await until(()=>f.control.status.restart_available);assert.equal(f.addresses.length,0);assert.equal(f.control.status.durable,true);assert.equal(f.control.status.available,false);assert.equal(f.counts.devices,failure==='configuration'?0:1);assert.equal(f.counts.processOpens,1);
   const info=await f.get('/server/info');assert.equal(info.klippy_connected,false);assert.equal(info.native_host.ready,false);assert.deepEqual(info.native_host.mcus,[]);assert.equal(info.native_host.startup_failure,'device_startup_failed');assert.equal((await f.get('/printer/info')).python_path,'');
+  assert(info.registered_directories.includes('config'));assert.equal((await f.get('/server/files/roots')).find((root:any)=>root.name==='config').permissions,'r');
+  assert.deepEqual((await f.get('/server/files/list?root=config')).map((file:any)=>file.path),['printer.cfg']);const configRead=await fetch(f.base+'/server/files/config/printer.cfg',{headers:f.headers});assert.equal(configRead.status,200);assert.equal(await configRead.text(),await readFile(f.f.config.printerConfig,'utf8'));assert.equal((await fetch(f.base+'/server/files/config/printer.cfg')).status,401);assert.equal((await fetch(f.base+'/server/files/config/printer.cfg',{method:'DELETE',headers:f.headers})).status,405);
   assert.equal((await fetch(f.base+'/server/info')).status,401);for(const path of ['/printer/print/status','/printer/objects/list'])assert.equal((await fetch(f.base+path,{headers:f.headers})).status,503,path);
   assert.equal((await fetch(f.base+'/printer/print/start',{method:'POST',headers:{...f.headers,'content-type':'application/json'},body:'{"filename":"first.gcode"}'})).status,503);
   assert.equal((await fetch(f.base+'/server/files/delete_file?path=gcodes/first.gcode',{method:'DELETE',headers:f.headers})).status,503);
@@ -41,6 +44,7 @@ for(const failure of ['configuration','adapter','hardware'] as const)test(`initi
   const late=Promise.withResolvers<number>();pending=request(f.base+'/printer/restart',{method:'POST',headers:{...f.headers,'content-type':'application/json','transfer-encoding':'chunked'}},response=>{response.resume();response.on('end',()=>late.resolve(response.statusCode!));});pending.on('error',late.reject);pending.write('{');await delay(25);
   await delay(25);assert.equal(f.addresses.length,0);await f.repair();socket.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'printer.restart'}));await until(()=>events.some(e=>e.id===2));assert.equal(events.find(e=>e.id===2).result,'ok');await until(()=>f.control.status.restart_operation?.state==='succeeded');
   assert.deepEqual(f.addresses,[f.base]);assert.equal((await f.get('/server/info')).native_host.ready,true);assert.equal((await f.get('/server/files/list')).length,1);assert.equal(socket.readyState,WebSocket.OPEN);await until(()=>events.some(e=>e.method==='notify_klippy_ready'));await delay(300);assert.equal(events.filter(e=>e.method==='notify_klippy_ready').length,1);
+  assert.equal(await (await fetch(f.base+'/server/files/config/printer.cfg',{headers:f.headers})).text(),await readFile(f.f.config.printerConfig,'utf8'));
   pending.end('}');assert.equal(await late.promise,503);const counts=f.f.transport.firmware.map(m=>m.stepperConfigs.length);await f.restart();await until(()=>f.control.status.restart_operation?.state==='succeeded');assert.equal(f.addresses.length,2);assert.deepEqual(f.f.transport.firmware.map(m=>m.stepperConfigs.length),counts);assert.equal(f.counts.processOpens,1);
   f.abort.abort();await f.running;assert.equal(f.counts.processReleases,1);assert.equal(f.db.status.closed,true);t.diagnostic(JSON.stringify({failure,readyGenerations:f.addresses.length,...f.counts}));
  }finally{pending?.destroy();socket?.terminate();await f.close();}

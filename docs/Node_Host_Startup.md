@@ -113,6 +113,44 @@ release 应幂等，关闭错误不得丢弃。
 会失去首代失败的服务出口，不能将进程所有者作为一次性 profile 使用。省略
 createProcess 的旧适配器保留原有一次性服务语义，不隐式改变资源归属。
 
+### 原生配置目录读取
+
+上述 `createNativeProductHostFactory` 的进程模式可显式增加：
+
+```js
+configFiles: {
+  root: '/etc/anyraid/config',
+  maxFileBytes: 4 * 1024 ** 2,
+  maxDownloads: 2,
+},
+```
+
+主打印机配置必须位于该子树。此选项仅接入带 `createProcess` 的工厂；
+一次性 `loadNativeProductMachineProfile` 不提供该配置服务。根目录必须
+预先存在，工厂不创建或复制配置，不从打印机配置的父目录自动推断公开范围。
+配置子树及其父路径由装配者明确选择，数据库、身份与密钥存储不应放入
+公开子树；`reserved` 可指定禁止读取的相对文件或目录。
+
+服务实际报告 config 根路径与 `r` 权限，提供 `/server/files/roots`、
+`/server/files/list?root=config`、`/server/files/directory?path=config` 及
+`GET /server/files/config/<相对路径>`；嵌套 include 文件按实际目录浏览。
+目录不读取或展开配置语义，树外 include 不会因此被公开。根及其后代
+符号链接拒绝读取；这与固定上游跟随链接的列表语义有明确差异。
+Linux 根描述符固定后，目录改名或同名替换不会切换读取范围；配置父路径
+属于部署信任边界。列表运行在既有 Worker，下载使用有界不可变快照，
+保留原始字节，支持 HEAD、ETag 和单区间 Range；变化中的源返回冲突。
+默认每文件 4 MiB、两路下载，分别最多配置到 16 MiB、四路；最终退出
+等待实际请求排空后关闭。设备未就绪仍保留授权读取，标准重启和产品
+进程重启回归保留同一配置与身份。
+
+Fluidd 1.37.6 与 Mainsail 2.19.0 已实际打开主配置和 include 文件；Mainsail
+显示 read-only。当前没有配置写入、备份或保存后重启支持；客户端不得
+把 `r` 当作可写。生产包清单指纹为
+`7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d`。
+并发列表／256 KiB 下载 P99 为 8.17／10.98 ms，状态查询 P99 为 4.36 ms，
+最小步进提前量为 87.31 ms。正确性、回收及并发打印检查通过；仍须目标板
+测量与实机验收，详情见[配置读取验收](../host/contracts/native-config-files-read-acceptance.json)。
+
 该模式还持有同一文件元数据层和权威作业日志 Worker。设备 profile 借用
 日志与元数据，释放时不能关闭它们；新代际的日志路径和设备身份不得改变。
 只有旧打印控制器永久退役、操作和写入实际排空并确认停止后，才允许新
@@ -2217,12 +2255,12 @@ Fluidd 查询到完成／取消的持久历史和两种成功回执；Mainsail �
 
 文件仍由 API 预置；页面文件选择器已能建立，但 setFiles 未完成，日志中
 没有页面上传请求，相关服务按 15 分钟期限正常退出。这属于工具阻塞，
-不证明上传端点失败，也不计作页面上传通过。配置根目录、准备阶段控制
+不证明上传端点失败，也不计作页面上传通过。当时的配置根目录、准备阶段控制
 显示及其他外围差异仍记录为未完成；实际页面完整历史／断连与进程恢复、
 页面上传和实机验收仍待完成，A4 不封存。当前记录位于
 [客户端验收记录](../host/contracts/fluidd-client-acceptance.json)。
 
-当前生产包清单指纹为
+上一 history 发现修正批次的生产包清单指纹为
 `e4d0e9198f2fd227f7f4e17511b57ae7a8a65fe71d1984f1cac36bef12b277f3`。
 `server.info.components` 按实际原生或旧后端 history 注册声明组件；没有
 注册则不声明，避免历史接口存在而客户端隐藏入口。Fluidd 1.37.6 当前

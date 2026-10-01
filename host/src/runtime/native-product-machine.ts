@@ -11,8 +11,9 @@ import type {ProductHostFactory,ProductHostProfile,HostReloadContext} from './pr
 import {PrintJournal} from '../operations/print-journal.ts';
 import {ConfiguredMoonraker} from '../moonraker/configured-server.ts';
 import {resetConfiguredFirmware} from './firmware-restart.ts';
+import {NativeConfigFiles,type NativeConfigFilesOptions} from '../moonraker/native-config-files.ts';
 
-type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'>:never;
+type NativeAdapterServer<T>=T extends unknown?Omit<T,'nativeUploads'|'productPrintCompatibility'|'nativeProcessFiles'|'nativeProcessHistory'|'configFiles'>:never;
 export interface NativeMachineAdapter {
  stops:ProductMachineBindings['stops'];
  lifecycle:ProductMachineBindings['print']['lifecycle'];
@@ -27,6 +28,8 @@ export interface NativeProductMachineOptions {
  filesRoot:string;metadataRoot:string;
  files?:Parameters<typeof PublishedPrintFiles.open>[1];
  uploads?:NativeUploadOptions;
+ /** Explicit config subtree; only process-mode factories may expose it. */
+ configFiles?:NativeConfigFilesOptions;
  /** Borrowed process storage. A profile closes its admission/metadata layer,
   * releases its lease and adapter, but cannot close the file store. */
  fileResources?:NativeProductFileResources;
@@ -125,10 +128,12 @@ export function loadNativeProductMachineProfile(path:string,options:NativeProduc
 export function createNativeProductHostFactory(path:string,options:Omit<NativeProductMachineOptions,'fileResources'>|NativeProductProcessOptions):ProductHostFactory{
  if(typeof options.createAdapter!=='function')throw new TypeError('Native machine adapter factory is required');
  if('createProcess' in options&&typeof options.createProcess!=='function')throw new TypeError('Native process resource factory is required');
+ if(options.configFiles&&!('createProcess' in options))throw new TypeError('Config files require process lifetime');
  storageRoots(options);
- const snapshot={...options,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
+ const snapshot={...options,configFiles:options.configFiles?structuredClone(options.configFiles):undefined,files:{...options.files},uploads:{...options.uploads},standardPrint:options.standardPrint?{...options.standardPrint}:undefined},stopped=new AbortController();
  const processOptions='createProcess' in snapshot?snapshot:undefined;
  let processResources:NativeProductProcessResources|undefined,processOpening:Promise<void>|undefined,processJournal:PrintJournal|undefined,processIdentity:ProductMachineConfiguration|undefined;
+ let configFiles:NativeConfigFiles|undefined;
  let bootstrapping:ReturnType<NonNullable<ProductHostFactory['bootstrap']>>|undefined;
  let resources:NativeProductFileResources|undefined,pending:Promise<ProductHostProfile>|undefined,active=false,closing:Promise<void>|undefined;
  const ensureProcess=async(config:ProductMachineConfiguration,s:AbortSignal)=>{
@@ -139,7 +144,8 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    processResources=await processOptions!.createProcess(structuredClone(config),s);s.throwIfAborted();
    if(!processResources||typeof processResources.release!=='function')throw new TypeError('Native process resources must own cleanup');
    assertProductAuthorization(processResources.server,true);new ServerInformation(processResources.server.information);
-   if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
+   if(['nativeDetached','productPrint','nativeHost','nativeObjects','maintenanceGate','nativeUploads','productPrintCompatibility','nativeProcessFiles','nativeProcessHistory','configFiles'].some(key=>key in processResources!.server))throw new TypeError('Native process resources cannot override native resource owners');
+   if(snapshot.configFiles){configFiles=await NativeConfigFiles.open(snapshot.configFiles);if(!configFiles.contains(config.printerConfig))throw new TypeError('Printer config must be inside the explicit config root');s.throwIfAborted();}
    await resources!.processFiles(snapshot.uploads);s.throwIfAborted();
    processJournal=await PrintJournal.open({path:config.journalPath,deviceId:config.deviceId});s.throwIfAborted();
   })();await processOpening;s.throwIfAborted();
@@ -160,7 +166,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    }else{resources??=await NativeProductFileResources.open(snapshot);s.throwIfAborted();createAdapter=(snapshot as NativeProductMachineOptions).createAdapter;}
    const processFiles=processOptions?await resources!.processFiles(snapshot.uploads):undefined;s.throwIfAborted();
    const bindings=await createNativeProductBindings(config,s,gate,{...snapshot,createAdapter,files:undefined,fileResources:resources,processFiles});
-   return processOptions?{...bindings,journal:processJournal,server:{...bindings.server,nativeProcessFiles:processFiles,nativeProcessHistory:processJournal}}:bindings;
+   return processOptions?{...bindings,journal:processJournal,server:{...bindings.server,configFiles,nativeProcessFiles:processFiles,nativeProcessHistory:processJournal}}:bindings;
   },signal).then(profile=>{
    const release=profile.release;let retiring:Promise<void>|undefined;
    profile.release=()=>retiring??=(async()=>{try{await release();}finally{active=false;}})();return profile;
@@ -169,7 +175,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
  };
  factory.close=()=>{
   if(closing)return closing;stopped.abort(new Error('Native product factory closed'));
-  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
+  closing=(async()=>{await pending?.catch(()=>{});await bootstrapping?.catch(()=>{});const results=await Promise.allSettled([resources?.close()]);await Promise.allSettled([processOpening]);for(const close of [()=>configFiles?.close(),()=>processJournal?.close(),()=>processResources?.release?.()])try{await close();}catch(error){results.push({status:'rejected',reason:error});}const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native process cleanup failed');})();return closing;
  };
  if(processOptions){
   Object.defineProperty(factory,'serverLifetime',{value:'process',enumerable:true});
@@ -180,7 +186,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
    return bootstrapping??=(async()=>{
     const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);await ensureProcess(config,signal);
     const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads);
-    const serverOptions={nativeDetached:true as const,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
+    const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
      nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
     return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};

@@ -1,5 +1,6 @@
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
 import {NativePrintUploads} from './native-print-uploads.ts';
+import type {NativeConfigFiles} from './native-config-files.ts';
 import {discardRejectedUploadBody} from './rejected-upload-body.ts';
 import {Readable} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
@@ -24,6 +25,8 @@ export interface MoonrakerNetworkOptions {
  thumbnails?:ThumbnailDownloads;
  /** Native multipart HTTP admission; lifetime belongs to the composition owner. */
  nativeUploads?:NativePrintUploads;
+ /** Explicit process config reads, separately owned from the print device. */
+ configFiles?:NativeConfigFiles;
  authorize(method:string,params:Readonly<Record<string,Json>>,request:NetworkAuthorization):AuthorizationResult|Promise<AuthorizationResult>;
  /** Required to enable broadcasts; separate from inbound method authorization. */
  authorizeNotification?(method:string,params:readonly Json[],request:NetworkAuthorization):void|Promise<void>;
@@ -130,7 +133,7 @@ export class MoonrakerNetwork {
  #http(request:IncomingMessage,response:ServerResponse):void{
   if(this.#phase!=='listening'){this.#error(response,503,'Server is shutting down');return;}
   const nativeUploads=this.#options.nativeUploads,nativeGenerationSignal=this.#nativeLifetime,receiveUpload=nativeUploads?.captureUpload(),nativeGenerationRetiredAtAdmission=!!nativeGenerationSignal?.aborted;
-  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
+  const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&path.startsWith('/server/files/gcodes/.thumbs/')&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
   if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
@@ -156,14 +159,15 @@ export class MoonrakerNetwork {
      if(query||body.length)throw new ApiError(400,'File deletion does not accept a query or body');
      const result=await nativeUploads!.remove({path:decodeURIComponent(path.slice('/server/files/'.length))},context);signal.throwIfAborted();response.setHeader('content-type','application/json; charset=UTF-8');response.end(JSON.stringify({result}));return;
     }
-    if(isDownload){
+    if(isDownload||isConfigDownload){
      // Source copy, generator and transport each hold bounded chunks. Kernel
      // snapshot content has an independent owner quota, not this JS buffer pool.
      const budget=3*65536;if(budget>this.#maximumOutputBytes-this.#outputBytes)throw new ApiError(429,'Response buffer capacity exceeded');this.#outputBytes+=budget;outputReserved=budget;
-     await nativeUploads!.download(path,context,async(file,downloadSignal)=>{
+     const downloads=isConfigDownload?this.#options.configFiles!:nativeUploads!;
+     await downloads.download(path,context,async(file,downloadSignal)=>{
       const etag='"'+file.sha256+'"';response.setHeader('content-type','application/octet-stream');response.setHeader('cache-control','private, no-cache');response.setHeader('x-content-type-options','nosniff');response.setHeader('etag',etag);response.setHeader('accept-ranges','bytes');
       const encoded=encodeURIComponent(file.record.name).replace(/['()*]/g,char=>'%'+char.charCodeAt(0).toString(16).toUpperCase());
-      response.setHeader('content-disposition',`attachment; filename="${file.record.id}.gcode"; filename*=UTF-8''${encoded}`);
+      const fallback=isConfigDownload?'config.txt':file.record.id+'.gcode';response.setHeader('content-disposition',`attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`);
       const condition=request.headers['if-none-match'];if(condition?.split(',').some(value=>value.trim()==='*'||value.trim().replace(/^W\//,'')===etag)){response.writeHead(304);response.end();return;}
       let start=0,end=file.size;
       if(request.method==='GET'&&request.headers.range&&(!request.headers['if-range']||request.headers['if-range']===etag)){

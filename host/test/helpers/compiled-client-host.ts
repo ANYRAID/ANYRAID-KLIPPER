@@ -1,5 +1,5 @@
 import {spawn} from 'node:child_process';
-import {writeFile,readFile} from 'node:fs/promises';
+import {writeFile,readFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -12,7 +12,13 @@ export async function startCompiledClientHost(dir:string,signal:AbortSignal,onRe
  const app=join(dir,'app');if(!session?.reuseBuild){await buildProductHost(app);await installProductDependencies(app);}signal.throwIfAborted();
  console.log('CLIENT_ARTIFACT '+createHash('sha256').update(await readFile(join(app,'build-info.json'))).digest('hex'));
  const fixture=session?.fixture??await productMachineFixture(dir,false,'ack');
- if(trustedLoopback)await writeFile(fixture.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\ntrusted_clients: 127.0.0.1\nforce_logins: false\n');
+ const configRoot=join(dir,'config');
+ if(!session?.reuseBuild){
+  const printer=await readFile(fixture.config.printerConfig),moonraker=await readFile(fixture.config.moonrakerConfig);await mkdir(join(configRoot,'parts'),{recursive:true});
+  fixture.config.printerConfig=join(configRoot,'printer.cfg');fixture.config.moonrakerConfig=join(configRoot,'moonraker.conf');
+  await writeFile(join(configRoot,'parts','machine.cfg'),printer);await writeFile(fixture.config.printerConfig,'[include parts/machine.cfg]\n');await writeFile(fixture.config.moonrakerConfig,moonraker);await writeFile(fixture.path,JSON.stringify(fixture.config));
+ }
+ if(trustedLoopback&&!session?.reuseBuild)await writeFile(fixture.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\ntrusted_clients: 127.0.0.1\nforce_logins: false\n');
  const profile=join(dir,'client-machine.mjs'),moduleUrl=(path:string)=>JSON.stringify(pathToFileURL(join(app,path)).href);
  await writeFile(profile,`import {createNativeProductHostFactory} from ${moduleUrl('host/src/runtime/native-product-machine.js')};
 import {DatabaseStore} from ${moduleUrl('host/src/moonraker/database.js')};
@@ -22,7 +28,7 @@ process.on('disconnect',()=>{for(const item of pending.values()){clearTimeout(it
 process.channel?.unref();
 function call(method,params){return new Promise((resolve,reject)=>{const id=++sequence,timer=setTimeout(()=>{pending.delete(id);reject(new Error('Simulation request timeout'));},10000);pending.set(id,{resolve,reject,timer});process.send({id,method,params});});}
 export const createProductHostProfile=createNativeProductHostFactory(${JSON.stringify(fixture.path)},{
- filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},standardPrint:{nozzle:200,bed:60},
+ filesRoot:${JSON.stringify(join(dir,'files'))},metadataRoot:${JSON.stringify(join(dir,'metadata'))},configFiles:{root:${JSON.stringify(configRoot)}},standardPrint:{nozzle:200,bed:60},
  async createProcess(){const database=await DatabaseStore.open({path:${JSON.stringify(join(dir,'auth.sqlite'))}});return {
   server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'compiled-client-fixture',missingRequirements:[]},database,authorization:{issuer:'http://printer.test'}},
   async release(){await database.close();}

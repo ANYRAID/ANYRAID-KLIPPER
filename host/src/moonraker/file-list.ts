@@ -9,7 +9,10 @@ export interface FileListEntry {path:string;modified:number;size:number;permissi
 export interface FileDirectory {dirs:Record<string,Json>[];files:Record<string,Json>[];disk_usage:{total:number;used:number;free:number};root_info:{name:string;permissions:'r'|'rw'};}
 export interface DirectoryScan {relativePath:string;result:FileDirectory;}
 export interface FileListingOptions {
- roots:readonly {name:string;path:string;writable:boolean}[];
+ roots:readonly {name:string;path:string;writable:boolean;descriptor?:number}[];
+ /** Native config mode: descriptor-anchored traversal excludes symlinks.
+  * Descriptors are trusted composition capabilities, not client arguments. */
+ confined?:boolean;
  reserved?:readonly {path:string;canRead:boolean}[];
  maxEntries?:number;maxFiles?:number;maxOutputBytes?:number;maxPending?:number;timeoutMs?:number;
 }
@@ -21,9 +24,9 @@ export class FileListing {
  private constructor(options:Required<FileListingOptions>){this.#options=options;this.#worker=new Worker(workerEntry('./file-list-worker.ts',import.meta.url),{workerData:options,execArgv:[]});}
  static async open(input:FileListingOptions):Promise<FileListing>{
   const path=(value:unknown)=>typeof value==='string'&&value.isWellFormed()&&isAbsolute(value)&&!value.includes('\0')&&Buffer.byteLength(value)<=4096;
-  if(!input||!Array.isArray(input.roots)||input.roots.length>64||input.roots.some(r=>!r||typeof r.name!=='string'||!(/^[A-Za-z0-9_-]{1,64}$/).test(r.name)||!path(r.path)||typeof r.writable!=='boolean')||new Set(input.roots.map(r=>r.name)).size!==input.roots.length)throw new TypeError('Invalid file roots');
+  if(!input||input.confined!==undefined&&typeof input.confined!=='boolean'||!Array.isArray(input.roots)||input.roots.length>64||input.roots.some(r=>!r||typeof r.name!=='string'||!(/^[A-Za-z0-9_-]{1,64}$/).test(r.name)||!path(r.path)||typeof r.writable!=='boolean'||r.descriptor!==undefined&&(!input.confined||!Number.isSafeInteger(r.descriptor)||r.descriptor<0))||new Set(input.roots.map(r=>r.name)).size!==input.roots.length)throw new TypeError('Invalid file roots');
   const reserved=input.reserved??[];if(!Array.isArray(reserved)||reserved.length>256||reserved.some(r=>!r||!path(r.path)||typeof r.canRead!=='boolean'))throw new TypeError('Invalid reserved paths');
-  const options:Required<FileListingOptions>=structuredClone({...input,reserved,maxEntries:input.maxEntries??50000,maxFiles:input.maxFiles??10000,maxOutputBytes:input.maxOutputBytes??1024**2,maxPending:input.maxPending??4,timeoutMs:input.timeoutMs??5000});
+  const options:Required<FileListingOptions>=structuredClone({...input,reserved,confined:input.confined??false,maxEntries:input.maxEntries??50000,maxFiles:input.maxFiles??10000,maxOutputBytes:input.maxOutputBytes??1024**2,maxPending:input.maxPending??4,timeoutMs:input.timeoutMs??5000});
   for(const [key,max] of [['maxEntries',1000000],['maxFiles',100000],['maxOutputBytes',1024**2],['maxPending',64],['timeoutMs',60000]] as const)if(!Number.isSafeInteger(options[key])||options[key]<1||options[key]>max)throw new RangeError('Invalid file listing capacity');
   const instance=new FileListing(options),ready=Promise.withResolvers<void>();
   const fail=(error:unknown)=>{instance.#closed=true;ready.reject(error);for(const pending of instance.#pending.values()){Atomics.store(pending.cancel,0,1);pending.finish(error);pending.dispose();}instance.#pending.clear();};

@@ -620,5 +620,11 @@
       "177 remaining tracked klippy Python files/default-install and CI retirement",
       "Reviewable integration batches and develop/mainline release"
     ]
+  },
+  "nativeConfigReadAcceptance": {
+    "evidence": "native-config-files-read-acceptance.json",
+    "manifestSha256": "7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d",
+    "result": "Both fixed actual clients list and open real main/include config from the same production fingerprint. Read-only increment passed; writes and complete A4 remain pending.",
+    "historicalMissingNativeBindings": "Top-level missingNativeBindings describes the original baseline; config read missing item superseded by this evidence."
   }
 }

@@ -32,6 +32,8 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
   };
   const waitNotification=async(peer:Awaited<ReturnType<typeof connect>>,state:string)=>{const until=performance.now()+5000;while(!peer.notifications.some(n=>n.method==='notify_status_update'&&n.params[0]?.print_stats?.state===state)){assert(performance.now()<until,'Missing subscribed state '+state);await delay(20);}};
   let peer=await connect();
+  const configList=await invoke('/server/files/list?root=config');assert.deepEqual(configList.map((file:any)=>file.path),['moonraker.conf','parts/machine.cfg','printer.cfg']);assert(configList.every((file:any)=>file.permissions==='r'));
+  const configResponse=await fetch(base+'/server/files/config/printer.cfg',{headers});assert.equal(configResponse.status,200);assert.equal(await configResponse.text(),'[include parts/machine.cfg]\n');assert.equal((await fetch(base+'/server/files/config/printer.cfg')).status,trustedLoopback?200:401);
   assert((await invoke('/server/info')).components.includes('history'),'actual registered native history must be discoverable by UI');
   assert((await invoke('/server/files/list')).some((file:any)=>file.path==='client-sample.gcode'));
   const waitState=async(wanted:string)=>{const deadline=performance.now()+20000;for(;;){const state=await invoke('/printer/print/status');if(state.state===wanted)return state;assert.notEqual(state.state,'failed',JSON.stringify(state));assert(performance.now()<deadline,JSON.stringify(state));await delay(50);}};
@@ -48,6 +50,7 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
    assert.equal(await invoke('/printer/'+route,{}),'ok');const deadline=performance.now()+15000;while(!output.includes('CLIENT_GENERATION '+expected)){assert(performance.now()<deadline,stderr);await delay(50);}
    assert.equal(peer.ws.readyState,WebSocket.OPEN);const snapshot=await peer.call('printer.objects.subscribe',{objects:{print_stats:['state']}});assert.equal(snapshot.status.print_stats.state,'standby');assert((await invoke('/server/files/list')).some((file:any)=>file.path==='client-sample.gcode'));
    assert((await invoke('/server/info')).components.includes('history'));
+   assert.deepEqual(await invoke('/server/files/list?root=config'),configList);
    if(route==='restart'){assert.equal(await invoke('/printer/print/start',{filename:'client-sample.gcode'}),'ok');await waitState('printing');await waitState('completed');}
   }
   const traffic=output.split('\n').filter(line=>line.startsWith('CLIENT_FIRMWARE ')).map(line=>JSON.parse(line.slice('CLIENT_FIRMWARE '.length)));assert.equal(traffic.length,4);assert.deepEqual(traffic.map(devices=>devices.map((d:any)=>d.resets)),[[0,0],[0,0],[0,0],[1,1]]);assert.deepEqual(traffic.map(devices=>devices.map((d:any)=>d.configurations)),[[1,1],[1,1],[1,1],[2,2]]);
@@ -61,6 +64,7 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
   const recoveryDeadline=performance.now()+20000;while(!output.includes('CLIENT_PROCESS_READY 2')){assert(performance.now()<recoveryDeadline,stderr);assert.equal(child.exitCode,null,stderr);await delay(50);}
   assert.notEqual((await invoke('/printer/info')).process_id,before);assert.deepEqual((await invoke('/server/history/list')).jobs,history.jobs);assert.deepEqual(await invoke('/server/files/list'),files);
   assert((await invoke('/server/info')).components.includes('history'));
+  assert.deepEqual(await invoke('/server/files/list?root=config'),configList);
   peer=await connect();assert.equal(peer.snapshot.status.print_stats.state,'standby');assert.equal((await invoke('/printer/print/status')).state,'idle');
   const lastTraffic=JSON.parse(output.split('\n').filter(line=>line.startsWith('CLIENT_FIRMWARE ')).at(-1)!.slice('CLIENT_FIRMWARE '.length));assert.deepEqual(lastTraffic.map((d:any)=>[d.resets,d.configurations]),[[1,2],[1,2]]);
   const artifacts=[...output.matchAll(/CLIENT_ARTIFACT ([a-f0-9]+)/g)].map(match=>match[1]);assert.equal(artifacts.length,2);assert.equal(artifacts[0],artifacts[1]);

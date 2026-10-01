@@ -17,6 +17,7 @@ export type NativeFileDownload=Awaited<ReturnType<PublishedPrintFiles['acquireBi
 import {MaintenanceGate} from '../operations/maintenance-gate.ts';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
+import type {NativeConfigFiles} from './native-config-files.ts';
 const validId=(id:unknown):id is string=>typeof id==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(id);
 /** Native-mode multipart admission. Publishes immutable bytes, never starts a
  * print. The file store is externally owned and must also back FilePrintDevice. */
@@ -46,6 +47,7 @@ export class NativePrintUploads {
   try{const metadata=await NativePersistentMetadata.open(options.metadataRoot,files),previous=owner.#metadata;owner.#metadata=metadata;await previous.close();return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Native upload startup cleanup failed');}throw error;}
  }
  get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
+ async rootInfo(signal:AbortSignal):Promise<Json>{return {name:'gcodes',path:await this.#files.directoryPath(signal),permissions:'rw'};}
  filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return fileId+'.gcode';}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  acceptsController(controller:PrintController):boolean{return controller instanceof PrintController&&controller.usesMaintenanceGate(this.#gate)&&(!this.#print||this.#print===controller);}
@@ -212,14 +214,15 @@ export class NativePrintUploads {
   })();
  }
 }
-export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean;reads?:NativePrintUploads;readRoutes?:boolean;deleteRoute?:boolean}={}):()=>void{
+export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativePrintUploads,options:{metadata?:boolean;reads?:NativePrintUploads;readRoutes?:boolean;deleteRoute?:boolean;configFiles?:NativeConfigFiles}={}):()=>void{
  const reads=options.reads??uploads;
  const release:(()=>void)[]=[];
  try{
   if(options.readRoutes!==false){
+   release.push(registry.register({endpoint:'/server/files/roots',methods:['GET']},async(_params,_verb,context)=>[await reads.rootInfo(context.signal),...options.configFiles?[options.configFiles.root()]:[]]));
    release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
-   release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>reads.list(params,context.signal)));
-   release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>reads.directory(params,context.signal)));
+   release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>params.root==='config'&&options.configFiles?options.configFiles.list(params,context.signal):reads.list(params,context.signal)));
+   release.push(registry.register({endpoint:'/server/files/directory',methods:['GET'],rpcVerbPrefix:true},(params,_verb,context)=>typeof params.path==='string'&&/^\/?config(?:\/|$)/.test(params.path)&&options.configFiles?options.configFiles.directory(params,context.signal):reads.directory(params,context.signal)));
    if(options.metadata!==false){release.push(registry.register({endpoint:'/server/files/metadata',methods:['GET']},(params,_verb,context)=>reads.metadata(params,context.signal)));release.push(registry.register({endpoint:'/server/files/thumbnails',methods:['GET']},(params,_verb,context)=>reads.thumbnails(params,context.signal)));}
   }
   if(options.deleteRoute!==false)release.push(registry.register({endpoint:'/server/files/delete_file',methods:['DELETE']},(params,_verb,context)=>uploads.remove(params,context)));
