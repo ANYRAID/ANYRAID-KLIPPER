@@ -265,7 +265,7 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Finish discriminating firmware link-mode comparison, then reproduce and fix the two probe/calibration failures. Preserve ROM bounds, stop protections, numerical tolerances and deadlines. Complete exact-head required CI before resuming M2a.",
+    "next": "Inspect exact new PR-head full CI after STM32 link repair. Use preserved internal motion/hardware fault diagnostics to determine the two probe/calibration causes without relaxing deadlines or numerical/safety checks. M2a remains gated on required integration checks.",
     "current": {
       "revision": "82f7d8da6d1da1be2cb14c2d179e4a9e1884e828",
       "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428683/job/110410098124",
@@ -315,6 +315,15 @@
       "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
       "romOverflowBytes": 624,
       "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
+    },
+    "firmwareLtoRepair": {
+      "reference": "stm32-lto-acceptance.json",
+      "sourceBase": "1313377c",
+      "configurationsPassed": 19,
+      "cSafetyAndGeneratorRegressionPassed": 14,
+      "criticalFunctionOperationsSame": 52,
+      "strictFinalRomRejection": true,
+      "scope": "Local STM32 link repair only; full exact-head CI and two probe failure causes remain unproven. No physical timing or merge approval."
     }
   },
   "mergeReady": false,

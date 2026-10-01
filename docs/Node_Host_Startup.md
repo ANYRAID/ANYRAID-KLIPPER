@@ -588,6 +588,20 @@ Moonraker 配置 `[data_store] temperature_store_size` 控制每字段容量，
 [原生温度历史验收](../host/contracts/native-temperature-history-acceptance.json)和
 [重初始化历史交接验收](../host/contracts/temperature-handoff-acceptance.json)。
 
+## STM32 固件的 LTO 链接
+
+STM32／N32 固件在最终链接时显式使用 `-fuse-linker-plugin`，编译阶段仍
+保留原 fat LTO 对象及命令声明提取。工具链须具备 GCC LTO 插件和支持
+插件的链接器；[GCC 10 文档](https://gcc.gnu.org/onlinedocs/gcc-10.3.0/gcc/Optimize-Options.html)
+列明 GNU ld 2.21+ 或 gold 的要求。关闭插件时，CI 的 GCC 10.3.1 会在
+优化前的链接中因小 ROM 超限退出；不能通过扩大 ROM 或忽略链接错误修复。
+最终固件继续使用原配置／链接脚本的硬限制和编译器属性检查。
+
+当前同版本工具链下的 19 项现有配置构建、52 个关键函数的归一化指令对照
+和收紧 ROM 的拒绝负例见[链接修复验收](../host/contracts/stm32-lto-acceptance.json)。
+这些本地结果不证明物理芯片容量／bootloader 映射、目标时序或打印验收；
+正式固件仍须按当前系列实际板卡配置构建并通过规定门槛。
+
 ## 编译后的运行包
 
 在已经安装开发依赖的仓库内，使用目标运行环境对应的 Node.js 26.9+

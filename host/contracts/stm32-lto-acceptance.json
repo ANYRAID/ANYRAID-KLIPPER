@@ -1,0 +1,1198 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "sourceBase": "1313377c",
+  "scope": "STM32 link-only repair; existing fat LTO objects and all ROM/configuration/protocol/safety inputs retained. Local GCC 10.3.1 cross-builds and mock C safety checks, not target acceptance, printing performance approval, complete migration or merge readiness.",
+  "isolation": "git archive of sourceBase plus src/stm32/Makefile only for firmware matrix; M2 drafts excluded. Host dependencies borrowed only for isolated development checks.",
+  "repair": {
+    "path": "src/stm32/Makefile",
+    "change": "Append -fuse-linker-plugin only to CFLAGS_klipper.elf after common non-plugin compile flags. Other board makefiles, source C and linker regions unchanged.",
+    "cause": "With the CI compiler, traditional collect2 preliminary non-LTO linking fails its ROM check before LTO can reduce the final code. Identical input objects with the linker plugin produce a successful normal link under the original region.",
+    "documentation": "https://gcc.gnu.org/onlinedocs/gcc-10.3.0/gcc/Optimize-Options.html",
+    "minimumLinkerCapability": "GNU ld plugin support (2.21+) or gold as documented by GCC; actual checked linker is GNU ld 2.38.",
+    "forbiddenWorkaroundsUsedInProduct": false
+  },
+  "toolchain": {
+    "node": "v26.9.0",
+    "gcc": "arm-none-eabi-gcc (15:10.3-2021.07-4) 10.3.1 20210621 (release)",
+    "linker": "GNU ld (2.38-3ubuntu1+15build1) 2.38",
+    "installation": "Official Ubuntu packages extracted under /tmp with temporary newlib include/lib symlinks; no system install.",
+    "packages": [
+      {
+        "name": "binutils-arm-none-eabi_2.38-3ubuntu1+15build1_amd64.deb",
+        "sha256": "5b2e7d51d169b4e48f25d0d3792be97a4c8409c07d49e78bca929c532d95816d"
+      },
+      {
+        "name": "gcc-arm-none-eabi_10.3-2021.07-4_amd64.deb",
+        "sha256": "236c000f69d94897c3ca9bea619152030b879156f1018be3753d2b9f1a27fd33"
+      },
+      {
+        "name": "libnewlib-arm-none-eabi_3.3.0-1.3_all.deb",
+        "sha256": "20a3900b6513496f476e959fe313ee339049fea0f298ac4d5daa0ea5c642fa58"
+      },
+      {
+        "name": "libnewlib-dev_3.3.0-1.3_all.deb",
+        "sha256": "73d10595a2f26c6d663a855b5ee0e9717688313536c0083883576deba0763bf3"
+      }
+    ]
+  },
+  "sourceHashes": {
+    "src/stm32/Makefile": "2a54f53fb1ad1d05f45b522132afca7ffe027ddbccc696ea3a214c7141816d7c",
+    "Makefile": "0dfc9c18d8d921b016966ff8d8ade9eb8a973f0d2a557cdc38d684dfb4f15157",
+    "src/stm32/Kconfig": "9c5968fbb739c9680c6c1dce90b5baea2b8ea724572b44477d18f4e8bad8b5f1",
+    "src/generic/armcm_link.lds.S": "a82002cba58573cdeb37775863ad6134986972b968195fd406232aab68a7cdb0",
+    "src/gpiocmds.c": "242db2e20d79dbe5be46dd0f7bb1b2b23f89991d969b8f3fef4d920aa43dc26b",
+    "src/pwmcmds.c": "d53c67bb9fb6fc94f0bfca7a8c468ee937d99be175b025f1b70d566cdaba138e",
+    "src/stepper.c": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5",
+    "src/sched.c": "61c00658d8bb829f1e0344adf3e47939deea7f972381e8928e228fd168fab94b",
+    "src/endstop.c": "1e9b31e83af9d57a17c35236c26c48b8cbc329d9f9d00211ac7684740d5b0b89",
+    "src/trsync.c": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41",
+    "src/thermocouple.c": "2a6d1fe87ebd01f051f5bb894c1d58ebfebbec343618b323eace04577db8dcc1",
+    "src/thermocouple_range.h": "241fb9b51d77cab1c83d378763a41a98d0cdd0a19cd15e56ed7da60b140c4db9",
+    "scripts/check-gcc.sh": "56ce004eef5d2561c1e3e13a01baa4026c46630e47e3096d457343812d8ed434",
+    "scripts/check-software-div.sh": "d87a71c921b59baff3d5698de9c13a1c5f8e27ce92381476ab0b5698344795c5",
+    "host/test/delta-bltouch.test.ts": "c2bd6db9db0f5216698fa9cb4b2889a77d8409a64a68a6cfc07c4b7ee8a27ec4",
+    "host/test/delta-probe.test.ts": "898cd88a3e76ae098d5988ae0d5c13a03bc289f16b246a9cd32c19e832cc60e2"
+  },
+  "matrix": {
+    "passed": 19,
+    "failed": 0,
+    "python": "/nonexistent-python",
+    "commands": [
+      "make -C SOURCE KCONFIG_CONFIG=CONFIG OUT=OUT CROSS_PREFIX=arm-none-eabi- NODE=NODE26 PYTHON=/nonexistent-python olddefconfig",
+      "make -C SOURCE KCONFIG_CONFIG=CONFIG OUT=OUT CROSS_PREFIX=arm-none-eabi- NODE=NODE26 PYTHON=/nonexistent-python V=1 -j2 all",
+      "arm-none-eabi-size OUT/klipper.elf",
+      "bash scripts/check-software-div.sh CONFIG OUT/klipper.elf"
+    ],
+    "configurations": [
+      {
+        "name": "n32g45x-canbus.config",
+        "inputSha256": "b3e024bfa6cad547b570861d0b5252a603f1c1122af8410a75635a6d5b7ee9a8",
+        "expandedConfigSha256": "aa34df4df15caa33880741f9582f3497442ce6727925d0ee5d5f674ed48580b8",
+        "binaryBytes": 45240,
+        "elfSha256": "1e08d3ff7aa8271a046cee6a58a8dab5500ddf812e130119494e95e5626955c0",
+        "binarySha256": "045f672b13171b7a4619d0e7cfccebefd13cc8bcb3a341063a86c755364d580c",
+        "dictionarySha256": "fff7f5e98e188cfebec0947a4a585471f8c0aeb34b902f6baa28d5e8e31b84b0",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  45188\t     52\t   1272\t  46512\t   b5b0\t/tmp/anyraid-stm32-lto-results/n32g45x-canbus/out/klipper.elf",
+        "buildMs": 2899.6468459999996,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x-canbus/olddefconfig.log",
+            "sha256": "f6ddb6c8a49757f45fffd47973ffe6d6d1f836c3f96a45a339b32ed55cef6b24"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x-canbus/build.log",
+            "sha256": "cecae2b163debae488887e3c4b8facf146dba93b1fd6b8832464d31e4f65babc"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x-canbus/size.log",
+            "sha256": "355b69bbd9b7faea41cc6058fab77db76c773aa908164e91131fccc8ed51e588"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x-canbus/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "n32g45x.config",
+        "inputSha256": "e48fddebf0eabc3bdf1c2fc909b13a0dee202f21ebac0831fb9f34cc0698c15c",
+        "expandedConfigSha256": "747538b8fabef994df96729fa25eef030a5678dc391e699a9ba464221ff96893",
+        "binaryBytes": 45660,
+        "elfSha256": "b81458638dfec97b4a77fa316dabd71097ff6d7c4050edbc157db47d645b0682",
+        "binarySha256": "ef640330f77df68d0e338337adefe7fa774cfc232d39d9181d04281447371f3b",
+        "dictionarySha256": "872b51f27fb69ea6ce7223daa794b705b7c53b1d296449a3e8cec2515b48ac34",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  45608\t     52\t   1152\t  46812\t   b6dc\t/tmp/anyraid-stm32-lto-results/n32g45x/out/klipper.elf",
+        "buildMs": 2848.61227,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x/olddefconfig.log",
+            "sha256": "d1bc49ba8a4e60419e3400ba60c76750a80a554cf240c15693de8623ca1c1e56"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x/build.log",
+            "sha256": "2935c2200419a07da1dfb11214926bf7865d8f4935943d9ec49eba7578237c11"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x/size.log",
+            "sha256": "67c58b4447d64d7b3200b881d2144db23cd3157e0f16bb444c54e13a6d1cdbc4"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/n32g45x/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f031.config",
+        "inputSha256": "48ef3aeb2a40cf257ec54f3295ee1f2424c7b643b3665dcfe330dd2a99e4a18b",
+        "expandedConfigSha256": "5645dec1cd942dbcc2404bd3588a204fdd737dc70da356c3d13e9169b7943ed1",
+        "binaryBytes": 13392,
+        "elfSha256": "3a838f04b483dd41db0ab44628498f4f696ba812e1d84e55af043e784e4a6adb",
+        "binarySha256": "5f7e2340b5f280936f6b3d94a7060e9ab7e17331067c0f5fe253db60901e46b9",
+        "dictionarySha256": "2c724f6793244a10c1a95ae071878203b439c0de1380154c5a8e5eace8b9db3e",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  13340\t     52\t    964\t  14356\t   3814\t/tmp/anyraid-stm32-lto-results/stm32f031/out/klipper.elf",
+        "buildMs": 1420.4028989999997,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f031/olddefconfig.log",
+            "sha256": "770d7ad510d778c1ce9168b0efe54619ab870c2868bbce63a257970dcf73f67f"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f031/build.log",
+            "sha256": "35cda4b311e19601b234d566036669f9ee2072fe5ee86f66e111b320383b00a2"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f031/size.log",
+            "sha256": "2c7250abe908dd4222f3c8095d1da535961fe70249b71918c6c4d578f8fbb14b"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f031/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f042.config",
+        "inputSha256": "bd7b86ce27a0c8d0bf632bfabad8cbcb09cb3b652769d58ae00bf2792248b248",
+        "expandedConfigSha256": "72f3c1c5bd1abb30eef483ebe2b03d528b4ff9764ea758791f968299e26b3870",
+        "binaryBytes": 26208,
+        "elfSha256": "c47bfdaac0bcad15fcc7644bf01a5a28403e419764ef8d586bc4270ef2febe88",
+        "binarySha256": "e7f3da2be0d5876ec135ffabd14ea12a2817ceb6694397d0030d8a9efa3ab68f",
+        "dictionarySha256": "b8e4372baa07007ef19d5ea126009a28ae8cf41a19bcfd63efd9a25bfebc8fb6",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  26156\t     52\t   1284\t  27492\t   6b64\t/tmp/anyraid-stm32-lto-results/stm32f042/out/klipper.elf",
+        "buildMs": 2216.6821979999995,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f042/olddefconfig.log",
+            "sha256": "6f670ce95d655b11b1a3223b98a73fb0850d808f77b8021b8f4273071fc109c3"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f042/build.log",
+            "sha256": "10f19caf1afa923a41a8ecada070ed5509d2f62fbdfb85b5069915ae4ef3a07e"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f042/size.log",
+            "sha256": "2bf8c6ef758e10031af31c87dc577cbbf5110ab8a2cf3adc208b45a40c0d5b21"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f042/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f070.config",
+        "inputSha256": "1272b3ee52457c44eb2bea999bb19f41fe2752f8e03042d6f545b463f4909077",
+        "expandedConfigSha256": "df0776062044c586eff328d68c2beab48747e95ddee1f41b6f49348894b0b4b7",
+        "binaryBytes": 49636,
+        "elfSha256": "7cc04dff776a0fb5bebbfe9a2f7a153972a0a29f8618c9955d0f9589f405a2f8",
+        "binarySha256": "b56c650b67cb36f1adcd294c905b96f5fd3cbebf949ec8bf2f532e9ffc30bdff",
+        "dictionarySha256": "ae0985a8a2650dda7251bc499877ab79c492a9fa1dfc5fc939f2edc6ef54906f",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  49572\t     64\t   1344\t  50980\t   c724\t/tmp/anyraid-stm32-lto-results/stm32f070/out/klipper.elf",
+        "buildMs": 2481.1803849999997,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f070/olddefconfig.log",
+            "sha256": "598c0a924623277f79033eaa4a58097a7a2d1fd96398f3599bb22f34fd082982"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f070/build.log",
+            "sha256": "d60174f189802453ebc75c35725bd8e55405ea287a2744cae5017cd90c5c171c"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f070/size.log",
+            "sha256": "87d912f2b91cff7958157ce62385683468553b40bbf6448ab6086c3b5ace41c0"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f070/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f103-serial.config",
+        "inputSha256": "1898af3dddc6e987024017fc196b4729e0220ee48f276e345a1d2dad1c0de4ed",
+        "expandedConfigSha256": "79685ef9c72413469bfbc747c7933857a74bf11f4e7b5e64c6669071067092de",
+        "binaryBytes": 43292,
+        "elfSha256": "6f040c99705a7d610dcc64988997d4b82f8942190df1e07784159324e66a44cc",
+        "binarySha256": "f3dfa7a361c55627f0dea646993916b7d432f7a73808ab53340978bebdf60cbc",
+        "dictionarySha256": "9693c591f5aa544a247f57f22be49db655ef2b23339d5f2f9ad11d53e6ebd582",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  43240\t     52\t   1020\t  44312\t   ad18\t/tmp/anyraid-stm32-lto-results/stm32f103-serial/out/klipper.elf",
+        "buildMs": 2691.420392,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103-serial/olddefconfig.log",
+            "sha256": "e8d25cc810734cf07e540a54f72f61b85cb898def905449e568cc0401cf5f833"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103-serial/build.log",
+            "sha256": "7fe97bf113d5ffea742f81b7181d5d690a77a5922da6eb4638eafc3c7e63ae39"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103-serial/size.log",
+            "sha256": "6608d51a758c75d2e09688c46509cd35009351bb6906b715dcd0f17d7080b6fa"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103-serial/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f103.config",
+        "inputSha256": "1438333dad8a672639719a7b83d1134475db3f6e555402986ad2cfcd7b81941e",
+        "expandedConfigSha256": "143deb13bad238d7e6a97f367d152dc62c669f2a168701346ad78140ede85285",
+        "binaryBytes": 45168,
+        "elfSha256": "474a87dadf2f455ac251cac0b9d1850d34293541fe5beac89536da7d18b5dcf2",
+        "binarySha256": "4fff5b793957b6ada2879907cbb8301ca453bab2f991090ec0045a5694d421d2",
+        "dictionarySha256": "daa4e2fbdb25f3461ec980ae346bafb68e25b66d9ae05212b86923fe1200952e",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  45116\t     52\t   1152\t  46320\t   b4f0\t/tmp/anyraid-stm32-lto-results/stm32f103/out/klipper.elf",
+        "buildMs": 2756.019714,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103/olddefconfig.log",
+            "sha256": "3315e441e817076c42c746e3f1bdac109aa0c887d14433792552be0da090d228"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103/build.log",
+            "sha256": "1c8525193f1e918d18c29555956cf0c8089648a3aae2fe95a5df7c7b33a3c321"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103/size.log",
+            "sha256": "74986c7d987ca93cf41cd68f2f2a9eb3e2be91f447cb0ac8b58395691f1ed7a6"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f103/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f401.config",
+        "inputSha256": "9e475b09fbae56c741d14b056739a72e6892d88d22f4a881c192df891d1b78a4",
+        "expandedConfigSha256": "9e9a1645a297e1682a90f2c32ac641a9f84a231d09586776ce9cf57a4d42c117",
+        "binaryBytes": 47756,
+        "elfSha256": "e1f62ebe32d1605b57e1e08bbb16ee5548d8ef4ac92da68f17690ee2075dbcab",
+        "binarySha256": "16461c65f361179c49e9a8958db70056a357d7617531e44a31a47db69b6d419f",
+        "dictionarySha256": "21071266aa171ab64ece2bec683fa23a8f11be61ed8dec52a9c52c5bfc03e605",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47704\t     52\t   1208\t  48964\t   bf44\t/tmp/anyraid-stm32-lto-results/stm32f401/out/klipper.elf",
+        "buildMs": 2926.1280140000017,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f401/olddefconfig.log",
+            "sha256": "e54bb3403d942c0893f8982b21b150619c87bc318c3bed3edcf37ddbe5b8d407"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f401/build.log",
+            "sha256": "36607f677e25d89fdc7633979a22bebdcf1b638799cb031162af18b1f17913bb"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f401/size.log",
+            "sha256": "66e3d75d10228ce97a20eb6da3df8ae190738f9f0116b3621894f2dedf3e2c86"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f401/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f405.config",
+        "inputSha256": "93873eb66748b0f08d212803d8e59f453e501f0a0b1be54b68600c7c70642517",
+        "expandedConfigSha256": "155ba616c6050c10e21e11a1efd051268dda94a28f118aee3486ccda7595c1d1",
+        "binaryBytes": 47908,
+        "elfSha256": "a5f7344cdfd7703b794c66469d3add1721926d56e75e4809fe9409a2e2ceca5f",
+        "binarySha256": "e9339d24ec6cacf6194289a85a7e295f187a6c64a49adfb5929066e65745644a",
+        "dictionarySha256": "fecb15b83b58c8542d5d819bff812e2a7d2272771f3419688eaa400ae00a858e",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47844\t     64\t   1208\t  49116\t   bfdc\t/tmp/anyraid-stm32-lto-results/stm32f405/out/klipper.elf",
+        "buildMs": 3125.903008999998,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f405/olddefconfig.log",
+            "sha256": "348903b1d670f6b35441346025122e0191a4e3b9890f4b937ab7111c1fa9a929"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f405/build.log",
+            "sha256": "a322001498801cae88ab980eab17a3f8ab8a5efe89abbf5fa01eeb2d5e2c0287"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f405/size.log",
+            "sha256": "206401985b34c87c6476c509ae38135b8866aef24245cec230c66cd3e6ca0391"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f405/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f407.config",
+        "inputSha256": "686388608c370fb674670c37262df478652f32609bafab3d34645b0d8cf13739",
+        "expandedConfigSha256": "c77ce131ccd163585adcd81e72bfb482f3a60f3442a384be6aebed2899c624a9",
+        "binaryBytes": 47908,
+        "elfSha256": "71203d2b432527d4d9804c4d11c70189f49af6a259b821bede9dc19b75d7cfa9",
+        "binarySha256": "ac16e93344408997b637b70d69ff4c4df062f2f37f054c405129b4c48ca00ae0",
+        "dictionarySha256": "02761683cf0cc11e7c1c5889a33a53ef62b08a304aaded441322e6f95e0c3b91",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47844\t     64\t   1208\t  49116\t   bfdc\t/tmp/anyraid-stm32-lto-results/stm32f407/out/klipper.elf",
+        "buildMs": 3268.8922039999998,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f407/olddefconfig.log",
+            "sha256": "b5c1af541794c67bd0c7f1493ffd9c3aafc5e36b6e882750cd359c0c9856db59"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f407/build.log",
+            "sha256": "c395da93f6d3c3ee0cf305c6332be46f8cee7bb9b4973c9b4f08d8a02a4ba6a3"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f407/size.log",
+            "sha256": "a399a433a636a31ad5ef8da2f6c78dc655aab6cf6cfacc322053dc3e99a7d204"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f407/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f429.config",
+        "inputSha256": "eec5669f30a4af369a8e1898aca908d41c61a4ef9b860833026480be516ccb42",
+        "expandedConfigSha256": "684b953145b9c4dbb3ce0acc6ccd33e6303de94c2b3aa6191314b9fae0ce58c2",
+        "binaryBytes": 47992,
+        "elfSha256": "a7eb8614ffcd2a90b04a73d66dd31ab87d898e1dde8be848125cdda2117d42cc",
+        "binarySha256": "d5c46602edaed68943f6c6fb4b172f26f4ef1bfe69348f8434a59e502d361d1d",
+        "dictionarySha256": "081733d52ec8ee32073fcf8515149f48ff7a87f9762212908c4de21cb2a0caa7",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47928\t     64\t   1208\t  49200\t   c030\t/tmp/anyraid-stm32-lto-results/stm32f429/out/klipper.elf",
+        "buildMs": 3283.101981,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f429/olddefconfig.log",
+            "sha256": "359c13a9f1157fb0942d7ebed459bd3256f556f5ca78af90420ad6d05d646636"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f429/build.log",
+            "sha256": "5fd53d5f754ffdb22606cd2d3311fe37e8ee19b475b04beb7b9a4976ce801920"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f429/size.log",
+            "sha256": "d0e9dcbe7cdd3e91859079f164dcd987a37014e92a9236d5a0ac06b709e5d1bc"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f429/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f446.config",
+        "inputSha256": "5acfc2efac28739e414a649a065a7cbb7e895ec6d302150508ce1ea0ad253405",
+        "expandedConfigSha256": "7cfbd94e42555728a48c7690254888303be6438dbc6828fe52368e49f932da0c",
+        "binaryBytes": 47992,
+        "elfSha256": "02aeba2ce8c522dd406416ea7ed28b90a317a4ab49f182fa742ad3a2dbda093c",
+        "binarySha256": "7381b1eedf3c839b2af4e402b6114e308eea7fe38158117dc02688cb06de658e",
+        "dictionarySha256": "9ec993a2e4292735fa1b19a09fe2f3717e21b92dd492e6426fc475823b3d2d5f",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47928\t     64\t   1208\t  49200\t   c030\t/tmp/anyraid-stm32-lto-results/stm32f446/out/klipper.elf",
+        "buildMs": 3251.937770000004,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f446/olddefconfig.log",
+            "sha256": "4e6097097430c12263294861cbb4e2916c2a825c28d23cdad3aacb069c9f197f"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f446/build.log",
+            "sha256": "657fa291f7456e53987b63636b6514b3589e3e84882115394d1dbc8637e0b66b"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f446/size.log",
+            "sha256": "527108a81f4c0eb00efabaac3cda380d2531bda77db2bef6dc6e04d2fdc95804"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f446/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32f765.config",
+        "inputSha256": "5a39129302d1e032e284f9198859fb233b5306f53de6f9918d998b904a709cdd",
+        "expandedConfigSha256": "116428db795bbb2486d78ce4c2672a256edca724bde49a56df225037f3c859be",
+        "binaryBytes": 44836,
+        "elfSha256": "02fb5bc57aa3e7cc732bafd8b2429d4af6d2e684fa221e0df1c91ef24b396493",
+        "binarySha256": "43bf0c8f8394dfeaf5e7dfff0a6d628b1c718c6fdd8b5c2e6d0c7a123bde50ba",
+        "dictionarySha256": "5c39e3a23596c22cf08772cb9936e28ee98d4865f50bee90471dd67422891362",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  44772\t     64\t   1204\t  46040\t   b3d8\t/tmp/anyraid-stm32-lto-results/stm32f765/out/klipper.elf",
+        "buildMs": 3271.5914940000002,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f765/olddefconfig.log",
+            "sha256": "0fcb8f666769de105985e4d0251ff0b527a2114268ce5ae1865b54b30d58167f"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f765/build.log",
+            "sha256": "51af73d7b6dc53ca9deb003cefdcbf7ff6124e116a691091de49716fb53208eb"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f765/size.log",
+            "sha256": "4347d1af24c3d6c9cc15fc6ee6f194efea41fe37737b930af1d9cc38c30c294a"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32f765/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32g0b1.config",
+        "inputSha256": "51bf664ae7cc847049f213ef72c89adc43d562ac25119c1cd3d8b22a0308e32b",
+        "expandedConfigSha256": "410dc069eee99e1f46f610b91cfe95265a4680d40f925bc301ef4005f028414f",
+        "binaryBytes": 48228,
+        "elfSha256": "7482465f7b41a95584d3328933a660508225d3c2557d066323f5662bef9f8398",
+        "binarySha256": "4f9054b6cbba4e9de2c26c0a08d848fc9105fe2b47ef5cef556aa37103dab50c",
+        "dictionarySha256": "a88ee7064058d34b18fea53556f1d713a29628dad9a8303db5a5e9431cf927e7",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  48176\t     52\t   1148\t  49376\t   c0e0\t/tmp/anyraid-stm32-lto-results/stm32g0b1/out/klipper.elf",
+        "buildMs": 2725.2114500000025,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g0b1/olddefconfig.log",
+            "sha256": "76d1d3127087e85cdbf0bc565b5570dffc42697d7d7451394e9a14378932dd14"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g0b1/build.log",
+            "sha256": "951cda9efb1605041ebad87876cf476c1d36756c32f4950e24152d013eaa2d65"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g0b1/size.log",
+            "sha256": "94be1c72a3026a263d19582d87f637b995056b49dc1497d082f8f47d6bcf913f"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g0b1/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32g431.config",
+        "inputSha256": "d76d80158e15c2549649de9d5e4567ef4bc51ebd674b2c533eba76fc734e98ba",
+        "expandedConfigSha256": "cd4cb534d307a982abca702319720826194e77f2f1f60336a3c9d3f51bc9bf27",
+        "binaryBytes": 44836,
+        "elfSha256": "6bdba1952414e32dcb8ef80c16b009862bd5d2fdaf04f2f953946d40e52dcd78",
+        "binarySha256": "b3b37454d0e94ee310eb28a0b2ba35ef3e9eda1d7bd52e86b14df8186763d131",
+        "dictionarySha256": "8e2987881914021e0e11a117832aa7c6edbb82b5d84cb4bdce9cf24f1885e488",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  44772\t     64\t   1148\t  45984\t   b3a0\t/tmp/anyraid-stm32-lto-results/stm32g431/out/klipper.elf",
+        "buildMs": 2958.103941000001,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g431/olddefconfig.log",
+            "sha256": "2c1fd940315b2eab19709be8d02f9b5e8c0ea2a0b8e2b21048d4a79dcc7724a6"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g431/build.log",
+            "sha256": "a8f2dd09090b83bf10a1dfd582975f779c6361ccd90a0b0b4403a94d1fdad53a"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g431/size.log",
+            "sha256": "c4da0a35093b0afb4e66d1f5dcb02d33e356116ddd8fbd7a3aa2a863b1ea1e82"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g431/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32g474.config",
+        "inputSha256": "c1120ec87c67166efd8e2ead17906acd88198fd6613ca23dc9a96b2da7cba3f2",
+        "expandedConfigSha256": "81dea94a95a19b7557d791489949c30048cf19feef987ee0b221b82049b79c57",
+        "binaryBytes": 44996,
+        "elfSha256": "8a6de128a5326810e4d83499f80c0538170194c575118d721dccd7bc533d1724",
+        "binarySha256": "48ae558789acd2f9685230136a166ac563d349eb0125068ab1320aa3e3421e06",
+        "dictionarySha256": "2815f6b2e7c0c2ed4f8e2edcd1e0236ae833ca8177c60ace3110b0faf7e4b4db",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  44932\t     64\t   1148\t  46144\t   b440\t/tmp/anyraid-stm32-lto-results/stm32g474/out/klipper.elf",
+        "buildMs": 3176.2119999999995,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g474/olddefconfig.log",
+            "sha256": "6130f9a9e88e323e130e6e5b219ab86cd9b6f125097086f2ac8badf94d9d6ed8"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g474/build.log",
+            "sha256": "e95835f3b1428d2ca1abd7a5c189bb10eaca6cb93d3a128a23cfcb10d6326a4a"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g474/size.log",
+            "sha256": "2c1ee3bf3d93e9ae775c224f9d7e5ebb3f7d311e99d59f75487513dd7b26a085"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32g474/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32h723.config",
+        "inputSha256": "23d86ad03a92fca47e35edd3d8c003cf27a640f8ac7076e75ef6a37d244faab0",
+        "expandedConfigSha256": "25d8b79d10f262d961371f22b05bcb5567cd06fcec0dc7ea6724709265b05e8b",
+        "binaryBytes": 47800,
+        "elfSha256": "9ad1bd6a035d74e448c2bcd24eba504794c2b133bc2c85f291beeefcba86aa54",
+        "binarySha256": "2211d0cbf1ab9e389b405b02e1a5c0a8d0f4b2cfda0b4b54295e95762660ec27",
+        "dictionarySha256": "216b4cad8f340c15ce02be28ec86acb69641b5a6eec3ead91e3cfe27e612a7a6",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47736\t     64\t   1716\t  49516\t   c16c\t/tmp/anyraid-stm32-lto-results/stm32h723/out/klipper.elf",
+        "buildMs": 3635.2689610000016,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h723/olddefconfig.log",
+            "sha256": "fe83214390711b120fb6b13a82aa2e347f17b758da553a91372a2b98746b77ed"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h723/build.log",
+            "sha256": "20e209b326242f67e90d2a7cbfc8525d939a43900b143e4ee977ce892de54702"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h723/size.log",
+            "sha256": "3f0a189e73a3c19c3272445f495e2cafd8d3c50841ab05a979e1c70d53e686b4"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h723/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32h743.config",
+        "inputSha256": "4301fdd8874fc133e5e8193e82a82fb5f64fdc11cf3f32b0ce19ce253b5d6b20",
+        "expandedConfigSha256": "d69024d9eae4296ea45d5ce2998b44716896f6796d72bf2ba2fb009c74869591",
+        "binaryBytes": 47904,
+        "elfSha256": "9d88589d515fda5fed6f1ad091d5c5053851821a44939afb3abbb7c9502a742e",
+        "binarySha256": "5f41973205eef43fea9703db8052d9e349cb6ace43b4f8a396242d00b58eda75",
+        "dictionarySha256": "9999b1cfa6997c4250ab2ccd5e6d438ed1adb3dc5d15dcda84e7e6ff6ad769a9",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  47840\t     64\t   1780\t  49684\t   c214\t/tmp/anyraid-stm32-lto-results/stm32h743/out/klipper.elf",
+        "buildMs": 3839.3230910000057,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h743/olddefconfig.log",
+            "sha256": "041b138f89cd3df8440c5970070d70cc118bd5681c74e4e369a2879cc89232aa"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h743/build.log",
+            "sha256": "a799daab55c31c53a28d712b0a40dd8a01d141c53250a03eb7cca0d755694846"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h743/size.log",
+            "sha256": "778359f75fb1798f6da61e25379f2be576859bffde0ab9c51c32a8e909ae8f36"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32h743/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      },
+      {
+        "name": "stm32l412.config",
+        "inputSha256": "042ecd83da4dc409f230064ec874635f7c470b3e60698f87727186ed5b3fe3e0",
+        "expandedConfigSha256": "a6363681763063a6389a4949c915ff46f211df59815c30d8f26460f4650e7e51",
+        "binaryBytes": 43120,
+        "elfSha256": "1caf14b92d9ece0168b01785b08020a0e73b912bf3b30c11731f3dd7a4443ee7",
+        "binarySha256": "816fe578aad01b8f29fdf4dbdb15108e8a6101b6506625c0d0145e8b1c49c5b2",
+        "dictionarySha256": "e2c68d5d9c63e2eaeb6121f87c57fd6ea8ed9ad27f80339a5fa995726da72ec3",
+        "sizeOutput": "text\t   data\t    bss\t    dec\t    hex\tfilename\n  43068\t     52\t   1148\t  44268\t   acec\t/tmp/anyraid-stm32-lto-results/stm32l412/out/klipper.elf",
+        "buildMs": 2776.9328449999957,
+        "checks": [
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32l412/olddefconfig.log",
+            "sha256": "c56d41bde0a2d0f9d111d4c0e9767df0de96e702ae4df67064d3465b68a04106"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32l412/build.log",
+            "sha256": "72b67d848bc962f09b15121086604b93df2686cade42c8338fbc93de7d96cab8"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32l412/size.log",
+            "sha256": "86405a486725dcaf9aeca6404de1daa84abe9a48425bfefe8dac60a6b108195e"
+          },
+          {
+            "status": 0,
+            "log": "/tmp/anyraid-stm32-lto-results/stm32l412/software-div.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        ]
+      }
+    ]
+  },
+  "comparison": {
+    "normalTraditional": {
+      "status": 1,
+      "durationMs": 47.838533999999996,
+      "log": "/tmp/anyraid-stm32-lto-results/f042-normal-traditional.log",
+      "sha256": "3dd8ef1b038d380c2e47f6c3bb6fd0ef6ff1f1c3c6ca5853e0530eebe9f90e61"
+    },
+    "normalPlugin": {
+      "status": 0,
+      "durationMs": 416.78915400000005,
+      "log": "/tmp/anyraid-stm32-lto-results/f042-normal-plugin.log",
+      "sha256": "5ee62c5bbedf96e67c41c16eba3c4b6e17cf6c27b0a56d7e142fd3e0e015e7df"
+    },
+    "diagnosticTraditional": {
+      "status": 0,
+      "durationMs": 453.90354899999994,
+      "log": "/tmp/anyraid-stm32-lto-results/f042-diagnostic-traditional.log",
+      "sha256": "290ec9e31484dc0f7698ed98f3e0e52b8f79ac5d849217f019dcd0e8f1644369"
+    },
+    "strictOverflow": {
+      "status": 1,
+      "durationMs": 434.67739800000004,
+      "log": "/tmp/anyraid-stm32-lto-results/f042-tight-rom.log",
+      "sha256": "84d1d3b936fa0a6c12cafefbf5b481ff8d5594281fe51c8e9483b5bd284d02c1"
+    },
+    "hotFunctions": [
+      {
+        "name": "sched_check_wake",
+        "oldOperations": 9,
+        "pluginOperations": 9,
+        "normalizedSha256": "fdd737d01d83e129e1a61d37fb303940e86d3b1539d643430ef0f2f54ce10ca7",
+        "same": true
+      },
+      {
+        "name": "digital_toggle_event",
+        "oldOperations": 31,
+        "pluginOperations": 31,
+        "normalizedSha256": "1860652af9f1cc21cf99868886ec374f38cc17249760359a050ee0aaa1acd883",
+        "same": true
+      },
+      {
+        "name": "sched_del_timer",
+        "oldOperations": 33,
+        "pluginOperations": 33,
+        "normalizedSha256": "e57c254a7cdbb656ff3d14fc479c09f27cd417c26ffcb328478ad0e1512c7a35",
+        "same": true
+      },
+      {
+        "name": "sched_wake_task",
+        "oldOperations": 7,
+        "pluginOperations": 7,
+        "normalizedSha256": "865a53b59879f1681a1dd4bc8a4ecbabf20e58268622a1225860aa02e63593fd",
+        "same": true
+      },
+      {
+        "name": "sched_shutdown",
+        "oldOperations": 6,
+        "pluginOperations": 6,
+        "normalizedSha256": "f88c12170ded634b340e43c0df7f67593fe403d442486857128c36df49615476",
+        "same": true
+      },
+      {
+        "name": "sched_add_timer",
+        "oldOperations": 40,
+        "pluginOperations": 40,
+        "normalizedSha256": "a5a9caea44643d68974416979606726cd81f2c8abbb79d08fac13c6abadb68ad",
+        "same": true
+      },
+      {
+        "name": "command_emergency_stop",
+        "oldOperations": 3,
+        "pluginOperations": 3,
+        "normalizedSha256": "2cc343d3dfda9a18ea9235ae8c0eb9af5828caf2e62f8200dca773760e8cbb11",
+        "same": true
+      },
+      {
+        "name": "command_clear_shutdown",
+        "oldOperations": 14,
+        "pluginOperations": 14,
+        "normalizedSha256": "5592fa863e6f327b61258955389bcfe6aab6f650b5fd278d16b31209c988f90c",
+        "same": true
+      },
+      {
+        "name": "sched_main",
+        "oldOperations": 461,
+        "pluginOperations": 461,
+        "normalizedSha256": "19d8d14b5d813000a8d91e780fd3bc2859e8e24c1d8286decaca0328b4e58462",
+        "same": true
+      },
+      {
+        "name": "digital_load_event",
+        "oldOperations": 96,
+        "pluginOperations": 96,
+        "normalizedSha256": "52be5b82f076bd94c9a8686831f7b4fa4aaf7ecbf5d30693fe6ac8fe3458148f",
+        "same": true
+      },
+      {
+        "name": "command_set_digital_out_pwm_cycle",
+        "oldOperations": 23,
+        "pluginOperations": 23,
+        "normalizedSha256": "851633076d0a5dbd85354139417d235c0866875b426734406357934de8d87bce",
+        "same": true
+      },
+      {
+        "name": "command_config_digital_out",
+        "oldOperations": 36,
+        "pluginOperations": 36,
+        "normalizedSha256": "62a9cc3553bfc3a0c3a691f3a7655ef0413942633d31850f50a4c19a37301041",
+        "same": true
+      },
+      {
+        "name": "digital_queue",
+        "oldOperations": 49,
+        "pluginOperations": 49,
+        "normalizedSha256": "9d1cc6c027780e71fe98511975d663688eb5da3fc77bb6baf50559db1911386c",
+        "same": true
+      },
+      {
+        "name": "command_queue_digital_out",
+        "oldOperations": 16,
+        "pluginOperations": 16,
+        "normalizedSha256": "f4d8e4ec133143744d8f7e603b558e8caafab43b59c7901a6ad85cdc14f484e0",
+        "same": true
+      },
+      {
+        "name": "command_queue_digital_out_generation",
+        "oldOperations": 20,
+        "pluginOperations": 20,
+        "normalizedSha256": "e9f90274b3c00cbb52560f6ecfed9f348728d15622da5e22bcc43af10620023f",
+        "same": true
+      },
+      {
+        "name": "command_update_digital_out",
+        "oldOperations": 65,
+        "pluginOperations": 65,
+        "normalizedSha256": "2146822157fa0c181ba25a59a8881491ebde70581aeec6a109dee1dfaf0eb8f7",
+        "same": true
+      },
+      {
+        "name": "command_stepper_stop_on_trigger",
+        "oldOperations": 30,
+        "pluginOperations": 30,
+        "normalizedSha256": "2566b9d52563b0817b99c8346f18d5da4fc46aa8287af2ca2899c6ab784e970e",
+        "same": true
+      },
+      {
+        "name": "command_endstop_home",
+        "oldOperations": 49,
+        "pluginOperations": 49,
+        "normalizedSha256": "ca8489daaa4f0bb8ed2a980033ae4a6ecd6d3a32af8953a19a49eb604b5e2207",
+        "same": true
+      },
+      {
+        "name": "command_trsync_set_timeout",
+        "oldOperations": 24,
+        "pluginOperations": 24,
+        "normalizedSha256": "54008842920a1ee6cacdcd961d278512ed9bf06931be594cc4b1e9669c372181",
+        "same": true
+      },
+      {
+        "name": "command_reset_digital_out_generation",
+        "oldOperations": 59,
+        "pluginOperations": 59,
+        "normalizedSha256": "01d4df5213ed8f1bfae016e35661a09cef0a79f7e91e4bbf7fa135f578b8699e",
+        "same": true
+      },
+      {
+        "name": "stepper_stop",
+        "oldOperations": 49,
+        "pluginOperations": 49,
+        "normalizedSha256": "4363a226560707c8f695357657bd54a5a6b8116efff116ff06c1520101ecaedf",
+        "same": true
+      },
+      {
+        "name": "command_set_digital_out",
+        "oldOperations": 5,
+        "pluginOperations": 5,
+        "normalizedSha256": "247df26b391e140137dc0e9f7238efde04708a5ea367c131f0508ad1c708c7a9",
+        "same": true
+      },
+      {
+        "name": "command_config_stepper",
+        "oldOperations": 68,
+        "pluginOperations": 68,
+        "normalizedSha256": "804f849318c2ddddc532f42c79f1da0b409ecba0ff229a074f85535808d993fd",
+        "same": true
+      },
+      {
+        "name": "command_config_trsync",
+        "oldOperations": 14,
+        "pluginOperations": 14,
+        "normalizedSha256": "8ddb6b90de83d98a3236294d581ff9d77f2b05aeedc2a45f967606f9eee63034",
+        "same": true
+      },
+      {
+        "name": "command_stepper_get_position",
+        "oldOperations": 30,
+        "pluginOperations": 30,
+        "normalizedSha256": "3af2b36d023f8e8ac6194d97ca00350c0212942d25f8cf04fb78d68c500928a3",
+        "same": true
+      },
+      {
+        "name": "command_endstop_query_state",
+        "oldOperations": 26,
+        "pluginOperations": 26,
+        "normalizedSha256": "9e470ecfb0e88c998b8bef8a4e0b52b9f37d7c9c04c075c243c23afa4558d41a",
+        "same": true
+      },
+      {
+        "name": "command_config_endstop",
+        "oldOperations": 19,
+        "pluginOperations": 19,
+        "normalizedSha256": "23dff75600ff77316c252784c30b91c0ca272063701f6890b713e3a5a1c2ccb4",
+        "same": true
+      },
+      {
+        "name": "trsync_do_trigger",
+        "oldOperations": 34,
+        "pluginOperations": 34,
+        "normalizedSha256": "cc32d1ef7db8a1f0322d6309ffae4ee54c3ec04386917ef88226f5168d782cce",
+        "same": true
+      },
+      {
+        "name": "endstop_oversample_event",
+        "oldOperations": 44,
+        "pluginOperations": 44,
+        "normalizedSha256": "2636b78a016a73bc6a67e7e01101224eeeb2225567d893abdf062e2a380ecaaf",
+        "same": true
+      },
+      {
+        "name": "endstop_event",
+        "oldOperations": 28,
+        "pluginOperations": 28,
+        "normalizedSha256": "c32de672b002e6587d5fefd62520fd0429276c4b3e1cc840cc96013639211f0c",
+        "same": true
+      },
+      {
+        "name": "trsync_expire_event",
+        "oldOperations": 7,
+        "pluginOperations": 7,
+        "normalizedSha256": "fb520542005ca3dae6d24f5d359f2db1ebe45ebb3a2f4d9d1b65777c752ca350",
+        "same": true
+      },
+      {
+        "name": "trsync_report_event",
+        "oldOperations": 16,
+        "pluginOperations": 16,
+        "normalizedSha256": "66c7d21087c71678bf2d18fa4ae8ccfc540f5d83466e38a7a5b16f766d2e537a",
+        "same": true
+      },
+      {
+        "name": "stepper_load_next",
+        "oldOperations": 97,
+        "pluginOperations": 97,
+        "normalizedSha256": "9bc389ad413c04e1ce8c039b7a3ad1fa1489c0a11455761c119e9a91fb1c100a",
+        "same": true
+      },
+      {
+        "name": "stepper_event_full",
+        "oldOperations": 42,
+        "pluginOperations": 42,
+        "normalizedSha256": "a5a44bff6e505e941f30344450595ed0c26083b9340edff9b967c463955cca09",
+        "same": true
+      },
+      {
+        "name": "command_queue_step",
+        "oldOperations": 77,
+        "pluginOperations": 77,
+        "normalizedSha256": "933cfc8c283bc8cd001869fa2ae7a64aec2b7c0e973cd9d57cc3ed703fb2287c",
+        "same": true
+      },
+      {
+        "name": "trsync_clear",
+        "oldOperations": 20,
+        "pluginOperations": 20,
+        "normalizedSha256": "6cebed583542b82b7d7dd3d79b67b988dda9a7ebf9a71cfeabeba579285a8248",
+        "same": true
+      },
+      {
+        "name": "command_trsync_start",
+        "oldOperations": 26,
+        "pluginOperations": 26,
+        "normalizedSha256": "675c1a3f86d8acbb6506427481c6571d4b3b1008996e63df500b8522dfad524b",
+        "same": true
+      },
+      {
+        "name": "trsync_report",
+        "oldOperations": 12,
+        "pluginOperations": 12,
+        "normalizedSha256": "53fb8e5f22389443fd6cb5bdfe44b3c6c40f36b7e73f4664f7961e7152ecb7e9",
+        "same": true
+      },
+      {
+        "name": "command_trsync_trigger",
+        "oldOperations": 28,
+        "pluginOperations": 28,
+        "normalizedSha256": "68e19be95b9c0e289c1b8b0819b54e85509641d9b8f0b996491852a0dd3718ae",
+        "same": true
+      },
+      {
+        "name": "pwm_end_event",
+        "oldOperations": 3,
+        "pluginOperations": 3,
+        "normalizedSha256": "99d9275ed7a6a55815bab8b74cf2df18dc71a78933bf03a09fde7b3a06ccd25e",
+        "same": true
+      },
+      {
+        "name": "pwm_event",
+        "oldOperations": 47,
+        "pluginOperations": 47,
+        "normalizedSha256": "d4bb3736f3754e8e8fe07ab157f32aaef986e229834ada3f4ef78f83c326a479",
+        "same": true
+      },
+      {
+        "name": "command_config_pwm_out",
+        "oldOperations": 31,
+        "pluginOperations": 31,
+        "normalizedSha256": "1a40d1436b8deca98e7ec9f2e394515364ef26894568a3c850aad3e4f6569c70",
+        "same": true
+      },
+      {
+        "name": "command_set_pwm_out",
+        "oldOperations": 8,
+        "pluginOperations": 8,
+        "normalizedSha256": "e19c5a350d3c67de745c4694d5abc654ac2745934787d5e3fa2277ac1ad7f787",
+        "same": true
+      },
+      {
+        "name": "command_reset_pwm_out_generation",
+        "oldOperations": 52,
+        "pluginOperations": 52,
+        "normalizedSha256": "b40a29260de4acc539853fe14e2869abb0c706d16a5ef8a50af2ea8898e8281e",
+        "same": true
+      },
+      {
+        "name": "command_query_thermocouple",
+        "oldOperations": 26,
+        "pluginOperations": 26,
+        "normalizedSha256": "75d73b320863fb0dde6ef8c29cc77f8ce2c6aab690b7d8459c3590a3db11708e",
+        "same": true
+      },
+      {
+        "name": "pwm_queue",
+        "oldOperations": 44,
+        "pluginOperations": 44,
+        "normalizedSha256": "6df6383256137a3cb75749720fa1c7c808cce1bbb676f80930cf4223bea6ba71",
+        "same": true
+      },
+      {
+        "name": "command_queue_pwm_out",
+        "oldOperations": 16,
+        "pluginOperations": 16,
+        "normalizedSha256": "8c5de41d423a81faded7289a0be2b288c4b6f78c04a947d4176641a1f1490811",
+        "same": true
+      },
+      {
+        "name": "command_queue_pwm_out_generation",
+        "oldOperations": 20,
+        "pluginOperations": 20,
+        "normalizedSha256": "2a6e90bfaa8acfe86affc6f987dac76fa8baf9fe44232645df8d59049720e2f3",
+        "same": true
+      },
+      {
+        "name": "thermocouple_event",
+        "oldOperations": 14,
+        "pluginOperations": 14,
+        "normalizedSha256": "99b18c72505e22ef0f08ebe0ddd3ea2f05fab7386c1f063b99cf8796a7e9baee",
+        "same": true
+      },
+      {
+        "name": "command_config_thermocouple",
+        "oldOperations": 25,
+        "pluginOperations": 25,
+        "normalizedSha256": "6f5b10f3bdd4beaed4a87159c5f3ca404672a426b6cd9b6fb0a6bb2c08e863d1",
+        "same": true
+      },
+      {
+        "name": "thermocouple_respond",
+        "oldOperations": 72,
+        "pluginOperations": 72,
+        "normalizedSha256": "e84bd7af2f0c7fc5be2388defc142e1accf80f10f8aef2528d7cc5c7ec93e3bd",
+        "same": true
+      },
+      {
+        "name": "timer_kick",
+        "oldOperations": 8,
+        "pluginOperations": 8,
+        "normalizedSha256": "b579661287bda68204236f512b1949522b0de108a6f609d55d70ec9b2227c4a4",
+        "same": true
+      }
+    ],
+    "outputs": {
+      "diagnostic-traditional": {
+        "elfSha256": "729e3da944301f0459cd2eec77b4ee26b14a3b50580dc94d7d372ce3001855bd",
+        "imageSha256": "9f64a1ee7aa53871aff5788119f9b6a914dd330d8a6dc785b47b4e17f967b657",
+        "bytes": 26208
+      },
+      "normal-plugin": {
+        "elfSha256": "c47bfdaac0bcad15fcc7644bf01a5a28403e419764ef8d586bc4270ef2febe88",
+        "imageSha256": "e7f3da2be0d5876ec135ffabd14ea12a2817ceb6694397d0030d8a9efa3ab68f",
+        "bytes": 26208
+      }
+    },
+    "normalTraditionalOverflowBytes": 644,
+    "strictOverflowBytes": 1580,
+    "hotFunctionsPassed": 52,
+    "bounds": {
+      "romOrigin": "0x08002000",
+      "romLength": "0x8000",
+      "negativeTestRomLength": "0x6000",
+      "physicalHardware": false
+    },
+    "scope": "Old diagnostic executable is comparison-only, not accepted firmware. Normal plugin link is accepted locally with original ROM. Normalized disassembly comparison preserves instruction operands, canonicalizes LTO private symbol names and resolves relocated branch/literal targets; not physical target timing proof. Only ELF function symbols are selected; operation counts include instructions and literal pool directives."
+  },
+  "hostRegression": {
+    "tests": 14,
+    "passed": 14,
+    "failed": 0,
+    "command": "node26 --test --test-isolation=none --test-concurrency=1 host/test/firmware-output-generation.test.ts host/test/thermocouple-firmware.test.ts host/test/build-commands.test.ts host/test/build-metadata.test.ts host/test/buildcommands.test.ts",
+    "log": "/tmp/anyraid-stm32-lto-host-regression.log",
+    "sha256": "32fccf063dc5a5ba265a5ab5368d0b5d9a13189115a39b353f7aec597149cdf6",
+    "coverage": "Actual C output generation/defaults under UBSan and ASan+UBSan, thermocouple signed ranges/faults under UBSan, Node command dictionary/metadata/build CLI."
+  },
+  "probeInvestigation": {
+    "remoteRevision": "82f7d8da6d1da1be2cb14c2d179e4a9e1884e828",
+    "rootCause": "unresolved",
+    "diagnosticBaseline": {
+      "tests": 6,
+      "passed": 6,
+      "log": "/tmp/anyraid-ci-delta-probe-diagnostic.log",
+      "sha256": "5e6e70bfe277a7cd60739a222a872d802016f974e585a2f8a11355459a265e22",
+      "instrumentation": "Temporary snapshot catches print original exceptions only on failure; expected stuck BLTouch logs its intended stop. Not a CI cause reproduction."
+    },
+    "controlledDelay": {
+      "tests": 2,
+      "passed": 2,
+      "stallMs": 10,
+      "intervalMs": 50,
+      "log": "/tmp/anyraid-ci-delta-probe-delay.log",
+      "sha256": "d5062e91f9fdc3a18201bad53ca0d2d48292776d20563ba77e792ee7db7e25bd",
+      "scope": "One discriminating event-loop delay experiment on the two failing cases; passes do not close remote failure or larger load cases."
+    },
+    "testChange": "On unexpected non-200 only, emit existing motion/hardware fault objects and hit counters with node:util inspect. No production algorithm, API payload, assert status, deadline, tolerance or stop behavior changed.",
+    "newDiagnosticsRegression": {
+      "tests": 2,
+      "passed": 2,
+      "log": "/tmp/anyraid-ci-delta-probe-diagnostics-regression.log",
+      "sha256": "d6d9dd4eb01e29f5094e9a75e199fb3553d16c19ce1b683ba47d1d2339c989d1",
+      "scope": "Independent non-instrumented runtime snapshot, exact changed tests; M2 drafts excluded."
+    }
+  },
+  "performance": {
+    "criticalFunctions": 52,
+    "normalizedOperationsSame": 52,
+    "loadableImageBytes": 26208,
+    "identicalWholeImage": false,
+    "scope": "Static emitted-code comparison includes instructions and literal pools; symbols/relocated branch targets are normalized explicitly. Preserves operation counts/operands in 52 critical functions. Does not measure cache/layout effects, physical target execution, printing duration or target timing budget. Link/build durations are diagnostics only, no failed-link speed ratio reported."
+  },
+  "remaining": [
+    "Exact new PR-head full host/native protocol/sanitizer and entire firmware/legacy compatibility CI.",
+    "Two intermittent CI probe/calibration failures: inner-fault diagnostics added, cause and correction not yet established.",
+    "Historical G3 motion failures, physical board map/ROM/bootloader verification, target timing and printing acceptance.",
+    "M2 and remaining complete native Moonraker, controlled macros and all Python retirement."
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-stm32-lto-matrix.mjs",
+      "sha256": "a61c3b80d34de860ab98de6b8b3ef13f5d0f8aa222720e780ab0516f8074c57a"
+    },
+    {
+      "path": "/tmp/anyraid-stm32-lto-compare.mjs",
+      "sha256": "c32213672dcaee28718a83e27536c266db1408bf28af9353ce701d4b7d3d4c1c"
+    },
+    {
+      "path": "/tmp/anyraid-probe-delay.mjs",
+      "sha256": "d936f6b9d194fa32715bcc65ded39822af820246169be581548276bf7e270bb3"
+    },
+    {
+      "path": "/tmp/anyraid-stm32-lto-results/results.json",
+      "sha256": "64ff579afcf4bae1cf9851b4a0d291c34688673a41514d25f2e36c3c8edd3ded"
+    },
+    {
+      "path": "/tmp/anyraid-stm32-lto-results/comparison.json",
+      "sha256": "43cf0301a114bb0630b723bf691ff5a81ec43547fe44844aabf1b02f71335a87"
+    },
+    {
+      "path": "/tmp/anyraid-stm32-lto-results/f042-function-types.log",
+      "sha256": "cd6623bb345f705b4259ab356f4960e8069de5fbb8a354eb3056a5694901357a"
+    }
+  ],
+  "isolatedTypecheck": {
+    "passed": true,
+    "log": "/tmp/anyraid-stm32-lto-isolated-typecheck.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "archiveProvenance": "Generated firmware version embeds archive build time without Git metadata; outputs are local verification artifacts, not release firmware.",
+  "whitespace": {
+    "passed": true,
+    "log": "/tmp/anyraid-stm32-lto-whitespace.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

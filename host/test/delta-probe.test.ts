@@ -7,6 +7,7 @@ import {PrintJournal} from '../src/operations/print-journal.ts';
 import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {inspect} from 'node:util';
 import {FrameDecoder} from '../src/protocol/codec.ts';
 import {initialMotionSetup,initialMotionOptions} from './helpers/initial-motion.ts';
 import {deltaPrinterSections} from './helpers/delta-printer.ts';
@@ -108,7 +109,9 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
    await owner.port.forcePosition([25,-30,10,0],f.signal);owner.kinematics.resetPosition('xyz');
    const calibrationReady=await (await fetch('http://127.0.0.1:'+service.address.port+'/printer/calibration/delta')).json() as any;assert.equal(calibrationReady.result.available,true);
    const state=await (await fetch(url)).json() as any;assert.equal(state.result.available,true);
-   const started=performance.now();const body=JSON.stringify({version:1,state_token:state.result.state_token}),reply=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body});assert.equal(reply.status,200,await reply.clone().text());
+   const started=performance.now();const body=JSON.stringify({version:1,state_token:state.result.state_token}),reply=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body});
+   if(reply.status!==200)t.diagnostic(inspect({motionFault:owner.port.status.fault,hardwareFault:hw.status.fault,hits},{depth:5}));
+   assert.equal(reply.status,200,await reply.clone().text());
    t.diagnostic('DeltaProbeBenchmark '+JSON.stringify({run,api:true,wallMs:performance.now()-started}));
    const receipt=(await reply.json() as any).result,result={...receipt.result,bedPosition:receipt.result.bed_position};
    const replay=await fetch(url,{method:'POST',headers:{'content-type':'application/json'},body});assert.equal(replay.status,200);assert.deepEqual((await replay.json() as any).result,receipt);assert.equal(hits,2);assert.equal(result.attempts,2);assert.equal(result.samples.length,2);assert.equal(result.retries,0);assert.equal(owner.port.status.failed,false);assert.equal(owner.kinematics.status.homedAxes,'xyz');
@@ -116,7 +119,9 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
    if(!benchmark){
     calibrating=true;const calibrationUrl='http://127.0.0.1:'+service.address.port+'/printer/calibration/delta',state=await (await fetch(calibrationUrl)).json() as any;
     const body=JSON.stringify({version:1,state_token:state.result.state_token,action:'calibrate'}),started=performance.now();
-    const response=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});assert.equal(response.status,200,await response.clone().text());
+    const response=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});
+    if(response.status!==200)t.diagnostic(inspect({motionFault:owner.port.status.fault,hardwareFault:hw.status.fault,hits},{depth:5}));
+    assert.equal(response.status,200,await response.clone().text());
     const result=(await response.json() as any).result;assert.equal(result.state,'candidate');assert.equal(hits,16);assert(Number.isFinite(result.candidate.final_error));assert(result.candidate.final_error<result.candidate.initial_error);
     const replay=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});assert.deepEqual((await replay.json() as any).result,result);assert.equal(hits,16);
     const activeGeometry=owner.kinematics.calibrationGeometry,saveBody=JSON.stringify({version:1,state_token:result.state_token,action:'save'});
