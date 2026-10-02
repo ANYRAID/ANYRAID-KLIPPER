@@ -6,7 +6,7 @@ import {mkdtemp,open,rm,type FileHandle} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError} from '../storage/published-files.ts';
+import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError,PublishedCopyCommitError} from '../storage/published-files.ts';
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
@@ -121,6 +121,40 @@ export class NativePrintUploads {
     const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target exists; replacement is pending');if(code==='EINVAL')throw new ApiError(400,error instanceof Error?error.message:'Invalid move');throw error;
    }finally{release?.();}
   });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+ }
+ copy(params:Record<string,Json|undefined>,context:RpcContext):Promise<Json>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native file copy closed'));
+  if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.copy(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
+  if(!this.#print)return Promise.reject(new ApiError(503,'Native file copy requires its print owner'));
+  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
+   await this.#authorize(context,{...params} as Record<string,Json>,signal,'server.files.copy');
+   if(Object.keys(params).some(key=>!['source','dest'].includes(key))||typeof params.source!=='string'||typeof params.dest!=='string')throw new ApiError(400,'Expected source and dest gcodes paths');
+   const source=nativeDirectory(params.source),dest=nativeDirectory(params.dest);if(!source)throw new ApiError(400,'Expected source below gcodes');let release:(()=>void)|undefined;
+   try{
+    const plan=await this.#files.prepareCopy(source,dest,signal);
+    await this.#authorize(context,{source:'gcodes/'+plan.source,dest:'gcodes/'+plan.destination,action:plan.action},signal,'server.files.copy');
+    if(plan.action==='create_dir'){
+     const before=new Set(plan.directoriesBefore.map(d=>d.path));
+     const added=plan.directoriesAfter.filter(d=>!before.has(d.path));
+     for(const [i,d] of added.entries()){
+      const source=d.path===plan.destination||d.path.startsWith(plan.destination+'/')?plan.source+d.path.slice(plan.destination.length):plan.source;
+      await this.#authorize(context,{source:'gcodes/'+source,dest:'gcodes/'+d.path,action:'create_dir',directory:true},signal,'server.files.copy');if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));
+     }
+    }
+    for(const [i,e] of plan.entries.entries()){await this.#authorize(context,{source:'gcodes/'+visibleFilePath(e.source),dest:'gcodes/'+visibleFilePath(e.created),file_id:e.source.id,filename:e.source.name,size:e.source.size,sha256:e.source.sha256},signal,'server.files.copy');if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
+    if(plan.replaced)await this.#authorize(context,{source:'gcodes/'+plan.source,dest:'gcodes/'+visibleFilePath(plan.replaced),target_file_id:plan.replaced.id,size:plan.replaced.size,sha256:plan.replaced.sha256},signal,'server.files.copy');
+    // Only the old destination identity is mutated. An active immutable source
+    // may be read; target admission also fences concurrent print starts.
+    try{release=this.#print!.beginFileMutations(plan.replaced?[plan.replaced.id]:[]);}catch{throw new ApiError(403,'Print or maintenance owns this copy destination');}
+    const result=await this.#files.copy(plan,signal);for(const e of result.entries)await this.#metadata.invalidate(visibleFilePath(e.created));
+    return {action:result.action,item:{path:result.destination,root:'gcodes',modified:result.action==='create_dir'?result.directoriesAfter.find(d=>d.path===result.destination)!.modified:result.entries[0].modified,size:result.action==='create_dir'?0:result.entries[0].created.size,permissions:'rw'}};
+   }catch(error){
+    if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
+    if(error instanceof PublishedCopyCommitError)throw new ApiError(500,'Copy commit failed',{phase:error.phase});
+    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Copy source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Copy destination exists');if(code==='EINVAL'||code==='ENOTDIR')throw new ApiError(400,'Invalid copy destination');throw error;
+   }finally{release?.();}
+  });this.#pending.add(task);void task.finally(()=>this.#pending.delete(task)).catch(()=>{});return task;
  }
  async #authorize(context:RpcContext,params:Record<string,Json>,signal:AbortSignal,method='server.files.upload'):Promise<void>{
   signal.throwIfAborted();if(this.#authorizing.size>=this.#capacity*2)throw new ApiError(503,'Upload authorization capacity exceeded');
@@ -289,6 +323,7 @@ export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativeP
  try{
   if(options.readRoutes!==false){
    release.push(registry.register({endpoint:'/server/files/move',methods:['POST']},(params,_verb,context)=>reads.move(params,context)));
+   release.push(registry.register({endpoint:'/server/files/copy',methods:['POST']},(params,_verb,context)=>reads.copy(params,context)));
    release.push(registry.register({endpoint:'/server/files/roots',methods:['GET']},async(_params,_verb,context)=>[await reads.rootInfo(context.signal),...options.configFiles?[options.configFiles.root()]:[]]));
    release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
    release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>params.root==='config'&&options.configFiles?options.configFiles.list(params,context.signal):reads.list(params,context.signal)));

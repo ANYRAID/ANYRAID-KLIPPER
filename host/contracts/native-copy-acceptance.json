@@ -1,0 +1,322 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "sourceBase": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+  "scope": "Native gcodes file/directory copy and file copy overwrite software increment. Full M2b/Moonraker, offline mutation, fixed-client pages, target/Python performance, physical power loss, G3 and Python retirement remain open.",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/file_manager/file_manager.py",
+    "handler": "_handle_file_move_copy",
+    "method": "server.files.copy",
+    "http": "POST /server/files/copy"
+  },
+  "sources": {
+    "host/acceptance/product-compiled-journey.test.ts": "d0528602ce1f3bf232440bf405f345a929bbf9552da5c98ff3b0fd2595b31a22",
+    "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
+    "host/src/moonraker/native-print-uploads.ts": "1c385d34f9dfd07fdb1175ba485d949b1940bae302cb2e9cfc1b2c73c51afad4",
+    "host/src/storage/published-files.ts": "1eeb25310f1aca157b0f9e483d685ad406302e1713812935b4468290bf930a3d",
+    "host/test/native-print-uploads.test.ts": "d53d787c4c7b1131936af68f9d6d59f161c8c6ce0e2c4da27eca7ec7c0a54a06",
+    "host/test/native-product-process-lifetime.test.ts": "3b061265a3f527800ddf4dc9d6f88e54fccee96b4ef7cbf135406d9f062ec5a3",
+    "host/bench/published-copy.ts": "ddd55015baee79078468dd8144c314fac5ba74e144cbe4ed9b8365a66ff15295",
+    "host/src/storage/namespace-copy.ts": "417e9eaf3a1a4c067fc3cf06642de3392e035a42d6ce6da5b70ac49448c25bcf",
+    "host/test/published-copy.test.ts": "45b1506778e81c1fc478aee65d31b6937f1aa5e107c6edfe37ca09012442a78d"
+  },
+  "implementation": {
+    "identities": "New receipt IDs reference retained immutable content; source unchanged, overwritten destination identity retired; open sealed readers retain bytes.",
+    "intent": "Private bounded .namespace-copy.json is durable before receipt effects. Verify source content and complete membership; uncertainty fences until reopen and roll-forward. Charge intent, receipt, catalog and staging capacity. Existing namespace store and process lifecycle reused.",
+    "policy": "Authorize raw and resolved paths, all source children/new directories, and replaced target identity. Active source copy permitted; active/paused destination and maintenance denied; obsolete generation fenced. Retired/offline mutation returns 503 pending M2c.",
+    "metadata": "After durable commit invalidate destination metadata/previews; old destination thumbnail revokes. Emit one create_file/modify_file/create_dir with no source_item.",
+    "limits": {
+      "files": 10000,
+      "directories": 1024,
+      "intentBytes": 50331648
+    }
+  },
+  "validation": {
+    "affectedRegression": {
+      "storage": {
+        "tests": 37,
+        "passed": 37,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-copy-final-storage-unrestricted.log",
+          "sha256": "56d6cb16a29cf1f84cef2dddf060619a42aa33fe9cb5328295de71515aa5c465"
+        }
+      },
+      "api": {
+        "tests": 36,
+        "passed": 36,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-copy-final-api.log",
+          "sha256": "14768250527ed78ac5c049d2195cb2ebbbfa901535b7ae55f00f050004ac68bd"
+        }
+      },
+      "lifecycle": {
+        "tests": 45,
+        "passed": 45,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-copy-final-lifecycle.log",
+          "sha256": "de0a4d94ef147fff341e6bb06ba39f2554ab913a98012fcf3594c68b9f791bbc"
+        }
+      },
+      "totalDistinct": 118,
+      "scope": "Production and test hashes unchanged from measured regressions; this turn changes only compiled fixture sequencing. Passed distinct counts are retained without an unnecessary rerun."
+    },
+    "compiled": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 58583.371701,
+      "manifestSha256": "3a0947de126baca3274474206f8ba4f2ea6631ecaf4bb2ac495f3e7039de34ed",
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 1517,
+        "configListP99Ms": 5.661486999997578,
+        "configDownloads": 1517,
+        "configDownloadP99Ms": 8.260811000000103,
+        "liveMotionSamples": 2631,
+        "liveExtrusionSamples": 1473,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 7.5211432380000005,
+          "print_duration": 2.5106456149999987,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "3a0947de126baca3274474206f8ba4f2ea6631ecaf4bb2ac495f3e7039de34ed",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 7378,
+        "phaseP99Ms": 3.6604299999962677,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 240,
+            "writes": 43
+          },
+          {
+            "statusReads": 152,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1566,
+        "historyP99Ms": 35.15829500000109,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 35.78258399999686,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 121.52574399999867,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 50.27933900000062,
+        "copiesDuringPrint": 3,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 840,
+        "fileNotificationP95Ms": 32.68245100000058,
+        "movesDuringPrint": 2,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 145.26910500000304,
+        "directoryMovesDuringPrint": 2,
+        "moveRequests": 16,
+        "moveP95Ms": 89.7310830000024,
+        "deleteRequests": 16,
+        "deleteP95Ms": 106.02506200000062,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 1.9581469999975525,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.4043259999998554,
+        "metadataRequests": 16,
+        "metadataP95Ms": 167.07895799999824,
+        "downloads": 16,
+        "downloadP95Ms": 2.627875000000131,
+        "wireCommands": 186,
+        "wireSteps": 3606,
+        "minimumStepLeadMs": 86.345,
+        "directoryRequests": 6547,
+        "directoryP99Ms": 23.639289999999164,
+        "statusRequests": 29512,
+        "uploads": 16,
+        "statusP99Ms": 3.024210999996285,
+        "uploadP95Ms": 34.50885600000038,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.992703,
+              "maxMs": 18.956287
+            },
+            "cpu": {
+              "user": 9455755,
+              "system": 1741846
+            },
+            "rss": 324452352
+          },
+          {
+            "loop": {
+              "p99Ms": 1.937407,
+              "maxMs": 13.574143
+            },
+            "cpu": {
+              "user": 5438170,
+              "system": 1181924
+            },
+            "rss": 344797184
+          }
+        ]
+      },
+      "log": {
+        "path": "/tmp/anyraid-copy-compiled-resume-checkpoint.log",
+        "sha256": "83541210b1cb3be7645e035480765fd491e5acad83d878b3bae6c3897b652178"
+      },
+      "isolation": "Independent compiled product and locked dependency install; no Python, source TS or shared production node_modules. PTY firmware is a simulation. Workspace source was stable during measurement.",
+      "checkpoint": "Copy admitted and acknowledged while printing in each generation. First file/directory move and directory copy synchronize into the printing window after the original runout pause/resume; second generation object exclusion keeps its original early admission. Preserve all 16 operation counts, 392 previous events plus 448 copy events, original completion/stop/lead/loop assertions.",
+      "watchdog": "Namespace whole-journey harness guard is 90 seconds for added durable copy work, with explicit firing evidence. Original 12-second state wait, print/stop/idle and 50/100-ms loop budgets unchanged."
+    },
+    "performance": {
+      "node": "v26.9.0",
+      "baseline": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-copy-acceptance/baseline/host/src/storage/published-files.ts",
+      "filesystemType": "0xef53",
+      "files": 1024,
+      "catalog": {
+        "baseline": {
+          "medianMs": 0.10958818000013708,
+          "p95Ms": 0.1400534200000402,
+          "maxMs": 0.1400534200000402
+        },
+        "candidate": {
+          "medianMs": 0.11051500000001396,
+          "p95Ms": 0.11372384000002057,
+          "maxMs": 0.11372384000002057
+        },
+        "medianRatio": 1.0084572989520926
+      },
+      "fileCopies": {
+        "operations": 100,
+        "medianMs": 33.509023999999044,
+        "p95Ms": 39.22564599999896,
+        "maxMs": 56.0684889999975
+      },
+      "overwrites": {
+        "operations": 100,
+        "medianMs": 33.671215999995184,
+        "p95Ms": 40.63041599999997,
+        "maxMs": 56.14661999999953
+      },
+      "directoryCopies": {
+        "operations": 8,
+        "filesPerOperation": 128,
+        "medianMs": 808.0350670000043,
+        "p95Ms": 847.6169389999995,
+        "maxMs": 847.6169389999995
+      },
+      "concurrentCatalog": {
+        "reads": 2416,
+        "medianMs": 0.10869200000161072,
+        "p95Ms": 2.312253000003693,
+        "maxMs": 18.371574999997392
+      },
+      "eventLoop": {
+        "p99Ms": 1.812479,
+        "maxMs": 4.251647
+      },
+      "chargedBytes": 154416,
+      "reopened": true,
+      "scope": "Real workspace ext filesystem, alternating fixed previous Node catalog baseline. Does not establish Python/target-board or physical/print duration acceptance.",
+      "log": {
+        "path": "/tmp/anyraid-copy-performance.log",
+        "sha256": "5701bd646e09f678ae2ce71d59351395214a6912c3e3d4e159060a2e7a85cc15"
+      },
+      "baselineSourceSha256": "abb9fadf9cc6ac6eb40653b90eb03ecb6c80f5602ef58d14c1fa5e6c8b5b4b0c"
+    },
+    "typecheck": {
+      "passed": true,
+      "log": {
+        "path": "/tmp/anyraid-copy-and-carriage-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "failedAttempts": [
+    {
+      "log": {
+        "path": "/tmp/anyraid-copy-compiled-load-final-admission.log",
+        "sha256": "3231c33a335ba26ed143dad3ccf3bf1638f2048d8f95e615783f218837608440"
+      },
+      "cause": "Only one printing generation covered active-source copy; completed operations were not an acceptance pass."
+    },
+    {
+      "log": {
+        "path": "/tmp/anyraid-copy-compiled-active-checkpoint.log",
+        "sha256": "6643577c05a9aecc7b3b2e81eff6a5699f603a7bc60790dde72ae7aeb9e9dd63"
+      },
+      "cause": "Copy coverage corrected; directory move coverage absent in one generation."
+    },
+    {
+      "log": {
+        "path": "/tmp/anyraid-copy-compiled-namespace-checkpoint.log",
+        "sha256": "f614bc0028c9d68f0fcb41bb5e7aad5c98cfeeb5e836309b9190859c6b7826f7"
+      },
+      "cause": "Waiting the entire first namespace group before runout changed pause timing; original completed-state deadline failed. Original pause timing restored, no product deadline changes."
+    }
+  ],
+  "remaining": [
+    "upload overwrite and move overwrite (M2b 3b)",
+    "offline mutation/recursive cleanup (M2c)",
+    "fixed Fluidd/Mainsail same-bundle full pages",
+    "target-board/Python performance and physical interruption",
+    "historical G3 precision/process failures and all-Python retirement"
+  ]
+}

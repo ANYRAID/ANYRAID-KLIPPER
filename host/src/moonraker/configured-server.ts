@@ -64,7 +64,7 @@ const sensorOwners=new WeakSet<SensorStore>();
 const uploadOwners=new WeakSet<NativePrintUploads>();
 // Process routes survive replacement. Mutations capture and drain their current
 // device delegate themselves; never bind a retained route to the first scope.
-const nativeProcessFileRoutes=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails','/server/files/move']);
+const nativeProcessFileRoutes=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails','/server/files/move','/server/files/copy']);
 function assertNativeProcessResources(options:ConfiguredServerOptions){
  if(options.nativeDetached!==undefined&&options.nativeDetached!==true)throw new ConfigurationError('Invalid native detached mode');
  if(options.nativeDetached&&(options.productPrint||options.nativeUploads||options.nativeObjects||options.nativeHost||options.productPressure||options.productPrintCompatibility||options.klippy||options.history||options.onPrintStartComplete||!options.nativePrinterIdentity||!options.productHostControl))throw new ConfigurationError('Detached native startup requires process resources without a device owner');

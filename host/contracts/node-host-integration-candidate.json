@@ -7,13 +7,15 @@
     "repository": "ANYRAID/ANYRAID-KLIPPER",
     "base": "develop",
     "defaultBranch": "master",
-    "developSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
+    "developSha": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
     "masterSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
-    "verification": "Authenticated git ls-remote; candidate branch pushed and draft PR created. No merge or default-entry switch performed.",
+    "verification": "Authenticated browser merge followed by provider readback and git fetch. Normal merge parents are prior develop ce7002b and exact sealed head 379f7857; tree 8d86fb283725c6dd200eff6a1a54dd4b01cbce4d equals the candidate. Master was not changed by this task.",
     "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/1",
     "head": "devac/node26-moonraker-integration",
-    "observedRevision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
-    "draft": true
+    "observedRevision": "379f785734da6b33043405a613cf4a17fb3d2836",
+    "draft": false,
+    "merged": true,
+    "mergeCommitSha": "81f8c9ce66d06199dd20360ab09bff9cf54f1473"
   },
   "isolation": {
     "source": "git archive of softwareBase in /tmp; uncommitted published-files.ts and untracked published-paths.ts absent",
@@ -265,7 +267,7 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Freeze passed 379f7857 for four-area review and first develop integration. PR description updated and draft removed through the existing authenticated in-app browser after connector writes returned 403; remote readback confirms the unchanged head. Complete review before exact-head merge and prescribed post-merge integration. Separately close M2b 3a active-source copy coverage in each printing generation, then upload/move overwrite; do not expand the first candidate or repeat unchanged passing matrices.",
+    "next": "Submit locally validated copy software plus isolated compatibility fixture repair through a bounded task PR to develop. Read exact new-head CI; do not rerun unchanged passing candidates. Full clients, target hardware, remaining file overwrite/Moonraker and all-Python retirement remain.",
     "latestObservedSource": "379f785734da6b33043405a613cf4a17fb3d2836",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
@@ -1500,12 +1502,12 @@
   },
   "mergeReady": false,
   "remaining": [
-    "379f7857 required host/firmware/eight finite diagnostic checks passed; PR is ready for review with updated evidence. Four-area review, exact-head develop merge and post-merge prescribed integration remain; historical G3 gates stay open.",
+    "PR #1 merged normally into develop as 81f8c9c; post-merge host has three dual-carriage trigger-clock failures (3860/3863), firmware and eight finite diagnostics passed. Mainline and physical admission remain closed.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
     "Unresolved G3 motion numerical/process failures, Cycnumbris 500 configuration, physical stop, target precision/timing/install/rollback and real acceptance.",
-    "Develop integration, subsequent mainline PR and prescribed release gates; other machine families last."
+    "Post-merge develop prescribed checks, subsequent mainline PR and release gates remain; other machine families last."
   ],
   "logArtifacts": [
     {
@@ -1590,9 +1592,9 @@
       "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
     },
     "m2bCopyDraft": {
-      "status": "uncommitted draft; compiled coverage failed; not delivered or included in passed remote candidate",
+      "status": "local software acceptance passed; not yet submitted or integrated",
       "sourceHashes": {
-        "host/acceptance/product-compiled-journey.test.ts": "5e91657928c4c5d669ce2ff855baa6b70e656f91424fdc2d6f877ba286d53994",
+        "host/acceptance/product-compiled-journey.test.ts": "d0528602ce1f3bf232440bf405f345a929bbf9552da5c98ff3b0fd2595b31a22",
         "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
         "host/src/moonraker/native-print-uploads.ts": "1c385d34f9dfd07fdb1175ba485d949b1940bae302cb2e9cfc1b2c73c51afad4",
         "host/src/storage/published-files.ts": "1eeb25310f1aca157b0f9e483d685ad406302e1713812935b4468290bf930a3d",
@@ -1617,38 +1619,219 @@
         "reopened": true
       },
       "compiled": {
-        "status": "failed",
+        "status": "passed",
         "manifestSha256": "3a0947de126baca3274474206f8ba4f2ea6631ecaf4bb2ac495f3e7039de34ed",
-        "assertion": "Must copy an active source during each printing generation",
-        "copiesDuringPrint": 1,
-        "directoryCopiesDuringPrint": 2,
         "fileCopies": 16,
         "copyOverwrites": 16,
         "directoryCopies": 16,
+        "copiesDuringPrint": 3,
+        "directoryCopiesDuringPrint": 2,
         "watchdogFired": false,
-        "next": "Establish deterministic active-source copy checkpoints in both printing generations, then retain mixed namespace load and all original admission/identity/event/stop/performance assertions. Completed operations and local timing samples do not make this failed journey pass."
+        "log": {
+          "path": "/tmp/anyraid-copy-compiled-resume-checkpoint.log",
+          "sha256": "83541210b1cb3be7645e035480765fd491e5acad83d878b3bae6c3897b652178"
+        }
       },
       "remaining": [
-        "same-bundle compiled journey",
-        "fixed-client full pages",
-        "target-board/Python comparison",
-        "upload and move overwrite",
-        "offline and recursive contracts"
+        "upload overwrite and move overwrite (M2b 3b)",
+        "offline mutation/recursive cleanup (M2c)",
+        "fixed Fluidd/Mainsail same-bundle full pages",
+        "target-board/Python performance and physical interruption",
+        "historical G3 precision/process failures and all-Python retirement"
       ],
-      "typecheck": true
+      "typecheck": true,
+      "evidence": "host/contracts/native-copy-acceptance.json"
     }
   },
   "integrationCheckpoint": {
     "candidate": "379f785734da6b33043405a613cf4a17fb3d2836",
     "requiredCi": "passed",
-    "review": "not_completed",
-    "merged": false,
+    "review": "completed_for_first_develop_software_integration",
+    "merged": true,
     "remotePrDraft": false,
     "prWrites": {
       "update": "403 Resource not accessible by integration",
       "readyForReview": "FORBIDDEN Resource not accessible by integration",
-      "browserFallback": "Description updated and marked ready for review; authenticated provider readback confirms head 379f785734da6b33043405a613cf4a17fb3d2836, draft false, merged false"
+      "browserFallback": "Description and ready state updated; subsequent normal merge confirmed by authenticated provider readback. Connector merge also returned 403; browser fallback completed without access expansion."
     },
-    "scope": "Connector 403 was resolved for these PR actions via the existing authenticated browser without granting permissions. Candidate is ready for review, not review-approved or integrated. Client/hardware/Python retirement still limit their delivery outlets."
+    "scope": "First develop software integration only. No external GitHub review submission, production approval, default switch, physical motion or retirement. Uncommitted copy source excluded.",
+    "reviewReceipt": {
+      "candidate": "379f785734da6b33043405a613cf4a17fb3d2836",
+      "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+      "reviewer": "Codex in the current task",
+      "scope": "Four-area source and evidence review for first develop software integration, not exhaustive production approval or an external GitHub review submission.",
+      "areas": [
+        {
+          "area": "build and runtime",
+          "files": [
+            "host/scripts/build-product-host.ts",
+            "host/scripts/build-product-native.ts",
+            "host/src/runtime/product-host-cli.ts",
+            "scripts/product-host.ts"
+          ],
+          "finding": "Private native source/header snapshots, staged recognized output, locked dependencies and explicit trusted profile import. No implicit default entry switch."
+        },
+        {
+          "area": "motion and controlled operations",
+          "files": [
+            "host/src/runtime/product-host.ts",
+            "host/src/runtime/product-service.ts",
+            "host/src/operations/print.ts",
+            "host/src/operations/print-journal.ts",
+            "host/src/timing/clock-sync.ts"
+          ],
+          "finding": "Admission fenced before asynchronous retirement; failed stop/cleanup prevents replacement. Durable reservation precedes effects, interrupted restoration does not replay, active immutable identities remain protected. Historical G3 anomalies retain the no-real-motion gate."
+        },
+        {
+          "area": "Moonraker and persistent ownership",
+          "files": [
+            "host/src/runtime/native-product-machine.ts",
+            "host/src/moonraker/configured-server.ts",
+            "host/src/moonraker/native-print-uploads.ts",
+            "host/src/moonraker/authorization-policy.ts",
+            "host/src/storage/published-files.ts"
+          ],
+          "finding": "Process listener/auth/files/journal remain distinct from device generation; old requests drain before attachment. Thumbnail exception confined to managed GETs; files and mutation routes retain authorization. Namespace uncertain durable outcomes fence until recovery."
+        },
+        {
+          "area": "tools and retirement",
+          "files": [
+            "scripts/install-debian.sh",
+            "scripts/install-octopi.sh",
+            "scripts/klippy.py",
+            "scripts/Dockerfile",
+            ".github/workflows/node-host.yaml",
+            ".github/workflows/build-test.yaml"
+          ],
+          "finding": "Required host/firmware compatibility checks passed; default installers/entry not switched. 177 tracked klippy Python files and legacy CI remain explicit final-retirement gaps, not closed by source CI."
+        }
+      ],
+      "decision": "No demonstrated blocker to first develop software integration within the explicit intermediate scope. Preserve full client, hardware, G3, complete Moonraker and Python retirement gates.",
+      "nonblockingObservation": "git diff --check across the entire base-to-candidate diff reports a trailing blank line in copied third-party host/licenses/scipy-signal.txt. Required source whitespace CI passed; this notice is not changed to satisfy an additional cosmetic check.",
+      "externalReviewSubmission": false,
+      "uncommittedCopyExcluded": true
+    },
+    "mergedAt": "2026-10-02T17:26:39Z",
+    "mergeCommitSha": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+    "postMergeChecks": {
+      "revision": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+      "status": "failed",
+      "host": {
+        "run": 37040778097,
+        "job": 110950059817,
+        "status": "completed",
+        "conclusion": "failure",
+        "ordinary": {
+          "tests": 3863,
+          "passed": 3860,
+          "failed": 3
+        },
+        "failures": [
+          {
+            "case": "configured cartesian y carriage starts, homes on two MCUs and moves selected motor",
+            "actual": "Invalid mapped trigger clock: member=1, oid=0, mapped=1624750, observed=1624556"
+          },
+          {
+            "case": "configured hybrid_corexy x carriage starts, homes on two MCUs and moves selected motor",
+            "actual": "Endstop trigger is in the future"
+          },
+          {
+            "case": "configured hybrid_corexz x carriage starts, homes on two MCUs and moves selected motor",
+            "actual": "Endstop trigger is in the future"
+          }
+        ],
+        "laterStages": "native protocol, sanitizers and Linux MCU skipped after ordinary-test failure",
+        "log": {
+          "path": "/tmp/anyraid-81f8c9ce-host-failures.log",
+          "sha256": "4757908962cceb2ca9f21d242de9596f4d47dc88f255f45a32c10f36124be68d"
+        },
+        "fullDecodedCharacters": 552479
+      },
+      "firmware": {
+        "run": 37040778100,
+        "job": 110950060019,
+        "status": "completed",
+        "conclusion": "success",
+        "scope": "Terminal provider status only; no new matrix counts extracted"
+      },
+      "finiteMotion": {
+        "run": 37040778077,
+        "status": "completed",
+        "jobs": 8,
+        "successfulExit": 8,
+        "scope": "Finite jobs do not close G3"
+      },
+      "scope": "Normal merge succeeded, but post-merge required host check failed. Exact checkout verified in full decoded log. Do not advance mainline/default or mark integrated checks passed. Investigate input/clock evidence on a task branch, retain stop/time/tolerance gates.",
+      "localRepair": {
+        "source": "host/test/dual-carriage-printer.test.ts",
+        "sha256": "a885a5da14af57a90d354830574a1d411cd1c74058032546c4088bf4a7c3a782",
+        "capturedInput": {
+          "kind": "hybrid_corexz",
+          "axis": "x",
+          "triggerEvidence": [
+            {
+              "member": 0,
+              "armClock": "1623592",
+              "estimatedClock": "1624639",
+              "firmwareClocks": [
+                1625003,
+                1624592
+              ]
+            },
+            {
+              "member": 1,
+              "armClock": "1832333",
+              "estimatedClock": "1833222",
+              "firmwareClocks": [
+                1831249,
+                1830838
+              ]
+            }
+          ],
+          "firmwareClocksAtFailure": [
+            1833752,
+            1833341
+          ],
+          "hardwareFault": "Endstop trigger is in the future",
+          "groupFault": "Endstop trigger is in the future",
+          "portFault": {}
+        },
+        "confirmed": "One local hybrid_corexz failure injected auxiliary trigger tick 1832333 when actual firmware clock was 1830838, 1495 ticks early; host estimate 1833222 had already passed. This proves that fixture defect, not all historical or remote root causes.",
+        "fix": "Test simulator waits for its actual integer firmware clock as well as host estimate before emitting unchanged armed tick. No product mapping, stop/deadline/tolerance, expected success or motor count change. Bounded failure-only observation retained.",
+        "validation": {
+          "dualCarriage": {
+            "tests": 4,
+            "passed": 4,
+            "failed": 0,
+            "log": {
+              "path": "/tmp/anyraid-carriage-clock-guard-regression.log",
+              "sha256": "e8a8ea266edb593b1329bd1e0c22e0a9120d64a9d05dfc885c6354f2462d6a9c"
+            }
+          },
+          "relatedHoming": {
+            "tests": 15,
+            "passed": 15,
+            "failed": 0,
+            "log": {
+              "path": "/tmp/anyraid-carriage-related-homing-regression.log",
+              "sha256": "4d3b7546b3b9d4928e076929f76aa11d5ca0661cf3d195392eaa6f8d9735c109"
+            }
+          },
+          "typecheck": {
+            "passed": true,
+            "log": {
+              "path": "/tmp/anyraid-copy-and-carriage-typecheck.log",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          }
+        },
+        "failedObservation": {
+          "path": "/tmp/anyraid-carriage-trigger-diagnostics-regression.log",
+          "sha256": "5db0b2c1ab779103ac1844d734e71026314ab574e408bcf3caa72604c4af4ea5"
+        },
+        "remoteNewHead": "pending",
+        "scope": "Existing compatibility fixture, not new machine adaptation. Required new-head CI and historical G3 remain open."
+      }
+    }
   }
 }
