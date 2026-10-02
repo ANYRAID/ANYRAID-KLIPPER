@@ -1368,6 +1368,11 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 
 ### 原生 G-code 目录与上传
 
+上传、删除、移动、复制及目录修改共享默认 2 个修改席位，配置范围仍为
+1–4。目录、列表与缩略图读取继续纳入关闭／排空所有权，但不消耗修改
+席位；下载和外部授权沿用独立预算。真正达到修改容量时仍返回 429，
+有容量的活动／暂停文件删除继续由打印保护返回 409。
+
 `POST /server/files/directory` 创建目录，`GET` 列出直接子项，`DELETE`
 只删除空目录；对应 RPC 为 `server.files.post_directory`、
 `server.files.get_directory` 和 `server.files.delete_directory`。

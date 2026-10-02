@@ -2,8 +2,8 @@
   "schema": 1,
   "date": "2026-10-03",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-  "state": "local_configured_print_fixture_repair_passed_exact_new_head_ci_pending",
-  "scope": "Original upload/move overwrite evidence below remains bound to its recorded source/manifest. Current shared thermal/homing safety repairs and new compiled manifest are recorded in ciSafetyRepairs; exact repair-head CI and integration remain pending. Full clients/hardware/G3/Moonraker/Python retirement are open.",
+  "state": "manual_ownership_regressions_passed_final_compiled_failures_under_diagnosis",
+  "scope": "Historical overwrite, thermal/homing and fixture evidence retain original identities. Current manual ownership repair is separately source-bound in manualOwnershipRepair; complete new-head CI, integration, clients, hardware, G3, full Moonraker and Python retirement remain open.",
   "sources": {
     "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
     "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
@@ -1576,5 +1576,790 @@
       "scope": "Only test stimulus and failure diagnostics changed; previous source-bound production performance and compiled-load observations remain applicable at their original scope. This is not target-hardware, complete client or full CI proof."
     },
     "remaining": "Exact new-head full required CI, normal develop merge and post-merge checks; original Delta save 409 and historical G3 remain open."
+  },
+  "manualOwnershipRepair": {
+    "date": "2026-10-03",
+    "state": "historical_manual_repair_and_failure_receipts_latest_admissionAndRecoveryRepair",
+    "sourceParent": "7a66f5554a5bf12896d9ef899753ab4b984bd457",
+    "sourceHashes": {
+      "host/src/moonraker/native-manual-bed-tilt.ts": "82128e90a39abb33ac7ebe306400da2de24e244f414081cfabc3f8342a711246",
+      "host/src/runtime/product-service.ts": "29e19aa6b7c62759ecdee46dcb5b4d9229800707c38b52b25baa76bd56574467",
+      "host/test/manual-bed-mesh.test.ts": "e76df619ed47eebb160af82617c627a69c7a7fc6956b4aa62cc133958ce3c972"
+    },
+    "node": "v26.10.0",
+    "failedCi": {
+      "head": "7a66f5554a5bf12896d9ef899753ab4b984bd457",
+      "mergeCandidate": "1273f67c3eef49ebb2adfac452a7c8b828f16b78",
+      "hostRun": 37072223999,
+      "hostJob": 111054073265,
+      "hostResult": "failure",
+      "ordinary": {
+        "tests": 3915,
+        "passed": 3914,
+        "failed": 1
+      },
+      "failure": "manual Delta mesh from homed apex preflights all points; reachable=true; adjust returns 503; motionFault and hardwareFault both Native motion port busy or paused",
+      "skipped": [
+        "native protocol",
+        "UBSan",
+        "ASan+UBSan",
+        "Linux MCU"
+      ],
+      "firmwareRun": 37072224009,
+      "firmwareJob": 111054070628,
+      "firmwareResult": "success",
+      "log": {
+        "path": "/tmp/anyraid-pr3-7a-host.log",
+        "sha256": "02786f5cfb003e9a9697c50f28a08d7179bef81d794130df3edab8cfa797b3d0"
+      }
+    },
+    "mechanism": "Manual adapters directly entered homingTravel while the idle clock timer owned that same native port through GCodeDispatch.runWhenIdle. Hold the existing runExclusive owner around every manual action through movement, measured readback, application and receipt publication; all six product adapters including standalone contact and Z-endstop wrappers use it. No recursive dispatch from callback, no retry, no relaxed native busy/position/clock/timeout protections.",
+    "counterexample": {
+      "originalOwnerGitBlobSha256": "d5c2026e61ed294f23568245039ac31cbb4014b54e808f91740fb6f82ea00a08",
+      "fixedInput": "Actual GCodeDispatch clock owner held at a deferred barrier; subsequent manual adjustment must queue with maintenance lease intact and no stop/move. Original implementation ignores adapter admission and stops once.",
+      "original": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "assertion": "stops 1 instead of 0"
+      },
+      "log": {
+        "path": "/tmp/anyraid-pr3-manual-owner-before.log",
+        "sha256": "c29934a9a2a2f847c690e8d309d75d6a6b56e9f91284a7d75736f163b3a914c7"
+      },
+      "scope": "Deterministic ownership counterexample, not a capture of physical MCU phase."
+    },
+    "validation": {
+      "nativeAndScheduler": {
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "includes": [
+          "manual mesh ownership",
+          "idle clock scheduler",
+          "manual bed tilt",
+          "manual Delta preflight and reachable nine-contact native mesh"
+        ],
+        "manualMeshFromHomeMs": 17287.867391,
+        "log": {
+          "path": "/tmp/anyraid-pr3-manual-owner-after.log",
+          "sha256": "a26b9b8196ff8dcc2fb0301a57b6239323287c1901cd3b14ccfb54effee3115c"
+        }
+      },
+      "additionalAdaptersAndQueuedCancellation": {
+        "tests": 17,
+        "passed": 17,
+        "failed": 0,
+        "includes": [
+          "manual mesh including queued cancellation",
+          "manual Delta calibration",
+          "manual screw tilt",
+          "standalone manual contact",
+          "native manual bed tilt"
+        ],
+        "log": {
+          "path": "/tmp/anyraid-pr3-manual-owner-expanded-correct.log",
+          "sha256": "88f55740b79ef380a0ad20faf996cb2154db53dac3df5219e5320deb3e090271"
+        },
+        "scope": "Overlaps three earlier manual mesh cases; do not sum as distinct."
+      },
+      "typecheck": {
+        "passed": true,
+        "log": {
+          "path": "/tmp/anyraid-manual-owner-final-typecheck-audit.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "compiled": {
+        "tests": 3,
+        "passed": 1,
+        "failed": 2,
+        "durationMs": 110330.367004,
+        "identity": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate-final/app",
+          "manifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "identityAfter": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate-final/app",
+          "manifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "independentlyInstalledProductionDependencies": 14,
+        "installDurationMs": 854.707633,
+        "log": {
+          "path": "/tmp/anyraid-manual-owner-final-compiled.log",
+          "sha256": "be6b44df8bed9fb84a823d2fd5c56d0a91fa4c496b6f7a576bb7826674def347"
+        },
+        "failures": [
+          {
+            "case": "loaded zEndstop",
+            "stage": "after independent process restart and successful recovery receipt",
+            "assertion": "print state interrupted instead of idle"
+          },
+          {
+            "case": "manualTilt",
+            "stage": "delete the active file while paused",
+            "assertion": "HTTP 429 instead of expected 409"
+          }
+        ],
+        "metrics": [
+          {
+            "namespace": true,
+            "manualTilt": false,
+            "zEndstop": false,
+            "bundleManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+            "minimumStepLeadMs": 88.031,
+            "statusP99Ms": 4.017649000001256,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.999871,
+                  "maxMs": 18.235391
+                },
+                "cpu": {
+                  "user": 11971890,
+                  "system": 2246561
+                },
+                "rss": 333004800
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.994751,
+                  "maxMs": 12.206079
+                },
+                "cpu": {
+                  "user": 7929495,
+                  "system": 1719942
+                },
+                "rss": 287490048
+              }
+            ]
+          },
+          {
+            "replacements": {
+              "seed": {
+                "operations": 32,
+                "p95Ms": 269.1606709999978,
+                "maxMs": 313.9566169999998
+              },
+              "upload": {
+                "operations": 16,
+                "p95Ms": 359.5113640000018,
+                "maxMs": 359.5113640000018
+              },
+              "move": {
+                "operations": 16,
+                "p95Ms": 423.5465170000025,
+                "maxMs": 423.5465170000025
+              },
+              "uploadDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "moveDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "notifications": 320,
+              "originalNotifications": 840
+            }
+          }
+        ],
+        "scope": "Final six-adapter bundle mixed namespace print passes original performance gates. Z-endstop restart and manual-tilt active-file assertions fail; no complete compiled pass or production root-cause conclusion. Preserve original assertions; no unchanged rerun to hide failure."
+      },
+      "historicalFourAdapterCompiled": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "durationMs": 107049.372955,
+        "identity": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate/app",
+          "manifestSha256": "c196f326b7ec2d0cfa5fd69a64749834a36c408a881e662a5eef3f72c0f9d264",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "identityAfter": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate/app",
+          "manifestSha256": "c196f326b7ec2d0cfa5fd69a64749834a36c408a881e662a5eef3f72c0f9d264",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "independentlyInstalledProductionDependencies": 14,
+        "installDurationMs": 845.586577,
+        "log": {
+          "path": "/tmp/anyraid-manual-owner-compiled.log",
+          "sha256": "ec2a09139b9e7745dd059b24a0abf0ef9af3d5113211daf3a1243d2d5ef8999f"
+        },
+        "fixture": "Prepared same-package reuse copy of product-compiled-journey, original namespace and manualTilt cases retained. Prepared helper is not yet a versioned delivery; it preserves original actions and thresholds.",
+        "fixtureSha256": "0bd9c28d4bf0b8c59ad7118dfe15c0096df98b5d2454f9f73eaa56acbc9e275b",
+        "identityHelperSha256": "86177a8e2ab4bcc08d6e79d35493658bbeabe7853762a1643eab15b4f5ff7667",
+        "metrics": [
+          {
+            "namespace": true,
+            "manualTilt": false,
+            "zEndstop": false,
+            "bundleManifestSha256": "c196f326b7ec2d0cfa5fd69a64749834a36c408a881e662a5eef3f72c0f9d264",
+            "minimumStepLeadMs": 87.662,
+            "statusP99Ms": 3.7066449999992983,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.982463,
+                  "maxMs": 21.954559
+                },
+                "cpu": {
+                  "user": 11867958,
+                  "system": 2289540
+                },
+                "rss": 342417408
+              },
+              {
+                "loop": {
+                  "p99Ms": 2.010111,
+                  "maxMs": 11.960319
+                },
+                "cpu": {
+                  "user": 7825898,
+                  "system": 1673319
+                },
+                "rss": 344285184
+              }
+            ]
+          },
+          {
+            "replacements": {
+              "seed": {
+                "operations": 32,
+                "p95Ms": 291.71748000000116,
+                "maxMs": 310.3734089999998
+              },
+              "upload": {
+                "operations": 16,
+                "p95Ms": 366.1866230000014,
+                "maxMs": 366.1866230000014
+              },
+              "move": {
+                "operations": 16,
+                "p95Ms": 510.3865779999978,
+                "maxMs": 510.3865779999978
+              },
+              "uploadDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "moveDuringPrintGenerations": [
+                1,
+                2
+              ],
+              "notifications": 320,
+              "originalNotifications": 840
+            }
+          },
+          {
+            "namespace": false,
+            "manualTilt": true,
+            "zEndstop": false,
+            "bundleManifestSha256": "c196f326b7ec2d0cfa5fd69a64749834a36c408a881e662a5eef3f72c0f9d264",
+            "minimumStepLeadMs": 82.337,
+            "statusP99Ms": 3.6067840000032447,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.981439,
+                  "maxMs": 22.118399
+                },
+                "cpu": {
+                  "user": 6704174,
+                  "system": 799044
+                },
+                "rss": 275230720
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.914879,
+                  "maxMs": 7.274495
+                },
+                "cpu": {
+                  "user": 2010307,
+                  "system": 314450
+                },
+                "rss": 258748416
+              }
+            ]
+          }
+        ],
+        "scope": "Independent JavaScript bundle with locked production dependencies, no Python/TS loader/external PATH tools; two simulated MCU generations. Mixed print and changed manual adapter pass. Not real Fluidd/Mainsail page, physical accuracy, old Python print comparison or target-board proof."
+      },
+      "singleContactAndZEndstop": {
+        "tests": 10,
+        "passed": 10,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-pr3-manual-owner-wrappers-correct.log",
+          "sha256": "463c1f7b9ae16ff3b62f7448dec5bc6591b2ce8903c6588d2795daf82a27fe65"
+        },
+        "scope": "Overlaps standalone contacts already counted; do not sum as distinct."
+      }
+    },
+    "review": "Historical six-adapter snapshot and 4a compiled failures retained with original identities. Read admissionAndRecoveryRepair for final necessary repair sources, passing new package and current CI requirement. Not external approval.",
+    "open": [
+      "Historical compiled failures retained; confirmed file-seat defect and recovery fixture prerequisites superseded by admissionAndRecoveryRepair. Original intermittent manual-start owner remains unobserved.",
+      "complete exact new-head required CI",
+      "normal develop integration and post-merge checks",
+      "same-artifact real Fluidd and Mainsail pages",
+      "historical Delta save 409",
+      "G3 and target-board budgets",
+      "Cycnumbris 500 hardware and stop/rollback",
+      "complete Moonraker",
+      "all Python and original macro scenarios retirement",
+      "release"
+    ],
+    "historicalFourAdapterSourceHashes": {
+      "host/src/moonraker/native-manual-bed-tilt.ts": "82128e90a39abb33ac7ebe306400da2de24e244f414081cfabc3f8342a711246",
+      "host/src/runtime/product-service.ts": "e4b74d139344ed75a77670c11d26cbc964d44d5ef652be495cb48fc37b572f10",
+      "host/test/manual-bed-mesh.test.ts": "e76df619ed47eebb160af82617c627a69c7a7fc6956b4aa62cc133958ce3c972"
+    },
+    "latestFailureTriage": {
+      "sourceParent": "7a66f5554a5bf12896d9ef899753ab4b984bd457",
+      "productManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+      "productionSourcesUnchangedSinceBundle": true,
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "originalDiagnostic": {
+        "log": {
+          "path": "/tmp/anyraid-final-two-failures-observe.log",
+          "sha256": "d1506ee2ceaba2c4fbb4fe5234518f5ff2655d9d25de60f67ab8d9dae6625ce9"
+        },
+        "tests": 2,
+        "passed": 0,
+        "failed": 2,
+        "recoveredState": "interrupted",
+        "requestId": "sensor-fault",
+        "freshMotion": [
+          0,
+          0
+        ],
+        "manualStartStatus": 409,
+        "manualStartMessage": "Manual calibration requires idle homed printer"
+      },
+      "recoveryFixtureCorrection": {
+        "source": {
+          "path": "host/acceptance/product-compiled-journey.test.ts",
+          "sha256": "9e7521967e46704ec550324c8d8936c729ee6b99fba9b0719669863eee75a001"
+        },
+        "flow": [
+          "interrupted identity retained",
+          "no MCU replay",
+          "resume rejected",
+          "explicit cancel",
+          "durable cancelled record",
+          "explicit reset",
+          "original idle assertion"
+        ],
+        "productStateMachineChanged": false,
+        "validation": {
+          "durableRecovery": {
+            "tests": 5,
+            "passed": 5,
+            "failed": 0,
+            "log": {
+              "path": "/tmp/anyraid-recovery-contract-regression.log",
+              "sha256": "2289428ac11e7e335747fe56a184ff88fc19ebbe6964223f4fa4c70a8ee36cf8"
+            }
+          },
+          "typecheck": {
+            "passed": true,
+            "log": {
+              "path": "/tmp/anyraid-plan-audit-typecheck.log",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "scope": "Recovery segment passed in compiled observation; whole loaded case still fails on subsequent bed_mesh admission. Source formatting only after observation, no production changes."
+        }
+      },
+      "compiledObservation": {
+        "log": {
+          "path": "/tmp/anyraid-recovery-contract-compiled.log",
+          "sha256": "0f63c4192976faf121a966f1f883d5833bd827f805981847fbcd7ab45dd7859e"
+        },
+        "fixture": {
+          "path": "host/build/anyraid-integrated-client-candidate/prep/product-compiled-recovery-observe.test.ts",
+          "sha256": "df4d3ae494ced5235921b53484360b965a3d09a4fbc543ddbf2f51e266929cec"
+        },
+        "tests": 2,
+        "passed": 1,
+        "failed": 1,
+        "recoveryFlowPassed": true,
+        "failedPhase": "verifySavedConfiguration first home POST",
+        "failedStatus": 409,
+        "failedMessage": "Printer activity blocks probe",
+        "manualCasePassed": true,
+        "scope": "Same artifact; original assertions/load retained. Failure diagnostics and explicit recovery acknowledgement only. Does not close earlier DELETE 429 or manual-start 409, full new-head CI, pages or hardware.",
+        "previousPhaseLabel": "verifySavedConfiguration bed_mesh POST",
+        "phaseCorrection": "Line 587/592 is homingResponse assertion. Diagnostic owner trace establishes gate closed after explicit native cancellation, not bed-mesh execution."
+      },
+      "postObservationIdentity": {
+        "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate-final/app",
+        "manifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+        "receipt": {
+          "path": "/tmp/anyraid-recovery-audit-bundle-identity.json",
+          "sha256": "2783a62d7107b04fc3780cb89aa34170a688e0c60b34f49562f9d890485c0757"
+        }
+      }
+    }
+  },
+  "admissionAndRecoveryRepair": {
+    "date": "2026-10-03",
+    "state": "local_required_repairs_passed_exact_new_head_ci_pending",
+    "sourceParent": "7a66f5554a5bf12896d9ef899753ab4b984bd457",
+    "sourceHashes": {
+      "host/src/moonraker/native-manual-bed-tilt.ts": "82128e90a39abb33ac7ebe306400da2de24e244f414081cfabc3f8342a711246",
+      "host/src/moonraker/native-print-uploads.ts": "709401d1897e7582f2befebcc44e6a5fc4253549dd321b97a844025a1205f4b4",
+      "host/src/runtime/product-service.ts": "29e19aa6b7c62759ecdee46dcb5b4d9229800707c38b52b25baa76bd56574467",
+      "host/acceptance/product-compiled-journey.test.ts": "a9a9f14cddb794d681010ff747401d7afd5f12791f2308da8b5622b36c7304d8",
+      "host/test/manual-bed-mesh.test.ts": "142dc46e307335c48101f5bb6d3758fe3a661a3adc1b04e479dd938b8e3116f4",
+      "host/test/native-print-uploads.test.ts": "e618a20d8a27031446921ffc4317ff13575c6f495ebf783e0632712724b46e7c",
+      "host/bench/native-file-mutation-capacity.ts": "c7729553beb33883abb7fbcdb375fed7edfde77d016720ad0437cf0aa513163b"
+    },
+    "node": "v26.10.0",
+    "mechanism": {
+      "manualOwnership": "Six manual adapters retain original shared GCodeDispatch ownership through move/readback/publication; previous deterministic counterexample and original regressions retain their own hashes.",
+      "fileAdmission": "Existing #pending still drains reads and writes. Separate bounded #mutations counts only upload/remove/move/copy/directory mutations. Original capacity and external authorization/download budgets remain. Failed uploads release their mutation slot.",
+      "recovery": "Persist interrupted sensor-fault identity without replay; resume rejected. Explicit durable cancel and journal reset do not reopen stopped hardware. Homing rejected until acknowledged controlled reinitialize; old token rejected and original configuration journeys retained.",
+      "mode": "Loaded legacy fixture has generation-scoped server and uses controlled reinitialize. Process-server mode standard HTTP/RPC RESTART retains separately source-bound acceptance. No production restart behavior changed."
+    },
+    "counterexamples": {
+      "readConsumesMutationSlot": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "status": 429,
+        "expectedStatus": 409,
+        "body": "Native file mutation capacity exceeded",
+        "log": {
+          "path": "/tmp/anyraid-file-read-capacity-before.log",
+          "sha256": "b02a2298aba8ea94344c9f8448aece2629890a1210f8b122cb24b8d99db13a12"
+        }
+      },
+      "closedGateAfterInterruptedCancellation": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "log": {
+          "path": "/tmp/anyraid-probe-admission-owner.log",
+          "sha256": "4190d6d9593c44fa74cd80679ce03f9126e1ab18c6341b90c13db52bb6c66c8f"
+        },
+        "observed": {
+          "closed": true,
+          "activities": 0,
+          "maintenance": false,
+          "owners": 1
+        },
+        "phase": "first home in verifySavedConfiguration",
+        "status": 409
+      },
+      "standardRestartModeMismatch": {
+        "tests": 1,
+        "passed": 0,
+        "failed": 1,
+        "status": 503,
+        "message": "Product host restart is unavailable",
+        "log": {
+          "path": "/tmp/anyraid-interrupted-restart-compiled.log",
+          "sha256": "64a21484a99c2789f265881048c670796a3908ae647703cd50104fd9aa0b4392"
+        }
+      }
+    },
+    "developmentObservation": {
+      "failedUploadSlotRelease": "Intermediate separate-seat patch missed rejected receive cleanup. Original upload suite caught seven failures; corrected original suite is 42/42. Intermediate failure log retained.",
+      "log": {
+        "path": "/tmp/anyraid-file-read-capacity-after.log",
+        "sha256": "adac9a636dcc396d5120f2423e83816c5b7f19681d310b4af68b72963c23892d"
+      }
+    },
+    "validation": {
+      "fileUploadSuite": {
+        "tests": 42,
+        "passed": 42,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-file-read-capacity-after-corrected.log",
+          "sha256": "9f697b1a6483006339dfeecb9c8548e94d0103e7818ac89199e2332a71fb8deb"
+        }
+      },
+      "relatedFileOwners": {
+        "tests": 28,
+        "passed": 28,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-admission-file-regressions.log",
+          "sha256": "d4c63ee2384893f082932ce203f6505556411b444b9f4b6c8f765b933ab4229e"
+        }
+      },
+      "manualStartAndQueue": {
+        "tests": 5,
+        "passed": 5,
+        "failed": 0,
+        "log": {
+          "path": "/tmp/anyraid-manual-start-contract-regression.log",
+          "sha256": "c69aa3ccdce7537dd976d44f9b8464877ea59add49479bb8a0460d7dbaa7d38d"
+        },
+        "scope": "Busy start rejects without stop/token consumption/lease; admitted adjustments queue and cancellation prevents late motion. Fixed contract check does not identify the original intermittent start sample."
+      },
+      "compiled": {
+        "tests": 3,
+        "passed": 3,
+        "failed": 0,
+        "durationMs": 163317.981598,
+        "log": {
+          "path": "/tmp/anyraid-admission-recovery-compiled.log",
+          "sha256": "353755314c70ade293a070f97735844fcee2e6b826388a1d81a75303475be6f0"
+        },
+        "fixture": {
+          "path": "host/build/anyraid-integrated-client-candidate/prep/product-compiled-journey.test.ts",
+          "sha256": "9a5bb701379277655a8063e0a806f6c14ba25df7910c511682c0f25aaf6184e6"
+        },
+        "bundleBefore": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-admission-recovery-candidate/app",
+          "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "bundleAfter": {
+          "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-admission-recovery-candidate/app",
+          "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "dependencies": "Independently installed 14 production dependencies, 830.80029 ms",
+        "metrics": [
+          {
+            "namespace": true,
+            "manualTilt": false,
+            "zEndstop": false,
+            "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+            "minimumStepLeadMs": 87.338,
+            "statusP99Ms": 3.235827000000427,
+            "uploads": 16,
+            "filesNotifications": 1160,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.961983,
+                  "maxMs": 18.907135
+                },
+                "cpu": {
+                  "user": 12520252,
+                  "system": 2292054
+                },
+                "rss": 341733376
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.967103,
+                  "maxMs": 13.598719
+                },
+                "cpu": {
+                  "user": 7507465,
+                  "system": 1658009
+                },
+                "rss": 385273856
+              }
+            ],
+            "historyP99Ms": 54.1913370000002,
+            "uploadP95Ms": 89.82924799999819,
+            "directoryP99Ms": 34.77928599999723,
+            "moveP95Ms": 424.9381880000001,
+            "fileNotificationP95Ms": 78.94694499999969,
+            "copyP95Ms": 233.18465299999662
+          },
+          {
+            "namespace": false,
+            "manualTilt": false,
+            "zEndstop": true,
+            "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+            "minimumStepLeadMs": 70.793,
+            "statusP99Ms": 7.596185000002151,
+            "uploads": 16,
+            "filesNotifications": 132,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 2.576383,
+                  "maxMs": 23.085055
+                },
+                "cpu": {
+                  "user": 5128757,
+                  "system": 652391
+                },
+                "rss": 300122112
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.950719,
+                  "maxMs": 9.273343
+                },
+                "cpu": {
+                  "user": 2028636,
+                  "system": 293855
+                },
+                "rss": 280055808
+              }
+            ],
+            "historyP99Ms": 24.965022999997018,
+            "uploadP95Ms": 38.94643999999971,
+            "directoryP99Ms": 12.301932000002125,
+            "moveP95Ms": null,
+            "fileNotificationP95Ms": 29.55947500000184,
+            "copyP95Ms": null
+          },
+          {
+            "namespace": false,
+            "manualTilt": true,
+            "zEndstop": false,
+            "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+            "minimumStepLeadMs": 86.433,
+            "statusP99Ms": 3.4128919999930076,
+            "uploads": 16,
+            "filesNotifications": 132,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.929215,
+                  "maxMs": 20.201471
+                },
+                "cpu": {
+                  "user": 6349617,
+                  "system": 773301
+                },
+                "rss": 274681856
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.889279,
+                  "maxMs": 8.519679
+                },
+                "cpu": {
+                  "user": 2035985,
+                  "system": 321286
+                },
+                "rss": 285237248
+              }
+            ],
+            "historyP99Ms": 15.128907999984222,
+            "uploadP95Ms": 37.90870499997982,
+            "directoryP99Ms": 11.01876400000765,
+            "moveP95Ms": null,
+            "fileNotificationP95Ms": 34.059490999992704,
+            "copyP95Ms": null
+          }
+        ],
+        "scope": "Original two-generation print/action counts, 840+320 namespace file notifications, exact positions, cancellation/stop and event-loop gates retained. Additional explicit post-interruption generation uses original factory count plus one. No TS/Python loader in production child. No page or physical hardware proof."
+      },
+      "pairedPerformance": {
+        "script": {
+          "path": "host/bench/native-file-mutation-capacity.ts",
+          "sha256": "c7729553beb33883abb7fbcdb375fed7edfde77d016720ad0437cf0aa513163b"
+        },
+        "log": {
+          "path": "/tmp/anyraid-file-admission-paired-bench-corrected.log",
+          "sha256": "1285cfe9cc055654a467afb370ff0a942c9af37a4c1a92bd1acb12fb52f0f24a"
+        },
+        "node": "v26.10.0",
+        "filesystemMagic": 61267,
+        "inputBytes": 65536,
+        "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+        "warmups": 3,
+        "order": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "identities": [
+          {
+            "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-manual-owner-candidate-final/app",
+            "manifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7"
+          },
+          {
+            "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-admission-recovery-candidate/app",
+            "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f"
+          }
+        ],
+        "results": [
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 25.562613000000056,
+              "p95Ms": 28.221884000000045,
+              "p99Ms": 50.568745000000035
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 12.138151999999991,
+              "p95Ms": 13.940755999999965,
+              "p99Ms": 20.566115999999965
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.43563399999993635,
+              "p95Ms": 0.7120650000000524,
+              "p99Ms": 1.37987099999998
+            }
+          },
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 26.89811399999985,
+              "p95Ms": 30.788054000000102,
+              "p99Ms": 49.16495299999997
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 12.707615999999916,
+              "p95Ms": 15.93131100000005,
+              "p99Ms": 15.96900100000039
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.43517399999996087,
+              "p95Ms": 0.8430559999999332,
+              "p99Ms": 2.0396559999999226
+            }
+          }
+        ],
+        "medianCandidateBaselineRatios": {
+          "upload": 1.0522443069493637,
+          "remove": 1.0469152141116642,
+          "directory": 0.9989440677266339
+        },
+        "loop": {
+          "p99Ms": 1.827839,
+          "maxMs": 3.371007
+        },
+        "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof."
+      },
+      "typecheck": {
+        "passed": true,
+        "log": {
+          "path": "/tmp/anyraid-admission-recovery-sealed-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "review": "Bounded local owner review: all five mutation admissions track/release separate seats; all read tasks remain in original drain collection. Native busy and maintenance protections, file identity/authorization/durability and original motion/stop budgets unchanged. Restoration changes fixture actions only. Not external approval or whole project completion.",
+    "open": [
+      "exact new-head complete required CI",
+      "normal develop merge and post-merge verification",
+      "original intermittent manual-start 409 lacks captured physical owner",
+      "historical Delta save 409",
+      "same-artifact actual Fluidd/Mainsail pages",
+      "G3 and target-board budgets",
+      "Cycnumbris 500 installation/stop/precision/performance",
+      "complete Moonraker",
+      "all Python and original macro scenario retirement",
+      "release"
+    ]
   }
 }

@@ -1892,7 +1892,7 @@
       }
     },
     "m2bOverwrite": {
-      "state": "local_configured_print_fixture_repair_passed_exact_new_head_ci_pending",
+      "state": "manual_ownership_regressions_passed_final_compiled_failures_under_diagnosis",
       "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "evidence": "host/contracts/native-overwrite-acceptance.json",
       "sourceHashes": {
@@ -1915,12 +1915,12 @@
       "affectedRegression": 125,
       "processLifecycle": 10,
       "totalDistinct": 271,
-      "compiled": "passed_for_fixed_local_source",
-      "requiredNewHeadCi": "pending_for_repair_head",
+      "compiled": "final_candidate_failed_two_of_three",
+      "requiredNewHeadCi": "pending_for_manual_ownership_repair_head",
       "integrated": false,
       "nativeMotion": 24,
       "motionIntegration": 112,
-      "compiledBundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+      "compiledBundleManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
       "motionEvidence": "host/contracts/motion-overwrite-capture.json",
       "integrationCheckpoint": {
         "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
@@ -1928,19 +1928,22 @@
         "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
         "draft": false,
         "merged": false,
-        "requiredCi": "pending_for_configured_print_fixture_repair_head",
-        "review": "bounded_local_software_review_completed",
-        "submission": "PR #3 remains open. 435e6b73 passed all ordinary tests and native protocol, failed configured print during UBSan. Matching full-file failure captured premature simulated trigger; fixture-only repair passed both sanitizer regressions. Complete new-head CI and post-merge checks remain required.",
+        "requiredCi": "pending_for_manual_ownership_repair_head",
+        "review": "local_call_chain_review_complete_final_compiled_failures_open",
+        "submission": "Existing PR #3 head 7a66f555 terminal failure. Six-adapter manual ownership repair is uncommitted local work: deterministic counterexample and affected regressions pass; final compiled cases are 1/3, two assertion failures retained. Diagnose them before sealing/pushing a new candidate; complete required CI and integration remain pending.",
         "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
         "failedAttempt": "ciSafetyRepairs.failedCi",
         "currentRepairSources": "ciSafetyRepairs.sourceHashes",
-        "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+        "currentCompiledManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
         "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
-        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes"
+        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes",
+        "currentManualOwnershipRepairSources": "manualOwnershipRepair.sourceHashes",
+        "failedManualOwnershipAttempt": "manualOwnershipRepair.failedCi"
       },
       "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
       "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs",
-      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair"
+      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair",
+      "manualOwnershipRepair": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair"
     }
   },
   "integrationCheckpoint": {
@@ -2143,7 +2146,7 @@
     "currentImplementation": {
       "batch": "M2b 3b upload/move overwrite",
       "branch": "devac/moonraker-file-overwrite",
-      "state": "local_configured_print_fixture_repair_passed_exact_new_head_ci_pending",
+      "state": "local_required_repairs_passed_exact_new_head_ci_pending",
       "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "benchmarkBaseline": {
         "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
@@ -2157,28 +2160,34 @@
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
       },
       "evidence": "host/contracts/native-overwrite-acceptance.json",
-      "compiledBundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+      "compiledBundleManifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
       "integrationCheckpoint": {
         "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
         "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
         "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
         "draft": false,
         "merged": false,
-        "requiredCi": "pending_for_configured_print_fixture_repair_head",
-        "review": "bounded_local_software_review_completed",
-        "submission": "PR #3 remains open. 435e6b73 passed all ordinary tests and native protocol, failed configured print during UBSan. Matching full-file failure captured premature simulated trigger; fixture-only repair passed both sanitizer regressions. Complete new-head CI and post-merge checks remain required.",
+        "requiredCi": "pending_for_new_admission_recovery_repair_head",
+        "review": "bounded_local_review_and_necessary_local_checks_passed_exact_head_ci_pending",
+        "submission": "Necessary local repair is ready to seal/push to existing PR #3. Exact runtime/test/benchmark hashes in admissionAndRecoveryRepair; 75 affected local checks, three same-package compiled journeys, paired real-storage performance and sealed typecheck pass. Exact new-head CI, normal develop merge and post-merge checks remain pending. Historical failed attempts and unobserved start sample retained.",
         "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
         "failedAttempt": "ciSafetyRepairs.failedCi",
-        "currentRepairSources": "ciSafetyRepairs.sourceHashes",
-        "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+        "currentRepairSources": "admissionAndRecoveryRepair.sourceHashes",
+        "currentCompiledManifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
         "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
-        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes"
+        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes",
+        "currentManualOwnershipRepairSources": "manualOwnershipRepair.sourceHashes",
+        "failedManualOwnershipAttempt": "manualOwnershipRepair.failedCi",
+        "sourceParent": "7a66f5554a5bf12896d9ef899753ab4b984bd457"
       },
       "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
       "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs",
-      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair"
+      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair",
+      "manualOwnershipRepair": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair",
+      "latestFailureTriage": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair.latestFailureTriage",
+      "admissionAndRecoveryRepair": "host/contracts/native-overwrite-acceptance.json#admissionAndRecoveryRepair"
     },
-    "next": "Push the source-bound configured-print fixture repair to existing PR #3 after terminal 435e6b73 failure; verify exact new-head complete required CI, normal develop merge and post-merge checks. Retain/reuse one integrated product artifact for Fluidd then Mainsail full A before next Moonraker feature batch. 500 no-motion mapping and G3 impact audit advance by actual dependencies; other machine families last.",
+    "next": "Seal and push necessary verified repair to existing PR #3; require exact new-head complete CI, bounded review and normal develop integration/post-merge checks, then same-package actual Fluidd/Mainsail. Retain unresolved historical motion/start observations; no weakened gates. Other machine families last.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

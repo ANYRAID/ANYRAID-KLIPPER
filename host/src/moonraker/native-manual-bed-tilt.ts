@@ -8,6 +8,9 @@ import {fitBedTilt} from '../motion/bed-tilt.ts';
 import {manualProbeBounds,planManualProbe,type ManualProbeAdjustment} from '../homing/manual-probe.ts';
 export interface ManualScrewOptions {direction?:ScrewDirection;maximumDeviation?:number;}
 export interface ManualBedTiltMotion {
+ /** Join the same native dispatch owner as background clock maintenance;
+  * retain it through all moves, readback and publication in one action. */
+ runExclusive?(work:(signal:AbortSignal)=>Promise<void>,signal:AbortSignal):Promise<void>;
  travelHeight?(current:number,height:number):number;
  preflight?(points:readonly (readonly number[])[],height:number,speed:number):void;
  begin?(options:Readonly<ManualScrewOptions>):void;
@@ -77,6 +80,8 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
   if(action==='accept'&&position![2]>=startZ)throw new ApiError(409,'Lower the nozzle before accepting a contact point');
   const consumed=token,signal=AbortSignal.any([context.signal,lifetime.signal]);state='moving';arm();
   pending=(async()=>{try{
+   let receipt:Json=null;
+   const execute=async(signal:AbortSignal)=>{
    signal.throwIfAborted();if(action!=='start'&&expected?.some((v,i)=>v!==motion.planned()[i]))throw new Error('Manual position ownership changed');
    if(action==='start'){motion.begin?.(screwOptions);if(!multiPoint){readPosition();startZ=position![2];history=[];unchanged=false;state='awaiting';}else await nextPoint(signal);}
    else if(step){
@@ -87,7 +92,10 @@ export function registerManualBedTilt(registry:EndpointRegistry,gate:Maintenance
     if(samples.length<plan.points.length)await nextPoint(signal);
     else{if(multiPoint){const p=[...motion.planned()];p[2]=Math.max(p[2],plan.horizontalHeight);await move(p,plan.travelSpeed,signal);}result=await motion.apply(samples,signal,screwOptions);signal.throwIfAborted();readPosition();state='completed';clearTimer();release?.();release=undefined;}
    }
-   signal.throwIfAborted();token=randomUUID();if(state==='awaiting')arm();const value=copy();last={token:consumed,key,value:structuredClone(value)};return value;
+   signal.throwIfAborted();token=randomUUID();if(state==='awaiting')arm();const value=copy();last={token:consumed,key,value:structuredClone(value)};receipt=value;
+   };
+   if(motion.runExclusive)await motion.runExclusive(execute,signal);else await execute(signal);
+   return receipt;
   }catch(error){await terminate(error).catch(()=>{});throw new ApiError(503,'Manual calibration stopped; reinitialize before further motion');}})();
   try{return await pending;}finally{pending=undefined;}
  });

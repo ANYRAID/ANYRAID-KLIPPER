@@ -369,3 +369,23 @@ test('resolved directory child path overflow returns 400 and leaves every file u
   assert.equal((await moveHttp(f,'gcodes/parts','gcodes/'+parent+'/'+'q'.repeat(250))).status,400);assert.equal(f.files.filename('a'),'parts/'+'a'.repeat(60)+'.gcode');assert.equal(f.files.status.reservedBytes,0);
  }finally{await f.clean();}
 });
+
+test('held directory read does not consume file mutation capacity or mask paused file protection',async t=>{
+ const f=await fixture({removal:true}),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>();
+ const original=f.files.directoryCatalog.bind(f.files);let listing:Promise<Response>|undefined;
+ try{
+  assert.equal((await f.post(multipart('G1 X1\n',{file_id:'active',path:''},'part.gcode'))).status,200);
+  await f.controller!.start({version:1,requestId:'directory-read-print',fileId:'active',nozzle:0,bed:0});await f.controller!.pause();
+  f.files.directoryCatalog=async(...args)=>{entered.resolve();await release.promise;return original(...args);};
+  listing=fetch(f.url+'/server/files/directory?extended=true');await entered.promise;
+  assert.equal(f.uploads.status.pending,1);
+  const deletion=await fetch(f.url+'/server/files/gcodes/part.gcode',{method:'DELETE'}),body=await deletion.text();
+  t.diagnostic(JSON.stringify({heldDirectoryRead:{status:deletion.status,body,owner:f.uploads.status,printState:f.controller!.state}}));
+  assert.equal(deletion.status,409,body);assert.equal(f.controller!.state,'paused');
+  assert.equal(await f.files.resolvePath('part.gcode',new AbortController().signal),'active');
+  assert.equal((await f.post(multipart('G1 X2\n',{},'unrelated.gcode'))).status,200);
+  assert.equal(f.controller!.state,'paused');
+ }finally{
+  release.resolve();if(listing){const response=await listing;await response.arrayBuffer();}f.files.directoryCatalog=original;await f.clean();
+ }
+});
