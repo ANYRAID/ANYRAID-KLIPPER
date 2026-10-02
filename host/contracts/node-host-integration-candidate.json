@@ -265,8 +265,8 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Directory software exit reached; perform bounded captured calibration-input versus successful-input discrimination and mapped-clock checkpoint before expanding copy/overwrite. Existing PR remains unmergeable pending exact-source required checks.",
-    "latestObservedSource": "8b3d9762299fb0b4fe4961bafc43274cf384757c",
+    "next": "Finish the existing one-second calibration fix batch and exact-source verification. At bounded diagnostic checkpoints or while waiting for checks/required observations, advance only Moonraker user paths with proven independent dependencies. Required CI failures still block merge and physical motion.",
+    "latestObservedSource": "ab4d207d2df0da2c298091627256bd611bf4bff7",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -1185,12 +1185,98 @@
           "scope": "Finite jobs only, not G3 closure"
         },
         "closure": "No merge, physical motion, full clients, full Moonraker or Python retirement. Four failures from 570ee60d passed here; their historical intermittent causes remain unresolved."
+      },
+      {
+        "revision": "ab4d207d2df0da2c298091627256bd611bf4bff7",
+        "testedMergeRevision": "d097022234b94c5fad03f237127e02eb01f9a7ac",
+        "status": "completed",
+        "host": {
+          "run": 37022163014,
+          "job": 110887674142,
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3862,
+            "passed": 3860,
+            "failed": 2,
+            "durationMs": 568852.205049
+          },
+          "failures": [
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "actual": "Invalid mapped trigger clock: member=1, oid=0, mapped=1735243, observed=1735215",
+              "expected": "Probe did not trigger"
+            },
+            {
+              "test": "two-pass native G28 rejects an immediate second trigger",
+              "actual": "Endstop trigger is in the future",
+              "expected": "still triggered"
+            }
+          ],
+          "laterStages": "Protocol, sanitizers and Linux MCU skipped after ordinary-test failure.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-ab4d207d-host-failures.log",
+            "sha256": "3460e6b62379fed89a5b13f90f77d225944149cc46890f71d3c7bf17320d5a88"
+          }
+        },
+        "firmware": {
+          "run": 37022163403,
+          "job": 110887675708,
+          "conclusion": "success"
+        },
+        "finiteMotion": {
+          "run": 37022163203,
+          "jobs": [
+            {
+              "job": 110887680150,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887680060,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887680048,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679987,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679969,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679964,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679862,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679643,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion or G3 closure. Previous BLTouch and manual-mesh failures passed this round; unexplained historical causes remain open. Uncommitted one-second cadence draft is not included in this remote source."
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "8b3d9762 exact-source host CI: 3858/3860 ordinary tests passed; BLTouch mapped clock and manual Delta mesh fail. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; latest required CI and unresolved G3 gates remain.",
+    "ab4d207d exact-source host CI: 3860/3862 ordinary tests passed; reverse-MCU missing trigger maps 28 ticks beyond stopped observation, and immediate second G28 trigger reports a future tick. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; required new-head CI and historical G3 gates remain.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
