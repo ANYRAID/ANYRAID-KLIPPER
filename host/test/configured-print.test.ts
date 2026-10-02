@@ -1,3 +1,4 @@
+import {inspect} from 'node:util';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtemp,writeFile,open,rm} from 'node:fs/promises';
@@ -20,8 +21,9 @@ test('configured arc resolution reaches the native print owner without consuming
   await owner.gcode.dispatch.execute('G2 X2 I1 F600');assert.equal(segments,12);assert.deepEqual(coordinates.state.position,[2,0,0,0]);assert.equal(linear.port.status.failed,false);await owner.close();
  }finally{await f.hardware.close();await f.close();}
 });
-for(const interrupt of [false,true])test(`configured hardware owns ADC heaters and file lifetime (interrupt=${interrupt})`,async()=>{
- const f=await initialLinearFixture(true,true),dir=await mkdtemp(join(tmpdir(),'configured-print-')),path=join(dir,'job.gcode');let timer:ReturnType<typeof setInterval>|undefined,finished=0,stopped=0;
+for(const interrupt of [false,true])test(`configured hardware owns ADC heaters and file lifetime (interrupt=${interrupt})`,async t=>{
+ const f=await initialLinearFixture(true,true),dir=await mkdtemp(join(tmpdir(),'configured-print-')),path=join(dir,'job.gcode');let timer:ReturnType<typeof setInterval>|undefined,finished=0,stopped=0,stage='setup';
+ const injected:unknown[]=[];let observation=()=>({stage});
  try{
   await writeFile(path,interrupt?'WAIT\nG1 X1 E0.1 F600\n':'M105\nSET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0 SMOOTH_TIME=0.12\nG1 X1 E0.1 F600\n');const linear=f.initial.createLinearPort(f.reader,f.settings),reports:string[]=[],h=f.hardware.plan.homing[0];let triggered=false;
   timer=setInterval(()=>{
@@ -30,22 +32,26 @@ for(const interrupt of [false,true])test(`configured hardware owns ADC heaters a
     f.firmware[1].emit('analog_in_state',{oid:plan.sensor.adc.oid,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});
    }
    const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||triggered)return;
-   const clock=BigInt(Number(arm.parameters.clock));if(f.initial.generation.members[0].session.clock.sync.getClock(serialClock.now())<clock)return;triggered=true;
+   const clock=BigInt(Number(arm.parameters.clock)),hostEstimate=f.initial.generation.members[0].session.clock.sync.getClock(serialClock.now()),firmwareClock=BigInt(f.firmware[0].currentClock());
+   // A host clock estimate may lead the simulated device. Inject only after
+   // the firmware itself reaches this event, retaining the production guard.
+   if(hostEstimate<clock||firmwareClock<clock)return;triggered=true;injected.push({armClock:clock,hostEstimate,firmwareClock});
    const oid=h.triggers[0].protocol.oid;f.firmware[0].setTriggerReason(1,oid);f.firmware[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},h.endstop.oid);f.firmware[0].emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});
   },20);
   const options:ConfiguredPrintOptions={output:m=>reports.push(m),motorCompletion:'hold',startupHoming:{mode:'home',axes:[0]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{prepare:async()=>{},start:async()=>{},finishOutputs:async()=>{finished++;},stopOutputs:async()=>{stopped++;}},open:async id=>{assert.equal(id,'file');return GCodeFileReader.adopt(await open(path,'r'));}};
   const owner=await linear.createPrint(options);await assert.rejects(linear.createPrint(options),/owned/);const entered=Promise.withResolvers<void>();if(interrupt)owner.gcode.dispatch.register('WAIT',c=>new Promise<void>((resolve,reject)=>{c.signal.addEventListener('abort',()=>reject(c.signal.reason),{once:true});entered.resolve();}));
+  observation=()=>({stage,hardware:f.hardware.status,group:f.group.status,port:linear.port.status,heater:f.hardware.heaters.status,device:owner.device.status,injected,firmware:f.firmware.map(device=>({clock:device.currentClock(),outputs:device.outputs.slice(-8)}))});
   const eof=Promise.withResolvers<void>();void eof.promise.catch(()=>{});owner.device.subscribeEOF(()=>eof.resolve());owner.device.subscribeFault(e=>eof.reject(e));
-  await owner.device.prepare(request,f.signal);assert(triggered);assert.equal(linear.kinematics.status.homedAxes,'x');assert(f.hardware.analog[0].runtime.canExtrude());
-  const before=f.firmware[0].motion.length;await owner.device.start('file',f.signal);
-  if(interrupt){await entered.promise;clearInterval(timer);timer=undefined;await f.hardware.close();assert.equal(owner.file.status.file?.closed,true);assert.equal(finished,0);assert.equal(stopped,1);assert.equal(f.firmware[0].motion.length,before);assert.deepEqual(f.stops,[1,1]);for(const binding of f.hardware.analog)assert.equal(binding.runtime.status.target,0);return;}
+  stage='prepare';await owner.device.prepare(request,f.signal);stage='prepared';assert(triggered);assert.equal(linear.kinematics.status.homedAxes,'x');assert(f.hardware.analog[0].runtime.canExtrude());
+  const before=f.firmware[0].motion.length;stage='start';await owner.device.start('file',f.signal);stage='started';
+  if(interrupt){await entered.promise;stage='closing-hardware';clearInterval(timer);timer=undefined;await f.hardware.close();stage='closed-hardware';assert.equal(owner.file.status.file?.closed,true);assert.equal(finished,0);assert.equal(stopped,1);assert.equal(f.firmware[0].motion.length,before);assert.deepEqual(f.stops,[1,1]);for(const binding of f.hardware.analog)assert.equal(binding.runtime.status.target,0);return;}
   await eof.promise;await owner.device.finish(request.requestId,f.signal);
   assert.deepEqual(owner.gcode.pressureAdvance!.pressureAdvance,{advance:0,smoothTime:.12});assert(reports.some(r=>r.includes('pressure_advance_smooth_time: 0.120000')));
   const motion=f.firmware[0].motion.slice(before);for(const [id,steps] of [['x',80],['e',8]] as const){const oid=f.hardware.plan.steppers.find(s=>s.emitter===id)!.compressor.oid;assert.equal(motion.filter(m=>m.name==='queue_step'&&m.parameters.oid===oid).reduce((n,m)=>n+Number(m.parameters.count),0),steps);}
   assert.equal(finished,1);assert.equal(stopped,0);assert.equal(owner.file.status.file?.closed,true);assert(reports.some(r=>r.includes('T:')&&r.includes('B:')));
   for(const binding of f.hardware.analog){assert.equal(binding.runtime.status.target,0);assert.equal(binding.outputStatus?.defaultConfirmed,true);}
   clearInterval(timer);timer=undefined;await f.hardware.close();assert.equal(linear.port.status.failed,true);assert.deepEqual(f.stops,[1,1]);
- }finally{if(timer)clearInterval(timer);await f.hardware.close();await f.close();await rm(dir,{recursive:true,force:true});}
+ }catch(error){t.diagnostic(inspect(observation(),{depth:5,maxArrayLength:16}));throw error;}finally{if(timer)clearInterval(timer);await f.hardware.close();await f.close();await rm(dir,{recursive:true,force:true});}
 });
 test('missing configured print bed rejects before dispatch ownership',async()=>{
  const f=await initialLinearFixture();try{

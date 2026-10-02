@@ -28,13 +28,13 @@ test('move to directory and root resolves basename; same-name move has no physic
   const bytes=await readFile(join(f.root,'job.json')),identity=await f.store.describeSource('job',signal());await f.store.moveFile(await f.store.prepareFileMove('start.gcode','start.gcode',signal()),signal());assert.deepEqual(await readFile(join(f.root,'job.json')),bytes);assert.deepEqual(await f.store.describeSource('job',signal()),identity);
  }finally{await f.close();}
 });
-test('move rejects collisions, unsafe names, missing parents, directories and foreign or stale plans without losing files',async()=>{
+test('move identifies replacement target and rejects unsafe names, missing parents, directories and foreign or stale plans',async()=>{
  const f=await fixture(),other=await fixture();try{
   await f.store.publish('one','a.gcode',f.source,signal(),'a.gcode');await f.store.publish('two','b.gcode',f.source,signal(),'b.gcode');await f.store.mutateDirectory('parts',false,signal());
   for(const path of ['../x.gcode','/x.gcode','parts//x.gcode','parts\\x.gcode'])await assert.rejects(f.store.prepareFileMove('a.gcode',path,signal()));
-  await assert.rejects(f.store.prepareFileMove('a.gcode','b.gcode',signal()),{code:'EEXIST'});await assert.rejects(f.store.prepareFileMove('a.gcode','missing/x.gcode',signal()),{code:'ENOENT'});await assert.rejects(f.store.prepareFileMove('parts','renamed',signal()),{code:'ENOTSUP'});
+  assert.equal((await f.store.prepareFileMove('a.gcode','b.gcode',signal())).replaced?.id,'two');await assert.rejects(f.store.prepareFileMove('a.gcode','missing/x.gcode',signal()),{code:'ENOENT'});await assert.rejects(f.store.prepareFileMove('parts','renamed',signal()),{code:'ENOTSUP'});
   const stale=await f.store.prepareFileMove('a.gcode','x.gcode',signal());await assert.rejects(other.store.moveFile(stale,signal()),/another store/);await f.store.moveFile(await f.store.prepareFileMove('a.gcode','y.gcode',signal()),signal());await assert.rejects(f.store.moveFile(stale,signal()),PublishedFileChangedError);
-  const plan=await f.store.prepareFileMove('y.gcode','x.gcode',signal());await f.store.publish('three','x.gcode',f.source,signal(),'x.gcode');await assert.rejects(f.store.moveFile(plan,signal()),{code:'EEXIST'});assert.equal(f.store.filename('one'),'y.gcode');assert.equal(f.store.status.reservedBytes,0);
+  const plan=await f.store.prepareFileMove('y.gcode','x.gcode',signal());await f.store.publish('three','x.gcode',f.source,signal(),'x.gcode');await assert.rejects(f.store.moveFile(plan,signal()),PublishedFileChangedError);assert.equal(f.store.filename('one'),'y.gcode');assert.equal(f.store.status.reservedBytes,0);
  }finally{await f.close();await other.close();}
 });
 test('cancellation before replacement preserves source; after replacement finishes durable move',async t=>{

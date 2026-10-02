@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import {AsyncHeaterRuntime} from '../src/thermal/async-runtime.ts';
 import {BangBangControl,HeaterPWM} from '../src/thermal/control.ts';
 const settle=()=>new Promise(r=>setImmediate(r));
-async function fixture(){
+async function fixture(sampleTime=1.1){
  let now=1,tick=()=>{},stops=0;const writes:{time:number;power:number}[]=[];
  const control=new BangBangControl(1);let updates=0;const update=control.update.bind(control);control.update=(...args)=>{updates++;return update(...args);};
  const runtime=new AsyncHeaterRuntime({minimum:0,maximum:300,minimumExtrude:170,smoothTime:1,maxPower:1,reportDelay:.3,refreshOutput:true},control,{configuration:{cycleTime:.1,maximumDuration:3,defaultPower:0,initialPower:0},async reset(){},async setPWM(time,power){writes.push({time,power});},async stop(){stops++;}},()=>({system:now,print:now}),{},callback=>{tick=callback;return ()=>{tick=()=>{};};});
- await runtime.start();runtime.sample(1,25);await runtime.setTarget(200);now=1.1;runtime.sample(now,25);await settle();
+ await runtime.start();runtime.sample(1,25);await runtime.setTarget(200);now=sampleTime;runtime.sample(now,25);await settle();
  return {runtime,writes,get updates(){return updates;},get stops(){return stops;},async tick(t:number){now=t;tick();await settle();}};
 }
 test('opt-in heater output renewal preserves sensor timestamp and does not run PID again',async()=>{
@@ -24,8 +24,15 @@ test('output renewal stops on target zero and never energizes from a cached read
 test('missed firmware refresh deadline stops instead of rescheduling obsolete power',async()=>{
  const f=await fixture();await f.tick(4.2);assert.equal(f.runtime.status.phase,'stopped');assert.match(String(f.runtime.status.cause),/refresh deadline/);assert.equal(f.writes.length,1);assert.equal(f.stops,1);
 });
+test('one-second protection ticks renew a phase-aligned slow sample before the unchanged firmware deadline',async()=>{
+ const f=await fixture(1.1000005);
+ for(const time of [2.1,3.1,4.100001]){await f.tick(time);assert.equal(f.runtime.status.phase,'active');}
+ assert.equal(f.runtime.status.lastTime,1.1000005);assert.equal(f.updates,2);
+ assert(f.writes.length>=2);for(let i=1;i<f.writes.length;i++)assert(f.writes[i].time-f.writes[i-1].time<3);
+ assert.equal(f.stops,0);await f.runtime.shutdown();assert.equal(f.stops,1);
+});
 test('pure PWM refresh does not consume or fabricate sample timestamps',()=>{
- const pwm=new HeaterPWM(1,.3);pwm.heartbeat(1);assert.deepEqual(pwm.update(1,1,200),{time:1.3,power:1});assert.equal(pwm.refresh(2,200),undefined);
+ const pwm=new HeaterPWM(1,.3);pwm.heartbeat(1);assert.deepEqual(pwm.update(1,1,200),{time:1.3,power:1});assert.equal(pwm.refresh(1.9,200),undefined);
  pwm.heartbeat(3);assert.deepEqual(pwm.refresh(3,200),{time:3.3,power:1});assert.deepEqual(pwm.update(3,0,0),{time:3.3,power:0});assert.equal(pwm.refresh(4,200),undefined);
 });
 test('slow-source authorization expires on original measurement time while PWM keeps its three-second deadline',async()=>{

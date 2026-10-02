@@ -18,7 +18,9 @@ export interface HomingStopResult {
 // Independent endstops can share a physical MCU. Serialize the unaddressed
 // uptime response route, without touching the periodic clock estimator or retrying.
 const clockReads=new WeakMap<SerialSession,Promise<void>>();
-function stoppedClock(member:HomingMember,signal:AbortSignal):Promise<bigint>{
+/** Actual uptime observation; also used before stopping an exhausted move.
+ * This does not publish a clock calibration or weaken trigger ordering. */
+export function readHomingClock(member:Pick<HomingMember,'session'|'queue'>,signal:AbortSignal):Promise<bigint>{
  const session=member.session,previous=clockReads.get(session)??Promise.resolve();
  const pending=previous.then(async()=>{
   signal.throwIfAborted();
@@ -72,7 +74,7 @@ export class HomingStopConfirmation {
    }));
    // The stopped primary's actual tick precedes the endstop-state query.
    // A host estimate can regress on calibration and cannot prove this ordering.
-   const stopClocks=await Promise.all(this.#members.map(m=>stoppedClock(m,s)));
+   const stopClocks=await Promise.all(this.#members.map(m=>readHomingClock(m,s)));
    const reply=await primary.session.queryOnQueue(primary.queue,this.#endstop.query(),'endstop_state',s,{oid:this.#endstop.oid});
    const state=this.#endstop.decode(reply.message);if(!state||state.homing)throw new Error('Endstop sampling did not stop');
    let hitClock:bigint|null=null;

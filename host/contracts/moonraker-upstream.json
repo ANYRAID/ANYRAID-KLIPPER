@@ -27,7 +27,8 @@
     {
       "name": "authorization",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Persistent native API Key and local-user/JWT authorization are implemented in api-key-authorization.ts, local-user-authorization.ts and ConfiguredMoonraker.loadAuthorized. product-native-authorization-acceptance.json binds an independently compiled simulated product, and native-thumbnail-authorization.test.ts protects narrow managed PNG/JPG GET compatibility. Full pinned component policy and final same-package client/machine acceptance remain open; this source inventory is not a new-head validation claim."
     },
     {
       "name": "button",
@@ -61,7 +62,7 @@
       "name": "file_manager",
       "tier": "core",
       "status": "partial",
-      "evidence": "FileListing Worker and authenticated roots/list REST+WebSocket routes in host/src/moonraker/file-list.ts; real filesystem and pinned original-method differential tests. Dynamic root updates, metadata extraction, directory operations, upload/download/delete paths, observers and production assembly remain incomplete. NativePrintUploads adds opt-in multipart HTTP admission into immutable PublishedPrintFiles with separate native receipt IDs and no auto-print; configured native integration and bounded upload benchmarks are covered. Legacy multipart response compatibility, crash staging recovery and target-print throughput remain incomplete."
+      "evidence": "Legacy FileListing Worker roots/list/directory reads have pinned original-method differential tests. Native gcodes process ownership, multipart upload without auto-print, sealed download, metadata/previews, notifications, create/delete directory, file/directory move, and copy/file-copy-overwrite now have scoped software evidence; see native-file-namespace-acceptance.json, native-single-file-move-acceptance.json, native-directory-move-acceptance.json and native-copy-acceptance.json. Copy source 58a7ec04 passed required CI and normal PR #2 merge into develop at 4b6a2317; actual develop host/firmware checks passed. Upload/move overwrite source 30cafd1b has local runtime, lifecycle/resolved-directory regressions, ext/native-motion performance and independent compiled two-generation mixed-printing evidence in native-overwrite-acceptance.json. PR #3 head 60176186 host CI failed (3909/3912), firmware passed. Necessary shared thermal/homing counterexample repairs, preserved Delta save failure diagnostics and new local compiled manifest 181d2dbc are in native-overwrite-acceptance.json#ciSafetyRepairs; exact repair-head required CI and integration remain pending. Old compiled and firmware passes do not prove the repair head. Recursive/offline mutation, other roots, dynamic root updates, UFP and remaining upstream capabilities, full same-package fixed-client pages, target-board/Python performance and hardware acceptance are incomplete. Partial native evidence does not prove legacy/full component coverage."
     },
     {
       "name": "gpio",
@@ -71,7 +72,8 @@
     {
       "name": "history",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "history-api.ts and history-runtime.ts implement scoped legacy behavior. native-history.ts reads the authoritative PrintJournal, with list/get/delete/totals/reset and bounded notifications registered by ConfiguredMoonraker. Native read, events, delete, totals and persistent journal-source evidence are separately bound in native-history-read-acceptance.json, native-history-events-acceptance.json, native-history-delete-acceptance.json, native-history-totals-acceptance.json and native-journal-history-source-acceptance.json. fluidd-client-acceptance.json records partial real history-page observations. Full pinned auxiliary/attribution semantics and final same-package client/machine acceptance remain open; existing scoped evidence is not full component closure."
     },
     {
       "name": "http_client",
@@ -86,7 +88,8 @@
     {
       "name": "job_state",
       "tier": "core",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "job-state.ts implements bounded observational print_stats state/layer transitions, with source contracts in moonraker-job-state.json and regressions in job-state.test.ts. This observer emits no device commands and grants no recovery authority; native printing remains owned by PrintController and its journal. Complete pinned assembly and dependent job_queue behavior remain open; the observer must not be rebuilt as a second authoritative controller."
     },
     {
       "name": "klippy_apis",
@@ -303,7 +306,8 @@
       "line": 262,
       "method": "register_upload_handler",
       "targetExpression": "\"/server/files/upload\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native gcodes multipart new upload and overwrite use immutable fresh IDs, checksum, target policy/activity protection and scoped local software/performance evidence; native-file-namespace-acceptance.json and native-overwrite-acceptance.json. Standard upload emits create_file without automatic printing. Full application roots/UFP/ancestor creation, offline overwrite, compiled overwrite load/new-head CI and complete client/target acceptance remain pending."
     },
     {
       "file": "moonraker/components/application.py",
@@ -550,14 +554,16 @@
       "line": 129,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/move\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native gcodes POST/RPC file and directory move preserve source IDs, authorize resolved members, protect activity, recover durable namespace and invalidate metadata; native-single-file-move-acceptance.json and native-directory-move-acceptance.json. Existing-target file overwrite has local runtime/regression/performance evidence in native-overwrite-acceptance.json; compiled/new-head CI/PR remain pending. Other roots and offline mutation remain pending. Full fixed-client and target-board acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",
       "line": 132,
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/copy\"",
-      "status": "not-implemented"
+      "status": "partial",
+      "evidence": "Native gcodes POST/RPC file/directory copy and file-copy-overwrite software acceptance in native-copy-acceptance.json; fresh identities, active destination protection, durable recovery and scoped compiled print/performance evidence. Source head 58a7ec04 passed required CI and normal PR #2 merge at 4b6a2317; actual develop host/firmware checks passed. Other roots, offline mutation, full fixed-client and target-board acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",

@@ -91,6 +91,51 @@ test('process download admitted before retirement survives attachment, and final
   final.resolve();await stopping;assert.equal(f.db.status.closed,true);assert.equal(f.counts.databaseCloses,1);assert.equal(files.status.authorizing,0);
  }finally{held.resolve();final.resolve();await transfer?.catch(()=>{});f.abort.abort();await stopping?.catch(()=>{});await f.close();}
 });
+test('chunked same-path upload admitted by the old device cannot overwrite after replacement attaches',async t=>{
+ const f=await fixture(undefined,true);let pending:ReturnType<typeof request>|undefined,rebuilding:Promise<void>|undefined;const events:any[]=[];
+ try{
+  const base=await f.ready,headers={'x-api-key':f.key},files=f.profiles[0].options.server.nativeProcessFiles!;
+  const upload=async(content:string)=>{const form=new FormData();form.append('file',new Blob([content]),'target.gcode');return fetch(base+'/server/files/upload',{method:'POST',headers,body:form});};
+  const before=await upload('G1 X1\n');assert.equal(before.status,200);const old=(await before.json() as any).result.file.id;
+  const off=files.observeChanges(event=>events.push(event));
+  try{
+   const outcome=Promise.withResolvers<number|'ECONNRESET'>();
+   pending=request(base+'/server/files/upload',{method:'POST',headers:{...headers,'content-type':'multipart/form-data; boundary=retired-upload','transfer-encoding':'chunked'}},response=>{response.resume();response.on('end',()=>outcome.resolve(response.statusCode!));});pending.on('error',error=>{if((error as NodeJS.ErrnoException).code==='ECONNRESET')outcome.resolve('ECONNRESET');else outcome.reject(error);});
+   pending.write('--retired-upload\r\nContent-Disposition: form-data; name="file"; filename="target.gcode"\r\nContent-Type: application/octet-stream\r\n\r\nG1 X9');
+   await until(()=>files.status.pending===1);
+   await assert.rejects(f.control.reinitialize(),/quiescent printer/);
+   const restart=await fetch(base+'/printer/restart',{method:'POST',headers});assert.equal(restart.status,200,await restart.clone().text());
+   rebuilding=until(()=>f.profiles.length===2&&f.addresses.length===2);await until(()=>f.counts.calls===2);await f.detached;
+   assert.equal(files.status.closed,false);assert.equal(files.status.pending,0);assert.equal(events.length,0);
+   f.replacement.resolve();await rebuilding;assert.equal(f.profiles.length,2);assert.equal(f.profiles[1].options.server.nativeProcessFiles,files);
+   // Network cancellation sends 503 then destroys an incomplete request. The
+   // transport may observe that response or the reset; neither may commit.
+   pending.end('\n\r\n--retired-upload--\r\n');const cancelled=await outcome.promise;assert.ok(cancelled===503||cancelled==='ECONNRESET',String(cancelled));
+   const metadata=await (await fetch(base+'/server/files/metadata?filename=target.gcode',{headers})).json() as any;assert.equal(metadata.result.file_id,old);
+   assert.equal(await (await fetch(base+'/server/files/gcodes/target.gcode',{headers})).text(),'G1 X1\n');assert.equal(events.length,0);
+   const current=await upload('G1 X2\n');assert.equal(current.status,200,await current.clone().text());const result=(await current.json() as any).result;
+   assert.notEqual(result.file.id,old);assert.equal(result.action,'create_file');assert.equal(result.print_started,false);assert.equal(result.print_queued,false);
+   assert.equal((await fetch(base+'/printer/files/info?file_id='+old,{headers})).status,404);assert.equal(await (await fetch(base+'/server/files/gcodes/target.gcode',{headers})).text(),'G1 X2\n');
+   assert.equal(events.length,1);assert.equal(events[0].action,'create_file');assert.equal(events[0].item.path,'target.gcode');assert.equal(events[0].item.file_id,result.file.id);assert.equal(files.status.pending,0);
+   t.diagnostic(JSON.stringify({cancelled,scope:'Old chunked upload rejected without replacement/events; standard restart admits a new immutable replacement on the same process store. Two simulated MCU generations, no physical printer acceptance.'}));
+  }finally{off();}
+ }finally{f.replacement.resolve();pending?.destroy();await rebuilding?.catch(()=>{});await f.close();}
+});
+test('unconfirmed device stop blocks upload and move overwrites without changing either identity',async()=>{
+ const f=await fixture('stop');
+ try{
+  const base=await f.ready,headers={'x-api-key':f.key},upload=async(name:string,content:string)=>{const form=new FormData();form.append('file',new Blob([content]),name);return fetch(base+'/server/files/upload',{method:'POST',headers,body:form});};
+  const target=await upload('target.gcode','G1 X1\n'),source=await upload('source.gcode','G1 X9\n');assert.equal(target.status,200);assert.equal(source.status,200);
+  const ids=[(await target.json() as any).result.file.id,(await source.json() as any).result.file.id],events:any[]=[],files=f.profiles[0].options.server.nativeProcessFiles!,off=files.observeChanges(e=>events.push(e));
+  try{
+   await assert.rejects(f.control.reinitialize(),/stop|failed/i);assert.equal(f.profiles.length,1);assert.equal(f.counts.calls,1);
+   assert.equal((await upload('target.gcode','G1 X2\n')).status,503);
+   const moved=await fetch(base+'/server/files/move',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({source:'gcodes/source.gcode',dest:'gcodes/target.gcode'})});assert.equal(moved.status,503);
+   for(const [i,name] of ['target','source'].entries()){const result=await (await fetch(base+'/server/files/metadata?filename='+name+'.gcode',{headers})).json() as any;assert.equal(result.result.file_id,ids[i]);}
+   assert.equal(await (await fetch(base+'/server/files/gcodes/target.gcode',{headers})).text(),'G1 X1\n');assert.equal(events.length,0);assert.equal(files.status.pending,0);
+  }finally{off();}
+ }finally{await f.close();}
+});
 test('actual host loop retains JWT, database, file lock and identified socket across three device generations',async t=>{
  const f=await fixture();let socket:WebSocket|undefined;const times:number[]=[],fds:number[]=[];
  try{

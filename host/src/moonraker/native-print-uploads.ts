@@ -6,7 +6,7 @@ import {mkdtemp,open,rm,type FileHandle} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError,PublishedCopyCommitError} from '../storage/published-files.ts';
+import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError,PublishedCopyCommitError,PublishedReplacementCommitError} from '../storage/published-files.ts';
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
@@ -25,7 +25,8 @@ const validId=(id:unknown):id is string=>typeof id==='string'&&/^[A-Za-z0-9_-]{1
  * print. The file store is externally owned and must also back FilePrintDevice. */
 export class NativePrintUploads {
  readonly #files:PublishedPrintFiles;readonly #gate:MaintenanceGate;readonly #root:string;readonly #max:number;readonly #capacity:number;
- readonly #abort=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #authorizing=new Set<Promise<unknown>>();
+ // Drain tracks all owned work; only staging/mutation work consumes mutation slots.
+ readonly #abort=new AbortController();readonly #pending=new Set<Promise<unknown>>();readonly #mutations=new Set<Promise<unknown>>();readonly #authorizing=new Set<Promise<unknown>>();
  #metadata:NativeFileMetadata|NativePersistentMetadata;
  readonly #downloads=new Set<Promise<void>>();readonly #downloadBudget:PrintSnapshotBudget;readonly #maxDownloads:number;
  #closed=false;#published=0;
@@ -48,7 +49,7 @@ export class NativePrintUploads {
   const owner=new NativePrintUploads(files,gate,options);
   try{const metadata=await NativePersistentMetadata.open(options.metadataRoot,files),previous=owner.#metadata;owner.#metadata=metadata;await previous.close();return owner;}catch(error){try{await owner.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Native upload startup cleanup failed');}throw error;}
  }
- get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
+ get status(){return {closed:this.#closed,metadata:this.#metadata.status,downloads:this.#downloads.size,downloadSnapshots:this.#downloadBudget.status,pending:this.#pending.size,mutations:this.#mutations.size,authorizing:this.#authorizing.size,published:this.#published,maxUploads:this.#capacity,maxFileBytes:this.#max};}
  async rootInfo(signal:AbortSignal):Promise<Json>{return {name:'gcodes',path:await this.#files.directoryPath(signal),permissions:'rw'};}
  filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return this.#files.filename(fileId);}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
@@ -73,7 +74,7 @@ export class NativePrintUploads {
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
   if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.remove(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
   if(this.#closed||!this.#print)return Promise.reject(new ApiError(503,'Native file removal requires its print owner'));
-  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
    await this.#authorize(context,{...params},signal,'server.files.delete_file');
    if(Object.keys(params).some(key=>key!=='path')||typeof params.path!=='string')throw new ApiError(400,'Expected native gcodes file path');
@@ -87,13 +88,13 @@ export class NativePrintUploads {
     await this.#files.remove(id,signal,file);await this.#metadata.invalidate(path);
     return {item:{path,root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'};
    }catch(error){if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}finally{release?.();}
-  });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
  }
  move(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
   if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.move(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
   if(!this.#print)return Promise.reject(new ApiError(503,'Native file move requires its print owner'));
-  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
    await this.#authorize(context,{...params},signal,'server.files.move');
    if(Object.keys(params).some(key=>!['source','dest'].includes(key))||typeof params.source!=='string'||typeof params.dest!=='string')throw new ApiError(400,'Expected source and dest gcodes paths');
@@ -110,7 +111,8 @@ export class NativePrintUploads {
     }
     const plan=await this.#files.prepareFileMove(source,dest,signal);
     await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.after),file_id:plan.before.id,filename:plan.before.name,size:plan.before.size,sha256:plan.before.sha256},signal,'server.files.move');
-    try{release=this.#print!.beginFileMutation(plan.before.id);}catch{throw new ApiError(403,'Print or maintenance owns this file');}
+    if(plan.replaced)await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.replaced),target_file_id:plan.replaced.id,size:plan.replaced.size,sha256:plan.replaced.sha256},signal,'server.files.move');
+    try{release=this.#print!.beginFileMutations([plan.before.id,...plan.replaced?[plan.replaced.id]:[]]);}catch{throw new ApiError(403,'Print or maintenance owns this source or destination');}
     const result=await this.#files.moveFile(plan,signal);
     await this.#metadata.invalidate(visibleFilePath(result.before));await this.#metadata.invalidate(visibleFilePath(result.after));
     return {action:'move_file',item:{path:visibleFilePath(result.after),root:'gcodes',modified:result.modified,size:result.after.size,permissions:'rw'},source_item:{path:visibleFilePath(result.before),root:'gcodes'}};
@@ -118,15 +120,16 @@ export class NativePrintUploads {
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
     if(error instanceof PublishedFileMoveCommitError)throw new ApiError(500,'File move commit failed',{phase:error.phase});
     if(error instanceof PublishedNamespaceMoveCommitError)throw new ApiError(500,'Directory move commit failed',{phase:error.phase});
-    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target exists; replacement is pending');if(code==='EINVAL')throw new ApiError(400,error instanceof Error?error.message:'Invalid move');throw error;
+    if(error instanceof PublishedReplacementCommitError){if(error.phase==='before-intent'&&error.cause instanceof PublishedFileChangedError)throw new ApiError(409,error.cause.message);throw new ApiError(500,'Move replacement commit failed',{phase:error.phase});}
+    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target conflicts');if(code==='EINVAL')throw new ApiError(400,error instanceof Error?error.message:'Invalid move');throw error;
    }finally{release?.();}
-  });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
  }
  copy(params:Record<string,Json|undefined>,context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native file copy closed'));
   if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.copy(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
   if(!this.#print)return Promise.reject(new ApiError(503,'Native file copy requires its print owner'));
-  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
    await this.#authorize(context,{...params} as Record<string,Json>,signal,'server.files.copy');
    if(Object.keys(params).some(key=>!['source','dest'].includes(key))||typeof params.source!=='string'||typeof params.dest!=='string')throw new ApiError(400,'Expected source and dest gcodes paths');
@@ -154,7 +157,7 @@ export class NativePrintUploads {
     if(error instanceof PublishedCopyCommitError)throw new ApiError(500,'Copy commit failed',{phase:error.phase});
     const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Copy source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Copy destination exists');if(code==='EINVAL'||code==='ENOTDIR')throw new ApiError(400,'Invalid copy destination');throw error;
    }finally{release?.();}
-  });this.#pending.add(task);void task.finally(()=>this.#pending.delete(task)).catch(()=>{});return task;
+  });this.#pending.add(task);this.#mutations.add(task);void task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);}).catch(()=>{});return task;
  }
  async #authorize(context:RpcContext,params:Record<string,Json>,signal:AbortSignal,method='server.files.upload'):Promise<void>{
   signal.throwIfAborted();if(this.#authorizing.size>=this.#capacity*2)throw new ApiError(503,'Upload authorization capacity exceeded');
@@ -167,16 +170,18 @@ export class NativePrintUploads {
  receive(request:IncomingMessage,context:RpcContext):Promise<Json>{return this.#receiveOwned(request,context,this.#deviceFiles);}
  #receiveOwned(request:IncomingMessage,context:RpcContext,binding:{owner:NativePrintUploads;signal:AbortSignal}|undefined,configFiles?:NativeConfigFiles):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
-  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
+  if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
+  if(binding&&context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'Upload belongs to a retired device'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
-  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles));this.#pending.add(task);
-  void task.then(()=>this.#pending.delete(task),()=>this.#pending.delete(task));return task;
+  const printOwner=binding?binding.owner.#print:this.#print;
+  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles,printOwner));this.#pending.add(task);this.#mutations.add(task);
+  const release=()=>{this.#pending.delete(task);this.#mutations.delete(task);};void task.then(release,release);return task;
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:PrintController):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
-  let directory:string|undefined,file:FileHandle|undefined;
+  let directory:string|undefined,file:FileHandle|undefined,releaseFile:(()=>void)|undefined;
   try{
    const query=new URL(request.url??'','http://localhost').searchParams;
    if([...query.keys()].some(key=>key!=='token')||query.getAll('token').length>1||query.has('token')&&!/^[A-Z2-7]{32}$/.test(query.get('token')!)||!/^multipart\/form-data(?:;|$)/i.test(request.headers['content-type']??''))throw new ApiError(400,'Expected multipart upload with at most one access token');
@@ -215,10 +220,22 @@ export class NativePrintUploads {
    const visibleDirectory=fields.path?nativeFilename(fields.path):'',visible=fields.file_id!==undefined&&fields.path===undefined?undefined:nativeFilename((visibleDirectory?visibleDirectory+'/':'')+filename);
    if(fields.checksum!==undefined&&(!/^[a-fA-F0-9]{64}$/.test(fields.checksum)||fields.checksum.toLowerCase()!==sha256))throw new ApiError(422,'Upload checksum mismatch');
    await this.#authorize(context,{root:'gcodes',filename,...visible?{path:visible}:{},file_id:id,size:bytes,sha256},signal);signal.throwIfAborted();
-   let record;try{record=await this.#files.publish(id,filename,file,signal,visible);}catch(error){if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;}
+   let record;try{
+    const replacement=visible?await this.#files.prepareUploadReplacement(id,filename,visible,signal).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;}):undefined;
+    if(replacement){
+     if(!printOwner)throw new ApiError(503,'Upload replacement requires its current print owner');
+     await this.#authorize(context,{root:'gcodes',path:visible!,file_id:id,target_file_id:replacement.replaced.id,filename:replacement.replaced.name,size:replacement.replaced.size,sha256:replacement.replaced.sha256},signal);
+     try{releaseFile=printOwner.beginFileMutation(replacement.replaced.id);}catch{throw new ApiError(403,'Print or maintenance owns this upload destination');}
+     record=await this.#files.replaceUpload(replacement,file,signal);await this.#metadata.invalidate(visible!);
+    }else record=await this.#files.publish(id,filename,file,signal,visible);
+   }catch(error){
+    if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
+    if(error instanceof PublishedReplacementCommitError){if(error.phase==='before-intent'&&error.cause instanceof PublishedFileChangedError)throw new ApiError(409,error.cause.message);throw new ApiError(500,'Upload replacement commit failed',{phase:error.phase});}
+    if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;
+   }
    this.#published++;const published=await this.#files.describe(id,signal);
    return {item:{path:visibleFilePath(record),root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
-  }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseDevice?.();release();}}}
+  }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseFile?.();releaseDevice?.();release();}}}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native uploads are closed');
@@ -269,7 +286,7 @@ export class NativePrintUploads {
  directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{const task=this.#directory(params,signal);this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));}
  mutateDirectory(params:Readonly<Record<string,Json>>,verb:'POST'|'DELETE',context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
-  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
   const binding=this.#deviceFiles,signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
   const task=Promise.resolve().then(async()=>{
    signal.throwIfAborted();if(Object.keys(params).some(key=>!['path',...(verb==='DELETE'?['force']:[])].includes(key)))throw new ApiError(400,'Invalid directory mutation arguments');
@@ -283,7 +300,7 @@ export class NativePrintUploads {
     return {action:changed.action,item:{path,root:'gcodes',modified:changed.modified,size:0,permissions:verb==='DELETE'?'':'rw'}};
    }catch(error){if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Directory transaction requires recovery',{phase:error.phase});const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Directory or parent not found');if(code==='EEXIST'||code==='ENOTEMPTY')throw new ApiError(409,code==='EEXIST'?'Directory or file already exists':'Directory is not empty');throw error;}
    finally{releaseDevice?.();release?.();}
-  });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
  }
  async #directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
   signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native files closed');

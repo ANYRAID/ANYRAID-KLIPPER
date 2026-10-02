@@ -1,8 +1,63 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Move,LookAheadQueue,motionLimits} from '../src/motion/lookahead.ts';
-import {representableProfile} from '../src/motion/representable-profile.ts';
+import {representableProfile,representableSplitProfile} from '../src/motion/representable-profile.ts';
 import {TrapQueue} from '../src/motion/trap-queue.ts';
+import {readFileSync} from 'node:fs';
+test('captured three-phase sub-clock acceleration preserves native step clocks, tail deceleration and idle extrusion',()=>{
+ const {input}=JSON.parse(readFileSync(new URL('../contracts/motion-overwrite-capture.json',import.meta.url),'utf8')).additionalFailures[0];
+ for(const sign of [-1,1])for(const time of [input.row[0],16,32]){
+  const start=input.move.start.map((v:number)=>v*sign),end=input.move.end.map((v:number)=>v*sign),m=new Move(motionLimits(100,1000),start,end,10);m.profile={...input.move.profile};const original=structuredClone(m.profile!),p=representableSplitProfile(m,time);assert(p);assert.deepEqual(m.profile,original);assert.equal(representableSplitProfile(m,0),undefined);
+  assert.equal(p.head.startV,original.startV);assert.equal(p.head.startV+p.head.accel*p.head.accelT,original.cruiseV);assert.equal(p.tail.endV,original.endV);assert.equal(p.tail.decelT,original.decelT);assert.equal(p.tail.accel,m.accel);assert(p.head.accel<=m.accel);
+  assert.equal(p.tailTime+p.tail.cruiseT+p.tail.decelT,time+original.accelT+original.cruiseT+original.decelT);
+  const results:ReturnType<ReturnType<TrapQueue['createStepper']>['flush']>[]=[];
+  for(const t of [0,time]){
+   using queue=new TrapQueue();using idle=new TrapQueue();const until=queue.appendPlanned([m],t);assert.equal(idle.appendPlanned([m],t,3,true),until);assert.equal(idle.extract(10,t,until+1).length,0);
+   const row=queue.extract(1,t,until+1);assert.equal(row[4]+row[7]*(row[2]+.5*row[3]*row[1])*row[1],end[0]);assert.equal(row[2]+row[3]*row[1],original.endV);
+   using motor=queue.createStepper({frequency:1e6,timeOffset:t,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',.00125,[start[0],0,0]);motor.generate(until);results.push(motor.flush());
+  }
+  assert.equal(results[0].position,BigInt(sign*8000));assert.equal(results[1].position,results[0].position);
+  // Absolute-time C solver rounding can choose different compression groups.
+  // Compare every expanded pulse using the existing one-tick native gate.
+  const ticks=results.map(result=>{const values:{clock:bigint;position:bigint}[]=[];for(let i=0;i<result.history.length;i+=6){const [first,,position,count,interval,add]=result.history.slice(i,i+6),n=count<0n?-count:count;for(let j=0n;j<n;j++)values.push({clock:first+j*interval+add*j*(j+1n)/2n,position:position+(count<0n?-1n:1n)*(j+1n)});}return values.sort((a,b)=>a.clock<b.clock?-1:a.clock>b.clock?1:0);});
+  assert.equal(ticks[0].length,8000);assert.equal(ticks[1].length,8000);for(let i=0;i<8000;i++){assert.equal(ticks[1][i].position,ticks[0][i].position);const error=ticks[1][i].clock-ticks[0][i].clock;assert(error>=-1n&&error<=1n,`Pulse ${i} clock error ${error}`);}
+  using replace=new TrapQueue();const horizon=replace.appendPlanned([m],time);assert.equal(replace.replaceFuturePlanned([m],time),horizon);assert.equal(replace.extract(1,time,horizon+1)[4],p.tailPos[0]+sign*original.cruiseV*p.tail.cruiseT);
+ }
+ const unsafe=new Move(motionLimits(100,1000),input.move.start,input.move.end,10);unsafe.profile={...input.move.profile};assert.equal(representableSplitProfile(unsafe,1e14),undefined);using q=new TrapQueue();assert.throws(()=>q.appendPlanned([unsafe],1e14),RangeError);assert.equal(q.extract(10,0,1e14+1).length,0);
+});
+test('captured overwrite-load clock boundary preserves exact XYZ/E endpoints and native motor packets',()=>{
+ const {input}=JSON.parse(readFileSync(new URL('../contracts/motion-overwrite-capture.json',import.meta.url),'utf8'));
+ for(const sign of [-1,1]){
+  const start=input.move.start.map((v:number)=>v*sign),end=input.move.end.map((v:number)=>v*sign),m=new Move(motionLimits(100,1000),start,end,10);m.profile={...input.move.profile};
+  const p=representableProfile(m,input.row[0]);assert(p);assert.equal(p.cruiseT,0);assert.equal(p.startV,m.profile!.startV);assert.equal(p.endV,m.profile!.endV);assert(p.accel<=m.accel);
+  assert.equal(input.row[0]+p.decelT,input.row[0]+m.profile!.cruiseT+m.profile!.decelT);assert.equal(p.startV-p.accel*p.decelT,p.endV);
+  for(const axis of [undefined,3]){
+   const results:ReturnType<ReturnType<TrapQueue['createStepper']>['flush']>[]=[];
+   for(const time of [0,input.row[0]]){
+    using queue=new TrapQueue();const until=queue.appendPlanned([m],time,axis),coordinate=axis??0;
+    using motor=queue.createStepper({frequency:1e6,timeOffset:time,maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===3?.000125:.00125,[start[coordinate],0,0]);motor.generate(until);results.push(motor.flush());
+    const row=queue.extract(1,time,until+1);assert.equal(row[4]+row[7]*(row[2]+.5*row[3]*row[1])*row[1],end[coordinate]);
+   }
+   assert.equal(results[0].position,BigInt(sign*8));assert.deepEqual(results[1],results[0]);
+  }
+ }
+});
+test('split profiles preserve signed multi-axis extrusion and packed diagnostic ownership',()=>{
+ const {input}=JSON.parse(readFileSync(new URL('../contracts/motion-overwrite-capture.json',import.meta.url),'utf8')).additionalFailures[0];
+ for(const sign of [-1,1]){
+  const start=[10,10,0,1].map(v=>v===0?0:v*sign),end=[16,18,0,2].map(v=>v===0?0:v*sign),m=new Move(motionLimits(100,1000),start,end,10);m.profile={...input.move.profile};assert(representableSplitProfile(m,input.row[0]));
+  for(const axis of [undefined,3]){
+   using queue=new TrapQueue();const until=queue.appendPlanned([m],input.row[0],axis),r=queue.extract(1,input.row[0],until+1),distance=(r[2]+.5*r[3]*r[1])*r[1];
+   for(const [j,i] of (axis===3?[3]:[0,1,2]).entries())assert.equal(r[4+j]+r[7+j]*distance,end[i]);
+   using motor=queue.createStepper({frequency:1e6,timeOffset:input.row[0],maxError:0,queueStepTag:5,directionTag:6,oid:3},'x',axis===3?.000125:.00125,[start[axis??0],0,0]);motor.generate(until);assert.equal(motor.flush().position,BigInt(sign*(axis===3?8000:4800)));
+  }
+ }
+ const m=new Move(motionLimits(100,1000),input.move.start,input.move.end,10);m.profile={...input.move.profile};
+ // Packing stress only: these repeated fixed inputs are not a planner path.
+ using queue=new TrapQueue();const many=Array.from({length:80},()=>m);let expected=input.row[0];for(const move of many){const p=move.profile!;expected=expected+p.accelT+p.cruiseT+p.decelT;}assert.equal(queue.appendPlanned(many,input.row[0]),expected);
+ const bad=new Move(motionLimits(100,1000),[1,0,0,0],[2,0,0,0],1);bad.profile={startV:1,cruiseV:1,endV:1,accelT:1e-20,cruiseT:1,decelT:0};
+ using atomic=new TrapQueue();assert.throws(()=>atomic.appendPlanned([m,bad],input.row[0]),error=>{assert(error instanceof RangeError);const detail=JSON.parse(error.message.slice(error.message.indexOf(': ')+2));assert.deepEqual(detail.move.start,bad.startPos);return true;});assert.equal(atomic.extract(10,0,100).length,0);
+});
 test('sub-clock two-ramp plateau has bounded geometry and preserves reference motor counts',()=>{
  for(const sign of [-1,1])for(const extruder of [false,true]){
   const axis=extruder?3:0,start=[0,0,0,0],end=[0,0,0,0];start[axis]=sign*2.05;end[axis]=sign*2.06;
