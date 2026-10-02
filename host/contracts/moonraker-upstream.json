@@ -61,7 +61,7 @@
       "name": "file_manager",
       "tier": "core",
       "status": "partial",
-      "evidence": "Legacy FileListing Worker roots/list/directory reads have pinned original-method differential tests. Native gcodes process ownership, multipart upload without auto-print, sealed download, metadata/previews, notifications, create/delete directory, file/directory move, and copy/file-copy-overwrite now have scoped software evidence; see native-file-namespace-acceptance.json, native-single-file-move-acceptance.json, native-directory-move-acceptance.json and native-copy-acceptance.json. Copy sources are sealed in task head 58a7ec04, draft PR #2; exact-head CI and integration remain pending. Upload/move overwrite, recursive/offline mutation, other roots, dynamic root updates, UFP and remaining upstream capabilities, full fixed-client pages, target-board/Python performance and hardware acceptance are incomplete. Partial native evidence does not prove legacy/full component coverage."
+      "evidence": "Legacy FileListing Worker roots/list/directory reads have pinned original-method differential tests. Native gcodes process ownership, multipart upload without auto-print, sealed download, metadata/previews, notifications, create/delete directory, file/directory move, and copy/file-copy-overwrite now have scoped software evidence; see native-file-namespace-acceptance.json, native-single-file-move-acceptance.json, native-directory-move-acceptance.json and native-copy-acceptance.json. Copy source 58a7ec04 passed required CI and normal PR #2 merge into develop at 4b6a2317; post-merge checks remain pending. Upload/move overwrite, recursive/offline mutation, other roots, dynamic root updates, UFP and remaining upstream capabilities, full fixed-client pages, target-board/Python performance and hardware acceptance are incomplete. Partial native evidence does not prove legacy/full component coverage."
     },
     {
       "name": "gpio",
@@ -559,7 +559,7 @@
       "method": "register_endpoint",
       "targetExpression": "\"/server/files/copy\"",
       "status": "partial",
-      "evidence": "Native gcodes POST/RPC file/directory copy and file-copy-overwrite software acceptance in native-copy-acceptance.json; fresh identities, active destination protection, durable recovery and scoped compiled print/performance evidence. Source head 58a7ec04 is draft PR #2 pending full CI/integration. Other roots, offline mutation, full fixed-client and target-board acceptance remain incomplete."
+      "evidence": "Native gcodes POST/RPC file/directory copy and file-copy-overwrite software acceptance in native-copy-acceptance.json; fresh identities, active destination protection, durable recovery and scoped compiled print/performance evidence. Source head 58a7ec04 passed required CI and normal PR #2 merge at 4b6a2317; post-merge checks remain pending. Other roots, offline mutation, full fixed-client and target-board acceptance remain incomplete."
     },
     {
       "file": "moonraker/components/file_manager/file_manager.py",

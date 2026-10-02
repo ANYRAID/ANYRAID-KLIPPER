@@ -344,5 +344,84 @@
       "explicitLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
     "scope": "Four additional bounded local source experiments, separate from the original 118 regressions and remote sanitizer totals. No production source or original gate changed; not physical power-loss, target-board, actual client or full Moonraker acceptance."
+  },
+  "integrationCheckpoint": {
+    "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+    "testedPullRequestMerge": "043b5e44ef5ab1e7488a560066488efd0260666b",
+    "requiredChecks": "passed",
+    "host": {
+      "runId": 37043834607,
+      "jobId": 110960224301,
+      "conclusion": "success",
+      "tests": 3881,
+      "pass": 3881,
+      "fail": 0,
+      "durationMs": 578805.707044,
+      "nativeProtocol": "passed",
+      "sanitizers": {
+        "ubsan": {
+          "files": 149,
+          "tests": 1180,
+          "fail": 0,
+          "maxMs": 45947.818419
+        },
+        "asan": {
+          "files": 149,
+          "tests": 1180,
+          "fail": 0,
+          "maxMs": 46421.30338300008
+        }
+      },
+      "originalChildDeadlineMs": 60000,
+      "linuxMcu": "passed"
+    },
+    "firmware": {
+      "runId": 37043834587,
+      "jobId": 110960225228,
+      "conclusion": "success",
+      "scope": "Terminal build job and artifact upload observed; no reused configuration/test counts"
+    },
+    "merge": {
+      "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+      "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "parents": [
+        "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e"
+      ],
+      "sourceTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+      "mergeTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+      "mergedAtUtc": "2026-10-02T18:30:34Z",
+      "method": "normal merge",
+      "merged": true
+    },
+    "postMerge": {
+      "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "status": "in_progress",
+      "host": {
+        "runId": 37047916751,
+        "jobId": 110973808529,
+        "status": "in_progress",
+        "conclusion": null,
+        "stageResults": {
+          "ordinary": "success",
+          "nativeProtocol": "success",
+          "sanitizer": "in_progress",
+          "linuxMcu": "pending"
+        }
+      },
+      "firmware": {
+        "runId": 37047916546,
+        "jobId": 110973807706,
+        "status": "completed",
+        "conclusion": "success",
+        "stageResults": {
+          "build": "success",
+          "artifactUpload": "success"
+        }
+      },
+      "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
+      "observedAtUtc": "2026-10-02T18:48:01.685Z"
+    },
+    "scope": "Required exact-head CI and bounded software review passed; normal develop merge completed. Post-merge firmware succeeded, host ordinary and native protocol succeeded, sanitizer is in progress. Does not close G3, full clients, target hardware, actual print speed/precision, complete Moonraker or Python retirement."
   }
 }
