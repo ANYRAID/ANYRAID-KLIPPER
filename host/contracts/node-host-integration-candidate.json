@@ -265,7 +265,7 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Advance M2b single-file move/rename as the next bounded product slice, followed by directory moves and copy/overwrite. At the failure checkpoint compare the captured remote fit input to the prior successful input; retain strict clocks, merge gates and G3. Same-package clients remain pending. See the unique delivery plan.",
+    "next": "Single-file move software evidence is recorded in increments.m2bFileMove. Advance directory move as the current bounded product slice; at its software exit perform the captured-input fault discrimination and first integration decision before expanding copy/overwrite. Read exact-head CI to its terminal state; retain strict clocks, merge gates and G3. Unresolved faults permit only independently evidenced paths. Same-package clients and target configuration remain pending. See the unique delivery plan.",
     "latestObservedSource": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
