@@ -1592,7 +1592,7 @@
       "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
     },
     "m2bCopyDraft": {
-      "status": "local software acceptance passed; not yet submitted or integrated",
+      "status": "local software acceptance passed; submitted as draft PR #2 at 58a7ec04; exact-head CI in progress; not integrated",
       "sourceHashes": {
         "host/acceptance/product-compiled-journey.test.ts": "d0528602ce1f3bf232440bf405f345a929bbf9552da5c98ff3b0fd2595b31a22",
         "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
@@ -1640,7 +1640,41 @@
         "historical G3 precision/process failures and all-Python retirement"
       ],
       "typecheck": true,
-      "evidence": "host/contracts/native-copy-acceptance.json"
+      "evidence": "host/contracts/native-copy-acceptance.json",
+      "pullRequest": {
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+        "base": "develop",
+        "baseRevision": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "head": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+        "draft": true,
+        "merged": false,
+        "observedAtUtc": "2026-10-02T18:09:32Z",
+        "checks": {
+          "firmware": {
+            "runId": 37043834587,
+            "jobId": 110960225228,
+            "status": "completed",
+            "conclusion": "success",
+            "testedMerge": "043b5e44ef5ab1e7488a560066488efd0260666b"
+          },
+          "host": {
+            "runId": 37043834607,
+            "jobId": 110960224301,
+            "status": "in_progress",
+            "conclusion": null,
+            "stepsPassed": [
+              "source whitespace",
+              "dependency installation",
+              "typecheck",
+              "ordinary tests",
+              "native protocol"
+            ],
+            "sanitizers": "in_progress",
+            "linuxMcu": "pending"
+          }
+        },
+        "scope": "Provider PR metadata and workflow-step observations only. Terminal ordinary/sanitizer counts and full host result have not yet been read; develop post-merge failure remains open."
+      }
     }
   },
   "integrationCheckpoint": {
