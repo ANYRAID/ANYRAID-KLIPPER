@@ -265,8 +265,8 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Single-file move software evidence is recorded in increments.m2bFileMove. Advance directory move as the current bounded product slice; at its software exit perform the captured-input fault discrimination and first integration decision before expanding copy/overwrite. Read exact-head CI to its terminal state; retain strict clocks, merge gates and G3. Unresolved faults permit only independently evidenced paths. Same-package clients and target configuration remain pending. See the unique delivery plan.",
-    "latestObservedSource": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+    "next": "Directory software exit reached; perform bounded captured calibration-input versus successful-input discrimination and mapped-clock checkpoint before expanding copy/overwrite. Existing PR remains unmergeable pending exact-source required checks.",
+    "latestObservedSource": "570ee60d6e9300fe37ed10370f3439de15b46881",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -903,12 +903,189 @@
           "scope": "Terminal finite diagnostics only; not G3 closure."
         },
         "closure": "Candidate remains unmergeable. No hardware, complete clients, full Moonraker or Python retirement gate closed."
+      },
+      {
+        "source": "570ee60d6e9300fe37ed10370f3439de15b46881",
+        "mergeTestRevision": "4626a2c277f0ab60f63afffa020263a7324dc246",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37009452462,
+          "job": 110845408404,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37009452462/job/110845408404",
+          "status": "completed",
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3838,
+            "pass": 3834,
+            "fail": 4,
+            "cancelled": 0,
+            "skipped": 0,
+            "durationMs": 559267.219179
+          },
+          "failures": [
+            {
+              "test": "configured hardware owns ADC heaters and file lifetime (interrupt=true)",
+              "cause": "Print device stopped",
+              "stackOwner": "ThermalPrintDevice.stop via ADC close and MCUGroup.stop",
+              "rootCause": "unresolved"
+            },
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "cause": "Invalid mapped trigger clock",
+              "member": 1,
+              "oid": 0,
+              "mapped": "1733110",
+              "observed": "1732976",
+              "expected": "Probe did not trigger",
+              "rootCause": "unresolved; strict check retained"
+            },
+            {
+              "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+              "stage": "fit",
+              "cause": "Delta calibration did not converge: line_search_failed",
+              "httpActual": 503,
+              "httpExpected": 200,
+              "probeHits": 16,
+              "motionFaultRecorded": false,
+              "hardwareFaultRecorded": false,
+              "input": {
+                "geometry": {
+                  "radius": 100,
+                  "angles": [
+                    210,
+                    330,
+                    90
+                  ],
+                  "arms": [
+                    250,
+                    250,
+                    250
+                  ],
+                  "endstops": [
+                    300,
+                    300,
+                    300
+                  ],
+                  "stepDistances": [
+                    0.0125,
+                    0.0125,
+                    0.0125
+                  ]
+                },
+                "probes": [
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23220,
+                      23220,
+                      23220
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23263.823890082684,
+                      23253.82295277944,
+                      23164.40269957477
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23199.161558068554,
+                      23283.5148164314,
+                      23199.161558068547
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23161.243423782333,
+                      23250.207042368867,
+                      23250.207042368867
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23195.91758172969,
+                      23195.91758172969,
+                      23269.289241181694
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23246.5982367534,
+                      23168.09398980033,
+                      23246.5982367534
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23276.39745009156,
+                      23192.535595331658,
+                      23192.535595331658
+                    ]
+                  }
+                ],
+                "manual": [],
+                "distances": []
+              },
+              "inputComparison": {
+                "source": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+                "numericValues": 41,
+                "comparison": "Object.is for every captured numeric value",
+                "same": true,
+                "scope": "Same captured input and immediate fit error, not a root-cause or numerical correctness proof"
+              }
+            },
+            {
+              "test": "native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true)",
+              "cause": "Endstop trigger is in the future",
+              "expected": "still triggered",
+              "rootCause": "unresolved; original expectation retained"
+            }
+          ],
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Exact-source terminal job plus complete decoded provider content (548352 characters); selected failures/input preserved without runtime tolerance changes.",
+          "artifacts": [
+            {
+              "path": "/tmp/anyraid-570ee60d-host-failures.log",
+              "sha256": "3f6cccac496f0acf706e2ff3dfde9fb041843d965d9f815889809b7958eff5ca"
+            },
+            {
+              "path": "/tmp/anyraid-570ee60d-fit-input.log",
+              "sha256": "2df6708128894d6f1df24f6be0e3880b30f8380df0046d269777966b0a5cde30"
+            },
+            {
+              "path": "/tmp/anyraid-570ee60d-calibration-input-values.json",
+              "sha256": "66b001a02085df9a47a2837a0e8b1ab5bf6ff7ef551b1ef86b5c2ce91b3a096c"
+            }
+          ]
+        },
+        "firmware": {
+          "run": 37009452509,
+          "job": 110845408524,
+          "conclusion": "success",
+          "scope": "Terminal provider status, no new matrix counts extracted"
+        },
+        "motion": {
+          "run": 37009452492,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "Terminal finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion approval or Python retirement. Historical failures remain unresolved; directory increment has separate source and product evidence."
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "1e88895b exact-source host CI: 3824/3826 ordinary tests passed, probe mapped-clock and calibration fit failures; protocol, sanitizers and Linux MCU skipped. Calibration stage, line_search_failed and full remote input captured; causes and historical G3 failures remain unresolved. Full exact-source CI required before merge.",
+    "570ee60d exact-source host CI: 3834/3838 ordinary tests passed; thermal stop, mapped clock, calibration fit and future-trigger failures. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; full exact new-source required CI and unresolved G3 gates remain.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
@@ -959,6 +1136,11 @@
       "evidence": "host/contracts/native-single-file-move-acceptance.json",
       "status": "Single-file software increment; complete M2b, exact new-head CI, same-bundle real clients and hardware remain pending",
       "manifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5"
+    },
+    "m2bDirectoryMove": {
+      "evidence": "host/contracts/native-directory-move-acceptance.json",
+      "status": "Directory move software increment; exact new-source CI, real clients, physical interruption and target performance remain pending",
+      "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
     }
   }
 }

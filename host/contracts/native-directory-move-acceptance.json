@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "sourceBase": "570ee60d6e9300fe37ed10370f3439de15b46881",
+  "scope": "Native gcodes directory move software increment using the existing process file store, print identity and current device delegate. Not complete M2b/Moonraker, real-client acceptance, target performance, Python retirement or G3 approval.",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/file_manager/file_manager.py",
+    "handler": "_handle_file_move_copy",
+    "method": "server.files.move",
+    "http": "POST /server/files/move"
+  },
+  "sources": {
+    "host/src/storage/published-files.ts": "abb9fadf9cc6ac6eb40653b90eb03ecb6c80f5602ef58d14c1fa5e6c8b5b4b0c",
+    "host/src/storage/namespace-move.ts": "fc1ed1fc7764e83e1b20887ac16eaa8ecd1b76e4e6fc27ff028f64d6838b903a",
+    "host/src/operations/print.ts": "cc4278a130b8692637fa10d41cd6781fde8dcd521ed0de889eaf08e0f83db430",
+    "host/src/moonraker/native-print-uploads.ts": "3b7ef119a9e2c995cfd4bb4384a8367646354878f402bdfd5c96550dfca3d47f",
+    "host/test/published-directory-move.test.ts": "287b10257f30f2929fa5cfaf3059da965fc02eac311c8f4a6b9739f427a6ddcd",
+    "host/test/native-print-uploads.test.ts": "08df848c2d3055da08bfe63922c54ba760eae5a32c90da6ffc816a50007f31e3",
+    "host/test/print.test.ts": "4d12ac17cd2475c35760819c3006201e946f52388e67f7ea7b3998ad76625cd4",
+    "host/bench/published-directory-move.ts": "70e18e6aa9cc6c2a3704dfe71c7b829d61e8e79de6edf7917614fe9cf6652a71",
+    "host/acceptance/product-compiled-journey.test.ts": "b34b174060c97f8b951112e5c519acfb5e5a756d42491aaf17979bfbf298a7d6"
+  },
+  "implementation": {
+    "action": "move_dir",
+    "namespace": "Existing gcodes visible namespace over immutable content blobs and receipt IDs; no second file store or print state machine.",
+    "intent": {
+      "name": ".namespace-move.json",
+      "maximumBytes": 50331648,
+      "phase": [
+        "before-intent",
+        "intent-published"
+      ],
+      "decision": "Fsynced staged intent renamed into private directory then root synced before any receipt rewrite. Once published, cancellation finishes the decision; failures fence new reads/mutations until reopen.",
+      "recovery": "Validate exact schema/deterministic transformation, complete current old/new receipt membership, directories and every content reference before rewriting or cleaning anything; idempotent roll-forward across partial receipts/catalog, including interrupted startup replay.",
+      "quota": "Reserve complete journal, maximum staged receipt, full staged directory catalog and all positive receipt growth; release only operation reservation. Recovery may still fail on unavailable storage and preserves intent."
+    },
+    "catalog": "During exclusive directory preparation/commit, cached lists serve a coherent last durable namespace; all indexes switch after durable authorities complete. Descriptor reads and mutations retain queue barriers.",
+    "authorization": "Authorize raw source/dest, resolved directory target and every child source/dest with immutable ID/hash/size. Recheck approved membership and live receipt/directory authorities before intent. Yield between policy groups.",
+    "activeFiles": "PrintController atomically holds every affected ID, with bounded 64 mutation admissions and up to existing 10000 file IDs; any active/paused/unacknowledged-stop identity rejects the entire directory operation. Empty directories still acquire maintenance activity.",
+    "notifications": "One durable move_dir per operation with source_item; no fake child create/delete/move_file. Transport authorization remains in existing observer owner.",
+    "metadata": "Invalidate old/new child paths after commit; metadata/downloads validate current receipt; old path/previews revoke, sealed readers retain original bytes.",
+    "lifecycle": "Reuse process-level server.files.move route and current generation mutation delegation. Existing retirement/drain/late-request protection remains."
+  },
+  "validation": {
+    "regression": {
+      "tests": 105,
+      "passed": 105,
+      "failed": 0,
+      "durationMs": 14449.702898,
+      "log": "/tmp/anyraid-directory-move-final-regression.log",
+      "coverage": [
+        "nested and empty directories/root/existing parent targets",
+        "all immutable identities and sealed content",
+        "full namespace and exact byte accounting on reopen",
+        "foreign/stale membership plans, late new child, per-child denied policy",
+        "atomic 1000-ID print admission and active/paused directory denial",
+        "failure before intent, durable intent, partial receipts, catalog and journal removal",
+        "interrupted startup replay and repeat reopen",
+        "malformed intent/source omission preserves evidence and temporary files",
+        "external directory index edit rejects before intent",
+        "coherent responsive cached listings during held durable decision",
+        "resolved child path overflow rejects with 400",
+        "HTTP/RPC metadata/previews and process generation regression"
+      ]
+    },
+    "typecheck": {
+      "passed": true,
+      "log": "/tmp/anyraid-directory-move-typecheck-final-candidate.log"
+    },
+    "whitespace": {
+      "passed": true,
+      "log": "/tmp/anyraid-directory-move-whitespace-final-candidate.log"
+    },
+    "compiled": {
+      "passed": 1,
+      "tests": 1,
+      "durationMs": 39490.690219,
+      "sourceSnapshot": "/tmp/anyraid-directory-final.hKUrC2",
+      "isolation": "Explicit staged source checkout-index snapshot; production package independently installs locked dependencies, with PATH=/no-programs, NODE_PATH empty, no Python, no TS loader, no shared production node_modules. PTY firmware remains a simulation.",
+      "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5",
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 867,
+        "configListP99Ms": 5.591423999998369,
+        "configDownloads": 866,
+        "configDownloadP99Ms": 9.989540999999008,
+        "liveMotionSamples": 2652,
+        "liveExtrusionSamples": 1461,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.734356910999999,
+          "print_duration": 2.535960212,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 4192,
+        "phaseP99Ms": 4.2190149999987625,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 176,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 933,
+        "historyP99Ms": 10.200682000000597,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 392,
+        "fileNotificationP95Ms": 11.534340000000157,
+        "movesDuringPrint": 9,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 7.9031880000002275,
+        "directoryMovesDuringPrint": 9,
+        "moveRequests": 16,
+        "moveP95Ms": 7.832289000005403,
+        "deleteRequests": 16,
+        "deleteP95Ms": 6.942632000000231,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 4.3267870000054245,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.6172870000009425,
+        "metadataRequests": 16,
+        "metadataP95Ms": 16.579131000000416,
+        "downloads": 16,
+        "downloadP95Ms": 19.33988700000009,
+        "wireCommands": 192,
+        "wireSteps": 3702,
+        "minimumStepLeadMs": 75.712,
+        "directoryRequests": 4008,
+        "directoryP99Ms": 7.46927499999947,
+        "statusRequests": 16775,
+        "uploads": 16,
+        "statusP99Ms": 3.920753999998851,
+        "uploadP95Ms": 15.208045000006678,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.982463,
+              "maxMs": 20.217855
+            },
+            "cpu": {
+              "user": 7273521,
+              "system": 1100256
+            },
+            "rss": 340299776
+          },
+          {
+            "loop": {
+              "p99Ms": 1.905663,
+              "maxMs": 5.963775
+            },
+            "cpu": {
+              "user": 2133257,
+              "system": 412210
+            },
+            "rss": 340205568
+          }
+        ]
+      },
+      "log": "/tmp/anyraid-directory-move-compiled-isolated.log",
+      "budgets": "Original positive minimum step lead and event-loop P99<50 ms/max<100 ms retained; no motion tolerances, deadlines or watchdog relaxation."
+    },
+    "benchmark": {
+      "sourceBase": "570ee60d6e9300fe37ed10370f3439de15b46881",
+      "baselineSourceSha256": "d9b6d91b56a32f2a0fdea66e52b125201a9c77155039027d6bff614787c3b01b",
+      "metrics": {
+        "node": "v26.9.0",
+        "baseline": "/tmp/anyraid-directory-baseline570/host/src/storage/published-files.ts",
+        "filesystemType": "0xef53",
+        "files": 1024,
+        "movedFilesPerOperation": 128,
+        "operations": 20,
+        "catalog": {
+          "baseline": {
+            "medianMs": 0.10784318000005441,
+            "p95Ms": 0.11333981999996467,
+            "maxMs": 0.11333981999996467
+          },
+          "candidate": {
+            "medianMs": 0.10678136000002268,
+            "p95Ms": 0.11603283999997074,
+            "maxMs": 0.11603283999997074
+          },
+          "medianRatio": 0.9901540366295654
+        },
+        "directoryMove": {
+          "medianMs": 810.924834999998,
+          "p95Ms": 857.1226590000006,
+          "maxMs": 857.1226590000006
+        },
+        "concurrentCatalog": {
+          "reads": 3062,
+          "medianMs": 0.10714000000007218,
+          "p95Ms": 0.15687099999922793,
+          "maxMs": 14.381873999998788
+        },
+        "eventLoop": {
+          "p99Ms": 1.726463,
+          "maxMs": 4.640767
+        },
+        "planner10000": {
+          "medianMs": 28.955653999997594,
+          "p95Ms": 33.98139000000083,
+          "maxMs": 33.98139000000083
+        },
+        "scope": "Workspace filesystem durable directory operations and alternating cached catalog baseline; original 50 ms catalog P95 and 50/100 ms loop budgets retained. 10,000-file planner is a capacity experiment, not an actual 10,000-file transaction or target-board/print-duration acceptance."
+      },
+      "log": "/tmp/anyraid-directory-move-bench-final-candidate.log",
+      "limits": "128-file durable moves and 1024-file cached catalog on workspace ext filesystem. 10000-file planning measured; full 10000-file durable transaction, target storage/CPU and old/new real print duration remain unverified."
+    },
+    "documentation": {
+      "relativeFileTargets": 257,
+      "passed": true,
+      "whitespaceLog": "/tmp/anyraid-directory-move-docs-whitespace.log"
+    }
+  },
+  "initialFailures": [
+    {
+      "log": "/tmp/anyraid-directory-move-regression.log",
+      "cause": "New HTTP fixtures used default identical part.gcode filenames; corrected explicit distinct filenames. Existing collision and identity behavior retained."
+    }
+  ],
+  "supersededMeasurements": [
+    "/tmp/anyraid-directory-move-compiled.log",
+    "/tmp/anyraid-directory-move-bench.log",
+    "/tmp/anyraid-directory-move-bench-final.log"
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-directory-move-final-regression.log",
+      "sha256": "29e8220ad762a6ee8269fe7359ba88b7c14457b243487b267f78d350f149dc0c"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-typecheck-final-candidate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-whitespace-final-candidate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-bench-final-candidate.log",
+      "sha256": "dab7c6b837097948d1a416adc4c4390c62f62a26066ca2e76ca41fe933ba307d"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-compiled-isolated.log",
+      "sha256": "d0a6a9bb79d6cecd3cbfe5bf38fb5369cfe63ee0d5769762045a2f71d8c1e7c5"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-regression.log",
+      "sha256": "128864f61cc1ca765fe851cc49db27c42ce6143cf65010667aab4ed134b06a81"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-compiled.log",
+      "sha256": "174f60a8b4f60530ea5d3544954e4f16cbbd961da6f5c133e5ee3e4080d9616e"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-bench.log",
+      "sha256": "72a73822dd0e513980c4f1b004670f447056c0bb9cd4f282f5dba77a4480904e"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-bench-final.log",
+      "sha256": "a969332e578a897cee1f4cd085f6d5be15ccedafcd7ce16a9e7772cc897a372a"
+    },
+    {
+      "path": "/tmp/anyraid-directory-move-docs-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "remaining": [
+    "Exact new-source required CI and develop integration",
+    "Same-bundle actual Fluidd/Mainsail directory moves/full file-print-recovery journeys",
+    "Copy/overwrite including upload overwrite, offline move, recursive cleanup, other roots and remaining full Moonraker",
+    "Target configuration/CPU/storage budgets, physical interruption and motion precision; software reopen is not a power-loss proof",
+    "G3 known faults, complete Python/default/tool/test retirement and macro product operations"
+  ],
+  "next": "Directory software exit reached; perform bounded captured calibration-input versus successful-input discrimination and mapped-clock checkpoint before expanding copy/overwrite. Existing PR remains unmergeable pending exact-source required checks."
+}

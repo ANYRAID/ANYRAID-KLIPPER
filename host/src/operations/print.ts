@@ -168,14 +168,20 @@ export class PrintController {
     return this.#start;
   }
   readonly #fileMutations=new Set<string>();
+  #fileMutationAdmissions=0;
   /** Synchronous admission shared with start(): unrelated files remain mutable
    * during printing, but a pending mutation excludes starting that same file. */
   beginFileMutation(fileId:string):()=>void{
-    if(!/^[A-Za-z0-9_-]{1,128}$/.test(fileId))throw new Error('Invalid file identifier');
-    if(this.#retirement||this.#fileMutations.size>=64||this.#fileMutations.has(fileId))throw new Error('File mutation unavailable');
-    if(this.#start?.fileId===fileId&&(!['idle','completed','cancelled'].includes(this.#state)||this.#active||this.#pendingActions.size||this.#stopInFlight||this.#safety||this.#journalWrite||this.#cancelTask?.pending))throw new Error('Current print still owns this file');
-    const activity=this.#maintenanceGate?.activity();this.#fileMutations.add(fileId);let released=false;
-    return ()=>{if(!released){released=true;this.#fileMutations.delete(fileId);activity?.();}};
+    return this.beginFileMutations([fileId]);
+  }
+  /** One directory mutation acquires every affected identity atomically. The
+   * admission limit counts operations, not the number of files in a directory. */
+  beginFileMutations(fileIds:readonly string[]):()=>void{
+    if(!Array.isArray(fileIds)||fileIds.length>10000||fileIds.some(id=>typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id))||new Set(fileIds).size!==fileIds.length)throw new Error('Invalid file identifiers');
+    if(this.#retirement||this.#fileMutationAdmissions>=64||fileIds.some(id=>this.#fileMutations.has(id)))throw new Error('File mutation unavailable');
+    if(this.#start&&fileIds.includes(this.#start.fileId)&&(!['idle','completed','cancelled'].includes(this.#state)||this.#active||this.#pendingActions.size||this.#stopInFlight||this.#safety||this.#journalWrite||this.#cancelTask?.pending))throw new Error('Current print still owns this file');
+    const activity=this.#maintenanceGate?.activity(),ids=[...fileIds];for(const id of ids)this.#fileMutations.add(id);this.#fileMutationAdmissions++;let released=false;
+    return ()=>{if(!released){released=true;for(const id of ids)this.#fileMutations.delete(id);this.#fileMutationAdmissions--;activity?.();}};
   }
   #device: PrintDevice;
   #deadlines: PrintDeadlines;

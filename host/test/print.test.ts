@@ -752,3 +752,9 @@ test('lost material during preparation stops without starting file execution',as
  let allowed=true,starts=0,stops=0;const controller=new PrintController({async prepare(){allowed=false;},async start(){starts++;},async pause(){},async resume(){},async finish(){},async stop(){stops++;}},{maxNozzle:280,maxBed:110},{},{beforeStart(){if(!allowed)throw new Error('No filament');}});
  await assert.rejects(controller.start(request),/No filament/);assert.equal(controller.state,'failed');assert.equal(starts,0);assert(stops>0);await controller.retire();
 });
+test('directory mutation admission protects more than 64 files atomically and releases all identities',async()=>{
+ const {controller}=fixture(),ids=Array.from({length:1000},(_,i)=>'file'+i),release=controller.beginFileMutations(ids);
+ await assert.rejects(controller.start(request),/being modified/);assert.throws(()=>controller.beginFileMutations(['extra','file9']),/unavailable/);const extra=controller.beginFileMutation('extra');extra();release();release();
+ await controller.start(request);assert.throws(()=>controller.beginFileMutations(['extra',request.fileId]),/owns this file/);const afterFailure=controller.beginFileMutation('extra');afterFailure();await controller.cancel();
+ assert.throws(()=>controller.beginFileMutations(['duplicate','duplicate']),/Invalid/);assert.throws(()=>controller.beginFileMutations([undefined as unknown as string]),/Invalid/);await controller.retire();assert.throws(()=>controller.beginFileMutations([]),/unavailable/);
+});

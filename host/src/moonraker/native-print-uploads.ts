@@ -6,7 +6,7 @@ import {mkdtemp,open,rm,type FileHandle} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError} from '../storage/published-files.ts';
+import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError} from '../storage/published-files.ts';
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
@@ -67,7 +67,7 @@ export class NativePrintUploads {
    if(this.#closed)return;const path=visibleFilePath(file);if(action==='delete_file')void Promise.resolve(this.#metadata.invalidate(path)).catch(()=>{});
    observer({action,item:{path,root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256},...sourceFile?{source_item:{path:visibleFilePath(sourceFile),root:'gcodes'}}:{}});
   });
-  try{const directories=this.#files.observeDirectories(({action,path,modified})=>{if(!this.#closed)observer({action,item:{path,root:'gcodes',modified,size:0,permissions:action==='delete_dir'?'':'rw'}});});return ()=>{release();directories();};}catch(error){release();throw error;}
+  try{const directories=this.#files.observeDirectories(({action,path,modified,sourcePath})=>{if(!this.#closed)observer({action,item:{path,root:'gcodes',modified,size:0,permissions:action==='delete_dir'?'':'rw'},...sourcePath?{source_item:{path:sourcePath,root:'gcodes'}}:{}});});return ()=>{release();directories();};}catch(error){release();throw error;}
  }
  remove(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
@@ -99,6 +99,15 @@ export class NativePrintUploads {
    if(Object.keys(params).some(key=>!['source','dest'].includes(key))||typeof params.source!=='string'||typeof params.dest!=='string')throw new ApiError(400,'Expected source and dest gcodes paths');
    const source=nativeDirectory(params.source),dest=nativeDirectory(params.dest);if(!source)throw new ApiError(400,'Expected source below gcodes');let release:(()=>void)|undefined;
    try{
+    if(await this.#files.hasDirectory(source,signal)){
+     const plan=await this.#files.prepareDirectoryMove(source,dest,signal);
+     await this.#authorize(context,{source:'gcodes/'+plan.source,dest:'gcodes/'+plan.destination,action:'move_dir'},signal,'server.files.move');
+     for(const [index,entry] of plan.changed.entries()){await this.#authorize(context,{source:'gcodes/'+visibleFilePath(entry.before),dest:'gcodes/'+visibleFilePath(entry.after),file_id:entry.before.id,filename:entry.before.name,size:entry.before.size,sha256:entry.before.sha256},signal,'server.files.move');if(index%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
+     try{release=this.#print!.beginFileMutations(plan.changed.map(entry=>entry.before.id));}catch{throw new ApiError(403,'Print or maintenance owns this directory');}
+     const result=await this.#files.moveDirectory(plan,signal);
+     for(const entry of plan.changed){await this.#metadata.invalidate(visibleFilePath(entry.before));await this.#metadata.invalidate(visibleFilePath(entry.after));}
+     return {action:'move_dir',item:{path:result.path,root:'gcodes',modified:result.modified,size:0,permissions:'rw'},source_item:{path:plan.source,root:'gcodes'}};
+    }
     const plan=await this.#files.prepareFileMove(source,dest,signal);
     await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.after),file_id:plan.before.id,filename:plan.before.name,size:plan.before.size,sha256:plan.before.sha256},signal,'server.files.move');
     try{release=this.#print!.beginFileMutation(plan.before.id);}catch{throw new ApiError(403,'Print or maintenance owns this file');}
@@ -108,7 +117,8 @@ export class NativePrintUploads {
    }catch(error){
     if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
     if(error instanceof PublishedFileMoveCommitError)throw new ApiError(500,'File move commit failed',{phase:error.phase});
-    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move file or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target exists; replacement is pending');if(code==='ENOTSUP')throw new ApiError(501,'Directory move is pending');throw error;
+    if(error instanceof PublishedNamespaceMoveCommitError)throw new ApiError(500,'Directory move commit failed',{phase:error.phase});
+    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move source or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target exists; replacement is pending');if(code==='EINVAL')throw new ApiError(400,error instanceof Error?error.message:'Invalid move');throw error;
    }finally{release?.();}
   });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }

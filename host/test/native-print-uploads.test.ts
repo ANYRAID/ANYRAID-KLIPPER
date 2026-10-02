@@ -52,11 +52,11 @@ test('move protects printing and paused identity while allowing unrelated files 
   await f.controller!.cancel();assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,200);f.controller!.reset('active-print');await f.controller!.start({version:1,requestId:'moved-print',fileId:'active',nozzle:0,bed:0});assert.equal(f.controller!.state,'printing');await f.controller!.cancel();assert.equal(f.files.filename('active'),'new.gcode');
  }finally{await f.clean();}
 });
-test('move authorizes resolved destination and file identity; denied, missing, directory and overwrite operations do not mutate',async()=>{
+test('move authorizes resolved destination and file identity; denied, missing and overwrite operations do not mutate; empty directories move',async()=>{
  const calls:any[]=[];let deny=false;const f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move'){calls.push({...params});if(deny&&params.file_id)throw new ApiError(403,'Denied resolved destination');}}});try{
   await f.post(multipart('G1 X1\n',{file_id:'job'}));await f.post(multipart('other',{file_id:'other'}));await f.files.mutateDirectory('parts',false,new AbortController().signal);deny=true;
   assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/parts')).status,403);assert.equal(calls.at(-1).dest,'gcodes/parts/job.gcode');assert.equal(calls.at(-1).source,'gcodes/job.gcode');assert.equal(calls.at(-1).file_id,'job');assert.equal(f.files.filename('job'),'job.gcode');deny=false;
-  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/other.gcode')).status,409);assert.equal((await moveHttp(f,'gcodes/parts','gcodes/newparts')).status,501);assert.equal((await moveHttp(f,'gcodes/missing','gcodes/new')).status,404);assert.equal((await moveHttp(f,'gcodes/job.gcode','config/new')).status,400);assert.equal(f.files.status.publishedFiles,2);assert.equal(f.files.filename('job'),'job.gcode');
+  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/other.gcode')).status,409);assert.equal((await moveHttp(f,'gcodes/parts','gcodes/newparts')).status,200);assert.equal((await moveHttp(f,'gcodes/missing','gcodes/new')).status,404);assert.equal((await moveHttp(f,'gcodes/job.gcode','config/new')).status,400);assert.equal(f.files.status.publishedFiles,2);assert.equal(f.files.filename('job'),'job.gcode');
  }finally{await f.clean();}
 });
 test('late move authorization cannot rename a changed source or overwrite a newly published target',async()=>{
@@ -254,5 +254,33 @@ test('native directory and scalar metadata bind the selected immutable file and 
   await f.files.remove('meta',new AbortController().signal);assert.equal((await fetch(url)).status,404);assert.equal((await (await fetch(f.url+'/server/files/directory?extended=true')).json()).result.files.length,0);
   await f.post(multipart(data.replace('= .2','= .4'),{file_id:'meta'}));const replacement=(await (await fetch(url)).json()).result;assert.equal(replacement.layer_height,.4);assert.notEqual(replacement.sha256,metadata.sha256);
   await f.uploads.close();assert.equal((await fetch(url)).status,503);
+ }finally{await f.clean();}
+});
+test('nested directory move HTTP and RPC authorize every child, revoke old previews and preserve immutable IDs',async()=>{
+ const calls:any[]=[],events:any[]=[],f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move')calls.push({...params});}}),signal=new AbortController().signal;const off=f.uploads.observeChanges(event=>events.push(event));try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('parts/sub',false,signal);const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png);
+  for(const id of ['a','b'])assert.equal((await f.post(multipart(data,{file_id:id,path:'parts/sub'},id+'.gcode'))).status,200);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=parts/sub/a.gcode')).json()).result,old=f.url+'/server/files/gcodes/parts/sub/'+metadata.thumbnails[1].relative_path;
+  const moved=await moveHttp(f,'gcodes/parts/sub','gcodes/renamed');assert.equal(moved.status,200,await moved.clone().text());const result=(await moved.json()).result;assert.equal(result.action,'move_dir');assert.deepEqual(result.source_item,{path:'parts/sub',root:'gcodes'});assert.equal(result.item.path,'renamed');assert.equal((await fetch(old)).status,404);assert.equal((await fetch(f.url+'/server/files/metadata?filename=parts/sub/a.gcode')).status,404);
+  const updated=(await (await fetch(f.url+'/server/files/metadata?filename=renamed/a.gcode')).json()).result;assert.equal(updated.file_id,'a');assert.equal(updated.sha256,metadata.sha256);assert.equal(await (await fetch(f.url+'/server/files/gcodes/renamed/a.gcode')).text(),data);assert.equal((await fetch(f.url+'/server/files/gcodes/renamed/'+updated.thumbnails[1].relative_path)).status,200);
+  assert.deepEqual(calls.filter(p=>p.file_id).map(p=>[p.file_id,p.source,p.dest]),[['a','gcodes/parts/sub/a.gcode','gcodes/renamed/a.gcode'],['b','gcodes/parts/sub/b.gcode','gcodes/renamed/b.gcode']]);assert.equal(events.filter(e=>e.action==='move_dir').length,1);assert.deepEqual(events.at(-1).source_item,result.source_item);assert.equal(events.filter(e=>e.action==='move_file').length,0);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.move',params:{source:'gcodes/renamed',dest:'gcodes/parts'}})});assert.equal((await rpc.json()).result.item.path,'parts/renamed');assert.equal(f.files.filename('b'),'parts/renamed/b.gcode');assert.equal(f.uploads.status.pending,0);
+ }finally{off();await f.clean();}
+});
+test('directory move denies any child policy or active/paused identity and allows unrelated directories',async()=>{
+ let denied=false;const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.move'&&p.file_id==='b'&&denied)throw new ApiError(403,'Denied child');}}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('other',false,signal);for(const id of ['a','b'])await f.post(multipart('G1 X1\n',{file_id:id,path:'parts'},id+'.gcode'));denied=true;assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);assert.equal(f.files.filename('a'),'parts/a.gcode');denied=false;
+  await f.controller!.start({version:1,requestId:'active-directory',fileId:'b',nozzle:0,bed:0});assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);await f.controller!.pause();assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);assert.equal((await moveHttp(f,'gcodes/other','gcodes/other-renamed')).status,200);assert.equal(f.controller!.state,'paused');await f.controller!.cancel();assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,200);assert.equal(f.files.filename('a'),'renamed/a.gcode');assert.equal(f.files.filename('b'),'renamed/b.gcode');
+ }finally{await f.clean();}
+});
+test('directory child published during delayed authorization remains unmoved and rejects the stale transaction',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false;const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.move'&&p.file_id){entered=true;return held.promise;}}}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a.gcode'));const pending=moveHttp(f,'gcodes/parts','gcodes/renamed');await until(()=>entered);const path=join(f.dir,'late');await writeFile(path,'G1 X2\n');const source=await open(path,'r');try{await f.files.publish('late','late',source,signal,'parts/late.gcode');}finally{await source.close();}held.resolve();assert.equal((await pending).status,409);assert.equal(f.files.filename('late'),'parts/late.gcode');assert.equal(f.files.filename('a'),'parts/a.gcode');assert.equal((await readdir(join(f.dir,'files'))).includes('.namespace-move.json'),false);
+ }finally{held.resolve();await f.clean();}
+});
+test('resolved directory child path overflow returns 400 and leaves every file unmoved',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal;try{
+  let parent='';for(let i=0;i<3;i++){parent+=(parent?'/':'')+'p'.repeat(250);await f.files.mutateDirectory(parent,false,signal);}await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a'.repeat(60)+'.gcode'));
+  assert.equal((await moveHttp(f,'gcodes/parts','gcodes/'+parent+'/'+'q'.repeat(250))).status,400);assert.equal(f.files.filename('a'),'parts/'+'a'.repeat(60)+'.gcode');assert.equal(f.files.status.reservedBytes,0);
  }finally{await f.clean();}
 });

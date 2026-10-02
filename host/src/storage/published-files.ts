@@ -6,6 +6,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {createSealedPrintReader,createSealedBinaryReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 import {publishedPath,visibleFilePath,pathParent,pathBasename,PublishedDirectoryCommitError} from './published-paths.ts';
+import {planNamespaceMove,validateMoveIntent,recoverMoveRecords,sameNamespaceMove,samePublishedFile,type NamespaceMove} from './namespace-move.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;readonly path?:string;}
 export class PublishedFileChangedError extends Error {}
@@ -14,12 +15,16 @@ export class PublishedFileMoveCommitError extends Error {
  constructor(phase:'before-replace'|'replaced',cause:unknown){super('File move requires recovery',{cause});this.phase=phase;}
 }
 export interface PublishedFileMove {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;}
+export class PublishedNamespaceMoveCommitError extends Error {
+ readonly phase:'before-intent'|'intent-published';
+ constructor(phase:'before-intent'|'intent-published',cause:unknown){super('Directory move requires recovery',{cause});this.phase=phase;}
+}
 /** Identity of the durable receipt, never the content blob or a temporary memfd. */
 export interface PublishedSourceIdentity {readonly dev:bigint;readonly ino:bigint;readonly mtimeNs:bigint;readonly ctimeNs:bigint;}
 export interface PublishedFileChange {readonly action:'create_file'|'delete_file'|'move_file';readonly file:PublishedPrintFile;readonly modified:number;readonly sourceFile?:PublishedPrintFile;}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
-export interface PublishedDirectoryChange {readonly action:'create_dir'|'delete_dir';readonly path:string;readonly modified:number;}
+export interface PublishedDirectoryChange {readonly action:'create_dir'|'delete_dir'|'move_dir';readonly path:string;readonly modified:number;readonly sourcePath?:string;}
 /** Private flat storage behind a separate visible namespace. Clients never
  * supply blob/receipt filesystem paths; callers authenticate/authorize IDs.
  * Content and receipts are immutable publications. Root descriptor anchors IO. */
@@ -32,6 +37,8 @@ export class PublishedPrintFiles {
  readonly #observers=new Set<(change:PublishedFileChange)=>void>();#observerFailures=0;
  readonly #directoryObservers=new Set<(change:PublishedDirectoryChange)=>void>();
  readonly #fileMoves=new WeakMap<PublishedFileMove,string>();
+ readonly #directoryMoves=new WeakMap<NamespaceMove,string>();
+ #cachedNamespaceWindow=false;
  observeDirectories(observer:(change:PublishedDirectoryChange)=>void):()=>void{if(this.#closed||typeof observer!=='function'||this.#directoryObservers.size>=8||this.#directoryObservers.has(observer))throw new Error('Published directory observer unavailable');this.#directoryObservers.add(observer);return ()=>this.#directoryObservers.delete(observer);}
  /** Internal synchronous commit observers. Transport delivery must enqueue work
   * without awaiting clients; an observer failure cannot undo durable storage. */
@@ -53,17 +60,26 @@ export class PublishedPrintFiles {
  get status(){return {storedBytes:this.#storedBytes,reservedBytes:this.#reservedBytes,publishedFiles:this.#records.size,pendingPublications:this.#publishing.size,maxStorageBytes:this.#maxStorage,maxPublishedFiles:this.#maxFiles,writeFault:this.#writeFault,closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
  async directoryPath(signal:AbortSignal):Promise<string>{signal.throwIfAborted();if(this.#closed)throw new Error('Published files closed');const path=await readlink(`/proc/self/fd/${this.#root.fd}`);signal.throwIfAborted();return path;}
  async #recover():Promise<void>{
-  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0;
+  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0,intent:NamespaceMove|undefined;
   const directory=await opendir(this.#path('.'));
   for await(const entry of directory){
    if(++count>32768)throw new Error('Published directory entry limit exceeded');
    const stat=await lstat(this.#path(entry.name));if(!stat.isFile()||stat.uid!==process.getuid!()||!Number.isSafeInteger(stat.size)||stat.size>1024**3)throw new Error('Unexpected published storage entry');
    if(/^[a-f0-9]{64}\.gcode$/.test(entry.name))blobs.set(entry.name,stat.size);
    else if(entry.name==='.directories.json')await this.#loadDirectories();
+   else if(entry.name==='.namespace-move.json')intent=await this.#loadMoveIntent();
    else if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name))receipts.set(entry.name,stat.size);
    else if(/^\.directories-[a-f0-9-]{36}$/.test(entry.name))temporary.push(entry.name);
-   else if(/^\.(?:upload|receipt)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
+   else if(/^\.(?:upload|receipt|move)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
    else throw new Error('Unknown published storage entry');
+  }
+  if(intent){
+   const files:PublishedPrintFile[]=[];
+   for(const [name] of receipts){const record=await this.#record(name.slice(0,-5));if(blobs.get(record.sha256+'.gcode')!==record.size)throw new Error('Move recovery content reference is invalid');files.push(record);}
+   recoverMoveRecords(intent,files,this.#directories);
+   await this.#applyDirectoryMove(intent);
+   this.#directories.clear();this.#directoryBytes=0;
+   await this.#recover();return;
   }
   const referenced=new Set<string>();let receiptBytes=0;
   // Validate ALL references before deleting anything, including temporary names.
@@ -73,6 +89,71 @@ export class PublishedPrintFiles {
   for(const name of garbage)await unlink(this.#path(name));if(garbage.length)await this.#root.sync();
   this.#storedBytes=this.#directoryBytes+receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
  }
+ async #loadMoveIntent():Promise<NamespaceMove>{
+  const file=await open(this.#path('.namespace-move.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const before=await file.stat({bigint:true});if(!before.isFile()||before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7777n)!==0o600n||before.size>48n*1024n**2n)throw new Error('Invalid move intent file');const bytes=await file.readFile();const after=await file.stat({bigint:true});if(BigInt(bytes.length)!==before.size||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Move intent changed while reading');return validateMoveIntent(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));}finally{await file.close();}
+ }
+ async #verifyDirectoryAuthority(...catalogs:NamespaceMove['directoriesBefore'][]):Promise<void>{
+  const file=await open(this.#path('.directories.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const before=await file.stat({bigint:true});if(!before.isFile()||before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7777n)!==0o600n||before.size>2n*1024n**2n)throw new PublishedFileChangedError('Directory authority is invalid');const bytes=await file.readFile(),after=await file.stat({bigint:true});if(BigInt(bytes.length)!==before.size||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs||!catalogs.some(directories=>bytes.equals(Buffer.from(JSON.stringify({version:1,directories})))))throw new PublishedFileChangedError('Directory catalog changed outside transaction');}finally{await file.close();}
+ }
+ /** The durable intent is the decision. Each replay is idempotent and may
+  * finish an old/new receipt mixture; cancellation never abandons that decision.
+  * Caller validates the complete namespace and content references first. */
+ async #applyDirectoryMove(plan:NamespaceMove):Promise<void>{
+  await this.#verifyDirectoryAuthority(plan.directoriesBefore,plan.directoriesAfter);
+  for(const entry of plan.changed){
+   const current=(await this.#receipt(entry.before.id)).file;
+   if(samePublishedFile(current,entry.after))continue;
+   if(!samePublishedFile(current,entry.before))throw new PublishedFileChangedError('Directory move receipt changed');
+   const path=this.#path('.receipt-'+randomUUID()),file=await open(path,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
+   try{await file.writeFile(JSON.stringify(entry.after));await file.utimes(entry.modified,entry.modified);await file.chmod(0o400);await file.sync();}finally{await file.close();}
+   await rename(path,this.#path(entry.before.id+'.json'));
+  }
+  await this.#root.sync();
+  await this.#verifyDirectoryAuthority(plan.directoriesBefore,plan.directoriesAfter);
+  const path=this.#path('.directories-'+randomUUID()),file=await open(path,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
+  try{await file.writeFile(JSON.stringify({version:1,directories:plan.directoriesAfter}));await file.sync();}finally{await file.close();}
+  await rename(path,this.#path('.directories.json'));await this.#root.sync();
+  await unlink(this.#path('.namespace-move.json'));await this.#root.sync();
+ }
+ prepareDirectoryMove(source:string,destination:string,signal:AbortSignal):Promise<NamespaceMove>{return this.#run(async()=>{
+  this.#cachedNamespaceWindow=true;try{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');
+  const plan=planNamespaceMove(source,destination,[...this.#records.values()].map(e=>({file:e.record,modified:e.modified})),this.#directories);
+  for(const entry of plan.changed){signal.throwIfAborted();if(!samePublishedFile(await this.#record(entry.before.id),entry.before))throw new PublishedFileChangedError('Directory move source changed outside store');}
+  this.#directoryMoves.set(plan,destination);signal.throwIfAborted();return plan;
+  }finally{this.#cachedNamespaceWindow=false;}
+ },true,signal);}
+ moveDirectory(plan:NamespaceMove,signal:AbortSignal):Promise<PublishedDirectoryChange>{return this.#run(async()=>{
+  this.#cachedNamespaceWindow=true;try{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const destination=this.#directoryMoves.get(plan);if(destination===undefined)throw new Error('Directory move plan belongs to another store');
+  const current=planNamespaceMove(plan.source,destination,[...this.#records.values()].map(e=>({file:e.record,modified:e.modified})),this.#directories);
+  if(!sameNamespaceMove(current,plan))throw new PublishedFileChangedError('Authorized directory membership or destination changed');
+  // Encode in small chunks and yield between groups instead of serializing a
+  // 10,000-receipt journal as one synchronous event-loop operation.
+  const chunks:Buffer[]=[Buffer.from(JSON.stringify({version:1,action:'move_dir',source:plan.source,destination:plan.destination}).slice(0,-1)+',"changed":[')];let journalBytes=chunks[0].length,receiptDelta=0,receiptGrowth=0,maxReceipt=0;
+  for(let i=0;i<plan.changed.length;i++){signal.throwIfAborted();const entry=plan.changed[i],bytes=Buffer.byteLength(JSON.stringify(entry.after));if(bytes>2048)throw new Error('Move receipt exceeds limit');const delta=bytes-this.#records.get(entry.before.id)!.receiptBytes;receiptDelta+=delta;receiptGrowth+=Math.max(0,delta);maxReceipt=Math.max(maxReceipt,bytes);const chunk=Buffer.from((i?',':'')+JSON.stringify(entry));journalBytes+=chunk.length;chunks.push(chunk);if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
+  const tail=Buffer.from('],"directoriesBefore":'+JSON.stringify(plan.directoriesBefore)+',"directoriesAfter":'+JSON.stringify(plan.directoriesAfter)+'}');journalBytes+=tail.length;chunks.push(tail);
+  const directoryBytes=Buffer.byteLength(JSON.stringify({version:1,directories:plan.directoriesAfter}));
+  const reserved=journalBytes+maxReceipt+directoryBytes+receiptGrowth+Math.max(0,directoryBytes-this.#directoryBytes);
+  if(journalBytes>48*1024**2||directoryBytes>2*1024**2||reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published directory move quota exceeded');
+  const temp=this.#path('.move-'+randomUUID());let file:FileHandle|undefined,published=false,failure:unknown;this.#reservedBytes+=reserved;
+  try{
+   signal.throwIfAborted();file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);for(const chunk of chunks){signal.throwIfAborted();await file.writeFile(chunk);}await file.sync();await file.close();file=undefined;
+   for(const entry of plan.changed){signal.throwIfAborted();if(!samePublishedFile(await this.#record(entry.before.id),entry.before))throw new PublishedFileChangedError('Directory move receipt changed before intent');}
+   await this.#verifyDirectoryAuthority(plan.directoriesBefore);signal.throwIfAborted();await lstat(this.#path('.namespace-move.json')).then(()=>{throw new Error('Previous move intent requires recovery');},error=>{if(error.code!=='ENOENT')throw error;});
+   await rename(temp,this.#path('.namespace-move.json'));published=true;await this.#root.sync();
+   await this.#applyDirectoryMove(plan);
+   const records=new Map(this.#records),paths=new Map(this.#paths);
+   for(const entry of plan.changed){const old=records.get(entry.before.id)!;paths.delete(visibleFilePath(entry.before));const modified=(await lstat(this.#path(entry.before.id+'.json'))).mtimeMs/1000;records.set(entry.before.id,{...old,record:entry.after,receiptBytes:Buffer.byteLength(JSON.stringify(entry.after)),modified});}
+   for(const entry of plan.changed)paths.set(visibleFilePath(entry.after),entry.after.id);this.#records=records;this.#paths=paths;
+   this.#directories=new Map(plan.directoriesAfter.map(e=>[e.path,e.modified]));this.#storedBytes+=receiptDelta+directoryBytes-this.#directoryBytes;this.#directoryBytes=directoryBytes;
+   const event=Object.freeze({action:'move_dir' as const,path:plan.destination,sourcePath:plan.source,modified:this.#directories.get(plan.destination)!});for(const observer of this.#directoryObservers)try{observer(event);}catch{this.#observerFailures++;}return event;
+  }catch(error){failure=error;if(published)this.#writeFault=error;throw new PublishedNamespaceMoveCommitError(published?'intent-published':'before-intent',error);}
+  finally{try{await file?.close();if(!published){await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Directory move cleanup failed');throw new PublishedNamespaceMoveCommitError(published?'intent-published':'before-intent',this.#writeFault);}finally{this.#reservedBytes-=reserved;}}
+  }finally{this.#cachedNamespaceWindow=false;}
+ },true,signal);}
  async #loadDirectories():Promise<void>{
   const file=await open(this.#path('.directories.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   try{const stat=await file.stat();if(!stat.isFile()||stat.uid!==process.getuid!()||stat.nlink!==1||(stat.mode&0o7777)!==0o600||stat.size>2*1024**2)throw new Error('Invalid published directory metadata');const buffer=Buffer.alloc(stat.size+1);let at=0;while(at<buffer.length){const r=await file.read(buffer,at,buffer.length-at,at);if(!r.bytesRead)break;at+=r.bytesRead;}if(at!==stat.size)throw new Error('Directory metadata changed while reading');
@@ -88,7 +169,7 @@ export class PublishedPrintFiles {
   catch(error){failure=error;if(replaced)this.#writeFault=error;throw new PublishedDirectoryCommitError(replaced?'replaced':'before-replace',error);}
   finally{try{await file?.close();if(!replaced){await unlink(temp).catch(e=>{if(e.code!=='ENOENT')throw e;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Directory cleanup failed');throw new PublishedDirectoryCommitError(replaced?'replaced':'before-replace',this.#writeFault);}}
  }
- directoryCatalog(path:string,signal:AbortSignal):Promise<{directories:readonly {path:string;modified:number}[];files:readonly {file:PublishedPrintFile;modified:number}[]}>{return this.#run(async()=>{publishedPath(path,true);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');if(path&&!this.#directories.has(path))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});return {directories:[...this.#directories].filter(([name])=>pathParent(name)===path).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>({path,modified})),files:[...this.#records.values()].filter(entry=>pathParent(visibleFilePath(entry.record))===path).sort((a,b)=>visibleFilePath(a.record).localeCompare(visibleFilePath(b.record))).map(entry=>({file:entry.record,modified:entry.modified}))};},true,signal);}
+ directoryCatalog(path:string,signal:AbortSignal):Promise<{directories:readonly {path:string;modified:number}[];files:readonly {file:PublishedPrintFile;modified:number}[]}>{return this.#cachedNamespaceRead(async()=>{publishedPath(path,true);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');if(path&&!this.#directories.has(path))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});return {directories:[...this.#directories].filter(([name])=>pathParent(name)===path).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>({path,modified})),files:[...this.#records.values()].filter(entry=>pathParent(visibleFilePath(entry.record))===path).sort((a,b)=>visibleFilePath(a.record).localeCompare(visibleFilePath(b.record))).map(entry=>({file:entry.record,modified:entry.modified}))};},true,signal);}
  mutateDirectory(path:string,remove:boolean,signal:AbortSignal):Promise<PublishedDirectoryChange>{return this.#run(async()=>{
   publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const next=new Map(this.#directories),modified=Date.now()/1000;
   if(remove){if(!next.has(path))throw Object.assign(new Error('Published directory not found'),{code:'ENOENT'});if([...next.keys()].some(name=>name.startsWith(path+'/'))||[...this.#paths.keys()].some(name=>name.startsWith(path+'/')))throw Object.assign(new Error('Directory is not empty'),{code:'ENOTEMPTY'});next.delete(path);}
@@ -96,6 +177,7 @@ export class PublishedPrintFiles {
   await this.#commitDirectories(next,signal);const event=Object.freeze({action:remove?'delete_dir' as const:'create_dir' as const,path,modified:remove?0:modified});for(const observer of this.#directoryObservers)try{observer(event);}catch{this.#observerFailures++;}return event;
  },true,signal);}
  resolvePath(path:string,signal:AbortSignal):Promise<string>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const id=this.#paths.get(path);if(!id)throw Object.assign(new Error('Published file path not found'),{code:'ENOENT'});return id;},true,signal);}
+ hasDirectory(path:string,signal:AbortSignal):Promise<boolean>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');return this.#directories.has(path);},true,signal);}
  /** Display only; cached naming does not authorize opening or printing bytes. */
  filename(id:string):string{this.#id(id);const file=this.#records.get(id)?.record;return file?visibleFilePath(file):id+'.gcode';}
  #moveTarget(source:string,destination:string):string{
@@ -145,6 +227,14 @@ export class PublishedPrintFiles {
  },true,signal);}
  #id(id:string):void{if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new Error('Invalid published file identifier');}
  #path(name:string):string{return `/proc/self/fd/${this.#root.fd}/${name}`;}
+ /** Directory transactions retain the last fully durable cache until all
+  * authorities commit. Cached listings can observe that coherent old/new view
+  * without waiting for file IO; descriptor reads and mutations still queue. */
+ #cachedNamespaceRead<T>(operation:()=>Promise<T>,exclusive:boolean,signal:AbortSignal):Promise<T>{
+  if(!this.#cachedNamespaceWindow)return this.#run(operation,exclusive,signal);
+  if(this.#closed)return Promise.reject(new Error('Published file store is closed'));
+  if(signal.aborted)return Promise.reject(signal.reason);return Promise.resolve().then(operation);
+ }
  #run<T>(operation:()=>Promise<T>,exclusive=false,signal?:AbortSignal):Promise<T>{
   if(this.#closed)return Promise.reject(new Error('Published file store is closed'));
   if(this.#pending.size>=this.#maxOperations)return Promise.reject(new Error('Published file operation limit exceeded'));
@@ -190,7 +280,7 @@ export class PublishedPrintFiles {
  listIds(signal:AbortSignal):Promise<readonly string[]>{return this.#run(async()=>{signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});return Object.freeze([...this.#records.keys()].sort());},true,signal);}
  /** Cached immutable receipt catalog, atomically observed after in-flight mutations.
   * It is discovery data only: acquisition still revalidates receipt and content. */
- catalog(signal:AbortSignal):Promise<readonly {file:PublishedPrintFile;modified:number}[]>{return this.#run(async()=>{
+ catalog(signal:AbortSignal):Promise<readonly {file:PublishedPrintFile;modified:number}[]>{return this.#cachedNamespaceRead(async()=>{
   signal.throwIfAborted();if(this.#writeFault)throw new Error('Published inventory requires recovery',{cause:this.#writeFault});
   return Object.freeze([...this.#records].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([,entry])=>Object.freeze({file:entry.record,modified:entry.modified})));
  },true,signal);}
