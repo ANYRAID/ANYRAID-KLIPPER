@@ -265,8 +265,8 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Complete a bounded discriminator for the 85a5d4a6 BLTouch mapped-clock failure and historical d86a4aee calibration failure, preserving merge and motion gates. Then advance independently verified Moonraker file move/rename contracts; same-package actual clients remain pending. See the unique delivery plan.",
-    "latestObservedSource": "85a5d4a674ed967bb086501e35b62043ccaccafa",
+    "next": "Advance M2b single-file move/rename as the next bounded product slice, followed by directory moves and copy/overwrite. At the failure checkpoint compare the captured remote fit input to the prior successful input; retain strict clocks, merge gates and G3. Same-package clients remain pending. See the unique delivery plan.",
+    "latestObservedSource": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -749,12 +749,166 @@
           "scope": "Terminal finite diagnostic jobs only, not G3 closure."
         },
         "closure": "Actual MCU stopped-clock observation does not close the mapped-clock fault. Delta calibration passing here does not explain the historical d86a4aee HTTP 503. No hardware, client, full Moonraker or Python-retirement gate closed."
+      },
+      {
+        "source": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+        "mergeTestRevision": "6f76f62c136f4596bc27f62618a10127619831f6",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37003194462,
+          "job": 110825356388,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37003194462/job/110825356388",
+          "status": "completed",
+          "conclusion": "failure",
+          "typecheck": "success",
+          "whitespace": "success",
+          "ordinary": {
+            "tests": 3826,
+            "pass": 3824,
+            "fail": 2,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "durationMs": 585587.329063
+          },
+          "failures": [
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "cause": "Invalid mapped trigger clock",
+              "member": 0,
+              "oid": 0,
+              "mapped": "1742175",
+              "observed": "1742070",
+              "expected": "Probe did not trigger",
+              "closure": "Strict mapping rejection precedes the expected missing-hit error. Cause unresolved; no tolerance or expectation changed."
+            },
+            {
+              "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+              "httpActual": 503,
+              "httpExpected": 200,
+              "probeHits": 16,
+              "motionFaultRecorded": false,
+              "hardwareFaultRecorded": false,
+              "action": "calibrate",
+              "stage": "fit",
+              "cause": "Delta calibration did not converge: line_search_failed",
+              "input": {
+                "geometry": {
+                  "radius": 100,
+                  "angles": [
+                    210,
+                    330,
+                    90
+                  ],
+                  "arms": [
+                    250,
+                    250,
+                    250
+                  ],
+                  "endstops": [
+                    300,
+                    300,
+                    300
+                  ],
+                  "stepDistances": [
+                    0.0125,
+                    0.0125,
+                    0.0125
+                  ]
+                },
+                "probes": [
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23220,
+                      23220,
+                      23220
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23263.823890082684,
+                      23253.82295277944,
+                      23164.40269957477
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23199.161558068554,
+                      23283.5148164314,
+                      23199.161558068547
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23161.243423782333,
+                      23250.207042368867,
+                      23250.207042368867
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23195.91758172969,
+                      23195.91758172969,
+                      23269.289241181694
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23246.5982367534,
+                      23168.09398980033,
+                      23246.5982367534
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23276.39745009156,
+                      23192.535595331658,
+                      23192.535595331658
+                    ]
+                  }
+                ],
+                "manual": [],
+                "distances": []
+              },
+              "inputOrigin": "Exact decoded remote diagnostic, numeric arrays parsed without evaluation. Simulated product fixture; not physical printer measurements.",
+              "closure": "Direct cause of this run captured; why fit failed remains unresolved. Not proof of the d86a4aee historical inner cause."
+            }
+          ],
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Terminal exact-source job, step conclusions and complete decoded job log. Persisted excerpt contains failure inputs and assertions.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-1e88895b-host-failures.log",
+            "sha256": "aabfca46f1f461d51be83eef8a226b5699c8ebc8c848294ea9c187359e3029d8"
+          }
+        },
+        "firmware": {
+          "run": 37003194469,
+          "job": 110825356696,
+          "conclusion": "success",
+          "scope": "Terminal provider status only; no new counts extracted."
+        },
+        "motion": {
+          "run": 37003194479,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "Terminal finite diagnostics only; not G3 closure."
+        },
+        "closure": "Candidate remains unmergeable. No hardware, complete clients, full Moonraker or Python retirement gate closed."
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "85a5d4a6 exact-source host CI fails BLTouch mapped-clock validation; protocol, sanitizers and Linux MCU skipped. Historical d86a4aee calibration and other G3 failures remain unexplained. Full exact-source CI required before merge.",
+    "1e88895b exact-source host CI: 3824/3826 ordinary tests passed, probe mapped-clock and calibration fit failures; protocol, sanitizers and Linux MCU skipped. Calibration stage, line_search_failed and full remote input captured; causes and historical G3 failures remain unresolved. Full exact-source CI required before merge.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
