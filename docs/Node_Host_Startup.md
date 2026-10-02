@@ -472,13 +472,30 @@ UUID 迁移尚未闭合；不要把当前管理接口视为完整摄像头组件
 `startClockedDeltaPrinter`。`connectDeltaProductPrinter` 再装配持久化作业、耗材与空闲策略；
 `startConfiguredDeltaProductService` 接入授权的 Moonraker 状态与受控
 操作服务。以上为机器集成层 API；`product-host` 的声明式机型选择
-仍待接入 Delta，不能仅替换配置就启动现有部署。
+已有 Delta 模拟产品证据，不能仅替换配置就启动现有部署。
 
 连接前检查每个配置节，识别 A/B/C 塔、附加塔电机及相应 TMC 所有权。
-尚未接通的探针、相位、倾斜/龙门/螺钉/偏斜校准和原始宏明确拒绝。
+机械探针、BLTouch 及受控 Delta 校准已有软件接入；尚未支持的配置节
+及原始宏继续明确拒绝。
 预检失败不打开设备；后续启动失败关闭已获取的 MCU 和输出所有者。
 成功启动保持未归零状态，实际归零由打印启动策略或受控操作执行。
 当前证据仅为模拟 MCU，不能据此跳过实机运动精度和打印验收。
+
+### 校准故障的本地诊断
+
+产品服务返回的 `calibrationDiagnostic()` 供进程内可信所有者读取；
+`registerNativeDeltaCalibration` 返回的关闭函数也带有 `diagnostic()`。
+失败记录包含 action、stage、原始 cause 和已取得的数值 input；stage
+区分 capture、measure、synchronize、fit、validate、save、publish。
+input 每次读取均复制，读取者不能改变候选或失败输入。
+未取得测量数据的失败没有 input。此接口未注册 HTTP／RPC 路由，
+远程仍收到原有 503；失败继续撤销运动权限并要求重新初始化。
+
+BLTouch 模拟回归失败时保留最多 32 个线级时钟观测；
+`BLTOUCH_CLOCK_DIAGNOSTIC=1` 可同时打印成功样本的时钟观测。
+这是开发夹具的诊断开关，不改变触发注入、停止时序、生产日志或查询响应。
+校准未收敛仍由 Worker 拒绝，降低残差不构成接受候选的充分条件。
+证据与适用范围见[校准故障诊断验收](../host/contracts/delta-calibration-failure-acceptance.json)。
 
 ## 独立模拟温度传感器
 

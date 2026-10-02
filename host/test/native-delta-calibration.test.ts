@@ -12,7 +12,7 @@ const endpoint='/printer/calibration/delta';
 async function fixture(restored=false){
  const dir=await mkdtemp('/tmp/delta-endpoint-'),path=dir+'/printer.cfg',original='[printer]\nkinematics: delta\ndelta_radius: 100\n[delta_calibrate]\nradius: 65\n';await writeFile(path,original);
  const {session}=await KlipperSaveSession.load(path),gate=new MaintenanceGate(),registry=new EndpointRegistry(new JsonRpcDispatcher()),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}};
- let measurements=0,idle=true;const motion={captureStable:async(_s:AbortSignal)=>asymmetricDeltaCalibration()[0].probes[0].stable,restored:()=>({...asymmetricDeltaCalibration()[0],...(!restored?{probes:[]}:{} )}),idle:()=>idle,measure:async(_s:AbortSignal)=>{measurements++;assert(gate.status.maintenance);return asymmetricDeltaCalibration()[1];},synchronize(){}};
+ let measurements=0,idle=true;const motion={captureStable:async(_s:AbortSignal)=>asymmetricDeltaCalibration()[0].probes[0].stable,restored:()=>({...asymmetricDeltaCalibration()[0],...(!restored?{probes:[]}:{} )}),idle:()=>idle,measure:async(_s:AbortSignal)=>{measurements++;assert(gate.status.maintenance);return asymmetricDeltaCalibration()[1];},synchronize(){},validateGeometry(_geometry:unknown){}};
  const close=registerNativeDeltaCalibration(registry,gate,motion,session),invoke=(verb:string,body:any={})=>registry.invoke(endpoint,verb,body,context) as Promise<any>;
  return {session,gate,path,original,registry,context,motion,invoke,close,count:()=>measurements,setIdle(v:boolean){idle=v;},async dispose(){await close();await rm(dir,{recursive:true,force:true});}};
 }
@@ -29,14 +29,54 @@ test('Delta endpoint measures, fits and saves a server candidate with authentica
  }finally{await f.dispose();}
 });
 test('Delta save failure preserves external edits and invalidates the generation',async()=>{
- const f=await fixture();try{const c=await f.invoke('POST',{version:1,state_token:(await f.invoke('GET')).state_token,action:'calibrate'});await writeFile(f.path,f.original+'# external\n');await assert.rejects(f.invoke('POST',{version:1,state_token:c.state_token,action:'save'}),/failed/);assert.equal(await readFile(f.path,'utf8'),f.original+'# external\n');assert(f.gate.status.closed);}finally{await f.dispose();}
+ const f=await fixture();try{const c=await f.invoke('POST',{version:1,state_token:(await f.invoke('GET')).state_token,action:'calibrate'});await writeFile(f.path,f.original+'# external\n');await assert.rejects(f.invoke('POST',{version:1,state_token:c.state_token,action:'save'}),/failed/);assert.equal(await readFile(f.path,'utf8'),f.original+'# external\n');assert(f.gate.status.closed);assert.equal(f.close.diagnostic().failure!.stage,'save');assert(f.close.diagnostic().input);}finally{await f.dispose();}
+});
+
+for(const stage of ['measure','synchronize','fit','validate'] as const)test('Delta local diagnostic preserves '+stage+' failure without changing wire errors or admitting retry',async()=>{
+ const f=await fixture(),cause=new Error('private '+stage+' failure');
+ try{
+  if(stage==='measure')f.motion.measure=async()=>{throw cause;};
+  if(stage==='synchronize')f.motion.synchronize=()=>{throw cause;};
+  if(stage==='fit')f.motion.measure=async()=>{const input=asymmetricDeltaCalibration()[1];return {...input,probes:Array(7).fill(input.probes[0]),distances:[]};};
+  if(stage==='validate')f.motion.validateGeometry=()=>{throw cause;};
+  const request={version:1,state_token:(await f.invoke('GET')).state_token,action:'calibrate'};
+  await assert.rejects(f.invoke('POST',request),error=>error instanceof Error&&error.message==='Delta calibration failed; reinitialize and inspect configuration'&&!Object.hasOwn(error,'cause'));
+  const local=f.close.diagnostic();assert.equal(local.failure!.stage,stage);assert.equal(local.failure!.action,'calibrate');
+  if(stage==='fit')assert.match((local.failure!.cause as Error).message,/independent calibration constraints/);else assert.equal(local.failure!.cause,cause);
+  if(stage==='measure')assert.equal(local.input,undefined);
+  else{assert(local.input);const radius=local.input.geometry.radius;local.input.geometry.radius=-1;assert.equal(f.close.diagnostic().input!.geometry.radius,radius);}
+  const wire=await f.invoke('GET');assert.equal(wire.state,'failed');assert.equal(wire.available,false);assert.equal(wire.candidate,null);assert(!('failure' in wire)&&!('input' in wire));
+  assert(f.gate.status.closed);assert(!f.gate.status.maintenance);assert.equal(await readFile(f.path,'utf8'),f.original);await assert.rejects(f.invoke('POST',request),/idle homed/);
+ }finally{await f.dispose();}
 });
 test('closing Delta owner cancels measurement and joins cleanup',async()=>{
  const f=await fixture();try{
   f.motion.measure=s=>new Promise((_,reject)=>{s.addEventListener('abort',()=>reject(s.reason),{once:true});});
   const pending=f.invoke('POST',{version:1,state_token:(await f.invoke('GET')).state_token,action:'calibrate'}),rejected=assert.rejects(pending,/failed/);
-  await new Promise(resolve=>setImmediate(resolve));await f.close();await rejected;assert(f.gate.status.closed);assert(!f.gate.status.maintenance);assert.equal(await readFile(f.path,'utf8'),f.original);
+  await new Promise(resolve=>setImmediate(resolve));await f.close();await rejected;assert(f.gate.status.closed);assert(!f.gate.status.maintenance);assert.equal(await readFile(f.path,'utf8'),f.original);assert.equal(f.close.diagnostic().failure!.stage,'measure');assert.match(String(f.close.diagnostic().failure!.cause),/owner closed/);
  }finally{await f.dispose();}
+});
+
+test('manual height failure retains the local capture cause without exposing it on the wire',async()=>{
+ const f=await fixture(true),cause=new Error('capture unavailable');
+ try{
+  f.motion.captureStable=async()=>{throw cause;};
+  await assert.rejects(f.invoke('POST',{version:1,state_token:(await f.invoke('GET')).state_token,action:'height',height:0}),/Delta calibration failed/);
+  const diagnostic=f.close.diagnostic();assert.equal(diagnostic.failure!.action,'height');assert.equal(diagnostic.failure!.stage,'capture');assert.equal(diagnostic.failure!.cause,cause);assert.equal(diagnostic.input,undefined);
+  assert.equal((await f.invoke('GET')).candidate,null);assert(f.gate.status.closed);assert.equal(await readFile(f.path,'utf8'),f.original);
+ }finally{await f.dispose();}
+});
+
+for(const stage of ['fit','validate'] as const)test('manual Delta failure retains '+stage+' input and rejects candidate reuse',async()=>{
+ const f=await fixture(),release=f.gate.acquire(),cause=new Error('manual geometry rejected'),input=asymmetricDeltaCalibration()[1];
+ try{
+  if(stage==='fit'){input.probes=Array(7).fill(input.probes[0]);input.distances=[];}else f.motion.validateGeometry=()=>{throw cause;};
+  await assert.rejects(f.close.acceptManual(input,new AbortController().signal),stage==='fit'?/independent calibration constraints/:error=>error===cause);
+  const local=f.close.diagnostic();assert.equal(local.failure!.action,'manual');assert.equal(local.failure!.stage,stage);assert.deepEqual(local.input,{...input,manual:input.manual});
+  input.geometry.radius=-1;assert.notEqual(f.close.diagnostic().input!.geometry.radius,-1);
+  const wire=await f.invoke('GET');assert.equal(wire.state,'failed');assert.equal(wire.candidate,null);assert.equal(wire.available,false);assert(f.gate.status.closed);
+  await assert.rejects(f.close.acceptManual(asymmetricDeltaCalibration()[1],new AbortController().signal),/no active maintenance owner/);assert.equal(await readFile(f.path,'utf8'),f.original);
+ }finally{release();await f.dispose();}
 });
 
 test('Delta extension fits typed object dimensions without repeated probing',async()=>{

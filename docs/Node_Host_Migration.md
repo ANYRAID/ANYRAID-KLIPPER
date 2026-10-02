@@ -14,6 +14,13 @@
 开发从最新 `develop` 建立独立任务工作树，任务 PR → `develop` → `master`。
 本机检查通过后还需集成与目标硬件验证；生产部署须在授权范围内执行。
 
+Delta 校准故障现保留可信进程内诊断，区分采样、同步、拟合、几何校验、
+保存和发布；远程 503 与失败门禁保留。固定捕获输入的单步扰动回归确认
+未收敛结果继续由 Worker 拒绝，不能把残差降低当成精度通过。
+既有 Delta／BLTouch 测试仅为通用兼容回归，本批没有新增机型适配或退役
+Python 文件。使用和当前证据见[启动说明](Node_Host_Startup.md#校准故障的本地诊断)
+及[诊断验收](../host/contracts/delta-calibration-failure-acceptance.json)。
+
 ## 当前执行计划（2026-10-02 审计）
 
 执行顺序、阶段出口与任务准入以 [总到分交付计划](Node_Host_Delivery_Plan.md)

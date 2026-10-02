@@ -1,0 +1,358 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "sourceBase": "02fe15ee1e6a4abe5e87e5586f838378df4d817d",
+  "node": "v26.9.0",
+  "scope": "Calibration failure provenance and fixed-input discriminator; existing generic Delta/BLTouch compatibility only, no new machine adaptation. Does not close remote calibration/mapped-clock failures, G3, actual clients, full Moonraker or Python retirement.",
+  "sourceSha256": {
+    "host/src/moonraker/native-delta-calibration.ts": "808dd0c039e94f0d728da856843c74f489789bd2e21a001c2fdbb7ae1d02974a",
+    "host/src/runtime/product-service.ts": "a2e3b0f1c9e6d13a0f42b0e2de84ca5cfddaee9a0b4dcf60a5874e6069b5f02c",
+    "host/test/native-delta-calibration.test.ts": "70a291bdde2b1f1c54615eaf11c1eacc833bc68797d82b1a83a6985e1bde01db",
+    "host/test/delta-calibration.test.ts": "8bf8b3192798aabe6dc92841e94c14d4953d66451b23de6f1bb7f400eff3f807",
+    "host/test/delta-probe.test.ts": "1a5c79ad75954f096ef317dfc930ee10394455fb775db43efc4299ea1c50b2bf",
+    "host/test/delta-bltouch.test.ts": "b4efc7cc80f6ab8eaf13182b31141baf600670afbd3e11b4183186a1029cae9a",
+    "host/test/helpers/delta-wire-simulation.ts": "a62ce131a42f69aab5d1296dddf181d322b3898fe505a5c439b0bb9f80db8bfe",
+    "host/test/helpers/delta-calibration-sensitive-input.json": "90915849082a918a0b321906db7753eac295288dde25bb7235783ae6b873f5a9",
+    "host/bench/delta-calibration-diagnostic.ts": "2bbedb0d71f8eab3e2c1cfc3fa8596826fab591fd4492207185b6541cf43678e"
+  },
+  "implementation": {
+    "diagnostic": "Trusted in-process owner only. Failure action, stage and original cause plus copied numeric input. No HTTP/RPC diagnostic route; original 503 and invalidated motion authority retained.",
+    "stages": [
+      "capture",
+      "measure",
+      "synchronize",
+      "fit",
+      "validate",
+      "save",
+      "publish"
+    ],
+    "memory": "One bounded failure per calibration owner; numeric input copied only on explicit local observation, not GET or step production.",
+    "manualFailure": "Candidate cleared on failed manual acceptance; failed generation rejects reuse.",
+    "wireTrace": "Test-only ring of 32 arm/trigger/uptime-query observations; saved clock references remain inspectable after group stop. Original hit injection and protocol unchanged."
+  },
+  "local": {
+    "numericAndEndpoint": {
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "files": 3,
+      "mode": "test isolation none for complete subtest counts; default per-file isolation also passed all three files"
+    },
+    "product": {
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "files": 2,
+      "cpuAffinity": "0,1",
+      "outerLimitSeconds": 90,
+      "durationMs": 49127.473042
+    },
+    "typecheck": "pass",
+    "boundedBltouch": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cpuAffinity": "0,1",
+      "outerLimitSeconds": 60,
+      "result": "Captured successful trigger/readback/estimator observations; no exact remote failure reproduced and no fault closure."
+    },
+    "whitespace": "pass"
+  },
+  "sensitivity": {
+    "input": "host/test/helpers/delta-calibration-sensitive-input.json",
+    "origin": "Successful product fixture with calibration radius 2 mm; same numeric input observed again by this batch product service.",
+    "perturbation": "First probe, first tower stable count minus one; physical step distance 0.0125 mm.",
+    "kernel": "Residual decreases, but convergence remains false with line_search_failed.",
+    "worker": "Rejects that candidate, releases slot, then accepts original input. No tolerance, iteration or condition threshold changed.",
+    "priorFiniteExperiment": "42 one-step variants were investigated locally in the earlier bounded experiment; these are not the missing d86a4aee failure inputs."
+  },
+  "getPerformance": {
+    "node": "v26.9.0",
+    "baseline": "/tmp/anyraid-diagnostic-baseline/host/src/moonraker/native-delta-calibration.ts",
+    "warmups": 1,
+    "samples": 9,
+    "iterations": 5000,
+    "maximumRatio": 1.5,
+    "results": [
+      {
+        "state": "ready",
+        "oldUs": [
+          1.0449045999999982,
+          0.898490799999999,
+          0.8895928000000025,
+          0.8446200000000005,
+          0.8428080000000023,
+          0.8554743999999972,
+          0.8382900000000006,
+          0.8428942000000006,
+          0.839100000000002
+        ],
+        "newUs": [
+          1.0157561999999984,
+          0.8658324000000023,
+          0.8770863999999988,
+          0.8351959999999963,
+          0.8412161999999967,
+          0.8379660000000002,
+          0.8387920000000009,
+          0.8380839999999978,
+          0.8466362000000005
+        ],
+        "oldMedianUs": 0.8446200000000005,
+        "newMedianUs": 0.8412161999999967,
+        "ratio": 0.9959700220217331,
+        "passed": true
+      },
+      {
+        "state": "candidate",
+        "oldUs": [
+          2.8423722,
+          2.7653670000000035,
+          2.785743400000001,
+          2.7766852000000086,
+          2.7666751999999977,
+          2.761460999999997,
+          2.7675171999999977,
+          2.7664130000000116,
+          2.7695694000000004
+        ],
+        "newUs": [
+          3.3200317999999926,
+          3.200564399999996,
+          2.920826999999997,
+          2.7247648000000027,
+          2.7147986000000057,
+          2.7143186000000017,
+          2.7124846000000047,
+          2.706390599999986,
+          2.7248106000000005
+        ],
+        "oldMedianUs": 2.7675171999999977,
+        "newMedianUs": 2.7247648000000027,
+        "ratio": 0.9845520743285733,
+        "passed": true
+      },
+      {
+        "state": "failed",
+        "oldUs": [
+          0.9560096000000158,
+          0.9978040000000192,
+          1.040214600000013,
+          0.9831195999999863,
+          0.9722897999999986,
+          0.9769455999999991,
+          0.9732678000000078,
+          0.9707196000000067,
+          0.9793815999999879
+        ],
+        "newUs": [
+          0.9539373999999953,
+          0.9546753999999964,
+          0.9353031999999984,
+          0.9223312000000078,
+          0.9250149999999848,
+          0.9309431999999788,
+          0.9229389999999966,
+          0.9227370000000065,
+          0.9225251999999955
+        ],
+        "oldMedianUs": 0.9769455999999991,
+        "newMedianUs": 0.9250149999999848,
+        "ratio": 0.94684391843311,
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "scope": "Alternating local authorized registry GET cost with ready, fitted candidate and failed owners. Diagnostic copies are not called by GET, HTTP or step generation. The 50% median regression budget is fixed before measurement. Excludes HTTP/network, target board and actual printer performance.",
+    "baselineSource": "02fe15ee1e6a4abe5e87e5586f838378df4d817d",
+    "baselineSourceSha256": "ba1733973afc5c8b5e6a3e2974ff7fbf566b5afb869c7c46f4269e765a70493b"
+  },
+  "compiled": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "durationMs": 38182.917987,
+    "manifestSha256": "04db44d59846b66430be4f6c4f7a46dbaf40a5488c682acc208fc2aacf023db9",
+    "metrics": {
+      "namespace": true,
+      "motionReportLoad": true,
+      "configListRequests": 823,
+      "configListP99Ms": 10.248488000001089,
+      "configDownloads": 823,
+      "configDownloadP99Ms": 12.68630099999973,
+      "liveMotionSamples": 2505,
+      "liveExtrusionSamples": 1365,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.763723038,
+        "print_duration": 2.583653457999999,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "04db44d59846b66430be4f6c4f7a46dbaf40a5488c682acc208fc2aacf023db9",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4002,
+      "phaseP99Ms": 5.21534000000247,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 900,
+      "historyP99Ms": 10.033046000000468,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.7277350000003935,
+      "deleteRequests": 16,
+      "deleteP95Ms": 10.096527000001515,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 2.638005000000703,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 11.62238200000138,
+      "metadataRequests": 16,
+      "metadataP95Ms": 30.692001999999775,
+      "downloads": 16,
+      "downloadP95Ms": 4.016438999999082,
+      "wireCommands": 189,
+      "wireSteps": 3684,
+      "minimumStepLeadMs": 80.57,
+      "directoryRequests": 3832,
+      "directoryP99Ms": 9.148568000000523,
+      "statusRequests": 16009,
+      "uploads": 16,
+      "statusP99Ms": 6.12630899999931,
+      "uploadP95Ms": 22.765376999999717,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.256895,
+            "maxMs": 20.267007
+          },
+          "cpu": {
+            "user": 6675508,
+            "system": 1017956
+          },
+          "rss": 331661312
+        },
+        {
+          "loop": {
+            "p99Ms": 1.906687,
+            "maxMs": 8.118271
+          },
+          "cpu": {
+            "user": 2136383,
+            "system": 380940
+          },
+          "rss": 327315456
+        }
+      ]
+    },
+    "originalBudgets": {
+      "minimumStepLeadMs": "> 0",
+      "eventLoopP99Ms": "< 50",
+      "eventLoopMaximumMs": "< 100"
+    },
+    "scope": "Independent compiled product, native authorization, concurrent API/file load, simulated printing and process restoration. Excludes actual clients, target storage/board and physical printing."
+  },
+  "remaining": [
+    "Exact new-source full CI before merge. The 02fe15ee host job was observed in_progress; no terminal result assumed.",
+    "Remote 85a5d4a6 mapped=7820496 observed=7800176 and d86a4aee calibration HTTP 503 remain unexplained.",
+    "Real client journey, Cycnumbris500 assembly/stop/install/rollback, target precision/timing and full G1/G5 closure."
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-counted-regression.log",
+      "sha256": "2b0ead9782431d5d31ae77d84897aba0cb9bd989793d662a945cc228fa20891b"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-regression-final.log",
+      "sha256": "d6fabdc69f10aa3ea75fe0673addfbbbe0e59753a8ee81fbdf7b80fd979335ae"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-typecheck-complete.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-get-bench.log",
+      "sha256": "c783f4d589228b87cf7feeb022e648260d91a1856eba5bcd2fe3457fa744f7ba"
+    },
+    {
+      "path": "/tmp/anyraid-bltouch-bounded-clock-diagnostic-enabled.log",
+      "sha256": "c7ad4facb472cb266fd88a20b9289121959b1f8b9c8e62120765229c6fac1437"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-product-regression.log",
+      "sha256": "7dd56ebcf3b00226e411c0b3c962861d2a174b99b60c9ae84991660aa8aed64c"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-compiled-load.log",
+      "sha256": "39bf59ce0ef0b262b67facfb368b91bcbb9c236ba96aa40604bb9bb31536d5ca"
+    },
+    {
+      "path": "/tmp/anyraid-delta-one-step-sensitivity.json",
+      "sha256": "4a1b07e4a51b7cec4a07b0e86f2d16ce7cefedd1c5517bdbb5f079b166233545"
+    },
+    {
+      "path": "/tmp/anyraid-delta-diagnostic-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

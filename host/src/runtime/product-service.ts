@@ -242,7 +242,7 @@ async function startMachineProductService<T extends ProductServicePrinter>(reade
    server=serverOptions.authorization?await ConfiguredMoonraker.loadAuthorized(configPath,{...serverOptions,...ownedServer}):await ConfiguredMoonraker.load(configPath,{...serverOptions,...ownedServer});configureRoutes();
   }
   const address=await server.start();signal.throwIfAborted();printer.group.assertActive();
-  started=true;return Object.freeze({printer,server,address,retirePrinter,close});
+  started=true;return Object.freeze({printer,server,address,retirePrinter,close,calibrationDiagnostic:()=>closeDeltaCalibration?.diagnostic()});
  }catch(error){try{await close();}catch(cleanup){throw new AggregateError([error,cleanup],'Product service startup and cleanup failed',{cause:error});}throw error;}
  finally{signal.removeEventListener('abort',aborted);}
 }

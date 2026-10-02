@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
 import {FrameDecoder} from '../../src/protocol/codec.ts';
 import {Thermistor} from '../../src/thermal/thermistor.ts';
+import {serialClock} from '../../src/protocol/serial-queue.ts';
 import type {productTransports} from './product-transports.ts';
 /** Test-only endstop/ADC model at the firmware wire boundary, with no host hooks. */
-export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTransports>>,options:{bltouch?:boolean;stuckProbe?:boolean}={}){
+export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTransports>>,options:{bltouch?:boolean;stuckProbe?:boolean;clockDiagnostic?:boolean}={}){
  const passes=new Map<string,number>(),timers=new Set<ReturnType<typeof setTimeout>>(),listeners:(()=>void)[]=[];
+ const clockEvents:{kind:string;member:number;oid?:number;trigger?:number;eventTime:number;actualClocks:number[]}[]=[];
+ const recordClock=(kind:string,member:number,oid?:number,trigger?:number)=>{if(!options.clockDiagnostic)return;clockEvents.push({kind,member,oid,trigger,eventTime:serialClock.now(),actualClocks:transport.firmware.map(f=>f.currentClock())});if(clockEvents.length>32)clockEvents.shift();};
  const counts=new Map<string,number>();let probeHits=0;
  const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
  for(const [index,fw] of transport.firmware.entries()){
@@ -13,17 +16,19 @@ export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTra
    if((frame[1]&15)!==sequence)continue;sequence=(sequence+1)&15;
    for(const command of fw.dictionary.parseFrame(frame)){
     const p=command.parameters,oid=Number(p.oid),key=index+':'+oid;
+    if(command.name==='get_uptime')recordClock('uptime-query',index);
     if(options.bltouch&&command.name==='queue_digital_out_generation'&&Number(p.on_ticks)===650){for(const device of transport.firmware)for(const entry of device.outputs.filter(o=>o.name==='config_endstop'&&(o.parameters.pin===13||o.parameters.pin==='PA13')))device.setEndstopState({homing:0,pin_value:0,next_clock:0},Number(entry.parameters.oid));}
     if(command.name==='set_next_step_dir')directions.set(oid,Number(p.dir)?1:-1);
     if(command.name==='queue_step'){const count=(counts.get(key)??0)+(directions.get(oid)??1)*Number(p.count);counts.set(key,count);fw.setStepperPosition(oid,count);}
     if(command.name==='trsync_start')moving.set(oid,Number(p.report_ticks)>0);
     if(command.name==='trsync_start'&&p.report_ticks===0)fw.setTriggerReason(2,Number(p.oid));
     if(command.name!=='endstop_home'||!Number(p.sample_count))continue;
+    recordClock('endstop-arm',index,oid,Number(p.clock));
     const cfg=fw.outputs.find(o=>o.name==='config_endstop'&&o.parameters.oid===p.oid);assert(cfg);
     if(cfg.parameters.pin===13||cfg.parameters.pin==='PA13'){
      if(options.bltouch&&!moving.get(Number(p.trsync_oid))){fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:Number(p.pin_value),next_clock:(Number(p.clock)+Number(p.rest_ticks))>>>0},oid);continue;}
      const hit=Number(p.clock)+(options.stuckProbe?0:50000),stopped=transport.firmware.flatMap((device,i)=>device.stepperConfigs.filter(m=>!(i===0&&(m.step_pin===4||m.step_pin==='PA4'))).map(m=>({i,oid:Number(m.oid),count:(counts.get(i+':'+m.oid)??0)-(options.stuckProbe?0:20)})));
-     const timer=setTimeout(()=>{timers.delete(timer);probeHits++;for(const motor of stopped){counts.set(motor.i+':'+motor.oid,motor.count);transport.firmware[motor.i].setStepperPosition(motor.oid,motor.count);}fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});},Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);continue;
+     const timer=setTimeout(()=>{timers.delete(timer);recordClock('probe-trigger',index,oid,hit);probeHits++;for(const motor of stopped){counts.set(motor.i+':'+motor.oid,motor.count);transport.firmware[motor.i].setStepperPosition(motor.oid,motor.count);}fw.setTriggerReason(1,Number(p.trsync_oid));fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(p.rest_ticks)},oid);fw.emit('trsync_state',{oid:Number(p.trsync_oid),can_trigger:0,trigger_reason:1,clock:hit});},Math.max(0,(hit-fw.currentClock())/1000+10));timers.add(timer);continue;
     }
     const tower=index===1?'b':Number(cfg.parameters.pin)===3||/^PA3(?:_ALIAS)?$/.test(String(cfg.parameters.pin))?'a':'c';
     const stepPin=tower==='a'?0:tower==='b'?6:9,motor=fw.stepperConfigs.find(s=>Number(s.step_pin)===stepPin||s.step_pin==='PA'+stepPin);assert(motor);
@@ -39,5 +44,5 @@ export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTra
   const temperature=cfg.parameters.pin==='PA2'||cfg.parameters.pin===2?220:80,raw=Math.round(converter.adc(temperature)*4095*Number(p.sample_count)),next=fw.currentClock()+Number(p.rest_ticks)-Number(p.sample_ticks)*Number(p.sample_count);
   fw.emit('analog_in_state',{oid:Number(p.oid),next_clock:next>>>0,values:Buffer.from([raw&255,raw>>8])});
  }},10);
- return {passes,get probeHits(){return probeHits;},close(){clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of listeners)off();}};
+ return {passes,get probeHits(){return probeHits;},clockDiagnostic:()=>structuredClone(clockEvents),close(){clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of listeners)off();}};
 }

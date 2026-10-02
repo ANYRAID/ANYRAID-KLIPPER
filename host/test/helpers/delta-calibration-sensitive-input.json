@@ -1,0 +1,89 @@
+{
+  "schema": 1,
+  "scope": "Captured successful simulated product fixture with a 2 mm calibration radius. A one-step perturbation is a sensitivity discriminator, not the missing remote d86a4aee failure input or physical printer data.",
+  "input": {
+    "geometry": {
+      "radius": 100,
+      "angles": [
+        210,
+        330,
+        90
+      ],
+      "arms": [
+        250,
+        250,
+        250
+      ],
+      "endstops": [
+        300,
+        300,
+        300
+      ],
+      "stepDistances": [
+        0.0125,
+        0.0125,
+        0.0125
+      ]
+    },
+    "probes": [
+      {
+        "height": 0.123456789,
+        "stable": [
+          23220,
+          23220,
+          23220
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23253.830551549407,
+          23253.830551549407,
+          23154.409325032968
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23189.168174358474,
+          23283.522439544442,
+          23189.168174358474
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23161.243423782333,
+          23250.207042368867,
+          23250.207042368867
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23195.91758172969,
+          23195.91758172969,
+          23269.289241181694
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23246.5982367534,
+          23168.09398980033,
+          23246.5982367534
+        ]
+      },
+      {
+        "height": 0.123456789,
+        "stable": [
+          23276.39745009156,
+          23192.535595331658,
+          23192.535595331658
+        ]
+      }
+    ],
+    "manual": [],
+    "distances": []
+  }
+}

@@ -14,6 +14,11 @@ export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:Ma
  let candidate:{input:DeltaCalibrationInput;result:ReturnType<typeof fitDeltaCalibration>}|undefined;
  let observations:DeltaCalibrationInput|undefined;
  let pending:Promise<Json>|undefined,receipt:{token:string;key:string;value:Json}|undefined;
+ type Stage='capture'|'measure'|'synchronize'|'fit'|'validate'|'save'|'publish';
+ let failure:{action:string;stage:Stage;cause:unknown;input?:DeltaCalibrationInput}|undefined;
+ // Local owner diagnostics only. Never include tokens, configuration or context
+ // in wire responses; copy numeric input so observers cannot change a candidate.
+ const diagnostic=()=>({failure:failure?{action:failure.action,stage:failure.stage,cause:failure.cause}:undefined,input:structuredClone(failure?.input??candidate?.input)});
  const lifetime=new AbortController(),executor=new DeltaCalibrationExecutor();
  const snapshot=():Json=>({manual_count:(observations??candidate?.input??motion.restored?.())?.manual?.length??0,automatic:motion.canProbe!==false,state_token:token,state,available:!closed&&['ready','candidate'].includes(state)&&gate.available&&motion.idle(),can_save:!!session&&state==='candidate',restart_required:state==='saved'||state==='failed',candidate:candidate?{geometry:{...candidate.result.geometry,angles:[...candidate.result.geometry.angles],arms:[...candidate.result.geometry.arms],endstops:[...candidate.result.geometry.endstops],stepDistances:[...candidate.result.geometry.stepDistances]},initial_error:candidate.result.initialError,final_error:candidate.result.finalError,height_residuals:[...candidate.result.heightResiduals],distance_residuals:[...candidate.result.distanceResiduals]}:null});
  const unregister=registry.register({endpoint:'/printer/calibration/delta',methods:['GET','POST']},async(params,verb,context)=>{
@@ -38,29 +43,30 @@ export function registerNativeDeltaCalibration(registry:EndpointRegistry,gate:Ma
   let release:()=>void;try{release=gate.acquire();}catch{throw new ApiError(409,'Printer activity blocks Delta calibration');}
   const consumed=token,action=params.action as string,deadline=new AbortController(),timer=setTimeout(()=>deadline.abort(new Error('Delta calibration deadline exceeded')),120000),signal=AbortSignal.any([context.signal,lifetime.signal,deadline.signal]);
   state=action==='save'?'saving':'measuring';
+  let stage:Stage=action==='height'?'capture':action==='save'?'save':'measure',captured:DeltaCalibrationInput|undefined=action==='save'?candidate?.input:undefined;
   pending=(async()=>{try{
    signal.throwIfAborted();
    if(action==='height'){
     const stable=await motion.captureStable!(signal);signal.throwIfAborted();if(stable.length!==3||!stable.every(Number.isFinite))throw new Error('Invalid captured Delta position');
     observations={...structuredClone(heightBase!),manual:[...heightBase!.manual??[],{height:params.height as number,stable:[...stable]}]};candidate=undefined;state='ready';
    }else if(action==='calibrate'||action==='extend'){
-    candidate=undefined;const input=extended??structuredClone(await motion.measure(signal));signal.throwIfAborted();if(!extended){input.manual=structuredClone(observations?.manual??input.manual??[]);motion.synchronize();}
-    const result=await executor.fit(input,{signal});signal.throwIfAborted();motion.validateGeometry?.(result.geometry);observations=input;candidate={input,result};state='candidate';
+    candidate=undefined;const input=captured=extended??structuredClone(await motion.measure(signal));signal.throwIfAborted();if(!extended){input.manual=structuredClone(observations?.manual??input.manual??[]);stage='synchronize';motion.synchronize();}
+    stage='fit';const result=await executor.fit(input,{signal});signal.throwIfAborted();stage='validate';motion.validateGeometry?.(result.geometry);observations=input;candidate={input,result};state='candidate';
    }else{
     session!.apply(deltaCalibrationSaveChanges(candidate!.input,candidate!.result));
     const saved=await session!.save(signal);if(!saved||saved.pending)throw new Error('Delta save did not settle');
     session!.sealForRestart();state='saved';gate.invalidate();
    }
-   token=randomUUID();release();const value=snapshot();receipt={token:consumed,key,value:structuredClone(value)};return value;
-  }catch{candidate=undefined;state='failed';gate.invalidate();throw new ApiError(503,'Delta calibration failed; reinitialize and inspect configuration');}
+   stage='publish';token=randomUUID();release();const value=snapshot();receipt={token:consumed,key,value:structuredClone(value)};failure=undefined;return value;
+  }catch(cause){failure={action,stage,cause,input:captured};candidate=undefined;state='failed';gate.invalidate();throw new ApiError(503,'Delta calibration failed; reinitialize and inspect configuration');}
   finally{clearTimeout(timer);release();}})();
   try{return await pending;}finally{pending=undefined;}
  });
  const close=async()=>{closed=true;lifetime.abort(new Error('Delta calibration owner closed'));unregister();await pending?.catch(()=>{});};
- return Object.assign(close,{async acceptManual(input:DeltaCalibrationInput,signal:AbortSignal):Promise<Json>{
+ return Object.assign(close,{diagnostic,async acceptManual(input:DeltaCalibrationInput,signal:AbortSignal):Promise<Json>{
   if(closed||pending||!['ready','candidate'].includes(state)||!gate.status.maintenance||gate.status.closed)throw new Error('Delta manual result has no active maintenance owner');
   state='measuring';candidate=undefined;const owned=structuredClone({...input,manual:observations?.manual??input.manual}),combined=AbortSignal.any([signal,lifetime.signal]);
-  pending=(async()=>{try{const result=await executor.fit(owned,{signal:combined});combined.throwIfAborted();motion.validateGeometry?.(result.geometry);observations=owned;candidate={input:owned,result};state='candidate';token=randomUUID();receipt=undefined;return snapshot();}catch(error){state='failed';gate.invalidate();throw error;}})();
+  let stage:Stage='fit';pending=(async()=>{try{const result=await executor.fit(owned,{signal:combined});combined.throwIfAborted();stage='validate';motion.validateGeometry?.(result.geometry);observations=owned;candidate={input:owned,result};state='candidate';stage='publish';token=randomUUID();receipt=undefined;const value=snapshot();failure=undefined;return value;}catch(cause){failure={action:'manual',stage,cause,input:owned};candidate=undefined;state='failed';gate.invalidate();throw cause;}})();
   try{return await pending;}finally{pending=undefined;}
  }});
 }

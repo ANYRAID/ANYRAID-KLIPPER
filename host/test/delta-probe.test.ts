@@ -120,9 +120,10 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
     calibrating=true;const calibrationUrl='http://127.0.0.1:'+service.address.port+'/printer/calibration/delta',state=await (await fetch(calibrationUrl)).json() as any;
     const body=JSON.stringify({version:1,state_token:state.result.state_token,action:'calibrate'}),started=performance.now();
     const response=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});
-    if(response.status!==200)t.diagnostic(inspect({motionFault:owner.port.status.fault,hardwareFault:hw.status.fault,hits},{depth:5}));
+    if(response.status!==200)t.diagnostic(inspect({motionFault:owner.port.status.fault,hardwareFault:hw.status.fault,hits,calibration:service.calibrationDiagnostic()},{depth:8,maxArrayLength:1000}));
     assert.equal(response.status,200,await response.clone().text());
     const result=(await response.json() as any).result;assert.equal(result.state,'candidate');assert.equal(hits,16);assert(Number.isFinite(result.candidate.final_error));assert(result.candidate.final_error<result.candidate.initial_error);
+    t.diagnostic('DeltaCalibrationInput '+JSON.stringify(service.calibrationDiagnostic()?.input));
     const replay=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});assert.deepEqual((await replay.json() as any).result,result);assert.equal(hits,16);
     const activeGeometry=owner.kinematics.calibrationGeometry,saveBody=JSON.stringify({version:1,state_token:result.state_token,action:'save'});
     const saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});assert.equal(saved.status,200,await saved.clone().text());

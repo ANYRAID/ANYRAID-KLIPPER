@@ -1,7 +1,8 @@
 import {asymmetricDeltaCalibration} from './helpers/delta-calibration.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {DeltaCalibration,fitDeltaCalibration} from '../src/calibration/delta-calibration.ts';
+import {readFileSync} from 'node:fs';
+import {DeltaCalibration,fitDeltaCalibration,type DeltaCalibrationInput} from '../src/calibration/delta-calibration.ts';
 import {DeltaCalibrationExecutor} from '../src/calibration/delta-calibration-executor.ts';
 const geometry={radius:100,angles:[210,330,90] as const,arms:[250,250,250] as const,endstops:[300,300,300] as const,stepDistances:[.0125,.0125,.0125] as const};
 function fixture(){const original=new DeltaCalibration(geometry),truth=new DeltaCalibration({...geometry,radius:100.2,endstops:[300.1,299.9,300.2]});const probes=Array.from({length:7},(_,i)=>{const angle=i*Math.PI/3,stable=original.stable(i?[Math.cos(angle)*65,Math.sin(angle)*65,0]:[0,0,0]);return {height:truth.position(stable)[2],stable};});return {geometry,probes};}
@@ -31,4 +32,12 @@ test('Delta noisy overdetermined fit improves residuals with finite geometry',()
  const input=asymmetricDeltaCalibration()[1];
  const noisy={...input,probes:input.probes.map((p,i)=>({...p,height:p.height+Math.sin(i*7)*.001})),distances:input.distances!.map((d,i)=>({...d,distance:d.distance+Math.cos(i*3)*.001}))};
  const before=structuredClone(noisy),result=fitDeltaCalibration(noisy);assert.deepEqual(noisy,before);assert(result.search.converged);assert(result.finalError<result.initialError*.001);assert(result.heightResiduals.every(v=>Math.abs(v)<.002));assert(result.distanceResiduals.every(v=>Math.abs(v)<.003));
+});
+
+test('captured small-span Delta input cannot publish a one-step unconverged fit despite reduced residuals',async()=>{
+ const input=JSON.parse(readFileSync(new URL('./helpers/delta-calibration-sensitive-input.json',import.meta.url),'utf8')).input as DeltaCalibrationInput,before=structuredClone(input),perturbed=structuredClone(input);
+ perturbed.probes=perturbed.probes.map((p,i)=>i? p:{...p,stable:[p.stable[0]-1,p.stable[1],p.stable[2]]});
+ const result=fitDeltaCalibration(perturbed);assert.equal(result.search.converged,false);assert.equal(result.search.reason,'line_search_failed');assert(result.finalError<result.initialError);assert.deepEqual(input,before);
+ const executor=new DeltaCalibrationExecutor();await assert.rejects(executor.fit(perturbed),/Delta calibration did not converge: line_search_failed/);assert.equal(executor.busy,false);
+ const base=await executor.fit(input);assert(base.search.converged);assert(base.finalError<1e-18);assert.equal(executor.busy,false);assert.deepEqual(input,before);
 });
