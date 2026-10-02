@@ -4,6 +4,7 @@ import {inspect} from 'node:util';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {productMachineFixture} from './helpers/product-machine.ts';
 import {simulateDeltaWire} from './helpers/delta-wire-simulation.ts';
+import {deltaClockDiagnostic} from './helpers/delta-clock-diagnostic.ts';
 import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {ConfigurationReader} from '../src/moonraker/config-reader.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
@@ -18,6 +19,7 @@ for(const {stow,stuck} of [{stow:true,stuck:false},{stow:false,stuck:false},{sto
   for(const axis of ['a','b','c'])Object.assign(raw['stepper_'+axis],{homing_retract_dist:'.2',homing_speed:'40',second_homing_speed:'10'});
   const reader=new ConfigurationReader(new ConfigurationSource('/delta-bltouch.cfg',raw,[]),null);
   service=await startConfiguredDeltaProductService(reader,f.transport.policies,{journal,maintenanceGate:new MaintenanceGate(),limits:f.config.limits},{configPath:f.config.moonrakerConfig,machine:f.config.machine,hardware:f.config.hardware,print:{...f.config.print,...f.bindings.print},server:f.bindings.server},signal);
+  simulation.captureClocks((member,trigger)=>deltaClockDiagnostic(service!.printer,member,trigger));
   const owner=service.printer.delta;const device=service.printer.hardware.bltouch!.device;assert.equal(device.status.phase,'idle');assert.equal(device.status.deployed,false);
   const clocks=['mcu','aux'].map(id=>({id,sync:service!.printer.group.session(id).clock.sync}));
   const clockDiagnostic=()=>{const now=serialClock.now();return {wire:simulation.clockDiagnostic(),estimates:clocks.map(({id,sync},i)=>({id,actual:f.transport.firmware[i].currentClock(),predicted:String(sync.getClock(now)),revision:sync.revision,estimate:sync.estimate}))};};

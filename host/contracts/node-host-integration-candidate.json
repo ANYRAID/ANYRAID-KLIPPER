@@ -266,7 +266,7 @@
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
     "next": "Directory software exit reached; perform bounded captured calibration-input versus successful-input discrimination and mapped-clock checkpoint before expanding copy/overwrite. Existing PR remains unmergeable pending exact-source required checks.",
-    "latestObservedSource": "570ee60d6e9300fe37ed10370f3439de15b46881",
+    "latestObservedSource": "8b3d9762299fb0b4fe4961bafc43274cf384757c",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -1080,12 +1080,117 @@
           "scope": "Terminal finite jobs only, not G3 closure"
         },
         "closure": "No merge, physical motion approval or Python retirement. Historical failures remain unresolved; directory increment has separate source and product evidence."
+      },
+      {
+        "source": "8b3d9762299fb0b4fe4961bafc43274cf384757c",
+        "mergeTestRevision": "f3fc139dbf1a31761f5d0245872ed0e597948842",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37018149201,
+          "job": 110874060613,
+          "conclusion": "failure",
+          "tests": 3860,
+          "pass": 3858,
+          "fail": 2,
+          "durationMs": 590244.261675,
+          "failures": [
+            {
+              "case": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+              "cause": "Invalid mapped trigger clock",
+              "member": 0,
+              "oid": 0,
+              "mapped": "7771058",
+              "observed": "7762737",
+              "probeHits": 1,
+              "wire": {
+                "triggerClock": 7748768,
+                "actualClocksAtTrigger": [
+                  7758868,
+                  7758327
+                ],
+                "primaryMember": 1,
+                "actualClocksAtMainUptimeQuery": [
+                  7762735,
+                  7762194
+                ]
+              },
+              "discriminator": "Auxiliary simulated firmware clock at trigger emission exceeds its trigger by 9559 ticks. This captured failure is not caused by an early simulated event; mapped main clock exceeds observed main stop by 8321 ticks. Calibration mapping cause remains unresolved."
+            },
+            {
+              "case": "manual Delta mesh from homed apex preflights all points; reachable=true",
+              "cause": "Manual calibration stopped; reinitialize before further motion",
+              "innerCause": "unavailable in this job; new test-only first-failure record added without changing expected success"
+            }
+          ],
+          "protocolNative": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Terminal provider checks and complete decoded host log, 557807 characters; first BLTouch clock failure and both final assertions preserved.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-8b3d9762-host-failures.log",
+            "sha256": "08f9041c64c16a9dc536f9c839e0d914995230a264d2ad5a490c9a122f754bab"
+          }
+        },
+        "firmware": {
+          "run": 37018150095,
+          "job": 110874063726,
+          "conclusion": "success",
+          "scope": "Terminal provider status only; no new matrix counts extracted"
+        },
+        "motion": {
+          "run": 37018149360,
+          "jobs": [
+            {
+              "job": 110874061192,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061131,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061110,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061057,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061012,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061008,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874060989,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874060688,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion, full clients, full Moonraker or Python retirement. Four failures from 570ee60d passed here; their historical intermittent causes remain unresolved."
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "570ee60d exact-source host CI: 3834/3838 ordinary tests passed; thermal stop, mapped clock, calibration fit and future-trigger failures. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; full exact new-source required CI and unresolved G3 gates remain.",
+    "8b3d9762 exact-source host CI: 3858/3860 ordinary tests passed; BLTouch mapped clock and manual Delta mesh fail. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; latest required CI and unresolved G3 gates remain.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",

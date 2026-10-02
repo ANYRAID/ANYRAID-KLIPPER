@@ -5,8 +5,9 @@ import type {productTransports} from './product-transports.ts';
 /** Test-only endstop/ADC model at the firmware wire boundary, with no host hooks. */
 export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTransports>>,options:{bltouch?:boolean;stuckProbe?:boolean;clockDiagnostic?:boolean}={}){
  const passes=new Map<string,number>(),timers=new Set<ReturnType<typeof setTimeout>>(),listeners:(()=>void)[]=[];
- const clockEvents:{kind:string;member:number;oid?:number;trigger?:number;eventTime:number;actualClocks:number[]}[]=[];
- const recordClock=(kind:string,member:number,oid?:number,trigger?:number)=>{if(!options.clockDiagnostic)return;clockEvents.push({kind,member,oid,trigger,eventTime:serialClock.now(),actualClocks:transport.firmware.map(f=>f.currentClock())});if(clockEvents.length>32)clockEvents.shift();};
+ let clockSnapshot:((member:number,trigger?:number)=>unknown)|undefined;
+ const clockEvents:{kind:string;member:number;oid?:number;trigger?:number;eventTime:number;actualClocks:number[];mapping?:unknown}[]=[];
+ const recordClock=(kind:string,member:number,oid?:number,trigger?:number)=>{if(!options.clockDiagnostic)return;clockEvents.push({kind,member,oid,trigger,eventTime:serialClock.now(),actualClocks:transport.firmware.map(f=>f.currentClock()),...clockSnapshot?{mapping:clockSnapshot(member,trigger)}:{}});if(clockEvents.length>32)clockEvents.shift();};
  const counts=new Map<string,number>();let probeHits=0;
  const converter=new Thermistor(4700,0,{points:[[25,100000],[150,1770],[250,230]]});
  for(const [index,fw] of transport.firmware.entries()){
@@ -39,5 +40,5 @@ export function simulateDeltaWire(transport:Awaited<ReturnType<typeof productTra
   const temperature=cfg.parameters.pin==='PA2'||cfg.parameters.pin===2?220:80,raw=Math.round(converter.adc(temperature)*4095*Number(p.sample_count)),next=fw.currentClock()+Number(p.rest_ticks)-Number(p.sample_ticks)*Number(p.sample_count);
   fw.emit('analog_in_state',{oid:Number(p.oid),next_clock:next>>>0,values:Buffer.from([raw&255,raw>>8])});
  }},10);
- return {passes,get probeHits(){return probeHits;},clockDiagnostic:()=>structuredClone(clockEvents),close(){clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of listeners)off();}};
+ return {passes,get probeHits(){return probeHits;},captureClocks(snapshot:NonNullable<typeof clockSnapshot>){clockSnapshot=snapshot;},clockDiagnostic:()=>structuredClone(clockEvents),close(){clockSnapshot=undefined;clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const off of listeners)off();}};
 }

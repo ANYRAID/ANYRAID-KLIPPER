@@ -597,5 +597,99 @@
       "Next failing accepted-wire trace must be compared with per-MCU trigger mapping/history and stop readback; do not loosen solver/stop gates.",
       "Full client journey, Cycnumbris 500 target installation/precision/performance and G1/G5 remain incomplete."
     ]
+  },
+  "mappedClockCheckpoint": {
+    "sourceBase": "f125179532e2f5de814d869dd50ddbff1503e221",
+    "node": "v26.9.0",
+    "scope": "Test-only mechanical probe timing repair and bounded map/fault observations for existing Delta compatibility. No production math/motion change, new machine adaptation, root-cause closure or Python retirement.",
+    "sourceSha256": {
+      "host/test/probe-home.test.ts": "8498f9e6a5bc3d124470f5529d10b170f3189abbab591764ddb56cd29e67e23b",
+      "host/test/helpers/delta-wire-simulation.ts": "472d3a0a667137e30ca2448413f56530549f355cdd568eb1f3acc995a5a8efde",
+      "host/test/helpers/delta-clock-diagnostic.ts": "96ccde595444812f868ef68a3f63816fa36125daed3498c23504f0dda4311229",
+      "host/test/delta-clock-diagnostic.test.ts": "84e02baa90b37c368d537f995150acb2aef53446488bd600b6ee1610e82931e3",
+      "host/test/delta-bltouch.test.ts": "6f50d90b4edf92f11cf0be4c7850e08c55d1ba06232ea54b4bfed2574f30d505",
+      "host/test/manual-delta-preflight.test.ts": "68061d92186eec4ff859a21ad76cb2b49c564349b28b2fe88092746e4b946ada"
+    },
+    "remoteEvidence": {
+      "source": "8b3d9762299fb0b4fe4961bafc43274cf384757c",
+      "hostJob": 110874060613,
+      "details": "host/contracts/node-host-integration-candidate.json remoteCiObservation.additionalObservations",
+      "excluded": "This BLTouch failure did not emit its simulated hit early: 9559 ticks already elapsed on aux. Main mapped trigger exceeds observed main stop by 8321 ticks; calibration cause remains unresolved."
+    },
+    "implementation": {
+      "mechanicalProbe": "Accepted command observer replaces stale independent decoder; trigger injection waits for actual firmware clock rather than the host estimate. Original stuck/retract/overshoot/future-stop assertions retained.",
+      "maps": "At accepted arm, emitted probe trigger and stopped uptime request, at most 32 test-only observations include physical membership, estimated clock/revision, timeline status, synchronizer mapping and exact historical cross-MCU trigger conversion.",
+      "failure": "Manual mesh test records failing action and original motion/hardware cause; public 503 and success assertions unchanged. Retired mappings recorded unavailable; never replaced with current calibration.",
+      "ownership": "Clock observation does not calibrate, reserve, retire, send or grant authority; returned snapshots are detached and later updates cannot rewrite them. Callback cleared on simulation close."
+    },
+    "local": {
+      "distinctTests": 32,
+      "deterministic": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "durationMs": 110.916562
+      },
+      "product": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "durationMs": 55311.510738,
+        "scope": "Simulated BLTouch each-sample/continuous/stuck, manual 9-contact mesh/preflight and mechanical Z homing/retract/stuck/cancel/216 fixed arithmetic rows."
+      },
+      "stop": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "durationMs": 8791.651293,
+        "scope": "Future trigger still rejected; ordered actual ticks, regressing/invalid ticks, response faults and safety cleanup remain fail-closed."
+      },
+      "typecheck": "pass",
+      "whitespace": "pass",
+      "successfulControl": {
+        "primary": "aux",
+        "trigger": 7800508,
+        "actualClocksAtEmission": [
+          7809380,
+          7808957
+        ],
+        "historicalPrintTime": 7.765798432769856,
+        "mappedMain": 7765798,
+        "interpretation": "Successful local control has a mapping offset too. Does not explain or close the remote positive skew; next discriminator must capture cold-start and subsequent calibration anchors."
+      }
+    },
+    "performance": {
+      "productionRuntimeChanged": false,
+      "decision": "No new runtime benchmark because production TS/C and algorithm/thresholds are unchanged. Earlier compiled print figures retain their historical source/manifest identity; no new target-performance result claimed."
+    },
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-stop-mapping-deterministic.log",
+        "sha256": "99df3b4c895ef7fabaca1abb8b1bcae21b82caf0e87119e1a528d6b80730fec3"
+      },
+      {
+        "path": "/tmp/anyraid-stop-mapping-product.log",
+        "sha256": "8343009e9ac8f7640f8ed6d0ec4c71adc9f65f5b13e28004234e9b1c644ded16"
+      },
+      {
+        "path": "/tmp/anyraid-stop-mapping-stop-regression.log",
+        "sha256": "3b2dec99abace13ba46fb7ef5d9546e3c72407109cc6b2b7bac7c74281b29b1a"
+      },
+      {
+        "path": "/tmp/anyraid-stop-mapping-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-stop-mapping-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "remaining": [
+      "New exact-source required CI",
+      "BLTouch cross-MCU calibration-offset cause and manual mesh original failure",
+      "Historical G3 precision/crash gates",
+      "Same-bundle actual clients and Cycnumbris 500 installation/stop/precision/timing/rollback",
+      "Complete Moonraker and all Python retirement"
+    ]
   }
 }
