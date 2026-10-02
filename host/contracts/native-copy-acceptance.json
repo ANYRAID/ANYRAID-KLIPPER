@@ -396,18 +396,41 @@
     },
     "postMerge": {
       "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-      "status": "in_progress",
+      "status": "passed",
       "host": {
         "runId": 37047916751,
         "jobId": 110973808529,
-        "status": "in_progress",
-        "conclusion": null,
+        "status": "completed",
+        "conclusion": "success",
         "stageResults": {
           "ordinary": "success",
           "nativeProtocol": "success",
-          "sanitizer": "in_progress",
-          "linuxMcu": "pending"
-        }
+          "sanitizer": "success",
+          "linuxMcu": "success"
+        },
+        "ordinary": {
+          "tests": 3881,
+          "passed": 3881,
+          "failed": 0,
+          "durationMs": 578710.381453
+        },
+        "sanitizers": {
+          "ubsan": {
+            "files": 149,
+            "tests": 1180,
+            "failed": 0,
+            "maxChildMs": 45928.703393
+          },
+          "asanPlusUbsan": {
+            "files": 149,
+            "tests": 1180,
+            "failed": 0,
+            "maxChildMs": 46366.370618000044
+          }
+        },
+        "originalChildDeadlineMs": 60000,
+        "decodedLogCharacters": 1701583,
+        "checkoutVerified": true
       },
       "firmware": {
         "runId": 37047916546,
@@ -420,8 +443,8 @@
         }
       },
       "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
-      "observedAtUtc": "2026-10-02T18:48:01.685Z"
+      "observedAtUtc": "2026-10-02T19:20:02.811Z"
     },
-    "scope": "Required exact-head CI and bounded software review passed; normal develop merge completed. Post-merge firmware succeeded, host ordinary and native protocol succeeded, sanitizer is in progress. Does not close G3, full clients, target hardware, actual print speed/precision, complete Moonraker or Python retirement."
+    "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
   }
 }

@@ -56,15 +56,16 @@ FIRMWARE_RESTART 和独立编译验收设施，继续复用；不重建通用事
 有限软件审阅和额外四项配额／耐久取消实验另有证据，不属于外部 GitHub 审批。
 
 `4b6a2317` 的[合并后主机检查](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37047916751/job/110973808529)
-进行中：普通测试及原生协议通过，sanitizer 未结束；
+已成功：普通测试 3,881 项、原生协议、两轮 sanitizer 各 149 文件／1,180 项
+及 Linux MCU 均通过，原 60 秒子进程期限保留；
 [合并后固件检查](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37047916546/job/110973807706)已成功。
 有限运动矩阵因既有路径筛选未触发，不记为本次新通过。
-当前尚未通过最新集成退出条件；master 本轮未推进，默认入口与真实运动准入保留。
+当前软件集成规定检查已通过；master 本轮未推进，默认入口与真实运动准入保留。
 
 | 项目 | 已核验状态 | 当前动作 |
 | --- | --- | --- |
-| M2b 第 3a 批复制／复制覆盖 | 118 项受影响回归、另四项审阅实验、同包两代混合打印、本机 ext 性能、完整任务 CI、有限审阅和 PR 合并通过 | 按上述实际作业读取合并后终态，保持源码身份；不扩展已合并 PR |
-| M2b 第 3b 批上传／移动覆盖 | 固定上游契约已核对；`devac/moonraker-file-overwrite` 含最新 develop，尚无本批运行实现或验收通过声明 | 已封存 `4b6a2317` 的 626 个源码／依赖描述文件并逐项核对 Git blob，Node 26 导入通过；接下来实现下节完整路径，尚无本批性能结果 |
+| M2b 第 3a 批复制／复制覆盖 | 118 项受影响回归、另四项审阅实验、同包两代混合打印、本机 ext 性能、完整任务 CI、有限审阅、PR 合并及实际 develop 规定检查通过 | 保持历史源码和检查身份；完整客户端及目标板仍待验，不扩展已合并 PR |
+| M2b 第 3b 批上传／移动覆盖 | `devac/moonraker-file-overwrite` 已接通有界耐久替换和标准入口；124 项文件库／HTTP 回归及 8 项主机循环回归通过，独立 Node 26 类型检查通过；ext 旧新目录查询、25 次上传／25 次移动覆盖负载通过 | 完成独立编译两代混合打印、明确覆盖代际／失败边界，再提交精确新头 CI／审阅／PR；旧 `4b6a2317` CI 不覆盖本批新源码 |
 | 出口 A 客户端 | 服务及独立编译设施可复用；Fluidd／Mainsail 完整同包页面流程未通过 | 使用固定同一编译产物完成实际上传、打印、恢复和历史；API 不代替页面 |
 | Cycnumbris 500 准备 | 通用安装与回滚设施可复用；仓库尚无可核验的系列配置 | 明确配置、板卡、固件、主机、停止、回滚和旧路径基线缺项；资料到位即可无运动装配 |
 | 精度与退役 | 固定参考、捕获入口及局部无 Python 产品已有证据 | 历史 G3、目标预算、177 个 Python 文件及默认入口保持未关闭 |
@@ -96,7 +97,14 @@ M2a 的目录上传／标准路径打印和 M2b 第 1／2 批的文件／含文�
 
 ### 第 3b 批已核对的契约与实现边界
 
-本节为下一批实现的准入契约，尚无实现／验收通过声明。核对基线为
+本节为当前批次的准入契约；运行实现与本机证据见
+[覆盖验收](../host/contracts/native-overwrite-acceptance.json)，完整软件出口仍未关闭。
+已封存 `4b6a2317` 的 626 个旧 Node 源码／依赖描述文件并逐项核对 Git blob。
+1,024 文件、每文件 53,248 字节的 ext 基准中，目录查询中位比为 0.9844，
+1,362 次并发目录查询 P95 0.3135 ms；事件循环 P99 1.8432 ms／最大
+3.7478 ms。覆盖操作含完整实际收据校验与耐久 IO，不给其另设未约定的
+50 ms 操作期限；这些数字不代表打印负载、目标板或旧 Python 性能通过。
+核对基线为
 Moonraker `1cfb0c41e468645951a371621f06d32777b6107c` 的
 [file_manager.py](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/file_manager/file_manager.py)，
 GitHub 读回 blob 为 `6fe3ce383f0ff1a36cd82a4222e0d6760ae0b93d`。
@@ -233,6 +241,7 @@ develop 完成规定集成／远程验证后再经主线 PR 及检查，在授�
 | --- | --- |
 | 固定上游范围 | [注册点清单](../host/contracts/moonraker-upstream.json)，提交 `1cfb0c41e468645951a371621f06d32777b6107c`；37 个组件／167 个注册点不是展开契约或完成率分母，旧状态标签不能代替当前验收 |
 | 候选来源与当前 CI | [集成候选](../host/contracts/node-host-integration-candidate.json) |
+| 当前上传／移动覆盖 | [覆盖证据](../host/contracts/native-overwrite-acceptance.json)，本机运行实现及基准，独立编译／新头 CI／PR 未通过 |
 | 参考及代际修复 | [固定参考修复](../host/contracts/ci-reference-lifecycle-acceptance.json)、[停止与状态修复](../host/contracts/ci-stop-state-acceptance.json) |
 | 服务及标准重启 | [进程服务](../host/contracts/native-process-server-acceptance.json)、[断开窗口](../host/contracts/native-process-offline-resources-acceptance.json)、[主机重启](../host/contracts/native-standard-restart-acceptance.json)、[固件故障](../host/contracts/native-standard-restart-fault-acceptance.json)、[固件重启](../host/contracts/native-firmware-restart-acceptance.json) |
 | 安装／配置／备份 | [独立安装](../host/contracts/product-independent-install-acceptance.json)、[配置读取](../host/contracts/native-config-files-read-acceptance.json)、[配置保存](../host/contracts/native-config-files-save-acceptance.json)、[备份管理](../host/contracts/native-config-backups-acceptance.json) |

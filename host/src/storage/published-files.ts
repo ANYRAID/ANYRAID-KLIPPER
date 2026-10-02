@@ -8,6 +8,7 @@ import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snap
 import {publishedPath,visibleFilePath,pathParent,pathBasename,PublishedDirectoryCommitError} from './published-paths.ts';
 import {planNamespaceMove,validateMoveIntent,recoverMoveRecords,sameNamespaceMove,samePublishedFile,type NamespaceMove} from './namespace-move.ts';
 import {planNamespaceCopy,validateCopyIntent,recoverCopyRecords,sameNamespaceCopy,type NamespaceCopy} from './namespace-copy.ts';
+import {replacementNamespaceHash,validateReplacementIntent,recoverReplacementRecords,replacementIntentLimit,type FileReplacement} from './namespace-replace.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;readonly path?:string;}
 export class PublishedFileChangedError extends Error {}
@@ -15,7 +16,12 @@ export class PublishedFileMoveCommitError extends Error {
  readonly phase:'before-replace'|'replaced';
  constructor(phase:'before-replace'|'replaced',cause:unknown){super('File move requires recovery',{cause});this.phase=phase;}
 }
-export interface PublishedFileMove {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;}
+export interface PublishedFileMove {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;readonly replaced?:PublishedPrintFile;}
+export interface PublishedUploadReplacement {readonly id:string;readonly name:string;readonly path:string;readonly replaced:PublishedPrintFile;readonly namespaceSha256:string;readonly directories:FileReplacement['directories'];}
+export class PublishedReplacementCommitError extends Error {
+ readonly phase:'before-intent'|'intent-published';
+ constructor(phase:'before-intent'|'intent-published',cause:unknown){super('File replacement requires recovery',{cause});this.phase=phase;}
+}
 export class PublishedNamespaceMoveCommitError extends Error {
  readonly phase:'before-intent'|'intent-published';
  constructor(phase:'before-intent'|'intent-published',cause:unknown){super('Directory move requires recovery',{cause});this.phase=phase;}
@@ -44,6 +50,8 @@ export class PublishedPrintFiles {
  readonly #fileMoves=new WeakMap<PublishedFileMove,string>();
  readonly #directoryMoves=new WeakMap<NamespaceMove,string>();
  readonly #copies=new WeakMap<NamespaceCopy,string>();
+ readonly #uploadReplacements=new WeakSet<PublishedUploadReplacement>();
+ readonly #fileReplacements=new WeakMap<PublishedFileMove,FileReplacement>();
  #cachedNamespaceWindow=false;
  observeDirectories(observer:(change:PublishedDirectoryChange)=>void):()=>void{if(this.#closed||typeof observer!=='function'||this.#directoryObservers.size>=8||this.#directoryObservers.has(observer))throw new Error('Published directory observer unavailable');this.#directoryObservers.add(observer);return ()=>this.#directoryObservers.delete(observer);}
  /** Internal synchronous commit observers. Transport delivery must enqueue work
@@ -66,7 +74,7 @@ export class PublishedPrintFiles {
  get status(){return {storedBytes:this.#storedBytes,reservedBytes:this.#reservedBytes,publishedFiles:this.#records.size,pendingPublications:this.#publishing.size,maxStorageBytes:this.#maxStorage,maxPublishedFiles:this.#maxFiles,writeFault:this.#writeFault,closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
  async directoryPath(signal:AbortSignal):Promise<string>{signal.throwIfAborted();if(this.#closed)throw new Error('Published files closed');const path=await readlink(`/proc/self/fd/${this.#root.fd}`);signal.throwIfAborted();return path;}
  async #recover():Promise<void>{
-  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0,intent:NamespaceMove|undefined,copyIntent:NamespaceCopy|undefined;
+  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0,intent:NamespaceMove|undefined,copyIntent:NamespaceCopy|undefined,replacement:FileReplacement|undefined;
   const directory=await opendir(this.#path('.'));
   for await(const entry of directory){
    if(++count>32768)throw new Error('Published directory entry limit exceeded');
@@ -75,12 +83,18 @@ export class PublishedPrintFiles {
    else if(entry.name==='.directories.json')await this.#loadDirectories();
    else if(entry.name==='.namespace-move.json')intent=await this.#loadMoveIntent();
    else if(entry.name==='.namespace-copy.json')copyIntent=await this.#loadCopyIntent();
+   else if(entry.name==='.namespace-replace.json')replacement=await this.#loadReplacementIntent();
    else if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name))receipts.set(entry.name,stat.size);
    else if(/^\.directories-[a-f0-9-]{36}$/.test(entry.name))temporary.push(entry.name);
-   else if(/^\.(?:upload|receipt|move|copy)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
+   else if(/^\.(?:upload|receipt|move|copy|replace)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
    else throw new Error('Unknown published storage entry');
   }
-  if(intent&&copyIntent)throw new Error('Conflicting namespace intents');
+  if([intent,copyIntent,replacement].filter(Boolean).length>1)throw new Error('Conflicting namespace intents');
+  if(replacement){
+   const files:PublishedPrintFile[]=[];for(const [name] of receipts){const record=await this.#record(name.slice(0,-5));if(blobs.get(record.sha256+'.gcode')!==record.size)throw new Error('Replacement recovery content reference is invalid');files.push(record);}
+   await recoverReplacementRecords(replacement,files,this.#directorySnapshot());await this.#applyReplacement(replacement,files);
+   this.#directories.clear();this.#directoryBytes=0;await this.#recover();return;
+  }
   if(copyIntent){
    const files:PublishedPrintFile[]=[];for(const [name] of receipts){const record=await this.#record(name.slice(0,-5));if(blobs.get(record.sha256+'.gcode')!==record.size)throw new Error('Copy recovery content reference is invalid');files.push(record);}
    recoverCopyRecords(copyIntent,files,this.#directories);
@@ -235,6 +249,93 @@ export class PublishedPrintFiles {
    finally{try{await file?.close();if(!published){await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Copy cleanup failed');throw new PublishedCopyCommitError(published?'intent-published':'before-intent',this.#writeFault);}finally{this.#reservedBytes-=reserved;}}
   }finally{this.#cachedNamespaceWindow=false;}
  },true,signal);}
+ #directorySnapshot():FileReplacement['directories']{return Object.freeze([...this.#directories].sort(([a],[b])=>a<b?-1:a>b?1:0).map(([path,modified])=>Object.freeze({path,modified})));}
+ async #loadReplacementIntent():Promise<FileReplacement>{
+  const file=await open(this.#path('.namespace-replace.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const before=await file.stat({bigint:true});if(!before.isFile()||before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7777n)!==0o600n||before.size>BigInt(replacementIntentLimit))throw new Error('Invalid replacement intent file');const bytes=await file.readFile(),after=await file.stat({bigint:true});if(BigInt(bytes.length)!==before.size||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Replacement intent changed while reading');return validateReplacementIntent(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));}finally{await file.close();}
+ }
+ async #replacementDirectoryAuthority(plan:Pick<FileReplacement,'directories'>):Promise<void>{await this.#verifyDirectoryAuthority(plan.directories).catch(error=>{if(error.code!=='ENOENT'||plan.directories.length)throw error;});}
+ /** Read actual receipt membership, rather than trusting the cached inventory
+  * when admitting a durable replacement or repairing an interrupted decision. */
+ async #replacementDiskFiles():Promise<PublishedPrintFile[]>{
+  const files:PublishedPrintFile[]=[],directory=await opendir(this.#path('.'));let count=0;
+  for await(const entry of directory){
+   if(++count>32768)throw new Error('Published directory entry limit exceeded');const stat=await lstat(this.#path(entry.name));if(!stat.isFile()||stat.uid!==process.getuid!())throw new PublishedFileChangedError('Replacement storage entry changed');
+   if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name)){const record=await this.#record(entry.name.slice(0,-5)),content=await lstat(this.#path(record.sha256+'.gcode'));if(!content.isFile()||content.size!==record.size)throw new PublishedFileChangedError('Replacement content reference changed');files.push(record);}
+   else if(!/^[a-f0-9]{64}\.gcode$/.test(entry.name)&&entry.name!=='.directories.json'&&entry.name!=='.namespace-replace.json'&&!/^\.(?:upload|receipt|replace)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))throw new PublishedFileChangedError('Unexpected replacement storage entry');
+  }
+  return files;
+ }
+ async #applyReplacement(plan:FileReplacement,files:readonly PublishedPrintFile[]):Promise<void>{
+  await recoverReplacementRecords(plan,files,this.#directorySnapshot());await this.#replacementDirectoryAuthority(plan);
+  const signal=new AbortController().signal,verified=new Set<string>();
+  for(const record of [plan.created,...files.filter(f=>f.id===plan.replaced.id||f.id===plan.source?.id)])if(!verified.has(record.sha256)){await this.#verifyExisting(record,signal);verified.add(record.sha256);}
+  const current=await this.#record(plan.created.id).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;});
+  if(!current||!samePublishedFile(current,plan.created)){
+   if(current&&(!plan.source||!samePublishedFile(current,plan.source)))throw new PublishedFileChangedError('Replacement publication changed');
+   const temp=this.#path('.receipt-'+randomUUID()),file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
+   try{await file.writeFile(JSON.stringify(plan.created));await file.utimes(plan.modified,plan.modified);await file.chmod(0o400);await file.sync();}finally{await file.close();}
+   if(plan.source)await rename(temp,this.#path(plan.created.id+'.json'));else{await link(temp,this.#path(plan.created.id+'.json'));await unlink(temp);}
+  }
+  // The new receipt must survive a crash before old identity removal is allowed.
+  await this.#root.sync();
+  const old=await this.#record(plan.replaced.id).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;});
+  if(old){if(!samePublishedFile(old,plan.replaced))throw new PublishedFileChangedError('Replacement retired receipt changed');await unlink(this.#path(old.id+'.json'));}
+  await this.#root.sync();await unlink(this.#path('.namespace-replace.json'));await this.#root.sync();
+ }
+ async #commitReplacement(plan:FileReplacement,signal:AbortSignal):Promise<void>{
+  const previousWindow=this.#cachedNamespaceWindow;this.#cachedNamespaceWindow=true;try{
+   signal.throwIfAborted();validateReplacementIntent(plan);const bytes=Buffer.from(JSON.stringify(plan)),receiptBytes=Buffer.byteLength(JSON.stringify(plan.created)),reserved=bytes.length+2*receiptBytes;
+   if(bytes.length>replacementIntentLimit||receiptBytes>2048||reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published replacement storage quota exceeded');
+   const temp=this.#path('.replace-'+randomUUID());let file:FileHandle|undefined,published=false,failure:unknown;this.#reservedBytes+=reserved;
+   try{
+    file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await file.writeFile(bytes);await file.sync();await file.close();file=undefined;
+    const files=await this.#replacementDiskFiles();try{await recoverReplacementRecords(plan,files,this.#directorySnapshot());}catch(cause){throw new PublishedFileChangedError('Authorized replacement namespace changed',{cause});}
+    if(files.some(f=>f.id===plan.created.id&&!plan.source)||!files.some(f=>samePublishedFile(f,plan.replaced))||plan.source&&!files.some(f=>samePublishedFile(f,plan.source!)))throw new PublishedFileChangedError('Authorized replacement identities changed');
+    await this.#replacementDirectoryAuthority(plan);signal.throwIfAborted();await lstat(this.#path('.namespace-replace.json')).then(()=>{throw new Error('Previous replacement requires recovery');},error=>{if(error.code!=='ENOENT')throw error;});
+    await rename(temp,this.#path('.namespace-replace.json'));published=true;await this.#root.sync();await this.#applyReplacement(plan,files);
+    const records=new Map(this.#records),paths=new Map(this.#paths),references=new Map(this.#references),old=records.get(plan.replaced.id)!;let delta=receiptBytes-old.receiptBytes;
+    records.delete(old.record.id);paths.delete(visibleFilePath(old.record));const count=references.get(old.sha256)!-1;if(count)references.set(old.sha256,count);else references.delete(old.sha256);
+    if(plan.source){const source=records.get(plan.source.id)!;delta-=source.receiptBytes;paths.delete(visibleFilePath(plan.source));}else references.set(plan.created.sha256,(references.get(plan.created.sha256)??0)+1);
+    const modified=(await lstat(this.#path(plan.created.id+'.json'))).mtimeMs/1000;
+    records.set(plan.created.id,{record:plan.created,sha256:plan.created.sha256,size:plan.created.size,receiptBytes,modified});paths.set(visibleFilePath(plan.created),plan.created.id);
+    this.#records=records;this.#paths=paths;this.#references=references;this.#storedBytes+=delta;
+    if(!references.has(old.sha256)){await unlink(this.#path(old.sha256+'.gcode'));await this.#root.sync();this.#storedBytes-=old.size;}
+    this.#changed(plan.action,plan.created,modified,plan.source);
+   }catch(error){failure=error;if(published)this.#writeFault=error;throw new PublishedReplacementCommitError(published?'intent-published':'before-intent',error);}
+   finally{try{await file?.close();if(!published){await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Replacement cleanup failed');throw new PublishedReplacementCommitError(published?'intent-published':'before-intent',this.#writeFault);}finally{this.#reservedBytes-=reserved;}}
+  }finally{this.#cachedNamespaceWindow=previousWindow;}
+ }
+ prepareUploadReplacement(id:string,name:string,path:string,signal:AbortSignal):Promise<PublishedUploadReplacement>{return this.#run(async()=>{
+  this.#id(id);publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');if(this.#records.has(id)||this.#publishing.has(id))throw Object.assign(new Error('Published identifier already exists'),{code:'EEXIST'});
+  if(name!==pathBasename(path))throw new Error('Replacement name must match visible path');const oldId=this.#paths.get(path),stored=oldId?this.#records.get(oldId):undefined;if(!stored)throw Object.assign(new Error('Replacement target not found'),{code:'ENOENT'});
+  const replaced=await this.#record(stored.record.id);if(!samePublishedFile(replaced,stored.record))throw new PublishedFileChangedError('Upload destination changed outside store');
+  const directories=this.#directorySnapshot(),namespaceSha256=await replacementNamespaceHash([...this.#records.values()].map(r=>r.record),directories);
+  const plan=Object.freeze({id,name,path,replaced,directories,namespaceSha256});this.#uploadReplacements.add(plan);return plan;
+ },true,signal);}
+ replaceUpload(plan:PublishedUploadReplacement,source:FileHandle,signal:AbortSignal):Promise<PublishedPrintFile>{return this.#run(async()=>{
+  this.#cachedNamespaceWindow=true;try{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published writes require recovery');if(!this.#uploadReplacements.has(plan))throw new Error('Upload replacement plan belongs to another store');
+  const before=await source.stat({bigint:true});if(!before.isFile()||before.size>BigInt(this.#maxBytes))throw new Error('Published replacement source exceeds regular file limit');
+  let reserved=Number(before.size);if(reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published replacement byte quota exceeded');this.#reservedBytes+=reserved;
+  const temp=this.#path('.upload-'+randomUUID());let file:FileHandle|undefined,created:PublishedPrintFile|undefined,linked=false,completed=false,decided=false,failure:unknown,blobIdentity:{dev:bigint;ino:bigint}|undefined;
+  try{
+   file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);const buffer=Buffer.alloc(65536),hash=createHash('sha256');let position=0;
+   while(position<Number(before.size)){signal.throwIfAborted();const {bytesRead}=await source.read(buffer,0,Math.min(buffer.length,Number(before.size)-position),position);signal.throwIfAborted();if(!bytesRead)throw new Error('Replacement source truncated');hash.update(buffer.subarray(0,bytesRead));let written=0;while(written<bytesRead){signal.throwIfAborted();const result=await file.write(buffer,written,bytesRead-written,position+written);if(!result.bytesWritten)throw new Error('Replacement write stalled');written+=result.bytesWritten;}position+=bytesRead;}
+   const after=await source.stat({bigint:true});signal.throwIfAborted();if(before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new PublishedFileChangedError('Replacement source changed during copy');
+   created=Object.freeze({version:1,id:plan.id,name:plan.name,path:plan.path,sha256:hash.digest('hex'),size:position});await file.chmod(0o400);await file.sync();const identity=await file.stat({bigint:true});blobIdentity={dev:identity.dev,ino:identity.ino};await file.close();file=undefined;signal.throwIfAborted();
+   try{await link(temp,this.#path(created.sha256+'.gcode'));linked=true;this.#storedBytes+=position;this.#reservedBytes-=position;reserved-=position;}catch(error){if((error as NodeJS.ErrnoException).code!=='EEXIST')throw error;await this.#verifyExisting(created,signal);}
+   await this.#root.sync();signal.throwIfAborted();
+   const intent:FileReplacement=Object.freeze({version:1,action:'create_file',created,replaced:plan.replaced,modified:Date.now()/1000,namespaceSha256:plan.namespaceSha256,directories:plan.directories});
+   await this.#commitReplacement(intent,signal);completed=true;this.#uploadReplacements.delete(plan);return created;
+  }catch(error){failure=error;decided=error instanceof PublishedReplacementCommitError&&error.phase==='intent-published';throw error;}
+  finally{
+   try{await file?.close();await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});if(linked&&!completed&&!decided){const actual=await lstat(this.#path(created!.sha256+'.gcode'),{bigint:true});if(actual.dev!==blobIdentity!.dev||actual.ino!==blobIdentity!.ino||(await this.#replacementDiskFiles()).some(f=>f.sha256===created!.sha256))throw new PublishedFileChangedError('Owned replacement blob changed or became externally referenced');await this.#verifyExisting(created!,new AbortController().signal);await unlink(this.#path(created!.sha256+'.gcode'));this.#storedBytes-=created!.size;}await this.#root.sync();}
+   catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Upload replacement cleanup failed');throw new PublishedReplacementCommitError(completed||decided?'intent-published':'before-intent',this.#writeFault);}
+   finally{this.#reservedBytes-=reserved;}
+  }
+  }finally{this.#cachedNamespaceWindow=false;}
+ },true,signal);}
  async #loadDirectories():Promise<void>{
   const file=await open(this.#path('.directories.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   try{const stat=await file.stat();if(!stat.isFile()||stat.uid!==process.getuid!()||stat.nlink!==1||(stat.mode&0o7777)!==0o600||stat.size>2*1024**2)throw new Error('Invalid published directory metadata');const buffer=Buffer.alloc(stat.size+1);let at=0;while(at<buffer.length){const r=await file.read(buffer,at,buffer.length-at,at);if(!r.bytesRead)break;at+=r.bytesRead;}if(at!==stat.size)throw new Error('Directory metadata changed while reading');
@@ -265,7 +366,7 @@ export class PublishedPrintFiles {
   publishedPath(source);publishedPath(destination,true);
   const target=!destination||this.#directories.has(destination)?(destination?destination+'/':'')+pathBasename(source):destination;
   publishedPath(target);if(pathParent(target)&&!this.#directories.has(pathParent(target)))throw Object.assign(new Error('Move parent not found'),{code:'ENOENT'});
-  if(target!==source&&(this.#paths.has(target)||this.#directories.has(target)))throw Object.assign(new Error('Move target already exists; replacement is not implemented'),{code:'EEXIST'});
+  if(target!==source&&this.#directories.has(target))throw Object.assign(new Error('Move target is a directory'),{code:'EEXIST'});
   return target;
  }
  /** Authorization observes both resolved names. Commit checks the same receipt
@@ -276,7 +377,10 @@ export class PublishedPrintFiles {
   const id=this.#paths.get(source),stored=id?this.#records.get(id):undefined;if(!stored)throw Object.assign(new Error('Move source not found'),{code:'ENOENT'});
   const before=await this.#record(stored.record.id);if(!this.#sameFile(before,stored.record))throw new PublishedFileChangedError('Move source changed outside store');
   const path=this.#moveTarget(source,destination),after=path===source?before:Object.freeze({...before,path,name:pathBasename(path)});
-  const plan=Object.freeze({before,after,modified:stored.modified});this.#fileMoves.set(plan,destination);signal.throwIfAborted();return plan;
+  const oldId=path===source?undefined:this.#paths.get(path),replaced=oldId?await this.#record(oldId):undefined;
+  const plan=Object.freeze({before,after,modified:stored.modified,...replaced?{replaced}:{}});this.#fileMoves.set(plan,destination);
+  if(replaced){const directories=this.#directorySnapshot();this.#fileReplacements.set(plan,Object.freeze({version:1,action:'move_file',source:before,created:after,replaced,modified:stored.modified,namespaceSha256:await replacementNamespaceHash([...this.#records.values()].map(r=>r.record),directories),directories}));}
+  signal.throwIfAborted();return plan;
  },true,signal);}
  #sameFile(a:PublishedPrintFile,b:PublishedPrintFile):boolean{return a.id===b.id&&a.sha256===b.sha256&&a.size===b.size&&a.name===b.name&&visibleFilePath(a)===visibleFilePath(b);}
  /** One receipt is the namespace authority. Atomic replacement commits the
@@ -288,6 +392,9 @@ export class PublishedPrintFiles {
   const id=plan.before.id,stored=this.#records.get(id);if(!stored||!this.#sameFile(stored.record,plan.before)||this.#paths.get(visibleFilePath(plan.before))!==id)throw new PublishedFileChangedError('Authorized move source changed');
   if(!this.#sameFile(await this.#record(id),plan.before))throw new PublishedFileChangedError('Move receipt changed outside store');
   if(this.#moveTarget(visibleFilePath(plan.before),destination)!==visibleFilePath(plan.after))throw new PublishedFileChangedError('Authorized move destination changed');
+  const replacement=this.#fileReplacements.get(plan);
+  if(replacement){await this.#commitReplacement(replacement,signal);this.#fileReplacements.delete(plan);this.#fileMoves.delete(plan);return Object.freeze({...plan,modified:this.#records.get(id)!.modified});}
+  if(visibleFilePath(plan.before)!==visibleFilePath(plan.after)&&this.#paths.has(visibleFilePath(plan.after)))throw new PublishedFileChangedError('Authorized move destination became occupied');
   if(visibleFilePath(plan.before)===visibleFilePath(plan.after)){signal.throwIfAborted();this.#changed('move_file',plan.after,stored.modified,plan.before);return plan;}
   const bytes=Buffer.from(JSON.stringify(plan.after));if(bytes.length>2048||bytes.length>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published move receipt quota exceeded');
   const temp=this.#path('.receipt-'+randomUUID());let file:FileHandle|undefined,replaced=false,failure:unknown;

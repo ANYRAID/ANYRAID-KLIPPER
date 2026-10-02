@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+  "state": "local_runtime_implemented_partial_acceptance",
+  "scope": "Native gcodes upload/move overwrite implementation and local software/performance checks. Source hashes bind these observations; no independent compiled concurrent-print acceptance, complete generation/adversarial boundary coverage, exact new-head CI/PR integration, full clients, hardware, complete Moonraker or Python retirement approval.",
+  "sources": {
+    "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+    "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+    "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+    "host/test/published-replace.test.ts": "3c0a2030a72d29cb54047305e6888cb6c669966e3d4a28b60cac7f05d6057ad8",
+    "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+    "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+    "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc"
+  },
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/file_manager/file_manager.py",
+    "blob": "6fe3ce383f0ff1a36cd82a4222e0d6760ae0b93d",
+    "uploadEvent": "create_file with a fresh ID and no source_item",
+    "moveEvent": "move_file retaining source ID/content/mtime with source_item"
+  },
+  "implementation": {
+    "intent": "Private .namespace-replace.json, maximum 2 MiB, exact schema and canonical namespace SHA-256. Install and sync new receipt before removing old identity; validate full actual membership/references and relevant content before replay/cleanup. Cancellation before decision preserves old target; after decision completes or fences until reopen.",
+    "identity": "New upload identity; move source identity retained; retired target receipt and previews removed; sealed old readers retain bytes. Shared content reference accounting avoids deleting live blobs.",
+    "admission": "Authorize resolved target identity, atomically protect source/target for move and old target for upload; current captured device print owner, generation abort and existing maintenance gate reused. Fresh offline upload remains; offline overwrite requires device owner and remains pending M2c.",
+    "cache": "Keep fully committed cached catalog during upload hashing and durable replacement; no temporary visible namespace or deletion-before-publication shortcut."
+  },
+  "validation": {
+    "affectedRegression": {
+      "tests": 124,
+      "passed": 124,
+      "failed": 0,
+      "durationMs": 2945.31047,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-affected-final.log",
+        "sha256": "3f5583c9694b9fed680b2a125096ca9df46608bec4bf09e97b097dec7c457b5a"
+      }
+    },
+    "processLifecycle": {
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "durationMs": 7446.233812,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-lifecycle.log",
+        "sha256": "0a03a21e65a3718e05afdd275321507488b60588b73b6ec7ea7c77ff882f8b1a"
+      }
+    },
+    "totalDistinct": 132,
+    "storageSubset": {
+      "tests": 20,
+      "includedInAffectedRegression": true
+    },
+    "typecheck": {
+      "passed": true,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-typecheck-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "performance": {
+      "baseline": {
+        "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "tree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+        "sourceFilesVerified": 626,
+        "node": "v26.9.0",
+        "manifestPath": "host/build/anyraid-overwrite-acceptance/baseline/manifest.json",
+        "manifestSha256": "1ee6a2c1aa973b5423cbfe51d35fa068128b3698daea7e01f3c5c9bed0c8d9ec",
+        "moduleImport": "passed",
+        "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+        "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
+      },
+      "metrics": {
+        "node": "v26.9.0",
+        "baseline": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-overwrite-acceptance/baseline/host/src/storage/published-files.ts",
+        "filesystemType": "0xef53",
+        "files": 1024,
+        "fileBytes": 53248,
+        "catalog": {
+          "baseline": {
+            "medianMs": 0.10725991999992403,
+            "p95Ms": 0.1213040799999726,
+            "maxMs": 0.1213040799999726
+          },
+          "candidate": {
+            "medianMs": 0.10558610000007321,
+            "p95Ms": 0.11124495999989449,
+            "maxMs": 0.11124495999989449
+          },
+          "medianRatio": 0.9843947301111915
+        },
+        "uploadOverwrites": {
+          "operations": 25,
+          "medianMs": 144.3590680000052,
+          "p95Ms": 155.68874700000015,
+          "maxMs": 199.85490800000116
+        },
+        "moveOverwrites": {
+          "operations": 25,
+          "medianMs": 130.75472199999786,
+          "p95Ms": 146.37401300000056,
+          "maxMs": 155.7247570000036
+        },
+        "concurrentCatalog": {
+          "reads": 1362,
+          "medianMs": 0.14599100000486942,
+          "p95Ms": 0.3134940000018105,
+          "maxMs": 3.315531000000192
+        },
+        "eventLoop": {
+          "p99Ms": 1.843199,
+          "maxMs": 3.747839
+        },
+        "events": 100,
+        "chargedBytes": 210944,
+        "reopened": true,
+        "scope": "Workspace filesystem local Node baseline and overwrite load; original catalog and event-loop gates retained, coherent cache/old reader and accounting checked. Not independent compiled concurrent printing, CPython/target-board timing, physical power loss, full clients or complete M2b acceptance."
+      },
+      "log": {
+        "path": "/tmp/anyraid-overwrite-performance.log",
+        "sha256": "e3fc5a0363a3d741e539453c82a80b58780e2905d9e7ada14c4059d4af27d3a0"
+      }
+    }
+  },
+  "failedAttempts": [
+    {
+      "kind": "affected regression initial",
+      "tests": 123,
+      "passed": 120,
+      "failed": 3,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-affected-initial.log",
+        "sha256": "6a87b6828c4c80f01b5abd658a93a8f3f4db642b5b0f3339da5c04554af23fa6"
+      },
+      "reason": "Two old assertions rejected newly supported upstream overwrite; new scalar metadata fixture omitted slicer header. Updated behavior assertions retain ID retirement, previews and race protection; fixture now identifies PrusaSlicer. No production safety or timing gate weakened."
+    }
+  ],
+  "remaining": [
+    "Independent compiled product: two generation print load, successful upload/move overwrite counts, active/paused/unconfirmed-stop protection, previews/history/notifications, original stop/step-lead/loop gates.",
+    "Explicit overwrite late-chunked upload/device-retirement and recovery-failure/readership boundary tests; existing eight lifecycle tests are scoped evidence only.",
+    "Same-path move, existing-directory basename overwrite, tampered/unknown intents and all relevant cancellation/sync prefixes expanded as needed; physical power loss not established.",
+    "Exact new-head required CI, bounded review and normal PR into develop; local source not covered by previous 4b6a2317 CI.",
+    "Full fixed-client pages, offline mutation/recursive cleanup/other roots/UFP/ancestor creation, complete Moonraker, target/Python actual print speed and precision, G3, all Python/macros and release."
+  ]
+}

@@ -1503,7 +1503,7 @@
   },
   "mergeReady": false,
   "remaining": [
-    "Latest develop 4b6a2317 required post-merge firmware passed; host ordinary/protocol passed, sanitizer in progress. Historical first-merge 81f8c9c host failure and bounded fixture repair remain in integrationCheckpoint. Mainline/default and physical admission remain closed.",
+    "Latest develop 4b6a2317 required host and firmware post-merge checks passed. Historical 81f8c9c failure retained separately. New overwrite runtime draft has local evidence only; mainline/default and physical admission remain closed.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
@@ -1593,7 +1593,7 @@
       "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
     },
     "m2bCopyDraft": {
-      "status": "software increment reviewed; full required exact-head CI passed; PR #2 merged normally into develop at 4b6a2317; post-merge CI in progress",
+      "status": "software increment reviewed, required source CI passed, normally merged as 4b6a2317, actual develop required host/firmware checks passed",
       "sourceHashes": {
         "host/acceptance/product-compiled-journey.test.ts": "d0528602ce1f3bf232440bf405f345a929bbf9552da5c98ff3b0fd2595b31a22",
         "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
@@ -1701,18 +1701,41 @@
           },
           "postMerge": {
             "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-            "status": "in_progress",
+            "status": "passed",
             "host": {
               "runId": 37047916751,
               "jobId": 110973808529,
-              "status": "in_progress",
-              "conclusion": null,
+              "status": "completed",
+              "conclusion": "success",
               "stageResults": {
                 "ordinary": "success",
                 "nativeProtocol": "success",
-                "sanitizer": "in_progress",
-                "linuxMcu": "pending"
-              }
+                "sanitizer": "success",
+                "linuxMcu": "success"
+              },
+              "ordinary": {
+                "tests": 3881,
+                "passed": 3881,
+                "failed": 0,
+                "durationMs": 578710.381453
+              },
+              "sanitizers": {
+                "ubsan": {
+                  "files": 149,
+                  "tests": 1180,
+                  "failed": 0,
+                  "maxChildMs": 45928.703393
+                },
+                "asanPlusUbsan": {
+                  "files": 149,
+                  "tests": 1180,
+                  "failed": 0,
+                  "maxChildMs": 46366.370618000044
+                }
+              },
+              "originalChildDeadlineMs": 60000,
+              "decodedLogCharacters": 1701583,
+              "checkoutVerified": true
             },
             "firmware": {
               "runId": 37047916546,
@@ -1725,11 +1748,11 @@
               }
             },
             "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
-            "observedAtUtc": "2026-10-02T18:48:01.685Z"
+            "observedAtUtc": "2026-10-02T19:20:02.811Z"
           },
-          "scope": "Required exact-head CI and bounded software review passed; normal develop merge completed. Post-merge firmware succeeded, host ordinary and native protocol succeeded, sanitizer is in progress. Does not close G3, full clients, target hardware, actual print speed/precision, complete Moonraker or Python retirement."
+          "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
         },
-        "scope": "Exact sealed source 58a7ec04 and tested PR merge 043b5e44 completed required host/firmware checks; terminal ordinary and both sanitizer counts were read. Normal merge 4b6a2317 verified by provider and local tree. New post-merge firmware success; host ordinary/protocol success and sanitizer live. Historical 81f8c9c failure retained separately.",
+        "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement.",
         "mergeRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2"
       },
       "reviewReceipt": {
@@ -1761,9 +1784,8 @@
           }
         ],
         "remaining": [
-          "Required checks on latest develop merge; host sanitizer/Linux MCU not yet terminal",
           "Fixed-client pages, target board and physical power-loss acceptance",
-          "Upload/move overwrite, complete Moonraker, G3 and full Python retirement"
+          "Upload/move overwrite, complete Moonraker, historical G3 and full Python retirement"
         ]
       },
       "integrationCheckpoint": {
@@ -1817,18 +1839,41 @@
         },
         "postMerge": {
           "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-          "status": "in_progress",
+          "status": "passed",
           "host": {
             "runId": 37047916751,
             "jobId": 110973808529,
-            "status": "in_progress",
-            "conclusion": null,
+            "status": "completed",
+            "conclusion": "success",
             "stageResults": {
               "ordinary": "success",
               "nativeProtocol": "success",
-              "sanitizer": "in_progress",
-              "linuxMcu": "pending"
-            }
+              "sanitizer": "success",
+              "linuxMcu": "success"
+            },
+            "ordinary": {
+              "tests": 3881,
+              "passed": 3881,
+              "failed": 0,
+              "durationMs": 578710.381453
+            },
+            "sanitizers": {
+              "ubsan": {
+                "files": 149,
+                "tests": 1180,
+                "failed": 0,
+                "maxChildMs": 45928.703393
+              },
+              "asanPlusUbsan": {
+                "files": 149,
+                "tests": 1180,
+                "failed": 0,
+                "maxChildMs": 46366.370618000044
+              }
+            },
+            "originalChildDeadlineMs": 60000,
+            "decodedLogCharacters": 1701583,
+            "checkoutVerified": true
           },
           "firmware": {
             "runId": 37047916546,
@@ -1841,10 +1886,30 @@
             }
           },
           "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
-          "observedAtUtc": "2026-10-02T18:48:01.685Z"
+          "observedAtUtc": "2026-10-02T19:20:02.811Z"
         },
-        "scope": "Required exact-head CI and bounded software review passed; normal develop merge completed. Post-merge firmware succeeded, host ordinary and native protocol succeeded, sanitizer is in progress. Does not close G3, full clients, target hardware, actual print speed/precision, complete Moonraker or Python retirement."
+        "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
       }
+    },
+    "m2bOverwrite": {
+      "state": "local_runtime_implemented_partial_acceptance",
+      "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "evidence": "host/contracts/native-overwrite-acceptance.json",
+      "sourceHashes": {
+        "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+        "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+        "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+        "host/test/published-replace.test.ts": "3c0a2030a72d29cb54047305e6888cb6c669966e3d4a28b60cac7f05d6057ad8",
+        "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+        "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+        "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc"
+      },
+      "affectedRegression": 124,
+      "processLifecycle": 8,
+      "totalDistinct": 132,
+      "compiled": "pending",
+      "requiredNewHeadCi": "not_submitted",
+      "integrated": false
     }
   },
   "integrationCheckpoint": {
@@ -2047,7 +2112,7 @@
     "currentImplementation": {
       "batch": "M2b 3b upload/move overwrite",
       "branch": "devac/moonraker-file-overwrite",
-      "state": "contract_verified_implementation_not_started",
+      "state": "local_runtime_implemented_partial_acceptance",
       "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "benchmarkBaseline": {
         "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
@@ -2059,9 +2124,10 @@
         "moduleImport": "passed",
         "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
-      }
+      },
+      "evidence": "host/contracts/native-overwrite-acceptance.json"
     },
-    "next": "Seal current Node baseline, implement storage replacement then standard endpoints/authorization/active-job and generation protection, validate complete software path and performance, then exact-head CI/review/PR. Track live merge checks separately.",
+    "next": "Complete independent compiled mixed printing and explicit overwrite lifecycle/adversarial boundaries, then exact new-head CI/review/normal PR. Historical G3, full clients and hardware gates remain open.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }
