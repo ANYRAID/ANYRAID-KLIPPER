@@ -5,13 +5,18 @@ import {isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
 import {createSealedPrintReader,createSealedBinaryReader} from '../gcode/sealed-file.ts';
 import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
-import {publishedPath,visibleFilePath,pathParent,PublishedDirectoryCommitError} from './published-paths.ts';
+import {publishedPath,visibleFilePath,pathParent,pathBasename,PublishedDirectoryCommitError} from './published-paths.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;readonly path?:string;}
 export class PublishedFileChangedError extends Error {}
+export class PublishedFileMoveCommitError extends Error {
+ readonly phase:'before-replace'|'replaced';
+ constructor(phase:'before-replace'|'replaced',cause:unknown){super('File move requires recovery',{cause});this.phase=phase;}
+}
+export interface PublishedFileMove {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;}
 /** Identity of the durable receipt, never the content blob or a temporary memfd. */
 export interface PublishedSourceIdentity {readonly dev:bigint;readonly ino:bigint;readonly mtimeNs:bigint;readonly ctimeNs:bigint;}
-export interface PublishedFileChange {readonly action:'create_file'|'delete_file';readonly file:PublishedPrintFile;readonly modified:number;}
+export interface PublishedFileChange {readonly action:'create_file'|'delete_file'|'move_file';readonly file:PublishedPrintFile;readonly modified:number;readonly sourceFile?:PublishedPrintFile;}
 interface StoredReceipt {sha256:string;size:number;receiptBytes:number;record:PublishedPrintFile;modified:number;}
 interface StorageOperation {exclusive:boolean;start:()=>void;}
 export interface PublishedDirectoryChange {readonly action:'create_dir'|'delete_dir';readonly path:string;readonly modified:number;}
@@ -26,6 +31,7 @@ export class PublishedPrintFiles {
  #pending=new Set<Promise<unknown>>();#closed=false;#closing:Promise<void>|undefined;
  readonly #observers=new Set<(change:PublishedFileChange)=>void>();#observerFailures=0;
  readonly #directoryObservers=new Set<(change:PublishedDirectoryChange)=>void>();
+ readonly #fileMoves=new WeakMap<PublishedFileMove,string>();
  observeDirectories(observer:(change:PublishedDirectoryChange)=>void):()=>void{if(this.#closed||typeof observer!=='function'||this.#directoryObservers.size>=8||this.#directoryObservers.has(observer))throw new Error('Published directory observer unavailable');this.#directoryObservers.add(observer);return ()=>this.#directoryObservers.delete(observer);}
  /** Internal synchronous commit observers. Transport delivery must enqueue work
   * without awaiting clients; an observer failure cannot undo durable storage. */
@@ -34,7 +40,7 @@ export class PublishedPrintFiles {
   this.#observers.add(observer);return ()=>{this.#observers.delete(observer);};
  }
  get changeObservers(){return {count:this.#observers.size,failures:this.#observerFailures};}
- #changed(action:PublishedFileChange['action'],file:PublishedPrintFile,modified:number):void{const event=Object.freeze({action,file,modified});for(const observer of [...this.#observers]){try{observer(event);}catch{this.#observerFailures++;}}}
+ #changed(action:PublishedFileChange['action'],file:PublishedPrintFile,modified:number,sourceFile?:PublishedPrintFile):void{const event=Object.freeze({action,file,modified,...sourceFile?{sourceFile}:{}});for(const observer of [...this.#observers]){try{observer(event);}catch{this.#observerFailures++;}}}
  private constructor(root:FileHandle,maxBytes:number,maxOperations:number,budget:PrintSnapshotBudget,maxStorage:number,maxFiles:number){this.#maxStorage=maxStorage;this.#maxFiles=maxFiles;this.#root=root;this.#maxBytes=maxBytes;this.#maxOperations=maxOperations;this.#budget=budget;}
  static async open(directory:string,options:{maxFileBytes?:number;maxOperations?:number;budget?:PrintSnapshotBudget;maxStorageBytes?:number;maxPublishedFiles?:number}={}):Promise<PublishedPrintFiles>{
   const max=options.maxFileBytes??64*1024**2,count=options.maxOperations??8,storage=options.maxStorageBytes??1024**3,files=options.maxPublishedFiles??1024;
@@ -92,6 +98,51 @@ export class PublishedPrintFiles {
  resolvePath(path:string,signal:AbortSignal):Promise<string>{return this.#run(async()=>{publishedPath(path);signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');const id=this.#paths.get(path);if(!id)throw Object.assign(new Error('Published file path not found'),{code:'ENOENT'});return id;},true,signal);}
  /** Display only; cached naming does not authorize opening or printing bytes. */
  filename(id:string):string{this.#id(id);const file=this.#records.get(id)?.record;return file?visibleFilePath(file):id+'.gcode';}
+ #moveTarget(source:string,destination:string):string{
+  publishedPath(source);publishedPath(destination,true);
+  const target=!destination||this.#directories.has(destination)?(destination?destination+'/':'')+pathBasename(source):destination;
+  publishedPath(target);if(pathParent(target)&&!this.#directories.has(pathParent(target)))throw Object.assign(new Error('Move parent not found'),{code:'ENOENT'});
+  if(target!==source&&(this.#paths.has(target)||this.#directories.has(target)))throw Object.assign(new Error('Move target already exists; replacement is not implemented'),{code:'EEXIST'});
+  return target;
+ }
+ /** Authorization observes both resolved names. Commit checks the same receipt
+  * and destination again after policy callbacks, behind the mutation barrier. */
+ prepareFileMove(source:string,destination:string,signal:AbortSignal):Promise<PublishedFileMove>{return this.#run(async()=>{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');publishedPath(source);
+  if(this.#directories.has(source))throw Object.assign(new Error('Directory move is not implemented'),{code:'ENOTSUP'});
+  const id=this.#paths.get(source),stored=id?this.#records.get(id):undefined;if(!stored)throw Object.assign(new Error('Move source not found'),{code:'ENOENT'});
+  const before=await this.#record(stored.record.id);if(!this.#sameFile(before,stored.record))throw new PublishedFileChangedError('Move source changed outside store');
+  const path=this.#moveTarget(source,destination),after=path===source?before:Object.freeze({...before,path,name:pathBasename(path)});
+  const plan=Object.freeze({before,after,modified:stored.modified});this.#fileMoves.set(plan,destination);signal.throwIfAborted();return plan;
+ },true,signal);}
+ #sameFile(a:PublishedPrintFile,b:PublishedPrintFile):boolean{return a.id===b.id&&a.sha256===b.sha256&&a.size===b.size&&a.name===b.name&&visibleFilePath(a)===visibleFilePath(b);}
+ /** One receipt is the namespace authority. Atomic replacement commits the
+  * visible name without copying or replacing content or changing print IDs.
+  * Recovery derives indexes from the old or new complete receipt. */
+ moveFile(plan:PublishedFileMove,signal:AbortSignal):Promise<PublishedFileMove>{return this.#run(async()=>{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published writes require recovery');
+  const destination=this.#fileMoves.get(plan);if(destination===undefined)throw new Error('Move plan belongs to another store');
+  const id=plan.before.id,stored=this.#records.get(id);if(!stored||!this.#sameFile(stored.record,plan.before)||this.#paths.get(visibleFilePath(plan.before))!==id)throw new PublishedFileChangedError('Authorized move source changed');
+  if(!this.#sameFile(await this.#record(id),plan.before))throw new PublishedFileChangedError('Move receipt changed outside store');
+  if(this.#moveTarget(visibleFilePath(plan.before),destination)!==visibleFilePath(plan.after))throw new PublishedFileChangedError('Authorized move destination changed');
+  if(visibleFilePath(plan.before)===visibleFilePath(plan.after)){signal.throwIfAborted();this.#changed('move_file',plan.after,stored.modified,plan.before);return plan;}
+  const bytes=Buffer.from(JSON.stringify(plan.after));if(bytes.length>2048||bytes.length>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Published move receipt quota exceeded');
+  const temp=this.#path('.receipt-'+randomUUID());let file:FileHandle|undefined,replaced=false,failure:unknown;
+  this.#reservedBytes+=bytes.length;
+  try{
+   signal.throwIfAborted();file=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);await file.writeFile(bytes);await file.utimes(stored.modified,stored.modified);await file.chmod(0o400);await file.sync();const modified=(await file.stat()).mtimeMs/1000;await file.close();file=undefined;signal.throwIfAborted();
+   if(!this.#sameFile(await this.#record(id),plan.before))throw new PublishedFileChangedError('Move receipt changed before replacement');
+   await rename(temp,this.#path(id+'.json'));replaced=true;
+   // Cancellation after replacement cannot abandon the durability boundary.
+   await this.#root.sync();this.#storedBytes+=bytes.length-stored.receiptBytes;this.#records.set(id,{...stored,record:plan.after,receiptBytes:bytes.length,modified});this.#paths.delete(visibleFilePath(plan.before));this.#paths.set(visibleFilePath(plan.after),id);
+   const result=Object.freeze({...plan,modified});this.#changed('move_file',plan.after,modified,plan.before);return result;
+  }catch(error){failure=error;if(replaced)this.#writeFault=error;throw new PublishedFileMoveCommitError(replaced?'replaced':'before-replace',error);}
+  finally{
+   try{await file?.close();if(!replaced){await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});await this.#root.sync();}}
+   catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Move cleanup failed');throw new PublishedFileMoveCommitError(replaced?'replaced':'before-replace',this.#writeFault);}
+   finally{this.#reservedBytes-=bytes.length;}
+  }
+ },true,signal);}
  #id(id:string):void{if(typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id))throw new Error('Invalid published file identifier');}
  #path(name:string):string{return `/proc/self/fd/${this.#root.fd}/${name}`;}
  #run<T>(operation:()=>Promise<T>,exclusive=false,signal?:AbortSignal):Promise<T>{
@@ -113,7 +164,7 @@ export class PublishedPrintFiles {
    this.#queue.shift();next.start();
   }
  }
- async #record(id:string):Promise<PublishedPrintFile>{return (await this.#receipt(id)).file;}
+ async #record(id:string):Promise<PublishedPrintFile>{if(this.#writeFault)throw new Error('Published reads require recovery',{cause:this.#writeFault});return (await this.#receipt(id)).file;}
  async #receipt(id:string,capture=false):Promise<{file:PublishedPrintFile;source?:PublishedSourceIdentity}>{
   const file=await open(this.#path(id+'.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   try{

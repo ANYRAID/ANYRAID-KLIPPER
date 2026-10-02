@@ -29,10 +29,51 @@ test('closed process files reject deletion even while their device delegate rema
 });
 async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize'];removal?:boolean}={}){
  const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
- if(options.removal)uploads.bindPrintController(new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}));
+ const controller=options.removal?new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}):undefined;if(controller)uploads.bindPrintController(controller);
  const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize:options.authorize??(()=>{})}),address=await network.listen(),url=`http://127.0.0.1:${address.port}`;
- return {dir,gate,files,uploads,network,url,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
+ return {dir,gate,files,uploads,network,url,controller,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await controller?.retire();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
 }
+const moveHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/move',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
+test('file move HTTP and RPC preserve ID and bytes, revoke old previews and publish source_item',async()=>{
+ const f=await fixture({removal:true}),events:any[]=[];const off=f.uploads.observeChanges(e=>events.push(e));try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png);assert.equal((await f.post(multipart(data,{file_id:'job'}))).status,200);await f.files.mutateDirectory('零件',false,new AbortController().signal);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=job.gcode')).json()).result,oldPreview=f.url+'/server/files/gcodes/'+metadata.thumbnails[1].relative_path;
+  const reply=await moveHttp(f,'gcodes/job.gcode','gcodes/零件/50% 模型.gcode');assert.equal(reply.status,200);const result=(await reply.json()).result;assert.equal(result.action,'move_file');assert.deepEqual(result.source_item,{path:'job.gcode',root:'gcodes'});assert.equal(result.item.path,'零件/50% 模型.gcode');assert.equal(result.item.size,Buffer.byteLength(data));assert.equal((await fetch(oldPreview)).status,404);assert.equal((await fetch(f.url+'/server/files/metadata?filename=job.gcode')).status,404);
+  const filename='零件/50% 模型.gcode',updated=(await (await fetch(f.url+'/server/files/metadata?filename='+encodeURIComponent(filename))).json()).result;assert.equal(updated.file_id,'job');assert.equal(updated.sha256,metadata.sha256);assert.equal(await (await fetch(f.url+'/server/files/gcodes/'+filename.split('/').map(encodeURIComponent).join('/'))).text(),data);
+  const image=await fetch(f.url+'/server/files/gcodes/零件/'+updated.thumbnails[1].relative_path);assert.equal(image.status,200);assert.deepEqual(Buffer.from(await image.arrayBuffer()),png);
+  const changed=events.find(e=>e.action==='move_file');assert.deepEqual(changed.source_item,result.source_item);assert.equal(changed.item.file_id,'job');assert.equal(changed.item.sha256,metadata.sha256);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:7,method:'server.files.move',params:{source:'gcodes/'+filename,dest:'gcodes'}})});const body=await rpc.json();assert.equal(body.result.item.path,'50% 模型.gcode');assert.equal(body.result.source_item.path,filename);assert.equal(events.filter(e=>e.action==='move_file').length,2);assert.equal(f.uploads.status.pending,0);
+ }finally{off();await f.clean();}
+});
+test('move protects printing and paused identity while allowing unrelated files and releasing completed mutation',async()=>{
+ const f=await fixture({removal:true});try{
+  for(const id of ['active','other'])await f.post(multipart('G1 X1\n',{file_id:id}));await f.controller!.start({version:1,requestId:'active-print',fileId:'active',nozzle:0,bed:0});assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,403);
+  await f.controller!.pause();assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,403);assert.equal((await moveHttp(f,'gcodes/other.gcode','gcodes/other-new.gcode')).status,200);assert.equal(f.controller!.state,'paused');
+  await f.controller!.cancel();assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,200);f.controller!.reset('active-print');await f.controller!.start({version:1,requestId:'moved-print',fileId:'active',nozzle:0,bed:0});assert.equal(f.controller!.state,'printing');await f.controller!.cancel();assert.equal(f.files.filename('active'),'new.gcode');
+ }finally{await f.clean();}
+});
+test('move authorizes resolved destination and file identity; denied, missing, directory and overwrite operations do not mutate',async()=>{
+ const calls:any[]=[];let deny=false;const f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move'){calls.push({...params});if(deny&&params.file_id)throw new ApiError(403,'Denied resolved destination');}}});try{
+  await f.post(multipart('G1 X1\n',{file_id:'job'}));await f.post(multipart('other',{file_id:'other'}));await f.files.mutateDirectory('parts',false,new AbortController().signal);deny=true;
+  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/parts')).status,403);assert.equal(calls.at(-1).dest,'gcodes/parts/job.gcode');assert.equal(calls.at(-1).source,'gcodes/job.gcode');assert.equal(calls.at(-1).file_id,'job');assert.equal(f.files.filename('job'),'job.gcode');deny=false;
+  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/other.gcode')).status,409);assert.equal((await moveHttp(f,'gcodes/parts','gcodes/newparts')).status,501);assert.equal((await moveHttp(f,'gcodes/missing','gcodes/new')).status,404);assert.equal((await moveHttp(f,'gcodes/job.gcode','config/new')).status,400);assert.equal(f.files.status.publishedFiles,2);assert.equal(f.files.filename('job'),'job.gcode');
+ }finally{await f.clean();}
+});
+test('late move authorization cannot rename a changed source or overwrite a newly published target',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false;const f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move'&&params.file_id){entered=true;return held.promise;}}});try{
+  await f.post(multipart('G1 X1\n',{file_id:'job'}));const pending=moveHttp(f,'gcodes/job.gcode','gcodes/new.gcode');await until(()=>entered);await f.files.moveFile(await f.files.prepareFileMove('job.gcode','changed.gcode',new AbortController().signal),new AbortController().signal);held.resolve();assert.equal((await pending).status,409);assert.equal(f.files.filename('job'),'changed.gcode');assert.equal(f.uploads.status.pending,0);
+ }finally{held.resolve();await f.clean();}
+});
+test('retired process delegate aborts held move authorization and drains late policy before releasing files',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'process-move-')),files=await PublishedPrintFiles.open(join(dir,'files')),root=new NativePrintUploads(files,new MaintenanceGate()),gate=new MaintenanceGate(),device=new NativePrintUploads(files,gate,{},root),generation=new AbortController(),held=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate});device.bindPrintController(controller);root.bindDeviceFiles(device,generation.signal);
+ try{
+  const source=join(dir,'source');await writeFile(source,'G1 X1\n');const file=await open(source,'r');try{await files.publish('job','job',file,new AbortController().signal);}finally{await file.close();}
+  const pending=root.move({source:'gcodes/job.gcode',dest:'gcodes/new.gcode'},{transport:'http',nativeGenerationSignal:generation.signal,signal:new AbortController().signal,authorize(){entered.resolve();return held.promise;}}),rejected=assert.rejects(pending,/retired/);await entered.promise;generation.abort(new Error('device retired'));await rejected;assert.equal(files.filename('job'),'job.gcode');
+  let drained=false;const drain=device.drain().then(()=>{drained=true;});await new Promise(r=>setImmediate(r));assert.equal(drained,false);assert.equal(device.status.authorizing,1);held.resolve();await drain;assert.equal(device.status.authorizing,0);
+  await assert.rejects(root.move({source:'gcodes/job.gcode',dest:'gcodes/new.gcode'},{transport:'http',signal:new AbortController().signal,authorize(){}}),/print owner/);
+ }finally{held.resolve();generation.abort();await controller.retire();await device.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
+});
 test('native file deletion uses HTTP and RPC paths, revokes previews, reclaims storage and preserves other receipts',async()=>{
  const f=await fixture({removal:true});try{
   const png=await sharp({create:{width:80,height:40,channels:3,background:'red'}}).png().toBuffer(),data=thumbnailBlock(png);

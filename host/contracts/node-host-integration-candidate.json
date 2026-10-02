@@ -954,6 +954,11 @@
       "evidence": "host/contracts/native-file-namespace-acceptance.json",
       "status": "software validation; full fixed-client same-bundle pages and exact new-source CI pending",
       "scope": "Separate source hashes and compiled manifest; initial M1 product and 1b80 CI are not attributed to this increment."
+    },
+    "m2bFileMove": {
+      "evidence": "host/contracts/native-single-file-move-acceptance.json",
+      "status": "Single-file software increment; complete M2b, exact new-head CI, same-bundle real clients and hardware remain pending",
+      "manifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5"
     }
   }
 }

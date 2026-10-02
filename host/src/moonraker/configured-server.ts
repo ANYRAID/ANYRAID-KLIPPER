@@ -62,7 +62,9 @@ type KlippyAttachmentOptions=Omit<KlippyInitializationOptions,'version'|'onSnaps
 const mqttSensorOwners=new WeakSet<MqttSensors>();
 const sensorOwners=new WeakSet<SensorStore>();
 const uploadOwners=new WeakSet<NativePrintUploads>();
-const nativeFileReads=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails']);
+// Process routes survive replacement. Mutations capture and drain their current
+// device delegate themselves; never bind a retained route to the first scope.
+const nativeProcessFileRoutes=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails','/server/files/move']);
 function assertNativeProcessResources(options:ConfiguredServerOptions){
  if(options.nativeDetached!==undefined&&options.nativeDetached!==true)throw new ConfigurationError('Invalid native detached mode');
  if(options.nativeDetached&&(options.productPrint||options.nativeUploads||options.nativeObjects||options.nativeHost||options.productPressure||options.productPrintCompatibility||options.klippy||options.history||options.onPrintStartComplete||!options.nativePrinterIdentity||!options.productHostControl))throw new ConfigurationError('Detached native startup requires process resources without a device owner');
@@ -233,7 +235,7 @@ export class ConfiguredMoonraker {
   if(options.nativeDetached){this.maintenanceGate.invalidate();this.#nativeRetirement=Promise.resolve();this.#nativeRetirementDrained=true;this.#nativeRetiredSnapshot={group_state:'stopped',hardware_state:'stopped',print_state:'idle',homed_axes:'',closing:true,admission_closed:true,maintenance:false,mcus:[]};}
   const initialScope=this.#nativeScope;this.#nativeProcessFiles=options.nativeProcessFiles;this.#nativeProcessHistory=options.nativeProcessHistory;this.#nativeController=options.productPrint;
   const nativeHost=options.nativeHost||options.nativeDetached?()=>this.#nativeRetiredSnapshot??this.#nativeHost!():undefined;
-  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>this.#nativeProcessFiles&&nativeFileReads.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
+  this.#configuration=new ServerConfiguration(reader.snapshot());this.rpc=new JsonRpcDispatcher();this.endpoints=new EndpointRegistry(this.rpc,(path,handler)=>this.#nativeProcessFiles&&nativeProcessFileRoutes.has(path)||this.#nativeProcessHistory&&path.startsWith('/server/history/')?handler:this.#nativeScope?.wrap(path,handler)??handler);
   const networkOptions={...options};for(const key of ['productPrint','nativeHost','nativeObjects','nativePrinterIdentity','productPressure','productHostControl','productPrintCompatibility','maintenanceGate','nativeDetached'] as const)delete networkOptions[key];
   this.#network=new MoonrakerNetwork(this.rpc,{...networkOptions,nativeUploads:this.#nativeProcessFiles??options.nativeUploads,thumbnails:this.#metadataFiles?.downloads??options.thumbnails,endpoints:this.endpoints,maxConnections:this.binding.maxConnections},this.#nativeScope?.signal);
   if(options.nativeDetached)this.#nativeScope!.retire();

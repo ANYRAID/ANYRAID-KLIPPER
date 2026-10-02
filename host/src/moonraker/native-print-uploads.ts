@@ -6,7 +6,7 @@ import {mkdtemp,open,rm,type FileHandle} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {PublishedPrintFiles,PublishedFileChangedError} from '../storage/published-files.ts';
+import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError} from '../storage/published-files.ts';
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
@@ -63,9 +63,9 @@ export class NativePrintUploads {
  }
  observeChanges(observer:(event:Json)=>void):()=>void{
   if(this.#closed)throw new ApiError(503,'Native files closed');
-  const release=this.#files.observeChanges(({action,file,modified})=>{
+  const release=this.#files.observeChanges(({action,file,modified,sourceFile})=>{
    if(this.#closed)return;const path=visibleFilePath(file);if(action==='delete_file')void Promise.resolve(this.#metadata.invalidate(path)).catch(()=>{});
-   observer({action,item:{path,root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256}});
+   observer({action,item:{path,root:'gcodes',modified,size:action==='delete_file'?0:file.size,permissions:action==='delete_file'?'':this.canRemove?'rw':'r',file_id:file.id,name:file.name,sha256:file.sha256},...sourceFile?{source_item:{path:visibleFilePath(sourceFile),root:'gcodes'}}:{}});
   });
   try{const directories=this.#files.observeDirectories(({action,path,modified})=>{if(!this.#closed)observer({action,item:{path,root:'gcodes',modified,size:0,permissions:action==='delete_dir'?'':'rw'}});});return ()=>{release();directories();};}catch(error){release();throw error;}
  }
@@ -87,6 +87,29 @@ export class NativePrintUploads {
     await this.#files.remove(id,signal,file);await this.#metadata.invalidate(path);
     return {item:{path,root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'};
    }catch(error){if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}finally{release?.();}
+  });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+ }
+ move(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
+  if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
+  if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'File mutation belongs to a retired device'));return binding.owner.move(params,{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
+  if(!this.#print)return Promise.reject(new ApiError(503,'Native file move requires its print owner'));
+  if(this.#pending.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  const signal=AbortSignal.any([context.signal,this.#abort.signal]),task=Promise.resolve().then(async()=>{
+   await this.#authorize(context,{...params},signal,'server.files.move');
+   if(Object.keys(params).some(key=>!['source','dest'].includes(key))||typeof params.source!=='string'||typeof params.dest!=='string')throw new ApiError(400,'Expected source and dest gcodes paths');
+   const source=nativeDirectory(params.source),dest=nativeDirectory(params.dest);if(!source)throw new ApiError(400,'Expected source below gcodes');let release:(()=>void)|undefined;
+   try{
+    const plan=await this.#files.prepareFileMove(source,dest,signal);
+    await this.#authorize(context,{source:'gcodes/'+visibleFilePath(plan.before),dest:'gcodes/'+visibleFilePath(plan.after),file_id:plan.before.id,filename:plan.before.name,size:plan.before.size,sha256:plan.before.sha256},signal,'server.files.move');
+    try{release=this.#print!.beginFileMutation(plan.before.id);}catch{throw new ApiError(403,'Print or maintenance owns this file');}
+    const result=await this.#files.moveFile(plan,signal);
+    await this.#metadata.invalidate(visibleFilePath(result.before));await this.#metadata.invalidate(visibleFilePath(result.after));
+    return {action:'move_file',item:{path:visibleFilePath(result.after),root:'gcodes',modified:result.modified,size:result.after.size,permissions:'rw'},source_item:{path:visibleFilePath(result.before),root:'gcodes'}};
+   }catch(error){
+    if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);
+    if(error instanceof PublishedFileMoveCommitError)throw new ApiError(500,'File move commit failed',{phase:error.phase});
+    const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Move file or parent not found');if(code==='EEXIST')throw new ApiError(409,'Move target exists; replacement is pending');if(code==='ENOTSUP')throw new ApiError(501,'Directory move is pending');throw error;
+   }finally{release?.();}
   });this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }
  async #authorize(context:RpcContext,params:Record<string,Json>,signal:AbortSignal,method='server.files.upload'):Promise<void>{
@@ -255,6 +278,7 @@ export function registerNativeFileInfo(registry:EndpointRegistry,uploads:NativeP
  const release:(()=>void)[]=[];
  try{
   if(options.readRoutes!==false){
+   release.push(registry.register({endpoint:'/server/files/move',methods:['POST']},(params,_verb,context)=>reads.move(params,context)));
    release.push(registry.register({endpoint:'/server/files/roots',methods:['GET']},async(_params,_verb,context)=>[await reads.rootInfo(context.signal),...options.configFiles?[options.configFiles.root()]:[]]));
    release.push(registry.register({endpoint:'/printer/files/info',methods:['GET']},(params,_verb,context)=>reads.info(params,context.signal)));
    release.push(registry.register({endpoint:'/server/files/list',methods:['GET']},(params,_verb,context)=>params.root==='config'&&options.configFiles?options.configFiles.list(params,context.signal):reads.list(params,context.signal)));
