@@ -2,7 +2,93 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import { serialFirmware } from './helpers/serial-firmware.ts';
-import { encodeFrame } from '../src/protocol/codec.ts';
+import { encodeFrame, FrameDecoder } from '../src/protocol/codec.ts';
+test('late wire model sees only accepted commands and updates positions before a same-frame query', async () => {
+  const peer = new EventEmitter() as EventEmitter & {write(data: Uint8Array): void};
+  const replies: Uint8Array[] = [];
+  peer.write = data => {replies.push(data);};
+  const fw = await serialFirmware({fd: -1, peer, close: async () => {}}, {triggerSync: true});
+  const send = (sequence: number, name: string, parameters: Parameters<typeof fw.dictionary.encode>[1]) =>
+    peer.emit('data', encodeFrame(sequence, fw.dictionary.encode(name, parameters)));
+  // An established connection already consumed sequences 1, 2 and 3.
+  for (let sequence = 1; sequence <= 3; sequence++) send(sequence, 'get_clock', {});
+  const accepted: string[] = [];
+  let direction = 1, position = 0;
+  const detach = fw.observeCommands(command => {
+    accepted.push(command.name);
+    if (command.name === 'set_next_step_dir') direction = Number(command.parameters.dir) ? 1 : -1;
+    if (command.name === 'queue_step') {
+      position += direction * Number(command.parameters.count);
+      fw.setStepperPosition(0, position);
+    }
+  });
+  // The old second decoder can act on a rejected stale frame, then miss the
+  // actual next frame. Keep this counterexample independent of the new API.
+  const decoder = new FrameDecoder();
+  let oldSequence = 1, staleMotion = 0;
+  const oldObserver = (chunk: Uint8Array) => {
+    for (const frame of decoder.push(chunk)) {
+      if ((frame[1] & 15) !== oldSequence) continue;
+      oldSequence = (oldSequence + 1) & 15;
+      staleMotion += fw.dictionary.parseFrame(frame).filter(c => c.name === 'queue_step').length;
+    }
+  };
+  peer.on('data', oldObserver);
+  try {
+    assert.deepEqual(accepted, []); // No history replay on attachment.
+    send(1, 'queue_step', {oid: 0, interval: 1000, count: 99, add: 0});
+    assert.equal(staleMotion, 1);
+    assert.equal(fw.motion.length, 0);
+    assert.equal(position, 0);
+    const frame = encodeFrame(4, Buffer.concat([
+      fw.dictionary.encode('set_next_step_dir', {oid: 0, dir: 0}),
+      fw.dictionary.encode('queue_step', {oid: 0, interval: 1000, count: 2, add: 0}),
+      fw.dictionary.encode('stepper_get_position', {oid: 0}),
+    ]));
+    peer.emit('data', frame);
+    assert.equal(staleMotion, 1); // The old observer missed accepted motion.
+    assert.deepEqual(accepted, ['set_next_step_dir', 'queue_step', 'stepper_get_position']);
+    assert.equal(position, -2);
+    assert.equal(replies.flatMap(r => fw.dictionary.parseFrame(r)).findLast(c => c.name === 'stepper_position')!.parameters.pos, -2);
+    peer.emit('data', frame); // Retransmission cannot move the model twice.
+    assert.equal(accepted.length, 3);
+    assert.equal(position, -2);
+    for (let i = 0; i < 36; i++) {
+      const sequence = (i + 5) & 15;
+      send((sequence + 2) & 15, 'queue_step', {oid: 0, interval: 1000, count: 99, add: 0});
+      send(sequence, 'queue_step', {oid: 0, interval: 1000, count: 1, add: 0});
+      send(sequence, 'queue_step', {oid: 0, interval: 1000, count: 1, add: 0});
+      assert.equal(position, -3 - i);
+    }
+    const before = accepted.length;
+    detach(); detach();
+    send(9, 'queue_step', {oid: 0, interval: 1000, count: 1, add: 0});
+    assert.equal(fw.motion.filter(c => c.name === 'queue_step').length, 38);
+    assert.equal(accepted.length, before);
+    assert.equal(position, -38);
+  } finally {peer.off('data', oldObserver);detach();await fw.close();}
+});
+test('accepted command observers exclude ignored and shutdown-rejected commands and are cleared on close', async () => {
+  const peer = new EventEmitter() as EventEmitter & {write(data: Uint8Array): void};
+  peer.write = () => {};
+  const fw = await serialFirmware({fd: -1, peer, close: async () => {}}, {reset: 'ack'});
+  const observed: string[] = [];
+  fw.observeCommands(command => {observed.push(command.name);});
+  let sequence = 1;
+  const send = (name: string, parameters: Parameters<typeof fw.dictionary.encode>[1] = {}) =>
+    peer.emit('data', encodeFrame(sequence++ & 15, fw.dictionary.encode(name, parameters)));
+  try {
+    fw.ignore('echo');send('echo', {value: 1});assert.deepEqual(observed, []);
+    fw.emit('shutdown', {clock: 1, static_string_id: 'Timer too close'});
+    send('queue_step', {oid: 0, interval: 1000, count: 1, add: 0});
+    assert.deepEqual(observed, []);
+    send('get_clock');send('reset');
+    send('queue_step', {oid: 0, interval: 1000, count: 1, add: 0});
+    assert.deepEqual(observed, ['get_clock', 'reset', 'queue_step']);
+    await fw.close();send('get_clock');
+    assert.deepEqual(observed, ['get_clock', 'reset', 'queue_step']);
+  } finally {await fw.close();}
+});
 test('firmware simulator rejects duplicate and out-of-order commands across sequence wrap', async () => {
   const peer = new EventEmitter() as EventEmitter & {
     write(data: Uint8Array): void;

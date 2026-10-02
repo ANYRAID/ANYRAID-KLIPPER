@@ -354,5 +354,248 @@
       "path": "/tmp/anyraid-delta-diagnostic-whitespace.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
-  ]
+  ],
+  "acceptedCommandCheckpoint": {
+    "date": "2026-10-02",
+    "sourceBase": "3b54bc1c06d94ec73314a2ea4634c70f7ae103dc",
+    "node": "v26.9.0",
+    "scope": "Test-only accepted-command model and remote-input rejection discriminator. No production math, motion clocks, thresholds or stop deadlines changed; no Python retired and no remote fault closure.",
+    "sources": {
+      "host/test/helpers/serial-firmware.ts": "06b059bf47a419b396ef9f72da406095aafe9d5e5daa4529a9a45d12ac0500d1",
+      "host/test/helpers/delta-wire-simulation.ts": "3dac99127018067df1d55555d0241cd3f79c5a53228628ed63612b284568bfc8",
+      "host/test/delta-probe.test.ts": "31de1ab0fb95a0c5ca7eef6de0f32fef4e6e65abb71342a796a19a9fd9275e3c",
+      "host/test/serial-firmware.test.ts": "15c714ee5dcf01fe52fdaae4b3c8aaf0a0f0496879ce1573d1dc4b5de3c5af40",
+      "host/test/delta-calibration.test.ts": "323ac8bdbd6b304017cafe2ef4933d2bfba996f74d46275817cd67d83a079939",
+      "host/acceptance/product-delta-calibration.test.ts": "eafada72fd9fac22a8472fc29d89f6841b45b1ab760bf835021abe28787cdbd2",
+      "host/acceptance/product-delta-journey.test.ts": "4969b71e1ec337f16904d5af8e3e12cd182243812b5fdb0cd107331600723860"
+    },
+    "originalInput": {
+      "evidence": "host/contracts/node-host-integration-candidate.json",
+      "sources": [
+        "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+        "570ee60d6e9300fe37ed10370f3439de15b46881"
+      ],
+      "values": 41,
+      "comparison": "Object.is for each geometry/probe number. Original arrays unchanged.",
+      "reason": "line_search_failed",
+      "rounds": 7,
+      "condition": 6496.118354800578,
+      "initialError": 645.4561308585987,
+      "finalError": 0.00001493368436852694,
+      "workerRejected": true,
+      "successfulControlConverged": true
+    },
+    "baselineDiscriminator": {
+      "sequence": "Established simulated connections consumed non-1 sequences before the old observer attached. It skipped 15 initial main and 5 auxiliary sync commands in the first local control; actual motion 608/309 equalled observed motion. No motion omission proven for this successful control.",
+      "arm": "Second local control recorded 16 arms; no counted queue_step between trigger emission and first position query. This does not exclude a remote scheduling/mapping failure.",
+      "conclusion": "A deterministic stale-frame counterexample proves the old independent decoder can accept a firmware-rejected frame and miss an accepted next frame. This is a fixture defect, not proof of the remote calibration root cause."
+    },
+    "observer": {
+      "boundary": "Subscribe after authoritative sequence/ignore/shutdown checks, before command dispatch/query replies. No historical replay; ordered within a frame; duplicates and out-of-order packets rejected once; idempotent unsubscribe and close cleanup.",
+      "consumers": [
+        "Delta mechanical probe test",
+        "Delta calibration product test",
+        "Shared Delta/BLTouch compiled wire model"
+      ],
+      "failureTrace": "Product test keeps at most 32 arms and 16 position-query observations per arm with actual integer firmware clocks, model counts and trigger clock. Printed only on calibration failure. Successful 16-arm capture verified."
+    },
+    "validation": {
+      "deterministic": {
+        "tests": 15,
+        "passed": 15,
+        "files": 3
+      },
+      "probeRegression": {
+        "tests": 8,
+        "passed": 8,
+        "files": 3,
+        "note": "Runs before final trace addition; seven unaffected cases reused. The final changed API case was rerun after trace addition."
+      },
+      "finalTraceProduct": {
+        "tests": 1,
+        "passed": 1,
+        "hits": 16
+      },
+      "compiled": {
+        "tests": 2,
+        "passed": 2,
+        "calibrationVariant": "mechanical; bltouch=false",
+        "independentGenerations": 5,
+        "calibrationMs": 10146.072721,
+        "scope": "Existing native addons and linked local dependencies. No clean installation, physical printer, target performance or other-machine adaptation proof."
+      },
+      "typecheck": true,
+      "whitespace": true
+    },
+    "printingPerformance": {
+      "node": "v26.9.0",
+      "warmupsPerMode": 1,
+      "samplesPerMode": 3,
+      "sourceMs": 1243.6604920000009,
+      "compiledMs": 1248.2696480000013,
+      "maximumMs": 1666.7586396000013,
+      "passed": true,
+      "probeSourceMs": 882.2312700000002,
+      "probeCompiledMs": 849.3807319999978,
+      "probeMaximumMs": 1196.9006510000004,
+      "samples": [
+        {
+          "compiled": false,
+          "run": 0,
+          "printMs": 1263.4731940000001
+        },
+        {
+          "compiled": true,
+          "run": 0,
+          "printMs": 1223.276543
+        },
+        {
+          "compiled": true,
+          "run": 1,
+          "printMs": 1249.0256559999998
+        },
+        {
+          "compiled": false,
+          "run": 1,
+          "printMs": 1243.6604920000009
+        },
+        {
+          "compiled": false,
+          "run": 2,
+          "printMs": 1246.897860000001
+        },
+        {
+          "compiled": true,
+          "run": 2,
+          "printMs": 1248.2696480000013
+        },
+        {
+          "compiled": true,
+          "run": 3,
+          "printMs": 1200.934889
+        },
+        {
+          "compiled": false,
+          "run": 3,
+          "printMs": 1222.1269119999997
+        }
+      ],
+      "probeSamples": [
+        {
+          "compiled": false,
+          "run": 0,
+          "wallMs": 847.7830890000005,
+          "readyWaitMs": 0.7570889999997235
+        },
+        {
+          "compiled": true,
+          "run": 0,
+          "wallMs": 881.5512669999998,
+          "readyWaitMs": 261.05110499999955
+        },
+        {
+          "compiled": true,
+          "run": 1,
+          "wallMs": 853.8234400000001,
+          "readyWaitMs": 0.6900970000006055
+        },
+        {
+          "compiled": false,
+          "run": 1,
+          "wallMs": 882.2312700000002,
+          "readyWaitMs": 0.7803880000010395
+        },
+        {
+          "compiled": false,
+          "run": 2,
+          "wallMs": 886.1290349999981,
+          "readyWaitMs": 0.5569759999998496
+        },
+        {
+          "compiled": true,
+          "run": 2,
+          "wallMs": 843.0152000000016,
+          "readyWaitMs": 0.6158770000001823
+        },
+        {
+          "compiled": true,
+          "run": 3,
+          "wallMs": 849.3807319999978,
+          "readyWaitMs": 0.5537960000001476
+        },
+        {
+          "compiled": false,
+          "run": 3,
+          "wallMs": 870.6147649999984,
+          "readyWaitMs": 270.359209000002
+        }
+      ],
+      "scope": "Delta source/compiled CLI heated short file print over two simulated PTY MCUs; wire-only endstop and ADC model, exact eight extruder steps, file close and durable completion after shutdown. After normal G28 and printing, completes two probe samples with retract and token replay, without seeding homing authority. Local native addons/dependencies reused. Excludes physical hardware and long-print throughput.",
+      "comparison": "Source versus emitted JavaScript on the same local simulated PTY fixture; existing maximum = source median * 1.3 + 50ms. This is not pre/post production acceleration or target-board acceptance."
+    },
+    "ciAtCheckpoint": {
+      "head": "3b54bc1c06d94ec73314a2ea4634c70f7ae103dc",
+      "host": {
+        "run": 37015334730,
+        "job": 110864690312,
+        "status": "in_progress",
+        "conclusion": null
+      },
+      "firmware": {
+        "run": 37015334458,
+        "job": 110864689226,
+        "status": "completed",
+        "conclusion": "success"
+      },
+      "finiteMotion": {
+        "run": 37015334610,
+        "passed": 8,
+        "scope": "Finite diagnostics only; no G3 closure."
+      }
+    },
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-delta-sequence-baseline.log",
+        "sha256": "b9e5db107c94ae9e67b32ef782e74a7693e7d4475136f0bc0fbb88b00acdc804"
+      },
+      {
+        "path": "/tmp/anyraid-delta-arm-discriminator.log",
+        "sha256": "612db1e5e8d43d24d57f00df12817bdeab0c2d23581e25e6641889d6234d32cd"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-deterministic-verified.log",
+        "sha256": "99a791b50c3849fc7110bb889fab5ca753aa93e02e6e840ebd58c1ee80c49c8f"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-probe-regression.log",
+        "sha256": "f6b0eab8b71e3ee479a95567dba349adde24b4089192864cc69551e9a70b75a0"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-compiled.log",
+        "sha256": "be6aa53aaba1620916d43bbfe00f57d12e48a127e292074f56917c35db0161a0"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-trace-product.log",
+        "sha256": "1643d71c159711683eb05ee94bc73b06d0b30260aaf28e8c6f1b7c283787a7e7"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-typecheck-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-accepted-command-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "excludedLogs": [
+      "Initial arm diagnostic had a temporary scope error in finally and left test handles; exact owned parent/child stopped, diagnostic fixed and terminal rerun recorded. Its log is not a passing artifact.",
+      "Sandbox default-isolation runs reported files only. Case counts use the explicit authorized-environment run, which reports 15 executed tests."
+    ],
+    "remaining": [
+      "Remote input-origin and mapped-trigger history remain unresolved; fixture fix alone cannot close them.",
+      "Read exact new-source required CI before merge; old-head job was still active at this observation.",
+      "Next failing accepted-wire trace must be compared with per-MCU trigger mapping/history and stop readback; do not loosen solver/stop gates.",
+      "Full client journey, Cycnumbris 500 target installation/precision/performance and G1/G5 remain incomplete."
+    ]
+  }
 }
