@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "date": "2026-10-02",
+  "date": "2026-10-03",
   "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
   "scope": "Pre-develop draft integration candidate. Committed source snapshot only; M2 working-tree draft excluded. Local Linux x64 build/install and no-motion CLI acceptance, not full migration, complete Moonraker, production release or target hardware approval.",
   "remote": {
@@ -265,7 +265,7 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Read exact 379f7857 required CI terminal results; repair a demonstrated current failure or proceed through review and required develop integration when all gates pass. Finish the separate M2b 3a copy/copy-overwrite draft with compiled-load and real-filesystem performance evidence, then M2b 3b upload/move overwrite. Keep client and hardware acceptance separate.",
+    "next": "Freeze passed 379f7857 for four-area review and first develop integration. PR description updated and draft removed through the existing authenticated in-app browser after connector writes returned 403; remote readback confirms the unchanged head. Complete review before exact-head merge and prescribed post-merge integration. Separately close M2b 3a active-source copy coverage in each printing generation, then upload/move overwrite; do not expand the first candidate or repeat unchanged passing matrices.",
     "latestObservedSource": "379f785734da6b33043405a613cf4a17fb3d2836",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
@@ -1375,18 +1375,57 @@
       },
       {
         "revision": "379f785734da6b33043405a613cf4a17fb3d2836",
-        "status": "pending",
+        "status": "completed",
         "host": {
           "job": 110922833251,
           "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584447/job/110922833251",
-          "status": "in_progress",
-          "conclusion": null
+          "status": "completed",
+          "conclusion": "success",
+          "steps": {
+            "whitespace": "success",
+            "typecheck": "success",
+            "ordinaryTests": "success",
+            "protocolNative": "success",
+            "nativeSanitized": "success",
+            "linuxMcu": "success"
+          },
+          "ordinaryTests": {
+            "tests": 3863,
+            "pass": 3863,
+            "fail": 0
+          },
+          "sanitizer": [
+            {
+              "configuration": "UBSan",
+              "files": 149,
+              "uniqueFiles": 149,
+              "tests": 1180,
+              "pass": 1180,
+              "fail": 0,
+              "maxFileMs": 45628.428379000004,
+              "originalFileDeadlineMs": 60000,
+              "allWithinOriginalDeadline": true
+            },
+            {
+              "configuration": "ASan plus UBSan",
+              "files": 149,
+              "uniqueFiles": 149,
+              "tests": 1180,
+              "pass": 1180,
+              "fail": 0,
+              "maxFileMs": 45870.83325699996,
+              "originalFileDeadlineMs": 60000,
+              "allWithinOriginalDeadline": true
+            }
+          ],
+          "verification": "Complete decoded provider log reviewed; checkout binds the exact source and tested merge. Terminal job and step conclusions rechecked. Selected log receipt is an excerpt, not the full log."
         },
         "firmware": {
           "job": 110922832307,
           "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584436/job/110922832307",
-          "status": "in_progress",
-          "conclusion": null
+          "status": "completed",
+          "conclusion": "success",
+          "scope": "Terminal provider conclusion verified; no new firmware configuration or legacy test count extracted in this observation."
         },
         "motionDiagnostics": {
           "checks": [
@@ -1394,36 +1433,36 @@
               "job": 110922833341,
               "name": "motion (26.10.0, default, compiled)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833341",
-              "status": "queued",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922833292,
               "name": "motion (26.9.0, off, source)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833292",
-              "status": "in_progress",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922833291,
               "name": "motion (26.9.0, off, compiled)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833291",
-              "status": "in_progress",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922833209,
               "name": "motion (26.10.0, off, source)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833209",
-              "status": "queued",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922833176,
               "name": "motion (26.10.0, default, source)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833176",
-              "status": "queued",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922833159,
@@ -1436,8 +1475,8 @@
               "job": 110922833136,
               "name": "motion (26.10.0, off, compiled)",
               "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833136",
-              "status": "queued",
-              "conclusion": null
+              "status": "completed",
+              "conclusion": "success"
             },
             {
               "job": 110922832935,
@@ -1447,15 +1486,21 @@
               "conclusion": "success"
             }
           ],
-          "scope": "Finite diagnostic outcomes do not close historical G3 numerical mismatches or crashes."
+          "scope": "Finite diagnostic outcomes do not close historical G3 numerical mismatches or crashes.",
+          "completed": 8,
+          "successfulExit": 8
         },
-        "scope": "Test-only cadence elapsed-slot repair pushed normally to the existing draft PR. Nine affected tests and isolated typecheck passed. Copy/overwrite source draft excluded. Required exact-head CI has no complete successful terminal receipt; no merge, default-entry switch or physical-motion approval."
+        "scope": "Required exact-head CI passed; source excludes uncommitted copy draft and subsequent local audit commits. No review approval, develop merge, default-entry switch or physical-motion approval. Historical G3 failures remain unresolved.",
+        "conclusion": "success",
+        "observedAt": "2026-10-02T17:11:38.287Z",
+        "baseRevision": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "mergeTestRevision": "1f5cd8d68240f0f8b82624b87ec6309d107ba8b7"
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "492bf405 exact-source host CI: 3861/3863 ordinary tests passed; two post-drain/rebuild assertions still expect no calibration although a one-second deadline legitimately expired and refreshed successfully. Protocol/sanitizers/Linux MCU skipped. Firmware/eight finite jobs passed; fresh exact-head required checks and historical G3 gates remain.",
+    "379f7857 required host/firmware/eight finite diagnostic checks passed; PR is ready for review with updated evidence. Four-area review, exact-head develop merge and post-merge prescribed integration remain; historical G3 gates stay open.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
@@ -1494,23 +1539,116 @@
     {
       "path": "/tmp/anyraid-develop-import-graph.json",
       "sha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b"
+    },
+    {
+      "path": "/tmp/anyraid-379f7857-host-terminal-excerpt.log",
+      "sha256": "76ffab3c744f626edad58ffefc08e7c3c9b836b1f2ba1dc33a9babf4aa8d85e8"
+    },
+    {
+      "path": "/tmp/anyraid-copy-final-storage-unrestricted.log",
+      "sha256": "56d6cb16a29cf1f84cef2dddf060619a42aa33fe9cb5328295de71515aa5c465"
+    },
+    {
+      "path": "/tmp/anyraid-copy-final-api.log",
+      "sha256": "14768250527ed78ac5c049d2195cb2ebbbfa901535b7ae55f00f050004ac68bd"
+    },
+    {
+      "path": "/tmp/anyraid-copy-final-lifecycle.log",
+      "sha256": "de0a4d94ef147fff341e6bb06ba39f2554ab913a98012fcf3594c68b9f791bbc"
+    },
+    {
+      "path": "/tmp/anyraid-copy-performance.log",
+      "sha256": "5701bd646e09f678ae2ce71d59351395214a6912c3e3d4e159060a2e7a85cc15"
+    },
+    {
+      "path": "/tmp/anyraid-copy-compiled-load-final-admission.log",
+      "sha256": "3231c33a335ba26ed143dad3ccf3bf1638f2048d8f95e615783f218837608440"
+    },
+    {
+      "path": "/tmp/anyraid-delivery-audit-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-pr1-ready-review.png",
+      "sha256": "06b460fb1ab1bb68554a66937e636a6c6fc714fd551e99e08febf514ea09e9dc"
     }
   ],
   "increments": {
     "m2a": {
       "evidence": "host/contracts/native-file-namespace-acceptance.json",
-      "status": "software validation; full fixed-client same-bundle pages and exact new-source CI pending",
+      "status": "Software increment included in successful exact 379f7857 source CI; full fixed-client same-bundle pages remain pending",
       "scope": "Separate source hashes and compiled manifest; initial M1 product and 1b80 CI are not attributed to this increment."
     },
     "m2bFileMove": {
       "evidence": "host/contracts/native-single-file-move-acceptance.json",
-      "status": "Single-file software increment; complete M2b, exact new-head CI, same-bundle real clients and hardware remain pending",
+      "status": "Single-file software increment included in successful exact 379f7857 source CI; complete M2b, same-bundle real clients and hardware remain pending",
       "manifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5"
     },
     "m2bDirectoryMove": {
       "evidence": "host/contracts/native-directory-move-acceptance.json",
-      "status": "Directory move software increment; exact new-source CI, real clients, physical interruption and target performance remain pending",
+      "status": "Directory move software increment included in successful exact 379f7857 source CI; real clients, physical interruption and target performance remain pending",
       "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
+    },
+    "m2bCopyDraft": {
+      "status": "uncommitted draft; compiled coverage failed; not delivered or included in passed remote candidate",
+      "sourceHashes": {
+        "host/acceptance/product-compiled-journey.test.ts": "5e91657928c4c5d669ce2ff855baa6b70e656f91424fdc2d6f877ba286d53994",
+        "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
+        "host/src/moonraker/native-print-uploads.ts": "1c385d34f9dfd07fdb1175ba485d949b1940bae302cb2e9cfc1b2c73c51afad4",
+        "host/src/storage/published-files.ts": "1eeb25310f1aca157b0f9e483d685ad406302e1713812935b4468290bf930a3d",
+        "host/test/native-print-uploads.test.ts": "d53d787c4c7b1131936af68f9d6d59f161c8c6ce0e2c4da27eca7ec7c0a54a06",
+        "host/test/native-product-process-lifetime.test.ts": "3b061265a3f527800ddf4dc9d6f88e54fccee96b4ef7cbf135406d9f062ec5a3",
+        "host/bench/published-copy.ts": "ddd55015baee79078468dd8144c314fac5ba74e144cbe4ed9b8365a66ff15295",
+        "host/src/storage/namespace-copy.ts": "417e9eaf3a1a4c067fc3cf06642de3392e035a42d6ce6da5b70ac49448c25bcf",
+        "host/test/published-copy.test.ts": "45b1506778e81c1fc478aee65d31b6937f1aa5e107c6edfe37ca09012442a78d"
+      },
+      "affectedRegression": {
+        "storage": 37,
+        "api": 36,
+        "lifecycle": 45,
+        "totalDistinct": 118
+      },
+      "performance": {
+        "scope": "Workspace ext filesystem; previous Node catalog baseline, not upstream Python or target-board acceptance",
+        "catalogMedianRatio": 1.0084572989520926,
+        "concurrentCatalogP95Ms": 2.312253000003693,
+        "eventLoopP99Ms": 1.812479,
+        "eventLoopMaxMs": 4.251647,
+        "reopened": true
+      },
+      "compiled": {
+        "status": "failed",
+        "manifestSha256": "3a0947de126baca3274474206f8ba4f2ea6631ecaf4bb2ac495f3e7039de34ed",
+        "assertion": "Must copy an active source during each printing generation",
+        "copiesDuringPrint": 1,
+        "directoryCopiesDuringPrint": 2,
+        "fileCopies": 16,
+        "copyOverwrites": 16,
+        "directoryCopies": 16,
+        "watchdogFired": false,
+        "next": "Establish deterministic active-source copy checkpoints in both printing generations, then retain mixed namespace load and all original admission/identity/event/stop/performance assertions. Completed operations and local timing samples do not make this failed journey pass."
+      },
+      "remaining": [
+        "same-bundle compiled journey",
+        "fixed-client full pages",
+        "target-board/Python comparison",
+        "upload and move overwrite",
+        "offline and recursive contracts"
+      ],
+      "typecheck": true
     }
+  },
+  "integrationCheckpoint": {
+    "candidate": "379f785734da6b33043405a613cf4a17fb3d2836",
+    "requiredCi": "passed",
+    "review": "not_completed",
+    "merged": false,
+    "remotePrDraft": false,
+    "prWrites": {
+      "update": "403 Resource not accessible by integration",
+      "readyForReview": "FORBIDDEN Resource not accessible by integration",
+      "browserFallback": "Description updated and marked ready for review; authenticated provider readback confirms head 379f785734da6b33043405a613cf4a17fb3d2836, draft false, merged false"
+    },
+    "scope": "Connector 403 was resolved for these PR actions via the existing authenticated browser without granting permissions. Candidate is ready for review, not review-approved or integrated. Client/hardware/Python retirement still limit their delivery outlets."
   }
 }
