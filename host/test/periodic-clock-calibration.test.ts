@@ -10,11 +10,11 @@ import {LookAheadQueue,Move,motionLimits} from '../src/motion/lookahead.ts';
 test('calibration cadence retries missing boundaries and spaces successful updates',()=>{
  const cadence=new CalibrationCadence();let calls=0;const attempt=(ok:boolean)=>()=>{calls++;return ok;};
  assert.equal(cadence.run(0,attempt(false)),false);assert.equal(cadence.run(.249,attempt(true)),undefined);assert.equal(cadence.run(.25,attempt(true)),true);
- assert.equal(cadence.run(4.249,attempt(true)),undefined);assert.equal(cadence.run(4.25,attempt(true)),true);assert.equal(calls,3);
- for(const time of [4,NaN,Infinity,-1])assert.throws(()=>cadence.run(time,attempt(true)));assert.equal(calls,3);
+ assert.equal(cadence.run(1.249,attempt(true)),undefined);assert.equal(cadence.run(1.25,attempt(true)),true);assert.equal(calls,3);
+ for(const time of [1,NaN,Infinity,-1])assert.throws(()=>cadence.run(time,attempt(true)));assert.equal(calls,3);
 });
 test('failed calibration does not report success or postpone error propagation',()=>{
- const cadence=new CalibrationCadence(),error=new Error('calibration fault');assert.throws(()=>cadence.run(1,()=>{throw error;}),error);assert.equal(cadence.run(1,()=>true),true);assert.equal(cadence.run(2,()=>true),undefined);
+ const cadence=new CalibrationCadence(),error=new Error('calibration fault');assert.throws(()=>cadence.run(1,()=>{throw error;}),error);assert.equal(cadence.run(1,()=>true),true);assert.equal(cadence.run(1.999,()=>true),undefined);assert.equal(cadence.run(2,()=>true),true);
 });
 for(const target of ['m','a'])test(`paced motion automatically recalibrates MCU ${target} across multiple periods`,async()=>{
  const f=await rebuiltFixture(false,false,false,false,true),clock=new PrintClockTimeline({offset:0,frequency:1e6}),signal=new AbortController().signal;try{

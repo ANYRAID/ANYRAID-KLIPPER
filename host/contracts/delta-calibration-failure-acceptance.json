@@ -691,5 +691,369 @@
       "Same-bundle actual clients and Cycnumbris 500 installation/stop/precision/timing/rollback",
       "Complete Moonraker and all Python retirement"
     ]
+  },
+  "clockCadenceCheckpoint": {
+    "sourceBase": "7ba863f0420c300cb0c6069a0cd66fbda266d3ee",
+    "baselineCadenceRevision": "ab4d207d2df0da2c298091627256bd611bf4bff7",
+    "node": "v26.9.0",
+    "scope": "Production scheduling correction at existing safe boundaries. No solver, clock proposal math, stopped-tick rejection, firmware or physical-model change. Existing Delta compatibility only; not new machine adaptation.",
+    "sourceSha256": {
+      "host/src/timing/calibration-cadence.ts": "6f39c13acd4900be39d3096a0b2c1fbbb9f9673f9ab8d9cc83715c5c0c5ccb72",
+      "host/src/runtime/rebuilt-motion.ts": "f67f7ca85c4e28ed241b8aa9ee408b67786070b4d65f1359d8cad46b86c5b749",
+      "host/src/timing/secondary-sync.ts": "441e45edbe5bb24b85fcbe44867b3f6f1cb87657f9527bdb9822e552bf047c83",
+      "host/src/timing/print-clock-timeline.ts": "64112b59a3df09af7147f1a87cd5e95164f2e988444e3cf755031656b2cccc22",
+      "host/src/homing/position-offsets.ts": "cb9b14a55d504b6a6e5aaf683d4430f2314f2f77ee86e626f420c1e25adddbbf",
+      "host/test/periodic-clock-calibration.test.ts": "25a2255e2be833a78bbaa382fa08f647c9cd82cae1d3572d971205a0763a9a44",
+      "host/test/clock-cadence-transient.test.ts": "17e1733479b8e5ee2cb75282090b124b8c6e37f9553d38df312f90a14331ce0f",
+      "host/bench/clock-cadence-runtime.ts": "c19508e29cfa8be29579c4897b7f80ea0f4f74a0d34d3e5ca0aab6054a3c9340",
+      "host/acceptance/product-delta-journey.test.ts": "4969b71e1ec337f16904d5af8e3e12cd182243812b5fdb0cd107331600723860",
+      "host/acceptance/product-compiled-journey.test.ts": "b34b174060c97f8b951112e5c519acfb5e5a756d42491aaf17979bfbf298a7d6"
+    },
+    "upstream": {
+      "statistics": "klippy/extras/statistics.py:64-70 returns eventtime + 1",
+      "motion": "klippy/extras/motion_queuing.py:100-109 publishes every MCU calibration from statistics callback",
+      "prediction": "klippy/clocksync.py retains the four-second convergence horizon"
+    },
+    "change": {
+      "successfulPublicationSeconds": {
+        "before": 4,
+        "after": 1
+      },
+      "failedBoundaryRetrySeconds": 0.25,
+      "physicalModelOwnership": "Existing shared WeakMap across motion generations",
+      "timersAdded": 0
+    },
+    "counterexample": {
+      "beforeTestReport": {
+        "tests": 1,
+        "pass": 0,
+        "fail": 1,
+        "durationMs": 66.739938
+      },
+      "note": "Before-change shell command ended with cat; test report is the authoritative failure, not shell exit status.",
+      "model": "Independent true 1 MHz MCU clocks; first two primary warmup processing delays 20 ms, then 1 ms; 25 ms paced safe slots over 15 seconds.",
+      "oldMaximumMappingErrorTicks": 8019.4158214847985,
+      "currentMaximumMappingErrorTicks": 3403.4239371414365,
+      "oldUpdates": 4,
+      "currentUpdates": 16,
+      "hitTick": 4405000,
+      "stoppedTick": 4409000,
+      "oldMappedTick": 4411195,
+      "currentMappedTick": 4406530,
+      "originalStoppedAdmission": "Old map rejected; new map admitted with zero overshoot using unmodified homingPositionOffsets.",
+      "limitScope": "Synthetic discriminator only; 3500-tick assertion is not the target machine precision budget or an explanation of missing remote warmup samples."
+    },
+    "local": {
+      "distinctTests": 111,
+      "groups": {
+        "numeric": {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "durationMs": 158.310107
+        },
+        "lifecycle": {
+          "tests": 42,
+          "pass": 42,
+          "fail": 0,
+          "durationMs": 62158.162968
+        },
+        "product": {
+          "tests": 46,
+          "pass": 46,
+          "fail": 0,
+          "durationMs": 112781.646096
+        },
+        "compiledPrintAndProbe": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "durationMs": 26485.386035
+        },
+        "compiledApiLoad": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "durationMs": 38935.188775
+        }
+      },
+      "typecheck": true
+    },
+    "runtimeComparison": {
+      "node": "v26.9.0",
+      "baseline": "ab4d207d2df0da2c298091627256bd611bf4bff7",
+      "warmups": 1,
+      "samples": 5,
+      "variants": [
+        "fourSecondPublication",
+        "oneSecondPublication"
+      ],
+      "timing": [
+        {
+          "medianMs": 4252.908291000002,
+          "p95Ms": 4263.658837000003,
+          "samplesMs": [
+            4252.908291000002,
+            4256.757777999999,
+            4233.807720999997,
+            4263.658837000003,
+            4222.414946000004
+          ]
+        },
+        {
+          "medianMs": 4253.778292999996,
+          "p95Ms": 4272.268698,
+          "samplesMs": [
+            4243.825736000001,
+            4272.268698,
+            4253.778292999996,
+            4261.897682999996,
+            4237.758776000002
+          ]
+        }
+      ],
+      "cpu": [
+        {
+          "medianMs": 25.751,
+          "p95Ms": 38.866,
+          "samplesMs": [
+            31.092,
+            38.866,
+            25.751,
+            25.278,
+            20.91
+          ]
+        },
+        {
+          "medianMs": 28.5,
+          "p95Ms": 50.293,
+          "samplesMs": [
+            50.293,
+            27.874,
+            28.5,
+            28.103,
+            37.465
+          ]
+        }
+      ],
+      "segments": [
+        [
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          5,
+          5,
+          5,
+          5,
+          5
+        ]
+      ],
+      "limits": {
+        "wallRatio": 1.25,
+        "cpuRatio": 1.5,
+        "cpuSlackMs": 1
+      },
+      "scope": "Alternating paired 4-second paced native motion, real serial sessions and firmware-time drain with simulated MCUs. Identical 900-step endpoint. No physical/target-performance claim."
+    },
+    "compiledPrintAndProbe": {
+      "node": "v26.9.0",
+      "warmupsPerMode": 1,
+      "samplesPerMode": 3,
+      "sourceMs": 1253.2067000000006,
+      "compiledMs": 1228.8058110000002,
+      "maximumMs": 1679.1687100000008,
+      "passed": true,
+      "probeSourceMs": 858.3392560000011,
+      "probeCompiledMs": 871.3618320000023,
+      "probeMaximumMs": 1165.8410328000016,
+      "samples": [
+        {
+          "compiled": false,
+          "run": 0,
+          "printMs": 1222.6575350000003
+        },
+        {
+          "compiled": true,
+          "run": 0,
+          "printMs": 1223.483174
+        },
+        {
+          "compiled": true,
+          "run": 1,
+          "printMs": 1228.8058110000002
+        },
+        {
+          "compiled": false,
+          "run": 1,
+          "printMs": 1253.2067000000006
+        },
+        {
+          "compiled": false,
+          "run": 2,
+          "printMs": 1267.2722710000016
+        },
+        {
+          "compiled": true,
+          "run": 2,
+          "printMs": 1204.0704049999986
+        },
+        {
+          "compiled": true,
+          "run": 3,
+          "printMs": 1265.974284
+        },
+        {
+          "compiled": false,
+          "run": 3,
+          "printMs": 1202.7586679999986
+        }
+      ],
+      "probeSamples": [
+        {
+          "compiled": false,
+          "run": 0,
+          "wallMs": 882.7876000000001,
+          "readyWaitMs": 0.8022880000012265
+        },
+        {
+          "compiled": true,
+          "run": 0,
+          "wallMs": 862.4771710000005,
+          "readyWaitMs": 258.4532340000005
+        },
+        {
+          "compiled": true,
+          "run": 1,
+          "wallMs": 881.6903509999993,
+          "readyWaitMs": 0.6291369999999006
+        },
+        {
+          "compiled": false,
+          "run": 1,
+          "wallMs": 844.256288999999,
+          "readyWaitMs": 0.7906390000007377
+        },
+        {
+          "compiled": false,
+          "run": 2,
+          "wallMs": 858.3392560000011,
+          "readyWaitMs": 0.5628659999983938
+        },
+        {
+          "compiled": true,
+          "run": 2,
+          "wallMs": 871.3618320000023,
+          "readyWaitMs": 0.6262470000001485
+        },
+        {
+          "compiled": true,
+          "run": 3,
+          "wallMs": 853.3574660000013,
+          "readyWaitMs": 0.6864869999990333
+        },
+        {
+          "compiled": false,
+          "run": 3,
+          "wallMs": 871.2493939999986,
+          "readyWaitMs": 0.6394170000021404
+        }
+      ],
+      "scope": "Delta source/compiled CLI heated short file print over two simulated PTY MCUs; wire-only endstop and ADC model, exact eight extruder steps, file close and durable completion after shutdown. After normal G28 and printing, completes two probe samples with retract and token replay, without seeding homing authority. Local native addons/dependencies reused. Excludes physical hardware and long-print throughput."
+    },
+    "compiledMixedLoad": {
+      "manifestSha256": "b4833682c633c579bed50df18988d3af2d0d31801e936e51ca2bfddc9dc24482",
+      "statusRequests": 16743,
+      "statusP99Ms": 3.58082899999863,
+      "uploads": 16,
+      "wireSteps": 3706,
+      "minimumStepLeadMs": 86.765,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.985535,
+            "maxMs": 20.889599
+          },
+          "cpu": {
+            "user": 7127885,
+            "system": 1102458
+          },
+          "rss": 335929344
+        },
+        {
+          "loop": {
+            "p99Ms": 1.901567,
+            "maxMs": 5.734399
+          },
+          "cpu": {
+            "user": 2037936,
+            "system": 385850
+          },
+          "rss": 336650240
+        }
+      ],
+      "limits": {
+        "minimumStepLeadMsExclusive": 0,
+        "loopP99MsExclusive": 50,
+        "loopMaxMsExclusive": 100
+      },
+      "scope": "Emitted product using local native/dependency artifacts; authorization, subscriptions, files, completion/cancel, restart and persistence over simulated MCUs. No clean independent installation or physical acceptance claim."
+    },
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-cadence-counterexample-before.log",
+        "sha256": "62f2981b7f18f707b1f36edb10f413586d3a2211dc613893f6da9b74ea737277"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-numeric.log",
+        "sha256": "b7fb1736f2fd6e3731d039ccb453ca4ea3af95c704bf69f1ab243f979915ea0e"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-lifecycle-audit.log",
+        "sha256": "29719e7a303d70955fe2a886e54eb1d67ca2869c3391b7b939dd89f97b7573aa"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-product-regression.log",
+        "sha256": "87c6b5b441d05f756da0b019660ebd94440043ea6b52a8f4c2d8b97c49b2896a"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-runtime-benchmark.log",
+        "sha256": "59c98c5cd2472e3fdb2a2721d69fcaa7f4d09c36d704421f8676454fe8c30bd2"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-compiled-journey.log",
+        "sha256": "728423c18a6cd0a34c2e3fa644cb5bd0675e2cc239dd509bfd8f6276d8894cad"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-compiled-journey.json",
+        "sha256": "bbffbe05cfc1766818abaeebdd24b31912aa31f660e734857fb318c74162b738"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-compiled-load.log",
+        "sha256": "d2a3a0c70e92414f01b9c4e22c95fa845626437363a44f009cf023690381096e"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-audit-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-final-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-final-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "remaining": [
+      "Exact new-head required CI and develop integration",
+      "Unexplained historical clock/precision/process anomalies and G3",
+      "Same-bundle actual Fluidd/Mainsail journeys",
+      "Cycnumbris 500 physical stop, target budgets and long printing",
+      "Full native Moonraker, consumer operation scenarios and all Python retirement"
+    ]
   }
 }
