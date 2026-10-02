@@ -1,0 +1,18 @@
+{
+  "status": "transport verified; sensor integration pending",
+  "runtime": "v26.9.0",
+  "tests": {"i2cAndSpi": 13, "additionalQueueBoundary": 1},
+  "latency": {
+    "scope": "Native serial with simulated MCU; six-byte query, 20 warmups and 100 retained samples",
+    "medianMs": 0.13817200000005414,
+    "p95Ms": 0.1681029999999737,
+    "maxMs": 0.5895679999999857
+  },
+  "limitations": [
+    "No original Python throughput comparison yet",
+    "No physical bus or target-board acceptance",
+    "No sensor configuration/runtime integration yet",
+    "No Python retirement",
+    "Only modern status-confirmed firmware protocol supported"
+  ]
+}

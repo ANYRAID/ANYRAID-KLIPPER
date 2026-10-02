@@ -1,0 +1,24 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "100000 exclusion-transform admissions, half excluded, second physical axis vs original single-extruder filter; alternating samples, excludes native planning/MCU IO",
+  "single": {
+    "samplesMs": [
+      63.58878000000004,
+      63.528729999999996,
+      61.38687200000004,
+      61.37364099999991,
+      61.83315799999991
+    ],
+    "medianMs": 61.83315799999991
+  },
+  "multi": {
+    "samplesMs": [
+      79.02379400000007,
+      78.27412499999991,
+      76.22799799999996,
+      76.2619880000002,
+      76.83932600000003
+    ],
+    "medianMs": 76.83932600000003
+  }
+}

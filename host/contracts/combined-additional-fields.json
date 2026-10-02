@@ -1,0 +1,226 @@
+{
+  "status": "aggregation and chained runtime verified; physical field providers pending",
+  "temperatureOnly": {
+    "runtime": "v26.9.0",
+    "additionalFields": false,
+    "scope": "100000 updates with 8 sources: original Python update_temp and optional update_additional vs TypeScript validation and compensated mean; 3 warmups and 5 alternating retained runs; excludes scheduling and device IO",
+    "baseline": {
+      "samplesMs": [
+        132.02494398865383,
+        131.87553100578953,
+        134.73495800280944,
+        132.77762298821472,
+        132.68779299687594
+      ],
+      "medianMs": 132.68779299687594
+    },
+    "current": {
+      "samplesMs": [
+        12.417786999999976,
+        13.504771000000005,
+        13.44553899999994,
+        12.696700000000192,
+        12.506098000000065
+      ],
+      "medianMs": 12.696700000000192
+    }
+  },
+  "withAdditional": {
+    "runtime": "v26.9.0",
+    "additionalFields": true,
+    "scope": "100000 updates with 8 sources: original Python update_temp and optional update_additional vs TypeScript validation and compensated mean; 3 warmups and 5 alternating retained runs; excludes scheduling and device IO",
+    "baseline": {
+      "samplesMs": [
+        445.68002699816134,
+        426.74402899865527,
+        442.02039200172294,
+        433.33289299334865,
+        432.3235409974586
+      ],
+      "medianMs": 433.33289299334865
+    },
+    "current": {
+      "samplesMs": [
+        94.19888700000001,
+        96.80754999999999,
+        96.26593300000013,
+        94.79144499999984,
+        94.52469199999996
+      ],
+      "medianMs": 94.79144499999984
+    }
+  },
+  "productDiagnostics": [
+    {
+      "installation": {
+        "durationMs": 799.103654,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1285.7575479999996,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "combinedTemperature": {
+        "compiled": true,
+        "temperatureFan": false,
+        "temperature": 149.8,
+        "sourceTemperatures": [
+          219.71,
+          79.92
+        ],
+        "sourceCount": 2
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 10,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_sensor combined"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "combinedHeater": false,
+      "combined": true,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 189,
+      "wireSteps": 3694,
+      "minimumStepLeadMs": 86.531,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.739775,
+            "maxMs": 19.742719
+          },
+          "cpu": {
+            "user": 1205531,
+            "system": 153830
+          },
+          "rss": 181465088
+        },
+        {
+          "loop": {
+            "p99Ms": 2.195455,
+            "maxMs": 8.880127
+          },
+          "cpu": {
+            "user": 688602,
+            "system": 83643
+          },
+          "rss": 205148160
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "compiled product uses temperature sources only",
+    "humidity pressure and gas provider hardware acceptance pending",
+    "no physical printer throughput claim"
+  ]
+}

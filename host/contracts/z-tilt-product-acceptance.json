@@ -1,0 +1,32 @@
+{
+  "scope": "Configured Node 26 TypeScript product service with real HTTP listener and simulated MCU UARTs; not a compiled artifact or physical printer acceptance.",
+  "node": "26.9.0",
+  "validation": {
+    "regressionTests": 28,
+    "additionalOwnershipTest": 1,
+    "postOwnershipChangeTests": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "checks": [
+    "Z pivots map to numerically ordered configured motors",
+    "Probe geometry, travel, topology, options and retries reject before configuration-driven device startup",
+    "Explicit mismatched hardware layout closes devices instead of advertising calibration",
+    "HTTP authentication and unhomed rejection",
+    "Configured dual-Z two-point native probe and adjustment complete through HTTP",
+    "Repeated completed request returns identical receipt without additional motion",
+    "G-code coordinate synchronization and z_tilt.applied object status"
+  ],
+  "performance": {
+    "scope": "This change wires startup configuration and maintenance API only; numerical and native motion execution are unchanged from the preceding measured implementation.",
+    "planningAndExecutionEvidence": "native-z-tilt-calibration-acceptance.json",
+    "productHttpTestDurationMs": 1418.832262,
+    "limitation": "Single test duration includes fixture and service startup/shutdown; not an isolated latency benchmark or print throughput claim."
+  },
+  "limits": [
+    "Default printing entrypoint is still Python; no Python files retired here.",
+    "Compiled product and real printer Z tilt acceptance remain pending.",
+    "Calibration deadline is 120 seconds; retries=0 does not guarantee measured tolerance.",
+    "Maximum adjustment is per pass, and per-segment step quantization remains."
+  ]
+}

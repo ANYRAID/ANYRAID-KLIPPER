@@ -1,0 +1,159 @@
+{
+  "node": "v26.9.0",
+  "startupMs": 142.23157299999997,
+  "inputBytes": 3375808,
+  "imageBytes": 394257,
+  "warmups": 5,
+  "runs": 11,
+  "results": [
+    {
+      "mode": "inline-reference",
+      "medianMs": 17.23550399999999,
+      "p95Ms": 19.723989000000074,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": null,
+      "parentRead64KiB": {
+        "medianMs": 0.03342099999997572,
+        "p95Ms": 0.1559230000000298
+      },
+      "parentEventLoop": {
+        "p95Ms": 10.895359,
+        "maxMs": 13.729791
+      }
+    },
+    {
+      "mode": "isolated-scan",
+      "medianMs": 23.248708999999963,
+      "p95Ms": 30.800385000000006,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": null,
+      "parentRead64KiB": {
+        "medianMs": 0.021730000000161453,
+        "p95Ms": 0.09354099999995924
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.733631,
+        "maxMs": 3.121151
+      }
+    },
+    {
+      "mode": "durable-intent-scan",
+      "medianMs": 23.27383900000018,
+      "p95Ms": 28.59672499999988,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": {
+        "medianMs": 0.7279499999999643,
+        "p95Ms": 3.2582859999999982
+      },
+      "parentRead64KiB": {
+        "medianMs": 0.021020000000135042,
+        "p95Ms": 0.06647099999986494
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.575935,
+        "maxMs": 5.357567
+      }
+    },
+    {
+      "mode": "durable-snapshot-scan",
+      "medianMs": 22.90083400000003,
+      "p95Ms": 27.93387500000017,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": {
+        "medianMs": 0.9592239999999492,
+        "p95Ms": 4.700106999999889
+      },
+      "parentRead64KiB": {
+        "medianMs": 0.01978000000008251,
+        "p95Ms": 0.07355099999995218
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.674239,
+        "maxMs": 4.036607
+      }
+    },
+    {
+      "mode": "lifecycle-owner",
+      "medianMs": 25.086855000000014,
+      "p95Ms": 28.43552200000022,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": {
+        "medianMs": 1.578932999999779,
+        "p95Ms": 5.881713000000218
+      },
+      "parentRead64KiB": {
+        "medianMs": 0.020430000000033033,
+        "p95Ms": 0.07199100000025282
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.626111,
+        "maxMs": 2.131967
+      }
+    },
+    {
+      "mode": "lifecycle-windows",
+      "medianMs": 24.67815900000005,
+      "p95Ms": 27.6327110000002,
+      "thumbnailHttpDownload": null,
+      "retirementWithFsync": {
+        "medianMs": 1.4452799999999115,
+        "p95Ms": 6.151186999999936
+      },
+      "parentRead64KiB": {
+        "medianMs": 0.018360000000029686,
+        "p95Ms": 0.05261099999961516
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.721343,
+        "maxMs": 3.190783
+      }
+    },
+    {
+      "mode": "http-metascan",
+      "medianMs": 23.849917000000005,
+      "p95Ms": 28.65676600000006,
+      "thumbnailHttpDownload": {
+        "medianMs": 3.9360059999999066,
+        "p95Ms": 7.344963999999891
+      },
+      "retirementWithFsync": {
+        "medianMs": 3.567659999999705,
+        "p95Ms": 7.7559690000002774
+      },
+      "parentRead64KiB": {
+        "medianMs": 0.020560000000386935,
+        "p95Ms": 0.08925099999987651
+      },
+      "parentEventLoop": {
+        "p95Ms": 1.524735,
+        "maxMs": 2.586623
+      }
+    }
+  ],
+  "noImageBytes": 2850080,
+  "noImageResults": [
+    {
+      "mode": "fields-only-worker",
+      "medianMs": 5.341644999999971,
+      "p95Ms": 6.010214999999789
+    },
+    {
+      "mode": "complete-scan-no-images",
+      "medianMs": 5.686879999999746,
+      "p95Ms": 8.544250999999804
+    }
+  ],
+  "intentBeginWithFsync": {
+    "medianMs": 0.30622400000038397,
+    "p95Ms": 0.4553160000000389
+  },
+  "intentAcknowledgeWithFsync": {
+    "medianMs": 0.11784199999965494,
+    "p95Ms": 0.12310200000001714
+  },
+  "scope": "Read, parse, image decode/miniature, source recheck, sealed bundle/fsync and metadata commit included. Inline Node reference has identical field/image outputs and image-publication durability but runs parsers/images on the parent. Durable mode additionally records intent. Intent begin is included in both durable modes; durable-snapshot mode also persists fields before query visibility. Lifecycle-windows uses preprepared immutable head/tail bytes (source reading and sealing excluded) and the same source validation, images and durability as lifecycle-owner. Lifecycle mode additionally persists pending/selected versions and uses owner invalidation plus retirement. HTTP mode adds an authenticated loopback POST, bounded root-relative descriptor opens and repeated source reopen validation, JSON encode/decode and response consumption through ConfiguredMoonraker with automatically bound downloads. A separate authenticated original PNG GET is timed including full body consumption and verified by SHA-256. Download latency is excluded from scan timing but included in loop/read probe windows; normal bounded storage cache remains enabled. Validated explicit retirement (snapshot, image, intent) outside scan latency remains in loop/read probe windows. No Python/full Moonraker or physical printing equivalence.",
+  "implementationBase": "97239f25",
+  "fixture": "host/bench/metadata-scan.ts",
+  "fixtureSha256": "30bf8050be917d6879146eabe80a839be232e87216b5f6876bd4abe25cd71152",
+  "command": "node host/bench/metadata-scan.ts"
+}

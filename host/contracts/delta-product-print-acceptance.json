@@ -1,0 +1,88 @@
+{
+  "node": "v26.9.0",
+  "warmupsPerMode": 1,
+  "samplesPerMode": 3,
+  "baseline": {
+    "wallMedianMs": 1237.3877320000001,
+    "cpuMedianMs": 78.84,
+    "queries": 0,
+    "maximumQueryP99Ms": 0
+  },
+  "loaded": {
+    "wallMedianMs": 1258.076911,
+    "cpuMedianMs": 1551.746,
+    "queries": 11572,
+    "maximumQueryP99Ms": 0.8473130000002129
+  },
+  "samples": [
+    {
+      "run": 0,
+      "loaded": false,
+      "wallMs": 1214.063019,
+      "cpuMs": 149.468,
+      "queries": 0,
+      "queryP99Ms": null
+    },
+    {
+      "run": 0,
+      "loaded": true,
+      "wallMs": 1258.9646709999997,
+      "cpuMs": 1712.089,
+      "queries": 3398,
+      "queryP99Ms": 1.3043500000003405
+    },
+    {
+      "run": 1,
+      "loaded": true,
+      "wallMs": 1258.076911,
+      "cpuMs": 1616.794,
+      "queries": 3772,
+      "queryP99Ms": 0.8473130000002129
+    },
+    {
+      "run": 1,
+      "loaded": false,
+      "wallMs": 1237.3877320000001,
+      "cpuMs": 78.84,
+      "queries": 0,
+      "queryP99Ms": null
+    },
+    {
+      "run": 2,
+      "loaded": false,
+      "wallMs": 1255.780663999999,
+      "cpuMs": 120.438,
+      "queries": 0,
+      "queryP99Ms": null
+    },
+    {
+      "run": 2,
+      "loaded": true,
+      "wallMs": 1281.7450680000002,
+      "cpuMs": 1551.746,
+      "queries": 3894,
+      "queryP99Ms": 0.6761399999995774
+    },
+    {
+      "run": 3,
+      "loaded": true,
+      "wallMs": 1236.3114870000009,
+      "cpuMs": 1501.158,
+      "queries": 3906,
+      "queryP99Ms": 0.7229600000009668
+    },
+    {
+      "run": 3,
+      "loaded": false,
+      "wallMs": 1209.67101,
+      "cpuMs": 46.144,
+      "queries": 0,
+      "queryP99Ms": null
+    }
+  ],
+  "wallGate": {
+    "maximumMs": 1658.6040516000003,
+    "passed": true
+  },
+  "scope": "Two simulated MCUs, HTTP start, two-pass Delta homing, live simulated ADC samples, 0.1 mm / 8-step extrusion, heater-off and durable completion. Loaded case continuously queries four Moonraker objects with one in-flight HTTP request. Excludes physical printer and long-print throughput."
+}

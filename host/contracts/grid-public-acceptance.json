@@ -1,0 +1,125 @@
+{
+  "base": "34547f72",
+  "tests": {
+    "httpAndConfiguration": 5,
+    "nativeAndGrid": 5,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmarks": [
+    {
+      "node": "v26.9.0",
+      "samples": 1000,
+      "points": 36,
+      "medianMs": 0.04413000000000977,
+      "p95Ms": 0.12211200000000133,
+      "scope": "Path planning, async orchestration and interpolation with fake constant measurement; excludes native movement and transport."
+    },
+    {
+      "node": "v26.9.0",
+      "samples": 1000,
+      "p95Ms": 0.0319510000000065,
+      "medianMs": 0.015250000000008868,
+      "scope": "Authorized in-process endpoint, immediate fake measurement plus idempotent retry; no native motion or HTTP transport."
+    }
+  ],
+  "journey": {
+    "http": true,
+    "simulatedMCUs": 2,
+    "points": 9,
+    "activated": "measured",
+    "retryWithoutMotion": true,
+    "persisted": "retained",
+    "profileReloadMatches": true,
+    "thermalReports": true,
+    "fanTimeline": true
+  },
+  "fixes": [
+    "Skip zero-displacement grid movement rather than drain an already stationary source; full product fan timeline exposed invalid horizon.",
+    "Long-lived simulation now emits valid periodic ADC data instead of triggering missing-sensor shutdown."
+  ],
+  "limitations": [
+    "Compiled journey now uses print-start homing before grid, simulated MCU only; no physical printer acceptance.",
+    "Circular beds, zero-reference and faulty-region policies rejected pending implementation.",
+    "Grid request deadline is 120 seconds; no durable cross-process calibration receipt.",
+    "Historical numerical anomalies and process crashes remain unresolved."
+  ],
+  "compiledRoundTrip": {
+    "base": "a8e7c78e",
+    "node": "v26.9.0",
+    "tests": 4,
+    "typecheck": true,
+    "whitespace": true,
+    "environment": {
+      "PATH": "/no-programs",
+      "NODE_OPTIONS": "--no-experimental-strip-types"
+    },
+    "grid": {
+      "compiled": true,
+      "points": 9,
+      "referencePoints": 1,
+      "durationMs": 8907.896286999996,
+      "retryWithoutMotion": true
+    },
+    "save": {
+      "compiled": true,
+      "reinitialized": true,
+      "oldTokenRejected": true,
+      "removedAfterReinitialization": true,
+      "profile": "retained",
+      "implicitMeshActivation": false
+    },
+    "loadMetrics": {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 468,
+      "historyP99Ms": 11.15846799999781,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.570883000000322,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.3189569999995,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.613115000000107,
+      "metadataRequests": 16,
+      "metadataP95Ms": 18.86236800000188,
+      "downloads": 16,
+      "downloadP95Ms": 4.72334299999784,
+      "wireCommands": 331,
+      "wireSteps": 4446,
+      "minimumStepLeadMs": 85.124,
+      "directoryRequests": 2012,
+      "directoryP99Ms": 5.90821700000015,
+      "statusRequests": 8343,
+      "uploads": 16,
+      "statusP99Ms": 3.7167689999987488,
+      "uploadP95Ms": 12.96918100000039,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.012159,
+            "maxMs": 13.254655
+          },
+          "cpu": {
+            "user": 2147521,
+            "system": 248761
+          },
+          "rss": 254095360
+        },
+        {
+          "loop": {
+            "p99Ms": 2.312191,
+            "maxMs": 14.876671
+          },
+          "cpu": {
+            "user": 1314891,
+            "system": 180562
+          },
+          "rss": 251670528
+        }
+      ]
+    },
+    "log": "/tmp/grid-compiled-journey.log"
+  }
+}

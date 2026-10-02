@@ -1,0 +1,26 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "100000 Move allocations plus live admission; alternating single carriage / mirror collision-range checks, no MCU IO",
+  "results": {
+    "linear": {
+      "samplesMs": [
+        47.322678999999994,
+        48.148791000000074,
+        47.04183400000011,
+        47.22637700000007,
+        47.248695999999995
+      ],
+      "medianMs": 47.248695999999995
+    },
+    "dual": {
+      "samplesMs": [
+        51.06133900000003,
+        51.513045999999974,
+        50.83177499999999,
+        49.30402000000004,
+        49.23513000000003
+      ],
+      "medianMs": 50.83177499999999
+    }
+  }
+}

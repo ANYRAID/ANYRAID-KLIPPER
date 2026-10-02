@@ -8,7 +8,9 @@ The main Klipper GitHub repository uses "github actions" to run a
 series of regression tests. It can be useful to run some of these
 tests locally.
 
-The source code "whitespace check" can be run with:
+The source code "whitespace check" requires Node.js 26 (or an absolute
+Node path supplied via the `NODE` environment variable) and no npm
+dependencies. It can be run with:
 ```
 ./scripts/check_whitespace.sh
 ```
@@ -20,8 +22,30 @@ Once the data dictionaries are downloaded, use the following to run
 the regression suite:
 ```
 tar xfz klipper-dict-20??????.tar.gz
-~/klippy-env/bin/python ~/klipper/scripts/test_klippy.py -d dict/ ~/klipper/test/klippy/*.test
+node ~/klipper/scripts/test_klippy.ts --python ~/klippy-env/bin/python -d dict/ ~/klipper/test/klippy/*.test
 ```
+
+The runner requires Node.js 26. The selected Klippy backend still requires
+Python and its dependencies. Use `-t DIRECTORY` for an existing temporary
+parent directory, `-k` to retain successful artifacts, and `-v` for verbose
+backend output. Failed cases retain their isolated artifact directory.
+The default timeout is 120 seconds per case; `--timeout-ms` accepts
+1 through 600000 milliseconds. Crashes, cancellation, and timeouts always
+fail, including tests marked `SHOULD_FAIL`.
+
+## Estimating AVR stack usage
+
+With AVR binutils and Node.js 26 installed, inspect a firmware disassembly:
+
+```
+avr-objdump -d out/klipper.elf | node scripts/checkstack.ts
+```
+
+The tool preserves the previous AVR stack heuristic, including preamble,
+call, tail-call, command-table and event-handler accounting. The reported
+values are estimates, not proven stack bounds: indirect calls and recursive
+cycles cannot establish the actual worst-case usage. It is not an analyzer
+for every MCU architecture. No npm dependencies are required.
 
 ## Manually sending commands to the micro-controller
 
@@ -31,14 +55,27 @@ possible to manually send these MCU commands (functions marked with
 the DECL_COMMAND() macro in the Klipper source code). To do so, run:
 
 ```
-~/klippy-env/bin/python ./klippy/console.py /tmp/pseudoserial
+node scripts/console.ts /tmp/pseudoserial
 ```
 
 See the "HELP" command within the tool for more information on its
-functionality.
+functionality. The console requires Node.js 26.9 or later 26.x and the built
+host native addons. UART, prepared PTY/RPMsg, and CAN connection adapters are
+available. Use this exclusive diagnostic connection with the printer host
+stopped; closing the console only closes host traffic, not MCU actions already
+accepted. It does not use the product print configuration API.
+
+SET, DELAY, FLOOD, SUPPRESS, DUMP, FILEDUMP, STATS and LIST are supported.
+Expressions in braces use bounded exact arithmetic and variables, not Python
+code. Decimal intermediate values remain exact; final substitutions truncate
+toward zero. FLOOD is limited to 10,000 commands and a 60-second schedule;
+DUMP/FILEDUMP are limited to 1 MiB per request with explicit 8/16/32-bit reads.
+FILEDUMP publishes atomically after successful reads; cancelled partial files
+are removed. EOF waits for command delivery acknowledgements, not physical
+execution. SIGINT cancels the active host operation without replay.
 
 Some command-line options are available. For more information run:
-`~/klippy-env/bin/python ./klippy/console.py --help`
+`node scripts/console.ts --help`
 
 ## Translating gcode files to micro-controller commands
 
@@ -70,11 +107,16 @@ The above will produce a file **test.serial** with the binary serial
 output. This output can be translated to readable text with:
 
 ```
-~/klippy-env/bin/python ./klippy/parsedump.py out/klipper.dict test.serial > test.txt
+node scripts/parsedump.ts out/klipper.dict test.serial > test.txt
 ```
 
 The resulting file **test.txt** contains a human readable list of
-micro-controller commands.
+micro-controller commands. The decoder requires Node.js 26.9 or later 26.x;
+it streams the capture with bounded buffering and does not require Python.
+Corrupt bytes are skipped with a diagnostic on stderr. Truncated captures or
+malformed message payloads return a non-zero exit status. Empty acknowledgement
+frames produce no command line; binary parameters use escaped byte literals.
+The batch generator above remains a separate Python entry point.
 
 The batch mode disables certain response / request commands in order
 to function. As a result, there will be some differences between
@@ -88,9 +130,9 @@ Klipper supports logging its internal motion history, which can be
 later analyzed. To use this feature, Klipper must be started with the
 [API Server](API_Server.md) enabled.
 
-Data logging is enabled with the `data_logger.py` tool. For example:
+Data logging is enabled with the `data_logger.ts` tool. For example:
 ```
-~/klipper/scripts/motan/data_logger.py /tmp/klippy_uds mylog -s '*'
+node ~/klipper/scripts/motan/data_logger.ts /tmp/klippy_uds mylog -s '*'
 ```
 
 This command will connect to the Klipper API Server, subscribe to
@@ -99,52 +141,91 @@ generated - a compressed data file and an index file (eg,
 `mylog.json.gz` and `mylog.index.gz`). After starting the logging, it
 is possible to complete prints and other actions - the logging will
 continue in the background. When done logging, hit `ctrl-c` to exit
-from the `data_logger.py` tool.
+from the `data_logger.ts` tool.
 
-The resulting files can be read and graphed using the `motan_graph.py`
-tool. To generate graphs on a Raspberry Pi, a one time step is
-necessary to install the "matplotlib" package:
-```
-sudo apt-get update
-sudo apt-get install python-matplotlib
-```
-However, it may be more convenient to copy the data files to a desktop
-class machine along with the Python code in the `scripts/motan/`
-directory. The motion analysis scripts should run on any machine with
-a recent version of [Python](https://python.org) and
-[Matplotlib](https://matplotlib.org/) installed.
+The captures can also be plotted with Node.js 26 after installing the host
+dependencies. The Node tool reads both capture files and runs analysis in a
+worker; it does not require Python:
 
-Graphs can be generated with a command like the following:
 ```
-~/klipper/scripts/motan/motan_graph.py mylog -o mygraph.png
+npm --prefix ~/klipper/host ci
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.html
+node ~/klipper/scripts/motan/motan_graph.ts mylog -d .5 --segment-time .0001 -o motion.png -g '[["trapq(toolhead,velocity)?color=green"],["trapq(toolhead,accel)?color=tab:blue&ls=--"]]'
+node ~/klipper/scripts/motan/motan_graph.ts -l
 ```
 
-One can use the `-g` option to specify the datasets to graph (it takes
-a Python literal containing a list of lists). For example:
-```
-~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)"], ["trapq(toolhead,accel)"]]'
+For a standalone compiled package, build it while no exports are running,
+copy the generated directory outside the repository, and install its locked
+runtime dependencies with the target Node.js 26.9+ 26.x runtime:
+
+```sh
+npm --prefix ~/klipper/host run build:motan -- /absolute/motan-package
+cd /absolute/motan-package
+npm ci --omit=dev --include=optional --ignore-scripts
+node --no-experimental-strip-types scripts/motan/motan_graph.js /absolute/mylog -o /absolute/motion.pdf
+node --no-experimental-strip-types scripts/motan/data_export.js /absolute/mylog -c '["trapq(toolhead,x)"]' -o /absolute/motion.csv
 ```
 
-The list of available datasets can be found using the `-l` option -
-for example:
-```
-~/klipper/scripts/motan/motan_graph.py -l
+The bundle contains both CLIs, the analysis worker, fonts and licenses,
+and the host's locked production dependency set. Keep captures and exports
+outside the generated directory: rebuilding replaces it, including installed
+dependencies. Install dependencies again after a rebuild. The package does
+not require Python or a TypeScript runtime loader. Native image dependencies
+must support the target platform; current standalone verification is on Linux x64.
+
+Output is required: HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, or complete JSON
+panels. HTML provides offline zoom, pan and curve toggles. Supported styles
+are `color/c` (hex, CSS/XKCD names, shorthand, tab colors, grayscale, Cn or none), `label`,
+`alpha` (0..1), `linewidth/lw` (0..20), `linestyle/ls` (solid, dashed,
+dash-dot, dotted or none), `drawstyle/ds` (`default`, `steps`, `steps-pre`,
+`steps-post`, `steps-mid`), `marker` (the 25 standard character symbols listed
+in the [Matplotlib marker reference](https://matplotlib.org/3.10.0/api/markers_api.html),
+or none), `markersize/ms` (0..40), `fillstyle` (full, none, left, right, top, bottom),
+`markerfacecolor/mfc`, `markerfacecoloralt/mfcalt`, `markeredgecolor/mec` and
+`markeredgewidth/mew` (0..20). Marker colors accept `auto` or the same color
+syntax as lines; the alternate face defaults to none. Pixel markers keep unit
+size. Mathtext markers, custom paths and rcParams overrides remain unported. Unsupported parameters fail before analysis; they
+are not silently ignored. Use the legacy tool below for styles not yet ported.
+Colors follow the default Matplotlib palette (including case-insensitive multi-letter
+names). Grayscale strings range from 0 to 1. The default alpha of 0.8 overrides
+hex alpha; `none` hides the line and markers inheriting its color while preserving
+legend text; an explicitly colored marker remains visible. Custom Matplotlib rcParams palettes are not loaded.
+`steps` is an alias for `steps-pre`. Markers stay on the original samples,
+while step vertices only change the displayed line; JSON keeps original data.
+The total expanded line budget is 500000 points across all panels.
+Numeric datasets only are supported by this graph entry point. Existing
+capture files are protected from replacement; failures/cancellation preserve
+prior output. Analysis is limited to 60 seconds per job. This is an offline
+diagnostic tool and does not drive a printer.
+
+Read and graph captured files with Node.js 26 and the Motan TypeScript
+entry point (install the locked dependencies in `host/` first):
+
+```sh
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o mygraph.png
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.html -g '[["trapq(toolhead,velocity)"], ["trapq(toolhead,accel)"]]'
+node ~/klipper/scripts/motan/motan_graph.ts -l
 ```
 
-It is also possible to specify matplotlib plot options for each
-dataset:
-```
-~/klipper/scripts/motan/motan_graph.py mylog -g '[["trapq(toolhead,velocity)?color=red&alpha=0.4"]]'
-```
-Many matplotlib options are available; some examples are "color",
-"label", "alpha", and "linestyle".
+The `-g` option accepts a Python literal or JSON list of graph rows. The
+literal is parsed as data; no Python interpreter is invoked. Every export
+requires `-o`; use HTML for an interactive browser view. There is no desktop
+Matplotlib window. Supported exports include HTML, PDF, SVG, PNG, JPEG,
+WebP, TIFF and full-precision JSON.
 
-The `motan_graph.py` tool supports several other command-line
-options - use the `--help` option to see a list. It may also be
-convenient to view/modify the
-[motan_graph.py](../scripts/motan/motan_graph.py) script itself.
+Style parameters are attached to each dataset:
 
-The raw data logs produced by the `data_logger.py` tool follow the
+```sh
+node ~/klipper/scripts/motan/motan_graph.ts mylog -o motion.svg -g '[["trapq(toolhead,velocity)?color=red&alpha=0.4"]]'
+```
+
+Use `--help` for supported colors, line and marker styles and analysis limits.
+Unsupported options fail explicitly. For a standalone JavaScript package,
+use the build instructions above; it can run without Python or a TypeScript
+loader. The old `motan_graph.py`, `readlog.py` and `analyzers.py` files have
+been retired. See [motan_graph.ts](../scripts/motan/motan_graph.ts).
+
+The raw data logs produced by the `data_logger.ts` tool follow the
 format described in the [API Server](API_Server.md). It may be useful
 to inspect the data with a Unix command like the following:
 `gunzip < mylog.json.gz | tr '\03' '\n' | less`
@@ -155,29 +236,229 @@ The Klippy log file (/tmp/klippy.log) stores statistics on bandwidth,
 micro-controller load, and host buffer load. It can be useful to graph
 these statistics after a print.
 
-To generate a graph, a one time step is necessary to install the
-"matplotlib" package:
+For file export with Node.js 26, install the host dependencies once and run:
 
 ```
-sudo apt-get update
-sudo apt-get install python-matplotlib
+npm --prefix ~/klipper/host ci
+node ~/klipper/scripts/graphstats.ts /tmp/klippy.log -o loadgraph.png
 ```
 
-Then graphs can be produced with:
+PDF export is shared by the Node diagnostic graph tools, including static
+mesh plots and spectrograms. It embeds DejaVu Sans fonts and preserves SVG
+paths and clipping; spectrogram cells remain an embedded raster. It creates
+one page with the same aspect ratio as the SVG (stacked panels stay together).
+Labels outside the bundled font's glyph coverage fail explicitly; use SVG or
+PNG when system font fallback is needed. PDF is an offline operation and can
+block its CLI process while encoding; never run it in a printer control loop.
 
-```
-~/klipper/scripts/graphstats.py /tmp/klippy.log -o loadgraph.png
-```
+The Node tool supports PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON curve data. Use
+`-s` for system load, `-f` for MCU frequency, `-m` to select an MCU, or
+`-t heater_bed,extruder` for temperatures. An output filename is required;
+run `node ~/klipper/scripts/graphstats.ts --help` for the options.
 
-One can then view the resulting **loadgraph.png** file.
+The Python statistics entry point has been retired. Use HTML for interactive
+zoom and curve selection, PDF or SVG for vector output, and PNG for images.
+No Python or Matplotlib installation is needed. The CLI requires an explicit
+output path; it does not open a desktop plotting window or export EPS.
 
 Different graphs can be produced. For more information run:
-`~/klipper/scripts/graphstats.py --help`
+`node ~/klipper/scripts/graphstats.ts --help`
+
+## Generating extruder motion graphs
+
+For an offline illustration of extruder pressure advance, the Node.js 26
+tool generates the original fixed sample motion and compares nominal,
+raw pressure advance, and smoothed pressure advance velocities:
+
+```
+node ~/klipper/scripts/graph_extruder.ts -o extruder.png
+```
+
+It uses the same installed host dependencies and export formats as the
+Node load graph tool. The horizontal axis is elapsed seconds. This is a
+diagnostic simulation, not a calibration command or a hardware validation.
+The Python entry point has been retired. Use `.html` for an interactive
+document with zoom and curve controls, or `.svg` / `.pdf` for vector output.
+An explicit output filename is required; the tool no longer opens a
+Matplotlib window or exports EPS. The calculation and its regression tests
+do not require Python or Matplotlib.
+
+## Generating input shaper simulation graphs
+
+The Node.js 26 tool exports the frequency response and unit step response
+in a single file, using the same host dependencies as the tools above:
+
+```
+node ~/klipper/scripts/graph_shaper.ts -o shaper.png
+node ~/klipper/scripts/graph_shaper.ts --shaper zvd --shaper_freq 45 --system_freq 60 -o shaper.svg
+```
+
+Use `--damping_ratio`, `--test_damping_ratios` (comma separated), and
+`--system_damping_ratio` to adjust damping. Run with `--help` for defaults.
+The output formats are HTML, PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON. JSON contains
+an array of two panels, each with its plot data and horizontal axis label.
+The simulation does not configure a printer or measure physical resonance.
+The Python entry point has been retired. Specify an output filename; use
+HTML for interactive zoom and curve controls or SVG/PDF for vector output.
+The tool no longer opens a Matplotlib window or exports EPS. Its calculation,
+regression tests and benchmarks do not require Python or Matplotlib.
+
+## Generating temperature sensor graphs
+
+With Node.js 26 and the host dependencies installed, plot the built-in
+analog sensors without connecting to a printer:
+
+```
+node ~/klipper/scripts/graph_temp_sensor.ts -o sensors.png
+node ~/klipper/scripts/graph_temp_sensor.ts -s "Generic 3950,PT1000" -p 4700 -v 5 -r -o resistance.svg
+```
+
+The default output contains ADC and absolute ADC change per degree curves;
+`-r` selects the original pullup-based resistance formula. For voltage
+sensors this is a formula-derived equivalent, not their physical resistance.
+`-s` selects comma-separated sensor names, `-p` changes the pullup resistance,
+and `-v` changes ADC voltage. `--help` lists the 16 supported built-in sensors.
+The available file formats are PDF, SVG, PNG, JPEG, WebP, TIFF, and JSON panels.
+These curves do not establish sensor accuracy or a safe heater temperature
+range. The legacy Python script and its broken sensor registration entry
+have been retired. This tool requires an explicit output file; it does not
+provide the old Matplotlib interactive window. Regression tests use complete
+frozen Python reference curves without launching Python.
+
+## Generating the legacy motion demonstration
+
+The Node.js 26 motion tool generates velocity, acceleration, and modeled
+belt-spring deviation in one file:
+
+```
+node ~/klipper/scripts/graph_motion.ts -o motion.png
+```
+
+It uses the original script's fixed moves and legacy EI example, which is
+different from the current production input shaper. It does not change
+printer configuration. The acceleration image clips to ±15000 mm/s²;
+JSON keeps all numerical values. It supports the same file formats as the
+other Node graph tools above. Experimental filters can be selected directly:
+
+```
+node ~/klipper/scripts/graph_motion.ts --filter weighted4 --smooth_time 0.020 -o motion.png
+```
+
+Available filters are `average`, `smooth`, `weighted`, `weighted2`,
+`weighted3`, `weighted4`, `spring_raw`, and `spring_double_weighted`.
+The smoothing default is `(2/3)/40` seconds; `spring_raw` has no smoothing
+parameter. Windows must fit the fixed 50 ms margin. Use `--accel_order 4`
+or `--accel_order 6` for the original higher-order position curves, and
+`--jerk_limit` for the original fixed jerk limit. These options can be
+combined with a filter; the default acceleration order is 2. For example:
+
+```
+node ~/klipper/scripts/graph_motion.ts --accel_order 6 --jerk_limit --filter weighted4 -o motion.png
+```
+
+Use `--legacy_shaper` to select the original motion script's `zv`, `zvd`,
+`mzv`, `ei`, `2hump_ei`, or `3hump_ei` formula. This option is mutually
+exclusive with `--filter`; it can be combined with acceleration order and
+jerk options. The default remains legacy `ei`.
+
+These are offline diagnostic experiments, not production planner settings.
+The legacy formulas are distinct from the current production definitions
+used by `graph_shaper.ts`. The Python entry point has been retired; full
+original numerical references are stored as compressed data for regression
+tests and benchmarks. Specify an output filename. Use HTML for interactive
+viewing or SVG/PDF for vector output; Matplotlib windows and EPS output
+are no longer provided. Python is not required to run this tool or its tests.
+
+## Generating accelerometer and frequency graphs
+
+Use Node.js 26 with the host dependencies installed:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -r -o acceleration.png raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -f 200 -a all -o frequency.svg raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -a x -o comparison.png first.csv second.csv
+```
+
+Raw mode plots all three axes after subtracting each axis mean. Frequency
+mode accepts raw samples or processed PSD files; a single XYZ spectrum shows
+the total and three axes, while multiple datasets are shown separately.
+Selecting an axis requires that axis to exist in every dataset. Previously
+normalized files retain their values. Supported outputs are PDF, SVG, PNG,
+JPEG, WebP, TIFF, and JSON panels. Long curve names and offsets are retained
+in JSON and SVG titles even when the visible legend is shortened.
+Frequency CSV export is also available:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -f 200 -o resonances.csv first.csv second.csv
+```
+
+CSV output uses all available axes for one dataset, or a common 0.2 Hz grid
+for multiple datasets. The upper frequency bound is exclusive for CSV.
+Values retain full double precision, so text differs from the Python
+tool's rounded output. Normalized input remains marked as normalized;
+mixing normalized and unnormalized datasets is rejected. Raw graph mode
+(`-r`) cannot be combined with CSV output.
+Spectrogram CSV export accepts one raw log and an optional axis:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -s -a all -o spectrogram.csv raw_data.csv
+```
+
+Its first column contains frequency and the remaining columns contain time
+frames, with a literal `freq\t` header followed by relative time centers.
+The export includes all frequencies regardless of `-f`, matching the Python
+CSV convention, and preserves double precision. Processed PSD input and
+combining `-s` with `-r` are rejected. Spectrogram images and full matrix JSON
+are also available:
+
+```
+node ~/klipper/scripts/graph_accelerometer.ts -s -f 200 -o spectrogram.png raw_data.csv
+node ~/klipper/scripts/graph_accelerometer.ts -s -o spectrogram.json raw_data.csv
+```
+
+Images use a logarithmic blue/green/yellow power scale; zero power is white.
+The image frequency limit is 0.01..100000 Hz. SVG embeds the complete cell
+raster; display resolution can combine cells, while JSON/CSV retain the
+numerical matrix. A single time frame occupies one half-window interval.
+The palette and layout differ from Matplotlib. Interactive windows and
+EPS still require the original Python tool. These offline graphs do not measure print quality or configure
+the printer.
+
+## Offline input shaper calibration with Node.js 26
+
+Install the host dependencies and run:
+
+```
+node ~/klipper/scripts/calibrate_shaper.ts -o calibration.png -c calibration.csv --report calibration.json raw_data.csv
+node ~/klipper/scripts/calibrate_shaper.ts --shaper_freq 30:80:5 --shapers mzv,ei first.csv second.csv
+```
+
+Inputs may be raw acceleration or processed spectra, including previously
+normalized spectra. Multiple datasets remain separate during fitting.
+Use `--help` for smoothing, vibration, damping and square corner velocity
+options. Without output paths, the command prints the recommendation only.
+Fitting runs in a cancellable Worker with a ten-minute timeout; it never
+applies the recommendation to the printer.
+
+`-o` supports PDF, SVG, PNG, JPEG, WebP, TIFF and JSON plot panels. `--report`
+contains fitted metrics and full response arrays, while `-c` exports
+normalized spectra and responses interpolated at the exported frequencies.
+CSV keeps full double precision; its text differs from the old rounded
+Python output. `-f` also sets the CSV frequency limit (exclusive), unlike
+the old wrapper. CSV without `-f` retains the 200 Hz default. Responses
+outside their computed grid use constant endpoint extrapolation.
+
+Long graph legends are shortened visually; SVG titles, JSON and console
+metrics retain the details. Outputs are individually atomically replaced,
+not published as one transaction: a later write failure can leave earlier
+outputs updated. Invalid input and fitting failure occur before any output
+is written. Real printer validation is still required before adopting
+settings; desktop calibration does not establish physical print quality.
 
 ## Extracting information from the klippy.log file
 
 The Klippy log file (/tmp/klippy.log) also contains debugging
-information. There is a logextract.py script that may be useful when
+information. There is a Node.js 26 logextract.ts script that may be useful when
 analyzing a micro-controller shutdown or similar problem. It is
 typically run with something like:
 
@@ -185,8 +466,12 @@ typically run with something like:
 mkdir work_directory
 cd work_directory
 cp /tmp/klippy.log .
-~/klipper/scripts/logextract.py ./klippy.log
+node ~/klipper/scripts/logextract.ts ./klippy.log
 ```
+
+This tool requires Node.js 26 and no npm dependencies. It preserves log
+integer precision and only writes diagnostic files; it does not execute
+the extracted G-code.
 
 The script will extract the printer config file and will extract MCU
 shutdown information. The information dumps from an MCU shutdown (if
@@ -195,86 +480,140 @@ and effect scenarios.
 
 ## Testing with simulavr
 
-The [simulavr](http://www.nongnu.org/simulavr/) tool enables one to
-simulate an Atmel ATmega micro-controller. This section describes how
-one can run test gcode files through simulavr. It is recommended to
-run this on a desktop class machine (not a Raspberry Pi) as it does
-require significant cpu to run efficiently.
+The [simulavr](https://www.nongnu.org/simulavr/) instruction engine can
+simulate an Atmel ATmega micro-controller. The frontend now uses Node.js
+26.9+ and a dedicated native engine process; it needs no Python or SWIG.
+Build on Linux with Git, a C++11 compiler, a C compiler, `ar`, and the Node
+headers matching the installed Node runtime. The separate `avr-gcc`
+toolchain is needed to build AVR firmware and run the acceptance fixtures.
 
-To use simulavr, download the simulavr package and compile with python
-support. Note that the build system may need to have some packages (such as
-swig) installed in order to build the python module.
-
-```
-git clone git://git.savannah.nongnu.org/simulavr.git
-cd simulavr
-make python
-make build
-```
-Make sure a file like **./build/pysimulavr/_pysimulavr.*.so** is present
-after the above compilation:
-```
-ls ./build/pysimulavr/_pysimulavr.*.so
-```
-This command should report a specific file (e.g.
-**./build/pysimulavr/_pysimulavr.cpython-39-x86_64-linux-gnu.so**) and
-not an error.
-
-If you are on a Debian-based system (Debian, Ubuntu, etc.) you can
-install the following packages and generate *.deb files for system-wide
-installation of simulavr:
-```
-sudo apt update
-sudo apt install g++ make cmake swig rst2pdf help2man texinfo
-make cfgclean python debian
-sudo dpkg -i build/debian/python3-simulavr*.deb
-```
-
-To compile Klipper for use in simulavr, run:
+Check out the pinned upstream revision in a separate, clean directory:
 
 ```
-cd /path/to/klipper
-make menuconfig
+git clone https://git.savannah.nongnu.org/git/simulavr.git /path/to/simulavr
+git -C /path/to/simulavr checkout 32985f745c237bf8dcd2718235d01c8b1fb0491d
+node host/scripts/build-avrsim.ts /path/to/simulavr
 ```
 
-and compile the micro-controller software for an AVR atmega644p and
-select SIMULAVR software emulation support. Then one can compile
-Klipper (run `make`) and then start the simulation with:
+The builder verifies the revision and refuses local changes. It builds
+`host/build/avrsim` and `host/build/simulator-pty.node` directly, without
+upstream's Python configuration steps. Set `CXX`, `CC`, `AR`, or
+`NODE_INCLUDE` if those tools or headers are outside their usual paths.
+
+Build Klipper for AVR atmega644p with SIMULAVR software emulation support
+using `make menuconfig` and `make`, then run:
 
 ```
-PYTHONPATH=/path/to/simulavr/build/pysimulavr/ ./scripts/avrsim.py out/klipper.elf
-```
-Note that if you have installed python3-simulavr system-wide, you do
-not need to set `PYTHONPATH`, and can simply run the simulator as
-```
-./scripts/avrsim.py out/klipper.elf
+node scripts/avrsim.ts out/klipper.elf
 ```
 
-Then, with simulavr running in another window, one can run the
-following to read gcode from a file (eg, "test.gcode"), process it
-with Klippy, and send it to Klipper running in simulavr (see
-[installation](Installation.md) for the steps necessary to build the
-python virtual environment):
+The default serial link is `/tmp/pseudoserial`. Existing paths are refused,
+not replaced; choose another with `--port /tmp/my-simulator`. SIGINT or
+SIGTERM stops the simulation and removes the link only if it still belongs
+to this process. `--rate 0` runs without pacing; `--rate 1` limits simulation
+to wall time, and `--rate 0.1` requests one tenth of wall time. A CPU that
+cannot keep up will run slower. Default model, clock and baud are
+`atmega644`, `16000000`, and `250000`; use `--help` for options.
+
+The simulator preserves the legacy integer nanosecond clock quantum:
+16 MHz uses 62 ns per simulated CPU cycle, not the ideal 62.5 ns. Account
+for this when interpreting absolute time measurements. The Node frontend
+retains full integer simulation time across the process boundary.
+
+The printing host remains a separate process. For the legacy Python host,
+[installation](Installation.md) still applies, and it can connect to the
+same PTY:
 
 ```
 ~/klippy-env/bin/python ./klippy/klippy.py config/generic-simulavr.cfg -i test.gcode -v
 ```
 
+Replacing this simulator frontend does not establish production readiness
+of the migrating Node printing host.
+
 ### Using simulavr with gtkwave
 
-One useful feature of simulavr is its ability to create signal wave
-generation files with the exact timing of events. To do this, follow
-the directions above, but run avrsim.py with a command-line like the
-following:
+List available signals or export selected signals with nanosecond timestamps:
 
 ```
-PYTHONPATH=/path/to/simulavr/src/python/ ./scripts/avrsim.py out/klipper.elf -t PORTA.PORT,PORTC.PORT
-```
-
-The above would create a file **avrsim.vcd** with information on each
-change to the GPIOs on PORTA and PORTB. This could then be viewed
-using gtkwave with:
-
-```
+node scripts/avrsim.ts out/klipper.elf --trace '?'
+node scripts/avrsim.ts out/klipper.elf --trace PORTA.PORT,PORTC.PORT --tracefile avrsim.vcd
 gtkwave avrsim.vcd
 ```
+
+The trace file is overwritten. Normal signal-driven shutdown flushes and
+closes the VCD writer. SIGKILL cannot provide that cleanup guarantee.
+
+To verify the native core, serial bridge, PTY, pacing, cleanup and precise
+VCD edge intervals using real AVR ELF fixtures:
+
+```
+node host/scripts/build-simulavr-core.ts /path/to/simulavr host/build/libsim.a
+SIMULAVR_SOURCE=/path/to/simulavr node --test --test-isolation=none --test-concurrency=1 host/acceptance/simulavr-core.test.ts host/acceptance/simulavr-serial.test.ts host/acceptance/simulavr-terminal.test.ts
+```
+
+Set `AVR_CC` if `avr-gcc` is outside PATH. These checks run local simulated
+firmware; they do not certify a physical printer or its motion precision.
+
+## Reading MCU memory with the Node diagnostic tool
+
+The Node.js 26.9+ tool uses the firmware's `debug_read` command. Build the
+native host module with `npm --prefix host run build:native`, then use:
+
+```
+node scripts/dump_mcu.ts -s 0x0 -l 0x400 /dev/serial/by-id/DEVICE flash.bin
+node scripts/dump_mcu.ts -c can0 -i 64 -s 0x0 -l 0x400 11aa22bb33cc flash.bin
+```
+
+Choose the address and length for the specific MCU; reading memory-mapped
+registers can have side effects. Use this tool only with the printing host
+stopped and the printer idle. CAN connection assigns the specified node ID;
+that assignment is not undone by cancellation. Transport cleanup does not
+perform or certify a physical emergency stop.
+
+UART defaults to 250000 baud and the AVR leave-bootloader sequence. Use
+`--no-bootloader` for a device that does not use that sequence. RPMsg paths
+starting with `/dev/rpmsg_` and paths under `/tmp/` use a prepared character
+stream; `--pipe` selects this explicitly. The stream must already have the
+correct mode. Regular files are not accepted as pipe devices.
+
+`--connect-timeout` sets the initialization deadline in milliseconds
+(default 60000). SIGINT or SIGTERM cancels pending work. Successful output
+is published by same-directory atomic replacement; failed reads retain the
+previous output file. Existing output must be a regular file, not a device,
+directory or symlink. See `--help` for all options. Physical UART, RPMsg,
+CAN controllers and target-board timing still require hardware validation.
+
+The former `scripts/dump_mcu.py` entry has been removed. Use the Node
+command above; its runtime and numerical reference benchmark no longer
+require Python.
+
+## Local interactive diagnostic documents
+
+The Node plotting tools also accept `-o plot.html`. Open the resulting file
+locally; it contains its SVG, styles and interaction code and needs no CDN,
+server or Python process. For example:
+
+```
+node ~/klipper/scripts/graph_temp_sensor.ts -s "Generic 3950,PT1000" -o sensors.html
+```
+
+Use the zoom buttons, Ctrl + mouse wheel, or keyboard + / - to zoom. Drag to
+pan; arrow keys also pan when the plot is focused, and 0 or Reset view restores
+the original view. Standard line/point panels provide per-curve checkboxes
+identified by panel title and complete sensor/series name. Mesh surfaces and
+spectrograms support view navigation without per-curve controls. Every exported
+point remains in the SVG; hiding a curve does not change its values or rescale
+the axes.
+
+HTML uses the same atomic output replacement and cancellation handling as the
+other formats. It rejects active SVG constructs and external image references;
+spectrogram images are embedded PNG data. A content security policy permits
+only the generated interaction script by its SHA-256 hash.
+
+This is an initial replacement for basic plot navigation, not full Matplotlib
+feature parity (for example, live animation and data picking are not provided).
+Logic, export and numeric regression tests pass. Real browser rendering and
+input acceptance remain pending: the available browser tool refused local file
+URLs under its URL security policy. Do not interpret simulated DOM tests as
+browser acceptance.

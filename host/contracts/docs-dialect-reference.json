@@ -1,0 +1,122 @@
+{
+  "packages": {
+    "markdown": "3.3.7",
+    "mdx-truly-sane-lists": "1.2",
+    "mdx-breakless-lists": "1.0.1",
+    "py-gfm": "2.0.0"
+  },
+  "extensions": [
+    "toc",
+    "attr_list",
+    "mdx_partial_gfm",
+    "mdx_truly_sane_lists",
+    "mdx_breakless_lists"
+  ],
+  "cases": [
+    {
+      "name": "two-space-nested",
+      "input": "- outer\n  - inner\n    - deeper\n- next",
+      "html": "<ul>\n<li>outer<ul>\n<li>inner<ul>\n<li>deeper</li>\n</ul>\n</li>\n</ul>\n</li>\n<li>next</li>\n</ul>"
+    },
+    {
+      "name": "breakless",
+      "input": "Intro\n- item one\n- item two\n\nEnd",
+      "html": "<p>Intro</p>\n<ul>\n<li>item one</li>\n<li>item two</li>\n</ul>\n<p>End</p>"
+    },
+    {
+      "name": "ordered",
+      "input": "3. three\n4. four\n  - sub",
+      "html": "<ol>\n<li>three</li>\n<li>four<ul>\n<li>sub</li>\n</ul>\n</li>\n</ol>"
+    },
+    {
+      "name": "paragraph-in-list",
+      "input": "- first\n\n  paragraph\n\n- second",
+      "html": "<ul>\n<li>\n<p>first</p>\n<p>paragraph</p>\n</li>\n</ul>\n<ul>\n<li>second</li>\n</ul>"
+    },
+    {
+      "name": "fenced-in-list",
+      "input": "- first\n\n  ```text\n  a < b\n  ```",
+      "html": "<ul>\n<li>\n<p>first</p>\n<p><code>text\na &lt; b</code></p>\n</li>\n</ul>"
+    },
+    {
+      "name": "indented-code",
+      "input": "    a < b\n    c > d",
+      "html": "<pre><code>a &lt; b\nc &gt; d\n</code></pre>"
+    },
+    {
+      "name": "fenced-code",
+      "input": "```text\na < b\n```",
+      "html": "<pre class=\"highlight\"><code class=\"language-text\">a &lt; b\n</code></pre>"
+    },
+    {
+      "name": "underscore",
+      "input": "before foo_bar_baz after",
+      "html": "<p>before foo_bar_baz after</p>"
+    },
+    {
+      "name": "strike",
+      "input": "~~removed~~",
+      "html": "<p><del>removed</del></p>"
+    },
+    {
+      "name": "autolink",
+      "input": "See https://example.test/a",
+      "html": "<p>See <a href=\"https://example.test/a\">https://example.test/a</a></p>"
+    },
+    {
+      "name": "table",
+      "input": "| A | B |\n| --- | --- |\n| 1 | 2 |",
+      "html": "<table>\n<thead>\n<tr>\n<th>A</th>\n<th>B</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>1</td>\n<td>2</td>\n</tr>\n</tbody>\n</table>"
+    },
+    {
+      "name": "headings",
+      "input": "# Cafe\n\n# Cafe\n\n# 中文\n\n# 中文",
+      "html": "<h1 id=\"cafe\">Cafe</h1>\n<h1 id=\"cafe_1\">Cafe</h1>\n<h1 id=\"_1\">中文</h1>\n<h1 id=\"_2\">中文</h1>"
+    },
+    {
+      "name": "task-list",
+      "input": "- [ ] no\n- [x] yes",
+      "html": "<ul>\n<li><input disabled=\"disabled\" type=\"checkbox\" /> no</li>\n<li><input checked=\"checked\" disabled=\"disabled\" type=\"checkbox\" /> yes</li>\n</ul>"
+    },
+    {
+      "name": "ordered-resume",
+      "input": "1. a\n  - child\n2. b",
+      "html": "<ol>\n<li>a<ul>\n<li>child</li>\n</ul>\n</li>\n<li>b</li>\n</ol>"
+    },
+    {
+      "name": "ordered-top-level-neighbor",
+      "input": "1. a\n\n- independent",
+      "html": "<ol>\n<li>a</li>\n</ol>\n<ul>\n<li>independent</li>\n</ul>"
+    },
+    {
+      "name": "ordered-deep",
+      "input": "1. a\n  - child\n    - deep\n2. b",
+      "html": "<ol>\n<li>a<ul>\n<li>child<ul>\n<li>deep</li>\n</ul>\n</li>\n</ul>\n</li>\n<li>b</li>\n</ol>"
+    },
+    {
+      "name": "ordered-code-literal",
+      "input": "```\n1. a\n  - child\n```",
+      "html": "<pre class=\"highlight\"><code>1. a\n  - child\n</code></pre>"
+    },
+    {
+      "name": "ordered-paragraph",
+      "input": "Intro\n3. third\n4. fourth",
+      "html": "<p>Intro</p>\n<ol>\n<li>third</li>\n<li>fourth</li>\n</ol>"
+    },
+    {
+      "name": "ordered-paragraph-indented",
+      "input": "Intro\n  42. step\n  43. step",
+      "html": "<p>Intro</p>\n<p>42. step\n  43. step</p>"
+    },
+    {
+      "name": "ordered-interrupt-code",
+      "input": "```text\nIntro\n3. literal\n```",
+      "html": "<pre class=\"highlight\"><code class=\"language-text\">Intro\n\n3. literal\n</code></pre>"
+    },
+    {
+      "name": "ordered-indented-code",
+      "input": "    Intro\n    3. literal",
+      "html": "<pre><code>Intro\n\n3. literal\n</code></pre>"
+    }
+  ]
+}

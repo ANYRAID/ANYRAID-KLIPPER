@@ -1,0 +1,33 @@
+{
+  "node": "v26.9.0",
+  "compiled": true,
+  "faulty": false,
+  "manual": true,
+  "generations": 2,
+  "calibrationMs": 18339.724325,
+  "probedMatrix": [
+    [
+      9.797089428792617,
+      9.797089428792617,
+      9.797089428792617
+    ],
+    [
+      9.801234745021844,
+      9.799999999999983,
+      9.801234745021873
+    ],
+    [
+      9.797122922322046,
+      9.797122922322046,
+      9.797122922322046
+    ]
+  ],
+  "compensatedPosition": [
+    1,
+    0,
+    19.800617372510928,
+    0.1
+  ],
+  "passed": true,
+  "scope": "Compiled CLI with PATH excluding Python, two independent simulated MCU generations, circular calibration (manual starts directly from homed apex), save, explicit profile reload, homing and compensated print. Existing native addons and dependencies reused; excludes clean installation, real hardware and physical precision."
+}

@@ -1,0 +1,27 @@
+{
+  "node": "v26.9.0",
+  "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+  "pages": 58,
+  "inputBytes": 2892398,
+  "warmups": 3,
+  "samplesMs": [
+    289.845951,
+    288.89006900000004,
+    284.7699520000001,
+    286.2508529999998,
+    292.70266999999967,
+    282.159897,
+    282.078626
+  ],
+  "medianMs": 286.2508529999998,
+  "outputBytes": 6162400,
+  "outputSha256": "7d7b63dc5780b395c8f2a23f8b2e95032379793415e6723d8d906797fbb60656",
+  "scope": "Markdown HTML rendering and page metadata only; not a whole-site or print benchmark.",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "sources": {
+    "host/src/diagnostics/docs-render.ts": "24997ca9d822dce866813d0025aec6c4a3b867a1b24f59a1073dbb8c0fdcc950",
+    "host/src/diagnostics/docs-markdown.ts": "8b61fc2c72b54edc77cb45dc33fdf60acc16f3ca87a05f7fd1b55b715928c427",
+    "host/bench/docs-render.ts": "87929db32dfd69e0f3d7c50e272ea103e5748147c786d2117b3b92ae0d2f907e",
+    "host/package-lock.json": "3666d68fdaed181c252720763cf4b45fc87493f2d716687691cbb4e96a020ba7"
+  }
+}

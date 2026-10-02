@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "implementationBase": "f02b5e9d",
+  "node": "v26.9.0",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "logicalCPUs": 6,
+  "fixtureSha256": "642a5e1ce3f0fda5d7c416dab3f685a4d7e2a8d5e901a7b42dfca8d7fa7675f6",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "statusDelayMs": 5,
+    "uploadsPerGeneration": 8,
+    "uploadBytes": 262144,
+    "uploadDelayMs": 25,
+    "uploadBegins": "printing",
+    "generations": 2
+  },
+  "limits": {
+    "eventLoopP99Ms": 50,
+    "eventLoopMaxMs": 100,
+    "firstStepLeadMsGreaterThan": 0
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "wireCommands": 149,
+      "wireSteps": 3220,
+      "minimumStepLeadMs": 90.25,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.813503,
+            "maxMs": 12.713983
+          },
+          "cpu": {
+            "user": 614461,
+            "system": 56672
+          },
+          "rss": 143290368
+        },
+        {
+          "loop": {
+            "p99Ms": 1.784831,
+            "maxMs": 4.296703
+          },
+          "cpu": {
+            "user": 315789,
+            "system": 35021
+          },
+          "rss": 164069376
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "wireCommands": 143,
+      "wireSteps": 3130,
+      "minimumStepLeadMs": 85.204,
+      "statusRequests": 8597,
+      "uploads": 16,
+      "statusP99Ms": 2.8947819999993953,
+      "uploadP95Ms": 11.739420999998401,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.252799,
+            "maxMs": 13.770751
+          },
+          "cpu": {
+            "user": 1567544,
+            "system": 136859
+          },
+          "rss": 202137600
+        },
+        {
+          "loop": {
+            "p99Ms": 1.878015,
+            "maxMs": 4.542463
+          },
+          "cpu": {
+            "user": 801496,
+            "system": 99741
+          },
+          "rss": 225574912
+        }
+      ]
+    }
+  ],
+  "scope": "One paired local acceptance run, newly compiled child processes with simulated PTY MCU and thermal reports. Includes preparation, pause/resume, complete, cancel, reinitialize and ADC fault. Wire lead uses accepted frames, reset_step_clock and compressed step intervals against simulator monotonic clock; queued cancelled/homing pulses are included and are not actual executed steps. Event-loop monitoring includes profile lifetime. Shared installed dependencies and simulator share this host. Does not prove target-board throughput, sustained memory stability, actual mechanical precision, saturation capacity or resolve existing runtime anomalies.",
+  "unifiedVerification": {
+    "passed": 4,
+    "failed": 0,
+    "samples": [
+      {
+        "loaded": false,
+        "wireCommands": 149,
+        "wireSteps": 3228,
+        "minimumStepLeadMs": 91.155,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.830911,
+              "maxMs": 13.565951
+            },
+            "cpu": {
+              "user": 647452,
+              "system": 53508
+            },
+            "rss": 144551936
+          },
+          {
+            "loop": {
+              "p99Ms": 1.781759,
+              "maxMs": 4.571135
+            },
+            "cpu": {
+              "user": 369427,
+              "system": 40740
+            },
+            "rss": 165019648
+          }
+        ]
+      },
+      {
+        "loaded": true,
+        "wireCommands": 149,
+        "wireSteps": 3228,
+        "minimumStepLeadMs": 86.026,
+        "statusRequests": 8753,
+        "uploads": 16,
+        "statusP99Ms": 2.4708749999990687,
+        "uploadP95Ms": 18.807530999998562,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.961983,
+              "maxMs": 13.729791
+            },
+            "cpu": {
+              "user": 1519919,
+              "system": 163454
+            },
+            "rss": 207376384
+          },
+          {
+            "loop": {
+              "p99Ms": 1.900543,
+              "maxMs": 4.505599
+            },
+            "cpu": {
+              "user": 874215,
+              "system": 93817
+            },
+            "rss": 206450688
+          }
+        ]
+      }
+    ]
+  }
+}

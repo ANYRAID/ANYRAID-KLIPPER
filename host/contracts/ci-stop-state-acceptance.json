@@ -1,0 +1,156 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "softwareBase": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
+  "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded.",
+  "remoteBefore": {
+    "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
+    "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
+    "result": "failure",
+    "tests": 3802,
+    "passed": 3796,
+    "failed": 6,
+    "logScope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass.",
+    "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
+    "firmwareResult": "failure",
+    "romOverflowBytes": 624
+  },
+  "repairs": {
+    "stop": "Require exact original nested motion/probe/cleanup error identities. Held active motion and probe stops block disposal; concurrent callers share completion and cleanup is attempted once.",
+    "printState": "Join original idempotent start promise instead of 100 setImmediate iterations. WebSocket acknowledges durable reservation while preparation is held; prepare/start each execute once.",
+    "configSnapshot": "Wait for existing drainWrites owner completion before asserting zero pending operations and sealed snapshots. Client body completion is not server teardown. All byte/HEAD/ETag/Range/denial checks retained.",
+    "delta": "BLTouch is supported. Three unsupported sections and missing BLTouch z_offset fail preflight with zero MCU connections/stops; later assembly failure closes both MCUs.",
+    "pipe": "Native fstat rejects non-character files at Inspect pipe with ENODEV. Diagnostic stage expectation aligned; original bytes, absent output/temp files, independent repeated lock/descriptor release coverage retained.",
+    "spiCancel": "Require exact original abort cause either directly at signal fence or as AbortError.cause from timer. One physical stop/standby write; sampling/conversion not armed."
+  },
+  "checks": {
+    "isolatedRegression": {
+      "passed": 73,
+      "failed": 0,
+      "durationMs": 58066.659934,
+      "source": "/tmp/anyraid-ci-owner-candidate.ZhIXbI",
+      "dependencies": "Locked development node_modules and existing native build linked; git archive of softwareBase plus six test changes.",
+      "draftExcluded": true,
+      "files": [
+        "host/test/native-port-disposal.test.ts",
+        "host/test/product-print-api.test.ts",
+        "host/test/native-config-files.test.ts",
+        "host/test/delta-printer.test.ts",
+        "host/test/mcu-dump-cli.test.ts",
+        "host/test/spi-temperature.test.ts",
+        "host/test/native-generation-retirement.test.ts",
+        "host/test/native-file-drain-pause.test.ts",
+        "host/test/bltouch-native-port.test.ts",
+        "host/test/pipe-lock.test.ts"
+      ]
+    },
+    "worktreeRegression": {
+      "stopStatePassed": 28,
+      "preflightCancelPassed": 45
+    },
+    "typecheck": {
+      "worktree": true,
+      "isolated": true
+    },
+    "whitespace": true
+  },
+  "sourceHashes": {
+    "host/test/native-port-disposal.test.ts": "87a13a8439d1b0b54ca3f7576957364eb6c2599ba452e38ab8514a5e217012a2",
+    "host/test/product-print-api.test.ts": "a03449ef8be825f6f2246a26f876df0a8e5573b72b0927b4ebae5734059c7521",
+    "host/test/native-config-files.test.ts": "627d370ab2add3fcdd1fdb29295d483aeac7dffdd74821f0be16c29567addf66",
+    "host/test/delta-printer.test.ts": "f2917761be58afd50289f23728fd7c9c67be24f6b40794704d1acd60b4e58c25",
+    "host/test/mcu-dump-cli.test.ts": "fa13dee1308633a2b254571ac69923d2371c9fce36a4250d9871e3edc38b0a88",
+    "host/test/spi-temperature.test.ts": "96d9f5a553949e3af74061c90136632cdd9cf00c8de9b2ccb7a7920779da8f54"
+  },
+  "unchangedRuntimeHashes": {
+    "host/src/homing/native-linear-port.ts": "8ffc6956ef14c76f12b6cf321595ade166b5ef689610968ff2872b7208b22464",
+    "host/src/homing/bltouch-device.ts": "49dd1a26dc3f44a67e48a4a4176bb9e76c0e54b4f3aadd558a7d53615d68d276",
+    "host/src/homing/bltouch-command.ts": "9133b21afe5f68acfc08222a2622d0a251bd5e5f9a1aee4761f803383908c73c",
+    "host/src/motion/coordinated-drain.ts": "7af0faf74e6787ffabc5f983029f3609db8505b7624670be2fb28074a75faa41",
+    "host/src/operations/print.ts": "0272a992ab6c566c945fce363ac66803d34e4d1098683e35cb58a943b5a546a2",
+    "host/src/moonraker/product-print-api.ts": "eb6953bc7eba2bdc418ad8a22883c3e3e9479df7398917de21cec66cba343df0",
+    "host/src/moonraker/native-config-files.ts": "ed3014b2ce4cf259bcb8f7b286b247de573e21d849cfd5154fe8768f916ee7a5",
+    "host/src/protocol/pipe.ts": "3aafad5f4516f1a869fa14b4ed23c47b3112b9c26f28ad3b8094f863a8cf3445",
+    "host/src/config/delta-printer.ts": "21f6bbf466d1ae5ee3889025c48f4d463b82880bcff2588d068af01807fbceb5",
+    "host/src/config/native-printer-sections.ts": "1293adf795e05ad5cdf00e65ce52a9f382e6a4b9811b8c964f8561572c788cd2",
+    "host/src/runtime/configured-hardware.ts": "b3e2f9762f898f2941b457975742abdf9aa116758e48bef7f45b217ebc893bb5",
+    "host/src/thermal/max31856-startup.ts": "4b745115960866b9bdaa80b24f61fb599d51705f6013514ddf12ea8534b779fc",
+    "host/native/uart.c": "9e180861326ad536985737e974a22d7a9fee77446db4698a3fac949bd8fa49ea"
+  },
+  "performance": {
+    "newBenchmark": false,
+    "reason": "Test/evidence/documentation-only increment; 13 relevant production/runtime/native files byte-identical to committed-source archive. Existing product performance keeps original artifact scope.",
+    "observedRetirementMs": {
+      "normal": 6.876651000000493,
+      "stopFailure": 5.208585000000312
+    },
+    "limits": "Simulated regression observations, not target timing/print-speed comparison/G3 closure."
+  },
+  "attempts": [
+    {
+      "log": "/tmp/anyraid-stop-before.log",
+      "result": "Sandbox listen EPERM; fixture never reached product stop."
+    },
+    {
+      "log": "/tmp/anyraid-stop-before-native.log",
+      "result": "One pass/one failure: stale single-error assertion; actual AggregateError."
+    },
+    {
+      "log": "/tmp/anyraid-stop-after-native.log",
+      "result": "New fixture assigned frozen motion.dispose; two pass/one failure with open resources. Exact process explicitly terminated and original session observed terminal before edits."
+    },
+    {
+      "log": "/tmp/anyraid-stop-after-native-final.log",
+      "result": "Protected final TrapQueue.dispose injection; all three stop tests passed."
+    }
+  ],
+  "remaining": [
+    "Exact new PR-head full host/protocol/sanitizer/legacy/firmware CI.",
+    "STM32F042 ROM overflow 624 bytes; no required matrix entry removed.",
+    "Historical intermittent timeouts/numerical/process failures need causal/isolation evidence.",
+    "A4 complete actual clients, M2-M5, full Python retirement/controlled operations.",
+    "Cycnumbris 500 physical configuration/stop/install/rollback/precision/timing/acceptance; other machines last."
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-stop-before.log",
+      "sha256": "46d4840b83487b1fd44876f6f2d919fc853feeaf6b45b1bdfcace9132cb3cf95"
+    },
+    {
+      "path": "/tmp/anyraid-stop-before-native.log",
+      "sha256": "707f3a8c692cb00836e0c35c88d33ece0c84954067a1209c545e050e13b4b5bd"
+    },
+    {
+      "path": "/tmp/anyraid-stop-after-native.log",
+      "sha256": "03d9ee977e951c653fee0aa78863d3c18a869f5adc72fa82f17ef966ff942960"
+    },
+    {
+      "path": "/tmp/anyraid-stop-after-native-final.log",
+      "sha256": "967001407e8e6e4c8c31d0fb3a27d2c7dbd47ae4e8473e32ff4a331673e94583"
+    },
+    {
+      "path": "/tmp/anyraid-stop-state-regression.log",
+      "sha256": "1bdc2cd5a7ff9b757f345690bc8038caa3c94329fb668be083f38a273728aa52"
+    },
+    {
+      "path": "/tmp/anyraid-ci-preflight-cancel-regression.log",
+      "sha256": "0e28da445c00afdbf8b54c5c7d1156ec465ea728b51e8dc8df4b690366f10ba4"
+    },
+    {
+      "path": "/tmp/anyraid-ci-owner-isolated-regression.log",
+      "sha256": "72a79b25c33cdab075df4ce560b8a7882b1e3ffa809feb1eac83e82424835b7d"
+    },
+    {
+      "path": "/tmp/anyraid-ci-owner-isolated-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-ci-owner-final-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-ci-owner-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "1000 configuration-to-hardware plans per sample, alternating single/dual; excludes native allocation and MCU IO",
+  "results": {
+    "single": {
+      "samplesMs": [
+        0.03621691000000004,
+        0.03517940699999997,
+        0.03390285000000006,
+        0.034866303000000015,
+        0.03573748399999999
+      ],
+      "medianMs": 0.03517940699999997
+    },
+    "dual": {
+      "samplesMs": [
+        0.04669414299999994,
+        0.04717900900000006,
+        0.04675255400000003,
+        0.04574062000000004,
+        0.04786951699999997
+      ],
+      "medianMs": 0.04675255400000003
+    }
+  }
+}

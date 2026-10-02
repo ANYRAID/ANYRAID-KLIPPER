@@ -1,0 +1,18 @@
+{
+  "sourceHashes": {
+    "data_export.py": "1ec02c2ac01b899fa8a270ad0f80f5b69bd576bb349887cf4ebb47999eed20ec",
+    "readlog.py": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+    "analyzers.py": "8e47954f05da42f9f33fa14224080547c5a54f64ddd36930973f6e42a77421ab"
+  },
+  "fixtureSha256": "7758f3df9e62b0968c24d4fec5de026f734314854fb4d21053e43c647022e360",
+  "python": "Python 3.12.13",
+  "dataBytes": 15237179,
+  "dataSha256": "488a9f3bcdfbe0f29d13b60636dd80a1919e8fe457682e754e88482e07dfc84d",
+  "gzipSha256": "153642591518dbe3315fe104058c5731adc007ac1490776511958d6567893b90",
+  "caseCount": 5,
+  "catalogPython": {
+    "medianMs": 41.39223800000036,
+    "p95Ms": 42.8073059999997
+  },
+  "scope": "Original CLI captures and Python csv.reader decoded binary64 hex/text; Python benchmark 2 warmups and 7 runs, complete process startup, analysis and stdout."
+}

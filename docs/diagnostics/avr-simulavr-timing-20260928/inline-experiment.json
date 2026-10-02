@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "sourceSnapshot": "e0722b60",
+  "change": {
+    "file": "src/basecmd.c",
+    "from": "void\nmove_free(void *m)",
+    "to": "void __always_inline\nmove_free(void *m)",
+    "temporaryOnly": true
+  },
+  "sourceSha256": "13d7dbc82dc05a4e71493117791155114e7f3fdcfcaabc926cbefbd9a156897c",
+  "firmwareSha256": "171bac02d1ff3417c8d280b3d85b88559c0a810cfe1e90870ef63e1d283d488d",
+  "logSha256": "e1428f79901d9c342a1ed04b413156ae6f5a29d1cd5e6adc95ce1aba0b2513c5",
+  "results": {
+    "moveFreeCallEliminated": true,
+    "steps": 100,
+    "maximumIntervalDeviationNs": 18476,
+    "exploratoryGateNs": 10000,
+    "gatePassed": false,
+    "originalTextBytes": 45392,
+    "experimentalTextBytes": 45524,
+    "dataBytes": 48,
+    "bssBytes": 372
+  },
+  "decision": "Not adopted: removing the call alone does not resolve the dominant coincident-event deviation, and no stable end-to-end performance benefit is established.",
+  "limitations": [
+    "One timing sample for this experimental binary; no claim of statistical equality or regression.",
+    "Build metadata differs, so the 132-byte text difference is not solely attributable to inlining.",
+    "This does not exclude a small contribution from call overhead.",
+    "No production firmware behavior was changed; original precision diagnostic remains failing."
+  ]
+}

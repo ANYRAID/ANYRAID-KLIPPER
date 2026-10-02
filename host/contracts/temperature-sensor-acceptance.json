@@ -1,0 +1,188 @@
+{
+  "scope": "Independent analog temperature_sensor through native hardware and compiled product; digital and host sensors are not covered",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/config/analog-sensor.ts": "028a2e633bb3c9e2cd9aa06545ac2ef8dfae54cffc9bc5d1a3874ac8243215b3",
+    "host/src/thermal/temperature-sensor.ts": "43b91f6da62c7d1c96e3264cce396569084f40410440cd041e798fa99003254a",
+    "host/src/config/hardware.ts": "a8d7583e3251d931b9f4d6af8b40bf59be62dd97c2d504af64386eefc68a8275",
+    "host/src/config/linear-printer.ts": "0e9005c96582f021b76d2b90c1938d93c3714ee2dc4c60584dd96c9e57afc80c",
+    "host/src/runtime/configured-hardware.ts": "7defc7f478b6f2e74753e36becc8dd139b397d0d942b1f8dde0ff8e738609156",
+    "host/src/runtime/product-objects.ts": "f4bcd9e16f7cc925136bebd4a92c73c78ca5a41a69a3a9efbadf85ed472e98de",
+    "host/acceptance/product-compiled-journey.test.ts": "98276dfc1421546210ff00b1bb78a70ce5fa390bca81a95e372762ce18f5861d",
+    "host/test/temperature-sensor.test.ts": "4c67d5fc9adf77f137f8a23222badbc580dd4f2e56fb6aadc6c778c97403782c",
+    "host/contracts/temperature-sensor-reference.json": "f61da3d84e26ea997b680169443c8ec0ff4d0d4d2f21523d746c7906e819e243",
+    "host/bench/temperature-sensor.ts": "9d2d23b31e10848a2ee77c512b81ca792aa5b4a5ea8da1f342f9c5696ba6f118"
+  },
+  "validation": {
+    "regression": {
+      "passed": 44,
+      "failed": 0,
+      "durationMs": 9107.618889
+    },
+    "additionalStateReferenceTest": {
+      "passed": 4,
+      "failed": 0,
+      "fixedPythonCases": 11,
+      "durationMs": 104.706513
+    },
+    "compiledProduct": {
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 35266.55116
+    },
+    "typecheck": true
+  },
+  "benchmarks": [
+    {
+      "node": "v26.9.0",
+      "kind": "sample",
+      "iterations": 10000,
+      "warmups": 2,
+      "samples": 7,
+      "nodeMedianMs": 0.6733979999999988,
+      "nodeMaxMs": 0.9538209999999978,
+      "pythonMedianMs": 3.339909000260377,
+      "pythonMaxMs": 3.372888999820134,
+      "checksum": 0,
+      "scope": "Generic sensor sample statistics or display snapshot only; excludes ADC conversion, MCU transport and HTTP."
+    },
+    {
+      "node": "v26.9.0",
+      "kind": "status",
+      "iterations": 10000,
+      "warmups": 2,
+      "samples": 7,
+      "nodeMedianMs": 4.430610999999999,
+      "nodeMaxMs": 5.00170700000001,
+      "pythonMedianMs": 8.286245000363124,
+      "pythonMaxMs": 8.364616000108072,
+      "checksum": 3790800.0000071693,
+      "scope": "Generic sensor sample statistics or display snapshot only; excludes ADC conversion, MCU transport and HTTP."
+    }
+  ],
+  "productMetrics": [
+    {
+      "installation": {
+        "durationMs": 725.81948,
+        "dependencies": 10
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1288.8865700000006,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "standaloneTemperature": {
+        "temperature": 42,
+        "measured_min_temp": 42,
+        "measured_max_temp": 42
+      },
+      "noHeaterAuthority": true
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "phaseQueries": 4031,
+      "phaseP99Ms": 4.373440000003029,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 900,
+      "historyP99Ms": 11.357659999999669,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 14.006701000002067,
+      "deleteRequests": 16,
+      "deleteP95Ms": 20.520056000001205,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 9.376938000001246,
+      "metadataRequests": 16,
+      "metadataP95Ms": 51.790145000006305,
+      "downloads": 16,
+      "downloadP95Ms": 26.898608999996213,
+      "wireCommands": 191,
+      "wireSteps": 3704,
+      "minimumStepLeadMs": 87.054,
+      "directoryRequests": 3881,
+      "directoryP99Ms": 7.469025999998848,
+      "statusRequests": 16132,
+      "uploads": 16,
+      "statusP99Ms": 2.9243339999957243,
+      "uploadP95Ms": 25.08729900000617,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.963007,
+            "maxMs": 19.267583
+          },
+          "cpu": {
+            "user": 4841972,
+            "system": 551067
+          },
+          "rss": 283717632
+        },
+        {
+          "loop": {
+            "p99Ms": 2.059263,
+            "maxMs": 6.787071
+          },
+          "cpu": {
+            "user": 1672848,
+            "system": 197105
+          },
+          "rss": 260612096
+        }
+      ]
+    }
+  ],
+  "resolvedFailure": "Initial no-sensor assembly attempted an empty OID claim; empty sensor batches now allocate no resources.",
+  "limitations": [
+    "Only existing analog converter types are bound; standalone digital SPI/I2C and host temperature sources remain incomplete.",
+    "Fixed reference covers generic statistics, extrema and display rounding; existing converter and ADC regressions cover their own arithmetic.",
+    "M105 and TEMPERATURE_WAIT use the existing sensor registry, with no independent heater target authority.",
+    "This local simulated product run is not evidence of real thermal accuracy, target-board throughput or resolved historical Node instability.",
+    "Python temperature_sensor.py still supports unported sensor sources and has not been retired."
+  ]
+}

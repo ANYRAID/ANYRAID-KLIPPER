@@ -1,0 +1,38 @@
+{
+  "scope": "BLTouch lifecycle with in-memory hardware and existing probe-sampling engine; no native printer assembly yet",
+  "sha256": {
+    "host/src/homing/bltouch-device.ts": "a3dfe6e41daefe8bc9f60ab022534020e26369bc2e5adf32b8d34a152301be05",
+    "host/test/bltouch-device.test.ts": "866e4afac08af200f35b83d345ec591b3967c70ea1bcbb97c152f671307282a3",
+    "host/bench/bltouch-device.ts": "24e3d0a45db3285d1eb5ba27a2bc0ec22e7975903554037d809f15b6e699f2a9"
+  },
+  "tests": "✔ startup verification gates ready; each sample deploys, waits, seeks and stows (3.607243ms)\n✔ multi-sample session lowers once, uses touch mode and stows only after all samples (0.8026ms)\n✔ failed raise verification retries reset twice and never publishes ready (0.88897ms)\n✔ failed sensor test retries but never invokes descent (0.763589ms)\n✔ successful retry and original rolling five-minute sensor-test timeout (1.299835ms)\n✔ clone flags skip unsupported checks and reset before raising (0.363624ms)\n✔ cancelled sensor verification stops hardware without late deployment (2.814233ms)\n✔ seek failure stops motion and PWM instead of claiming a verified stow (0.472756ms)\n✔ retained sample capability cannot issue device commands after its session (0.277973ms)\n✔ transport verification errors stop immediately instead of being treated as a retryable no-hit (0.304054ms)\n✔ a session cannot publish idle while a detached sample is still active (0.395514ms)\n✔ probe sampling tolerance retries retain one deployed pin for the complete multi-sample session (0.711559ms)\n✔ sampling discards the entire out-of-tolerance batch and retracts from halt (0.173872ms)\n✔ median uses central samples (3) (0.153202ms)\n✔ median uses central samples (4) (0.085191ms)\n✔ exhausted tolerance and cancellation do not return a partial result (0.225922ms)\nℹ tests 16\nℹ suites 0\nℹ pass 16\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 68.779182\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 1000,
+    "warmups": 2,
+    "samples": 7,
+    "medianMs": 15.043509999999998,
+    "maxMs": 21.974042999999995,
+    "maxPerSampleMs": 0.021974042999999995,
+    "seeks": 9000,
+    "writes": 36054,
+    "checks": 9018,
+    "scope": "Lifecycle CPU and promise overhead only; in-memory clock/verification/seek ports, no physical wait, serial I/O or printer acceptance."
+  },
+  "typecheck": true,
+  "initialFailure": "Sync requested command completion before the already advanced motion time following verification; fixed by waiting for max(command next time, current motion time).",
+  "behavior": [
+    "Three attempts for raise and sensor checks; resets between retries",
+    "Startup verification failure is fatal instead of the original warning-only behavior",
+    "Verification transport errors stop instead of becoming a retryable no-hit",
+    "Cancellation fences late completions; stop must cover motion and PWM",
+    "Sampling tolerance retries share deployment when stow_on_each_sample is false"
+  ],
+  "remaining": [
+    "Implement independent MCU sensor sampling and authoritative trigger result",
+    "Configure PWM/sensor ownership and wire lifecycle to native seek/recovery",
+    "Resolve trigger-time stow scheduling: current sample wrapper stows after seek callback completion, not fastreader trigger",
+    "Typed maintenance operations, compiled product load test, real printer acceptance",
+    "Python entrypoint and original BLTouch module retained"
+  ]
+}

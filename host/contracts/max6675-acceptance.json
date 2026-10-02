@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "node": "26.9.0",
+  "sources": {
+    "host/src/config/spi-temperature.ts": "9397b19f6c5eac27e466c6d43596e86d39bd9008ef3b55dae19c88a079c24437",
+    "host/src/config/hardware.ts": "2a6216b6c05c61fdc3193715baaf2477f1008e67c8de5d818f452baa83734315",
+    "host/src/runtime/configured-hardware.ts": "96e8d1aa31f13c51f43f32c995152ff8df4f71887c0a7a1d5b45ae60f3df3279",
+    "host/src/thermal/serial-thermocouple.ts": "418c911d0c70574f5a56cf9fcf79c19c08a3c556d9604d137aab6b9c819e4e4e",
+    "host/src/thermal/max6675.ts": "a7a3402a10431378a5f171066ee4c37e487368981109dcd747fc5c57366b6b15",
+    "host/src/protocol/spi-config.ts": "e48106a3bb5f62d1b537d7e9b37891342d1f842ead83cd0bcd3e9a327f2143ee",
+    "host/src/drivers/tmc-spi-mcu.ts": "d0b2bb6ea561074134dcd0721e1deb2558835e17fbcf130985430633806bdff1",
+    "host/test/max6675.test.ts": "bca61330ec9f4c14842714b4b6d68506157804dd918895765cf273de8ff8e07b",
+    "host/test/spi-temperature.test.ts": "78cd038adb0da19a95316235e344c7d697ff44410fa0bdb310c2ad73e1839c0e",
+    "host/acceptance/product-compiled-journey.test.ts": "6fc4ccc06e48285c6cd84db12b47e718fc1b02d54662e2789961fa54103fc6b1",
+    "host/test/helpers/serial-firmware.ts": "c9cd10d43c043f4bce4eab73f8c1bca20819e5a6931c94fde73c3bfafb145688",
+    "host/test/helpers/product-transports.ts": "ac5ffd89504d278ce2af1996608ecde4c7e02988136f02d602a04c4b5e1f89f2",
+    "host/bench/max6675.ts": "e0e696d833fb726b8db5b65e981e83e7cc8a69b2b5ac3fe8e9dc332bc8d79273",
+    "host/contracts/max6675-reference.json": "e375f10e16fda533a65adc98d24f7eff04b6b170b762d4dbfa72656f1a5235a2"
+  },
+  "reference": {
+    "schema": 1,
+    "source": "klippy/extras/spi_temperature.py",
+    "sourceSha256": "0e3723b5cfc90f1cdbde957c5604680a605ba4ee487b5b78da53086fb8b8882f",
+    "cases": 8192,
+    "encoding": "4096 codes ascending, D0=0 then 1; IEEE754 binary64 big endian",
+    "expectedSha256": "c650dea0cd0cfce7456002b89287aae9316de96b6274ba3c80ce0e86a3716fc8",
+    "pythonBenchmark": {
+      "operations": 262144,
+      "warmups": 2,
+      "runs": 7,
+      "medianMs": 39.306712000325206,
+      "maxMs": 39.70007699990674,
+      "checksum": 134184960
+    },
+    "datasheet": "https://www.analog.com/media/en/technical-documentation/data-sheets/max6675.pdf"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "operations": 262144,
+    "nodeDecode": {
+      "medianMs": 2.5204470000000043,
+      "maxMs": 4.406504999999996
+    },
+    "historicalPython": {
+      "operations": 262144,
+      "warmups": 2,
+      "runs": 7,
+      "medianMs": 39.306712000325206,
+      "maxMs": 39.70007699990674,
+      "checksum": 134184960
+    },
+    "scope": "All valid MAX6675 codes, 32 repeats; 2 warmups and 7 measured runs. Node includes raw-frame validation. Excludes transport, electrical conversion, hardware precision and printing."
+  },
+  "tests": {
+    "regression": 37,
+    "compiledProduct": 2,
+    "coverage": [
+      "全部4096温度码与D0两种值",
+      "硬件SPI、现代与旧软件SPI",
+      "引脚、总线、量程及配置快照隔离",
+      "缺样、陈旧、未来、重复、越界、保留位与消费者错误停机",
+      "现有TMC SPI回归",
+      "编译产品鉴权、并发打印、历史连续、重初始化、再打印与开路停机"
+    ]
+  },
+  "product": [
+    {
+      "software": false,
+      "statusRequests": 15737,
+      "statusP99Ms": 3.024154999999155,
+      "minimumStepLeadMs": 85.888,
+      "faultInjected": "max6675-open",
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.910783,
+            "maxMs": 20.086783
+          },
+          "cpu": {
+            "user": 4480361,
+            "system": 511911
+          },
+          "rss": 284852224
+        },
+        {
+          "loop": {
+            "p99Ms": 1.868799,
+            "maxMs": 6.287359
+          },
+          "cpu": {
+            "user": 1599768,
+            "system": 212173
+          },
+          "rss": 250978304
+        }
+      ]
+    },
+    {
+      "software": true,
+      "statusRequests": 15609,
+      "statusP99Ms": 2.242192999998224,
+      "minimumStepLeadMs": 87.311,
+      "faultInjected": "max6675-open",
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.909759,
+            "maxMs": 19.595263
+          },
+          "cpu": {
+            "user": 4472542,
+            "system": 505118
+          },
+          "rss": 282243072
+        },
+        {
+          "loop": {
+            "p99Ms": 1.889279,
+            "maxMs": 5.603327
+          },
+          "cpu": {
+            "user": 1589914,
+            "system": 201338
+          },
+          "rss": 263532544
+        }
+      ]
+    }
+  ],
+  "intentionalDifferences": [
+    "量程向内收紧，不使用旧Python阈值四舍五入",
+    "D0三态值不参与温度，在固件上限中明确允许",
+    "主机收到故障立即停止整组，不等待MCU三次错误累计"
+  ],
+  "signedSensorFinding": {
+    "model": "MAX31855",
+    "raw": "0xfffc0000",
+    "legacyCelsius": -2048,
+    "datasheetCelsius": -0.25,
+    "source": "klippy/extras/spi_temperature.py",
+    "datasheet": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31855.pdf",
+    "status": "未迁移；需要同时审查有符号解码和MCU原始值上下限保护"
+  },
+  "limitations": [
+    "仅独立MAX6675，未接加热器反馈",
+    "与TMC等其他组件共用物理SPI总线暂拒绝引脚冲突",
+    "MAX31855/MAX31856/MAX31865及其他数字源待迁移",
+    "MCU总线与传感器为模拟；真实电气、温度精度及目标板性能未验收",
+    "192个Python文件和默认Python入口仍在",
+    "历史Node崩溃及数值异常未关闭"
+  ]
+}

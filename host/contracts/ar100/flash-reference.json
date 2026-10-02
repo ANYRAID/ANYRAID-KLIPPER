@@ -1,0 +1,80 @@
+{
+  "source": "scripts/flash-ar100.py",
+  "commit": "9f30c114",
+  "sourceSha256": "3ff3d64d70a84335db8790530c443c89326eca661ef27649c456c6c6e9aeaee7",
+  "initialSramByte": 165,
+  "initialResetByte": 165,
+  "firmwareFormula": "(i * 37 + 11) % 256",
+  "cases": [
+    {
+      "mode": "flash",
+      "size": 1,
+      "sramSha256": "4d9f645706a1e74081e374deee8eb380304403fb2ec4d9c24d2c61d9e1c1ffc9",
+      "reset": 165,
+      "stdout": [
+        "Writing exception vectors",
+        "Writing file to SRAM A2"
+      ]
+    },
+    {
+      "mode": "flash",
+      "size": 65536,
+      "sramSha256": "36ec6c9de5c7c3d99196dc23a44673bfbc9bfa6d9890e401005ab37655d54da6",
+      "reset": 165,
+      "stdout": [
+        "Writing exception vectors",
+        "Writing file to SRAM A2"
+      ]
+    },
+    {
+      "mode": "flash-halt",
+      "size": 91,
+      "sramSha256": "e7cbff885beeabba2558d53aab1ccd85f9222b92cfbae806d491d162a62bb1bf",
+      "reset": 164,
+      "stdout": [
+        "Writing exception vectors",
+        "Writing file to SRAM A2",
+        "Halting AR100"
+      ]
+    },
+    {
+      "mode": "bl31",
+      "size": 4096,
+      "sramSha256": "068832a907fa6fd64842f56ada58105c439f1aecc0dc18c65ad0fc06fdbae18b",
+      "reset": 164,
+      "stdout": [
+        "writing bl31",
+        "Writing file to SRAM A2"
+      ]
+    },
+    {
+      "mode": "bl31-halt",
+      "size": 27,
+      "sramSha256": "24d02dc7bacbb7c7d7ab3fd3d9fc9a33ec3f6e21d4a0bf91c68c930c76ff977a",
+      "reset": 164,
+      "stdout": [
+        "writing bl31",
+        "Writing file to SRAM A2",
+        "Halting AR100"
+      ]
+    },
+    {
+      "mode": "halt",
+      "size": 0,
+      "sramSha256": "52741139482019b94b6a78da0c6f917465faea6b6ec1867ee70ac64a5775e950",
+      "reset": 164,
+      "stdout": [
+        "Halting AR100"
+      ]
+    },
+    {
+      "mode": "reset",
+      "size": 0,
+      "sramSha256": "afe3663b1c463c9800a74ceed7308e7265c880aa99febd5c37dabbd72d882f42",
+      "reset": 165,
+      "stdout": [
+        "Resetting AR100"
+      ]
+    }
+  ]
+}

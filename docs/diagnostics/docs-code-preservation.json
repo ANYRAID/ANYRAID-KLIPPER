@@ -1,0 +1,29 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "pages": 58,
+    "inputBytes": 2892398,
+    "warmups": 3,
+    "samplesMs": [
+      496.3038670000001,
+      507.689128,
+      497.74158599999964,
+      494.9302990000001,
+      495.8335609999999,
+      505.5181790000006,
+      492.12436199999956
+    ],
+    "medianMs": 496.3038670000001,
+    "outputBytes": 6162507,
+    "outputSha256": "29fde1867ad46a0fb0cf0ef00aa45cd63b1c5579a935e42ac4cec476c9959670",
+    "scope": "Markdown HTML rendering and page metadata only; not a whole-site or print benchmark."
+  },
+  "scope": "Non-one ordered paragraph interruption and indented code preservation",
+  "intentionalDifference": "Preserve original indented code instead of old preprocessing rewriting numbered lines or inserting blank lines",
+  "sources": {
+    "host/src/diagnostics/docs-markdown.ts": "897581ecfd7d0b3d2bf8fa78259bcdc802ea2e0ecadd2c9df0957759f7e266ed",
+    "host/src/diagnostics/docs-render.ts": "8be55701e4c338422fe7cfc8ba0f7921ff5bc64ff906a0ca55c639f4aa68b4c9",
+    "host/contracts/docs-dialect-reference.json": "c36de0969bb1e05fa8c36179bc1293a6bbc640d2855e86961e7d7e5ac38a3a3a"
+  }
+}

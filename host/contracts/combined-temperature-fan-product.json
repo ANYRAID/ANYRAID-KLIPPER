@@ -1,0 +1,184 @@
+{
+  "status": "passed compiled simulated combined temperature fan",
+  "runtime": "Node.js 26.9.0",
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 805.520517,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1182.544077999999,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "combinedTemperature": {
+        "compiled": true,
+        "temperatureFan": true,
+        "temperature": 149.8,
+        "sourceTemperatures": [
+          219.68,
+          79.91
+        ],
+        "sourceCount": 2
+      }
+    },
+    {
+      "temperatureFanSettings": {
+        "compiled": true,
+        "spiSensor": false,
+        "outputSpeed": 0.6,
+        "atomicValidation": true,
+        "idempotentRetry": true
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 10,
+        "sensors": [
+          "extruder",
+          "heater_bed",
+          "temperature_fan combined"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 20,
+        "samplesAfter": 23
+      }
+    },
+    {
+      "combined": true,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": true,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 188,
+      "wireSteps": 3600,
+      "minimumStepLeadMs": 87.198,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.743871,
+            "maxMs": 20.856831
+          },
+          "cpu": {
+            "user": 1231505,
+            "system": 137921
+          },
+          "rss": 179011584
+        },
+        {
+          "loop": {
+            "p99Ms": 1.773567,
+            "maxMs": 5.771263
+          },
+          "cpu": {
+            "user": 690811,
+            "system": 75852
+          },
+          "rss": 202674176
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "combined heater feedback not wired",
+    "physical cooling and target-board timing unverified"
+  ]
+}

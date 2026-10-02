@@ -1,0 +1,24 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "Alternating native direct vs endpoint dispatch + GET + POST + accepted retry. Simulated MCU socket; excludes fixture startup and subsequent movement. Asserts no switch steps, one synchronization and exactly ten subsequent secondary-only steps. No HTTP transport or real hardware claim.",
+  "direct": {
+    "samplesMs": [
+      4.200400000000172,
+      2.7367630000003373,
+      2.2391370000004827,
+      1.825992000000042,
+      1.785620999999992
+    ],
+    "medianMs": 2.2391370000004827
+  },
+  "api": {
+    "samplesMs": [
+      3.146747000000005,
+      2.338357999999971,
+      1.850191999999879,
+      2.0938249999999243,
+      1.7924920000004931
+    ],
+    "medianMs": 2.0938249999999243
+  }
+}

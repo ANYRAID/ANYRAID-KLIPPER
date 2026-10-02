@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "baseCommit": "604b40b7",
+  "firmwareSha256": "753c58c755117aa3b3f1a84dcacae58d6e5c65a544c5d860467898acc7d83f06",
+  "configSha256": "0698f4c7643fdd656231b245e8da03d61d21c7f47a24c5fb5c9aa1e6d0d02f37",
+  "simulavrRevision": "32985f745c237bf8dcd2718235d01c8b1fb0491d",
+  "testSha256": "409c8a0fda2041cc2ce8a415dff6f2a586ba8a7703c2cdb2132da41c7e1372da",
+  "results": {
+    "protocolIdentify": true,
+    "clockWarmup": true,
+    "configurationCRC": true,
+    "stepperPosition": 100,
+    "observedSteps": 100,
+    "coincident": {
+      "diagnosticGatePassed": false,
+      "maximumIntervalDeviationNs": 18414,
+      "logSha256": "c0a791781cb6dc84aacfd5efa8c71fdd0cca4a91a0ec65ab2a9fa1f2adfd8547"
+    },
+    "offset": {
+      "gpioOffsetTicks": 8000,
+      "diagnosticGatePassed": true,
+      "maximumIntervalDeviationNs": 1860,
+      "logSha256": "c82a77a7439ec18b1d2adef64e46766beda6d2851903230c903b006f0cefff33"
+    }
+  },
+  "diagnosticGateNs": 10000,
+  "gateBasis": "Exploratory 10 microsecond diagnostic threshold; not a user-approved printer accuracy specification.",
+  "initialHarnessFailure": "GPIO off was queued before earlier stepper requests on the same FIFO; real firmware shut down with Timer too close. Requests now follow deadline order.",
+  "inference": "Two coincident captures show a delay at step 50, where GPIO switches off. A half-step offset reduces the deviation. This supports timer event contention, but is not a conclusive root-cause diagnosis.",
+  "limitations": [
+    "No physical printer validation.",
+    "No proof that previously recorded Node numerical anomalies or crashes are resolved.",
+    "This machine advances the simulated 16 MHz firmware at about 5.6–5.7 million ticks per wall second under this traced workload; rate=1 cannot be sustained.",
+    "Default coincident precision gate remains failing and has not been loosened."
+  ]
+}

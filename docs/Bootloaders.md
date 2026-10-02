@@ -1,5 +1,59 @@
 # Bootloaders
 
+ANYRAID USB 烧录入口现为 Node.js 26 的 `scripts/flash_usb.ts`，相关
+`make flash` 目标会自动构建串口原生模块。手动调用前可运行
+`node host/scripts/build-serialqueue.ts`，然后使用 `node scripts/flash_usb.ts
+--help` 查看参数。`--katapult` 只用于已经进入 Katapult 的设备；
+`--prime` 可为该模式显式启用 STM32 USB 双缓冲预热。
+发生超时、校验失败或取消后工具不会自动重新刷写，也不会在 Katapult
+读回失败后发送 COMPLETE。请检查设备状态后再决定恢复步骤。
+本分支尚未通过物理板卡验收；完整验证边界见
+[Node 迁移说明](Node_Host_Migration.md)。
+旧 `scripts/flash_usb.py` 与 `lib/katapult/flashtool.py` 已移除；使用本页 Node 入口。
+
+### ANYRAID Katapult Node 工具
+
+先准备 Node 26 开发头文件和本机 C 编译器，再运行：
+
+```sh
+node host/scripts/build-serialqueue.ts
+node host/scripts/build-can-query.ts
+node scripts/katapult.ts --help
+```
+
+停止打印主机并确认目标设备空闲后，可以使用以下入口：
+
+```sh
+# 串口刷写；USB Klipper 设备会先请求进入 bootloader
+node scripts/katapult.ts -d /dev/serial/by-id/设备 -f out/klipper.bin
+# CAN 定向重启后刷写，自动处理匹配的 USB-CAN 桥接器
+node scripts/katapult.ts -i can0 -u 设备UUID -f out/klipper.bin
+# 已经进入 Katapult 的 CAN 设备可省略启动请求
+node scripts/katapult.ts -i can0 -u 设备UUID --already-bootloader -f out/klipper.bin
+# 状态、仅请求启动、查询未分配节点
+node scripts/katapult.ts -i can0 -u 设备UUID --status
+node scripts/katapult.ts -i can0 -u 设备UUID --request-bootloader
+node scripts/katapult.ts -i can0 --query
+# 总线维护：清空所有 Katapult 节点 ID 后查询
+node scripts/katapult.ts -i can0 --query --reset-node-ids
+```
+
+默认查询不会广播清空已有节点 ID，因此不保证列出已分配的节点。
+`--reset-node-ids` 仅用于 CAN 查询，会影响总线上所有 Katapult 节点，
+要求整个总线停止维护/打印活动；它发送清空命令并等待 500 ms 后查询。
+发送后的取消不能恢复旧节点 ID；在等待阶段取消时不会再查询或重发清空命令。状态
+模式仍需连接/分配节点，不能当作无设备动作的检查。CAN 节点号默认
+129，可用 `--node-id` 指定总线上已保留的空闲编号。串口支持 `--baud`
+和 `--prime`；`--expected-mcu` 可在刷写时增加显式 MCU 核对。
+无 USB 标识的串口在刷写模式下按已运行 Katapult 处理，启动请求
+模式则发送原串口启动序列。`--verbose` 输出结构化结果；失败退出
+非零。CONNECT、UUID 查询和块读取收到完整的解析器 NACK 时，
+最多尝试 5 次、间隔 500 ms；写入、EOF、COMPLETE、忙响应、超时、
+校验失败和取消均不自动重放。每次尝试使用原命令超时，取消可打断等待。
+串口入口检查可见进程占用，
+但仍有权限和并发打开盲区。旧工具的全部恢复行为尚未等价替代，
+物理板卡验收仍开放。
+
 This document provides information on common bootloaders found on
 micro-controllers that Klipper supports.
 
@@ -470,18 +524,19 @@ The first time CanBoot has been flashed it should detect that no application
 is present and enter the bootloader.  If this doesn't occur it is possible to
 enter the bootloader by pressing the reset button twice in succession.
 
-The `flashtool.py` utility supplied in the `lib/katapult` folder may be used to
+The Node.js 26 `scripts/katapult.ts` utility described above may be used to
 upload Klipper firmware.  The device UUID is necessary to flash.  If you do not
 have a UUID it is possible to query nodes currently running the bootloader:
 ```
-python3 flash_can.py -q
+node scripts/katapult.ts -i can0 --query
 ```
-This will return UUIDs for all connected nodes not currently assigned a UUID.
-This should include all nodes currently in the bootloader.
+This will return UUIDs for all connected nodes not currently assigned a node ID.
+To explicitly clear all Katapult node IDs first, use `--query --reset-node-ids`
+only while the entire bus is idle for maintenance.
 
 Once you have a UUID, you may upload firmware with following command:
 ```
-python3 flash_can.py -i can0 -f ~/klipper/out/klipper.bin -u aabbccddeeff
+node scripts/katapult.ts -i can0 -f ~/klipper/out/klipper.bin -u aabbccddeeff
 ```
 
 Where `aabbccddeeff` is replaced by your UUID.  Note that the `-i` and `-f`

@@ -14,7 +14,7 @@
 struct pwm_out_s {
     struct timer timer;
     struct gpio_pwm pin;
-    uint32_t max_duration;
+    uint32_t max_duration, generation;
     uint16_t default_value;
     struct move_queue_head mq;
 };
@@ -79,10 +79,9 @@ DECL_COMMAND(command_config_pwm_out,
              "config_pwm_out oid=%c pin=%u cycle_ticks=%u value=%hu"
              " default_value=%hu max_duration=%u");
 
-void
-command_queue_pwm_out(uint32_t *args)
+static void
+pwm_queue(struct pwm_out_s *p, uint32_t *args)
 {
-    struct pwm_out_s *p = oid_lookup(args[0], command_config_pwm_out);
     struct pwm_move *m = move_alloc();
     m->waketime = args[1];
     m->value = args[2];
@@ -102,7 +101,62 @@ command_queue_pwm_out(uint32_t *args)
     p->timer.waketime = m->waketime;
     sched_add_timer(&p->timer);
 }
+void
+command_queue_pwm_out(uint32_t *args)
+{
+    struct pwm_out_s *p = oid_lookup(args[0], command_config_pwm_out);
+    if (p->generation)
+        shutdown("Legacy PWM command after generation reset");
+    pwm_queue(p, args);
+}
 DECL_COMMAND(command_queue_pwm_out, "queue_pwm_out oid=%c clock=%u value=%hu");
+
+// Generation zero retains the legacy protocol. Opt-in reset advances exactly
+// one generation; stale traffic cannot revive output after a reset.
+void
+command_queue_pwm_out_generation(uint32_t *args)
+{
+    struct pwm_out_s *p = oid_lookup(args[0], command_config_pwm_out);
+    uint32_t generation = args[3];
+    if (!generation || generation > p->generation)
+        shutdown("Invalid PWM generation");
+    if (generation < p->generation)
+        return;
+    pwm_queue(p, args);
+}
+DECL_COMMAND(command_queue_pwm_out_generation,
+             "queue_pwm_out_generation oid=%c clock=%u value=%hu"
+             " generation=%u");
+
+void
+command_reset_pwm_out_generation(uint32_t *args)
+{
+    struct pwm_out_s *p = oid_lookup(args[0], command_config_pwm_out);
+    uint32_t generation = args[1];
+    if (!generation)
+        shutdown("Invalid PWM reset generation");
+    if (generation <= p->generation)
+        return;
+    if (generation != p->generation + 1)
+        shutdown("Skipped PWM reset generation");
+    irqstatus_t flag = irq_save();
+    sched_del_timer(&p->timer);
+    struct move_queue_head discarded = p->mq;
+    move_queue_clear(&p->mq);
+    p->timer.func = pwm_event;
+    p->generation = generation;
+    gpio_pwm_write(p->pin, p->default_value);
+    irq_restore(flag);
+    // Keep each IRQ-disabled interval bounded to one free-list insertion.
+    while (!move_queue_empty(&discarded)) {
+        struct move_node *node = move_queue_pop(&discarded);
+        flag = irq_save();
+        move_free(node);
+        irq_restore(flag);
+    }
+}
+DECL_COMMAND(command_reset_pwm_out_generation,
+             "reset_pwm_out_generation oid=%c generation=%u");
 
 void
 pwm_shutdown(void)

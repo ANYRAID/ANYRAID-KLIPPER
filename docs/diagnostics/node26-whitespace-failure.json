@@ -1,0 +1,51 @@
+{
+  "status": "unresolved",
+  "observedDuring": "CoreXY/CoreXZ acceptance final whitespace check after 20169a7c source changes",
+  "originalFailure": {
+    "command": "NODE=<workspace Node 26.9.0> bash scripts/check_whitespace.sh",
+    "stderr": "xargs: <workspace Node 26.9.0>: terminated by signal 11",
+    "coreLimitBytes": 0,
+    "exactChildPid": null,
+    "sourceOrRuntimeAttribution": "unresolved"
+  },
+  "originalEnvironment": "sandboxed exec_command; parent shell subsequently ran git diff --check so overall tool exit status was 0 despite xargs failure",
+  "node": "26.9.0",
+  "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+  "moduleHashes": {
+    "scripts/check_whitespace.ts": "3a4e51a1dcf5371b3b9fd8ae42a115d0945918983f35f81daefe7b0d8b2b3604",
+    "host/src/diagnostics/whitespace.ts": "8938ad97657dcedd7f7446045fa11609b9470d10280ab946fa7af2448a3dfa0f",
+    "host/src/diagnostics/unicode-control-ranges.ts": "d187783370698bf4da3d0eb39e35875107d72b1cc15ac22393d0f01f50b25ef1"
+  },
+  "inputCount": 2534,
+  "inputManifestSha256": "b6957390d7b923f8d0063470efbae72ec3acf721ab74ae1b4e05f514fe3f5823",
+  "retainedSnapshotDirectory": "host/build/whitespace-diagnostics/run-1ceyAZ",
+  "followUp": {
+    "hypothesis": "Check whether the pure-text whitespace workload fails without motion modules or native project addons; compare source loading with emitted JS.",
+    "environment": "escalated exec_command because sandboxed Node 22 diagnostic subprocess spawning returned EPERM",
+    "typescript": "7.0.2",
+    "results": [
+      {
+        "mode": "source",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "durationMs": 315.190877
+      },
+      {
+        "mode": "compiled",
+        "status": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "",
+        "durationMs": 262.75397599999997
+      }
+    ],
+    "conclusion": "Both one-shot checks passed. Neither cause nor sandbox dependence is established. This does not close prior runtime or numerical failures."
+  },
+  "limits": [
+    "No PID, core or process mappings from original failed child; shell core limit was 0.",
+    "Whitespace checker dependency closure contains Node filesystem/path builtins and Unicode ranges; no project motion module or project native addon is imported. This does not exclude Node internal native code or TypeScript loader.",
+    "Follow-up snapshots freeze 2534 inputs and three checker source files, but original xargs batching and process environment were not captured."
+  ]
+}

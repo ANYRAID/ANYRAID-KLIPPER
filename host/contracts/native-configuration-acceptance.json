@@ -1,0 +1,286 @@
+{
+  "base": "f615320e",
+  "tests": {
+    "related": 13,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": true
+  },
+  "benchmark": [
+    {
+      "node": "v26.9.0",
+      "cells": 1024,
+      "warmup": 3,
+      "samples": 11,
+      "wall": {
+        "medianMs": 3.113042000000007,
+        "p95Ms": 5.085290000000015
+      },
+      "cpu": {
+        "medianMs": 3.383,
+        "p95Ms": 8.941
+      },
+      "maximumP95Ms": 100,
+      "scope": "Idle maintenance save with backup, fsync and exact reload check; warm local filesystem. Reload check excluded from timing. Printing is fenced, not concurrent."
+    }
+  ],
+  "product": [
+    {
+      "installation": {
+        "durationMs": 699.1277030000001,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 170,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 86.94,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.238463,
+            "maxMs": 13.156351
+          },
+          "cpu": {
+            "user": 754464,
+            "system": 63518
+          },
+          "rss": 165756928
+        },
+        {
+          "loop": {
+            "p99Ms": 2.250751,
+            "maxMs": 7.045119
+          },
+          "cpu": {
+            "user": 472908,
+            "system": 56000
+          },
+          "rss": 187871232
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 700.8739719999976,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 464,
+      "historyP99Ms": 8.275065000001632,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.4899420000001555,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.971802999996726,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.606667000000016,
+      "metadataRequests": 16,
+      "metadataP95Ms": 33.753270000001066,
+      "downloads": 16,
+      "downloadP95Ms": 12.173170000001846,
+      "wireCommands": 168,
+      "wireSteps": 3082,
+      "minimumStepLeadMs": 80.825,
+      "directoryRequests": 1994,
+      "directoryP99Ms": 7.07227899999998,
+      "statusRequests": 8279,
+      "uploads": 16,
+      "statusP99Ms": 3.021711999997933,
+      "uploadP95Ms": 9.413681000001816,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.109439,
+            "maxMs": 12.926975
+          },
+          "cpu": {
+            "user": 2099936,
+            "system": 217124
+          },
+          "rss": 228200448
+        },
+        {
+          "loop": {
+            "p99Ms": 2.063359,
+            "maxMs": 5.210111
+          },
+          "cpu": {
+            "user": 1306034,
+            "system": 169444
+          },
+          "rss": 246378496
+        }
+      ]
+    }
+  ],
+  "initialFailures": [
+    "Cancelled printer save correctly rejected by maintenance gate; final compiled test asserts rejection",
+    "Test transport recreation initially kept stale PTY paths; fixture updates normal settings and preserves saved tail"
+  ],
+  "hashes": {
+    "host/src/moonraker/native-configuration.ts": "0844b341e286ad39d90197a7f92945a052166eb5ea878147c62cb540f4ca38a2",
+    "host/src/motion/bed-mesh-save.ts": "f27afc6d07a6dcdf1b82abeda2b20e91d0e51201c87f5286eb8cf43fe97be342",
+    "host/src/runtime/product-machine-profile.ts": "eb0bdf61f607ac8e48ffc3af1b4fedca5561ff6bffed238bcb0635af3ba58cdb",
+    "host/src/runtime/product-service.ts": "470a90f194c1f74dde8d69b05bcb1d3410dd59ed1ba9bdd12990de9cf585d430",
+    "host/test/native-configuration.test.ts": "b0f0c9e7d8578c433f2c83c44d585fb38ef3ba52642135cfa4ab889756f9c4a7",
+    "host/test/native-configuration-product.test.ts": "d10af5a88244affa1451ad79155a058fc1f072ff1c60206e2698165cdf1ca4d2",
+    "host/bench/native-configuration.ts": "e5b5a8121fcb891e17fe136b7d9be10459a97b28b655d14aa2d596567b3fdc13",
+    "host/acceptance/product-compiled-journey.test.ts": "9265afa92494eb12c6d42cfbc8b1dd1f74df0df15407e6cae7d5afa0958b220a",
+    "/tmp/native-config-regression-final.log": "66e5ded1049389e4a097374b3b85af72ffc14f858e793a11c750c6ee108ea3b9",
+    "/tmp/native-config-product-final-gate.log": "f5f50887e414a6e3fe24d1477c1a3962958c4394ba1dbbb8137075c07edc9b7c",
+    "/tmp/native-config-bench-final.log": "de6a1cb08548cd47749a12811fed0a1db63bfdfee96e378b62e4785331a00a8e",
+    "/tmp/native-config-product.log": "ebd41225d74f686b40feef5aed3e2cca7a25ed14bf6679d1ca390e2cdb41d7da",
+    "/tmp/native-config-product-final.log": "ae069ee13be3f1a4b664af95b93f130bf2795e9b4675bca178ef302d5040a4b5"
+  },
+  "limitations": [
+    "Save success and configuration reload tested via mounted source product HTTP API with injected calibration; no physical probing",
+    "Local warm filesystem timings, no target-board performance guarantee",
+    "Receipt is session-local, not a durable cross-process operation journal",
+    "Delete/calibration/general configuration editing and Python retirement remain pending",
+    "Prior SIGSEGV and numerical failures unresolved"
+  ],
+  "compiledRoundTrip": {
+    "base": "220eba56",
+    "tests": 4,
+    "typecheck": true,
+    "configuration": {
+      "compiled": true,
+      "reinitialized": true,
+      "oldTokenRejected": true,
+      "profile": "retained",
+      "implicitMeshActivation": false
+    },
+    "product": [
+      {
+        "loaded": false,
+        "historyNotifications": 32,
+        "historyRequests": 0,
+        "historyP99Ms": null,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 167,
+        "wireSteps": 3088,
+        "minimumStepLeadMs": 87.047,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.482175,
+              "maxMs": 18.923519
+            },
+            "cpu": {
+              "user": 782208,
+              "system": 75355
+            },
+            "rss": 163770368
+          },
+          {
+            "loop": {
+              "p99Ms": 1.782783,
+              "maxMs": 5.308415
+            },
+            "cpu": {
+              "user": 407428,
+              "system": 60988
+            },
+            "rss": 188084224
+          }
+        ]
+      },
+      {
+        "loaded": true,
+        "historyNotifications": 32,
+        "historyRequests": 462,
+        "historyP99Ms": 4.813705000000482,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.0440920000000915,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.048259000002872,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.6393560000033176,
+        "metadataRequests": 16,
+        "metadataP95Ms": 13.570203999999649,
+        "downloads": 16,
+        "downloadP95Ms": 5.221891000001051,
+        "wireCommands": 186,
+        "wireSteps": 3316,
+        "minimumStepLeadMs": 86.803,
+        "directoryRequests": 1979,
+        "directoryP99Ms": 5.309901999993599,
+        "statusRequests": 8197,
+        "uploads": 16,
+        "statusP99Ms": 3.465767000001506,
+        "uploadP95Ms": 8.46612499999901,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.001919,
+              "maxMs": 14.082047
+            },
+            "cpu": {
+              "user": 2093737,
+              "system": 267363
+            },
+            "rss": 241717248
+          },
+          {
+            "loop": {
+              "p99Ms": 1.942527,
+              "maxMs": 4.210687
+            },
+            "cpu": {
+              "user": 1259936,
+              "system": 172989
+            },
+            "rss": 268943360
+          }
+        ]
+      }
+    ],
+    "hashes": {
+      "/tmp/native-config-compiled-roundtrip.log": "a258bb2ccb1a69283a3ee80d06c07fc1c47fa44fa6236d462d32c60193fbe897",
+      "host/acceptance/product-compiled-journey.test.ts": "f455bfd9be68ab267a730c8b417e4bb6cb966a9ef98f8a84bba88e27570b4c9c"
+    },
+    "scope": "Additional print file loads and offsets a saved mesh, completes normally, saves through authenticated HTTP, retries successfully, reinitializes through durable host control, verifies stored points and rejects the previous configuration token. No Python or TS runtime loading in product child."
+  }
+}

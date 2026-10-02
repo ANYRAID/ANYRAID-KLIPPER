@@ -1,0 +1,80 @@
+{
+  "date": "2026-09-28",
+  "scope": "Makefile autoconf.h generation switched to Node.js 26",
+  "reference": "kconfig-autoconf-reference.json",
+  "configurations": 84,
+  "comparison": "SHA-256 and byte count of generated header matches bundled Python Kconfiglib for every configuration",
+  "tests": 15,
+  "benchmark": {
+    "node": "v26.9.0",
+    "configuration": "test/configs/atmega2560.config",
+    "compileCacheDisabled": false,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 49.30365599999999,
+    "p95Ms": 51.505742000000026,
+    "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic autoconf write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "withoutCompileCache": {
+    "node": "v26.9.0",
+    "configuration": "test/configs/atmega2560.config",
+    "compileCacheDisabled": true,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 92.65225049999995,
+    "p95Ms": 97.765221,
+    "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic autoconf write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "pythonBaseline": {
+    "python": "Python 3.12.13",
+    "configuration": "test/configs/atmega2560.config",
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 48.2640395002818,
+    "p95Ms": 49.176469998201355,
+    "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91",
+    "scope": "New Python process through existing genconfig.py, complete parse/load/resolve/write; warm filesystem cache; sequential same-machine baseline"
+  },
+  "firmwareBuild": {
+    "target": "ATmega2560",
+    "toolchain": "avr-gcc 7.3.0 (Arduino official archive)",
+    "command": "make -j2 OUT=host/build/kconfig-node-final-avr/ KCONFIG_CONFIG=$PWD/host/build/kconfig-node-final-avr.config CROSS_PREFIX=/tmp/anyraid-avr-tools/avr/bin/avr- NODE=$PWD/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+    "configurationSha256": "5995cf6442e822775e112777c7e577b990f2b406621f4185c035a8d267c263b0",
+    "artifacts": [
+      {
+        "path": "host/build/kconfig-node-final-avr/autoconf.h",
+        "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91"
+      },
+      {
+        "path": "host/build/kconfig-node-final-avr/klipper.elf",
+        "sha256": "34e45c07739e66122d7aa918e4b3a9518d5d341e470427bf2c3faa21c8ecacc1"
+      },
+      {
+        "path": "host/build/kconfig-node-final-avr/klipper.elf.hex",
+        "sha256": "19197b80b7779397f32101bf759bb4745d7b4db5baa028a5a5eec73e637556a6"
+      }
+    ],
+    "size": {
+      "text": 46220,
+      "data": 48,
+      "bss": 373
+    },
+    "log": "host/build/kconfig-node-final-avr-build.log",
+    "remainingPython": "savedefconfig ran during complete build; olddefconfig/menuconfig remain Python"
+  },
+  "headerWithoutPython": {
+    "command": "make ... PYTHON=/nonexistent-python host/build/kconfig-node-final-avr/autoconf.h",
+    "passed": true,
+    "repeat": "up to date",
+    "log": "host/build/kconfig-node-no-python-header.log"
+  },
+  "limitations": [
+    "Complete firmware build is not Python-free yet; olddefconfig, savedefconfig and menuconfig remain",
+    "Vendored genconfig.py retained until remaining Kconfiglib tools are retired; tracked Python count unchanged",
+    "Compile-cache-disabled process startup is slower than Python; this is a build-time path, not print runtime",
+    "No hardware flash or actual printer acceptance",
+    "Historical Node crash and motion precision diagnostics remain open"
+  ]
+}

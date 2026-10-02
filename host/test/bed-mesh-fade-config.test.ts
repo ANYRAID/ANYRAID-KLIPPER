@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {BedMesh} from '../src/motion/bed-mesh.ts';
+import {BedMeshFade} from '../src/motion/bed-mesh-fade.ts';
+import {BedMeshMovePort} from '../src/motion/bed-mesh-port.ts';
+import {motionLimits} from '../src/motion/lookahead.ts';
+const mesh=(z=.125)=>new BedMesh({min_x:0,max_x:20,min_y:0,max_y:20,x_count:2,y_count:2,mesh_x_pps:0,mesh_y_pps:0,algo:'direct',tension:.2},[[z,z],[z,z]]);
+test('automatic rounded target may lie outside mesh while explicit nonzero target may not',()=>{const m=mesh(),f=BedMeshFade.forMesh(m,{end:10});assert.equal(f.target,.12);assert.equal(f.automaticTarget,true);assert.throws(()=>BedMeshFade.forMesh(m,{end:10,target:.12}),/range or target/);assert.equal(BedMeshFade.forMesh(m,{end:10,target:0}).target,0);assert.equal(BedMeshFade.forMesh(m,{end:10,target:.125}).target,.125);assert.equal(BedMeshFade.forMesh(m).enabled,false);assert.equal(BedMeshFade.forMesh(null,{end:10,target:100}).target,0);assert.throws(()=>BedMeshFade.forMesh(m,{end:NaN}));});
+test('port resolves default target on its owned snapshot and rejects stale resolved averages',()=>{const m=mesh(),port=new BedMeshMovePort({mesh:m,fadeConfig:{end:10},physicalPosition:[0,0,.125,0],limits:motionLimits(300,3000),validate:()=>{}});m.setZeroReference(0,0);assert.equal(port.position()[2],0);port.move([10,0,10,0],100);assert.equal(port.plannedPosition[2],10.12);const f=BedMeshFade.forMesh(mesh(),{end:10});assert.throws(()=>new BedMeshMovePort({mesh:m,fade:f,physicalPosition:[0,0,0,0],limits:motionLimits(300,3000),validate:()=>{}}),/different mesh/);});
+test('invalid short fade and ambiguous options fail before any admission',()=>{assert.throws(()=>BedMeshFade.forMesh(mesh(),{start:0,end:.1}),/range/);assert.throws(()=>new BedMeshMovePort({mesh:mesh(),fade:new BedMeshFade({start:1,end:0,target:0}),fadeConfig:{end:10},physicalPosition:[0,0,0,0],limits:motionLimits(300,3000),validate:()=>{}}),/not both/);});

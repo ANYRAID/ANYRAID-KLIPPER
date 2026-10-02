@@ -1,0 +1,64 @@
+{
+  "status": "opt-in output renewal verified; not enabled in product configuration",
+  "tests": 37,
+  "thermal": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "controllerSamples": 60000,
+    "pwmRequests": 20000,
+    "pwmWrites": 14945,
+    "statesExact": true,
+    "extra": {
+      "bang": {
+        "nodeMedianMs": 1.1277639999999565,
+        "nodeP95Ms": 3.5835439999999608,
+        "pythonMedianMs": 9.710188009194098,
+        "pythonP95Ms": 13.846547997673042
+      },
+      "pwm": {
+        "nodeMedianMs": 1.3672559999999976,
+        "nodeP95Ms": 2.952735999999959,
+        "pythonMedianMs": 7.939477000036277,
+        "pythonP95Ms": 13.021457998547703
+      }
+    },
+    "nodeMedianMs": 2.3593479999999545,
+    "nodeP95Ms": 2.9642970000001014,
+    "pythonMedianMs": 20.688070988398977,
+    "pythonP95Ms": 25.977565994253382,
+    "speedup": 8.768554273638046
+  },
+  "asyncRuntime": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "samples": 20000,
+    "pwmWrites": 833,
+    "outputExact": true,
+    "python": {
+      "medianMs": 22.383558999536035,
+      "p95Ms": 22.9704639996271
+    },
+    "synchronous": {
+      "medianMs": 1.828852999999981,
+      "p95Ms": 2.0096849999999904
+    },
+    "acknowledged": {
+      "medianMs": 1.929192999999998,
+      "p95Ms": 2.2247469999999794
+    },
+    "spiFeedback": {
+      "medianMs": 1.870931999999982,
+      "p95Ms": 2.071154999999976
+    },
+    "extraNanosecondsPerSample": 5.017000000000849,
+    "pythonToAcknowledgedSpeedup": 11.602550392592166,
+    "scope": "Fixed historical Python callback reference, immediate fake ACK, microtask drain, pure thermal control including MAX6675 decode; excludes UART latency, SPI electrical timing and hardware deadlines"
+  },
+  "limitations": [
+    "AHT direct heater integration pending",
+    "Seven-second sample freshness remains unchanged",
+    "No physical MCU watchdog acceptance",
+    "Benchmarks cover original sample path, not slow-sensor hardware throughput",
+    "No Python retired"
+  ]
+}

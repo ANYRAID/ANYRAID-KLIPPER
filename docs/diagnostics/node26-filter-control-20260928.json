@@ -1,0 +1,77 @@
+{
+  "directory": "/tmp/filter-control-kgqKmd",
+  "node": "v26.9.0",
+  "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0\nCopyright (C) 2022 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+  "argv": [
+    "-std=c11",
+    "-O2",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/bench/native/motion-integrity.c",
+    "-lm",
+    "-o",
+    "/tmp/filter-control-kgqKmd/motion-c"
+  ],
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "kernel": "6.18.36-amd64-desktop-rolling",
+  "hashes": {
+    "source": "2eb27dba65439bd042a0b17af9ef57e502274b3459ef9ad1e701c636564f034c",
+    "script": "efa425046d62f2b9c4ba6aa3b267e2332ff74c2c352f009bb35f0908a3227857",
+    "node": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+    "binary": "a03e47b26c26a914da1ad65fc111ca2dfe73115363d683dfdf09924dbf9f80cf",
+    "fullFixture": "b81b3000aa135f5e27f81116657742b45eb59a095ebc8bb402bc815c0a349c8f",
+    "filterFixture": "2ae4dc525fe7f7d4841f2f06de4dafc1309ae69d4c070e6ceef1e33e4e17810d"
+  },
+  "scope": "Reduced weighted4 only. C exports nominal and weighted arrays after validating complete motion against original reference. JS has no application imports. Reduced-workload success is not full-runtime acceptance.",
+  "runs": [
+    {
+      "mode": "default",
+      "control": true,
+      "rounds": 1,
+      "status": 2,
+      "signal": null,
+      "stdout": "{\"run\":0,\"index\":500,\"actual\":0,\"target\":1,\"difference\":-1,\"actualBits\":\"0\",\"targetBits\":\"3ff0000000000000\",\"recomputed\":0}\n",
+      "stderr": "",
+      "elapsedMs": 48.62908700000003,
+      "passed": true
+    },
+    {
+      "mode": "default",
+      "control": false,
+      "rounds": 1000,
+      "status": 0,
+      "signal": null,
+      "stdout": "filter:verified:1000:12266\n",
+      "stderr": "",
+      "elapsedMs": 2761.884574,
+      "passed": true
+    },
+    {
+      "mode": "jitless",
+      "control": true,
+      "rounds": 1,
+      "status": 2,
+      "signal": null,
+      "stdout": "{\"run\":0,\"index\":500,\"actual\":0,\"target\":1,\"difference\":-1,\"actualBits\":\"0\",\"targetBits\":\"3ff0000000000000\",\"recomputed\":0}\n",
+      "stderr": "",
+      "elapsedMs": 545.0099530000002,
+      "passed": true
+    },
+    {
+      "mode": "jitless",
+      "control": false,
+      "rounds": 64,
+      "status": 0,
+      "signal": null,
+      "stdout": "filter:verified:64:12266\n",
+      "stderr": "",
+      "elapsedMs": 15469.653949,
+      "passed": true
+    }
+  ],
+  "state": "completed",
+  "captures": []
+}

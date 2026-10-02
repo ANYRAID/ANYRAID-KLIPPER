@@ -118,10 +118,10 @@ necessary to increase the `txqueuelen` above the recommended value
 of 128. However, as above, care should be taken when selecting a new
 value to avoid excessive round-trip-time latency.
 
-## Use `canbus_query.py` only to identify nodes never previously seen
+## Use `canbus_query.ts` only to identify nodes never previously seen
 
 It is only valid to use the
-[`canbus_query.py` tool](CANBUS.md#finding-the-canbus_uuid-for-new-micro-controllers)
+[`canbus_query.ts` tool](CANBUS.md#finding-the-canbus_uuid-for-new-micro-controllers)
 to identify micro-controllers that have never been previously
 identified. Once all nodes on a bus are identified, record the
 resulting uuids in the printer.cfg, and avoid running the tool
@@ -163,13 +163,16 @@ and Klipper's [MCU commands](MCU_Commands.md).
 
 ### Parsing Klipper messages in a candump log
 
-One may use the `parsecandump.py` tool to parse the low-level Klipper
+One may use the `parsecandump.ts` tool to parse the low-level Klipper
 micro-controller messages contained in a candump log. Using this tool
 is an advanced topic that requires knowledge of Klipper
 [MCU commands](MCU_Commands.md). For example:
 ```
-./scripts/parsecandump.py mycanlog 108 ./out/klipper.dict
+node ./scripts/parsecandump.ts mycanlog 108 ./out/klipper.dict
 ```
+
+The tool requires Node.js 26 and no npm dependencies. It reads saved logs
+and writes diagnostics to standard output; it does not open a CAN interface.
 
 This tool produces output similar to the [parsedump
 tool](Debugging.md#translating-gcode-files-to-micro-controller-commands). See
@@ -185,7 +188,7 @@ then the second micro-controller would be `10a`, the third would be
 
 The candump log must be produced using the `-tz -Ddex` command-line
 arguments (for example: `candump -tz -Ddex can0,#FFFFFFFF`) in order
-to use the `parsecandump.py` tool.
+to use the `parsecandump.ts` tool.
 
 ## Using a logic analyzer on the canbus wiring
 

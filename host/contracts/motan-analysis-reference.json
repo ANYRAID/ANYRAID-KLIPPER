@@ -1,0 +1,207 @@
+{
+  "schema": 1,
+  "sourceCommit": "adcb19ea",
+  "originalHelperSha256": "c19f3a6c93edfa89261af04d45b9079bb9bb7d859d9d57a58bdbc55850c8f955",
+  "sources": {
+    "2c7ba578:scripts/motan/readlog.py": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+    "4127c89e:scripts/motan/analyzers.py": "8e47954f05da42f9f33fa14224080547c5a54f64ddd36930973f6e42a77421ab"
+  },
+  "fixtureSha256": "7758f3df9e62b0968c24d4fec5de026f734314854fb4d21053e43c647022e360",
+  "caseCount": 11,
+  "values": 338245,
+  "negativeZeros": 0,
+  "dataBytes": 3621440,
+  "dataSha256": "2a94c81e72e9071d61f7e5ecaf0d13b49dc7e439020f698a40cbeaf11165508c",
+  "gzipSha256": "ca78379ae09458d28b5d66ae0202a0e2e2254e8d8c083ce4b856b5c0fbf541cf",
+  "encoding": "Float64 big-endian base64; preserves every captured bit including negative zero",
+  "historicalBenchmarks": [
+    {
+      "node": "v26.9.0",
+      "samples": 1500,
+      "datasets": 13,
+      "nodeMs": {
+        "median": 4.016264999999976,
+        "p95": 4.950658000000033
+      },
+      "pythonMs": {
+        "median": 9.520660038106143,
+        "p95": 10.650846001226455
+      },
+      "exact": true
+    },
+    {
+      "kind": "lowpass",
+      "mode": "filtfilt",
+      "node": "v26.9.0",
+      "samples": 20000,
+      "nodeMs": {
+        "median": 9.50976999999989,
+        "p95": 10.225680000000011
+      },
+      "pythonMs": {
+        "median": 9.138165973126888,
+        "p95": 9.266127017326653
+      },
+      "maxAbsoluteError": 4.75175454539567e-14
+    },
+    {
+      "kind": "highpass",
+      "mode": "filtfilt",
+      "node": "v26.9.0",
+      "samples": 20000,
+      "nodeMs": {
+        "median": 8.718538999999964,
+        "p95": 11.06041200000027
+      },
+      "pythonMs": {
+        "median": 9.209055977407843,
+        "p95": 9.282397979404777
+      },
+      "maxAbsoluteError": 1.1102230246251565e-15
+    },
+    {
+      "kind": "bandpass",
+      "mode": "filtfilt",
+      "node": "v26.9.0",
+      "samples": 20000,
+      "nodeMs": {
+        "median": 7.909028999999919,
+        "p95": 9.738372999999683
+      },
+      "pythonMs": {
+        "median": 10.278941015712917,
+        "p95": 10.488453961443156
+      },
+      "maxAbsoluteError": 5.81792643575274e-14
+    },
+    {
+      "mode": "filt",
+      "node": "v26.9.0",
+      "samples": 20001,
+      "nodeMs": {
+        "median": 7.652606000000105,
+        "p95": 8.847072000000026
+      },
+      "pythonMs": {
+        "median": 7.929118990432471,
+        "p95": 8.137731987517327
+      },
+      "maxAbsoluteError": 1.290523243824282e-12
+    },
+    {
+      "mode": "filtfilt",
+      "node": "v26.9.0",
+      "samples": 20001,
+      "nodeMs": {
+        "median": 7.821787000000313,
+        "p95": 10.686275999999907
+      },
+      "pythonMs": {
+        "median": 8.09278100496158,
+        "p95": 8.464996004477143
+      },
+      "maxAbsoluteError": 2.8057556278326956e-12
+    }
+  ],
+  "scope": "Original analysis oracle, preserved inputs and assertions; captured before replacing the helper. Python timings are historical reference, not rerun by new benchmarks.",
+  "captureEnvironment": {
+    "python": "3.12.13",
+    "numpy": "2.5.3",
+    "scipy": "1.17.1"
+  },
+  "validation": {
+    "analysisAndIntegrityTests": 7,
+    "graphTests": 8,
+    "typesPassed": true,
+    "noProgramsPath": true,
+    "nodeBenchmarks": [
+      {
+        "node": "v26.9.0",
+        "samples": 1500,
+        "datasets": 13,
+        "nodeMs": {
+          "median": 3.8472130000000107,
+          "p95": 6.143664000000001
+        },
+        "historicalPythonMs": {
+          "median": 9.520660038106143,
+          "p95": 10.650846001226455
+        },
+        "exact": true
+      },
+      {
+        "kind": "lowpass",
+        "mode": "filtfilt",
+        "node": "v26.9.0",
+        "samples": 20000,
+        "nodeMs": {
+          "median": 8.194433000000004,
+          "p95": 11.97028499999999
+        },
+        "historicalPythonMs": {
+          "median": 9.138165973126888,
+          "p95": 9.266127017326653
+        },
+        "maxAbsoluteError": 4.75175454539567e-14
+      },
+      {
+        "kind": "highpass",
+        "mode": "filtfilt",
+        "node": "v26.9.0",
+        "samples": 20000,
+        "nodeMs": {
+          "median": 7.753216000000009,
+          "p95": 8.05526100000003
+        },
+        "historicalPythonMs": {
+          "median": 9.209055977407843,
+          "p95": 9.282397979404777
+        },
+        "maxAbsoluteError": 1.1102230246251565e-15
+      },
+      {
+        "kind": "bandpass",
+        "mode": "filtfilt",
+        "node": "v26.9.0",
+        "samples": 20000,
+        "nodeMs": {
+          "median": 7.797857000000022,
+          "p95": 10.29925099999997
+        },
+        "historicalPythonMs": {
+          "median": 10.278941015712917,
+          "p95": 10.488453961443156
+        },
+        "maxAbsoluteError": 5.81792643575274e-14
+      },
+      {
+        "mode": "filt",
+        "node": "v26.9.0",
+        "samples": 20001,
+        "nodeMs": {
+          "median": 7.41928200000001,
+          "p95": 10.111198000000002
+        },
+        "historicalPythonMs": {
+          "median": 7.929118990432471,
+          "p95": 8.137731987517327
+        },
+        "maxAbsoluteError": 1.290523243824282e-12
+      },
+      {
+        "mode": "filtfilt",
+        "node": "v26.9.0",
+        "samples": 20001,
+        "nodeMs": {
+          "median": 9.20394600000003,
+          "p95": 12.76124500000003
+        },
+        "historicalPythonMs": {
+          "median": 8.09278100496158,
+          "p95": 8.464996004477143
+        },
+        "maxAbsoluteError": 2.8057556278326956e-12
+      }
+    ]
+  }
+}

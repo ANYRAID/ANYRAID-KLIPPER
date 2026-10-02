@@ -1,0 +1,1422 @@
+{
+  "source": "https://github.com/Arksine/moonraker",
+  "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+  "apiVersion": [
+    1,
+    5,
+    0
+  ],
+  "scopeNote": "Source registration inventory, not an expanded endpoint coverage claim. Dynamic expressions, loops, forwarded Klippy methods, transports, response schemas, events and optional integrations require independent contract tests. Statuses describe only the cited implementation and contract evidence; partial transport work does not imply full component coverage.",
+  "components": [
+    {
+      "name": "analysis",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "announcements",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "application",
+      "tier": "server",
+      "status": "partial",
+      "evidence": "host/src/moonraker/server.ts; host/src/moonraker/endpoints.ts; host/test/moonraker-network.test.ts; host/test/moonraker-endpoints.test.ts"
+    },
+    {
+      "name": "authorization",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "button",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "data_store",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "Opt-in bounded G-code and temperature histories in gcode-store.ts, temperature-store.ts and temperature-store-runtime.ts, wired through ConfiguredMoonraker. Pinned Python differential, precise decimal rounding, authenticated REST/RPC, sensor discovery, internal aggregate subscriptions, one-second sampling, monitor filtering, reconnect retention and shutdown cancellation tested. Full daemon assembly and production authorization remain incomplete."
+    },
+    {
+      "name": "database",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "Worker-owned SQLite namespace CRUD, upstream scalar/blob format, bounded queue and transactional nested writes in database.ts, database-worker.ts, database-engine.ts and database-record.ts. ConfiguredMoonraker owns optional database lifecycle and authenticated REST/RPC list/item routes. Pinned Python method and bidirectional file tests, capacity rollback, abrupt process termination recovery and disk benchmarks covered. LMDB import, table registration and namespace lifecycle helpers, instance and shutdown bookkeeping, debug endpoints and full daemon remain incomplete; unsafe stored integers reject explicitly. Internal shallow update and literal-root insert/get/delete/move batches now have pinned Python differential tests. Batches use one transaction with at most 64 rows per INSERT statement; later-chunk failure rolls back prior chunks. DATABASE_BATCH_SIZE benchmark includes actual Python thread dispatch; Node remains slower in observed disk round trips. Online backup, atomic published files, deletion and VACUUM/checkpoint now run in FIFO Worker maintenance; Legacy REST/RPC maintenance requires a connected initialized ready Klippy owner with observed idle print_stats. Native mode uses its durable PrintController and shared MaintenanceGate without requiring Klippy. The gate is held across state checks and Worker settlement; preparing/printing/paused/draining/interrupted and unacknowledged stop states reject. Restore fences the old gate permanently. configured-native-maintenance.test.ts covers authorized HTTP backup/compact/restore, rejected start identity preservation, terminal acknowledgement and reopening actual restored SQLite data. native-database-maintenance.ts measures real Worker/filesystem overhead. Filesystem-tagged benchmarks distinguish tmpfs from the workspace ext filesystem. Restore now validates integrity/schema/size, copies all tables through SQLite backup, and fences old reads/writes until reopen. Configured restore REST/RPC is registered only with an explicit onDatabaseRestore service owner; response-completion handoff handles cancellation and exposes restart errors. Real local HTTP service recreation is tested; production entry, full bookkeeping and target hardware remain incomplete."
+    },
+    {
+      "name": "dbus_manager",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "extensions",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "Agent identities and authorized lifecycle/custom notifications; list/request/send_event handlers in host/src/moonraker/extensions.ts; host/test/extensions.test.ts; host/bench/moonraker-extensions.ts. Klippy remote-method registration and Unix transport remain unimplemented; authentication stores remain separate."
+    },
+    {
+      "name": "file_manager",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "FileListing Worker and authenticated roots/list REST+WebSocket routes in host/src/moonraker/file-list.ts; real filesystem and pinned original-method differential tests. Dynamic root updates, metadata extraction, directory operations, upload/download/delete paths, observers and production assembly remain incomplete. NativePrintUploads adds opt-in multipart HTTP admission into immutable PublishedPrintFiles with separate native receipt IDs and no auto-print; configured native integration and bounded upload benchmarks are covered. Legacy multipart response compatibility, crash staging recovery and target-print throughput remain incomplete."
+    },
+    {
+      "name": "gpio",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "history",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "http_client",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "job_queue",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "job_state",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "klippy_apis",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "print-api.ts and print-api tests/benchmark implement guarded legacy print controls. Explicit ProductPrintApi native mode replaces start/pause/resume/cancel with durable admission and request-bound controls, plus status/reset; configured-product-print.test.ts covers HTTP/WebSocket/MQTT, and product-print-api.ts benchmark measures worker-journal admission. Native mode requires request identity, expiry, opaque authorized file IDs and a shared device maintenance owner, and cannot attach Klippy or legacy history hooks. Complete native object/status/history integration, production assembly and physical printing remain incomplete. Native controls now require a fresh per-controller state token; same-job stale requests and old controller epochs are rejected synchronously before action dispatch. An authorized printer.emergency_stop native endpoint uses the latched fault/safe-stop path without token dependence. product-print-tokens.test.ts and print-state-tokens.ts benchmark cover these additions; hardware stop latency remains unverified. Native controller state changes now drive authorized notify_print_state_changed WebSocket notifications through bounded coalescing streams. configured-print-notifications.test.ts covers sealed-file EOF/drain completion and denied/stalled observers. Full object subscriptions, native history and target hardware remain incomplete."
+    },
+    {
+      "name": "klippy_connection",
+      "tier": "server",
+      "status": "partial",
+      "evidence": "host/src/moonraker/klippy-socket.ts; host/src/moonraker/klippy-lifecycle.ts; host/src/moonraker/subscription-status.ts; ConfiguredMoonraker.attachKlippy; host/test/klippy-lifecycle.test.ts; host/test/subscription-status.test.ts; host/bench/klippy-lifecycle.ts; host/bench/subscription-status.ts. Unix transport, generation-scoped initialization, authorized dynamic forwarding, subscription union/projection model, bounded immutable status cache and serialized multi-client transactions (subscription-manager.ts) wired to KlippyLifecycle, with bounded in-flight delta reconciliation (subscription-journal.ts). WebSocket printer.objects.subscribe now wired with authorized ordered delivery and disconnect cleanup (subscription-delivery.ts). Public agent registration supports bounded pre-start ownership, readiness publication and explicit ConfiguredMoonraker.reconnectKlippy restoration, with no replay of old requests (agent-methods.ts and bench/agent-methods.ts). HTTP query/form connection association now requires explicit source-to-target authorization; Unix/MQTT subscription transports, file-manager path validation, system-service attribution and production daemon remain incomplete. Linux kernel peer credentials are captured once per socket generation using unix-peer.c/unix-peer.ts and retained separately from self-reported info; same-peer upstream helper oracle and cross-process tests cover PID/UID/GID. PID-1 service attribution is not implemented. Explicit superviseKlippy uses one retry owner with default 250ms delay, cancellation and automatic agent restoration (klippy-supervisor.ts; klippy-supervisor.test.ts). Static per-method ApiError failures continue initialization with bounded diagnostics and server.info warnings; connection loss still aborts initialization. Pinned upstream partial-failure loop matches bench/remote-methods.ts. Configured load/start may explicitly enable klippy_uds_address supervision; default /tmp/klippy_uds and literal filesystem path contracts covered by klippy-config.ts, klippy-config.test.ts and bench/klippy-config.ts. Full template renderer, named-user expansion and CLI/service entry remain incomplete."
+    },
+    {
+      "name": "ldap",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "machine",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "Native cached Linux system information: host/contracts/native-system-information-acceptance.json. Runtime reports Node, provider none; service/provider operations, network events and full platform coverage remain pending."
+    },
+    {
+      "name": "mqtt",
+      "tier": "optional",
+      "status": "partial",
+      "evidence": "mqtt-sensors.ts, mqtt-waiters.ts, mqtt-config.ts and mqtt-api.ts: MQTT 3.1/3.1.1/5, TLS, bounded publication, exact-topic temporary subscriptions shared with sensors, and authorized HTTP/WebSocket/Unix publish/subscribe endpoints. ConfiguredMoonraker owns connection and endpoint lifetime. mqtt-macros.ts registers generation-scoped publish_mqtt_topic with instance prefixes, bounded nonblocking jobs and failure metrics. Startup, wire QoS, reconnect, cancellation, precision guards and benchmarks are tested. mqtt-status.ts and mqtt-status-runtime.ts now wire filtered combined/split retained printer status, timed latest-field aggregation, bounded nonblocking batches and Klippy/broker generation fencing; differential and real loopback tests plus bench/mqtt-status.ts cover this path. ConfiguredMoonraker now enables retained online/offline status and CONNECT will on all three protocols, with bounded shutdown and no DISCONNECT after offline acknowledgment failure; mqtt-presence.test.ts and bench/mqtt-presence.ts cover wire and lifecycle behavior. mqtt-rpc.ts now dispatches bounded incoming RPC with explicit broker-domain authorization, retained-command rejection, upstream-compatible 20-timestamp screening, connection cancellation and response handoff; configured-mqtt-rpc.test.ts, mqtt-rpc.test.ts and mqtt-rpc benchmarks cover this candidate path. Production broker/will delivery, complete configuration/template wiring, durable control idempotency and real macro/print acceptance remain incomplete."
+    },
+    {
+      "name": "notifier",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "octoprint_compat",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "paneldue",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "power",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "proc_stats",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
+    },
+    {
+      "name": "secrets",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "sensor",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "shell_command",
+      "tier": "core",
+      "status": "not-implemented"
+    },
+    {
+      "name": "simplyprint",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "spoolman",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "td1",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "template",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "update_manager",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "webcam",
+      "tier": "core",
+      "status": "partial",
+      "evidence": "host/contracts/native-webcams-acceptance.json"
+    },
+    {
+      "name": "websockets",
+      "tier": "server",
+      "status": "partial",
+      "evidence": "host/src/moonraker/server.ts; host/test/moonraker-network.test.ts"
+    },
+    {
+      "name": "wled",
+      "tier": "optional",
+      "status": "not-implemented"
+    },
+    {
+      "name": "zeroconf",
+      "tier": "optional",
+      "status": "not-implemented"
+    }
+  ],
+  "registrations": [
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 163,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 167,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/estimate\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 171,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/process\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/analysis.py",
+      "line": 175,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/analysis/dump_config\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 64,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 68,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/dismiss\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 72,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/update\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 76,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/feed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 80,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/announcements/feeds\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 84,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:dismissed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 87,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:entries_updated\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/announcements.py",
+      "line": 90,
+      "method": "register_notification",
+      "targetExpression": "\"announcements:dismiss_wake\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 260,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"klippy.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 262,
+      "method": "register_upload_handler",
+      "targetExpression": "\"/server/files/upload\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 448,
+      "method": "register_endpoint",
+      "targetExpression": "endpoint",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/application.py",
+      "line": 258,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"moonraker.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 236,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/login\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 241,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/logout\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 245,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/refresh_jwt\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 250,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/user\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 254,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/users/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 258,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/user/password\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 262,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/api_key\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 267,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/oneshot_token\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 271,
+      "method": "register_endpoint",
+      "targetExpression": "\"/access/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 277,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_created\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 278,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_deleted\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/authorization.py",
+      "line": 281,
+      "method": "register_notification",
+      "targetExpression": "\"authorization:user_logged_out\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/button.py",
+      "line": 37,
+      "method": "register_notification",
+      "targetExpression": "\"button:button_event\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/data_store.py",
+      "line": 62,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/temperature_store\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/temperature-store.ts; temperature-store-runtime.ts; host/test/temperature-store.test.ts; klippy-lifecycle.test.ts; host/bench/temperature-store.ts. Sensor fields, Python rounding, null/carry-forward, monitor filter and authenticated REST/RPC integrated opt-in. Capacity/sensor/slot limits and positive capacity are explicit extensions. Full daemon and transport acceptance remain incomplete."
+    },
+    {
+      "file": "moonraker/components/data_store.py",
+      "line": 66,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/gcode_store\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/gcode-store.ts; host/test/gcode-store.test.ts; host/test/klippy-lifecycle.test.ts; host/bench/gcode-store.ts. Opt-in REST/RPC with caller-supplied authorization; bounded payload/count extensions; production authentication and all transports remain incomplete."
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 244,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/list\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/database.ts; database-worker.ts; database-engine.ts; database-record.ts; host/test/database.test.ts; host/bench/database.ts. Optional ConfiguredMoonraker owner, authenticated REST/RPC, persisted protected/forbidden namespaces and real SQLite transactions; configured backup-directory listing only. No debug bypass or complete daemon assembly."
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 247,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/item\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/database.ts; database-worker.ts; database-engine.ts; database-record.ts; host/test/database.test.ts; host/bench/database.ts. Optional ConfiguredMoonraker owner, authenticated REST/RPC, persisted protected/forbidden namespaces and real SQLite transactions; configured backup-directory listing only. No debug bypass or complete daemon assembly."
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 250,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/backup\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/database-maintenance.ts; database-backup-files.ts; database-worker.ts; database-engine.ts. Authenticated configured routes, online WAL backup with staging/fsync/rename, deletion, VACUUM/checkpoint, FIFO serialization and print-state admission guard. Tested WAL cut, queued writes/close, injected backup failure, traversal/symlink/active-file rejection and live print state. Full print-start mutual exclusion, restore/restart integration and hardware acceptance remain incomplete."
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 254,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/restore\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/database-engine.ts; database-maintenance.ts; configured-server.ts; host/test/database.test.ts; klippy-lifecycle.test.ts; host/bench/database-restore.ts. Fixed-source Python restore benchmark, whole SQLite copy with preflight, terminal old-owner fencing, explicit restart owner and response-completion handoff. Invalid preflight keeps the old store usable; copy failure requires restart. Full production restart/print maintenance lease and hardware acceptance remain incomplete."
+    },
+    {
+      "file": "moonraker/components/database.py",
+      "line": 257,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/database/compact\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/database-maintenance.ts; database-backup-files.ts; database-worker.ts; database-engine.ts. Authenticated configured routes, online WAL backup with staging/fsync/rename, deletion, VACUUM/checkpoint, FIFO serialization and print-state admission guard. Tested WAL cut, queued writes/close, injected backup failure, traversal/symlink/active-file rejection and live print state. Full print-start mutual exclusion, restore/restart integration and hardware acceptance remain incomplete."
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 37,
+      "method": "register_endpoint",
+      "targetExpression": "\"/connection/register_remote_method\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/agent-methods.ts; host/test/klippy-lifecycle.test.ts; host/bench/agent-methods.ts. WebSocket agent identity and inbound authorization; independently authorized, generation-cancelled callbacks; bounded pre-start registrations published before initialized/ready with observable failures. Live registration waits for Klippy acknowledgement unlike upstream. Explicit reconnect and opt-in automatic supervision restore still-connected agents after old-generation drain; Registration remains enabled after ready transitions to shutdown/error; initial non-ready generations keep pending registrations. Four pinned upstream state decisions match (bench/remote-methods.ts). Production authorization remains incomplete."
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 42,
+      "method": "register_endpoint",
+      "targetExpression": "\"/connection/send_event\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/extensions.ts; host/test/extensions.test.ts; host/bench/moonraker-extensions.ts. REST/WebSocket routes and pinned string-field contracts; stricter string validation, cancellation/timeouts and independently required policies. Unix/MQTT transports and production authorization remain incomplete."
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 46,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/extensions/list\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/extensions.ts; host/test/extensions.test.ts; host/bench/moonraker-extensions.ts. REST/WebSocket routes and pinned string-field contracts; stricter string validation, cancellation/timeouts and independently required policies. Unix/MQTT transports and production authorization remain incomplete."
+    },
+    {
+      "file": "moonraker/components/extensions.py",
+      "line": 49,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/extensions/request\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/extensions.ts; host/test/extensions.test.ts; host/bench/moonraker-extensions.ts. REST/WebSocket routes and pinned string-field contracts; stricter string validation, cancellation/timeouts and independently required policies. Unix/MQTT transports and production authorization remain incomplete."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 110,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/list\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/file-list.ts; host/src/moonraker/file-list-worker.ts; host/test/file-list.test.ts; host/bench/file-list.ts. Actual root/list response contracts; bounded static root configuration, explicit invalid UTF-8 rejection, no dynamic root observer or production assembly."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 113,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/metadata\"",
+      "status": "partial",
+      "evidence": "Bounded immutable FileMetadataStore with scan tickets, metadata/thumbnails GET and RPC responses in host/src/moonraker/file-metadata.ts; real network and directory integration in file-metadata.test.ts; pinned original handlers and MetadataStorage.get differential benchmark in bench/file-metadata.ts. Extraction, persistent metadata DB, file watcher invalidation, thumbnail generation/download and production assembly remain incomplete."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 116,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/metascan\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 119,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/thumbnails\"",
+      "status": "partial",
+      "evidence": "Bounded immutable FileMetadataStore with scan tickets, metadata/thumbnails GET and RPC responses in host/src/moonraker/file-metadata.ts; real network and directory integration in file-metadata.test.ts; pinned original handlers and MetadataStorage.get differential benchmark in bench/file-metadata.ts. Extraction, persistent metadata DB, file watcher invalidation, thumbnail generation/download and production assembly remain incomplete."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 122,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/roots\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/file-list.ts; host/src/moonraker/file-list-worker.ts; host/test/file-list.test.ts; host/bench/file-list.ts. Actual root/list response contracts; bounded static root configuration, explicit invalid UTF-8 rejection, no dynamic root observer or production assembly."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 125,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/directory\"",
+      "status": "partial",
+      "evidence": "GET directory and server.files.get_directory in file-list.ts/file-list-worker.ts; directory, permission, disk usage and explicit metadata-provider merge tested in file-directory.test.ts and against pinned original AST in bench/file-directory.ts. POST/DELETE directory operations, metadata extraction and production assembly remain incomplete."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 129,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/move\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 132,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/copy\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 135,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/zip\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 138,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/files/delete_file\"",
+      "status": "partial",
+      "evidence": "Native flat gcodes HTTP DELETE and server.files.delete_file RPC, print ownership and conditional deletion: host/src/moonraker/native-print-uploads.ts; host/test/native-print-uploads.test.ts; host/acceptance/product-compiled-journey.test.ts. Other roots remain incomplete; native create/delete notifications now have separate partial coverage."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 143,
+      "method": "register_notification",
+      "targetExpression": "\"file_manager:filelist_changed\"",
+      "status": "partial",
+      "evidence": "Native gcodes durable create/delete events over authorized WebSocket fanout: host/src/storage/published-files.ts; host/src/moonraker/configured-server.ts; host/test/native-file-notifications.test.ts; host/contracts/native-file-notifications-load-acceptance.json. Other roots, filesystem watchers, move/modify/directory events and Unix transport remain incomplete."
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 209,
+      "method": "register_static_file_handler",
+      "targetExpression": "\"klippy.log\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/file_manager/file_manager.py",
+      "line": 312,
+      "method": "register_static_file_handler",
+      "targetExpression": "root",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 212,
+      "method": "register_notification",
+      "targetExpression": "\"history:history_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 214,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/job\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 218,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 221,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/totals\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/history.py",
+      "line": 224,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/history/reset_totals\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 55,
+      "method": "register_notification",
+      "targetExpression": "\"job_queue:job_queue_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 56,
+      "method": "register_remote_method",
+      "targetExpression": "\"pause_job_queue\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 57,
+      "method": "register_remote_method",
+      "targetExpression": "\"start_job_queue\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 59,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/job\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 63,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/pause\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 66,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/start\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 69,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/job_queue.py",
+      "line": 72,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/job_queue/jump\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 56,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/pause\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 59,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/resume\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 62,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/cancel\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 65,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/print/start\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/print-api.ts preserves the legacy Klippy adapter; product-print-api.ts supplies an explicit alternate native protocol with durable admission, request-bound controls and expiry. ConfiguredMoonraker selects exactly one mode. See print-api.test.ts, product-print-api.test.ts, configured-product-print.test.ts and corresponding benchmarks. Native request schema differs from legacy filename-only start; full production and physical acceptance remain open."
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 68,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_apis.py",
+      "line": 71,
+      "method": "register_endpoint",
+      "targetExpression": "\"/printer/firmware_restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 102,
+      "method": "register_remote_method",
+      "targetExpression": "'process_gcode_response'",
+      "status": "partial",
+      "evidence": "KlippyLifecycle process_gcode_response and ConfiguredMoonraker authorized notify_gcode_response broadcast; exact text, slow-recipient isolation, counters and real Unix/WebSocket tests. Full event bus, other transports and production composition remain incomplete."
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 105,
+      "method": "register_remote_method",
+      "targetExpression": "'process_status_update'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/klippy_connection.py",
+      "line": 394,
+      "method": "register_endpoint",
+      "targetExpression": "ep",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 127,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/reboot\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 130,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/shutdown\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 133,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 136,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/stop\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 139,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/services/start\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 142,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/system_info\"",
+      "status": "partial",
+      "evidence": "Native cached Linux system information: host/contracts/native-system-information-acceptance.json. Runtime reports Node, provider none; service/provider operations, network events and full platform coverage remain pending."
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 145,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/sudo/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 148,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/sudo/password\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 151,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/serial\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 154,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/usb\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 157,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/canbus\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 160,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/peripherals/video\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 164,
+      "method": "register_notification",
+      "targetExpression": "\"machine:service_state_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 165,
+      "method": "register_notification",
+      "targetExpression": "\"machine:sudo_alert\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 168,
+      "method": "register_remote_method",
+      "targetExpression": "\"shutdown_machine\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/machine.py",
+      "line": 170,
+      "method": "register_remote_method",
+      "targetExpression": "\"reboot_machine\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 394,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/mqtt/publish\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-api.ts; configured-mqtt-publish.test.ts; bench/mqtt-api.ts. Authorized endpoint wired to bounded publication. Numeric lexical type parity and upstream unlimited waiting are not reproduced."
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 398,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/mqtt/subscribe\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-api.ts; configured-mqtt-subscribe.test.ts; bench/mqtt-subscribe-api.ts. Authorized one-shot subscription with request cancellation, JSON/text decoding and precision rejection. Uses bounded waits and UTF-8 input; production broker acceptance remains open."
+    },
+    {
+      "file": "moonraker/components/mqtt.py",
+      "line": 443,
+      "method": "register_remote_method",
+      "targetExpression": "\"publish_mqtt_topic\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/mqtt-macros.ts; configured-mqtt-macros.test.ts; bench/mqtt-macros.ts. Registers on each Klippy generation; broker failures do not disconnect Klippy and old pending publications are cancelled. Strict option types and existing Number lexical limitations differ from unrestricted Python; real G-code/hardware acceptance remains open."
+    },
+    {
+      "file": "moonraker/components/notifier.py",
+      "line": 60,
+      "method": "register_remote_method",
+      "targetExpression": "\"notify\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/notifier.py",
+      "line": 79,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/notifiers/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 69,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/version'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 73,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/server'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 79,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/login'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 83,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/currentuser'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 87,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/settings'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 97,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/job'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 104,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printer'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 107,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printer/command'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 114,
+      "method": "register_endpoint",
+      "targetExpression": "'/api/printerprofiles'",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 120,
+      "method": "register_upload_handler",
+      "targetExpression": "\"/api/files/local\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/octoprint_compat.py",
+      "line": 122,
+      "method": "register_endpoint",
+      "targetExpression": "\"/api/files/moonraker/(?P<relative_path>.+)\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/paneldue.py",
+      "line": 111,
+      "method": "register_remote_method",
+      "targetExpression": "\"paneldue_beep\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 81,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/devices\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 84,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 88,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/on\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 92,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/off\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 96,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/device_power/device\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 100,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_device_power\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/power.py",
+      "line": 106,
+      "method": "register_notification",
+      "targetExpression": "\"power:power_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 88,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/proc_stats\"",
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 94,
+      "method": "register_notification",
+      "targetExpression": "\"proc_stats:proc_stat_update\"",
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
+    },
+    {
+      "file": "moonraker/components/proc_stats.py",
+      "line": 79,
+      "method": "register_notification",
+      "targetExpression": "\"proc_stats:cpu_throttled\"",
+      "status": "partial",
+      "evidence": "Native asynchronous Linux sampling, authorized HTTP/JSON-RPC and notifications: host/contracts/native-proc-stats-acceptance.json. Cached query semantics, Pi hardware, watchdog/logging and internal callback coverage remain explicit gaps."
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 231,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/list\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 236,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/info\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 241,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/sensors/measurements\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/sensor.py",
+      "line": 248,
+      "method": "register_notification",
+      "targetExpression": "SENSOR_EVENT_NAME",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 72,
+      "method": "register_remote_method",
+      "targetExpression": "\"spoolman_set_active_spool\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 90,
+      "method": "register_notification",
+      "targetExpression": "\"spoolman:active_spool_set\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 91,
+      "method": "register_notification",
+      "targetExpression": "\"spoolman:spoolman_status_changed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 99,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/spool_id\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 104,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/proxy\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/spoolman.py",
+      "line": 109,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/spoolman/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/td1.py",
+      "line": 196,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/td1/data\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/td1.py",
+      "line": 199,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/td1/reboot\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 151,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/moonraker\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 154,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/klipper\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 157,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/system\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 160,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/client\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 163,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/full\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 166,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/upgrade\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 169,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 172,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/refresh\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 175,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/recover\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 178,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/update/rollback\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 181,
+      "method": "register_notification",
+      "targetExpression": "\"update_manager:update_response\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/update_manager/update_manager.py",
+      "line": 182,
+      "method": "register_notification",
+      "targetExpression": "\"update_manager:update_refreshed\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 53,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/list\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 56,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/item\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 60,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/webcams/test\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
+    },
+    {
+      "file": "moonraker/components/webcam.py",
+      "line": 63,
+      "method": "register_notification",
+      "targetExpression": "\"webcam:webcams_changed\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/webcams.ts; host/test/webcams.test.ts; host/test/webcams-network.test.ts; host/contracts/native-webcams-acceptance.json"
+    },
+    {
+      "file": "moonraker/components/websockets.py",
+      "line": 57,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/websocket/id\"",
+      "status": "implemented",
+      "evidence": "WebSocket-only server.websocket.id with per-method authorization and per-connection ID; host/test/moonraker-network.test.ts"
+    },
+    {
+      "file": "moonraker/components/websockets.py",
+      "line": 61,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/connection/identify\"",
+      "status": "partial",
+      "evidence": "host/src/moonraker/clients.ts; host/src/moonraker/server.ts; host/test/clients.test.ts; host/bench/moonraker-clients.ts. WebSocket identity/directory and agent name reservations implemented; per-method authorization remains required. Authorized agent lifecycle notifications are available through host/src/moonraker/notifications.ts with tests and benchmark in host/test/notifications.test.ts and host/bench/moonraker-notifications.ts. JWT/API-key sessions, generic event bindings and agent method routing remain pending. Strict string bounds and atomic conflict rollback differ from upstream."
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 424,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_wled_state\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 425,
+      "method": "register_remote_method",
+      "targetExpression": "\"set_wled\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 429,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/strips\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 432,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/status\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 435,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/on\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 438,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/off\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 441,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/toggle\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/wled.py",
+      "line": 444,
+      "method": "register_endpoint",
+      "targetExpression": "\"/machine/wled/strip\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/components/zeroconf.py",
+      "line": 211,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/zeroconf/ssdp\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/loghelper.py",
+      "line": 166,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/logs/rollover\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 118,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/info\"",
+      "status": "contract-implemented",
+      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed source and typed readers implemented: host/src/moonraker/config-reader.ts; host/test/config-reader.test.ts; host/bench/moonraker-config-reader.ts. Configuration-driven network composition: host/src/moonraker/configured-server.ts; host/test/configured-server.test.ts; host/bench/moonraker-configured-server.ts. Full component owners, Klippy and production daemon lifecycle bindings remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 121,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/config\"",
+      "status": "contract-implemented",
+      "evidence": "host/src/moonraker/metadata.ts; host/src/moonraker/config-source.ts; host/test/moonraker-metadata.test.ts; host/test/config-source.test.ts; host/bench/moonraker-metadata.ts; host/bench/moonraker-config-source.ts. File-backed source and typed readers implemented: host/src/moonraker/config-reader.ts; host/test/config-reader.test.ts; host/bench/moonraker-config-reader.ts. Configuration-driven network composition: host/src/moonraker/configured-server.ts; host/test/configured-server.test.ts; host/bench/moonraker-configured-server.ts. Full component owners, Klippy and production daemon lifecycle bindings remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 124,
+      "method": "register_endpoint",
+      "targetExpression": "\"/server/restart\"",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 127,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_ready\"",
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Explicit and automatically supervised reconnection reuse these lifecycle transitions. Full upstream event bus and non-WebSocket transports remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 128,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_shutdown\"",
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Explicit and automatically supervised reconnection reuse these lifecycle transitions. Full upstream event bus and non-WebSocket transports remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 129,
+      "method": "register_notification",
+      "targetExpression": "\"server:klippy_disconnect\"",
+      "status": "partial",
+      "evidence": "KlippyNotifications snapshot transitions and ConfiguredMoonraker authorized WebSocket broadcasts; actual Unix/WebSocket tests, deduplication and published metadata ordering. Explicit and automatically supervised reconnection reuse these lifecycle transitions. Full upstream event bus and non-WebSocket transports remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 131,
+      "method": "register_notification",
+      "targetExpression": "\"server:gcode_response\"",
+      "status": "partial",
+      "evidence": "KlippyLifecycle process_gcode_response and ConfiguredMoonraker authorized notify_gcode_response broadcast; exact text, slow-recipient isolation, counters and real Unix/WebSocket tests. Full event bus, other transports and production composition remain incomplete."
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 386,
+      "method": "register_notification",
+      "targetExpression": "event_name",
+      "status": "not-implemented"
+    },
+    {
+      "file": "moonraker/server.py",
+      "line": 431,
+      "method": "register_remote_method",
+      "targetExpression": "method_name",
+      "status": "not-implemented"
+    }
+  ]
+}

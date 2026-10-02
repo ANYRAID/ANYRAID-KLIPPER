@@ -1,0 +1,33 @@
+{
+  "date": "2026-09-28",
+  "scope": "Interactive menu state model only; terminal frontend not connected",
+  "reference": "kconfig-editor-reference.json",
+  "referenceMethod": "Bundled Python Kconfiglib sequential set_value operations across AVR, STM32F446 and RP2350; full/minimal output snapshot after every operation, source hashes embedded",
+  "edits": 15,
+  "covered": [
+    "Architecture and processor choice changes",
+    "Retained hidden baud rate and processor preferences",
+    "Low-level option visibility changes",
+    "USB serial string with quote and backslash",
+    "Current menu, parent navigation, visible/hidden search, help",
+    "Invalid edits leave state unchanged",
+    "Dirty state, exact saved-content acknowledgement, reset and load"
+  ],
+  "testsIncludingExistingKconfig": 21,
+  "benchmark": {
+    "node": "v26.9.0",
+    "editsPerJourney": 15,
+    "warmups": 3,
+    "runs": 15,
+    "medianJourneyMs": 14.907865999999956,
+    "p95JourneyMs": 17.746961000000027,
+    "maximumEditMs": 1.5959610000000168,
+    "scope": "15 architecture/visibility/string/numeric edits including recomputation, root menu, search, dirty state, full/minimal snapshots; excludes parsing, terminal rendering and file IO. Not a printing path."
+  },
+  "limitations": [
+    "No terminal keyboard/rendering/file-save frontend yet; make menuconfig remains Python",
+    "Benchmark excludes terminal rendering, parsing and file IO",
+    "No Python retired this stage; remaining tracked Python files 189",
+    "Printing paths unchanged; hardware and existing numerical/runtime diagnostics remain unverified"
+  ]
+}

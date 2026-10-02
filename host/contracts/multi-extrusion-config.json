@@ -1,0 +1,24 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "1000 configuration plans per sample, alternating order, three warmup rounds, five retained; fixture IO excluded; no per-step or physical latency claim",
+  "single": {
+    "samplesMs": [
+      0.04052333600000008,
+      0.04123401600000011,
+      0.042572642000000084,
+      0.04220302700000002,
+      0.038711414999999985
+    ],
+    "medianMs": 0.04123401600000011
+  },
+  "dual": {
+    "samplesMs": [
+      0.048196371,
+      0.047399910000000094,
+      0.04854402400000003,
+      0.04960021800000004,
+      0.0463996380000001
+    ],
+    "medianMs": 0.048196371
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "base": "1eeec1f9",
+  "tests": {
+    "focused": 9,
+    "product": 4,
+    "typecheck": true,
+    "sourceWhitespaceThisRun": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": [
+      {
+        "name": "smallName",
+        "cells": 36,
+        "medianMs": 0.0030909400000000177,
+        "p95Ms": 0.004145450000000039
+      },
+      {
+        "name": "largeName",
+        "cells": 106276,
+        "medianMs": 0.0026839300000000323,
+        "p95Ms": 0.003727749999999901
+      },
+      {
+        "name": "fullMatrix",
+        "cells": 4356,
+        "medianMs": 0.5056069999999977,
+        "p95Ms": 0.6149780000000078
+      }
+    ],
+    "maximumNameP95Ms": 0.1,
+    "maximumFullP95Ms": 20,
+    "scope": "Local synchronous NativeObjects projection, validation and detached response copies. Mesh construction excluded. Full query includes 4356 interpolated cells; no network or target-board guarantee."
+  },
+  "product": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 167,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 86.493,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.895423,
+            "maxMs": 12.951551
+          },
+          "cpu": {
+            "user": 679974,
+            "system": 90299
+          },
+          "rss": 162725888
+        },
+        {
+          "loop": {
+            "p99Ms": 1.738751,
+            "maxMs": 4.403199
+          },
+          "cpu": {
+            "user": 413444,
+            "system": 45513
+          },
+          "rss": 186064896
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 472,
+      "historyP99Ms": 11.122024000003876,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 6.7945680000011635,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.354966999999306,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 10.964521999994759,
+      "metadataRequests": 16,
+      "metadataP95Ms": 18.442607999997563,
+      "downloads": 16,
+      "downloadP95Ms": 2.836497000000236,
+      "wireCommands": 174,
+      "wireSteps": 3074,
+      "minimumStepLeadMs": 82.841,
+      "directoryRequests": 2029,
+      "directoryP99Ms": 4.354346999996778,
+      "statusRequests": 8434,
+      "uploads": 16,
+      "statusP99Ms": 3.018168999999034,
+      "uploadP95Ms": 18.045654000001377,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.966079,
+            "maxMs": 20.365311
+          },
+          "cpu": {
+            "user": 2142013,
+            "system": 247671
+          },
+          "rss": 251703296
+        },
+        {
+          "loop": {
+            "p99Ms": 1.929215,
+            "maxMs": 4.710399
+          },
+          "cpu": {
+            "user": 1309904,
+            "system": 181184
+          },
+          "rss": 248238080
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/src/runtime/native-bed-mesh-status.ts": "7d691c494b2493b58ed31d172a0b2f5c88055db45e9260b4856992027647b03c",
+    "host/src/homing/native-linear-port.ts": "f85e5979673038dff4afa82de556f1f371d4ab0602681c3de120716b039a3d6e",
+    "host/src/runtime/native-linear-gcode.ts": "a32cf1087ac90e766f57516ca68335d1bcf07fd77e68adea6e2fe78750352fe5",
+    "host/src/runtime/product-objects.ts": "6ddb75f5fe3c3cc2788fe7d37707cf0ffb8a354afc7f6e72150ff89144873d2d",
+    "host/src/motion/bed-mesh-profiles.ts": "b6947a7a951676a6d753d66b0824a1db31e68f3928d3f57d6856008dfff16ae1",
+    "host/src/moonraker/native-objects.ts": "5be72cedfec85d7e70edddfb64a5f744d78ff6bc74b083f638c676b46d3c0aa5",
+    "host/test/native-bed-mesh-status.test.ts": "630d5a854cfb60a433c2a9eab5a01fde8db6369399398bb27b2556e1cdbca669",
+    "host/acceptance/product-compiled-journey.test.ts": "9732f515347fbe59851984626dcc6c8205d73985937b1ff249762825e5ecdc07",
+    "host/bench/native-bed-mesh-status.ts": "39b1a11d056b41265cb0af58e324b0aa0c43d585dc16323e2afec45be12e4e03",
+    "/tmp/native-bed-mesh-status-tests.log": "95d82ff2683d7041a303a44e7e92994099ac13b73b9435423751b050ead0e91e",
+    "/tmp/native-bed-mesh-status-product.log": "055034c4fc003c1ee4a47a813891c822607d27498240d82245fcee3f8bb9fd8a",
+    "/tmp/native-bed-mesh-status-bench.log": "67132c25b08bb4ec114683435311f504e45a76973ba4fadc16fe694abd465776",
+    "/tmp/native-bed-mesh-status-whitespace.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "limitations": [
+    "Matrices beyond object capacity return 413, not truncated data; complete large-grid export pending",
+    "Emulated MCU and local performance only",
+    "Earlier SIGSEGV and numerical failures remain unresolved; this successful source checker run does not resolve them",
+    "Probe calibration, saved profile mutation and complete Python retirement remain pending"
+  ]
+}

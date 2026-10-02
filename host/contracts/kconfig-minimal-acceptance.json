@@ -1,0 +1,81 @@
+{
+  "date": "2026-09-28",
+  "scope": "Makefile minimal firmware configuration export migrated to Node",
+  "reference": "kconfig-minimal-reference.json",
+  "configurations": 84,
+  "comparison": "Exact minimal configuration text equals bundled Kconfiglib; reloading each export generates identical complete autoconf header",
+  "tests": 16,
+  "benchmark": {
+    "node": "v26.9.0",
+    "output": "minimal configuration",
+    "configuration": "test/configs/stm32f446.config",
+    "compileCacheDisabled": false,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 50.762760000000014,
+    "p95Ms": 57.39237300000002,
+    "sha256": "666c3344c4b6121e29f1b2d3ffe04a16f72567fe470502ffde686534b31fef21",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic output write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "withoutCompileCache": {
+    "node": "v26.9.0",
+    "output": "minimal configuration",
+    "configuration": "test/configs/stm32f446.config",
+    "compileCacheDisabled": true,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 94.90504750000002,
+    "p95Ms": 107.6617319999998,
+    "sha256": "666c3344c4b6121e29f1b2d3ffe04a16f72567fe470502ffde686534b31fef21",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic output write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "pythonBaseline": {
+    "python": "Python 3.12.13",
+    "configuration": "test/configs/stm32f446.config",
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 47.13390250071825,
+    "p95Ms": 53.034920998470625,
+    "sha256": "666c3344c4b6121e29f1b2d3ffe04a16f72567fe470502ffde686534b31fef21",
+    "scope": "New Python process through existing savedefconfig.py, complete parse/load/resolve/write; warm filesystem cache; sequential same-machine baseline"
+  },
+  "firmwareBuild": {
+    "target": "ATmega2560",
+    "pythonCommand": "/nonexistent-python",
+    "initialConfiguration": "Existing fully expanded configuration copied before build; olddefconfig was not exercised",
+    "command": "make -j2 OUT=host/build/kconfig-minimal-avr/ KCONFIG_CONFIG=$PWD/host/build/kconfig-minimal-avr.config CROSS_PREFIX=/tmp/anyraid-avr-tools/avr/bin/avr- NODE=$PWD/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node PYTHON=/nonexistent-python",
+    "passed": true,
+    "log": "host/build/kconfig-minimal-avr-build.log",
+    "configurationSha256": "5995cf6442e822775e112777c7e577b990f2b406621f4185c035a8d267c263b0",
+    "artifacts": [
+      {
+        "name": "autoconf.h",
+        "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91"
+      },
+      {
+        "name": "defconfig",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "klipper.elf",
+        "sha256": "99d5b3b98a3eddc46cf016f2fea49f157157d2afceee4b0c00f9d241b41f2aee"
+      },
+      {
+        "name": "klipper.elf.hex",
+        "sha256": "7e05eece6efe4ed574c7e6b9e7002be81a229813591008e8e72030b4c17204b1"
+      }
+    ],
+    "size": {
+      "text": 46222,
+      "data": 48,
+      "bss": 373
+    },
+    "comparisons": "autoconf.h and defconfig match previous build byte-for-byte"
+  },
+  "limitations": [
+    "olddefconfig and menuconfig still use Python; missing/outdated configuration initialization not yet Python-free",
+    "Vendored Kconfiglib remains while remaining tools are migrated; tracked Python files unchanged",
+    "No-cache startup remains slower than Python; no print hot path or motion arithmetic changed",
+    "No flashing, physical printer or unresolved runtime/precision issue closure"
+  ]
+}

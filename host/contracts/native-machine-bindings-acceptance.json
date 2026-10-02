@@ -1,0 +1,43 @@
+{
+  "scope": "Product-owned native files, metadata and source authorization assembly adopted by compiled printing acceptance",
+  "sourceHashes": {
+    "host/src/runtime/native-product-machine.ts": "a19547dc5bd50e007d82d87c449f9d193ba5e7285370ea05a37585af0d2d509d",
+    "host/test/native-product-machine.test.ts": "6945e516cd96fa5f9791da787784af7d6d71da962672884694923a3ecd301698",
+    "host/bench/native-product-machine.ts": "c5f45f83bc5244bb0a34203746d0acb4762e99c2b274aea738b72705588701b7",
+    "host/acceptance/product-compiled-journey.test.ts": "4883b11b7c61ce54e4ab41141bdf1fe0357046010e11cb2ea83b11c98cc2270b"
+  },
+  "relatedTests": "✔ shared native ownership resolves canonical files, seals print bytes and preserves policy snapshots (165.422085ms)\n✔ invalid temperatures and overlapping stores fail before adapter acquisition (0.870914ms)\n✔ failed metadata startup closes the already opened store and releases the adapter (1.23623ms)\n✔ late cancelled adapter return and invalid policy release acquired resources (0.712152ms)\n✔ closing cancels delayed file admission and waits for its callback before adapter release (146.526028ms)\n✔ adapter cleanup failure is reported after native stores release their locks (145.150136ms)\n✔ file admission is bounded and a closed shared gate rejects late authorization (150.30588ms)\n✔ standard print remains opt-in and adapters cannot override native ownership (145.104815ms)\n✔ machine configuration rejects unknown, nonfinite, ambiguous and out-of-range policy without changing numeric data (16.976695ms)\n✔ machine data reads are bounded, UTF-8 strict, abortable and do not block on FIFOs (4.748137ms)\n✔ profile preflight rejects topology and network errors before adapter or journal acquisition (8.306074ms)\n✔ profile snapshots declarations, shares the maintenance gate and owns journal cleanup exactly once (81.933789ms)\n✔ late cancellation and invalid bindings release transferred resources before rejecting (5.877286ms)\n✔ journal acquisition failure retains both assembly and adapter cleanup errors (37.6307ms)\n✔ file-backed machine profile runs authenticated native service and retires both UARTs (636.437496ms)\nℹ tests 15\nℹ suites 0\nℹ pass 15\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2241.547436\n",
+  "compiledProductAcceptance": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.285651ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18661.903274ms)\nℹ {\"installation\":{\"durationMs\":700.8507800000002,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":149,\"wireSteps\":3230,\"minimumStepLeadMs\":89.722,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.872895,\"maxMs\":14.073855},\"cpu\":{\"user\":707973,\"system\":74741},\"rss\":165810176},{\"loop\":{\"p99Ms\":1.789951,\"maxMs\":5.181439},\"cpu\":{\"user\":442487,\"system\":45086},\"rss\":185929728}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19594.408092ms)\nℹ {\"installation\":{\"durationMs\":695.59476,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":6.445949000000837,\"deleteRequests\":16,\"deleteP95Ms\":14.594946000004711,\"thumbnailRequests\":16,\"thumbnailP95Ms\":1.705619000000297,\"metadataRequests\":16,\"metadataP95Ms\":19.930186999998114,\"downloads\":16,\"downloadP95Ms\":3.7282429999977467,\"wireCommands\":149,\"wireSteps\":3226,\"minimumStepLeadMs\":90.942,\"directoryRequests\":2041,\"directoryP99Ms\":6.424068000000261,\"statusRequests\":8508,\"uploads\":16,\"statusP99Ms\":3.935947000001761,\"uploadP95Ms\":18.51831200000015,\"generations\":[{\"loop\":{\"p99Ms\":2.166783,\"maxMs\":18.153471},\"cpu\":{\"user\":1939930,\"system\":249710},\"rss\":219533312},{\"loop\":{\"p99Ms\":1.912831,\"maxMs\":4.431871},\"cpu\":{\"user\":1134916,\"system\":153803},\"rss\":240189440}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7886.933425ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46788.246665\n",
+  "fileAdmissionBenchmark": {
+    "node": "v26.9.0",
+    "fileBytes": 49152,
+    "warmupRuns": 3,
+    "runs": 11,
+    "iterations": 50,
+    "alternatingOrder": true,
+    "variants": [
+      "directPublishedStore",
+      "nativeMachineAuthorizationAndStore"
+    ],
+    "results": [
+      {
+        "medianUs": 326.07213999999885,
+        "p95Us": 407.7724599999988
+      },
+      {
+        "medianUs": 374.1569200000004,
+        "p95Us": 461.67130000000043
+      }
+    ],
+    "addedMedianUs": 48.08478000000156,
+    "allowedAddedMedianUs": 81.51803499999971,
+    "authorizations": 700,
+    "scope": "File start: sealed SHA-256 snapshot acquisition, first exact 128-line batch and close. Both independent stores hold identical bytes; no physical motion or steady-state step timing."
+  },
+  "limitations": [
+    "Synthetic MCU firmware, no physical device acceptance",
+    "Explicit independent stop and output lifecycle still require a real board adapter",
+    "Default Python entrypoint unchanged; no Python file retired",
+    "Historical motion numerical anomaly, process SIGSEGV and HTTP EPIPE remain unresolved; successful current sample does not close them"
+  ]
+}

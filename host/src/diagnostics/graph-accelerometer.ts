@@ -1,0 +1,16 @@
+// Offline graphs from graph_accelerometer.py; GPL-3.0-or-later.
+import {accelerometerDatasets,type AccelerometerLog} from '../calibration/accelerometer-log.ts';
+import type {StatsPanel} from './stats-svg.ts';
+export type AccelerometerAxis='all'|'x'|'y'|'z';
+export function accelerometerPlots(logs:readonly AccelerometerLog[],options:{raw?:boolean;axis?:AccelerometerAxis;maxFrequency?:number}={}):StatsPanel[]{
+ if(!logs.length||logs.length>16)throw new RangeError('Expected 1 to 16 accelerometer logs');const axis=options.axis??'all',max=options.maxFrequency??200;if(!['all','x','y','z'].includes(axis)||!Number.isFinite(max)||max<0)throw new RangeError('Invalid frequency plot options');
+ if(logs.reduce((n,l)=>n+(l.kind==='raw'?l.samples.length:l.datasets.reduce((n,d)=>n+d.frequencies.length*(d.axes?5:2),0)),0)>4000000)throw new RangeError('Combined accelerometer input limit exceeded');
+ if(options.raw){let points=0;for(const log of logs){if(log.kind!=='raw')throw new Error('Raw graphs require raw accelerometer data');points+=log.samples.length/4*3;}if(points>500000)throw new RangeError('Raw graph point limit exceeded');
+  const panels:StatsPanel[]=['x','y','z'].map(name=>({fullLegend:true,xAxis:{label:'Time (s)',format:'number'},plot:{title:`Accelerometer ${name}`,axes:[`${name} accel (mm/s^2)`],curves:[]}}));
+  for(const log of logs){if(log.kind!=='raw')throw new Error('Expected raw log');const data=log.samples,n=data.length/4;if(!n)throw new Error('No raw samples');const times=new Array<number>(n);for(let i=0;i<n;i++)times[i]=data[i*4]-data[0];for(let a=1;a<=3;a++){let high=0,low=0;for(let i=0;i<n;i++){const value=data[i*4+a],next=high+value;low+=Math.abs(high)>=Math.abs(value)?(high-next)+value:(value-next)+high;high=next;}const mean=(high+low)/n,offset=-mean,sign=offset<0||Object.is(offset,-0)?'-':'+';if(!Number.isFinite(mean))throw new RangeError('Acceleration mean overflow');const values=new Array<number>(n);for(let i=0;i<n;i++)values[i]=data[i*4+a]-mean;panels[a-1].plot.curves.push({label:`${log.name} (${sign}${Math.abs(offset).toFixed(3)} mm/s^2)`,axis:0,style:'line',times:[...times],values});}}return panels;
+ }
+ const datasets=logs.flatMap(log=>accelerometerDatasets(log));if(datasets.length>16)throw new RangeError('Spectrum dataset limit exceeded');const panel:StatsPanel={xAxis:{label:'Frequency (Hz)',format:'number'},plot:{title:datasets.length===1?`Frequency response (${datasets[0].name})`:'Frequency responses comparison',axes:['Power spectral density'],curves:[]}};let points=0;
+ for(const dataset of datasets){const selected=dataset.frequencies.findIndex(f=>f>max),n=selected<0?dataset.frequencies.length:selected,times=Array.from(dataset.frequencies.subarray(0,n));if(!n)throw new Error('No frequency bins in requested range');const keys=datasets.length===1&&axis==='all'&&dataset.axes?['all','x','y','z'] as const:[axis];for(const key of keys){const values=key==='all'?dataset.psd:dataset.axes?.[key];if(!values)throw new Error('Per-axis data is not present');points+=n;if(points>500000)throw new RangeError('Spectrum graph point limit exceeded');panel.plot.curves.push({label:datasets.length>1?dataset.name:key==='all'?'X+Y+Z':key.toUpperCase(),axis:0,style:'line',times:[...times],values:Array.from(values.subarray(0,n))});}}
+ if(datasets.length>1)panel.fullLegend=true;
+ return [panel];
+}

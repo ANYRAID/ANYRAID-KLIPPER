@@ -1,0 +1,18 @@
+{
+  "source": "scripts/test_klippy.py",
+  "sourceSha256": "69b3bbbe43d73440766db702372ea1894c7297896b2e9dd8a206eee0e8306771",
+  "capture": "Original TestCase.parse_test with launch_test replaced by a snapshot recorder; all tracked test/klippy/*.test files; paths normalized to $ROOT",
+  "files": 37,
+  "cases": 239,
+  "benchmark": {
+    "scope": "Sequential warm file reads and plan snapshots for all 37 files; 5 warmup batches, 25 measured batches; no backend or motion execution",
+    "nodeVersion": "v26.9.0",
+    "pythonVersion": "3.12.13",
+    "nodeMedianMs": 1.263543999999996,
+    "nodeP95Ms": 1.5534269999999992,
+    "pythonMedianMs": 1.6083779628388584,
+    "pythonP95Ms": 1.6514880117028952,
+    "limitation": "Local diagnostic sample only; host numerical instability remains unresolved; not printer throughput acceptance"
+  },
+  "unrun": ["Real Klippy backend suite: missing greenlet and firmware dictionaries", "Remote CI", "Physical printer acceptance"]
+}

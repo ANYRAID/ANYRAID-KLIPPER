@@ -1,0 +1,14 @@
+{
+  "node": "v26.9.0",
+  "warmup": 3,
+  "runs": 11,
+  "baseline": {
+    "medianMs": 538.5198600000003,
+    "p95Ms": 541.7931860000008
+  },
+  "current": {
+    "medianMs": 537.2895499999977,
+    "p95Ms": 554.3132590000005
+  },
+  "scope": "Alternating manual retirement/profile recreation/UART service startup vs explicit host-control reinitialization, including journal close/reopen and trusted factory; initial startup excluded; simulated devices, no file replay or real printing."
+}

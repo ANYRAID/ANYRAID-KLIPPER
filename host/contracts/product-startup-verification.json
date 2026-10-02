@@ -1,0 +1,35 @@
+{
+  "status": "compiled bundle pre-start verification passed",
+  "runtime": "v26.9.0",
+  "tests": {
+    "serviceAndInstall": 11,
+    "compiledProduct": 1
+  },
+  "diagnostics": [
+    {
+      "servicePreparation": {
+        "coldProcesses": 11,
+        "warmups": 1,
+        "medianMs": 78.86813299999994,
+        "p95Ms": 92.13876199999959,
+        "scope": "Cold compiled CLI plus SHA-256 verification of all inventoried product files; no machine import or service activation"
+      }
+    },
+    {
+      "startupVerification": {
+        "coldProcesses": 11,
+        "warmups": 1,
+        "medianMs": 78.73270200000024,
+        "p95Ms": 85.44332200000008,
+        "scope": "Compiled pre-start command; no PATH programs, Python, TypeScript loading, machine imports or hardware"
+      }
+    }
+  ],
+  "scope": "Generated systemd ExecStartPre checks inventory hashes and ABI before ExecStart; verification command does not load machine profiles.",
+  "limitations": [
+    "No live systemd service activation or target hardware acceptance.",
+    "Inventory is local integrity metadata, not a signed authenticity guarantee; files must remain unchanged between verification and startup.",
+    "Direct product-host invocations do not automatically run this check.",
+    "Default Python service and historical motion numerical failures remain unresolved."
+  ]
+}

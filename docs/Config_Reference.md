@@ -3026,6 +3026,18 @@ sensor_type: BME280
 #   above parameters.
 ```
 
+Node 候选主机目前支持本节的 BME280、BMP280 与 BMP180，均使用
+`sensor_type: BME280` 自动识别。`bme280_oversample_temp` 默认 2、范围
+1–5；`bme280_oversample_pressure` 和 `bme280_oversample_hum` 默认 2、
+范围 0–5，0 关闭相应输出。编码 1–5 对应 1／2／4／8／16 倍采样。
+`bme280_iir_filter` 默认 1、范围 0–4，对应关闭／2／4／8／16 系数。
+每次强制新转换并等待转换完成，随后间隔 0.8 秒采样；BMP280 无湿度。
+BMP180 须显式设置 `i2c_address: 119`；其
+`bme280_oversample_pressure` 默认 2、范围 0–3，对应 1／2／4／8 次采样，
+0 仍输出压力，与 BME280／BMP280 的关闭通道语义不同。
+BMP180 不使用温度过采样、湿度和 IIR 设置，且不发布湿度字段。
+此候选实现尚未完成物理器件和打印机验收。
+
 ### AHT10/AHT20/AHT21 temperature sensor
 
 AHT10/AHT15/AHT20/AHT21/AHT30 two wire interface (I2C) environmental sensors.
@@ -3083,10 +3095,18 @@ sensor_type:
 #    'TEMP13_HUM10' -> 13bit for Temp and 10bit for humidity
 #    'TEMP12_HUM08' -> 12bit for Temp and 08bit for humidity
 #    'TEMP11_HUM11' -> 11bit for Temp and 11bit for humidity
-#   Default is: "TEMP11_HUM11"
+#   Default is: "TEMP12_HUM08"
 #htu21d_report_time:
 #   Interval in seconds between readings. Default is 30
 ```
+
+The candidate Node host verifies CRCs and resolution writes, uses full
+manufacturer conversion coefficients, and applies additional temperature
+compensation only to HTU21D. SHT21 No-Hold uses OTP reload before each
+measurement to avoid its documented offset erratum; this can restore
+default resolution and does not promise shorter conversion times.
+An active internal sensor heater is rejected. Target-bus clock stretching
+and physical acceptance remain pending; see [migration status](Node_Host_Migration.md).
 
 ### SHT3X sensor
 
@@ -3130,6 +3150,13 @@ sensor_type: LM75
 #   Interval in seconds between readings. Default is 0.8, with minimum
 #   0.5.
 ```
+
+The candidate Node host decodes LM75 readings as signed 9-bit values
+(0.5 C resolution), correcting the legacy Python negative-temperature
+decoding. It waits at least 0.5 seconds between sensor accesses, including
+target-triggered readings, and rejects a device in shutdown mode. It does
+not probe the optional product-ID register or synthesize humidity values.
+See [migration status](Node_Host_Migration.md) for validation limits.
 
 ### Builtin micro-controller temperature sensor
 

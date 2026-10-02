@@ -1,0 +1,262 @@
+{
+  "node": "26.9.0",
+  "scope": "Compiled product JavaScript, installed production dependencies, native step libraries, real HTTP and simulated MCU PTYs. No physical hardware acceptance.",
+  "environment": {
+    "PATH": "/no-programs",
+    "NODE_OPTIONS": "--no-experimental-strip-types",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "calibration": {
+    "kind": "quad_gantry_level",
+    "compiled": true,
+    "elapsedMs": 5398.105493999999,
+    "receipt": {
+      "passes": 1,
+      "samples": [
+        [
+          1,
+          1,
+          0.775
+        ],
+        [
+          1,
+          1.01,
+          0.75
+        ],
+        [
+          1.01,
+          1.01,
+          0.7375
+        ],
+        [
+          1.01,
+          1,
+          0.7124999999999999
+        ]
+      ],
+      "measured_range": 0.06250000000000011,
+      "tolerance_satisfied": false,
+      "adjustments": [
+        {
+          "id": "z",
+          "adjustment": 0.03125000000000003
+        },
+        {
+          "id": "z1",
+          "adjustment": 0.0062500000000000056
+        },
+        {
+          "id": "z2",
+          "adjustment": -0.00624999999999995
+        },
+        {
+          "id": "z3",
+          "adjustment": -0.03125000000000008
+        }
+      ],
+      "final_z": 1.03125,
+      "persisted": false
+    },
+    "retryWithoutMotion": true,
+    "restoredSynchronizedZ": true
+  },
+  "relativeNetMotorSteps": [
+    5,
+    3,
+    2,
+    0
+  ],
+  "checks": [
+    "Four-point non-flat calibration through authenticated product endpoint",
+    "Net relative steps agree with measured corner differences",
+    "Four motors each produce four pulses for both controlled +0.05 and -0.05 mm Z moves after calibration",
+    "Repeated completed request causes no motion",
+    "Motor release and reload clear applied state",
+    "Two completed prints, cancellation, reload and ADC fault stop under concurrent file and object load",
+    "Existing compiled dual Z scenario passes after shared harness and calibration changes"
+  ],
+  "metrics": {
+    "phaseQueries": 5105,
+    "phaseP99Ms": 2.9471229999999196,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": true,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 216,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1136,
+    "historyP99Ms": 8.566539999999804,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 6.9778670000014245,
+    "deleteRequests": 16,
+    "deleteP95Ms": 4.798537999999098,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 2.179807999998957,
+    "metadataRequests": 16,
+    "metadataP95Ms": 26.601591000000553,
+    "downloads": 16,
+    "downloadP95Ms": 14.148494000000937,
+    "wireCommands": 499,
+    "wireSteps": 7207,
+    "minimumStepLeadMs": 86.493,
+    "directoryRequests": 4916,
+    "directoryP99Ms": 4.756467999999586,
+    "statusRequests": 20420,
+    "uploads": 16,
+    "statusP99Ms": 2.795481999999538,
+    "uploadP95Ms": 14.831267999999909,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.921023,
+          "maxMs": 19.546111
+        },
+        "cpu": {
+          "user": 6057651,
+          "system": 645268
+        },
+        "rss": 290263040
+      },
+      {
+        "loop": {
+          "p99Ms": 1.898495,
+          "maxMs": 11.927551
+        },
+        "cpu": {
+          "user": 1722667,
+          "system": 226875
+        },
+        "rss": 245882880
+      }
+    ]
+  },
+  "dualZRegression": {
+    "phaseQueries": 4545,
+    "phaseP99Ms": 3.4596290000008594,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": true,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 192,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 1016,
+    "historyP99Ms": 11.068304000000353,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 4.089944000001196,
+    "deleteRequests": 16,
+    "deleteP95Ms": 4.997241999997641,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 2.3458099999988917,
+    "metadataRequests": 16,
+    "metadataP95Ms": 27.075016999999207,
+    "downloads": 16,
+    "downloadP95Ms": 3.611160000000382,
+    "wireCommands": 301,
+    "wireSteps": 5243,
+    "minimumStepLeadMs": 87.229,
+    "directoryRequests": 4383,
+    "directoryP99Ms": 8.087677999999869,
+    "statusRequests": 18178,
+    "uploads": 16,
+    "statusP99Ms": 3.505890000000363,
+    "uploadP95Ms": 7.247101000000839,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.989631,
+          "maxMs": 20.086783
+        },
+        "cpu": {
+          "user": 5369791,
+          "system": 602872
+        },
+        "rss": 282525696
+      },
+      {
+        "loop": {
+          "p99Ms": 1.955839,
+          "maxMs": 6.033407
+        },
+        "cpu": {
+          "user": 1589950,
+          "system": 238898
+        },
+        "rss": 290365440
+      }
+    ]
+  },
+  "validation": {
+    "compiledJourneys": 2,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "limitations": [
+    "Default Python entrypoint remains and no Python files retired.",
+    "Per-segment quantization remains; applied does not prove post-adjustment tolerance.",
+    "Historical Node crashes and transient motion numerical mismatches remain unresolved."
+  ]
+}

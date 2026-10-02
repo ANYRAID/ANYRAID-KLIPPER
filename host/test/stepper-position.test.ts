@@ -1,0 +1,8 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {StepperPosition} from '../src/motion/stepper-position.ts';
+test('half steps round away from zero without JS negative-half rounding',()=>{const p=new StepperPosition(1,1);assert.deepEqual([-.5,.5,-1.5,1.5,-.499999,.499999].map(n=>p.mcuPosition(n)),[-1n,1n,-2n,2n,0n,0n]);});
+test('MCU alignment handles inverted signed minimum and coordinate origin changes',()=>{const p=new StepperPosition(40,3200);assert.equal(p.alignResponse(-2147483648,true,10),2147483648n);assert.equal(p.mcuPosition(10),2147483648n);p.rebase(10,0);assert.equal(p.mcuPosition(0),2147483648n);assert.equal(p.commandedPosition(2147483648n),0);});
+test('rotation-distance changes preserve MCU count rather than rescaling it',()=>{const p=new StepperPosition(40,3200);p.align(1234n,8);p.setRotationDistance(41,8);assert.equal(p.mcuPosition(8),1234n);assert.equal(p.state.stepDistance,41/3200);assert.ok(Math.abs(p.commandedPosition(1234n)-8)<1e-12);});
+test('unrepresentable alignment and invalid changes leave prior mapping intact',()=>{const p=new StepperPosition(1,100),before=p.state;assert.throws(()=>p.align(1n,1e15),/precision/);assert.deepEqual(p.state,before);assert.throws(()=>p.align(1n<<53n,0),/precision/);assert.throws(()=>p.mcuPosition(Infinity));assert.throws(()=>p.setRotationDistance(0,0));assert.deepEqual(p.state,before);assert.throws(()=>p.alignResponse(2147483648,false,0));});
+test('native alignment failure does not publish the proposed coordinate offset',()=>{const p=new StepperPosition(40,3200),before=p.state;assert.throws(()=>p.alignResponse(123,false,8,()=>{throw new Error('native busy');}),/native busy/);assert.deepEqual(p.state,before);});

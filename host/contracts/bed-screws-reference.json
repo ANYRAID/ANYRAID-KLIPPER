@@ -1,0 +1,1518 @@
+{
+  "source": "klippy/extras/bed_screws.py",
+  "sha256": "cd44e4eee7044f9aa9786d038ab64d01d0767aa2cf8b48936d97601dfa889e94",
+  "rows": [
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 0,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 0,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 1,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 1,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 2,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 2,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      }
+    },
+    {
+      "fine": 3,
+      "action": "accept",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "idle",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "adjust",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 0,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 1,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 0
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 1
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    },
+    {
+      "fine": 3,
+      "action": "adjusted",
+      "before": {
+        "phase": "fine",
+        "current": 2,
+        "accepted": 2
+      },
+      "after": {
+        "phase": "adjust",
+        "current": 0,
+        "accepted": 0
+      }
+    }
+  ]
+}

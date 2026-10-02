@@ -12,6 +12,7 @@
 #include "list.h" // list_add_tail
 #include "pollreactor.h" // PR_NEVER
 #include "pyhelper.h" // report_errno
+#include "trdispatch.h"
 #include "serialqueue.h" // serialqueue_add_fastreader
 
 struct trdispatch {
@@ -91,7 +92,10 @@ handle_trsync_state(struct fastreader *fr, double eventtime
     // mcu is still working okay - update last_status_clock
     serialqueue_get_clock_est(tdm->sq, &tdm->ce);
     uint64_t est_msg_clock = clock_from_time(&tdm->ce, eventtime);
-    tdm->last_status_clock = clock_from_clock32(est_msg_clock, clock);
+    uint64_t status_clock = clock_from_clock32(est_msg_clock, clock);
+    if (status_clock <= tdm->last_status_clock)
+        goto done;
+    tdm->last_status_clock = status_clock;
 
     // Determine minimum acknowledged time among all mcus
     double min_time = PR_NEVER, next_min_time = PR_NEVER;
@@ -114,7 +118,8 @@ handle_trsync_state(struct fastreader *fr, double eventtime
     list_for_each_entry(m, &td->tdm_list, node) {
         double status_time = m == min_tdm ? next_min_time : min_time;
         uint64_t expire=clock_from_time(&m->ce, status_time) + m->expire_ticks;
-        if ((int64_t)(expire - m->expire_clock) >= m->min_extend_ticks) {
+        if (expire > m->expire_clock
+            && expire - m->expire_clock >= m->min_extend_ticks) {
             m->expire_clock = expire;
             send_trsync_set_timeout(m);
         }
@@ -168,6 +173,8 @@ struct trdispatch * __visible
 trdispatch_alloc(void)
 {
     struct trdispatch *td = malloc(sizeof(*td));
+    if (!td)
+        return NULL;
     memset(td, 0, sizeof(*td));
 
     list_init(&td->tdm_list);
@@ -175,6 +182,7 @@ trdispatch_alloc(void)
     int ret = pthread_mutex_init(&td->lock, NULL);
     if (ret) {
         report_errno("trdispatch_alloc pthread_mutex_init", ret);
+        free(td);
         return NULL;
     }
     return td;
@@ -188,6 +196,8 @@ trdispatch_mcu_alloc(struct trdispatch *td, struct serialqueue *sq
                      , uint32_t state_msgtag)
 {
     struct trdispatch_mcu *tdm = malloc(sizeof(*tdm));
+    if (!tdm)
+        return NULL;
     memset(tdm, 0, sizeof(*tdm));
 
     tdm->sq = sq;
@@ -225,4 +235,21 @@ trdispatch_mcu_setup(struct trdispatch_mcu *tdm
     tdm->min_extend_ticks = min_extend_ticks;
     serialqueue_get_clock_est(tdm->sq, &tdm->ce);
     pthread_mutex_unlock(&td->lock);
+}
+
+// Unregister readers before freeing their storage or releasing serial queues.
+void __visible
+trdispatch_free(struct trdispatch *td)
+{
+    if (!td)
+        return;
+    trdispatch_stop(td);
+    while (!list_empty(&td->tdm_list)) {
+        struct trdispatch_mcu *tdm = container_of(
+            td->tdm_list.root.next, struct trdispatch_mcu, node);
+        list_del(&tdm->node);
+        free(tdm);
+    }
+    pthread_mutex_destroy(&td->lock);
+    free(td);
 }

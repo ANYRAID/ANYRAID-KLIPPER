@@ -1,0 +1,218 @@
+{
+  "implementationBase": "60fe5003",
+  "date": "2026-09-30",
+  "node": "v26.9.0",
+  "scope": "Explicit createProcess integration in the actual product host loop and independently installed compiled JS product. Short software-only tests with simulated PTY MCUs; standard restart, detached-window file/history API, actual frontend recovery, numerical integrity and target machine acceptance remain incomplete.",
+  "sourceSha256": {
+    "host/src/runtime/product-host.ts": "a4aea55e9c0cb74b195cdc4754ad54a00e55da3ec8e046a192975f450af11602",
+    "host/src/runtime/native-product-machine.ts": "3ef8ad482250e92b8bd8d40b7fea0348318c128d197fc4948420b4b9fb68817f",
+    "host/src/runtime/product-service.ts": "af340a2a0fd7512e2154ca2e22d7219c0858707cb2ca4836e5d9e7036131111d",
+    "host/src/moonraker/configured-server.ts": "a7fc3a4284f289786efca2cc0c164c31e264e1b0377c105f54ac8d410a9f4ab3",
+    "host/src/runtime/product-host-cli.ts": "f1bb647ba952e3101d86b4e69de4799eda2d01dedb8ff8950ab0db0d93723f44",
+    "host/test/native-product-process-lifetime.test.ts": "8f69d1accd07c44b67b069cd4c67efbbd5870377ecaee2a0a3fd38d02a0b174b",
+    "host/acceptance/product-compiled-journey.test.ts": "adbe1a64852fdff4e395c5d24d665f11ffe23cf1997e45cfdde73700f9fad894"
+  },
+  "verified": [
+    "createProcess is called once after configuration preflight. The native factory transfers process server components separately from each device adapter, rejects invalid process authorization before device acquisition, and rejects device adapters returning a second server owner.",
+    "The actual runProductHost selects process server lifetime, reuses its listener with fresh printer bindings, and preserves one native JWT authorization database, identified WebSocket and published file lock through three generations. Each prior simulated physical stop runs once.",
+    "Database maintenance uses the fresh generation gate; file downloading works after each source attachment. Compiled catalog, metadata and thumbnail paths work after reinitialization. The device-offline window is not continuously available.",
+    "The final host shutdown retires device/profile first, then closes its server and factory. The three-generation test counts exactly one database close and one process release. Startup cancellation waits for a late adapter and releases device before process resources; final storage locks reopen.",
+    "Accepted HTTP recovery on replacement configuration failure or physical-stop failure records a durable failed receipt. The same authorized server remains listening and reports not-ready/stopped or not-ready/failed until explicit process shutdown. No automatic retry or print replay.",
+    "The separately rebuilt, independently installed compiled product exports/forwards the factory lifetime. Native JWT and original notification sockets survive reinitialization at the same address; the existing complete heated-print, pause/resume, cancel, history, thumbnail, recovery and ADC fault flow passes under concurrent API/upload load.",
+    "The compiled trace confirms one process resource open and close, generation release precedes replacement, and process close follows final profile release."
+  ],
+  "sourceRegressions": {
+    "distinctCases": 47,
+    "batches": [
+      {
+        "logSha256": "81879f407729ef9a204dc5b1b3b963fef4ec9f1b069e891b417e8775a41f426f",
+        "passed": 47,
+        "failed": 0,
+        "phase": "Full affected source suite, with direct control failure cases."
+      },
+      {
+        "logSha256": "64f39f7cdc31bc537fe4b0cc2a8c3ed208c8723296e97699819a7b0959bce382",
+        "passed": 6,
+        "failed": 0,
+        "phase": "Final new test file: replacement and stop failures exercised via HTTP and durable failed receipts."
+      }
+    ],
+    "initialFailure": {
+      "logSha256": "1ae258128fb8bb783772ee5167263bddad048df0772a8316296fbe153c5f946d",
+      "passed": 22,
+      "failed": 3,
+      "cause": "New test fixture opened authorization twice on one live database, duplicating local namespace registration.",
+      "correction": "Read the provisioned API key locally through the database namespace after server startup; no duplicate authorization owner or runtime relaxation."
+    },
+    "command": "node --test --test-concurrency=1 host/test/native-product-process-lifetime.test.ts host/test/native-product-file-lifetime.test.ts host/test/product-host-reinitialize.test.ts host/test/native-product-machine.test.ts host/test/product-service.test.ts host/test/product-server-generation.test.ts"
+  },
+  "sourceReinitialization": {
+    "reinitializeMs": [
+      837.24389,
+      834.0828120000001
+    ],
+    "readyFileDescriptors": [
+      83,
+      82,
+      82
+    ],
+    "scope": "Three actual host generations with two simulated PTY MCUs each; native JWT and identified WebSocket retained"
+  },
+  "compiledAcceptance": {
+    "command": "node --test --test-concurrency=1 --test-name-pattern=\"^nativeAuthorization=true apiLoad=true \" host/acceptance/product-compiled-journey.test.ts",
+    "logSha256": "5367f086ca9c02133c98c272f8db438bdd3a79190e6b8a005715c53e610ebd40",
+    "passed": 1,
+    "failed": 0,
+    "durationMs": 36779.547107,
+    "retainedProcessServer": {
+      "sameAddress": true,
+      "priorJwtAccepted": true,
+      "originalSocketsOpen": true,
+      "reinitializeMs": 3009.181321
+    },
+    "reinitializeTimingScope": "Includes request, ready notification polling, stale idle-setting rejection, settings query and first filament-state verification. It is not pure binding latency.",
+    "metrics": {
+      "motionReportLoad": true,
+      "liveMotionSamples": 2578,
+      "liveExtrusionSamples": 1456,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.472579771000001,
+        "print_duration": 2.4989777490000016,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "e5c39b6cc1647aa86056d510c6e0c30558e19a687df6231d00ef77dda100dc5c",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3812,
+      "phaseP99Ms": 4.501424000001862,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 857,
+      "historyP99Ms": 8.638081999997667,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.73131899999862,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.056253999999171,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.5786689999986265,
+      "metadataRequests": 16,
+      "metadataP95Ms": 24.288698000000295,
+      "downloads": 16,
+      "downloadP95Ms": 8.001201999999466,
+      "wireCommands": 190,
+      "wireSteps": 3702,
+      "minimumStepLeadMs": 87.476,
+      "directoryRequests": 3651,
+      "directoryP99Ms": 7.187187999999878,
+      "statusRequests": 15249,
+      "uploads": 16,
+      "statusP99Ms": 5.167945000001055,
+      "uploadP95Ms": 21.918872000000192,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.000895,
+            "maxMs": 19.824639
+          },
+          "cpu": {
+            "user": 5356441,
+            "system": 678005
+          },
+          "rss": 301174784
+        },
+        {
+          "loop": {
+            "p99Ms": 2.009087,
+            "maxMs": 16.670719
+          },
+          "cpu": {
+            "user": 1931608,
+            "system": 272601
+          },
+          "rss": 290398208
+        }
+      ]
+    },
+    "desktopGates": {
+      "eventLoopP99LessThanMs": 50,
+      "eventLoopMaxLessThanMs": 100,
+      "minimumStepLeadGreaterThanMs": 0
+    }
+  },
+  "checks": [
+    "Node26 strict TypeScript typecheck passed after final test changes.",
+    "Repository whitespace script and git diff --check passed.",
+    "Recorded source hashes and affected documentation local links verified."
+  ],
+  "remaining": [
+    "RESTART and FIRMWARE_RESTART must implement distinct semantics, real reset strategies and explicit fault recovery; no mapping both to the current reinitialize operation.",
+    "Current failed reinitialization requires explicit process shutdown/start; the retained status service is not complete restart recovery.",
+    "Native files/history routes are unavailable in the detached window and must be moved to process ownership without using retired adapters or journals.",
+    "Actual Fluidd/Mainsail page upload and standard-button recovery remain unverified on the new path.",
+    "Legacy adapters without createProcess still recreate servers; series machine integrations must migrate ownership explicitly.",
+    "Target-board load, Python baseline, physical stop, print quality and timing remain unverified. Historical numerical mismatches/crashes remain unresolved. Full Python retirement and complete Moonraker coverage are not achieved."
+  ]
+}

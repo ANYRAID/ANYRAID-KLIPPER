@@ -1,0 +1,202 @@
+{
+  "date": "2026-09-27",
+  "scope": "Fixed product-path representability defect; not an attribution of every historical intermittent failure",
+  "beforeCommit": "3147db13",
+  "fixedInput": {
+    "time": 2.999999999999901,
+    "start": [
+      9.95,
+      0,
+      0,
+      0.995
+    ],
+    "end": [
+      9.96,
+      0,
+      0,
+      0.996
+    ],
+    "axesR": [
+      1,
+      0,
+      0,
+      0.09999999999998446
+    ],
+    "distance": 0.010000000000001563,
+    "original": {
+      "startV": 10,
+      "cruiseV": 10,
+      "endV": 8.944271909999063,
+      "accelT": 0,
+      "cruiseT": 7.095019016745141e-17,
+      "decelT": 0.0010557280900009367
+    },
+    "oldCandidate": null,
+    "newCandidate": {
+      "startV": 10,
+      "cruiseV": 10,
+      "endV": 8.944271909999063,
+      "accelT": 0,
+      "cruiseT": 0,
+      "decelT": 0.0010557280900009743,
+      "accel": 999.9999999999644
+    }
+  },
+  "validation": {
+    "representabilityTests": 7,
+    "pauseResumeTests": 10,
+    "compiledProductTests": 4,
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "exactInvariants": [
+      "absolute final clock",
+      "start and end velocity",
+      "XYZ endpoint",
+      "extrusion endpoint",
+      "acceleration no greater than configured limit",
+      "native compressed motor count"
+    ],
+    "pathSweep": {
+      "segments": 1000,
+      "batchSizes": [
+        10,
+        150,
+        1000
+      ],
+      "startTimes": [
+        1,
+        2,
+        4,
+        8,
+        16,
+        32,
+        64
+      ]
+    }
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "warmups": 5,
+    "runs": 25,
+    "baselineCommit": "2246d604",
+    "baselineSha256": "8eabba9123f4c4249fd0616d292e3d6cfae446c82d8eb29773dabd88b28a3580",
+    "baseline": {
+      "medianMs": 3.104398999999944,
+      "p95Ms": 4.048360000000002
+    },
+    "current": {
+      "medianMs": 3.2951699999999846,
+      "p95Ms": 3.868128000000013
+    },
+    "exactNativeRowsSha256": "6a0ee76802e252f6fa1c97cf52a84ca2c4b19d2440eda8838c0738492f5aa943",
+    "scope": "Alternating appendPlanned of 10000 ordinary moves into actual native queue. Queue allocation, extraction and hashing excluded. No physical printer throughput claim."
+  },
+  "productMetrics": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.741,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.784831,
+            "maxMs": 13.959167
+          },
+          "cpu": {
+            "user": 856543,
+            "system": 82019
+          },
+          "rss": 163184640
+        },
+        {
+          "loop": {
+            "p99Ms": 1.795071,
+            "maxMs": 5.029887
+          },
+          "cpu": {
+            "user": 455190,
+            "system": 56851
+          },
+          "rss": 185536512
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 646,
+      "historyP99Ms": 6.520441000000574,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 9.754660999999032,
+      "deleteRequests": 16,
+      "deleteP95Ms": 11.451961999999185,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.5110810000041965,
+      "metadataRequests": 16,
+      "metadataP95Ms": 15.45259100000112,
+      "downloads": 16,
+      "downloadP95Ms": 6.024794999997539,
+      "wireCommands": 331,
+      "wireSteps": 4446,
+      "minimumStepLeadMs": 85.069,
+      "directoryRequests": 2792,
+      "directoryP99Ms": 4.3660149999996065,
+      "statusRequests": 11577,
+      "uploads": 16,
+      "statusP99Ms": 2.957846999997855,
+      "uploadP95Ms": 12.220140999997966,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.057215,
+            "maxMs": 13.811711
+          },
+          "cpu": {
+            "user": 3060762,
+            "system": 376053
+          },
+          "rss": 244236288
+        },
+        {
+          "loop": {
+            "p99Ms": 1.945599,
+            "maxMs": 5.332991
+          },
+          "cpu": {
+            "user": 1301380,
+            "system": 170236
+          },
+          "rss": 272617472
+        }
+      ]
+    }
+  ],
+  "remaining": [
+    "Original intermittent failures lack captured numeric rows and cannot all be attributed to this fixed case",
+    "Historical independent process crashes and numerical discrepancies remain open",
+    "Target hardware precision and long-duration throughput unverified"
+  ]
+}

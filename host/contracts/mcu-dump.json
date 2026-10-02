@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "source": {
+    "commit": "09b5f07963abae130960b67520746b6f865915d3",
+    "path": "scripts/dump_mcu.py",
+    "sha256": "590665dbc448594f6718d3b85d233354a12c6efae1a7b1c62412f73a737b03bc",
+    "oraclePath": "host/bench/mcu-dump.ts",
+    "oracleSha256": "92e7cbfefec058644536f6d87e3e8c15c4b5252327782ef52710d896afa65d95"
+  },
+  "input": {
+    "ranges": [
+      {
+        "start": 4294950912,
+        "length": 16384
+      },
+      {
+        "start": 2,
+        "length": 16382
+      },
+      {
+        "start": 3,
+        "length": 16381
+      }
+    ],
+    "valueFormula": "uint32(address * 2654435761)",
+    "commandEncoding": "UTF-8 JSON array of [order,address] pairs, no spaces"
+  },
+  "recordedMeasurement": {
+    "capturedAt": "2026-09-21T19:21:01.556Z",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "node": "v26.9.0",
+    "python": "3.12.13",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "range": {
+          "start": 4294950912,
+          "length": 16384
+        },
+        "requests": 4096,
+        "sha256": "a0d4cd8fcec0ca7216e33af6c01517b5147e27154b7c3d608f62bb68c20801a0",
+        "node": {
+          "medianMs": 1.1472529999999779,
+          "p95Ms": 1.593258999999989
+        },
+        "python": {
+          "bytes": "a0d4cd8fcec0ca7216e33af6c01517b5147e27154b7c3d608f62bb68c20801a0",
+          "commands": "6d9a86e63becf722eb1480f9f624de6804c8f5a463107f3b1a9c614a334d6d31",
+          "medianMs": 7.806073999745422,
+          "p95Ms": 7.896844999777386
+        }
+      },
+      {
+        "range": {
+          "start": 2,
+          "length": 16382
+        },
+        "requests": 8191,
+        "sha256": "f33e61b6c438fea3976bfabde05735647cae547dab720f54756767e740960cb5",
+        "node": {
+          "medianMs": 1.756010999999944,
+          "p95Ms": 3.1538080000000264
+        },
+        "python": {
+          "bytes": "f33e61b6c438fea3976bfabde05735647cae547dab720f54756767e740960cb5",
+          "commands": "0580bbe26841971cd366f891fbb5f94a2017b5557ac86516a52b4b9bad6124b1",
+          "medianMs": 14.526164999551838,
+          "p95Ms": 15.682679000747157
+        }
+      },
+      {
+        "range": {
+          "start": 3,
+          "length": 16381
+        },
+        "requests": 16381,
+        "sha256": "9b09fb7305d805c5db17053c78cbaf02cbd0044d2d005716343a43ff03803930",
+        "node": {
+          "medianMs": 3.2919889999998304,
+          "p95Ms": 5.897780999999895
+        },
+        "python": {
+          "bytes": "9b09fb7305d805c5db17053c78cbaf02cbd0044d2d005716343a43ff03803930",
+          "commands": "d16c73f9098459bc8ec3058b9abb54ea903527491f41276179280dc8d3a8d3cd",
+          "medianMs": 27.829284999825177,
+          "p95Ms": 29.268733000208158
+        }
+      }
+    ],
+    "scope": "Original Python _dump_flash with serial/file/progress substitutes versus Node asynchronous bounded chunks. Includes mock values, request recording and output assembly; Python also parses text commands and formats suppressed progress. Excludes actual serial ACKs, file I/O, device memory latency and print timing."
+  }
+}

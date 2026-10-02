@@ -1,0 +1,316 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "sourceBase": "09a3f5c30601d2851f046be587f61a288effe97c",
+  "node": "v26.9.0",
+  "scope": "M2b single-file move/rename software increment in the shared native product. Existing cartesian/two-MCU compiled compatibility fixture; no new machine adaptation, complete M2b/Moonraker, Python retirement, exact new-head CI, actual clients or target hardware approval.",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/file_manager/file_manager.py",
+    "http": "POST /server/files/move",
+    "rpc": "server.files.move",
+    "parameters": [
+      "source",
+      "dest"
+    ],
+    "response": [
+      "action",
+      "item",
+      "source_item"
+    ],
+    "implemented": "File move and rename, directory/root destination basename, same-path result; root gcodes only.",
+    "pending": [
+      "Directory source and multi-receipt transaction",
+      "Copy and file replacement/upload overwrite",
+      "Other roots and automatic parent creation differences",
+      "Offline file mutation",
+      "Full history filename snapshot semantics"
+    ]
+  },
+  "sourceSha256": {
+    "host/src/storage/published-files.ts": "d9b6d91b56a32f2a0fdea66e52b125201a9c77155039027d6bff614787c3b01b",
+    "host/src/moonraker/native-print-uploads.ts": "7b46b9abd8689b18fdd02ddf826ac3f5987128e3c31aa9431ba4f6ec591b612b",
+    "host/src/moonraker/configured-server.ts": "970f70081aff66b6e53287998e11b11123696e25d66d35f3bdc9a01d74f7e9c9",
+    "host/test/published-move.test.ts": "13af39bb32db81c54a7b7b84d2595dc23ead8dd7a1395b95900dbe561fd890c7",
+    "host/test/native-print-uploads.test.ts": "bb6a0dd9489cc3475b8b03f944ac73786178e9caf4ea045c280d4fbbd68d197f",
+    "host/test/native-product-process-lifetime.test.ts": "5cfd377babab4d887796be393f5fe4867068f6ba6f79535c57ff43956cac1aec",
+    "host/acceptance/product-compiled-journey.test.ts": "a550a8be3b931b1c66d4656fed4d210f74e69a717399054aa8bf10ea2ead100d",
+    "host/bench/published-move.ts": "7f9238b3be2c5b52b116f5df3acf0e6a1b47a3a19f3eff115273cbee4633ccfb"
+  },
+  "implementation": {
+    "authority": "Same immutable content and receipt ID, visible path in one atomic replacement receipt. No G-code blob copy, second file store or device command.",
+    "durability": "Temp receipt write, mtime/chmod and file fsync, atomic rename, root fsync, then cache and one move_file event. Restart derives namespace from a complete old or new receipt; failures after replacement fence new reads and mutations.",
+    "cancellation": "Before replacement no change; after replacement finish root durability. Previously returned sealed readers remain independent.",
+    "authorization": "Raw source/dest then resolved source/dest plus ID/hash/size; revalidate receipt and target behind exclusive barrier after late authorization.",
+    "printProtection": "Existing PrintController.beginFileMutation excludes printing/paused/unacknowledged-stop identity and concurrent start for the same ID; unrelated printing remains allowed.",
+    "lifecycle": "Retained process route delegates to the current device, generation signal captured at HTTP admission; old queued request refuses new generation. Device drain retains uncooperative authorization accounting.",
+    "metadata": "Invalidate source and destination after durable move; old path and thumbnail live-source checks revoke old access; destination extraction retains content identity."
+  },
+  "local": {
+    "tests": 76,
+    "pass": 76,
+    "fail": 0,
+    "typecheck": "pass",
+    "whitespace": "pass",
+    "coverage": [
+      "old/new namespace on reopen",
+      "sealed reader and ID/hash/bytes preservation",
+      "same-path no rewrite and directory/root destination",
+      "collision, unsafe and missing paths, stale and foreign plans",
+      "temp receipt quota",
+      "pre/post replacement failure and cancellation",
+      "HTTP and RPC, source_item notifications, metadata/thumbnail/download",
+      "printing and paused file protection",
+      "late policy and ignored-policy drain",
+      "detached window, three generations and stale admitted HTTP request"
+    ]
+  },
+  "performance": {
+    "benchmark": {
+      "node": "v26.9.0",
+      "filesystemType": "0xef53",
+      "files": 1024,
+      "baseline": "/tmp/anyraid-single-move-baseline/host/src/storage/published-files.ts",
+      "catalog": {
+        "baseline": {
+          "medianMs": 0.10526641999997083,
+          "p95Ms": 0.10782766000003903,
+          "maxMs": 0.10782766000003903
+        },
+        "candidate": {
+          "medianMs": 0.10552823999998509,
+          "p95Ms": 0.10833326000007219,
+          "maxMs": 0.10833326000007219
+        },
+        "medianRatio": 1.0024872129214077
+      },
+      "moves": 200,
+      "move": {
+        "medianMs": 11.476122000000032,
+        "p95Ms": 11.900127000000793,
+        "maxMs": 21.78067100000044
+      },
+      "eventLoop": {
+        "p99Ms": 1.637375,
+        "maxMs": 1.928191
+      },
+      "scope": "Alternating fixed pre-change versus candidate cached catalogs; 200 durable single-receipt moves on the workspace filesystem. Existing 50 ms catalog and 50/100 ms loop budgets retained. No old move implementation, target board or actual print duration comparison."
+    },
+    "baselineSourceSha256": "b45aa3e585b4da623bd41ab491aa1eaf62d1e9a367c386fe971eda1ff3901486",
+    "limits": "Existing catalog P95 <50 ms; loop P99 <50 ms and max <100 ms. Move latency is measured, without inventing a target-board production threshold."
+  },
+  "compiled": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "originalTimeoutMs": 180000,
+    "originalChildWatchdogMs": 45000,
+    "manifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5",
+    "durationMs": 38523.687525,
+    "metrics": {
+      "namespace": true,
+      "motionReportLoad": true,
+      "configListRequests": 869,
+      "configListP99Ms": 6.642434999997931,
+      "configDownloads": 868,
+      "configDownloadP99Ms": 10.814213999998174,
+      "liveMotionSamples": 2662,
+      "liveExtrusionSamples": 1486,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.65004008,
+        "print_duration": 2.48839646,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 4214,
+      "phaseP99Ms": 2.7022610000003624,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 176,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 942,
+      "historyP99Ms": 7.620047000000341,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 200,
+      "fileNotificationP95Ms": 10.304887999998755,
+      "movesDuringPrint": 10,
+      "moveRequests": 16,
+      "moveP95Ms": 13.862239000000045,
+      "deleteRequests": 16,
+      "deleteP95Ms": 6.4714940000048955,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 5.216308999999455,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 13.22317099999782,
+      "metadataRequests": 16,
+      "metadataP95Ms": 14.007860000001529,
+      "downloads": 16,
+      "downloadP95Ms": 3.2246070000001055,
+      "wireCommands": 189,
+      "wireSteps": 3698,
+      "minimumStepLeadMs": 88.657,
+      "directoryRequests": 4048,
+      "directoryP99Ms": 9.072974000002432,
+      "statusRequests": 16860,
+      "uploads": 16,
+      "statusP99Ms": 3.127626000001328,
+      "uploadP95Ms": 12.984118000000308,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.919999,
+            "maxMs": 19.513343
+          },
+          "cpu": {
+            "user": 6840268,
+            "system": 1086383
+          },
+          "rss": 337764352
+        },
+        {
+          "loop": {
+            "p99Ms": 1.914879,
+            "maxMs": 12.402687
+          },
+          "cpu": {
+            "user": 2069726,
+            "system": 415951
+          },
+          "rss": 338280448
+        }
+      ]
+    },
+    "asserted": "Original lead >0 and generation loop P99 <50/max <100; 16 moves and move observed in each printing generation; 200 authorized notifications with source_item; renamed standard-path print, sealed downloads, fault stop and recovery remain checked.",
+    "priorWorkingTree": {
+      "manifestSha256": "512a46e297d3ad7946f3406e199ff38e980131d43e32d52beab9151825de2038",
+      "log": "/tmp/anyraid-single-file-move-compiled-final.log",
+      "scope": "Development run included untracked unused namespace-move module through the compiler include glob. Superseded for candidate provenance by isolated staged source."
+    },
+    "isolation": {
+      "source": "git checkout-index of explicit staged candidate; directory-move draft absent",
+      "snapshot": "/tmp/anyraid-single-move-candidate.mrNUXN",
+      "development": "Existing locked compiler and native build tree linked to source snapshot only; existing C sources unchanged.",
+      "product": "Independent installed production dependencies, emitted JS/addons, PATH=/no-programs, NODE_PATH empty, TypeScript stripping disabled. No Python or shared node_modules in the product process."
+    }
+  },
+  "discriminator": {
+    "initialNativeFailure": "Test tried start from cancelled without explicit reset; corrected fixture, controller semantics unchanged.",
+    "initialCompiledHypothesis": "Suspected overlap of added file load with fault injection; waiting for file work alone did not resolve 503.",
+    "confirmedCompiledCause": "Retained move route was wrapped in first NativeRequestScope. Generation 2 load-2-0 returned Native printer generation has retired before fault injection.",
+    "fix": "Explicit process route ownership for move, matching directory route delegation. Existing actual host fixture now verifies post-attachment move success and stale HTTP admission rejection.",
+    "historicalLogs": "Failed logs retain earlier fixture/source observations and are not attributed as tests of the final source."
+  },
+  "limits": [
+    "Software increment only; directory/copy/overwrite/other roots/offline/history snapshots remain pending.",
+    "Original exact-source host CI failures and unresolved G3 remain; no merge or physical motion approval.",
+    "Fluidd/Mainsail complete same-bundle page acceptance remains pending.",
+    "Repository still lacks verified Cycnumbris 500 configuration, board/host/stop/rollback material and target performance budget.",
+    "No Python dependency removed.",
+    "Process reopen and simulated restarts do not prove physical power-loss durability or printer quality."
+  ],
+  "logs": [
+    {
+      "path": "/tmp/anyraid-single-file-move-complete-regression.log",
+      "sha256": "ea32f8682bb1b3511bfbc7421ada2889f05c926ed5a4d470f805de77ec210034"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-compiled-final.log",
+      "sha256": "7a1d2cdb9da574ca0bfa3a53db54b4e711948b2061d0db2e7ea89aea8f6d3de7"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-bench.log",
+      "sha256": "607e4bd3059857db4ec1c084bc9a0e6b5061a193977b2640da877409988fbc83"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-typecheck-complete.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-compiled.log",
+      "sha256": "514d9e50a1a52c8f89448c77a9051f7601da3273ae537ee5148fc1f772834ca9"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-compiled-ordered.log",
+      "sha256": "5391c20dde175c58eb2cea516a2d319e9056936868e10cff7cac0e2f0b00b59f"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-compiled-cause.log",
+      "sha256": "3c41bb106fea2f813cf648ee6f0c026ae13e0271bf400539a4958bb60159ce4d"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-native.log",
+      "sha256": "1e4468c81f776cdf62b5a5aadf7a1c81b6e0d38e066f76507d00ffb26a55496c"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-single-file-move-compiled-isolated.log",
+      "sha256": "8c31d1d1100d0d1cf139548a3f25e214c3a0d305ae2d6bf7cb7d9fd17f1e7f61"
+    }
+  ]
+}

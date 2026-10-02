@@ -1,0 +1,57 @@
+{
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "warmups": 3,
+  "runs": 11,
+  "results": [
+    {
+      "fileBytes": 262144,
+      "imageWidth": 64,
+      "imageBytes": 12453,
+      "inputSha256": "136ce5ccb4e9b330d5297c15bab94591f2222d85b9809a0e4c08686818243ae5",
+      "cold": {
+        "medianMs": 5.243625000000009,
+        "p95Ms": 7.088463999999988
+      },
+      "cached": {
+        "medianMs": 0.12519099999997252,
+        "p95Ms": 0.4478340000000003
+      },
+      "read": {
+        "medianMs": 0.3075529999999844,
+        "p95Ms": 0.7122079999999755
+      },
+      "eventLoop": {
+        "p99Ms": 1.778687,
+        "maxMs": 4.149247
+      },
+      "cacheImageBytes": 214480
+    },
+    {
+      "fileBytes": 4194304,
+      "imageWidth": 384,
+      "imageBytes": 443624,
+      "inputSha256": "207b280af0cf85600cd69d4303ce44e45b31bbfc23ead5bfa2d6139e0aca7ab0",
+      "cold": {
+        "medianMs": 26.208402999999976,
+        "p95Ms": 29.561198999999988
+      },
+      "cached": {
+        "medianMs": 0.12173100000006798,
+        "p95Ms": 0.14686200000005556
+      },
+      "read": {
+        "medianMs": 0.2822230000000445,
+        "p95Ms": 0.7313870000000406
+      },
+      "eventLoop": {
+        "p99Ms": 1.842175,
+        "maxMs": 2.322431
+      },
+      "cacheImageBytes": 6451158
+    }
+  ],
+  "scope": "Local sealed native files with deterministic noisy PNG, full file hash, Worker extraction, child image decoding and miniature generation. Cold startup excluded. Cached preview read includes receipt validation and independent byte copy. No HTTP, Python performance comparison or target hardware claim.",
+  "fixture": "host/bench/native-file-previews.ts",
+  "fixtureSha256": "482c3fa982910f7d2bf866fdbfb9614b7537855a6ca7d1de765c7bd25d62cf78"
+}

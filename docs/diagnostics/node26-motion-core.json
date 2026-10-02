@@ -1,0 +1,253 @@
+{
+  "base": "01335822",
+  "scope": "Local bounded diagnostic; no production algorithm change or resolved root cause",
+  "sources": {
+    "host/scripts/diagnose-node-asan.ts": "baef2b43acb61a8bdf5c4439b27771b0a22f59c2fce860c4a908c2513a66a7e7",
+    "host/test/node-motion-probe.test.ts": "d12eded92eba118dcbc84aa188098b90fba2c5ed3815f4c00442ddee107dff24"
+  },
+  "reports": [
+    {
+      "path": "/tmp/anyraid-node-asan-EF3GBi/report.json",
+      "sha256": "ec90301a14f6eccc87017c2ab4183fc299dafad24891c32e1a3759b0bf41486e",
+      "settings": {
+        "childWorkingDirectory": "/tmp/anyraid-node-asan-EF3GBi",
+        "corePolicy": {
+          "pattern": "core",
+          "usesPid": "1",
+          "limits": "Max core file size        536870912            536870912            bytes     "
+        },
+        "coreFiles": [],
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "compiledHashes": {},
+        "execution": "source",
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "/tmp/anyraid-node-asan-EF3GBi/fixture.mjs"
+        ],
+        "limit": 200,
+        "workers": 8,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e"
+      },
+      "runs": 118,
+      "verified": 117,
+      "failures": [
+        {
+          "index": 111,
+          "pid": 2792607,
+          "status": 1,
+          "signal": null,
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": "file:///tmp/anyraid-node-asan-EF3GBi/fixture.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":3,\"panel\":0,\"curve\":2,\"index\":7485,\"actual\":-10.55371717818332,\"expected\":-10.554909271078827,\"error\":0.0011920928955078125,\"xor\":\"0x79dc0000000\",\"repeated\":-10.554909271078827,\"nearby\":[-10.497582079551648,-10.526215124500027,-10.55371717818332,-10.583687547196519,-10.61257310148278],\"reference\":[-10.497582079551648,-10.526215124500027,-10.554909271078827,-10.583687547196519,-10.61257310148278]}\n    at file:///tmp/anyraid-node-asan-EF3GBi/fixture.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-EF3GBi/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-EF3GBi/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-EF3GBi/fixture.mjs:11:9\n\nNode.js v26.9.0\n"
+        }
+      ]
+    },
+    {
+      "path": "/tmp/anyraid-node-asan-kUVaZ1/report.json",
+      "sha256": "19ad67a5252aa36c8ace95cb0725eade80b88492a65034dcec11399ac9da26bd",
+      "settings": {
+        "childWorkingDirectory": "/tmp/anyraid-node-asan-kUVaZ1",
+        "corePolicy": {
+          "pattern": "core",
+          "usesPid": "1",
+          "limits": "Max core file size        536870912            536870912            bytes     "
+        },
+        "coreFiles": [
+          {
+            "path": "/tmp/anyraid-node-asan-kUVaZ1/core.2794324",
+            "bytes": 668680192
+          }
+        ],
+        "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+        "version": "v26.9.0",
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "addonHashes": {},
+        "moduleHashes": {
+          "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+          "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+          "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+          "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+          "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+          "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+          "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+        },
+        "compiledHashes": {},
+        "execution": "source",
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        },
+        "kind": "motion",
+        "segv": "default",
+        "asan": "off",
+        "wasmBounds": "trap",
+        "jsOptimization": "default",
+        "args": [
+          "/tmp/anyraid-node-asan-kUVaZ1/fixture.mjs"
+        ],
+        "limit": 200,
+        "workers": 8,
+        "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e"
+      },
+      "runs": 139,
+      "verified": 138,
+      "failures": [
+        {
+          "index": 134,
+          "pid": 2794324,
+          "status": null,
+          "signal": "SIGSEGV",
+          "stdout": "motion:loading\nmotion:loaded\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "core": {
+    "path": "/tmp/anyraid-node-asan-kUVaZ1/core.2794324",
+    "sha256": "d48041c15af984763ce91452d2abb8a1e86e7392b1ce8f15626d4766a727cf73",
+    "logicalBytes": 668680192,
+    "allocatedBytes": 77795328
+  },
+  "debugger": {
+    "path": "/tmp/anyraid-startup-debug/gdb-extracted/usr/bin/gdb",
+    "version": "GNU gdb (Debian 16.3-1deepin1) 16.3",
+    "sha256": "76f7c440fc559e9720260326e60aa641b61ad4e575835eca8fd83fb33b7a7c3f",
+    "backtrace": "\nwarning: Can't open file anon_inode:[io_uring] during file-backed mapping note processing\n[New LWP 2794324]\n[New LWP 2794339]\n[New LWP 2794338]\n[New LWP 2794342]\n[New LWP 2794335]\n[New LWP 2794336]\n[New LWP 2794337]\n[Thread debugging using libthread_db enabled]\nUsing host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\nCore was generated by `/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node /tmp/anyraid-node-asan-kUVaZ1/fixture.mjs'.\nProgram terminated with signal SIGSEGV, Segmentation fault.\n#0  0x00007bc6535cecf3 in ?? ()\n[Current thread is 1 (Thread 0x7bc662542380 (LWP 2794324))]\n  Id   Target Id                           Frame \n* 1    Thread 0x7bc662542380 (LWP 2794324) 0x00007bc6535cecf3 in ?? ()\n  2    Thread 0x7bc65bfff6c0 (LWP 2794339) 0x00007bc6625c9656 in ?? () from /lib/x86_64-linux-gnu/libc.so.6\n  3    Thread 0x7bc660c146c0 (LWP 2794338) 0x00007bc6625c9656 in ?? () from /lib/x86_64-linux-gnu/libc.so.6\n  4    Thread 0x7bc66037c6c0 (LWP 2794342) 0x00007bc6625c9656 in ?? () from /lib/x86_64-linux-gnu/libc.so.6\n  5    Thread 0x7bc66241e6c0 (LWP 2794335) 0x00007bc66264e18e in epoll_pwait () from /lib/x86_64-linux-gnu/libc.so.6\n  6    Thread 0x7bc661c166c0 (LWP 2794336) 0x00007bc6625c9656 in ?? () from /lib/x86_64-linux-gnu/libc.so.6\n  7    Thread 0x7bc6614156c0 (LWP 2794337) 0x00007bc6625c9656 in ?? () from /lib/x86_64-linux-gnu/libc.so.6\n#0  0x00007bc6535cecf3 in ?? ()\nBacktrace stopped: Cannot access memory at address 0x7fff969bac98\nrip            0x7bc6535cecf3      0x7bc6535cecf3\nrsp            0x7fff969bac98      0x7fff969bac98\nrbp            0x7fff8e9bad48      0x7fff8e9bad48\nrax            0x344725835649      57480176686665\nrbx            0x344725835639      57480176686649\nrcx            0x1000001           16777217\nrdx            0x2c00bb6c0011      48381656039441\nrsi            0x1b6bb5577979      30149417859449\nrdi            0xb6efb708421       12571292763169\n   0x7bc6535cece3:\tpop    %rbp\n   0x7bc6535cece4:\tcmp    $0x1,%rcx\n   0x7bc6535cece8:\tjg     0x7bc6535ceced\n   0x7bc6535cecea:\tret    $0x8\n   0x7bc6535ceced:\tpop    %r10\n   0x7bc6535cecef:\tlea    (%rsp,%rcx,8),%rsp\n=> 0x7bc6535cecf3:\tpush   %r10\n   0x7bc6535cecf5:\tret\n   0x7bc6535cecf6:\tmov    0x250(%r13),%r8\n   0x7bc6535cecfd:\tmov    %r9,%rbx\n   0x7bc6535ced00:\tjmp    0x7bc6535ced10\n   0x7bc6535ced02:\tmov    0x230(%r13),%rbx\nMapped address spaces:\n\nStart Addr         End Addr           Size               Offset             File \n0x0000000000400000 0x000000000081a000 0x41a000           0x0                /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x000000000081a000 0x000000000346b000 0x2c51000          0x41a000           /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x000000000346b000 0x0000000007258000 0x3ded000          0x306b000          /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x0000000007258000 0x000000000728d000 0x35000            0x6e57000          /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x000000000728d000 0x00000000072b9000 0x2c000            0x6e8c000          /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x00007bc653580000 0x00007bc653795000 0x215000           0x160b000          /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node \n0x00007bc66037d000 0x00007bc660381000 0x4000             0x10000000         anon_inode:[io_uring] \n0x00007bc660381000 0x00007bc660384000 0x3000             0x0                anon_inode:[io_uring] \n0x00007bc661c17000 0x00007bc661c1b000 0x4000             0x10000000         anon_inode:[io_uring] \n0x00007bc661c1b000 0x00007bc661c1e000 0x3000             0x0                anon_inode:[io_uring] \n0x00007bc662543000 0x00007bc662569000 0x26000            0x0                /lib/x86_64-linux-gnu/libc.so.6 \n0x00007bc662569000 0x00007bc6626c0000 0x157000           0x26000            /lib/x86_64-linux-gnu/libc.so.6 \n0x00007bc6626c0000 0x00007bc662715000 0x55000            0x17d000           /lib/x86_64-linux-gnu/libc.so.6 \n0x00007bc662715000 0x00007bc662719000 0x4000             0x1d1000           /lib/x86_64-linux-gnu/libc.so.6 \n0x00007bc662719000 0x00007bc66271b000 0x2000             0x1d5000           /lib/x86_64-linux-gnu/libc.so.6 \n0x00007bc662728000 0x00007bc662729000 0x1000             0x0                /lib/x86_64-linux-gnu/libpthread.so.0 \n0x00007bc662729000 0x00007bc66272a000 0x1000             0x1000             /lib/x86_64-linux-gnu/libpthread.so.0 \n0x00007bc66272a000 0x00007bc66272b000 0x1000             0x2000             /lib/x86_64-linux-gnu/libpthread.so.0 \n0x00007bc66272b000 0x00007bc66272c000 0x1000             0x2000             /lib/x86_64-linux-gnu/libpthread.so.0 \n0x00007bc66272c000 0x00007bc66272d000 0x1000             0x3000             /lib/x86_64-linux-gnu/libpthread.so.0 \n0x00007bc66272f000 0x00007bc662732000 0x3000             0x0                /lib/x86_64-linux-gnu/libgcc_s.so.1 \n0x00007bc662732000 0x00007bc66274d000 0x1b000            0x3000             /lib/x86_64-linux-gnu/libgcc_s.so.1 \n0x00007bc66274d000 0x00007bc662751000 0x4000             0x1e000            /lib/x86_64-linux-gnu/libgcc_s.so.1 \n0x00007bc662751000 0x00007bc662752000 0x1000             0x21000            /lib/x86_64-linux-gnu/libgcc_s.so.1 \n0x00007bc662752000 0x00007bc662753000 0x1000             0x22000            /lib/x86_64-linux-gnu/libgcc_s.so.1 \n0x00007bc662753000 0x00007bc6627ef000 0x9c000            0x0                /lib/x86_64-linux-gnu/libstdc++.so.6.0.32 \n0x00007bc6627ef000 0x00007bc66290a000 0x11b000           0x9c000            /lib/x86_64-linux-gnu/libstdc++.so.6.0.32 \n0x00007bc66290a000 0x00007bc662997000 0x8d000            0x1b7000           /lib/x86_64-linux-gnu/libstdc++.so.6.0.32 \n0x00007bc662997000 0x00007bc6629a2000 0xb000             0x244000           /lib/x86_64-linux-gnu/libstdc++.so.6.0.32 \n0x00007bc6629a2000 0x00007bc6629a5000 0x3000             0x24f000           /lib/x86_64-linux-gnu/libstdc++.so.6.0.32 \n0x00007bc6629a9000 0x00007bc6629b9000 0x10000            0x0                /lib/x86_64-linux-gnu/libm.so.6 \n0x00007bc6629b9000 0x00007bc662a2d000 0x74000            0x10000            /lib/x86_64-linux-gnu/libm.so.6 \n0x00007bc662a2d000 0x00007bc662a87000 0x5a000            0x84000            /lib/x86_64-linux-gnu/libm.so.6 \n0x00007bc662a87000 0x00007bc662a88000 0x1000             0xdd000            /lib/x86_64-linux-gnu/libm.so.6 \n0x00007bc662a88000 0x00007bc662a89000 0x1000             0xde000            /lib/x86_64-linux-gnu/libm.so.6 \n0x00007bc662a89000 0x00007bc662a8a000 0x1000             0x0                /lib/x86_64-linux-gnu/libdl.so.2 \n0x00007bc662a8a000 0x00007bc662a8b000 0x1000             0x1000             /lib/x86_64-linux-gnu/libdl.so.2 \n0x00007bc662a8b000 0x00007bc662a8c000 0x1000             0x2000             /lib/x86_64-linux-gnu/libdl.so.2 \n0x00007bc662a8c000 0x00007bc662a8d000 0x1000             0x2000             /lib/x86_64-linux-gnu/libdl.so.2 \n0x00007bc662a8d000 0x00007bc662a8e000 0x1000             0x3000             /lib/x86_64-linux-gnu/libdl.so.2 \n0x00007bc662a8e000 0x00007bc662a90000 0x2000             0x0                /lib/x86_64-linux-gnu/libatomic.so.1.2.0 \n0x00007bc662a90000 0x00007bc662a93000 0x3000             0x2000             /lib/x86_64-linux-gnu/libatomic.so.1.2.0 \n0x00007bc662a93000 0x00007bc662a95000 0x2000             0x5000             /lib/x86_64-linux-gnu/libatomic.so.1.2.0 \n0x00007bc662a95000 0x00007bc662a96000 0x1000             0x6000             /lib/x86_64-linux-gnu/libatomic.so.1.2.0 \n0x00007bc662a96000 0x00007bc662a97000 0x1000             0x7000             /lib/x86_64-linux-gnu/libatomic.so.1.2.0 \n0x00007bc662a98000 0x00007bc662a9c000 0x4000             0x10000000         anon_inode:[io_uring] \n0x00007bc662a9c000 0x00007bc662a9f000 0x3000             0x0                anon_inode:[io_uring] \n0x00007bc662ab9000 0x00007bc662aba000 0x1000             0x0                /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \n0x00007bc662aba000 0x00007bc662ae0000 0x26000            0x1000             /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \n0x00007bc662ae0000 0x00007bc662aea000 0xa000             0x27000            /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \n0x00007bc662aea000 0x00007bc662aec000 0x2000             0x31000            /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \n0x00007bc662aec000 0x00007bc662aee000 0x2000             0x33000            /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \n",
+    "detail": "\nwarning: Can't open file anon_inode:[io_uring] during file-backed mapping note processing\n[New LWP 2794324]\n[New LWP 2794339]\n[New LWP 2794338]\n[New LWP 2794342]\n[New LWP 2794335]\n[New LWP 2794336]\n[New LWP 2794337]\n[Thread debugging using libthread_db enabled]\nUsing host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\nCore was generated by `/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node /tmp/anyraid-node-asan-kUVaZ1/fixture.mjs'.\nProgram terminated with signal SIGSEGV, Segmentation fault.\n#0  0x00007bc6535cecf3 in ?? ()\n[Current thread is 1 (Thread 0x7bc662542380 (LWP 2794324))]\nBuiltins_ArrayIteratorPrototypeNext + 2547 in section .text of /home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node\n$1 = {si_signo = 11, si_errno = 0, si_code = 128, _sifields = {_pad = {0 <repeats 28 times>}, _kill = {si_pid = 0, si_uid = 0}, _timer = {si_tid = 0, si_overrun = 0, si_sigval = {sival_int = 0, sival_ptr = 0x0}}, _rt = {si_pid = 0, si_uid = 0, si_sigval = {sival_int = 0, sival_ptr = 0x0}}, _sigchld = {si_pid = 0, si_uid = 0, si_status = 0, si_utime = 0, si_stime = 0}, _sigfault = {si_addr = 0x0}, _sigpoll = {si_band = 0, si_fd = 0}, _sigsys = {_call_addr = 0x0, _syscall = 0, _arch = 0}}}\n0x7fff8e9bad08:\t0x00002c00bb6c0011\t0x0000344725830009\n0x7fff8e9bad18:\t0x00000d81faebca51\t0x00003bfa9185a599\n0x7fff8e9bad28:\t0x000007d861af75e9\t0x0000000000000002\n0x7fff8e9bad38:\t0x00000342934f3be1\t0x00003bfa9185a5f9\n0x7fff8e9bad48:\t0x00007fff8e9bae58\t0x00007bc63385f28a\n0x7fff8e9bad58:\t0x00002c00bb6c0011\t0x00001561b8742061\n0x7fff8e9bad68:\t0x00002c00bb6c0011\t0x00002c00bb6c0011\n0x7fff8e9bad78:\t0x00002c00bb6c0011\t0x00002c00bb6c0011\n0x7fff8e9bad88:\t0x00000342934f3be1\t0x00002c00bb6c0011\n0x7fff8e9bad98:\t0x00002c00bb6c0011\t0x00002c00bb6c0011\n0x7fff8e9bada8:\t0x00002c00bb6c0011\t0x00002c00bb6c0011\n0x7fff8e9badb8:\t0x00002c00bb6c0011\t0x00002c00bb6c0011\n   0x7bc6535cec2b:\tdecl   -0x41(%rcx)\n   0x7bc6535cec2e:\tadd    %al,(%rax)\n   0x7bc6535cec30:\tadd    %al,(%rax)\n   0x7bc6535cec32:\tadd    (%rax),%al\n   0x7bc6535cec34:\tadd    %al,(%rax)\n   0x7bc6535cec36:\tmov    %r15,0x7(%r11)\n   0x7bc6535cec3a:\tcmpl   $0x0,0xb(%r11)\n   0x7bc6535cec3f:\tjbe    0x7bc6535cf4b5\n   0x7bc6535cec45:\tmov    %rbx,0xf(%r11)\n   0x7bc6535cec49:\tcmpl   $0x1,0xb(%r11)\n   0x7bc6535cec4e:\tjbe    0x7bc6535cf4b6\n   0x7bc6535cec54:\tmov    %r9,0x17(%r11)\n   0x7bc6535cec58:\tmov    0x7(%r8),%r9\n   0x7bc6535cec5c:\tmovabs $0x7d00000000,%r14\n   0x7bc6535cec66:\tcmp    %r9,%r14\n   0x7bc6535cec69:\tjb     0x7bc6535cec6c\n   0x7bc6535cec6b:\tint3\n   0x7bc6535cec6c:\tmov    0x3f7(%r8),%r14\n   0x7bc6535cec73:\tlea    0x20(%r12),%rax\n   0x7bc6535cec78:\tmov    %rax,0x50(%r13)\n   0x7bc6535cec7c:\tadd    $0x1,%r12\n   0x7bc6535cec80:\tmov    %r14,-0x1(%r12)\n   0x7bc6535cec85:\tmov    0x308(%r13),%r14\n   0x7bc6535cec8c:\tmov    %r14,0x7(%r12)\n   0x7bc6535cec91:\tmov    %r11,0xf(%r12)\n   0x7bc6535cec96:\tmov    %r15,0x17(%r12)\n   0x7bc6535cec9b:\tmovabs $0x7a00000000,%r11\n   0x7bc6535ceca5:\tcmp    %r9,%r11\n   0x7bc6535ceca8:\tjb     0x7bc6535cecab\n   0x7bc6535cecaa:\tint3\n   0x7bc6535cecab:\tmov    0x3df(%r8),%r8\n   0x7bc6535cecb2:\tlea    0x28(%rax),%r9\n   0x7bc6535cecb6:\tmov    %r9,0x50(%r13)\n   0x7bc6535cecba:\tlea    0x1(%rax),%r9\n   0x7bc6535cecbe:\tmov    %r8,-0x1(%r9)\n   0x7bc6535cecc2:\tmov    %r14,0x7(%r9)\n   0x7bc6535cecc6:\tmov    %r14,0xf(%r9)\n   0x7bc6535cecca:\tmov    %r12,0x17(%r9)\n   0x7bc6535cecce:\tmov    0x250(%r13),%r8\n   0x7bc6535cecd5:\tmov    %r8,0x1f(%r9)\n   0x7bc6535cecd9:\tmov    %r9,%rax\n   0x7bc6535cecdc:\tmov    -0x18(%rbp),%rcx\n   0x7bc6535cece0:\tmov    %rbp,%rsp\n   0x7bc6535cece3:\tpop    %rbp\n   0x7bc6535cece4:\tcmp    $0x1,%rcx\n   0x7bc6535cece8:\tjg     0x7bc6535ceced\n   0x7bc6535cecea:\tret    $0x8\n   0x7bc6535ceced:\tpop    %r10\n   0x7bc6535cecef:\tlea    (%rsp,%rcx,8),%rsp\n=> 0x7bc6535cecf3:\tpush   %r10\n   0x7bc6535cecf5:\tret\n   0x7bc6535cecf6:\tmov    0x250(%r13),%r8\n   0x7bc6535cecfd:\tmov    %r9,%rbx\n   0x7bc6535ced00:\tjmp    0x7bc6535ced10\n   0x7bc6535ced02:\tmov    0x230(%r13),%rbx\n   0x7bc6535ced09:\tmov    0x248(%r13),%r8\n   0x7bc6535ced10:\tmov    -0x1(%rsi),%r9\n   0x7bc6535ced14:\tmov    0x1f(%r9),%r9\n   0x7bc6535ced18:\tmov    0x7(%r9),%r11\n   0x7bc6535ced1c:\tmov    -0x86(%rip),%r12        # 0x7bc6535cec9d\n   0x7bc6535ced23:\tcmp    %r11,%r12\n   0x7bc6535ced26:\tjb     0x7bc6535ced29\n   0x7bc6535ced28:\tint3\n   0x7bc6535ced29:\tmov    0x3df(%r9),%r9\n   0x7bc6535ced30:\tmov    0x50(%r13),%r11\n   0x7bc6535ced34:\tlea    0x28(%r11),%r12\n   0x7bc6535ced38:\tcmp    %r12,0x58(%r13)\n   0x7bc6535ced3c:\tjbe    0x7bc6535cf4b7\n   0x7bc6535ced42:\tlea    0x28(%r11),%r12\n   0x7bc6535ced46:\tmov    %r12,0x50(%r13)\n"
+  },
+  "tests": "✔ motion runtime probe verifies original reference in bounded fresh Node children and records source hashes (1018.178545ms)\n✔ probe records explicit optimizing compiler controls without requiring a C compiler (5159.520998ms)\n✔ probe preserves artifacts in an owned child directory and rejects silent successful exit (119.934039ms)\n✔ probe rejects unbounded workers or runs before launching workloads (267.953798ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 6616.656491\n",
+  "conclusions": [
+    "Numerical mismatch and SIGSEGV both reproduced; neither is fixed.",
+    "PC maps to Node executable file offset 0x1659cf3, static virtual address 0x1a59cf3, symbol Builtins_ArrayIteratorPrototypeNext + 2547.",
+    "At crash RCX is 0x1000001 and preceding instructions adjust RSP by RCX*8 before a failing push. This does not identify the origin of that count.",
+    "Core and debugger are local temporary artifacts; core is not committed.",
+    "Earlier no-debugger statement was only a PATH search result; an existing unpacked GDB was subsequently located and used.",
+    "Physical printer accuracy, independent-runner reproduction and historical integrity failures remain open."
+  ],
+  "stackCountAnalysis": {
+    "gdb": "\nwarning: Can't open file anon_inode:[io_uring] during file-backed mapping note processing\n[New LWP 2794324]\n[New LWP 2794339]\n[New LWP 2794338]\n[New LWP 2794342]\n[New LWP 2794335]\n[New LWP 2794336]\n[New LWP 2794337]\n[Thread debugging using libthread_db enabled]\nUsing host libthread_db library \"/lib/x86_64-linux-gnu/libthread_db.so.1\".\nCore was generated by `/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node /tmp/anyraid-node-asan-kUVaZ1/fixture.mjs'.\nProgram terminated with signal SIGSEGV, Segmentation fault.\n#0  0x00007bc6535cecf3 in ?? ()\n[Current thread is 1 (Thread 0x7bc662542380 (LWP 2794324))]\n$1 = 0x7fff8e9bac80\n0x7fff8e9bac58:\t0x0000000000000010\t0x000021cc3f8d65f9\n0x7fff8e9bac68:\t0x0000000000000001\t0x00000b6efb708421\n0x7fff8e9bac78:\t0x00001b6bb5577979\t0x00007fff8e9bad48\n0x7fff8e9bac88:\t0x00007bc6338167b5\t0x000034472582ffd9\n0x7fff8e9bac98:\t0x0000000000000001\t0x00003bfa9185a5f9\n0x7fff8e9baca8:\t0x00002c00bb6c0011\t0x00001b6bb557ddd1\n   0x7bc6535cecdc:\tmov    -0x18(%rbp),%rcx\n   0x7bc6535cece0:\tmov    %rbp,%rsp\n   0x7bc6535cece3:\tpop    %rbp\n   0x7bc6535cece4:\tcmp    $0x1,%rcx\n   0x7bc6535cece8:\tjg     0x7bc6535ceced\n   0x7bc6535cecea:\tret    $0x8\n   0x7bc6535ceced:\tpop    %r10\n   0x7bc6535cecef:\tlea    (%rsp,%rcx,8),%rsp\n=> 0x7bc6535cecf3:\tpush   %r10\n   0x7bc6535cecf5:\tret\n   0x7bc6535cecf6:\tmov    0x250(%r13),%r8\n   0x7bc6535cecfd:\tmov    %r9,%rbx\n   0x7bc6535ced00:\tjmp    0x7bc6535ced10\n   0x7bc6535ced02:\tmov    0x230(%r13),%rbx\n   0x7bc6535ced09:\tmov    0x248(%r13),%r8\nrcx            0x1000001           16777217\nrsp            0x7fff969bac98      0x7fff969bac98\nrbp            0x7fff8e9bad48      0x7fff8e9bad48\nr10            0x7bc6338167b5      136091197859765\n",
+    "directElf": {
+      "scope": "Independent direct ELF64 PT_LOAD reads; register inputs from captured GDB report; frame reconstruction is an inference from the shown epilogue",
+      "core": "/tmp/anyraid-node-asan-kUVaZ1/core.2794324",
+      "registerInputs": {
+        "rsp": "0x7fff969bac98",
+        "rcx": "0x1000001"
+      },
+      "reconstructedFrame": "0x7fff8e9bac80",
+      "savedCount": {
+        "address": "0x7fff8e9bac68",
+        "fileOffset": "0x27db0c68",
+        "value": "0x1"
+      },
+      "savedRbp": {
+        "address": "0x7fff8e9bac80",
+        "fileOffset": "0x27db0c80",
+        "value": "0x7fff8e9bad48"
+      },
+      "returnAddress": {
+        "address": "0x7fff8e9bac88",
+        "fileOffset": "0x27db0c88",
+        "value": "0x7bc6338167b5"
+      }
+    },
+    "codeMapping": {
+      "start": "0x7bc653580000",
+      "memoryBytes": 2183168,
+      "dumpedBytes": 0,
+      "pcIncluded": false
+    },
+    "limits": [
+      "The prior frame is reconstructed from RSP, RCX and the disk-backed epilogue, not from an intact unwind.",
+      "Saved RBP and return address match captured RBP and R10, supporting the reconstruction.",
+      "The core did not dump the PC mapping. GDB instructions came from the Node executable; actual resident instruction bytes are not established.",
+      "Saved count 1 versus RCX 0x1000001 is observed; no register, CPU, RAM, OS or runtime root cause is proven."
+    ]
+  },
+  "mappedCodeCaptureAttempt": {
+    "report": "/tmp/anyraid-node-asan-oFWgvW/report.json",
+    "sha256": "8812c3cd2389b53cc7b217e7e94b2f8b3da48cb32009602b93742c6f9a12b7e2",
+    "settings": {
+      "childWorkingDirectory": "/tmp/anyraid-node-asan-oFWgvW",
+      "corePolicy": {
+        "filter": "0000003f",
+        "pattern": "core",
+        "usesPid": "1",
+        "limits": "Max core file size        536870912            536870912            bytes     "
+      },
+      "coreFiles": [],
+      "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node",
+      "version": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "addonHashes": {},
+      "moduleHashes": {
+        "src/diagnostics/graph-motion.ts": "d6caac82a959b94af94c4e1331b3431c0c48062b57fd39f375e65c77ccf7c9c2",
+        "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+        "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+        "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+        "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+        "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+        "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+      },
+      "compiledHashes": {},
+      "execution": "source",
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0-5"
+      },
+      "kind": "motion",
+      "segv": "default",
+      "asan": "off",
+      "wasmBounds": "trap",
+      "jsOptimization": "default",
+      "args": [
+        "/tmp/anyraid-node-asan-oFWgvW/fixture.mjs"
+      ],
+      "limit": 200,
+      "workers": 8,
+      "fixtureSha256": "2f8174254a86c211479c4786f919ad67cc18d632f0440e0d99acbe4632fe4a6e"
+    },
+    "runs": 91,
+    "failures": [
+      {
+        "index": 86,
+        "pid": 2797130,
+        "status": 1,
+        "signal": null,
+        "stdout": "motion:loading\nmotion:loaded\n",
+        "stderr": "file:///tmp/anyraid-node-asan-oFWgvW/fixture.mjs:17\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":13,\"panel\":2,\"curve\":1,\"index\":2271,\"actual\":-0.03986687089309093,\"expected\":-0.03986688579425213,\"error\":1.4901161193847656e-8,\"xor\":\"0x80000000\",\"repeated\":-0.03986688579425213,\"nearby\":[-0.04006329659456309,-0.03996479055675195,-0.03986687089309093,-0.039769628228450316,-0.039673063367441586],\"reference\":[-0.04006329659456309,-0.03996479055675195,-0.03986688579425213,-0.039769628228450316,-0.039673063367441586]}\n    at file:///tmp/anyraid-node-asan-oFWgvW/fixture.mjs:17:10\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-oFWgvW/fixture.mjs:13:12\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-oFWgvW/fixture.mjs:11:118\n    at Array.forEach (<anonymous>)\n    at file:///tmp/anyraid-node-asan-oFWgvW/fixture.mjs:11:9\n\nNode.js v26.9.0\n"
+      }
+    ],
+    "conclusion": "First numerical failure stopped sampling; no SIGSEGV core captured in this batch. Deviation mismatch XOR 0x80000000 is one binary64 bit; immediate recomputation agrees with reference."
+  },
+  "filterRecordingTests": "✔ motion runtime probe verifies original reference in bounded fresh Node children and records source hashes (981.085581ms)\n✔ probe records explicit optimizing compiler controls without requiring a C compiler (5410.315192ms)\n✔ probe preserves artifacts in an owned child directory and rejects silent successful exit (108.141478ms)\n✔ probe rejects unbounded workers or runs before launching workloads (261.830306ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 6811.845094\n",
+  "filterRecordingSourceSha256": "1660999bd8468a0066784fd9d2ac89d7b8973a8813b5abf86e953ed421ce535a"
+}

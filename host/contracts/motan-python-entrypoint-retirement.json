@@ -1,0 +1,92 @@
+{
+  "node": "26.9.0",
+  "retired": [
+    "scripts/motan/motan_graph.py",
+    "scripts/motan/analyzers.py",
+    "scripts/motan/readlog.py"
+  ],
+  "sourceRevision": "8d15be2bdb26bfb85385a05f3e3ac2e7b5a705ba",
+  "sourceHashes": {
+    "scripts/motan/motan_graph.py": "b8588593fe4d70db6876d1d3b667c08e4db2dba6e6cb27a3f52802b2f78442ad",
+    "scripts/motan/analyzers.py": "8e47954f05da42f9f33fa14224080547c5a54f64ddd36930973f6e42a77421ab",
+    "scripts/motan/readlog.py": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2"
+  },
+  "tests": 18,
+  "standalone": {
+    "standalone": true,
+    "node": "v26.9.0",
+    "coldExportMs": {
+      "json": 120.68892300000016,
+      "svg": 121.42351599999984,
+      "png": 161.92772800000057,
+      "html": 127.91947100000016,
+      "pdf": 285.363206
+    },
+    "scope": "one cold child per format; independent package outside repository; no Python or TS loader"
+  },
+  "readerBenchmark": {
+    "node": "v26.9.0",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "label": "small",
+        "count": 30000,
+        "rawBytes": 2385870,
+        "gzipBytes": 735989,
+        "results": {
+          "python": {
+            "medianMs": 93.76137199797085,
+            "p95Ms": 94.03818699865951
+          },
+          "nodeBatch1": {
+            "medianMs": 72.55212200000005,
+            "p95Ms": 75.66906199999994,
+            "eventLoopMaximumMs": 2.580479
+          },
+          "nodeBatch256": {
+            "medianMs": 51.563506000000416,
+            "p95Ms": 54.88223900000003,
+            "eventLoopMaximumMs": 2.824191
+          }
+        }
+      },
+      {
+        "label": "bulk",
+        "count": 128,
+        "rawBytes": 7138661,
+        "gzipBytes": 2777303,
+        "results": {
+          "python": {
+            "medianMs": 119.3512700010615,
+            "p95Ms": 119.66007500086562
+          },
+          "nodeBatch1": {
+            "medianMs": 47.44490900000028,
+            "p95Ms": 49.02986400000009,
+            "eventLoopMaximumMs": 2.451455
+          },
+          "nodeBatch256": {
+            "medianMs": 49.20995700000003,
+            "p95Ms": 52.60453200000029,
+            "eventLoopMaximumMs": 4.829183
+          }
+        }
+      }
+    ],
+    "scope": "Original Python JsonLogReader vs Node streaming reader over identical local gzip files. Includes decompression, exact JSON numeric boundary checks, message iteration and open/close; input construction excluded. Node strict EOF validation is additional. No target-board or concurrent-print proof."
+  },
+  "checks": [
+    "Node reader round trip retains integers beyond binary64 and small floating values",
+    "Full-flush indexed seek resumes at correct record",
+    "Standalone exports with independently installed dependencies and PATH=/no-programs",
+    "CLI listing, graph planning, explicit option errors and output preservation"
+  ],
+  "limitations": [
+    "No Matplotlib desktop window; HTML is the interactive output and -o is required",
+    "Remaining historical Python oracle tests and benchmarks are not retired",
+    "Offline local performance only; no target-board or concurrent-print claim",
+    "Default printer entrypoint remains Python and historical runtime/numerical failures remain open"
+  ]
+}

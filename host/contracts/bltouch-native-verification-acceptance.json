@@ -1,0 +1,29 @@
+{
+  "scope": "Stationary MCU endstop verification and BLTouch lifecycle on native serial transport with simulated firmware. No printer seek or configuration assembly.",
+  "sha256": {
+    "host/src/homing/endstop-verification.ts": "326da3a9cffb7d1c0a5ee5ee9aefa7a9d52b0471c91c2a98a7f06c42eff9e009",
+    "host/test/endstop-verification.test.ts": "242f6d0de83aef568eaead2b1594492f0ac43edafc42f242794159001942fe73"
+  },
+  "tests": "✔ BLTouch command PWM and action timing match original Python over clock and duration boundaries (6.976044ms)\n✔ command queue sends PWM off before publishing timing and separates successive commands (0.389335ms)\n✔ off write failure poisons queue and awaits output stop without publishing timing (0.574037ms)\n✔ abort fences late command completion and rejects overlapping ownership (0.297553ms)\n✔ invalid commands and unrepresentable clocks fail before writing (0.302283ms)\n✔ BLTouch deployment and PWM disable reach the native serial transport with 20ms cycle (1201.402257ms)\n✔ startup verification gates ready; each sample deploys, waits, seeks and stows (1.782782ms)\n✔ multi-sample session lowers once, uses touch mode and stows only after all samples (0.667938ms)\n✔ failed raise verification retries reset twice and never publishes ready (0.89179ms)\n✔ failed sensor test retries but never invokes descent (0.610387ms)\n✔ successful retry and original rolling five-minute sensor-test timeout (0.965502ms)\n✔ clone flags skip unsupported checks and reset before raising (0.373625ms)\n✔ cancelled sensor verification stops hardware without late deployment (0.527927ms)\n✔ seek failure stops motion and PWM instead of claiming a verified stow (0.365975ms)\n✔ retained sample capability cannot issue device commands after its session (0.235233ms)\n✔ transport verification errors stop immediately instead of being treated as a retryable no-hit (0.258533ms)\n✔ a session cannot publish idle while a detached sample is still active (0.372965ms)\n✔ probe sampling tolerance retries retain one deployed pin for the complete multi-sample session (0.688798ms)\n✔ stationary verification returns authoritative MCU deadline without stepper commands (670.104555ms)\n✔ stationary verification returns authoritative MCU hit without stepper commands (663.247852ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (0) (661.545152ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (2) (659.061892ms)\n✔ unarmed, premature host stop and communication faults are not a normal no-hit (4) (660.433099ms)\n✔ stale hit clock is rejected even when raw GPIO matches the desired state (662.445622ms)\n✔ cancellation stops the session and prevents verifier reuse (429.683466ms)\n✔ host timeout remains a fault and never becomes an MCU no-hit result (428.352229ms)\n✔ expired window is rejected before writes and ongoing sampling cannot be accepted (660.257996ms)\n✔ BLTouch lifecycle uses native PWM and independently confirmed sensor sampling on one MCU (4133.974726ms)\nℹ {\"nativeLifecycleMs\":3725.9099890000007,\"verifications\":3,\"simulatedSeekCalls\":1,\"physicalMotion\":false}\nℹ tests 28\nℹ suites 0\nℹ pass 28\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 10932.638\n",
+  "typecheck": true,
+  "lifecycle": {
+    "nativeLifecycleMs": 3725.9099890000007,
+    "verifications": 3,
+    "simulatedSeekCalls": 1,
+    "physicalMotion": false
+  },
+  "behavior": [
+    "Dedicated trigger OID has no stepper registrations",
+    "MCU bounded timer reports normal verification deadline; host timeout is always a fault",
+    "Disable sampling, confirm trigger reason and sensor stopped state before returning",
+    "Hit clock must belong to the current verification window; GPIO polarity alone is not hit evidence",
+    "Window must be within signed 32-bit MCU scheduling range and still future before arming",
+    "Cancellation, unknown outcomes and transport errors stop the session"
+  ],
+  "remaining": [
+    "Allocate dedicated verification trsync in machine compiler",
+    "Connect device lifecycle to native seek with trigger-time stow scheduling",
+    "Full compiled product performance acceptance and physical printer verification",
+    "Python implementation retained"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": true,
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "..",
+    "outDir": "build/product-host"
+  },
+  "include": [
+    "src/**/*.ts",
+    "../scripts/product-host.ts",
+    "../scripts/product-service-unit.ts",
+    "../scripts/product-install.ts",
+    "../scripts/product-preflight.ts",
+    "../scripts/flash-sdcard.ts"
+  ]
+}

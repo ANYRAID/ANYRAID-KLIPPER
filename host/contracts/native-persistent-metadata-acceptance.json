@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "implementationBase": "f6c3c1e0",
+  "node": "v26.9.0",
+  "hashes": {
+    "host/src/moonraker/native-persistent-metadata.ts": "7ea12b0d118d721588dafd1c4bb263d29980dc87f2763efaf1d545404c502ae4",
+    "host/src/moonraker/native-print-uploads.ts": "1265300ca4c732ec87a32dd6ab9ab48cd1de0a7e02acf0bbab06970ee409f491",
+    "host/test/native-persistent-metadata.test.ts": "42beb4d1ae74818399bf712c992dca7dca47491d4efa34d06fa286c0d7f4af45",
+    "host/acceptance/product-compiled-journey.test.ts": "d1c6d7e67cf1ab167824630b103fbdc01d05e60209e3275bfd18916b37165c41"
+  },
+  "validation": {
+    "compiledAcceptanceTests": 4,
+    "typecheck": true,
+    "whitespace": true,
+    "relatedTests": 20
+  },
+  "runs": [
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 147,
+      "wireSteps": 3228,
+      "minimumStepLeadMs": 89.131,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.869823,
+            "maxMs": 12.992511
+          },
+          "cpu": {
+            "user": 688019,
+            "system": 79902
+          },
+          "rss": 164007936
+        },
+        {
+          "loop": {
+            "p99Ms": 1.777663,
+            "maxMs": 5.128191
+          },
+          "cpu": {
+            "user": 399696,
+            "system": 44880
+          },
+          "rss": 183357440
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.844339000002947,
+      "deleteRequests": 16,
+      "deleteP95Ms": 16.089576000002126,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 4.918106000000989,
+      "metadataRequests": 16,
+      "metadataP95Ms": 15.125753000000259,
+      "downloads": 16,
+      "downloadP95Ms": 3.456745999999839,
+      "wireCommands": 147,
+      "wireSteps": 3222,
+      "minimumStepLeadMs": 87.6,
+      "directoryRequests": 2067,
+      "directoryP99Ms": 3.7407400000010966,
+      "statusRequests": 8614,
+      "uploads": 16,
+      "statusP99Ms": 2.359800999998697,
+      "uploadP95Ms": 12.21159500000067,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.002943,
+            "maxMs": 13.549567
+          },
+          "cpu": {
+            "user": 1846694,
+            "system": 229933
+          },
+          "rss": 244109312
+        },
+        {
+          "loop": {
+            "p99Ms": 1.822719,
+            "maxMs": 4.255743
+          },
+          "cpu": {
+            "user": 1127101,
+            "system": 139489
+          },
+          "rss": 236023808
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS-only child host, dual PTY MCU simulation; persistent metadata, unchanged preview bytes across service reinitialization and full process restart, 16 uploads/metadata queries/downloads/previews/deletions during printing. Existing motion captures and queue lead gates retained. No target-board or physical printer acceptance; historical numerical instability unresolved.",
+  "limitations": [
+    "4096 lifetime filenames in durable version store; no indefinite history rotation",
+    "Default Python deployment remains",
+    "Full Moonraker and all Python retirement incomplete"
+  ],
+  "earlierTrial": {
+    "scope": "Before duplicate invalidation coalescing and factory cleanup ownership adjustment",
+    "runs": [
+      {
+        "loaded": false,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 149,
+        "wireSteps": 3224,
+        "minimumStepLeadMs": 86.696,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.873919,
+              "maxMs": 13.770751
+            },
+            "cpu": {
+              "user": 717054,
+              "system": 80896
+            },
+            "rss": 163844096
+          },
+          {
+            "loop": {
+              "p99Ms": 1.760255,
+              "maxMs": 4.126719
+            },
+            "cpu": {
+              "user": 368374,
+              "system": 56878
+            },
+            "rss": 190963712
+          }
+        ]
+      },
+      {
+        "loaded": true,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.111273999998957,
+        "deleteRequests": 16,
+        "deleteP95Ms": 7.965809999997873,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.040478000002622,
+        "metadataRequests": 16,
+        "metadataP95Ms": 22.534239000000525,
+        "downloads": 16,
+        "downloadP95Ms": 6.085802999998123,
+        "wireCommands": 147,
+        "wireSteps": 3232,
+        "minimumStepLeadMs": 88.456,
+        "directoryRequests": 2055,
+        "directoryP99Ms": 3.5947789999991073,
+        "statusRequests": 8524,
+        "uploads": 16,
+        "statusP99Ms": 2.653335999999399,
+        "uploadP95Ms": 27.88860399999976,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.975295,
+              "maxMs": 13.467647
+            },
+            "cpu": {
+              "user": 1876305,
+              "system": 226662
+            },
+            "rss": 240730112
+          },
+          {
+            "loop": {
+              "p99Ms": 1.867775,
+              "maxMs": 4.997119
+            },
+            "cpu": {
+              "user": 1072858,
+              "system": 132431
+            },
+            "rss": 266530816
+          }
+        ]
+      }
+    ]
+  },
+  "restrictedRunner": {
+    "result": "Two file-level failures without diagnostic cause; persistent test file passed",
+    "failedFiles": [
+      "host/test/native-file-notifications.test.ts",
+      "host/test/native-print-uploads.test.ts"
+    ],
+    "followup": "Approved local execution of final code: 20 tests passed; restricted failure root cause not established"
+  }
+}

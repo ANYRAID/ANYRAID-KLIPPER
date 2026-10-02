@@ -1,0 +1,379 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "sourceBase": "d86a4aee5655f005492815614686f378744d12e5",
+  "node": "v26.9.0",
+  "scope": "Ordered firmware-time observation after confirmed homing stop. Local simulated MCU and independent compiled product evidence; not full migration, target precision, current remote CI success or proof of the exact ec4639 failure cause.",
+  "sourceSha256": {
+    "host/src/homing/stop-confirmation.ts": "edfd7836ba59af70f6c4ce56cf63d1095e580ac6278cd004c49768c1ab34bc51",
+    "host/test/homing-stop.test.ts": "aa13c1ce180d9efd80cb28c73469dfefb0e4b3d91f635b94e7a8b5eb37ab8cb3",
+    "host/bench/homing-stop.ts": "3b6b0e3cc83ac2c12944d7809c98dd846e1c9f867cbc8b01bd4e511365cd4956"
+  },
+  "counterexample": {
+    "model": "ClockSync accepts monotonic samples but getClock at a later host instant can be smaller than its earlier prediction",
+    "nominalFrequency": 1000000,
+    "origin": "fixture MCU current clock minus 520900",
+    "samples": "eight 50000-tick / 0.05-second warmup increments with 0.0002-second RTT; ninth relative counter 498000 at sent=1.5 receive=1.501",
+    "before": "getClock(1.501)",
+    "hit": "before minus 100 ticks",
+    "after": "getClock(1.5011) after ninth sample, strictly below hit",
+    "originalResult": "Endstop trigger is in the future",
+    "finalResult": "same hit retained; one actual MCU uptime observed before endstop and position readbacks; no device stop"
+  },
+  "implementation": {
+    "clock": "get_uptime returns (uint32 high << 32) | uint32 clock; bound remains Number.MAX_SAFE_INTEGER",
+    "sequence": [
+      "disable endstop sampling",
+      "release dispatch",
+      "confirm stopped trsync state on every member",
+      "one serialized uptime query per physical member route",
+      "read stopped endstop state",
+      "read signed positions and phase observers",
+      "assert every session active before publication"
+    ],
+    "invariants": [
+      "all motion producers remain fenced",
+      "stopped counters unchanged from actual observation through readback",
+      "primary hit <= actual stopped primary tick",
+      "mapped hit <= observed member tick unchanged",
+      "actual tick >= previously sampled MCU tick",
+      "shared physical MCU unaddressed uptime route serialized",
+      "no added query retries, clamp, tolerance or deadline extension",
+      "failure aborts peers and joins original safety cleanup"
+    ]
+  },
+  "local": {
+    "relatedRegression": {
+      "files": 4,
+      "tests": 36,
+      "pass": 36,
+      "fail": 0
+    },
+    "deltaCompatibility": {
+      "file": "host/test/delta-probe.test.ts",
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "scope": "Existing generic compatibility tests; no new machine adaptation and not closure of remote calibration failure"
+    },
+    "typecheck": "pass",
+    "whitespace": "pass",
+    "counterexampleOriginal": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    "rejectedPrototype": {
+      "description": "Additional pre-stop and post-read uptime round trips exceeded original performance threshold; replaced before acceptance",
+      "validatedMedianMs": 12.835049,
+      "rawMedianMs": 8.288727,
+      "threshold": 1.5
+    },
+    "readbackInitialFailure": "35/36; close race delivered exact original disconnect cause earlier than generic not-ready message. Assertion now requires either original cause identity or original not-ready rejection; both sessions must still stop."
+  },
+  "performance": {
+    "oldValidated": {
+      "node": "v26.9.0",
+      "operationsPerBatch": 20,
+      "mcus": 2,
+      "steppers": 4,
+      "rawSequenceMedianMs": 7.277833000000101,
+      "rawSequenceP95Ms": 10.162815000000137,
+      "validatedMedianMs": 8.344784000000004,
+      "validatedP95Ms": 11.240356999999904,
+      "scope": "same simulated serial command sequence; excludes native group release, real motion, compressor reconciliation and hardware"
+    },
+    "finalValidated": {
+      "node": "v26.9.0",
+      "operationsPerBatch": 20,
+      "mcus": 2,
+      "steppers": 4,
+      "rawSequenceMedianMs": 8.00258400000007,
+      "rawSequenceP95Ms": 9.086017000000083,
+      "validatedMedianMs": 10.530904999999848,
+      "validatedP95Ms": 12.337835000000041,
+      "scope": "same simulated serial transport; original raw baseline omits validated MCU uptime observations; excludes native group release, real motion, compressor reconciliation and hardware"
+    },
+    "originalRawBudgetRatio": 1.3159380770010982,
+    "retainedLimit": 1.5,
+    "oldValidatedMedianPerStopMs": 0.4172392000000002,
+    "finalValidatedMedianPerStopMs": 0.5265452499999924,
+    "note": "Separate sequential same-environment runs. Adds cold homing readback IO; no per-step or API hot-path query. Target-board cost and actual print duration remain unverified."
+  },
+  "compiledProduct": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "originalDeadlineSeconds": 180,
+    "metrics": {
+      "namespace": true,
+      "motionReportLoad": true,
+      "configListRequests": 795,
+      "configListP99Ms": 3.977426999999807,
+      "configDownloads": 795,
+      "configDownloadP99Ms": 6.426655999999639,
+      "liveMotionSamples": 2639,
+      "liveExtrusionSamples": 1451,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.516693220999999,
+        "print_duration": 2.5160678169999975,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "120ef849eb44ba90c01fe55f8e8e2a55302218669fdc6cc94aeca139301c0caf",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3843,
+      "phaseP99Ms": 3.4296199999989767,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 862,
+      "historyP99Ms": 12.6464390000001,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 7.386227999999392,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.678477000001294,
+      "publicThumbnailRequests": 16,
+      "publicThumbnailP95Ms": 8.33817799999997,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 4.3964820000001055,
+      "metadataRequests": 16,
+      "metadataP95Ms": 22.53778699999384,
+      "downloads": 16,
+      "downloadP95Ms": 12.329845999998724,
+      "wireCommands": 190,
+      "wireSteps": 3704,
+      "minimumStepLeadMs": 86.024,
+      "directoryRequests": 3691,
+      "directoryP99Ms": 5.47821500000282,
+      "statusRequests": 15370,
+      "uploads": 16,
+      "statusP99Ms": 4.158748999998352,
+      "uploadP95Ms": 21.436573000000863,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.004991,
+            "maxMs": 19.464191
+          },
+          "cpu": {
+            "user": 6524897,
+            "system": 955163
+          },
+          "rss": 333144064
+        },
+        {
+          "loop": {
+            "p99Ms": 1.902591,
+            "maxMs": 8.437759
+          },
+          "cpu": {
+            "user": 2113047,
+            "system": 395457
+          },
+          "rss": 317374464
+        }
+      ]
+    },
+    "records": [
+      {
+        "installation": {
+          "durationMs": 789.7983839999999,
+          "dependencies": 14
+        }
+      },
+      {
+        "pausedMotionReport": {
+          "live_position": [
+            0,
+            0,
+            0,
+            0.4424826242165202
+          ],
+          "live_velocity": 0,
+          "live_extruder_velocity": 0
+        }
+      },
+      {
+        "filamentRunout": {
+          "sensor": "filament_switch_sensor tool",
+          "compiled": true,
+          "automaticPause": true,
+          "absentResumeRejected": true,
+          "runoutPauseMs": 1247.827303,
+          "settledStepClock": true,
+          "noAutomaticResume": true
+        }
+      },
+      {
+        "objectCancellation": {
+          "compiled": true,
+          "firstCancellation": true,
+          "paused": true,
+          "retryWithoutMotion": true
+        }
+      },
+      {
+        "nativeTemperatureHistory": {
+          "samples": 11,
+          "sensors": [
+            "extruder",
+            "heater_bed"
+          ],
+          "authenticated": true
+        }
+      },
+      {
+        "idleTimeout": {
+          "heaterOff": true,
+          "motorRelease": true,
+          "hostRemainsReady": true
+        }
+      },
+      {
+        "pausedTimeout": {
+          "cancelled": true,
+          "resumeRejected": true
+        }
+      },
+      {
+        "compiledConfigOffline": {
+          "originalJwt": true,
+          "realConfiguration": true,
+          "readOnly": true,
+          "sameProcessRoot": true
+        }
+      },
+      {
+        "compiledDetachedWindow": {
+          "sameListener": true,
+          "priorJwt": true,
+          "originalSockets": true,
+          "metadataAndHistory": true,
+          "downloadSha256": "85c54197d1abee71ed4b84cbbcbdea6f92e9a2204a5a1b1b0efad7a0dfb5ab85",
+          "noPrintReplay": true,
+          "fileQueries": 50,
+          "fileQueryP99Ms": 0.6443770000005316
+        }
+      },
+      {
+        "retainedProcessServer": {
+          "sameAddress": true,
+          "priorJwtAccepted": true,
+          "originalSocketsOpen": true,
+          "reinitializeMs": 2940.6337729999977
+        }
+      },
+      {
+        "temperatureHistoryRestart": {
+          "preserved": true,
+          "samplesBefore": 20,
+          "samplesAfter": 23
+        }
+      },
+      {
+        "nativeAuthorizationRestart": {
+          "compiled": true,
+          "processRestart": true,
+          "persistedLogin": true,
+          "priorTokenAccepted": true,
+          "filesAndHistory": true,
+          "noReplay": true,
+          "interruptedResumeRejected": true,
+          "explicitCancel": true,
+          "logoutRevoked": true
+        }
+      },
+      {
+        "configBackupLoad": {
+          "requests": 795,
+          "p99Ms": 4.954939000002923,
+          "mutationsBlockedDuringPrint": true
+        }
+      }
+    ],
+    "scope": "Independent JS package and production dependencies; no Python or TS loading; parent simulated MCU only. Original timing/lead/loop/performance assertions unchanged."
+  },
+  "unresolved": [
+    "Exact ec4639 mapped/observed mismatch requires original clock trace or deterministic equivalent",
+    "d86a4aee remote Delta calibration 503 with hits=16 and no recorded motion/hardware fault",
+    "Historical motion numerical mismatch and process crashes",
+    "Fresh exact-head complete CI, fixed real-client journey and target hardware precision/performance",
+    "177 tracked Python files and default-entry retirement"
+  ],
+  "logSha256": {
+    "/tmp/anyraid-clock-baseline.log": "95fb2347ac517d624d3bf7b5435af40e9b3237f20ba192e8751044478d70ab67",
+    "/tmp/anyraid-clock-new-tests-before.log": "7d830267e93de24994ad316d078068f60df284a2e25b46d9efbecfc1787ed220",
+    "/tmp/anyraid-clock-stop-regression.log": "4413150ae0811f5de2c7050a4db279f19bd434501752651bfefd66a60ca1be98",
+    "/tmp/anyraid-clock-stop-regression-final.log": "c360286f5c37d90b5eb36eb2983ddfa4b7b186ec04414e4f593ec77cd529ee51",
+    "/tmp/anyraid-clock-stop-old-bench.log": "6015f4e10e73588f701ce3e8b53afd9c3da06fa54c53b7c1301dedf228b61cb7",
+    "/tmp/anyraid-clock-stop-new-bench.log": "5b7d336ab2089d1deb0beb8ad90764c85e29c9078db7838bf21a7034f33c5763",
+    "/tmp/anyraid-clock-stop-final-bench.log": "b78f4dc18d185fc876352870a8afd13188d9a81b6c93147478ddbe61841e2fde",
+    "/tmp/anyraid-clock-compiled-journey.log": "031d17506a797929875a9f8f8baf058449a3a24980838bb881c3542ff9e41cba",
+    "/tmp/anyraid-clock-delta-regression.log": "121092bcf7d8d50b25a39af764c95db386de97d5f174ee1944fdcde715f615be",
+    "/tmp/anyraid-clock-typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "/tmp/anyraid-clock-whitespace-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

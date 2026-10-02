@@ -1,0 +1,711 @@
+{
+  "implementationBase": "58969f0a",
+  "scope": "Source and independent compiled product observations with simulated MCU; no physical printer acceptance",
+  "clients": [
+    {
+      "name": "Fluidd",
+      "version": "1.37.6",
+      "commit": "d894c50d580212c245a7c552ae695008c441683b",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+      "verified": [
+        "WebSocket login",
+        "ready dashboard with periodic simulated ADC",
+        "gcodes root enables upload menu",
+        "System information and process load display after native bindings",
+        "Seeded file selection, start request and cancellation during preparation"
+      ],
+      "uploadBeforeFix": "HTTP 400",
+      "uploadAfterFix": "HTTP regression passed; browser file chooser failed, UI recheck pending"
+    },
+    {
+      "name": "Mainsail",
+      "version": "2.19.0",
+      "commit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+      "result": "Latest explicit trusted-loopback recheck reaches dashboard and first short print Complete; pause observed on second job. Full journey pending; see mainsailWebcamRecheck."
+    }
+  ],
+  "missingNativeBindings": [
+    "server.files.list root=config"
+  ],
+  "regressions": {
+    "rootDiscovery": 17,
+    "uploadAndAuthorization": 19
+  },
+  "performance": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "size": 4194304,
+        "results": {
+          "direct": {
+            "medianMs": 5.606882999999982,
+            "p95Ms": 10.162210999999957,
+            "medianMiBPerSecond": 713.4088583621261,
+            "eventLoopMaximumMs": 2.271231
+          },
+          "http": {
+            "medianMs": 21.945951999999977,
+            "p95Ms": 24.655467999999985,
+            "medianMiBPerSecond": 182.26595957195224,
+            "eventLoopMaximumMs": 2.934783
+          }
+        }
+      },
+      {
+        "size": 16777216,
+        "results": {
+          "direct": {
+            "medianMs": 22.55012499999998,
+            "p95Ms": 31.35229799999979,
+            "medianMiBPerSecond": 709.5304349754165,
+            "eventLoopMaximumMs": 5.144575
+          },
+          "http": {
+            "medianMs": 69.13168399999995,
+            "p95Ms": 74.23135500000001,
+            "medianMiBPerSecond": 231.4423586151903,
+            "eventLoopMaximumMs": 7.475199
+          }
+        }
+      }
+    ],
+    "scope": "Direct immutable publication vs multipart HTTP loopback admission plus publication; same native store, authorization is noop. Input/FormData preparation, verification and deletion outside timing. HTTP client shares event loop; maximum delays include client work. No Python, target flash, concurrent motion or physical printer comparison."
+  },
+  "limitations": [
+    "Full client acceptance remains pending; partial compiled UI printing evidence is recorded in follow-up sections",
+    "No Python baseline or target board performance",
+    "Browser file chooser blocked for hours despite requested timeout",
+    "Original long-running simulated firmware failed encoding unwrapped get_clock ticks; deterministic rollover fix verified separately, not a long-duration or physical MCU result; interactive helper remains limited to 15 minutes"
+  ],
+  "simulatorClockFollowUp": {
+    "cause": "Unwrapped simulated 1 MHz clock encoded in a uint32 wire field",
+    "reference": "src/basecmd.c command_get_clock and command_get_uptime",
+    "reproduction": "Controllable monotonic clock reproduces Integer outside MCU wire range before fix",
+    "fix": "get_clock low 32 bits; get_uptime high and low words; currentClock remains full ticks",
+    "coverage": [
+      "0xfffffffe",
+      "0xffffffff",
+      "0x100000000",
+      "0x100000001",
+      "5 * 0x100000000 + 123"
+    ],
+    "tests": {
+      "firmware": 3,
+      "clockSerialNativeAuthorization": 13
+    },
+    "typecheck": "passed",
+    "scope": "Test fixture only; does not resolve existing production motion diagnostics; no wall-clock endurance acceptance"
+  },
+  "nativeConsoleFollowUp": {
+    "evidence": "native-gcode-output-acceptance.json",
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
+  },
+  "nativeHelpFollowUp": {
+    "evidence": "native-gcode-help-acceptance.json",
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
+  },
+  "nativeProcStatsFollowUp": {
+    "evidence": "native-proc-stats-acceptance.json",
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
+  },
+  "nativeSystemInformationFollowUp": {
+    "evidence": "native-system-information-acceptance.json",
+    "browserRecheck": "Initialization calls verified; no Method not found for these endpoints"
+  },
+  "uiRecheck": {
+    "base": "716e1a3a",
+    "client": "Fluidd 1.37.6-d894c50",
+    "fixture": "host/acceptance/client-probe.ts",
+    "file": "client-sample.gcode",
+    "seed": "Native API upload during fixture bootstrap, not browser upload",
+    "verified": [
+      "Local-user login and ready dashboard",
+      "Seeded immutable file listed and selectable",
+      "File menu sends printer.print.start; dashboard shows selected filename and printing state during preparation",
+      "Confirmed cancellation reaches native cancelled with zero pending device actions and safe_stop_pending false",
+      "System page displays actual CPU, memory, distribution, network and process load"
+    ],
+    "remainingErrors": [
+      "server.files.list root=config returns Native file root not found"
+    ],
+    "cancellationBoundary": "Cancellation during unsimulated homing invalidates device readiness; UI reports Shutdown and requires device reinitialization. Not a completed print or return-to-ready acceptance.",
+    "fixtureFailure": {
+      "observed": "ADC emitter continued after MCU stop and filled unread PTY; EAGAIN terminated fixture and caused later browser connection errors",
+      "fix": "Stop ADC emissions per confirmed MCU stop count",
+      "verified": "Unit test checks stopped MCU emits no data; child-process regression cancels preparation, observes API availability for 15 seconds and exits 0 on SIGINT"
+    },
+    "pending": [
+      "Browser file upload",
+      "Full homing and heating simulation followed by pause/resume/completion",
+      "Mapping native controlled recovery to actual client restart workflow",
+      "Physical printer and target-board acceptance"
+    ]
+  },
+  "compiledUiRecheck": {
+    "implementationBase": "dff31cd5",
+    "bundleManifestSha256": "fbd0c13fe45b14271d0157c4dd40c0f73aff39646fa2d418f2b17a69e22c9657",
+    "client": "Fluidd 1.37.6",
+    "runtime": "Node.js 26.9.0; emitted JS child with PATH=/no-programs and type stripping disabled; PTY simulator stays in parent",
+    "verified": [
+      "Actual page login and ready dashboard",
+      "API-seeded client-sample.gcode selected and started from page",
+      "Firmware endstop events and PWM-triggered ADC simulation permit preparation",
+      "Page shows printing, paused, resumed printing, then 100 percent and ready",
+      "Native status and history confirm completed; no pending device actions or safe stop",
+      "Probe exits 0 on SIGINT"
+    ],
+    "automatedRegression": {
+      "command": "node --test --test-isolation=none host/acceptance/client-probe.test.ts",
+      "result": "1 passed",
+      "durationMs": 38094.846187,
+      "coverage": [
+        "Independent product build and dependencies",
+        "Standard file start, pause, resume and completion",
+        "Native versioned host reinitialize creates second MCU generation",
+        "Login token and completed history survive reinitialization",
+        "Preparation cancel on second generation; API stays alive 15 seconds",
+        "Normal child and parent shutdown"
+      ]
+    },
+    "loadRegression": {
+      "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true' host/acceptance/product-compiled-journey.test.ts",
+      "result": "1 passed",
+      "statusP99Ms": 4.323892999998861,
+      "minimumStepLeadMs": 84.061,
+      "statusRequests": 16072,
+      "scope": "Existing desktop concurrent workload; no target-board or Python comparison"
+    },
+    "limitations": [
+      "Sample seeded via API; page upload unverified",
+      "Fixed temperatures after PWM, not a physical heating/cooling model",
+      "Native reinitialize API verified; standard client restart buttons unverified",
+      "Mainsail initialization and full journey pending",
+      "Target hardware, numerical faults and Python retirement pending"
+    ]
+  },
+  "mainsailTrustedRecheck": {
+    "version": "2.19.0",
+    "bundleManifestSha256": "9420510b0ba64c782748758f15bdbeb987ad5a32cbc15c7bd935bed40cd63f18",
+    "authentication": "Explicit temporary trusted_clients=127.0.0.1, force_logins=false; no change to default credential mode",
+    "verified": [
+      "server.connection.identify accepted",
+      "server.info/config, system info/proc stats and database calls proceed",
+      "printer object queries/subscriptions proceed"
+    ],
+    "remainingBlocker": "server.webcams.list returns Method not found; Mainsail gui/webcams/initStore never clears gui/webcam/init",
+    "result": "Still Initializing; full UI acceptance pending",
+    "sourceEvidence": [
+      "https://github.com/mainsail-crew/mainsail/blob/5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70/src/store/server/actions.ts",
+      "https://github.com/mainsail-crew/mainsail/blob/5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70/src/store/gui/webcams/actions.ts",
+      "https://github.com/mainsail-crew/gb-docs/blob/main/setup/installation/manual-setup.md"
+    ]
+  },
+  "mainsailWebcamRecheck": {
+    "implementationBase": "a0063d7e",
+    "client": "Mainsail 2.19.0",
+    "bundleManifestSha256": "04792ea7023fe5ef3217b88c1dd226abb041520c7937bb2c281f7c890d8eed53",
+    "authentication": "Explicit temporary loopback trusted_clients; no login or default anonymous access claim",
+    "verified": [
+      "Webcam list resolves and dashboard reaches Standby",
+      "API-seeded file selected and started from page",
+      "First short print reaches Complete",
+      "Second print started; page pause reaches 63 percent Paused",
+      "Probe exits 0 on SIGINT"
+    ],
+    "pending": [
+      "Second print resume and completion not verified",
+      "Speed displays NaN mm/s; flow displays null mm3/s during printing",
+      "Page upload, client recovery and physical hardware acceptance"
+    ],
+    "scope": "Compiled product child with simulated MCU; UI observations do not prove physical printing"
+  },
+  "mainsailMotionRecheck": {
+    "evidence": "host/contracts/native-motion-report-acceptance.json",
+    "bundleManifestSha256": "95bd9e382cd4b78c8b0ae2a5cab592d2a6498a923c5653430e84dfbd6ce011bb",
+    "verified": [
+      "Printing speed 1 mm/s and flow 0.2 mm3/s",
+      "Page pause at 76 percent reports zero speed and flow",
+      "Page resume reaches Complete"
+    ],
+    "remaining": [
+      "Page upload",
+      "Client disconnect/restart recovery",
+      "Final drained-position refinement has compiled regression, not repeated page acceptance",
+      "Controlled performance A/B and target hardware"
+    ]
+  },
+  "compiledReconnect": {
+    "base": "13fef960",
+    "command": "node --test --test-isolation=none --test-concurrency=1 host/acceptance/client-probe.test.ts",
+    "passed": 2,
+    "durationMs": 81825.735968,
+    "typecheck": "passed",
+    "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+    "logSha256": "d006e5d991595d9a015ab5b814f3f7f5cd8fb9c14b5c3a5fc9d30223c0434e80",
+    "modes": [
+      "JWT token through server.connection.identify",
+      "Explicit trusted loopback"
+    ],
+    "verified": [
+      "Subscribe before printing and receive printing delta",
+      "Abrupt disconnect during printing; new connection identifies again and receives fresh printing snapshot",
+      "Request identity and filename survive reconnection without duplicate start",
+      "Reconnected subscription receives paused and complete deltas",
+      "Controlled reinitialization closes previous socket; same JWT or explicit trust authenticates new generation",
+      "Fresh subscription after reinitialization reports standby and not paused",
+      "Completed history survives; second-generation cancellation remains available for 15 seconds"
+    ],
+    "scope": "Protocol clients against independent compiled product with simulated MCU; not actual frontend reconnection or physical printer acceptance",
+    "performance": "No production runtime change; prior same-artifact ABBA evidence remains applicable. This test does not quantify reconnect latency.",
+    "remaining": [
+      "Actual frontend reload/reconnection flow",
+      "Standard restart and firmware_restart semantics versus native controlled reinitialization",
+      "Browser file upload",
+      "Physical hardware, Python retirement and target performance"
+    ]
+  },
+  "mainsailPageReconnect": {
+    "base": "2a900928",
+    "client": "Mainsail 2.19.0",
+    "bundleManifestSha256": "f4df758f20379bfea05afdc60b92c6d1803408089728d221a1876dc39b687495",
+    "logSha256": "2782464c1c7f79fc432ccb0e5ebeecc40ff4174c018ac54cb9081d30cb10ea36",
+    "authentication": "Explicit trusted loopback in disposable fixture",
+    "verified": [
+      "Started API-seeded sample from page",
+      "Reloaded during printing; page recovered and reached Complete",
+      "Persistent history contains exactly one completed job after reload",
+      "Native host reinitialize receipt reached succeeded and fixture reached generation 2",
+      "Page displayed Connection failed; explicit TRY AGAIN returned Standby",
+      "History still contains the single completed job after reinitialization",
+      "Probe exits 0 on SIGINT"
+    ],
+    "notVerified": [
+      "Automatic frontend reconnect after service generation replacement",
+      "Fluidd page reload/reconnect under JWT",
+      "Browser upload",
+      "Standard restart buttons working end-to-end",
+      "Physical printer recovery"
+    ],
+    "restartGap": {
+      "clientSource": "mainsail-crew/mainsail@5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70 src/components/panels/KlippyStatePanel.vue:146,150",
+      "rpc": [
+        "printer.restart",
+        "printer.firmware_restart"
+      ],
+      "http": [
+        {
+          "path": "/printer/restart",
+          "status": 404
+        },
+        {
+          "path": "/printer/firmware_restart",
+          "status": 404
+        }
+      ],
+      "nativeOperation": "POST /printer/host/reinitialize",
+      "next": "Audit host reload and MCU firmware reset ownership, stop acknowledgments and restart transport before mapping standard routes. Do not label a fresh simulated MCU generation a hardware firmware reset."
+    },
+    "scope": "Actual browser observations against compiled host with simulated MCU, not physical printing"
+  },
+  "currentEvidence": "historyDiscoveryProcessAcceptance",
+  "nativeRestartPageAcceptance": {
+    "date": "2026-10-01",
+    "implementationBase": "3622c532",
+    "stage": "A4 partial; not sealed",
+    "node": "v26.9.0",
+    "artifactManifestSha256": "d33afd9f44f421dace822d0edc2f984d9ab9e0c180677c0a67668a5d96269683",
+    "productionChanges": false,
+    "fixture": {
+      "entry": "host/acceptance/client-probe.ts",
+      "mode": "Independent emitted host process with TS loading disabled and external PATH tools unavailable; createProcess resource lifetime; original two PTY MCU models across all generations",
+      "changes": [
+        "Acquire/release IPC enforces one device lease. Stop counters remain monotonic; simulation pauses on confirmed stops and resumes only at actual product ready.",
+        "Observe commands accepted by firmware instead of a second decoder with stale reconnect sequence.",
+        "Ignore prior ADC requests and heater activation. Reuse latest retained sensor/output configuration across ordinary RESTART.",
+        "Ordinary-restart complete heated printing regression prevents false preparation failures caused by missing historical simulator configuration."
+      ],
+      "fileOrigin": "client-sample.gcode and ui-controls-seeded.gcode were API seeded. Neither is evidence of browser upload."
+    },
+    "protocolRegression": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "log": "/tmp/anyraid-client-probe-current-final.log",
+      "logSha256": "22192c6d70e3d12126e3cdd96184951f9bad3a39a9a8fff95c71bcdee551c067",
+      "verified": [
+        "JWT and explicit loopback trust modes",
+        "Print, pause, reconnect with same job ID, resume and completion",
+        "Same authenticated WebSocket survives controlled reinitialize, RESTART and FIRMWARE_RESTART; resubscribe obtains fresh snapshot",
+        "Ordinary RESTART followed by a complete heated print",
+        "Original MCU reset counts [0,0],[0,0],[0,0],[1,1]; configuration finalizations [1,1],[1,1],[1,1],[2,2]",
+        "Files and completed history preserved; preparation cancellation remains queryable for 15 seconds; exit 0 without EAGAIN",
+        "ADC only reaches current live owners; stale-generation query suppression"
+      ]
+    },
+    "clients": {
+      "fluidd": {
+        "version": "1.37.6-d894c50",
+        "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456",
+        "authorization": "Ephemeral local user JWT",
+        "log": "/tmp/anyraid-fluidd-controls-current.log",
+        "logSha256": "05452113b081fe23eee8c361a74dd5a5f0b38b02f79c0fdc1f262a3c1c8b7ddb",
+        "verified": [
+          "Login and ready dashboard",
+          "Seeded page-selected print completes; authoritative history includes completed",
+          "Page pause, refresh restores paused job, resume, confirmed cancel",
+          "Page standard printer.restart restores ready automatically; no manual reconnect or new login",
+          "Page standard printer.firmware_restart restores ready automatically; same files remain",
+          "Original MCU counts at ready: resets [0,0],[0,0],[1,1]; finalizations [1,1],[1,1],[2,2]",
+          "Both durable recovery receipts succeeded; completed and cancelled history remain"
+        ],
+        "screenshot": {
+          "path": "/tmp/anyraid-fluidd-current-ready.jpg",
+          "sha256": "4531bb54f90a6f164060174079e483d150d8d1431690e4043c80b5ba41f0cf85"
+        }
+      },
+      "mainsail": {
+        "version": "2.19.0",
+        "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+        "authorization": "Explicit numeric loopback trust in disposable test config only",
+        "log": "/tmp/anyraid-mainsail-current-final.log",
+        "logSha256": "e7fdce094a25dab024f3b532af34c45d03aae0f22a7f702b85c458e2fcd3087f",
+        "verified": [
+          "Standby, seeded page-selected print reaches Complete with 1 mm filament and 10 second print duration",
+          "Page pause, refresh restores paused job, resume, pause and cancel",
+          "Page standard printer.restart restores Standby automatically and retains files",
+          "A second page-selected heated print after ordinary restart reaches Complete",
+          "Page standard printer.firmware_restart restores Standby automatically and retains files",
+          "Original MCU counts at ready: resets [0,0],[0,0],[1,1]; finalizations [1,1],[1,1],[2,2]"
+        ],
+        "screenshot": {
+          "path": "/tmp/anyraid-mainsail-current-ready.jpg",
+          "sha256": "0521d40641613c57d15233397682752ce9e1a176922b6ad0e7ee8f65cc678e92"
+        }
+      }
+    },
+    "uploadToolBlock": {
+      "fluiddLog": "/tmp/anyraid-fluidd-current.log",
+      "fluiddLogSha256": "355822818d75b511f1d0c5b90e139215ea8e7a8ba41d9a13b1132d6096299220",
+      "mainsailChooserEstablished": true,
+      "observed": "Browser file chooser setFiles did not complete within requested execution/chooser deadlines. No browser upload HTTP request reached either fixture; 15-minute watchdog ended each affected fixture normally. API seeded upload is separately logged and excluded.",
+      "classification": "Unverified browser upload; tool blockage is not evidence that the product upload endpoint failed."
+    },
+    "differences": [
+      "config root and optional config/.theme files remain unavailable; these are not complete file-management acceptance.",
+      "Mainsail initially loaded cached Fluidd assets on 127.0.0.1; localhost origin displayed verified Mainsail assets. No backend change was made for this browser observation.",
+      "Mainsail displays preparation as Printing, initially NaN velocity/null flow; pause before actual execution returned 409. Retry only after positive job progress succeeded; consumer preparation UX remains incomplete.",
+      "Pointer clicks on some tooltip-backed buttons did not send RPC; keyboard activation sent standard client methods. This records the interaction method, not a diagnosed production pointer defect."
+    ],
+    "performance": {
+      "evidence": "native-firmware-restart-acceptance.json",
+      "scope": "Same production manifest as A3. Only test fixtures/docs changed; no unneeded production benchmark rerun. Desktop/PTy measurements do not prove target hardware.",
+      "statusP99Ms": 4.029953,
+      "minimumStepLeadMs": 85.381
+    },
+    "pending": [
+      "Successful real browser upload and uploaded-file metadata/printing in both fixed clients",
+      "Actual page history/reconnection and process recovery completion on the final candidate, beyond partial page and compiled protocol evidence",
+      "Full Moonraker/config/peripheral contracts",
+      "Target board, Cycnumbris 500 physical safety/precision/performance, known G3 numerical/crash issues",
+      "Whole-repository Python retirement and integration/release PR flow"
+    ],
+    "sourceSha256": {
+      "host/acceptance/client-probe.test.ts": "7e444b2c1a315e5a2c5d7ae1d04c8174e3f19f14095b9eee1627dbfb126ad16e",
+      "host/test/client-temperature.test.ts": "16042a4aca1d6f276f37fc800efeac659d316dd0e8143d20668a9815668d496c",
+      "host/test/helpers/client-firmware.ts": "1ca7525cf508d6183c90bde4d488be2ac60f615aa2f651347bdc76320d827ff8",
+      "host/test/helpers/client-temperature.ts": "a455f2ffe42ac24bd7b66e19a8aa9e3b19b29ff6dfcc2bb59ef58ae15558eb32",
+      "host/test/helpers/compiled-client-host.ts": "27409003cb0141f8ebdc9443e79b25bb01ca830ec14f915cdf836fd964bf0589"
+    }
+  },
+  "historyDiscoveryProcessAcceptance": {
+    "date": "2026-10-01",
+    "implementationBase": "4e582f67",
+    "stage": "A4 partial; not sealed",
+    "node": "v26.9.0",
+    "artifactManifestSha256": "e4d0e9198f2fd227f7f4e17511b57ae7a8a65fe71d1984f1cac36bef12b277f3",
+    "productionChanges": [
+      "Declare history in server.info.components only when native or legacy history is actually registered. Fluidd used this discovery result to hide the history page before the fix."
+    ],
+    "protocolRegression": {
+      "command": "node --test --test-concurrency=1 host/test/configured-server.test.ts host/test/history-api.test.ts host/acceptance/client-probe.test.ts",
+      "passed": 19,
+      "failed": 0,
+      "log": "/tmp/anyraid-client-history-process-final.log",
+      "logSha256": "f5a270ea9b49aa7bd32a66893d1c17c0a11f69fc5e0082f58949251c75e83e5e",
+      "verified": [
+        "History discovery present for registered native/legacy history and absent for an unregistered service",
+        "JWT and explicit numeric loopback trust modes",
+        "Server-side WebSocket drop during active printing; reconnect preserves original job identity",
+        "Controlled reinitialize, standard RESTART and FIRMWARE_RESTART retain original service and MCU ownership",
+        "Independent emitted product process terminates before next process starts; same build manifest, original two MCU models and persistent storage reused",
+        "Original JWT works after process restart; exact files and history unchanged; standby/idle does not replay printing",
+        "Original MCU reset/configuration counters after process restart remain [1,2] for each model",
+        "No physical device, abrupt kill or power-loss acceptance"
+      ]
+    },
+    "actualPage": {
+      "client": "Fluidd 1.37.6-d894c50",
+      "authorization": "Ephemeral local-user JWT",
+      "log": "/tmp/anyraid-fluidd-history-recovery-final.log",
+      "logSha256": "3849b08ac399cf7ddad225607e2eeec83a1ca03eb3cb7f918e326ea6b5320016",
+      "verified": [
+        "History navigation appears after component discovery fix",
+        "Actual history page shows one completed client-sample.gcode, 14 seconds total, 10 seconds print time and 1 mm filament"
+      ],
+      "fileOrigin": "API-seeded sample; not browser upload",
+      "screenshot": {
+        "path": "/tmp/anyraid-fluidd-history-before.jpg",
+        "sha256": "f2616b54a38f91998a7ddbf9b26a4e8eef7ed815a02d7032c8a5eb21372d3051"
+      },
+      "exit": "Interactive test parent stopped with SIGINT and returned 0",
+      "remaining": "Final full page job/control/disconnect/process recovery not completed on this manifest; later interaction menu keyboard action timed out. This is not diagnosed as a production defect."
+    },
+    "performance": {
+      "command": "node --test --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true ' host/acceptance/product-compiled-journey.test.ts",
+      "passed": 1,
+      "failed": 0,
+      "log": "/tmp/anyraid-history-discovery-compiled-performance.log",
+      "logSha256": "c7d7f2ec959fa70ecd8a9ece8d3d054f40f9dc30733fb8993fd58a40eff2a521",
+      "scope": "Same production manifest, independent emitted process and original simulated MCU; concurrent authorization, status, files, upload, subscriptions, history and printing. No target-board/Python comparison.",
+      "metrics": {
+        "motionReportLoad": true,
+        "liveMotionSamples": 2578,
+        "liveExtrusionSamples": 1474,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 7.389455056,
+          "print_duration": 2.473775364,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "e4d0e9198f2fd227f7f4e17511b57ae7a8a65fe71d1984f1cac36bef12b277f3",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 3856,
+        "phaseP99Ms": 4.440580000000409,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 862,
+        "historyP99Ms": 9.605858999999327,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.867175999999745,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.303339000000051,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.0908330000020214,
+        "metadataRequests": 16,
+        "metadataP95Ms": 28.770606999998563,
+        "downloads": 16,
+        "downloadP95Ms": 7.36198400000103,
+        "wireCommands": 189,
+        "wireSteps": 3600,
+        "minimumStepLeadMs": 79.261,
+        "directoryRequests": 3709,
+        "directoryP99Ms": 9.113443000002007,
+        "statusRequests": 15430,
+        "uploads": 16,
+        "statusP99Ms": 3.4868490000008023,
+        "uploadP95Ms": 6.61024499999985,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.948671,
+              "maxMs": 19.578879
+            },
+            "cpu": {
+              "user": 5178470,
+              "system": 689096
+            },
+            "rss": 315097088
+          },
+          {
+            "loop": {
+              "p99Ms": 1.898495,
+              "maxMs": 9.035775
+            },
+            "cpu": {
+              "user": 1749554,
+              "system": 278284
+            },
+            "rss": 310669312
+          }
+        ]
+      },
+      "existingHardGates": {
+        "minimumStepLeadMs": "> 0",
+        "eachGenerationEventLoopP99Ms": "< 50",
+        "eachGenerationEventLoopMaximumMs": "< 100"
+      },
+      "statusAndHistoryQuantiles": "Observations, not a target-board performance budget"
+    },
+    "typecheck": "passed",
+    "sourceSha256": {
+      "host/src/moonraker/configured-server.ts": "c75b62e90bcaea3cf4816510934a63019d6ff8037ed26ce74785398896e31c43",
+      "host/acceptance/client-probe.ts": "15b3c58528c2cf99a85712e3912f06d7dcde1822d7fab7f89ef28f2aec928262",
+      "host/acceptance/client-probe.test.ts": "0ff0597329d3944cf936d733fa747a33151aab793b22a1deec959551f5d82186",
+      "host/test/helpers/compiled-client-host.ts": "e443c5157335ad967b6a195f4bbbb76a573fd5f249cb5ae5ee209fd8ab5bec21",
+      "host/test/configured-server.test.ts": "b68ea0901c76d578497b718b637f517742c8b3f2dcb9499322ab9852ccf5d837",
+      "host/test/history-api.test.ts": "165075a6e076fe2c8c1f10428260ce4ea71f5783a238f413468060bf93d28717"
+    },
+    "pending": [
+      "Actual uploaded-file complete page journey in both fixed clients; known chooser tool block remains unresolved",
+      "Both fixed clients final same-manifest page disconnect/process recovery and standard controls",
+      "Config root/read-write and complete Moonraker contracts",
+      "Cycnumbris 500 machine configuration, physical safety, target-board precision/timing and G3 failures",
+      "177 remaining tracked klippy Python files/default-install and CI retirement",
+      "Reviewable integration batches and develop/mainline release"
+    ]
+  },
+  "nativeConfigReadAcceptance": {
+    "evidence": "native-config-files-read-acceptance.json",
+    "manifestSha256": "7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d",
+    "result": "Both fixed actual clients list and open real main/include config from the same production fingerprint. Read-only increment passed; writes and complete A4 remain pending.",
+    "historicalMissingNativeBindings": "Top-level missingNativeBindings describes the original baseline; config read missing item superseded by this evidence."
+  },
+  "nativeConfigSaveAcceptance": {
+    "evidence": "native-config-files-save-acceptance.json",
+    "manifestSha256": "789cc188957c7475c2e53d280725ab7cd5413f5be5cb09517ec297ef2b798e07",
+    "result": "Both actual fixed editors saved, restarted and reread configuration; Mainsail also repaired unsupported config in the retained service. Full A4 and G1 remain pending."
+  },
+  "nativeConfigBackupAcceptance": {
+    "evidence": "native-config-backups-acceptance.json",
+    "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+    "result": "Two authorization modes of the compiled protocol fixture passed query/restore/cleanup/rotation and failed-startup explicit recovery; no actual backup management page acceptance or full A4/G1 claim."
+  },
+  "nativeNamespacePageObservation": {
+    "date": "2026-10-02",
+    "source": "d8f9e4f8e34236064d4bf965d73848b9ac4b5b70",
+    "productManifestSha256": "6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582",
+    "client": "Fluidd 1.37.6",
+    "authorization": "Local user/JWT; no trusted-loopback bypass",
+    "machine": "PTY MCU fixture only",
+    "verified": [
+      "Create directory from actual page",
+      "Browse into page-parts",
+      "Upload actual local file through documented browser file chooser",
+      "Display page-parts/anyraid-m2a-page 50%.gcode, layer height 0.2 mm, filament 1.0 mm and PrusaSlicer metadata",
+      "Select page-uploaded file and call standard printer.print.start",
+      "Observe completion and matching actual page history record"
+    ],
+    "input": {
+      "bytes": 20288,
+      "sha256": "58061a73953c32d29d00f3749ac0e54d46c41346816e1e4eed7bf1e7f7dad304"
+    },
+    "chooser": "Completed this invocation; earlier chooser blockage retained as historical observation",
+    "remaining": [
+      "Unauthenticated thumbnail image GET returns 401 in JWT mode; page preview is not passed",
+      "Same-upload pause/resume/cancel",
+      "Page refresh, WebSocket disconnect and same-package process restart",
+      "Complete fixed Mainsail flow on same product"
+    ],
+    "thumbnailCause": {
+      "fluiddSource": "src/mixins/files.ts:36-53,181-200 at d894c50d580212c245a7c552ae695008c441683b",
+      "observation": "Thumbnail uses createFileUrl without bearer/one-shot; ordinary download uses createFileUrlWithToken",
+      "upstream": "moonraker/components/application.py:554-600 at 1cfb0c41e468645951a371621f06d32777b6107c",
+      "contract": "AuthorizedFileHandler._check_need_auth permits GET of AUTHORIZED_EXTS without required authentication; native downloads currently require authentication",
+      "status": "Pinned-source contract gap identified; compatibility implementation and security/regression/page checks pending"
+    },
+    "artifacts": [
+      {
+        "path": "/tmp/anyraid-m2a-fluidd-page-history.jpg",
+        "sha256": "038b0ed7ce4edc2952601d1ae7992a857823c8b6a5b9fa225a14622e850e66ae"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-fluidd-client.log",
+        "sha256": "cde67d8ef16b7074a5bfa0db2e85af15b7364e61574ada1a7e59443804debcef"
+      }
+    ],
+    "fixtureExit": "Original 15-minute watchdog terminated; exec session terminal exit 0. No process-recovery claim",
+    "scope": "Partial actual page proof, not full M2a/A4, real hardware or Python retirement"
+  },
+  "thumbnailCompatibilityRecheck": {
+    "client": "Fluidd 1.37.6",
+    "manifestSha256": "72c24a3e9b859cf6f208bd2334ec0662ca415b0bb896679579b169c3cb36cda2",
+    "login": "passed",
+    "directoryCreateAndBrowse": "passed",
+    "upload": "not verified: browser file-chooser setFiles did not return within original fixture lifetime; proxy log has no upload request",
+    "requestTimeoutMs": 10000,
+    "reportedToolWallTimeSeconds": 57854.357,
+    "fixture": {
+      "pid": 1262568,
+      "execSession": 34660,
+      "originalLimitMinutes": 15,
+      "terminalExitCode": 0,
+      "terminalLog": "CLIENT_TIMEOUT"
+    },
+    "remaining": [
+      "Actual thumbnail visibility after page upload",
+      "Pause/resume/cancel, refresh/reconnect and same-package process recovery",
+      "Complete fixed Mainsail same-bundle flow"
+    ],
+    "scope": "No page success inferred from API/compiled tests. Earlier d8f9 actual page upload remains separate historical evidence.",
+    "softwareEvidence": "native-file-namespace-acceptance.json#thumbnailCompatibility",
+    "softwareContract": "Native optional image GET and missing-source 404 fixed; actual page verification not passed",
+    "date": "2026-10-02"
+  }
+}

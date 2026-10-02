@@ -1,0 +1,71 @@
+{
+  "base": "c1e92679",
+  "schema": 5,
+  "tests": {
+    "targeted": 24,
+    "product": 4
+  },
+  "totalsBenchmark": {
+    "node": "v26.9.0",
+    "jobs": 2000,
+    "empty": {
+      "medianMs": 0.03227099999999439,
+      "p95Ms": 0.062350999999992496
+    },
+    "populated": {
+      "medianMs": 0.027399999999943248,
+      "p95Ms": 0.03391999999996642
+    },
+    "terminal": {
+      "medianMs": 0.20875300000000152,
+      "p95Ms": 0.24209299999995437
+    },
+    "resetMs": 0.4686450000000377,
+    "maximumPollP95Ms": 5,
+    "maximumTerminalP95Ms": 5,
+    "scope": "Local worker IPC, durable terminal commits and cached totals reads; no per-move work or target hardware guarantee."
+  },
+  "terminalSnapshotBenchmark": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "variants": [
+      "terminalStateOnly",
+      "terminalStateAndStatistics"
+    ],
+    "jobs": 100,
+    "warmups": 3,
+    "runs": 11,
+    "results": [
+      {
+        "medianMs": 0.22196160000001328,
+        "p95Ms": 0.23523520000000644
+      },
+      {
+        "medianMs": 0.23623268999999028,
+        "p95Ms": 0.2746620799999914
+      }
+    ],
+    "addedP95Ms": 0.03942687999998498,
+    "maximumAddedP95Ms": 2,
+    "scope": "Acknowledged terminal transaction IPC and durable commit, not per-move work. Same current schema in both variants. Read-only SQLite verification outside timing; no physical target guarantee."
+  },
+  "hashes": {
+    "host/src/operations/print-history-totals.ts": "f34a22019cfec384dd24b836e8a15356ca0217e98a98136e8b579801fcacec15",
+    "host/src/operations/print-journal-worker.ts": "fe394551ab59426677248191007f2af12af7514535ef87f2fb3742a57e512e73",
+    "host/src/moonraker/native-history.ts": "d5f68e15fd268c0b2a36001c3834fb1f0ebbfd25dacff0972415787229dee64b",
+    "host/test/native-history-totals.test.ts": "8483e987c47bd0d434d0be5aba95912ea8a4fcc8bedb352bd210c44122872bad",
+    "host/test/native-history.test.ts": "ce9f556f5fd6c2a4770bdb3aeda4e41960b3a437e24fda3be12e1119c77255f0",
+    "host/acceptance/product-compiled-journey.test.ts": "9fa601e53ebdc1e10113dd513d66e9c0809a52f449b890d402878c39814de1c2",
+    "host/bench/native-history-totals.ts": "7e6f52c5b585b68547b0712b66736be44d3b6e32ffed341fca45dcf3ae17f029",
+    "/tmp/history-totals-tests-final.log": "1f70b632aac2dfe4f9e3ab2481e8e8e388a25800a9c12324dda72b811d113fa6",
+    "/tmp/history-totals-product.log": "22c2be8355ed84c629388aed0494de1d5603e6c6ebfc871c69773ca488278561",
+    "/tmp/history-totals-bench.log": "bd3f5f85b5b8ba541544ed2eb1bae2688c25a715d415a1ae1b1de3b82d903a76",
+    "/tmp/history-totals-terminal-bench.log": "a2cc8acbcd25db2d2807f95e475a1b577d97916dfda7cb3d4247f498706981cb"
+  },
+  "limitations": [
+    "Local simulated MCU acceptance, not physical printer or target board validation",
+    "No schema 4 versus 5 paired performance comparison",
+    "History notifications, user attribution, slicer metadata and auxiliary totals remain incomplete",
+    "Default Python entrypoint and prior runtime/motion failures remain unresolved"
+  ]
+}

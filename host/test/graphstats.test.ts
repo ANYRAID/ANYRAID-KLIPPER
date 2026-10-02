@@ -1,0 +1,21 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {StatsLogParser,parseStats,findPrintRestarts,mcuStatsPlot,systemStatsPlot,frequencyStatsPlot,temperatureStatsPlot,type StatsPlot} from '../src/diagnostics/graphstats.ts';
+import {graphstatsFixture,graphstatsReference,graphstatsManifest} from '../bench/graphstats-reference.ts';
+function compare(actual:StatsPlot,expected:any){assert.equal(actual.title,expected.title);assert.deepEqual(actual.axes,expected.axes);assert.equal(actual.curves.length,expected.curves.length);for(let i=0;i<actual.curves.length;i++){const a=actual.curves[i],b=expected.curves[i];assert.equal(a.label,b.label);assert.equal(a.axis,b.axis);assert.equal(a.style,b.style);assert.deepEqual(a.values,b.values);assert.equal(a.times.length,b.times.length);for(let j=0;j<a.times.length;j++)assert.ok(Math.abs(a.times[j]-b.times[j])<=1e-6);}}
+test('all five statistics plot transformations match the original Python curves',()=>{
+ for(const record of graphstatsManifest.cases){const mcu=record.mcu??undefined,text=graphstatsFixture(record.count),reference=graphstatsReference(text,mcu),data=parseStats(text,mcu);assert.deepEqual(JSON.parse(JSON.stringify(data)),reference.samples);const plots=[mcuStatsPlot(data),systemStatsPlot(data),frequencyStatsPlot(data),frequencyStatsPlot(data,'mcu'),temperatureStatsPlot(data,'heater, absent')];for(let i=0;i<plots.length;i++)compare(plots[i],reference.plots[i]);}
+});
+test('stats parsing preserves prefix rules, first equals, Python whitespace and bounded admission',()=>{
+ const parser=new StatsLogParser('tool',1);parser.line('Stats 1: ignored=1');parser.line('Stats\u00852:\u001c tool: freq=16000000 mcu: freq=12000000 print_time=2 note=a=b __proto__=safe');const [d]=parser.samples();assert.equal(d.time,2);assert.equal(d.values.freq,'16000000');assert.equal(d.values['mcu:freq'],'12000000');assert.equal(d.values.note,'a=b');assert.equal(d.values.__proto__,'safe');assert.throws(()=>parser.line('Stats 3: print_time=3'),/limit/);assert.throws(()=>new StatsLogParser().line('x'.repeat(1024**2+1)),/limit/);assert.throws(()=>new StatsLogParser().line('Stats NaN: print_time=1'),/number/);const bounded=new StatsLogParser('mcu',10,1);assert.throws(()=>bounded.line('Stats 1: print_time=1'),/byte limit/);assert.equal(bounded.samples().length,0);
+});
+test('stall integer precision, counter reset interval and CPU clamping preserve diagnostic semantics',()=>{
+ const data=parseStats(graphstatsFixture(100));assert.ok(findPrintRestarts(data) instanceof Set);const stalls=parseStats('Stats 1: print_time=1 buffer_time=.3 print_stall=9007199254740992\nStats 2: print_time=2 buffer_time=.2 print_stall=9007199254740992\nStats 3: print_time=3 buffer_time=.1 print_stall=9007199254740993');assert.deepEqual([...findPrintRestarts(stalls)],[]);const system=systemStatsPlot(parseStats('Stats 1: print_time=1 cputime=10 sysload=0 memavail=1\nStats 2: print_time=2 cputime=9 sysload=0 memavail=2\nStats 3: print_time=3 cputime=99 sysload=0 memavail=3'));assert.deepEqual(system.curves[1].values,[0,150]);assert.throws(()=>mcuStatsPlot([]),/No statistics/);assert.throws(()=>mcuStatsPlot(data,0),/bandwidth/);
+});
+test('frequency half-even MHz estimation and exact sentinel filtering match Python',()=>{
+ for(const hz of [2500000,3500000]){const data=parseStats(`Stats 1: print_time=1 freq=${hz}\nStats 2: print_time=2 freq=${hz}`);assert.equal(frequencyStatsPlot(data).curves[0].label,`freq(${hz===2500000?2:4}Mhz)`);}
+ const data=parseStats('Stats 1: print_time=1 freq=0\nStats 2: print_time=2 freq=1\nStats 3: print_time=3 freq=0.0');assert.deepEqual(frequencyStatsPlot(data,'mcu').curves[0].values,[0]);assert.throws(()=>frequencyStatsPlot(data),/frequency/);
+ const heater=parseStats('Stats 1: print_time=1 a  b: temp=1');assert.equal(temperatureStatsPlot(heater,' a  b ').curves[0].label,'a  b temp');
+});
+
+test('fixed references reject uncaptured input and MCU selection',()=>{assert.throws(()=>graphstatsReference(graphstatsFixture(11)),/No captured/);assert.throws(()=>graphstatsReference(graphstatsFixture(1000),'absent'),/No captured/);});

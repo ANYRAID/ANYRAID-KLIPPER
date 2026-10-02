@@ -1,0 +1,94 @@
+{
+  "date": "2026-09-28",
+  "scope": "Node full configuration initialization and update; retirement of three noninteractive Python Kconfig entrypoints",
+  "reference": "kconfig-full-reference.json",
+  "configurations": 84,
+  "comparison": "Exact complete config bytes match Python, repeated loading is idempotent, full autoconf output stays identical",
+  "tests": 18,
+  "backupChecks": [
+    "Missing config creation",
+    "Previous bytes preserved as .old on change",
+    "No-op preserves output mtime and previous .old",
+    "Existing and dangling config symlinks preserved",
+    "Existing mode retained",
+    "Parse failure leaves config and backup untouched"
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "output": "full configuration",
+    "configuration": "test/configs/stm32f446.config",
+    "compileCacheDisabled": false,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 50.795461000000046,
+    "p95Ms": 55.65515799999997,
+    "sha256": "7cfbd94e42555728a48c7690254888303be6438dbc6828fe52368e49f932da0c",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic output write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "withoutCompileCache": {
+    "node": "v26.9.0",
+    "output": "full configuration",
+    "configuration": "test/configs/stm32f446.config",
+    "compileCacheDisabled": true,
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 94.68798250000009,
+    "p95Ms": 100.30149699999993,
+    "sha256": "7cfbd94e42555728a48c7690254888303be6438dbc6828fe52368e49f932da0c",
+    "scope": "New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic output write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only."
+  },
+  "pythonBaseline": {
+    "python": "Python 3.12.13",
+    "configuration": "test/configs/stm32f446.config",
+    "warmups": 3,
+    "runs": 12,
+    "medianMs": 46.74611899827141,
+    "p95Ms": 49.61416700098198,
+    "sha256": "7cfbd94e42555728a48c7690254888303be6438dbc6828fe52368e49f932da0c",
+    "scope": "New Python process through existing olddefconfig.py, complete parse/load/resolve/write; warm filesystem cache; sequential same-machine baseline"
+  },
+  "firmwareBuild": {
+    "target": "ATmega2560",
+    "initialState": "No KCONFIG_CONFIG file and empty output directory",
+    "pythonCommand": "/nonexistent-python",
+    "command": "make -j2 OUT=host/build/kconfig-olddef-final-avr/ KCONFIG_CONFIG=$PWD/host/build/kconfig-olddef-final-avr.config CROSS_PREFIX=/tmp/anyraid-avr-tools/avr/bin/avr- NODE=$PWD/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node PYTHON=/nonexistent-python",
+    "passed": true,
+    "log": "host/build/kconfig-olddef-final-avr-build.log",
+    "configurationSha256": "5995cf6442e822775e112777c7e577b990f2b406621f4185c035a8d267c263b0",
+    "artifacts": [
+      {
+        "name": "autoconf.h",
+        "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91"
+      },
+      {
+        "name": "defconfig",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "name": "klipper.elf",
+        "sha256": "3a83c7fd4e16918c0aeb5250c62af302b1755081379b7da4b36055b6a0cec427"
+      },
+      {
+        "name": "klipper.elf.hex",
+        "sha256": "728a0901b4483afb671706cab3b48419e05f14b3d1473cc6e126924c909f98ad"
+      }
+    ],
+    "size": {
+      "text": 46222,
+      "data": 48,
+      "bss": 373
+    }
+  },
+  "retiredPython": [
+    "lib/kconfiglib/genconfig.py",
+    "lib/kconfiglib/olddefconfig.py",
+    "lib/kconfiglib/savedefconfig.py"
+  ],
+  "remainingPythonFiles": 189,
+  "limitations": [
+    "Interactive menuconfig remains Python with bundled Kconfiglib",
+    "Other project Python/runtime/printing entrypoints are not retired",
+    "Uncached process startup is slower than Python; build-time work only",
+    "No hardware flash, actual printer acceptance, or closure of runtime/precision diagnostics"
+  ]
+}

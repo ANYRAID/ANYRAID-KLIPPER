@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "implementationBase": "4ecb80e4",
+  "node": "v26.9.0",
+  "validation": {
+    "productAcceptance": 4,
+    "buildTests": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "freshNative": {
+    "freshBuildMs": 3130.205149,
+    "sourceFiles": 53,
+    "nodeHeaderFiles": 2810,
+    "compiler": "cc (Deepin 12.3.0-17deepin18) 12.3.0",
+    "outputs": {
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "0193714f76f37a859d102df25228820e4680bd7b1f3c29df1cd3c99f98298959",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9"
+    }
+  },
+  "existingAddonComparison": {
+    "trapq.node": {
+      "existing": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "fresh": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "equal": true
+    },
+    "stepcompress.node": {
+      "existing": "0193714f76f37a859d102df25228820e4680bd7b1f3c29df1cd3c99f98298959",
+      "fresh": "0193714f76f37a859d102df25228820e4680bd7b1f3c29df1cd3c99f98298959",
+      "equal": true
+    },
+    "serialqueue.node": {
+      "existing": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "fresh": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "equal": true
+    },
+    "unix-peer.node": {
+      "existing": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+      "fresh": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+      "equal": true
+    },
+    "sealed-file.node": {
+      "existing": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "fresh": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "equal": true
+    },
+    "can-query.node": {
+      "existing": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "fresh": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "equal": true
+    },
+    "ar100-flash.node": {
+      "existing": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "fresh": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "equal": true
+    }
+  },
+  "productRecords": [
+    {
+      "installation": {
+        "durationMs": 690.666134,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 147,
+      "wireSteps": 3234,
+      "minimumStepLeadMs": 91.139,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.865727,
+            "maxMs": 12.877823
+          },
+          "cpu": {
+            "user": 709838,
+            "system": 70899
+          },
+          "rss": 160169984
+        },
+        {
+          "loop": {
+            "p99Ms": 1.757183,
+            "maxMs": 4.886527
+          },
+          "cpu": {
+            "user": 398665,
+            "system": 49499
+          },
+          "rss": 180781056
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 703.9903959999974,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 11.574312000004284,
+      "deleteRequests": 16,
+      "deleteP95Ms": 9.222540999999183,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 4.641821000001073,
+      "metadataRequests": 16,
+      "metadataP95Ms": 27.636622000001807,
+      "downloads": 16,
+      "downloadP95Ms": 4.203234999997221,
+      "wireCommands": 149,
+      "wireSteps": 3230,
+      "minimumStepLeadMs": 88.429,
+      "directoryRequests": 2056,
+      "directoryP99Ms": 5.139997999998741,
+      "statusRequests": 8540,
+      "uploads": 16,
+      "statusP99Ms": 2.862698000000819,
+      "uploadP95Ms": 13.805560000000696,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.240511,
+            "maxMs": 13.369343
+          },
+          "cpu": {
+            "user": 1903537,
+            "system": 226213
+          },
+          "rss": 243658752
+        },
+        {
+          "loop": {
+            "p99Ms": 1.888255,
+            "maxMs": 4.526079
+          },
+          "cpu": {
+            "user": 1100337,
+            "system": 138684
+          },
+          "rss": 237518848
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/scripts/build-product-native.ts": "6fb5f2450ead54628f2972e2ffa135c18863dc43e9e9d5af39e9bd2dc4076d9b",
+    "host/scripts/build-product-host.ts": "e90338bb9f0b4b080e573b62300d130d715329632950087dbce09612356bfb19",
+    "host/test/product-native-build.test.ts": "32728cf0505ebf04683d3df4792d76f470e2f0b5680e616bf10eb38d697c741e",
+    "host/test/product-build.test.ts": "67bb8f64edaa6b315673685e75ac2b3f55f2510109add45efde505fe4000913c",
+    "host/acceptance/product-compiled-journey.test.ts": "e6b7c3f46f2f94fa05b0722b103be4922826a2ed68d0e9552b94a7720650825a"
+  },
+  "scope": "Default product build now compiles 7 native addons from private snapshots of C source/build scripts and Node headers. Dedicated build test PATH contains only cc/as/ld. New addons pass independent npm production installation, math/workers/assets and simulated MCU printing. Local Linux x64 compiler/system headers/libc remain prerequisites; this is not physical hardware acceptance or a hermetic toolchain build.",
+  "restrictedAttempt": {
+    "result": "File-level failure; no-isolation run reports Native compiler unavailable; approved execution passes",
+    "cause": "Not established"
+  },
+  "remaining": [
+    "Default Python installation and remaining Python modules",
+    "Complete Moonraker and consumer operation coverage",
+    "Historical numerical anomaly root cause",
+    "Target-board and real printing acceptance"
+  ]
+}

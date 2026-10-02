@@ -1,0 +1,83 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "node": "26.9.0",
+  "sources": {
+    "host/src/moonraker/temperature-store.ts": "67fcf03939f379154faf589282f12129658c8a56f180b253cc12c200c8fbe1c3",
+    "host/src/moonraker/configured-server.ts": "b92c2f3c452548a56cbf6ec63f269ee4e933889de10ebe9918281347413fe133",
+    "host/src/runtime/product-host.ts": "91112d13c0694361f127be5ff088b85a20d2d6ec335edf076742bd9059de7783",
+    "host/test/temperature-store.test.ts": "48e9c15f3cc880b5798097826156da6653457fadadd54fa7ceee6b674e08c939",
+    "host/test/product-host-reinitialize.test.ts": "3a5458939130c467bd98c5cc1e77842d9d41b40880ccdd414e8177c9abb0748f",
+    "host/acceptance/product-compiled-journey.test.ts": "254d306ef1612c5ae0b06aef936c0ebb3a2f21fda594407e9e7a786b0e82a593",
+    "host/bench/temperature-handoff.ts": "ef8e76244dce1102e35c67d272e0503ea243b64da2f4a51192f6e509b4ee4bc3"
+  },
+  "tests": {
+    "numericalAndSampler": 9,
+    "lifecycle": 3,
+    "compiledProduct": 1,
+    "historyBefore": 21,
+    "historyAfter": 24
+  },
+  "handoff": {
+    "node": "v26.9.0",
+    "measurements": [
+      {
+        "sensors": 32,
+        "fields": 4,
+        "capacity": 1200,
+        "slots": 153600,
+        "medianMs": 0.7993429999999648,
+        "p95Ms": 1.1399789999999825,
+        "maxMs": 1.2176900000000046
+      },
+      {
+        "sensors": 128,
+        "fields": 4,
+        "capacity": 1200,
+        "slots": 614400,
+        "medianMs": 3.1897930000000088,
+        "p95Ms": 3.405427000000145,
+        "maxMs": 3.6272200000000794
+      }
+    ],
+    "scope": "20 measured handoffs after 2 warmups; exact history verified outside timed interval. Runs only during quiescent reinitialization, not during printing. No Python equivalent lifecycle or hardware timing claim."
+  },
+  "sampling": {
+    "node": "v26.9.0",
+    "sensors": 32,
+    "fieldsPerSensor": 4,
+    "samples": 1000,
+    "nodeHistory": {
+      "stable": {
+        "medianMs": 7.670517999999987,
+        "p95Ms": 10.785049999999984
+      },
+      "varying": {
+        "medianMs": 17.238558000000012,
+        "p95Ms": 19.741557999999998
+      }
+    },
+    "historicalPythonHistory": {
+      "stable": {
+        "medianMs": 41.87232200001745,
+        "p95Ms": 42.06780699951196
+      },
+      "varying": {
+        "medianMs": 42.54942799980199,
+        "p95Ms": 42.67944099956367
+      }
+    },
+    "scope": "1000 synchronous callbacks; fixed historical Python baseline, no Python runtime. Excludes I/O, timers, JSON serialization and target hardware"
+  },
+  "compiledProduct": {
+    "statusP99Ms": 2.586083999998664,
+    "minimumStepLeadMs": 81.758,
+    "simulatedMCU": true
+  },
+  "limitations": [
+    "进程重启不持久化温度历史；重初始化间隙不补造样本",
+    "目标板和真机验收未完成",
+    "默认 Python 入口及 192 个 Python 文件尚未退役",
+    "历史 Node 崩溃及数值失配未解决"
+  ]
+}

@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "5b00d527",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/config/spi-bus.ts": "a67d285121f2803283ecde47d11d0894466e93dae889f966367bb8c9f48eec56",
+    "host/src/config/tmc-spi.ts": "778fb776d9772c8554f2bfd7ffd907bf17bf739295392dc022bc128195f35d5c",
+    "host/src/config/spi-temperature.ts": "1b3fa75a33e6a98034da6960fe0fe27c8236a8433f376ccb8286a53792824825",
+    "host/src/protocol/pins.ts": "d18b1cc9b0d9c1a41e0b437a410833bfa3b81e5d2481ae29c57055194c735694",
+    "host/test/spi-bus.test.ts": "1107d2b472a9f5c2d861cd55c3944cf217889cb3caacfa0836d95011d9bf27b5",
+    "host/test/configured-tmc-spi.test.ts": "ca02624e3716b6b78dee5174ebb48beca546a49a0f5b82135142d152d1532532",
+    "host/test/helpers/serial-firmware.ts": "d283eea48ed5676803842f49120c17bffcaaec257f8bce81b877f31830aae415",
+    "host/acceptance/product-compiled-journey.test.ts": "5bd37b65394dc73f7b1d6aa21e56319d16c244cb99fe1c2f0c1bebd003520160"
+  },
+  "tests": {
+    "regressions": 63,
+    "compiledProducts": 2,
+    "coverage": [
+      "硬件及现代/旧软件SPI，TMC与MAX6675不同模式共享",
+      "片选独占、接线及实现一致、别名防重定向、多重使用不能绕过",
+      "失败批次资源回滚",
+      "同MCU热端电机与传感器资源名称隔离",
+      "跨MCU反馈与PWM输出、打印暂停恢复、重初始化和开路停机"
+    ]
+  },
+  "performance": {
+    "scope": "启动配置变化，不增加打印热路径处理。产品指标为本机模拟MCU并发API/文件负载；不同运行样本不可作为严格A/B速度比较。",
+    "product": [
+      {
+        "phaseQueries": 3687,
+        "phaseP99Ms": 2.381961000002775,
+        "loaded": false,
+        "spi": true,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max6675-heater-open",
+        "historyNotifications": 32,
+        "historyRequests": 824,
+        "historyP99Ms": 6.989911999999094,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.320929999999862,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.259156000000075,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 5.102226999999402,
+        "metadataRequests": 16,
+        "metadataP95Ms": 21.027696999999534,
+        "downloads": 16,
+        "downloadP95Ms": 4.967166000000361,
+        "wireCommands": 191,
+        "wireSteps": 3704,
+        "minimumStepLeadMs": 87.418,
+        "directoryRequests": 3556,
+        "directoryP99Ms": 5.27719900000011,
+        "statusRequests": 14751,
+        "uploads": 16,
+        "statusP99Ms": 2.5094629999985045,
+        "uploadP95Ms": 20.020072999999684,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.924095,
+              "maxMs": 19.644415
+            },
+            "cpu": {
+              "user": 4576087,
+              "system": 511729
+            },
+            "rss": 283607040
+          },
+          {
+            "loop": {
+              "p99Ms": 2.034687,
+              "maxMs": 7.069695
+            },
+            "cpu": {
+              "user": 1406368,
+              "system": 200770
+            },
+            "rss": 258310144
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3716,
+        "phaseP99Ms": 3.620426999994379,
+        "loaded": false,
+        "spi": true,
+        "software": true,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max6675-heater-open",
+        "historyNotifications": 32,
+        "historyRequests": 830,
+        "historyP99Ms": 6.2220520000046236,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.871643999998923,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.132453999998688,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.9876420000000508,
+        "metadataRequests": 16,
+        "metadataP95Ms": 32.60570000000007,
+        "downloads": 16,
+        "downloadP95Ms": 2.5934349999952246,
+        "wireCommands": 190,
+        "wireSteps": 3688,
+        "minimumStepLeadMs": 82.419,
+        "directoryRequests": 3576,
+        "directoryP99Ms": 5.4495220000026166,
+        "statusRequests": 14870,
+        "uploads": 16,
+        "statusP99Ms": 3.529955999998492,
+        "uploadP95Ms": 9.994292000003043,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.979391,
+              "maxMs": 20.070399
+            },
+            "cpu": {
+              "user": 4456561,
+              "system": 524149
+            },
+            "rss": 283791360
+          },
+          {
+            "loop": {
+              "p99Ms": 1.908735,
+              "maxMs": 7.557119
+            },
+            "cpu": {
+              "user": 1356390,
+              "system": 163731
+            },
+            "rss": 261849088
+          }
+        ]
+      }
+    ]
+  },
+  "limits": [
+    "默认Python入口及192个Python文件仍在",
+    "其他数字温度型号、完整Moonraker、宏替代未完成",
+    "真实SPI电气时序、目标板性能、运动及温度精度未验收",
+    "历史Node崩溃与瞬时数值失配仍未定位"
+  ]
+}

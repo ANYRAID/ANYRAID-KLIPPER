@@ -1,0 +1,9 @@
+import {readFileSync} from 'node:fs';
+import type {UsbFlashOptions,UsbFlashIO} from '../src/diagnostics/flash-usb.ts';
+export type FlashCase=UsbFlashOptions&{katapult?:boolean};
+export const flashContract=JSON.parse(readFileSync(new URL('../contracts/usb-flash.json',import.meta.url),'utf8')) as {provenance:{commit:string;python:string};cases:{options:FlashCase;events:unknown[][]}[];historicalMeasurements:{routing:{results:{mcu:string;katapult:boolean;python:{medianMs:number;p95Ms:number}}[]};touch:{python:string;pythonTiming:{medianMs:number;p95Ms:number}}}};
+const key=(c:FlashCase)=>JSON.stringify([c.mcu,c.device,c.image,c.start??null,c.sudo??true,c.katapult??false]);
+const records=new Map(flashContract.cases.map(c=>[key(c.options),c.events]));
+/** Frozen original Python traces; no interpreter or timing is executed here. */
+export function flashReference(cases:FlashCase[]){return {results:cases.map(c=>{const events=records.get(key(c));if(!events)throw new Error('USB case missing from frozen reference');return {events:structuredClone(events)};})};}
+export function flashRecorder(katapult=false){const events:unknown[][]=[];const io:UsbFlashIO={async serialPaths(device){events.push(['serial',device]);return {tty:'/dev/ttyMock',stable:'/dev/serial/by-path/mock'};},async usbPath(device){events.push(['usb',device]);return {busPath:'1-2.3',devicePath:'/sys/mock/interface'};},async enterBootloader(device){events.push(['boot',device]);},async waitPath(path,alternative){events.push(['wait',path,alternative??null]);return path;},async isKatapult(path){events.push(['detect',path]);return katapult;},async readText(path){events.push(['read',path]);return path.endsWith('busnum')?'001\n':'023\n';},async run(command){events.push(['run',[...command]]);},async katapult(device,image){events.push(['katapult',device,image]);}};return {io,events};}

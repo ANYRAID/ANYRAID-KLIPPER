@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {simulateShaper} from '../src/diagnostics/graph-shaper.ts';
+import {shaperGraphReference} from '../bench/shaper-graph-reference.ts';
+import {shaperGraphCases as cases} from '../contracts/shaper-graph-fixtures.ts';
+test('input shaper diagnostic matches original frequency and centered step curves',()=>{const reference=shaperGraphReference(cases);for(let k=0;k<cases.length;k++){const actual=simulateShaper(cases[k]),expected=reference[k].result;for(const [curves,x,y] of [[actual.frequency.curves,expected.freqs,expected.response],[actual.step.curves,expected.times,expected.step]] as const){assert.equal(curves.length,y[0].length,`${k} curve count`);for(let c=0;c<curves.length;c++){assert.equal(curves[c].times.length,x.length,`${k} point count`);for(let i=0;i<x.length;i++){assert.ok(Math.abs(curves[c].times[i]-x[i])<=1e-8,`${k} time/frequency ${i}`);assert.ok(Math.abs(curves[c].values[i]-y[i][c])<=1e-8,`${k} curve ${c} point ${i}: ${curves[c].values[i]} vs ${y[i][c]}`);}}}}});
+test('simulation rejects invalid or unbounded inputs before entering sample loops',()=>{for(const options of [{frequency:0},{frequency:Infinity},{systemFrequency:0},{damping:1},{systemDamping:NaN},{testDamping:[]},{testDamping:Array(17).fill(.1)},{testDamping:[-1]},{shaper:'unknown'},{shaper:'ei',damping:.5},{frequency:10000,systemFrequency:.01}])assert.throws(()=>simulateShaper(options),RangeError);const result=simulateShaper();assert.equal(result.frequency.curves.length,3);assert.equal(result.step.curves.length,3);assert.ok(result.step.curves[0].times[0]<0);assert.equal(result.step.curves[0].values[0],0);assert.equal(result.step.curves[0].values.at(-1),1);});
+
+test('fixed references reject uncaptured configurations instead of generating self references',()=>{assert.throws(()=>shaperGraphReference([{frequency:51}]),/No original Python reference/);});

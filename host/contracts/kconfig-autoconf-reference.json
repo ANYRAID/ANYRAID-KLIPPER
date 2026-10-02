@@ -1,0 +1,509 @@
+{
+  "sourceSha256": "42db0f9368347d31e81fdd5dd7b9dba321dac200ce81209ab2a72efa2e3eacf9",
+  "cases": [
+    {
+      "file": "test/configs/ar100.config",
+      "lowlevel": false,
+      "sha256": "f5eb774a7af0db0c5f57e0107cb024fb0cea462b61c94b181c083f43c6d39bdc",
+      "bytes": 13037
+    },
+    {
+      "file": "test/configs/ar100.config",
+      "lowlevel": true,
+      "sha256": "c9ae19f98f5a28c19a538b942e0ce77086c4ec94f5bf339d70fbc7dc6f4a670b",
+      "bytes": 13037
+    },
+    {
+      "file": "test/configs/at90usb1286.config",
+      "lowlevel": false,
+      "sha256": "03505a2d37c53ee87a02e316f426c67161ca03c65800b5bc2e4ebbd56fd62239",
+      "bytes": 13064
+    },
+    {
+      "file": "test/configs/at90usb1286.config",
+      "lowlevel": true,
+      "sha256": "b0d9086514d1a91e61e075b5214e51877a319265bdca443ed41de9388ef18218",
+      "bytes": 13064
+    },
+    {
+      "file": "test/configs/atmega1280.config",
+      "lowlevel": false,
+      "sha256": "744510a5203b9183adbbbf5335f923102d4528c1e341815dd4b0292ec84c1f44",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/atmega1280.config",
+      "lowlevel": true,
+      "sha256": "b1911dd5a905a1e801b824b85afb719516ee64d38165f4651c7ddc9370b7abb1",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/atmega1284p.config",
+      "lowlevel": false,
+      "sha256": "8ff3e67a280fc2b63ce6bfb95fbae976a554ded71e2596a7fce2d9ddb4adcca4",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/atmega1284p.config",
+      "lowlevel": true,
+      "sha256": "c7d9dfc3f8d5f090f1d243b1e1f59c644a0b2f70a256348005a0dccc567afeec",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/atmega2560.config",
+      "lowlevel": false,
+      "sha256": "b8f0cefacde9f06a246d6e9c84311edfd501253ff0e17e70fc844b67574a7c91",
+      "bytes": 13068
+    },
+    {
+      "file": "test/configs/atmega2560.config",
+      "lowlevel": true,
+      "sha256": "1b1b0f6251ffea132e9ee9247ab630d72a584f45d541da7fcae78f83c990d58b",
+      "bytes": 13068
+    },
+    {
+      "file": "test/configs/atmega328.config",
+      "lowlevel": false,
+      "sha256": "e2485505523f89eb6a5d97179c87908277c2a656be655bcd92914326e3187234",
+      "bytes": 13067
+    },
+    {
+      "file": "test/configs/atmega328.config",
+      "lowlevel": true,
+      "sha256": "dba04b61eae8889bca4e6be5354cc6d61fc6ed250994db6376234ee55d366d8c",
+      "bytes": 13067
+    },
+    {
+      "file": "test/configs/atmega644p.config",
+      "lowlevel": false,
+      "sha256": "6d9bf5f749a0408e07e50ac6277dacf28dbe389494c93a7d9b12faef42703f40",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/atmega644p.config",
+      "lowlevel": true,
+      "sha256": "5082288bfa221cb78f16d5be0864a635ee69d96aa64b2862416da2adbc548b9f",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA3PA2.config",
+      "lowlevel": false,
+      "sha256": "abe02cf0fbf2c2af023ecac543580727b5b26d0ef7c3294dca247342a377651c",
+      "bytes": 13080
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA3PA2.config",
+      "lowlevel": true,
+      "sha256": "bfd21c3c167d7c1d1fd66a0b6134205d5cd3568599c07b4483d907fa5d085f7d",
+      "bytes": 13080
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA7PA8.config",
+      "lowlevel": false,
+      "sha256": "cb4a3be340a6b8bc15f097c1c137ebea33d2f8fdf0f9dfef345bc96d1b48a021",
+      "bytes": 13080
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA7PA8.config",
+      "lowlevel": true,
+      "sha256": "00d984c8099a905b06f95785ba08268becf8976a056a120c635a39e9f49e6e3e",
+      "bytes": 13080
+    },
+    {
+      "file": "test/configs/hostsimulator.config",
+      "lowlevel": false,
+      "sha256": "6a7619412567c3e6f8232534eefdd82bf21ec1ce66e660b2ffb8557a173eccdd",
+      "bytes": 13045
+    },
+    {
+      "file": "test/configs/hostsimulator.config",
+      "lowlevel": true,
+      "sha256": "12d38cc2458664d1ee4442ed5f3103726b58a68121c928498493607c2c538960",
+      "bytes": 13045
+    },
+    {
+      "file": "test/configs/lgt8f328p.config",
+      "lowlevel": false,
+      "sha256": "6157d09ef2e7b498bf7af95dc5b1de28c62da48ebf053f0f264ab291a4e5e595",
+      "bytes": 13067
+    },
+    {
+      "file": "test/configs/lgt8f328p.config",
+      "lowlevel": true,
+      "sha256": "11a94071eb19fc4d3c75fd701ed971319b7df1a39cbb708c441bc34169d8e5d7",
+      "bytes": 13067
+    },
+    {
+      "file": "test/configs/linuxprocess.config",
+      "lowlevel": false,
+      "sha256": "863166f2a44bebd780e36c72c9d1b0db859710f55010be61269e8d63dea729db",
+      "bytes": 13036
+    },
+    {
+      "file": "test/configs/linuxprocess.config",
+      "lowlevel": true,
+      "sha256": "3dbb179b0263ad9c7cdd31ad2105e8753e9c033c5ab73e741e33017771223402",
+      "bytes": 13036
+    },
+    {
+      "file": "test/configs/lpc176x.config",
+      "lowlevel": false,
+      "sha256": "01ebd1c852257fb5adfdb318a29b991d35e3cc0773ca185810624c79353da414",
+      "bytes": 13070
+    },
+    {
+      "file": "test/configs/lpc176x.config",
+      "lowlevel": true,
+      "sha256": "a16a103dd7896cfbab90384f511568f06e948bf2dd11992eb788fcd9e8ecd4b6",
+      "bytes": 13070
+    },
+    {
+      "file": "test/configs/n32g45x-canbus.config",
+      "lowlevel": false,
+      "sha256": "adb33fbb9261ecdbaa42d89f3cde2382d1016c18052538e0faaea415a275e23a",
+      "bytes": 13090
+    },
+    {
+      "file": "test/configs/n32g45x-canbus.config",
+      "lowlevel": true,
+      "sha256": "5a9ba8c875866fa0b1f3fb1bb847e8723c2e9765ab3cd62a27142c1a03ae4586",
+      "bytes": 13090
+    },
+    {
+      "file": "test/configs/n32g45x.config",
+      "lowlevel": false,
+      "sha256": "cfcf1bf8a17b4993b9a04aa31bebd7057786a977fddc1653dcc2521770790291",
+      "bytes": 13089
+    },
+    {
+      "file": "test/configs/n32g45x.config",
+      "lowlevel": true,
+      "sha256": "86f445220e4b3e7bf3cdc2afc7f60fb17cacaeabce0a071a65522bb46827ad79",
+      "bytes": 13089
+    },
+    {
+      "file": "test/configs/pru.config",
+      "lowlevel": false,
+      "sha256": "9bcd687f277107dfd75b8defc5b2822163a48f9ff4a29c3328a5f3f9dfa39e1e",
+      "bytes": 13035
+    },
+    {
+      "file": "test/configs/pru.config",
+      "lowlevel": true,
+      "sha256": "533786d716bf4e9dac1d22f592d36818f1ea832e84579a2a6a08c62181be65dc",
+      "bytes": 13035
+    },
+    {
+      "file": "test/configs/rp2040.config",
+      "lowlevel": false,
+      "sha256": "b2f294c2a1346573610ef5242200eb338f1c5ee50473d7f0205e88891d87d1cd",
+      "bytes": 13095
+    },
+    {
+      "file": "test/configs/rp2040.config",
+      "lowlevel": true,
+      "sha256": "295960da6531525f7129c3c2da49b17ffad1c81ebc049c44e1ccd3973008dcbf",
+      "bytes": 13095
+    },
+    {
+      "file": "test/configs/rp2350.config",
+      "lowlevel": false,
+      "sha256": "87841a053000a724ee3032d9ee374fde93d578c539082657401b4a9d1f87df97",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/rp2350.config",
+      "lowlevel": true,
+      "sha256": "decd0d5390ea5ed8205a8377d25f2cd5e2188d3fe2b1fe93220876e85d33c701",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/sam3x8c.config",
+      "lowlevel": false,
+      "sha256": "f34b1aa256fe4b46aacb9375b11c7884ed77f3bdab938c7c5a2c833460fa51aa",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/sam3x8c.config",
+      "lowlevel": true,
+      "sha256": "1b651d41ff14c55314353256a99fc8b097a87ab96dc83e4dbdd1b53c00895c37",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/sam3x8e.config",
+      "lowlevel": false,
+      "sha256": "ceff6006e55fb21cb60259146e3f84c56e5196fc93ce79896894bc91b15738ce",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/sam3x8e.config",
+      "lowlevel": true,
+      "sha256": "b49e0b67b90cc1df9d5663b83edf8a5f419fc34813d8ebf7418eb57576994041",
+      "bytes": 13069
+    },
+    {
+      "file": "test/configs/sam4e8e.config",
+      "lowlevel": false,
+      "sha256": "ea817d616f75e1b229a67c5eba7da78ea3720e5cb830fe82f6c4f852df825ab4",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/sam4e8e.config",
+      "lowlevel": true,
+      "sha256": "9e96fd899856816f7ae6da9bdb3a83b734b194120f322370786cbfaebfdf822b",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/sam4s8c.config",
+      "lowlevel": false,
+      "sha256": "802934f135741df336d17a6d4c2d23bac00f0aae8270c38d732cfaf8a89039d8",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/sam4s8c.config",
+      "lowlevel": true,
+      "sha256": "3d527e32561df4fe9ca211982112a760a3755a654be9202b82e61c25316a2e25",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/samd21g18.config",
+      "lowlevel": false,
+      "sha256": "0c563af7115d8aa89c65aee7a724633b3d88f0b1b42e7c0806b6d8ba13ce17b7",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/samd21g18.config",
+      "lowlevel": true,
+      "sha256": "a9ee2f35de5d2d0d6445ebcfd332a17f76e7873899c01d8d2d6b32497d9100c8",
+      "bytes": 13071
+    },
+    {
+      "file": "test/configs/samd51p20.config",
+      "lowlevel": false,
+      "sha256": "b6316eafd944182724501cc1cebfd9650dc63c091a546ef1112ff97eb3e74e4f",
+      "bytes": 13074
+    },
+    {
+      "file": "test/configs/samd51p20.config",
+      "lowlevel": true,
+      "sha256": "3c65ec5d190e5a1d394285f9387da46bdc7290db9a65c675c8a7204e927660fe",
+      "bytes": 13074
+    },
+    {
+      "file": "test/configs/same70q20b.config",
+      "lowlevel": false,
+      "sha256": "03802d60fbf61dbe294431b71cb17a863adc6f6598dd476a8959a819704bf88f",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/same70q20b.config",
+      "lowlevel": true,
+      "sha256": "ea3ad0ccc36ce25b09de89fdaa0f107ba43f20978fab13fe5a0cc78ad4fbf2e6",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/stm32f031.config",
+      "lowlevel": false,
+      "sha256": "986b89a7408a5535593d6c430ea92186c6b842225aad021ad02f5dd7bc7519dd",
+      "bytes": 13086
+    },
+    {
+      "file": "test/configs/stm32f031.config",
+      "lowlevel": true,
+      "sha256": "986b89a7408a5535593d6c430ea92186c6b842225aad021ad02f5dd7bc7519dd",
+      "bytes": 13086
+    },
+    {
+      "file": "test/configs/stm32f042.config",
+      "lowlevel": false,
+      "sha256": "bf061fe0fb1f84ce7f274ac3d5750ac53dfc4139d4fdd2d1519a80cb8fe31fdc",
+      "bytes": 13094
+    },
+    {
+      "file": "test/configs/stm32f042.config",
+      "lowlevel": true,
+      "sha256": "ee2624375e3568fce38d8ae518a70ad043c056df673910f570a6388a0d40d6bc",
+      "bytes": 13094
+    },
+    {
+      "file": "test/configs/stm32f070.config",
+      "lowlevel": false,
+      "sha256": "efa4a812d58637958a15bcb541b568ab2708392aca78c5c1c5f5071ce8753356",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/stm32f070.config",
+      "lowlevel": true,
+      "sha256": "9c73bd64180a936af795ddcd5dd66551a0c73642d4198c5b3f71e251f72deb48",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/stm32f103-serial.config",
+      "lowlevel": false,
+      "sha256": "ec4c2ee6690566d9155351438dc7bc3f6b95a9ab8d8140012494ba521bcc3d04",
+      "bytes": 13093
+    },
+    {
+      "file": "test/configs/stm32f103-serial.config",
+      "lowlevel": true,
+      "sha256": "a345b7913442af095df8bf52b2787704d9f70302ea2f1dbd698d528ae34d5b2f",
+      "bytes": 13093
+    },
+    {
+      "file": "test/configs/stm32f103.config",
+      "lowlevel": false,
+      "sha256": "0bf1612e4e91c48666989374d171a25bb21edbd1ad8f1d1030d2312b718fc1d5",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/stm32f103.config",
+      "lowlevel": true,
+      "sha256": "3280a2d9f8bd757974f740c0a24c1ff99bf0ac596ac61194fa57086e42d1076d",
+      "bytes": 13088
+    },
+    {
+      "file": "test/configs/stm32f401.config",
+      "lowlevel": false,
+      "sha256": "e30e386c926c0bebf411a87353c6626df28a68fd7da0bac774fa8f234179479a",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32f401.config",
+      "lowlevel": true,
+      "sha256": "586519c38beabaafc05f45a010d4721a15222174cfd7b6f5ddd5dfba00fcc4b4",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32f405.config",
+      "lowlevel": false,
+      "sha256": "faffc36d3b6ac06ac83340b7afa3e701c36226d73f9f5332c6668e92898b54c7",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f405.config",
+      "lowlevel": true,
+      "sha256": "02ed85dcf37be8a30e6135a8a849bd104f7e0d3e1c32dda2728959a64294d3a7",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f407.config",
+      "lowlevel": false,
+      "sha256": "c99511818e55b7cfafa89586d6bb5bedee28685fdc9214a6a4b02cc64d5d316f",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f407.config",
+      "lowlevel": true,
+      "sha256": "62cf3308da830bd8a1b6a14df86585af8b15ad320af892c0902213b0fa96a5cb",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f429.config",
+      "lowlevel": false,
+      "sha256": "be8d137aad0a2a129388c726e76d8ba6e3b474f341c5f42e8b8103dc63c73a12",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f429.config",
+      "lowlevel": true,
+      "sha256": "589f9afdeae15035580767abf2e921393d04981fda100f2bc4086532418d5e3c",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f446.config",
+      "lowlevel": false,
+      "sha256": "9f173731212f213c61a530054b70db717608ccc315c9a25ffc52e44504a616f3",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f446.config",
+      "lowlevel": true,
+      "sha256": "eca77d80ac4126b62d1e16be359ae7fbd791ccd11596a9bb07de1b459eca0805",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32f765.config",
+      "lowlevel": false,
+      "sha256": "cc50e6d64072b0147beda56ffb0a24f66dadd0ff9d60532fbb7fcf12aed2c6be",
+      "bytes": 13098
+    },
+    {
+      "file": "test/configs/stm32f765.config",
+      "lowlevel": true,
+      "sha256": "d0672c90b7d619bb5a5ebdb1c58b29cbb6ec1ae9dc62c7e523c3ebf60a3e7263",
+      "bytes": 13098
+    },
+    {
+      "file": "test/configs/stm32g0b1.config",
+      "lowlevel": false,
+      "sha256": "b5d3f35799df6319724818dbfc303fe783e82ad81abbeabd0d34b5a038956402",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32g0b1.config",
+      "lowlevel": true,
+      "sha256": "7cfc9695bec29fa5a407060d771b437281a087979982adaf6e81b442c2a1e65f",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32g431.config",
+      "lowlevel": false,
+      "sha256": "7a8e4bf1c837a9328c0ccdb77af311f85cd1381a303c4a6811ddd0c6f9d58bef",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32g431.config",
+      "lowlevel": true,
+      "sha256": "87f2d4dec0d8dae605279b9c754649d61e87cdb90cd9554b5a89231e3b8cb32c",
+      "bytes": 13096
+    },
+    {
+      "file": "test/configs/stm32g474.config",
+      "lowlevel": false,
+      "sha256": "739803136d34fa299dcde6f0a38261c0bfaae43be3f51af069f995a5410e0fa2",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32g474.config",
+      "lowlevel": true,
+      "sha256": "d961611b7e6fe5baae697219565772d4cce737a11f8b3cd66b1f5a4be2f3f2c5",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32h723.config",
+      "lowlevel": false,
+      "sha256": "8c1cc18c43ffb8f61b837168957af5b895aeb79ca22e910f9b8eeea784347768",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32h723.config",
+      "lowlevel": true,
+      "sha256": "9ef19c0c5c917766ebaafbd3f7630e2d794ba02610808c2b77a553d4f66082fc",
+      "bytes": 13097
+    },
+    {
+      "file": "test/configs/stm32h743.config",
+      "lowlevel": false,
+      "sha256": "bde04b563d1e212c6cf9b3c256f9ea4088b32c6643ea4b805a728fbf0cfb7da5",
+      "bytes": 13098
+    },
+    {
+      "file": "test/configs/stm32h743.config",
+      "lowlevel": true,
+      "sha256": "2ac093495b9d9a41fb15424c734ddf206e4133938d3a1d8eabb78fc5663bf24e",
+      "bytes": 13098
+    },
+    {
+      "file": "test/configs/stm32l412.config",
+      "lowlevel": false,
+      "sha256": "f7168984dea3e2f1d4746daccebf012554e05f65c346b7eaba5285f5699917fb",
+      "bytes": 13095
+    },
+    {
+      "file": "test/configs/stm32l412.config",
+      "lowlevel": true,
+      "sha256": "59d3710146c89bc6b965a18e133c3dc4718ed648142519f2899c596d0b0cd8ab",
+      "bytes": 13095
+    }
+  ]
+}

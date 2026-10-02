@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "node": "26.9.0",
+  "baseCommit": "e9864caf",
+  "sourceSha256": {
+    "host/src/config/heater-output.ts": "273de30d78c4865e48d7f05de6ffc57a866ae8fd586eecb13fbb03c3d1c92b6c",
+    "host/src/config/spi-heater.ts": "25991af1b828183ccfa8f252d88cf25f4585bdac7e442c000e96875417495ae4",
+    "host/src/config/analog-heater.ts": "8faba5a827759d5ed9e811e98128f8f59bc6a9473eae1db6f18e141c0013824d",
+    "host/src/config/hardware.ts": "fb445b77c6f30231420119dc926cc7ef43b70917faab8a8dd86630fc5c7f0335",
+    "host/src/config/spi-temperature.ts": "bb59b4c13c0c82b5446f2ea494c85762fcc90d79af24173bcc0ad6b92702b3c3",
+    "host/src/runtime/configured-hardware.ts": "656f98715bb216ca867917fbe515cdcfb2f655b68eab640c1af03105aef3cfb3",
+    "host/src/runtime/initial-motion.ts": "f21ce939c64ee1637c3adc0d021070225db7ade0f3a5a9dfe598689093f0abaa",
+    "host/src/runtime/product-objects.ts": "291b4737cfee2a2bf7edbd57f120a479de757ae616eeb4852e58d2437b1a7d57",
+    "host/src/runtime/product-printer.ts": "4d7d8000bbfe5369ccd9d36c8c20292c629d7a4042c96de461d8a677488cfd5f",
+    "host/src/thermal/heater-config.ts": "1491d87b3286c1b30497cf2a073d1146d3fe813be52fcb6ba04a0223c368ef1c",
+    "host/src/thermal/async-runtime.ts": "7c77a72b37255e41648028983978ab6abb8b173b631e340b9bbfb4bbe44184e2",
+    "host/src/thermal/control.ts": "e22c2b5575506bd1e1f439260f446407b2a17c9298452e8e0d9d4b22e4e7ffc1",
+    "host/test/spi-heater.test.ts": "7bb7e7bc4ee52719c2fee84b181a6f700e8e400199bd80b93538c6b4d3dda105",
+    "host/acceptance/product-compiled-journey.test.ts": "141aa66e0bbec5c5ac4ace8d8c00316d9b810717281f8a5417e29404dde91295",
+    "host/bench/async-heater-runtime.ts": "9c72f038185b9eb6dc05008769261c6ec9c665ee2f93d6e9555e46cf188e47e2",
+    "host/contracts/async-heater-pid-reference.json": "6d5c6ef0579bc664f185be307ff3ab4edb31ac5f5f1c36ca08437fe1fa796fad"
+  },
+  "tests": {
+    "regressions": 76,
+    "compiledProducts": 3,
+    "coverage": [
+      "ADC和数字反馈共用温控参数及PWM生命周期",
+      "PID与开关控制，缓冲首样本与新鲜温度准入",
+      "目标归零确认后再加热，加热中开路/越界/陈旧故障",
+      "传感器单一所有者、量程和输出引脚冲突拒绝",
+      "热端/热床/腔体共用硬件和软件SPI",
+      "编译产品加热等待、并发打印、暂停恢复、历史交接、重初始化及热端开路停机",
+      "原ADC和主机温度编译产品回归"
+    ]
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "samples": 20000,
+    "pwmWrites": 833,
+    "outputExact": true,
+    "python": {
+      "medianMs": 22.383558999536035,
+      "p95Ms": 22.9704639996271
+    },
+    "synchronous": {
+      "medianMs": 1.559047000000021,
+      "p95Ms": 1.9837019999999939
+    },
+    "acknowledged": {
+      "medianMs": 1.8811000000000035,
+      "p95Ms": 2.221654000000001
+    },
+    "spiFeedback": {
+      "medianMs": 1.8741899999999987,
+      "p95Ms": 2.4281360000000234
+    },
+    "extraNanosecondsPerSample": 16.10264999999913,
+    "pythonToAcknowledgedSpeedup": 11.8991861142608,
+    "scope": "Fixed historical Python callback reference, immediate fake ACK, microtask drain, pure thermal control including MAX6675 decode; excludes UART latency, SPI electrical timing and hardware deadlines"
+  },
+  "referenceGenerator": {
+    "revision": "e9864caf",
+    "file": "host/bench/async-heater-runtime.ts",
+    "note": "原基准内的Python温控回调生成固定输出和时间；当前基准不再执行Python"
+  },
+  "product": [
+    {
+      "spiHeater": false,
+      "hostSensor": true,
+      "software": false,
+      "statusRequests": 16400,
+      "statusP99Ms": 3.0654540000014094,
+      "minimumStepLeadMs": 88.147,
+      "faultInjected": "host-temperature",
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.943551,
+            "maxMs": 17.940479
+          },
+          "cpu": {
+            "user": 4700599,
+            "system": 536737
+          },
+          "rss": 286756864
+        },
+        {
+          "loop": {
+            "p99Ms": 1.934335,
+            "maxMs": 5.967871
+          },
+          "cpu": {
+            "user": 1735789,
+            "system": 205073
+          },
+          "rss": 266104832
+        }
+      ]
+    },
+    {
+      "spiHeater": true,
+      "hostSensor": false,
+      "software": false,
+      "statusRequests": 15265,
+      "statusP99Ms": 4.44125300000087,
+      "minimumStepLeadMs": 77.371,
+      "faultInjected": "max6675-heater-open",
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.062335,
+            "maxMs": 18.481151
+          },
+          "cpu": {
+            "user": 4615222,
+            "system": 536992
+          },
+          "rss": 287145984
+        },
+        {
+          "loop": {
+            "p99Ms": 1.995775,
+            "maxMs": 9.699327
+          },
+          "cpu": {
+            "user": 1608015,
+            "system": 212609
+          },
+          "rss": 255881216
+        }
+      ],
+      "temperatureReports": "MCU query initial clock and rest_ticks, 300ms"
+    },
+    {
+      "spiHeater": true,
+      "hostSensor": false,
+      "software": true,
+      "statusRequests": 16152,
+      "statusP99Ms": 2.9128750000090804,
+      "minimumStepLeadMs": 86.178,
+      "faultInjected": "max6675-heater-open",
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 21.397503
+          },
+          "cpu": {
+            "user": 4781081,
+            "system": 603004
+          },
+          "rss": 288935936
+        },
+        {
+          "loop": {
+            "p99Ms": 1.924095,
+            "maxMs": 6.660095
+          },
+          "cpu": {
+            "user": 1528030,
+            "system": 186724
+          },
+          "rss": 268341248
+        }
+      ],
+      "temperatureReports": "MCU query initial clock and rest_ticks, 300ms"
+    }
+  ],
+  "limits": [
+    "MAX6675加热器量程限定0至1023.75摄氏度",
+    "SPI传感器与加热器可同批共用总线，跨TMC总线资源协调仍未接通",
+    "数字温度对端按MCU初始查询时钟和300毫秒报告周期模拟，未验证真实SPI电气时序",
+    "PID基准不含UART确认延迟、SPI电气时序和真实加热响应",
+    "其余数字型号、目标板及真机精度验收未完成",
+    "默认Python入口和192个Python文件仍在",
+    "历史Node崩溃与数值异常仍未定位"
+  ]
+}

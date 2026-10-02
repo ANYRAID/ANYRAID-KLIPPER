@@ -1,0 +1,12 @@
+{
+  "producer": "CPython zlib.compressobj(wbits=31), Z_FULL_FLUSH after first record, Z_FINISH after second",
+  "python": "3.12.13",
+  "zlib": "1.3.1",
+  "base64": "H4sIAAAAAAAAA6pWSs7JT85WsrI0MDA3tLQ0MjUxNzGwtDTWUapQsjLUM0AFRrXMAAAAAP//q1ZKzslPzlaysjQwMDe0tDQyNTE3MbC0NNVRqlCy0jXQM6hlBgB+3k6dVgAAAA==",
+  "sha256": "72143cd21e1f9cb0e47374b497331ca8f63e7f3cc5b5ac6224d60a5622d3f2db",
+  "offset": 54,
+  "records": [
+    "{\"clock\":9007199254740993,\"x\":1.0000000000000002}\u0003",
+    "{\"clock\":9007199254740995,\"x\":-0.0}\u0003"
+  ]
+}

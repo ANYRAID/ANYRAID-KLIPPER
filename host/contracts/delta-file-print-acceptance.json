@@ -1,0 +1,78 @@
+{
+  "node": "v26.9.0",
+  "warmupsPerMode": 1,
+  "samplesPerMode": 3,
+  "commands": 1000,
+  "direct": {
+    "wallMedianMs": 2513.8173639999986,
+    "cpuMedianMs": 90.447
+  },
+  "file": {
+    "wallMedianMs": 2502.429344,
+    "cpuMedianMs": 66.763
+  },
+  "samples": [
+    {
+      "run": 0,
+      "filePrint": false,
+      "commands": 1000,
+      "wallMs": 2537.4991919999998,
+      "cpuMs": 138.942
+    },
+    {
+      "run": 0,
+      "filePrint": true,
+      "commands": 1000,
+      "wallMs": 2551.062401,
+      "cpuMs": 80.556
+    },
+    {
+      "run": 1,
+      "filePrint": true,
+      "commands": 1000,
+      "wallMs": 2558.2031130000014,
+      "cpuMs": 73.247
+    },
+    {
+      "run": 1,
+      "filePrint": false,
+      "commands": 1000,
+      "wallMs": 2513.8173639999986,
+      "cpuMs": 90.447
+    },
+    {
+      "run": 2,
+      "filePrint": false,
+      "commands": 1000,
+      "wallMs": 2512.6511089999985,
+      "cpuMs": 101.345
+    },
+    {
+      "run": 2,
+      "filePrint": true,
+      "commands": 1000,
+      "wallMs": 2494.391018999999,
+      "cpuMs": 46.045
+    },
+    {
+      "run": 3,
+      "filePrint": true,
+      "commands": 1000,
+      "wallMs": 2502.429344,
+      "cpuMs": 66.763
+    },
+    {
+      "run": 3,
+      "filePrint": false,
+      "commands": 1000,
+      "wallMs": 2566.9960390000015,
+      "cpuMs": 56.723
+    }
+  ],
+  "wallGate": {
+    "maximumMs": 3287.962573199998,
+    "passed": true
+  },
+  "exactStepsPerTower": 80,
+  "scope": "Two simulated MCUs; 1000 short Delta moves over 1 mm with real native generation, pause/resume, clock drain and file completion. File CPU includes parsing and completion; direct baseline omits those. Excludes physical print speed and extrusion."
+}

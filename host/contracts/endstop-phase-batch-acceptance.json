@@ -1,0 +1,33 @@
+{
+  "scope": "One atomic multi-axis phase save and effective phase readback after compiled product restart; targeted loaded UART case",
+  "sha256": {
+    "host/src/moonraker/native-endstop-phase.ts": "10cda0751739974387697c95c675c772d52f3fe6c7f6536a6579719631de63a0",
+    "host/src/homing/native-linear-port.ts": "3079c64e2f7f2e7f480d482cb2bd69ced90ee558266b5444de31054f8a4c639b",
+    "host/test/native-endstop-phase.test.ts": "54b13b62c649938fe9dbabc8efdb83c6139403aacb85972628a603de60571f2d",
+    "host/bench/endstop-phase-api.ts": "aff166377b814005ed9c843ec0f50ec027176f091db927c1f2fb56d5aba4844f",
+    "host/acceptance/product-compiled-journey.test.ts": "386f252b6c8df7667b6d664fea751927cd6ac89bf2ea4e7d73d5267aeb3001b2"
+  },
+  "tests": "✔ phase preview save validates authorization, observation revisions and idle ownership (14.143545ms)\n✔ external configuration changes fail closed without overwriting user edits (1.720961ms)\n✔ authorization resolving after close cannot save retired phase observations (1.013957ms)\n✔ closing joins an in-flight phase save and fences further print admission (1.311429ms)\n✔ multi-axis selection validates all rows before one atomic save and canonical retry (4.45086ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 93.270378\n",
+  "product": "✔ load=true spi=false software=false model5160=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC/TMC fault without Python or TS loading (49005.509945ms)\nℹ {\"installation\":{\"durationMs\":713.339031,\"dependencies\":10}}\nℹ {\"filamentRunout\":{\"sensor\":\"filament_motion_sensor encoder\",\"compiled\":true,\"automaticPause\":true,\"absentResumeRejected\":true,\"runoutPauseMs\":1450.6806830000005,\"settledStepClock\":true,\"noAutomaticResume\":true}}\nℹ {\"idleTimeout\":{\"heaterOff\":true,\"motorRelease\":true,\"hostRemainsReady\":true}}\nℹ {\"pausedTimeout\":{\"cancelled\":true,\"resumeRejected\":true}}\nℹ {\"gridCalibration\":{\"compiled\":true,\"typedHoming\":true,\"noPrintJob\":true,\"points\":9,\"referencePoints\":1,\"durationMs\":9177.09962,\"retryWithoutMotion\":true}}\nℹ {\"phaseCalibration\":{\"compiled\":true,\"statsOnlyBeforeSave\":true,\"observations\":\"1\",\"savedPhases\":[{\"stepper\":\"stepper_x\",\"trigger_phase\":\"0/64\"},{\"stepper\":\"stepper_y\",\"trigger_phase\":\"0/64\"},{\"stepper\":\"stepper_z\",\"trigger_phase\":\"0/64\"}],\"reinitialized\":true,\"oldTokenRejected\":true,\"retryWithoutWrite\":true}}\nℹ {\"configurationSave\":{\"compiled\":true,\"reinitialized\":true,\"oldTokenRejected\":true,\"removedAfterReinitialization\":true,\"profile\":\"retained\",\"implicitMeshActivation\":false}}\nℹ {\"phaseQueries\":3739,\"phaseP99Ms\":2.9920019999990473,\"loaded\":true,\"spi\":false,\"software\":false,\"model5160\":false,\"sensorless\":true,\"tmc\":[{\"statusReads\":160,\"writes\":55},{\"statusReads\":64,\"writes\":54},{\"statusReads\":88,\"writes\":46},{\"statusReads\":8,\"writes\":40},{\"statusReads\":16,\"writes\":46},{\"statusReads\":8,\"writes\":40}],\"faultInjected\":\"tmc-reset\",\"historyNotifications\":32,\"historyRequests\":840,\"historyP99Ms\":7.172150999998848,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":12.13955999999962,\"deleteRequests\":16,\"deleteP95Ms\":6.612787999998545,\"thumbnailRequests\":16,\"thumbnailP95Ms\":6.943779999999606,\"metadataRequests\":16,\"metadataP95Ms\":20.42779099999825,\"downloads\":16,\"downloadP95Ms\":5.398169000000053,\"wireCommands\":370,\"wireSteps\":5561,\"minimumStepLeadMs\":86.182,\"directoryRequests\":3610,\"directoryP99Ms\":5.022845999999845,\"statusRequests\":14962,\"uploads\":16,\"statusP99Ms\":3.080101999999897,\"uploadP95Ms\":34.99942100000044,\"generations\":[{\"loop\":{\"p99Ms\":1.969151,\"maxMs\":18.022399},\"cpu\":{\"user\":4539354,\"system\":546189},\"rss\":290017280},{\"loop\":{\"p99Ms\":1.922047,\"maxMs\":6.422527},\"cpu\":{\"user\":1451859,\"system\":194166},\"rss\":261541888}]}\nℹ tests 1\nℹ suites 0\nℹ pass 1\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 49321.159781\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "scope": "Authorized registry GET with cached exact statistics and JSON serialization for three 1024-bin axes; no network or MCU I/O",
+    "queries": 1000,
+    "medianMs": 4.112539000000012,
+    "maxMs": 4.328569999999999,
+    "samplesMs": [
+      3.9251679999999993,
+      3.9846280000000007,
+      4.081479000000002,
+      4.112539000000012,
+      4.130430000000004,
+      4.22727900000001,
+      4.328569999999999
+    ],
+    "checksum": 7344000
+  },
+  "limits": [
+    "This turn reruns the loaded UART product case, not the complete driver matrix.",
+    "No real printer precision acceptance; Python host and historical runtime anomalies remain."
+  ]
+}

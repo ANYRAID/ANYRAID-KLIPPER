@@ -1,0 +1,24 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "100000 updates with 8 sources: original Python update_temp vs TypeScript validation and compensated mean; 3 warmups and 5 alternating retained runs; excludes scheduling and device IO",
+  "baseline": {
+    "samplesMs": [
+      131.41095600440167,
+      131.15518300037365,
+      130.13724799384363,
+      130.6643160060048,
+      130.3591920004692
+    ],
+    "medianMs": 130.6643160060048
+  },
+  "current": {
+    "samplesMs": [
+      12.427959999999985,
+      13.50494500000002,
+      13.899729999999977,
+      13.233400999999958,
+      12.593311999999969
+    ],
+    "medianMs": 13.233400999999958
+  }
+}

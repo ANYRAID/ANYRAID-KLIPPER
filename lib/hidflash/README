@@ -12,7 +12,7 @@ This derivative contains the following changes:
    attempt to open a serial port and enter the bootloader, it will assume
    that the device has already entered the bootloader and look for a USB
    device with the appropriate Vendor and Product IDs. This change allows
-   Klipper's "flash_usb.py" script to enter the bootloader and wait for the
+   Klipper's "flash_usb.ts" script to enter the bootloader and wait for the
    mcu to reconnect.
 2) When the serial port is specified, hid-flash will use Klipper's procedure
    for entering the bootloader (Open the port at 1200 baud and toggle DTR).

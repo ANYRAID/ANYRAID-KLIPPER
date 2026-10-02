@@ -1,0 +1,10 @@
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {encodeMotanJson} from '../../src/motan/capture.ts';
+import type {StepBlock} from '../../src/motan/motion-samples.ts';
+export function phaseOracle(blocks:StepBlock[],times:number[],microstep=false,bench=false):{values:number[];ms:number[]}{
+ const source=execFileSync('git',['show','2c7ba578:scripts/motan/readlog.py']);if(createHash('sha256').update(source).digest('hex')!=='f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2')throw new Error('Motan source changed');const script=`import json,sys,time,math\nscope={}\nexec(${JSON.stringify(source.toString())},scope)\nx=json.load(sys.stdin)\nclass Manager:\n def __init__(self): self.blocks=iter(x['blocks'])\n def get_jdispatch(self): return self\n def get_status_tracker(self): return self\n def get_initial_status(self): return {'configfile':{'settings':{'tmc2209 stepper_x':{},'stepper_x':{'microsteps':256}}}}\n def add_handler(self,name,subscription): assert subscription=='stepq:stepper_x'\n def pull_msg(self,*args): return next(self.blocks,None)\n def pull_status(self,t):\n  i=math.floor(t)\n  return {'tmc2209 stepper_x':{'mcu_phase_offset':None if i%3==0 else -9007199254740997+i}},i+1\ndef run():\n h=scope['HandleStepPhase'](Manager(),'p',['step_phase','tmc2209 stepper_x']+(${microstep?'True':'False'} and ['microstep'] or []))\n return [h.pull_data(t) for t in x['times']]\nvalues=run();ms=[]\nif ${bench?'True':'False'}:\n for i in range(9):\n  start=time.perf_counter();run();elapsed=(time.perf_counter()-start)*1000\n  if i>=2: ms.append(elapsed)\nprint(json.dumps(dict(values=values,ms=ms)))`;
+ return JSON.parse(execFileSync('python3',['-c',script],{input:encodeMotanJson({blocks,times}),encoding:'utf8',maxBuffer:16*1024**2}));
+}
+export const phaseStatus=async(time:number)=>{const i=Math.floor(time);return {status:{'tmc2209 stepper_x':{mcu_phase_offset:i%3===0?null:-9007199254740997n+BigInt(i)}},nextTime:i+1};};
+export const phaseSettings={'tmc2209 stepper_x':{},stepper_x:{microsteps:256}};

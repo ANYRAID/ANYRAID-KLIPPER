@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "baseCommit": "21cc8e63",
+  "simulator": {
+    "source": "https://git.savannah.nongnu.org/git/simulavr.git",
+    "revision": "32985f745c237bf8dcd2718235d01c8b1fb0491d",
+    "archiveSha256": "0d36361add4047083469ba7425c5438fdb2014a87c5849c8be9cc161aee5cdad"
+  },
+  "sourcesSha256": {
+    "host/scripts/build-simulavr-core.ts": "382e44cde5f9687ceb793e254bcc49715a3b37d04896b8eb06fd0512bbca4aa8",
+    "host/acceptance/simulavr-core.test.ts": "9fe94e7ecd9491def59c41e494265dfb29fb753f2d320b19acad5e471344f9e0",
+    "host/test/fixtures/simulavr/core-check.cpp": "352e657b2d16f00d45dedd45b9d47bb4438a03bdfb8bf1772053be86bdb516c6",
+    "host/test/fixtures/simulavr/pulse.c": "e874ea9c5eb501e62fb62bcec87dbfc049278e92af50141eedb038b5fe3710a5"
+  },
+  "logSha256": "766d36eda5c1c8cb9474162b7cfd52a0991811c5dc96393481784cceb752acf4",
+  "metrics": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "simulatedNs": 1000000,
+    "result": {
+      "edges": 5372,
+      "clockNs": 1000060,
+      "highNs": 124,
+      "lowNs": 248
+    },
+    "samplesMs": [
+      9.881410000000074,
+      9.945120999999972,
+      9.429395,
+      9.49939500000005,
+      8.978498999999942,
+      8.929349000000002,
+      9.306483000000071
+    ],
+    "medianMs": 9.429395,
+    "scope": "Native process startup, ELF loading, AVR execution and every pin-edge assertion; excludes Node serial bridge and PTY"
+  },
+  "limitations": [
+    "Core build and real AVR ELF/pin timing only; serial bridge, PTY, pacing and VCD frontend migration incomplete.",
+    "Python avrsim entrypoint retained until full replacement acceptance.",
+    "16 MHz retains legacy integer 62 ns simulator quantum, not ideal 62.5 ns.",
+    "Timing samples include native process creation and ELF loading; not a Python frontend performance comparison."
+  ]
+}

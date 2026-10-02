@@ -1,0 +1,58 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "samplesMs": [
+    1127.3581740000004,
+    1128.7146119999998,
+    1112.8410510000003,
+    1100.6315299999997,
+    1099.8583190000008,
+    1102.567935000001,
+    1096.4292929999992
+  ],
+  "medianMs": 1102.567935000001,
+  "result": [
+    {
+      "language": "en",
+      "pages": 57,
+      "assets": 111
+    },
+    {
+      "language": "zh",
+      "pages": 55,
+      "assets": 74
+    },
+    {
+      "language": "zh-Hant",
+      "pages": 55,
+      "assets": 74
+    },
+    {
+      "language": "hu",
+      "pages": 55,
+      "assets": 74
+    },
+    {
+      "language": "de",
+      "pages": 55,
+      "assets": 74
+    },
+    {
+      "language": "it",
+      "pages": 55,
+      "assets": 74
+    },
+    {
+      "language": "fr",
+      "pages": 55,
+      "assets": 74
+    }
+  ],
+  "scope": "Multilingual candidate build, staging and filesystem writes; no download or browser time",
+  "translationCommit": "eacd544a2ecc0c9c59d5f458f03a4eba6fb7518f",
+  "sources": {
+    "host/src/diagnostics/docs-translations.ts": "0ecbf40a00a13e0f3ea45248750b1bc55e3e4412d9fd3a82163e5517c59d59c1",
+    "host/src/diagnostics/docs-site.ts": "3720c7f585616f3416bfe1ce77b7101401b0c66ec4f3faaed2971df8001f1374",
+    "scripts/build-docs.ts": "d3aaf690900c645b59ee792d8ddc932ae20d2f54a29cf3db4fc2eb53c312bacf"
+  }
+}

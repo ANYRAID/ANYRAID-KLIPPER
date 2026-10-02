@@ -1,0 +1,52 @@
+{
+  "node": "v26.9.0",
+  "warmupsPerMode": 1,
+  "samplesPerMode": 3,
+  "sourceMs": 1003.8315420000008,
+  "compiledMs": 783.658727,
+  "maximumMs": 1354.9810046000011,
+  "passed": true,
+  "samples": [
+    {
+      "compiled": false,
+      "run": 0,
+      "readyMs": 1007.6877890000001
+    },
+    {
+      "compiled": true,
+      "run": 0,
+      "readyMs": 777.2590299999997
+    },
+    {
+      "compiled": true,
+      "run": 1,
+      "readyMs": 781.53233
+    },
+    {
+      "compiled": false,
+      "run": 1,
+      "readyMs": 1014.2802390000002
+    },
+    {
+      "compiled": false,
+      "run": 2,
+      "readyMs": 1003.8315420000008
+    },
+    {
+      "compiled": true,
+      "run": 2,
+      "readyMs": 785.453012
+    },
+    {
+      "compiled": true,
+      "run": 3,
+      "readyMs": 783.658727
+    },
+    {
+      "compiled": false,
+      "run": 3,
+      "readyMs": 996.5546280000008
+    }
+  ],
+  "scope": "Delta declarative CLI process startup to ready over two simulated PTY MCUs; includes geometry status and graceful shutdown verification. Local native addons and dependencies reused. No print throughput or physical hardware acceptance."
+}

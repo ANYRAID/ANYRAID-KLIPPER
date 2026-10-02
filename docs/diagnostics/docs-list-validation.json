@@ -1,0 +1,34 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "pages": 58,
+    "inputBytes": 2892398,
+    "warmups": 3,
+    "samplesMs": [
+      287.47809099999995,
+      284.646293,
+      286.07075299999997,
+      288.7523379999998,
+      297.3488510000002,
+      284.7640550000001,
+      282.7578880000001
+    ],
+    "medianMs": 286.07075299999997,
+    "outputBytes": 6162507,
+    "outputSha256": "29fde1867ad46a0fb0cf0ef00aa45cd63b1c5579a935e42ac4cec476c9959670",
+    "scope": "Markdown HTML rendering and page metadata only; not a whole-site or print benchmark."
+  },
+  "passedDialectCases": 13,
+  "remaining": [
+    "paragraph-separated unordered lists",
+    "fenced code inside lists",
+    "non-one ordered list interrupting a paragraph",
+    "fenced code CSS class"
+  ],
+  "sources": {
+    "host/src/diagnostics/docs-lists.ts": "3943af19fff6e4a36bf892a681824c7856cfd1cd811423d9e6e1e176ca32b9d9",
+    "host/src/diagnostics/docs-render.ts": "e814f755e61133a41add8c2bfe6ca304533e6bd2ac6fba02e654e6083d011062",
+    "host/contracts/docs-dialect-reference.json": "f3b7fcc13ad1f63b3804de1637bb88ddb692ed3854c679ebd54fd8506db3cd7f"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "trajectoriesPerSample": 10000,
+  "samplesMs": [
+    13.174502000000004,
+    14.481939000000011,
+    14.249546999999978,
+    8.555312000000015,
+    8.431039999999996,
+    8.459269999999975,
+    8.485861
+  ],
+  "medianMs": 8.555312000000015,
+  "scope": "Delta privileged retract geometry, limits and lookahead profile; excludes native step generation, MCU IO and print throughput"
+}

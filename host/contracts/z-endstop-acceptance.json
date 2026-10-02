@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "8b3b2155",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/src/homing/z-endstop.ts": "bbca98535e896fa23f1532a4e320dd2aaf802195caa745fb7678b7252c3d8cfe",
+    "host/src/moonraker/native-z-endstop.ts": "091bf9e22cb2824b5bb31e43216ed3fccce7c5416c52b553a3bfc66833407a51",
+    "host/src/moonraker/native-manual-bed-tilt.ts": "7ddd22ed1d5c8910a761beb1943a3f963beafdedd961044fa0aec12c3609a2ac",
+    "host/src/runtime/product-service.ts": "cdcaa3575bab3bac5206d64d6ab4d81de330e8f10464b8f4c4febe58c5da0428",
+    "host/test/z-endstop-calibration.test.ts": "14d0eab9e52c149de15511d95dfcea5cdfa0c1168e5343ea9012dd3e6b9fdd98",
+    "host/acceptance/product-compiled-journey.test.ts": "14dd9bc2d3d2e89cc84c282c25432e901ea5b45e8ae62620d5c27426465b7e09"
+  },
+  "tests": {
+    "regressions": 20,
+    "fixedManualPlanningReferences": 128,
+    "compiledProducts": 1,
+    "coverage": [
+      "精度保留与输入/输出行程验证",
+      "仅保存本机接受的接触结果，权限及旧令牌保护",
+      "配置外部编辑冲突保护及在途保存取消",
+      "编译产品打印后校准，保存回执重试",
+      "重初始化加载新限位值并再次归零"
+    ]
+  },
+  "calibration": {
+    "zEndstopCalibration": {
+      "compiled": true,
+      "contact": [
+        0,
+        0,
+        -0.05
+      ],
+      "old": 0,
+      "saved": 0.05,
+      "reinitialized": true,
+      "homedAfterReload": true,
+      "retryWithoutWrite": true
+    }
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 4.638323999999997,
+    "nodeMaxMs": 4.830235999999999,
+    "historicalPythonMedianMs": 11.993486999926972,
+    "historicalPythonMaxMs": 12.044097999933001,
+    "checksum": 3386409.722058255,
+    "scope": "Validated manual target planning versus original TESTZ with mock toolhead and suppressed reporting; excludes HTTP, physical travel and operator response."
+  },
+  "product": {
+    "phaseQueries": 3929,
+    "phaseP99Ms": 4.711792999998579,
+    "loaded": true,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": true,
+    "stressed": true,
+    "sensorless": true,
+    "tmc": [
+      {
+        "statusReads": 168,
+        "writes": 55
+      },
+      {
+        "statusReads": 64,
+        "writes": 54
+      },
+      {
+        "statusReads": 88,
+        "writes": 46
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      },
+      {
+        "statusReads": 16,
+        "writes": 46
+      },
+      {
+        "statusReads": 19,
+        "writes": 46
+      },
+      {
+        "statusReads": 16,
+        "writes": 46
+      }
+    ],
+    "faultInjected": "tmc-reset",
+    "historyNotifications": 32,
+    "historyRequests": 876,
+    "historyP99Ms": 10.07570300000043,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 3.959987000000183,
+    "deleteRequests": 16,
+    "deleteP95Ms": 5.247929000001022,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 1.8498470000013185,
+    "metadataRequests": 16,
+    "metadataP95Ms": 32.574822000000495,
+    "downloads": 16,
+    "downloadP95Ms": 4.412951000000248,
+    "wireCommands": 414,
+    "wireSteps": 6106,
+    "minimumStepLeadMs": 74.404,
+    "directoryRequests": 3791,
+    "directoryP99Ms": 5.125388000000385,
+    "statusRequests": 15721,
+    "uploads": 16,
+    "statusP99Ms": 3.6365240000013728,
+    "uploadP95Ms": 8.130895000000237,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.963007,
+          "maxMs": 18.710527
+        },
+        "cpu": {
+          "user": 4717512,
+          "system": 524462
+        },
+        "rss": 287870976
+      },
+      {
+        "loop": {
+          "p99Ms": 2.008063,
+          "maxMs": 5.947391
+        },
+        "cpu": {
+          "user": 1498177,
+          "system": 170587
+        },
+        "rss": 261378048
+      }
+    ]
+  },
+  "fixtureCorrection": "首次产品测试发现换串口时夹具重新生成旧position_endstop覆盖自动保存值，修复为保留保存参数后完整重跑通过。",
+  "limits": [
+    "配置保存刻意保留binary64精度，而非原Python显示用三位小数舍入",
+    "单独Z轴限位校准已接通；Z_OFFSET_APPLY_ENDSTOP、Delta多塔及自动手动探测方法尚未全部迁移",
+    "目标板性能、真实接触和机械精度未验收",
+    "默认Python入口及192个Python文件仍在",
+    "历史Node崩溃和瞬时数值异常仍未定位"
+  ]
+}

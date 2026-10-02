@@ -1,0 +1,55 @@
+{
+  "baseline": "b82bb838",
+  "node": "v26.9.0",
+  "schemaVersion": 2,
+  "scope": "Atomic terminal print statistics with durable request state; native request-id API exposes the snapshot",
+  "sources": {
+    "host/src/operations/print-journal-types.ts": "058c0e5954493fd8e385b286c8b9780837c6ca39386dbae0b53d4202c84c9104",
+    "host/src/operations/print-journal-worker.ts": "b6e9d6e69a60ae717a2bd183d5c33ba6eda4e5b71379d6bf90e8e595b89cc58c",
+    "host/src/operations/print-journal.ts": "04ad9e4ac30f82ee1d8f8ee02458efc50430fb27d192611e0f41a96a41c1ef43",
+    "host/src/operations/print.ts": "f167722375b1045c5d8cd6fc3fec7d06bd24b3b5151dbc7195aaff2ac3c38abb",
+    "host/src/moonraker/product-print-api.ts": "28d618adcc6e90c9cf01e4709e581d52f813d5d6c2f4ed391d8e30d610225a44",
+    "host/test/print-statistics-journal.test.ts": "7461df522b13cc63dbee79984084bb441eb6deb3ab35665dba618aad3f06ade7",
+    "host/bench/print-statistics-journal.ts": "097fb85dab69e788314b9d795a23f4f08a494495f77a2008a3c1d25cfc0adfba",
+    "host/acceptance/product-compiled-journey.test.ts": "18fa05ec24f11878c63a5f71c09d6266dc9575ee539be3d9370696f356132663"
+  },
+  "checks": {
+    "relatedTests": 51,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "tests": "✔ accepted signed extrusion survives coordinate origins, overrides and saved state without counting rejected motion (2.016305ms)\n✔ compensated totals retain small accepted deltas and overflow is unknown without rejecting motion (0.147672ms)\n✔ controller excludes confirmed pause adjustments, resumes once and freezes terminal statistics (2.291439ms)\n✔ fault cleanup cannot add consumption and missing restored history stays unknown (0.588598ms)\n✔ print duration begins at first net-positive extrusion and is independent of query frequency (0.453296ms)\n✔ paused cancellation and resume preparation never accrue effective print time (0.75069ms)\n✔ durable lifecycle reserves before effects and refuses completed replay after restart (83.498239ms)\n✔ cancel does not persist terminal state before device stop acknowledgement (39.38167ms)\n✔ restart leaves uncertain print interrupted and blocks all new device starts (77.886229ms)\n✔ failed storage acknowledgement prevents effects and reset cannot erase started job (37.80969ms)\n✔ cancel during preparation drains action before persisting cancellation (38.211265ms)\n✔ cancel overlapping durable completion preserves committed safe completion (38.711982ms)\n✔ late cancellation commit cannot restore success after deadline and retry reconciles (87.360597ms)\n✔ restoration exposes interrupted identity without effects and requires stop before next job (75.223136ms)\n✔ restore refuses to adopt a live record or hide a closed journal (38.375428ms)\n✔ failed recovery stop retains interrupted record for a fresh acknowledged retry (75.188285ms)\n✔ recovery timeout owns late stop and cannot clear interruption before acknowledgement (104.45924ms)\n✔ restoring a terminal journal yields idle without device calls (75.134975ms)\n✔ one journal cannot be bound to competing controllers even after terminal reset (37.890451ms)\n✔ pending restoration claims journal before asynchronous lookup and failed read releases claim (37.711199ms)\n✔ validation and rejected live-record restoration do not consume journal ownership (36.680697ms)\n✔ repeated cancel deadlines reuse the entire stop-and-commit operation (128.354947ms)\n✔ elapsed duration includes preparation, acknowledged pause and final drain, freezes and resets (0.631778ms)\n✔ fault freezes duration before cleanup and rejected admission never starts a timer (0.297674ms)\n✔ restored interrupted jobs retain unknown duration until explicit terminal reset (73.97478ms)\n✔ device fault persists only after stop, coalesces callers and cannot restart (37.406556ms)\n✔ preparation and pause failures persist failed after safe stop (74.70823ms)\n✔ late fault does not replace completed or cancelled durable outcomes (74.912412ms)\n✔ failed physical stop never publishes acknowledged failed outcome (38.889724ms)\n✔ fault waits for delayed preparation and its late reservation before failed persistence (39.845896ms)\n✔ fault rejects when failed outcome cannot be written (37.528947ms)\n✔ durable journal reserves once, rejects conflicts and stale transitions, and retains terminal records (74.75308ms)\n✔ exclusive ownership prevents a second writer and device identity mismatch cannot mutate history (199.702015ms)\n✔ accepted writes drain before close; bounded queue rejects excess without losing ownership (109.420402ms)\n✔ SIGKILL after acknowledged start leaves an interrupted reservation, never permission to replay (234.052432ms)\n✔ unknown schemas, symlinks and malformed requests fail closed (143.035459ms)\n✔ storage full closes the worker and preserves every previously acknowledged terminal record (142.746216ms)\n✔ malformed persisted payload closes the journal instead of forgetting an old request (72.713345ms)\n✔ terminal statistics are validated, atomically versioned, immutable on acknowledgement and durable across reopen (110.695108ms)\n✔ version one journals migrate without inventing statistics and wrong device migration rolls back (74.206113ms)\n✔ controller freezes live and durable counters at device completion and they survive a new process owner (72.32895ms)\n✔ typed pressure admission rejects invalid and stale controls; disconnected client cannot replay or cancel accepted tuning (39.500962ms)\n✔ Native admission responds after durable reservation while preparation continues and retries cannot change identity (38.321057ms)\n✔ Client cancellation stops receipt waiting without undoing an admitted print; server close performs safe cancellation (35.912847ms)\n✔ Native control rejects missing expiry, legacy start shape and expired requests before effects (35.755044ms)\n✔ Native API requires a durable single owner and matching maintenance gate (36.473844ms)\n✔ Native close retains failure and allows an explicit cleanup retry (40.002928ms)\n✔ standard printing maps to durable typed operations, returns ok and can start after completion (40.081399ms)\n✔ standard authorization binds current state, refuses denied files and stops after client cancellation (36.915229ms)\n✔ held standard policies remain counted after disconnect and cannot run after close (37.132372ms)\n✔ standard websocket requests use the same durable controller and return the Moonraker result shape (68.830457ms)\nℹ tests 51\nℹ suites 0\nℹ pass 51\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 3164.927631\n",
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.251935ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18412.584425ms)\nℹ {\"installation\":{\"durationMs\":691.8225969999994,\"dependencies\":10}}\nℹ {\"loaded\":false,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":85.811,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.876991,\"maxMs\":14.172159},\"cpu\":{\"user\":718350,\"system\":76554},\"rss\":160468992},{\"loop\":{\"p99Ms\":1.769471,\"maxMs\":5.419007},\"cpu\":{\"user\":405473,\"system\":51285},\"rss\":180391936}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19193.363829ms)\nℹ {\"installation\":{\"durationMs\":705.7868309999976,\"dependencies\":10}}\nℹ {\"loaded\":true,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":5.361387000000832,\"deleteRequests\":16,\"deleteP95Ms\":6.793863999999303,\"thumbnailRequests\":16,\"thumbnailP95Ms\":10.980966999995871,\"metadataRequests\":16,\"metadataP95Ms\":17.61047899999903,\"downloads\":16,\"downloadP95Ms\":3.4646629999988363,\"wireCommands\":172,\"wireSteps\":3089,\"minimumStepLeadMs\":81.13,\"directoryRequests\":2003,\"directoryP99Ms\":6.021676000003936,\"statusRequests\":8300,\"uploads\":16,\"statusP99Ms\":3.141689000000042,\"uploadP95Ms\":9.45966799999951,\"generations\":[{\"loop\":{\"p99Ms\":2.080767,\"maxMs\":13.697023},\"cpu\":{\"user\":1955980,\"system\":240638},\"rss\":250376192},{\"loop\":{\"p99Ms\":1.860607,\"maxMs\":4.057087},\"cpu\":{\"user\":1178336,\"system\":145437},\"rss\":245116928}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (8039.766655ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46286.583752\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "filesystemMagic": 16914836,
+    "variants": [
+      "terminalStateOnly",
+      "terminalStateAndStatistics"
+    ],
+    "jobs": 100,
+    "warmups": 3,
+    "runs": 11,
+    "results": [
+      {
+        "medianMs": 0.10871436000000244,
+        "p95Ms": 0.1202274999999986
+      },
+      {
+        "medianMs": 0.13854401999999028,
+        "p95Ms": 0.16083978999999546
+      }
+    ],
+    "addedP95Ms": 0.04061228999999686,
+    "maximumAddedP95Ms": 2,
+    "scope": "Acknowledged terminal transaction IPC and durable commit, not per-move work. Same version-2 schema in both variants. Read-only SQLite verification outside timing; no physical target guarantee."
+  },
+  "limitations": [
+    "Native standard server.history list/totals/delete/notifications still not integrated",
+    "Old records without snapshots remain unknown; interrupted live counters are not reconstructed",
+    "Schema 2 is not readable by old schema-1 binaries; downgrade requires a matching backup",
+    "No physical device/database migration, target board precision or storage validation",
+    "Default Python entry and 193 tracked Python files remain"
+  ]
+}

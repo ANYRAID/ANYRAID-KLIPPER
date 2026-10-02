@@ -1,0 +1,100 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "2f82e343",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "5db2b067295a9bb6aeab065ebc0a8b544848ad8ccea87bb94af6e555fcf2fcbd",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "extendedDirectoryClients": 1,
+    "pollDelayMs": 5,
+    "uploadsPerGeneration": 8,
+    "downloadAndColdMetadataAfterEveryUpload": true,
+    "uploadBytes": 262144,
+    "generations": 2
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 148,
+      "wireSteps": 3228,
+      "minimumStepLeadMs": 90.466,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.863679,
+            "maxMs": 13.639679
+          },
+          "cpu": {
+            "user": 649518,
+            "system": 66661
+          },
+          "rss": 163786752
+        },
+        {
+          "loop": {
+            "p99Ms": 1.801215,
+            "maxMs": 4.657151
+          },
+          "cpu": {
+            "user": 344976,
+            "system": 34950
+          },
+          "rss": 184340480
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "metadataRequests": 16,
+      "metadataP95Ms": 5.658773999999539,
+      "downloads": 16,
+      "downloadP95Ms": 9.816857000001619,
+      "wireCommands": 149,
+      "wireSteps": 3232,
+      "minimumStepLeadMs": 89.598,
+      "directoryRequests": 2086,
+      "directoryP99Ms": 3.728977999999188,
+      "statusRequests": 8679,
+      "uploads": 16,
+      "statusP99Ms": 3.213162000000011,
+      "uploadP95Ms": 16.515094999998837,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.929215,
+            "maxMs": 13.254655
+          },
+          "cpu": {
+            "user": 1815199,
+            "system": 212796
+          },
+          "rss": 246456320
+        },
+        {
+          "loop": {
+            "p99Ms": 1.797119,
+            "maxMs": 4.464639
+          },
+          "cpu": {
+            "user": 1002770,
+            "system": 114505
+          },
+          "rss": 242163712
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS child with simulated PTY MCU, temperature and endstops. Cold scalar extraction is requested during printing for every newly uploaded file. Separate benchmark covers 64 KiB/4 MiB/64 MiB. Not target hardware or sustained maximum-speed acceptance."
+}

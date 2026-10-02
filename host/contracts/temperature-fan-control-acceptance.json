@@ -1,0 +1,31 @@
+{
+  "scope": "Pure temperature fan control only; runtime, product API and physical acceptance remain incomplete",
+  "node": "26.9.0",
+  "referenceSamples": 480,
+  "reference": "temperature-fan-reference.json",
+  "tests": 6,
+  "typecheck": true,
+  "whitespace": true,
+  "benchmark": {
+    "samples": 96000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 4.541225999999995,
+    "maxMs": 5.892219999999995,
+    "checksum": 1532148.7105490381,
+    "pythonMedianMs": 117.29885100066895,
+    "pythonMaxMs": 117.60628399861162,
+    "comparisonLimit": "Original Python controller includes mocked output list storage and configuration setup; no equal-work speedup claim. Neither benchmark includes sensor IO or MCU scheduling."
+  },
+  "intentionalChanges": [
+    "Never suppress a nonzero-to-zero output edge or newly reduced speed ceiling",
+    "Validate settings atomically and retain omitted target",
+    "Reject invalid sensor samples, non-increasing time and unrepresentable scheduling before mutation",
+    "Reject negative PID gains and minimum speed above maximum"
+  ],
+  "limitations": [
+    "temperature_fan configuration remains unsupported by the native product until runtime wiring is complete",
+    "Default Python entrypoint remains; no Python retired by this change",
+    "Historical Node crashes and motion numerical mismatches remain unresolved"
+  ]
+}

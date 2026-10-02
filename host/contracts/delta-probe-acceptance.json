@@ -1,0 +1,52 @@
+{
+  "node": "v26.9.0",
+  "warmupsPerMode": 1,
+  "samplesPerMode": 3,
+  "directMs": 844.0013629999999,
+  "apiMs": 865.7041660000004,
+  "maximumMs": 1147.2017718999998,
+  "passed": true,
+  "samples": [
+    {
+      "run": 0,
+      "api": false,
+      "wallMs": 811.8241519999999
+    },
+    {
+      "run": 1,
+      "api": false,
+      "wallMs": 844.0013629999999
+    },
+    {
+      "run": 2,
+      "api": false,
+      "wallMs": 794.4777119999994
+    },
+    {
+      "run": 3,
+      "api": false,
+      "wallMs": 845.1975470000007
+    },
+    {
+      "run": 0,
+      "api": true,
+      "wallMs": 853.1148389999998
+    },
+    {
+      "run": 1,
+      "api": true,
+      "wallMs": 865.7041660000004
+    },
+    {
+      "run": 2,
+      "api": true,
+      "wallMs": 864.9390860000003
+    },
+    {
+      "run": 3,
+      "api": true,
+      "wallMs": 869.7684200000003
+    }
+  ],
+  "scope": "Two simulated MCU sessions; two off-center mechanical probe samples with retract and recovery. Direct owner samples precede HTTP product service samples; setup excluded. Test seeds homed coordinates, no physical probe accuracy or complete G28-to-probe acceptance."
+}

@@ -1,0 +1,699 @@
+{
+  "schema": 1,
+  "sourceCommit": "0b8829b3",
+  "sources": {
+    "scripts/motan/data_export.py": "1ec02c2ac01b899fa8a270ad0f80f5b69bd576bb349887cf4ebb47999eed20ec",
+    "scripts/motan/analyzers.py": "8e47954f05da42f9f33fa14224080547c5a54f64ddd36930973f6e42a77421ab",
+    "scripts/motan/readlog.py": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2"
+  },
+  "caseCount": 22,
+  "dataBytes": 17199894,
+  "dataSha256": "68c309341a079f13734c597e8fa7006d2df5f8ce0f862dd7eaaae95d2460a611",
+  "gzipSha256": "cfdfacf54317e0bbd0802b24c4bcd11b6242e8d2e51794c19dd5234203572e51",
+  "fixtureSha256": "7758f3df9e62b0968c24d4fec5de026f734314854fb4d21053e43c647022e360",
+  "scope": "Original CPython CSV output from six existing CLI tests. snapshot=true applies the documented deepcopy correction to legacy status object aliasing; other cases use unmodified exporter. Capture-file hashes and normalized arguments identify every result. Three additional cases cover compiled-export benchmark shapes; Python timing is historical after capture. Additional captured cases cover dynamically constructed retired CSV entry references in numeric-type tests and four benchmarks.",
+  "historicalPerformance": {
+    "environment": {
+      "node": "v26.9.0",
+      "buildMs": 176.23269900000003,
+      "buildExcludedFromExport": true,
+      "python": "Python 3.12.13"
+    },
+    "cases": [
+      {
+        "shape": "empty",
+        "rows": 0,
+        "scope": "fresh process and worker, gzip, sampling, CSV, stdout; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+        "sourceMs": {
+          "median": 181.43278099999998,
+          "p95": 186.77010400000017
+        },
+        "compiledMs": {
+          "median": 85.50951399999985,
+          "p95": 87.12805599999956
+        },
+        "pythonMs": {
+          "median": 38.36175700000058,
+          "p95": 40.12195100000008
+        },
+        "sourceByteExact": true,
+        "pythonValuesExact": true
+      },
+      {
+        "shape": "scalar",
+        "rows": 20000,
+        "scope": "fresh process and worker, gzip, sampling, CSV, stdout; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+        "sourceMs": {
+          "median": 217.93760099999963,
+          "p95": 220.70750000000044
+        },
+        "compiledMs": {
+          "median": 120.37402199999997,
+          "p95": 122.98063800000091
+        },
+        "pythonMs": {
+          "median": 65.45083799999884,
+          "p95": 66.65662499999962
+        },
+        "sourceByteExact": true,
+        "pythonValuesExact": true
+      },
+      {
+        "shape": "structured",
+        "rows": 20000,
+        "scope": "fresh process and worker, gzip, sampling, CSV, stdout; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+        "sourceMs": {
+          "median": 235.80441699999938,
+          "p95": 241.9873919999991
+        },
+        "compiledMs": {
+          "median": 141.0460149999999,
+          "p95": 143.22704499999963
+        },
+        "pythonMs": {
+          "median": 173.28424900000027,
+          "p95": 177.22282300000006
+        },
+        "sourceByteExact": true,
+        "pythonValuesExact": true
+      }
+    ]
+  },
+  "retirement": {
+    "entry": "scripts/motan/data_export.py",
+    "cliTests": 6,
+    "exportBuildPathTests": 8,
+    "noProgramsPath": true,
+    "typesPassed": true,
+    "benchmark": {
+      "environment": {
+        "node": "v26.9.0",
+        "buildMs": 172.87951199999998,
+        "buildExcludedFromExport": true,
+        "reference": "frozen Python 3.12.13"
+      },
+      "cases": [
+        {
+          "shape": "empty",
+          "rows": 0,
+          "scope": "Fresh Node process and worker, gzip, sampling, CSV, stdout; no Python process; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+          "sourceMs": {
+            "median": 182.92158100000006,
+            "p95": 200.44900099999973
+          },
+          "compiledMs": {
+            "median": 85.41617200000019,
+            "p95": 88.06415900000002
+          },
+          "historicalPythonMs": {
+            "median": 38.36175700000058,
+            "p95": 40.12195100000008
+          },
+          "sourceByteExact": true,
+          "pythonValuesExact": true
+        },
+        {
+          "shape": "scalar",
+          "rows": 20000,
+          "scope": "Fresh Node process and worker, gzip, sampling, CSV, stdout; no Python process; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+          "sourceMs": {
+            "median": 216.71567400000004,
+            "p95": 239.75109000000066
+          },
+          "compiledMs": {
+            "median": 121.69971999999962,
+            "p95": 127.18006499999956
+          },
+          "historicalPythonMs": {
+            "median": 65.45083799999884,
+            "p95": 66.65662499999962
+          },
+          "sourceByteExact": true,
+          "pythonValuesExact": true
+        },
+        {
+          "shape": "structured",
+          "rows": 20000,
+          "scope": "Fresh Node process and worker, gzip, sampling, CSV, stdout; no Python process; V8/TS compile cache disabled; OS caches not cleared; 3 warmups/15 alternating runs",
+          "sourceMs": {
+            "median": 236.5817559999996,
+            "p95": 251.99573799999962
+          },
+          "compiledMs": {
+            "median": 142.1932309999993,
+            "p95": 150.53306499999962
+          },
+          "historicalPythonMs": {
+            "median": 173.28424900000027,
+            "p95": 177.22282300000006
+          },
+          "sourceByteExact": true,
+          "pythonValuesExact": true
+        }
+      ]
+    },
+    "limitations": [
+      "Other Motan analysis/sampling reference tests still use Python",
+      "Cold small/scalar CSV export is slower than the captured Python baseline",
+      "Offline diagnostic workload, not printer motion timing"
+    ],
+    "dynamicReferenceRepair": {
+      "cases": 22,
+      "benchmarks": {
+        "stallguard-types": [
+          {
+            "scope": "20000 samples, 64 rows/block; validation, async sampling and results; excludes JSON/gzip/worker. Old source 88a86262. Node 20 warmups/15 runs; Python 2/7.",
+            "node": "v26.9.0",
+            "pythonMs": {
+              "median": 6.512585969176143,
+              "p95": 6.64780696388334
+            },
+            "oldMs": {
+              "median": 5.886709999999994,
+              "p95": 6.869179000000031
+            },
+            "nodeMs": {
+              "median": 5.923700999999937,
+              "p95": 8.986286999999948
+            },
+            "typedMs": {
+              "median": 9.909845000000018,
+              "p95": 13.826868999999988
+            },
+            "exact": true
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 64.90998200000001,
+              "p95Ms": 68.02855799999998,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 CSV samples including process startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs",
+            "mode": "node",
+            "ms": {
+              "median": 220.368516,
+              "p95": 226.98824300000024
+            }
+          },
+          {
+            "scope": "20000 CSV samples including process startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs",
+            "mode": "typed",
+            "ms": {
+              "median": 228.15097400000013,
+              "p95": 231.93316699999923
+            }
+          },
+          {
+            "csvNumericExact": true
+          }
+        ],
+        "typed-phase": [
+          {
+            "node": "v26.9.0",
+            "stepsPerBlock": 1200,
+            "samples": 10001,
+            "floating": false,
+            "pythonMs": {
+              "median": 2.9978150269016623,
+              "p95": 3.024056029971689
+            },
+            "typedMs": {
+              "median": 4.463298000000009,
+              "p95": 4.640099999999961
+            },
+            "legacyMs": {
+              "median": 4.842311999999993,
+              "p95": 5.132715000000076
+            },
+            "exactTypesAndBits": true,
+            "scope": "Decode, validation, async sampling and result allocation; excludes parsing/gzip/worker. Node 20 warmups/15 runs; Python 2/7. Legacy integer-only sampler is unchanged."
+          },
+          {
+            "node": "v26.9.0",
+            "stepsPerBlock": 1200,
+            "samples": 10001,
+            "floating": true,
+            "pythonMs": {
+              "median": 2.8714350191876292,
+              "p95": 2.8797240229323506
+            },
+            "typedMs": {
+              "median": 4.362698000000137,
+              "p95": 7.029031000000032
+            },
+            "exactTypesAndBits": true,
+            "scope": "Decode, validation, async sampling and result allocation; excludes parsing/gzip/worker. Node 20 warmups/15 runs; Python 2/7. Legacy integer-only sampler is unchanged."
+          },
+          {
+            "node": "v26.9.0",
+            "stepsPerBlock": 32000,
+            "samples": 10001,
+            "floating": false,
+            "pythonMs": {
+              "median": 39.64657196775079,
+              "p95": 39.718972984701395
+            },
+            "typedMs": {
+              "median": 14.734646999999768,
+              "p95": 15.287552000000233
+            },
+            "legacyMs": {
+              "median": 13.187543000000005,
+              "p95": 14.142041999999947
+            },
+            "exactTypesAndBits": true,
+            "scope": "Decode, validation, async sampling and result allocation; excludes parsing/gzip/worker. Node 20 warmups/15 runs; Python 2/7. Legacy integer-only sampler is unchanged."
+          },
+          {
+            "node": "v26.9.0",
+            "stepsPerBlock": 32000,
+            "samples": 10001,
+            "floating": true,
+            "pythonMs": {
+              "median": 40.411558002233505,
+              "p95": 40.907632966991514
+            },
+            "typedMs": {
+              "median": 15.302592000000004,
+              "p95": 16.55784199999971
+            },
+            "exactTypesAndBits": true,
+            "scope": "Decode, validation, async sampling and result allocation; excludes parsing/gzip/worker. Node 20 warmups/15 runs; Python 2/7. Legacy integer-only sampler is unchanged."
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 65.43954599999984,
+              "p95Ms": 67.97091899999987,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 phase CSV samples including startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs",
+            "mode": "node",
+            "ms": {
+              "median": 224.05011400000058,
+              "p95": 225.69264999999996
+            }
+          },
+          {
+            "scope": "20000 phase CSV samples including startup, gzip, parsing, worker, analysis and stdout; 2 warmups/7 runs",
+            "mode": "typed",
+            "ms": {
+              "median": 230.25003000000015,
+              "p95": 246.73372300000028
+            }
+          },
+          {
+            "csvNumericExact": true
+          }
+        ],
+        "structured-table": [
+          {
+            "node": "v26.9.0",
+            "oldRef": "92b0aa6f",
+            "shape": "primitive",
+            "scope": "20000 typed rows; gzip/sampling/table accounting, excludes manager open/CSV; 20 warmups/15 runs",
+            "currentMs": {
+              "median": 6.806959000000006,
+              "p95": 10.435789999999997
+            },
+            "oldMs": {
+              "median": 6.741939000000002,
+              "p95": 9.913585000000012
+            }
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 66.37232100000028,
+              "p95Ms": 67.45257700000002,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "shape": "primitive",
+            "mode": "current",
+            "scope": "20000 CSV rows including startup/worker/gzip/sampling/CSV/stdout; 2 warmups/7 runs",
+            "ms": {
+              "median": 215.1192030000002,
+              "p95": 222.41885599999978
+            }
+          },
+          {
+            "shape": "primitive",
+            "pythonValuesExact": true
+          },
+          {
+            "node": "v26.9.0",
+            "oldRef": "92b0aa6f",
+            "shape": "structured-fixed",
+            "scope": "20000 typed rows; gzip/sampling/table accounting, excludes manager open/CSV; 20 warmups/15 runs",
+            "currentMs": {
+              "median": 7.488745000000108,
+              "p95": 8.555773999999928
+            }
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 173.73531699999967,
+              "p95Ms": 176.71456299999954,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "shape": "structured-fixed",
+            "mode": "current",
+            "scope": "20000 CSV rows including startup/worker/gzip/sampling/CSV/stdout; 2 warmups/7 runs",
+            "ms": {
+              "median": 237.3722369999996,
+              "p95": 242.33840099999998
+            }
+          },
+          {
+            "shape": "structured-fixed",
+            "pythonValuesExact": true
+          },
+          {
+            "node": "v26.9.0",
+            "oldRef": "92b0aa6f",
+            "shape": "structured-updates",
+            "scope": "20000 typed rows; gzip/sampling/table accounting, excludes manager open/CSV; 20 warmups/15 runs",
+            "currentMs": {
+              "median": 9.096779000000424,
+              "p95": 10.641843000000335
+            }
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 175.31258900000012,
+              "p95Ms": 179.6086719999994,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "shape": "structured-updates",
+            "mode": "current",
+            "scope": "20000 CSV rows including startup/worker/gzip/sampling/CSV/stdout; 2 warmups/7 runs",
+            "ms": {
+              "median": 237.34577100000024,
+              "p95": 240.18054500000017
+            }
+          },
+          {
+            "shape": "structured-updates",
+            "pythonValuesExact": true
+          }
+        ],
+        "scalar-batch": [
+          {
+            "scope": "20000 samples; gzip/log consumption, scalar accounting and analysis; excludes manager open, dataset setup and CSV. 20 warmups/15 runs, alternating.",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": false,
+            "oldMs": {
+              "median": 13.313485999999898,
+              "p95": 18.366529999999898
+            },
+            "nodeMs": {
+              "median": 7.3656140000000505,
+              "p95": 10.274458999999979
+            },
+            "exactTypesAndValues": true
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 66.33708500000012,
+              "p95Ms": 68.93915800000104,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": false,
+            "mode": "old",
+            "ms": {
+              "median": 225.23135899999988,
+              "p95": 230.47595599999977
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": false,
+            "mode": "current",
+            "ms": {
+              "median": 217.96608799999967,
+              "p95": 224.39137300000039
+            }
+          },
+          {
+            "columns": 1,
+            "typed": false,
+            "byteExactWithOld": true,
+            "pythonValuesExact": true
+          },
+          {
+            "scope": "20000 samples; gzip/log consumption, scalar accounting and analysis; excludes manager open, dataset setup and CSV. 20 warmups/15 runs, alternating.",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": true,
+            "oldMs": {
+              "median": 16.39773299999979,
+              "p95": 18.23268900000039
+            },
+            "nodeMs": {
+              "median": 9.008218999999372,
+              "p95": 11.865143999999418
+            },
+            "exactTypesAndValues": true
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 66.33708500000012,
+              "p95Ms": 68.93915800000104,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": true,
+            "mode": "old",
+            "ms": {
+              "median": 240.1523760000009,
+              "p95": 244.06639799999994
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 1,
+            "typed": true,
+            "mode": "current",
+            "ms": {
+              "median": 227.99160999999913,
+              "p95": 235.56365600000026
+            }
+          },
+          {
+            "columns": 1,
+            "typed": true,
+            "byteExactWithOld": true,
+            "pythonValuesExact": true
+          },
+          {
+            "scope": "20000 samples; gzip/log consumption, scalar accounting and analysis; excludes manager open, dataset setup and CSV. 20 warmups/15 runs, alternating.",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": false,
+            "oldMs": {
+              "median": 50.64708299999984,
+              "p95": 57.392712000000756
+            },
+            "nodeMs": {
+              "median": 34.347281000000294,
+              "p95": 36.945472999999765
+            },
+            "exactTypesAndValues": true
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 132.0435379999999,
+              "p95Ms": 135.65536799999973,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": false,
+            "mode": "old",
+            "ms": {
+              "median": 321.17577100000017,
+              "p95": 329.74594699999943
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": false,
+            "mode": "current",
+            "ms": {
+              "median": 305.9627099999998,
+              "p95": 314.74593900000036
+            }
+          },
+          {
+            "columns": 8,
+            "typed": false,
+            "byteExactWithOld": true,
+            "pythonValuesExact": true
+          },
+          {
+            "scope": "20000 samples; gzip/log consumption, scalar accounting and analysis; excludes manager open, dataset setup and CSV. 20 warmups/15 runs, alternating.",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": true,
+            "oldMs": {
+              "median": 55.16564400000061,
+              "p95": 67.33188200000222
+            },
+            "nodeMs": {
+              "median": 39.758450000001176,
+              "p95": 40.87278899999728
+            },
+            "exactTypesAndValues": true
+          },
+          {
+            "scope": "Captured original CSV process timing",
+            "historicalPythonMs": {
+              "medianMs": 132.0435379999999,
+              "p95Ms": 135.65536799999973,
+              "warmups": 2,
+              "runs": 7
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": true,
+            "mode": "old",
+            "ms": {
+              "median": 336.0845339999978,
+              "p95": 341.2944299999981
+            }
+          },
+          {
+            "scope": "20000 rows including startup, worker, gzip, analysis, CSV, stdout; 2 warmups/7 runs",
+            "node": "v26.9.0",
+            "oldRef": "dca8a8e9",
+            "columns": 8,
+            "typed": true,
+            "mode": "current",
+            "ms": {
+              "median": 319.796575999997,
+              "p95": 325.81992900000114
+            }
+          },
+          {
+            "columns": 8,
+            "typed": true,
+            "byteExactWithOld": true,
+            "pythonValuesExact": true
+          }
+        ]
+      },
+      "finalRegression": {
+        "passed": 13,
+        "failed": 0
+      },
+      "types": true,
+      "whitespace": true
+    }
+  },
+  "additionalCsvTiming": {
+    "8405ebe5a9e9449ef50802864a4f3f7cd786b7e51d04fdb8fb2dc8f86894879c": {
+      "medianMs": 64.90998200000001,
+      "p95Ms": 68.02855799999998,
+      "warmups": 2,
+      "runs": 7
+    },
+    "6358e2b7e4ce9873d59e132d11666d3f7348e52c5e35a1155b12a72ef90e2009": {
+      "medianMs": 65.43954599999984,
+      "p95Ms": 67.97091899999987,
+      "warmups": 2,
+      "runs": 7
+    },
+    "5857e95417c21c06b70003130aa4f8f463b7809b9715c37dba2173c6e51c2714": {
+      "medianMs": 66.37232100000028,
+      "p95Ms": 67.45257700000002,
+      "warmups": 2,
+      "runs": 7
+    },
+    "1f8ac99ffd283f7cd522b11b7cb86996c2f801bf4b2382e92a983f89dbf665bf": {
+      "medianMs": 173.73531699999967,
+      "p95Ms": 176.71456299999954,
+      "warmups": 2,
+      "runs": 7
+    },
+    "4e901f7baf02f16e3153da686faf75e59c9afa1ea43ee445e8a198014d0e3d4e": {
+      "medianMs": 175.31258900000012,
+      "p95Ms": 179.6086719999994,
+      "warmups": 2,
+      "runs": 7
+    },
+    "0c3604b23b2a044c20bae4b6aa65a19678b1ec35a71dea66947ea8b357cbe64b": {
+      "medianMs": 66.33708500000012,
+      "p95Ms": 68.93915800000104,
+      "warmups": 2,
+      "runs": 7
+    },
+    "426fa791b75e7ac54237644c1184b4055fc9631bd97c558f5078fb125c897609": {
+      "medianMs": 132.0435379999999,
+      "p95Ms": 135.65536799999973,
+      "warmups": 2,
+      "runs": 7
+    },
+    "3aa5cf1366415ee5d1e3d27fd1dc748854f59576ac223bad1e145879c0cd2451": {
+      "medianMs": 41.12185599999975,
+      "p95Ms": 42.829845000000205,
+      "warmups": 2,
+      "runs": 7
+    }
+  }
+}

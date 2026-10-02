@@ -1,0 +1,55 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,rm,readFile} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {MotanDispatcher,MotanStatusTracker} from '../src/motan/dispatch.ts';
+import type {MotanMessage} from '../src/motan/log-reader.ts';
+import {MotanLogReader} from '../src/motan/log-reader.ts';
+import {MotanLogWriter} from '../src/motan/log-writer.ts';
+import {MotanTrapSampler} from '../src/motan/motion-samples.ts';
+import type {TrapMove} from '../src/motan/motion-samples.ts';
+const reader=(messages:MotanMessage[])=>{let at=0;return {pullMessage:async()=>messages[at++]??null};};
+const plain=(value:unknown)=>JSON.parse(JSON.stringify(value));
+test('scalar freeze fast path preserves exact depth, node and value validation limits',async()=>{
+ const consume=async(params:Record<string,unknown>)=>{const dispatch=new MotanDispatcher({...reader([{q:'x',params}]),encodedSize:()=>1});dispatch.addHandler('x','x');try{return await dispatch.pull(0,'x');}finally{dispatch.close();}};
+ for(const depth of [64,65]){let value:unknown=1;for(let i=1;i<depth;i++)value=[value];const operation=consume({value});if(depth===64)assert(await operation);else await assert.rejects(operation,/structure limit/);}
+ assert(await consume({values:Array(999998).fill(1)}));await assert.rejects(consume({values:Array(999999).fill(1)}),/structure limit/);
+ for(const value of [Infinity,NaN,undefined,Symbol('invalid'),()=>0])await assert.rejects(consume({values:[value]}),/Invalid Motan JSON/);
+ const value=await consume({values:[null,true,'text',5n,-0]});assert(Object.isFrozen(value));assert(Object.isFrozen(value!.values));assert(Object.is((value!.values as unknown[])[4],-0));
+});
+test('Motan dispatcher retains original ordering and status timing against frozen original Python output',async()=>{
+ const messages=[{q:'ignored',params:{}},{q:'status',params:{status:{toolhead:{estimated_print_time:1},heater:{temperature:20}}}},{q:'stepq:x',params:{data:[[100,2,0]]}},{q:'status',params:{status:{toolhead:{estimated_print_time:2},heater:{target:200}}}},{q:'stepq:x',params:{data:[[200,-2,1]]}},{q:'status',params:{status:{heater:{temperature:25}}}}];
+ const reference=JSON.parse(await readFile(new URL('../contracts/motan-dispatch-reference.json',import.meta.url),'utf8'));assert.deepEqual(messages,reference.messages);const expected=reference.expected;const dispatch=new MotanDispatcher(reader(messages));dispatch.addHandler('status','status');dispatch.addHandler('a','stepq:x');dispatch.addHandler('b','stepq:x');const tracker=new MotanStatusTracker({heater:{target:0}},time=>dispatch.pull(time,'status'));const out=[];for(const time of [0,1,1.5,2,3]){const snapshot=await tracker.sample(time);out.push(plain([snapshot.status,snapshot.nextTime]));}out.push([await dispatch.pull(10,'a'),await dispatch.pull(10,'b'),await dispatch.pull(10,'a'),await dispatch.pull(10,'b')]);assert.deepEqual(plain(out),expected);assert.equal(dispatch.status.endOfData,true);
+});
+test('Motan fanout shares immutable data, releases accounting and detects drained EOF',async()=>{
+ const dispatch=new MotanDispatcher(reader([{q:'s',params:{data:[[1,2,3]],clock:9007199254740993n}}]));dispatch.addHandler('a','s');dispatch.addHandler('b','s');assert.throws(()=>dispatch.addHandler('a','s'),/duplicate/);const a=await dispatch.pull(0,'a');assert.equal(dispatch.status.queuedMessages,1);assert.ok(dispatch.status.queuedBytes>0);assert.throws(()=>((a!.data as number[][])[0][0]=7),TypeError);assert.equal(await dispatch.pull(0,'a'),null);assert.equal(dispatch.status.endOfData,false);const b=await dispatch.pull(0,'b');assert.equal(a,b);assert.equal(b!.clock,9007199254740993n);assert.equal(dispatch.status.queuedBytes,0);assert.equal(dispatch.status.endOfData,true);assert.throws(()=>dispatch.addHandler('c','s'),/before/);
+});
+test('Motan nested time hints are explicit and legacy top-level lookahead remains compatible',async()=>{
+ const messages=[{q:'status',params:{status:{toolhead:{estimated_print_time:10}}}},{q:'x',params:{i:1}}];for(const mode of ['legacy','status'] as const){const dispatch=new MotanDispatcher(reader(messages),{timeHint:mode});dispatch.addHandler('x','x');assert.deepEqual(await dispatch.pull(0,'x'),mode==='legacy'?{i:1}:null);if(mode==='status')assert.deepEqual(await dispatch.pull(10,'x'),{i:1});}
+ const dispatch=new MotanDispatcher(reader([{q:'status',toolhead:{estimated_print_time:10},params:{}},{q:'x',params:{i:1}}]));dispatch.addHandler('x','x');assert.equal(await dispatch.pull(0,'x'),null);assert.deepEqual(await dispatch.pull(9,'x'),{i:1});
+});
+test('Motan queue/scan limits fail closed and concurrent close cannot repopulate queues',async()=>{
+ for(const options of [{maxQueuedMessages:1},{maxQueuedBytes:1}]){const dispatch=new MotanDispatcher(reader([{q:'s',params:{x:1}}]),options);dispatch.addHandler('a','s');dispatch.addHandler('b','s');await assert.rejects(dispatch.pull(0,'a'),/queue limit/);assert.equal(dispatch.status.queuedMessages,0);await assert.rejects(dispatch.pull(0,'b'),/queue limit/);}
+ const endless=new MotanDispatcher({pullMessage:async()=>({q:'unknown'})},{maxScanMessages:3});endless.addHandler('a','a');await assert.rejects(endless.pull(0,'a'),/scan limit/);
+ let release!:(v:MotanMessage)=>void;const dispatch=new MotanDispatcher({pullMessage:()=>new Promise(resolve=>{release=resolve;})});dispatch.addHandler('a','s');const pending=dispatch.pull(0,'a');await assert.rejects(dispatch.pull(0,'a'),/concurrent/);dispatch.close();release({q:'s',params:{x:1}});await assert.rejects(pending,/closed/);assert.equal(dispatch.status.queuedMessages,0);
+});
+test('Motan status snapshots are stable, prototype-safe and bounded through partial updates',async()=>{
+ const initial=JSON.parse('{"heater":{"target":0},"__proto__":{"safe":1}}'),updates=[{status:{toolhead:{estimated_print_time:1},heater:{temperature:20}}},{status:{toolhead:{estimated_print_time:2},heater:{target:200}}}];let at=0;const tracker=new MotanStatusTracker(initial,async()=>updates[at++]??null);const first=await tracker.sample(0);initial.heater.target=99;const second=await tracker.sample(1);await tracker.sample(2);assert.deepEqual(first.status.heater,{target:0});assert.deepEqual(plain(second.status.heater),{target:0,temperature:20});assert.equal((first.status.__proto__ as {safe:number}).safe,1);assert.throws(()=>((second.status.heater as {target:number}).target=3),TypeError);await assert.rejects(tracker.sample(1),/nondecreasing/);
+ const limited=new MotanStatusTracker({},async()=>({status:{heater:{long:'x'.repeat(200)}}}),100);await assert.rejects(limited.sample(1),/size limit/);await assert.rejects(limited.sample(2),/size limit/);
+});
+test('Motan real gzip reader dispatches interleaved subscriptions into motion and status samplers',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'motan-dispatch-')),path=join(dir,'log');let input:MotanLogReader|undefined;const writer=await MotanLogWriter.open(path);try{const messages=[{q:'status',params:{status:{toolhead:{estimated_print_time:1},heater:{temperature:20}}}},{q:'trapq:toolhead',params:{data:[[1,1,10,20,[0,0,0],[1,0,0]]]}},{q:'status',params:{status:{toolhead:{estimated_print_time:2},heater:{temperature:30}}}}];await writer.addRecords(messages.map(message=>Buffer.from(JSON.stringify(message))));await writer.close();input=await MotanLogReader.open(path);const first=(await input.pullMessage())!;assert.equal(input.encodedSize(first),Buffer.byteLength(JSON.stringify(messages[0])));assert.equal(input.encodedSize({}),undefined);await input.seek(0);const dispatch=new MotanDispatcher(input);dispatch.addHandler('motion','trapq:toolhead');dispatch.addHandler('status','status');const motion=new MotanTrapSampler('x',async time=>{const data=await dispatch.pull(time,'motion');return data?.data as TrapMove[]??null;}),status=new MotanStatusTracker({},time=>dispatch.pull(time,'status'));for(const time of [0,1,1.5,2,3]){const snap=await status.sample(time),x=await motion.sample(time);if(time===1.5){assert.equal(x,7.5);assert.equal((snap.status.heater as {temperature:number}).temperature,20);}}assert.equal(dispatch.status.endOfData,true);dispatch.close();}finally{await input?.close();await writer.close();await rm(dir,{recursive:true,force:true});}
+});
+test('Motan dispatch validates malformed frames and rejects invalid accounting and status clocks',async()=>{
+ for(const message of [{q:'s',params:null},{q:'s',params:{value:Infinity}},{q:'status',toolhead:{estimated_print_time:'oops'}}]){const dispatch=new MotanDispatcher(reader([message]));dispatch.addHandler('a','s');await assert.rejects(dispatch.pull(0,'a'));assert.equal(dispatch.status.failed,true);}
+ const dispatch=new MotanDispatcher({...reader([{q:'s',params:{x:1}}]),encodedSize:()=>NaN});dispatch.addHandler('a','s');await assert.rejects(dispatch.pull(0,'a'),/encoded size/);
+ let calls=0;const tracker=new MotanStatusTracker({},async()=>{calls++;return {status:{toolhead:{estimated_print_time:'bad'}}};});await assert.rejects(tracker.sample(1),/status time/);await assert.rejects(tracker.sample(2),/status time/);assert.equal(calls,1);
+});
+test('incremental status byte budget exactly preserves BigInt, negative zero, Unicode and JSON escaping',async()=>{
+ const {encodeMotanJson}=await import('../src/motan/capture.ts');for(const value of [-0,9007199254740993n,true,false,null,'𠀀\n"\\\ud800',{nested:[-0,5n,'中文']},[1,2,'x']]){const update={toolhead:{estimated_print_time:1},sensor:{value}},limit=encodeMotanJson(update).length;for(const accepted of [true,false]){let sent=false;const tracker=new MotanStatusTracker({},async()=>sent?null:(sent=true,{status:update}),limit-(accepted?0:1));if(accepted){const snapshot=await tracker.sample(1);assert.equal(encodeMotanJson(snapshot.status).length,limit);}else await assert.rejects(tracker.sample(1),/size limit/);}}
+ const initial={sensor:{old:'x'.repeat(500)}},update={sensor:{old:'x',other:'y'.repeat(450)}};let sent=false;const tracker=new MotanStatusTracker(initial,async()=>sent?null:(sent=true,{status:update}),encodeMotanJson(initial).length);assert.deepEqual((await tracker.sample(1)).status,update);
+});
+test('status snapshot fast copies preserve prototype-named objects and fields as own data',async()=>{
+ const update=JSON.parse('{"__proto__":{"__proto__":{"safe":1},"constructor":7},"constructor":{"value":9}}');let sent=false;const tracker=new MotanStatusTracker({},async()=>sent?null:(sent=true,{status:update}));const {status}=await tracker.sample(1);assert.equal(Object.getPrototypeOf(status),Object.prototype);assert.equal(Object.hasOwn(status,'__proto__'),true);assert.equal(Object.getPrototypeOf(status.__proto__),Object.prototype);assert.equal(Object.hasOwn(status.__proto__ as object,'__proto__'),true);assert.deepEqual(status,update);assert.equal(({} as {safe?:number}).safe,undefined);
+});

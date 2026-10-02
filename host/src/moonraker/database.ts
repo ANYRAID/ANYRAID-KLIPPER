@@ -1,0 +1,87 @@
+import {workerEntry} from '../runtime/worker-entry.ts';
+import type {SqlOperation,SqlResult} from './database-sql.ts';
+import {tableDefinition,type DatabaseTableDefinition} from './database-table.ts';
+import {deserialize} from 'node:v8';
+import {DatabaseNamespace} from './database-namespace.ts';
+import {databaseBackupName} from './database-maintenance.ts';
+import {Worker} from 'node:worker_threads';
+import {isAbsolute} from 'node:path';
+import {lstat} from 'node:fs/promises';
+import {ApiError,validateJson,type Json} from './rpc.ts';
+import {databaseNamespace,databaseKey,databaseBatchKeys,type DatabaseKey} from './database-record.ts';
+import type {DatabaseOptions} from './database-engine.ts';
+import type {EndpointRegistry} from './endpoints.ts';
+export interface DatabaseStoreOptions extends DatabaseOptions {backupDirectory?:string;maxPending?:number;maxPendingBytes?:number;maxReadCacheBytes?:number;}
+type ResolvedDatabaseOptions=Required<Omit<DatabaseStoreOptions,'backupDirectory'>>&{backupDirectory?:string};
+interface Pending {resolve(value:Json):void;reject(error:unknown):void;bytes:number;}
+/** FIFO durable operations. Accepted writes are never retried or cancelled:
+ * caller disconnect does not prove that a transaction failed to commit. */
+export class DatabaseStore {
+ readonly #worker:Worker;readonly #options:ResolvedDatabaseOptions;readonly #pending=new Map<number,Pending>();readonly #ready:Promise<void>;readonly #exited:Promise<void>;
+ #readCache={hits:0,misses:0,entries:0,bytes:0};
+ #restoreState:'ready'|'restored'|'restore-failed'='ready';
+ #bytes=0;#next=0;#closed=false;#closing:Promise<void>|undefined;
+ private constructor(options:ResolvedDatabaseOptions){
+  this.#options=options;this.#worker=new Worker(workerEntry('./database-worker.ts',import.meta.url),{workerData:options,execArgv:[]});
+  let ready!:()=>void,failed!:(e:unknown)=>void;this.#ready=new Promise((resolve,reject)=>{ready=resolve;failed=reject;});
+  const fail=(e:unknown)=>{this.#closed=true;failed(e);for(const pending of this.#pending.values())pending.reject(e);this.#pending.clear();this.#bytes=0;};
+  this.#worker.on('message',message=>{if('ready' in message){if(message.ready)ready();else failed(new ApiError(message.error.status,message.error.message,message.error.data));return;}if(message.readCache)this.#readCache=message.readCache;if(message.restoreState)this.#restoreState=message.restoreState;const pending=this.#pending.get(message.id);if(!pending)return;this.#pending.delete(message.id);this.#bytes-=pending.bytes;if(message.error)pending.reject(new ApiError(message.error.status,message.error.message));else{try{pending.resolve(message.encoded?deserialize(message.encoded):message.value);}catch{pending.reject(new ApiError(503,'Invalid database worker response'));}}});
+  this.#worker.on('error',()=>fail(new ApiError(503,'Database worker failed')));this.#exited=new Promise(resolve=>this.#worker.once('exit',()=>{fail(new ApiError(503,'Database worker exited'));resolve();}));
+ }
+ static async open(options:DatabaseStoreOptions):Promise<DatabaseStore>{
+  if(!options||typeof options.path!=='string'||!isAbsolute(options.path)||options.path.includes('\0')||Buffer.byteLength(options.path)>4096)throw new ApiError(400,'Invalid database path');
+  if(options.backupDirectory!==undefined&&(!isAbsolute(options.backupDirectory)||options.backupDirectory.includes('\0')))throw new ApiError(400,'Invalid backup directory');
+  const limits={maxReadCacheBytes:options.maxReadCacheBytes??8*1024*1024,maxRecordBytes:options.maxRecordBytes??1024*1024,maxDatabaseBytes:options.maxDatabaseBytes??256*1024*1024,maxReplyBytes:options.maxReplyBytes??8*1024*1024,maxPending:options.maxPending??64,maxPendingBytes:options.maxPendingBytes??8*1024*1024};
+  for(const [name,value] of Object.entries(limits))if(!Number.isSafeInteger(value)||value<(name==='maxReadCacheBytes'?0:1)||value>(name==='maxPending'?1024:name==='maxDatabaseBytes'?2**32:64*1024*1024))throw new ApiError(400,'Invalid database limits');
+  if(limits.maxDatabaseBytes<65536)throw new ApiError(400,'Database capacity too small');
+  try{if(!(await lstat(options.path)).isFile())throw new ApiError(400,'Database path must be a regular file');}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+  const owner=new DatabaseStore({...options,...limits});try{await owner.#ready;return owner;}catch(error){await owner.#worker.terminate();await owner.#exited;throw error;}
+ }
+ get status(){return {readCache:{...this.#readCache},restoreState:this.#restoreState,closed:this.#closed,closing:!!this.#closing,pending:this.#pending.size,pendingBytes:this.#bytes};}
+ #call(method:string,args:Json[],closing=false):Promise<Json>{
+  try{
+   if(this.#closed||this.#closing&&!closing)throw new ApiError(503,'Database is closed');if(!closing&&this.#restoreState!=='ready')throw new ApiError(503,'Database awaits restart');validateJson(args);
+   const bytes=Buffer.byteLength(JSON.stringify(args));if(!closing&&(this.#pending.size>=this.#options.maxPending||this.#bytes+bytes>this.#options.maxPendingBytes))throw new ApiError(429,'Database request queue is full');if(!closing&&this.#next>=Number.MAX_SAFE_INTEGER)throw new ApiError(503,'Database request IDs exhausted');
+   const id=closing?0:++this.#next;return new Promise((resolve,reject)=>{this.#pending.set(id,{resolve,reject,bytes});this.#bytes+=bytes;try{this.#worker.postMessage({id,method,args});}catch(error){this.#pending.delete(id);this.#bytes-=bytes;reject(error);}});
+  }catch(error){return Promise.reject(error);}
+ }
+ registerTable(definition:DatabaseTableDefinition){return this.#call('register-table',[tableDefinition(definition) as unknown as Json]);}
+ sql(tables:string[],operations:SqlOperation[]):Promise<SqlResult[]>{return this.#call('sql',[tables,operations as unknown as Json]) as unknown as Promise<SqlResult[]>;}
+ /** One read-only statement uses SQLite's statement snapshot, without a write lock. */
+ sqlRead(tables:string[],operation:SqlOperation):Promise<SqlResult>{return this.#call('sql-read',[tables,operation as unknown as Json]) as unknown as Promise<SqlResult>;}
+ sealTableRegistration(){return this.#call('seal-tables',[]);}
+ async registerLocalNamespace(namespace:string,options:{forbidden?:boolean;parseKeys?:boolean}={}):Promise<DatabaseNamespace>{databaseNamespace(namespace);if(typeof (options.forbidden??false)!=='boolean'||typeof (options.parseKeys??false)!=='boolean')throw new ApiError(400,'Invalid namespace registration options');const wrapper=new DatabaseNamespace(this,namespace,options.parseKeys??false);await this.#call('register-local-namespace',[namespace,options.forbidden??false]);return wrapper;}
+ unregisterLocalNamespace(namespace:string){databaseNamespace(namespace);return this.#call('unregister-local-namespace',[namespace]);}
+ async wrapNamespace(namespace:string,parseKeys=true):Promise<DatabaseNamespace>{const wrapper=new DatabaseNamespace(this,namespace,parseKeys);if(!await this.#call('has-namespace',[namespace]))throw new ApiError(404,'Database namespace not found');return wrapper;}
+ /** Provider namespace registration only; component access policies are separate. */
+ registerNamespace(namespace:string){databaseNamespace(namespace);return this.#call('register-namespace',[namespace]);}
+ clearNamespace(namespace:string){databaseNamespace(namespace);return this.#call('clear-namespace',[namespace]);}
+ dropEmptyNamespace(namespace:string){databaseNamespace(namespace);return this.#call('drop-empty-namespace',[namespace]);}
+ namespaceKeys(namespace:string){databaseNamespace(namespace);return this.#call('namespace-keys',[namespace]) as Promise<string[]>;}
+ namespaceValues(namespace:string){databaseNamespace(namespace);return this.#call('namespace-values',[namespace]) as Promise<Json[]>;}
+ namespaceItems(namespace:string){databaseNamespace(namespace);return this.#call('namespace-items',[namespace]) as Promise<[string,Json][]>;}
+ namespaceContains(namespace:string,key:DatabaseKey){databaseNamespace(namespace);databaseKey(key);return this.#call('namespace-contains',[namespace,key as Json]) as Promise<boolean>;}
+ namespaceLength(namespace:string){databaseNamespace(namespace);return this.#call('namespace-length',[namespace]) as Promise<number>;}
+ get(namespace:string,key?:DatabaseKey|null){databaseNamespace(namespace);if(key!==undefined&&key!==null)databaseKey(key);return this.#call('get',[namespace,key as Json??null]);}
+ insert(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('insert',[namespace,key as Json,value]);}
+ update(namespace:string,key:DatabaseKey,value:Json){databaseNamespace(namespace);databaseKey(key);return this.#call('update',[namespace,key as Json,value]);}
+ syncNamespace(namespace:string,records:Record<string,Json>){databaseNamespace(namespace);databaseBatchKeys(Object.keys(records));return this.#call('sync-namespace',[namespace,records]);}
+ insertBatch(namespace:string,records:Record<string,Json>){databaseNamespace(namespace);databaseBatchKeys(Object.keys(records));return this.#call('insert-batch',[namespace,records]);}
+ getBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('get-batch',[namespace,keys as Json]);}
+ deleteBatch(namespace:string,keys:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(keys);return this.#call('delete-batch',[namespace,keys as Json]);}
+ moveBatch(namespace:string,sources:readonly string[],destinations:readonly string[]){databaseNamespace(namespace);databaseBatchKeys(sources);databaseBatchKeys(destinations);return this.#call('move-batch',[namespace,sources as Json,destinations as Json]);}
+ delete(namespace:string,key:DatabaseKey){databaseNamespace(namespace);databaseKey(key);return this.#call('delete',[namespace,key as Json]);}
+ restore(filename:string){return this.#call('restore',[databaseBackupName(filename)]);}
+ backup(filename:string){return this.#call('backup',[databaseBackupName(filename)]);}
+ deleteBackup(filename:string){return this.#call('delete-backup',[databaseBackupName(filename)]);}
+ compact(){return this.#call('compact',[]);}
+ list(){return this.#call('api-list',[]);}
+ api(verb:'GET'|'POST'|'DELETE',namespace:string,key:Json|undefined,value?:Json){databaseNamespace(namespace);if(verb!=='GET'||key!==undefined&&key!==null)databaseKey(key);if(verb==='POST'&&value===undefined)throw new ApiError(400,'Missing database value');return this.#call(verb==='GET'?'api-get':verb==='POST'?'api-insert':'api-delete',[namespace,key??null,value??null]);}
+ close():Promise<void>{return this.#closing??=this.#close();}
+ async #close(){try{if(!this.#closed)await this.#call('close',[],true);}catch(error){await this.#worker.terminate();throw error;}finally{await this.#exited;}}
+}
+export function registerDatabase(registry:EndpointRegistry,store:DatabaseStore):()=>void{
+ const list=registry.register({endpoint:'/server/database/list',methods:['GET']},()=>store.list());let item:()=>void;
+ try{item=registry.register({endpoint:'/server/database/item',methods:['GET','POST','DELETE']},(params,verb)=>store.api(verb,params.namespace as string,params.key,params.value));}catch(error){list();throw error;}
+ return ()=>{item();list();};
+}

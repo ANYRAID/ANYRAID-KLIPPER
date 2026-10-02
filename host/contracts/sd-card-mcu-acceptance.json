@@ -1,0 +1,9 @@
+{
+  "node": "v26.9.0",
+  "tests": 11,
+  "typecheck": "passed",
+  "transport": "Native UART framing, acknowledgments, configured MCU command FIFO and simulated SD card",
+  "sectorReadWrite": {"bytes": 512, "warmups": 2, "samples": 10, "medianMs": 4.040858, "maxMs": 8.258937},
+  "checks": ["initialization and register CRC", "32-byte transport frames", "repeated owner identity", "read/write bytes", "malformed response stops MCU", "in-flight cancellation stops MCU", "no card authority after failure"],
+  "limitations": ["No actual SD card or electrical SPI timing", "Caller must own exclusive offline session and configure chip select, mode zero and OID", "Full flash CLI, SDIO and FAT integration incomplete", "Python flash entrypoint not retired"]
+}

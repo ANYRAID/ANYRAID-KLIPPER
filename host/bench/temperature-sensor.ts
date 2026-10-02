@@ -1,0 +1,5 @@
+import {readFileSync} from 'node:fs';
+import {TemperatureSensorState} from '../src/thermal/temperature-sensor.ts';
+const reference=JSON.parse(readFileSync(new URL('../contracts/temperature-sensor-reference.json',import.meta.url),'utf8')),s=new TemperatureSensorState();let checksum=0;
+for(const r of reference.rows)s.sample(0,r.input);
+for(const kind of ['sample','status'] as const){const times:number[]=[];if(kind==='status')s.sample(0,42.123456789);for(let batch=0;batch<9;batch++){const start=performance.now();for(let i=0;i<10000;i++){if(kind==='sample')s.sample(i,reference.rows[i%reference.rows.length].input);else checksum+=s.objectStatus.temperature;}if(batch>=2)times.push(performance.now()-start);}times.sort((a,b)=>a-b);const python=[...reference[kind+'TimesMs']].sort((a,b)=>a-b);console.log(JSON.stringify({node:process.version,kind,iterations:10000,warmups:2,samples:7,nodeMedianMs:times[3],nodeMaxMs:times[6],pythonMedianMs:python[3],pythonMaxMs:python[6],checksum,scope:'Generic sensor sample statistics or display snapshot only; excludes ADC conversion, MCU transport and HTTP.'}));}

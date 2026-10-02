@@ -1,0 +1,14 @@
+{
+  "scope": "Observed during final validation after reduced filter control",
+  "node": "v26.9.0",
+  "command": "NODE=<node26> bash scripts/check_whitespace.sh",
+  "observedStderr": "xargs: <node26>: terminated by signal 11",
+  "status": "failed",
+  "limitation": "The tool call also ran git diff --check afterward and returned its status 0. No standalone whitespace script exit code or core was captured. The failed run is not a passing whitespace check. Root cause remains unknown.",
+  "standaloneRecheck": {
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": "",
+    "interpretation": "Subsequent bounded success only; original crash remains unresolved"
+  }
+}

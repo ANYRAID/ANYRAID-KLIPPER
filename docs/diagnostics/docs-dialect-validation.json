@@ -1,0 +1,54 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "fixtureSha256": "5dc3f6a017e70b2fa3d579600749bf5324c49ff24deae97f1e400bb06521a6f7",
+    "pages": 58,
+    "inputBytes": 2892398,
+    "warmups": 3,
+    "samplesMs": [
+      289.6561829999998,
+      290.47756400000003,
+      289.19629699999996,
+      293.8593000000001,
+      296.01132800000005,
+      288.0712819999999,
+      285.47981800000025
+    ],
+    "medianMs": 289.6561829999998,
+    "outputBytes": 6162529,
+    "outputSha256": "c029e7fe10440456231fca755b2f016af30e33f822ea8689b8ac7a2a91ccc64c",
+    "scope": "Markdown HTML rendering and page metadata only; not a whole-site or print benchmark."
+  },
+  "referencePackages": {
+    "markdown": "3.3.7",
+    "mdx-truly-sane-lists": "1.2",
+    "mdx-breakless-lists": "1.0.1",
+    "py-gfm": "2.0.0"
+  },
+  "fixed": [
+    "task list disabled checkbox rendering",
+    "semantic del elements for strikethrough"
+  ],
+  "remainingSemanticDifferences": [
+    "ordered list starts and two-space nesting",
+    "paragraph-separated list grouping",
+    "fenced code inside lists"
+  ],
+  "remainingPresentationDifferences": [
+    "nested list inter-tag whitespace",
+    "fenced code pre highlight class"
+  ],
+  "sourceSha256": "ca9465a9ed139f899728cdd8e47487fd18da97bda7e21a710e344675be1c9103",
+  "fixtureSha256": "a368a4faaeee168d813edf98e929016957b9bf1222136456235d626e5fcf59cc",
+  "whitespaceChecks": [
+    {
+      "exitCode": 125,
+      "error": "xargs: Node v26.9.0 terminated by signal 11",
+      "coreCaptured": false
+    },
+    {
+      "exitCode": 0,
+      "meaning": "bounded rerun only; original failure unresolved"
+    }
+  ]
+}

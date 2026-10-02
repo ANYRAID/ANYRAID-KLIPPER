@@ -1,0 +1,433 @@
+{
+  "sourceSha256": "b8588593fe4d70db6876d1d3b667c08e4db2dba6e6cb27a3f52802b2f78442ad",
+  "cases": [
+    {
+      "graphs": [
+        [
+          [
+            "a",
+            {}
+          ]
+        ]
+      ],
+      "times": [
+        0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.05,
+        0.06
+      ],
+      "datasets": {
+        "a": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1,
+          1.25,
+          1.5
+        ],
+        "b": [
+          1,
+          1.25,
+          1.5,
+          1.75,
+          2,
+          2.25,
+          2.5
+        ],
+        "c": [
+          2,
+          2.25,
+          2.5,
+          2.75,
+          3,
+          3.25,
+          3.5
+        ],
+        "d": [
+          3,
+          3.25,
+          3.5,
+          3.75,
+          4,
+          4.25,
+          4.5
+        ]
+      },
+      "labels": {
+        "a": {
+          "name": "a",
+          "label": "sensor a",
+          "units": "Position\n(mm)"
+        },
+        "b": {
+          "name": "b",
+          "label": "sensor b",
+          "units": "Velocity\n(mm/s)"
+        },
+        "c": {
+          "name": "c",
+          "label": "sensor c",
+          "units": "Temperature"
+        },
+        "d": {
+          "name": "d",
+          "label": "sensor d",
+          "units": "Velocity\n(mm/s)"
+        }
+      },
+      "panels": [
+        {
+          "title": "Motion Analysis (fixture)",
+          "axes": [
+            "Position\n(mm)"
+          ],
+          "xLabel": "Time (s)",
+          "curves": [
+            {
+              "axis": 0,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                0,
+                0.25,
+                0.5,
+                0.75,
+                1,
+                1.25,
+                1.5
+              ],
+              "parameters": {
+                "label": "sensor a",
+                "alpha": 0.8
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "graphs": [
+        [
+          [
+            "a",
+            {
+              "color": "green"
+            }
+          ],
+          [
+            "b",
+            {
+              "alpha": 0.5
+            }
+          ],
+          [
+            "c",
+            {}
+          ],
+          [
+            "d",
+            {
+              "label": "override"
+            }
+          ]
+        ],
+        [
+          [
+            "a",
+            {}
+          ],
+          [
+            "a",
+            {
+              "linestyle": "--"
+            }
+          ]
+        ]
+      ],
+      "times": [
+        0,
+        0.01,
+        0.02,
+        0.03,
+        0.04,
+        0.05,
+        0.06
+      ],
+      "datasets": {
+        "a": [
+          0,
+          0.25,
+          0.5,
+          0.75,
+          1,
+          1.25,
+          1.5
+        ],
+        "b": [
+          1,
+          1.25,
+          1.5,
+          1.75,
+          2,
+          2.25,
+          2.5
+        ],
+        "c": [
+          2,
+          2.25,
+          2.5,
+          2.75,
+          3,
+          3.25,
+          3.5
+        ],
+        "d": [
+          3,
+          3.25,
+          3.5,
+          3.75,
+          4,
+          4.25,
+          4.5
+        ]
+      },
+      "labels": {
+        "a": {
+          "name": "a",
+          "label": "sensor a",
+          "units": "Position\n(mm)"
+        },
+        "b": {
+          "name": "b",
+          "label": "sensor b",
+          "units": "Velocity\n(mm/s)"
+        },
+        "c": {
+          "name": "c",
+          "label": "sensor c",
+          "units": "Temperature"
+        },
+        "d": {
+          "name": "d",
+          "label": "sensor d",
+          "units": "Velocity\n(mm/s)"
+        }
+      },
+      "panels": [
+        {
+          "title": "Motion Analysis (fixture)",
+          "axes": [
+            "Unknown",
+            "Velocity\n(mm/s)"
+          ],
+          "xLabel": "",
+          "curves": [
+            {
+              "axis": 0,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                0,
+                0.25,
+                0.5,
+                0.75,
+                1,
+                1.25,
+                1.5
+              ],
+              "parameters": {
+                "label": "sensor a",
+                "alpha": 0.8,
+                "color": "green"
+              }
+            },
+            {
+              "axis": 1,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                1,
+                1.25,
+                1.5,
+                1.75,
+                2,
+                2.25,
+                2.5
+              ],
+              "parameters": {
+                "label": "sensor b",
+                "alpha": 0.5
+              }
+            },
+            {
+              "axis": 0,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                2,
+                2.25,
+                2.5,
+                2.75,
+                3,
+                3.25,
+                3.5
+              ],
+              "parameters": {
+                "label": "sensor c",
+                "alpha": 0.8
+              }
+            },
+            {
+              "axis": 1,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                3,
+                3.25,
+                3.5,
+                3.75,
+                4,
+                4.25,
+                4.5
+              ],
+              "parameters": {
+                "label": "override",
+                "alpha": 0.8
+              }
+            }
+          ]
+        },
+        {
+          "title": "",
+          "axes": [
+            "Position\n(mm)"
+          ],
+          "xLabel": "Time (s)",
+          "curves": [
+            {
+              "axis": 0,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                0,
+                0.25,
+                0.5,
+                0.75,
+                1,
+                1.25,
+                1.5
+              ],
+              "parameters": {
+                "label": "sensor a",
+                "alpha": 0.8
+              }
+            },
+            {
+              "axis": 0,
+              "times": [
+                0,
+                0.01,
+                0.02,
+                0.03,
+                0.04,
+                0.05,
+                0.06
+              ],
+              "values": [
+                0,
+                0.25,
+                0.5,
+                0.75,
+                1,
+                1.25,
+                1.5
+              ],
+              "parameters": {
+                "label": "sensor a",
+                "alpha": 0.8,
+                "linestyle": "--"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "pythonBenchmark": {
+    "medianMs": 5.352679989300668,
+    "p95Ms": 6.496025016531348,
+    "scope": "Original plot layout with 100000 cached times and four cached datasets; recording axes copy full times and values; no capture IO or Matplotlib rendering"
+  },
+  "nodeBefore": {
+    "node": "v26.9.0",
+    "samples": 100000,
+    "curves": 4,
+    "medianMs": 27.751762999999983,
+    "p95Ms": 32.63614699999994,
+    "historicalPython": {
+      "medianMs": 5.352679989300668,
+      "p95Ms": 6.496025016531348,
+      "scope": "Original plot layout with 100000 cached times and four cached datasets; recording axes copy full times and values; no capture IO or Matplotlib rendering"
+    },
+    "scope": "Unit assignment, admission validation and full independent numeric curve snapshots. No input loading, worker analysis, plotting/rendering or printer timing."
+  },
+  "nodeAfter": {
+    "node": "v26.9.0",
+    "samples": 100000,
+    "curves": 4,
+    "medianMs": 4.872263000000004,
+    "p95Ms": 9.739925999999997,
+    "historicalPython": {
+      "medianMs": 5.352679989300668,
+      "p95Ms": 6.496025016531348,
+      "scope": "Original plot layout with 100000 cached times and four cached datasets; recording axes copy full times and values; no capture IO or Matplotlib rendering"
+    },
+    "scope": "Unit assignment, admission validation and full independent numeric curve snapshots. No input loading, worker analysis, plotting/rendering or printer timing."
+  }
+}

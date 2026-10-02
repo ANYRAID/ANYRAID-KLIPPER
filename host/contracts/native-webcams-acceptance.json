@@ -1,0 +1,176 @@
+{
+  "implementationBase": "a0063d7e",
+  "status": "partial",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/webcam.py",
+    "sha256": "7a925d2d806b6adb5df036fa2c564f5bdce166d065723d0170d01f805e22d860"
+  },
+  "implemented": [
+    "Configuration webcams are read-only; stable native UUIDv5 identity across restarts",
+    "Persistent database CRUD by UID or name with upstream camelCase storage fields",
+    "Serialized mutation validation and durable write before cache publication and notifications",
+    "Authenticated HTTP/JSON-RPC list/item/test and notify_webcams_changed",
+    "Snapshot body timeout, size and concurrency bounds; shutdown aborts probes and drains accepted writes"
+  ],
+  "tests": {
+    "command": "node --test --test-isolation=none --test-concurrency=1 host/test/webcams.test.ts host/test/webcams-network.test.ts",
+    "passed": 5,
+    "typecheck": "passed",
+    "coverage": [
+      "Config identity, rename conflicts and restart persistence",
+      "Authenticated HTTP/RPC, notifications and raw database write rejection",
+      "Snapshot success, HTTP failure, 8 MiB overflow, timeout and close abort",
+      "Persistence failure emits no event and leaves database empty",
+      "Close rejects new operations and drains accepted durable write"
+    ]
+  },
+  "performance": {
+    "node": "v26.9.0",
+    "cachedListMeanUs": 9.971801800000003,
+    "cameras": 3,
+    "iterations": 10000,
+    "scope": "Desktop cached snapshot query; no Python baseline or target board comparison"
+  },
+  "compiledJourney": {
+    "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='^nativeAuthorization=true apiLoad=true' host/acceptance/product-compiled-journey.test.ts",
+    "passed": 1,
+    "durationMs": 36726.552105,
+    "additionalLoad": "Persisted webcam listed every 25 ms concurrently with existing API workload",
+    "result": {
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 8.735741164,
+        "print_duration": 2.5416990190000015,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "04792ea7023fe5ef3217b88c1dd226abb041520c7937bb2c281f7c890d8eed53",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3846,
+      "phaseP99Ms": 3.339285000000018,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 856,
+      "historyP99Ms": 12.073927000001277,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.766519000000699,
+      "deleteRequests": 16,
+      "deleteP95Ms": 8.392356999996991,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 9.84194099999877,
+      "metadataRequests": 16,
+      "metadataP95Ms": 19.19006300000001,
+      "downloads": 16,
+      "downloadP95Ms": 4.678725999998278,
+      "wireCommands": 190,
+      "wireSteps": 3702,
+      "minimumStepLeadMs": 83.59,
+      "directoryRequests": 3681,
+      "directoryP99Ms": 7.547053000000233,
+      "statusRequests": 15384,
+      "uploads": 16,
+      "statusP99Ms": 3.7749710000025516,
+      "uploadP95Ms": 22.51329900000019,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.985535,
+            "maxMs": 20.201471
+          },
+          "cpu": {
+            "user": 5203381,
+            "system": 652740
+          },
+          "rss": 299831296
+        },
+        {
+          "loop": {
+            "p99Ms": 1.935359,
+            "maxMs": 8.097791
+          },
+          "cpu": {
+            "user": 1879927,
+            "system": 264996
+          },
+          "rss": 291172352
+        }
+      ]
+    }
+  },
+  "intentionalDifferences": [
+    "Protected webcam namespace blocks raw database writes",
+    "Native identity namespace is separate from upstream instance UUID",
+    "Validate rotation/aspect ratio on edits; strict JSON object extra_data and bounded strings",
+    "At most 32 pending mutations, 1024 cameras for new creation, 4 simultaneous probes, 64 KiB extra_data, 8 MiB snapshots and 1 second probe timeout"
+  ],
+  "remaining": [
+    "Dynamic public-IP default host and DNS/local-listener URL conversion",
+    "Upstream instance identity migration",
+    "Full legacy permissive Python value conversion compatibility",
+    "Physical camera and target-board validation",
+    "No Python or physical print-speed comparison"
+  ]
+}

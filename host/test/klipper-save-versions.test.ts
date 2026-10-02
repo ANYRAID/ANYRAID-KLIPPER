@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,writeFile,rename,rm} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {prepareKlipperSave,revalidateKlipperSave} from '../src/config/klipper-save-preflight.ts';
+async function fixture(run:(dir:string,main:string,current:string)=>Promise<void>){const dir=await mkdtemp(join(tmpdir(),'save-versions-')),main=join(dir,'printer.cfg'),current='[x]\na: old\n[include child*.cfg]\n';try{await writeFile(main,current);await writeFile(join(dir,'child.cfg'),'[y]\nb: keep\n');await run(dir,main,current);}finally{await rm(dir,{recursive:true,force:true});}}
+test('save preparation records immutable hashes of actual bytes, not normalized candidate values',()=>fixture(async(_dir,main,current)=>{const raw=current.replaceAll('\n','\r\n');await writeFile(main,raw);const p=(await prepareKlipperSave(main,current,{x:{a:'new'}}))!;assert.equal(p.versions[0].sha256,createHash('sha256').update(raw).digest('hex'));assert.equal(p.versions.length,2);assert.ok(Object.isFrozen(p.versions)&&Object.isFrozen(p.versions[0]));await revalidateKlipperSave(p);await writeFile(main,current);await assert.rejects(revalidateKlipperSave(p),/changed/);}));
+test('changed include bytes or replaced identity invalidate save even when calibration target is unaffected',()=>fixture(async(dir,main,current)=>{let p=(await prepareKlipperSave(main,current,{x:{a:'new'}}))!;const child=join(dir,'child.cfg');await writeFile(child,'[y]\nb: changed\n');await assert.rejects(revalidateKlipperSave(p),/changed/);p=(await prepareKlipperSave(main,current,{x:{a:'new'}}))!;await writeFile(join(dir,'new.cfg'),'[y]\nb: changed\n');await rename(join(dir,'new.cfg'),child);await assert.rejects(revalidateKlipperSave(p),/changed/);}));
+test('new wildcard matches invalidate the dependency tree and pre-abort remains effective',()=>fixture(async(dir,main,current)=>{const p=(await prepareKlipperSave(main,current,{x:{a:'new'}}))!;await writeFile(join(dir,'child2.cfg'),'# empty include\n');await assert.rejects(revalidateKlipperSave(p),/changed/);const control=new AbortController();control.abort(new Error('cancelled'));await assert.rejects(revalidateKlipperSave(p,{signal:control.signal}),/cancelled/);}));

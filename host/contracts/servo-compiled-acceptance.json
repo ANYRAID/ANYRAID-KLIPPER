@@ -1,0 +1,355 @@
+{
+  "schema": 1,
+  "date": "2026-09-28",
+  "baseCommit": "5e1eb59d",
+  "node": "v26.9.0",
+  "sourceSha256": {
+    "host/acceptance/product-compiled-journey.test.ts": "a67c39d4f6d76a7c9536784ed62423ce6673b2d668243903fe03fe1c9b9827f7",
+    "host/src/config/servo.ts": "25dfabf78e887fb85d2d960d35c2a8c5d5d83105c2f96a83bcb4bb6804ba624b",
+    "host/src/gcode/servo.ts": "6cc1a1f1ef6414373a31e354c267d663d6a1bad28a5394752f931d88462e2f39",
+    "host/src/outputs/output-pin.ts": "aad84d39e37e36f8565eda555eb7a544a88f1ca6922a121a33d9ff38be37ec57",
+    "host/src/runtime/configured-output-pin.ts": "52e72a5458a77bd9e0f353c29a38ae25ccb12e4b2643c828af91428f9acdf6e2",
+    "host/src/runtime/product-objects.ts": "67859ae49598cd8b231538d15fd21a2c2b2b303fb9fd535ebb8d538d4ae9c4ed"
+  },
+  "logSha256": "410ddd984943c1b25c195178f07ab54158513f76859460bb4439f62b06bb4f51",
+  "scope": "Independently compiled JS product, locked installed dependencies, native queues, two simulated MCUs, authenticated HTTP and WebSocket; child has no Python or TS loader",
+  "validation": {
+    "variants": 3,
+    "printing": true,
+    "filamentPauseResume": true,
+    "pausedTimeoutCancellation": true,
+    "reinitialization": true,
+    "historyRestoration": true,
+    "faultStop": true,
+    "servoPulseTicks": [
+      0,
+      1000,
+      1500,
+      2000
+    ],
+    "normalizedObjectQueries": true,
+    "realHardware": false,
+    "motionAnomaliesResolved": false
+  },
+  "metrics": [
+    {
+      "servos": true,
+      "outputPins": true,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 43
+        },
+        {
+          "statusReads": 70,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 188,
+      "wireSteps": 3344,
+      "minimumStepLeadMs": 87.749,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.722367,
+            "maxMs": 21.364735
+          },
+          "cpu": {
+            "user": 1166837,
+            "system": 136035
+          },
+          "rss": 176812032
+        },
+        {
+          "loop": {
+            "p99Ms": 1.713151,
+            "maxMs": 7.053311
+          },
+          "cpu": {
+            "user": 611844,
+            "system": 74704
+          },
+          "rss": 197836800
+        }
+      ]
+    },
+    {
+      "servos": true,
+      "outputPins": true,
+      "phaseQueries": 3739,
+      "phaseP99Ms": 2.9085489999997662,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 55
+        },
+        {
+          "statusReads": 68,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 833,
+      "historyP99Ms": 10.743963999993866,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.2442469999950845,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.312150999998266,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.922398999995494,
+      "metadataRequests": 16,
+      "metadataP95Ms": 19.455630999997084,
+      "downloads": 16,
+      "downloadP95Ms": 3.6162489999987883,
+      "wireCommands": 382,
+      "wireSteps": 5677,
+      "minimumStepLeadMs": 84.033,
+      "directoryRequests": 3605,
+      "directoryP99Ms": 4.186066000002029,
+      "statusRequests": 14962,
+      "uploads": 16,
+      "statusP99Ms": 2.7755960000067716,
+      "uploadP95Ms": 6.036671000001661,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.914879,
+            "maxMs": 21.282815
+          },
+          "cpu": {
+            "user": 4328696,
+            "system": 506365
+          },
+          "rss": 290062336
+        },
+        {
+          "loop": {
+            "p99Ms": 1.899519,
+            "maxMs": 6.545407
+          },
+          "cpu": {
+            "user": 1655896,
+            "system": 218109
+          },
+          "rss": 270270464
+        }
+      ]
+    },
+    {
+      "servos": false,
+      "outputPins": true,
+      "phaseQueries": 3939,
+      "phaseP99Ms": 2.707389000002877,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 55
+        },
+        {
+          "statusReads": 68,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 873,
+      "historyP99Ms": 9.53304300000309,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 6.797344000005978,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.203556000007666,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 8.118728000001283,
+      "metadataRequests": 16,
+      "metadataP95Ms": 16.4578279999987,
+      "downloads": 16,
+      "downloadP95Ms": 4.825861999997869,
+      "wireCommands": 385,
+      "wireSteps": 5685,
+      "minimumStepLeadMs": 87.778,
+      "directoryRequests": 3804,
+      "directoryP99Ms": 4.083844000007957,
+      "statusRequests": 15759,
+      "uploads": 16,
+      "statusP99Ms": 2.4567669999960344,
+      "uploadP95Ms": 8.139087999996264,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.885183,
+            "maxMs": 20.414463
+          },
+          "cpu": {
+            "user": 4448581,
+            "system": 533309
+          },
+          "rss": 289910784
+        },
+        {
+          "loop": {
+            "p99Ms": 1.887231,
+            "maxMs": 6.262783
+          },
+          "cpu": {
+            "user": 1656724,
+            "system": 232758
+          },
+          "rss": 272060416
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "One complete run per variant; descriptive comparison, not statistical proof of no performance regression.",
+    "Target board and physical servo verification remain outstanding.",
+    "Existing Node crashes and motion numerical anomalies remain unresolved."
+  ]
+}

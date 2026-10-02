@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": true,
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "..",
+    "outDir": "build/motan"
+  },
+  "include": [
+    "../scripts/motan/data_export.ts",
+    "src/motan/analysis-worker.ts",
+    "../scripts/motan/motan_graph.ts"
+  ]
+}

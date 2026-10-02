@@ -1,0 +1,235 @@
+{
+  "files": [
+    {
+      "file": "motion-mismatch-351330-12.bin.gz",
+      "rawSHA256": "4fd344604a2dfa98bc2c4cfad80515c0df10ea4658565827e3e0619264908fb6",
+      "compressedSHA256": "a29c9f0d79eccbbb75989ae54b7a301c619ef6b7e2c842610549ac4727123869",
+      "rawBytes": 4690925,
+      "compressedBytes": 2589392
+    },
+    {
+      "file": "motion-mismatch-351330-12.bin.repeat.gz",
+      "rawSHA256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617",
+      "compressedSHA256": "eb544ce99774aaede1629f4e8c54dc482fe1c25938154e8cf0720a75ace81863",
+      "rawBytes": 2139444,
+      "compressedBytes": 1031536
+    }
+  ],
+  "analysis": {
+    "comparison": {
+      "actual": 119.8675927960835,
+      "expected": 119.86758495826422,
+      "difference": 0.000007837819282485725,
+      "absolute": 0.000007837819282485725,
+      "within": false,
+      "tolerance": 1e-8,
+      "recomputedDifference": 0.000007837819282485725,
+      "recomputedWithin": false
+    },
+    "version": 3,
+    "kind": "curves",
+    "run": 12,
+    "panel": 0,
+    "curve": 0,
+    "index": 4897,
+    "compressedSHA256": "4fd344604a2dfa98bc2c4cfad80515c0df10ea4658565827e3e0619264908fb6",
+    "rawSHA256": "4fd344604a2dfa98bc2c4cfad80515c0df10ea4658565827e3e0619264908fb6",
+    "sameInvocationInputs": true,
+    "differences": [
+      {
+        "stage": "standalone positions vs reference",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 0",
+        "count": 2,
+        "examples": [
+          {
+            "index": 4897,
+            "actual": 119.8675927960835,
+            "expected": 119.86758495826422,
+            "actualBits": "0x405df786a3ef5b20",
+            "expectedBits": "0x405df786830f8fc4"
+          },
+          {
+            "index": 4898,
+            "actual": 119.87460112383275,
+            "expected": 119.87460896165203,
+            "actualBits": "0x405df7f976fdfa04",
+            "expectedBits": "0x405df7f997ddc560"
+          }
+        ]
+      },
+      {
+        "stage": "reference panel 0 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 2",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 0 curve 3",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 0",
+        "count": 3,
+        "examples": [
+          {
+            "index": 4897,
+            "actual": 73.14758541099309,
+            "expected": 73.06920721816823,
+            "actualBits": "0x405249720a146540",
+            "expectedBits": "0x4052446de41cab80"
+          },
+          {
+            "index": 4898,
+            "actual": 70.083277492472,
+            "expected": 70.24003387812172,
+            "actualBits": "0x405185546b1eaa40",
+            "expectedBits": "0x40518f5cb70e1dc0"
+          },
+          {
+            "index": 4899,
+            "actual": 67.5542004557883,
+            "expected": 67.47582226296345,
+            "actualBits": "0x4050e37805304280",
+            "expectedBits": "0x4050de73df3888c0"
+          }
+        ]
+      },
+      {
+        "stage": "reference panel 1 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 2",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 1 curve 3",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 2 curve 0",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "reference panel 2 curve 1",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "plot nominal vs reference",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 0 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 0 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 0 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 0 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 1 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 1 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 1 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 1 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 2 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 2 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 2 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 2 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity 3 vs captured input derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration 3 vs captured velocity derivative",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "velocity panel 3 vs raw stage",
+        "count": 0,
+        "examples": []
+      },
+      {
+        "stage": "acceleration panel 3 vs raw stage",
+        "count": 0,
+        "examples": []
+      }
+    ],
+    "limitation": "Invariant differences locate inconsistent stored stages; they do not establish the runtime, compiler or hardware root cause."
+  },
+  "filterReplay": {
+    "scope": "Recompute frozen weighted4 module with captured same-invocation nominal inputs; no position regeneration",
+    "differences": [
+      {
+        "index": 4897,
+        "actual": 26.28547759826604,
+        "repeated": 26.28547759748226,
+        "difference": 7.837819282485725e-10
+      }
+    ]
+  },
+  "observation": "Jitless failure includes a stored filtered position discrepancy at index 4897 which propagates consistently through velocity and acceleration. Original nominal inputs pass the reference comparison.",
+  "limitations": [
+    "JIT-generated code is not necessary for this failure. Hardware versus runtime/interpreter cause remains undetermined.",
+    "Successful independent C or minimal JS subtraction does not clear this different full-workload failure."
+  ]
+}

@@ -1,0 +1,295 @@
+{
+  "node": "26.9.0",
+  "scope": "Compiled product JavaScript with installed dependencies, real HTTP and simulated MCU PTYs; no physical hardware",
+  "environment": {
+    "PATH": "/no-programs",
+    "NODE_OPTIONS": "--no-experimental-strip-types",
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "checks": [
+    "ADC and MAX6675 temperature fan under concurrent file/status/history load",
+    "Typed settings change PWM to 0.6 on subsequent sample",
+    "Identical request retries return original receipt",
+    "Invalid combined target and speed request changes nothing",
+    "Reload restores target 50 and rejects previous generation token",
+    "Temperature, target and speed histories survive reload",
+    "Two completed prints, cancellation and sensor fault stop"
+  ],
+  "metrics": [
+    {
+      "phaseQueries": 4023,
+      "phaseP99Ms": 3.9056060000002617,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": true,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 897,
+      "historyP99Ms": 10.181318000002648,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.8263349999997445,
+      "deleteRequests": 16,
+      "deleteP95Ms": 3.226354000000356,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.6212909999994736,
+      "metadataRequests": 16,
+      "metadataP95Ms": 26.22186899999906,
+      "downloads": 16,
+      "downloadP95Ms": 4.224704000000202,
+      "wireCommands": 189,
+      "wireSteps": 3600,
+      "minimumStepLeadMs": 86.908,
+      "directoryRequests": 3864,
+      "directoryP99Ms": 8.220653000000311,
+      "statusRequests": 16095,
+      "uploads": 16,
+      "statusP99Ms": 3.584351000001334,
+      "uploadP95Ms": 8.655751000000237,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.258943,
+            "maxMs": 20.267007
+          },
+          "cpu": {
+            "user": 4747088,
+            "system": 550337
+          },
+          "rss": 287789056
+        },
+        {
+          "loop": {
+            "p99Ms": 1.873919,
+            "maxMs": 6.258687
+          },
+          "cpu": {
+            "user": 1603232,
+            "system": 183345
+          },
+          "rss": 291381248
+        }
+      ]
+    },
+    {
+      "phaseQueries": 4050,
+      "phaseP99Ms": 2.2208819999941625,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": true,
+      "temperatureFan": true,
+      "hostSensor": false,
+      "spiSensor": true,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        }
+      ],
+      "faultInjected": "max6675-open",
+      "historyNotifications": 32,
+      "historyRequests": 902,
+      "historyP99Ms": 8.416402000002563,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 8.94202299999597,
+      "deleteRequests": 16,
+      "deleteP95Ms": 17.662807000000612,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.166410999998334,
+      "metadataRequests": 16,
+      "metadataP95Ms": 24.110915000004752,
+      "downloads": 16,
+      "downloadP95Ms": 3.1994720000002417,
+      "wireCommands": 188,
+      "wireSteps": 3678,
+      "minimumStepLeadMs": 87.521,
+      "directoryRequests": 3917,
+      "directoryP99Ms": 4.762111999996705,
+      "statusRequests": 16203,
+      "uploads": 16,
+      "statusP99Ms": 2.4027160000041476,
+      "uploadP95Ms": 12.800633999999263,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.911807,
+            "maxMs": 21.102591
+          },
+          "cpu": {
+            "user": 4735056,
+            "system": 573460
+          },
+          "rss": 254947328
+        },
+        {
+          "loop": {
+            "p99Ms": 1.929215,
+            "maxMs": 6.909951
+          },
+          "cpu": {
+            "user": 1762637,
+            "system": 187267
+          },
+          "rss": 263163904
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "MAX31855/MAX31856/MAX31865 fan combinations not independently tested",
+    "No physical cooling or target-board acceptance",
+    "No Python retired; default entrypoint remains Python",
+    "Historical Node crashes and motion numerical mismatches remain unresolved"
+  ],
+  "standaloneSensorRegression": {
+    "phaseQueries": 4056,
+    "phaseP99Ms": 3.1161670000001322,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": true,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 168,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 901,
+    "historyP99Ms": 9.964414000000033,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 7.265671999997721,
+    "deleteRequests": 16,
+    "deleteP95Ms": 6.803055000000313,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 12.048691999998482,
+    "metadataRequests": 16,
+    "metadataP95Ms": 25.207456000000093,
+    "downloads": 16,
+    "downloadP95Ms": 5.722413999999844,
+    "wireCommands": 186,
+    "wireSteps": 3560,
+    "minimumStepLeadMs": 87.631,
+    "directoryRequests": 3919,
+    "directoryP99Ms": 5.383179999998902,
+    "statusRequests": 16228,
+    "uploads": 16,
+    "statusP99Ms": 2.5845680000002176,
+    "uploadP95Ms": 9.258440999999948,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.904639,
+          "maxMs": 21.200895
+        },
+        "cpu": {
+          "user": 4759869,
+          "system": 506584
+        },
+        "rss": 292335616
+      },
+      {
+        "loop": {
+          "p99Ms": 1.881087,
+          "maxMs": 5.656575
+        },
+        "cpu": {
+          "user": 1613345,
+          "system": 190259
+        },
+        "rss": 271228928
+      }
+    ]
+  },
+  "validation": {
+    "compiledJourneys": 3,
+    "typecheck": true,
+    "whitespace": true
+  }
+}

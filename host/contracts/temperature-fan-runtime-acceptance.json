@@ -1,0 +1,32 @@
+{
+  "node": "26.9.0",
+  "scope": "Temperature fan runtime with real ScheduledCoolingFan and mocked output, clock and timer",
+  "runtimeTests": 8,
+  "relatedTests": 18,
+  "benchmark": {
+    "samples": 10000,
+    "outputWrites": 10000,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 30.072623999999962,
+    "maxMs": 30.735141000000027,
+    "checksum": 15014000,
+    "scope": "Control, bounded queue, watchdog, scheduled output, async mock writes and setImmediate settlement; no serial transport"
+  },
+  "checks": [
+    "First valid cold reading explicitly replaces startup shutdown cooling power with zero",
+    "Samples enter controller once while asynchronous output is pending",
+    "Kick tail flushes without requiring another sensor sample",
+    "Freshness watchdog remains active while writes are stalled",
+    "Missing samples, invalid readings, queue exhaustion, backwards clock and missed deadlines stop the owner",
+    "Close aborts accepted work, joins settlement and cancels future timer callbacks",
+    "One-second host sensor report delay accepted by controller"
+  ],
+  "limitations": [
+    "Not yet wired into configured hardware, sensor callbacks or product API",
+    "Samples and output require a common synchronized print-time domain",
+    "Mock output stop proves delegation only, not physical shutdown power",
+    "No Python retired; default entrypoint remains Python",
+    "Historical Node crashes and motion numerical mismatches remain unresolved"
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "implementationBase": "7bb383a0",
+  "node": "v26.9.0",
+  "validation": {
+    "relatedTests": 11,
+    "compiledAcceptanceTests": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "hashes": {
+    "host/src/moonraker/native-host-notifications.ts": "245552b627beec947b76751e4b8e6e98cd858393b381870851829fc3465740ab",
+    "host/src/moonraker/configured-server.ts": "14476a04fbf89152d130fbf587f38d07ea7e75fe22dacbdf633bbba1db8e05c2",
+    "host/test/native-host-notifications.test.ts": "ff452b25d5febef558658f45ea0fb6979a7fdd04272a73422b1dc953b64d4a0e",
+    "host/acceptance/product-compiled-journey.test.ts": "650fb081c7a4ed34b038f504fc8bc7162cc7c4353015048e2f42e442c63a76c6"
+  },
+  "records": [
+    {
+      "installation": {
+        "durationMs": 703.5714109999999,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 148,
+      "wireSteps": 3222,
+      "minimumStepLeadMs": 89.922,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.818623,
+            "maxMs": 13.705215
+          },
+          "cpu": {
+            "user": 710326,
+            "system": 74348
+          },
+          "rss": 163385344
+        },
+        {
+          "loop": {
+            "p99Ms": 1.777663,
+            "maxMs": 4.366335
+          },
+          "cpu": {
+            "user": 395202,
+            "system": 68236
+          },
+          "rss": 181092352
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 710.5743680000014,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": true,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.710148999998637,
+      "deleteRequests": 16,
+      "deleteP95Ms": 7.3451750000022,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.260903000002145,
+      "metadataRequests": 16,
+      "metadataP95Ms": 19.60367899999983,
+      "downloads": 16,
+      "downloadP95Ms": 4.25067300000228,
+      "wireCommands": 147,
+      "wireSteps": 3222,
+      "minimumStepLeadMs": 85.747,
+      "directoryRequests": 2064,
+      "directoryP99Ms": 4.698388000000705,
+      "statusRequests": 8586,
+      "uploads": 16,
+      "statusP99Ms": 3.1195319999969797,
+      "uploadP95Ms": 14.6441679999989,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.299903,
+            "maxMs": 13.672447
+          },
+          "cpu": {
+            "user": 1971900,
+            "system": 240758
+          },
+          "rss": 245760000
+        },
+        {
+          "loop": {
+            "p99Ms": 1.865727,
+            "maxMs": 4.505599
+          },
+          "cpu": {
+            "user": 1089809,
+            "system": 152664
+          },
+          "rss": 264118272
+        }
+      ]
+    }
+  ],
+  "scope": "Opt-in native lifecycle notifications from live owner state: transition deduplication, periodic hardware observation, authorized WebSocket fanout, held policy cannot delay physical stop, observer cleanup. Compiled dual-PTY product journey expects 8 authorized shutdown notifications across cancellation and ADC fault, alongside baseline/load printing and file traffic. Fresh native build and independent production dependency installation.",
+  "initialTestCorrection": "Notification delivery reports settle after every recipient. Initial test incorrectly awaited aggregate denied metrics while deliberately holding another recipient. Release moved after verified physical stop and before aggregate-metric assertion.",
+  "limitations": [
+    "Observers coalesce state changes; no event log or initial replay for new clients",
+    "WebSocket closure is authoritative on whole-service shutdown; final disconnected notification is not guaranteed",
+    "Full frontend compatibility and remaining Moonraker APIs incomplete",
+    "Default Python entrypoint, historical numeric anomaly and real hardware acceptance remain"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "scope": "首次曲线失配完整现场捕获；有界本机复现不能关闭历史数值失配或崩溃",
+  "base": "5b9906ff",
+  "node": "v26.9.0",
+  "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+  "execution": "compiled",
+  "workers": 4,
+  "runs": 100,
+  "state": "completed",
+  "failures": 0,
+  "fixtureSha256": "ebced029512b2cbbd976fadd0466907c032af8b60b361937994a07a8f09117b8",
+  "scriptSha256": "a6b7a29ab3db7f352ad1353ad4d5e5a68090237efdffb358bcd231e0cbb366e3",
+  "reportSha256": "84c0de43b466260de280995c34cf9525f63dde9ed1b456cee85c773fea490841",
+  "captureFiles": [],
+  "validation": {
+    "tests": 7,
+    "typecheck": "passed",
+    "faultInjection": "original mismatched array retained separately from successful recomputation"
+  },
+  "limitations": [
+    "没有在本次样本中复现历史失配",
+    "未定位根因",
+    "不是实际打印运动性能或目标板验收"
+  ]
+}

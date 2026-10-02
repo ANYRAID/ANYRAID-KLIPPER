@@ -1,0 +1,28 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "Two simulated MCU socket stop/readback/reset transactions; excludes fixture startup; no physical motors or production latency claim",
+  "results": [
+    {
+      "replacement": false,
+      "samplesMs": [
+        2.7943930000001274,
+        1.6392989999999372,
+        1.287825000000339,
+        1.296704999999747,
+        1.5379480000001422
+      ],
+      "medianMs": 1.5379480000001422
+    },
+    {
+      "replacement": true,
+      "samplesMs": [
+        1.0866919999998572,
+        0.9995310000003883,
+        0.9497710000014195,
+        0.9279200000000856,
+        0.8547899999994115
+      ],
+      "medianMs": 0.9497710000014195
+    }
+  ]
+}

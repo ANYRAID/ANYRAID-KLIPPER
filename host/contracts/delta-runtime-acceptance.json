@@ -1,0 +1,55 @@
+{
+  "date": "2026-09-28",
+  "scope": "Delta runtime integration and original Python numerical/admission performance comparison; simulated MCU only",
+  "geometry": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "asymmetric": false,
+    "moves": 10000,
+    "geometry": 1000,
+    "decisionsExact": true,
+    "maxRelative": 2.7481597470125866e-15,
+    "maxPositionError": 6.394884621840902e-14,
+    "nodeMedianMs": 13.048850000000016,
+    "nodeP95Ms": 15.814787000000024,
+    "pythonMedianMs": 33.71611100010341,
+    "pythonP95Ms": 36.63633899850538,
+    "speedup": 2.5838377328349527
+  },
+  "asymmetric": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "asymmetric": true,
+    "moves": 10000,
+    "geometry": 1000,
+    "decisionsExact": true,
+    "maxRelative": 1.4692876999812867e-15,
+    "maxPositionError": 2.842170943040401e-14,
+    "nodeMedianMs": 13.36651500000005,
+    "nodeP95Ms": 24.57478100000003,
+    "pythonMedianMs": 33.870782994199544,
+    "pythonP95Ms": 37.07831499923486,
+    "speedup": 2.534002542487658
+  },
+  "nativePacketOracle": {
+    "status": "not_run",
+    "reason": "Python cffi is unavailable"
+  },
+  "runtime": {
+    "twoPassHoming": true,
+    "coldExtrusionRejected": true,
+    "pauseStopsPackets": true,
+    "resumedVerticalMillimeters": 1,
+    "towerSteps": [
+      80,
+      80,
+      80
+    ],
+    "shutdownRevokesHoming": true
+  },
+  "limitations": [
+    "No target printer acceptance",
+    "No complete Delta product print entrypoint",
+    "No resolution of existing Node numerical anomaly or AVR coincident event timing diagnostic"
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "date": "2026-09-28",
+  "scope": "MAX31856 signed 24-bit range enforcement in actual MCU thermocouple handler",
+  "capability": {
+    "MAX31856_SIGNED_RANGE": 1
+  },
+  "tests": {
+    "total": 10,
+    "temperatureCodes": 524288,
+    "lowBitBoundaryPatterns": 2,
+    "nonzeroFaultStatuses": 255,
+    "checks": [
+      "Three consecutive failures shut down",
+      "Good report resets consecutive-invalid counter",
+      "All fault status bits forwarded",
+      "Malformed high bits rejected",
+      "MAX31855 and MAX6675 retained"
+    ],
+    "sanitizer": "UBSan, nonrecovering, actual src/thermocouple.c with SPI/timer stubs"
+  },
+  "benchmark": {
+    "checksPerRun": 1048576,
+    "warmups": 4,
+    "samples": [
+      {
+        "unsignedMs": 0.64527,
+        "signed24Ms": 0.647511
+      },
+      {
+        "unsignedMs": 0.64527,
+        "signed24Ms": 0.659951
+      },
+      {
+        "unsignedMs": 0.647911,
+        "signed24Ms": 0.651311
+      },
+      {
+        "unsignedMs": 0.654161,
+        "signed24Ms": 0.64527
+      },
+      {
+        "unsignedMs": 0.65089,
+        "signed24Ms": 0.645271
+      },
+      {
+        "unsignedMs": 0.64828,
+        "signed24Ms": 0.648081
+      },
+      {
+        "unsignedMs": 0.645281,
+        "signed24Ms": 0.65185
+      },
+      {
+        "unsignedMs": 0.645261,
+        "signed24Ms": 0.647981
+      },
+      {
+        "unsignedMs": 0.64771,
+        "signed24Ms": 0.646161
+      },
+      {
+        "unsignedMs": 0.647781,
+        "signed24Ms": 0.65031
+      },
+      {
+        "unsignedMs": 0.645281,
+        "signed24Ms": 0.64754
+      },
+      {
+        "unsignedMs": 0.645271,
+        "signed24Ms": 0.650021
+      },
+      {
+        "unsignedMs": 0.64748,
+        "signed24Ms": 0.647441
+      },
+      {
+        "unsignedMs": 0.650501,
+        "signed24Ms": 0.64527
+      },
+      {
+        "unsignedMs": 0.647481,
+        "signed24Ms": 0.64527
+      },
+      {
+        "unsignedMs": 0.64821,
+        "signed24Ms": 0.651871
+      },
+      {
+        "unsignedMs": 0.645281,
+        "signed24Ms": 0.647931
+      },
+      {
+        "unsignedMs": 0.650521,
+        "signed24Ms": 0.64527
+      },
+      {
+        "unsignedMs": 0.64832,
+        "signed24Ms": 0.645271
+      },
+      {
+        "unsignedMs": 0.65082,
+        "signed24Ms": 0.649031
+      }
+    ],
+    "checksum": 893696,
+    "summary": {
+      "unsignedMs": {
+        "median": 0.6477455000000001,
+        "p95": 0.65089
+      },
+      "signed24Ms": {
+        "median": 0.6477355,
+        "p95": 0.651871
+      }
+    },
+    "compiler": "host cc -std=gnu11 -O2 -Wall -Wextra -Werror",
+    "scope": "Alternating same-process unsigned vs signed24 comparison over positive wire words and runtime-loaded bounds; host CPU only, no target MCU timing claim"
+  },
+  "avr": {
+    "command": "make -j2 OUT=host/build/max31856-range-avr/ KCONFIG_CONFIG=$PWD/host/build/max31856-range-avr.config CROSS_PREFIX=/tmp/anyraid-avr-tools/avr/bin/avr- NODE=$PWD/host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node PYTHON=/nonexistent-python",
+    "passed": true,
+    "log": "host/build/max31856-range-avr-build.log",
+    "artifacts": [
+      {
+        "name": "klipper.elf",
+        "sha256": "15193a4832b3973a0154f0e6a96bb912a2767d37e141a5d57236694d564d25af"
+      },
+      {
+        "name": "klipper.elf.hex",
+        "sha256": "c3128e0c3b808dbdba4e29c9890c7fbdc1df3ffc3a81d8423f23f3dcfe831879"
+      },
+      {
+        "name": "klipper.dict",
+        "sha256": "ac0d89dd50afaa92e5ac19d0ba8e5393c3ed1d885fce0655ccd2b64cd8f87cf3"
+      }
+    ],
+    "size": {
+      "text": 46312,
+      "data": 48,
+      "bss": 373
+    }
+  },
+  "limitations": [
+    "MAX31856 configuration/initialization and transport integration still pending",
+    "No hardware flash or physical thermocouple verification",
+    "No Python retired; remaining tracked Python files 187",
+    "Historical host runtime and motion numerical failures remain unresolved"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "generatorRevision": "ecda0f46",
+  "generator": "host/bench/gcode-move.ts",
+  "pythonSource": "klippy/extras/gcode_move.py",
+  "pythonSourceSha256": "f4200b863e64988aa192ad363af2563843c65feea14afa657b76b8d8656a4a37",
+  "dataSha256": "54a095578a24aeb18b28cb0ae0358a594f664ac8f654bf55d4e6558ba957504e",
+  "commands": 12000,
+  "scope": "Original Python command state and move outputs plus 11 local timing samples; generated before adding Z offset revision tracking.",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor"
+}

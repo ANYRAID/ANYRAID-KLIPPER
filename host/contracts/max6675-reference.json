@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "source": "klippy/extras/spi_temperature.py",
+  "sourceSha256": "0e3723b5cfc90f1cdbde957c5604680a605ba4ee487b5b78da53086fb8b8882f",
+  "cases": 8192,
+  "encoding": "4096 codes ascending, D0=0 then 1; IEEE754 binary64 big endian",
+  "expectedSha256": "c650dea0cd0cfce7456002b89287aae9316de96b6274ba3c80ce0e86a3716fc8",
+  "pythonBenchmark": {
+    "operations": 262144,
+    "warmups": 2,
+    "runs": 7,
+    "medianMs": 39.306712000325206,
+    "maxMs": 39.70007699990674,
+    "checksum": 134184960.0
+  },
+  "datasheet": "https://www.analog.com/media/en/technical-documentation/data-sheets/max6675.pdf"
+}

@@ -1,0 +1,281 @@
+{
+  "implementationBase": "ae1a0610",
+  "date": "2026-10-01",
+  "scope": "Native process config read increment; desktop simulated MCU only. Full config write, A4 and physical acceptance remain pending.",
+  "upstream": {
+    "repository": "ANYRAID-MOONRAKER",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/file_manager/file_manager.py",
+    "contractLines": [
+      416,
+      460,
+      741,
+      980
+    ]
+  },
+  "product": {
+    "entry": "createNativeProductHostFactory with createProcess and explicit configFiles root",
+    "defaultEnabled": false,
+    "paths": [
+      "server.files.roots",
+      "server.files.list root=config",
+      "server.files.get_directory path=config[/relative]",
+      "GET/HEAD /server/files/config/<relative>"
+    ],
+    "permissions": "r",
+    "lifetime": "Process-owned; retained during first-device failure, device retirement and standard restart. Final close drains actual pending reads.",
+    "ownership": "Factory opens and retains the capability; ConfiguredMoonraker owns installed capability cleanup; close is idempotent."
+  },
+  "boundaries": {
+    "root": "Explicit existing Linux subtree and pinned descriptor. Main printer config must be lexically inside canonical root. Deployment-owned ancestor paths are trusted.",
+    "paths": "No traversal, dot segments, empty segments, controls, backslash, .git, reserved or root/descendant symlinks. Root rename or pathname replacement does not redirect reads.",
+    "bytes": "Immutable bounded snapshot with authorization; original bytes and Unicode filename, HEAD, ETag/304, Range/206/416. Source changes rejected as 409.",
+    "limits": {
+      "defaultMaxFileBytes": 4194304,
+      "maximumMaxFileBytes": 16777216,
+      "defaultMaxDownloads": 2,
+      "maximumMaxDownloads": 4
+    },
+    "differences": [
+      "Fixed upstream follows links; this native capability excludes links and does not publish includes outside the explicit root.",
+      "Config is read-only; uploads, writes, deletes, mkdir, copy/move, file events and root registration outside this subtree are not implemented by this increment.",
+      "One-shot loadNativeProductMachineProfile does not expose configFiles; use the process-mode factory."
+    ]
+  },
+  "verification": {
+    "source": {
+      "passed": 46,
+      "files": [
+        "host/test/native-config-files.test.ts",
+        "host/test/file-list.test.ts",
+        "host/test/file-directory.test.ts",
+        "host/test/configured-server.test.ts",
+        "host/test/native-product-bootstrap.test.ts",
+        "host/test/native-product-process-lifetime.test.ts"
+      ]
+    },
+    "compiledRecovery": {
+      "passed": 2,
+      "file": "host/acceptance/client-probe.test.ts",
+      "modes": [
+        "JWT",
+        "explicit trusted loopback"
+      ],
+      "checks": [
+        "Initial main-config download bytes validated; exact config listing and stat metadata preserved across standard host restart, firmware restart and independent product process recovery.",
+        "Original JWT, files, history and MCU configuration retained; no print replay."
+      ]
+    },
+    "compiledLoad": {
+      "passed": 1,
+      "file": "host/acceptance/product-compiled-journey.test.ts",
+      "variant": "nativeAuthorization=true apiLoad=true",
+      "manifestSha256": "7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d",
+      "metrics": {
+        "motionReportLoad": true,
+        "configListRequests": 847,
+        "configListP99Ms": 8.167930999999953,
+        "configDownloads": 847,
+        "configDownloadP99Ms": 10.98377199999959,
+        "liveMotionSamples": 2637,
+        "liveExtrusionSamples": 1464,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 8.735483392,
+          "print_duration": 2.5082337880000014,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "7afd8fd10b21a905cd6f9c56124cb5a74bee32486600c7cb5ac85e4ee0ed9e8d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 4007,
+        "phaseP99Ms": 5.083206000002974,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 168,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 897,
+        "historyP99Ms": 11.147501999999804,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 17.37619199999972,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.611541000000216,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.385845999999219,
+        "metadataRequests": 16,
+        "metadataP95Ms": 23.076575000006414,
+        "downloads": 16,
+        "downloadP95Ms": 4.786422999999559,
+        "wireCommands": 192,
+        "wireSteps": 3702,
+        "minimumStepLeadMs": 87.31,
+        "directoryRequests": 3852,
+        "directoryP99Ms": 9.069569999999658,
+        "statusRequests": 16032,
+        "uploads": 16,
+        "statusP99Ms": 4.3608580000000075,
+        "uploadP95Ms": 20.90451100000064,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.972223,
+              "maxMs": 19.562495
+            },
+            "cpu": {
+              "user": 6404879,
+              "system": 1067691
+            },
+            "rss": 332025856
+          },
+          {
+            "loop": {
+              "p99Ms": 1.913855,
+              "maxMs": 6.692863
+            },
+            "cpu": {
+              "user": 1953360,
+              "system": 372850
+            },
+            "rss": 333983744
+          }
+        ]
+      },
+      "existingGates": [
+        "Minimum step lead > 0 ms",
+        "Event loop P99 < 50 ms; maximum < 100 ms",
+        "At least 100 concurrent config list and download requests"
+      ],
+      "interpretation": "Observed desktop load values, not target-board timing budget or matched Python baseline. Runtime production fingerprint identical in protocol, load and actual UI trials."
+    },
+    "actualClients": [
+      {
+        "name": "Fluidd",
+        "version": "1.37.6",
+        "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed9e8d",
+        "mode": "JWT",
+        "verified": [
+          "Actual config root lists moonraker.conf, printer.cfg and parts directory.",
+          "Actual editor opens printer.cfg include directive and parts/machine.cfg content."
+        ]
+      },
+      {
+        "name": "Mainsail",
+        "version": "2.19.0",
+        "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
+        "mode": "Explicit trusted loopback",
+        "verified": [
+          "Actual config root lists moonraker.conf, printer.cfg and parts directory.",
+          "Actual editor opens printer.cfg and parts/machine.cfg and labels both read-only."
+        ]
+      }
+    ],
+    "temporaryScreenshots": [
+      {
+        "path": "/tmp/anyraid-fluidd-config-main.jpg",
+        "sha256": "2719acd3d2a954fa2d44c6742e6a4d6bfcdd0e9b195e7a0a21d92104c51a3151"
+      },
+      {
+        "path": "/tmp/anyraid-fluidd-config-include.jpg",
+        "sha256": "a74fe3be03af45065923c60b7dfd851abb22d602a34d30d475eb18c408643d60"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-main.jpg",
+        "sha256": "2237ca634e0c2c8f3609abb29e44155ea6eb85ed4f480b2f8a6d3a4f8de049c2"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-include.jpg",
+        "sha256": "cbd90a01351d64b93238991045ac5a66d87baa3a6b7714cfd886c7c28ec59aa1"
+      }
+    ],
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-config-files-source-regression.log",
+        "sha256": "8319e2594f64e0c912467c7d11f4fc343bbb7d17ba1ae4d61828dd3f0f6b1415"
+      },
+      {
+        "path": "/tmp/anyraid-config-client-compiled-recovery.log",
+        "sha256": "1f6121d911e1b6aeaa3ca164a166fb374ca409c91b1bf19e0151a99280a819e7"
+      },
+      {
+        "path": "/tmp/anyraid-config-files-compiled-load.log",
+        "sha256": "29775ab429a061a77fa6b896fc1f1f5cc9a448b3d3912640d61ab31687ed9ddf"
+      },
+      {
+        "path": "/tmp/anyraid-fluidd-config-read.log",
+        "sha256": "865e9fe2fa8165c8ff836ebde310bef0ddd9d3f5c6384e64a7347291990ec8c1"
+      },
+      {
+        "path": "/tmp/anyraid-mainsail-config-read.log",
+        "sha256": "cf5e3cfc2320275250d30ae31c17159640606a885da809c35552480000150a56"
+      }
+    ],
+    "typecheck": "Passed with Node.js v26.9.0",
+    "whitespace": "scripts/check_whitespace.sh and git diff --check passed"
+  },
+  "remaining": [
+    "Controlled scoped save, backup, atomic replacement, conflict checks, stop/print interlocks and standard restart application.",
+    "Configuration failure after save and manual repair path through actual clients.",
+    "Same-candidate A4 complete page upload/job control/reconnect/recovery; existing filechooser tool blockage remains.",
+    "Full Moonraker contract, all Python retirement, unresolved numerical mismatch/crash, Cycnumbris 500 physical safety/precision/timing/install/rollback and normal PR integration."
+  ]
+}

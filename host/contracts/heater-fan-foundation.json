@@ -1,0 +1,287 @@
+{
+  "date": "2026-09-27",
+  "status": "compiled-feature-verified-motion-stability-open",
+  "tests": {
+    "outputConfigurationNativeAndBoundaries": 33,
+    "temperaturePolicy": 2,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "requests": 20000,
+    "exactTransitions": 3477,
+    "samples": 11,
+    "nodeMedianMs": 2.816974000000016,
+    "nodeP95Ms": 5.533944999999989,
+    "pythonMedianMs": 6.864721013698727,
+    "pythonP95Ms": 7.006052997894585,
+    "existingRegressionGate": "passed",
+    "scope": "Desktop scheduler with immediate synthetic ACK; not physical fan or target board throughput"
+  },
+  "failedAttempt": "Initial sandbox Python oracle spawn timed out at 60 seconds; subsequent authorized non-sandbox system Python benchmark completed",
+  "remaining": [
+    "intermittent motion duration resolution failure root cause and regression",
+    "target board and physical printer validation",
+    "Python module retirement after compatibility coverage"
+  ],
+  "runtimeTests": {
+    "passed": 56,
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "scope": "Native simulated MCU plus policy, lifecycle, automatic layout and prior fan regressions"
+  },
+  "policyBenchmark": {
+    "node": "v26.9.0",
+    "fans": 64,
+    "heatersPerFan": 64,
+    "pollingCyclesPerSample": 1000,
+    "samples": 11,
+    "medianMs": 4.013979000000006,
+    "p95Ms": 4.404972999999998,
+    "p95PerFleetPollMs": 0.004404972999999999,
+    "scope": "Pure temperature policy on desktop; excludes serial IO and target-board scheduling"
+  },
+  "productAcceptance": {
+    "command": "npm --prefix host run test:product-acceptance",
+    "firstRun": {
+      "passed": 2,
+      "failed": 2,
+      "failures": [
+        {
+          "loaded": false,
+          "homed": 9,
+          "events": [
+            {
+              "event": "factory",
+              "generation": 1
+            },
+            {
+              "event": "open",
+              "generation": 1
+            },
+            {
+              "event": "open",
+              "generation": 1
+            },
+            {
+              "event": "stop",
+              "generation": 1,
+              "id": "mcu",
+              "cause": "Error: File execution stopped"
+            },
+            {
+              "event": "stop",
+              "generation": 1,
+              "id": "aux",
+              "cause": "Error: File execution stopped"
+            },
+            {
+              "event": "released",
+              "generation": 1,
+              "loop": {
+                "p99Ms": 1.810431,
+                "maxMs": 13.475839
+              },
+              "cpu": {
+                "user": 824981,
+                "system": 101461
+              },
+              "rss": 162492416
+            },
+            {
+              "event": "factory",
+              "generation": 2
+            },
+            {
+              "event": "open",
+              "generation": 2
+            },
+            {
+              "event": "stop",
+              "generation": 2,
+              "id": "mcu",
+              "cause": "RangeError: Motion duration below time resolution"
+            },
+            {
+              "event": "stop",
+              "generation": 2,
+              "id": "aux",
+              "cause": "RangeError: Motion duration below time resolution"
+            }
+          ]
+        },
+        {
+          "loaded": true,
+          "homed": 9,
+          "events": [
+            {
+              "event": "factory",
+              "generation": 1
+            },
+            {
+              "event": "open",
+              "generation": 1
+            },
+            {
+              "event": "open",
+              "generation": 1
+            },
+            {
+              "event": "stop",
+              "generation": 1,
+              "id": "mcu",
+              "cause": "Error: File execution stopped"
+            },
+            {
+              "event": "stop",
+              "generation": 1,
+              "id": "aux",
+              "cause": "Error: File execution stopped"
+            },
+            {
+              "event": "released",
+              "generation": 1,
+              "loop": {
+                "p99Ms": 2.001919,
+                "maxMs": 14.426111
+              },
+              "cpu": {
+                "user": 3005039,
+                "system": 365580
+              },
+              "rss": 262877184
+            },
+            {
+              "event": "factory",
+              "generation": 2
+            },
+            {
+              "event": "open",
+              "generation": 2
+            },
+            {
+              "event": "stop",
+              "generation": 2,
+              "id": "mcu",
+              "cause": "Error: Invalid thermal clock"
+            },
+            {
+              "event": "stop",
+              "generation": 2,
+              "id": "aux",
+              "cause": "Error: Invalid thermal clock"
+            }
+          ]
+        }
+      ]
+    },
+    "diagnosticRun": {
+      "passed": 4,
+      "failed": 0,
+      "metrics": [
+        {
+          "loaded": false,
+          "historyNotifications": 32,
+          "historyRequests": 0,
+          "historyP99Ms": null,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 4,
+          "fileNotificationP95Ms": null,
+          "deleteRequests": 0,
+          "deleteP95Ms": null,
+          "thumbnailRequests": 0,
+          "thumbnailP95Ms": null,
+          "metadataRequests": 0,
+          "metadataP95Ms": null,
+          "downloads": 0,
+          "downloadP95Ms": null,
+          "wireCommands": 169,
+          "wireSteps": 3088,
+          "minimumStepLeadMs": 87.667,
+          "directoryRequests": 0,
+          "directoryP99Ms": null,
+          "statusRequests": 0,
+          "uploads": 0,
+          "statusP99Ms": null,
+          "uploadP95Ms": null,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.802239,
+                "maxMs": 13.058047
+              },
+              "cpu": {
+                "user": 869365,
+                "system": 99062
+              },
+              "rss": 166350848
+            },
+            {
+              "loop": {
+                "p99Ms": 1.790975,
+                "maxMs": 5.308415
+              },
+              "cpu": {
+                "user": 492704,
+                "system": 45002
+              },
+              "rss": 195063808
+            }
+          ]
+        },
+        {
+          "loaded": true,
+          "historyNotifications": 32,
+          "historyRequests": 649,
+          "historyP99Ms": 9.902251999999862,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 4.791088999998465,
+          "deleteRequests": 16,
+          "deleteP95Ms": 5.588827999999921,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 2.5605110000033164,
+          "metadataRequests": 16,
+          "metadataP95Ms": 16.38339199999973,
+          "downloads": 16,
+          "downloadP95Ms": 9.59017799999856,
+          "wireCommands": 331,
+          "wireSteps": 4446,
+          "minimumStepLeadMs": 86.976,
+          "directoryRequests": 2815,
+          "directoryP99Ms": 4.10048999999708,
+          "statusRequests": 11655,
+          "uploads": 16,
+          "statusP99Ms": 2.408080000001064,
+          "uploadP95Ms": 12.319221000001562,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.972223,
+                "maxMs": 13.254655
+              },
+              "cpu": {
+                "user": 3121921,
+                "system": 335205
+              },
+              "rss": 270548992
+            },
+            {
+              "loop": {
+                "p99Ms": 1.891327,
+                "maxMs": 4.583423
+              },
+              "cpu": {
+                "user": 1364253,
+                "system": 143546
+              },
+              "rss": 291631104
+            }
+          ]
+        }
+      ]
+    },
+    "interpretation": "Thermal fan cold, target-on and post-print cooling HTTP/wire assertions passed; intermittent motion duration failure remains unresolved. Success does not close failure."
+  }
+}

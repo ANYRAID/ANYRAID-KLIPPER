@@ -1,0 +1,92 @@
+{
+  "description": "Historical comparison recorded before removing runtime Python benchmark dependencies; not a live comparison",
+  "dispatch": [
+    {
+      "node": "v26.9.0",
+      "hash": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+      "warmup": 2,
+      "measured": 7
+    },
+    {
+      "rounds": 10000,
+      "rows": 1,
+      "node": {
+        "median": 124.941284,
+        "p95": 129.42319800000018
+      },
+      "python": {
+        "median": 109.76124700027867,
+        "p95": 110.10719199839514
+      },
+      "maxEventLoopMs": 8.740863,
+      "checksum": 150260000
+    },
+    {
+      "rounds": 256,
+      "rows": 1000,
+      "node": {
+        "median": 293.19527800000105,
+        "p95": 294.83895200000006
+      },
+      "python": {
+        "median": 453.5903110008803,
+        "p95": 454.14578800046
+      },
+      "maxEventLoopMs": 2.684927,
+      "checksum": 872180
+    }
+  ],
+  "writer": {
+    "node": "v26.9.0",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "label": "small",
+        "records": 4096,
+        "bytes": 379301,
+        "flushEvery": 256,
+        "results": {
+          "python": {
+            "medianMs": 8.863027000188595,
+            "p95Ms": 8.96831800127984
+          },
+          "nodeBatch1": {
+            "medianMs": 36.440740000000005,
+            "p95Ms": 37.560835999999995,
+            "eventLoopMaximumMs": 1.106943
+          },
+          "nodeBatch16": {
+            "medianMs": 6.928778999999963,
+            "p95Ms": 7.897642000000019,
+            "eventLoopMaximumMs": 1.199103
+          }
+        }
+      },
+      {
+        "label": "bulk",
+        "records": 128,
+        "bytes": 7387468,
+        "flushEvery": 16,
+        "results": {
+          "python": {
+            "medianMs": 297.5053769987426,
+            "p95Ms": 298.32307800097624
+          },
+          "nodeBatch1": {
+            "medianMs": 159.02608299999974,
+            "p95Ms": 162.6091350000006,
+            "eventLoopMaximumMs": 2.666495
+          },
+          "nodeBatch16": {
+            "medianMs": 152.11190499999975,
+            "p95Ms": 154.09372299999995,
+            "eventLoopMaximumMs": 2.033663
+          }
+        }
+      }
+    ],
+    "scope": "Original synchronous Python LogWriter vs async Node compression/file writes, same ETX bytes and full-flush boundaries on local tmpfs. Includes open/close; excludes input generation, verification, socket capture and target-printer load. Node batch 16 may only group records without an intervening index boundary."
+  }
+}

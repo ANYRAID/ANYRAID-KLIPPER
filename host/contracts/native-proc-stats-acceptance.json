@@ -1,0 +1,160 @@
+{
+  "base": "45434048",
+  "upstream": {
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "file": "moonraker/components/proc_stats.py",
+    "sha256": "e8dfb37a701107b4264836836d5edbd0c6f999b885401c30921badf1239c92ad"
+  },
+  "implemented": [
+    "Authenticated cached machine.proc_stats HTTP/JSON-RPC snapshot",
+    "notify_proc_stat_update with one record; HTTP history has at most 30 records",
+    "Async bounded Linux file reads, BigInt CPU deltas, pinned decimal rounding",
+    "CPU thermal discovery and optional vcgencmd throttle query with timeout",
+    "Coalesced sampling and close cancellation",
+    "Cancellation waits for every parallel Linux read to close its file"
+  ],
+  "tests": {
+    "unitAndNativeProduct": 23,
+    "compiledLoadedNativeProduct": 1
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "sampleCount": 40,
+    "sampleMedianMs": 0.7192609999999888,
+    "sampleP95Ms": 1.5949929999999881,
+    "snapshotMedianMicroseconds": 27.816614100000006,
+    "snapshotP95Microseconds": 28.018079900000025,
+    "samplingEventLoopMaxMs": 1.831935,
+    "scope": "Real local Linux asynchronous sampling and 30-entry cached queries; loop delay covers sampling only; query burst timing is measured separately. No Python, target board or concurrent printer comparison."
+  },
+  "journey": {
+    "nativeAuthorization": true,
+    "apiLoad": true,
+    "completedStatistics": {
+      "total_duration": 8.759895371,
+      "print_duration": 2.5335764879999987,
+      "filament_used": 1
+    },
+    "bundleManifestSha256": "7a282f617fd652a94b43a9048cb74cafdca504d7f134ec243e87e8f6f3367e83",
+    "bmp180": false,
+    "bme": false,
+    "bmeHeater": false,
+    "htu": false,
+    "htuHeater": false,
+    "htuModel": null,
+    "lm75": false,
+    "lm75Heater": false,
+    "sht": false,
+    "shtHeater": false,
+    "aht": false,
+    "ahtHeater": false,
+    "combinedHeater": false,
+    "combined": false,
+    "multi": false,
+    "dual": false,
+    "servos": false,
+    "outputPins": false,
+    "phaseQueries": 4192,
+    "phaseP99Ms": 3.008043000001635,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": false,
+    "screws": false,
+    "manualScrews": false,
+    "bedScrews": false,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 176,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      },
+      {
+        "statusReads": 8,
+        "writes": 40
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 935,
+    "historyP99Ms": 11.440653999998176,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 12.047931999999491,
+    "deleteRequests": 16,
+    "deleteP95Ms": 6.53909300000123,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 2.2793019999990065,
+    "metadataRequests": 16,
+    "metadataP95Ms": 32.98043200000029,
+    "downloads": 16,
+    "downloadP95Ms": 12.445247000003292,
+    "wireCommands": 190,
+    "wireSteps": 3702,
+    "minimumStepLeadMs": 87.553,
+    "directoryRequests": 4031,
+    "directoryP99Ms": 7.660028999998758,
+    "statusRequests": 16777,
+    "uploads": 16,
+    "statusP99Ms": 3.309737999999925,
+    "uploadP95Ms": 19.910714999999982,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.951743,
+          "maxMs": 21.086207
+        },
+        "cpu": {
+          "user": 5471555,
+          "system": 704756
+        },
+        "rss": 301555712
+      },
+      {
+        "loop": {
+          "p99Ms": 1.909759,
+          "maxMs": 7.417855
+        },
+        "cpu": {
+          "user": 1836819,
+          "system": 254023
+        },
+        "rss": 281149440
+      }
+    ]
+  },
+  "limits": [
+    "Snapshot uses latest completed sample, rather than upstream request-time temperature/throttle reads",
+    "No Raspberry Pi hardware throttle acceptance; command adapter differs from upstream direct ioctl",
+    "Upstream watchdog logging, shutdown diagnostic logging and internal callbacks remain pending",
+    "Sampling delay metric is not an event-loop watchdog",
+    "Unsafe network integer counters are omitted, reset deltas use zero; CPU counters remain exact through differencing",
+    "No Python or target-board performance comparison, physical printer or browser acceptance"
+  ]
+}

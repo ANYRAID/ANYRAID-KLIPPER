@@ -1,0 +1,31 @@
+{
+  "scope": "BLTouch cold-start resource compilation and native two-MCU configuration only; startup intentionally refuses until native seek integration is implemented",
+  "sha256": {
+    "host/src/config/bltouch.ts": "5086f6dc0fe77aa9d73877fd0f8b80fcf2fd8f14f5f8b3983ee6a376839f5b7e",
+    "host/src/config/hardware.ts": "fd739c8f24ad1cc9fc9d7795e76b9208947faa04200f29292b21e81cee0b4f54",
+    "host/src/config/sensorless.ts": "b33055d7a380a510d6c125aed4e7416166d5fd225c4a944e8e11fcda06caa249",
+    "host/src/runtime/configured-hardware.ts": "f55bdb41454e631fa7c60fd33344c4e0f820f9fcd698fa93145bf6956c00a365",
+    "host/test/bltouch-config.test.ts": "b7478fbd0236d444d78e11b4ca88f5c71d2aec7222006a5eb48cff7d9daf8e49",
+    "host/bench/bltouch-config.ts": "d71163ac6efd569733b6dc4237466dbd7a597425b1fb6887b131079a04fd887f"
+  },
+  "tests": "✔ BLTouch settings preserve defaults and reject conflicting probe and macro ownership (2.54371ms)\n✔ control and sensor may use different MCUs while verification keeps a distinct OID (5.540857ms)\n✔ physical alias conflicts and missing sensor ownership fail atomically (2.47797ms)\n✔ compiled BLTouch resources configure on two native MCU sessions without motion (432.11176ms)\n✔ startup cannot silently accept BLTouch before native seek ownership is connected (414.201045ms)\n✔ hardware plans own isolated synchronizers and reject foreign or mismatched clock sources (7.46211ms)\n✔ hardware assembly collects every device and partitions OIDs and move reservations by MCU (2.419209ms)\n✔ late cross-device pin collisions publish no partial assembly and corrected input retries deterministically (3.31742ms)\n✔ configured sessions, missing clocks, duplicate emitters and reserved board pins cannot assemble (0.644038ms)\n✔ empty controllers consume no phantom move slots (0.391285ms)\n✔ all assembled plans pass real configuration CRC encoding and reused initialization (3.060427ms)\n✔ native two-MCU startup configures collected stepper, shared resources and subscribed heater (418.658808ms)\n✔ hardware assembly shares one private timeline per MCU across peripheral plans (2.589121ms)\n✔ hardware owner configures all MCUs before outputs and publishes started heater/fan/motor owners (415.758134ms)\n✔ invalid planning has no device side effects and corrected startup can proceed (417.254362ms)\n✔ second MCU configuration cancel stops peers before any output reset (414.488138ms)\n✔ second MCU configuration timeout stops peers before any output reset (511.35305ms)\n✔ live MCU fault closes every published hardware owner (413.374016ms)\n✔ independent safety failure stays observable and idempotent on owner close (413.904082ms)\n✔ ADC report arriving during configuration is buffered and enables fresh temperature admission (622.28549ms)\n✔ subscription registration failure after ownership transfer closes both MCUs without configuration (412.055599ms)\n✔ assembled sensor and PWM reserve the shared timeline and release ADC history on close (413.613288ms)\n✔ thermal fan follows heater target through native queues and closes its timer with hardware (1778.583191ms)\n✔ controller fan follows heater and motor activity then idle speed and timeout (5544.135469ms)\nℹ tests 24\nℹ suites 0\nℹ pass 24\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 12789.501931\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "iterations": 100,
+    "warmups": 2,
+    "samples": 7,
+    "medianMs": 15.339553999999993,
+    "maxMs": 18.849435999999997,
+    "maxPerPlanMs": 0.18849435999999997,
+    "scope": "BLTouch-only two-MCU resource planning; no I/O, no print-path timing, no Python performance comparison."
+  },
+  "typecheck": true,
+  "initialFixtureFailure": "Startup rejection fixture omitted the required beforeTarget callback, so generic ownership validation ran first. Added the existing required callback; final 24/24 passed.",
+  "remaining": [
+    "Connect compiled resources to lifetime device and motion ownership",
+    "Wire probe configuration and virtual Z endstop to BLTouch",
+    "Handle trigger-time stow versus motion recovery",
+    "Compiled product load and real printer acceptance",
+    "Original Python files remain"
+  ]
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+// GPL-3.0-or-later. Offline sensor diagnostic; does not configure a heater.
+import {parseArgs} from 'node:util';
+import {temperaturePlots,temperatureGraphSensors} from '../host/src/diagnostics/graph-temperature.ts';
+import {writeStatsPanels} from '../host/src/diagnostics/graphstats-file.ts';
+const help='Usage: node scripts/graph_temp_sensor.ts -o FILE [options]\n  -p, --pullup OHMS   Default 4700\n  -v, --voltage V     Default 5\n  -s, --sensors LIST  Comma-separated names; default all built-ins\n  -r, --resistance    Resistance plot instead of ADC and resolution\n  -o, --output FILE   HTML, PDF, SVG, PNG, JPEG, WebP, TIFF or JSON\n  -h, --help          Show help and sensor names\n'+temperatureGraphSensors.join('\n')+'\n';
+const numeric=(s:string|undefined)=>{if(s===undefined)return undefined;if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(s.trim()))throw new Error('Invalid numeric option');return Number(s);};
+const controller=new AbortController(),stop=()=>controller.abort(new Error('Temperature graph cancelled'));process.once('SIGINT',stop);process.once('SIGTERM',stop);
+try{const {values,positionals}=parseArgs({allowPositionals:true,options:{output:{type:'string',short:'o'},pullup:{type:'string',short:'p'},voltage:{type:'string',short:'v'},sensors:{type:'string',short:'s'},resistance:{type:'boolean',short:'r'},help:{type:'boolean',short:'h'}}});if(values.help)process.stdout.write(help);else{if(positionals.length||!values.output)throw new Error(help);const panels=temperaturePlots({sensors:values.sensors?.split(',').map(s=>s.trim()),pullup:numeric(values.pullup),voltage:numeric(values.voltage),resistance:values.resistance});await writeStatsPanels(panels,values.output,controller.signal);}}catch(error){process.stderr.write((error instanceof Error?error.message:String(error))+'\n');process.exitCode=1;}finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}

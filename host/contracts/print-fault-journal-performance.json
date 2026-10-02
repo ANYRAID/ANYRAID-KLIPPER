@@ -1,0 +1,20 @@
+{
+  "node": "v26.9.0",
+  "baselineCommit": "0b0db0a7",
+  "warmup": 3,
+  "runs": 11,
+  "jobs": 100,
+  "baseline": {
+    "medianMs": 1.200609,
+    "p95Ms": 1.5527249999999952
+  },
+  "current": {
+    "medianMs": 1.2139190000000042,
+    "p95Ms": 1.5371849999999938
+  },
+  "durableFault": {
+    "medianMs": 0.15725200000002815,
+    "p95Ms": 0.4571770000000015
+  },
+  "scope": "Alternating 100 start/pause/resume/complete/reset cycles without journal; separately real SQLite fault persistence including immediate mock stop. Excludes journal startup. Local filesystem and simulated device; not physical stopping time or print throughput."
+}

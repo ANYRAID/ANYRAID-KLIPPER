@@ -1,0 +1,38 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "pages": 58,
+    "queries": [
+      "pressure advance",
+      "bed mesh",
+      "运动精度",
+      "SET_PRESSURE_ADVANCE",
+      "not-found-unique-phrase"
+    ],
+    "warmups": 3,
+    "samplesMsPerQuery": [
+      3.7268732,
+      3.30690360000001,
+      3.340740000000005,
+      3.4539796000000025,
+      3.3738165999999863,
+      3.359412199999997,
+      3.291449599999987
+    ],
+    "medianMsPerQuery": 3.359412199999997,
+    "scope": "Node search and highlight segmentation; DOM rendering and fetching excluded"
+  },
+  "browser": "Codex in-app browser",
+  "checks": [
+    "typing without submitting returns exact title first",
+    "title and excerpt contain mark elements",
+    "screenshot confirms visible highlighting",
+    "keyboard clear hides results and removes q parameter"
+  ],
+  "toolLimitation": "An empty locator.fill attempt did not change the input; keyboard selection and Backspace did, and product behavior was verified after that.",
+  "sources": {
+    "host/src/diagnostics/docs-search.ts": "1fb9d6930c6341a6d0505e7474f491ac7b2a1e6cd5464d1bc6763ebfaad8f30d",
+    "host/src/diagnostics/docs-search-browser.ts": "22d5d9f21a5b2c32a8400f5ad5c89c83d92be5ed70da6a3b773c48d0a07e2072",
+    "host/src/diagnostics/docs-site.ts": "d2d2babcec6666382a7a36c3d638bfdf39044e2964358ec72d38612066c1b2ab"
+  }
+}

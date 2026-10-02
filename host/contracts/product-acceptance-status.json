@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "implementationBase": "015c3aa5 plus process-lifetime durable recovery journal",
+  "node": "26.9.0",
+  "command": "npm --prefix host run test:product-acceptance",
+  "result": "mixed_simulated_runs_stability_open",
+  "tests": {
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0
+  },
+  "firstUnpassedGate": "Intermittent Motion duration below time resolution during compatibility print after host reinitialization",
+  "capture": {
+    "startPosition": 3.78,
+    "endPosition": 3.79,
+    "startV2": 100,
+    "cruiseV2": 100,
+    "endV2": 80.00000000000007,
+    "accel": 1000,
+    "printTime": 3.1993729999999587,
+    "cruiseT": 2.654126918244515e-17,
+    "decelT": 0.0010557280900008374,
+    "resolved": true
+  },
+  "pending": [
+    "fresh target-system dependency installation",
+    "fault injection across active printing and restoration",
+    "full-load performance",
+    "real hardware acceptance",
+    "recovery history archival lifecycle"
+  ],
+  "scope": "Source CLI journey uses fixture file access. Compiled child-process journey uses actual authenticated multipart upload and PublishedPrintFiles sealed reader, bundled JS/native addons and shared installed dependencies. Both use dual PTY UART firmware simulators and simulated physical stop. Source journey uses zero temperatures; compiled journey requests 200/60 C with synthetic cold/hot ADC reports and malformed-report injection. Does not establish fresh-system install, real thermal/endstop/motor behavior, target-board throughput or print quality. Independent recorded runtime instability remains unresolved.",
+  "additionalResolvedCapture": {
+    "startPosition": 3.88,
+    "endPosition": 3.89,
+    "startV2": 99.99999999999964,
+    "cruiseV2": 100,
+    "endV2": 100,
+    "accelT": 1.776356839400252e-17,
+    "printTime": 4.667461912383371
+  },
+  "verified": [
+    "trusted profile loaded through actual CLI",
+    "dual PTY UART connection and authenticated HTTP",
+    "unauthorized start rejected without opening file or scheduling motion",
+    "authorized job admitted",
+    "three-axis native homing with simulated endstop responses",
+    "file print reaches printing state",
+    "HTTP pause and current-token resume",
+    "stale resume token rejected",
+    "first job completes and durable journal records completion",
+    "final commanded endpoint [10,0,0,0] and inactive file",
+    "reset to idle and start second job",
+    "HTTP cancel returns success after durable cancellation",
+    "cancelled record and unavailable hardware remain queryable",
+    "reset does not grant stopped hardware permission; next start rejected before file open",
+    "explicit process abort closes API and releases dependencies",
+    "active printing rejects local reinitialization",
+    "explicit local reinitialization waits for old dependencies, preserves journal, homes and completes a fresh job",
+    "fresh compiled bundle process with TypeScript stripping disabled and external PATH empty",
+    "authenticated multipart upload receipt SHA-256 matches exact G-code and does not start printing",
+    "compiled process prints PublishedPrintFiles sealed reader through pause/resume, completion and cancellation",
+    "SIGHUP compiled process restores published file receipt and journal; fresh job homes and completes",
+    "compiled process rejects stale resume token and exits cleanly on SIGTERM",
+    "compiled request uses nozzle 200 C and bed 60 C; cold reports hold file execution after homing",
+    "both heater PWM commands observed on UART before synthetic hot samples; completed targets are zero",
+    "malformed ADC report during printing faults device, persists failed after stop and rejects next start",
+    "compiled baseline and loaded journeys; four status clients and sixteen 256 KiB uploads starting during printing",
+    "accepted compressed step commands arrive before first step on simulated MCU clock",
+    "compiled child event-loop p99 below 50 ms and maximum below 100 ms in bounded paired local run",
+    "authenticated HTTP recovery in loaded compiled journey returns queued receipt before retirement; new generation reports succeeded",
+    "duplicate recovery request does not create another generation; stale token and active print are rejected",
+    "independent physical stop failure rejects remote reinitialization",
+    "WebSocket RPC batch hands response off before queued recovery dispatch",
+    "compiled host process restart preserves successful recovery receipt and idempotent retry without file open or movement",
+    "SIGKILL while queued or running yields interrupted receipt on reopen without replay",
+    "admission/running/success write failures never acknowledge uncommitted state; shutdown waits for in-flight admission"
+  ],
+  "additionalHostTests": [
+    "UART disconnect retains authenticated failed status and rejects print start",
+    "independent physical stop failure remains visible and shutdown reports cleanup failure",
+    "SIGINT and SIGTERM release dependencies",
+    "SIGHUP readies a fresh generation in actual child process",
+    "duplicate requests coalesce; abort or cleanup failure prevents replacement"
+  ],
+  "additionalResolvedDrainCapture": {
+    "startPosition": 9.95,
+    "endPosition": 9.96,
+    "printTime": 3.619281999999901,
+    "cruiseT": 7.095019016745141e-17,
+    "decelT": 0.0010557280900009367
+  },
+  "latestObservation": {
+    "date": "2026-09-27",
+    "evidence": "heater-fan-foundation.json",
+    "firstRun": {
+      "passed": 2,
+      "failed": 2
+    },
+    "diagnosticRun": {
+      "passed": 4,
+      "failed": 0
+    },
+    "resolved": false
+  },
+  "latestFixedRegression": {
+    "date": "2026-09-27",
+    "evidence": "motion-clock-extrusion-regression.json",
+    "compiledTestsPassed": 4,
+    "historicalAttributionComplete": false
+  }
+}

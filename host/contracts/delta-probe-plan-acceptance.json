@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "configurationsPerSample": 1000,
+  "samplesMs": [
+    96.52959200000004,
+    98.63470299999994,
+    99.729289,
+    96.06662200000005,
+    96.76651399999992,
+    97.69420000000002,
+    94.73899399999993
+  ],
+  "medianMs": 96.76651399999992,
+  "scope": "Cold Delta mechanical probe hardware planning and all-motor trigger coverage validation; excludes native allocation, MCU IO, homing and print throughput"
+}

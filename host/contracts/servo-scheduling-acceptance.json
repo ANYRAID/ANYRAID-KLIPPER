@@ -1,0 +1,17 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "requestsPerSample": 10000,
+  "batchSize": 100,
+  "samplesMs": [
+    8.329372000000006,
+    7.6928139999999985,
+    7.174907000000019,
+    6.78317100000001,
+    6.6818700000000035,
+    6.732069999999993,
+    6.945392999999996
+  ],
+  "medianMs": 6.945392999999996,
+  "scope": "Servo angle conversion, motion marker registration, scheduled flushing and clock retirement with mock ACK; excludes transport and step generation"
+}

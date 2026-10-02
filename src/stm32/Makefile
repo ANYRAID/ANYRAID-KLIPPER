@@ -32,7 +32,10 @@ CFLAGS-$(CONFIG_MACH_STM32H7) += -mcpu=cortex-m7 -Ilib/stm32h7/include
 CFLAGS-$(CONFIG_MACH_STM32L4) += -mcpu=cortex-m4 -Ilib/stm32l4/include
 CFLAGS += $(CFLAGS-y) -D$(MCU_UPPER) -mthumb -Ilib/cmsis-core -Ilib/fast-hash
 
-CFLAGS_klipper.elf += -nostdlib -lgcc -lc_nano
+# Link through the LTO plugin: the non-plugin preliminary link can overflow
+# small ROM regions before whole-program optimization has reduced the code.
+# Keep fat LTO compile objects for command extraction; ROM checks still apply.
+CFLAGS_klipper.elf += -fuse-linker-plugin -nostdlib -lgcc -lc_nano
 CFLAGS_klipper.elf += -T $(OUT)src/generic/armcm_link.ld
 $(OUT)klipper.elf: $(OUT)src/generic/armcm_link.ld
 
@@ -102,9 +105,9 @@ lib/hidflash/hid-flash:
 	@echo "  Building hid-flash"
 	$(Q)make -C lib/hidflash
 
-flash: $(OUT)klipper.bin lib/hidflash/hid-flash
+flash: $(OUT)klipper.bin lib/hidflash/hid-flash host/build/serialqueue.node
 	@echo "  Flashing $< to $(FLASH_DEVICE)"
-	$(Q)$(PYTHON) ./scripts/flash_usb.py -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" -s "$(CONFIG_FLASH_APPLICATION_ADDRESS)" $(if $(NOSUDO),--no-sudo) $(OUT)klipper.bin
+	$(Q)$(NODE) ./scripts/flash_usb.ts -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" -s "$(CONFIG_FLASH_APPLICATION_ADDRESS)" $(if $(NOSUDO),--no-sudo) $(OUT)klipper.bin
 
 serialflash: $(OUT)klipper.bin
 	@echo "  Flashing $< to $(FLASH_DEVICE) via stm32flash"

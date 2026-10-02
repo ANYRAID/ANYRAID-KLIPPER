@@ -1,0 +1,52 @@
+{
+  "inputs": [
+    "g",
+    "DarkGrey",
+    "xkcd:sky blue",
+    "C11",
+    "0.125",
+    "#abcd",
+    "#12345678",
+    "none"
+  ],
+  "loops": 1000,
+  "checksum": 8583.823529411622,
+  "python": {
+    "medianMs": 6.230624974705279,
+    "p95Ms": 6.246885983273387
+  },
+  "scope": "8000 resolutions per batch after warmup; original Matplotlib includes its built-in color cache",
+  "nodeResult": {
+    "node": "v26.9.0",
+    "resolutions": 8000,
+    "medianMs": 1.751451000000003,
+    "p95Ms": 2.912674999999993,
+    "historicalPython": {
+      "medianMs": 6.230624974705279,
+      "p95Ms": 6.246885983273387
+    },
+    "scope": "Color/alpha parsing with fresh independent result arrays. Original Matplotlib uses its warm built-in cache; excludes module load, rendering and print speed."
+  },
+  "fullExport": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "points": 15003,
+        "bytes": 244237,
+        "medianMs": 88.66577800000005,
+        "p95Ms": 91.27128999999991
+      },
+      {
+        "format": "png",
+        "points": 15003,
+        "bytes": 60588,
+        "medianMs": 113.3298279999999,
+        "p95Ms": 116.9243919999999
+      }
+    ],
+    "scope": "Synthetic capture file read, fresh analysis worker per job, full three-curve layout, SVG or PNG encoding and atomic write. Decode checks outside timer. No Python renderer comparison, browser frame rate or physical print timing."
+  }
+}

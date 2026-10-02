@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "implementationBase": "ec9c5191",
+  "hashes": {
+    "host/src/storage/published-files.ts": "9f889d98eb62869be5659b02534f352c2cbdc375e27dd40af478ea9ac88087b5",
+    "host/src/moonraker/native-metadata-source.ts": "ca7e687cdbc6a1c19d0e11c22c91f326e4f19b575958c201afdffa29d678c3bd",
+    "host/src/moonraker/native-file-metadata.ts": "3bdf0641292bbb40d72b361994187a693377b723c01ae3833d32a5f194db3977",
+    "host/bench/native-file-metadata.ts": "76ddc06e1c1446569e8d955e570f4ebff66d7f1a34946e0f6569aee81733d25b",
+    "host/bench/native-file-previews.ts": "482c3fa982910f7d2bf866fdbfb9614b7537855a6ca7d1de765c7bd25d62cf78",
+    "host/acceptance/product-compiled-journey.test.ts": "b9d8fc1c93bb3e0f223f1b695009260da8198c4d0d8ee04a0e8490419241ea2a"
+  },
+  "validation": {
+    "relatedTests": 49,
+    "compiledAcceptanceTests": 4,
+    "typecheck": true
+  },
+  "scalar": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "warmups": 3,
+    "runs": 11,
+    "results": [
+      {
+        "bytes": 65536,
+        "cold": {
+          "medianMs": 1.7309630000000027,
+          "p95Ms": 11.133530000000007
+        },
+        "cached": {
+          "medianMs": 0.12030100000001198,
+          "p95Ms": 0.8463919999999803
+        },
+        "eventLoop": {
+          "p99Ms": 2.465791,
+          "maxMs": 5.607423
+        }
+      },
+      {
+        "bytes": 4194304,
+        "cold": {
+          "medianMs": 19.373109999999997,
+          "p95Ms": 22.084517000000005
+        },
+        "cached": {
+          "medianMs": 0.1210219999999822,
+          "p95Ms": 0.12730099999998856
+        },
+        "eventLoop": {
+          "p99Ms": 1.989631,
+          "maxMs": 2.721791
+        }
+      },
+      {
+        "bytes": 67108864,
+        "cold": {
+          "medianMs": 105.79162200000019,
+          "p95Ms": 108.13715400000001
+        },
+        "cached": {
+          "medianMs": 0.11542200000030789,
+          "p95Ms": 0.20362299999987954
+        },
+        "eventLoop": {
+          "p99Ms": 1.649663,
+          "maxMs": 2.201599
+        }
+      }
+    ],
+    "scope": "Local immutable files: cold path includes full SHA-256 sealed copy, bounded byte windows and Worker scalar extraction; cached path revalidates receipt identity. Excludes publication, HTTP and hardware. Worker startup is warmed; full-file metadata and images are not claimed."
+  },
+  "previews": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "warmups": 3,
+    "runs": 11,
+    "results": [
+      {
+        "fileBytes": 262144,
+        "imageWidth": 64,
+        "imageBytes": 12453,
+        "inputSha256": "136ce5ccb4e9b330d5297c15bab94591f2222d85b9809a0e4c08686818243ae5",
+        "cold": {
+          "medianMs": 5.5821750000000065,
+          "p95Ms": 6.877802999999972
+        },
+        "cached": {
+          "medianMs": 0.12552199999998948,
+          "p95Ms": 0.26052399999997533
+        },
+        "read": {
+          "medianMs": 0.31970400000000154,
+          "p95Ms": 0.41350499999998647
+        },
+        "eventLoop": {
+          "p99Ms": 1.995775,
+          "maxMs": 3.831807
+        },
+        "cacheImageBytes": 214480
+      },
+      {
+        "fileBytes": 4194304,
+        "imageWidth": 384,
+        "imageBytes": 443624,
+        "inputSha256": "207b280af0cf85600cd69d4303ce44e45b31bbfc23ead5bfa2d6139e0aca7ab0",
+        "cold": {
+          "medianMs": 26.683487000000014,
+          "p95Ms": 29.16844100000003
+        },
+        "cached": {
+          "medianMs": 0.12136199999997643,
+          "p95Ms": 0.37360499999999774
+        },
+        "read": {
+          "medianMs": 0.28457400000002053,
+          "p95Ms": 0.4887670000000526
+        },
+        "eventLoop": {
+          "p99Ms": 1.744895,
+          "maxMs": 1.964031
+        },
+        "cacheImageBytes": 6451158
+      }
+    ],
+    "scope": "Local sealed native files with deterministic noisy PNG, full file hash, Worker extraction, child image decoding and miniature generation. Cold startup excluded. Cached preview read includes receipt validation and independent byte copy. No HTTP, Python performance comparison or target hardware claim."
+  },
+  "compiledLoad": [
+    {
+      "loaded": false,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 149,
+      "wireSteps": 3232,
+      "minimumStepLeadMs": 88.54,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.813503,
+            "maxMs": 13.328383
+          },
+          "cpu": {
+            "user": 682189,
+            "system": 80995
+          },
+          "rss": 165818368
+        },
+        {
+          "loop": {
+            "p99Ms": 1.756159,
+            "maxMs": 4.061183
+          },
+          "cpu": {
+            "user": 393102,
+            "system": 44168
+          },
+          "rss": 186286080
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 3.8685010000008333,
+      "deleteRequests": 16,
+      "deleteP95Ms": 1.3662679999979446,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.3288979999997537,
+      "metadataRequests": 16,
+      "metadataP95Ms": 9.449007000002894,
+      "downloads": 16,
+      "downloadP95Ms": 10.405038999997487,
+      "wireCommands": 147,
+      "wireSteps": 3218,
+      "minimumStepLeadMs": 89.952,
+      "directoryRequests": 2076,
+      "directoryP99Ms": 4.158405999998649,
+      "statusRequests": 8637,
+      "uploads": 16,
+      "statusP99Ms": 2.562794000001304,
+      "uploadP95Ms": 12.819590999999491,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.970175,
+            "maxMs": 13.557759
+          },
+          "cpu": {
+            "user": 1817977,
+            "system": 242273
+          },
+          "rss": 244060160
+        },
+        {
+          "loop": {
+            "p99Ms": 1.828863,
+            "maxMs": 4.669439
+          },
+          "cpu": {
+            "user": 1035976,
+            "system": 129926
+          },
+          "rss": 238583808
+        }
+      ]
+    }
+  ],
+  "scope": "Receipt fingerprints use exact dev/ino/mtimeNs/ctimeNs from the same descriptor as validated receipt bytes. Native cold metadata uses full-hash sealed snapshots and revalidates receipt identity. Native extraction-to-durable-lifecycle recovery and same-ID republication rejection are integration-tested. Product service still owns ephemeral metadata; persistent component assembly remains pending. Local PTY simulation is not hardware or motion anomaly resolution."
+}

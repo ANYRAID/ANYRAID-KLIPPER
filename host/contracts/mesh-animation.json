@@ -1,0 +1,150 @@
+{
+  "source": "scripts/graph_mesh.py:PathAnimation.gen_path_position",
+  "sourceSha256": "ee8fd58218854a9197fd34fef798a576912ed72ff47146d820a752283f29fa87",
+  "cases": [
+    {
+      "points": [
+        [
+          0,
+          0
+        ]
+      ],
+      "legacyFrames": [
+        1
+      ]
+    },
+    {
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "legacyFrames": [
+        1,
+        2
+      ]
+    },
+    {
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ],
+      "legacyFrames": [
+        1
+      ]
+    },
+    {
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "legacyFrames": [
+        1,
+        2,
+        4
+      ]
+    },
+    {
+      "points": [
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "legacyFrames": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "points": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          2,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "legacyFrames": [
+        1
+      ]
+    }
+  ],
+  "benchmark": {
+    "points": 100000,
+    "frames": 99901,
+    "pythonMedianMs": 10.06767200306058,
+    "pythonP95Ms": 10.335066996049136,
+    "scope": "Original generator plus coordinate extraction, 5 warmups / 25 runs. Excludes GUI, rendering and physical motion."
+  },
+  "nodeBenchmark": {
+    "node": "v26.9.0",
+    "points": 100000,
+    "framePreparation": {
+      "medianMs": 2.1190509999999847,
+      "p95Ms": 8.34723200000002
+    },
+    "historicalPython": {
+      "points": 100000,
+      "frames": 99901,
+      "pythonMedianMs": 10.06767200306058,
+      "pythonP95Ms": 10.335066996049136,
+      "scope": "Original generator plus coordinate extraction, 5 warmups / 25 runs. Excludes GUI, rendering and physical motion."
+    },
+    "htmlPoints": 1000,
+    "htmlGeneration": {
+      "medianMs": 2.1034409999999752,
+      "p95Ms": 3.9200859999999693
+    },
+    "htmlBytes": 86815,
+    "scope": "Offline frame preparation and interactive HTML generation; no browser paint, real-time timer or printer-speed claim."
+  }
+}

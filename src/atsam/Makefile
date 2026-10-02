@@ -59,6 +59,6 @@ lib/bossac/bin/bossac:
 	@echo "  Building bossac"
 	$(Q)make -C lib/bossac bin/bossac
 
-flash: $(OUT)klipper.bin lib/bossac/bin/bossac
+flash: $(OUT)klipper.bin lib/bossac/bin/bossac host/build/serialqueue.node
 	@echo "  Flashing $< to $(FLASH_DEVICE)"
-	$(Q)$(PYTHON) ./scripts/flash_usb.py -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" $(OUT)klipper.bin
+	$(Q)$(NODE) ./scripts/flash_usb.ts -t $(CONFIG_MCU) -d "$(FLASH_DEVICE)" $(OUT)klipper.bin

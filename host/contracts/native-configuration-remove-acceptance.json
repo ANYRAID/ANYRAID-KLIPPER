@@ -1,0 +1,173 @@
+{
+  "base": "ab405c59",
+  "tests": {
+    "related": 15,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": true
+  },
+  "benchmark": [
+    {
+      "node": "v26.9.0",
+      "cells": 1024,
+      "warmup": 3,
+      "samples": 11,
+      "wall": {
+        "medianMs": 3.8300620000000265,
+        "p95Ms": 5.047328000000022
+      },
+      "removal": {
+        "medianMs": 1.1892660000000035,
+        "p95Ms": 3.2510739999999885
+      },
+      "cpu": {
+        "medianMs": 3.46,
+        "p95Ms": 4.161
+      },
+      "maximumP95Ms": 100,
+      "scope": "Idle maintenance save with backup, fsync and exact reload check; warm local filesystem. Reload check excluded from timing. Printing is fenced, not concurrent."
+    }
+  ],
+  "product": [
+    {
+      "installation": {
+        "durationMs": 689.5808980000002,
+        "dependencies": 10
+      }
+    },
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 171,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.798,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.790975,
+            "maxMs": 13.041663
+          },
+          "cpu": {
+            "user": 697540,
+            "system": 62145
+          },
+          "rss": 162828288
+        },
+        {
+          "loop": {
+            "p99Ms": 1.735679,
+            "maxMs": 6.459391
+          },
+          "cpu": {
+            "user": 396446,
+            "system": 63689
+          },
+          "rss": 185724928
+        }
+      ]
+    },
+    {
+      "installation": {
+        "durationMs": 703.4213610000006,
+        "dependencies": 10
+      }
+    },
+    {
+      "configurationSave": {
+        "compiled": true,
+        "reinitialized": true,
+        "oldTokenRejected": true,
+        "removedAfterReinitialization": true,
+        "profile": "retained",
+        "implicitMeshActivation": false
+      }
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 452,
+      "historyP99Ms": 14.355273000001034,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 4.728692999997293,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.629672999995819,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 10.286298999999417,
+      "metadataRequests": 16,
+      "metadataP95Ms": 18.07983300000342,
+      "downloads": 16,
+      "downloadP95Ms": 3.7045299999990675,
+      "wireCommands": 184,
+      "wireSteps": 3316,
+      "minimumStepLeadMs": 80.18,
+      "directoryRequests": 1922,
+      "directoryP99Ms": 9.406627000000299,
+      "statusRequests": 8068,
+      "uploads": 16,
+      "statusP99Ms": 6.043602000001556,
+      "uploadP95Ms": 18.76363400000264,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.877439,
+            "maxMs": 13.852671
+          },
+          "cpu": {
+            "user": 2153333,
+            "system": 266950
+          },
+          "rss": 225685504
+        },
+        {
+          "loop": {
+            "p99Ms": 2.010111,
+            "maxMs": 8.310783
+          },
+          "cpu": {
+            "user": 1329093,
+            "system": 173454
+          },
+          "rss": 247656448
+        }
+      ]
+    }
+  ],
+  "hashes": {
+    "host/src/config/klipper-save.ts": "17de14fbf866224ff5c19fd6a9c17fe8ef7cb6ca008d0d2a540259080890a28e",
+    "host/src/config/klipper-save-preflight.ts": "cd5431ce229557e91e4c97c7e5197de34108f1e1ddf111aab59ed30b75f33d30",
+    "host/src/config/klipper-save-session.ts": "e1f4702d10de8bff28c52d3da1f2547837aa5fc2c42c947c11e9c3852991d514",
+    "host/src/moonraker/native-configuration.ts": "abe33229934a4d1d0cbf896761e2ad95cf8a876ff0ac90664bb508eddc122218",
+    "host/test/native-configuration-remove.test.ts": "ec213f1103323d7913a34ee1d0abf728c2e77e8a585795cbe8cbe94b4c9f7269",
+    "host/acceptance/product-compiled-journey.test.ts": "615c903c423b6e3b6c32c2e015fcd41da244dc1e77805bbd598975feb979068e",
+    "host/bench/native-configuration.ts": "d8ba9e3daaeb30e1e4259935a2dc8bddf0423d4d8af5bfe8209893a013cb5f53",
+    "/tmp/native-config-remove-tests.log": "8404b34fd26ed203d1b12631edda33a935530f04deb3cb566a5536aeba40097a",
+    "/tmp/native-config-remove-product.log": "6941b073b314ab108c2601d5920816eb4aa09ef3a716a34ac39baadd672532c9",
+    "/tmp/native-config-remove-bench.log": "4c223726b04e44514ad37ed8b9a0b07def8309973e867c4e865574382789f88c"
+  },
+  "limitations": [
+    "Removal applies to automatic save sections; ordinary/include definitions cause precommit rejection",
+    "Session-local receipts only; no automatic replay",
+    "Local filesystem and emulated MCU, no physical probe or target-board acceptance",
+    "Historical process crashes and numerical failures unresolved; complete Python retirement remains pending"
+  ]
+}

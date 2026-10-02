@@ -1,0 +1,215 @@
+{
+  "scope": "Compiled Node product journeys for configured CoreXY and CoreXZ with dual simulated MCU UARTs",
+  "node": "26.9.0",
+  "sourceSha256": {
+    "host/acceptance/product-compiled-journey.test.ts": "40208eded102e6e8a34e3830b0975e32ef5bec329306446feab35529cfab90d1"
+  },
+  "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='kinematics=core' host/acceptance/product-compiled-journey.test.ts",
+  "tests": {
+    "passed": 2,
+    "failed": 0,
+    "durationMs": 99382.975525
+  },
+  "verified": [
+    "Fresh compiled bundle installation and no Python or TypeScript loading in child",
+    "Configured kinematics selected through printer.cfg and machine profile",
+    "Three-axis homing, mesh-compensated 1000-move extrusion print and expected toolhead endpoint",
+    "Filament encoder runout pauses only after step clocks settle; rejected absent-filament resume, then explicit authorized resume",
+    "Concurrent authenticated status, file uploads, metadata, thumbnails and history",
+    "Nine-point mesh probing and zero-reference sample; calibration save and new generation",
+    "Endstop phase observations and saved phases across reinitialization",
+    "TMC fault ends printing and rejects a subsequent start",
+    "Step commands arrive ahead of sampled simulated MCU clock; recorded event loop tails"
+  ],
+  "metrics": [
+    {
+      "phaseQueries": 3922,
+      "phaseP99Ms": 3.14967599999909,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "corexy",
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 55
+        },
+        {
+          "statusReads": 62,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 873,
+      "historyP99Ms": 10.258487999999488,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 21.244472999998834,
+      "deleteRequests": 16,
+      "deleteP95Ms": 15.64002900000014,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 9.392547999999806,
+      "metadataRequests": 16,
+      "metadataP95Ms": 44.68041099999937,
+      "downloads": 16,
+      "downloadP95Ms": 17.942176000000472,
+      "wireCommands": 523,
+      "wireSteps": 9334,
+      "minimumStepLeadMs": 86.788,
+      "directoryRequests": 3783,
+      "directoryP99Ms": 4.353138999998919,
+      "statusRequests": 15690,
+      "uploads": 16,
+      "statusP99Ms": 3.176395999998931,
+      "uploadP95Ms": 59.04542599999877,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.946623,
+            "maxMs": 17.743871
+          },
+          "cpu": {
+            "user": 4742793,
+            "system": 478831
+          },
+          "rss": 290299904
+        },
+        {
+          "loop": {
+            "p99Ms": 1.940479,
+            "maxMs": 5.853183
+          },
+          "cpu": {
+            "user": 1388821,
+            "system": 199102
+          },
+          "rss": 291430400
+        }
+      ]
+    },
+    {
+      "phaseQueries": 3945,
+      "phaseP99Ms": 2.4426779999994324,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "corexz",
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 168,
+          "writes": 55
+        },
+        {
+          "statusReads": 62,
+          "writes": 54
+        },
+        {
+          "statusReads": 82,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 877,
+      "historyP99Ms": 7.2017720000003465,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 3.216266999996151,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.264061000008951,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 12.01812800001062,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.548561000003247,
+      "downloads": 16,
+      "downloadP95Ms": 18.480521999998018,
+      "wireCommands": 727,
+      "wireSteps": 10324,
+      "minimumStepLeadMs": 86.424,
+      "directoryRequests": 3800,
+      "directoryP99Ms": 5.1734790000045905,
+      "statusRequests": 15784,
+      "uploads": 16,
+      "statusP99Ms": 2.4045679999981076,
+      "uploadP95Ms": 5.518573000001197,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.950719,
+            "maxMs": 39.157759
+          },
+          "cpu": {
+            "user": 4787712,
+            "system": 548951
+          },
+          "rss": 286400512
+        },
+        {
+          "loop": {
+            "p99Ms": 1.917951,
+            "maxMs": 5.955583
+          },
+          "cpu": {
+            "user": 1408235,
+            "system": 184115
+          },
+          "rss": 256118784
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Simulated endstop and motor position responses do not establish real coupled motor motion, belt geometry, repeated homing accuracy or print quality.",
+    "Recorded minimum lead is from this bounded local workload, not a target-board maximum-load guarantee.",
+    "Default Python entrypoints remain. Runtime crashes and numerical anomalies recorded separately remain unresolved."
+  ]
+}

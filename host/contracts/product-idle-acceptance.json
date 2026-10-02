@@ -1,0 +1,260 @@
+{
+  "status": "compiled-idle-policy-and-runtime-settings-verified-hardware-pending",
+  "defaultSeconds": 600,
+  "timeoutRangeSeconds": {
+    "exclusiveMin": 0,
+    "max": 86400
+  },
+  "pollRangeSeconds": {
+    "min": 0.05,
+    "max": 1
+  },
+  "unitTests": 15,
+  "integrationTests": 17,
+  "compiledTests": 4,
+  "behaviour": [
+    "Idle: heaters off, exclusive motion drain and controllable motor release, homing cleared, host remains ready",
+    "Paused: typed cancellation and acknowledged stop, no resume, service reconstruction required",
+    "Every hardware shutdown invalidates maintenance admission",
+    "Always-on motors remain physically enabled; capability is reported",
+    "Non-empty idle macros rejected before connection"
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "polls": 20000,
+    "samples": 11,
+    "medianMs": 4.975939999999994,
+    "p95Ms": 6.101637000000011,
+    "scope": "Idle observation with representative activity key and bounded synthetic timer; no physical output latency"
+  },
+  "compiled": [
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "loaded": false,
+      "minimumStepLeadMs": 87.759,
+      "generationLoopP99Ms": [
+        1.802239,
+        1.934335
+      ]
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "loaded": true,
+      "minimumStepLeadMs": 84.173,
+      "generationLoopP99Ms": [
+        1.925119,
+        1.924095
+      ]
+    }
+  ],
+  "failedRuns": [
+    {
+      "tests": 4,
+      "passed": 2,
+      "issues": [
+        "Motor release raced background clock maintenance: Native motion port busy or paused",
+        "Expected stop event temporarily published failed during timeout cancellation"
+      ]
+    },
+    {
+      "tests": 4,
+      "passed": 2,
+      "issues": [
+        "Suppressing expected stop notification exposed start and configuration-save admission relying on fault state; expected 409 received 200"
+      ],
+      "fix": "Explicitly invalidate MaintenanceGate on every hardware close"
+    },
+    {
+      "tests": 4,
+      "passed": 3,
+      "issues": [
+        "Loaded compiled journey paused with empty bed_mesh.profile_name; expected saved"
+      ],
+      "status": "matching-noninterruptible-drain-mechanism-reproduced-and-fixed",
+      "diagnosticFollowUp": {
+        "tests": 1,
+        "passed": 1,
+        "note": "Same loaded scenario passed in isolation; root cause unproven, original assertion retained with file-position failure context"
+      },
+      "fix": "Dispatch interruptible pre-command drain before BED_MESH_CLEAR/PROFILE/OFFSET; preserve pending command and compensation across pause"
+    },
+    {
+      "tests": 4,
+      "passed": 3,
+      "issues": [
+        "Explicit M400 enabled checkpoint pause while streamer finished but final drain still owned the port: No active native stream to pause"
+      ],
+      "status": "reproduced-and-fixed",
+      "fix": "Join final stream/drain ownership before stationary pause; cancellation stops and rejects"
+    }
+  ],
+  "remaining": [
+    "Target hardware validation",
+    "Legacy Python default entry retirement",
+    "Historical process/motion stability issues remain open"
+  ],
+  "dynamicSettings": {
+    "endpoint": "/printer/settings/idle_timeout",
+    "methods": [
+      "GET",
+      "POST"
+    ],
+    "persisted": false,
+    "unitTests": 5,
+    "closeDuringAuthorization": "rejected without mutation",
+    "retry": "last accepted request only; does not reset timer twice",
+    "reinitialization": "configuration restored; old token rejected",
+    "benchmark": {
+      "node": "v26.9.0",
+      "updates": 20000,
+      "retries": 20000,
+      "samples": 11,
+      "medianMs": 47.19600700000001,
+      "p95Ms": 51.537678,
+      "scope": "Authorized registry calls, token generation, bounded receipt and synthetic timer; excludes network and physical outputs"
+    },
+    "compiledTests": {
+      "tests": 4,
+      "passed": 4
+    },
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.803,
+        "generationLoopP99Ms": [
+          1.767423,
+          1.812479
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 83.641,
+        "generationLoopP99Ms": [
+          1.930239,
+          2.045951
+        ]
+      }
+    ]
+  },
+  "meshPauseRegression": {
+    "before": {
+      "tests": 1,
+      "passed": 0,
+      "failure": "mesh phase entered instead of interruptible drain"
+    },
+    "after": {
+      "dispatchAndFileTests": 31,
+      "nativeMeshAndGcodeTests": 20,
+      "compiledTests": 4
+    },
+    "scope": "Simulated native queue regression and compiled product acceptance; no physical printer verification",
+    "benchmark": {
+      "node": "v26.9.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "commands": 10000,
+      "exact": true,
+      "nodeMedianMs": 18.740769,
+      "nodeP95Ms": 20.947360000000003,
+      "pythonMedianMs": 38.319440034683794,
+      "pythonP95Ms": 40.30142695410177,
+      "speedup": 2.044710120202847,
+      "eventLoopP99Ms": 1.680383,
+      "eventLoopMaxMs": 2.197503
+    },
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.584,
+        "generationLoopP99Ms": [
+          1.772543,
+          1.739775
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 84.069,
+        "generationLoopP99Ms": [
+          1.997823,
+          1.977343
+        ]
+      }
+    ]
+  },
+  "explicitDrainPause": {
+    "before": {
+      "filePause": "No interruption hook called during M400",
+      "tailPause": "No active native stream to pause"
+    },
+    "nativeIntegrationTests": 26,
+    "focusedFinalTests": 3,
+    "compiledTests": 4,
+    "exactSteps": {
+      "axis": "X",
+      "distanceMm": 2,
+      "steps": 200,
+      "endpoint": [
+        52,
+        0,
+        0,
+        2
+      ]
+    },
+    "cancelDuringTail": "rejects pause and stops motion",
+    "benchmark": {
+      "node": "v26.9.0",
+      "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+      "commands": 10000,
+      "exact": true,
+      "nodeMedianMs": 18.782287999999994,
+      "nodeP95Ms": 21.18519100000003,
+      "pythonMedianMs": 38.61337999114767,
+      "pythonP95Ms": 39.92279904196039,
+      "speedup": 2.0558400547977795,
+      "eventLoopP99Ms": 1.852415,
+      "eventLoopMaxMs": 2.246655
+    },
+    "scope": "Real native queue and compiled host against simulated MCU; no physical printer",
+    "compiledPerformance": [
+      {
+        "loaded": false,
+        "minimumStepLeadMs": 87.09,
+        "generationLoopP99Ms": [
+          1.787903,
+          1.774591
+        ]
+      },
+      {
+        "loaded": true,
+        "minimumStepLeadMs": 87.339,
+        "generationLoopP99Ms": [
+          1.939455,
+          1.898495
+        ]
+      }
+    ]
+  }
+}

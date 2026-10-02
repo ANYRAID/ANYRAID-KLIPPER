@@ -75,9 +75,9 @@ $PYTHON2 klippy/klippy.py --import-test
 finish_test klippy "Test klippy import (Python2)"
 
 start_test klippy "Test invoke klippy (Python3)"
-$PYTHON scripts/test_klippy.py -d ${DICTDIR} test/klippy/*.test
+"${NODE:-node}" scripts/test_klippy.ts --python "$PYTHON" -d "${DICTDIR}" test/klippy/*.test
 finish_test klippy "Test invoke klippy (Python3)"
 
 start_test klippy "Test invoke klippy (Python2)"
-$PYTHON2 scripts/test_klippy.py -d ${DICTDIR} test/klippy/*.test
+"${NODE:-node}" scripts/test_klippy.ts --python "$PYTHON2" -d "${DICTDIR}" test/klippy/*.test
 finish_test klippy "Test invoke klippy (Python2)"

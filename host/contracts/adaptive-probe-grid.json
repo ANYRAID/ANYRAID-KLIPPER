@@ -1,0 +1,15 @@
+{
+  "node": "v26.9.0",
+  "adaptations1000Ms": [
+    45.053529,
+    45.11439899999999,
+    44.90899699999997,
+    44.92384699999997,
+    44.982237000000055
+  ],
+  "medianMs": 44.982237000000055,
+  "originalContacts": 81,
+  "adaptedContacts": 9,
+  "passed": true,
+  "scope": "Pure adaptive footprint calculation; not yet connected to immutable print-file object extraction or product calibration. No physical timing or precision claim."
+}

@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "c96eea24",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "5e43d88724058f5332ea646e255dc20e08e7f98640dd5845c8e74436b430849e",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "extendedDirectoryClients": 1,
+    "pollDelayMs": 5,
+    "generations": 2,
+    "filesPerGeneration": 8,
+    "uploadBytes": 262144,
+    "sequence": [
+      "upload",
+      "raw download",
+      "cold metadata and PNG miniature",
+      "preview download",
+      "delete",
+      "old preview must return 404"
+    ]
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 147,
+      "wireSteps": 3222,
+      "minimumStepLeadMs": 90.974,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.833983,
+            "maxMs": 12.779519
+          },
+          "cpu": {
+            "user": 639437,
+            "system": 86577
+          },
+          "rss": 166060032
+        },
+        {
+          "loop": {
+            "p99Ms": 1.740799,
+            "maxMs": 4.464639
+          },
+          "cpu": {
+            "user": 399011,
+            "system": 46664
+          },
+          "rss": 190849024
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "deleteRequests": 16,
+      "deleteP95Ms": 1.2091239999972458,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.9665119999990566,
+      "metadataRequests": 16,
+      "metadataP95Ms": 17.46179199999824,
+      "downloads": 16,
+      "downloadP95Ms": 5.712553000001208,
+      "wireCommands": 149,
+      "wireSteps": 3226,
+      "minimumStepLeadMs": 90.433,
+      "directoryRequests": 2081,
+      "directoryP99Ms": 4.206946999998763,
+      "statusRequests": 8605,
+      "uploads": 16,
+      "statusP99Ms": 3.910393000001932,
+      "uploadP95Ms": 12.304935000000114,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.019327,
+            "maxMs": 14.008319
+          },
+          "cpu": {
+            "user": 1825838,
+            "system": 209800
+          },
+          "rss": 235413504
+        },
+        {
+          "loop": {
+            "p99Ms": 1.900543,
+            "maxMs": 5.095423
+          },
+          "cpu": {
+            "user": 1034681,
+            "system": 142324
+          },
+          "rss": 256319488
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS host with PTY MCU, heater and endstop simulation. Unauthorized deletion rejected; current file deletion rejected during preparing and paused. Other files deleted during printing. Deletion time includes HTTP, authorization, receipt/blob unlink and directory fsync. No real printer, target board, power-loss fault injection or Python performance parity claim."
+}

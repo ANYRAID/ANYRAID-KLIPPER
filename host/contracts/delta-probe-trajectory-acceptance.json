@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "trajectoriesPerSample": 10000,
+  "samplesMs": [
+    13.98932099999999,
+    15.585512999999992,
+    15.33623,
+    14.024621999999994,
+    14.077022,
+    13.98375200000001,
+    13.986950999999976
+  ],
+  "medianMs": 14.024621999999994,
+  "scope": "Delta off-center probe descent admission and lookahead; validates both endpoints, Z limits and fixed XY/E. Excludes step generation, MCU IO and full probe sampling."
+}

@@ -1,0 +1,3895 @@
+{
+  "source": "klippy/extras/temperature_fan.py",
+  "sha256": "afa3f690b01b74d1c93f4d8fe4c646533ef20e72af934f751e57e837930da3ea",
+  "settings": {
+    "minimumTemperature": -20,
+    "maximumTemperature": 100,
+    "target": 40,
+    "minimumSpeed": 0.3,
+    "maximumSpeed": 1
+  },
+  "reportDelay": 0.3,
+  "cases": [
+    {
+      "algorithm": {
+        "kind": "watermark",
+        "delta": 2
+      },
+      "samples": [
+        {
+          "time": 0.3,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 0.5,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 3.0,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 3.1,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 3.4,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 3.6,
+          "temperature": 42,
+          "event": {
+            "time": 3.9,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 6.1,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 6.199999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 6.499999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 6.699999999999999,
+          "temperature": 35,
+          "event": {
+            "time": 6.999999999999999,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 9.2,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 9.299999999999999,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 9.6,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 9.799999999999999,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 12.299999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 12.399999999999999,
+          "temperature": 42,
+          "event": {
+            "time": 12.7,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 12.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 12.899999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 15.399999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 15.499999999999998,
+          "temperature": 35,
+          "event": {
+            "time": 15.799999999999999,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 15.799999999999999,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 15.999999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 18.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 18.6,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 18.900000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 19.1,
+          "temperature": 42,
+          "event": {
+            "time": 19.400000000000002,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 21.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 21.700000000000003,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 22.000000000000004,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 22.200000000000003,
+          "temperature": 35,
+          "event": {
+            "time": 22.500000000000004,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 24.700000000000003,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 24.800000000000004,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 25.100000000000005,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 25.300000000000004,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 27.800000000000004,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 27.900000000000006,
+          "temperature": 42,
+          "event": {
+            "time": 28.200000000000006,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 28.200000000000006,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 28.400000000000006,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 30.900000000000006,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 31.000000000000007,
+          "temperature": 35,
+          "event": {
+            "time": 31.300000000000008,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 31.300000000000008,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 31.500000000000007,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 34.00000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 34.10000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 34.400000000000006,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 34.60000000000001,
+          "temperature": 42,
+          "event": {
+            "time": 34.900000000000006,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 37.10000000000001,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 37.20000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 37.50000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 37.70000000000001,
+          "temperature": 35,
+          "event": {
+            "time": 38.00000000000001,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 40.20000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 40.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 40.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 40.80000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 43.30000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 43.40000000000001,
+          "temperature": 42,
+          "event": {
+            "time": 43.70000000000001,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 43.70000000000001,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 43.90000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 46.40000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 46.500000000000014,
+          "temperature": 35,
+          "event": {
+            "time": 46.80000000000001,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 46.80000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 47.000000000000014,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 49.500000000000014,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 49.600000000000016,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 49.90000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 50.100000000000016,
+          "temperature": 42,
+          "event": {
+            "time": 50.40000000000001,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 52.600000000000016,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 52.70000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 53.000000000000014,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 53.20000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 53.500000000000014,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 55.70000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 55.80000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 56.100000000000016,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 56.30000000000002,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 58.80000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 58.90000000000002,
+          "temperature": 42,
+          "event": {
+            "time": 59.20000000000002,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 59.20000000000002,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 59.40000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 61.90000000000002,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 62.00000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 62.30000000000002,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 62.30000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 62.50000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 65.00000000000003,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 65.10000000000002,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 65.40000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 65.60000000000002,
+          "temperature": 42,
+          "event": {
+            "time": 65.90000000000002,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 68.10000000000002,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 68.20000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 68.50000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 68.70000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 69.00000000000001,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 71.20000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 71.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 71.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 71.80000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 74.30000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 74.4,
+          "temperature": 42,
+          "event": {
+            "time": 74.7,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 74.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 74.9,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 77.4,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 77.5,
+          "temperature": 35,
+          "event": {
+            "time": 77.8,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 77.8,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 78.0,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 80.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 80.6,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 80.89999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 81.1,
+          "temperature": 42,
+          "event": {
+            "time": 81.39999999999999,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 83.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 83.69999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 83.99999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 84.19999999999999,
+          "temperature": 35,
+          "event": {
+            "time": 84.49999999999999,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 86.69999999999999,
+          "temperature": 25,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 86.79999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 87.09999999999998,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 87.29999999999998,
+          "temperature": 40,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 89.79999999999998,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 89.89999999999998,
+          "temperature": 42,
+          "event": {
+            "time": 90.19999999999997,
+            "speed": 1.0
+          },
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 90.19999999999997,
+          "temperature": 55,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 90.39999999999998,
+          "temperature": 41,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 92.89999999999998,
+          "temperature": 39,
+          "event": null,
+          "derivative": 0,
+          "integral": 0
+        },
+        {
+          "time": 92.99999999999997,
+          "temperature": 35,
+          "event": {
+            "time": 93.29999999999997,
+            "speed": 0.0
+          },
+          "derivative": 0,
+          "integral": 0
+        }
+      ]
+    },
+    {
+      "algorithm": {
+        "kind": "pid",
+        "kp": 10,
+        "ki": 2,
+        "kd": 5,
+        "derivativeTime": 2
+      },
+      "samples": [
+        {
+          "time": 0.3,
+          "temperature": 25,
+          "event": {
+            "time": 0.6,
+            "speed": 0.3764705882352941
+          },
+          "derivative": 0.0,
+          "integral": 4.5
+        },
+        {
+          "time": 0.5,
+          "temperature": 37.9,
+          "event": {
+            "time": 0.8,
+            "speed": 1.0
+          },
+          "derivative": 6.449999999999999,
+          "integral": 4.5
+        },
+        {
+          "time": 3.0,
+          "temperature": 38,
+          "event": {
+            "time": 3.3,
+            "speed": 0.847843137254902
+          },
+          "derivative": 0.04000000000000057,
+          "integral": 9.5
+        },
+        {
+          "time": 3.1,
+          "temperature": 40,
+          "event": {
+            "time": 3.4,
+            "speed": 0.945843137254902
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 9.5
+        },
+        {
+          "time": 3.4,
+          "temperature": 41.99,
+          "event": {
+            "time": 3.6999999999999997,
+            "speed": 1.0
+          },
+          "derivative": 1.8773000000000015,
+          "integral": 9.5
+        },
+        {
+          "time": 3.6,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945700000000001,
+          "integral": 9.5
+        },
+        {
+          "time": 6.1,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.200000000000001,
+          "integral": 9.5
+        },
+        {
+          "time": 6.199999999999999,
+          "temperature": 41,
+          "event": {
+            "time": 6.499999999999999,
+            "speed": 0.9250980392156863
+          },
+          "derivative": -2.059999999999998,
+          "integral": 9.4
+        },
+        {
+          "time": 6.499999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 6.799999999999999,
+            "speed": 0.830764705882353
+          },
+          "derivative": -2.7509999999999986,
+          "integral": 9.7
+        },
+        {
+          "time": 6.699999999999999,
+          "temperature": 35,
+          "event": {
+            "time": 6.999999999999999,
+            "speed": 0.6322372549019608
+          },
+          "derivative": -4.475899999999998,
+          "integral": 10.7
+        },
+        {
+          "time": 9.2,
+          "temperature": 25,
+          "event": {
+            "time": 9.5,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 10.7
+        },
+        {
+          "time": 9.299999999999999,
+          "temperature": 37.9,
+          "event": {
+            "time": 9.6,
+            "speed": 0.8840392156862744
+          },
+          "derivative": 2.6499999999999986,
+          "integral": 10.909999999999998
+        },
+        {
+          "time": 9.6,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3024999999999984,
+          "integral": 11.51
+        },
+        {
+          "time": 9.799999999999999,
+          "temperature": 40,
+          "event": {
+            "time": 10.1,
+            "speed": 0.9699656862745097
+          },
+          "derivative": 3.0722499999999995,
+          "integral": 11.51
+        },
+        {
+          "time": 12.299999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 11.51
+        },
+        {
+          "time": 12.399999999999999,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999999,
+          "integral": 11.51
+        },
+        {
+          "time": 12.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.1470199999999995,
+          "integral": 11.51
+        },
+        {
+          "time": 12.899999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676819999999978,
+          "integral": 11.31
+        },
+        {
+          "time": 15.399999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 15.7,
+            "speed": 0.8367843137254902
+          },
+          "derivative": -0.8,
+          "integral": 13.81
+        },
+        {
+          "time": 15.499999999999998,
+          "temperature": 35,
+          "event": {
+            "time": 15.799999999999999,
+            "speed": 0.6375686274509804
+          },
+          "derivative": -2.7600000000000002,
+          "integral": 14.309999999999999
+        },
+        {
+          "time": 15.799999999999999,
+          "temperature": 25,
+          "event": {
+            "time": 16.099999999999998,
+            "speed": 0.3
+          },
+          "derivative": -7.345999999999999,
+          "integral": 18.81000000000001
+        },
+        {
+          "time": 15.999999999999998,
+          "temperature": 37.9,
+          "event": {
+            "time": 16.299999999999997,
+            "speed": 0.7636588235294116
+          },
+          "derivative": -0.1614000000000022,
+          "integral": 19.230000000000008
+        },
+        {
+          "time": 18.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000054,
+          "integral": 24.23000000000001
+        },
+        {
+          "time": 18.6,
+          "temperature": 40,
+          "event": {
+            "time": 18.900000000000002,
+            "speed": 0.830313725490196
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 24.23000000000001
+        },
+        {
+          "time": 18.900000000000002,
+          "temperature": 41.99,
+          "event": {
+            "time": 19.200000000000003,
+            "speed": 0.9294921568627451
+          },
+          "derivative": 1.877300000000001,
+          "integral": 23.63300000000001
+        },
+        {
+          "time": 19.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945700000000006,
+          "integral": 23.23300000000001
+        },
+        {
+          "time": 21.6,
+          "temperature": 55,
+          "event": {
+            "time": 21.900000000000002,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 23.23300000000001
+        },
+        {
+          "time": 21.700000000000003,
+          "temperature": 41,
+          "event": {
+            "time": 22.000000000000004,
+            "speed": 0.8173882352941175
+          },
+          "derivative": -2.060000000000003,
+          "integral": 23.13300000000001
+        },
+        {
+          "time": 22.000000000000004,
+          "temperature": 39,
+          "event": {
+            "time": 22.300000000000004,
+            "speed": 0.7230549019607841
+          },
+          "derivative": -2.751000000000002,
+          "integral": 23.43300000000001
+        },
+        {
+          "time": 22.200000000000003,
+          "temperature": 35,
+          "event": {
+            "time": 22.500000000000004,
+            "speed": 0.5245274509803921
+          },
+          "derivative": -4.475900000000003,
+          "integral": 24.433000000000007
+        },
+        {
+          "time": 24.700000000000003,
+          "temperature": 25,
+          "event": {
+            "time": 25.000000000000004,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 24.433000000000007
+        },
+        {
+          "time": 24.800000000000004,
+          "temperature": 37.9,
+          "event": {
+            "time": 25.100000000000005,
+            "speed": 0.7763294117647057
+          },
+          "derivative": 2.650000000000002,
+          "integral": 24.64300000000001
+        },
+        {
+          "time": 25.100000000000005,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000015,
+          "integral": 25.243000000000013
+        },
+        {
+          "time": 25.300000000000004,
+          "temperature": 40,
+          "event": {
+            "time": 25.600000000000005,
+            "speed": 0.8622558823529411
+          },
+          "derivative": 3.072250000000002,
+          "integral": 25.243000000000013
+        },
+        {
+          "time": 27.800000000000004,
+          "temperature": 41.99,
+          "event": {
+            "time": 28.100000000000005,
+            "speed": 0.9346823529411765
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 20.268000000000008
+        },
+        {
+          "time": 27.900000000000006,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 20.068000000000005
+        },
+        {
+          "time": 28.200000000000006,
+          "temperature": 55,
+          "event": {
+            "time": 28.500000000000007,
+            "speed": 1.0
+          },
+          "derivative": 7.1470199999999995,
+          "integral": 20.068000000000005
+        },
+        {
+          "time": 28.400000000000006,
+          "temperature": 41,
+          "event": {
+            "time": 28.700000000000006,
+            "speed": 0.8722572156862745
+          },
+          "derivative": -0.5676819999999978,
+          "integral": 19.868000000000006
+        },
+        {
+          "time": 30.900000000000006,
+          "temperature": 39,
+          "event": {
+            "time": 31.200000000000006,
+            "speed": 0.7696627450980391
+          },
+          "derivative": -0.8,
+          "integral": 22.368000000000006
+        },
+        {
+          "time": 31.000000000000007,
+          "temperature": 35,
+          "event": {
+            "time": 31.300000000000008,
+            "speed": 0.5704470588235293
+          },
+          "derivative": -2.7599999999999993,
+          "integral": 22.868000000000013
+        },
+        {
+          "time": 31.300000000000008,
+          "temperature": 25,
+          "event": {
+            "time": 31.60000000000001,
+            "speed": 0.3
+          },
+          "derivative": -7.345999999999998,
+          "integral": 27.368000000000023
+        },
+        {
+          "time": 31.500000000000007,
+          "temperature": 37.9,
+          "event": {
+            "time": 31.800000000000008,
+            "speed": 0.6965372549019606
+          },
+          "derivative": -0.1614000000000022,
+          "integral": 27.78800000000002
+        },
+        {
+          "time": 34.00000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 32.788000000000025
+        },
+        {
+          "time": 34.10000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 34.400000000000006,
+            "speed": 0.7631921568627449
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 32.788000000000025
+        },
+        {
+          "time": 34.400000000000006,
+          "temperature": 41.99,
+          "event": {
+            "time": 34.7,
+            "speed": 0.862370588235294
+          },
+          "derivative": 1.8773000000000029,
+          "integral": 32.19100000000003
+        },
+        {
+          "time": 34.60000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 31.791000000000025
+        },
+        {
+          "time": 37.10000000000001,
+          "temperature": 55,
+          "event": {
+            "time": 37.400000000000006,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 31.791000000000025
+        },
+        {
+          "time": 37.20000000000001,
+          "temperature": 41,
+          "event": {
+            "time": 37.50000000000001,
+            "speed": 0.7502666666666664
+          },
+          "derivative": -2.060000000000003,
+          "integral": 31.691000000000024
+        },
+        {
+          "time": 37.50000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 37.800000000000004,
+            "speed": 0.655933333333333
+          },
+          "derivative": -2.7510000000000057,
+          "integral": 31.99100000000002
+        },
+        {
+          "time": 37.70000000000001,
+          "temperature": 35,
+          "event": {
+            "time": 38.00000000000001,
+            "speed": 0.4574058823529409
+          },
+          "derivative": -4.475900000000001,
+          "integral": 32.991000000000035
+        },
+        {
+          "time": 40.20000000000001,
+          "temperature": 25,
+          "event": {
+            "time": 40.50000000000001,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 32.991000000000035
+        },
+        {
+          "time": 40.30000000000001,
+          "temperature": 37.9,
+          "event": {
+            "time": 40.60000000000001,
+            "speed": 0.7092078431372546
+          },
+          "derivative": 2.650000000000002,
+          "integral": 33.201000000000036
+        },
+        {
+          "time": 40.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000064,
+          "integral": 33.80100000000003
+        },
+        {
+          "time": 40.80000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 41.10000000000001,
+            "speed": 0.79513431372549
+          },
+          "derivative": 3.0722500000000026,
+          "integral": 33.80100000000003
+        },
+        {
+          "time": 43.30000000000001,
+          "temperature": 41.99,
+          "event": {
+            "time": 43.60000000000001,
+            "speed": 0.8675607843137254
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 28.826000000000025
+        },
+        {
+          "time": 43.40000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 28.626000000000023
+        },
+        {
+          "time": 43.70000000000001,
+          "temperature": 55,
+          "event": {
+            "time": 44.00000000000001,
+            "speed": 1.0
+          },
+          "derivative": 7.14702,
+          "integral": 28.626000000000023
+        },
+        {
+          "time": 43.90000000000001,
+          "temperature": 41,
+          "event": {
+            "time": 44.20000000000001,
+            "speed": 0.8051356470588231
+          },
+          "derivative": -0.5676820000000102,
+          "integral": 28.42600000000002
+        },
+        {
+          "time": 46.40000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 46.70000000000001,
+            "speed": 0.702541176470588
+          },
+          "derivative": -0.8,
+          "integral": 30.92600000000002
+        },
+        {
+          "time": 46.500000000000014,
+          "temperature": 35,
+          "event": {
+            "time": 46.80000000000001,
+            "speed": 0.5033254901960782
+          },
+          "derivative": -2.7599999999999993,
+          "integral": 31.426000000000027
+        },
+        {
+          "time": 46.80000000000001,
+          "temperature": 25,
+          "event": {
+            "time": 47.10000000000001,
+            "speed": 0.3
+          },
+          "derivative": -7.346000000000004,
+          "integral": 31.426000000000027
+        },
+        {
+          "time": 47.000000000000014,
+          "temperature": 37.9,
+          "event": {
+            "time": 47.30000000000001,
+            "speed": 0.6647098039215684
+          },
+          "derivative": -0.16139999999999333,
+          "integral": 31.846000000000032
+        },
+        {
+          "time": 49.500000000000014,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 36.84600000000003
+        },
+        {
+          "time": 49.600000000000016,
+          "temperature": 40,
+          "event": {
+            "time": 49.90000000000001,
+            "speed": 0.7313647058823527
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 36.84600000000003
+        },
+        {
+          "time": 49.90000000000001,
+          "temperature": 41.99,
+          "event": {
+            "time": 50.20000000000001,
+            "speed": 0.8305431372549018
+          },
+          "derivative": 1.8773000000000029,
+          "integral": 36.24900000000004
+        },
+        {
+          "time": 50.100000000000016,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 35.84900000000003
+        },
+        {
+          "time": 52.600000000000016,
+          "temperature": 55,
+          "event": {
+            "time": 52.90000000000001,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 35.84900000000003
+        },
+        {
+          "time": 52.70000000000002,
+          "temperature": 41,
+          "event": {
+            "time": 53.000000000000014,
+            "speed": 0.7184392156862742
+          },
+          "derivative": -2.060000000000003,
+          "integral": 35.74900000000003
+        },
+        {
+          "time": 53.000000000000014,
+          "temperature": 39,
+          "event": {
+            "time": 53.30000000000001,
+            "speed": 0.6241058823529408
+          },
+          "derivative": -2.7510000000000057,
+          "integral": 36.04900000000003
+        },
+        {
+          "time": 53.20000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 53.500000000000014,
+            "speed": 0.4255784313725486
+          },
+          "derivative": -4.475900000000001,
+          "integral": 37.04900000000004
+        },
+        {
+          "time": 55.70000000000002,
+          "temperature": 25,
+          "event": {
+            "time": 56.000000000000014,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 37.04900000000004
+        },
+        {
+          "time": 55.80000000000002,
+          "temperature": 37.9,
+          "event": {
+            "time": 56.100000000000016,
+            "speed": 0.6773803921568624
+          },
+          "derivative": 2.650000000000002,
+          "integral": 37.25900000000004
+        },
+        {
+          "time": 56.100000000000016,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000064,
+          "integral": 37.85900000000004
+        },
+        {
+          "time": 56.30000000000002,
+          "temperature": 40,
+          "event": {
+            "time": 56.600000000000016,
+            "speed": 0.7633068627450978
+          },
+          "derivative": 3.0722500000000026,
+          "integral": 37.85900000000004
+        },
+        {
+          "time": 58.80000000000002,
+          "temperature": 41.99,
+          "event": {
+            "time": 59.100000000000016,
+            "speed": 0.8357333333333332
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 32.88400000000003
+        },
+        {
+          "time": 58.90000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 32.684000000000026
+        },
+        {
+          "time": 59.20000000000002,
+          "temperature": 55,
+          "event": {
+            "time": 59.500000000000014,
+            "speed": 1.0
+          },
+          "derivative": 7.14702,
+          "integral": 32.684000000000026
+        },
+        {
+          "time": 59.40000000000002,
+          "temperature": 41,
+          "event": {
+            "time": 59.70000000000002,
+            "speed": 0.7733081960784309
+          },
+          "derivative": -0.5676820000000102,
+          "integral": 32.48400000000002
+        },
+        {
+          "time": 61.90000000000002,
+          "temperature": 39,
+          "event": {
+            "time": 62.20000000000002,
+            "speed": 0.6707137254901958
+          },
+          "derivative": -0.8,
+          "integral": 34.98400000000002
+        },
+        {
+          "time": 62.00000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 62.30000000000002,
+            "speed": 0.4714980392156861
+          },
+          "derivative": -2.7599999999999993,
+          "integral": 35.48400000000003
+        },
+        {
+          "time": 62.30000000000002,
+          "temperature": 25,
+          "event": {
+            "time": 62.600000000000016,
+            "speed": 0.3
+          },
+          "derivative": -7.346000000000004,
+          "integral": 35.48400000000003
+        },
+        {
+          "time": 62.50000000000002,
+          "temperature": 37.9,
+          "event": {
+            "time": 62.80000000000002,
+            "speed": 0.6328823529411762
+          },
+          "derivative": -0.16139999999999333,
+          "integral": 35.90400000000004
+        },
+        {
+          "time": 65.00000000000003,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000045,
+          "integral": 40.90400000000005
+        },
+        {
+          "time": 65.10000000000002,
+          "temperature": 40,
+          "event": {
+            "time": 65.40000000000002,
+            "speed": 0.6995372549019603
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 40.90400000000005
+        },
+        {
+          "time": 65.40000000000002,
+          "temperature": 41.99,
+          "event": {
+            "time": 65.70000000000002,
+            "speed": 0.7987156862745095
+          },
+          "derivative": 1.8773000000000029,
+          "integral": 40.30700000000006
+        },
+        {
+          "time": 65.60000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 39.90700000000005
+        },
+        {
+          "time": 68.10000000000002,
+          "temperature": 55,
+          "event": {
+            "time": 68.40000000000002,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 39.90700000000005
+        },
+        {
+          "time": 68.20000000000002,
+          "temperature": 41,
+          "event": {
+            "time": 68.50000000000001,
+            "speed": 0.6866117647058823
+          },
+          "derivative": -2.0599999999999854,
+          "integral": 39.80700000000006
+        },
+        {
+          "time": 68.50000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 68.80000000000001,
+            "speed": 0.5922784313725488
+          },
+          "derivative": -2.7509999999999906,
+          "integral": 40.107000000000056
+        },
+        {
+          "time": 68.70000000000002,
+          "temperature": 35,
+          "event": {
+            "time": 69.00000000000001,
+            "speed": 0.3937509803921566
+          },
+          "derivative": -4.475899999999988,
+          "integral": 41.10700000000007
+        },
+        {
+          "time": 71.20000000000002,
+          "temperature": 25,
+          "event": {
+            "time": 71.50000000000001,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 41.10700000000007
+        },
+        {
+          "time": 71.30000000000001,
+          "temperature": 37.9,
+          "event": {
+            "time": 71.60000000000001,
+            "speed": 0.6455529411764699
+          },
+          "derivative": 2.649999999999988,
+          "integral": 41.31700000000006
+        },
+        {
+          "time": 71.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.302499999999994,
+          "integral": 41.91700000000005
+        },
+        {
+          "time": 71.80000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 72.10000000000001,
+            "speed": 0.7314794117647053
+          },
+          "derivative": 3.0722499999999915,
+          "integral": 41.91700000000005
+        },
+        {
+          "time": 74.30000000000001,
+          "temperature": 41.99,
+          "event": {
+            "time": 74.60000000000001,
+            "speed": 0.8039058823529409
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 36.94200000000005
+        },
+        {
+          "time": 74.4,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7612000000000021,
+          "integral": 36.74200000000006
+        },
+        {
+          "time": 74.7,
+          "temperature": 55,
+          "event": {
+            "time": 75.0,
+            "speed": 1.0
+          },
+          "derivative": 7.147020000000003,
+          "integral": 36.74200000000006
+        },
+        {
+          "time": 74.9,
+          "temperature": 41,
+          "event": {
+            "time": 75.2,
+            "speed": 0.7414807450980386
+          },
+          "derivative": -0.5676820000000076,
+          "integral": 36.54200000000006
+        },
+        {
+          "time": 77.4,
+          "temperature": 39,
+          "event": {
+            "time": 77.7,
+            "speed": 0.6388862745098034
+          },
+          "derivative": -0.8,
+          "integral": 39.04200000000006
+        },
+        {
+          "time": 77.5,
+          "temperature": 35,
+          "event": {
+            "time": 77.8,
+            "speed": 0.4396705882352938
+          },
+          "derivative": -2.7600000000000025,
+          "integral": 39.54200000000003
+        },
+        {
+          "time": 77.8,
+          "temperature": 25,
+          "event": {
+            "time": 78.1,
+            "speed": 0.3
+          },
+          "derivative": -7.346000000000005,
+          "integral": 39.54200000000003
+        },
+        {
+          "time": 78.0,
+          "temperature": 37.9,
+          "event": {
+            "time": 78.3,
+            "speed": 0.601054901960784
+          },
+          "derivative": -0.1613999999999951,
+          "integral": 39.96200000000004
+        },
+        {
+          "time": 80.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 44.96200000000004
+        },
+        {
+          "time": 80.6,
+          "temperature": 40,
+          "event": {
+            "time": 80.89999999999999,
+            "speed": 0.6677098039215683
+          },
+          "derivative": 1.0380000000000007,
+          "integral": 44.96200000000004
+        },
+        {
+          "time": 80.89999999999999,
+          "temperature": 41.99,
+          "event": {
+            "time": 81.19999999999999,
+            "speed": 0.7668882352941174
+          },
+          "derivative": 1.877300000000003,
+          "integral": 44.365000000000045
+        },
+        {
+          "time": 81.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.694569999999999,
+          "integral": 43.96500000000004
+        },
+        {
+          "time": 83.6,
+          "temperature": 55,
+          "event": {
+            "time": 83.89999999999999,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 43.96500000000004
+        },
+        {
+          "time": 83.69999999999999,
+          "temperature": 41,
+          "event": {
+            "time": 83.99999999999999,
+            "speed": 0.6547843137254901
+          },
+          "derivative": -2.0599999999999854,
+          "integral": 43.865000000000045
+        },
+        {
+          "time": 83.99999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 84.29999999999998,
+            "speed": 0.5604509803921567
+          },
+          "derivative": -2.7509999999999906,
+          "integral": 44.16500000000004
+        },
+        {
+          "time": 84.19999999999999,
+          "temperature": 35,
+          "event": {
+            "time": 84.49999999999999,
+            "speed": 0.36192352941176453
+          },
+          "derivative": -4.475899999999988,
+          "integral": 45.165000000000056
+        },
+        {
+          "time": 86.69999999999999,
+          "temperature": 25,
+          "event": {
+            "time": 86.99999999999999,
+            "speed": 0.3
+          },
+          "derivative": -4.0,
+          "integral": 45.165000000000056
+        },
+        {
+          "time": 86.79999999999998,
+          "temperature": 37.9,
+          "event": {
+            "time": 87.09999999999998,
+            "speed": 0.6137254901960778
+          },
+          "derivative": 2.649999999999988,
+          "integral": 45.37500000000004
+        },
+        {
+          "time": 87.09999999999998,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.302499999999994,
+          "integral": 45.97500000000004
+        },
+        {
+          "time": 87.29999999999998,
+          "temperature": 40,
+          "event": {
+            "time": 87.59999999999998,
+            "speed": 0.6996519607843132
+          },
+          "derivative": 3.0722499999999915,
+          "integral": 45.97500000000004
+        },
+        {
+          "time": 89.79999999999998,
+          "temperature": 41.99,
+          "event": {
+            "time": 90.09999999999998,
+            "speed": 0.7720784313725488
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 41.00000000000003
+        },
+        {
+          "time": 89.89999999999998,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7612000000000021,
+          "integral": 40.80000000000004
+        },
+        {
+          "time": 90.19999999999997,
+          "temperature": 55,
+          "event": {
+            "time": 90.49999999999997,
+            "speed": 1.0
+          },
+          "derivative": 7.147020000000003,
+          "integral": 40.80000000000004
+        },
+        {
+          "time": 90.39999999999998,
+          "temperature": 41,
+          "event": {
+            "time": 90.69999999999997,
+            "speed": 0.7096532941176465
+          },
+          "derivative": -0.5676820000000076,
+          "integral": 40.60000000000004
+        },
+        {
+          "time": 92.89999999999998,
+          "temperature": 39,
+          "event": {
+            "time": 93.19999999999997,
+            "speed": 0.6070588235294114
+          },
+          "derivative": -0.8,
+          "integral": 43.10000000000004
+        },
+        {
+          "time": 92.99999999999997,
+          "temperature": 35,
+          "event": {
+            "time": 93.29999999999997,
+            "speed": 0.40784313725490184
+          },
+          "derivative": -2.7600000000000025,
+          "integral": 43.60000000000001
+        }
+      ]
+    },
+    {
+      "algorithm": {
+        "kind": "pid",
+        "kp": 0,
+        "ki": 0,
+        "kd": 0,
+        "derivativeTime": 0.5
+      },
+      "samples": [
+        {
+          "time": 0.3,
+          "temperature": 25,
+          "event": {
+            "time": 0.6,
+            "speed": 1.0
+          },
+          "derivative": 0.0,
+          "integral": 0.0
+        },
+        {
+          "time": 0.5,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 25.799999999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 3.0,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 3.1,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032,
+          "integral": 0.0
+        },
+        {
+          "time": 3.4,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592800000000006,
+          "integral": 0.0
+        },
+        {
+          "time": 3.6,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.3756799999999973,
+          "integral": 0.0
+        },
+        {
+          "time": 6.1,
+          "temperature": 55,
+          "event": {
+            "time": 6.3999999999999995,
+            "speed": 1.0
+          },
+          "derivative": 5.200000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 6.199999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.839999999999996,
+          "integral": 0.0
+        },
+        {
+          "time": 6.499999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.536000000000007,
+          "integral": 0.0
+        },
+        {
+          "time": 6.699999999999999,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.1216,
+          "integral": 0.0
+        },
+        {
+          "time": 9.2,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 9.299999999999999,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.599999999999994,
+          "integral": 0.0
+        },
+        {
+          "time": 9.6,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.239999999999968,
+          "integral": 0.0
+        },
+        {
+          "time": 9.799999999999999,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.543999999999993,
+          "integral": 0.0
+        },
+        {
+          "time": 12.299999999999999,
+          "temperature": 41.99,
+          "event": {
+            "time": 12.6,
+            "speed": 1.0
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 12.399999999999999,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6567999999999973,
+          "integral": 0.0
+        },
+        {
+          "time": 12.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.262719999999998,
+          "integral": 0.0
+        },
+        {
+          "time": 12.899999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242367999999964,
+          "integral": 0.0
+        },
+        {
+          "time": 15.399999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 15.499999999999998,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.64,
+          "integral": 0.0
+        },
+        {
+          "time": 15.799999999999999,
+          "temperature": 25,
+          "event": null,
+          "derivative": -23.45599999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 15.999999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 11.72639999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 18.5,
+          "temperature": 38,
+          "event": {
+            "time": 18.8,
+            "speed": 1.0
+          },
+          "derivative": 0.04000000000000054,
+          "integral": 0.0
+        },
+        {
+          "time": 18.6,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032,
+          "integral": 0.0
+        },
+        {
+          "time": 18.900000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592799999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 19.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.375680000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 21.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 21.700000000000003,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.840000000000014,
+          "integral": 0.0
+        },
+        {
+          "time": 22.000000000000004,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.535999999999971,
+          "integral": 0.0
+        },
+        {
+          "time": 22.200000000000003,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.1216,
+          "integral": 0.0
+        },
+        {
+          "time": 24.700000000000003,
+          "temperature": 25,
+          "event": {
+            "time": 25.000000000000004,
+            "speed": 1.0
+          },
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 24.800000000000004,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.60000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 25.100000000000005,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.239999999999974,
+          "integral": 0.0
+        },
+        {
+          "time": 25.300000000000004,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.543999999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 27.800000000000004,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 27.900000000000006,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6567999999999944,
+          "integral": 0.0
+        },
+        {
+          "time": 28.200000000000006,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.262719999999998,
+          "integral": 0.0
+        },
+        {
+          "time": 28.400000000000006,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242367999999964,
+          "integral": 0.0
+        },
+        {
+          "time": 30.900000000000006,
+          "temperature": 39,
+          "event": {
+            "time": 31.200000000000006,
+            "speed": 1.0
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 31.000000000000007,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.639999999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 31.300000000000008,
+          "temperature": 25,
+          "event": null,
+          "derivative": -23.455999999999985,
+          "integral": 0.0
+        },
+        {
+          "time": 31.500000000000007,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 11.726399999999973,
+          "integral": 0.0
+        },
+        {
+          "time": 34.00000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 34.10000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032,
+          "integral": 0.0
+        },
+        {
+          "time": 34.400000000000006,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592800000000027,
+          "integral": 0.0
+        },
+        {
+          "time": 34.60000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.3756799999999805,
+          "integral": 0.0
+        },
+        {
+          "time": 37.10000000000001,
+          "temperature": 55,
+          "event": {
+            "time": 37.400000000000006,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 37.20000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.840000000000014,
+          "integral": 0.0
+        },
+        {
+          "time": 37.50000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.536000000000142,
+          "integral": 0.0
+        },
+        {
+          "time": 37.70000000000001,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.121600000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 40.20000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 40.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.60000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 40.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.240000000000135,
+          "integral": 0.0
+        },
+        {
+          "time": 40.80000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.544000000000029,
+          "integral": 0.0
+        },
+        {
+          "time": 43.30000000000001,
+          "temperature": 41.99,
+          "event": {
+            "time": 43.60000000000001,
+            "speed": 1.0
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 43.40000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6567999999999944,
+          "integral": 0.0
+        },
+        {
+          "time": 43.70000000000001,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.26272,
+          "integral": 0.0
+        },
+        {
+          "time": 43.90000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242368000000148,
+          "integral": 0.0
+        },
+        {
+          "time": 46.40000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 46.500000000000014,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.639999999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 46.80000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": -23.45600000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 47.000000000000014,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 11.726400000000101,
+          "integral": 0.0
+        },
+        {
+          "time": 49.500000000000014,
+          "temperature": 38,
+          "event": {
+            "time": 49.80000000000001,
+            "speed": 1.0
+          },
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 49.600000000000016,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032,
+          "integral": 0.0
+        },
+        {
+          "time": 49.90000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592800000000027,
+          "integral": 0.0
+        },
+        {
+          "time": 50.100000000000016,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.3756799999999805,
+          "integral": 0.0
+        },
+        {
+          "time": 52.600000000000016,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 52.70000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.840000000000014,
+          "integral": 0.0
+        },
+        {
+          "time": 53.000000000000014,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.536000000000142,
+          "integral": 0.0
+        },
+        {
+          "time": 53.20000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.121600000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 55.70000000000002,
+          "temperature": 25,
+          "event": {
+            "time": 56.000000000000014,
+            "speed": 1.0
+          },
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 55.80000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.60000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 56.100000000000016,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.240000000000135,
+          "integral": 0.0
+        },
+        {
+          "time": 56.30000000000002,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.544000000000029,
+          "integral": 0.0
+        },
+        {
+          "time": 58.80000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 58.90000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6567999999999944,
+          "integral": 0.0
+        },
+        {
+          "time": 59.20000000000002,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.26272,
+          "integral": 0.0
+        },
+        {
+          "time": 59.40000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242368000000148,
+          "integral": 0.0
+        },
+        {
+          "time": 61.90000000000002,
+          "temperature": 39,
+          "event": {
+            "time": 62.20000000000002,
+            "speed": 1.0
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 62.00000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.639999999999997,
+          "integral": 0.0
+        },
+        {
+          "time": 62.30000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": -23.45600000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 62.50000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 11.726400000000101,
+          "integral": 0.0
+        },
+        {
+          "time": 65.00000000000003,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000045,
+          "integral": 0.0
+        },
+        {
+          "time": 65.10000000000002,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 65.40000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592800000000027,
+          "integral": 0.0
+        },
+        {
+          "time": 65.60000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.3756799999999805,
+          "integral": 0.0
+        },
+        {
+          "time": 68.10000000000002,
+          "temperature": 55,
+          "event": {
+            "time": 68.40000000000002,
+            "speed": 1.0
+          },
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 68.20000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.83999999999994,
+          "integral": 0.0
+        },
+        {
+          "time": 68.50000000000001,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.536000000000111,
+          "integral": 0.0
+        },
+        {
+          "time": 68.70000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.12159999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 71.20000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 71.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.59999999999995,
+          "integral": 0.0
+        },
+        {
+          "time": 71.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.240000000000112,
+          "integral": 0.0
+        },
+        {
+          "time": 71.80000000000001,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.544000000000015,
+          "integral": 0.0
+        },
+        {
+          "time": 74.30000000000001,
+          "temperature": 41.99,
+          "event": {
+            "time": 74.60000000000001,
+            "speed": 1.0
+          },
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 74.4,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6568000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 74.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.262720000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 74.9,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242368000000146,
+          "integral": 0.0
+        },
+        {
+          "time": 77.4,
+          "temperature": 39,
+          "event": null,
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 77.5,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.64000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 77.8,
+          "temperature": 25,
+          "event": null,
+          "derivative": -23.456000000000053,
+          "integral": 0.0
+        },
+        {
+          "time": 78.0,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 11.7264000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 80.5,
+          "temperature": 38,
+          "event": {
+            "time": 80.8,
+            "speed": 1.0
+          },
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 80.6,
+          "temperature": 40,
+          "event": null,
+          "derivative": 4.032000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 80.89999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 5.592800000000027,
+          "integral": 0.0
+        },
+        {
+          "time": 81.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 3.3756799999999805,
+          "integral": 0.0
+        },
+        {
+          "time": 83.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 83.69999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -23.83999999999994,
+          "integral": 0.0
+        },
+        {
+          "time": 83.99999999999999,
+          "temperature": 39,
+          "event": null,
+          "derivative": -13.536000000000111,
+          "integral": 0.0
+        },
+        {
+          "time": 84.19999999999999,
+          "temperature": 35,
+          "event": null,
+          "derivative": -16.12159999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 86.69999999999999,
+          "temperature": 25,
+          "event": {
+            "time": 86.99999999999999,
+            "speed": 1.0
+          },
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 86.79999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 22.59999999999995,
+          "integral": 0.0
+        },
+        {
+          "time": 87.09999999999998,
+          "temperature": 38,
+          "event": null,
+          "derivative": 9.240000000000112,
+          "integral": 0.0
+        },
+        {
+          "time": 87.29999999999998,
+          "temperature": 40,
+          "event": null,
+          "derivative": 9.544000000000015,
+          "integral": 0.0
+        },
+        {
+          "time": 89.79999999999998,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 89.89999999999998,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.6568000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 90.19999999999997,
+          "temperature": 55,
+          "event": null,
+          "derivative": 26.262720000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 90.39999999999998,
+          "temperature": 41,
+          "event": null,
+          "derivative": -12.242368000000146,
+          "integral": 0.0
+        },
+        {
+          "time": 92.89999999999998,
+          "temperature": 39,
+          "event": {
+            "time": 93.19999999999997,
+            "speed": 1.0
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 92.99999999999997,
+          "temperature": 35,
+          "event": null,
+          "derivative": -8.64000000000001,
+          "integral": 0.0
+        }
+      ]
+    },
+    {
+      "algorithm": {
+        "kind": "pid",
+        "kp": 255,
+        "ki": 50,
+        "kd": 100,
+        "derivativeTime": 2
+      },
+      "samples": [
+        {
+          "time": 0.3,
+          "temperature": 25,
+          "event": {
+            "time": 0.6,
+            "speed": 0.3
+          },
+          "derivative": 0.0,
+          "integral": 0.0
+        },
+        {
+          "time": 0.5,
+          "temperature": 37.9,
+          "event": {
+            "time": 0.8,
+            "speed": 1.0
+          },
+          "derivative": 6.449999999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 3.0,
+          "temperature": 38,
+          "event": {
+            "time": 3.3,
+            "speed": 0.3
+          },
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 3.1,
+          "temperature": 40,
+          "event": {
+            "time": 3.4,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 3.4,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.8773000000000015,
+          "integral": 0.0
+        },
+        {
+          "time": 3.6,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945700000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 6.1,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.200000000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 6.199999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.059999999999998,
+          "integral": 0.0
+        },
+        {
+          "time": 6.499999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 6.799999999999999,
+            "speed": 0.3
+          },
+          "derivative": -2.7509999999999986,
+          "integral": 0.0
+        },
+        {
+          "time": 6.699999999999999,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475899999999998,
+          "integral": 0.0
+        },
+        {
+          "time": 9.2,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 9.299999999999999,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.6499999999999986,
+          "integral": 0.0
+        },
+        {
+          "time": 9.6,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3024999999999984,
+          "integral": 0.0
+        },
+        {
+          "time": 9.799999999999999,
+          "temperature": 40,
+          "event": {
+            "time": 10.1,
+            "speed": 1.0
+          },
+          "derivative": 3.0722499999999995,
+          "integral": 0.0
+        },
+        {
+          "time": 12.299999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 12.399999999999999,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 12.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.1470199999999995,
+          "integral": 0.0
+        },
+        {
+          "time": 12.899999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676819999999978,
+          "integral": 0.0
+        },
+        {
+          "time": 15.399999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 15.7,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 15.499999999999998,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7600000000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 15.799999999999999,
+          "temperature": 25,
+          "event": null,
+          "derivative": -7.345999999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 15.999999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": -0.1614000000000022,
+          "integral": 0.0
+        },
+        {
+          "time": 18.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000054,
+          "integral": 0.0
+        },
+        {
+          "time": 18.6,
+          "temperature": 40,
+          "event": {
+            "time": 18.900000000000002,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 18.900000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.877300000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 19.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945700000000006,
+          "integral": 0.0
+        },
+        {
+          "time": 21.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 21.700000000000003,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.060000000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 22.000000000000004,
+          "temperature": 39,
+          "event": {
+            "time": 22.300000000000004,
+            "speed": 0.3
+          },
+          "derivative": -2.751000000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 22.200000000000003,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475900000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 24.700000000000003,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 24.800000000000004,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.650000000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 25.100000000000005,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000015,
+          "integral": 0.0
+        },
+        {
+          "time": 25.300000000000004,
+          "temperature": 40,
+          "event": {
+            "time": 25.600000000000005,
+            "speed": 1.0
+          },
+          "derivative": 3.072250000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 27.800000000000004,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 27.900000000000006,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 0.0
+        },
+        {
+          "time": 28.200000000000006,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.1470199999999995,
+          "integral": 0.0
+        },
+        {
+          "time": 28.400000000000006,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676819999999978,
+          "integral": 0.0
+        },
+        {
+          "time": 30.900000000000006,
+          "temperature": 39,
+          "event": {
+            "time": 31.200000000000006,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 31.000000000000007,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7599999999999993,
+          "integral": 0.0
+        },
+        {
+          "time": 31.300000000000008,
+          "temperature": 25,
+          "event": null,
+          "derivative": -7.345999999999998,
+          "integral": 0.0
+        },
+        {
+          "time": 31.500000000000007,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": -0.1614000000000022,
+          "integral": 0.0
+        },
+        {
+          "time": 34.00000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 34.10000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 34.400000000000006,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 34.400000000000006,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.8773000000000029,
+          "integral": 0.0
+        },
+        {
+          "time": 34.60000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 37.10000000000001,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 37.20000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.060000000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 37.50000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 37.800000000000004,
+            "speed": 0.3
+          },
+          "derivative": -2.7510000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 37.70000000000001,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475900000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 40.20000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 40.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.650000000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 40.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000064,
+          "integral": 0.0
+        },
+        {
+          "time": 40.80000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 41.10000000000001,
+            "speed": 1.0
+          },
+          "derivative": 3.0722500000000026,
+          "integral": 0.0
+        },
+        {
+          "time": 43.30000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 43.40000000000001,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 0.0
+        },
+        {
+          "time": 43.70000000000001,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.14702,
+          "integral": 0.0
+        },
+        {
+          "time": 43.90000000000001,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676820000000102,
+          "integral": 0.0
+        },
+        {
+          "time": 46.40000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 46.70000000000001,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 46.500000000000014,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7599999999999993,
+          "integral": 0.0
+        },
+        {
+          "time": 46.80000000000001,
+          "temperature": 25,
+          "event": null,
+          "derivative": -7.346000000000004,
+          "integral": 0.0
+        },
+        {
+          "time": 47.000000000000014,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": -0.16139999999999333,
+          "integral": 0.0
+        },
+        {
+          "time": 49.500000000000014,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 49.600000000000016,
+          "temperature": 40,
+          "event": {
+            "time": 49.90000000000001,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 49.90000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.8773000000000029,
+          "integral": 0.0
+        },
+        {
+          "time": 50.100000000000016,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 52.600000000000016,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 52.70000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.060000000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 53.000000000000014,
+          "temperature": 39,
+          "event": {
+            "time": 53.30000000000001,
+            "speed": 0.3
+          },
+          "derivative": -2.7510000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 53.20000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475900000000001,
+          "integral": 0.0
+        },
+        {
+          "time": 55.70000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 55.80000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.650000000000002,
+          "integral": 0.0
+        },
+        {
+          "time": 56.100000000000016,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.3025000000000064,
+          "integral": 0.0
+        },
+        {
+          "time": 56.30000000000002,
+          "temperature": 40,
+          "event": {
+            "time": 56.600000000000016,
+            "speed": 1.0
+          },
+          "derivative": 3.0722500000000026,
+          "integral": 0.0
+        },
+        {
+          "time": 58.80000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 58.90000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7611999999999992,
+          "integral": 0.0
+        },
+        {
+          "time": 59.20000000000002,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.14702,
+          "integral": 0.0
+        },
+        {
+          "time": 59.40000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676820000000102,
+          "integral": 0.0
+        },
+        {
+          "time": 61.90000000000002,
+          "temperature": 39,
+          "event": {
+            "time": 62.20000000000002,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 62.00000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7599999999999993,
+          "integral": 0.0
+        },
+        {
+          "time": 62.30000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": -7.346000000000004,
+          "integral": 0.0
+        },
+        {
+          "time": 62.50000000000002,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": -0.16139999999999333,
+          "integral": 0.0
+        },
+        {
+          "time": 65.00000000000003,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000045,
+          "integral": 0.0
+        },
+        {
+          "time": 65.10000000000002,
+          "temperature": 40,
+          "event": {
+            "time": 65.40000000000002,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 65.40000000000002,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.8773000000000029,
+          "integral": 0.0
+        },
+        {
+          "time": 65.60000000000002,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.6945699999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 68.10000000000002,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 68.20000000000002,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.0599999999999854,
+          "integral": 0.0
+        },
+        {
+          "time": 68.50000000000001,
+          "temperature": 39,
+          "event": {
+            "time": 68.80000000000001,
+            "speed": 0.3
+          },
+          "derivative": -2.7509999999999906,
+          "integral": 0.0
+        },
+        {
+          "time": 68.70000000000002,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475899999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 71.20000000000002,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 71.30000000000001,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.649999999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 71.60000000000001,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.302499999999994,
+          "integral": 0.0
+        },
+        {
+          "time": 71.80000000000001,
+          "temperature": 40,
+          "event": {
+            "time": 72.10000000000001,
+            "speed": 1.0
+          },
+          "derivative": 3.0722499999999915,
+          "integral": 0.0
+        },
+        {
+          "time": 74.30000000000001,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 74.4,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7612000000000021,
+          "integral": 0.0
+        },
+        {
+          "time": 74.7,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.147020000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 74.9,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676820000000076,
+          "integral": 0.0
+        },
+        {
+          "time": 77.4,
+          "temperature": 39,
+          "event": {
+            "time": 77.7,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 77.5,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7600000000000025,
+          "integral": 0.0
+        },
+        {
+          "time": 77.8,
+          "temperature": 25,
+          "event": null,
+          "derivative": -7.346000000000005,
+          "integral": 0.0
+        },
+        {
+          "time": 78.0,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": -0.1613999999999951,
+          "integral": 0.0
+        },
+        {
+          "time": 80.5,
+          "temperature": 38,
+          "event": null,
+          "derivative": 0.04000000000000057,
+          "integral": 0.0
+        },
+        {
+          "time": 80.6,
+          "temperature": 40,
+          "event": {
+            "time": 80.89999999999999,
+            "speed": 1.0
+          },
+          "derivative": 1.0380000000000007,
+          "integral": 0.0
+        },
+        {
+          "time": 80.89999999999999,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 1.877300000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 81.1,
+          "temperature": 42,
+          "event": null,
+          "derivative": 1.694569999999999,
+          "integral": 0.0
+        },
+        {
+          "time": 83.6,
+          "temperature": 55,
+          "event": null,
+          "derivative": 5.2,
+          "integral": 0.0
+        },
+        {
+          "time": 83.69999999999999,
+          "temperature": 41,
+          "event": null,
+          "derivative": -2.0599999999999854,
+          "integral": 0.0
+        },
+        {
+          "time": 83.99999999999999,
+          "temperature": 39,
+          "event": {
+            "time": 84.29999999999998,
+            "speed": 0.3
+          },
+          "derivative": -2.7509999999999906,
+          "integral": 0.0
+        },
+        {
+          "time": 84.19999999999999,
+          "temperature": 35,
+          "event": null,
+          "derivative": -4.475899999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 86.69999999999999,
+          "temperature": 25,
+          "event": null,
+          "derivative": -4.0,
+          "integral": 0.0
+        },
+        {
+          "time": 86.79999999999998,
+          "temperature": 37.9,
+          "event": null,
+          "derivative": 2.649999999999988,
+          "integral": 0.0
+        },
+        {
+          "time": 87.09999999999998,
+          "temperature": 38,
+          "event": null,
+          "derivative": 2.302499999999994,
+          "integral": 0.0
+        },
+        {
+          "time": 87.29999999999998,
+          "temperature": 40,
+          "event": {
+            "time": 87.59999999999998,
+            "speed": 1.0
+          },
+          "derivative": 3.0722499999999915,
+          "integral": 0.0
+        },
+        {
+          "time": 89.79999999999998,
+          "temperature": 41.99,
+          "event": null,
+          "derivative": 0.7960000000000008,
+          "integral": 0.0
+        },
+        {
+          "time": 89.89999999999998,
+          "temperature": 42,
+          "event": null,
+          "derivative": 0.7612000000000021,
+          "integral": 0.0
+        },
+        {
+          "time": 90.19999999999997,
+          "temperature": 55,
+          "event": null,
+          "derivative": 7.147020000000003,
+          "integral": 0.0
+        },
+        {
+          "time": 90.39999999999998,
+          "temperature": 41,
+          "event": null,
+          "derivative": -0.5676820000000076,
+          "integral": 0.0
+        },
+        {
+          "time": 92.89999999999998,
+          "temperature": 39,
+          "event": {
+            "time": 93.19999999999997,
+            "speed": 0.3
+          },
+          "derivative": -0.8,
+          "integral": 0.0
+        },
+        {
+          "time": 92.99999999999997,
+          "temperature": 35,
+          "event": null,
+          "derivative": -2.7600000000000025,
+          "integral": 0.0
+        }
+      ]
+    }
+  ]
+}

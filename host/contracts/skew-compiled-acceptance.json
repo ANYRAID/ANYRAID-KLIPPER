@@ -1,0 +1,107 @@
+{
+  "node": "26.9.0",
+  "scope": "Compiled product with authenticated HTTP and simulated MCU, PATH=/no-programs, no TypeScript loader",
+  "checks": [
+    "Unauthorized settings rejected",
+    "Stored profile loaded and identical retry does not repeat mutation",
+    "Skew applied through startup homing, printing, filament pause/resume and object exclusion",
+    "Completed physical endpoint [9.99,1,0,1] matches XY correction",
+    "Setting changes rejected while paused",
+    "Reload clears active skew and rejects prior generation token",
+    "ADC fault stops device group"
+  ],
+  "metrics": {
+    "phaseQueries": 4053,
+    "phaseP99Ms": 3.0846829999973124,
+    "loaded": false,
+    "spi": false,
+    "software": false,
+    "model5160": false,
+    "model2240": false,
+    "curved": false,
+    "probeHome": false,
+    "safeHome": false,
+    "bltouch": false,
+    "tilted": false,
+    "manualTilt": false,
+    "skew": true,
+    "kinematics": "cartesian",
+    "temperatureSensor": false,
+    "temperatureFan": false,
+    "hostSensor": false,
+    "spiSensor": false,
+    "spiHeater": false,
+    "sharedSpi": false,
+    "zEndstop": false,
+    "max31855": false,
+    "max31856": false,
+    "max31865": false,
+    "zTilt": false,
+    "quad": false,
+    "stressed": true,
+    "sensorless": false,
+    "tmc": [
+      {
+        "statusReads": 168,
+        "writes": 43
+      },
+      {
+        "statusReads": 64,
+        "writes": 42
+      }
+    ],
+    "faultInjected": "adc",
+    "historyNotifications": 32,
+    "historyRequests": 903,
+    "historyP99Ms": 8.119852000003448,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 12.049996000001556,
+    "deleteRequests": 16,
+    "deleteP95Ms": 19.336606000004394,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 10.864589999997406,
+    "metadataRequests": 16,
+    "metadataP95Ms": 82.06021999999939,
+    "downloads": 16,
+    "downloadP95Ms": 4.854056999996828,
+    "wireCommands": 241,
+    "wireSteps": 3921,
+    "minimumStepLeadMs": 86.845,
+    "directoryRequests": 3913,
+    "directoryP99Ms": 7.152568000004976,
+    "statusRequests": 16222,
+    "uploads": 16,
+    "statusP99Ms": 2.998320999999123,
+    "uploadP95Ms": 12.695404999998573,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 1.895423,
+          "maxMs": 17.956863
+        },
+        "cpu": {
+          "user": 4706964,
+          "system": 512376
+        },
+        "rss": 286187520
+      },
+      {
+        "loop": {
+          "p99Ms": 1.968127,
+          "maxMs": 7.135231
+        },
+        "cpu": {
+          "user": 1587223,
+          "system": 210828
+        },
+        "rss": 270176256
+      }
+    ]
+  },
+  "limitations": [
+    "Skew persistence has file-level regression but is not exercised over HTTP by this journey",
+    "No target-board or real printer acceptance",
+    "Historical runtime crashes and numerical mismatches remain open"
+  ]
+}

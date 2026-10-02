@@ -1,0 +1,513 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "887c0c8e",
+  "sourceSha256": {
+    "host/src/motion/representable-profile.ts": "04d8c3543e4b548f7993dd3543f26d100553dd09591de9cd00fde22b746349cc",
+    "host/src/config/native-printer-sections.ts": "8f9bff8ca0ef59d5064dadea315e3f2340a087e7780a612bd2ea7a6c167804aa",
+    "host/src/runtime/initial-motion.ts": "239d4ab6106d45ea5b16998f04c48c55785370dc370e485a36eb19d46e4f3192",
+    "host/test/object-print.test.ts": "765070cad2bc7739d830d76ed062251596063042c897598bbec2b1f81f9da3f0",
+    "host/test/representable-profile.test.ts": "c4d31e94b462c7364dcbf2acef070c4e47707cea497bb1b0c82048caa8b18a19",
+    "host/acceptance/product-compiled-journey.test.ts": "42ec998edcd146b0c6917f820760639390b16ed6bd86fce98005a1a510264337"
+  },
+  "regressions": 48,
+  "typecheck": "passed",
+  "compiledLoadedProduct": 1,
+  "metrics": [
+    {
+      "phaseQueries": 3549,
+      "phaseP99Ms": 4.2229109999971115,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "stressed": true,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 152,
+          "writes": 55
+        },
+        {
+          "statusReads": 62,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 791,
+      "historyP99Ms": 10.09650700000202,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 8.516012000000046,
+      "deleteRequests": 16,
+      "deleteP95Ms": 4.831825999999637,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 6.639944000000469,
+      "metadataRequests": 16,
+      "metadataP95Ms": 28.37604199999987,
+      "downloads": 16,
+      "downloadP95Ms": 5.767726000000039,
+      "wireCommands": 373,
+      "wireSteps": 5558,
+      "minimumStepLeadMs": 85.936,
+      "directoryRequests": 3402,
+      "directoryP99Ms": 8.747073999998975,
+      "statusRequests": 14202,
+      "uploads": 16,
+      "statusP99Ms": 3.6958559999984573,
+      "uploadP95Ms": 15.462397999999666,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.181119,
+            "maxMs": 18.874367
+          },
+          "cpu": {
+            "user": 4506810,
+            "system": 509734
+          },
+          "rss": 273227776
+        },
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 6.729727
+          },
+          "cpu": {
+            "user": 1534721,
+            "system": 180089
+          },
+          "rss": 262811648
+        }
+      ]
+    }
+  ],
+  "benchmark": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "iterations": 16,
+    "sourceMedianMs": 14.662424000000101,
+    "sourceP95Ms": 17.210226999999918,
+    "directMedianMs": 9.368813999999986,
+    "directP95Ms": 14.362756999999988,
+    "scope": "Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison."
+  },
+  "pairedBenchmark": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "warmups": 5,
+    "runs": 21,
+    "beforeMedianMs": 4.147254000000004,
+    "afterMedianMs": 3.2376059999999995,
+    "ratio": 0.7806625781782347,
+    "samples": [
+      [
+        3.1852639999999894,
+        2.9965709999999888,
+        3.5998229999999865,
+        4.371668,
+        4.236766000000017,
+        4.100202999999993,
+        4.372737999999998,
+        4.265615999999994,
+        4.147254000000004,
+        4.5097609999999975,
+        4.35459800000001,
+        4.0284420000000125,
+        3.989941000000016,
+        4.143204000000026,
+        4.262215999999967,
+        4.594314000000054,
+        4.127904000000001,
+        4.111072999999976,
+        4.203084999999987,
+        4.057112000000018,
+        4.4293499999999995
+      ],
+      [
+        3.027152000000001,
+        3.1062629999999842,
+        3.0705719999999985,
+        3.2719960000000015,
+        3.0115010000000098,
+        3.021792000000005,
+        3.5579820000000097,
+        3.758966999999984,
+        3.0727019999999925,
+        3.2376059999999995,
+        3.0003309999999885,
+        3.0654919999999777,
+        3.1597050000000024,
+        3.1366140000000087,
+        4.394308999999993,
+        4.217215999999951,
+        4.2066749999999615,
+        4.186435000000017,
+        4.267596999999967,
+        3.706504999999993,
+        3.4398700000000417
+      ]
+    ],
+    "scope": "Alternating same-process ordinary XYZ native trap append; excludes transport and hardware"
+  },
+  "regressionLogSha256": "efb31487768e43c55842eb15748d1b1c5ac6adc7fc2645d470ca7b13d982ef2e",
+  "productLogSha256": "f5583a3b40606ee92a606f8997102a76e0c5b7af6c28b745994042ef9db2dc62",
+  "limitations": [
+    "Endpoint representation may differ by up to one coordinate ULP and at most 1e-12 mm",
+    "Real hardware unverified",
+    "Historical runtime crashes and transient mismatches unresolved",
+    "Original Python host and exclude module retained"
+  ],
+  "firstHttpCancellationFollowup": {
+    "baseCommit": "246c1a43",
+    "testSha256": "f2a50d61e4ee354b17dc12301b298275570d403238f34a448b2e1e12da894791",
+    "productLogSha256": "ad4a386b9ec4224b6000b0eb194f662b6ac61b8696abab2357fc387d54580d40",
+    "passed": 3,
+    "variants": [
+      "loaded cartesian",
+      "loaded cartesian with Z endstop calibration",
+      "loaded cartesian with arcs and retraction"
+    ],
+    "coverage": [
+      "Initial paused cancellation begins with empty excluded list",
+      "HTTP selects SKIP; exact retry returns original receipt",
+      "Resume skips target motion; remaining final position and filament accounting checked",
+      "Reinitialized and calibration follow-up prints require new cancellation from empty list"
+    ],
+    "metrics": [
+      {
+        "phaseQueries": 3785,
+        "phaseP99Ms": 4.357976999999664,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "stressed": true,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 55
+          },
+          {
+            "statusReads": 64,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 844,
+        "historyP99Ms": 11.100266999997984,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 8.980561000000307,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.305705000000671,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.2744280000006256,
+        "metadataRequests": 16,
+        "metadataP95Ms": 21.69059699999889,
+        "downloads": 16,
+        "downloadP95Ms": 11.18352700000105,
+        "wireCommands": 369,
+        "wireSteps": 5531,
+        "minimumStepLeadMs": 54.039,
+        "directoryRequests": 3645,
+        "directoryP99Ms": 6.593898000000991,
+        "statusRequests": 15143,
+        "uploads": 16,
+        "statusP99Ms": 3.8159579999992275,
+        "uploadP95Ms": 24.87918399999944,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.944575,
+              "maxMs": 18.563071
+            },
+            "cpu": {
+              "user": 4565225,
+              "system": 527150
+            },
+            "rss": 292286464
+          },
+          {
+            "loop": {
+              "p99Ms": 2.070527,
+              "maxMs": 11.354111
+            },
+            "cpu": {
+              "user": 1521248,
+              "system": 186581
+            },
+            "rss": 267931648
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3729,
+        "phaseP99Ms": 3.984269000000495,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": true,
+        "stressed": true,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 55
+          },
+          {
+            "statusReads": 62,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 20,
+            "writes": 46
+          },
+          {
+            "statusReads": 54,
+            "writes": 54
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 833,
+        "historyP99Ms": 10.706144999996468,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.706748000004154,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.311942000000272,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.2168749999982538,
+        "metadataRequests": 16,
+        "metadataP95Ms": 30.2226210000008,
+        "downloads": 16,
+        "downloadP95Ms": 14.001102000001993,
+        "wireCommands": 477,
+        "wireSteps": 7200,
+        "minimumStepLeadMs": 75.934,
+        "directoryRequests": 3585,
+        "directoryP99Ms": 7.700482000000193,
+        "statusRequests": 14914,
+        "uploads": 16,
+        "statusP99Ms": 3.6854829999938374,
+        "uploadP95Ms": 11.033701000000292,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.091007,
+              "maxMs": 18.563071
+            },
+            "cpu": {
+              "user": 4617593,
+              "system": 495233
+            },
+            "rss": 285835264
+          },
+          {
+            "loop": {
+              "p99Ms": 1.992703,
+              "maxMs": 6.516735
+            },
+            "cpu": {
+              "user": 1477966,
+              "system": 229079
+            },
+            "rss": 266940416
+          }
+        ]
+      },
+      {
+        "phaseQueries": 4081,
+        "phaseP99Ms": 4.13127899999381,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": true,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "stressed": true,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 168,
+            "writes": 55
+          },
+          {
+            "statusReads": 70,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 914,
+        "historyP99Ms": 5.227435999986483,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.981253000005381,
+        "deleteRequests": 16,
+        "deleteP95Ms": 12.149009999993723,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 4.218680000019958,
+        "metadataRequests": 16,
+        "metadataP95Ms": 22.937616000010166,
+        "downloads": 16,
+        "downloadP95Ms": 3.1934239999973215,
+        "wireCommands": 1089,
+        "wireSteps": 5807,
+        "minimumStepLeadMs": 80.033,
+        "directoryRequests": 3924,
+        "directoryP99Ms": 6.268272999994224,
+        "statusRequests": 16331,
+        "uploads": 16,
+        "statusP99Ms": 3.090420999986236,
+        "uploadP95Ms": 7.500694000002113,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.958911,
+              "maxMs": 19.595263
+            },
+            "cpu": {
+              "user": 4926053,
+              "system": 554635
+            },
+            "rss": 291287040
+          },
+          {
+            "loop": {
+              "p99Ms": 1.878015,
+              "maxMs": 5.885951
+            },
+            "cpu": {
+              "user": 1717617,
+              "system": 227306
+            },
+            "rss": 275419136
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "377bcc34",
+  "sourceSha256": {
+    "host/scripts/build-motan.ts": "36f8993f74268d1649a7d02bcd4defa6feb05153895ce44a8b8bdf2a73ebacf2",
+    "host/tsconfig.motan.json": "35a683f1c2540e0c467dde91109d74b6fea3185912d93d0aa9cc293e29722aee",
+    "host/test/motan-standalone-graph.test.ts": "dc440980126a5b5d3c8a03eff7a3743d8bdc11a55b9768bf36bb31f88b79071e"
+  },
+  "validation": {
+    "existingRegressionPassed": 10,
+    "standalonePassed": 1,
+    "typecheck": "passed",
+    "pngVisuallyInspected": true
+  },
+  "standalone": {
+    "standalone": true,
+    "node": "v26.9.0",
+    "coldExportMs": {
+      "json": 118.98877799999991,
+      "svg": 119.65062899999998,
+      "png": 155.603607,
+      "html": 120.8785089999999,
+      "pdf": 276.0053580000001
+    },
+    "scope": "one cold child per format; independent package outside repository; no Python or TS loader"
+  },
+  "layout": {
+    "node": "v26.9.0",
+    "samples": 100000,
+    "curves": 4,
+    "medianMs": 5.022427000000022,
+    "p95Ms": 8.77937,
+    "historicalPython": {
+      "medianMs": 5.352679989300668,
+      "p95Ms": 6.496025016531348,
+      "scope": "Original plot layout with 100000 cached times and four cached datasets; recording axes copy full times and values; no capture IO or Matplotlib rendering"
+    },
+    "scope": "Unit assignment, admission validation and full independent numeric curve snapshots. No input loading, worker analysis, plotting/rendering or printer timing."
+  },
+  "export": {
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "svg",
+        "points": 15003,
+        "bytes": 244237,
+        "medianMs": 87.87253599999985,
+        "p95Ms": 92.86663199999998
+      },
+      {
+        "format": "png",
+        "points": 15003,
+        "bytes": 60588,
+        "medianMs": 114.68761600000016,
+        "p95Ms": 118.45782999999983
+      }
+    ],
+    "scope": "Synthetic capture file read, fresh analysis worker per job, full three-curve layout, SVG or PNG encoding and atomic write. Decode checks outside timer. No Python renderer comparison, browser frame rate or physical print timing."
+  },
+  "limits": [
+    "Legacy Python graph retained for unported styles and structured plotting",
+    "No browser interactive acceptance in this run",
+    "Offline diagnostic performance; no printer speed or hardware precision claim",
+    "Source export benchmark; standalone cold export samples are single observations",
+    "Historical Python layout timings are not simultaneous paired measurements"
+  ]
+}

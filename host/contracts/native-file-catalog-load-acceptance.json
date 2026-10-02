@@ -1,0 +1,91 @@
+{
+  "schema": 1,
+  "node": "v26.9.0",
+  "implementationBase": "4e49aa62",
+  "fixture": "host/acceptance/product-compiled-journey.test.ts",
+  "fixtureSha256": "21d67bd8412b62496ffc7f77528abbd72aff8d64612c413873eeebfc78ba95b9",
+  "command": "npm --prefix host run test:product-acceptance",
+  "load": {
+    "statusClients": 4,
+    "catalogClients": 1,
+    "pollDelayMs": 5,
+    "uploadsPerGeneration": 8,
+    "uploadBytes": 262144,
+    "generations": 2
+  },
+  "samples": [
+    {
+      "loaded": false,
+      "wireCommands": 149,
+      "wireSteps": 3226,
+      "minimumStepLeadMs": 90.254,
+      "catalogRequests": 0,
+      "catalogP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.837055,
+            "maxMs": 13.131775
+          },
+          "cpu": {
+            "user": 650186,
+            "system": 62562
+          },
+          "rss": 155996160
+        },
+        {
+          "loop": {
+            "p99Ms": 1.746943,
+            "maxMs": 7.204863
+          },
+          "cpu": {
+            "user": 373394,
+            "system": 43489
+          },
+          "rss": 170471424
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "wireCommands": 149,
+      "wireSteps": 3238,
+      "minimumStepLeadMs": 85.889,
+      "catalogRequests": 1804,
+      "catalogP99Ms": 3.2053799999994226,
+      "statusRequests": 7225,
+      "uploads": 16,
+      "statusP99Ms": 3.149517999998352,
+      "uploadP95Ms": 20.58281200000056,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.978367,
+            "maxMs": 12.664831
+          },
+          "cpu": {
+            "user": 1653914,
+            "system": 196430
+          },
+          "rss": 227618816
+        },
+        {
+          "loop": {
+            "p99Ms": 1.939455,
+            "maxMs": 4.812799
+          },
+          "cpu": {
+            "user": 633551,
+            "system": 65965
+          },
+          "rss": 241152000
+        }
+      ]
+    }
+  ],
+  "scope": "Local compiled JS child with simulated PTY MCU, temperature and endstops. Catalog grows to 17 files. Separate microbenchmark covers 1024 files; this is not target hardware or sustained maximum-speed acceptance."
+}

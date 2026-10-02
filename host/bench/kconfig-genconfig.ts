@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createHash} from 'node:crypto';
+const root=fileURLToPath(new URL('../../',import.meta.url)),directory=await mkdtemp(join(tmpdir(),'kconfig-bench-'));
+const minimal=process.argv.includes('--minimal'),full=process.argv.includes('--full');
+const configuration=minimal||full?'test/configs/stm32f446.config':'test/configs/atmega2560.config';
+try{
+ const samples:number[]=[];
+ const reference=JSON.parse(await readFile(new URL(full?'../contracts/kconfig-full-reference.json':minimal?'../contracts/kconfig-minimal-reference.json':'../contracts/kconfig-autoconf-reference.json',import.meta.url),'utf8')).cases.find((c:{file:string;lowlevel:boolean})=>c.file===configuration&&!c.lowlevel);
+ const expected=minimal||full?createHash('sha256').update(reference.contents).digest('hex'):reference.sha256;
+ for(let run=0;run<15;run++){
+  const output=join(directory,'header-'+run+'.h');
+  if(full)await writeFile(output,await readFile(join(root,configuration)));
+  const start=performance.now();
+  const args=full?[join(root,'scripts/kconfig-olddefconfig.mjs'),'src/Kconfig']:minimal?[join(root,'scripts/kconfig-savedefconfig.mjs'),'--kconfig','src/Kconfig','--out',output]:[join(root,'scripts/kconfig-genconfig.mjs'),'src/Kconfig'];
+  const result=spawnSync(process.execPath,args,{cwd:root,env:{...process.env,srctree:root,CONFIG_:'CONFIG_',KCONFIG_CONFIG:full?output:join(root,configuration),KCONFIG_AUTOHEADER:output,KCONFIG_AUTOHEADER_HEADER:'',KCONFIG_CONFIG_HEADER:''},encoding:'utf8'});
+  const elapsed=performance.now()-start;assert.equal(result.status,0,result.stderr);
+  assert.equal(createHash('sha256').update(await readFile(output)).digest('hex'),expected);
+  if(run>=3)samples.push(elapsed);
+ }
+ samples.sort((a,b)=>a-b);
+ console.log(JSON.stringify({node:process.version,output:full?'full configuration':minimal?'minimal configuration':'autoconf header',configuration,compileCacheDisabled:process.env.NODE_DISABLE_COMPILE_CACHE==='1',warmups:3,runs:12,medianMs:(samples[5]+samples[6])/2,p95Ms:samples[11],sha256:expected,scope:'New Node process, TypeScript loading, full Kconfig parse, config file read, resolution and atomic output write. Warm filesystem cache and, unless disabled, warmed Node compile cache. Build-time path only.'},null,2));
+}finally{await rm(directory,{recursive:true,force:true});}

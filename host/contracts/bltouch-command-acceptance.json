@@ -1,0 +1,30 @@
+{
+  "scope": "BLTouch device command timing and native PWM transport; not wired into printer configuration or probe lifecycle",
+  "sha256": {
+    "host/src/homing/bltouch-command.ts": "9133b21afe5f68acfc08222a2622d0a251bd5e5f9a1aee4761f803383908c73c",
+    "host/test/bltouch-command.test.ts": "71aef30ce990fbe23522ff2edf2c494c1faa677bc34384beebbd96a90bd795d6",
+    "host/bench/bltouch-command.ts": "49d3c952cfb4663582f1e5880cc3c70237c1173ef6f7e5dd7671aa207280b0fd",
+    "host/contracts/bltouch-command-reference.json": "ff6e66dbd27314e487d5dba50c0b6451eaa580c32a0469144aa13ca83cad16f6"
+  },
+  "referenceCases": 864,
+  "comparison": "Exact PWM times, duty, action end and next-command time against AST-extracted original method; 1/12/48 MHz and integral clock origin above 2^53 included",
+  "tests": "✔ BLTouch command PWM and action timing match original Python over clock and duration boundaries (12.346317ms)\n✔ command queue sends PWM off before publishing timing and separates successive commands (1.196834ms)\n✔ off write failure poisons queue and awaits output stop without publishing timing (0.946191ms)\n✔ abort fences late command completion and rejects overlapping ownership (0.488855ms)\n✔ invalid commands and unrepresentable clocks fail before writing (0.397785ms)\n✔ BLTouch deployment and PWM disable reach the native serial transport with 20ms cycle (1212.49559ms)\n✔ software PWM aligns and resets after its original last-write mapping is retired (2.169206ms)\n✔ calibrated software PWM fences queued ticks and retains historical mapping after reset (0.588997ms)\n✔ calibrated hardware PWM fences queued ticks and retains historical mapping after reset (0.8218ms)\n✔ multiple PWM writers share the furthest reserved clock and calibration mapping (0.788449ms)\n✔ software PWM reset confirms safe default, drains old writes and advances generation (1.016792ms)\n✔ hardware PWM reset confirms safe default, drains old writes and advances generation (0.475385ms)\n✔ reset and data transport failures permanently fence PWM and stop both queues (0.717488ms)\n✔ cancellation by a joined reset caller stops the device even after reset ACK (1.111163ms)\n✔ pending writes are bounded and shutdown failures remain observable (1.62646ms)\n✔ independent control queue and firmware capability are mandatory before any output (0.365925ms)\n✔ stop initiates both safety queues synchronously and awaits accepted data after safety ACK (0.509776ms)\n✔ stop waits for late reset transport settlement without waiting cyclically on reset (2.930605ms)\n✔ synchronous safety failure still starts the other queue and retains the send settlement fence (0.459956ms)\n✔ native serial control FIFO resets while stale-generation PWM remains delayed (1396.758333ms)\n✔ publishing ready and clearing reset ownership is atomic against a microtask caller (2.695152ms)\n✔ hardware PWM retains config truncation versus restart and update half-up rounding (5.311843ms)\n✔ software PWM emits cycle and init commands and aligns using signed integer ceiling (2.308147ms)\n✔ PWM validates protection, cycle tick ranges and normalized power before scheduling (0.494876ms)\n✔ PWM initial and runtime wire clocks wrap without losing FIFO high bits (0.279784ms)\n✔ PWM transport rejection fences subsequent output and retains safety stop failure (0.334964ms)\n✔ software PWM config and timed duty reach the native serial session (638.196825ms)\n✔ hardware PWM config and timed duty reach the native serial session (612.156656ms)\nℹ tests 28\nℹ suites 0\nℹ pass 28\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 4028.056207\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "cases": 864,
+    "iterations": 10000,
+    "nodeMedianMs": 4.986070000000012,
+    "nodeMaxMs": 7.8205429999999865,
+    "historicalPythonMedianMs": 15.33317199209705,
+    "checksum": 29866835.432433095,
+    "scope": "Command planning and fixture clock construction; captured Python includes mocked PWM dispatch. No physical I/O or print-speed claim."
+  },
+  "typecheck": true,
+  "remaining": [
+    "Sensor verification and reset/retry lifecycle",
+    "Probe deployment/stow integration into native seek and sampling",
+    "Machine configuration, startup and recovery ownership",
+    "Typed maintenance operations and compiled product acceptance",
+    "Real device acceptance; original Python retained"
+  ]
+}

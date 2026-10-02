@@ -1,0 +1,35 @@
+{
+  "status": "driver and native transport verified; product wiring pending",
+  "tests": 6,
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 AHT measurements; original Python method vs async TS driver; fake I2C and no-op conversion waits; 4096 frames compared exactly; 3 warmup rounds and 5 alternating retained rounds; excludes serial/electrical IO and 110ms conversion",
+    "baseline": {
+      "samplesMs": [
+        92.67915700911544,
+        92.56227599689737,
+        92.99982999800704,
+        93.04185000655707,
+        92.19415400002617
+      ],
+      "medianMs": 92.67915700911544
+    },
+    "current": {
+      "samplesMs": [
+        91.26269500000001,
+        92.3754550000001,
+        90.794623,
+        91.3659869999999,
+        88.59499699999992
+      ],
+      "medianMs": 91.26269500000001
+    }
+  },
+  "limitations": [
+    "No physical AHT or printer acceptance",
+    "Configuration and periodic runtime not wired",
+    "No Python module retired",
+    "Uncalibrated readings now reject instead of warn",
+    "Default 30-second sampling needs freshness integration"
+  ]
+}

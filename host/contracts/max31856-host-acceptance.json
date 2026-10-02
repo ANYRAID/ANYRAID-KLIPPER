@@ -1,0 +1,243 @@
+{
+  "date": "2026-09-28",
+  "scope": "MAX31856 configuration, verified SPI initialization, serial reports and heater registration",
+  "source": "https://www.analog.com/media/en/technical-documentation/data-sheets/max31856.pdf",
+  "tests": {
+    "command": "node --test --test-isolation=none --test-concurrency=1 host/test/spi-temperature.test.ts host/test/spi-heater.test.ts host/test/max31856.test.ts",
+    "passed": 39,
+    "spi": [
+      "hardware",
+      "software modern",
+      "software legacy"
+    ],
+    "coverage": [
+      "Negative fractional sample at full control precision",
+      "Unspecified low bits ignored",
+      "PID and watermark output and fault stop",
+      "Firmware capability required",
+      "Invalid options fail before MCU I/O",
+      "Readback mismatch stops before sampling",
+      "Startup abort does not enable conversion"
+    ]
+  },
+  "startup": {
+    "settleBeforeConfigurationMs": 1000,
+    "settleBeforeSamplingMs": 1000,
+    "periodicReportSeconds": 0.3,
+    "armClock": "current calibrated MCU clock plus one report period",
+    "verification": [
+      "standby CR0",
+      "CR0 CR1 MASK",
+      "automatic conversion CR0"
+    ]
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "positiveOnly": false,
+    "decodes": 1048576,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 2.760187000000002,
+    "p95Ms": 14.871877000000012,
+    "checksum": -4096,
+    "scope": "MAX31856 scalar decoding with unspecified low bits; no SPI transport, firmware, heater control or actual hardware"
+  },
+  "limitations": [
+    "No physical thermocouple or target-board timing acceptance",
+    "Open circuit detection remains disabled as in previous Python settings",
+    "P95 scalar benchmark higher than earlier sample; compiled load measurements do not establish target-board throughput",
+    "187 Python files remain; default printing entrypoint still Python",
+    "Historical runtime and motion numerical failures unresolved"
+  ],
+  "compiledProduct": {
+    "command": "node --test --test-isolation=none --test-concurrency=1 --test-name-pattern='max31856=true' host/acceptance/product-compiled-journey.test.ts",
+    "passed": 2,
+    "pythonDisabled": true,
+    "typescriptLoadingDisabled": true,
+    "checks": [
+      "Three independently addressed MAX31856 chips sharing SPI with TMC",
+      "MAX31856 mode 1 and TMC mode 3 on hardware and software SPI",
+      "Two MCU generations verify stop/configure/readback/convert/arm order",
+      "Authorized upload, heating, printing, pause/resume, cancel, reinitialize, fresh print",
+      "Concurrent HTTP/file traffic with positive step lead",
+      "Temperature history retained after reinitialization",
+      "Injected MAX31856 fault stops heater and rejects new print"
+    ],
+    "samples": [
+      {
+        "phaseQueries": 3837,
+        "phaseP99Ms": 4.562357999999222,
+        "loaded": false,
+        "spi": true,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 336,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max31856-heater-status-bit-2",
+        "historyNotifications": 32,
+        "historyRequests": 860,
+        "historyP99Ms": 7.113255000000208,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 15.23952200000349,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.311126000000513,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.438014999999723,
+        "metadataRequests": 16,
+        "metadataP95Ms": 24.729011999996146,
+        "downloads": 16,
+        "downloadP95Ms": 5.367457000000286,
+        "wireCommands": 192,
+        "wireSteps": 3702,
+        "minimumStepLeadMs": 86.614,
+        "directoryRequests": 3691,
+        "directoryP99Ms": 7.19482600000083,
+        "statusRequests": 15356,
+        "uploads": 16,
+        "statusP99Ms": 4.223364999999831,
+        "uploadP95Ms": 18.308584000000337,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.062335,
+              "maxMs": 20.824063
+            },
+            "cpu": {
+              "user": 4723305,
+              "system": 520714
+            },
+            "rss": 288071680
+          },
+          {
+            "loop": {
+              "p99Ms": 1.887231,
+              "maxMs": 6.119423
+            },
+            "cpu": {
+              "user": 1375311,
+              "system": 193150
+            },
+            "rss": 290955264
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3889,
+        "phaseP99Ms": 3.440816000002087,
+        "loaded": false,
+        "spi": true,
+        "software": true,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": true,
+        "hostSensor": false,
+        "spiSensor": true,
+        "spiHeater": true,
+        "sharedSpi": true,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": true,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 336,
+            "writes": 79
+          },
+          {
+            "statusReads": 112,
+            "writes": 78
+          }
+        ],
+        "faultInjected": "max31856-heater-status-bit-2",
+        "historyNotifications": 32,
+        "historyRequests": 861,
+        "historyP99Ms": 12.130809000002046,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.427416999998968,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.262145000000601,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 1.9757700000045588,
+        "metadataRequests": 16,
+        "metadataP95Ms": 23.004725000006147,
+        "downloads": 16,
+        "downloadP95Ms": 17.21834300000046,
+        "wireCommands": 190,
+        "wireSteps": 3700,
+        "minimumStepLeadMs": 87.678,
+        "directoryRequests": 3752,
+        "directoryP99Ms": 4.435936999994738,
+        "statusRequests": 15559,
+        "uploads": 16,
+        "statusP99Ms": 2.4203059999999823,
+        "uploadP95Ms": 8.141546999999264,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.873919,
+              "maxMs": 20.955135
+            },
+            "cpu": {
+              "user": 4639866,
+              "system": 535294
+            },
+            "rss": 287477760
+          },
+          {
+            "loop": {
+              "p99Ms": 1.882111,
+              "maxMs": 7.647231
+            },
+            "cpu": {
+              "user": 1373522,
+              "system": 172583
+            },
+            "rss": 285814784
+          }
+        ]
+      }
+    ],
+    "sourceSha256": {
+      "host/acceptance/product-compiled-journey.test.ts": "2b1f0bc89fa3c106d83b0110f8a4b88fbb652f4031c80072d3f20d816c5222ef",
+      "host/test/helpers/product-transports.ts": "e725c2facaab7714018b9e70e305af007e44fb8c55d76a145f3fe559ef99fd02",
+      "host/src/thermal/max31856-startup.ts": "4b745115960866b9bdaa80b24f61fb599d51705f6013514ddf12ea8534b779fc",
+      "host/src/config/spi-temperature.ts": "2b5df17a64b94472b160b0416302a5fd11547b8c916c7487b7f40ebe1a093bea"
+    }
+  }
+}

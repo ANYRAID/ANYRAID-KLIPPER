@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// GPL-3.0-or-later. JSON/ETX diagnostic console for the Klippy Unix socket.
+import {parseArgs} from 'node:util';
+import {webhookConsole} from '../host/src/diagnostics/webhook-console.ts';
+const help='Usage: node scripts/whconsole.ts [--connect-timeout MS] [--drain-timeout MS] SOCKET\nRead one JSON request per line; blank lines and # comments are ignored.\nEOF sends a half-close and drains responses (default 5000 ms). No command replay.\n';
+const controller=new AbortController(),stop=()=>controller.abort(new Error('Console cancelled'));process.once('SIGINT',stop);process.once('SIGTERM',stop);
+try{const {values,positionals}=parseArgs({allowPositionals:true,options:{help:{type:'boolean',short:'h'},'connect-timeout':{type:'string'},'drain-timeout':{type:'string'}}});if(values.help)process.stdout.write(help);else{if(positionals.length!==1)throw new Error(help);const timeout=(value:string|undefined)=>{if(value===undefined)return undefined;if(!/^\d+$/.test(value))throw new RangeError('Invalid timeout');return Number(value);};await webhookConsole(positionals[0],process.stdin,process.stdout,process.stderr,controller.signal,{connectTimeoutMs:timeout(values['connect-timeout']),drainTimeoutMs:timeout(values['drain-timeout'])});}}catch(error){process.stderr.write((error instanceof Error?error.message:String(error))+'\n');process.exitCode=1;}finally{process.removeListener('SIGINT',stop);process.removeListener('SIGTERM',stop);}

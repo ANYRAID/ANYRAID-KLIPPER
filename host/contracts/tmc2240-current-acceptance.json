@@ -1,0 +1,41 @@
+{
+  "scope": "TMC2240 exact current arithmetic and acknowledged-write owner with fake device; not yet assembled into hardware",
+  "sha256": {
+    "host/src/drivers/tmc2240-current.ts": "546d8f6b1ac9b1aaf365e9097578eca501c37a9335ca0929f538c6d51eb5dcb1",
+    "host/test/tmc2240-current.test.ts": "62d7e651b9fc30e91d6f9afb18b1df8fb44761ad6f4156fe655e60965ca333ad",
+    "host/bench/tmc2240-current.ts": "1f3710dc15a432641d0864241536df70abf05e93fffbbb101c6ef65ea7ab96e3",
+    "host/contracts/tmc2240-current-reference.json": "dc2bbe0787078bce4c39e024769ce3084edc1dbc198e482e6990982d2debd990"
+  },
+  "tests": "✔ 4488 original TMC2240 current cases match every register and quantized amp value exactly (10.760845ms)\n✔ range and current limits reject malformed or unsupported electrical settings (0.549276ms)\n✔ live current preserves initialized range and publishes only after both register acknowledgements (2.303233ms)\n✔ partial current update retires owner on write failure (0.310093ms)\n✔ partial current update retires owner on cancellation (0.257412ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 70.192663\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "scope": "Current conversion only; original Python helper includes field dictionary dispatch; no device I/O",
+    "cases": 4488,
+    "medianMs": 0.9479890000000069,
+    "maxMs": 2.2985120000000023,
+    "samplesMs": [
+      0.6304669999999959,
+      0.6760369999999938,
+      0.7373670000000061,
+      0.7378970000000038,
+      0.9479890000000069,
+      1.314432999999994,
+      1.7525169999999974,
+      1.914149000000009,
+      2.2985120000000023
+    ],
+    "pythonMs": [
+      15.029718982987106,
+      15.012260002549738,
+      15.16184100182727,
+      15.162961033638567,
+      15.013849944807589
+    ],
+    "checksum": 11961252
+  },
+  "limits": [
+    "Original benchmark includes Python field dictionary dispatch; not a pure language comparison.",
+    "Startup register plan, SPI/UART hardware assembly, monitoring and real printing are pending.",
+    "Historical runtime/numerical anomalies remain unresolved."
+  ]
+}

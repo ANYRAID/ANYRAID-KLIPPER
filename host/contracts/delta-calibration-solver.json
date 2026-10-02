@@ -1,0 +1,28 @@
+{
+  "node": "v26.9.0",
+  "warmups": 1,
+  "samples": 3,
+  "oldMs": [
+    6458.601690999999,
+    6463.013423,
+    6467.473205999999
+  ],
+  "newMs": [
+    7.513640999999552,
+    4.299478000000818,
+    4.076984999999695
+  ],
+  "workerMs": [
+    59.480327999999645,
+    56.15828299999703,
+    57.671853000003466
+  ],
+  "oldMedianMs": 6463.013423,
+  "newMedianMs": 4.299478000000818,
+  "workerMedianMs": 57.671853000003466,
+  "oldConverged": false,
+  "newConverged": true,
+  "newError": 3.023455921999069e-26,
+  "passed": true,
+  "scope": "Alternating local Node26 extended calibration kernels, original coordinate descent vs SVD; separate worker startup included. Synthetic noiseless measurements only, no physical acceptance. Old result remains unconverged; this is runtime cost, not comparison of equally accurate solutions."
+}

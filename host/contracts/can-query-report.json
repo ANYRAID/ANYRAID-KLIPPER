@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "source": {
+    "commit": "977b90fd7e7fd78790b5982d118d26d913adbe9b",
+    "path": "scripts/canbus_query.py",
+    "sha256": "3028cb72a37682877c85902ea4747465233293698bf26c2edba74ae947640472"
+  },
+  "fixture": {
+    "frames": 10000,
+    "uniqueDevices": 4096,
+    "inputSha256": "d2566bff0f9b110253a0a134bd68e49d0f05c52c752fb550351d12697400f9f3",
+    "reportSha256": "8c20729cd6666c709c1bf095b95f2b3eef26403a52606a32c8bab772deb07e61",
+    "reportBytes": 217111
+  },
+  "recordedMeasurement": {
+    "capturedAt": "2026-09-21T18:48:51.587Z",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "node": "v26.9.0",
+    "python": "3.12.13",
+    "warmups": 5,
+    "runs": 11,
+    "nodeDecode": {
+      "medianMs": 4.483187999999984,
+      "p95Ms": 5.37892800000003
+    },
+    "pythonQuery": {
+      "medianMs": 13.76017700022203,
+      "p95Ms": 13.875968999855104
+    },
+    "scope": "In-memory response decoding, UUID deduplication and report formatting. Python includes its original loop and mock transport dispatch; Node excludes transport polling. No physical CAN, two-second wait, startup or print throughput measurement."
+  }
+}

@@ -1,0 +1,198 @@
+{
+  "node": "v26.9.0",
+  "warmups": 0,
+  "samples": 1,
+  "results": [
+    {
+      "extended": false,
+      "nodeMs": 36.300609999998414,
+      "pythonMs": 57.17197800549911,
+      "speedup": 1.574959153730519,
+      "maxPositionError": 0,
+      "maxParameterError": 0,
+      "finalError": 5.363333196667824e-13,
+      "search": {
+        "parameters": {
+          "radius": 100.19999923785382,
+          "angle_a": 209.99999939094658,
+          "arm_a": 250,
+          "endstop_a": 300.099999840083,
+          "stepdist_a": 0.0125,
+          "angle_b": 329.99999819257243,
+          "arm_b": 251,
+          "endstop_b": 300.100000169784,
+          "stepdist_b": 0.00625,
+          "angle_c": 90,
+          "arm_c": 250.5,
+          "endstop_c": 300.0999993105693,
+          "stepdist_c": 0.0125
+        },
+        "rounds": 164,
+        "evaluations": 1903,
+        "stepSum": 0.000009569193818668572,
+        "error": 5.363333196667824e-13,
+        "converged": true,
+        "reason": "step_threshold"
+      },
+      "pythonSearch": {
+        "rounds": 164,
+        "stepSum": 0.000009569193818668572,
+        "error": 5.363333196667824e-13
+      },
+      "geometry": {
+        "radius": 100.19999923785382,
+        "angles": [
+          209.99999939094658,
+          329.99999819257243,
+          90
+        ],
+        "arms": [
+          250,
+          251,
+          250.5
+        ],
+        "endstops": [
+          300.099999840083,
+          300.100000169784,
+          300.0999993105693
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "pythonGeometry": {
+        "radius": 100.19999923785382,
+        "angles": [
+          209.99999939094658,
+          329.99999819257243,
+          90
+        ],
+        "arms": [
+          250,
+          251,
+          250.5
+        ],
+        "endstops": [
+          300.099999840083,
+          300.100000169784,
+          300.0999993105693
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "passed": true,
+      "nodeSamplesMs": [
+        36.300609999998414
+      ],
+      "pythonSamplesMs": [
+        57.17197800549911
+      ]
+    },
+    {
+      "extended": true,
+      "nodeMs": 6657.0889080000015,
+      "pythonMs": 19080.48408399918,
+      "speedup": 2.866190364540521,
+      "maxPositionError": 0.00004371694188876063,
+      "maxParameterError": 0.000057195295113388056,
+      "finalError": 8.323881549957341e-8,
+      "search": {
+        "parameters": {
+          "radius": 100.19992853414439,
+          "angle_a": 210.00573711476505,
+          "arm_a": 250.0102263895879,
+          "endstop_a": 300.09846752626663,
+          "stepdist_a": 0.0125,
+          "angle_b": 330.0044697554699,
+          "arm_b": 250.98649572645886,
+          "endstop_b": 300.1019443187206,
+          "stepdist_b": 0.00625,
+          "angle_c": 90,
+          "arm_c": 250.5027851520665,
+          "endstop_c": 300.09956355021956,
+          "stepdist_c": 0.0125
+        },
+        "rounds": 10000,
+        "evaluations": 159143,
+        "stepSum": 0.000024344946535035094,
+        "error": 8.323881549957341e-8,
+        "converged": false,
+        "reason": "round_limit"
+      },
+      "pythonSearch": {
+        "rounds": 10000,
+        "stepSum": 0.000025380605090104982,
+        "error": 8.253039792908364e-8
+      },
+      "geometry": {
+        "radius": 100.19992853414439,
+        "angles": [
+          210.00573711476505,
+          330.0044697554699,
+          90
+        ],
+        "arms": [
+          250.0102263895879,
+          250.98649572645886,
+          250.5027851520665
+        ],
+        "endstops": [
+          300.09846752626663,
+          300.1019443187206,
+          300.09956355021956
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "pythonGeometry": {
+        "radius": 100.19993143296601,
+        "angles": [
+          210.00571498383528,
+          330.0044455230465,
+          90
+        ],
+        "arms": [
+          250.0101795390059,
+          250.98655292175397,
+          250.5027954354956
+        ],
+        "endstops": [
+          300.0984763345624,
+          300.10193604645536,
+          300.09956340185767
+        ],
+        "stepDistances": [
+          0.0125,
+          0.00625,
+          0.0125
+        ]
+      },
+      "passed": false,
+      "nodeSamplesMs": [
+        6657.0889080000015
+      ],
+      "pythonSamplesMs": [
+        19080.48408399918
+      ]
+    }
+  ],
+  "scope": "Original Python DeltaCalibration and DeltaCalibrate.calculate_params vs TS kernel on asymmetric three-tower geometry, seven heights, with/without twelve distance constraints. Excludes worker startup, probe IO, persistence and physical accuracy.",
+  "passed": false,
+  "notes": [
+    "Single-run diagnostic; no stable performance acceptance.",
+    "Extended calibration fails position agreement 1e-5 mm and objective error 1e-8 gates. These are numerical comparison gates, not physical printer tolerances.",
+    "Initial restricted subprocess attempts timed out before case progress; file-backed input plus escalated process execution produced results. Cause not isolated.",
+    "No product API, geometry application or configuration persistence is connected.",
+    "Both original Python and TS extended fits exhaust 10000 rounds above the 1e-5 step-sum convergence threshold.",
+    "TS worker now rejects unconverged fits; pure kernel retains diagnostics for analysis.",
+    "Basic fitting converges in 164 rounds with identical parameters, objective and coordinates."
+  ]
+}

@@ -497,10 +497,12 @@ users can modify the default parameters of the MZV input shaper and try other
 variations that may work better for their specific printers (with these
 non-default variations specified as, e.g. `mzv(n=3,t=0.8)` or `mzv(n=5,t=1.1)`
 in the `[input_shaper]` section or as a parameter to `SET_INPUT_SHAPER` command,
-as well as in a parameter to `~/klipper/scripts/calibrate_shaper.py` script,
+as well as in a parameter to `node ~/klipper/scripts/calibrate_shaper.ts` script,
 e.g. as `--shapers='2hump_ei,3hump_ei,mzv(n=6,t=1.0)'`. These custom parameters
-of the shapers are supported by `~/klipper/scripts/graph_shaper.py` scripts via
-e.g. `--shaper='mzv(n=3,t=0.6666666666)'` parameter.
+of the shapers are supported by `node ~/klipper/scripts/graph_shaper.ts`, e.g.
+`--shaper='mzv(n=3,t=0.6666666666)' -o shaper.html`. Install the host
+dependencies and use Node.js 26.9 or later in the 26.x series. This is an
+offline simulation; it does not configure the printer.
 
 The table below shows some (usually approximate) parameters of each shaper with
 their default parameters.
@@ -556,5 +558,5 @@ a manner similar to MZV input shaper as, e.g. `ei(v_tol=0.02)` or
 * If one needs to reduce vibrations at several very different frequencies
  (say, 30 Hz and 100 Hz), they may see that the table above does not provide
  enough information. In this case one may have more luck with
- [scripts/graph_shaper.py](../scripts/graph_shaper.py)
- script, which is more flexible.
+ [scripts/graph_shaper.ts](../scripts/graph_shaper.ts)
+ script, which is more flexible. Run with `node` and specify an output file.

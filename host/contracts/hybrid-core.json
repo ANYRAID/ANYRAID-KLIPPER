@@ -1,0 +1,67 @@
+{
+  "node": "v26.9.0",
+  "iterations": 100000,
+  "results": [
+    {
+      "kind": "cartesian",
+      "samplesMs": [
+        61.784414,
+        60.78761400000002,
+        68.975054,
+        60.45015000000001,
+        59.03743399999996
+      ],
+      "medianMs": 60.78761400000002,
+      "movesPerSecond": 1645071.971405227
+    },
+    {
+      "kind": "corexy",
+      "samplesMs": [
+        57.87398099999996,
+        60.47483999999997,
+        58.675700000000006,
+        58.72680100000002,
+        58.69252000000006
+      ],
+      "medianMs": 58.69252000000006,
+      "movesPerSecond": 1703794.623233078
+    },
+    {
+      "kind": "corexz",
+      "samplesMs": [
+        57.51952799999992,
+        59.790441999999985,
+        57.640338999999926,
+        57.61321799999996,
+        58.43266799999992
+      ],
+      "medianMs": 57.640338999999926,
+      "movesPerSecond": 1734896.1115582634
+    },
+    {
+      "kind": "hybrid_corexy",
+      "samplesMs": [
+        65.47450499999991,
+        65.29399400000011,
+        65.41455499999984,
+        65.35801400000014,
+        65.24060299999996
+      ],
+      "medianMs": 65.35801400000014,
+      "movesPerSecond": 1530034.2510407337
+    },
+    {
+      "kind": "hybrid_corexz",
+      "samplesMs": [
+        61.25083900000004,
+        61.07704699999999,
+        60.80748399999993,
+        60.78616299999999,
+        60.979115999999976
+      ],
+      "medianMs": 60.979115999999976,
+      "movesPerSecond": 1639905.7014863915
+    }
+  ],
+  "scope": "Local position reconstruction, exact binary-fraction equality, Move creation and admission including Z speed limit. Warm process; excludes native step generation and hardware."
+}

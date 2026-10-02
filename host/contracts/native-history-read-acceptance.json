@@ -1,0 +1,57 @@
+{
+  "baseline": "a967155e",
+  "node": "v26.9.0",
+  "scope": "Standard native history list/get routes using authoritative append-only journal; no deletion or imported replica",
+  "sources": {
+    "host/src/moonraker/native-history.ts": "838f8bd5a080cd71a69269859f57220cf2b6984f812a474c288fbdc42e5e3b2d",
+    "host/src/moonraker/configured-server.ts": "949ca34cca378a5b103fab834712aafd33e312ae4b3766253fe38bddcd5df886",
+    "host/src/moonraker/history-api.ts": "dfbe3098adf21ae6ecc067146b47609ee282ee204338f28d20ec0f88ced394f5",
+    "host/src/operations/print-journal-types.ts": "ddf75d4635ef6bdabf28e2e38081dfdef67790e090b6ed36b4a905322b01f77f",
+    "host/src/operations/print-journal-worker.ts": "405cc9cf5d285ce0e5f71cd8ac12faba398cefd6897e2ff16a86c5407c1434ce",
+    "host/src/operations/print-journal.ts": "c72f78bf98b171d59f870006a6f68c87df80363015180fe66315d87b00a71a28",
+    "host/src/operations/print.ts": "5484fe8e45d8be83bee31671cd93587f0afb1da39f6db7ddccd0d27ad7eb60ae",
+    "host/test/native-history.test.ts": "c03f73964a14fec996dc83d0f4b5c8092693178c65aa7fe716d40649a988db02",
+    "host/bench/native-history.ts": "5aea2c2e186e6cb8973557ccf55a67710714fffcb2865bc10e3aef9803f50003",
+    "host/acceptance/product-compiled-journey.test.ts": "e4be4b3a6e21b72f3eb642277ad3fede309503bbeb31e585274e82b5070fad2f"
+  },
+  "checks": {
+    "relatedTests": 19,
+    "productAcceptance": 4,
+    "typecheck": "passed",
+    "whitespace": "passed"
+  },
+  "tests": "✔ configured history REST and JSON-RPC authorize reads and writes with real owner cleanup (107.006996ms)\n✔ history parameter conversions, file failure, cancellation and unregister remain observable (52.886945ms)\n✔ history get, deletion and base-total reset match pinned upstream handlers (219.32952ms)\n✔ configured history rejects mismatched database ownership without closing either store (94.982195ms)\n✔ configured auxiliary source owns reset fields and rejects a conflicting reset provider (59.205145ms)\n✔ native standard history reads actual live and durable jobs through authenticated HTTP and RPC without erasing requests (95.824886ms)\n✔ reservation and outcome timestamps commit with state and retain the first outcome across recovery (76.215399ms)\n✔ bounded lexical scan preserves records, leaves live state intact and a new scan sees earlier insertions (42.463494ms)\n✔ schema two migration preserves statistics and does not fabricate old timestamps (75.655651ms)\n✔ durable journal reserves once, rejects conflicts and stale transitions, and retains terminal records (74.807751ms)\n✔ exclusive ownership prevents a second writer and device identity mismatch cannot mutate history (238.199027ms)\n✔ accepted writes drain before close; bounded queue rejects excess without losing ownership (185.830838ms)\n✔ SIGKILL after acknowledged start leaves an interrupted reservation, never permission to replay (271.558446ms)\n✔ unknown schemas, symlinks and malformed requests fail closed (146.251909ms)\n✔ storage full closes the worker and preserves every previously acknowledged terminal record (139.323163ms)\n✔ malformed persisted payload closes the journal instead of forgetting an old request (75.121485ms)\n✔ terminal statistics are validated, atomically versioned, immutable on acknowledgement and durable across reopen (111.153548ms)\n✔ version one journals migrate without inventing statistics and wrong device migration rolls back (76.386021ms)\n✔ controller freezes live and durable counters at device completion and they survive a new process owner (73.14465ms)\nℹ tests 19\nℹ suites 0\nℹ pass 19\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2419.392857\n",
+  "productLog": "\n> test:product-acceptance\n> node --test --test-concurrency=1 acceptance/*.test.ts\n\n✔ short deceleration from the product pause path is representable in the native queue (1.245026ms)\n✔ load=false: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (18290.391123ms)\nℹ {\"installation\":{\"durationMs\":711.0438050000002,\"dependencies\":10}}\nℹ {\"loaded\":false,\"historyRequests\":0,\"historyP99Ms\":null,\"lifecycleShutdowns\":8,\"fileNotifications\":4,\"fileNotificationP95Ms\":null,\"deleteRequests\":0,\"deleteP95Ms\":null,\"thumbnailRequests\":0,\"thumbnailP95Ms\":null,\"metadataRequests\":0,\"metadataP95Ms\":null,\"downloads\":0,\"downloadP95Ms\":null,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":87.796,\"directoryRequests\":0,\"directoryP99Ms\":null,\"statusRequests\":0,\"uploads\":0,\"statusP99Ms\":null,\"uploadP95Ms\":null,\"generations\":[{\"loop\":{\"p99Ms\":1.868799,\"maxMs\":12.951551},\"cpu\":{\"user\":693481,\"system\":81825},\"rss\":160067584},{\"loop\":{\"p99Ms\":1.770495,\"maxMs\":4.993023},\"cpu\":{\"user\":419991,\"system\":45678},\"rss\":180674560}]}\n✔ load=true: compiled process uploads sealed file, heats, prints, reinitializes and stops on ADC fault without Python or TS loading (19391.804527ms)\nℹ {\"installation\":{\"durationMs\":705.5561630000011,\"dependencies\":10}}\nℹ {\"loaded\":true,\"historyRequests\":473,\"historyP99Ms\":9.291636999998445,\"lifecycleShutdowns\":8,\"fileNotifications\":132,\"fileNotificationP95Ms\":6.280808999999863,\"deleteRequests\":16,\"deleteP95Ms\":5.27553700000135,\"thumbnailRequests\":16,\"thumbnailP95Ms\":2.2341379999998026,\"metadataRequests\":16,\"metadataP95Ms\":18.385700999999244,\"downloads\":16,\"downloadP95Ms\":5.776992999999493,\"wireCommands\":169,\"wireSteps\":3088,\"minimumStepLeadMs\":83.85,\"directoryRequests\":2038,\"directoryP99Ms\":6.036616000001231,\"statusRequests\":8477,\"uploads\":16,\"statusP99Ms\":2.667663000000175,\"uploadP95Ms\":12.92905299999984,\"generations\":[{\"loop\":{\"p99Ms\":1.992703,\"maxMs\":13.328383},\"cpu\":{\"user\":2120257,\"system\":272690},\"rss\":251928576},{\"loop\":{\"p99Ms\":1.912831,\"maxMs\":5.066751},\"cpu\":{\"user\":1234139,\"system\":178554},\"rss\":272707584}]}\n✔ host CLI HTTP journey homes, prints, pauses, resumes, completes, cancels, reinitializes and prints a fresh durable job (7995.100581ms)\nℹ tests 4\nℹ suites 0\nℹ pass 4\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 46326.664868\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "records": 2000,
+    "pageSize": 50,
+    "warmups": 3,
+    "runs": 11,
+    "iterations": 20,
+    "variants": [
+      "journalRead",
+      "authenticatedRouteWithNoopPolicyAndFileChecks"
+    ],
+    "results": [
+      {
+        "medianMs": 0.4848675999999955,
+        "p95Ms": 0.5461338999999953
+      },
+      {
+        "medianMs": 3.6884259999999927,
+        "p95Ms": 4.493752150000001
+      }
+    ],
+    "maximumHttpP95Ms": 25,
+    "scope": "Loopback read-only history including durable queries, existence checks and JSON serialization; not a physical target or old/new paired regression comparison."
+  },
+  "coverageNote": "After compiled acceptance, get_job was adjusted to echo the requested UID as the legacy API does. Canonical-UID behavior used by compiled acceptance is unchanged; the final adjustment passed targeted HTTP/RPC and legacy history regression tests.",
+  "limitations": [
+    "Totals, reset, history deletion and notify_history_changed are not integrated",
+    "Unknown old times/statistics remain null; user attribution is unknown and slicer metadata is not yet included",
+    "History page cap 1000, including requests for unbounded results; excessive pages return 413",
+    "IDs rely on append-only request rows; history must never delete them",
+    "No physical hardware validation or full Python retirement"
+  ]
+}

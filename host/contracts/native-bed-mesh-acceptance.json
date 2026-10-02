@@ -1,0 +1,221 @@
+{
+  "base": "618c61aa",
+  "tests": {
+    "beforeShortSegmentOptimization": 57,
+    "afterOptimizationFocused": 14,
+    "overlapping": true,
+    "finalProduct": 4,
+    "typecheck": true,
+    "sourceWhitespace": "SIGSEGV",
+    "compiledWhitespace": {
+      "directory": "/tmp/compiled-whitespace-Sn8D3D",
+      "count": 2357,
+      "status": 0,
+      "signal": null,
+      "stdout": "",
+      "stderr": "",
+      "priorFailure": "Source invocation via check_whitespace.sh: xargs reported node terminated by signal 11; outer shell later git diff --check returned 0. Source check did not pass."
+    }
+  },
+  "product": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 87.269,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.893375,
+            "maxMs": 12.771327
+          },
+          "cpu": {
+            "user": 701671,
+            "system": 88158
+          },
+          "rss": 160903168
+        },
+        {
+          "loop": {
+            "p99Ms": 1.850367,
+            "maxMs": 7.045119
+          },
+          "cpu": {
+            "user": 445717,
+            "system": 50891
+          },
+          "rss": 184053760
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 462,
+      "historyP99Ms": 5.338950000001205,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 8.640972000001057,
+      "deleteRequests": 16,
+      "deleteP95Ms": 5.501451999996789,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 2.41570099999808,
+      "metadataRequests": 16,
+      "metadataP95Ms": 15.590553000001819,
+      "downloads": 16,
+      "downloadP95Ms": 4.563430000001972,
+      "wireCommands": 174,
+      "wireSteps": 3074,
+      "minimumStepLeadMs": 81.102,
+      "directoryRequests": 1988,
+      "directoryP99Ms": 8.83409500000198,
+      "statusRequests": 8236,
+      "uploads": 16,
+      "statusP99Ms": 4.241454999999405,
+      "uploadP95Ms": 18.071915000000445,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 2.088959,
+            "maxMs": 13.836287
+          },
+          "cpu": {
+            "user": 2127229,
+            "system": 242261
+          },
+          "rss": 245858304
+        },
+        {
+          "loop": {
+            "p99Ms": 1.995775,
+            "maxMs": 7.090175
+          },
+          "cpu": {
+            "user": 1290268,
+            "system": 166990
+          },
+          "rss": 250830848
+        }
+      ]
+    }
+  ],
+  "initialBenchmark": {
+    "passed": false,
+    "result": {
+      "node": "v26.9.0",
+      "commands": 1000,
+      "warmups": 3,
+      "runs": 11,
+      "plain": {
+        "wall": {
+          "medianMs": 346.31863800000065,
+          "p95Ms": 356.14509700000053
+        },
+        "cpu": {
+          "medianMs": 19.854,
+          "p95Ms": 52.374
+        }
+      },
+      "compensated": {
+        "wall": {
+          "medianMs": 347.0508600000003,
+          "p95Ms": 356.050937
+        },
+        "cpu": {
+          "medianMs": 32.195,
+          "p95Ms": 49.053
+        }
+      },
+      "exactXPulses": 100,
+      "exactZPulses": 0,
+      "scope": "Paired constant saved mesh versus no mesh for the same physical path through actual native steps and simulated MCU drain; variable mesh splitting and physical target acceptance remain separate."
+    }
+  },
+  "optimizedBenchmark": {
+    "passed": true,
+    "result": {
+      "node": "v26.9.0",
+      "commands": 1000,
+      "warmups": 3,
+      "runs": 11,
+      "plain": {
+        "wall": {
+          "medianMs": 346.2332999999999,
+          "p95Ms": 355.81455500000084
+        },
+        "cpu": {
+          "medianMs": 20.14,
+          "p95Ms": 54.967
+        }
+      },
+      "compensated": {
+        "wall": {
+          "medianMs": 347.3536750000003,
+          "p95Ms": 356.256942
+        },
+        "cpu": {
+          "medianMs": 19.031,
+          "p95Ms": 38.22
+        }
+      },
+      "exactXPulses": 100,
+      "exactZPulses": 0,
+      "scope": "Paired constant saved mesh versus no mesh for the same physical path through actual native steps and simulated MCU drain; variable mesh splitting and physical target acceptance remain separate."
+    }
+  },
+  "variableMeshBenchmark": {
+    "node": "v26.9.0",
+    "commands": 10000,
+    "segments": 178991,
+    "checksum": 21761.628434862614,
+    "medianMs": 176.26434400000016,
+    "p95Ms": 184.17526700000008,
+    "scope": "GCodeMove -> fixed mesh/fade -> splitting -> per-segment XY guard -> atomic lookahead -> full trapezoid flush. Five warmup, eleven measured batches. Construction and hardware excluded; guard is benchmark-only, not complete kinematic/thermal acceptance."
+  },
+  "hashes": {
+    "host/src/config/native-bed-mesh.ts": "09d192726e037f3be63d06fa18c2e5051600db13a43f79a440b714a853b3b737",
+    "host/src/homing/native-linear-port.ts": "03090b788f43e75902a9dcc4f056c7187101f8674e164b89ecf59d71a291e071",
+    "host/src/homing/linear-command.ts": "a0ddb8fb91c228c57b78bcdf9db8fbc650791bf7e2a3af44b4e622eb630338a5",
+    "host/src/motion/bed-mesh-split.ts": "89d6882eff57cb2f14cb4aa9aab2cafd3c363eb7cc1c29b7964d9a08947fd617",
+    "host/src/motion/bed-mesh-port.ts": "31580e02e46665197473994d1177e1aae2cd05d953fd6e0d98df168893576e4e",
+    "host/src/runtime/native-linear-gcode.ts": "fb95dc4dc578b09d221c141a5e80fa89d7d3a6f786897700af26ec6b1567de7a",
+    "host/src/runtime/initial-motion.ts": "bc6de07da8ff18bb675d75dec1970f73a23f6860c16be81c8509f52f0004d3e8",
+    "host/src/runtime/product-objects.ts": "f6a2e60426038640390e4f60e5ecbce5f97fb9a40486130aa3c543cf385a120c",
+    "host/acceptance/product-compiled-journey.test.ts": "9f3e75db0f27ec5a50c8e0f1d1edec8b8f8a4416ec310c509d302a5a6b94a5ba",
+    "host/test/native-bed-mesh.test.ts": "70aab4b50a0b24facbf432112f4bb04ae28f5dc568cb9b3ff7159147a367a4e4",
+    "host/bench/native-bed-mesh.ts": "a2255118f15444540313c17067e2eb117c23a25167ba91232ffc4c854571cbb7",
+    "/tmp/native-bed-mesh-regression.log": "7da9745a2afe7fd373c7d41f9a3361a389119d9710bb0f165dcaa8818a874faa",
+    "/tmp/native-bed-mesh-short-tests.log": "e933f3a94bc5d50b8160ebcf2b64fe93e5a461404a0048c7b81c84a55a63f0e1",
+    "/tmp/native-bed-mesh-product-final.log": "fdc40da3ff7f717b8259f08eee12b4b38708f1840895097da5f29d4db04f4647",
+    "/tmp/native-bed-mesh-bench.log": "11f314220673d181492af6d6aeec12caf3da4c0a5270c42dcd81ae4de21a2b2f",
+    "/tmp/native-bed-mesh-bench-optimized.log": "a0797cbaefce3606319199dc4723f1bbe9cedeaaae9ab265b32d03323b8e2937",
+    "/tmp/native-bed-mesh-variable-bench.log": "b45628a109f51ccbea707119abc4c63077b0e4b534d2a0b69df69d31d700cc95",
+    "/tmp/native-bed-mesh-whitespace.json": "33c260c1e439519e49134c3fba1ab27b12946ce25d7988da337bd5ed05a93a8d"
+  },
+  "limitations": [
+    "Saved profile load and clear only; calibration, SAVE/REMOVE, configuration persistence and bed_mesh object integration remain pending",
+    "Emulated MCU evidence, not physical printer or target board acceptance",
+    "Runtime SIGSEGV observed during source whitespace checking remains unresolved; compiled checker success is not a fix",
+    "Original numerical failures and default Python entrypoint remain unresolved"
+  ]
+}

@@ -1,0 +1,286 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtemp,writeFile,readdir,readFile,rm,open} from 'node:fs/promises';
+import {join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {createHash} from 'node:crypto';
+import sharp from 'sharp';
+import {request as httpRequest} from 'node:http';
+import {NativePrintUploads,registerNativeFileInfo} from '../src/moonraker/native-print-uploads.ts';
+import {MoonrakerNetwork,type MoonrakerNetworkOptions} from '../src/moonraker/server.ts';
+import {JsonRpcDispatcher,ApiError} from '../src/moonraker/rpc.ts';
+import {EndpointRegistry} from '../src/moonraker/endpoints.ts';
+import {MaintenanceGate} from '../src/operations/maintenance-gate.ts';
+import {PublishedPrintFiles} from '../src/storage/published-files.ts';
+import {ConfiguredMoonraker} from '../src/moonraker/configured-server.ts';
+import {PrintController} from '../src/operations/print.ts';
+import {PrintJournal} from '../src/operations/print-journal.ts';
+import {FilePrintDevice} from '../src/operations/file-print-device.ts';
+import {GCodeDispatch} from '../src/gcode/dispatch.ts';
+const until=async(check:()=>boolean)=>{const end=Date.now()+4000;while(!check()){assert.ok(Date.now()<end,'Upload condition timed out');await new Promise(r=>setTimeout(r,5));}};
+const multipart=(data:string|Uint8Array='G1 X1\n',fields:Record<string,string>={},name='part.gcode')=>{const form=new FormData();form.append('file',new Blob([typeof data==='string'?data:new Uint8Array(data)]),name);for(const [key,value] of Object.entries(fields))form.append(key,value);return form;};
+test('closed process files reject deletion even while their device delegate remains open',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'closed-process-files-')),files=await PublishedPrintFiles.open(join(dir,'files')),root=new NativePrintUploads(files,new MaintenanceGate()),gate=new MaintenanceGate(),borrower=new NativePrintUploads(files,gate,{},root),signal=new AbortController();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate});borrower.bindPrintController(controller);root.bindDeviceFiles(borrower,signal.signal);
+ try{
+  const path=join(dir,'source');await writeFile(path,'G1 X1\n');const input=await open(path,'r');try{await files.publish('retained','part.gcode',input,signal.signal);}finally{await input.close();}
+  await root.close();assert.equal(borrower.status.closed,false);await assert.rejects(root.remove({path:'gcodes/retained.gcode'},{transport:'http',signal:signal.signal,authorize(){}}),/closed/);assert.equal((await files.inspect('retained')).id,'retained');
+ }finally{signal.abort();await controller.retire();await borrower.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
+});
+async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize'];removal?:boolean}={}){
+ const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
+ const controller=options.removal?new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}):undefined;if(controller)uploads.bindPrintController(controller);
+ const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize:options.authorize??(()=>{})}),address=await network.listen(),url=`http://127.0.0.1:${address.port}`;
+ return {dir,gate,files,uploads,network,url,controller,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await controller?.retire();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
+}
+const moveHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/move',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
+test('file move HTTP and RPC preserve ID and bytes, revoke old previews and publish source_item',async()=>{
+ const f=await fixture({removal:true}),events:any[]=[];const off=f.uploads.observeChanges(e=>events.push(e));try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png);assert.equal((await f.post(multipart(data,{file_id:'job'}))).status,200);await f.files.mutateDirectory('零件',false,new AbortController().signal);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=job.gcode')).json()).result,oldPreview=f.url+'/server/files/gcodes/'+metadata.thumbnails[1].relative_path;
+  const reply=await moveHttp(f,'gcodes/job.gcode','gcodes/零件/50% 模型.gcode');assert.equal(reply.status,200);const result=(await reply.json()).result;assert.equal(result.action,'move_file');assert.deepEqual(result.source_item,{path:'job.gcode',root:'gcodes'});assert.equal(result.item.path,'零件/50% 模型.gcode');assert.equal(result.item.size,Buffer.byteLength(data));assert.equal((await fetch(oldPreview)).status,404);assert.equal((await fetch(f.url+'/server/files/metadata?filename=job.gcode')).status,404);
+  const filename='零件/50% 模型.gcode',updated=(await (await fetch(f.url+'/server/files/metadata?filename='+encodeURIComponent(filename))).json()).result;assert.equal(updated.file_id,'job');assert.equal(updated.sha256,metadata.sha256);assert.equal(await (await fetch(f.url+'/server/files/gcodes/'+filename.split('/').map(encodeURIComponent).join('/'))).text(),data);
+  const image=await fetch(f.url+'/server/files/gcodes/零件/'+updated.thumbnails[1].relative_path);assert.equal(image.status,200);assert.deepEqual(Buffer.from(await image.arrayBuffer()),png);
+  const changed=events.find(e=>e.action==='move_file');assert.deepEqual(changed.source_item,result.source_item);assert.equal(changed.item.file_id,'job');assert.equal(changed.item.sha256,metadata.sha256);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:7,method:'server.files.move',params:{source:'gcodes/'+filename,dest:'gcodes'}})});const body=await rpc.json();assert.equal(body.result.item.path,'50% 模型.gcode');assert.equal(body.result.source_item.path,filename);assert.equal(events.filter(e=>e.action==='move_file').length,2);assert.equal(f.uploads.status.pending,0);
+ }finally{off();await f.clean();}
+});
+test('move protects printing and paused identity while allowing unrelated files and releasing completed mutation',async()=>{
+ const f=await fixture({removal:true});try{
+  for(const id of ['active','other'])await f.post(multipart('G1 X1\n',{file_id:id}));await f.controller!.start({version:1,requestId:'active-print',fileId:'active',nozzle:0,bed:0});assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,403);
+  await f.controller!.pause();assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,403);assert.equal((await moveHttp(f,'gcodes/other.gcode','gcodes/other-new.gcode')).status,200);assert.equal(f.controller!.state,'paused');
+  await f.controller!.cancel();assert.equal((await moveHttp(f,'gcodes/active.gcode','gcodes/new.gcode')).status,200);f.controller!.reset('active-print');await f.controller!.start({version:1,requestId:'moved-print',fileId:'active',nozzle:0,bed:0});assert.equal(f.controller!.state,'printing');await f.controller!.cancel();assert.equal(f.files.filename('active'),'new.gcode');
+ }finally{await f.clean();}
+});
+test('move authorizes resolved destination and file identity; denied, missing and overwrite operations do not mutate; empty directories move',async()=>{
+ const calls:any[]=[];let deny=false;const f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move'){calls.push({...params});if(deny&&params.file_id)throw new ApiError(403,'Denied resolved destination');}}});try{
+  await f.post(multipart('G1 X1\n',{file_id:'job'}));await f.post(multipart('other',{file_id:'other'}));await f.files.mutateDirectory('parts',false,new AbortController().signal);deny=true;
+  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/parts')).status,403);assert.equal(calls.at(-1).dest,'gcodes/parts/job.gcode');assert.equal(calls.at(-1).source,'gcodes/job.gcode');assert.equal(calls.at(-1).file_id,'job');assert.equal(f.files.filename('job'),'job.gcode');deny=false;
+  assert.equal((await moveHttp(f,'gcodes/job.gcode','gcodes/other.gcode')).status,409);assert.equal((await moveHttp(f,'gcodes/parts','gcodes/newparts')).status,200);assert.equal((await moveHttp(f,'gcodes/missing','gcodes/new')).status,404);assert.equal((await moveHttp(f,'gcodes/job.gcode','config/new')).status,400);assert.equal(f.files.status.publishedFiles,2);assert.equal(f.files.filename('job'),'job.gcode');
+ }finally{await f.clean();}
+});
+test('late move authorization cannot rename a changed source or overwrite a newly published target',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false;const f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move'&&params.file_id){entered=true;return held.promise;}}});try{
+  await f.post(multipart('G1 X1\n',{file_id:'job'}));const pending=moveHttp(f,'gcodes/job.gcode','gcodes/new.gcode');await until(()=>entered);await f.files.moveFile(await f.files.prepareFileMove('job.gcode','changed.gcode',new AbortController().signal),new AbortController().signal);held.resolve();assert.equal((await pending).status,409);assert.equal(f.files.filename('job'),'changed.gcode');assert.equal(f.uploads.status.pending,0);
+ }finally{held.resolve();await f.clean();}
+});
+test('retired process delegate aborts held move authorization and drains late policy before releasing files',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'process-move-')),files=await PublishedPrintFiles.open(join(dir,'files')),root=new NativePrintUploads(files,new MaintenanceGate()),gate=new MaintenanceGate(),device=new NativePrintUploads(files,gate,{},root),generation=new AbortController(),held=Promise.withResolvers<void>(),entered=Promise.withResolvers<void>();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate});device.bindPrintController(controller);root.bindDeviceFiles(device,generation.signal);
+ try{
+  const source=join(dir,'source');await writeFile(source,'G1 X1\n');const file=await open(source,'r');try{await files.publish('job','job',file,new AbortController().signal);}finally{await file.close();}
+  const pending=root.move({source:'gcodes/job.gcode',dest:'gcodes/new.gcode'},{transport:'http',nativeGenerationSignal:generation.signal,signal:new AbortController().signal,authorize(){entered.resolve();return held.promise;}}),rejected=assert.rejects(pending,/retired/);await entered.promise;generation.abort(new Error('device retired'));await rejected;assert.equal(files.filename('job'),'job.gcode');
+  let drained=false;const drain=device.drain().then(()=>{drained=true;});await new Promise(r=>setImmediate(r));assert.equal(drained,false);assert.equal(device.status.authorizing,1);held.resolve();await drain;assert.equal(device.status.authorizing,0);
+  await assert.rejects(root.move({source:'gcodes/job.gcode',dest:'gcodes/new.gcode'},{transport:'http',signal:new AbortController().signal,authorize(){}}),/print owner/);
+ }finally{held.resolve();generation.abort();await controller.retire();await device.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
+});
+test('native file deletion uses HTTP and RPC paths, revokes previews, reclaims storage and preserves other receipts',async()=>{
+ const f=await fixture({removal:true});try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'red'}}).png().toBuffer(),data=thumbnailBlock(png);
+  for(const id of ['first','second'])assert.equal((await f.post(multipart(data,{file_id:id}))).status,200);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=first.gcode')).json()).result,preview=f.url+'/server/files/gcodes/'+metadata.thumbnails[1].relative_path,before=f.files.status.storedBytes;
+  const response=await fetch(f.url+'/server/files/gcodes/first.gcode',{method:'DELETE'});assert.equal(response.status,200);assert.deepEqual((await response.json()).result,{item:{path:'first.gcode',root:'gcodes',size:0,modified:0,permissions:''},action:'delete_file'});
+  assert(f.files.status.storedBytes<before);assert(f.files.status.storedBytes>Buffer.byteLength(data));assert.equal(f.uploads.status.metadata.imageBytes,0);assert.equal((await fetch(preview)).status,404);assert.equal(await (await fetch(f.url+'/server/files/gcodes/second.gcode')).text(),data);
+  const deleted=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.delete_file',params:{path:'gcodes/second.gcode'}})});assert.equal((await deleted.json()).result.action,'delete_file');assert.equal(f.files.status.storedBytes,0);assert.deepEqual(await readdir(join(f.dir,'files')),[]);
+  assert.equal((await fetch(f.url+'/server/files/gcodes/first.gcode',{method:'DELETE'})).status,404);
+ }finally{await f.clean();}
+});
+test('native removal rechecks authorized content after delayed policy and cancellation does not remove a file',async()=>{
+ let blocked=false;const held=Promise.withResolvers<void>(),f=await fixture({removal:true,authorize:(method,params)=>{if(method==='server.files.delete_file'&&params.sha256){blocked=true;return held.promise;}}});
+ try{
+  assert.equal((await f.post(multipart('old',{file_id:'part'}))).status,200);const deleting=fetch(f.url+'/server/files/gcodes/part.gcode',{method:'DELETE'});await until(()=>blocked);
+  await f.files.remove('part',new AbortController().signal);const source=join(f.dir,'replacement');await writeFile(source,'new');const handle=await (await import('node:fs/promises')).open(source,'r');try{await f.files.publish('part','part.gcode',handle,new AbortController().signal);}finally{await handle.close();}
+  held.resolve();assert.equal((await deleting).status,409);assert.equal(await (await fetch(f.url+'/server/files/gcodes/part.gcode')).text(),'new');
+ }finally{held.resolve();await f.clean();}
+ const wait=Promise.withResolvers<void>(),g=await fixture({removal:true,authorize:method=>method==='server.files.delete_file'?wait.promise:undefined});try{
+  await g.post(multipart('keep',{file_id:'part'}));const abort=new AbortController(),pending=fetch(g.url+'/server/files/gcodes/part.gcode',{method:'DELETE',signal:abort.signal}).catch(()=>null);await until(()=>g.uploads.status.authorizing===1);abort.abort();await pending;await until(()=>g.uploads.status.pending===0);wait.resolve();assert.equal((await g.files.inspect('part')).size,4);
+ }finally{wait.resolve();await g.clean();}
+});
+const thumbnailBlock=(bytes:Buffer,width=80,height=40)=>{const data=bytes.toString('base64');return `; thumbnail_png begin ${width}x${height} ${data.length}\n; ${data}\n; thumbnail_png end\nG1 X1\n`;};
+test('native thumbnail HTTP journey preserves bytes, conditional responses, per-file authorization and replacement revocation',async()=>{
+ let denied=false;const calls:Record<string,unknown>[]=[],f=await fixture({authorize:(method,params)=>{if(method==='server.files.download'){calls.push({...params});if(denied&&params.file_id==='preview')throw new ApiError(403,'Denied preview');}}});
+ try{
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer();
+  assert.equal((await f.post(multipart(thumbnailBlock(png),{file_id:'preview'}))).status,200);
+  const results=await Promise.all([0,1].map(async()=>{const response=await fetch(f.url+'/server/files/metadata?filename=preview.gcode');assert.equal(response.status,200);return (await response.json()).result;}));
+  assert.deepEqual(results[0],results[1],'Concurrent extraction must not revoke the other response');
+  assert.deepEqual(results[0].thumbnails.map((t:any)=>[t.width,t.height]),[[32,16],[80,40]]);
+  const thumbs=(await (await fetch(f.url+'/server/files/thumbnails?filename=preview.gcode')).json()).result;
+  assert.equal(thumbs[1].thumbnail_path,results[0].thumbnails[1].relative_path);
+  const url=f.url+'/server/files/gcodes/'+thumbs[1].thumbnail_path,response=await fetch(url);assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'image/png');assert.deepEqual(Buffer.from(await response.arrayBuffer()),png);
+  assert.equal(calls.at(-1)?.file_id,'preview');assert.equal(calls.at(-1)?.filename,'preview.gcode');
+  const head=await fetch(url,{method:'HEAD'});assert.equal(head.status,200);assert.equal(Number(head.headers.get('content-length')),png.length);assert.equal((await head.arrayBuffer()).byteLength,0);
+  assert.equal((await fetch(url,{headers:{'if-none-match':response.headers.get('etag')!}})).status,304);
+  denied=true;assert.equal((await fetch(url)).status,403);assert.equal(f.network.status.bufferedBytes,0);denied=false;
+  const signal=new AbortController().signal;await f.files.remove('preview',signal);
+  assert.equal((await f.post(multipart('G1 X2\n',{file_id:'preview'}))).status,200);
+  assert.equal((await fetch(url,{method:'HEAD'})).status,404);assert.equal(f.uploads.status.metadata.imageBytes,0);
+  assert.deepEqual((await (await fetch(f.url+'/server/files/thumbnails?filename=preview.gcode')).json()).result,[]);
+ }finally{await f.clean();}assert.equal(f.uploads.status.metadata.imageBundles,0);
+});
+test('malformed native thumbnail does not publish partial metadata or poison following extraction',async()=>{
+ const f=await fixture();try{
+  assert.equal((await f.post(multipart(thumbnailBlock(Buffer.from('invalid')),{file_id:'bad'}))).status,200);
+  assert.equal((await fetch(f.url+'/server/files/metadata?filename=bad.gcode')).status,422);
+  assert.equal(f.uploads.status.metadata.imageBytes,0);assert.equal(f.uploads.status.metadata.cache.entries,0);
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'red'}}).png().toBuffer();assert.equal((await f.post(multipart(thumbnailBlock(png),{file_id:'good'}))).status,200);
+  const result=await fetch(f.url+'/server/files/thumbnails?filename=good.gcode');assert.equal(result.status,200);assert.equal((await result.json()).result.length,2);
+ }finally{await f.clean();}
+});
+test('streaming native upload exceeds JSON limit and publishes exact immutable bytes with authorized receipt lookup',async()=>{
+ const calls:{method:string;params:unknown}[]=[],f=await fixture({authorize:(method,params)=>{calls.push({method,params});}});
+ try{const data=Buffer.alloc(2*1024**2,59),sha256=createHash('sha256').update(data).digest('hex'),response=await f.post(multipart(data,{file_id:'large',checksum:sha256,root:'gcodes'},'模型.gcode'));assert.equal(response.status,200);const result=(await response.json()).result;assert.deepEqual(result,{item:{path:'large.gcode',root:'gcodes',size:data.length,permissions:'r',modified:(await f.files.describe('large',new AbortController().signal)).modified},action:'create_file',file:{version:1,id:'large',name:'模型.gcode',size:data.length,sha256},print_started:false,print_queued:false});assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await (await fetch(f.url+'/printer/files/info?file_id=large')).json()).result.sha256,sha256);assert.deepEqual(calls.map(c=>c.method),['server.files.upload','server.files.upload','printer.files.info']);assert.deepEqual(calls[0].params,{});assert.equal((calls[1].params as any).size,data.length);assert.deepEqual((await readdir(f.dir)).sort(),['files']);assert.equal(f.network.status.bufferedBytes,0);
+  assert.equal((await f.post(multipart('changed',{file_id:'large'}))).status,409);assert.deepEqual(await readFile(join(f.dir,'files',sha256+'.gcode')),data);assert.equal((await fetch(f.url+'/printer/files/info?file_id=missing')).status,404);
+ }finally{await f.clean();}
+});
+test('directory upload keeps visible names, immutable IDs, metadata, encoded downloads and empty-directory removal aligned',async()=>{
+ const f=await fixture({removal:true});try{
+  const directory=async(path:string,method='POST')=>fetch(f.url+'/server/files/directory',{method,headers:{'content-type':'application/json'},body:JSON.stringify({path})});
+  assert.equal((await directory('gcodes/零件')).status,200);assert.equal((await directory('gcodes/零件/首批')).status,200);
+  assert.equal((await directory('gcodes/零件')).status,409);assert.equal((await directory('gcodes')).status,400);
+  const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png),path='零件/首批/50% test.gcode';
+  const uploaded=await f.post(multipart(data,{file_id:'nested',path:'零件/首批'},'50% test.gcode'));assert.equal(uploaded.status,200);const receipt=await uploaded.json();assert.equal(receipt.item.path,path);assert.equal(receipt.file.id,'nested');assert.equal(receipt.file.path,path);
+  const listing=(await (await fetch(f.url+'/server/files/list')).json()).result;assert.equal(listing[0].path,path);assert.equal(listing[0].file_id,'nested');
+  const meta=(await (await fetch(f.url+'/server/files/metadata?filename='+encodeURIComponent(path))).json()).result;assert.equal(meta.file_id,'nested');assert.equal(meta.filename,path);assert.equal(meta.thumbnails.length,2);
+  const contents=(await (await fetch(f.url+'/server/files/directory?path='+encodeURIComponent('gcodes/零件/首批')+'&extended=true')).json()).result;assert.equal(contents.files[0].filename,'50% test.gcode');assert.equal(contents.files[0].file_id,'nested');assert.equal(contents.files[0].thumbnails.length,2);
+  const encode=(value:string)=>value.split('/').map(encodeURIComponent).join('/'),download=f.url+'/server/files/gcodes/'+encode(path);assert.equal(await (await fetch(download)).text(),data);
+  const thumbs=(await (await fetch(f.url+'/server/files/thumbnails?filename='+encodeURIComponent(path))).json()).result,preview=f.url+'/server/files/gcodes/'+encode(thumbs[1].thumbnail_path);
+  assert.ok(thumbs[1].thumbnail_path.startsWith('零件/首批/.thumbs/'));const image=await fetch(preview);assert.equal(image.status,200);assert.deepEqual(Buffer.from(await image.arrayBuffer()),png);
+  assert.equal((await fetch(f.url+'/server/files/gcodes/'+encode(meta.thumbnails[1].relative_path))).status,404,'A bundle cannot be downloaded from a different directory');
+  assert.equal((await directory('gcodes/零件/首批','DELETE')).status,409);assert.equal((await f.post(multipart('different',{file_id:'other',path:'零件/首批'},'50% test.gcode'))).status,409);
+  assert.equal((await fetch(download,{method:'DELETE'})).status,200);assert.equal((await fetch(preview)).status,404);assert.equal((await directory('gcodes/零件/首批','DELETE')).status,200);assert.equal((await directory('gcodes/零件','DELETE')).status,200);
+ }finally{await f.clean();}
+});
+for(const failedSync of [1,2])test(`directory sync failure ${failedSync} reports its commit phase and recovers without a success event`,async t=>{
+ const f=await fixture(),handle=await open(join(f.dir,'files'),'r'),prototype=Object.getPrototypeOf(handle) as import('node:fs/promises').FileHandle,original=prototype.sync;let calls=0,events=0;await handle.close();
+ const release=f.files.observeDirectories(()=>events++),injected=t.mock.method(prototype,'sync',async function(this:import('node:fs/promises').FileHandle){if(++calls===failedSync)throw Error('Injected namespace sync failure');return original.call(this);});
+ try{
+  const response=await fetch(f.url+'/server/files/directory',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({path:'gcodes/parts'})});assert.equal(response.status,500);assert.equal((await response.json()).error.data.phase,failedSync===1?'before-replace':'replaced');assert.equal(events,0);
+  injected.mock.restore();assert.equal((await readdir(join(f.dir,'files'))).some(name=>name.startsWith('.directories-')),false);
+  if(failedSync===2){assert(f.files.status.writeFault);await assert.rejects(f.files.directoryCatalog('',new AbortController().signal),/requires recovery/);}
+  else{assert.equal(f.files.status.writeFault,undefined);assert.deepEqual((await f.files.directoryCatalog('',new AbortController().signal)).directories,[]);}
+  await f.uploads.close();await f.files.close();const recovered=await PublishedPrintFiles.open(join(f.dir,'files'));try{assert.deepEqual((await recovered.directoryCatalog('',new AbortController().signal)).directories.map(d=>d.path),failedSync===2?['parts']:[]);}finally{await recovered.close();}
+ }finally{injected.mock.restore();release();await f.clean();}
+});
+test('standard multipart filename is visible without a client-supplied receipt ID',async()=>{
+ const f=await fixture();try{const response=await f.post(multipart('G1 X1\n',{},'零件.gcode'));assert.equal(response.status,200);const value=await response.json();assert.equal(value.item.path,'零件.gcode');assert.notEqual(value.file.id,'零件');assert.equal(await f.files.resolvePath('零件.gcode',new AbortController().signal),value.file.id);assert.equal(await (await fetch(f.url+'/server/files/gcodes/'+encodeURIComponent('零件.gcode'))).text(),'G1 X1\n');}finally{await f.clean();}
+});
+test('multipart bounds, fields, paths, digest and auto-print fail without publication or staging leftovers',async()=>{
+ const f=await fixture({max:100});try{
+  assert.equal((await f.post(multipart('x'.repeat(100),{file_id:'exact'}))).status,200);
+  const cases:[FormData,number][]=[[multipart('x'.repeat(101)),413],[multipart('G1',{print:'true'}),400],[multipart('G1',{path:'sub'}),404],[multipart('G1',{path:'../sub'}),400],[multipart('G1',{root:'config'}),400],[multipart('G1',{checksum:'0'.repeat(64)}),422],[multipart('G1',{},'../bad.gcode'),400],[multipart('G1',{},'bad.py'),400],[multipart('G1',{unexpected:'x'}),400],[multipart('G1',{file_id:'../id'}),400]];
+  const duplicate=multipart();duplicate.append('root','gcodes');duplicate.append('root','gcodes');cases.push([duplicate,400]);const extra=multipart();extra.append('file',new Blob(['G1']),'other.gcode');cases.push([extra,400]);cases.push([new FormData(),400]);
+  for(const [body,status] of cases){const response=await f.post(body);assert.equal(response.status,status,await response.text());assert.equal(f.files.status.publishedFiles,1);assert.deepEqual(await readdir(f.dir),['files']);}
+  const truncated=await fetch(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'},body:'--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\n\r\nG1'});assert.equal(truncated.status,400);assert.deepEqual(await readdir(f.dir),['files']);
+ }finally{await f.clean();}
+});
+test('upload authorizes before staging and after digest; maintenance blocks admission',async()=>{
+ let stage=0;const f=await fixture({authorize:(_m,params)=>{stage++;if(stage===1||Object.hasOwn(params,'sha256'))throw new ApiError(403,'Denied');}});
+ try{assert.equal((await f.post(multipart())).status,403);assert.equal(stage,1);assert.deepEqual(await readdir(f.dir),['files']);assert.equal((await f.post(multipart())).status,403);assert.equal(stage,3);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);const release=f.gate.acquire();try{assert.equal((await f.post(multipart())).status,409);assert.equal(stage,3);}finally{release();}}finally{await f.clean();}
+});
+test('held authorization has bounded admission and shutdown does not await an external policy',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:()=>held.promise});
+ try{const pending=f.post(multipart()).catch(()=>null);await until(()=>f.uploads.status.authorizing===1);assert.throws(()=>f.gate.acquire());assert.equal((await f.post(multipart())).status,429);await f.uploads.close();await pending;assert.equal(f.uploads.status.pending,0);assert.equal(f.uploads.status.authorizing,1);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal(f.files.status.publishedFiles,0);}finally{held.resolve();await f.clean();}
+});
+test('client disconnect during multipart streaming drains staging and releases activity',async()=>{
+ const f=await fixture();let req:ReturnType<typeof httpRequest>|undefined;try{
+  req=httpRequest(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'}});req.on('error',()=>{});req.write('--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\n\r\n'+('G1 X1\n'.repeat(10000)));await until(()=>f.uploads.status.pending===1);req.destroy();await until(()=>f.uploads.status.pending===0);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);const release=f.gate.acquire();release();
+ }finally{req?.destroy();await f.clean();}
+});
+test('configured native upload stays idle until durable HTTP start, then executes sealed file through EOF drain',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'upload-print-')),gate=new MaintenanceGate(),journal=await PrintJournal.open({path:join(dir,'journal.db'),deviceId:'printer'}),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir}),commands:string[]=[],drain=Promise.withResolvers<void>();let service:ConfiguredMoonraker|undefined;
+ const dispatch=new GCodeDispatch({output(){},shutdown(){}});dispatch.register('G1',command=>{commands.push(command.rawParameters());});
+ const device=new FilePrintDevice({async prepare(){dispatch.setReady(true);},async start(){},async pause(){},async resume(){},async finish(){await drain.promise;},async stop(){drain.resolve();}},dispatch,(id,signal)=>files.acquire(id,signal)),controller=new PrintController(device,{maxNozzle:300,maxBed:120},{},{journal,maintenanceGate:gate});
+ try{const path=join(dir,'main.conf');await writeFile(path,'[server]\nhost=127.0.0.1\nport=0');const information={connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]};
+  await assert.rejects(ConfiguredMoonraker.load(path,{nativeUploads:uploads,maintenanceGate:gate,information,authorize:()=>{}}),/Native uploads/);
+  service=await ConfiguredMoonraker.load(path,{nativeUploads:uploads,productPrint:controller,maintenanceGate:gate,information,authorize:(_m,_p,ctx)=>{if(ctx.request.headers['x-api-key']!=='operator')throw new ApiError(401,'Denied');}});const address=await service.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'operator'};
+  const uploaded=await fetch(url+'/server/files/upload',{method:'POST',headers,body:multipart('G1 X1.000001\nG1 X2\n',{file_id:'part'})});assert.equal(uploaded.status,200);assert.equal(controller.state,'idle');assert.deepEqual(commands,[]);assert.equal((await fetch(url+'/printer/files/info?file_id=part')).status,401);
+  assert.equal((await fetch(url+'/server/files/list')).status,401);assert.equal((await fetch(url+'/server/files/directory')).status,401);assert.equal((await fetch(url+'/server/files/metadata?filename=part.gcode')).status,401);
+  const catalog=await (await fetch(url+'/server/files/list',{headers})).json();assert.equal(catalog.result.length,1);assert.equal(catalog.result[0].name,'part.gcode');assert.equal(catalog.result[0].path,'part.gcode');
+  const selected=catalog.result[0].file_id;assert.equal(selected,'part');
+  const started=await fetch(url+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({version:1,request_id:'job',file_id:selected,nozzle:0,bed:0,expires_at:Date.now()+60000})});assert.equal(started.status,200);await until(()=>controller.state==='finishing');assert.deepEqual(commands,['X1.000001','X2']);assert.notEqual((await journal.get('job'))?.state,'completed');drain.resolve();await until(()=>controller.state==='completed');assert.equal((await journal.get('job'))?.state,'completed');await service.close();assert.equal(uploads.status.closed,true);assert.equal(files.status.closed,false);assert.equal(gate.status.closed,true);
+ }finally{drain.resolve();await service?.close();await uploads.close();await files.close();await journal.close();await rm(dir,{recursive:true,force:true});}
+});
+test('aborted authorization remains counted until actual settlement and cannot grow without bound',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:()=>held.promise});try{
+  for(let i=1;i<=2;i++){const abort=new AbortController(),pending=fetch(f.url+'/server/files/upload',{method:'POST',body:multipart(),signal:abort.signal}).catch(()=>null);await until(()=>f.uploads.status.authorizing===i);abort.abort();await pending;await until(()=>f.uploads.status.pending===0);}
+  const encoded=new Request(f.url,{method:'POST',body:multipart()}),body=Buffer.from(await encoded.arrayBuffer());assert.equal((await fetch(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':encoded.headers.get('content-type')!},body})).status,503);assert.equal(f.uploads.status.authorizing,2);assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal((await f.post(multipart())).status,200);
+ }finally{held.resolve();await f.clean();}
+});
+test('closing during final authorization prevents late publication and removes staged bytes',async()=>{
+ const held=Promise.withResolvers<void>(),f=await fixture({authorize:(_m,p)=>Object.hasOwn(p,'sha256')?held.promise:undefined});try{
+  const pending=f.post(multipart());await until(()=>f.uploads.status.authorizing===1);assert.ok((await readdir(f.dir)).some(name=>name.startsWith('anyraid-upload-')));await f.uploads.close();assert.equal((await pending).status,503);assert.deepEqual(await readdir(f.dir),['files']);held.resolve();await until(()=>f.uploads.status.authorizing===0);assert.equal(f.files.status.publishedFiles,0);
+ }finally{held.resolve();await f.clean();}
+});
+test('chunked excess body and malformed headers reject without publication',async()=>{
+ const f=await fixture({max:100});try{
+  const response=await new Promise<number>((resolve,reject)=>{const req=httpRequest(f.url+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=abc'}},res=>{res.resume();res.on('end',()=>resolve(res.statusCode!));});req.on('error',reject);req.write('x'.repeat(70000));req.end();});assert.equal(response,413);
+  for(const [url,type,body] of [[f.url+'/server/files/upload','multipart/form-data','x'],[f.url+'/server/files/upload?path=sub','multipart/form-data; boundary=abc','--abc--'],[f.url+'/server/files/upload','multipart/form-data; boundary=abc','--abc\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\nX-Test: '+('x'.repeat(17000))+'\r\n\r\nG1\r\n--abc--']]){const result=await fetch(url,{method:'POST',headers:{'content-type':type},body});assert.equal(result.status,400);}
+  assert.equal(f.files.status.publishedFiles,0);assert.deepEqual(await readdir(f.dir),['files']);assert.equal(f.network.status.bufferedBytes,0);
+ }finally{await f.clean();}
+});
+
+test('native catalog preserves duplicate names, stable receipt times and RPC parity across reopen',async()=>{
+ const f=await fixture();let reopened:PublishedPrintFiles|undefined;
+ try{
+  assert.deepEqual((await (await fetch(f.url+'/server/files/list')).json()).result,[]);
+  for(const [id,text] of [['z','G1 X2'],['a','G1 X1']])assert.equal((await f.post(multipart(text,{file_id:id},'同名.gcode'))).status,200);
+  const result=(await (await fetch(f.url+'/server/files/list?root=gcodes')).json()).result;
+  assert.deepEqual(result.map((entry:any)=>[entry.path,entry.file_id,entry.name]),[['a.gcode','a','同名.gcode'],['z.gcode','z','同名.gcode']]);
+  for(const entry of result){assert(entry.modified>0&&entry.modified<=Date.now()/1000);assert.equal(entry.permissions,'r');assert.equal(entry.size,5);}
+  assert.notEqual(result[0].sha256,result[1].sha256);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.list',params:{}})});assert.deepEqual((await rpc.json()).result,result);
+  assert.equal((await fetch(f.url+'/server/files/list?root=config')).status,404);assert.equal((await fetch(f.url+'/server/files/list?extra=x')).status,400);
+  await f.files.close();reopened=await PublishedPrintFiles.open(join(f.dir,'files'));
+  const catalog=await reopened.catalog(new AbortController().signal);assert.deepEqual(catalog.map(entry=>[entry.file.id,entry.modified]),result.map((entry:any)=>[entry.file_id,entry.modified]));
+  await reopened.remove('a',new AbortController().signal);assert.deepEqual((await reopened.catalog(new AbortController().signal)).map(entry=>entry.file.id),['z']);
+ }finally{await reopened?.close();await f.clean();}
+});
+test('native list registration rolls back info when the shared catalog route is already owned',async()=>{
+ const f=await fixture();try{const rpc=new JsonRpcDispatcher(),registry=new EndpointRegistry(rpc);registry.register({endpoint:'/server/files/list',methods:['GET']},()=>[]);assert.throws(()=>registerNativeFileInfo(registry,f.uploads),/already registered/);assert.equal(registry.allowed('/printer/files/info'),undefined);assert.equal(rpc.has('printer.files.info'),false);assert.equal(rpc.has('server.files.list'),true);
+  await f.uploads.close();assert.equal((await fetch(f.url+'/server/files/list')).status,503);
+ }finally{await f.clean();}
+});
+
+test('native directory and scalar metadata bind the selected immutable file and survive source retirement',async()=>{
+ const f=await fixture();try{
+  const data='; generated by PrusaSlicer 2.8 on 2026-01-01 at 12:34:56\n; layer_height = .2\n; first_layer_height = 150%\nG1 X1\n';await f.post(multipart(data,{file_id:'meta'}));
+  const url=f.url+'/server/files/metadata?filename=meta.gcode',response=await fetch(url);assert.equal(response.status,200);const metadata=(await response.json()).result;assert.equal(metadata.slicer,'PrusaSlicer');assert.equal(metadata.first_layer_height,.3);assert.equal(metadata.layer_height,.2);assert.equal(metadata.file_id,'meta');assert.equal(metadata.size,Buffer.byteLength(data));assert.equal(metadata.filename,'meta.gcode');
+  const hot=(await (await fetch(url)).json()).result;assert.deepEqual(hot,metadata);assert.equal(f.uploads.status.metadata.cache.entries,1);assert.equal(f.uploads.status.metadata.snapshots.reservations,0);
+  const directory=(await (await fetch(f.url+'/server/files/directory?path=gcodes&extended=true')).json()).result;assert.deepEqual(directory.dirs,[]);assert.equal(directory.files[0].filename,'meta.gcode');assert.equal(directory.files[0].layer_height,.2);assert.equal(directory.files[0].modified,metadata.modified);assert(directory.disk_usage.total>=directory.disk_usage.free);assert.equal(directory.root_info.name,'gcodes');
+  const plain=(await (await fetch(f.url+'/server/files/directory')).json()).result;assert.equal(plain.files[0].layer_height,undefined);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.get_directory',params:{extended:true}})});assert.equal((await rpc.json()).result.files[0].first_layer_height,.3);
+  assert.equal((await fetch(f.url+'/server/files/directory?path=gcodes/../config')).status,404);assert.equal((await fetch(f.url+'/server/files/directory?extended=maybe')).status,400);assert.equal((await fetch(f.url+'/server/files/metadata?filename=../meta.gcode')).status,400);
+  await f.files.remove('meta',new AbortController().signal);assert.equal((await fetch(url)).status,404);assert.equal((await (await fetch(f.url+'/server/files/directory?extended=true')).json()).result.files.length,0);
+  await f.post(multipart(data.replace('= .2','= .4'),{file_id:'meta'}));const replacement=(await (await fetch(url)).json()).result;assert.equal(replacement.layer_height,.4);assert.notEqual(replacement.sha256,metadata.sha256);
+  await f.uploads.close();assert.equal((await fetch(url)).status,503);
+ }finally{await f.clean();}
+});
+test('nested directory move HTTP and RPC authorize every child, revoke old previews and preserve immutable IDs',async()=>{
+ const calls:any[]=[],events:any[]=[],f=await fixture({removal:true,authorize(method,params){if(method==='server.files.move')calls.push({...params});}}),signal=new AbortController().signal;const off=f.uploads.observeChanges(event=>events.push(event));try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('parts/sub',false,signal);const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png);
+  for(const id of ['a','b'])assert.equal((await f.post(multipart(data,{file_id:id,path:'parts/sub'},id+'.gcode'))).status,200);
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=parts/sub/a.gcode')).json()).result,old=f.url+'/server/files/gcodes/parts/sub/'+metadata.thumbnails[1].relative_path;
+  const moved=await moveHttp(f,'gcodes/parts/sub','gcodes/renamed');assert.equal(moved.status,200,await moved.clone().text());const result=(await moved.json()).result;assert.equal(result.action,'move_dir');assert.deepEqual(result.source_item,{path:'parts/sub',root:'gcodes'});assert.equal(result.item.path,'renamed');assert.equal((await fetch(old)).status,404);assert.equal((await fetch(f.url+'/server/files/metadata?filename=parts/sub/a.gcode')).status,404);
+  const updated=(await (await fetch(f.url+'/server/files/metadata?filename=renamed/a.gcode')).json()).result;assert.equal(updated.file_id,'a');assert.equal(updated.sha256,metadata.sha256);assert.equal(await (await fetch(f.url+'/server/files/gcodes/renamed/a.gcode')).text(),data);assert.equal((await fetch(f.url+'/server/files/gcodes/renamed/'+updated.thumbnails[1].relative_path)).status,200);
+  assert.deepEqual(calls.filter(p=>p.file_id).map(p=>[p.file_id,p.source,p.dest]),[['a','gcodes/parts/sub/a.gcode','gcodes/renamed/a.gcode'],['b','gcodes/parts/sub/b.gcode','gcodes/renamed/b.gcode']]);assert.equal(events.filter(e=>e.action==='move_dir').length,1);assert.deepEqual(events.at(-1).source_item,result.source_item);assert.equal(events.filter(e=>e.action==='move_file').length,0);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'server.files.move',params:{source:'gcodes/renamed',dest:'gcodes/parts'}})});assert.equal((await rpc.json()).result.item.path,'parts/renamed');assert.equal(f.files.filename('b'),'parts/renamed/b.gcode');assert.equal(f.uploads.status.pending,0);
+ }finally{off();await f.clean();}
+});
+test('directory move denies any child policy or active/paused identity and allows unrelated directories',async()=>{
+ let denied=false;const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.move'&&p.file_id==='b'&&denied)throw new ApiError(403,'Denied child');}}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('other',false,signal);for(const id of ['a','b'])await f.post(multipart('G1 X1\n',{file_id:id,path:'parts'},id+'.gcode'));denied=true;assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);assert.equal(f.files.filename('a'),'parts/a.gcode');denied=false;
+  await f.controller!.start({version:1,requestId:'active-directory',fileId:'b',nozzle:0,bed:0});assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);await f.controller!.pause();assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,403);assert.equal((await moveHttp(f,'gcodes/other','gcodes/other-renamed')).status,200);assert.equal(f.controller!.state,'paused');await f.controller!.cancel();assert.equal((await moveHttp(f,'gcodes/parts','gcodes/renamed')).status,200);assert.equal(f.files.filename('a'),'renamed/a.gcode');assert.equal(f.files.filename('b'),'renamed/b.gcode');
+ }finally{await f.clean();}
+});
+test('directory child published during delayed authorization remains unmoved and rejects the stale transaction',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false;const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.move'&&p.file_id){entered=true;return held.promise;}}}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a.gcode'));const pending=moveHttp(f,'gcodes/parts','gcodes/renamed');await until(()=>entered);const path=join(f.dir,'late');await writeFile(path,'G1 X2\n');const source=await open(path,'r');try{await f.files.publish('late','late',source,signal,'parts/late.gcode');}finally{await source.close();}held.resolve();assert.equal((await pending).status,409);assert.equal(f.files.filename('late'),'parts/late.gcode');assert.equal(f.files.filename('a'),'parts/a.gcode');assert.equal((await readdir(join(f.dir,'files'))).includes('.namespace-move.json'),false);
+ }finally{held.resolve();await f.clean();}
+});
+test('resolved directory child path overflow returns 400 and leaves every file unmoved',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal;try{
+  let parent='';for(let i=0;i<3;i++){parent+=(parent?'/':'')+'p'.repeat(250);await f.files.mutateDirectory(parent,false,signal);}await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a'.repeat(60)+'.gcode'));
+  assert.equal((await moveHttp(f,'gcodes/parts','gcodes/'+parent+'/'+'q'.repeat(250))).status,400);assert.equal(f.files.filename('a'),'parts/'+'a'.repeat(60)+'.gcode');assert.equal(f.files.status.reservedBytes,0);
+ }finally{await f.clean();}
+});

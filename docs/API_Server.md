@@ -28,10 +28,10 @@ terminated by an ASCII 0x03 character:
 <json_object_1><0x03><json_object_2><0x03>...
 ```
 
-Klipper contains a `scripts/whconsole.py` tool that can perform the
+Klipper contains a `scripts/whconsole.ts` tool that can perform the
 above message framing. For example:
 ```
-~/klipper/scripts/whconsole.py /tmp/klippy_uds
+node ~/klipper/scripts/whconsole.ts /tmp/klippy_uds
 ```
 
 This tool can read a series of JSON commands from stdin, send them to
@@ -39,6 +39,27 @@ Klipper, and report the results. The tool expects each JSON command to
 be on a single line, and it will automatically append the 0x03
 terminator when transmitting a request. (The Klipper API server does
 not have a newline requirement.)
+
+The console requires Node.js 26. The former `scripts/whconsole.py` entry
+has been removed; use `scripts/whconsole.ts` instead.
+Blank lines and lines beginning with `#`
+are ignored; invalid JSON reports an error and does not reach the socket.
+JSON number text is preserved exactly, including large integer IDs. Input
+lines and response frames are limited to 1 MiB each. UTF-8 errors and
+truncated response frames are rejected. Output uses readable `SEND:` and
+`GOT:` prefixes, instead of the old Python bytes representation.
+
+On stdin EOF, a final line without a newline is sent, then the socket is
+half-closed and responses are drained for up to 5000 ms. Use
+`--drain-timeout MS` to change this limit (1..600000 ms). Connection refusal
+is retried for up to 10000 ms (`--connect-timeout MS`); other connection
+errors fail immediately. There is no reconnect or command replay after
+connection. Ctrl-C closes the connection; already sent commands may still
+execute. Cancellation also stops waiting for a blocked output write. The
+library does not destroy caller-owned output streams: an already submitted
+terminal write can still finish later, but cannot trigger a deferred socket
+send. Keep stdin open when using long-lived subscriptions.
+
 
 ## API Protocol
 

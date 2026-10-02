@@ -1,0 +1,31 @@
+{
+  "date": "2026-09-28",
+  "scope": "Kconfig syntax and raw property parsing only",
+  "reference": "kconfig-structure-reference.json",
+  "referenceSource": "lib/kconfiglib/kconfiglib.py",
+  "referenceMethod": "One-time Python Kconfig node_iter snapshot of orig_prompt, help, orig_defaults, orig_selects and orig_ranges; source SHA-256 and Kconfig input hashes embedded. Daily test reads frozen JSON without Python.",
+  "files": 12,
+  "configDefinitions": 451,
+  "choices": 29,
+  "comparedNodes": 487,
+  "treeNodesIncludingRootAndIf": 499,
+  "tests": 4,
+  "benchmark": {
+    "node": "v26.9.0",
+    "files": 12,
+    "nodes": 499,
+    "warmups": 5,
+    "runs": 30,
+    "medianMs": 3.598771499999998,
+    "p95Ms": 7.038582000000005,
+    "maximumMs": 7.140613000000002,
+    "scope": "Warm filesystem full-tree parsing including file reads; excludes evaluation, configuration export, menu and process startup. Not a print hot path."
+  },
+  "limitations": [
+    "No default/dependency evaluation, .config/autoconf generation, minimal config export or interactive menu yet",
+    "Makefile still invokes Python Kconfiglib; no Python retired by this change",
+    "No comparative speedup claim: old constructor also evaluates dependencies",
+    "No change to print runtime or motion arithmetic",
+    "Historical Node crashes and transient motion mismatches remain unresolved"
+  ]
+}

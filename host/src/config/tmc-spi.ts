@@ -1,0 +1,42 @@
+import {spiBusRequests} from './spi-bus.ts';
+import {planTmc2240} from '../drivers/tmc2240.ts';
+import {planTmc5160} from '../drivers/tmc5160.ts';
+import type {ConfigurationReader} from '../moonraker/config-reader.ts';
+import {PrinterPins,type PhysicalPinMap,type PinRequest} from '../protocol/pins.ts';
+import {mcuOids} from '../protocol/mcu-oids.ts';
+import type {StepperMCU} from './stepper.ts';
+import {compileTmcSpi,compileTmcSoftwareSpi} from '../drivers/tmc-spi-mcu.ts';
+import {planTmc2130} from '../drivers/tmc2130.ts';
+type SpiDriverPlan=(Omit<ReturnType<typeof planTmc2130>,'registers'>|Omit<ReturnType<typeof planTmc5160>,'registers'>|Omit<ReturnType<typeof planTmc2240>,'registers'>)&{registers:readonly Readonly<{name:string;address:number;value:number}>[]};
+/** One OID per CS chain. Bus pins share only identical physical wiring and
+ * backend; chip selects remain exclusive across peripheral kinds. */
+export function compileConfiguredTmcSpi<T>(reader:ConfigurationReader,pins:PrinterPins<T>,mcus:ReadonlyMap<string,StepperMCU<T>>,steppers:readonly {section:string;bothEdges:boolean}[]){
+ const maps=new Map<string,PhysicalPinMap>(),requests:PinRequest[]=[],usedBuses=new Set<string>();
+ const chains=new Map<string,{mcu:string;cs:ReturnType<typeof pins.parse>;bus:string;software?:readonly ReturnType<typeof pins.parse>[];rate:number;length:number;devices:{position:number;plan:SpiDriverPlan}[]}>();
+ for(const section of reader.sections().filter(s=>/^tmc(2130|5160|2240) /.test(s)&&!(s.startsWith('tmc2240 ')&&reader.section(s).hasOption('uart_pin')))){
+  const c=reader.section(section),base=section.startsWith('tmc2240 ')?planTmc2240(reader,section):section.startsWith('tmc5160 ')?planTmc5160(reader,section):planTmc2130(reader,section),stepper=steppers.find(s=>s.section===base.stepper);
+  if(!stepper||!reader.section(base.stepper).hasOption('enable_pin'))throw new Error('TMC SPI requires a controlled stepper enable');
+
+  const description=c.get('cs_pin'),cs=pins.parse(description),mcu=mcus.get(cs.chipName);if(!mcu||mcu.chip!==cs.chip)throw new Error('TMC SPI MCU mismatch');
+  const resolver=pins.resolver(cs.chipName).clone(),enumeration=mcu.dictionary.pinEnumeration;
+  for(const [name,value] of Object.entries(mcu.dictionary.constants))if(name.startsWith('RESERVE_PINS_')){if(typeof value!=='string')throw new Error('Invalid firmware pin reservation');for(const p of value.split(','))if(p.trim())resolver.reserve(p.trim(),name.slice(13));}
+  const resolved=resolver.resolve([`claim pin=${cs.pin}`])[0].slice(10);if(enumeration[resolved]===undefined)throw new Error('Unknown SPI CS pin');
+  maps.set(cs.chipName,{pins:enumeration,reserved:resolver.physicalReservations(enumeration)});
+  const swNames=['spi_software_miso_pin','spi_software_mosi_pin','spi_software_sclk_pin'],sw=swNames.some(k=>c.hasOption(k));
+  const software=sw?swNames.map(k=>{const p=pins.parse(c.get(k));if(p.chip!==cs.chip)throw new Error('Software SPI pins must share the CS MCU');const name=resolver.resolve([`claim pin=${p.pin}`])[0].slice(10);if(enumeration[name]===undefined)throw new Error('Unknown software SPI pin');return Object.freeze({...p,pin:name});}):undefined;
+  const bus=software?'software:'+software.map(p=>enumeration[p.pin]).join(','):c.get('spi_bus'),rate=c.getInt('spi_speed',{defaultValue:4000000,minval:100000,maxval:0xffffffff}),length=c.getInt('chain_length',{defaultValue:1,minval:c.hasOption('chain_length')?2:1,maxval:10}),position=c.getInt('chain_position',{defaultValue:length===1?1:undefined,minval:1,maxval:length});
+  const key=cs.chipName+':'+enumeration[resolved],old=chains.get(key);
+  const plan=stepper.bothEdges?Object.freeze({...base,registers:Object.freeze(base.registers.map(r=>r.name==='CHOPCONF'?Object.freeze({...r,value:(r.value|0x20000000)>>>0}):r))}):base;
+  if(old){if(old.bus!==bus||old.rate!==rate||old.length!==length||old.devices.some(d=>d.position===position))throw new Error('Conflicting TMC SPI chain configuration');old.devices.push({position,plan});}
+  else{chains.set(key,{mcu:cs.chipName,cs:Object.freeze({...cs,pin:resolved}),bus,software,rate,length,devices:[{position,plan}]});requests.push({description,exclusive:true});}
+  const busKey=cs.chipName+':'+bus;if(!usedBuses.has(busKey)){
+   requests.push(...spiBusRequests(pins,cs.chipName,mcu.dictionary,bus,software));
+   usedBuses.add(busKey);
+  }
+ }
+ const entries=[...chains.values()];if(!entries.length)return Object.freeze([]);
+ return mcuOids(pins).claim(entries.map(b=>({mcu:b.mcu,owner:'tmc_spi:'+b.cs.pin})),oids=>{
+  const plans=entries.map((b,i)=>Object.freeze({mcu:b.mcu,spi:b.software?compileTmcSoftwareSpi(mcus.get(b.mcu)!.chip,mcus.get(b.mcu)!.dictionary,oids[i],b.cs,b.software,b.rate):compileTmcSpi(mcus.get(b.mcu)!.chip,mcus.get(b.mcu)!.dictionary,oids[i],b.cs,b.bus,b.rate),length:b.length,devices:Object.freeze(b.devices.map(d=>Object.freeze(d)))}));
+  pins.lookupBatch(requests,maps);return Object.freeze(plans);
+ });
+}

@@ -1,0 +1,94 @@
+{
+  "node": "26.9.0",
+  "environment": {
+    "PATH": "/no-programs"
+  },
+  "dispatch": [
+    {
+      "node": "v26.9.0",
+      "reference": "f89b7eff1f4592399d9eb9ad0f679d894cb9a0d2a40a79f81f48d139c16e9ca2",
+      "warmup": 2,
+      "measured": 7,
+      "scope": "Node only; original Python timings are historical in motan-io-python-baselines.json"
+    },
+    {
+      "rounds": 10000,
+      "rows": 1,
+      "node": {
+        "median": 126.07032700000002,
+        "p95": 128.159786
+      },
+      "maxEventLoopMs": 7.643135,
+      "checksum": 150260000
+    },
+    {
+      "rounds": 256,
+      "rows": 1000,
+      "node": {
+        "median": 288.03529800000024,
+        "p95": 290.27044899999964
+      },
+      "maxEventLoopMs": 2.299903,
+      "checksum": 872180
+    }
+  ],
+  "writer": {
+    "node": "v26.9.0",
+    "zlib": "1.3.2.1-motley-285e94b",
+    "warmups": 2,
+    "runs": 7,
+    "results": [
+      {
+        "label": "small",
+        "records": 4096,
+        "bytes": 379301,
+        "flushEvery": 256,
+        "results": {
+          "nodeBatch1": {
+            "medianMs": 41.25420100000002,
+            "p95Ms": 54.70096100000001,
+            "eventLoopMaximumMs": 2.089983
+          },
+          "nodeBatch16": {
+            "medianMs": 7.2141920000000255,
+            "p95Ms": 8.39685899999995,
+            "eventLoopMaximumMs": 2.007039
+          }
+        }
+      },
+      {
+        "label": "bulk",
+        "records": 128,
+        "bytes": 7387468,
+        "flushEvery": 16,
+        "results": {
+          "nodeBatch1": {
+            "medianMs": 166.3997730000001,
+            "p95Ms": 168.88298799999984,
+            "eventLoopMaximumMs": 2.465791
+          },
+          "nodeBatch16": {
+            "medianMs": 150.84843199999978,
+            "p95Ms": 156.01519499999995,
+            "eventLoopMaximumMs": 3.883007
+          }
+        }
+      }
+    ],
+    "scope": "Node async compression/file writes verified against exact ETX bytes and full-flush boundaries on local tmpfs. Original Python timings are historical in motan-io-python-baselines.json; no Python process is invoked. Includes open/close; excludes input generation, verification, socket capture and target-printer load. Node batch 16 may only group records without an intervening index boundary."
+  },
+  "reference": "motan-io-python-baselines.json",
+  "checks": [
+    "Dispatch checksums match frozen original Python and independently summed workload totals",
+    "Writer decompressed bytes match every input record and full-flush grouping",
+    "Neither benchmark starts Python or Git"
+  ],
+  "openPerformanceIssues": [
+    "Small-record Node dispatcher remains around 14-15% slower than original Python in this local benchmark",
+    "Unbatched small-record async Node writes remain slower than synchronous Python; capture uses batching"
+  ],
+  "limitations": [
+    "Offline local file benchmark; no target-board or concurrent-print evidence",
+    "Runtime algorithms unchanged; removal of benchmark reference processes is not a runtime optimization"
+  ]
+}

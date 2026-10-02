@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "source": {
+    "commit": "c4f28d3e19736e46320017d3d4f16c50c5e6a9d7",
+    "path": "scripts/whconsole.py",
+    "sha256": "589fd5654809049790643cc886db76a747011e14d132ae1619ed6bcf61507a21"
+  },
+  "fixture": {
+    "requests": 10000,
+    "inputBytes": 838890,
+    "inputSha256": "45a4c4e38b963b599e72fbfe9292aa9b7edb65f8c786bc8d507baf335035cf94",
+    "wireSha256": "0ba1eabee45943d1790c24429d9200236543debe4ae0dd991fa42fcd02fc84a5"
+  },
+  "recordedMeasurement": {
+    "capturedAt": "2026-09-21T18:25:46.959Z",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "python": "3.12.13",
+    "node": "v26.9.0",
+    "warmups": 5,
+    "runs": 11,
+    "pythonFraming": {
+      "medianMs": 53.132656999878236,
+      "p95Ms": 53.383069000119576
+    },
+    "nodeFraming": {
+      "medianMs": 36.004859000000124,
+      "p95Ms": 67.8827510000001
+    },
+    "scope": "Input framing, JSON validation/compaction, SEND formatting and output accumulation in memory. Original KeyboardReader.process_kbd with os.read/socket/stdout substitutes. Actual socket/terminal backpressure and startup excluded."
+  }
+}

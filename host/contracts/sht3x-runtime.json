@@ -1,0 +1,43 @@
+{
+  "status": "configured sensor, fan and heater verified with simulated MCUs",
+  "tests": 22,
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 original Python sample callbacks vs TS async driver samples with fake I2C; Python includes range/callback/report handling, TS excludes periodic owner; no electrical IO; 4096 values and all 65536 CRCs match; 3 warmups and 5 alternating retained rounds",
+    "baseline": {
+      "samplesMs": [
+        489.76568700163625,
+        468.4919489955064,
+        470.3768420004053,
+        472.55904899793677,
+        470.49826399597805
+      ],
+      "medianMs": 470.49826399597805
+    },
+    "current": {
+      "samplesMs": [
+        65.51682600000004,
+        66.13048300000037,
+        65.61301599999979,
+        65.31317300000046,
+        63.91054600000007
+      ],
+      "medianMs": 65.51682600000004
+    }
+  },
+  "coverage": [
+    "AHT compatibility with shared I2C runtime",
+    "SHT3X fractional humidity retained for combined inputs; status rounded to one decimal",
+    "Cross-MCU control and CRC failure group shutdown",
+    "Mixed model bus sharing and duplicate address rejection",
+    "Forced FETCH waits one second after previous result; cancellation prevents subsequent IO",
+    "All 65536 raw words and all single-bit frame corruptions"
+  ],
+  "limitations": [
+    "No physical sensor or printer acceptance",
+    "SHT3X compiled HTTP journey pending",
+    "One-second FETCH spacing is conservative host policy, not measured physical timing proof",
+    "Benchmark uses virtual time and fake IO; TS excludes periodic owner while Python includes callback/range/report work",
+    "No Python retired; 177 tracked Python files remain"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "node": "v26.9.0",
+  "compiled": true,
+  "change": "same",
+  "successivePrintMs": 24017.638955,
+  "completedJobs": 2,
+  "calibrationMs": 13525.585577,
+  "originalContacts": 13,
+  "adaptedContacts": 5,
+  "probedMatrix": [
+    [
+      9.626543211000042,
+      9.626543211000042,
+      9.626543211000042
+    ],
+    [
+      9.626543211000042,
+      9.626543211,
+      9.626543210999957
+    ],
+    [
+      9.626543211,
+      9.626543211,
+      9.626543211
+    ]
+  ],
+  "compensatedPosition": [
+    0,
+    0,
+    19.626543210999998,
+    0.1
+  ],
+  "passed": true,
+  "scope": "Compiled simulated-MCU case: same means two compensated prints complete across controlled reset with no additional probes and eight extrusion steps per job; other/modified means admitted request fails before new steps. Each case includes adaptive calibration and persistence rejection. Existing dependencies reused; excludes clean installation and physical precision."
+}

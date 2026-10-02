@@ -1,0 +1,297 @@
+{
+  "implementationBase": "a414f67d",
+  "date": "2026-09-30",
+  "node": "v26.9.0",
+  "scope": "Explicit native product-service process listener reuse across two simulated PTY MCU groups. runProductHost still closes its listener on reinitialization; standard restart and physical hardware acceptance remain incomplete.",
+  "sourceSha256": {
+    "host/src/runtime/product-host.ts": "4132a38f7a558008e70712d72a239aa59b496572120a21398535423d7c21f125",
+    "host/src/runtime/product-service.ts": "af340a2a0fd7512e2154ca2e22d7219c0858707cb2ca4836e5d9e7036131111d",
+    "host/src/runtime/native-product-machine.ts": "c7291ab6ccb46f102fccdf73d3f93909d49c458f88a06dd05f5f4c9cd21c11c4",
+    "host/src/moonraker/configured-server.ts": "a7fc3a4284f289786efca2cc0c164c31e264e1b0377c105f54ac8d410a9f4ab3",
+    "host/src/moonraker/database-maintenance.ts": "b7edcd3de0fe37daf04f0ba2f9c79cf0eeeb9e51b275e918b46d3ead4108b2d1",
+    "host/src/moonraker/native-print-uploads.ts": "014a138f0dd6b384996948cf6884aaa215513bb50b702c8066449ab682b4038d",
+    "host/src/moonraker/native-request-scope.ts": "0f4b5c0301a07ec1216edb31b62a04e0cd4f4f41cf01e2b2c6c2fd7e0975aef7",
+    "host/src/moonraker/rpc.ts": "80356fd02e887b29acb7a50bf74b6702a5e79da039e62afcbe2a96ff002649d5",
+    "host/src/moonraker/server.ts": "b6e1dba5494baef79398fbb6e452ad436d8bdffb8dbec66c6ff42057fa5ce05d",
+    "host/test/native-generation-attachment.test.ts": "af0a524075dd90985b176a6159f2012fb4613f890686f0e655f2d178e991f7d2",
+    "host/test/product-server-generation.test.ts": "7015e8918279c74ffc8e5a92792bb0fc39bedfcc84885c8d7d6f8f5f048ab3dc",
+    "host/bench/native-request-scope.ts": "23177f3cb2d9605239d7722fec76ce16a0591a18078a87895cc2451b44fdc082",
+    "host/acceptance/product-compiled-journey.test.ts": "2e1fc32d2a781d54306564ecb9132807e26b4802953c50b47a4851b12a7a140a"
+  },
+  "verified": [
+    "Explicit product process lifetime retains one HTTP listener, WebSocket and native JWT database across two configured MCU groups. Each simulated physical-stop callback runs once.",
+    "The existing service close promise cannot retire the newly attached generation. Changed opaque database identity is rejected before acquiring the new hardware.",
+    "A new concrete idle/interrupted controller, distinct quiescent gate, fresh object readers and optional file owner require old work drain and trusted successful stop confirmation. Rejected candidates remain caller-owned; accepted preparation failure retires the candidate without publishing ready.",
+    "Old subscriptions and native samplers stop. A new subscription returns its current snapshot on the same identified WebSocket. Files and durable cancelled history persist through multiple explicit attachments; no print replay occurs.",
+    "REST and JSON-RPC request bodies admitted before retirement cannot start the new generation even if their bodies finish afterward. Direct file transport captures its original file owner.",
+    "Database maintenance captures the current generation gate per operation, rejecting a new print-active generation.",
+    "File close cancels staging/requests promptly; owner drain waits actual settlement of ignored authorization before releasing resources or closing the database. Concurrent attachment and premature stop confirmation are rejected."
+  ],
+  "regressions": {
+    "distinctSourceCases": 139,
+    "batches": [
+      {
+        "logSha256": "2fdccd6f5b03081ec871457786ed0d66e654201f163cbb581460211b8574cdf1",
+        "passed": 138,
+        "failed": 1,
+        "phase": "Before the final early-start cancellation guard",
+        "failure": "Configured startup/shutdown race returned stopping instead of expected cancelled. Recorded without claiming the failed batch passed."
+      },
+      {
+        "logSha256": "c1d83efd95b95e67b350c9435fb0bb1f68d966fb925e45129b2f24db9b0f4045",
+        "passed": 21,
+        "failed": 0,
+        "phase": "Final runtime source: all configured-server cases and both new attachment/product-service files",
+        "fix": "After webcam startup yields, reject a cancelled start before publishing configuration or information."
+      }
+    ],
+    "earlierProductTestFailure": "Initial product reuse test queried nonexistent /printer/drivers/current (404); corrected the test to its actual /printer/settings/driver_current route. Final product-service reuse test passes.",
+    "checks": [
+      "Node26 strict TypeScript typecheck passed after final runtime edits.",
+      "Repository whitespace script and git diff --check passed.",
+      "All 13 recorded source hashes and the affected documentation local links verified."
+    ],
+    "initialProductRouteTest": {
+      "logSha256": "fcd50e931b40e167733256ecf2c20f34654e85156ca0bd10a153877e32ed588c",
+      "passed": 59,
+      "failed": 1,
+      "phase": "Initial product route assertion; /printer/drivers/current returned 404; corrected to registered settings route before final successful batches."
+    }
+  },
+  "productServiceReplacement": {
+    "replacementMs": 511.49064299999986,
+    "scope": "Product service with two simulated PTY MCU groups; same listener and native JWT database",
+    "firstStops": [
+      1,
+      1
+    ],
+    "nextStops": [
+      1,
+      1
+    ]
+  },
+  "requestConstructionBenchmark": {
+    "node": "v26.9.0",
+    "iterations": 8000,
+    "warmup": "one ABBA block",
+    "samples": [
+      {
+        "mode": "plain",
+        "wallUs": 5.754479999999994,
+        "cpuUs": 7.110875,
+        "rss": 138117120,
+        "heapUsed": 27200184
+      },
+      {
+        "mode": "fenced",
+        "wallUs": 6.784170875000001,
+        "cpuUs": 8.337875,
+        "rss": 138772480,
+        "heapUsed": 30086696
+      },
+      {
+        "mode": "fenced",
+        "wallUs": 6.745642625000002,
+        "cpuUs": 7.90725,
+        "rss": 139165696,
+        "heapUsed": 32797408
+      },
+      {
+        "mode": "plain",
+        "wallUs": 5.496017500000001,
+        "cpuUs": 5.64825,
+        "rss": 139165696,
+        "heapUsed": 26232032
+      },
+      {
+        "mode": "plain",
+        "wallUs": 5.535269624999998,
+        "cpuUs": 5.541125,
+        "rss": 139165696,
+        "heapUsed": 26835096
+      },
+      {
+        "mode": "fenced",
+        "wallUs": 6.580393124999986,
+        "cpuUs": 6.706125,
+        "rss": 139296768,
+        "heapUsed": 29150696
+      },
+      {
+        "mode": "fenced",
+        "wallUs": 6.507418125000001,
+        "cpuUs": 6.617875,
+        "rss": 139427840,
+        "heapUsed": 31636272
+      },
+      {
+        "mode": "plain",
+        "wallUs": 5.556583625000002,
+        "cpuUs": 5.585625,
+        "rss": 139427840,
+        "heapUsed": 32454928
+      }
+    ],
+    "summary": {
+      "plain": {
+        "medianBatchUs": 5.545926625,
+        "maxBatchUs": 5.754479999999994,
+        "maxRss": 139427840,
+        "maxHeapUsed": 32454928
+      },
+      "fenced": {
+        "medianBatchUs": 6.663017874999994,
+        "maxBatchUs": 6.784170875000001,
+        "maxRss": 139427840,
+        "maxHeapUsed": 32797408
+      }
+    },
+    "scope": "Desktop synchronous two-object response construction with fresh request lifetimes and the current native generation signal in both variants. No Python, target-board or physical print comparison; high-frequency cost also requires a compiled concurrent-print regression.",
+    "logSha256": "5354b48706f9f583467599903d9ed0821a92ab4a5a4d361ce882a397b670dc2b"
+  },
+  "compiledExistingHostRegression": {
+    "logSha256": "96eb1acaa3f5bfbbbdfeb0d966fde38381a30e3a4e335229913961fdbff44f2d",
+    "passed": 1,
+    "failed": 0,
+    "durationMs": 36943.771843,
+    "command": "node --test --test-concurrency=1 --test-name-pattern=\"^nativeAuthorization=true apiLoad=true \" host/acceptance/product-compiled-journey.test.ts",
+    "metrics": {
+      "motionReportLoad": true,
+      "liveMotionSamples": 2658,
+      "liveExtrusionSamples": 1461,
+      "nativeAuthorization": true,
+      "apiLoad": true,
+      "completedStatistics": {
+        "total_duration": 7.5373466339999995,
+        "print_duration": 2.5409341330000017,
+        "filament_used": 1
+      },
+      "bundleManifestSha256": "9bbe1fcf3e9ce4a5759a3630e307a593d165782256e5bbb8b1477a7fbfd36b50",
+      "bmp180": false,
+      "bme": false,
+      "bmeHeater": false,
+      "htu": false,
+      "htuHeater": false,
+      "htuModel": null,
+      "lm75": false,
+      "lm75Heater": false,
+      "sht": false,
+      "shtHeater": false,
+      "aht": false,
+      "ahtHeater": false,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 3860,
+      "phaseP99Ms": 4.373520999997709,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": true,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 43
+        },
+        {
+          "statusReads": 64,
+          "writes": 42
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "adc",
+      "historyNotifications": 32,
+      "historyRequests": 865,
+      "historyP99Ms": 9.538446999998996,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 12.328229999999166,
+      "deleteRequests": 16,
+      "deleteP95Ms": 6.4871710000006715,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 17.574913000004017,
+      "metadataRequests": 16,
+      "metadataP95Ms": 24.232081000000107,
+      "downloads": 16,
+      "downloadP95Ms": 4.414842000000135,
+      "wireCommands": 192,
+      "wireSteps": 3706,
+      "minimumStepLeadMs": 81.718,
+      "directoryRequests": 3704,
+      "directoryP99Ms": 7.123783000000913,
+      "statusRequests": 15439,
+      "uploads": 16,
+      "statusP99Ms": 4.297769999999218,
+      "uploadP95Ms": 14.515607000001182,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.963007,
+            "maxMs": 19.251199
+          },
+          "cpu": {
+            "user": 5406388,
+            "system": 624417
+          },
+          "rss": 304214016
+        },
+        {
+          "loop": {
+            "p99Ms": 1.900543,
+            "maxMs": 16.547839
+          },
+          "cpu": {
+            "user": 1896110,
+            "system": 257134
+          },
+          "rss": 295948288
+        }
+      ]
+    },
+    "limits": {
+      "loopP99Ms": 50,
+      "loopMaxMs": 100,
+      "minimumStepLeadMs": 0
+    },
+    "scope": "Independently installed compiled JS plus rebuilt native addons, PATH without Python/TS programs. Existing runProductHost reinitialization closes/recreates the server; this is concurrent-print regression evidence, not compiled new listener reuse acceptance."
+  },
+  "remaining": [
+    "Process factory database, authorization callbacks/configuration and adapter ownership must be split and integrated with runProductHost.",
+    "Persistent files/history routes remain unavailable during the detached window.",
+    "Standard RESTART/FIRMWARE_RESTART semantics and actual client standard-button recovery are incomplete.",
+    "Same compiled new attachment path, repeated process-resource accounting, target-board performance, Python baseline and physical motion/precision gates remain unverified.",
+    "The historical numerical failures and crashes remain unresolved; desktop success does not authorize physical motion."
+  ]
+}

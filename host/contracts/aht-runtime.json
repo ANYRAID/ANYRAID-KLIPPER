@@ -1,0 +1,22 @@
+{
+  "status": "standalone configured sensor and combined humidity path verified",
+  "runtime": "v26.9.0",
+  "relatedTestsPassed": 20,
+  "verified": [
+    "Two simulated MCU configuration and startup",
+    "Periodic AHT read through native serial and status-confirmed I2C",
+    "Temperature and humidity reach combined sensor",
+    "Bus fault stops both MCUs and retires sensor values",
+    "Duplicate address and GPIO conflict reject before configuration IO",
+    "Shared hardware bus and software half-period compilation",
+    "Acquisition deadline, read-side freshness and delayed poll expiry",
+    "Cancellation and shutdown prevent late publication"
+  ],
+  "limitations": [
+    "Direct AHT heater and temperature fan feedback not wired",
+    "Compiled HTTP product journey not yet verified",
+    "No physical hardware acceptance",
+    "No Python retirement",
+    "Driver performance comparison retained in aht-driver.json; not whole-printer throughput"
+  ]
+}

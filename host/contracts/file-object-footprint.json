@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "bytes": 2300074,
+  "lines": 100001,
+  "samplesMs": [
+    17.998801,
+    12.331392000000008,
+    12.336362999999992,
+    12.038499000000002,
+    11.439600000000013
+  ],
+  "medianMs": 12.331392000000008,
+  "medianMiBPerSecond": 177.8810940106184,
+  "passed": true,
+  "scope": "Authorized local file streaming, normalized digest and object polygon extraction. No G-code dispatch or product calibration; warm filesystem cache."
+}

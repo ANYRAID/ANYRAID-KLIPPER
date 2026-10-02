@@ -1,0 +1,24 @@
+{
+  "runtime": "v26.9.0",
+  "scope": "100000 GCodeMove commands, safety admission and lookahead flush; selected second tool vs single extruder, alternating cases, no MCU IO",
+  "single": {
+    "samplesMs": [
+      145.43332900000019,
+      149.741761,
+      146.57553800000005,
+      146.35678499999995,
+      146.58656800000017
+    ],
+    "medianMs": 146.57553800000005
+  },
+  "tools": {
+    "samplesMs": [
+      162.00479500000006,
+      183.65192300000012,
+      160.77765399999998,
+      159.476721,
+      160.61795099999972
+    ],
+    "medianMs": 160.77765399999998
+  }
+}

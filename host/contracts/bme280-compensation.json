@@ -1,0 +1,51 @@
+{
+  "status": "BME280 and BMP280 calibration/compensation core verified; device runtime pending",
+  "tests": 4,
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 temperature/pressure/humidity compensations including raw decoding; both exclude I2C and runtime owner; 3 warmups and 5 alternating retained rounds",
+    "calibrationSetsExactlyMatched": 32,
+    "readingsExactlyMatched": 2048,
+    "checksum": 107087850.92663014,
+    "baseline": {
+      "samplesMs": [
+        212.9058539867401,
+        209.7094970085891,
+        214.45969700289425,
+        209.24939100223128,
+        212.2916049993364
+      ],
+      "medianMs": 212.2916049993364
+    },
+    "current": {
+      "samplesMs": [
+        3.749514999999974,
+        6.717877999999928,
+        4.831820999999991,
+        3.858216000000084,
+        3.7530839999999444
+      ],
+      "medianMs": 3.858216000000084
+    }
+  },
+  "reference": {
+    "path": "host/contracts/bme280-reference.json.gz",
+    "sha256": "d6d279c69cfe3461764df57c3b88aa571c640b111b02cbb52a0b02a18d1fd501",
+    "sourceSha256": "2abf8b5accc1a6d2fc614db6a89c2fb4d791881e1034fdd0f7be0bfb35cdfdf5",
+    "inputSha256": "194122aa35fa7b7bfd3782c43fc4a6b20971c087b550d2ceafdbdd32424d6dd0"
+  },
+  "coverage": [
+    "Signed 12-bit H4/H5 nibble packing across all 4096 values",
+    "Frozen original Python parser and compensation results for 32 calibration sets and 2048 raw frames",
+    "Temperature in C, pressure in hPa, optional humidity in percent; no invented humidity for BMP280",
+    "Immutable calibration snapshots and rejection of zero P1 or malformed input",
+    "Full double precision and original arithmetic order retained"
+  ],
+  "limitations": [
+    "No device driver, I2C lifecycle or compiled product wiring yet",
+    "BME680, BMP180 and BMP388 use different formulas and remain pending",
+    "No hardware or printer acceptance; historical motion numerical failures unresolved",
+    "No Python retired"
+  ],
+  "manufacturerReference": "https://github.com/boschsensortec/BME280_SensorAPI"
+}

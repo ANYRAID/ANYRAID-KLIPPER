@@ -1,0 +1,425 @@
+{
+  "sourceSha256": "42db0f9368347d31e81fdd5dd7b9dba321dac200ce81209ab2a72efa2e3eacf9",
+  "cases": [
+    {
+      "file": "test/configs/ar100.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_AR100=y\n# CONFIG_WANT_SOFTWARE_SPI is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_LIS2DW is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n# CONFIG_WANT_ADS131M0X is not set\n# CONFIG_WANT_ADS1220 is not set\n# CONFIG_WANT_SENSOR_ANGLE is not set\n"
+    },
+    {
+      "file": "test/configs/ar100.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_AR100=y\n# CONFIG_WANT_SOFTWARE_SPI is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_LIS2DW is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n# CONFIG_WANT_ADS131M0X is not set\n# CONFIG_WANT_ADS1220 is not set\n# CONFIG_WANT_SENSOR_ANGLE is not set\n"
+    },
+    {
+      "file": "test/configs/at90usb1286.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_at90usb1286=y\n"
+    },
+    {
+      "file": "test/configs/at90usb1286.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_at90usb1286=y\n"
+    },
+    {
+      "file": "test/configs/atmega1280.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_atmega1280=y\n"
+    },
+    {
+      "file": "test/configs/atmega1280.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_atmega1280=y\n"
+    },
+    {
+      "file": "test/configs/atmega1284p.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_atmega1284p=y\n"
+    },
+    {
+      "file": "test/configs/atmega1284p.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_atmega1284p=y\n"
+    },
+    {
+      "file": "test/configs/atmega2560.config",
+      "lowlevel": false,
+      "contents": ""
+    },
+    {
+      "file": "test/configs/atmega2560.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\n"
+    },
+    {
+      "file": "test/configs/atmega328.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_atmega328=y\n# CONFIG_WANT_ADC is not set\n# CONFIG_WANT_SPI is not set\n# CONFIG_WANT_I2C is not set\n# CONFIG_WANT_HARD_PWM is not set\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/atmega328.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_atmega328=y\n# CONFIG_WANT_ADC is not set\n# CONFIG_WANT_SPI is not set\n# CONFIG_WANT_I2C is not set\n# CONFIG_WANT_HARD_PWM is not set\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/atmega644p.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_atmega644p=y\n"
+    },
+    {
+      "file": "test/configs/atmega644p.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_atmega644p=y\n"
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA3PA2.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_HC32F460=y\nCONFIG_HC32F460_SERIAL_PA3_PA2=y\n"
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA3PA2.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_HC32F460=y\nCONFIG_HC32F460_SERIAL_PA3_PA2=y\n"
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA7PA8.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_HC32F460=y\n"
+    },
+    {
+      "file": "test/configs/hc32f460-serial-PA7PA8.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_HC32F460=y\n"
+    },
+    {
+      "file": "test/configs/hostsimulator.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_SIMU=y\n"
+    },
+    {
+      "file": "test/configs/hostsimulator.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_SIMU=y\n"
+    },
+    {
+      "file": "test/configs/lgt8f328p.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_lgt8f328p=y\n# CONFIG_WANT_ADC is not set\n# CONFIG_WANT_SPI is not set\n# CONFIG_WANT_I2C is not set\n# CONFIG_WANT_HARD_PWM is not set\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/lgt8f328p.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_lgt8f328p=y\n# CONFIG_WANT_ADC is not set\n# CONFIG_WANT_SPI is not set\n# CONFIG_WANT_I2C is not set\n# CONFIG_WANT_HARD_PWM is not set\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/linuxprocess.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_LINUX=y\n"
+    },
+    {
+      "file": "test/configs/linuxprocess.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_LINUX=y\n"
+    },
+    {
+      "file": "test/configs/lpc176x.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_LPC176X=y\n"
+    },
+    {
+      "file": "test/configs/lpc176x.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_LPC176X=y\n"
+    },
+    {
+      "file": "test/configs/n32g45x-canbus.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_N32G455=y\nCONFIG_STM32_CANBUS_PA11_PA12=y\n"
+    },
+    {
+      "file": "test/configs/n32g45x-canbus.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_N32G455=y\nCONFIG_STM32_CANBUS_PA11_PA12=y\n"
+    },
+    {
+      "file": "test/configs/n32g45x.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_N32G452=y\n"
+    },
+    {
+      "file": "test/configs/n32g45x.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_N32G452=y\n"
+    },
+    {
+      "file": "test/configs/pru.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_PRU=y\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/pru.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_PRU=y\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/rp2040.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_RPXXXX=y\n"
+    },
+    {
+      "file": "test/configs/rp2040.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_RPXXXX=y\n"
+    },
+    {
+      "file": "test/configs/rp2350.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_RPXXXX=y\nCONFIG_MACH_RP2350=y\n"
+    },
+    {
+      "file": "test/configs/rp2350.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_RPXXXX=y\nCONFIG_MACH_RP2350=y\n"
+    },
+    {
+      "file": "test/configs/sam3x8c.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM3X8C=y\n"
+    },
+    {
+      "file": "test/configs/sam3x8c.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM3X8C=y\n"
+    },
+    {
+      "file": "test/configs/sam3x8e.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAM=y\n"
+    },
+    {
+      "file": "test/configs/sam3x8e.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAM=y\n"
+    },
+    {
+      "file": "test/configs/sam4e8e.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM4E8E=y\n"
+    },
+    {
+      "file": "test/configs/sam4e8e.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM4E8E=y\n"
+    },
+    {
+      "file": "test/configs/sam4s8c.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM4S8C=y\n"
+    },
+    {
+      "file": "test/configs/sam4s8c.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAM4S8C=y\n"
+    },
+    {
+      "file": "test/configs/samd21g18.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAMD=y\nCONFIG_MACH_SAMD21G18=y\n"
+    },
+    {
+      "file": "test/configs/samd21g18.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAMD=y\nCONFIG_MACH_SAMD21G18=y\n"
+    },
+    {
+      "file": "test/configs/samd51p20.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAMD=y\nCONFIG_MACH_SAMD51P20=y\nCONFIG_CLOCK_REF_X25M=y\n"
+    },
+    {
+      "file": "test/configs/samd51p20.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAMD=y\nCONFIG_MACH_SAMD51P20=y\nCONFIG_CLOCK_REF_X25M=y\n"
+    },
+    {
+      "file": "test/configs/same70q20b.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAME70Q20B=y\n"
+    },
+    {
+      "file": "test/configs/same70q20b.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_ATSAM=y\nCONFIG_MACH_SAME70Q20B=y\n"
+    },
+    {
+      "file": "test/configs/stm32f031.config",
+      "lowlevel": false,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F031=y\nCONFIG_STM32_FLASH_START_0000=y\nCONFIG_STM32_CLOCK_REF_INTERNAL=y\nCONFIG_STM32_SERIAL_USART2_ALT_PA15_PA14=y\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/stm32f031.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F031=y\nCONFIG_STM32_FLASH_START_0000=y\nCONFIG_STM32_CLOCK_REF_INTERNAL=y\nCONFIG_STM32_SERIAL_USART2_ALT_PA15_PA14=y\n# CONFIG_WANT_BUTTONS is not set\n# CONFIG_WANT_TMCUART is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_PULSE_COUNTER is not set\n# CONFIG_WANT_ST7920 is not set\n# CONFIG_WANT_HD44780 is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n"
+    },
+    {
+      "file": "test/configs/stm32f042.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F042=y\n# CONFIG_WANT_SOFTWARE_I2C is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_LIS2DW is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n# CONFIG_WANT_ADS131M0X is not set\n# CONFIG_WANT_ADS1220 is not set\n# CONFIG_WANT_LDC1612 is not set\n# CONFIG_WANT_TRIGGER_ANALOG is not set\n"
+    },
+    {
+      "file": "test/configs/stm32f042.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F042=y\n# CONFIG_WANT_SOFTWARE_I2C is not set\n# CONFIG_WANT_NEOPIXEL is not set\n# CONFIG_WANT_LIS2DW is not set\n# CONFIG_WANT_HX71X is not set\n# CONFIG_WANT_CS1237 is not set\n# CONFIG_WANT_ADS131M0X is not set\n# CONFIG_WANT_ADS1220 is not set\n# CONFIG_WANT_LDC1612 is not set\n# CONFIG_WANT_TRIGGER_ANALOG is not set\n"
+    },
+    {
+      "file": "test/configs/stm32f070.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F070=y\n"
+    },
+    {
+      "file": "test/configs/stm32f070.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F070=y\n"
+    },
+    {
+      "file": "test/configs/stm32f103-serial.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_STM32_SERIAL_USART1=y\n"
+    },
+    {
+      "file": "test/configs/stm32f103-serial.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_STM32_SERIAL_USART1=y\n"
+    },
+    {
+      "file": "test/configs/stm32f103.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\n"
+    },
+    {
+      "file": "test/configs/stm32f103.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\n"
+    },
+    {
+      "file": "test/configs/stm32f401.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F401=y\n"
+    },
+    {
+      "file": "test/configs/stm32f401.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F401=y\n"
+    },
+    {
+      "file": "test/configs/stm32f405.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F405=y\n"
+    },
+    {
+      "file": "test/configs/stm32f405.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F405=y\n"
+    },
+    {
+      "file": "test/configs/stm32f407.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F407=y\n"
+    },
+    {
+      "file": "test/configs/stm32f407.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F407=y\n"
+    },
+    {
+      "file": "test/configs/stm32f429.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F429=y\n"
+    },
+    {
+      "file": "test/configs/stm32f429.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F429=y\n"
+    },
+    {
+      "file": "test/configs/stm32f446.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F446=y\n"
+    },
+    {
+      "file": "test/configs/stm32f446.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F446=y\n"
+    },
+    {
+      "file": "test/configs/stm32f765.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F765=y\n"
+    },
+    {
+      "file": "test/configs/stm32f765.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32F765=y\n"
+    },
+    {
+      "file": "test/configs/stm32g0b1.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G0B1=y\n"
+    },
+    {
+      "file": "test/configs/stm32g0b1.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G0B1=y\n"
+    },
+    {
+      "file": "test/configs/stm32g431.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G431=y\n"
+    },
+    {
+      "file": "test/configs/stm32g431.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G431=y\n"
+    },
+    {
+      "file": "test/configs/stm32g474.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G474=y\n"
+    },
+    {
+      "file": "test/configs/stm32g474.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32G474=y\n"
+    },
+    {
+      "file": "test/configs/stm32h723.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32H723=y\n"
+    },
+    {
+      "file": "test/configs/stm32h723.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32H723=y\n"
+    },
+    {
+      "file": "test/configs/stm32h743.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32H743=y\n"
+    },
+    {
+      "file": "test/configs/stm32h743.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32H743=y\n"
+    },
+    {
+      "file": "test/configs/stm32l412.config",
+      "lowlevel": false,
+      "contents": "CONFIG_MACH_STM32=y\nCONFIG_MACH_STM32L412=y\n"
+    },
+    {
+      "file": "test/configs/stm32l412.config",
+      "lowlevel": true,
+      "contents": "CONFIG_LOW_LEVEL_OPTIONS=y\nCONFIG_MACH_STM32=y\nCONFIG_MACH_STM32L412=y\n"
+    }
+  ]
+}

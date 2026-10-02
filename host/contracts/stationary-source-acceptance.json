@@ -1,0 +1,35 @@
+{
+  "node": "26.9.0",
+  "scope": "Native source ownership for independent motors; no automatic Z tilt calibration or physical hardware acceptance.",
+  "before": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "iterations": 16,
+    "sourceMedianMs": 15.187610000000006,
+    "sourceP95Ms": 16.687310000000025,
+    "directMedianMs": 8.924667,
+    "directP95Ms": 16.058301999999912,
+    "scope": "Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison."
+  },
+  "after": {
+    "node": "v26.9.0",
+    "moves": 10000,
+    "iterations": 16,
+    "sourceMedianMs": 12.784276999999975,
+    "sourceP95Ms": 15.951076999999941,
+    "directMedianMs": 9.667546000000016,
+    "directP95Ms": 11.773143000000005,
+    "scope": "Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison."
+  },
+  "stationary": {
+    "node": "v26.9.0",
+    "stationary": true,
+    "moves": 10000,
+    "iterations": 16,
+    "sourceMedianMs": 14.209753999999975,
+    "sourceP95Ms": 20.384833999999955,
+    "directMedianMs": 9.248190000000022,
+    "directP95Ms": 12.01686600000005,
+    "scope": "Append validated planned XYZ/extrusion batches only; native extracted trajectories exactly match direct append. No generation, serial, physical movement or equal-work Python comparison."
+  }
+}

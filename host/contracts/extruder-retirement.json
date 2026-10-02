@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "sourceCommit": "d4615f06381c93f7f2a47967faa11c70ca751b3c",
+  "sourceSha256": "857b0938cbe0690be91312acce7a87acf248e5ab46b8c269887176659d4250d2",
+  "captureAdapterSha256": "52e17f088cc6b6c50a596a086c63d33ba9ae55c9e804a6f59bd1a4d52de9b1ec",
+  "python": "Python 3.12.13",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "dataSha256": "87ce05c2eb8218a5661afccec190252fa31d0f9ca3241f67e5ffb3184773c3eb",
+  "compressedSha256": "359fd91b2afabb06ae02d825ddeeb87997837f7a56c1c9695bb443a592ebff23",
+  "uncompressedBytes": 1731001,
+  "compressedBytes": 425582,
+  "before": {
+    "node": "v26.9.0",
+    "samples": 8934,
+    "curvePoints": 7934,
+    "warmups": 5,
+    "runs": 11,
+    "nodeCompute": {
+      "medianMs": 5.544563999999809,
+      "p95Ms": 6.760502000000088
+    },
+    "pythonCompute": {
+      "medianMs": 252.69475602544844,
+      "p95Ms": 254.00608801282942
+    },
+    "nodePngExport": {
+      "medianMs": 26.783018000000084,
+      "p95Ms": 31.76224699999966
+    },
+    "errors": {
+      "positionMm": 0,
+      "rawPositionMm": 0,
+      "smoothPositionMm": 0,
+      "velocityMmPerSecond": 0
+    },
+    "scope": "Original Python plot_motion with recording Matplotlib adapter versus Node curve calculation. Startup/IPC and rendering excluded from compute. Node PNG export separately includes SVG, sharp and atomic file replacement. Offline diagnostic only; not real-time motion or hardware acceptance."
+  },
+  "scope": "Original unmodified graph_extruder.py calculation with recording Matplotlib axes. Fixed built-in moves; smoothing cases are original calc_weighted(raw, seconds). Timings exclude process startup, IPC and rendering."
+}

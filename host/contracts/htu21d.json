@@ -1,0 +1,61 @@
+{
+  "status": "driver and configured runtime verified; compiled HTTP journey pending",
+  "tests": 17,
+  "benchmark": {
+    "runtime": "v26.9.0",
+    "scope": "100000 original Python sample callbacks vs TS async driver; fake I2C and waits; Python includes range/callback/report handling, TS excludes periodic owner; 3 warmups and 5 alternating retained rounds",
+    "crcWordsExactlyMatched": 65536,
+    "numericSamplesCompared": 4096,
+    "maximumTemperatureCorrection": 0.017980707031256316,
+    "maximumHumidityCorrection": 8.256560165039062,
+    "corrections": "Full manufacturer scaling, both status bits masked, actual HTU21D-only temperature compensation and final humidity clamp. Legacy compensation expression had no effect.",
+    "baseline": {
+      "samplesMs": [
+        559.2332560045179,
+        555.4245359962806,
+        542.382275001728,
+        549.2459680099273,
+        563.3126250031637
+      ],
+      "medianMs": 555.4245359962806
+    },
+    "current": {
+      "samplesMs": [
+        220.55523799999992,
+        219.87155699999948,
+        220.0280589999993,
+        220.82895100000042,
+        216.28474000000006
+      ],
+      "medianMs": 220.0280589999993
+    }
+  },
+  "coverage": [
+    "Five sensor models, four resolutions and hold/no-hold modes",
+    "All 65536 CRC words vs original Python and independent oracle",
+    "All valid raw codes with exact manufacturer scaling and all 48 single-bit corruptions",
+    "Representative native HTU21D standalone, SI7021 hold-mode fan and SHT21 no-hold heater",
+    "Shared bus address conflicts, full humidity precision, CRC whole-group stop",
+    "Internal heater and resolution write-back rejection; cancellation and latched failure"
+  ],
+  "behaviorChanges": [
+    "Write resolution as a data byte rather than the legacy reqclock argument",
+    "Use exact 175.72/65536 and 125/65536 scale factors, clear both status bits",
+    "Apply HTU21D temperature compensation at 0 through 80 C; final clamp to 0 through 100 RH",
+    "Do not apply HTU21D-specific compensation to SHT21 or Si70xx",
+    "SHT21 no-hold issues OTP reload before each measurement to avoid documented offset erratum",
+    "Readback resolution; reject active internal heater instead of publishing biased readings"
+  ],
+  "limitations": [
+    "Unknown serial model identity remains allowed as in legacy configuration; identity CRC is mandatory",
+    "SHT21 no-hold OTP reload may restore default resolution; timing covers default maximum plus OTP overhead, without promising shorter low-resolution measurements",
+    "Legacy conservative conversion waits retained; benchmark uses virtual waiting and fake I2C",
+    "Hold mode clock stretching requires target-bus verification",
+    "Compiled HTTP journey and physical sensor/printer acceptance pending",
+    "No Python retired; historical motion numerical failures unresolved"
+  ],
+  "sources": [
+    "https://sensirion.com/media/documents/120BBE4C/63500094/Sensirion_Datasheet_Humidity_Sensor_SHT21.pdf",
+    "https://e2e.ti.com/cfs-file/__key/communityserver-discussions-components-files/171/1899_5F00_HTU21D_5F00_chip_5F00_datasheet.pdf"
+  ]
+}

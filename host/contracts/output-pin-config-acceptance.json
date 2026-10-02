@@ -1,0 +1,39 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "configIterations": 10000,
+  "valueIterations": 1000000,
+  "samples": [
+    {
+      "configMs": 19.362075000000004,
+      "valuesMs": 3.8600509999999986
+    },
+    {
+      "configMs": 19.428665999999993,
+      "valuesMs": 3.9923519999999826
+    },
+    {
+      "configMs": 20.029124000000024,
+      "valuesMs": 7.129233999999997
+    },
+    {
+      "configMs": 19.473456999999996,
+      "valuesMs": 3.854251000000005
+    },
+    {
+      "configMs": 19.384455000000003,
+      "valuesMs": 3.8574309999999628
+    },
+    {
+      "configMs": 19.396906,
+      "valuesMs": 3.8778809999999453
+    },
+    {
+      "configMs": 19.431466,
+      "valuesMs": 3.862120999999945
+    }
+  ],
+  "medianConfigMs": 19.428665999999993,
+  "medianValuesMs": 3.862120999999945,
+  "scope": "Settings and logical value normalization only, no MCU IO or print scheduling"
+}

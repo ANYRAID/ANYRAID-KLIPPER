@@ -1,0 +1,181 @@
+{
+  "status": "compiled AHT bed heater product journey passed",
+  "runtime": "v26.9.0",
+  "diagnostics": [
+    {
+      "installation": {
+        "durationMs": 789.1650930000001,
+        "dependencies": 14
+      }
+    },
+    {
+      "filamentRunout": {
+        "sensor": "filament_switch_sensor tool",
+        "compiled": true,
+        "automaticPause": true,
+        "absentResumeRejected": true,
+        "runoutPauseMs": 1158.2647230000002,
+        "settledStepClock": true,
+        "noAutomaticResume": true
+      }
+    },
+    {
+      "objectCancellation": {
+        "compiled": true,
+        "firstCancellation": true,
+        "paused": true,
+        "retryWithoutMotion": true
+      }
+    },
+    {
+      "ahtHeaterStatus": {
+        "heater_bed": {
+          "temperature": 80,
+          "target": 0,
+          "power": 0
+        },
+        "aht10 heater_bed": {
+          "temperature": 80,
+          "humidity": 50
+        }
+      }
+    },
+    {
+      "nativeTemperatureHistory": {
+        "samples": 13,
+        "sensors": [
+          "extruder",
+          "heater_bed"
+        ],
+        "authenticated": true
+      }
+    },
+    {
+      "idleTimeout": {
+        "heaterOff": true,
+        "motorRelease": true,
+        "hostRemainsReady": true
+      }
+    },
+    {
+      "pausedTimeout": {
+        "cancelled": true,
+        "resumeRejected": true
+      }
+    },
+    {
+      "temperatureHistoryRestart": {
+        "preserved": true,
+        "samplesBefore": 22,
+        "samplesAfter": 25
+      }
+    },
+    {
+      "aht": true,
+      "ahtHeater": true,
+      "combinedHeater": false,
+      "combined": false,
+      "multi": false,
+      "dual": false,
+      "servos": false,
+      "outputPins": false,
+      "phaseQueries": 0,
+      "phaseP99Ms": null,
+      "loaded": false,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "tilted": false,
+      "manualTilt": false,
+      "skew": false,
+      "screws": false,
+      "manualScrews": false,
+      "bedScrews": false,
+      "kinematics": "cartesian",
+      "temperatureSensor": false,
+      "temperatureFan": false,
+      "hostSensor": false,
+      "spiSensor": false,
+      "spiHeater": false,
+      "sharedSpi": false,
+      "zEndstop": false,
+      "max31855": false,
+      "max31856": false,
+      "max31865": false,
+      "zTilt": false,
+      "quad": false,
+      "stressed": false,
+      "sensorless": false,
+      "tmc": [
+        {
+          "statusReads": 176,
+          "writes": 43
+        },
+        {
+          "statusReads": 104,
+          "writes": 43
+        }
+      ],
+      "faultInjected": "aht-i2c-nack",
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 261,
+      "wireSteps": 7614,
+      "minimumStepLeadMs": 88.496,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.728511,
+            "maxMs": 21.479423
+          },
+          "cpu": {
+            "user": 1308411,
+            "system": 158709
+          },
+          "rss": 191053824
+        },
+        {
+          "loop": {
+            "p99Ms": 1.705983,
+            "maxMs": 6.250495
+          },
+          "cpu": {
+            "user": 767435,
+            "system": 98141
+          },
+          "rss": 203083776
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Simulated AHT with five-second sampling via PTY firmware",
+    "Default thirty-second protection covered separately by virtual-clock tests",
+    "No physical heater or printer acceptance",
+    "No additional concurrent HTTP load in this heater scenario",
+    "Default Python host and Python AHT module remain"
+  ]
+}

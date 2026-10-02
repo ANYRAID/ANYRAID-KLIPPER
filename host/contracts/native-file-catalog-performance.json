@@ -1,0 +1,23 @@
+{
+  "node": "v26.9.0",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "files": 1024,
+  "warmup": 3,
+  "runs": 11,
+  "variants": [
+    "sequentialReceiptInspectionReference",
+    "nativeCatalogIncludingJsonSerialization"
+  ],
+  "stats": [
+    {
+      "medianMs": 52.442567000000054,
+      "p95Ms": 74.01279899999986
+    },
+    {
+      "medianMs": 0.7850700000000188,
+      "p95Ms": 1.0077919999998812
+    }
+  ],
+  "responseBytes": 199426,
+  "scope": "Local warm filesystem; reference is ID enumeration plus receipt inspection, not a previous Moonraker implementation. Excludes network, startup recovery, publication fsync and MCU work."
+}

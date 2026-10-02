@@ -1,0 +1,758 @@
+{
+  "scope": "Compiled curved extrusion, firmware retraction, input shaping and bed mesh under concurrent API/file load; simulated MCU, not physical printing",
+  "sha256": {
+    "host/src/motion/lookahead.ts": "1b983e4b9ddfc018b9f9caa3397116f60c252ad01dd5d62a4724e872af89162d",
+    "host/test/representable-profile.test.ts": "29e537bae690efd987e8bf196ca2fe3d6f05be9ea72fba5566fb734d005e894a",
+    "host/test/arcs.test.ts": "5c20d1b9424cf899ec116f5bfc577082ec438874c6e10ed55223a150ac59107f",
+    "host/test/helpers/arcs-reference.ts": "45e6c814c1f5ea147aad3284a083ce715d5ce9eefa6d5ed2368b2a6740bd4c26",
+    "host/bench/arcs.ts": "1879f626c599b1cb3904f7992d055c4c93931154a27290e6c2e1c526cfa99cf8",
+    "host/acceptance/product-compiled-journey.test.ts": "a8ccc6297f96015e179cfbc8430d35a09cf7e322b60b56dd267dd5e083be1f37",
+    "host/contracts/arcs-reference.json": "2c15ee52f4643e94ea3239f73e3751c7cd958234f03d80916dba4c2a3a700f3f"
+  },
+  "originalFailure": {
+    "baseCommit": "4ebad06f",
+    "stops": [
+      {
+        "id": "mcu",
+        "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.037322595289076,0.0007234520468768747,2.980268961430199e-19,0.000027465426071067986,6.490282207244334,0.004052109418988467,0.007505580101627803,-0.8978042768750853,0.4403940226992548,0.0007649807667680564,6.37051921446913,7.093971261346005,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false}"
+      },
+      {
+        "id": "aux",
+        "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.037322595289076,0.0007234520468768747,2.980268961430199e-19,0.000027465426071067986,6.490282207244334,0.004052109418988467,0.007505580101627803,-0.8978042768750853,0.4403940226992548,0.0007649807667680564,6.37051921446913,7.093971261346005,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false}"
+      }
+    ]
+  },
+  "rejectedCoordinatePlateauGuard": {
+    "productPass": 9,
+    "productFail": 1,
+    "stops": [
+      {
+        "id": "mcu",
+        "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.33049525514839,0.0007234520468768747,2.980268961430199e-19,0.000027465426071067986,6.490282207244334,0.004052109418988467,0.007505580101627803,-0.8978042768750853,0.4403940226992548,0.0007649807667680564,6.37051921446913,7.093971261346005,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false}"
+      },
+      {
+        "id": "aux",
+        "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.33049525514839,0.0007234520468768747,2.980268961430199e-19,0.000027465426071067986,6.490282207244334,0.004052109418988467,0.007505580101627803,-0.8978042768750853,0.4403940226992548,0.0007649807667680564,6.37051921446913,7.093971261346005,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false}"
+      }
+    ],
+    "reason": "Per-coordinate rounding plateaus are too restrictive near zero; same tiny cruise remained unrepresentable"
+  },
+  "fix": "Only exact triangular peak identity with two positive ramps and cruise distance <= 16*Number.EPSILON*(move distance + abs(accel distance) + abs(decel distance)) may omit the residual cruise. Pure cruise and speed-capped trapezoids remain intact. Original speed/acceleration limits and native time validation retained.",
+  "regressions": "✔ arc planes, helices, full circles and exact endpoint preserve the linear coordinate contract (3.128446ms)\n✔ arc input and capacity failures have no geometry admission (2.180601ms)\n✔ arc dispatch preserves extrusion and speed overrides, plane modality and rolling checkpoints (3.598312ms)\n✔ arc resolution configuration defaults, overrides and invalid values (0.655579ms)\n✔ native arc file pauses within a rolling checkpoint, resumes and completes its exact suffix (5271.667011ms)\n✔ cancelling a native arc cannot execute its trailing file commands (425.045286ms)\n✔ native arcs retain homing and cold extrusion guards before emitting any steps (830.452387ms)\n✔ all frozen original Python arc coordinates match without invoking Python (28.933531ms)\n✔ batch admission matches sequential junctions, flush hints and profiles (0.955494ms)\n✔ late junction failure restores staged fields, prior queue and flush budget (0.278674ms)\n✔ batch rejects aliasing and reentrant queue mutation; skips zero moves (0.488728ms)\n✔ membership follows lazy flush, full flush and reset without retaining released moves (0.261864ms)\n✔ single move trapezoid starts and ends at rest with exact integrated distance (0.211963ms)\n✔ straight junctions preserve speed, reversal stops and square corner limits apply (0.167733ms)\n✔ zero moves are omitted, extrusion-only moves use explicit axis limits (0.121382ms)\n✔ extra-axis limits and explicit next-junction limits are applied (0.111421ms)\n✔ lazy flush retains unfinished tail and final flush preserves velocity continuity (1.596813ms)\n✔ invalid and overflow inputs fail before planning (0.173692ms)\n✔ extrusion admission rejects cold, oversized and excess-ratio moves before queueing (0.232523ms)\n✔ extrusion ratio changes constrain the shared lookahead junction (0.111632ms)\n✔ distance preserves compensated-sum rounding used by the Python 3.12 oracle (0.063051ms)\n✔ exactly reachable endpoints do not acquire an opposite sub-resolution phase from midpoint rounding (0.109371ms)\n✔ reachable velocity and endpoint-limited triangles do not acquire a residual cruise (0.132312ms)\n✔ mesh activation drains earlier flushes and current XYZ/extrusion through real serial firmware (1033.710269ms)\n✔ late invalid trajectory rejects the whole source batch and stops downstream (408.291572ms)\n✔ cancelled profile transition faults both source and admission and cannot resume (408.633467ms)\n✔ partial native append failure is terminal even before any packets have been submitted (406.83053ms)\n✔ cross-batch capacity backpressures without mutation and releases only finalized prefixes (1459.39434ms)\n✔ capacity retains the tail of the slowest shaped or pressure-advance queue (1071.926249ms)\n✔ terminal mesh drain streams buffered prefixes to make capacity for its final batch (947.319929ms)\n✔ insufficient capacity for convolution fails without retry spinning and stops all devices (406.547274ms)\n✔ large terminal batches own their suffix while repeatedly wrapping the capacity ring (1463.836219ms)\n✔ an invalid suffix is detected before any prefix of an oversized drain is submitted (406.661535ms)\n✔ one deadline spans all capacity-driven streaming commits (432.879596ms)\n✔ source brake reaches firmware-time drain before resume on the live group adapter (1876.650909ms)\n✔ partial future rewrite failure reaches the independent MCU group stop (406.997139ms)\n✔ clock representation preserves endpoints and speeds for 3.78 -> 3.79 (0.335535ms)\n✔ clock representation preserves endpoints and speeds for 3.88 -> 3.89 (0.125422ms)\n✔ clock representation preserves endpoints and speeds for 9.95 -> 9.96 (0.118071ms)\n✔ representable real phases, unbounded long-clock distortion remain protected (0.246334ms)\n✔ coalescing respects reversed coordinates and synchronized extrusion endpoints (0.270424ms)\n✔ clock and extrusion rounding plateaus admit an exact interior duration (0.233303ms)\n✔ product path remains representable across absolute clock boundaries and batch sizes (34.185956ms)\n✔ two-sided triangular junctions do not invent sub-clock cruise from distance cancellation (0.423586ms)\n✔ rounded triangular identities do not discard resolvable motion or pure cruise (0.088271ms)\n✔ typed retraction preserves modes, overrides and user macro storage (0.453757ms)\n✔ rejected motion keeps coordinate state and retraction latch unchanged (0.214863ms)\n✔ settings validation is atomic and successful updates reset the latch (0.64479ms)\n✔ optional firmware retraction configuration validates before hardware ownership (0.293804ms)\n✔ native retraction cannot bypass cold extrusion protection (410.156195ms)\n✔ native file accepts retraction pairs and preserves subsequent absolute E coordinates (875.903106ms)\nℹ tests 51\nℹ suites 0\nℹ pass 51\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 18797.697058\n",
+  "arcBenchmark": {
+    "node": "v26.9.0",
+    "cases": 80,
+    "segmentsCompared": 10053,
+    "maxCoordinateError": 1.4210854715202004e-14,
+    "stepsCompared": 310318,
+    "maxTickDifference": "0",
+    "iterations": 400,
+    "warmup": 3,
+    "samples": 11,
+    "nodeArc": {
+      "medianMs": 6.123309000000063,
+      "p95Ms": 12.636993000000075
+    },
+    "pythonArc": {
+      "medianMs": 29.589331010356545,
+      "p95Ms": 30.589868023525923
+    },
+    "limits": {
+      "medianRatio": 1.25,
+      "p95Ratio": 1.5,
+      "slackMs": 2
+    },
+    "scope": "Frozen original Python arc commands versus TS geometry and parameter creation, followed by native X/E pulses with shaping and pressure advance. Python timing is the recorded extraction baseline, not rerun. Memory sink; excludes UART and real printer timing."
+  },
+  "lookaheadBenchmark": {
+    "node": "v26.9.0",
+    "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "comparedMoves": 50000,
+    "maxDistanceError": 0,
+    "maxVelocityError": 2.842170943040401e-14,
+    "maxTimeError": 2.7755575615628914e-17,
+    "maxIntegratedError": 3.552713678800501e-15,
+    "nodeMedianMs": 8.455453000000034,
+    "nodeP95Ms": 12.426789999999983,
+    "pythonMedianMs": 84.30961397243664,
+    "pythonP95Ms": 91.07431198935956,
+    "speedup": 9.971034546870085
+  },
+  "product": {
+    "pass": 10,
+    "fail": 0,
+    "metrics": [
+      {
+        "phaseQueries": 0,
+        "phaseP99Ms": null,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 152,
+            "writes": 43
+          },
+          {
+            "statusReads": 64,
+            "writes": 42
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 0,
+        "historyP99Ms": null,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 4,
+        "fileNotificationP95Ms": null,
+        "deleteRequests": 0,
+        "deleteP95Ms": null,
+        "thumbnailRequests": 0,
+        "thumbnailP95Ms": null,
+        "metadataRequests": 0,
+        "metadataP95Ms": null,
+        "downloads": 0,
+        "downloadP95Ms": null,
+        "wireCommands": 189,
+        "wireSteps": 3608,
+        "minimumStepLeadMs": 87.398,
+        "directoryRequests": 0,
+        "directoryP99Ms": null,
+        "statusRequests": 0,
+        "uploads": 0,
+        "statusP99Ms": null,
+        "uploadP95Ms": null,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.822719,
+              "maxMs": 18.350079
+            },
+            "cpu": {
+              "user": 1196048,
+              "system": 153763
+            },
+            "rss": 175382528
+          },
+          {
+            "loop": {
+              "p99Ms": 1.814527,
+              "maxMs": 5.668863
+            },
+            "cpu": {
+              "user": 597409,
+              "system": 74294
+            },
+            "rss": 188243968
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3574,
+        "phaseP99Ms": 3.347118000005139,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 152,
+            "writes": 55
+          },
+          {
+            "statusReads": 62,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 802,
+        "historyP99Ms": 8.109277000003203,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.588925999996718,
+        "deleteRequests": 16,
+        "deleteP95Ms": 8.023035999998683,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 4.513446000004478,
+        "metadataRequests": 16,
+        "metadataP95Ms": 25.674000999999407,
+        "downloads": 16,
+        "downloadP95Ms": 3.5813820000039414,
+        "wireCommands": 370,
+        "wireSteps": 5556,
+        "minimumStepLeadMs": 76.398,
+        "directoryRequests": 3435,
+        "directoryP99Ms": 8.506473000001279,
+        "statusRequests": 14304,
+        "uploads": 16,
+        "statusP99Ms": 3.068494000006467,
+        "uploadP95Ms": 7.207265000004554,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.017279,
+              "maxMs": 17.039359
+            },
+            "cpu": {
+              "user": 4431309,
+              "system": 534927
+            },
+            "rss": 282566656
+          },
+          {
+            "loop": {
+              "p99Ms": 1.939455,
+              "maxMs": 6.385663
+            },
+            "cpu": {
+              "user": 1411804,
+              "system": 218563
+            },
+            "rss": 256946176
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3746,
+        "phaseP99Ms": 2.573136999999406,
+        "loaded": true,
+        "spi": true,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 91
+          },
+          {
+            "statusReads": 122,
+            "writes": 90
+          },
+          {
+            "statusReads": 176,
+            "writes": 82
+          },
+          {
+            "statusReads": 16,
+            "writes": 76
+          },
+          {
+            "statusReads": 32,
+            "writes": 82
+          },
+          {
+            "statusReads": 16,
+            "writes": 76
+          }
+        ],
+        "faultInjected": "tmc-overtemperature",
+        "historyNotifications": 32,
+        "historyRequests": 835,
+        "historyP99Ms": 10.293178000007174,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.029232000000775,
+        "deleteRequests": 16,
+        "deleteP95Ms": 6.053406999999424,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 4.463354000006802,
+        "metadataRequests": 16,
+        "metadataP95Ms": 39.962066000007326,
+        "downloads": 16,
+        "downloadP95Ms": 5.534249999996973,
+        "wireCommands": 370,
+        "wireSteps": 5560,
+        "minimumStepLeadMs": 85.16,
+        "directoryRequests": 3619,
+        "directoryP99Ms": 4.964351999995415,
+        "statusRequests": 14993,
+        "uploads": 16,
+        "statusP99Ms": 2.6127570000098785,
+        "uploadP95Ms": 22.732057000001078,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.942527,
+              "maxMs": 19.644415
+            },
+            "cpu": {
+              "user": 4555464,
+              "system": 502899
+            },
+            "rss": 280113152
+          },
+          {
+            "loop": {
+              "p99Ms": 1.932287,
+              "maxMs": 5.754879
+            },
+            "cpu": {
+              "user": 1423594,
+              "system": 194970
+            },
+            "rss": 269697024
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3557,
+        "phaseP99Ms": 2.656278000009479,
+        "loaded": true,
+        "spi": true,
+        "software": true,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 304,
+            "writes": 91
+          },
+          {
+            "statusReads": 118,
+            "writes": 90
+          },
+          {
+            "statusReads": 176,
+            "writes": 82
+          },
+          {
+            "statusReads": 16,
+            "writes": 76
+          },
+          {
+            "statusReads": 32,
+            "writes": 82
+          },
+          {
+            "statusReads": 16,
+            "writes": 76
+          }
+        ],
+        "faultInjected": "tmc-overtemperature",
+        "historyNotifications": 32,
+        "historyRequests": 798,
+        "historyP99Ms": 6.241060000000289,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 13.769457999995211,
+        "deleteRequests": 16,
+        "deleteP95Ms": 13.27314999999362,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 15.427290999999968,
+        "metadataRequests": 16,
+        "metadataP95Ms": 15.826667999994243,
+        "downloads": 16,
+        "downloadP95Ms": 3.0346129999961704,
+        "wireCommands": 370,
+        "wireSteps": 5559,
+        "minimumStepLeadMs": 87.31,
+        "directoryRequests": 3420,
+        "directoryP99Ms": 5.570110000000568,
+        "statusRequests": 14234,
+        "uploads": 16,
+        "statusP99Ms": 2.8460309999936726,
+        "uploadP95Ms": 15.564623000012944,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.960959,
+              "maxMs": 44.433407
+            },
+            "cpu": {
+              "user": 4370657,
+              "system": 500476
+            },
+            "rss": 276934656
+          },
+          {
+            "loop": {
+              "p99Ms": 1.894399,
+              "maxMs": 5.853183
+            },
+            "cpu": {
+              "user": 1489922,
+              "system": 184365
+            },
+            "rss": 255000576
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3774,
+        "phaseP99Ms": 2.976083000015933,
+        "loaded": true,
+        "spi": true,
+        "software": false,
+        "model5160": true,
+        "model2240": false,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 100
+          },
+          {
+            "statusReads": 122,
+            "writes": 98
+          },
+          {
+            "statusReads": 176,
+            "writes": 90
+          },
+          {
+            "statusReads": 16,
+            "writes": 84
+          },
+          {
+            "statusReads": 32,
+            "writes": 90
+          },
+          {
+            "statusReads": 16,
+            "writes": 84
+          }
+        ],
+        "faultInjected": "tmc-overtemperature",
+        "historyNotifications": 32,
+        "historyRequests": 841,
+        "historyP99Ms": 10.479729999991832,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 5.575219999998808,
+        "deleteRequests": 16,
+        "deleteP95Ms": 10.402899000007892,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 4.524574999988545,
+        "metadataRequests": 16,
+        "metadataP95Ms": 25.994433000014396,
+        "downloads": 16,
+        "downloadP95Ms": 6.557644000014989,
+        "wireCommands": 369,
+        "wireSteps": 5561,
+        "minimumStepLeadMs": 81.78,
+        "directoryRequests": 3632,
+        "directoryP99Ms": 4.399923000019044,
+        "statusRequests": 15097,
+        "uploads": 16,
+        "statusP99Ms": 2.827099999994971,
+        "uploadP95Ms": 13.033877000008943,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.010111,
+              "maxMs": 17.743871
+            },
+            "cpu": {
+              "user": 4621251,
+              "system": 519539
+            },
+            "rss": 286560256
+          },
+          {
+            "loop": {
+              "p99Ms": 1.925119,
+              "maxMs": 7.004159
+            },
+            "cpu": {
+              "user": 1417750,
+              "system": 182081
+            },
+            "rss": 265347072
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3751,
+        "phaseP99Ms": 2.7094879999931436,
+        "loaded": true,
+        "spi": true,
+        "software": false,
+        "model5160": false,
+        "model2240": true,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 104
+          },
+          {
+            "statusReads": 122,
+            "writes": 102
+          },
+          {
+            "statusReads": 176,
+            "writes": 94
+          },
+          {
+            "statusReads": 16,
+            "writes": 88
+          },
+          {
+            "statusReads": 32,
+            "writes": 94
+          },
+          {
+            "statusReads": 16,
+            "writes": 88
+          }
+        ],
+        "faultInjected": "tmc-overtemperature",
+        "historyNotifications": 32,
+        "historyRequests": 836,
+        "historyP99Ms": 10.69076200001291,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 3.7053219999943394,
+        "deleteRequests": 16,
+        "deleteP95Ms": 4.801218000007793,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 7.403225999994902,
+        "metadataRequests": 16,
+        "metadataP95Ms": 26.233405000006314,
+        "downloads": 16,
+        "downloadP95Ms": 18.856629999994766,
+        "wireCommands": 370,
+        "wireSteps": 5560,
+        "minimumStepLeadMs": 87.362,
+        "directoryRequests": 3609,
+        "directoryP99Ms": 5.093492999993032,
+        "statusRequests": 15007,
+        "uploads": 16,
+        "statusP99Ms": 2.946442999993451,
+        "uploadP95Ms": 7.040250999998534,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.952767,
+              "maxMs": 18.874367
+            },
+            "cpu": {
+              "user": 4559135,
+              "system": 564000
+            },
+            "rss": 286945280
+          },
+          {
+            "loop": {
+              "p99Ms": 1.934335,
+              "maxMs": 6.262783
+            },
+            "cpu": {
+              "user": 1472459,
+              "system": 191661
+            },
+            "rss": 263888896
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3907,
+        "phaseP99Ms": 4.947120999975596,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": true,
+        "curved": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 168,
+            "writes": 108
+          },
+          {
+            "statusReads": 64,
+            "writes": 106
+          },
+          {
+            "statusReads": 88,
+            "writes": 96
+          },
+          {
+            "statusReads": 8,
+            "writes": 88
+          },
+          {
+            "statusReads": 16,
+            "writes": 96
+          },
+          {
+            "statusReads": 8,
+            "writes": 88
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 873,
+        "historyP99Ms": 10.656902000016998,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.089647000015248,
+        "deleteRequests": 16,
+        "deleteP95Ms": 8.04411399998935,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 1.9425280000432394,
+        "metadataRequests": 16,
+        "metadataP95Ms": 24.495209000015166,
+        "downloads": 16,
+        "downloadP95Ms": 4.935810999944806,
+        "wireCommands": 370,
+        "wireSteps": 5562,
+        "minimumStepLeadMs": 87.671,
+        "directoryRequests": 3759,
+        "directoryP99Ms": 7.495827000006102,
+        "statusRequests": 15633,
+        "uploads": 16,
+        "statusP99Ms": 3.3340469999820925,
+        "uploadP95Ms": 11.141179000027478,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.938431,
+              "maxMs": 17.432575
+            },
+            "cpu": {
+              "user": 4795472,
+              "system": 538115
+            },
+            "rss": 285990912
+          },
+          {
+            "loop": {
+              "p99Ms": 1.996799,
+              "maxMs": 9.314303
+            },
+            "cpu": {
+              "user": 1497046,
+              "system": 224532
+            },
+            "rss": 271364096
+          }
+        ]
+      },
+      {
+        "phaseQueries": 4083,
+        "phaseP99Ms": 2.8660900000249967,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": true,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 168,
+            "writes": 55
+          },
+          {
+            "statusReads": 70,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 914,
+        "historyP99Ms": 7.760619999957271,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 6.753025999991223,
+        "deleteRequests": 16,
+        "deleteP95Ms": 15.850956000038423,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 2.7605090000433847,
+        "metadataRequests": 16,
+        "metadataP95Ms": 30.408262999961153,
+        "downloads": 16,
+        "downloadP95Ms": 5.310475000005681,
+        "wireCommands": 1095,
+        "wireSteps": 5808,
+        "minimumStepLeadMs": 80.71,
+        "directoryRequests": 3932,
+        "directoryP99Ms": 4.793387999990955,
+        "statusRequests": 16337,
+        "uploads": 16,
+        "statusP99Ms": 2.7287490000016987,
+        "uploadP95Ms": 9.246471999969799,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.950719,
+              "maxMs": 18.284543
+            },
+            "cpu": {
+              "user": 4803719,
+              "system": 550261
+            },
+            "rss": 286625792
+          },
+          {
+            "loop": {
+              "p99Ms": 1.909759,
+              "maxMs": 6.266879
+            },
+            "cpu": {
+              "user": 1622051,
+              "system": 206967
+            },
+            "rss": 272764928
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "X/E pulse comparison uses the same native planner on frozen Python versus TypeScript arc point lists; not a full Python/C versus Node/C printer comparison",
+    "Original arc Python is retained for the default Python host; only arc regression/benchmark runtime dependency retired",
+    "Historical numerical outliers and process crashes remain unresolved; this deterministic tiny-cruise failure is separate",
+    "No physical printer or target-board speed/precision acceptance"
+  ]
+}

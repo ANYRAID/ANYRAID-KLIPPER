@@ -1,0 +1,251 @@
+{
+  "schema": 1,
+  "sourceCommit": "ce7002bedf37e938bb483572949f3703ac6476cb",
+  "sources": {
+    "scripts/update_mks_robin.py": "3a31d672edc333b79345be753906e88f069b782504a18310632b73d690c57811",
+    "scripts/update_chitu.py": "df8942049b782c9c28d00d39829c66345c965b5bebb4fe23c5c8d3af9808b46b"
+  },
+  "pattern": "input[i]=(i*73+(i>>>8)*31)&255",
+  "fixtures": [
+    {
+      "kind": "mks_robin",
+      "size": 0,
+      "inputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputSize": 0,
+      "outputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 1,
+      "inputSHA256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "outputSize": 1,
+      "outputSHA256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 2,
+      "inputSHA256": "8b218b1d3c571d7f8f754bcac93c85e9abf4a384dadd24abce3cd2d3755ace66",
+      "outputSize": 2,
+      "outputSHA256": "8b218b1d3c571d7f8f754bcac93c85e9abf4a384dadd24abce3cd2d3755ace66",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 3,
+      "inputSHA256": "a390f30a68a228f47a9d06a2444900b88e3d8e9f454f81c25aa214f57f83cbba",
+      "outputSize": 3,
+      "outputSHA256": "a390f30a68a228f47a9d06a2444900b88e3d8e9f454f81c25aa214f57f83cbba",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 319,
+      "inputSHA256": "c9d99228271c36fcd1d2bbb4368d5014c4466fb4b9d9cd9ea726e9c5ec9585c7",
+      "outputSize": 319,
+      "outputSHA256": "c9d99228271c36fcd1d2bbb4368d5014c4466fb4b9d9cd9ea726e9c5ec9585c7",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 320,
+      "inputSHA256": "58166e4c7aba1b5b7d3a87ab155a5323fcdda039d1c274e9101657c667a40514",
+      "outputSize": 320,
+      "outputSHA256": "58166e4c7aba1b5b7d3a87ab155a5323fcdda039d1c274e9101657c667a40514",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 321,
+      "inputSHA256": "12d98c24a25f19aefe3ff5665b4e808012bc1d11058e4af11d50758e38fa88dd",
+      "outputSize": 321,
+      "outputSHA256": "5f37961287f22fb46997d1dad31a5e64c966334b78d7879767e07af10ab40e95",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 2047,
+      "inputSHA256": "c8561cb3a0dd4b51f0a5fe9d80679fbba857cb0e6389e0882f028cba89f2da4d",
+      "outputSize": 2047,
+      "outputSHA256": "eaf99256f33463069e1af6981e8fa0967c2b13c7265d8c8b5f610f257189e663",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 2048,
+      "inputSHA256": "96222636f110ddc21f8e50251a886aa7ddfc30e8a01da39fa22acb529b4f7aa5",
+      "outputSize": 2048,
+      "outputSHA256": "40904f23ec1801ac91bda9772bd088d257ef9e25a219dc54e25d1daea49e8cae",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 2049,
+      "inputSHA256": "1ea5e3858dda7fadaac58f3298e1baff6ec965681b81c466de13e71c87d75062",
+      "outputSize": 2049,
+      "outputSHA256": "994f6cb6843ab358005ba57148d4ed7e40b7b58c7c3132d7b26024907e876888",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 31039,
+      "inputSHA256": "58a8acf33c0e7cf437ace01237f3d58cf45f01e829f29aa38c4b169d1068eadd",
+      "outputSize": 31039,
+      "outputSHA256": "50df507a0951d10b8149d5fcbbe94b3480c91384a4b69bdb2e476acd77fff142",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 31040,
+      "inputSHA256": "7710078ec304027f25680944101f2a1346571688b972a93a4db5ddf8a2715d82",
+      "outputSize": 31040,
+      "outputSHA256": "fffdf9e96e33be8617aedacfee2db89812283eeef8937d659f15c3fbc7d610fd",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 31041,
+      "inputSHA256": "8a20e75843c5c924e4631345e6c6f35ddbfebe603c44189628656c8ff1b470a3",
+      "outputSize": 31041,
+      "outputSHA256": "f1d878de3d3dca01cab465de28f085952352710816bcf6b96dea5cb1c3245428",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 65536,
+      "inputSHA256": "6ce9b25cebc56123f63c2ace1e400808bfa507de2bc6f5e35ec9dea542cd11a0",
+      "outputSize": 65536,
+      "outputSHA256": "0996114d85fa5f44cbf085b571eca0090f49c0cc570c65aafc395fbc2ae43ba5",
+      "stdout": ""
+    },
+    {
+      "kind": "mks_robin",
+      "size": 1048576,
+      "inputSHA256": "ebc15a36fc67e1d4a118f88fd76407e879642cb6d639c80781087ccc1cc50f55",
+      "outputSize": 1048576,
+      "outputSHA256": "20ed50ac1f2daa11854a29daf69c24e3a62457fa819e86dce93eb6e7aa94f1d9",
+      "stdout": ""
+    },
+    {
+      "kind": "chitu",
+      "size": 0,
+      "inputSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "outputSize": 12,
+      "outputSHA256": "39ccb920f71fa695652f755d32be06c283b72d1c4daf8976a3356e74c18e2b52",
+      "stdout": "Update UUID  d41d8cd9-8f00-b204-e980-0998ecf8427e\nBlock Count is  0\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 1,
+      "inputSHA256": "6e340b9cffb37a989ca544e6bb780a2c78901d3fb33738768511a30617afa01d",
+      "outputSize": 4108,
+      "outputSHA256": "3a368208eec2769a22c38e64b2e3cc3e4a8891307fb18961f218a4e053911c11",
+      "stdout": "Update UUID  93b885ad-fe0d-a089-cdf6-34904fd59f71\nBlock Count is  2\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 2,
+      "inputSHA256": "8b218b1d3c571d7f8f754bcac93c85e9abf4a384dadd24abce3cd2d3755ace66",
+      "outputSize": 2060,
+      "outputSHA256": "1a46cfb1652325ea03588d51683b28efbbff6729e16e444f65584029d4a6385b",
+      "stdout": "Update UUID  6659f188-f42f-f9a5-1680-e35447e06a45\nBlock Count is  1\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 3,
+      "inputSHA256": "a390f30a68a228f47a9d06a2444900b88e3d8e9f454f81c25aa214f57f83cbba",
+      "outputSize": 6156,
+      "outputSHA256": "55999cef7b5fbb65fd79341179d5586b19cecd10a5671a5113af870ec24f5ad8",
+      "stdout": "Update UUID  ab3ccfb1-6152-3342-2481-f233a7b7d096\nBlock Count is  3\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 319,
+      "inputSHA256": "c9d99228271c36fcd1d2bbb4368d5014c4466fb4b9d9cd9ea726e9c5ec9585c7",
+      "outputSize": 4108,
+      "outputSHA256": "de306545bccc1eff4a66898ff5143257608706eed871a455527fad0415eb6636",
+      "stdout": "Update UUID  ebc36e83-434f-6ac4-5113-8d1f75fc4a3c\nBlock Count is  2\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 320,
+      "inputSHA256": "58166e4c7aba1b5b7d3a87ab155a5323fcdda039d1c274e9101657c667a40514",
+      "outputSize": 2060,
+      "outputSHA256": "8afdaffc4e43edc0f78fb9c308f70b9d00bd97b1fdbe7df9be47b96fa6b2c0cb",
+      "stdout": "Update UUID  ba46a1ec-a9e8-a9ac-e7b5-68df035473a7\nBlock Count is  1\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 321,
+      "inputSHA256": "12d98c24a25f19aefe3ff5665b4e808012bc1d11058e4af11d50758e38fa88dd",
+      "outputSize": 6156,
+      "outputSHA256": "b493a92ea50e126b419c29ab908ec7d81c38c24f8ee7df3db527f3d0c82b06dc",
+      "stdout": "Update UUID  cfb8d987-f47d-70ea-e5f0-d5b8ad7b1e0d\nBlock Count is  3\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 2047,
+      "inputSHA256": "c8561cb3a0dd4b51f0a5fe9d80679fbba857cb0e6389e0882f028cba89f2da4d",
+      "outputSize": 4108,
+      "outputSHA256": "8604ebeff8ec5daf00d7b7f89e4249a1d1e6aab2b5508b03886fb91308ee3fb2",
+      "stdout": "Update UUID  48184cd6-b2ad-ca54-cef3-153265227bef\nBlock Count is  2\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 2048,
+      "inputSHA256": "96222636f110ddc21f8e50251a886aa7ddfc30e8a01da39fa22acb529b4f7aa5",
+      "outputSize": 2060,
+      "outputSHA256": "10e8ac3f253d05c9ecd3e0c7982a8a78111579d76828dddfb317ff75308116d2",
+      "stdout": "Update UUID  467c9f6a-60e5-0001-f1ff-15af5c15f0af\nBlock Count is  1\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 2049,
+      "inputSHA256": "1ea5e3858dda7fadaac58f3298e1baff6ec965681b81c466de13e71c87d75062",
+      "outputSize": 6156,
+      "outputSHA256": "6b8ad796b3c7046323ca61df20ac129f60ceefbc227c5c5c22cd2ff23d48c9d1",
+      "stdout": "Update UUID  9c40c8e3-8c72-326a-b6cf-338f0535a751\nBlock Count is  3\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 31039,
+      "inputSHA256": "58a8acf33c0e7cf437ace01237f3d58cf45f01e829f29aa38c4b169d1068eadd",
+      "outputSize": 34828,
+      "outputSHA256": "cde0e0bb23e545b73a534db0549e2b0f377b808905a10b861a08fcea59e632a0",
+      "stdout": "Update UUID  3c7e7b6e-f36b-5de3-ec8b-56397d170081\nBlock Count is  17\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 31040,
+      "inputSHA256": "7710078ec304027f25680944101f2a1346571688b972a93a4db5ddf8a2715d82",
+      "outputSize": 32780,
+      "outputSHA256": "62374984f9b01479331649e29160f10cc7bd543093d065710bba2f3eb34327a1",
+      "stdout": "Update UUID  cc3198a4-a549-2b2d-442b-f7eadb84006c\nBlock Count is  16\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 31041,
+      "inputSHA256": "8a20e75843c5c924e4631345e6c6f35ddbfebe603c44189628656c8ff1b470a3",
+      "outputSize": 36876,
+      "outputSHA256": "086961f754ec057b7372a83e512c1c751abc3435a56e399117314c1665c4c332",
+      "stdout": "Update UUID  3d8f71ef-bec8-913a-c1ec-de8798e72cd0\nBlock Count is  18\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 65536,
+      "inputSHA256": "6ce9b25cebc56123f63c2ace1e400808bfa507de2bc6f5e35ec9dea542cd11a0",
+      "outputSize": 65548,
+      "outputSHA256": "f90e276d1441f461ce4e8ceff5f18744bd33d90f5501a849ca1a2193f3f77b96",
+      "stdout": "Update UUID  db4700d9-e875-e946-9b60-d29242c24657\nBlock Count is  32\nEncoding complete.\n"
+    },
+    {
+      "kind": "chitu",
+      "size": 1048576,
+      "inputSHA256": "ebc15a36fc67e1d4a118f88fd76407e879642cb6d639c80781087ccc1cc50f55",
+      "outputSize": 1048588,
+      "outputSHA256": "167a4b04beb429ed5d8dd0154179923bff0c59bce8a03e220aa7e0373dcdc9f1",
+      "stdout": "Update UUID  668c1d64-9178-dc80-efd9-f7ccd4452f84\nBlock Count is  512\nEncoding complete.\n"
+    }
+  ]
+}

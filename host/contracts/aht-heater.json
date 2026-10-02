@@ -1,0 +1,50 @@
+{
+  "status": "configured AHT heater feedback verified in simulation",
+  "tests": 37,
+  "slowFeedback": {
+    "runtime": "v26.9.0",
+    "ticks": 10000,
+    "samplePeriodSeconds": 30,
+    "sampleTimeoutSeconds": 36,
+    "pwmWatchdogSeconds": 3,
+    "writes": 5000,
+    "checksum": 25011499.100001328,
+    "warmups": 3,
+    "runs": 9,
+    "medianMs": 3.7881610000000023,
+    "maxMs": 4.787920999999997,
+    "scope": "virtual clock, real thermal controller and output renewal, immediate fake ACK; no hardware or serial IO"
+  },
+  "existingFeedback": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "samples": 20000,
+    "pwmWrites": 833,
+    "outputExact": true,
+    "python": {
+      "medianMs": 22.383558999536035,
+      "p95Ms": 22.9704639996271
+    },
+    "synchronous": {
+      "medianMs": 1.6311270000000206,
+      "p95Ms": 3.421486000000016
+    },
+    "acknowledged": {
+      "medianMs": 1.7902789999999982,
+      "p95Ms": 2.1751429999999914
+    },
+    "spiFeedback": {
+      "medianMs": 1.7651189999999986,
+      "p95Ms": 1.9885110000000168
+    },
+    "extraNanosecondsPerSample": 7.957599999998877,
+    "pythonToAcknowledgedSpeedup": 12.50283279842754,
+    "scope": "Fixed historical Python callback reference, immediate fake ACK, microtask drain, pure thermal control including MAX6675 decode; excludes UART latency, SPI electrical timing and hardware deadlines"
+  },
+  "limitations": [
+    "Direct heater compiled HTTP journey pending",
+    "No physical heater or MCU watchdog acceptance",
+    "Default host still Python; no modules retired",
+    "Historical Node motion numerical anomalies remain unresolved"
+  ]
+}

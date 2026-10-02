@@ -1,0 +1,38 @@
+{
+  "scope": "TMC2130 startup register plan, shared acknowledged initialization and runtime current owner over native SPI",
+  "sha256": {
+    "host/src/drivers/tmc2130.ts": "c2b82c9dd65435cdb48a2f6458cf3336bb4a93667ecc10bc8b034c1360dc9503",
+    "host/src/drivers/tmc220x.ts": "7d369d7ae1f723a851b3bac1e7af4a144f0f59f3a9769e53e33d511e0a16ad7a",
+    "host/src/drivers/tmc220x-current.ts": "305fb843a48ac0182bfcaeb39d0a9e57c94c3c78a4b34d4184d472e97967c078",
+    "host/test/tmc2130.test.ts": "a58e4475f059753856e2bf5e734219ef39eb1f253453bf4920c00287b5ef3696",
+    "host/test/tmc-spi-mcu.test.ts": "87c9a34d159f6afee55a369692f0a8aeb518114a7a82d628e4cc622979a0c4f2",
+    "host/bench/tmc2130.ts": "066f6d48bb2da38c62ad27c42779251471e5364214d9411e4b4cccd2860b219f",
+    "host/contracts/tmc2130-reference.json": "dd7845c7721bdda780a2a5416db0e97a5c6d64868969137e17f6088cd597c57a"
+  },
+  "tests": "✔ SPI compiler checks firmware bus names, mode three and CS inactive state (2.475927ms)\n✔ native SPI FIFO preserves pipeline, scheduled writes, chain positions and unsigned values (480.597007ms)\nℹ {\"scope\":\"Native SPI FIFO and simulated two-device pipeline, 20 warmups/100 reads, no electrical SPI timing\",\"medianMs\":0.17096299999991516,\"p95Ms\":0.22653300000001764,\"maxMs\":0.7707209999999804}\n✔ missing SPI query response cancels the session once without replaying preface (440.377269ms)\n✔ malformed SPI query response stops the MCU instead of trusting ACK (408.974194ms)\n✔ maximum chain falls back to ordered packets without exceeding MCU payload size (406.817101ms)\n✔ TMC2130 native startup and runtime current adjustment verify complete register values (415.194266ms)\n✔ TMC2130 register ordering, signed SGT, wave tables and quantization match 256 original constructors (26.869708ms)\n✔ TMC2130 validates signed and full-width fields and preserves physical speed thresholds across microsteps (1.755226ms)\n✔ SPI initialization verifies every register before current owner can publish a change (0.67422ms)\n✔ adjacent Float64 threshold rounding and 20-bit clamping match original constructor (4.919393ms)\n✔ updates preserve unrelated bits and publish only after both acknowledgements (0.919593ms)\n✔ partial write failure retires owner without publishing or accepting retries (0.349855ms)\n✔ invalid changes and already cancelled requests do not touch hardware (0.343565ms)\n✔ native command waits for drain and updates before subsequent movement (1.419011ms)\n✔ cancellation between register acknowledgements retires owner and prevents the second write (0.266794ms)\n✔ all startup registers and quantized current match 256 original model constructors (14.731079ms)\n✔ current boundaries, invalid resolution, address and fields are rejected before I/O (0.492398ms)\n✔ initialization writes every planned register through IFCNT and stops after a failed transaction (1.270669ms)\n✔ adjacent Float64 values around current quantization boundaries preserve original decisions (0.66877ms)\nℹ tests 19\nℹ suites 0\nℹ pass 19\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2309.762026\n",
+  "benchmark": {
+    "node": "v26.9.0",
+    "plans": 256,
+    "warmups": 2,
+    "batches": 7,
+    "registers": 43776,
+    "medianMs": 6.993963000000008,
+    "maxMs": 8.356042999999985,
+    "pythonMs": [
+      15.91157604707405,
+      15.914165996946394,
+      16.00582804530859,
+      16.00704703014344,
+      16.010927967727184,
+      16.02173800347373,
+      16.08080801088363
+    ],
+    "scope": "Node validated configuration plans versus original Python constructor with mocked config getters; no SPI I/O"
+  },
+  "validation": "Typecheck passed after annotating the test invalid-configuration table; whitespace passed",
+  "limitations": [
+    "Configuration-to-hardware assembly still rejects TMC2130 until bus pin reservation and model-specific monitoring are integrated",
+    "No TMC5160 model",
+    "No physical SPI timing, motor current or print quality validation"
+  ]
+}

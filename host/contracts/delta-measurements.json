@@ -1,0 +1,25 @@
+{
+  "node": "v26.9.0",
+  "warmups": 1,
+  "samples": 5,
+  "conversionsPerSample": 1000,
+  "conversionMs": [
+    22.894163000000006,
+    22.770981000000006,
+    22.176491,
+    22.237202999999994,
+    21.699993000000006
+  ],
+  "fitMs": [
+    6.724463000000014,
+    4.238381000000004,
+    4.0451579999999865,
+    3.908974999999998,
+    3.9942069999999887
+  ],
+  "medianConversionMs": 22.237202999999994,
+  "medianFitMs": 4.0451579999999865,
+  "maxResidual": 5.518558054973255e-9,
+  "passed": true,
+  "scope": "Printed-object conversion and extended SVD fit on synthetic measurements. Cold calibration only; excludes Worker startup, IO, actual printed dimensions and physical accuracy."
+}

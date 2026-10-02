@@ -1,0 +1,394 @@
+{
+  "date": "2026-10-01",
+  "implementationBase": "e2748d81",
+  "node": "v26.9.0",
+  "scope": "A2 software closure: native ordinary RESTART preserves observable shutdown/CRC failure, never resets firmware. A3 firmware restart route, actual client buttons, real board acceptance and full migration remain incomplete.",
+  "sourceSha256": {
+    "host/src/protocol/mcu-config.ts": "fc1a7e4bbe6600b7aa58ab061921634c29eff3ffdc83eb4214dda6e9626fd5b5",
+    "host/src/runtime/product-host.ts": "797c933406f8ac14c17997699c98646b90c4f772d831c7de64708182feda5e8f",
+    "host/src/runtime/native-product-machine.ts": "b49bf607edae9ec12b857a8750159f0fb1a1cd5e2751df1056bcaadf919096f0",
+    "host/src/moonraker/native-host-status.ts": "dda71fe405eca7b204c34f2921e3f635fa058f6956c46162b1787694a866a9a1",
+    "host/src/moonraker/configured-server.ts": "d672cd6f2701927daea321272ac09c554538c668fe7b7757f96bbdfc789adb63",
+    "host/test/helpers/serial-firmware.ts": "6918362de1fbb107b0b586767d84dbb629002f28fd534e79f11d40b0faa5456b",
+    "host/test/helpers/product-machine.ts": "789581f4ccf6123bc3ff20aa1d221ef8ced8f0b410acd973f01b3ffffdcc503c",
+    "host/test/helpers/product-transports.ts": "217018bd872fe79148cd84e76b386dc14448f1db5fe92a304a346995de65366c",
+    "host/test/native-product-restart.test.ts": "1dbcb4fb0a823bd5fb29d64d78fe367dd1356777cef5bf7e6ce0920fbaa86396",
+    "host/test/native-host-status.test.ts": "d5d5cdf4201945c4eeb07ddadcb4ca81df01c558b1ab465982291f83d8e97072",
+    "host/test/mcu-config.test.ts": "a730cb0fa704978668f04813165bfd791b9140647100e5df3e1ba6699cd2aa0d",
+    "host/test/serial-firmware.test.ts": "1e6d2ecdd5640737cbe8649028383892af2d4c45268cd949d65e0add5c509278",
+    "host/acceptance/product-compiled-restart-faults.test.ts": "d3152631d6596ab40ba35deba0f3ae8aedd4c3e72b628f9f0e6aa230279e9d4d",
+    "host/acceptance/product-compiled-restart.test.ts": "a92f5dc99671a0a45bb1d9927dae35257e0105c82a7409129f7253ea8a9554d2",
+    "host/acceptance/product-compiled-journey.test.ts": "9ff3ecc14ef862f3c7b7b60754fc58d56dafb23d710569daacbb7a68ab5ab9e8",
+    "host/bench/native-host-status.ts": "858c48d2c90c0f033d28c57724074f4ffa850e4436ce638e060cb6b6c5923eda"
+  },
+  "verified": [
+    "MCU configuration shutdown and CRC mismatch use typed faults. Product startup exports only bounded MCU classifications; arbitrary diagnostic text cannot spoof them. Unconfirmed cleanup takes precedence and forbids retry.",
+    "Shutdown remains latched in the same serial firmware model: get_config reports it repeatedly, configuration/output commands are rejected, diagnostic queries remain available. Only an explicit test-model reset clears configuration and shutdown; ordinary product RESTART sends none. This is not complete physical reset modeling or A3 implementation.",
+    "Main MCU CRC injection changes step pulse inversion, aux injection changes fan inversion. Direction inversion is host-side and was rejected as an invalid MCU CRC injection. Two failed HTTP/RPC ordinary restarts per case preserve original config CRC, accepted configuration writes/finalization counts, original listener/socket identity and failed receipts.",
+    "Authorization, upload without autoprint, files/download/metadata/history remain available while detached; print returns 503 and no false ready notification is sent. Restoring original CRC configuration recovers explicitly without reset; latched shutdown remains failed. Acquired devices all release and process dependencies close once.",
+    "All three compiled gates use the same artifact manifest hash: independent dependencies, emitted JS only, TypeScript stripping disabled and child PATH without programs/Python. Includes existing bootstrap/retention recovery and concurrent heated printing with ADC fault. No motion algorithm or production pulse configuration changed."
+  ],
+  "source": {
+    "uniqueValidatedCases": 83,
+    "validation": "79 unchanged cases passed in the 83-case regression; all four serial-model tests passed after the sole failing assertion was corrected for the protocol null-prototype parameter object. The original failed run is retained, not represented as a zero-failure run.",
+    "regression": {
+      "cases": 83,
+      "passed": 82,
+      "failed": 1,
+      "logSha256": "ff11f430b4434d366df9530ff37528e38b971254b8d53daa1e10b3ba9f2a7924"
+    },
+    "correctedModel": {
+      "cases": 4,
+      "passed": 4,
+      "failed": 0,
+      "logSha256": "5aea44f57c66ea9225373f4da82b52b3d75adea3f31c0b35b3bd9a7ff55812a3"
+    }
+  },
+  "compiled": {
+    "uniquePassedCases": 3,
+    "validation": "The first batch passed heated-print and bootstrap gates but the new fault test had a parser error. Only that script was corrected and rerun. Production runtime was unchanged and all three emitted manifest hashes match.",
+    "artifactManifestSha256": "958d785e01e1e463d31e34ad6d0e14dbb20246533172a10b4efcb67bd0f39597",
+    "firstBatchLogSha256": "e4d61db8ebeed9be7db960a3db9ab0940375b4adc89e298502bc4f1042aed9cb",
+    "correctedFaultLogSha256": "76fc8b5647716b86b60d9e8fef9dd00a794e44b8e784e09c0068227b4202a51a",
+    "faults": {
+      "bundleSha256": "958d785e01e1e463d31e34ad6d0e14dbb20246533172a10b4efcb67bd0f39597",
+      "results": [
+        {
+          "fault": "crc",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 2,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 6,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 4,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "deviceAcquisitions": 4,
+          "deviceReleases": 4,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "fault": "crc",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 2,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 8,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 6,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "deviceAcquisitions": 4,
+          "deviceReleases": 4,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "fault": "shutdown",
+          "mcu": 0,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 1,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": true
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": false
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 4,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 2,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "deviceAcquisitions": 3,
+          "deviceReleases": 3,
+          "sameSocket": true,
+          "sameListener": true
+        },
+        {
+          "fault": "shutdown",
+          "mcu": 1,
+          "failedOrdinaryRestarts": 2,
+          "readyGenerations": 1,
+          "configuration": [
+            {
+              "configured": true,
+              "crc": 3895650474,
+              "shutdown": false
+            },
+            {
+              "configured": true,
+              "crc": 1986911551,
+              "shutdown": true
+            }
+          ],
+          "configurationTraffic": [
+            {
+              "reads": 6,
+              "writes": 13,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            },
+            {
+              "reads": 4,
+              "writes": 7,
+              "finalizations": 1,
+              "resets": 0,
+              "rejectedShutdownCommands": 0
+            }
+          ],
+          "deviceAcquisitions": 3,
+          "deviceReleases": 3,
+          "sameSocket": true,
+          "sameListener": true
+        }
+      ],
+      "queries": 890,
+      "queryP99Ms": 5.0951420000001235,
+      "hardwareAcceptance": false,
+      "firmwareRestartRouteImplemented": false
+    },
+    "recovery": {
+      "bundleSha256": "958d785e01e1e463d31e34ad6d0e14dbb20246533172a10b4efcb67bd0f39597",
+      "queries": 2084,
+      "queryP99Ms": 5.158750999999938,
+      "restartMs": [
+        520.0021809999998,
+        506.11509699999897,
+        508.66517700000077
+      ],
+      "readyFileDescriptors": [
+        77,
+        77,
+        77,
+        77
+      ],
+      "descriptorSamples": [
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        }
+      ],
+      "canonicalDeviceAndDatabaseDescriptors": 5,
+      "sameMCUFirmware": true,
+      "stepperConfigurations": [
+        4,
+        0
+      ],
+      "recoveryHistory": {
+        "controlled": {
+          "retained": 128,
+          "capacity": 128
+        },
+        "standard_restart": {
+          "retained": 64,
+          "capacity": 64
+        }
+      },
+      "compiledV1Migration": true,
+      "initialConfigurationFailureRecovered": true,
+      "bootstrapListeners": 1,
+      "bootstrapRecoveryMs": 549.7864239999999,
+      "expiredStandardIDsAbsent": true,
+      "hardwareAcceptance": false
+    },
+    "concurrentPrint": {
+      "statusRequests": 16059,
+      "statusP99Ms": 4.593423999998777,
+      "minimumStepLeadMs": 83.737,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.944575,
+            "maxMs": 19.677183
+          },
+          "cpu": {
+            "user": 5565131,
+            "system": 659550
+          },
+          "rss": 313655296
+        },
+        {
+          "loop": {
+            "p99Ms": 1.947647,
+            "maxMs": 8.249343
+          },
+          "cpu": {
+            "user": 1802461,
+            "system": 231583
+          },
+          "rss": 300666880
+        }
+      ],
+      "motionReportLoad": true,
+      "liveMotionSamples": 2622,
+      "liveExtrusionSamples": 1441
+    }
+  },
+  "benchmark": {
+    "logSha256": "a45de36c8c795fd0865f6561cfa2500f2a46bc6c0087ceb7e23ce328babbad16",
+    "node": "v26.9.0",
+    "warmup": 3,
+    "samples": 11,
+    "iterations": 100000,
+    "variants": [
+      "existingMetadata",
+      "metadataWithNativeSnapshot",
+      "nativeSnapshotAndPrinterIdentity"
+    ],
+    "timing": [
+      {
+        "medianUs": 0.02372355999999968,
+        "p95Us": 0.09724250999999982
+      },
+      {
+        "medianUs": 0.4676006700000016,
+        "p95Us": 0.5114242299999995
+      },
+      {
+        "medianUs": 0.6147829499999989,
+        "p95Us": 0.6587561199999994
+      }
+    ],
+    "cpu": [
+      {
+        "medianUs": 0.02379,
+        "p95Us": 0.19275
+      },
+      {
+        "medianUs": 0.46877,
+        "p95Us": 0.70943
+      },
+      {
+        "medianUs": 0.61706,
+        "p95Us": 0.85548
+      }
+    ],
+    "maximumAddedUs": 5,
+    "checksum": 109900000,
+    "scope": "Synchronous metadata response construction and bounded validation of a two-MCU snapshot. Third variant also constructs printer.info identity and protocol state; identity captured once. Excludes HTTP/RPC serialization, device getters and physical printing."
+  },
+  "checks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "preservedFailures": [
+    {
+      "logSha256": "cedfa1b9338fa34149985e4dd861c44fff80a263c326332f10ec6b80f60416a9",
+      "reason": "Test used a nonexistent commands getter and expected a direct shutdown error instead of the authoritative two-attempt AggregateError; corrected test assertions."
+    },
+    {
+      "logSha256": "316d4c54e8ae1b2d85c2ba01e1af99e929f147ff2df390f72b95c7f15d2b9758",
+      "reason": "Main MCU injection incorrectly changed host-side direction inversion, which does not change MCU config CRC. Changed injection to MCU step pulse inversion."
+    },
+    {
+      "logSha256": "ff11f430b4434d366df9530ff37528e38b971254b8d53daa1e10b3ba9f2a7924",
+      "reason": "Protocol parameters have a null prototype. Corrected assertion by copying the same fields; no protocol behavior changed."
+    },
+    {
+      "logSha256": "e4d61db8ebeed9be7db960a3db9ab0940375b4adc89e298502bc4f1042aed9cb",
+      "reason": "New fault acceptance script missed an options-object closing brace. Typecheck reported it; corrected only the script and reran the failed gate."
+    }
+  ],
+  "unverified": [
+    "A3 explicit FIRMWARE_RESTART resetting and rebuilding the same MCU models; failure and exit races",
+    "A4 actual Fluidd/Mainsail upload, standard buttons and reconnect on this candidate",
+    "Known numerical divergence and process crash gate G3",
+    "Physical Cycnumbris 500 series profiles, stop adapters, installation, motion precision and timing",
+    "Complete pinned Moonraker contract, controlled macro scenarios, default install/CI and all remaining klippy Python",
+    "Integration PRs to develop and release mainline"
+  ]
+}

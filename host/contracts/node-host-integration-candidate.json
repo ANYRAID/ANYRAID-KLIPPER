@@ -1,0 +1,1438 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
+  "scope": "Pre-develop draft integration candidate. Committed source snapshot only; M2 working-tree draft excluded. Local Linux x64 build/install and no-motion CLI acceptance, not full migration, complete Moonraker, production release or target hardware approval.",
+  "remote": {
+    "repository": "ANYRAID/ANYRAID-KLIPPER",
+    "base": "develop",
+    "defaultBranch": "master",
+    "developSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
+    "masterSha": "ce7002bedf37e938bb483572949f3703ac6476cb",
+    "verification": "Authenticated git ls-remote; candidate branch pushed and draft PR created. No merge or default-entry switch performed.",
+    "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/1",
+    "head": "devac/node26-moonraker-integration",
+    "observedRevision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
+    "draft": true
+  },
+  "isolation": {
+    "source": "git archive of softwareBase in /tmp; uncommitted published-files.ts and untracked published-paths.ts absent",
+    "developmentDependencies": "Existing locked compiler/development dependency tree linked only into source snapshot; emitted product independently installs production dependencies.",
+    "productRuntime": {
+      "typescriptLoader": false,
+      "python": false,
+      "externalPath": "/no-programs",
+      "nodePath": "",
+      "sharedNodeModules": false,
+      "lifecycleScripts": false,
+      "offlineCache": true
+    }
+  },
+  "product": {
+    "manifestSha256": "e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79",
+    "inventoriedFiles": 643,
+    "node": "v26.9.0",
+    "typescript": "7.0.2",
+    "platform": "linux",
+    "arch": "x64",
+    "modules": "147",
+    "addons": [
+      "trapq",
+      "stepcompress",
+      "serialqueue",
+      "unix-peer",
+      "sealed-file",
+      "can-query",
+      "ar100-flash"
+    ],
+    "nativeSourceFiles": 63,
+    "nodeHeaderFiles": 2810,
+    "nativeOutputs": {
+      "trapq.node": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc",
+      "stepcompress.node": "276f236e4ce2be26395041ceeb1c3e939329cd707c2e1da88bc1cc67387afdfb",
+      "serialqueue.node": "7d320ac8b4fcf941c0b0819e44a87954afd4dd962adb9ae94074f71eeea516ac",
+      "unix-peer.node": "86d5ed6b37abf734d89fb4eff9b24bcf6636eab408c94df7e9d96f04cb356248",
+      "sealed-file.node": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+      "can-query.node": "33135adc0307937ed196ce305c4b52003dc617ec5a9c1550c21b8c22e00a760a",
+      "ar100-flash.node": "5018b82bbf784653d7a55678ed768e52d5eb3acb8f05702b71ceb8d9627215f9",
+      "fatfs-helper": "262fccdaeb2d9733f48b4d2b0ec47319bc05ed8f57c61d02e4080478a4c80c7b"
+    },
+    "sourceHashes": {
+      "host/scripts/build-product-host.ts": "23f04f8173e8c10dae011553a001f0b4e5cb47c5fca09a066b61566747fad1ca",
+      "host/scripts/build-product-native.ts": "c1891d71e8a1c32ac09ca9b21e4968eed28a4b2c0f9496ceaaac2aa20636f722",
+      "host/tsconfig.product-host.json": "b400374d4c656b2d2603023cf3fa98a4a2d473c8621a1ccc25aa18d963c8f33f",
+      "host/package.json": "7a72196ab9a7f0469de838557cd59d97cd2dc0da4b5016f750e006be8f0a0acd",
+      "host/package-lock.json": "c4ef51fceb922a42ad38738e1c12503ed9c6d33e67cd7d02ac5e0c9706ec6b53",
+      "scripts/product-host.ts": "2c9b6e3d4d267ba7003abd3b1567c875afef178c4921622ac34c8892249ac736",
+      "host/src/runtime/native-product-machine.ts": "395b6993dc7a2f517fa88e5977fc25ef6177954804e888e6bf0f059fa673fdc9",
+      "host/src/moonraker/configured-server.ts": "e1e31cabf209f753871cdbfc1f4f5e1a2e9bcdcc329b34113cb4c4e750914555",
+      "host/src/moonraker/native-config-files.ts": "ed3014b2ce4cf259bcb8f7b286b247de573e21d849cfd5154fe8768f916ee7a5"
+    }
+  },
+  "dependencies": {
+    "scope": "Compiler --listFilesOnly resolved file closure including type imports. Does not prove dynamic machine adapter, Worker URL or native ABI closure.",
+    "entries": {
+      "scripts/product-host.ts": {
+        "modules": 448,
+        "areas": {
+          "host": 3,
+          "calibration": 3,
+          "config": 60,
+          "diagnostics": 1,
+          "drivers": 18,
+          "gcode": 23,
+          "homing": 34,
+          "inputs": 9,
+          "kinematics": 5,
+          "math": 3,
+          "moonraker": 124,
+          "motion": 42,
+          "operations": 13,
+          "outputs": 11,
+          "protocol": 16,
+          "runtime": 27,
+          "storage": 2,
+          "thermal": 45,
+          "timing": 8,
+          "scripts": 1
+        }
+      },
+      "host/src/runtime/native-product-machine.ts": {
+        "modules": 450,
+        "areas": {
+          "host": 3,
+          "calibration": 3,
+          "config": 61,
+          "diagnostics": 1,
+          "drivers": 18,
+          "gcode": 23,
+          "homing": 34,
+          "inputs": 9,
+          "kinematics": 5,
+          "math": 3,
+          "moonraker": 124,
+          "motion": 42,
+          "operations": 13,
+          "outputs": 11,
+          "protocol": 16,
+          "runtime": 29,
+          "storage": 2,
+          "thermal": 45,
+          "timing": 8
+        }
+      },
+      "host/src/moonraker/configured-server.ts": {
+        "modules": 137,
+        "areas": {
+          "host": 3,
+          "config": 8,
+          "gcode": 9,
+          "math": 1,
+          "moonraker": 103,
+          "motion": 1,
+          "operations": 7,
+          "runtime": 3,
+          "storage": 2
+        }
+      },
+      "host/src/moonraker/native-config-files.ts": {
+        "modules": 30,
+        "areas": {
+          "config": 8,
+          "gcode": 4,
+          "moonraker": 10,
+          "operations": 7,
+          "runtime": 1
+        }
+      }
+    },
+    "reportSha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b",
+    "decision": "Review as one dependency-preserving candidate, with separate review areas. Counts include type references and are not proof that every dependency is loaded at runtime. Do not cherry-pick Moonraker independently from shared storage, operation, runtime and native owners.",
+    "manualDependencies": [
+      "Worker entrypoints validated in product build inventory and compiled worker tests",
+      "C addons consume host/native, klippy/chelper, src/compiler.h and Node headers",
+      "FatFs helper consumes lib/fatfs with license included",
+      "Actual machine adapter and physical stop remain external unverified requirements"
+    ]
+  },
+  "checks": {
+    "nativeDevelopmentBuild": true,
+    "typecheck": true,
+    "sourceWhitespace": true,
+    "productBuildTests": {
+      "passed": 4,
+      "failed": 0,
+      "command": "npm_config_offline=true node --test --test-isolation=none --test-concurrency=1 host/test/product-native-build.test.ts host/test/product-build.test.ts",
+      "coverage": [
+        "fresh C-only native build and output/source hashes",
+        "reproducible independent package and prior-output preservation on failures",
+        "independently installed compiled workers, bundled assets and mathematical smoke equivalence",
+        "compiled CLI no-motion preflight plus authenticated HTTP/WS and two PTY MCU startup/stop"
+      ]
+    },
+    "independentCandidateInstall": {
+      "durationMs": 802.340838,
+      "dependencies": 14
+    },
+    "candidateBundleVerification": {
+      "passed": true,
+      "checkedFiles": 643,
+      "noPyOrTs": true
+    },
+    "linuxMcuBuild": {
+      "passed": true,
+      "configuration": "test/configs/linuxprocess.config",
+      "python": "/nonexistent-python",
+      "commands": [
+        "make olddefconfig",
+        "make all"
+      ],
+      "elfSha256": "58b35812a369f28b70f1f77f9a4d523e606046769532390684cc116ef4e519d3",
+      "scope": "Host Linux build from git archive, no flashing or physical device. Archive has no Git metadata so embedded firmware version is an archive timestamp, not release provenance."
+    },
+    "legacyInstallers": {
+      "unchangedFromDevelop": [
+        "scripts/install-debian.sh",
+        "scripts/install-octopi.sh",
+        "scripts/ci-install.sh",
+        "scripts/Dockerfile"
+      ],
+      "scope": "Source hashes/diff checked; not a runtime or target installation pass. Shared C helper changes still require affected compatibility CI."
+    }
+  },
+  "reusedEvidence": {
+    "reference": "native-config-backups-acceptance.json",
+    "basis": "Fresh candidate build-info SHA-256 exactly equals M1 manifest, all 643 emitted files verified, M1 implementation source hashes also match.",
+    "sourceRegressionPassed": 91,
+    "compiledRecoveryPassed": 2,
+    "compiledLoadPassed": 1,
+    "performance": {
+      "backupQueries": 861,
+      "backupQueryP99Ms": 5.774835,
+      "statusP99Ms": 4.493798,
+      "minimumStepLeadMs": 80.903
+    },
+    "limits": "Historical same-artifact local simulated performance only. Not new measurements, target-board proof, full module regression or complete A4 UI acceptance."
+  },
+  "remoteCiObservation": {
+    "revision": "6706944d25f383e20c1ff57be1433239af8132b8",
+    "host": {
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36864092851/job/110375171415",
+      "result": "failure",
+      "tests": 3799,
+      "passed": 3782,
+      "failed": 17,
+      "observedGroups": [
+        "Six Motan SOS Python reference tests fail with ModuleNotFoundError: numpy; reference version assertions remain NumPy 2.5.3 and SciPy 1.17.1.",
+        "Four delayed authorization tests expect unavailable/closed messages but receive Endpoint owner has retired; verify lifecycle contract and side-effect fencing before changing assertions.",
+        "Delta BLTouch probe 503 and obsolete unsupported-section expectation; investigate separately.",
+        "HTU21D heater sees PWM refresh deadline instead of checksum fault; no deadline relaxation without cause.",
+        "Pipe inspection rejects with No such device instead of character device; native stop reports AggregateError instead of expected identity.",
+        "Durable recovery reports cancel timeout; WebSocket print status remains preparing instead of printing."
+      ],
+      "logScope": "Codex CI job log response is truncated; summary and listed 17 failure records are present. Complete root causes and preceding protocol/sanitizer steps are not inferred."
+    },
+    "firmware": {
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36864092621/job/110375169777",
+      "result": "failure",
+      "mcu": "STM32F042",
+      "romOverflowBytes": 624,
+      "scope": "Matrix stops at linker failure; remaining firmware and original host compatibility are not treated as passed."
+    },
+    "pullRequestRuns": {
+      "hostRunId": 36865273180,
+      "firmwareRunId": 36865273064,
+      "motionRunId": 36865273036,
+      "statusAtObservation": "incomplete",
+      "scope": "Automatically triggered PR runs on the same revision; not an agent-initiated retry. Re-read exact revision for final results. Successful diagnostic job exit alone does not close unresolved G3 failures."
+    },
+    "followup": {
+      "revision": "6b1027b0a631ad79b6a9ffc97ef5b5479c1d717a",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36866162712/job/110382078692",
+      "result": "failure",
+      "tests": 3799,
+      "passed": 3784,
+      "failed": 15,
+      "scope": "Subsequent exact-head PR run completed; failure count varies and does not close intermittent failures."
+    },
+    "localRepair": {
+      "reference": "ci-reference-lifecycle-acceptance.json",
+      "sos": "Six Python-reference failures addressed with 175 independently captured bounded records; all original precision and scalar-bit assertions retained.",
+      "authorization": "Four stale delayed-authorization assertions now require the existing ApiError status 503 and no hardware/configuration/state mutation.",
+      "regressionPassed": 28,
+      "routeAndRetirementPassed": 9,
+      "typecheck": true,
+      "performanceRows": 27,
+      "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
+    },
+    "next": "Push test-only post-drain/rebuild cadence assertions, then verify exact new-head required CI. Keep copy/overwrite source draft outside that candidate until its complete compiled/performance/client evidence is ready.",
+    "latestObservedSource": "492bf405744e21701686ddc7c647672699ed404b",
+    "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
+    "current": {
+      "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
+      "baseRevision": "ce7002bedf37e938bb483572949f3703ac6476cb",
+      "testedMergeRevision": "e89940d",
+      "observedAt": "2026-10-01T16:24:28Z",
+      "host": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798204/job/110455449310",
+        "status": "completed",
+        "steps": {
+          "typecheck": "success",
+          "whitespace": "success",
+          "ordinaryTests": "success",
+          "protocolNative": "success",
+          "nativeSanitized": "success",
+          "linuxMcu": "success"
+        },
+        "scope": "Complete decoded job log and terminal step conclusions; historical intermittent failures remain unresolved.",
+        "conclusion": "success",
+        "ordinaryTests": {
+          "tests": 3803,
+          "pass": 3803,
+          "fail": 0
+        },
+        "sanitizer": [
+          {
+            "configuration": "UBSan",
+            "files": 149,
+            "uniqueFiles": 149,
+            "tests": 1178,
+            "pass": 1178,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "maxFileMs": 45853.81712600001,
+            "allWithinOriginalDeadline": true
+          },
+          {
+            "configuration": "ASan plus UBSan",
+            "files": 149,
+            "uniqueFiles": 149,
+            "tests": 1178,
+            "pass": 1178,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "maxFileMs": 46239.61033199995,
+            "allWithinOriginalDeadline": true
+          }
+        ]
+      },
+      "firmware": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798133/job/110455447715",
+        "status": "completed",
+        "conclusion": "success",
+        "configurations": [
+          "test/configs/ar100.config",
+          "test/configs/at90usb1286.config",
+          "test/configs/atmega1280.config",
+          "test/configs/atmega1284p.config",
+          "test/configs/atmega2560.config",
+          "test/configs/atmega328.config",
+          "test/configs/atmega644p.config",
+          "test/configs/hc32f460-serial-PA3PA2.config",
+          "test/configs/hc32f460-serial-PA7PA8.config",
+          "test/configs/hostsimulator.config",
+          "test/configs/lgt8f328p.config",
+          "test/configs/linuxprocess.config",
+          "test/configs/lpc176x.config",
+          "test/configs/n32g45x-canbus.config",
+          "test/configs/n32g45x.config",
+          "test/configs/pru.config",
+          "test/configs/rp2040.config",
+          "test/configs/rp2350.config",
+          "test/configs/sam3x8c.config",
+          "test/configs/sam3x8e.config",
+          "test/configs/sam4e8e.config",
+          "test/configs/sam4s8c.config",
+          "test/configs/samd21g18.config",
+          "test/configs/samd51p20.config",
+          "test/configs/same70q20b.config",
+          "test/configs/stm32f031.config",
+          "test/configs/stm32f042.config",
+          "test/configs/stm32f070.config",
+          "test/configs/stm32f103-serial.config",
+          "test/configs/stm32f103.config",
+          "test/configs/stm32f401.config",
+          "test/configs/stm32f405.config",
+          "test/configs/stm32f407.config",
+          "test/configs/stm32f429.config",
+          "test/configs/stm32f446.config",
+          "test/configs/stm32f765.config",
+          "test/configs/stm32g0b1.config",
+          "test/configs/stm32g431.config",
+          "test/configs/stm32g474.config",
+          "test/configs/stm32h723.config",
+          "test/configs/stm32h743.config",
+          "test/configs/stm32l412.config"
+        ],
+        "legacyImports": {
+          "Python3": "success",
+          "Python2": "success"
+        },
+        "legacyCasesPerRuntime": 239,
+        "legacyFilesPerRuntime": 37,
+        "source": "Decoded complete GitHub job log verifies checkout merge includes the exact candidate revision; all build sections finished and both legacy invocation summaries passed."
+      },
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36887798165",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Finite observations do not close historical numerical mismatches or crashes and do not establish physical precision or timing."
+      },
+      "scope": "No merge, default switch, Python retirement or real motion approval. Historical mapped-clock, PWM and Delta calibration failures remain unresolved."
+    },
+    "stopStateRepair": {
+      "reference": "ci-stop-state-acceptance.json",
+      "regressionPassed": 73,
+      "isolatedTypecheck": true,
+      "scope": "Six CI test failures repaired against existing product contracts, plus independent stop/cleanup regression. No production algorithms, deadlines, endpoint behavior or numerical tolerance changes. M2 drafts excluded."
+    },
+    "previous": {
+      "revision": "40bb51030a81c53441ff4d5bf4cc1023779c265c",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740351/job/110397537483",
+      "result": "failure",
+      "tests": 3802,
+      "passed": 3796,
+      "failed": 6,
+      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36870740490/job/110397540133",
+      "romOverflowBytes": 624,
+      "scope": "Truncated job response includes final summary and all six failure records. Subsequent protocol/sanitizer steps not executed. Earlier intermittent failures not closed by a later pass."
+    },
+    "firmwareLtoRepair": {
+      "reference": "stm32-lto-acceptance.json",
+      "sourceBase": "1313377c",
+      "configurationsPassed": 19,
+      "cSafetyAndGeneratorRegressionPassed": 14,
+      "criticalFunctionOperationsSame": 52,
+      "strictFinalRomRejection": true,
+      "scope": "Local STM32 link repair only; full exact-head CI and two probe failure causes remain unproven. No physical timing or merge approval."
+    },
+    "preLtoCi": {
+      "revision": "82f7d8da6d1da1be2cb14c2d179e4a9e1884e828",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428683/job/110410098124",
+      "result": "failure",
+      "tests": 3803,
+      "passed": 3801,
+      "failed": 2,
+      "failures": [
+        {
+          "test": "host/test/delta-bltouch.test.ts",
+          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "actualStatus": 503,
+          "error": "Probe failed; reinitialize before further motion",
+          "rootCause": "unresolved"
+        },
+        {
+          "test": "host/test/delta-probe.test.ts",
+          "name": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "actualStatus": 503,
+          "error": "Delta calibration failed; reinitialize and inspect configuration",
+          "rootCause": "unresolved"
+        }
+      ],
+      "firmwareJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428544/job/110410097415",
+      "romOverflowBytes": 628,
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36874428527",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+      },
+      "scope": "Exact PR-head completed checks. Truncated host log includes final summary and both failures; firmware log includes STM32F042 linker overflow. Later host protocol/sanitizer steps and remaining firmware matrix are not inferred as passed. No merge or hardware approval."
+    },
+    "ciSchedulingRepair": {
+      "scope": "Validation orchestration and mapped-trigger error diagnostics. Runtime algorithms, safety deadlines, precision tolerances and endpoint status/shape unchanged; M2 drafts excluded.",
+      "triggers": "Task branches run through pull_request; push runs remain on develop and master. All job definitions, PR path filters, motion matrix and workflow_dispatch retained.",
+      "sanitizer": "Each original test file runs once per UBSan/ASan configuration in a separate child with the original 60000 ms deadline; no retries or omissions.",
+      "validation": "local_passed",
+      "probeExperiments": [
+        {
+          "log": "/tmp/anyraid-a33-targeted-two-cpu.log",
+          "tests": 10,
+          "passed": 9,
+          "failed": 1,
+          "failure": "Delta calibration returned 503 after 16 hits; hardware/motion fault fields undefined; internal fit/geometry cause not captured."
+        },
+        {
+          "log": "/tmp/anyraid-a33-calibration-cause.log",
+          "tests": 1,
+          "passed": 1,
+          "failed": 0,
+          "scope": "Temporary capture of calibration input/catch; successful rerun does not close failure."
+        },
+        {
+          "log": "/tmp/anyraid-a33-calibration-concurrent-cause.log",
+          "tests": 10,
+          "passed": 10,
+          "failed": 0,
+          "scope": "Independent CPU pair with temporary input/catch capture; successful rerun does not close failure."
+        }
+      ],
+      "limits": "No claim that scheduling changes fix runtime timing or numerical failures. Exact new PR-head checks remain required.",
+      "mappedClockDiagnostics": "Failure text retains the rejection and adds member, OID, mapped tick and observed tick. No clamping, fallback or tolerance change.",
+      "sourceBase": "a33aa11335c675797618a40afbee641e2b66efa2",
+      "node": "v26.9.0",
+      "cpuAffinity": "0,1",
+      "sourceHashes": {
+        "host/scripts/test-native-sanitized.ts": "393b478398b5acd5af720985a624616effe9fb954dae46677f17a64b6f911cad",
+        "host/src/homing/position-offsets.ts": "cb9b14a55d504b6a6e5aaf683d4430f2314f2f77ee86e626f420c1e25adddbbf",
+        ".github/workflows/node-host.yaml": "d97116e4a4fb9b27a3fe6e26ff5b16daaad53c20029ed023b5e6825b79366b4c",
+        ".github/workflows/build-test.yaml": "56eec190c08715690e50cf32cacc94856aa838d31b94d7e9f33154e03a7bedbb",
+        ".github/workflows/node-motion-diagnostics.yaml": "308a9a7216835b2987ffee35ad5130b21feba7c3346212b22a0abe013a2b7015"
+      },
+      "sanitizerResults": [
+        {
+          "configuration": "UBSan",
+          "files": 149,
+          "tests": 1178,
+          "pass": 1178,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "totalElapsedMs": 574399.2172179999,
+          "maxFileMs": 45531.42812199998
+        },
+        {
+          "configuration": "ASan plus UBSan",
+          "files": 149,
+          "tests": 1178,
+          "pass": 1178,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "totalElapsedMs": 608129.5556569999,
+          "maxFileMs": 45826.50583499996
+        }
+      ],
+      "typecheck": {
+        "passed": true,
+        "scope": "Isolated source archive with exact runner and mapped-trigger diagnostics overlays; M2 drafts excluded."
+      },
+      "workflowValidation": {
+        "passed": true,
+        "scope": "YAML syntax, unchanged complete job definitions/PR filters/matrix/manual entry, develop and master push filters."
+      },
+      "failedBatchExperiment": {
+        "fileCount": 8,
+        "deadlineMs": 60000,
+        "result": "timeout",
+        "scope": "Eight-file attempt still timed out with queued timed cases; superseded by per-file execution, not accepted as passed."
+      },
+      "logArtifacts": [
+        {
+          "path": "/tmp/anyraid-a33-sanitizer-per-file.log",
+          "sha256": "b21a78fecda9957aae28832ceb9a6000020c0e93d890c6a8c91cc8e3b9082787"
+        },
+        {
+          "path": "/tmp/anyraid-a33-sanitizer-bounded.log",
+          "sha256": "3a2ac417f79a21d501727908700aa69fe15429ff81863eb505e1b7c07b8c8588"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-workflows.log",
+          "sha256": "b7f2dee16f24f885680be4856bab36bf94a1596a11261e6d61906e7ec699ebf5"
+        },
+        {
+          "path": "/tmp/anyraid-ci-schedule-whitespace.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "/tmp/anyraid-a33-targeted-two-cpu.log",
+          "sha256": "fac697d670da8b02fab103999039afda258675aeb6aacade4f754f50b0e67d73"
+        },
+        {
+          "path": "/tmp/anyraid-a33-calibration-cause.log",
+          "sha256": "f266075f81c16b5f2c3999fe902868f27c9ec308f1871e78eff633423010e0f5"
+        },
+        {
+          "path": "/tmp/anyraid-a33-calibration-concurrent-cause.log",
+          "sha256": "2a2bb8641b5845f84ae034cb6a8e17bb1a2c70c2092f447ffe9da8d3082eba42"
+        }
+      ]
+    },
+    "preSchedulingCi": {
+      "revision": "a33aa11335c675797618a40afbee641e2b66efa2",
+      "hostJob": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058994/job/110432617886",
+      "result": "failure",
+      "tests": 3803,
+      "passed": 3801,
+      "failed": 2,
+      "failures": [
+        {
+          "test": "host/test/delta-bltouch.test.ts",
+          "name": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "actualStatus": 503,
+          "hardwareFault": "Invalid mapped trigger clock",
+          "motionFault": "Native file motion stopped",
+          "probeHits": 1,
+          "rootCause": "unresolved"
+        },
+        {
+          "test": "host/test/htu21d-hardware.test.ts",
+          "name": "configured HTU21D heater publishes fractional humidity and CRC fault stops both MCUs",
+          "actualFault": "Heater PWM refresh deadline missed",
+          "expectedFault": "checksum",
+          "rootCause": "unresolved"
+        }
+      ],
+      "pushHost": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881048729/job/110432581924",
+        "tests": 3803,
+        "passed": 3803,
+        "failed": 0,
+        "result": "failure",
+        "failure": "First sanitized child exceeded the 60000 ms aggregate invocation deadline while later files were still running",
+        "scope": "Ordinary tests and protocol step passed; full sanitizer and subsequent Linux MCU step did not complete."
+      },
+      "firmware": {
+        "job": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058832/job/110432616444",
+        "status": "in_progress",
+        "observedStep": "Prepare tests",
+        "testStarted": false
+      },
+      "motionDiagnostics": {
+        "run": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36881058833",
+        "completed": 8,
+        "successfulExit": 8,
+        "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
+      },
+      "scope": "Decoded complete host logs obtained from the GitHub connector. PR and push ordinary-test outcomes differ on the same source revision. Firmware result is pending; no merge or hardware approval."
+    },
+    "additionalObservations": [
+      {
+        "source": "ec4639fb506ad426a7feff24f61fb0997324a8ca",
+        "testedMerge": "7972379e",
+        "observedAt": "2026-10-02T10:21:40Z",
+        "host": {
+          "run": 36903503029,
+          "job": 110508181359,
+          "result": "failure",
+          "tests": 3814,
+          "pass": 3812,
+          "fail": 2,
+          "cancelled": 0,
+          "skipped": 0,
+          "oldFilenameAssertion": "passed",
+          "failures": [
+            {
+              "case": "configured cartesian y carriage starts, homes on two MCUs and moves selected motor",
+              "member": 1,
+              "oid": 0,
+              "mapped": "1625345",
+              "observed": "1625271"
+            },
+            {
+              "case": "configured hybrid_corexz x carriage starts, homes on two MCUs and moves selected motor",
+              "member": 0,
+              "oid": 0,
+              "mapped": "1835297",
+              "observed": "1834165"
+            }
+          ],
+          "cause": "Invalid mapped trigger clock; cause unresolved. Original integer clock check and fail-stop retained",
+          "notExecuted": [
+            "native protocol",
+            "UBSan",
+            "ASan+UBSan",
+            "Linux MCU build"
+          ],
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-ec4639-host-failures.log",
+            "sha256": "967e749121e44fb26fdcd4ff0ebaa34c7147f0453cb87e735af071a60e996b12"
+          }
+        },
+        "firmware": {
+          "run": 36903503063,
+          "job": 110508180628,
+          "result": "success",
+          "scope": "Job terminal and complete log verified; not Python retirement or additional machine adaptation"
+        },
+        "motion": {
+          "run": 36903503152,
+          "jobs": 8,
+          "result": "success",
+          "scope": "Finite diagnostic observation does not close G3"
+        },
+        "next": "Capture and discriminate mapped trigger versus observed clock in existing two-MCU dual-carriage software path; no clamping, tolerance/deadline relaxation or physical motion. Thumbnail source increment has separate local evidence and requires its own exact-head CI."
+      },
+      {
+        "source": "d86a4aee5655f005492815614686f378744d12e5",
+        "mergeTestRevisionPrefix": "38fbae73",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "job": 110806692098,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36997250959/job/110806692098",
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3816,
+            "pass": 3815,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "durationMs": 583440.936007
+          },
+          "failedTest": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "failure": "Delta calibration HTTP 503 instead of 200; hits=16, motionFault and hardwareFault undefined. Original inner error not exposed by this captured diagnostic.",
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped"
+        },
+        "firmware": {
+          "job": 110806691993,
+          "conclusion": "success",
+          "scope": "terminal provider status; no new count extracted"
+        },
+        "motion": {
+          "run": 36997251041,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "finite diagnostics only, not G3 closure"
+        },
+        "closure": "No intermittent motion/calibration failure closed by this run. New firmware-time readback source is not covered by these historical jobs."
+      },
+      {
+        "source": "85a5d4a674ed967bb086501e35b62043ccaccafa",
+        "mergeTestRevision": "9b88ab83eb20aab8b65300e4e685bda6ddfd3ace",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 36999330121,
+          "job": 110813158333,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36999330121/job/110813158333",
+          "status": "completed",
+          "conclusion": "failure",
+          "typecheck": "success",
+          "whitespace": "success",
+          "ordinary": {
+            "tests": 3818,
+            "pass": 3817,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "durationMs": 584755.349356
+          },
+          "failedTest": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+          "failure": {
+            "httpActual": 503,
+            "httpExpected": 200,
+            "probeHits": 1,
+            "cause": "Invalid mapped trigger clock",
+            "member": 0,
+            "oid": 0,
+            "mapped": "7820496",
+            "observed": "7800176"
+          },
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Terminal exact-source job and step status plus complete decoded job log; strict clock checks retained."
+        },
+        "firmware": {
+          "run": 36999330061,
+          "job": 110813158407,
+          "conclusion": "success",
+          "scope": "Terminal provider status and steps; no new counts extracted."
+        },
+        "motion": {
+          "run": 36999330077,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "Terminal finite diagnostic jobs only, not G3 closure."
+        },
+        "closure": "Actual MCU stopped-clock observation does not close the mapped-clock fault. Delta calibration passing here does not explain the historical d86a4aee HTTP 503. No hardware, client, full Moonraker or Python-retirement gate closed."
+      },
+      {
+        "source": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+        "mergeTestRevision": "6f76f62c136f4596bc27f62618a10127619831f6",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37003194462,
+          "job": 110825356388,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37003194462/job/110825356388",
+          "status": "completed",
+          "conclusion": "failure",
+          "typecheck": "success",
+          "whitespace": "success",
+          "ordinary": {
+            "tests": 3826,
+            "pass": 3824,
+            "fail": 2,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "durationMs": 585587.329063
+          },
+          "failures": [
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "cause": "Invalid mapped trigger clock",
+              "member": 0,
+              "oid": 0,
+              "mapped": "1742175",
+              "observed": "1742070",
+              "expected": "Probe did not trigger",
+              "closure": "Strict mapping rejection precedes the expected missing-hit error. Cause unresolved; no tolerance or expectation changed."
+            },
+            {
+              "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+              "httpActual": 503,
+              "httpExpected": 200,
+              "probeHits": 16,
+              "motionFaultRecorded": false,
+              "hardwareFaultRecorded": false,
+              "action": "calibrate",
+              "stage": "fit",
+              "cause": "Delta calibration did not converge: line_search_failed",
+              "input": {
+                "geometry": {
+                  "radius": 100,
+                  "angles": [
+                    210,
+                    330,
+                    90
+                  ],
+                  "arms": [
+                    250,
+                    250,
+                    250
+                  ],
+                  "endstops": [
+                    300,
+                    300,
+                    300
+                  ],
+                  "stepDistances": [
+                    0.0125,
+                    0.0125,
+                    0.0125
+                  ]
+                },
+                "probes": [
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23220,
+                      23220,
+                      23220
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23263.823890082684,
+                      23253.82295277944,
+                      23164.40269957477
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23199.161558068554,
+                      23283.5148164314,
+                      23199.161558068547
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23161.243423782333,
+                      23250.207042368867,
+                      23250.207042368867
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23195.91758172969,
+                      23195.91758172969,
+                      23269.289241181694
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23246.5982367534,
+                      23168.09398980033,
+                      23246.5982367534
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23276.39745009156,
+                      23192.535595331658,
+                      23192.535595331658
+                    ]
+                  }
+                ],
+                "manual": [],
+                "distances": []
+              },
+              "inputOrigin": "Exact decoded remote diagnostic, numeric arrays parsed without evaluation. Simulated product fixture; not physical printer measurements.",
+              "closure": "Direct cause of this run captured; why fit failed remains unresolved. Not proof of the d86a4aee historical inner cause."
+            }
+          ],
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Terminal exact-source job, step conclusions and complete decoded job log. Persisted excerpt contains failure inputs and assertions.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-1e88895b-host-failures.log",
+            "sha256": "aabfca46f1f461d51be83eef8a226b5699c8ebc8c848294ea9c187359e3029d8"
+          }
+        },
+        "firmware": {
+          "run": 37003194469,
+          "job": 110825356696,
+          "conclusion": "success",
+          "scope": "Terminal provider status only; no new counts extracted."
+        },
+        "motion": {
+          "run": 37003194479,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "Terminal finite diagnostics only; not G3 closure."
+        },
+        "closure": "Candidate remains unmergeable. No hardware, complete clients, full Moonraker or Python retirement gate closed."
+      },
+      {
+        "source": "570ee60d6e9300fe37ed10370f3439de15b46881",
+        "mergeTestRevision": "4626a2c277f0ab60f63afffa020263a7324dc246",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37009452462,
+          "job": 110845408404,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37009452462/job/110845408404",
+          "status": "completed",
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3838,
+            "pass": 3834,
+            "fail": 4,
+            "cancelled": 0,
+            "skipped": 0,
+            "durationMs": 559267.219179
+          },
+          "failures": [
+            {
+              "test": "configured hardware owns ADC heaters and file lifetime (interrupt=true)",
+              "cause": "Print device stopped",
+              "stackOwner": "ThermalPrintDevice.stop via ADC close and MCUGroup.stop",
+              "rootCause": "unresolved"
+            },
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "cause": "Invalid mapped trigger clock",
+              "member": 1,
+              "oid": 0,
+              "mapped": "1733110",
+              "observed": "1732976",
+              "expected": "Probe did not trigger",
+              "rootCause": "unresolved; strict check retained"
+            },
+            {
+              "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+              "stage": "fit",
+              "cause": "Delta calibration did not converge: line_search_failed",
+              "httpActual": 503,
+              "httpExpected": 200,
+              "probeHits": 16,
+              "motionFaultRecorded": false,
+              "hardwareFaultRecorded": false,
+              "input": {
+                "geometry": {
+                  "radius": 100,
+                  "angles": [
+                    210,
+                    330,
+                    90
+                  ],
+                  "arms": [
+                    250,
+                    250,
+                    250
+                  ],
+                  "endstops": [
+                    300,
+                    300,
+                    300
+                  ],
+                  "stepDistances": [
+                    0.0125,
+                    0.0125,
+                    0.0125
+                  ]
+                },
+                "probes": [
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23220,
+                      23220,
+                      23220
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23263.823890082684,
+                      23253.82295277944,
+                      23164.40269957477
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23199.161558068554,
+                      23283.5148164314,
+                      23199.161558068547
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23161.243423782333,
+                      23250.207042368867,
+                      23250.207042368867
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23195.91758172969,
+                      23195.91758172969,
+                      23269.289241181694
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23246.5982367534,
+                      23168.09398980033,
+                      23246.5982367534
+                    ]
+                  },
+                  {
+                    "height": 0.123456789,
+                    "stable": [
+                      23276.39745009156,
+                      23192.535595331658,
+                      23192.535595331658
+                    ]
+                  }
+                ],
+                "manual": [],
+                "distances": []
+              },
+              "inputComparison": {
+                "source": "1e88895bef6bc03c5ec4b9f528e88777e8fb7928",
+                "numericValues": 41,
+                "comparison": "Object.is for every captured numeric value",
+                "same": true,
+                "scope": "Same captured input and immediate fit error, not a root-cause or numerical correctness proof"
+              }
+            },
+            {
+              "test": "native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true)",
+              "cause": "Endstop trigger is in the future",
+              "expected": "still triggered",
+              "rootCause": "unresolved; original expectation retained"
+            }
+          ],
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Exact-source terminal job plus complete decoded provider content (548352 characters); selected failures/input preserved without runtime tolerance changes.",
+          "artifacts": [
+            {
+              "path": "/tmp/anyraid-570ee60d-host-failures.log",
+              "sha256": "3f6cccac496f0acf706e2ff3dfde9fb041843d965d9f815889809b7958eff5ca"
+            },
+            {
+              "path": "/tmp/anyraid-570ee60d-fit-input.log",
+              "sha256": "2df6708128894d6f1df24f6be0e3880b30f8380df0046d269777966b0a5cde30"
+            },
+            {
+              "path": "/tmp/anyraid-570ee60d-calibration-input-values.json",
+              "sha256": "66b001a02085df9a47a2837a0e8b1ab5bf6ff7ef551b1ef86b5c2ce91b3a096c"
+            }
+          ]
+        },
+        "firmware": {
+          "run": 37009452509,
+          "job": 110845408524,
+          "conclusion": "success",
+          "scope": "Terminal provider status, no new matrix counts extracted"
+        },
+        "motion": {
+          "run": 37009452492,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "Terminal finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion approval or Python retirement. Historical failures remain unresolved; directory increment has separate source and product evidence."
+      },
+      {
+        "source": "8b3d9762299fb0b4fe4961bafc43274cf384757c",
+        "mergeTestRevision": "f3fc139dbf1a31761f5d0245872ed0e597948842",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "run": 37018149201,
+          "job": 110874060613,
+          "conclusion": "failure",
+          "tests": 3860,
+          "pass": 3858,
+          "fail": 2,
+          "durationMs": 590244.261675,
+          "failures": [
+            {
+              "case": "Delta BLTouch owns deployment, multi-MCU sampling and stow; each=false, stuck=false",
+              "cause": "Invalid mapped trigger clock",
+              "member": 0,
+              "oid": 0,
+              "mapped": "7771058",
+              "observed": "7762737",
+              "probeHits": 1,
+              "wire": {
+                "triggerClock": 7748768,
+                "actualClocksAtTrigger": [
+                  7758868,
+                  7758327
+                ],
+                "primaryMember": 1,
+                "actualClocksAtMainUptimeQuery": [
+                  7762735,
+                  7762194
+                ]
+              },
+              "discriminator": "Auxiliary simulated firmware clock at trigger emission exceeds its trigger by 9559 ticks. This captured failure is not caused by an early simulated event; mapped main clock exceeds observed main stop by 8321 ticks. Calibration mapping cause remains unresolved."
+            },
+            {
+              "case": "manual Delta mesh from homed apex preflights all points; reachable=true",
+              "cause": "Manual calibration stopped; reinitialize before further motion",
+              "innerCause": "unavailable in this job; new test-only first-failure record added without changing expected success"
+            }
+          ],
+          "protocolNative": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped",
+          "verification": "Terminal provider checks and complete decoded host log, 557807 characters; first BLTouch clock failure and both final assertions preserved.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-8b3d9762-host-failures.log",
+            "sha256": "08f9041c64c16a9dc536f9c839e0d914995230a264d2ad5a490c9a122f754bab"
+          }
+        },
+        "firmware": {
+          "run": 37018150095,
+          "job": 110874063726,
+          "conclusion": "success",
+          "scope": "Terminal provider status only; no new matrix counts extracted"
+        },
+        "motion": {
+          "run": 37018149360,
+          "jobs": [
+            {
+              "job": 110874061192,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061131,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061110,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061057,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061012,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874061008,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874060989,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110874060688,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion, full clients, full Moonraker or Python retirement. Four failures from 570ee60d passed here; their historical intermittent causes remain unresolved."
+      },
+      {
+        "revision": "ab4d207d2df0da2c298091627256bd611bf4bff7",
+        "testedMergeRevision": "d097022234b94c5fad03f237127e02eb01f9a7ac",
+        "status": "completed",
+        "host": {
+          "run": 37022163014,
+          "job": 110887674142,
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3862,
+            "passed": 3860,
+            "failed": 2,
+            "durationMs": 568852.205049
+          },
+          "failures": [
+            {
+              "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+              "actual": "Invalid mapped trigger clock: member=1, oid=0, mapped=1735243, observed=1735215",
+              "expected": "Probe did not trigger"
+            },
+            {
+              "test": "two-pass native G28 rejects an immediate second trigger",
+              "actual": "Endstop trigger is in the future",
+              "expected": "still triggered"
+            }
+          ],
+          "laterStages": "Protocol, sanitizers and Linux MCU skipped after ordinary-test failure.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-ab4d207d-host-failures.log",
+            "sha256": "3460e6b62379fed89a5b13f90f77d225944149cc46890f71d3c7bf17320d5a88"
+          }
+        },
+        "firmware": {
+          "run": 37022163403,
+          "job": 110887675708,
+          "conclusion": "success"
+        },
+        "finiteMotion": {
+          "run": 37022163203,
+          "jobs": [
+            {
+              "job": 110887680150,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887680060,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887680048,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679987,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679969,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679964,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679862,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110887679643,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge, physical motion or G3 closure. Previous BLTouch and manual-mesh failures passed this round; unexplained historical causes remain open. Uncommitted one-second cadence draft is not included in this remote source."
+      },
+      {
+        "revision": "492bf405744e21701686ddc7c647672699ed404b",
+        "testedMergeRevision": "b8d87e306913ed1f66ca821729fe5c79b6b7455b",
+        "status": "completed",
+        "host": {
+          "run": 37026800709,
+          "job": 110903379623,
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3863,
+            "passed": 3861,
+            "failed": 2,
+            "durationMs": 574126.444689
+          },
+          "failures": [
+            {
+              "test": "idle calibration preserves stationary counters and subsequent movement (filtered=true)",
+              "actual": {
+                "attempted": 1,
+                "updated": 1
+              },
+              "expected": {
+                "attempted": 0,
+                "updated": 0
+              },
+              "location": "idle-clock-calibration.test.ts:19 after forcePosition"
+            },
+            {
+              "test": "paced motion automatically recalibrates MCU a across multiple periods",
+              "actual": {
+                "attempted": 1,
+                "updated": 1
+              },
+              "expected": {
+                "attempted": 0,
+                "updated": 0
+              },
+              "location": "periodic-clock-calibration.test.ts:25 after firmware drain"
+            }
+          ],
+          "causeBoundary": "The four-second implementation made post-drain/post-rebuild zero-update expectations appear stable. One-second cadence can legitimately expire while waiting. Successful refresh is not a stopped-clock or endpoint failure.",
+          "laterStages": "Protocol, sanitizers and Linux MCU skipped after ordinary-test failure.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-492bf405-host-failures.log",
+            "sha256": "d4235fbcfe637274bd2e6d34dafce1491de312bf4fb161df2f6d5a8201408c20"
+          }
+        },
+        "firmware": {
+          "run": 37026801344,
+          "job": 110903381092,
+          "conclusion": "success"
+        },
+        "finiteMotion": {
+          "run": 37026801071,
+          "jobs": [
+            {
+              "job": 110903381037,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380999,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380985,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380934,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380931,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380901,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380861,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380697,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge or G3 closure. Prior reverse-MCU missing-trigger and immediate second G28 failures passed here; historical unexplained clock/precision/process anomalies remain open."
+      }
+    ]
+  },
+  "mergeReady": false,
+  "remaining": [
+    "492bf405 exact-source host CI: 3861/3863 ordinary tests passed; two post-drain/rebuild assertions still expect no calibration although a one-second deadline legitimately expired and refreshed successfully. Protocol/sanitizers/Linux MCU skipped. Firmware/eight finite jobs passed; fresh exact-head required checks and historical G3 gates remain.",
+    "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
+    "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
+    "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
+    "Unresolved G3 motion numerical/process failures, Cycnumbris 500 configuration, physical stop, target precision/timing/install/rollback and real acceptance.",
+    "Develop integration, subsequent mainline PR and prescribed release gates; other machine families last."
+  ],
+  "logArtifacts": [
+    {
+      "path": "/tmp/anyraid-develop-native-build.log",
+      "sha256": "b95907e96f5bb97d22f20349fedfcff125ed26702a3f02a2e414f0facaa661ac"
+    },
+    {
+      "path": "/tmp/anyraid-develop-typecheck.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    {
+      "path": "/tmp/anyraid-develop-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-develop-build-tests.log",
+      "sha256": "e6419a6229fdb4d5607b2de766dd285ebed3aff80890b66a70854443e80f3296"
+    },
+    {
+      "path": "/tmp/anyraid-develop-candidate-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/anyraid-develop-candidate-install.log",
+      "sha256": "fccb554219e5b18943f182b84bcc70c4baf9b2134dbe6298e1b762d65f741695"
+    },
+    {
+      "path": "/tmp/anyraid-develop-linux-firmware.log",
+      "sha256": "9fbe30e317b515fdbdf373e55436d107766c897bf5c02f78cbbf66e3da3f9811"
+    },
+    {
+      "path": "/tmp/anyraid-develop-import-graph.json",
+      "sha256": "a2c79f34f5fe9f43eed22afce7538224936104f9a4ec9378230e7bf92a34975b"
+    }
+  ],
+  "increments": {
+    "m2a": {
+      "evidence": "host/contracts/native-file-namespace-acceptance.json",
+      "status": "software validation; full fixed-client same-bundle pages and exact new-source CI pending",
+      "scope": "Separate source hashes and compiled manifest; initial M1 product and 1b80 CI are not attributed to this increment."
+    },
+    "m2bFileMove": {
+      "evidence": "host/contracts/native-single-file-move-acceptance.json",
+      "status": "Single-file software increment; complete M2b, exact new-head CI, same-bundle real clients and hardware remain pending",
+      "manifestSha256": "daf641a41aa0dc520277e7769c360cd90b67a978a47a04f3c7189566a7ddbfe5"
+    },
+    "m2bDirectoryMove": {
+      "evidence": "host/contracts/native-directory-move-acceptance.json",
+      "status": "Directory move software increment; exact new-source CI, real clients, physical interruption and target performance remain pending",
+      "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
+    }
+  }
+}

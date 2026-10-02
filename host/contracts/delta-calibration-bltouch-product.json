@@ -1,0 +1,36 @@
+{
+  "node": "v26.9.0",
+  "compiled": true,
+  "bltouch": true,
+  "generations": 5,
+  "calibrationMs": 23600.004951,
+  "extensionMs": 35.23879699999816,
+  "manualMs": 8802.921848999998,
+  "heightCaptureMs": 0.9722729999994044,
+  "finalError": 0.00014562527791381826,
+  "geometry": {
+    "radius": 99.98249031231884,
+    "angles": [
+      209.99599836647974,
+      329.99533239659064,
+      90
+    ],
+    "arms": [
+      249.9853364651587,
+      250.01563963608604,
+      250.00341428586395
+    ],
+    "endstops": [
+      280.5799503702496,
+      280.5659865798381,
+      280.572083095285
+    ],
+    "stepDistances": [
+      0.0125,
+      0.0125,
+      0.0125
+    ]
+  },
+  "passed": true,
+  "scope": "Compiled CLI, five independent simulated MCU generations, automatic, extended and probeless manual calibration with persisted observations, actual config reload and homing plus eight extruder steps per print. Existing native addons/dependencies reused; excludes real hardware, clean installation and stable performance acceptance."
+}

@@ -12,6 +12,7 @@
 // clock times, prioritizes commands, and handles retransmissions.  A
 // background thread is launched to do this work and minimize latency.
 
+#include <errno.h> // errno
 #include <linux/can.h> // // struct can_frame
 #include <math.h> // fabs
 #include <pthread.h> // pthread_mutex_lock
@@ -22,6 +23,7 @@
 #include <string.h> // memset
 #include <termios.h> // tcflush
 #include <unistd.h> // pipe
+#include <sys/socket.h> // send
 #include "compiler.h" // __visible
 #include "list.h" // list_add_tail
 #include "msgblock.h" // message_alloc
@@ -42,6 +44,7 @@ struct receiver {
     pthread_mutex_t lock;
     pthread_cond_t cond;
     int waiting;
+    int wake_fd;
     struct list_head queue;
     struct list_head old_receive;
 };
@@ -149,7 +152,15 @@ receive_append_wake(struct receiver *receiver, struct list_head *msgs)
 {
     int dokick = 0;
     pthread_mutex_lock(&receiver->lock);
+    int need_wake = list_empty(&receiver->queue) || list_empty(msgs);
     list_join_tail(msgs, &receiver->queue);
+    if (need_wake && receiver->wake_fd >= 0) {
+        // Nonblocking wake socket: EAGAIN means a wake is already pending.
+        int ret;
+        do {
+            ret = send(receiver->wake_fd, ".", 1, MSG_DONTWAIT | MSG_NOSIGNAL);
+        } while (ret < 0 && errno == EINTR);
+    }
     if (receiver->waiting) {
         receiver->waiting = 0;
         dokick = 1;
@@ -332,6 +343,13 @@ input_event(struct serialqueue *sq, double eventtime)
         int ret = read(sq->serial_fd, &cf, sizeof(cf));
         if (ret <= 0) {
             report_errno("can read", ret);
+            pollreactor_do_exit(sq->pr);
+            return;
+        }
+        if (ret != sizeof(cf) || cf.can_dlc > 8
+            || sq->input_pos < 0
+            || (size_t)sq->input_pos + cf.can_dlc > sizeof(sq->input_buf)) {
+            errorf("Invalid Classical CAN input frame");
             pollreactor_do_exit(sq->pr);
             return;
         }
@@ -664,6 +682,10 @@ static double
 command_event(struct serialqueue *sq, double eventtime)
 {
     pthread_mutex_lock(&sq->lock);
+    // Commands may have been enqueued after the reactor sampled eventtime.
+    // Refresh the scheduling estimate under the queue lock. Packet provenance
+    // is refreshed again below after importing concurrently queued requests.
+    eventtime = get_monotonic();
     uint8_t buf[MESSAGE_MAX * MAX_PENDING_BLOCKS];
     int buflen = 0;
     double waketime;
@@ -671,6 +693,10 @@ command_event(struct serialqueue *sq, double eventtime)
         waketime = check_send_command(sq, buflen, eventtime);
         if (waketime != PR_NOW)
             break;
+        // check_send_command imports requests under transmit_requests.lock,
+        // which differs from sq->lock. A producer can enqueue after the sample
+        // above, so stamp each packet only after selecting its ready messages.
+        eventtime = get_monotonic();
         buflen += build_and_send_command(sq, &buf[buflen], buflen, eventtime);
         if (buflen + MESSAGE_MAX > sizeof(buf))
             break;
@@ -710,6 +736,7 @@ serialqueue_alloc(int serial_fd, char serial_fd_type, int client_id
 {
     struct serialqueue *sq = malloc(sizeof(*sq));
     memset(sq, 0, sizeof(*sq));
+    sq->receiver.wake_fd = -1;
     sq->serial_fd = serial_fd;
     sq->serial_fd_type = serial_fd_type;
     sq->client_id = client_id;
@@ -948,8 +975,9 @@ serialqueue_send(struct serialqueue *sq, struct command_queue *cq, uint8_t *msg
 
 // Return a message read from the serial port (or wait for one if none
 // available)
-void __visible
-serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+static void
+serialqueue_pull_inner(struct serialqueue *sq, struct pull_queue_message *pqm,
+                      int blocking)
 {
     struct receiver *receiver = &sq->receiver;
     pthread_mutex_lock(&receiver->lock);
@@ -957,6 +985,11 @@ serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
     while (list_empty(&receiver->queue)) {
         if (pollreactor_is_exit(sq->pr))
             goto exit;
+        if (!blocking) {
+            pqm->len = -2;
+            pthread_mutex_unlock(&receiver->lock);
+            return;
+        }
         receiver->waiting = 1;
         int ret = pthread_cond_wait(&receiver->cond, &receiver->lock);
         if (ret)
@@ -983,6 +1016,36 @@ serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
 exit:
     pqm->len = -1;
     pthread_mutex_unlock(&receiver->lock);
+}
+
+void __visible
+serialqueue_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+{
+    serialqueue_pull_inner(sq, pqm, 1);
+}
+
+// Nonblocking consumer for event-loop hosts: 1=message, 0=empty, -1=closed.
+int __visible
+serialqueue_try_pull(struct serialqueue *sq, struct pull_queue_message *pqm)
+{
+    serialqueue_pull_inner(sq, pqm, 0);
+    return pqm->len >= 0 ? 1 : pqm->len == -2 ? 0 : -1;
+}
+
+// Optional event-loop wake socket. Caller owns fd and must detach before close.
+void __visible
+serialqueue_set_wake_fd(struct serialqueue *sq, int fd)
+{
+    pthread_mutex_lock(&sq->receiver.lock);
+    sq->receiver.wake_fd = fd;
+    if (fd >= 0) {
+        // Also cover data or EOF that arrived before attaching the listener.
+        int ret;
+        do {
+            ret = send(fd, ".", 1, MSG_DONTWAIT | MSG_NOSIGNAL);
+        } while (ret < 0 && errno == EINTR);
+    }
+    pthread_mutex_unlock(&sq->receiver.lock);
 }
 
 void __visible

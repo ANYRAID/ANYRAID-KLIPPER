@@ -1,0 +1,115 @@
+{
+  "scope": "BLTouch lifecycle injection into native motion port, simulated device control with real native motion/serial fixtures; ordinary UART compiled product regression",
+  "sha256": {
+    "host/src/homing/native-linear-port.ts": "a03b3e9603dbbe8e4971301b605a61154d6975a0b1f63c84861c67944219d005",
+    "host/test/helpers/native-linear-port.ts": "89760d1e115f97cb53b3ec53a938b662000fe13bb64f04b346bf608eeb6cd3af",
+    "host/test/bltouch-native-port.test.ts": "933330acebbc305d237ade803b10ccdfda7b7d017245c6aab64824bb2215829d"
+  },
+  "tests": "✔ native multi-sample probe refreshes motion baseline after device waits (cancel=false) (4997.257291ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=false) (3144.320527ms)\n✔ native probe Z home refreshes motion baseline after device waits (cancel=true) (1116.178475ms)\n✔ real G28 port rebases, seeks, grants homing and drains subsequent guarded motion (900.439636ms)\n✔ missing G28 trigger fences the native port and revokes homing authority (776.778124ms)\n✔ cancellation during native G28 cannot publish a healthy late generation (435.203169ms)\n✔ two-pass native G28 ignores idle E/Y/Z and completes (1130.668992ms)\n✔ two-pass native G28 rejects an immediate second trigger (1092.891996ms)\n✔ G-code checkpoints stream native motion and reserve final drain for script completion (1639.262887ms)\n✔ file batches preserve streaming lookahead until the print owner requests final drain (1664.346789ms)\n✔ a partial file pause drains only admitted native steps and resumes the suffix without replay (1872.250093ms)\n✔ native port transfers its closing tail and acknowledges guarded resume (lazy=false) (3013.198841ms)\n✔ native port transfers its closing tail and acknowledges guarded resume (lazy=true) (3026.878805ms)\n✔ native resume rejects a cooled extruder and cannot publish any retained suffix (966.982189ms)\n✔ native pause cancellation stops the held stream and revokes homing (411.870713ms)\n✔ file device pauses and resumes active native checkpoints (parking=false) (5996.483039ms)\n✔ file device pauses and resumes active native checkpoints (parking=true) (7464.309096ms)\n✔ native window transaction publishes accepted parameters and continues paced extrusion (2954.787177ms)\n✔ window command rejects unknown and fixed-window changes without flushing pending motion (409.222267ms)\n✔ window failure after native acceptance stops the port without publishing new parameters (408.378254ms)\n✔ fixed-window pressure requests attach to pending geometry without flushing and publish owned settings (910.663393ms)\n✔ pressure requests use idle, native tail and stationary window endpoints (1424.041952ms)\n✔ zero-window pressure intent is retained without motion and enables through the window barrier (408.896411ms)\n✔ pressure prevalidation is harmless and a partial boundary failure stops without publishing new intent (414.050986ms)\n✔ pressure requests respect active window, paused and cancelled ownership boundaries (985.075636ms)\n✔ paused tuning overrides retained pressure events and reuses stationary coverage across repeated windows (2974.226865ms)\n✔ paused pressure refresh precedes asynchronous completion and fences resume until publication (3249.918856ms)\n✔ failed paused pressure transaction stops while retaining prior public configuration (682.844895ms)\n✔ native grid travels and measures all four points without replacing the old mesh (3533.763621ms)\n✔ failed native grid preserves old mesh (range) (411.398288ms)\n✔ failed native grid preserves old mesh (reference) (409.773174ms)\n✔ failed native grid preserves old mesh (triggered) (415.478299ms)\n✔ probe homing shifts only Z by measured bed height and preserves halt overshoot (0.254135ms)\n✔ native probe Z home validates trigger, retract and authority (xy=false retract=0 stuck=false) (416.220771ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=0 stuck=false) (643.592379ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=false) (1366.695715ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true) (1338.945613ms)\n✔ cancellation during probe Z descent revokes all homing and joins motor stop (516.174419ms)\n✔ probe homing coordinate arithmetic matches 216 original Python boundary cases exactly (0.98884ms)\nℹ tests 39\nℹ suites 0\nℹ pass 39\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 63684.582569\n",
+  "typecheck": true,
+  "product": {
+    "pass": 1,
+    "fail": 0,
+    "metrics": {
+      "phaseQueries": 3749,
+      "phaseP99Ms": 3.826155999999173,
+      "loaded": true,
+      "spi": false,
+      "software": false,
+      "model5160": false,
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "sensorless": true,
+      "tmc": [
+        {
+          "statusReads": 160,
+          "writes": 55
+        },
+        {
+          "statusReads": 64,
+          "writes": 54
+        },
+        {
+          "statusReads": 88,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        },
+        {
+          "statusReads": 16,
+          "writes": 46
+        },
+        {
+          "statusReads": 8,
+          "writes": 40
+        }
+      ],
+      "faultInjected": "tmc-reset",
+      "historyNotifications": 32,
+      "historyRequests": 834,
+      "historyP99Ms": 11.04228900000453,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 5.6078919999999925,
+      "deleteRequests": 16,
+      "deleteP95Ms": 15.572228999997606,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 1.758695999998963,
+      "metadataRequests": 16,
+      "metadataP95Ms": 26.34315300000162,
+      "downloads": 16,
+      "downloadP95Ms": 31.555852999999843,
+      "wireCommands": 370,
+      "wireSteps": 5561,
+      "minimumStepLeadMs": 85.235,
+      "directoryRequests": 3603,
+      "directoryP99Ms": 5.658203999999387,
+      "statusRequests": 15002,
+      "uploads": 16,
+      "statusP99Ms": 3.2566049999986717,
+      "uploadP95Ms": 6.394587999999203,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.963007,
+            "maxMs": 18.317311
+          },
+          "cpu": {
+            "user": 4551870,
+            "system": 535419
+          },
+          "rss": 275943424
+        },
+        {
+          "loop": {
+            "p99Ms": 1.991679,
+            "maxMs": 5.722111
+          },
+          "cpu": {
+            "user": 1463719,
+            "system": 198553
+          },
+          "rss": 260100096
+        }
+      ]
+    },
+    "scope": "Ordinary UART configuration, no BLTouch automatic startup; not the full driver matrix"
+  },
+  "behavior": [
+    "Exclusive device session for configured probes and complete grid sampling",
+    "Drain ordinary motion before device operations",
+    "Rebase after deployment and stow waits to refresh future motion baseline",
+    "Native trigger callback schedules stow before recovery",
+    "Final homing pass ownership references the generation after device completion",
+    "Motion stop also joins probe stop; preparation cancellation grants no axes"
+  ],
+  "limitations": [
+    "Device PWM/verification mocked in native port tests; split-MCU binding validated separately",
+    "Automatic startup and BLTouch configuration selection not connected",
+    "No real printer acceptance; Python entrypoint retained"
+  ]
+}

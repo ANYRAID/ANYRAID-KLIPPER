@@ -1,0 +1,218 @@
+{
+  "scope": "Plain GPIO probe Z homing through the compiled native product, sharing configured probe resources with subsequent bed-mesh calibration; simulated MCU only",
+  "sha256": {
+    "host/src/config/linear-motion.ts": "2b22ec6ab16f4e79c0507c25108930b2665e8dec910a60679c823e83f5f18a67",
+    "host/src/config/linear-printer.ts": "ec17c73cead1d6bccada785a57426d335b5edd3925727ebe0504d43891fd0a0b",
+    "host/src/config/sensorless.ts": "58f21a78b5b11300d78dc56550ae3e999b2b249e893e5782a3c26dff4ec3c396",
+    "host/src/homing/native-linear-port.ts": "c8a2610a4b027c4f3b927d9abaeefaa0f5d6939c7fee4b61683da57381246b54",
+    "host/src/homing/probe-home.ts": "57857498add18789a7a5612f54fc21177516f79548a6361c4a5c9f200f44b9db",
+    "host/test/probe-home.test.ts": "a25c910ff3c3ff115ff258ed8bbac8100c4435bacab3c19dd5c5ac9a36aae8ca",
+    "host/test/linear-printer.test.ts": "57959a0206f911e51d8cb7d6f6d58dc38260bf5fb0b6fcd5cebd9a42d59e079f",
+    "host/test/helpers/native-linear-port.ts": "c3d6ebe4b70612cd17b37c21e04b1f868499923c838cc20bfd6e96bb9f1d7abb",
+    "host/acceptance/product-compiled-journey.test.ts": "844628646b06ab0815f6d12e5508308dae6df4f40ef5108407ceb0a31176fa73",
+    "host/bench/probe-home.ts": "b2984f45e7a57b74c6f913ec5089d2325284bf689bef1580ae62427ff7879f15",
+    "host/contracts/probe-home-reference.json": "a8f5fbd71d76c3bd33a3bb64a2e6eaa2eb0bfe45f65d46ad0310f332c7029048"
+  },
+  "regressions": "✔ native final homing phase uses the trigger count and rebases the coordinate (655.662417ms)\n✔ native final homing phase unknown stops before homing authority (619.698998ms)\n✔ native final homing phase collects statistics without changing coordinates (623.157901ms)\n✔ real G28 port rebases, seeks, grants homing and drains subsequent guarded motion (897.596842ms)\n✔ missing G28 trigger fences the native port and revokes homing authority (782.597473ms)\n✔ cancellation during native G28 cannot publish a healthy late generation (436.38291ms)\n✔ two-pass native G28 ignores idle E/Y/Z and completes (1145.4273ms)\n✔ two-pass native G28 rejects an immediate second trigger (1101.480348ms)\n✔ G-code checkpoints stream native motion and reserve final drain for script completion (1649.750193ms)\n✔ file batches preserve streaming lookahead until the print owner requests final drain (1648.182592ms)\n✔ a partial file pause drains only admitted native steps and resumes the suffix without replay (1853.519127ms)\n✔ native port transfers its closing tail and acknowledges guarded resume (lazy=false) (2986.077279ms)\n✔ native port transfers its closing tail and acknowledges guarded resume (lazy=true) (3040.203912ms)\n✔ native resume rejects a cooled extruder and cannot publish any retained suffix (975.969379ms)\n✔ native pause cancellation stops the held stream and revokes homing (411.841715ms)\n✔ file device pauses and resumes active native checkpoints (parking=false) (6004.930595ms)\n✔ file device pauses and resumes active native checkpoints (parking=true) (7413.903461ms)\n✔ native window transaction publishes accepted parameters and continues paced extrusion (2956.334753ms)\n✔ window command rejects unknown and fixed-window changes without flushing pending motion (411.418306ms)\n✔ window failure after native acceptance stops the port without publishing new parameters (409.55799ms)\n✔ fixed-window pressure requests attach to pending geometry without flushing and publish owned settings (909.200112ms)\n✔ pressure requests use idle, native tail and stationary window endpoints (1402.925065ms)\n✔ zero-window pressure intent is retained without motion and enables through the window barrier (413.126429ms)\n✔ pressure prevalidation is harmless and a partial boundary failure stops without publishing new intent (414.432583ms)\n✔ pressure requests respect active window, paused and cancelled ownership boundaries (944.617831ms)\n✔ paused tuning overrides retained pressure events and reuses stationary coverage across repeated windows (2977.585521ms)\n✔ paused pressure refresh precedes asynchronous completion and fences resume until publication (3307.172708ms)\n✔ failed paused pressure transaction stops while retaining prior public configuration (691.189852ms)\n✔ configured homing compiles split stop groups with exact protocols and immutable ownership (427.960838ms)\n✔ configured homing rejects invalid coverage before claiming the linear port (430.669494ms)\n✔ linear config preserves Python motion, extrusion and homing defaults without granting homing (0.307913ms)\n✔ explicit cross section does not raise default extrusion-only speed or acceleration (0.264103ms)\n✔ homing direction uses exact quarter-range boundaries and requires explicit middle direction (0.528635ms)\n✔ all three supported kinematics accept explicit machine limits and independently scoped rails (0.402664ms)\n✔ invalid ranges, speed limits, diameters and overflow reject before hardware access (0.607066ms)\n✔ configured solver mismatch rejects before a native port takes ownership (0.201722ms)\n✔ automatic linear plan starts native cartesian hardware with no homing grant (422.172646ms)\n✔ automatic linear plan starts native corexy hardware with no homing grant (417.37019ms)\n✔ automatic linear plan starts native corexz hardware with no homing grant (415.875248ms)\n✔ extra Z motor with independent endstop gets complete disjoint stop ownership (416.390662ms)\n✔ unsupported motor topology and GPIO-only homing ownership fail before configuration (413.507587ms)\n✔ extra motors sharing an endstop remain owned in every homing axis (409.372528ms)\n✔ probe pin is independently allocated and wired into the native owner (419.311673ms)\n✔ automatic layout includes thermal fans without assigning them to M106 (410.609021ms)\n✔ probe virtual Z reuses the probe GPIO and trigger owners without duplicate allocation (419.456626ms)\n✔ owned Z probe drains queued motion, measures physical coordinates and retains mesh through recovery (1366.27917ms)\n✔ invalid owned probe fences motion before arming (unhomed) (409.526545ms)\n✔ invalid owned probe fences motion before arming (upward) (409.258663ms)\n✔ invalid owned probe fences motion before arming (range) (409.673379ms)\n✔ invalid owned probe fences motion before arming (cancelled) (409.649919ms)\n✔ owned probe failure invalidates homing and refuses further motion (no-hit) (867.908063ms)\n✔ owned probe failure invalidates homing and refuses further motion (during-rebase) (411.180996ms)\n✔ owned probe rejects triggered input before downward motion (409.787294ms)\n✔ owned probe rejects sampling input before downward motion (409.393381ms)\n✔ native sample session retains exclusive ownership across retract and second seek (1594.954466ms)\n✔ probe defaults and offset signs are preserved without precision rounding (0.196772ms)\n✔ sampling overrides are typed and bounded (0.730096ms)\n✔ probe homing shifts only Z by measured bed height and preserves halt overshoot (0.151791ms)\n✔ native probe Z home validates trigger, retract and authority (xy=false retract=0 stuck=false) (414.19118ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=0 stuck=false) (644.717701ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=false) (1346.964677ms)\n✔ native probe Z home validates trigger, retract and authority (xy=true retract=1 stuck=true) (1333.78709ms)\n✔ cancellation during probe Z descent revokes all homing and joins motor stop (516.02202ms)\n✔ probe homing coordinate arithmetic matches 216 original Python boundary cases exactly (1.00281ms)\nℹ tests 64\nℹ suites 0\nℹ pass 64\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 62855.052132\n",
+  "coordinateReferenceCases": 216,
+  "coordinateComparison": "Exact equality for all four coordinates against original Homing._probing_home method, including neighboring binary64 values and physical halt overshoot",
+  "benchmark": {
+    "node": "v26.9.0",
+    "cases": 216,
+    "iterations": 10000,
+    "warmups": 2,
+    "samples": 7,
+    "nodeMedianMs": 1.3869830000000007,
+    "nodeMaxMs": 1.4716340000000088,
+    "historicalPythonMedianMs": 8.031971054151654,
+    "checksum": 140647.13999998322,
+    "scope": "Coordinate correction with validation and array ownership; original Python method timing includes mocked toolhead/probe dispatch. No motion I/O or printer timing."
+  },
+  "initialFixtureFailure": "A new coordinate rebase requests fresh MCU stop confirmation. Fixture retained the old hit reason; decoding trsync_start with report_ticks=0 now supplies the fresh stop reason, as in the compiled product fixture.",
+  "product": {
+    "scope": "Two targeted loaded UART compiled product journeys: ordinary Z endstop and probe virtual Z endstop; not a rerun of the entire driver matrix",
+    "pass": 2,
+    "fail": 0,
+    "metrics": [
+      {
+        "phaseQueries": 3768,
+        "phaseP99Ms": 2.73588700000073,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 55
+          },
+          {
+            "statusReads": 64,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 840,
+        "historyP99Ms": 8.033400999998776,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.830928999999742,
+        "deleteRequests": 16,
+        "deleteP95Ms": 12.691568000000188,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 3.7150970000002417,
+        "metadataRequests": 16,
+        "metadataP95Ms": 31.668460000000778,
+        "downloads": 16,
+        "downloadP95Ms": 2.9853100000000268,
+        "wireCommands": 370,
+        "wireSteps": 5561,
+        "minimumStepLeadMs": 87.848,
+        "directoryRequests": 3638,
+        "directoryP99Ms": 5.925288999998884,
+        "statusRequests": 15076,
+        "uploads": 16,
+        "statusP99Ms": 3.2240029999993567,
+        "uploadP95Ms": 6.838759000000209,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.912831,
+              "maxMs": 17.858559
+            },
+            "cpu": {
+              "user": 4564811,
+              "system": 550136
+            },
+            "rss": 284295168
+          },
+          {
+            "loop": {
+              "p99Ms": 1.906687,
+              "maxMs": 5.570559
+            },
+            "cpu": {
+              "user": 1535486,
+              "system": 164614
+            },
+            "rss": 258662400
+          }
+        ]
+      },
+      {
+        "phaseQueries": 3814,
+        "phaseP99Ms": 2.855839999989257,
+        "loaded": true,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": true,
+        "sensorless": true,
+        "tmc": [
+          {
+            "statusReads": 160,
+            "writes": 55
+          },
+          {
+            "statusReads": 64,
+            "writes": 54
+          },
+          {
+            "statusReads": 88,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          },
+          {
+            "statusReads": 16,
+            "writes": 46
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "tmc-reset",
+        "historyNotifications": 32,
+        "historyRequests": 850,
+        "historyP99Ms": 5.362894999998389,
+        "lifecycleShutdowns": 8,
+        "fileNotifications": 132,
+        "fileNotificationP95Ms": 4.55969599999662,
+        "deleteRequests": 16,
+        "deleteP95Ms": 5.640407999999297,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 1.9907600000005914,
+        "metadataRequests": 16,
+        "metadataP95Ms": 19.42973100001109,
+        "downloads": 16,
+        "downloadP95Ms": 6.206453999999212,
+        "wireCommands": 389,
+        "wireSteps": 5612,
+        "minimumStepLeadMs": 64.915,
+        "directoryRequests": 3678,
+        "directoryP99Ms": 4.650448000000324,
+        "statusRequests": 15261,
+        "uploads": 16,
+        "statusP99Ms": 3.0004599999956554,
+        "uploadP95Ms": 6.022690999998304,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.912831,
+              "maxMs": 17.137663
+            },
+            "cpu": {
+              "user": 4595150,
+              "system": 514884
+            },
+            "rss": 282886144
+          },
+          {
+            "loop": {
+              "p99Ms": 1.888255,
+              "maxMs": 5.341183
+            },
+            "cpu": {
+              "user": 1542446,
+              "system": 203162
+            },
+            "rss": 268140544
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "safe_z_home positioning is explicitly rejected for probe Z configurations and still needs migration",
+    "BLTouch and activation/deactivation macro adapters remain unsupported",
+    "Probe Z homing does not perform endstop phase correction or collect endstop phase samples",
+    "Default Python host and 192 tracked Python files remain; no real probe/printer acceptance",
+    "Historical motion numerical outliers and process crashes remain unresolved"
+  ]
+}

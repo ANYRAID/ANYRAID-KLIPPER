@@ -1,0 +1,24 @@
+{
+  "base": "2dbea90b",
+  "tests": {
+    "endpointAndNative": 13,
+    "finalEndpoint": 3,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": 1000,
+    "p95Ms": 0.03399000000000285,
+    "medianMs": 0.016089999999991278,
+    "scope": "Authorized in-process endpoint, immediate fake measurement plus idempotent retry; no native motion or HTTP transport."
+  },
+  "scope": "Typed single-point maintenance endpoint wired to product service. Registry tests cover authorization, exclusivity, cached receipt and shutdown; native fixture verifies failure fencing.",
+  "limitations": [
+    "Compiled product acceptance covers existing print lifecycle, not a successful HTTP probe on a physical printer.",
+    "No real hardware validation. Mesh path generation and calibration persistence remain incomplete.",
+    "Receipts are process-local and retain only the latest successful measurement.",
+    "Existing numerical anomalies and crashes remain unresolved."
+  ]
+}

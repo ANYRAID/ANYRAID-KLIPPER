@@ -1,0 +1,1523 @@
+{
+  "scope": "Remove runtime Python from derived/scalar math references and their five CSV integration comparisons; not all Motan oracles",
+  "sourceHashes": {
+    "host/test/helpers/motan-derived-oracle.ts": "74e8feb460a6435379dd496a3796c1eff80a68f0287e090c9f10932450ba08ca",
+    "host/test/helpers/motan-scalar-oracle.ts": "964894f3f556991eae904efcd2ff9548d6d862f8c00f19cdb4748a7d5efe1024",
+    "host/test/helpers/motan-math-reference.ts": "289bfb8ea10b74867d68c0c2a64395f7f135e4e75a53228632ad883dd64aebaf",
+    "host/test/helpers/motan-math-csv-reference.ts": "584fb5ceed4175d08abecdd7d1f9b529f74d383cec5c72322ccf2706752373e9",
+    "host/test/motan-math-reference.test.ts": "32f71e0ef6c90437bd6fef63b9ada974956dc7c3b23691c9de2c0d91590f80ab",
+    "host/contracts/motan-math-reference.json": "5308c208bd5d28182ac991a23849a68727873f91441cf24e69a3875c084cbd33",
+    "host/contracts/motan-math-reference.bin": "76ab083d31db2797886d4eff6ee8cc84733c31c2143d314b76375a6785a9559c",
+    "host/test/motan-derived-math.test.ts": "6edbc94be9114b0f999c09aca8dd01af2b96d27aa5cb168a2ea15abd11578633",
+    "host/bench/motan-derived-math.ts": "4f11992729c4c212eab57b7a596446fa6921d56ad68268d9aff7737e2e23ecf2",
+    "host/test/motan-scalar-math.test.ts": "39321a8e3c61e7a63fe1f4a7bb7302cf0131b73b15362670f2d0e7c1ac7dc9d1",
+    "host/bench/motan-scalar-math.ts": "42375b24179adfbffab1d57d387f9a4fa8a81dac9059ae4c97e663ade3d75233",
+    "host/test/motan-scalar-integral.test.ts": "c9e0a9129d7790da926ca13d4f329e2da2370fbe97aa8ffd2593eeea66e3ae2e",
+    "host/bench/motan-scalar-integral.ts": "b5cde626b6fe0f1d2c7077616e7765bf47ea2bec91edbc058d958104e816ecd9",
+    "host/test/motan-scalar-norm.test.ts": "914c38017ee8a0eef5b7ccc5c51a930f8aea9cc0cc9861cbbc5c0ebbd41fc1e8",
+    "host/bench/motan-scalar-norm.ts": "87f8982335812ff6fc77db6d0fa0c8978bb30abf2540775b65cf6037a1aa8d62",
+    "host/test/motan-scalar-smooth.test.ts": "4c7cf8efcb9e6a8f1338dea98b8166f7cb265e586bcb74c7e9e996fc1d4c11ca",
+    "host/bench/motan-scalar-smooth.ts": "bf4aa3c19fd6e3f20bf51d99a717d6ea2e1a7063312285db7bdb1c250cf7b246",
+    "host/test/motan-mixed-arithmetic.test.ts": "d790f275a3a47f2c16b914f17daf01bb32975ba64b863991e0aa9a4cb86d11b0",
+    "host/bench/motan-mixed-arithmetic.ts": "d6e1bb3dcd05bcb09d4aa677e960ad6f770627d331e3a233e819ac2ce8dba009"
+  },
+  "capture": {
+    "python": "3.12.13",
+    "tests": "✔ Motan derivative, integral, norms and kinematic combinations retain original Python numerical order (316.707366ms)\n✔ Motan smoothing preserves ties-to-even windows and original asymmetric edge weights (89.397333ms)\n✔ Motan integral uses compensated Float64 mean and keeps zip truncation without mutating source (23.093217ms)\n✔ Motan numeric kernels reject undefined samples, invalid resolution and nonfinite output (0.327894ms)\n✔ known mixed arithmetic matches Python operand conversion, result types and Float64 bits (492.887677ms)\n✔ mixed arithmetic requires known types, checks both conversions and keeps result budgets (0.942773ms)\n✔ typed mixed status differences, derivatives and CoreXY work through worker and no-Python CSV (428.425135ms)\n✔ status type mode does not misclassify unannotated raw integer datasets as floats (356.964305ms)\n✔ integer integral retains exact mean division and CPython mixed sum transition order (1614.219441ms)\n✔ integral reference deltas remain exact before float scaling, including mixed endpoints in typed mode (271.975713ms)\n✔ integral rejects ambiguous mixed sums, invalid resources and overflow without returning partial data (0.907873ms)\n✔ typed integer and mixed integral flow through worker and no-Python CSV matching original Python (411.390543ms)\n✔ scalar arithmetic matches Python types and bits across integer cancellation and boolean series (368.04801ms)\n✔ scalar kernels reject ambiguous integer/float provenance, overflow, invalid input and result budgets (0.559308ms)\n✔ worker mixed analysis preserves exact residual types through chained derivatives (288.06911ms)\n✔ scalar norm squares integers before ordered float accumulation and matches Python bits (182.136414ms)\n✔ scalar norm rejects invalid shapes, individual and accumulated overflow and output over budget (0.667389ms)\n✔ integer norm flows through worker, downstream derivative and no-Python CSV with original Python results (330.53456ms)\n✔ integer smoothing preserves exact weighting, sequential float sums, half-even windows and truncated edges (798.394779ms)\n✔ integer smoothing bounds work, result allocation and each conversion or accumulation overflow (1.470591ms)\n✔ integer smoothing supports worker chains and no-Python CSV with original exporter results (325.210404ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 6877.661035\n",
+    "csvCaptureTests": "✔ known mixed arithmetic matches Python operand conversion, result types and Float64 bits (33.656054ms)\n✔ mixed arithmetic requires known types, checks both conversions and keeps result budgets (0.627979ms)\n✔ typed mixed status differences, derivatives and CoreXY work through worker and no-Python CSV (412.097068ms)\n✔ status type mode does not misclassify unannotated raw integer datasets as floats (354.336771ms)\n✔ integer integral retains exact mean division and CPython mixed sum transition order (11.938534ms)\n✔ integral reference deltas remain exact before float scaling, including mixed endpoints in typed mode (1.055845ms)\n✔ integral rejects ambiguous mixed sums, invalid resources and overflow without returning partial data (0.671039ms)\n✔ typed integer and mixed integral flow through worker and no-Python CSV matching original Python (423.738418ms)\n✔ scalar norm squares integers before ordered float accumulation and matches Python bits (16.880473ms)\n✔ scalar norm rejects invalid shapes, individual and accumulated overflow and output over budget (0.670589ms)\n✔ integer norm flows through worker, downstream derivative and no-Python CSV with original Python results (328.693337ms)\n✔ integer smoothing preserves exact weighting, sequential float sums, half-even windows and truncated edges (16.876053ms)\n✔ integer smoothing bounds work, result allocation and each conversion or accumulation overflow (0.693139ms)\n✔ integer smoothing supports worker chains and no-Python CSV with original exporter results (331.496386ms)\nℹ tests 14\nℹ suites 0\nℹ pass 14\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2333.385718\n",
+    "benchmarks": {
+      "derived-math": "{\"kind\":\"derivative\",\"node\":\"v26.9.0\",\"samples\":20000,\"nodeMs\":{\"median\":0.46136599999999817,\"p95\":1.1568560000000048},\"pythonMs\":{\"median\":1.3770500081591308,\"p95\":1.3865799992345273},\"maxAbsoluteError\":0}\n{\"kind\":\"integral\",\"node\":\"v26.9.0\",\"samples\":20000,\"nodeMs\":{\"median\":0.40210500000000593,\"p95\":0.9893430000000194},\"pythonMs\":{\"median\":1.7694249982014298,\"p95\":1.79641495924443},\"maxAbsoluteError\":0}\n{\"kind\":\"norm2\",\"node\":\"v26.9.0\",\"samples\":20000,\"nodeMs\":{\"median\":0.5249970000000417,\"p95\":0.6214589999999589},\"pythonMs\":{\"median\":2.65171704813838,\"p95\":2.6854370371438563},\"maxAbsoluteError\":0}\n{\"kind\":\"smooth\",\"node\":\"v26.9.0\",\"samples\":20000,\"nodeMs\":{\"median\":0.3724250000000211,\"p95\":0.39354500000001735},\"pythonMs\":{\"median\":35.080944013316184,\"p95\":35.154164012055844},\"maxAbsoluteError\":0}\n{\"kind\":\"corexy_x\",\"node\":\"v26.9.0\",\"samples\":20000,\"nodeMs\":{\"median\":0.2946949999999333,\"p95\":0.4944469999999228},\"pythonMs\":{\"median\":0.7496309699490666,\"p95\":0.7593909977003932},\"maxAbsoluteError\":0}\n",
+      "scalar-math": "{\"node\":\"v26.9.0\",\"mode\":\"float-array\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.3586090062744915,\"p95\":1.6928440309129655},\"nodeMs\":{\"median\":0.970733000000024,\"p95\":1.8795769999999834},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-array\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.6759889656677842,\"p95\":0.683109974488616},\"nodeMs\":{\"median\":1.3391490000000204,\"p95\":3.0256929999999898},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-array\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":0.744951015803963,\"p95\":0.7490310235880315},\"nodeMs\":{\"median\":0.7678300000000036,\"p95\":2.2197820000000092},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-array\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":0.76364103006199,\"p95\":0.7913419976830482},\"nodeMs\":{\"median\":0.6587889999999561,\"p95\":3.094803000000013},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.3235980295576155,\"p95\":1.3295590179041028},\"nodeMs\":{\"median\":0.411925999999994,\"p95\":1.5419920000000502},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.6829799967817962,\"p95\":0.6905599730089307},\"nodeMs\":{\"median\":1.2639580000000024,\"p95\":2.7432890000000043},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":0.7547509740106761,\"p95\":0.7637210073880851},\"nodeMs\":{\"median\":0.6603790000000345,\"p95\":1.42971},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":0.7401499897241592,\"p95\":0.7514110184274614},\"nodeMs\":{\"median\":0.5461179999999786,\"p95\":0.553547999999978},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.6580430092290044,\"p95\":1.687573967501521},\"nodeMs\":{\"median\":0.8786820000000262,\"p95\":0.9709530000000086},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.8522119605913758,\"p95\":0.8667319780215621},\"nodeMs\":{\"median\":1.4996410000001106,\"p95\":4.517603000000008},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":1.5146410441957414,\"p95\":1.5251910081133246},\"nodeMs\":{\"median\":1.7008630000000267,\"p95\":4.370932000000039},\"exactTypesAndBits\":true}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":1.4907210133969784,\"p95\":1.5231110155582428},\"nodeMs\":{\"median\":0.8286020000000462,\"p95\":0.8563119999998889},\"exactTypesAndBits\":true}\n",
+      "scalar-integral": "{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"withReference\":false,\"samples\":20000,\"pythonMs\":{\"median\":1.2124170316383243,\"p95\":1.2207169784232974},\"nodeMs\":{\"median\":0.5022670000000176,\"p95\":0.5914080000000013},\"numericBaselineMs\":{\"median\":0.49565699999999424,\"p95\":0.6801000000000101},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"withReference\":true,\"samples\":20000,\"pythonMs\":{\"median\":1.7797749605961144,\"p95\":1.813165028579533},\"nodeMs\":{\"median\":0.3720349999999826,\"p95\":0.5122169999999642},\"numericBaselineMs\":{\"median\":0.3684750000000463,\"p95\":0.5484569999999849},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"withReference\":false,\"samples\":20000,\"pythonMs\":{\"median\":2.1099699661135674,\"p95\":2.925510983914137},\"nodeMs\":{\"median\":1.569402000000025,\"p95\":1.808224999999993},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"withReference\":true,\"samples\":20000,\"pythonMs\":{\"median\":3.338947019074112,\"p95\":3.3639970351941884},\"nodeMs\":{\"median\":2.112508999999932,\"p95\":2.2124810000000252},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"withReference\":false,\"samples\":20000,\"pythonMs\":{\"median\":2.2266010055318475,\"p95\":2.3567129974253476},\"nodeMs\":{\"median\":0.8836529999999811,\"p95\":2.854569999999967},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"withReference\":true,\"samples\":20000,\"pythonMs\":{\"median\":3.5233700182288885,\"p95\":3.564119979273528},\"nodeMs\":{\"median\":1.4116500000000087,\"p95\":4.426062000000002},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"withReference\":false,\"samples\":20000,\"pythonMs\":{\"median\":2.0671390229836106,\"p95\":2.0768389804288745},\"nodeMs\":{\"median\":0.6680089999999836,\"p95\":0.9882939999999962},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"withReference\":true,\"samples\":20000,\"pythonMs\":{\"median\":3.3951179939322174,\"p95\":3.4269680036231875},\"nodeMs\":{\"median\":1.1476059999999961,\"p95\":1.1736070000001746},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof.\"}\n",
+      "scalar-norm": "{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"axes\":2,\"samples\":20000,\"pythonMs\":{\"median\":2.6761069893836975,\"p95\":2.6807179674506187},\"nodeMs\":{\"median\":0.5343180000000132,\"p95\":0.7876109999999983},\"numericBaselineMs\":{\"median\":0.5379680000000064,\"p95\":0.8256609999999966},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"axes\":3,\"samples\":20000,\"pythonMs\":{\"median\":3.4697490045800805,\"p95\":3.4890290116891265},\"nodeMs\":{\"median\":0.4320060000000012,\"p95\":0.5872979999999757},\"numericBaselineMs\":{\"median\":0.4294460000000413,\"p95\":0.5938990000000217},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"axes\":2,\"samples\":20000,\"pythonMs\":{\"median\":5.362395953852683,\"p95\":5.3815150167793036},\"nodeMs\":{\"median\":2.320993000000044,\"p95\":2.5108960000000025},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"axes\":3,\"samples\":20000,\"pythonMs\":{\"median\":7.450425007846206,\"p95\":7.513254997320473},\"nodeMs\":{\"median\":3.466339000000062,\"p95\":3.8286130000000185},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"axes\":2,\"samples\":20000,\"pythonMs\":{\"median\":5.810461996588856,\"p95\":5.861551966518164},\"nodeMs\":{\"median\":2.472205000000031,\"p95\":2.714367999999922},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"axes\":3,\"samples\":20000,\"pythonMs\":{\"median\":8.09339398983866,\"p95\":8.118544006720185},\"nodeMs\":{\"median\":3.782412999999906,\"p95\":4.167138000000023},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"axes\":2,\"samples\":20000,\"pythonMs\":{\"median\":4.445072030648589,\"p95\":4.464791971258819},\"nodeMs\":{\"median\":1.733204999999998,\"p95\":2.0008379999999306},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"axes\":3,\"samples\":20000,\"pythonMs\":{\"median\":5.61726902378723,\"p95\":5.633218970615417},\"nodeMs\":{\"median\":1.9719379999999092,\"p95\":2.167979999999943},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof.\"}\n",
+      "scalar-smooth": "{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"halfWindow\":5,\"samples\":20000,\"pythonMs\":{\"median\":35.258196003269404,\"p95\":35.328505968209356},\"nodeMs\":{\"median\":0.6019090000000915,\"p95\":1.0032640000000583},\"numericBaselineMs\":{\"median\":0.5890889999999445,\"p95\":1.0925760000000082},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"halfWindow\":25,\"samples\":20000,\"pythonMs\":{\"median\":146.68003196129575,\"p95\":146.8961539794691},\"nodeMs\":{\"median\":1.337177999999767,\"p95\":1.4848109999998087},\"numericBaselineMs\":{\"median\":1.3386289999998553,\"p95\":1.4892110000000685},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"halfWindow\":5,\"samples\":20000,\"pythonMs\":{\"median\":46.07812804169953,\"p95\":46.12218803958967},\"nodeMs\":{\"median\":13.792363999999907,\"p95\":14.323401999999987},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-53\",\"halfWindow\":25,\"samples\":20000,\"pythonMs\":{\"median\":204.69367603072897,\"p95\":205.31570498133078},\"nodeMs\":{\"median\":66.96280999999999,\"p95\":67.38848599999983},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"halfWindow\":5,\"samples\":20000,\"pythonMs\":{\"median\":46.735456970054656,\"p95\":46.839538030326366},\"nodeMs\":{\"median\":17.525336000000607,\"p95\":17.867200999999113},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-100\",\"halfWindow\":25,\"samples\":20000,\"pythonMs\":{\"median\":201.205765013583,\"p95\":201.6052110120654},\"nodeMs\":{\"median\":86.70419700000093,\"p95\":87.24932499999886},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"halfWindow\":5,\"samples\":20000,\"pythonMs\":{\"median\":41.33164003724232,\"p95\":41.3908320479095},\"nodeMs\":{\"median\":6.483120999999301,\"p95\":6.655953999999838},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"halfWindow\":25,\"samples\":20000,\"pythonMs\":{\"median\":176.8920629983768,\"p95\":177.37374000716954},\"nodeMs\":{\"median\":31.545572999999422,\"p95\":32.0692710000003},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof.\"}\n",
+      "mixed-arithmetic": "{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.3574589975178242,\"p95\":1.3759100111201406},\"nodeMs\":{\"median\":0.29227399999999193,\"p95\":0.4531460000000038},\"previousMs\":{\"median\":0.2869440000000054,\"p95\":0.2976549999999918},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.6759589887224138,\"p95\":0.6810299819335341},\"nodeMs\":{\"median\":0.2995140000000447,\"p95\":0.3527950000000146},\"previousMs\":{\"median\":0.301195000000007,\"p95\":0.5065569999999866},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":0.772000988945365,\"p95\":0.7860409677959979},\"nodeMs\":{\"median\":0.5077169999999569,\"p95\":0.5820979999999736},\"previousMs\":{\"median\":0.4963470000000143,\"p95\":0.5774379999999155},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-buffer\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":0.7687809993512928,\"p95\":0.7718109991401434},\"nodeMs\":{\"median\":0.2740529999999808,\"p95\":0.2870939999999109},\"previousMs\":{\"median\":0.2732140000000527,\"p95\":0.28144399999996494},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.6575140180066228,\"p95\":1.662583032157272},\"nodeMs\":{\"median\":0.8737029999999777,\"p95\":1.441759999999931},\"previousMs\":{\"median\":0.8465720000000374,\"p95\":0.8860120000000506},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.8724519866518676,\"p95\":0.8796330075711012},\"nodeMs\":{\"median\":1.1944260000000213,\"p95\":2.172100999999884},\"previousMs\":{\"median\":1.3870590000001357,\"p95\":1.4626409999998486},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":1.5204510418698192,\"p95\":1.571131986565888},\"nodeMs\":{\"median\":0.8780220000001009,\"p95\":1.3026389999999992},\"previousMs\":{\"median\":1.0463749999998981,\"p95\":1.0880549999999403},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":1.4834209578111768,\"p95\":1.6166319837793708},\"nodeMs\":{\"median\":0.6531190000000606,\"p95\":0.6718390000000909},\"previousMs\":{\"median\":0.6776189999998223,\"p95\":0.7070899999998801},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.9750680075958371,\"p95\":1.9978880300186574},\"nodeMs\":{\"median\":0.8380420000000868,\"p95\":0.8960430000001907},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":1.1375549947842956,\"p95\":1.1473760241642594},\"nodeMs\":{\"median\":0.9419040000000223,\"p95\":0.9561429999998836},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":1.3840500032529235,\"p95\":1.3876290176995099},\"nodeMs\":{\"median\":0.7763800000000174,\"p95\":0.7999609999999393},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"mixed\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":1.4453300391323864,\"p95\":1.4664910268038511},\"nodeMs\":{\"median\":0.788260999999693,\"p95\":1.1511759999998503},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-after-mixed\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.365298987366259,\"p95\":1.394089951645583},\"nodeMs\":{\"median\":0.17631200000005265,\"p95\":0.19865200000003824},\"previousMs\":{\"median\":0.17690300000003845,\"p95\":0.19082300000036412},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-after-mixed\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.6837290129624307,\"p95\":0.6866600015200675},\"nodeMs\":{\"median\":0.2917339999999058,\"p95\":0.3166150000001835},\"previousMs\":{\"median\":0.28878400000030524,\"p95\":0.3421240000002399},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-after-mixed\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":0.7557500503025949,\"p95\":0.7635010406374931},\"nodeMs\":{\"median\":0.2829239999996389,\"p95\":0.30944399999998495},\"previousMs\":{\"median\":0.28241399999978967,\"p95\":1.5482120000001487},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"float-after-mixed\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":0.7588299922645092,\"p95\":0.7638809620402753},\"nodeMs\":{\"median\":0.28036400000019057,\"p95\":0.30248500000016065},\"previousMs\":{\"median\":0.2880239999999503,\"p95\":6.744185000000016},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-after-mixed\",\"kind\":\"derivative\",\"samples\":20000,\"pythonMs\":{\"median\":1.653373008593917,\"p95\":1.6872629639692605},\"nodeMs\":{\"median\":0.6369990000002872,\"p95\":2.111769000000095},\"previousMs\":{\"median\":0.6303979999997864,\"p95\":0.6591490000000704},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-after-mixed\",\"kind\":\"deviation\",\"samples\":20000,\"pythonMs\":{\"median\":0.8721720078028738,\"p95\":0.916463031899184},\"nodeMs\":{\"median\":1.3113180000000284,\"p95\":6.965437999999722},\"previousMs\":{\"median\":1.0347249999999804,\"p95\":3.161383999999998},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-after-mixed\",\"kind\":\"corexy_x\",\"samples\":20000,\"pythonMs\":{\"median\":1.5146409859880805,\"p95\":1.5486819902434945},\"nodeMs\":{\"median\":0.8710019999998622,\"p95\":0.9068019999999706},\"previousMs\":{\"median\":1.0479049999999006,\"p95\":1.2422369999999319},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n{\"node\":\"v26.9.0\",\"mode\":\"integer-after-mixed\",\"kind\":\"corexy_y\",\"samples\":20000,\"pythonMs\":{\"median\":1.4761809725314379,\"p95\":1.4820509823039174},\"nodeMs\":{\"median\":0.6469899999997324,\"p95\":0.6764100000000326},\"previousMs\":{\"median\":0.6752499999997781,\"p95\":1.858005999999932},\"exactTypesAndBits\":true,\"warmups\":{\"node\":20,\"python\":2},\"runs\":{\"node\":15,\"python\":7},\"scope\":\"Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof.\"}\n"
+    }
+  },
+  "initialPythonFreeAttempt": {
+    "passed": 18,
+    "failed": 5,
+    "reason": "Five integration tests still directly invoked the original Python CSV exporter. Fixed by capturing full CSV bytes keyed by log/index hashes and CLI arguments; no numerical mismatch."
+  },
+  "finalVerification": {
+    "tests": "✔ Motan derivative, integral, norms and kinematic combinations retain original Python numerical order (11.572236ms)\n✔ Motan smoothing preserves ties-to-even windows and original asymmetric edge weights (1.068575ms)\n✔ Motan integral uses compensated Float64 mean and keeps zip truncation without mutating source (0.338451ms)\n✔ Motan numeric kernels reject undefined samples, invalid resolution and nonfinite output (0.301781ms)\n✔ captured math references reject changed inputs and return independent values (3.946349ms)\n✔ every archived CPython case has an intact bounded record and nonoverlapping archive range (151.651409ms)\n✔ known mixed arithmetic matches Python operand conversion, result types and Float64 bits (34.594666ms)\n✔ mixed arithmetic requires known types, checks both conversions and keeps result budgets (0.671983ms)\n✔ typed mixed status differences, derivatives and CoreXY work through worker and no-Python CSV (368.912557ms)\n✔ status type mode does not misclassify unannotated raw integer datasets as floats (308.713417ms)\n✔ integer integral retains exact mean division and CPython mixed sum transition order (11.304334ms)\n✔ integral reference deltas remain exact before float scaling, including mixed endpoints in typed mode (1.047665ms)\n✔ integral rejects ambiguous mixed sums, invalid resources and overflow without returning partial data (0.680503ms)\n✔ typed integer and mixed integral flow through worker and no-Python CSV matching original Python (378.602807ms)\n✔ scalar arithmetic matches Python types and bits across integer cancellation and boolean series (5.405696ms)\n✔ scalar kernels reject ambiguous integer/float provenance, overflow, invalid input and result budgets (0.521022ms)\n✔ worker mixed analysis preserves exact residual types through chained derivatives (292.320521ms)\n✔ scalar norm squares integers before ordered float accumulation and matches Python bits (16.696511ms)\n✔ scalar norm rejects invalid shapes, individual and accumulated overflow and output over budget (0.687323ms)\n✔ integer norm flows through worker, downstream derivative and no-Python CSV with original Python results (285.068468ms)\n✔ integer smoothing preserves exact weighting, sequential float sums, half-even windows and truncated edges (17.974727ms)\n✔ integer smoothing bounds work, result allocation and each conversion or accumulation overflow (0.725113ms)\n✔ integer smoothing supports worker chains and no-Python CSV with original exporter results (291.650072ms)\nℹ tests 23\nℹ suites 0\nℹ pass 23\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 2857.153943\n",
+    "testPATH": "/no-programs",
+    "benchmarkPATH": "Temporary directory containing only a symlink to /usr/bin/git; no Python command",
+    "benchmarks": {
+      "derived-math": [
+        {
+          "kind": "derivative",
+          "node": "v26.9.0",
+          "samples": 20000,
+          "nodeMs": {
+            "median": 0.46765299999999854,
+            "p95": 2.1778829999999942
+          },
+          "historicalPythonMs": {
+            "median": 1.3770500081591308,
+            "p95": 1.3865799992345273
+          },
+          "maxAbsoluteError": 0,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "kind": "integral",
+          "node": "v26.9.0",
+          "samples": 20000,
+          "nodeMs": {
+            "median": 0.3321719999999857,
+            "p95": 0.7645550000000014
+          },
+          "historicalPythonMs": {
+            "median": 1.7694249982014298,
+            "p95": 1.79641495924443
+          },
+          "maxAbsoluteError": 0,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "kind": "norm2",
+          "node": "v26.9.0",
+          "samples": 20000,
+          "nodeMs": {
+            "median": 0.2897820000000024,
+            "p95": 0.632454000000024
+          },
+          "historicalPythonMs": {
+            "median": 2.65171704813838,
+            "p95": 2.6854370371438563
+          },
+          "maxAbsoluteError": 0,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "kind": "smooth",
+          "node": "v26.9.0",
+          "samples": 20000,
+          "nodeMs": {
+            "median": 0.37483199999999783,
+            "p95": 0.6293630000000121
+          },
+          "historicalPythonMs": {
+            "median": 35.080944013316184,
+            "p95": 35.154164012055844
+          },
+          "maxAbsoluteError": 0,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "kind": "corexy_x",
+          "node": "v26.9.0",
+          "samples": 20000,
+          "nodeMs": {
+            "median": 0.2752009999999814,
+            "p95": 0.3856220000000121
+          },
+          "historicalPythonMs": {
+            "median": 0.7496309699490666,
+            "p95": 0.7593909977003932
+          },
+          "maxAbsoluteError": 0,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        }
+      ],
+      "scalar-math": [
+        {
+          "node": "v26.9.0",
+          "mode": "float-array",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.3586090062744915,
+            "p95": 1.6928440309129655
+          },
+          "nodeMs": {
+            "median": 0.8471549999999866,
+            "p95": 3.333658
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-array",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.6759889656677842,
+            "p95": 0.683109974488616
+          },
+          "nodeMs": {
+            "median": 2.0793510000000026,
+            "p95": 2.6449549999999817
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-array",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.744951015803963,
+            "p95": 0.7490310235880315
+          },
+          "nodeMs": {
+            "median": 1.0599459999999965,
+            "p95": 2.279003000000017
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-array",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.76364103006199,
+            "p95": 0.7913419976830482
+          },
+          "nodeMs": {
+            "median": 0.8556449999999813,
+            "p95": 1.8899710000000027
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.3586090062744915,
+            "p95": 1.6928440309129655
+          },
+          "nodeMs": {
+            "median": 0.4186730000000125,
+            "p95": 0.45267200000000685
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.6759889656677842,
+            "p95": 0.683109974488616
+          },
+          "nodeMs": {
+            "median": 1.3448569999999904,
+            "p95": 1.3909679999999867
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.744951015803963,
+            "p95": 0.7490310235880315
+          },
+          "nodeMs": {
+            "median": 0.6397140000000263,
+            "p95": 1.2258170000000064
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.76364103006199,
+            "p95": 0.7913419976830482
+          },
+          "nodeMs": {
+            "median": 0.5419729999999845,
+            "p95": 0.6004839999999945
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.6580430092290044,
+            "p95": 1.687573967501521
+          },
+          "nodeMs": {
+            "median": 0.8684849999999642,
+            "p95": 1.0760259999999562
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.8522119605913758,
+            "p95": 0.8667319780215621
+          },
+          "nodeMs": {
+            "median": 1.0798259999999118,
+            "p95": 2.358914000000027
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.5146410441957414,
+            "p95": 1.5251910081133246
+          },
+          "nodeMs": {
+            "median": 1.3562269999999899,
+            "p95": 4.391723999999954
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.4907210133969784,
+            "p95": 1.5231110155582428
+          },
+          "nodeMs": {
+            "median": 0.6563029999999799,
+            "p95": 0.6721340000000282
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python"
+        }
+      ],
+      "scalar-integral": [
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "withReference": false,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.2124170316383243,
+            "p95": 1.2207169784232974
+          },
+          "nodeMs": {
+            "median": 0.2842210000000023,
+            "p95": 0.38930299999998397
+          },
+          "numericBaselineMs": {
+            "median": 0.2821209999999894,
+            "p95": 0.35294200000001297
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "withReference": true,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.7797749605961144,
+            "p95": 1.813165028579533
+          },
+          "nodeMs": {
+            "median": 0.3847820000000013,
+            "p95": 0.6338240000000042
+          },
+          "numericBaselineMs": {
+            "median": 0.38528199999998947,
+            "p95": 0.5414230000000089
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "withReference": false,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 2.1099699661135674,
+            "p95": 2.925510983914137
+          },
+          "nodeMs": {
+            "median": 1.2221170000000257,
+            "p95": 1.3663170000000378
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "withReference": true,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 3.338947019074112,
+            "p95": 3.3639970351941884
+          },
+          "nodeMs": {
+            "median": 1.7288699999999722,
+            "p95": 3.2581080000000497
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "withReference": false,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 2.2266010055318475,
+            "p95": 2.3567129974253476
+          },
+          "nodeMs": {
+            "median": 0.8777250000000549,
+            "p95": 3.2606379999999717
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "withReference": true,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 3.5233700182288885,
+            "p95": 3.564119979273528
+          },
+          "nodeMs": {
+            "median": 1.3353869999999688,
+            "p95": 1.3939880000000358
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "withReference": false,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 2.0671390229836106,
+            "p95": 2.0768389804288745
+          },
+          "nodeMs": {
+            "median": 0.6938440000000128,
+            "p95": 0.7062239999999065
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "withReference": true,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 3.3951179939322174,
+            "p95": 3.4269680036231875
+          },
+          "nodeMs": {
+            "median": 1.1221460000000434,
+            "p95": 1.1598559999999907
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Integral kernel including mean, validation and allocation; excludes startup/source setup; CPython 3.12 64-bit sum reference; no target printer proof."
+        }
+      ],
+      "scalar-norm": [
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "axes": 2,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 2.6761069893836975,
+            "p95": 2.6807179674506187
+          },
+          "nodeMs": {
+            "median": 0.48207299999998554,
+            "p95": 0.9085550000000069
+          },
+          "numericBaselineMs": {
+            "median": 0.4571019999999919,
+            "p95": 0.8838449999999796
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "axes": 3,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 3.4697490045800805,
+            "p95": 3.4890290116891265
+          },
+          "nodeMs": {
+            "median": 0.43486200000000963,
+            "p95": 0.5734340000000202
+          },
+          "numericBaselineMs": {
+            "median": 0.43301200000001927,
+            "p95": 0.5640339999999924
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "axes": 2,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 5.362395953852683,
+            "p95": 5.3815150167793036
+          },
+          "nodeMs": {
+            "median": 2.194412,
+            "p95": 2.358573999999976
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "axes": 3,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 7.450425007846206,
+            "p95": 7.513254997320473
+          },
+          "nodeMs": {
+            "median": 3.4453790000000026,
+            "p95": 3.9998019999999315
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "axes": 2,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 5.810461996588856,
+            "p95": 5.861551966518164
+          },
+          "nodeMs": {
+            "median": 2.355323999999996,
+            "p95": 2.5749550000000454
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "axes": 3,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 8.09339398983866,
+            "p95": 8.118544006720185
+          },
+          "nodeMs": {
+            "median": 3.687960999999973,
+            "p95": 3.9086019999999735
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "axes": 2,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 4.445072030648589,
+            "p95": 4.464791971258819
+          },
+          "nodeMs": {
+            "median": 1.8196399999999358,
+            "p95": 2.3528539999999794
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "axes": 3,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 5.61726902378723,
+            "p95": 5.633218970615417
+          },
+          "nodeMs": {
+            "median": 2.151531999999861,
+            "p95": 2.4391430000000582
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process norm kernel; includes validation and output allocation, excludes process startup and source setup; no target printer proof."
+        }
+      ],
+      "scalar-smooth": [
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "halfWindow": 5,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 35.258196003269404,
+            "p95": 35.328505968209356
+          },
+          "nodeMs": {
+            "median": 0.4384830000000193,
+            "p95": 0.522012999999987
+          },
+          "numericBaselineMs": {
+            "median": 0.4378719999999987,
+            "p95": 0.5263730000000066
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "halfWindow": 25,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 146.68003196129575,
+            "p95": 146.8961539794691
+          },
+          "nodeMs": {
+            "median": 1.3458870000000047,
+            "p95": 1.5292689999999993
+          },
+          "numericBaselineMs": {
+            "median": 1.49294900000001,
+            "p95": 1.5907689999999661
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "halfWindow": 5,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 46.07812804169953,
+            "p95": 46.12218803958967
+          },
+          "nodeMs": {
+            "median": 13.736708000000021,
+            "p95": 14.117678999999953
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-53",
+          "halfWindow": 25,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 204.69367603072897,
+            "p95": 205.31570498133078
+          },
+          "nodeMs": {
+            "median": 66.98444000000018,
+            "p95": 67.33126300000004
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "halfWindow": 5,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 46.735456970054656,
+            "p95": 46.839538030326366
+          },
+          "nodeMs": {
+            "median": 16.767615000000205,
+            "p95": 17.30128799999966
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-100",
+          "halfWindow": 25,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 201.205765013583,
+            "p95": 201.6052110120654
+          },
+          "nodeMs": {
+            "median": 82.19041000000016,
+            "p95": 84.24709199999961
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "halfWindow": 5,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 41.33164003724232,
+            "p95": 41.3908320479095
+          },
+          "nodeMs": {
+            "median": 6.818288999999822,
+            "p95": 7.120401000000129
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "halfWindow": 25,
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 176.8920629983768,
+            "p95": 177.37374000716954
+          },
+          "nodeMs": {
+            "median": 32.96276899999975,
+            "p95": 33.31272199999967
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "In-process smoothing including validation and output allocation; excludes process startup and source setup; no target printer proof."
+        }
+      ],
+      "mixed-arithmetic": [
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.3586090062744915,
+            "p95": 1.6928440309129655
+          },
+          "nodeMs": {
+            "median": 0.39755299999998783,
+            "p95": 0.5801230000000146
+          },
+          "previousMs": {
+            "median": 0.4055219999999906,
+            "p95": 0.768653999999998
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.6759889656677842,
+            "p95": 0.683109974488616
+          },
+          "nodeMs": {
+            "median": 0.2897209999999859,
+            "p95": 0.37133199999999533
+          },
+          "previousMs": {
+            "median": 0.29165199999999913,
+            "p95": 0.36737199999998893
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.744951015803963,
+            "p95": 0.7490310235880315
+          },
+          "nodeMs": {
+            "median": 0.2806020000000444,
+            "p95": 0.4663929999999823
+          },
+          "previousMs": {
+            "median": 0.2847110000000157,
+            "p95": 0.4222829999999931
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-buffer",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.76364103006199,
+            "p95": 0.7913419976830482
+          },
+          "nodeMs": {
+            "median": 0.27131099999996877,
+            "p95": 0.29021099999999933
+          },
+          "previousMs": {
+            "median": 0.2729819999999563,
+            "p95": 0.4322530000000029
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.6580430092290044,
+            "p95": 1.687573967501521
+          },
+          "nodeMs": {
+            "median": 1.2600869999999986,
+            "p95": 1.4501089999999976
+          },
+          "previousMs": {
+            "median": 0.8345140000000129,
+            "p95": 0.9719949999999926
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.8522119605913758,
+            "p95": 0.8667319780215621
+          },
+          "nodeMs": {
+            "median": 1.282607999999982,
+            "p95": 2.241662999999903
+          },
+          "previousMs": {
+            "median": 0.9972459999999046,
+            "p95": 1.0726660000000265
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.5146410441957414,
+            "p95": 1.5251910081133246
+          },
+          "nodeMs": {
+            "median": 0.8981850000000122,
+            "p95": 1.1690070000000787
+          },
+          "previousMs": {
+            "median": 0.897275000000036,
+            "p95": 0.9810559999999668
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.4907210133969784,
+            "p95": 1.5231110155582428
+          },
+          "nodeMs": {
+            "median": 0.6936940000000504,
+            "p95": 0.8384750000000167
+          },
+          "previousMs": {
+            "median": 0.7341139999999768,
+            "p95": 3.675440999999978
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.9750680075958371,
+            "p95": 1.9978880300186574
+          },
+          "nodeMs": {
+            "median": 0.9325850000000173,
+            "p95": 0.9504249999999956
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.1375549947842956,
+            "p95": 1.1473760241642594
+          },
+          "nodeMs": {
+            "median": 0.8600750000000517,
+            "p95": 0.8763050000000021
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.3840500032529235,
+            "p95": 1.3876290176995099
+          },
+          "nodeMs": {
+            "median": 0.9526249999998981,
+            "p95": 3.760432000000037
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "mixed",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.4453300391323864,
+            "p95": 1.4664910268038511
+          },
+          "nodeMs": {
+            "median": 0.8094149999999445,
+            "p95": 0.813664000000017
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-after-mixed",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.3586090062744915,
+            "p95": 1.6928440309129655
+          },
+          "nodeMs": {
+            "median": 0.2138710000001538,
+            "p95": 0.2515210000001389
+          },
+          "previousMs": {
+            "median": 0.21283200000016222,
+            "p95": 0.23459200000002056
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-after-mixed",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.6759889656677842,
+            "p95": 0.683109974488616
+          },
+          "nodeMs": {
+            "median": 0.275532000000112,
+            "p95": 0.289602000000059
+          },
+          "previousMs": {
+            "median": 0.27985100000000784,
+            "p95": 1.6514589999999316
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-after-mixed",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.744951015803963,
+            "p95": 0.7490310235880315
+          },
+          "nodeMs": {
+            "median": 0.27048199999990175,
+            "p95": 0.2849220000000514
+          },
+          "previousMs": {
+            "median": 0.2685420000000249,
+            "p95": 0.28255200000012337
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "float-after-mixed",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.76364103006199,
+            "p95": 0.7913419976830482
+          },
+          "nodeMs": {
+            "median": 0.27759199999991324,
+            "p95": 0.30531199999995806
+          },
+          "previousMs": {
+            "median": 0.284731999999849,
+            "p95": 1.346997999999985
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-after-mixed",
+          "kind": "derivative",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.6580430092290044,
+            "p95": 1.687573967501521
+          },
+          "nodeMs": {
+            "median": 0.632223999999951,
+            "p95": 0.698743999999806
+          },
+          "previousMs": {
+            "median": 0.6471939999998995,
+            "p95": 2.690315999999939
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-after-mixed",
+          "kind": "deviation",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 0.8522119605913758,
+            "p95": 0.8667319780215621
+          },
+          "nodeMs": {
+            "median": 1.045186000000058,
+            "p95": 2.823906999999963
+          },
+          "previousMs": {
+            "median": 1.2296870000000126,
+            "p95": 1.2484870000000683
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-after-mixed",
+          "kind": "corexy_x",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.5146410441957414,
+            "p95": 1.5251910081133246
+          },
+          "nodeMs": {
+            "median": 1.073505999999952,
+            "p95": 2.5787649999999758
+          },
+          "previousMs": {
+            "median": 0.8958350000000337,
+            "p95": 0.9121359999999186
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        },
+        {
+          "node": "v26.9.0",
+          "mode": "integer-after-mixed",
+          "kind": "corexy_y",
+          "samples": 20000,
+          "historicalPythonMs": {
+            "median": 1.4907210133969784,
+            "p95": 1.5231110155582428
+          },
+          "nodeMs": {
+            "median": 0.7628540000000612,
+            "p95": 0.7685650000003079
+          },
+          "previousMs": {
+            "median": 0.701434000000063,
+            "p95": 0.7173250000000735
+          },
+          "exactTypesAndBits": true,
+          "referenceMode": "captured CPython; this run does not execute Python",
+          "warmups": {
+            "node": 20,
+            "historicalPython": 2
+          },
+          "runs": {
+            "node": 15,
+            "historicalPython": 7
+          },
+          "scope": "Scalar kernels with validation and result budgeting/allocation. Previous implementation pinned to 25129874 for previously supported inputs. Excludes startup/source setup; no target printer proof."
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Other Motan readers, analyzers, filters and oracles still require migration",
+    "Python timings were captured once; final runs do not execute Python",
+    "Some scalar deviation and combination cases remain slower than captured Python; benchmarks do not prove all performance targets",
+    "No production math algorithm changed; no physical printer speed or motion precision claim",
+    "Default Python entrypoint and 193 tracked Python files remain"
+  ]
+}

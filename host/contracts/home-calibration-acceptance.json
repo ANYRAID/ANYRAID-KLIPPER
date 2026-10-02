@@ -1,0 +1,81 @@
+{
+  "base": "5fd8f28e",
+  "tests": {
+    "compiledProduct": 4,
+    "endpoint": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "calibration": {
+    "compiled": true,
+    "typedHoming": true,
+    "noPrintJob": true,
+    "points": 9,
+    "referencePoints": 1,
+    "durationMs": 8825.334034,
+    "retryWithoutMotion": true
+  },
+  "performance": {
+    "loaded": true,
+    "historyNotifications": 32,
+    "historyRequests": 455,
+    "historyP99Ms": 12.917208000002574,
+    "lifecycleShutdowns": 8,
+    "fileNotifications": 132,
+    "fileNotificationP95Ms": 16.009038000000146,
+    "deleteRequests": 16,
+    "deleteP95Ms": 15.93505699999514,
+    "thumbnailRequests": 16,
+    "thumbnailP95Ms": 5.8140759999987495,
+    "metadataRequests": 16,
+    "metadataP95Ms": 40.44511599999896,
+    "downloads": 16,
+    "downloadP95Ms": 15.329249000002164,
+    "wireCommands": 329,
+    "wireSteps": 4446,
+    "minimumStepLeadMs": 82.412,
+    "directoryRequests": 1949,
+    "directoryP99Ms": 9.1604490000027,
+    "statusRequests": 8121,
+    "uploads": 16,
+    "statusP99Ms": 6.2770219999983965,
+    "uploadP95Ms": 38.23894800000198,
+    "generations": [
+      {
+        "loop": {
+          "p99Ms": 2.859007,
+          "maxMs": 22.724607
+        },
+        "cpu": {
+          "user": 2189391,
+          "system": 251986
+        },
+        "rss": 228835328
+      },
+      {
+        "loop": {
+          "p99Ms": 1.975295,
+          "maxMs": 4.370431
+        },
+        "cpu": {
+          "user": 1342069,
+          "system": 169661
+        },
+        "rss": 244506624
+      }
+    ]
+  },
+  "endpointBenchmark": {
+    "node": "v26.9.0",
+    "samples": 1000,
+    "p95Ms": 0.03337100000000248,
+    "medianMs": 0.016080000000002315,
+    "scope": "Authorized in-process endpoint, immediate fake measurement plus idempotent retry; no native motion or HTTP transport."
+  },
+  "scope": "Fixed XYZ homing maintenance endpoint, shares gate with probe and print. Compiled journey homes directly and confirms zero print-file opens during calibration maintenance.",
+  "limitations": [
+    "Simulated MCU only; real homing and bed precision acceptance outstanding.",
+    "Receipts are process-local. Circular beds and faulty regions still unsupported.",
+    "Historical motion numerical anomalies and runtime crashes unresolved."
+  ]
+}

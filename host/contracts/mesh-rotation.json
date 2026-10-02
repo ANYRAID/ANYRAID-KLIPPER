@@ -1,0 +1,118 @@
+{
+  "staticComparison": {
+    "fixture": {
+      "current_mesh": {
+        "name": "active<&",
+        "mesh_params": {
+          "min_x": 0,
+          "max_x": 100,
+          "min_y": 10,
+          "max_y": 210,
+          "x_count": 3,
+          "y_count": 2
+        },
+        "probed_matrix": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            3,
+            2,
+            1
+          ]
+        ],
+        "mesh_matrix": [
+          [
+            0,
+            1,
+            2
+          ],
+          [
+            3,
+            2,
+            1
+          ]
+        ]
+      },
+      "profiles": {
+        "saved": {
+          "mesh_params": {
+            "min_x": 0,
+            "max_x": 100,
+            "min_y": 10,
+            "max_y": 210,
+            "x_count": 3,
+            "y_count": 2
+          },
+          "points": [
+            [
+              0,
+              0.5,
+              1
+            ],
+            [
+              2,
+              1,
+              0
+            ]
+          ]
+        }
+      }
+    },
+    "sourceSha256": "61c62ddc6fe6af109e5a3933169b729e832336ee22505f03843a49ec8a318c45",
+    "staticOutputs": [
+      {
+        "type": "probedz",
+        "sha256": "0c6191f77637d0a3cfa4bf5d4739bc58c6baf63d697cb226d911a84e5acd9df2",
+        "bytes": 1825
+      },
+      {
+        "type": "meshz",
+        "sha256": "b2e398acbc32a4025c270ee9120d20e5af5549ab117f6c9d2c664623b54bfb34",
+        "bytes": 1837
+      },
+      {
+        "type": "overlay",
+        "sha256": "f359527fbe3f9533ef52ce631e51f9bb1fd625018056ae695fd1b673c5e223d6",
+        "bytes": 2548
+      },
+      {
+        "type": "delta",
+        "sha256": "ba020d84f3c80d4375e057f9f862118307c27ce4287718febde0f154838b664f",
+        "bytes": 1868
+      }
+    ],
+    "scope": "Byte-identical default SVG for four surface modes against committed previous renderer; synthetic rectangular signed-height fixture."
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "rows": 30,
+    "columns": 40,
+    "surfaces": 2,
+    "cells": 2262,
+    "warmups": 5,
+    "runs": 11,
+    "results": [
+      {
+        "format": "static SVG",
+        "bytes": 409156,
+        "medianMs": 5.584985000000017,
+        "p95Ms": 8.266506000000021
+      },
+      {
+        "format": "rotatable HTML",
+        "bytes": 1014279,
+        "medianMs": 13.920022000000017,
+        "p95Ms": 18.216508000000033
+      }
+    ],
+    "scope": "Clipping, projection, depth ordering, complete normalized geometry and CSP HTML generation. No browser layout, paint, pointer latency, IO or printer timing."
+  },
+  "unrun": [
+    "Real browser visual and interaction acceptance: file URL rejected by browser security policy",
+    "Browser frame latency on large grids",
+    "Printer hardware acceptance"
+  ]
+}

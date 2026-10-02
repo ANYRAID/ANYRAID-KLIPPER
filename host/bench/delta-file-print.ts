@@ -1,0 +1,11 @@
+import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
+const test=fileURLToPath(new URL('../test/delta-printer.test.ts',import.meta.url));
+const result=spawnSync(process.execPath,['--test','--test-isolation=none','--test-concurrency=1','--test-reporter=tap','--test-name-pattern=configured Delta lifetime owner',test],{env:{...process.env,DELTA_PRINT_BENCH:'1'},encoding:'utf8',timeout:180000,maxBuffer:1024*1024});
+assert.equal(result.status,0,result.stdout+'\n'+result.stderr);
+const samples=[...result.stdout.matchAll(/DeltaPrintBenchmark (\{[^\n]+\})/g)].map(m=>JSON.parse(m[1]) as {run:number;filePrint:boolean;commands:number;wallMs:number;cpuMs:number});assert.equal(samples.length,8);
+const summary=(file:boolean)=>{const data=samples.filter(s=>s.filePrint===file&&s.run>0),median=(key:'wallMs'|'cpuMs')=>data.map(s=>s[key]).sort((a,b)=>a-b)[1];assert.equal(data.length,3);return {wallMedianMs:median('wallMs'),cpuMedianMs:median('cpuMs')};};
+const direct=summary(false),file=summary(true),wallPass=file.wallMedianMs<=direct.wallMedianMs*1.3+20;
+console.log(JSON.stringify({node:process.version,warmupsPerMode:1,samplesPerMode:3,commands:1000,direct,file,samples,wallGate:{maximumMs:direct.wallMedianMs*1.3+20,passed:wallPass},exactStepsPerTower:80,scope:'Two simulated MCUs; 1000 short Delta moves over 1 mm with real native generation, pause/resume, clock drain and file completion. File CPU includes parsing and completion; direct baseline omits those. Excludes physical print speed and extrusion.'},null,2));
+assert(wallPass,'Delta file execution exceeded paired wall-time gate');

@@ -1,0 +1,51 @@
+{
+  "scope": "Sensorless register mode owner only; not wired into homing or hardware assembly",
+  "sha256": {
+    "host/src/drivers/tmc-sensorless.ts": "5a61901203c1c0bd4fbc13de479b8118b9d2a8084832863d3bec2df7576d7b51",
+    "host/test/tmc-sensorless.test.ts": "46e6d612edb97dd69c0811432f59e0a3bca1311e8b8cdf3fefdc2a272efc265d",
+    "host/bench/tmc-sensorless.ts": "f2e37f9e5779acd7f18983c600cab1061a85a3bac4443d5a77f8963c9797e798",
+    "host/contracts/tmc-sensorless-reference.json": "3114bf917b4fc8a0bedbea4965315ba55d4eae14f325ef2e9e435075a8c80112"
+  },
+  "tests": "✔ 640 sensorless transitions match original Python field values and register order (35.360051ms)\n✔ ambiguous writes and cancellation at every transition boundary retire ownership (3.143328ms)\n✔ entry and restoration are exclusive and publish state only after final acknowledgement (0.556296ms)\n✔ pre-cancelled entry does no I/O; pre-cancelled restore retires active hardware (0.339714ms)\n✔ invalid model, DIAG and incomplete or corrupt register images fail before I/O (0.337894ms)\nℹ tests 5\nℹ suites 0\nℹ pass 5\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 95.929919\n",
+  "benchmark": {
+    "scope": "640 mode plans or complete enter/restore cycles; immediate fake acknowledgements; no serial I/O or physical homing",
+    "node": "v26.9.0",
+    "planMs": [
+      0.40785499999999786,
+      0.4130559999999974,
+      0.46341599999999517,
+      0.4639759999999882,
+      0.465455999999989,
+      0.4735759999999942,
+      0.48392599999999675,
+      0.5036659999999955,
+      1.7523410000000013
+    ],
+    "cycleMs": [
+      2.072406000000001,
+      2.199756000000008,
+      2.4702900000000056,
+      2.5481709999999964,
+      2.5595110000000005,
+      2.863225,
+      2.9181859999999915,
+      2.93774599999999,
+      3.6665140000000065
+    ],
+    "historicalPythonMs": [
+      11.76115102134645,
+      11.860673024784774,
+      11.920693039428443,
+      11.938443989492953,
+      12.177376949694008,
+      12.201206991448998,
+      12.328978977166116
+    ]
+  },
+  "unverified": [
+    "virtual_endstop configuration",
+    "G28 mode ownership and physical stop barrier",
+    "compiled product integration",
+    "target hardware motion and electrical behavior"
+  ]
+}

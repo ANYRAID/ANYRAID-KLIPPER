@@ -1,0 +1,72 @@
+{
+  "benchmark": {
+    "node": "v26.9.0",
+    "warmups": 3,
+    "samplesMs": [
+      1178.134281,
+      1203.7514190000002,
+      1192.3861390000002,
+      1179.5275089999996,
+      1178.04565,
+      1174.1776179999997,
+      1200.562597
+    ],
+    "medianMs": 1179.5275089999996,
+    "result": [
+      {
+        "language": "en",
+        "pages": 57,
+        "assets": 116
+      },
+      {
+        "language": "zh",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "zh-Hant",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "hu",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "de",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "it",
+        "pages": 55,
+        "assets": 74
+      },
+      {
+        "language": "fr",
+        "pages": 55,
+        "assets": 74
+      }
+    ],
+    "scope": "Multilingual candidate build, staging and filesystem writes; no download or browser time"
+  },
+  "translationCommit": "eacd544a2ecc0c9c59d5f458f03a4eba6fb7518f",
+  "browser": "Codex in-app browser",
+  "checks": [
+    "Chinese pressure advance query returns exact guide first",
+    "Chinese result opens correct heading",
+    "French language switch reaches Bienvenue page",
+    "390 x 844 Chinese search screenshot inspected without visible horizontal overflow",
+    "Localized search button and results label verified",
+    "Localized empty results verified"
+  ],
+  "scopeLimits": [
+    "Other language strings covered by code and build, not native-speaker review",
+    "Remaining Markdown dialect differences and search feature parity still open"
+  ],
+  "sources": {
+    "host/src/diagnostics/docs-labels.ts": "acb8d6232fa2f0995f834ad814e5bff7073818feab82e7e99ee3bd9aaa24a9d5",
+    "host/src/diagnostics/docs-site.ts": "e8ff0bb711ca0c5cce349a9e6638941f0aab1fd1fe744a45e8302f145db52813"
+  }
+}

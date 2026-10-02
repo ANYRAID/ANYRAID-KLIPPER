@@ -1,0 +1,170 @@
+{
+  "date": "2026-10-01",
+  "implementationBase": "a374d670",
+  "node": "v26.9.0",
+  "scope": "A2 initial device startup failure increment. Valid manifest, process storage and authorization remain prerequisites; printer configuration, adapter or MCU assembly failure does not close native Moonraker. No physical Cycnumbris 500 acceptance or motion precision claim.",
+  "sourceSha256": {
+    "host/src/runtime/product-host.ts": "aba3f3e588d5e885d5bbd50221efa234d17ec7b60d158ffe2cf70eb35e3f0fd7",
+    "host/src/runtime/product-host-cli.ts": "bd2706ce4a5c6a3988da5fb131fa82833a65e9b8893317a8c3d8456c2f3385c5",
+    "host/src/runtime/native-product-machine.ts": "b49bf607edae9ec12b857a8750159f0fb1a1cd5e2751df1056bcaadf919096f0",
+    "host/src/runtime/product-service.ts": "e936d9e39827ef146c9d731b6cf7d6f1a50edfc4ffb4f59c80bb1fb38ced111b",
+    "host/src/moonraker/configured-server.ts": "c77020edbb6c2df0eb92e119dea56893557e1211f94c72a7d3b8604f182b76b9",
+    "host/src/moonraker/native-host-status.ts": "adac20c9bae908dab4af2149015c937e8589e5bee159024bbce18b8150b09bd2",
+    "host/src/moonraker/native-print-uploads.ts": "7940af5e32d147c43deba62c8f59d03841488c6e821e31324de1020000d20a84",
+    "host/test/native-product-bootstrap.test.ts": "0ca90f7df0de5655a355c9b2da76072c76678cd605daf4425214937e8f58b17a",
+    "host/acceptance/product-compiled-restart.test.ts": "a92f5dc99671a0a45bb1d9927dae35257e0105c82a7409129f7253ea8a9554d2",
+    "host/acceptance/product-compiled-journey.test.ts": "9ff3ecc14ef862f3c7b7b60754fc58d56dafb23d710569daacbb7a68ab5ab9e8"
+  },
+  "verified": [
+    "Product process bootstrap opens real canonical files, metadata, authoritative job journal, recovery journal and authorization/listener before device preflight/acquisition. No PrintController or fabricated MCU is created for the disconnected phase; CLI listening and actual device ready are separate.",
+    "Initial invalid printer configuration, safely failed adapter acquisition and actual MCU dictionary-dependent pin configuration failure retain the original authorized listener/files/history/socket. Explicit standard HTTP/RPC RESTART after repair admits the same two PTY MCU models; further restart preserves their existing config CRC without firmware reset.",
+    "Unconfirmed adapter cleanup and actual physical-stop callback failure expose bounded cleanup_unconfirmed and failed hardware, forbid retry and do not report ready. Generic startup failure after confirmed cleanup exposes device_startup_failed. Exception text, serial paths and credentials are not serialized in these classifications.",
+    "Process file read endpoints register once; DELETE remains device-scoped. Offline authorized upload/download/metadata/history are usable without autoprint. Original socket remains and new device receives one ready notification; bootstrapped process does not retain an extra device lifecycle sampler.",
+    "Delayed standard HTTP body captured while detached cannot restart the newly attached device. Changing process config/journal/device identities rejects before adapter acquisition; shutdown waits for a first adapter ignoring cancellation and releases device before process database/dependencies.",
+    "Invalid Moonraker network configuration does not produce a listener or acquire devices; process cleanup completes. Existing legacy Klippy, device generation, authorization, file and history regression passes.",
+    "Emitted JS with independently installed production dependencies, TypeScript stripping disabled and PATH without Python/programs migrates full recovery v1 records, retains 128 controlled and 64 standard receipts, repairs first startup and safely recovers a later configuration failure. Same artifact fingerprint passes concurrent heated printing, pause/resume/cancel, subscriptions, process recovery and ADC fault."
+  ],
+  "source": {
+    "cases": 205,
+    "passed": 205,
+    "failed": 0,
+    "logSha256": "710be3d58bc52377fe4189cc955d0fe77e5842e79f180bfbc0307c0368737322",
+    "newStartupCases": 8
+  },
+  "compiled": {
+    "cases": 2,
+    "passed": 2,
+    "failed": 0,
+    "logSha256": "e09726c89ca787ab63120d6af206c7c08cc0dce5ba64e9791567ffb0cdac38fc",
+    "artifactManifestSha256": "0fe26f76b402a0042244dd5bc06ea740d1c3f4f6199bf8fe299537f35b58b798",
+    "recovery": {
+      "bundleSha256": "0fe26f76b402a0042244dd5bc06ea740d1c3f4f6199bf8fe299537f35b58b798",
+      "queries": 2090,
+      "queryP99Ms": 4.581648999999743,
+      "restartMs": [
+        516.854996,
+        509.0080850000004,
+        507.8254589999997
+      ],
+      "readyFileDescriptors": [
+        77,
+        77,
+        77,
+        77
+      ],
+      "descriptorSamples": [
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        },
+        {
+          "total": 77,
+          "persistent": 58,
+          "sockets": 19,
+          "cachedJournal": 1,
+          "steadyPersistent": 57
+        }
+      ],
+      "canonicalDeviceAndDatabaseDescriptors": 5,
+      "sameMCUFirmware": true,
+      "stepperConfigurations": [
+        4,
+        0
+      ],
+      "recoveryHistory": {
+        "controlled": {
+          "retained": 128,
+          "capacity": 128
+        },
+        "standard_restart": {
+          "retained": 64,
+          "capacity": 64
+        }
+      },
+      "compiledV1Migration": true,
+      "initialConfigurationFailureRecovered": true,
+      "bootstrapListeners": 1,
+      "bootstrapRecoveryMs": 562.1210220000003,
+      "expiredStandardIDsAbsent": true,
+      "hardwareAcceptance": false
+    },
+    "concurrentPrint": {
+      "statusRequests": 16069,
+      "statusP99Ms": 3.4275940000006813,
+      "minimumStepLeadMs": 86.636,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.954815,
+            "maxMs": 19.333119
+          },
+          "cpu": {
+            "user": 5575593,
+            "system": 618376
+          },
+          "rss": 287531008
+        },
+        {
+          "loop": {
+            "p99Ms": 1.912831,
+            "maxMs": 9.928703
+          },
+          "cpu": {
+            "user": 1766023,
+            "system": 241140
+          },
+          "rss": 316141568
+        }
+      ],
+      "motionReportLoad": true,
+      "liveMotionSamples": 2651,
+      "liveExtrusionSamples": 1457
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "passed": true,
+      "logSha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "passed": true,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "preservedFailures": [
+    {
+      "logSha256": "a2da125ce6342c040373b708d03fe1648124d5cd1494f56ba9bf6644112e3975",
+      "reason": "First attempt retired the scope before MoonrakerNetwork constructor, violating its open-lifetime precondition. Fixed by constructing the network with a live signal and retiring it before device endpoint registration."
+    },
+    {
+      "logSha256": "af70f53316c77f72e63c5f9d491bee8e28972e84609d5450b93c0ea8d80e2e39",
+      "reason": "First compiled recovery assertion incorrectly required both simulated MCUs to contain steppers; aux has none. Corrected to actual topology and same per-MCU counts [4,0], with ready checks for both. Additional review removed the detached phase lifecycle sampler and tests assert only one ready notification."
+    }
+  ],
+  "unverified": [
+    "A2 firmware shutdown/CRC mismatch observability and ordinary RESTART refusal to reset or cure these states",
+    "A3 explicit FIRMWARE_RESTART using reset of the same MCU models",
+    "A4 actual Fluidd/Mainsail buttons/upload/reconnect on this candidate",
+    "Known numerical divergence and process crash gate G3 remain unresolved",
+    "Physical Cycnumbris 500 series installation, stop adapters, motion precision and timing",
+    "Complete pinned Moonraker contract, all controlled macro scenarios, default installation/CI and remaining 177 klippy Python files",
+    "Integration PRs to develop and release mainline"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "node": "v26.9.0",
+  "iterations": 10000,
+  "warmups": 3,
+  "samples": [
+    {
+      "legacyMs": 7.038511999999997,
+      "generationMs": 11.412047999999999
+    },
+    {
+      "legacyMs": 7.427357000000001,
+      "generationMs": 11.822345000000013
+    },
+    {
+      "legacyMs": 7.190663999999998,
+      "generationMs": 12.034547000000003
+    },
+    {
+      "legacyMs": 6.845119000000011,
+      "generationMs": 11.381068999999997
+    },
+    {
+      "legacyMs": 6.872309999999999,
+      "generationMs": 11.439059000000015
+    },
+    {
+      "legacyMs": 6.96291100000002,
+      "generationMs": 11.500140000000016
+    },
+    {
+      "legacyMs": 6.91316999999998,
+      "generationMs": 11.305007000000046
+    }
+  ],
+  "medianLegacyMs": 6.96291100000002,
+  "medianGenerationMs": 11.439059000000015,
+  "scope": "Sequential encoding and host lifecycle with immediate mock ACK; no serial transport, MCU execution or print acceptance"
+}

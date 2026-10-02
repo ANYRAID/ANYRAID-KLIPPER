@@ -9,6 +9,29 @@ After Klipper has been initially flashed to a controller it is possible to
 transfer new firmware to the SD Card and initiate the flashing procedure
 via ssh.
 
+## Node host migration status
+
+The SD upload tool now uses Node.js 26.9 or later 26.x and native C helpers;
+it no longer uses Python, CFFI or the klippy virtual environment. Install host
+dependencies and build native helpers with `npm --prefix host ci` and
+`npm --prefix host run build:native` under Node 26 before using it.
+The `NODE` environment variable can select the Node executable for the shell
+wrapper. The compiled product bundle also contains `scripts/flash-sdcard.js`.
+
+This replacement has passed simulated MCU, PTY, FAT16/FAT32 and compiled-bundle
+checks. Physical printer reboot and SD bootloader acceptance remain unverified.
+Stop the printer host and establish actuator safety before offline maintenance;
+closing a serial port is not a physical stop. A shutdown MCU must be manually
+reset before use. No service is stopped automatically.
+
+Exit status 0 reports completed verification, 1 reports failure, and 2 reports
+an uploaded image awaiting manual power cycling and a later `-c` check.
+When a target dictionary is supplied it must match exactly; an unrelated version
+change is not accepted. Without a dictionary, verification proves only that the
+bootloader firmware file has the expected length and SHA-256, not that flash
+memory or the running code matches every byte. Existing firmware files are not
+bulk-deleted, and timestamped-name collisions are rejected.
+
 ## Typical Upgrade Procedure
 
 The procedure for updating MCU firmware using the SD Card is similar to that
@@ -62,6 +85,7 @@ optional arguments:
   -s              use fast SPI speed (4MHz)
   -b <baud>       serial baud rate (default is 250000)
   -f <firmware>   path to klipper.bin
+  -d <dictionary> path to the matching klipper.dict
 ```
 
 If your board is flashed with firmware that connects at a custom baud
@@ -77,8 +101,15 @@ the default location it can be done by specifying the `-f` option:
 ```
 
 Note that when upgrading a MKS Robin E3 it is not necessary to manually run
-`update_mks_robin.py` and supply the resulting binary to `flash-sdcard.sh`.
+`update_mks_robin.mts` and supply the resulting binary to `flash-sdcard.sh`.
 This procedure is automated during the upload process.
+
+MKS Robin and Chitu firmware conversion requires Node.js 26. The upload helper
+uses `node` from PATH, or the executable named by the `NODE` environment variable.
+For manual conversion, run `node scripts/update_mks_robin.mts INPUT OUTPUT` or
+`node scripts/update_chitu.mts INPUT OUTPUT`. Failed conversion stops the upload;
+an existing output file is preserved until conversion succeeds. The converters
+accept firmware files up to 64 MiB. The SPI/SDIO upload driver and its FatFs binding now run without Python.
 
 The `-c` option is used to perform a check or verify-only operation
 to test if the board is running the specified firmware correctly.  This
@@ -87,6 +118,9 @@ necessary to complete the flashing procedure, such as with bootloaders that
 use SDIO mode instead of SPI to access their SD Cards. (See Caveats below)
 But, it can also be used anytime to verify if the code flashed into the board
 matches the version in your build folder on any supported board.
+
+With the default firmware path, `out/klipper.dict` is also read by default.
+For custom firmware, pass `-d` explicitly to verify the running build dictionary.
 
 ## Failure to Initialize
 
@@ -133,16 +167,14 @@ conditions:
 
 Most common boards should be available, however it is possible to add a new
 board definition if necessary.  Board definitions are located in
-`~/klipper/scripts/spi_flash/board_defs.py`.  The definitions are stored
-in dictionary, for example:
-```python
-BOARD_DEFS = {
-    'generic-lpc1768': {
-        'mcu': "lpc1768",
-        'spi_bus': "ssp1",
-        "cs_pin": "P0.6"
-    },
-    ...<further definitions>
+`~/klipper/host/src/diagnostics/sd-boards.json`. Definitions are stored under
+`boards` and aliases under `aliases`, for example:
+```json
+{
+  "boards": {
+    "generic-lpc1768": {"mcu": "lpc1768", "spi_bus": "ssp1", "cs_pin": "P0.6"}
+  },
+  "aliases": {"my-new-board": "generic-lpc1768"}
 }
 ```
 
@@ -160,7 +192,7 @@ The following fields may be specified:
   file is located after a successful flash.  The default is `firmware.cur`.
 - `skip_verify`: This defines a boolean value which tells the scripts to skip
   the firmware verification step during the flashing process.  The default
-  is `False`.  It can be set to `True` for boards that require a manual
+  is `false`.  It can be set to `true` for boards that require a manual
   power-cycle to complete flashing.  To verify the firmware afterward, run
   the script again with the `-c` option to perform the verification step.
   [See caveats with SDIO cards](#caveats)
@@ -178,15 +210,7 @@ provides an example of the latter.
 
 Prior to creating a new board definition one should check to see if an
 existing board definition meets the criteria necessary for the new board.
-If this is the case, a `BOARD_ALIAS` may be specified.  For example, the
-following alias may be added to specify `my-new-board` as an alias for
-`generic-lpc1768`:
-```python
-BOARD_ALIASES = {
-    ...<previous aliases>,
-    'my-new-board': BOARD_DEFS['generic-lpc1768'],
-}
-```
+If this is the case, add a name-to-board entry to the `aliases` object.
 
 If you need a new board definition and you are uncomfortable with the
 procedure outlined above it is recommended that you request one in
@@ -257,7 +281,7 @@ the verification step and restart it after verification is complete.
 
 If your board's schematic uses SDIO for its SD Card, you can map the pins
 as described in the chart below to determine the compatible Software SPI
-pins to assign in the `board_defs.py` file:
+pins to assign in the `sd-boards.json` file:
 
 | SD Card Pin | Micro SD Card Pin  |  SDIO Pin Name   |   SPI Pin Name   |
 | :---------: | :----------------: | :--------------: | :--------------: |

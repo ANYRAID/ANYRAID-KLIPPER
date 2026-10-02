@@ -1,0 +1,220 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "baseCommit": "0ca12026",
+  "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+  "sourceSha256": {
+    "host/src/gcode/object-exclusion.ts": "a56d2a8505ee692b194ac747171d39450843fd125da4bf0bc10f72bd27e605a5",
+    "host/src/gcode/move.ts": "878672b00cc22bacc3c5ea8384ee34e152b6c668aef38d84e9bf05cb05415f06",
+    "host/test/object-exclusion.test.ts": "9179720b5f3e3b13724807a934a28e9cf5f9984e8e979d3d565668168153d75f",
+    "host/test/helpers/object-exclusion-reference.ts": "4974199817d5713b629004d544c0ca7cd24cd08c22ee3bf7debbcdd30b7feda4",
+    "host/bench/object-exclusion.ts": "8ad5365a7834295d1a1f533855684a21dd590927bc8a71f864d58638bd874247"
+  },
+  "reference": {
+    "source": "klippy/extras/exclude_object.py",
+    "sourceSha256": "9b3756ec0baca6207f19cae4bdd0c82dfd2d22c34934e228723e7463c66d8bfb",
+    "dataSha256": "08324f21690dde7acd2ffd3f18f7255f543933d6cf7c8ae3b7fdb9436786a55c",
+    "actions": 7583,
+    "admittedMoves": 3558,
+    "python": "3.12.13 (main, Apr 13 2026, 09:08:29) [GCC 12.3.0]",
+    "platform": "Linux-6.18.36-amd64-desktop-rolling-x86_64-with-glibc2.38",
+    "benchmark": {
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 9.382483998706448,
+      "samplesMs": [
+        9.86950100013928,
+        9.666418000051635,
+        9.504636000201572,
+        9.269251000660006,
+        9.243370999683975,
+        9.279962001528475,
+        9.3183829994814,
+        9.395983999638702,
+        9.382483998706448
+      ],
+      "scope": "Original Python transform with in-memory commands and output collection; excludes JSON parsing and full trace snapshots"
+    }
+  },
+  "validation": {
+    "regressions": 28,
+    "compiledExistingProducts": 6,
+    "typecheck": "passed",
+    "objectExclusionProduct": false
+  },
+  "transformBenchmark": {
+    "node": "v26.9.0",
+    "actions": 7583,
+    "admittedMoves": 3558,
+    "warmups": 5,
+    "runs": 19,
+    "medianMs": 3.5991590000000144,
+    "p95Ms": 9.248784999999998,
+    "pythonReference": {
+      "warmups": 3,
+      "runs": 9,
+      "medianMs": 9.382483998706448,
+      "samplesMs": [
+        9.86950100013928,
+        9.666418000051635,
+        9.504636000201572,
+        9.269251000660006,
+        9.243370999683975,
+        9.279962001528475,
+        9.3183829994814,
+        9.395983999638702,
+        9.382483998706448
+      ],
+      "scope": "Original Python transform with in-memory commands and output collection; excludes JSON parsing and full trace snapshots"
+    },
+    "scope": "Transform admission with in-memory actions and output collection; no parser, full motion planner, transport or physical printing"
+  },
+  "pairedOrdinaryCoordinates": {
+    "node": "v26.9.0",
+    "commands": 12000,
+    "rounds": 21,
+    "runsPerSample": 5,
+    "beforeMedianMs": 4.853245000000004,
+    "afterMedianMs": 4.739066600000001,
+    "medianRatio": 0.9764738025795107,
+    "samples": [
+      [
+        4.856178999999997,
+        4.853245000000004,
+        4.877630799999997,
+        4.8478072,
+        4.853728999999999,
+        4.838053200000013,
+        4.838905199999999,
+        4.853305000000001,
+        4.851853200000005,
+        4.861553200000003,
+        4.893088799999987,
+        4.849791200000004,
+        4.827207599999997,
+        4.889364799999998,
+        4.8795129999999975,
+        4.863429200000018,
+        4.883590800000002,
+        4.848853400000007,
+        4.822921600000018,
+        4.834817399999975,
+        4.834313599999996
+      ],
+      [
+        4.714744599999994,
+        4.714324599999998,
+        4.71260860000001,
+        4.727504399999998,
+        4.781173999999998,
+        4.756220000000008,
+        4.780199999999991,
+        4.752268200000003,
+        4.740948400000002,
+        4.766682199999991,
+        4.753470399999992,
+        4.735950600000001,
+        4.739066600000001,
+        4.924926400000004,
+        4.759858200000008,
+        4.730260599999997,
+        4.773218199999974,
+        4.715336800000022,
+        4.704714799999965,
+        4.718372799999997,
+        4.73716459999996
+      ]
+    ],
+    "checksum": 2497.499999999992,
+    "scope": "Same process alternating pre-change and current modules, identical commands and copied move targets; excludes network and actual motion."
+  },
+  "coordinateReference": {
+    "node": "v26.9.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "commands": 12000,
+    "statesExact": true,
+    "moves": 3500,
+    "nodeMedianMs": 5.972683000000018,
+    "nodeP95Ms": 9.814679000000012,
+    "historicalPythonMedianMs": 10.523690001718933,
+    "historicalPythonP95Ms": 16.9639969990385,
+    "sameReferenceCPU": true,
+    "speedup": 1.7619702906916208
+  },
+  "existingProductMeasurements": [
+    {
+      "model2240": false,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "statusRequests": 14433,
+      "statusP99Ms": 2.7629219999980705,
+      "minimumStepLeadMs": 85.017,
+      "wireSteps": 5540
+    },
+    {
+      "model2240": true,
+      "curved": false,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "statusRequests": 14466,
+      "statusP99Ms": 2.7320050000053016,
+      "minimumStepLeadMs": 87.876,
+      "wireSteps": 5561
+    },
+    {
+      "model2240": false,
+      "curved": true,
+      "probeHome": false,
+      "safeHome": false,
+      "bltouch": false,
+      "statusRequests": 16425,
+      "statusP99Ms": 2.714959999997518,
+      "minimumStepLeadMs": 82.273,
+      "wireSteps": 5788
+    },
+    {
+      "model2240": false,
+      "curved": false,
+      "probeHome": true,
+      "safeHome": false,
+      "bltouch": false,
+      "statusRequests": 14599,
+      "statusP99Ms": 2.4475540000130422,
+      "minimumStepLeadMs": 66.477,
+      "wireSteps": 5616
+    },
+    {
+      "model2240": false,
+      "curved": false,
+      "probeHome": true,
+      "safeHome": true,
+      "bltouch": false,
+      "statusRequests": 17828,
+      "statusP99Ms": 2.098437999986345,
+      "minimumStepLeadMs": 70.389,
+      "wireSteps": 7939
+    },
+    {
+      "model2240": false,
+      "curved": false,
+      "probeHome": true,
+      "safeHome": true,
+      "bltouch": true,
+      "statusRequests": 23249,
+      "statusP99Ms": 2.2235600000130944,
+      "minimumStepLeadMs": 71.059,
+      "wireSteps": 7752
+    }
+  ],
+  "logSha256": "0011a0a5be5be0091367bbee1e617a11806853609e65391b6fbbb25fad428d39",
+  "limitations": [
+    "Transform is not registered in native product; exclude_object configuration remains rejected",
+    "No object commands, typed API or file-boundary owner yet",
+    "Only XYZE and one extruder supported by this transform",
+    "Benchmarks exclude full planner, transport and physical printer",
+    "Historical runtime crashes and numerical mismatches remain unresolved"
+  ]
+}

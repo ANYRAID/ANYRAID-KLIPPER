@@ -20,6 +20,8 @@ OBJDUMP=$(CROSS_PREFIX)objdump
 STRIP=$(CROSS_PREFIX)strip
 CPP=cpp
 PYTHON=python3
+NODE=node
+HOSTCC?=cc
 
 # Source files
 src-y =
@@ -78,11 +80,11 @@ $(OUT)klipper.elf: $(OBJS_klipper.elf)
 $(OUT)%.o.ctr: $(OUT)%.o
 	$(Q)$(OBJCOPY) -j '.compile_time_request' -O binary $^ $@
 
-$(OUT)compile_time_request.o: $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) ./scripts/buildcommands.py
+$(OUT)compile_time_request.o: $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) ./scripts/buildcommands.mts $(wildcard host/src/build/*.ts) scripts/kconfig-savedefconfig.mjs $(wildcard host/src/kconfig/*.ts)
 	@echo "  Building $@"
 	$(Q)cat $(patsubst %.c, $(OUT)src/%.o.ctr,$(src-y)) | tr -s '\0' '\n' > $(OUT)compile_time_request.txt
-	$(Q)$(PYTHON) lib/kconfiglib/savedefconfig.py --kconfig src/Kconfig --out $(OUT)defconfig
-	$(Q)$(PYTHON) ./scripts/buildcommands.py -d $(OUT)klipper.dict -k $(OUT)defconfig -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
+	$(Q)$(NODE) scripts/kconfig-savedefconfig.mjs --kconfig src/Kconfig --out $(OUT)defconfig
+	$(Q)$(NODE) ./scripts/buildcommands.mts -d $(OUT)klipper.dict -k $(OUT)defconfig -t "$(CC);$(AS);$(LD);$(OBJCOPY);$(OBJDUMP);$(STRIP)" $(OUT)compile_time_request.txt $(OUT)compile_time_request.c
 	$(Q)$(CC) $(CFLAGS) -c $(OUT)compile_time_request.c -o $@
 
 ################ Auto generation of "board/" include file link
@@ -106,16 +108,18 @@ include $(OUT)board-link
 
 ################ Kconfig rules
 
-$(OUT)autoconf.h: $(KCONFIG_CONFIG)
+$(OUT)autoconf.h: $(KCONFIG_CONFIG) src/Kconfig $(wildcard src/*/Kconfig) \
+    scripts/kconfig-genconfig.mjs $(wildcard host/src/kconfig/*.ts)
 	@echo "  Building $@"
 	$(Q)mkdir -p $(OUT)
-	$(Q) KCONFIG_AUTOHEADER=$@ $(PYTHON) lib/kconfiglib/genconfig.py src/Kconfig
+	$(Q) KCONFIG_AUTOHEADER=$@ $(NODE) scripts/kconfig-genconfig.mjs src/Kconfig
 
-$(KCONFIG_CONFIG) olddefconfig: src/Kconfig
-	$(Q)$(PYTHON) lib/kconfiglib/olddefconfig.py src/Kconfig
+$(KCONFIG_CONFIG) olddefconfig: src/Kconfig $(wildcard src/*/Kconfig) \
+    scripts/kconfig-olddefconfig.mjs $(wildcard host/src/kconfig/*.ts)
+	$(Q)$(NODE) scripts/kconfig-olddefconfig.mjs src/Kconfig
 
 menuconfig:
-	$(Q)$(PYTHON) lib/kconfiglib/menuconfig.py src/Kconfig
+	$(Q)$(NODE) scripts/kconfig-menuconfig.mjs src/Kconfig
 
 ################ Generic rules
 
@@ -124,6 +128,11 @@ menuconfig:
 .DELETE_ON_ERROR:
 
 all: $(target-y)
+
+host/build/serialqueue.node: host/scripts/build-serialqueue.ts \
+    $(wildcard host/native/*.c host/native/*.h) \
+    $(wildcard klippy/chelper/*.c klippy/chelper/*.h)
+	$(Q)CC="$(HOSTCC)" $(NODE) host/scripts/build-serialqueue.ts
 
 clean:
 	$(Q)rm -rf $(OUT)

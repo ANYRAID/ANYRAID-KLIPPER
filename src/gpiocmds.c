@@ -15,7 +15,7 @@ struct digital_out_s {
     struct timer timer;
     uint32_t on_duration, off_duration, end_time;
     struct gpio_out pin;
-    uint32_t max_duration, cycle_time;
+    uint32_t max_duration, cycle_time, generation;
     struct move_queue_head mq;
     uint8_t flags;
 };
@@ -135,16 +135,17 @@ command_set_digital_out_pwm_cycle(uint32_t *args)
     irq_disable();
     if (!move_queue_empty(&d->mq))
         shutdown("Can not set soft pwm cycle ticks while updates pending");
+    if (d->generation)
+        shutdown("Digital cycle change after generation reset");
     d->cycle_time = args[1];
     irq_enable();
 }
 DECL_COMMAND(command_set_digital_out_pwm_cycle,
              "set_digital_out_pwm_cycle oid=%c cycle_ticks=%u");
 
-void
-command_queue_digital_out(uint32_t *args)
+static void
+digital_queue(struct digital_out_s *d, uint32_t *args)
 {
-    struct digital_out_s *d = oid_lookup(args[0], command_config_digital_out);
     struct digital_move *m = move_alloc();
     uint32_t time = m->waketime = args[1];
     m->on_duration = args[2];
@@ -171,13 +172,68 @@ command_queue_digital_out(uint32_t *args)
     }
     irq_enable();
 }
+void
+command_queue_digital_out(uint32_t *args)
+{
+    struct digital_out_s *d = oid_lookup(args[0], command_config_digital_out);
+    if (d->generation)
+        shutdown("Legacy digital command after generation reset");
+    digital_queue(d, args);
+}
 DECL_COMMAND(command_queue_digital_out,
              "queue_digital_out oid=%c clock=%u on_ticks=%u");
+
+void
+command_queue_digital_out_generation(uint32_t *args)
+{
+    struct digital_out_s *d = oid_lookup(args[0], command_config_digital_out);
+    uint32_t generation = args[3];
+    if (!generation || generation > d->generation)
+        shutdown("Invalid digital output generation");
+    if (generation < d->generation)
+        return;
+    digital_queue(d, args);
+}
+DECL_COMMAND(command_queue_digital_out_generation,
+             "queue_digital_out_generation oid=%c clock=%u on_ticks=%u"
+             " generation=%u");
+
+void
+command_reset_digital_out_generation(uint32_t *args)
+{
+    struct digital_out_s *d = oid_lookup(args[0], command_config_digital_out);
+    uint32_t generation = args[1];
+    if (!generation)
+        shutdown("Invalid digital reset generation");
+    if (generation <= d->generation)
+        return;
+    if (generation != d->generation + 1)
+        shutdown("Skipped digital reset generation");
+    irqstatus_t flag = irq_save();
+    sched_del_timer(&d->timer);
+    struct move_queue_head discarded = d->mq;
+    move_queue_clear(&d->mq);
+    d->generation = generation;
+    d->flags = d->flags & DF_DEFAULT_ON ? DF_ON | DF_DEFAULT_ON : 0;
+    d->timer.func = digital_load_event;
+    gpio_out_write(d->pin, d->flags & DF_ON);
+    irq_restore(flag);
+    while (!move_queue_empty(&discarded)) {
+        struct move_node *node = move_queue_pop(&discarded);
+        flag = irq_save();
+        move_free(node);
+        irq_restore(flag);
+    }
+}
+DECL_COMMAND(command_reset_digital_out_generation,
+             "reset_digital_out_generation oid=%c generation=%u");
 
 void
 command_update_digital_out(uint32_t *args)
 {
     struct digital_out_s *d = oid_lookup(args[0], command_config_digital_out);
+    if (d->generation)
+        shutdown("Legacy digital update after generation reset");
     sched_del_timer(&d->timer);
     if (!move_queue_empty(&d->mq))
         shutdown("update_digital_out not valid with active queue");

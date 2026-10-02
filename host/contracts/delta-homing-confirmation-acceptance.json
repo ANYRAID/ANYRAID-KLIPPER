@@ -1,0 +1,16 @@
+{
+  "node": "v26.9.0",
+  "warmups": 3,
+  "confirmationsPerSample": 10000,
+  "samplesMs": [
+    33.17837399999999,
+    33.246624999999995,
+    33.49947800000001,
+    33.20592399999998,
+    33.05375300000003,
+    33.047721999999965,
+    33.03357199999999
+  ],
+  "medianMs": 33.17837399999999,
+  "scope": "Three independent switch histories, trigger coverage and second-pass movement checks; excludes MCU IO, physical homing and print throughput"
+}

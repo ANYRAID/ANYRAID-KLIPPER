@@ -1,0 +1,135 @@
+{
+  "date": "2026-09-27",
+  "scope": "Controller cooling through native hardware ownership and compiled product, simulated MCUs",
+  "tests": {
+    "policyLifecycleHardware": 16,
+    "compiledProduct": 4,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "polls": 20000,
+    "exactTransitions": 600,
+    "samples": 11,
+    "nodeMedianMs": 0.31934400000000096,
+    "nodeP95Ms": 1.2619960000000106,
+    "pythonMedianMs": 5.148886993993074,
+    "pythonP95Ms": 5.176486971322447,
+    "scope": "One-second synthetic cadence, original Python callback versus TS policy; excludes serial IO and physical motor/fan timing"
+  },
+  "productMetrics": [
+    {
+      "loaded": false,
+      "historyNotifications": 32,
+      "historyRequests": 0,
+      "historyP99Ms": null,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 4,
+      "fileNotificationP95Ms": null,
+      "deleteRequests": 0,
+      "deleteP95Ms": null,
+      "thumbnailRequests": 0,
+      "thumbnailP95Ms": null,
+      "metadataRequests": 0,
+      "metadataP95Ms": null,
+      "downloads": 0,
+      "downloadP95Ms": null,
+      "wireCommands": 169,
+      "wireSteps": 3088,
+      "minimumStepLeadMs": 86.932,
+      "directoryRequests": 0,
+      "directoryP99Ms": null,
+      "statusRequests": 0,
+      "uploads": 0,
+      "statusP99Ms": null,
+      "uploadP95Ms": null,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.888255,
+            "maxMs": 14.557183
+          },
+          "cpu": {
+            "user": 859965,
+            "system": 110556
+          },
+          "rss": 167518208
+        },
+        {
+          "loop": {
+            "p99Ms": 1.757183,
+            "maxMs": 4.337663
+          },
+          "cpu": {
+            "user": 439285,
+            "system": 43646
+          },
+          "rss": 189841408
+        }
+      ]
+    },
+    {
+      "loaded": true,
+      "historyNotifications": 32,
+      "historyRequests": 567,
+      "historyP99Ms": 13.381764999998268,
+      "lifecycleShutdowns": 8,
+      "fileNotifications": 132,
+      "fileNotificationP95Ms": 18.930246000003535,
+      "deleteRequests": 16,
+      "deleteP95Ms": 26.811569999998028,
+      "thumbnailRequests": 16,
+      "thumbnailP95Ms": 3.0279999999984284,
+      "metadataRequests": 16,
+      "metadataP95Ms": 115.0375389999972,
+      "downloads": 16,
+      "downloadP95Ms": 15.153537000005599,
+      "wireCommands": 333,
+      "wireSteps": 4446,
+      "minimumStepLeadMs": 87.452,
+      "directoryRequests": 2436,
+      "directoryP99Ms": 9.674166999997396,
+      "statusRequests": 10142,
+      "uploads": 16,
+      "statusP99Ms": 5.695144000004802,
+      "uploadP95Ms": 23.561736999996356,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.959935,
+            "maxMs": 15.220735
+          },
+          "cpu": {
+            "user": 2960636,
+            "system": 375215
+          },
+          "rss": 248832000
+        },
+        {
+          "loop": {
+            "p99Ms": 3.399679,
+            "maxMs": 13.852671
+          },
+          "cpu": {
+            "user": 935205,
+            "system": 128518
+          },
+          "rss": 263483392
+        }
+      ]
+    }
+  ],
+  "semantics": {
+    "defaultSteppers": "all configured, including always-on drivers",
+    "defaultHeater": "extruder",
+    "idleClock": "monotonic elapsed seconds from first inactive observation after activity",
+    "defaultShutdownSpeed": 0
+  },
+  "initialTestFailure": "Compiled assertion incorrectly required a repeated zero PWM write after zero-default generation reset. Corrected to check configured zero default and reset command; production behavior unchanged.",
+  "remaining": [
+    "physical board fan and driver validation",
+    "target platform timing",
+    "Python default runtime retirement"
+  ]
+}

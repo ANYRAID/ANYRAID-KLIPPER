@@ -1,0 +1,23 @@
+{
+  "base": "cc16ead7",
+  "tests": {
+    "gateAndEndpoints": 13,
+    "httpGridProduct": 1,
+    "typecheck": true,
+    "whitespace": true
+  },
+  "benchmark": {
+    "node": "v26.9.0",
+    "samples": 1000,
+    "idleOwners": 64,
+    "p95Ms": 0.03395099999998763,
+    "medianMs": 0.016509999999996694,
+    "scope": "Authorized in-process endpoint, immediate fake measurement plus idempotent retry; no native motion or HTTP transport."
+  },
+  "scope": "Read-only readiness observes activity, maintenance lease and all idle owners; acquire remains authoritative. Completion receipts created after lease release.",
+  "limitations": [
+    "Product HTTP journey uses simulated MCUs and source TS. Full compiled suite not repeated for readiness-only change.",
+    "Cached completion receipts are historical; GET provides current availability.",
+    "Physical acceptance and historical runtime/numerical anomalies remain unresolved."
+  ]
+}
