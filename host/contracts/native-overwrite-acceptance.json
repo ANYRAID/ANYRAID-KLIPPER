@@ -2,16 +2,24 @@
   "schema": 1,
   "date": "2026-10-03",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-  "state": "local_runtime_implemented_partial_acceptance",
-  "scope": "Native gcodes upload/move overwrite implementation and local software/performance checks. Source hashes bind these observations; no independent compiled concurrent-print acceptance, complete generation/adversarial boundary coverage, exact new-head CI/PR integration, full clients, hardware, complete Moonraker or Python retirement approval.",
+  "state": "local_compiled_software_passed_ci_pr_pending",
+  "scope": "Source-bound native upload/move overwrite, explicit lifecycle and resolved-directory boundaries, necessary motion representations, real native pulse/performance checks and independent compiled mixed printing passed locally. Exact new-head required CI/review/PR, complete client pages, target hardware/G3, complete Moonraker and Python retirement remain open.",
   "sources": {
     "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
     "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
     "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
-    "host/test/published-replace.test.ts": "3c0a2030a72d29cb54047305e6888cb6c669966e3d4a28b60cac7f05d6057ad8",
+    "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+    "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+    "host/test/published-replace.test.ts": "18c187f26ef6066fe194bb9c63bfe8863d66668ce2afabbdf705593f70298e9c",
     "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
     "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
-    "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc"
+    "host/test/native-product-process-lifetime.test.ts": "5f5b429b3990f26b40409b91512b61f776f66f1c1b2a4493854145f033fa04ae",
+    "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+    "host/test/trap-queue.test.ts": "87920c4c58313a8ae020a2c29976054de5fdb36a556d5377baf58594519a6680",
+    "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad",
+    "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc",
+    "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+    "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
   },
   "upstream": {
     "repository": "Arksine/moonraker",
@@ -29,34 +37,31 @@
   },
   "validation": {
     "affectedRegression": {
-      "tests": 124,
-      "passed": 124,
+      "tests": 125,
+      "passed": 125,
       "failed": 0,
-      "durationMs": 2945.31047,
-      "log": {
-        "path": "/tmp/anyraid-overwrite-affected-final.log",
-        "sha256": "3f5583c9694b9fed680b2a125096ca9df46608bec4bf09e97b097dec7c457b5a"
-      }
+      "includedIn": "finalRegression"
     },
     "processLifecycle": {
-      "tests": 8,
-      "passed": 8,
+      "tests": 10,
+      "passed": 10,
       "failed": 0,
-      "durationMs": 7446.233812,
-      "log": {
-        "path": "/tmp/anyraid-overwrite-lifecycle.log",
-        "sha256": "0a03a21e65a3718e05afdd275321507488b60588b73b6ec7ea7c77ff882f8b1a"
-      }
+      "includedIn": "finalRegression",
+      "newCoverage": [
+        "Old-generation chunked same-path upload: REINITIALIZE rejects busy source; standard RESTART retires device; incomplete request observes only 503/ECONNRESET, preserves old ID/content and zero events; next generation creates fresh replacement once.",
+        "Unconfirmed stop blocks both upload/move overwrites with no identity/content/event mutation."
+      ]
     },
-    "totalDistinct": 132,
+    "totalDistinct": 271,
     "storageSubset": {
-      "tests": 20,
-      "includedInAffectedRegression": true
+      "tests": 21,
+      "includedInAffectedRegression": true,
+      "additionalCoverage": "Existing-directory basename replacement and same-path self-move preserving physical receipts, modification time and quota accounting."
     },
     "typecheck": {
       "passed": true,
       "log": {
-        "path": "/tmp/anyraid-overwrite-typecheck-final.log",
+        "path": "/tmp/anyraid-overwrite-final-typecheck.log",
         "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
       }
     },
@@ -121,7 +126,525 @@
       "log": {
         "path": "/tmp/anyraid-overwrite-performance.log",
         "sha256": "e3fc5a0363a3d741e539453c82a80b58780e2905d9e7ada14c4059d4af27d3a0"
+      },
+      "motion": {
+        "metrics": {
+          "node": "v26.9.0",
+          "baselinePath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-overwrite-acceptance/baseline/host/src/motion/representable-profile.ts",
+          "baselineSha256": "0cb580ed39138cec550190250efe34c24aa3824b152001c592d8b6f7c9a52256",
+          "queueBaselineSha256": "3f2210fd331775bf14a9f0343133b798de2c5e75770b47cf4e12c6854cf46732",
+          "common": {
+            "callsPerSample": 100000,
+            "baseline": {
+              "medianMs": 0.6430679999999995,
+              "p95Ms": 0.6792489999999987
+            },
+            "candidate": {
+              "medianMs": 0.6430079999999947,
+              "p95Ms": 0.7585200000000043
+            },
+            "limits": {
+              "medianRatio": 1.25,
+              "p95Ratio": 1.5,
+              "slackMs": 2
+            }
+          },
+          "capture": {
+            "callsPerSample": 5000,
+            "baseline": {
+              "medianMs": 0.3257550000000009,
+              "p95Ms": 0.37141499999999894
+            },
+            "candidate": {
+              "medianMs": 0.39972500000000366,
+              "p95Ms": 0.7121699999999862
+            },
+            "baselineResolved": 0,
+            "candidateResolved": 5000
+          },
+          "secondCapture": {
+            "callsPerSample": 5000,
+            "candidate": {
+              "medianMs": 0.9351330000000075,
+              "p95Ms": 1.3336880000000235
+            },
+            "candidateResolved": 5000
+          },
+          "nativeCommonQueue": {
+            "movesPerBatch": 100,
+            "batchesPerSample": 100,
+            "baseline": {
+              "medianMs": 3.186132000000015,
+              "p95Ms": 4.087583999999993
+            },
+            "candidate": {
+              "medianMs": 3.366925000000009,
+              "p95Ms": 4.611081000000013
+            },
+            "limits": {
+              "medianRatio": 1.25,
+              "p95Ratio": 1.5,
+              "slackMs": 2
+            },
+            "identicalPackets": true,
+            "motorSteps": 800
+          },
+          "scope": "Alternating immutable old/new source math and actual native queue timing. Common-path gates reuse existing motion benchmark ratios/slack; captured paths differ in outcome and are measured separately. Not target-board or complete G3 acceptance."
+        },
+        "log": {
+          "path": "/tmp/anyraid-overwrite-motion-performance-source-final.log",
+          "sha256": "e0a738f1e78910bce5d7ce2bcd74b24816425d76192352fa3ba1664cf34f9254"
+        },
+        "sources": {
+          "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+          "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+          "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+          "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19"
+        }
       }
+    },
+    "finalRegression": {
+      "tests": 159,
+      "passed": 159,
+      "failed": 0,
+      "durationMs": 13467.860456,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-final-source-regression.log",
+        "sha256": "c3d0b49afcb84045336b0c809fcdafa64a2cb8ccacca4cf43d84e7086596f6ec"
+      },
+      "breakdown": {
+        "fileAndHttp": 125,
+        "processLifecycle": 10,
+        "nativeMotion": 24
+      }
+    },
+    "motionIntegration": {
+      "tests": 112,
+      "passed": 112,
+      "failed": 0,
+      "durationMs": 86092.287572,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-motion-integration-regression.log",
+        "sha256": "4d567a375a51d65bc10ae1957743a2564868829daa1eb636b1ec8c85ac486dc4"
+      }
+    },
+    "compiled": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 72384.579274,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-source-final.log",
+        "sha256": "680b27018a993abaef6c82b0349c792d342a78148261709b709a1a3b13f011d4"
+      },
+      "sources": {
+        "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+        "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+        "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+        "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+        "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+        "host/test/published-replace.test.ts": "18c187f26ef6066fe194bb9c63bfe8863d66668ce2afabbdf705593f70298e9c",
+        "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+        "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+        "host/test/native-product-process-lifetime.test.ts": "5f5b429b3990f26b40409b91512b61f776f66f1c1b2a4493854145f033fa04ae",
+        "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+        "host/test/trap-queue.test.ts": "87920c4c58313a8ae020a2c29976054de5fdb36a556d5377baf58594519a6680",
+        "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad",
+        "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc",
+        "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+        "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
+      },
+      "product": {
+        "bundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+        "independentlyEmittedJavaScript": true,
+        "productionDependencies": true,
+        "typescriptLoader": false,
+        "python": false,
+        "path": "/no-programs",
+        "node": "v26.9.0",
+        "simulatedMcus": 2
+      },
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 1958,
+        "configListP99Ms": 4.654231000000436,
+        "configDownloads": 1957,
+        "configDownloadP99Ms": 10.462778999994043,
+        "liveMotionSamples": 5676,
+        "liveExtrusionSamples": 1592,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 9.589482735,
+          "print_duration": 4.326650118,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 9481,
+        "phaseP99Ms": 3.6442390000011073,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 280,
+            "writes": 43
+          },
+          {
+            "statusReads": 216,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1953,
+        "historyP99Ms": 45.59087499999805,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 196.68223500000022,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 266.2962580000021,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 373.76467200000116,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1160,
+        "fileNotificationP95Ms": 77.39052200000151,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 425.7584119999992,
+        "directoryMovesDuringPrint": 3,
+        "moveRequests": 16,
+        "moveP95Ms": 427.0655399999996,
+        "deleteRequests": 16,
+        "deleteP95Ms": 319.3589409999986,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 209.32009400000243,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 151.28106500000285,
+        "metadataRequests": 16,
+        "metadataP95Ms": 237.18149099999573,
+        "downloads": 16,
+        "downloadP95Ms": 46.03821000000244,
+        "wireCommands": 219,
+        "wireSteps": 7238,
+        "minimumStepLeadMs": 91.155,
+        "directoryRequests": 8065,
+        "directoryP99Ms": 36.408353000002535,
+        "statusRequests": 37927,
+        "uploads": 16,
+        "statusP99Ms": 3.347564000003331,
+        "uploadP95Ms": 79.06459800000084,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.970175,
+              "maxMs": 21.053439
+            },
+            "cpu": {
+              "user": 10943805,
+              "system": 2079160
+            },
+            "rss": 337088512
+          },
+          {
+            "loop": {
+              "p99Ms": 1.952767,
+              "maxMs": 12.484607
+            },
+            "cpu": {
+              "user": 7866591,
+              "system": 1745207
+            },
+            "rss": 385839104
+          }
+        ]
+      },
+      "replacements": {
+        "seed": {
+          "operations": 32,
+          "p95Ms": 280.5768769999995,
+          "maxMs": 343.0475060000026
+        },
+        "upload": {
+          "operations": 16,
+          "p95Ms": 407.70193100000324,
+          "maxMs": 407.70193100000324
+        },
+        "move": {
+          "operations": 16,
+          "p95Ms": 385.260624999999,
+          "maxMs": 385.260624999999
+        },
+        "uploadDuringPrintGenerations": [
+          1,
+          2
+        ],
+        "moveDuringPrintGenerations": [
+          1,
+          2
+        ],
+        "notifications": 320,
+        "originalNotifications": 840
+      },
+      "additionalDiagnostics": [
+        {
+          "installation": {
+            "durationMs": 963.890906,
+            "dependencies": 14
+          }
+        },
+        {
+          "pausedMotionReport": {
+            "live_position": [
+              0,
+              0,
+              0,
+              0.5
+            ],
+            "live_velocity": 0,
+            "live_extruder_velocity": 0
+          }
+        },
+        {
+          "filamentRunout": {
+            "sensor": "filament_switch_sensor tool",
+            "compiled": true,
+            "automaticPause": true,
+            "absentResumeRejected": true,
+            "runoutPauseMs": 790.4996960000008,
+            "settledStepClock": true,
+            "noAutomaticResume": true
+          }
+        },
+        {
+          "objectCancellation": {
+            "compiled": true,
+            "firstCancellation": true,
+            "paused": true,
+            "retryWithoutMotion": true
+          }
+        },
+        {
+          "nativeTemperatureHistory": {
+            "samples": 13,
+            "sensors": [
+              "extruder",
+              "heater_bed"
+            ],
+            "authenticated": true
+          }
+        },
+        {
+          "idleTimeout": {
+            "heaterOff": true,
+            "motorRelease": true,
+            "hostRemainsReady": true
+          }
+        },
+        {
+          "pausedTimeout": {
+            "cancelled": true,
+            "resumeRejected": true
+          }
+        },
+        {
+          "compiledConfigOffline": {
+            "originalJwt": true,
+            "realConfiguration": true,
+            "readOnly": true,
+            "sameProcessRoot": true
+          }
+        },
+        {
+          "compiledDetachedWindow": {
+            "sameListener": true,
+            "priorJwt": true,
+            "originalSockets": true,
+            "metadataAndHistory": true,
+            "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+            "noPrintReplay": true,
+            "fileQueries": 50,
+            "fileQueryP99Ms": 0.32272399999783374
+          }
+        },
+        {
+          "retainedProcessServer": {
+            "sameAddress": true,
+            "priorJwtAccepted": true,
+            "originalSocketsOpen": true,
+            "reinitializeMs": 2953.886664000005
+          }
+        },
+        {
+          "temperatureHistoryRestart": {
+            "preserved": true,
+            "samplesBefore": 35,
+            "samplesAfter": 38
+          }
+        },
+        {
+          "nativeAuthorizationRestart": {
+            "compiled": true,
+            "processRestart": true,
+            "persistedLogin": true,
+            "priorTokenAccepted": true,
+            "filesAndHistory": true,
+            "noReplay": true,
+            "interruptedResumeRejected": true,
+            "explicitCancel": true,
+            "logoutRevoked": true
+          }
+        },
+        {
+          "configBackupLoad": {
+            "requests": 1958,
+            "p99Ms": 2.7701770000003307,
+            "mutationsBlockedDuringPrint": true
+          }
+        }
+      ],
+      "gates": {
+        "namespaceWatchdogSeconds": 90,
+        "caseSeconds": 180,
+        "firstCheckpointsSeconds": 12,
+        "maintenanceWaitSeconds": 7,
+        "eventLoopP99Ms": 50,
+        "eventLoopMaxMs": 100,
+        "stepLead": "strictly positive",
+        "stop": "original deadlines retained"
+      },
+      "fixtureChanges": "Additional replacement workload concurrent with original complete operation groups, 32 seed copies and 16 each upload/move replacement. Only first replacement pair preseeded before each print. One client mutation admission lane includes queue latency; exact known pre-admission maintenance rejection allows existing single retry after Idle. First original copy and first replacements finish printing before filament pause. Model retains original 1000 moves/final XYZ/E and adds 20 mm return travel at same feed to sustain concurrent printing. No source capacity/deadline/stop gate reduced.",
+      "scope": "One independent compiled namespace/native-authorization/API-load case with all original assertions and two simulated MCU/device generations, process restart and original workload retained. Not Fluidd/Mainsail pages, all compiled variants, physical printer or old Python speed."
+    },
+    "motion": {
+      "evidence": "host/contracts/motion-overwrite-capture.json",
+      "performance": {
+        "metrics": {
+          "node": "v26.9.0",
+          "baselinePath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-overwrite-acceptance/baseline/host/src/motion/representable-profile.ts",
+          "baselineSha256": "0cb580ed39138cec550190250efe34c24aa3824b152001c592d8b6f7c9a52256",
+          "queueBaselineSha256": "3f2210fd331775bf14a9f0343133b798de2c5e75770b47cf4e12c6854cf46732",
+          "common": {
+            "callsPerSample": 100000,
+            "baseline": {
+              "medianMs": 0.6430679999999995,
+              "p95Ms": 0.6792489999999987
+            },
+            "candidate": {
+              "medianMs": 0.6430079999999947,
+              "p95Ms": 0.7585200000000043
+            },
+            "limits": {
+              "medianRatio": 1.25,
+              "p95Ratio": 1.5,
+              "slackMs": 2
+            }
+          },
+          "capture": {
+            "callsPerSample": 5000,
+            "baseline": {
+              "medianMs": 0.3257550000000009,
+              "p95Ms": 0.37141499999999894
+            },
+            "candidate": {
+              "medianMs": 0.39972500000000366,
+              "p95Ms": 0.7121699999999862
+            },
+            "baselineResolved": 0,
+            "candidateResolved": 5000
+          },
+          "secondCapture": {
+            "callsPerSample": 5000,
+            "candidate": {
+              "medianMs": 0.9351330000000075,
+              "p95Ms": 1.3336880000000235
+            },
+            "candidateResolved": 5000
+          },
+          "nativeCommonQueue": {
+            "movesPerBatch": 100,
+            "batchesPerSample": 100,
+            "baseline": {
+              "medianMs": 3.186132000000015,
+              "p95Ms": 4.087583999999993
+            },
+            "candidate": {
+              "medianMs": 3.366925000000009,
+              "p95Ms": 4.611081000000013
+            },
+            "limits": {
+              "medianRatio": 1.25,
+              "p95Ratio": 1.5,
+              "slackMs": 2
+            },
+            "identicalPackets": true,
+            "motorSteps": 800
+          },
+          "scope": "Alternating immutable old/new source math and actual native queue timing. Common-path gates reuse existing motion benchmark ratios/slack; captured paths differ in outcome and are measured separately. Not target-board or complete G3 acceptance."
+        },
+        "log": {
+          "path": "/tmp/anyraid-overwrite-motion-performance-source-final.log",
+          "sha256": "e0a738f1e78910bce5d7ce2bcd74b24816425d76192352fa3ba1664cf34f9254"
+        },
+        "sources": {
+          "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+          "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+          "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+          "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19"
+        }
+      },
+      "scope": "Necessary current-path fixes; historical global G3 remains open."
     }
   },
   "failedAttempts": [
@@ -135,13 +658,201 @@
         "sha256": "6a87b6828c4c80f01b5abd658a93a8f3f4db642b5b0f3339da5c04554af23fa6"
       },
       "reason": "Two old assertions rejected newly supported upstream overwrite; new scalar metadata fixture omitted slicer header. Updated behavior assertions retain ID retirement, previews and race protection; fixture now identifies PrusaSlicer. No production safety or timing gate weakened."
+    },
+    {
+      "kind": "compiled overwrite initial",
+      "outcome": "failed",
+      "reason": "Serial extra workload delayed original checkpoint",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-initial.log",
+        "sha256": "4f70d92dd9a178c0a2cd104f2fde35e796c4622766d6d0602139f33ceb794e67"
+      },
+      "durationMs": 29810.867179,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite parallel",
+      "outcome": "failed",
+      "reason": "Concurrent new group still allowed original checkpoint to cross pause",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-parallel.log",
+        "sha256": "d710da4d24e4cfe11056cc65959387e7315a3ec35cb64cec9898762c08944c7d"
+      },
+      "durationMs": 30306.610399,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite checkpoint",
+      "outcome": "failed",
+      "reason": "Later replacement groups gated after original namespace checkpoint",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-checkpoint.log",
+        "sha256": "425c20580373d846318a3dbd0c1076bd89d75cccb96cfb7b264b842a94052ed3"
+      },
+      "durationMs": 30373.66615,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite original-control",
+      "outcome": "failed",
+      "reason": "Original HEAD harness also crossed filament pause: not solely new overwrite coverage",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-original-control.log",
+        "sha256": "716f48a982334c92610d2309548c63489020a7f10f0cc4f76739a4c2b2d7e268"
+      },
+      "durationMs": 16216.740334,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite seeded",
+      "outcome": "failed",
+      "reason": "Preseeding all pairs still allowed replacement across filament pause",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-seeded.log",
+        "sha256": "fbb2d8400809160867fb127e7512bc0966c04ee60f5b977236db5ed304913756"
+      },
+      "durationMs": 19199.255642,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite synchronized",
+      "outcome": "failed",
+      "reason": "Shared bounded upload admission returned 429; client mutation lane required",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-synchronized.log",
+        "sha256": "794a68fa59266f93dcf8f90ae2469daa7ae0a5b5773b9eedbce748ba436b4f9e"
+      },
+      "durationMs": 16970.099579,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite queued",
+      "outcome": "failed",
+      "reason": "Captured deterministic sub-clock cruise input; both MCUs stop observed",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-queued.log",
+        "sha256": "c6f8eab480a62a0f3801a650b6e628e422792fbc1048d7fc862bd6b3dab5a6c0"
+      },
+      "durationMs": 18432.364622,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite motion-fixed",
+      "outcome": "failed",
+      "reason": "First motion correction allowed first generation; short second model normally completed before namespace checkpoint",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-motion-fixed.log",
+        "sha256": "9bea544c3d05bbd27bb4b60bb28faaee0f591a829cd91dc97986325c5fb0daf1"
+      },
+      "durationMs": 66698.464055,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite bounded-seeds",
+      "outcome": "failed",
+      "reason": "Only first pair preseeded; short second print still normally finished too early",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-bounded-seeds.log",
+        "sha256": "adf8a6974a4ae8ff71d5cdae1c6664acb692ef11b4e80b3fe023fe07565a87d4"
+      },
+      "durationMs": 65592.985361,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite sustained",
+      "outcome": "failed",
+      "reason": "Added real return travel exposed second deterministic tiny acceleration input",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-sustained.log",
+        "sha256": "ddad479745311b86a51bcae49d1622562e37d6a7a6c5089dcaf7e0bfa1407632"
+      },
+      "durationMs": 24754.338827,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
+    },
+    {
+      "kind": "compiled overwrite split",
+      "outcome": "prior_success_superseded",
+      "reason": "Earlier successful full compiled case, superseded by final packing/capacity source checks",
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-split.log",
+        "sha256": "da21e1a63a653267ddfc562ae77b51155f1c381768b9f5bc153e6585b4c9b2db"
+      },
+      "durationMs": 73201.912583,
+      "scope": "Historical local observation. Log preserved; no retroactive final-source fingerprint attached."
     }
   ],
   "remaining": [
-    "Independent compiled product: two generation print load, successful upload/move overwrite counts, active/paused/unconfirmed-stop protection, previews/history/notifications, original stop/step-lead/loop gates.",
-    "Explicit overwrite late-chunked upload/device-retirement and recovery-failure/readership boundary tests; existing eight lifecycle tests are scoped evidence only.",
-    "Same-path move, existing-directory basename overwrite, tampered/unknown intents and all relevant cancellation/sync prefixes expanded as needed; physical power loss not established.",
     "Exact new-head required CI, bounded review and normal PR into develop; local source not covered by previous 4b6a2317 CI.",
-    "Full fixed-client pages, offline mutation/recursive cleanup/other roots/UFP/ancestor creation, complete Moonraker, target/Python actual print speed and precision, G3, all Python/macros and release."
-  ]
+    "Same compiled bundle in fixed Fluidd/Mainsail complete file/print/restart/history pages; software API acceptance is separate.",
+    "Physical power loss, target board and old Python actual print speed/precision, historical G3, Cycnumbris 500 configuration/stop/rollback remain open.",
+    "Offline mutation/recursive cleanup/other roots/UFP/ancestor creation, queue/platform maintenance and remaining complete Moonraker, all Python/macros and release."
+  ],
+  "historicalLocalValidation": {
+    "sources": {
+      "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+      "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+      "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+      "host/test/published-replace.test.ts": "3c0a2030a72d29cb54047305e6888cb6c669966e3d4a28b60cac7f05d6057ad8",
+      "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+      "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+      "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc"
+    },
+    "affectedRegression": {
+      "tests": 124,
+      "passed": 124,
+      "failed": 0,
+      "durationMs": 2945.31047,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-affected-final.log",
+        "sha256": "3f5583c9694b9fed680b2a125096ca9df46608bec4bf09e97b097dec7c457b5a"
+      }
+    },
+    "processLifecycle": {
+      "tests": 8,
+      "passed": 8,
+      "failed": 0,
+      "durationMs": 7446.233812,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-lifecycle.log",
+        "sha256": "0a03a21e65a3718e05afdd275321507488b60588b73b6ec7ea7c77ff882f8b1a"
+      }
+    },
+    "totalDistinct": 132,
+    "typecheck": {
+      "passed": true,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-typecheck-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  },
+  "review": {
+    "state": "bounded_local_software_review_completed",
+    "reviewer": "Codex in current task",
+    "sources": {
+      "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+      "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+      "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+      "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+      "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+      "host/test/published-replace.test.ts": "18c187f26ef6066fe194bb9c63bfe8863d66668ce2afabbdf705593f70298e9c",
+      "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+      "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+      "host/test/native-product-process-lifetime.test.ts": "5f5b429b3990f26b40409b91512b61f776f66f1c1b2a4493854145f033fa04ae",
+      "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+      "host/test/trap-queue.test.ts": "87920c4c58313a8ae020a2c29976054de5fdb36a556d5377baf58594519a6680",
+      "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad",
+      "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc",
+      "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+      "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
+    },
+    "areas": [
+      "Source/destination target identity authorization and activity locks; captured device/generation ownership and explicit retirement/failed-stop tests.",
+      "Private bounded durable replacement schema, canonical full namespace hash, synced publication before identity retirement, cancellation/fencing and shared blob references.",
+      "Sub-clock profiles preserve exact boundary speeds/endpoints/end time and native guard; independent tail acceleration, geometric bounded row growth, diagnostic ownership and atomic failed batch.",
+      "Independent emitted JS/product dependency isolation; all original assertions/load/deadlines retained, extra sustained motion disclosed, final native common performance and pulse checks."
+    ],
+    "finding": "No unresolved blocking finding in this bounded current software diff. Historical global G3, hardware, full clients, exact new-head CI and normal integration remain unpassed.",
+    "scope": "Local review only; not external GitHub approval, exhaustive production audit, hardware or complete migration acceptance."
+  }
 }

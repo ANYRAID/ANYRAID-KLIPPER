@@ -1892,24 +1892,36 @@
       }
     },
     "m2bOverwrite": {
-      "state": "local_runtime_implemented_partial_acceptance",
+      "state": "local_compiled_software_passed_ci_pr_pending",
       "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "evidence": "host/contracts/native-overwrite-acceptance.json",
       "sourceHashes": {
         "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
         "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
         "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
-        "host/test/published-replace.test.ts": "3c0a2030a72d29cb54047305e6888cb6c669966e3d4a28b60cac7f05d6057ad8",
+        "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+        "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+        "host/test/published-replace.test.ts": "18c187f26ef6066fe194bb9c63bfe8863d66668ce2afabbdf705593f70298e9c",
         "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
         "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
-        "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc"
+        "host/test/native-product-process-lifetime.test.ts": "5f5b429b3990f26b40409b91512b61f776f66f1c1b2a4493854145f033fa04ae",
+        "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+        "host/test/trap-queue.test.ts": "87920c4c58313a8ae020a2c29976054de5fdb36a556d5377baf58594519a6680",
+        "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad",
+        "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc",
+        "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+        "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
       },
-      "affectedRegression": 124,
-      "processLifecycle": 8,
-      "totalDistinct": 132,
-      "compiled": "pending",
+      "affectedRegression": 125,
+      "processLifecycle": 10,
+      "totalDistinct": 271,
+      "compiled": "passed_for_fixed_local_source",
       "requiredNewHeadCi": "not_submitted",
-      "integrated": false
+      "integrated": false,
+      "nativeMotion": 24,
+      "motionIntegration": 112,
+      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "motionEvidence": "host/contracts/motion-overwrite-capture.json"
     }
   },
   "integrationCheckpoint": {
@@ -2112,7 +2124,7 @@
     "currentImplementation": {
       "batch": "M2b 3b upload/move overwrite",
       "branch": "devac/moonraker-file-overwrite",
-      "state": "local_runtime_implemented_partial_acceptance",
+      "state": "local_compiled_software_passed_ci_pr_pending",
       "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "benchmarkBaseline": {
         "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
@@ -2125,9 +2137,10 @@
         "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
       },
-      "evidence": "host/contracts/native-overwrite-acceptance.json"
+      "evidence": "host/contracts/native-overwrite-acceptance.json",
+      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280"
     },
-    "next": "Complete independent compiled mixed printing and explicit overwrite lifecycle/adversarial boundaries, then exact new-head CI/review/normal PR. Historical G3, full clients and hardware gates remain open.",
+    "next": "Freeze final source-bound local evidence, submit exact new-head required CI/review/normal PR into develop; then immediately run fixed same-bundle Fluidd/Mainsail complete A journey before next Moonraker batch. Historical G3/500 hardware/Python retirement remain open.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

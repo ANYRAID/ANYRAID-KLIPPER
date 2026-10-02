@@ -36,6 +36,16 @@ test('upload replacement rejects a reused ID, foreign plan, changed namespace an
   const used=f.store.status.storedBytes;await f.reopen({maxStorageBytes:used+1,maxPublishedFiles:2});const limited=await f.store.prepareUploadReplacement('new','target.gcode','target.gcode',signal());await assert.rejects(f.store.replaceUpload(limited,f.source,signal()),/quota/);assert.equal(await f.store.resolvePath('target.gcode',signal()),'old');assert.equal(f.store.status.storedBytes,used);assert.equal(f.store.status.reservedBytes,0);
  }finally{await f.close();await foreign.close();}
 });
+test('directory destination protects its resolved basename target and self-move keeps physical receipts unchanged',async()=>{
+ const f=await fixture(),events:PublishedFileChange[]=[];try{
+  await f.store.mutateDirectory('parts',false,signal());await f.store.moveFile(await f.store.prepareFileMove('target.gcode','parts/source.gcode',signal()),signal());f.store.observeChanges(e=>events.push(e));
+  const plan=await f.store.prepareFileMove('source.gcode','parts',signal());assert.equal(plan.replaced?.id,'old');assert.equal(plan.after.path,'parts/source.gcode');
+  await f.store.moveFile(plan,signal());assert.equal(await f.store.resolvePath('parts/source.gcode',signal()),'source');await assert.rejects(f.store.inspect('old'),{code:'ENOENT'});assert.equal(events.length,1);assert.equal(events[0].sourceFile?.path,'source.gcode');
+  const before=await image(f.root),modified=(await f.store.describe('source',signal())).modified,same=await f.store.prepareFileMove('parts/source.gcode','parts',signal());assert.equal(same.replaced,undefined);await f.store.moveFile(same,signal());
+  assert.deepEqual(await image(f.root),before);assert.equal((await f.store.describe('source',signal())).modified,modified);assert.equal(events.length,2);assert.equal(events[1].action,'move_file');assert.equal(events[1].file.path,events[1].sourceFile?.path);assert.equal(f.store.status.reservedBytes,0);
+  await f.reopen();assert.equal(await f.store.resolvePath('parts/source.gcode',signal()),'source');assert.equal(f.store.status.storedBytes,await charged(f.root));
+ }finally{await f.close();}
+});
 async function intent(f:Awaited<ReturnType<typeof fixture>>,move:boolean):Promise<FileReplacement>{
  const prepared=await f.store.prepareUploadReplacement('new','target.gcode','target.gcode',signal()),source=await f.store.describe('source',signal());
  return validateReplacementIntent({version:1,action:move?'move_file':'create_file',created:{...source.file,id:move?'source':'new',name:'target.gcode',path:'target.gcode'},replaced:prepared.replaced,...move?{source:source.file}:{},modified:source.modified,namespaceSha256:prepared.namespaceSha256,directories:prepared.directories});

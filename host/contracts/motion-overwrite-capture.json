@@ -1,0 +1,354 @@
+{
+  "date": "2026-10-03",
+  "state": "two_captured_inputs_locally_corrected",
+  "scope": "Two deterministic sub-clock representations locally corrected; actual native waveform checks and source-bound compiled two-generation software acceptance passed. Historical G3, target hardware, CPython/target speed and precision remain open. No common cause of historical failures or hardware defect established.",
+  "sourceBase": "6d15e923",
+  "sources": {
+    "host/src/motion/trap-queue.ts": "3f2210fd331775bf14a9f0343133b798de2c5e75770b47cf4e12c6854cf46732",
+    "host/src/motion/representable-profile.ts": "0cb580ed39138cec550190250efe34c24aa3824b152001c592d8b6f7c9a52256",
+    "host/src/motion/lookahead.ts": "1b983e4b9ddfc018b9f9caa3397116f60c252ad01dd5d62a4724e872af89162d",
+    "host/native/trapq.c": "d093ed4dd41d89f7d8999e411802fe1bda4852b1de23a668b2b9c9a4e0ad88f1"
+  },
+  "nativeAddon": {
+    "path": "host/build/trapq.node",
+    "sha256": "2b23342e42190efb59b3cd81797d8c9cccc915a21f2cef4866d6b7c9bc20e2dc"
+  },
+  "input": {
+    "row": [
+      13.279597947814393,
+      0,
+      7.095019016745141e-17,
+      0.0010557280900007381,
+      8.83,
+      0,
+      0,
+      1,
+      0,
+      0,
+      10,
+      10,
+      1000
+    ],
+    "phase": 2,
+    "extrusionAxis": null,
+    "replace": false,
+    "move": {
+      "start": [
+        8.83,
+        0,
+        0,
+        0.883
+      ],
+      "end": [
+        8.84,
+        0,
+        0,
+        0.884
+      ],
+      "ratio": [
+        1,
+        0,
+        0,
+        0.10000000000000223
+      ],
+      "distance": 0.009999999999999787,
+      "accel": 1000,
+      "profile": {
+        "startV": 10,
+        "cruiseV": 10,
+        "endV": 8.944271909999262,
+        "accelT": 0,
+        "cruiseT": 7.095019016745141e-17,
+        "decelT": 0.0010557280900007381
+      }
+    }
+  },
+  "stops": [
+    {
+      "event": "stop",
+      "generation": 1,
+      "id": "mcu",
+      "cause": "RangeError: Motion duration below time resolution: {\"row\":[13.279597947814393,0,7.095019016745141e-17,0.0010557280900007381,8.83,0,0,1,0,0,10,10,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false,\"move\":{\"start\":[8.83,0,0,0.883],\"end\":[8.84,0,0,0.884],\"ratio\":[1,0,0,0.10000000000000223],\"distance\":0.009999999999999787,\"accel\":1000,\"profile\":{\"startV\":10,\"cruiseV\":10,\"endV\":8.944271909999262,\"accelT\":0,\"cruiseT\":7.095019016745141e-17,\"decelT\":0.0010557280900007381}}}"
+    },
+    {
+      "event": "stop",
+      "generation": 1,
+      "id": "aux",
+      "cause": "RangeError: Motion duration below time resolution: {\"row\":[13.279597947814393,0,7.095019016745141e-17,0.0010557280900007381,8.83,0,0,1,0,0,10,10,1000],\"phase\":2,\"extrusionAxis\":null,\"replace\":false,\"move\":{\"start\":[8.83,0,0,0.883],\"end\":[8.84,0,0,0.884],\"ratio\":[1,0,0,0.10000000000000223],\"distance\":0.009999999999999787,\"accel\":1000,\"profile\":{\"startV\":10,\"cruiseV\":10,\"endV\":8.944271909999262,\"accelT\":0,\"cruiseT\":7.095019016745141e-17,\"decelT\":0.0010557280900007381}}}"
+    }
+  ],
+  "loadProgress": {
+    "uploadOverwrites": 1,
+    "moveOverwrites": 1,
+    "replacementSeeds": 16,
+    "uploads": 1,
+    "copies": 1,
+    "overwrites": 0,
+    "directoryCopies": 0,
+    "deletes": 0,
+    "statusRequests": 3364
+  },
+  "log": {
+    "path": "/tmp/anyraid-overwrite-compiled-queued.log",
+    "sha256": "c6f8eab480a62a0f3801a650b6e628e422792fbc1048d7fc862bd6b3dab5a6c0"
+  },
+  "replay": {
+    "command": "node host/scripts/replay-overwrite-motion.ts",
+    "state": "both_captures_no_longer_reject",
+    "exitCode": 0,
+    "log": {
+      "path": "/tmp/anyraid-overwrite-motion-replay-final.log",
+      "sha256": "9a017b78ef7df5bf1353b5c0242a71486b6f3829f6fb98a46718fa874082b6fb"
+    },
+    "scope": "Same captured distance, ratios and profile reconstituted and asserted against the real C queue; not complete G3."
+  },
+  "additionalFailures": [
+    {
+      "state": "locally_corrected",
+      "scope": "Added sustained return-trip exposes a sub-clock acceleration coexisting with real cruise and deceleration. Do not remove the phase or bypass native validation.",
+      "input": {
+        "row": [
+          12.74972476476055,
+          2.216893335571537e-16,
+          0.9949999999999998,
+          0.01,
+          10,
+          0,
+          0,
+          1,
+          0,
+          0,
+          9.999999999999778,
+          10,
+          1000
+        ],
+        "phase": 1,
+        "extrusionAxis": null,
+        "replace": false,
+        "move": {
+          "start": [
+            10,
+            0,
+            0,
+            1
+          ],
+          "end": [
+            20,
+            0,
+            0,
+            1
+          ],
+          "ratio": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "distance": 10,
+          "accel": 1000,
+          "profile": {
+            "startV": 9.999999999999778,
+            "cruiseV": 10,
+            "endV": 0,
+            "accelT": 2.216893335571537e-16,
+            "cruiseT": 0.9949999999999998,
+            "decelT": 0.01
+          }
+        }
+      },
+      "stops": [
+        {
+          "event": "stop",
+          "generation": 1,
+          "id": "mcu",
+          "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.74972476476055,2.216893335571537e-16,0.9949999999999998,0.01,10,0,0,1,0,0,9.999999999999778,10,1000],\"phase\":1,\"extrusionAxis\":null,\"replace\":false,\"move\":{\"start\":[10,0,0,1],\"end\":[20,0,0,1],\"ratio\":[1,0,0,0],\"distance\":10,\"accel\":1000,\"profile\":{\"startV\":9.999999999999778,\"cruiseV\":10,\"endV\":0,\"accelT\":2.216893335571537e-16,\"cruiseT\":0.9949999999999998,\"decelT\":0.01}}}"
+        },
+        {
+          "event": "stop",
+          "generation": 1,
+          "id": "aux",
+          "cause": "RangeError: Motion duration below time resolution: {\"row\":[12.74972476476055,2.216893335571537e-16,0.9949999999999998,0.01,10,0,0,1,0,0,9.999999999999778,10,1000],\"phase\":1,\"extrusionAxis\":null,\"replace\":false,\"move\":{\"start\":[10,0,0,1],\"end\":[20,0,0,1],\"ratio\":[1,0,0,0],\"distance\":10,\"accel\":1000,\"profile\":{\"startV\":9.999999999999778,\"cruiseV\":10,\"endV\":0,\"accelT\":2.216893335571537e-16,\"cruiseT\":0.9949999999999998,\"decelT\":0.01}}}"
+        }
+      ],
+      "sources": {
+        "host/src/motion/trap-queue.ts": "3f2210fd331775bf14a9f0343133b798de2c5e75770b47cf4e12c6854cf46732",
+        "host/src/motion/representable-profile.ts": "d352b6a478a4212d0a04abd13f33daca72e68d5d8411f5a1227f9a07f41cea97",
+        "host/src/motion/lookahead.ts": "1b983e4b9ddfc018b9f9caa3397116f60c252ad01dd5d62a4724e872af89162d",
+        "host/native/trapq.c": "d093ed4dd41d89f7d8999e411802fe1bda4852b1de23a668b2b9c9a4e0ad88f1"
+      },
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-sustained.log",
+        "sha256": "ddad479745311b86a51bcae49d1622562e37d6a7a6c5089dcaf7e0bfa1407632"
+      }
+    }
+  ],
+  "correction": {
+    "method": "Additional quarter-point one-sided duration candidates retain all exact guards. Three-phase tiny acceleration uses two native rows: borrow one representable clock interval from cruise, lower only first acceleration, retain original deceleration. Exact start/cruise/end velocity, XYZ/E endpoints and absolute end clock; analytic travel difference capped at one coordinate ULP and 1e-12 mm. Native guard unchanged; rare buffer growth geometric and bounded.",
+    "sources": {
+      "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+      "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+      "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+      "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+      "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
+    },
+    "nativeChecks": {
+      "tests": 24,
+      "passed": 24,
+      "failed": 0,
+      "durationMs": 309.053827,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-motion-packing-complete.log",
+        "sha256": "07eebbe2a4439da41a5056b12d062f37596e76bdafd6deee9e9dc01663eaf6e9"
+      }
+    },
+    "waveform": {
+      "firstCapture": "XYZ/E positive and negative directions; reference motor packets bit-identical",
+      "secondCapture": "Both directions and three absolute clocks; 8000 expanded pulses per direction/case compared with relative original profile; integer positions identical, clock error at most existing 1 tick at 1 MHz. Different compression groups are allowed by existing pulse gate.",
+      "multiAxis": "Signed XY and E exact endpoints/counts; idle E, future replacement, 80 fixed-input packing stress, later failed-row diagnostic ownership and atomic rejection; coarse-clock unbounded input still rejected."
+    },
+    "performance": {
+      "metrics": {
+        "node": "v26.9.0",
+        "baselinePath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-overwrite-acceptance/baseline/host/src/motion/representable-profile.ts",
+        "baselineSha256": "0cb580ed39138cec550190250efe34c24aa3824b152001c592d8b6f7c9a52256",
+        "queueBaselineSha256": "3f2210fd331775bf14a9f0343133b798de2c5e75770b47cf4e12c6854cf46732",
+        "common": {
+          "callsPerSample": 100000,
+          "baseline": {
+            "medianMs": 0.6430679999999995,
+            "p95Ms": 0.6792489999999987
+          },
+          "candidate": {
+            "medianMs": 0.6430079999999947,
+            "p95Ms": 0.7585200000000043
+          },
+          "limits": {
+            "medianRatio": 1.25,
+            "p95Ratio": 1.5,
+            "slackMs": 2
+          }
+        },
+        "capture": {
+          "callsPerSample": 5000,
+          "baseline": {
+            "medianMs": 0.3257550000000009,
+            "p95Ms": 0.37141499999999894
+          },
+          "candidate": {
+            "medianMs": 0.39972500000000366,
+            "p95Ms": 0.7121699999999862
+          },
+          "baselineResolved": 0,
+          "candidateResolved": 5000
+        },
+        "secondCapture": {
+          "callsPerSample": 5000,
+          "candidate": {
+            "medianMs": 0.9351330000000075,
+            "p95Ms": 1.3336880000000235
+          },
+          "candidateResolved": 5000
+        },
+        "nativeCommonQueue": {
+          "movesPerBatch": 100,
+          "batchesPerSample": 100,
+          "baseline": {
+            "medianMs": 3.186132000000015,
+            "p95Ms": 4.087583999999993
+          },
+          "candidate": {
+            "medianMs": 3.366925000000009,
+            "p95Ms": 4.611081000000013
+          },
+          "limits": {
+            "medianRatio": 1.25,
+            "p95Ratio": 1.5,
+            "slackMs": 2
+          },
+          "identicalPackets": true,
+          "motorSteps": 800
+        },
+        "scope": "Alternating immutable old/new source math and actual native queue timing. Common-path gates reuse existing motion benchmark ratios/slack; captured paths differ in outcome and are measured separately. Not target-board or complete G3 acceptance."
+      },
+      "log": {
+        "path": "/tmp/anyraid-overwrite-motion-performance-source-final.log",
+        "sha256": "e0a738f1e78910bce5d7ce2bcd74b24816425d76192352fa3ba1664cf34f9254"
+      }
+    },
+    "compiledAcceptance": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 72384.579274,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-compiled-source-final.log",
+        "sha256": "680b27018a993abaef6c82b0349c792d342a78148261709b709a1a3b13f011d4"
+      },
+      "bundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "scope": "One namespace/native-authorization/API-load two-MCU case; not all compiled machine variants or hardware acceptance."
+    },
+    "historicalG3": "unresolved"
+  },
+  "priorCorrection": {
+    "method": "Add two interior duration candidates, preserving all existing exact clock/velocity/XYZ/E/acceleration/deviation guards; no epsilon clamp or native validation change.",
+    "sources": {
+      "host/src/motion/representable-profile.ts": "d352b6a478a4212d0a04abd13f33daca72e68d5d8411f5a1227f9a07f41cea97",
+      "host/test/representable-profile.test.ts": "aa8d276df84d47807fc00e150f0af8b4ce6cc5c30872ce6b250faa30870d239a",
+      "host/bench/representable-profile-overwrite.ts": "6f937e927090b8e355b09ec547052130cf78464a4b4a84273596a6c6e7589e2a"
+    },
+    "nativeRegression": {
+      "tests": 22,
+      "passed": 22,
+      "failed": 0,
+      "log": {
+        "path": "/tmp/anyraid-overwrite-motion-regression-native.log",
+        "sha256": "29f77c9c4fa6bf38ed0374848e687fc419874a4b595a4b0d80cb917f91f6b14e"
+      }
+    },
+    "benchmark": {
+      "node": "v26.9.0",
+      "baselinePath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-overwrite-acceptance/baseline/host/src/motion/representable-profile.ts",
+      "baselineSha256": "0cb580ed39138cec550190250efe34c24aa3824b152001c592d8b6f7c9a52256",
+      "common": {
+        "callsPerSample": 100000,
+        "baseline": {
+          "medianMs": 0.6544190000000043,
+          "p95Ms": 0.6761280000000056
+        },
+        "candidate": {
+          "medianMs": 0.649918999999997,
+          "p95Ms": 0.7649899999999974
+        },
+        "limits": {
+          "medianRatio": 1.25,
+          "p95Ratio": 1.5,
+          "slackMs": 2
+        }
+      },
+      "capture": {
+        "callsPerSample": 5000,
+        "baseline": {
+          "medianMs": 0.2904929999999979,
+          "p95Ms": 0.3582049999999981
+        },
+        "candidate": {
+          "medianMs": 0.3954960000000085,
+          "p95Ms": 0.9113919999999922
+        },
+        "baselineResolved": 0,
+        "candidateResolved": 5000
+      },
+      "scope": "Alternating immutable old/new source math timing. Common-path gate reuses existing motion benchmark ratios/slack; captured path differs in outcome and is measured separately. Not target-board or complete G3 acceptance."
+    },
+    "benchmarkLog": {
+      "path": "/tmp/anyraid-overwrite-motion-performance.log",
+      "sha256": "c2a72ba631aa50691640742d0110a4d6a0ed34418a74e6e6229f075595a7c09f"
+    },
+    "firstFixedReplay": {
+      "path": "/tmp/anyraid-overwrite-motion-replay-fixed.log",
+      "sha256": "ed6be79fa0d81be2ab32f184dee1999e5ca3d9f1db3d2e3d7440b5c6e36dd3a2"
+    },
+    "fullCompiledAcceptance": "failed; unresolved additional captured input",
+    "globalG3": "unresolved"
+  }
+}
