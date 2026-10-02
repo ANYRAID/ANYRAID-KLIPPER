@@ -34,6 +34,51 @@ async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['
  return {dir,gate,files,uploads,network,url,controller,post:(body:FormData)=>fetch(url+'/server/files/upload',{method:'POST',body,signal:AbortSignal.timeout(5000)}),async clean(){await network.close();await controller?.retire();await uploads.close();await files.close();await rm(dir,{recursive:true,force:true});}};
 }
 const moveHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/move',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
+const copyHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/copy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
+test('copy HTTP and RPC refresh overwritten metadata with new identity and retain readable source',async()=>{
+ const f=await fixture({removal:true}),events:any[]=[];const off=f.uploads.observeChanges(e=>events.push(e));try{
+  await f.post(multipart('G1 X1\n',{file_id:'source'}));await f.post(multipart('G1 X9\n',{file_id:'old'}));const previous=(await (await fetch(f.url+'/server/files/metadata?filename=old.gcode')).json()).result;
+  const response=await copyHttp(f,'gcodes/source.gcode','gcodes/old.gcode');assert.equal(response.status,200,await response.clone().text());const result=(await response.json()).result;assert.equal(result.action,'modify_file');assert(!result.source_item);assert.equal(result.item.path,'old.gcode');
+  const metadata=(await (await fetch(f.url+'/server/files/metadata?filename=old.gcode')).json()).result;assert.notEqual(metadata.file_id,previous.file_id);assert.notEqual(metadata.file_id,'source');assert.notEqual(metadata.sha256,previous.sha256);assert.equal(await (await fetch(f.url+'/server/files/gcodes/old.gcode')).text(),'G1 X1\n');assert.equal(f.files.filename('source'),'source.gcode');assert.equal(events.filter(e=>e.action==='modify_file').length,1);
+  const rpc=await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:8,method:'server.files.copy',params:{source:'gcodes/source.gcode',dest:'gcodes/copied.gcode'}})});const body=await rpc.json();assert.equal(body.result.action,'create_file');assert.equal(body.result.item.path,'copied.gcode');assert.notEqual(await f.files.resolvePath('copied.gcode',new AbortController().signal),'source');
+ }finally{off();await f.clean();}
+});
+test('copy allows an active source and protects printing or paused destination identity',async()=>{
+ const f=await fixture({removal:true});try{
+  for(const id of ['active','other'])await f.post(multipart('G1 X1\n',{file_id:id}));await f.controller!.start({version:1,requestId:'print',fileId:'active',nozzle:0,bed:0});
+  assert.equal((await copyHttp(f,'gcodes/active.gcode','gcodes/copied.gcode')).status,200);assert.equal(f.controller!.state,'printing');assert.equal((await copyHttp(f,'gcodes/other.gcode','gcodes/active.gcode')).status,403);await f.controller!.pause();assert.equal((await copyHttp(f,'gcodes/other.gcode','gcodes/active.gcode')).status,403);assert.equal(f.files.filename('active'),'active.gcode');await f.controller!.cancel();assert.equal((await copyHttp(f,'gcodes/other.gcode','gcodes/active.gcode')).status,200);
+ }finally{await f.clean();}
+});
+test('copy authorizes source members and replacement identity and rejects late namespace changes',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false,delayPolicy=false;const calls:any[]=[];
+ const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.copy'){calls.push({...p});if(delayPolicy&&p.file_id){entered=true;return held.promise;}}}});try{
+  await f.post(multipart('G1 X1\n',{file_id:'source'}));await f.post(multipart('G1 X9\n',{file_id:'old'}));assert.equal((await copyHttp(f,'gcodes/source.gcode','gcodes/old.gcode')).status,200);assert(calls.some(p=>p.file_id==='source'));assert(calls.some(p=>p.target_file_id==='old'));
+  await f.files.mutateDirectory('parts',false,new AbortController().signal);delayPolicy=true;const pending=copyHttp(f,'gcodes/source.gcode','gcodes/parts');await until(()=>entered);const path=join(f.dir,'late-source');await writeFile(path,'G1 X5\n');const input=await open(path,'r');try{await f.files.publish('late','source.gcode',input,new AbortController().signal,'parts/source.gcode');}finally{await input.close();}held.resolve();assert.equal((await pending).status,409);assert.equal(await (await fetch(f.url+'/server/files/gcodes/parts/source.gcode')).text(),'G1 X5\n');assert.equal(f.uploads.status.pending,0);
+ }finally{held.resolve();await f.clean();}
+});
+test('copy directory creates a new tree with empty children and rejects self-copy and existing targets',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('parts/empty',false,signal);await f.post(multipart('G1 X1\n',{file_id:'source',path:'parts'},'source.gcode'));
+  const response=await copyHttp(f,'gcodes/parts','gcodes/new/tree');assert.equal(response.status,200,await response.clone().text());assert.equal((await response.json()).result.action,'create_dir');assert(await f.files.hasDirectory('new/tree/empty',signal));assert.notEqual(await f.files.resolvePath('new/tree/source.gcode',signal),'source');assert.equal((await copyHttp(f,'gcodes/parts','gcodes/new/tree')).status,409);assert.equal((await copyHttp(f,'gcodes/parts','gcodes/parts/child')).status,400);assert.equal((await copyHttp(f,'gcodes/missing','gcodes/new-file')).status,404);assert.equal((await copyHttp(f,'gcodes/parts','config/parts')).status,400);
+ }finally{await f.clean();}
+});
+test('copy authorizes empty source directories and newly created destination ancestors before writing',async()=>{
+ let denied='gcodes/parts/empty';const calls:any[]=[];
+ const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.copy'&&p.directory){calls.push({...p});if(p.source===denied||p.dest===denied)throw new ApiError(403,'Denied directory');}}}),signal=new AbortController().signal;try{
+  await f.files.mutateDirectory('parts',false,signal);await f.files.mutateDirectory('parts/empty',false,signal);
+  assert.equal((await copyHttp(f,'gcodes/parts','gcodes/new/tree')).status,403);assert.equal(await f.files.hasDirectory('new',signal),false);assert.equal(f.files.status.reservedBytes,0);assert(!(await readdir(join(f.dir,'files'))).includes('.namespace-copy.json'));
+  denied='gcodes/new';assert.equal((await copyHttp(f,'gcodes/parts','gcodes/new/tree')).status,403);assert.equal(await f.files.hasDirectory('new',signal),false);
+  denied='';assert.equal((await copyHttp(f,'gcodes/parts','gcodes/new/tree')).status,200);assert(await f.files.hasDirectory('new/tree/empty',signal));assert(calls.some(p=>p.source==='gcodes/parts/empty'&&p.dest==='gcodes/new/tree/empty'));
+ }finally{await f.clean();}
+});
+test('resolved copy path overflow and file ancestors return 400 without publishing a partial tree',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal;try{
+  let parent='';for(let i=0;i<3;i++){parent+=(parent?'/':'')+'p'.repeat(250);await f.files.mutateDirectory(parent,false,signal);}await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a'.repeat(60)+'.gcode'));
+  assert.equal((await copyHttp(f,'gcodes/parts','gcodes/'+parent+'/'+'q'.repeat(250))).status,400);assert.equal(f.files.filename('a'),'parts/'+'a'.repeat(60)+'.gcode');assert.equal(f.files.status.publishedFiles,1);
+  assert.equal((await copyHttp(f,'gcodes/parts','gcodes/parts/'+f.files.filename('a')!.slice(6)+'/new')).status,400);assert.equal(f.files.status.reservedBytes,0);
+  await f.post(multipart('G1 X2\n',{file_id:'blocker'},'blocker.gcode'));assert.equal((await copyHttp(f,'gcodes/parts','gcodes/blocker.gcode/new')).status,400);assert.equal(await f.files.hasDirectory('blocker.gcode',signal),false);
+ }finally{await f.clean();}
+});
 test('file move HTTP and RPC preserve ID and bytes, revoke old previews and publish source_item',async()=>{
  const f=await fixture({removal:true}),events:any[]=[];const off=f.uploads.observeChanges(e=>events.push(e));try{
   const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),data=thumbnailBlock(png);assert.equal((await f.post(multipart(data,{file_id:'job'}))).status,200);await f.files.mutateDirectory('零件',false,new AbortController().signal);
