@@ -318,5 +318,31 @@
     "fixed Fluidd/Mainsail same-bundle full pages",
     "target-board/Python performance and physical interruption",
     "historical G3 precision/process failures and all-Python retirement"
-  ]
+  ],
+  "reviewSupplement": {
+    "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+    "script": "host/contracts/native-copy-review-boundaries.ts",
+    "scriptSha256": "47fd824c7b6b7b679f01500438fadf57cb3e074ba12300b4863c38200e1faf24",
+    "command": "host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node --test --test-reporter=tap host/contracts/native-copy-review-boundaries.ts",
+    "node": "v26.9.0",
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "durationMs": 401.034744,
+    "log": "/tmp/anyraid-copy-58-review-boundaries-versioned.log",
+    "logSha256": "3bb0c0ad61c5d456c71d79a7685ffa81f9b38ec8b3b1d945beddd315ee0f681b",
+    "scenarios": [
+      "Full file-count capacity allows overwrite; fresh copy beyond capacity rejects without effects",
+      "Peak byte quota rejects before intent and preserves old target",
+      "Cancellation after journal staging before intent preserves old target with no notification",
+      "Cancellation after durable intent completes overwrite; old sealed reader survives; two reopens do not duplicate notification"
+    ],
+    "typecheck": {
+      "status": "passed",
+      "scope": "Explicit strict TypeScript command for this contract script; main host project typecheck also passed",
+      "explicitLog": "/tmp/anyraid-copy-review-explicit-typecheck.log",
+      "explicitLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scope": "Four additional bounded local source experiments, separate from the original 118 regressions and remote sanitizer totals. No production source or original gate changed; not physical power-loss, target-board, actual client or full Moonraker acceptance."
+  }
 }

@@ -1674,6 +1674,41 @@
           }
         },
         "scope": "Provider PR metadata and workflow-step observations only. Terminal ordinary/sanitizer counts and full host result have not yet been read; develop post-merge failure remains open."
+      },
+      "reviewReceipt": {
+        "reviewer": "Current task agent; bounded software-increment admission review, not external GitHub approval or production audit",
+        "headRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+        "baseRevision": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "sourceHashesVerified": 9,
+        "decision": "Bounded source review complete with no identified implementation blocker; full exact-head CI still pending, so merge admission remains pending",
+        "topics": [
+          {
+            "topic": "Storage identity, quota and recovery",
+            "inspection": "namespace-copy.ts planning/intent schema/complete-membership replay; published-files.ts copy intent, hash verification, new receipts, replacement and byte accounting",
+            "evidence": "Original 37 storage regressions plus four distinct review-boundary experiments in native-copy-acceptance.json; no deletion-before-publication shortcut"
+          },
+          {
+            "topic": "API authorization and ownership",
+            "inspection": "Resolved file and directory-member policy checks, replaced target admission, process route registration, current-generation delegation, pending authorization drain and late chunked request fencing",
+            "evidence": "Original 36 API and 45 product-lifetime regressions; scope remains native gcodes only; offline mutation remains pending"
+          },
+          {
+            "topic": "Compiled product and performance",
+            "inspection": "Successful operation counts/active generation checkpoints, source/target identity and preview assertions, event counts, retained runout pause/object-cancel timing, full-journey watchdog distinguished from original print/stop/idle/loop gates; alternating filesystem catalog benchmark baseline",
+            "evidence": "Source-bound compiled manifest and real filesystem metrics in native-copy-acceptance.json; 16 copies/16 overwrites/16 directory copies and 840 file events; no CPython/target-board/print-duration claim"
+          },
+          {
+            "topic": "Motion fixture isolation",
+            "inspection": "dual-carriage-printer.test.ts waits for actual simulated integer MCU clock while retaining host-clock and all trigger/motor assertions; failure-only observations bounded at 64",
+            "evidence": "Captured early auxiliary firmware event and local 4+15 homing regressions; no production motion algorithm, clock mapping, tolerance or stop deadline changed; historical G3 remains open"
+          }
+        ],
+        "remaining": [
+          "Full host CI including both sanitizer passes and Linux MCU",
+          "Normal develop merge and required post-merge checks",
+          "Fixed-client pages, target board and physical power-loss acceptance",
+          "Upload/move overwrite, complete Moonraker and full Python retirement"
+        ]
       }
     }
   },
