@@ -265,8 +265,8 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Push test-only post-drain/rebuild cadence assertions, then verify exact new-head required CI. Keep copy/overwrite source draft outside that candidate until its complete compiled/performance/client evidence is ready.",
-    "latestObservedSource": "492bf405744e21701686ddc7c647672699ed404b",
+    "next": "Read exact 379f7857 required CI terminal results; repair a demonstrated current failure or proceed through review and required develop integration when all gates pass. Finish the separate M2b 3a copy/copy-overwrite draft with compiled-load and real-filesystem performance evidence, then M2b 3b upload/move overwrite. Keep client and hardware acceptance separate.",
+    "latestObservedSource": "379f785734da6b33043405a613cf4a17fb3d2836",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -1372,6 +1372,84 @@
           "scope": "Finite jobs only, not G3 closure"
         },
         "closure": "No merge or G3 closure. Prior reverse-MCU missing-trigger and immediate second G28 failures passed here; historical unexplained clock/precision/process anomalies remain open."
+      },
+      {
+        "revision": "379f785734da6b33043405a613cf4a17fb3d2836",
+        "status": "pending",
+        "host": {
+          "job": 110922833251,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584447/job/110922833251",
+          "status": "in_progress",
+          "conclusion": null
+        },
+        "firmware": {
+          "job": 110922832307,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584436/job/110922832307",
+          "status": "in_progress",
+          "conclusion": null
+        },
+        "motionDiagnostics": {
+          "checks": [
+            {
+              "job": 110922833341,
+              "name": "motion (26.10.0, default, compiled)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833341",
+              "status": "queued",
+              "conclusion": null
+            },
+            {
+              "job": 110922833292,
+              "name": "motion (26.9.0, off, source)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833292",
+              "status": "in_progress",
+              "conclusion": null
+            },
+            {
+              "job": 110922833291,
+              "name": "motion (26.9.0, off, compiled)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833291",
+              "status": "in_progress",
+              "conclusion": null
+            },
+            {
+              "job": 110922833209,
+              "name": "motion (26.10.0, off, source)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833209",
+              "status": "queued",
+              "conclusion": null
+            },
+            {
+              "job": 110922833176,
+              "name": "motion (26.10.0, default, source)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833176",
+              "status": "queued",
+              "conclusion": null
+            },
+            {
+              "job": 110922833159,
+              "name": "motion (26.9.0, default, source)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833159",
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "job": 110922833136,
+              "name": "motion (26.10.0, off, compiled)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922833136",
+              "status": "queued",
+              "conclusion": null
+            },
+            {
+              "job": 110922832935,
+              "name": "motion (26.9.0, default, compiled)",
+              "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37032584450/job/110922832935",
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ],
+          "scope": "Finite diagnostic outcomes do not close historical G3 numerical mismatches or crashes."
+        },
+        "scope": "Test-only cadence elapsed-slot repair pushed normally to the existing draft PR. Nine affected tests and isolated typecheck passed. Copy/overwrite source draft excluded. Required exact-head CI has no complete successful terminal receipt; no merge, default-entry switch or physical-motion approval."
       }
     ]
   },
