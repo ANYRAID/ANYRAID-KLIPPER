@@ -660,6 +660,42 @@
           "scope": "Finite diagnostic observation does not close G3"
         },
         "next": "Capture and discriminate mapped trigger versus observed clock in existing two-MCU dual-carriage software path; no clamping, tolerance/deadline relaxation or physical motion. Thumbnail source increment has separate local evidence and requires its own exact-head CI."
+      },
+      {
+        "source": "d86a4aee5655f005492815614686f378744d12e5",
+        "mergeTestRevisionPrefix": "38fbae73",
+        "base": "ce7002bedf37e938bb483572949f3703ac6476cb",
+        "host": {
+          "job": 110806692098,
+          "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/36997250959/job/110806692098",
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3816,
+            "pass": 3815,
+            "fail": 1,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "durationMs": 583440.936007
+          },
+          "failedTest": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "failure": "Delta calibration HTTP 503 instead of 200; hits=16, motionFault and hardwareFault undefined. Original inner error not exposed by this captured diagnostic.",
+          "protocol": "skipped",
+          "sanitizers": "skipped",
+          "linuxMcu": "skipped"
+        },
+        "firmware": {
+          "job": 110806691993,
+          "conclusion": "success",
+          "scope": "terminal provider status; no new count extracted"
+        },
+        "motion": {
+          "run": 36997251041,
+          "jobs": 8,
+          "conclusion": "success",
+          "scope": "finite diagnostics only, not G3 closure"
+        },
+        "closure": "No intermittent motion/calibration failure closed by this run. New firmware-time readback source is not covered by these historical jobs."
       }
     ]
   },

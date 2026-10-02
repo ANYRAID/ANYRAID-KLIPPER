@@ -4,6 +4,7 @@ import {observeStoppedPosition} from '../motion/stopped-position-observer.ts';
 import {SerialSession,type TimedCommandQueue} from '../protocol/serial-session.ts';
 import {TriggerSyncProtocol,triggerReason} from '../inputs/trsync.ts';
 import {EndstopProtocol,type EndstopSampling} from '../inputs/endstop.ts';
+import {observeRetirement} from '../motion/retired.ts';
 export interface HomingMember {
  readonly session:SerialSession;readonly queue:TimedCommandQueue;readonly trigger:TriggerSyncProtocol;
  readonly steppers:readonly {oid:number;inverted:boolean}[];
@@ -11,7 +12,26 @@ export interface HomingMember {
 export interface HomingStopResult {
  readonly hitClock:bigint|null;
  readonly reasons:readonly number[];
+ /** Stopped counters remain constant from this MCU observation through readback. */
  readonly positions:readonly {member:number;oid:number;raw:number;position:bigint;observedClock:bigint}[];
+}
+// Independent endstops can share a physical MCU. Serialize the unaddressed
+// uptime response route, without touching the periodic clock estimator or retrying.
+const clockReads=new WeakMap<SerialSession,Promise<void>>();
+function stoppedClock(member:HomingMember,signal:AbortSignal):Promise<bigint>{
+ const session=member.session,previous=clockReads.get(session)??Promise.resolve();
+ const pending=previous.then(async()=>{
+  signal.throwIfAborted();
+  const previousTick=session.clock.sync.lastClock;
+  const reply=await session.queryOnQueue(member.queue,session.dictionary.encode('get_uptime',{}),'uptime',signal),p=reply.message.parameters;
+  for(const v of [p.high,p.clock])if(typeof v!=='number'||!Number.isInteger(v)||v<0||v>0xffffffff)throw new Error('Invalid homing observation clock');
+  const tick=(BigInt(p.high as number)<<32n)|BigInt(p.clock as number);
+  if(tick>BigInt(Number.MAX_SAFE_INTEGER)||tick<previousTick)throw new Error('Invalid or regressed homing observation clock');
+  return tick;
+ });
+ const tail=pending.then(()=>{},()=>{});clockReads.set(session,tail);
+ void tail.then(()=>{if(clockReads.get(session)===tail)clockReads.delete(session);});
+ let result!:bigint;return observeRetirement(pending.then(tick=>{result=tick;}),signal).then(()=>result);
 }
 /** Construct before arming. The motion owner must fence generation/sends before
  * finish(), and release must synchronously detach trsync subscriptions and close
@@ -50,23 +70,29 @@ export class HomingStopConfirmation {
     const state=m.trigger.decode(reply.message);
     if(!state||state.canTrigger||state.failure)throw new Error('MCU did not confirm homing stop');return state.reason;
    }));
+   // The stopped primary's actual tick precedes the endstop-state query.
+   // A host estimate can regress on calibration and cannot prove this ordering.
+   const stopClocks=await Promise.all(this.#members.map(m=>stoppedClock(m,s)));
    const reply=await primary.session.queryOnQueue(primary.queue,this.#endstop.query(),'endstop_state',s,{oid:this.#endstop.oid});
    const state=this.#endstop.decode(reply.message);if(!state||state.homing)throw new Error('Endstop sampling did not stop');
    let hitClock:bigint|null=null;
    if(reasons[this.#primary]===triggerReason.endstopHit){
     if(reasons.some(r=>r!==triggerReason.endstopHit&&r!==triggerReason.hostRequest))throw new Error('Inconsistent coupled MCU stop reasons');
     hitClock=this.#endstop.hitClock(state,this.#sampling,c=>primary.session.clock.sync.nearestClock(c));
-    if(hitClock>primary.session.clock.sync.getClock(reply.receiveTime))throw new Error('Endstop trigger is in the future');
+    if(hitClock>stopClocks[this.#primary])throw new Error('Endstop trigger is in the future');
    }
    const positions=(await Promise.all(this.#members.map(async(m,member)=>{
-    const result:HomingStopResult['positions'][number][]=[];
+    const result:Omit<HomingStopResult['positions'][number],'observedClock'>[]=[];
     for(const stepper of m.steppers){
      const reply=await m.session.queryOnQueue(m.queue,m.session.dictionary.encode('stepper_get_position',{oid:stepper.oid}),'stepper_position',s,{oid:stepper.oid});
      const raw=reply.message.parameters.pos;if(typeof raw!=='number'||!Number.isInteger(raw)||raw< -0x80000000||raw>0x7fffffff)throw new Error('Invalid homing stepper position');
-     const observedClock=m.session.clock.sync.getClock(reply.receiveTime);if(observedClock<0n||observedClock>BigInt(Number.MAX_SAFE_INTEGER))throw new Error('Invalid homing observation clock');
      await observeStoppedPosition(m.session,stepper.oid,BigInt(stepper.inverted?-raw:raw),s);
-     result.push(Object.freeze({member,oid:stepper.oid,raw,position:BigInt(stepper.inverted?-raw:raw),observedClock}));
-    }return result;
+     result.push({member,oid:stepper.oid,raw,position:BigInt(stepper.inverted?-raw:raw)});
+    }
+    // Producers remain fenced and all motors confirmed stopped. Their counters
+    // are unchanged between the actual stopped tick and these subsequent reads.
+    const observedClock=stopClocks[member];
+    return result.map(p=>Object.freeze({...p,observedClock}));
    }))).flat();
    s.throwIfAborted();for(const m of this.#members)m.session.assertActive();return Object.freeze({hitClock,reasons:Object.freeze(reasons),positions:Object.freeze(positions)});
   }catch(error){

@@ -19,6 +19,6 @@ try{
   if(round>=3)times[mode].push(performance.now()-before);
  }
  for(const t of times)t.sort((a,b)=>a-b);
- console.log(JSON.stringify({node:process.version,operationsPerBatch:20,mcus:2,steppers:4,rawSequenceMedianMs:times[0][5],rawSequenceP95Ms:times[0][10],validatedMedianMs:times[1][5],validatedP95Ms:times[1][10],scope:'same simulated serial command sequence; excludes native group release, real motion, compressor reconciliation and hardware'},null,2));
+ console.log(JSON.stringify({node:process.version,operationsPerBatch:20,mcus:2,steppers:4,rawSequenceMedianMs:times[0][5],rawSequenceP95Ms:times[0][10],validatedMedianMs:times[1][5],validatedP95Ms:times[1][10],scope:'same simulated serial transport; original raw baseline omits validated MCU uptime observations; excludes native group release, real motion, compressor reconciliation and hardware'},null,2));
  assert.ok(times[1][5]<=times[0][5]*1.5,'Stop confirmation overhead exceeded 50%');
 }finally{await a.close();await b.close();}
