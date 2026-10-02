@@ -37,9 +37,11 @@ Python 文件。使用和当前证据见[启动说明](Node_Host_Startup.md#校�
 不作为自动选择下一模块的待办表。
 
 首次集成及后续复制批次已完成，远程 develop 为 `4b6a2317`，规定的
-合并后主机与固件检查通过。当前上传／移动覆盖实现仅有本机回归及
-文件系统性能证据；独立编译负载、明确覆盖代际边界及新头 CI／PR
-仍待完成，见[覆盖证据](../host/contracts/native-overwrite-acceptance.json)。
+合并后主机与固件检查通过。当前上传／移动覆盖的本机回归、明确代际
+边界、独立编译两代打印及必要性能检查已通过，见
+[覆盖证据](../host/contracts/native-overwrite-acceptance.json)。
+[PR #3](https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3) 已进入精确头
+规定 CI；正常合并及完整客户端仍待完成。
 下一出口为覆盖集成后的固定同包 Fluidd／Mainsail 完整流程，再按实际
 产品缺口推进离线管理、队列、当前平台维护和剩余完整 Moonraker。
 系列配置预检、旧宏场景映射和 G3 判别提前推进，其他机型最后处理。

@@ -1916,12 +1916,23 @@
       "processLifecycle": 10,
       "totalDistinct": 271,
       "compiled": "passed_for_fixed_local_source",
-      "requiredNewHeadCi": "not_submitted",
+      "requiredNewHeadCi": "pending_for_final_head",
       "integrated": false,
       "nativeMotion": 24,
       "motionIntegration": 112,
       "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
-      "motionEvidence": "host/contracts/motion-overwrite-capture.json"
+      "motionEvidence": "host/contracts/motion-overwrite-capture.json",
+      "integrationCheckpoint": {
+        "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
+        "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
+        "draft": false,
+        "merged": false,
+        "requiredCi": "pending_for_final_head",
+        "review": "bounded_local_software_review_completed",
+        "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
+      }
     }
   },
   "integrationCheckpoint": {
@@ -2138,9 +2149,20 @@
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
       },
       "evidence": "host/contracts/native-overwrite-acceptance.json",
-      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280"
+      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "integrationCheckpoint": {
+        "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
+        "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
+        "draft": false,
+        "merged": false,
+        "requiredCi": "pending_for_final_head",
+        "review": "bounded_local_software_review_completed",
+        "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
+      }
     },
-    "next": "Freeze final source-bound local evidence, submit exact new-head required CI/review/normal PR into develop; then immediately run fixed same-bundle Fluidd/Mainsail complete A journey before next Moonraker batch. Historical G3/500 hardware/Python retirement remain open.",
+    "next": "Verify final-head PR #3 required CI, then normal merge into develop and actual post-merge checks. Immediately run fixed same-bundle Fluidd/Mainsail full A journey before next Moonraker batch; historical G3/500 hardware/Python retirement remain open.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

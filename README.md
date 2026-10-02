@@ -43,7 +43,8 @@ FIRMWARE_RESTART 设施继续复用。文件及含文件目录移动、复制／
 [覆盖证据](host/contracts/native-overwrite-acceptance.json)。迟到分块上传、
 未确认停止及解析目录目标已补验；本批捕获的两条极短运动段已局部修复，
 原精度、时钟、停止和负载门槛保留，历史 G3 仍未关闭。
-当前收口动作是精确新头 CI／审阅／PR，之后处理
+[PR #3](https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3) 已创建，当前收口
+动作是核验精确新头 CI 并正常集成，之后处理
 同一集成包的 Fluidd／Mainsail 完整流程，再按产品缺口处理离线管理／
 递归清理、作业队列、当前平台维护和剩余完整 Moonraker。
 每批贯通产品入口、权限、活动文件保护、恢复、通知和必要打印负载，

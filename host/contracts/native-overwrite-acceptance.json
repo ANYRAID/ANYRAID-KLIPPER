@@ -854,5 +854,16 @@
     ],
     "finding": "No unresolved blocking finding in this bounded current software diff. Historical global G3, hardware, full clients, exact new-head CI and normal integration remain unpassed.",
     "scope": "Local review only; not external GitHub approval, exhaustive production audit, hardware or complete migration acceptance."
+  },
+  "integrationCheckpoint": {
+    "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
+    "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+    "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
+    "draft": false,
+    "merged": false,
+    "requiredCi": "pending_for_final_head",
+    "review": "bounded_local_software_review_completed",
+    "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
+    "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
   }
 }
