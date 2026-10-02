@@ -1892,7 +1892,7 @@
       }
     },
     "m2bOverwrite": {
-      "state": "local_compiled_software_passed_ci_pr_pending",
+      "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
       "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "evidence": "host/contracts/native-overwrite-acceptance.json",
       "sourceHashes": {
@@ -1916,11 +1916,11 @@
       "processLifecycle": 10,
       "totalDistinct": 271,
       "compiled": "passed_for_fixed_local_source",
-      "requiredNewHeadCi": "pending_for_final_head",
+      "requiredNewHeadCi": "pending_for_repair_head",
       "integrated": false,
       "nativeMotion": 24,
       "motionIntegration": 112,
-      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "compiledBundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
       "motionEvidence": "host/contracts/motion-overwrite-capture.json",
       "integrationCheckpoint": {
         "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
@@ -1928,11 +1928,16 @@
         "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
         "draft": false,
         "merged": false,
-        "requiredCi": "pending_for_final_head",
+        "requiredCi": "pending_for_repair_head",
         "review": "bounded_local_software_review_completed",
-        "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
-        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
-      }
+        "submission": "Existing PR #3 remains open. Original 60176186 head host CI failed; after terminal failure necessary safety repairs and diagnostics are source-bound here. Repair head requires complete new CI, then normal PR merge and post-merge checks; no old firmware pass reused.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
+        "failedAttempt": "ciSafetyRepairs.failedCi",
+        "currentRepairSources": "ciSafetyRepairs.sourceHashes",
+        "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904"
+      },
+      "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs"
     }
   },
   "integrationCheckpoint": {
@@ -2135,7 +2140,7 @@
     "currentImplementation": {
       "batch": "M2b 3b upload/move overwrite",
       "branch": "devac/moonraker-file-overwrite",
-      "state": "local_compiled_software_passed_ci_pr_pending",
+      "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
       "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "benchmarkBaseline": {
         "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
@@ -2149,20 +2154,25 @@
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
       },
       "evidence": "host/contracts/native-overwrite-acceptance.json",
-      "compiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "compiledBundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
       "integrationCheckpoint": {
         "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
         "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
         "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
         "draft": false,
         "merged": false,
-        "requiredCi": "pending_for_final_head",
+        "requiredCi": "pending_for_repair_head",
         "review": "bounded_local_software_review_completed",
-        "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
-        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
-      }
+        "submission": "Existing PR #3 remains open. Original 60176186 head host CI failed; after terminal failure necessary safety repairs and diagnostics are source-bound here. Repair head requires complete new CI, then normal PR merge and post-merge checks; no old firmware pass reused.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
+        "failedAttempt": "ciSafetyRepairs.failedCi",
+        "currentRepairSources": "ciSafetyRepairs.sourceHashes",
+        "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904"
+      },
+      "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs"
     },
-    "next": "Verify final-head PR #3 required CI, then normal merge into develop and actual post-merge checks. Immediately run fixed same-bundle Fluidd/Mainsail full A journey before next Moonraker batch; historical G3/500 hardware/Python retirement remain open.",
+    "next": "Submit source-bound thermal/homing repairs and retained Delta failure observations to existing PR #3; verify exact repair-head full required CI, then normal develop merge/post-merge checks. Retain/reuse one integrated product artifact for Fluidd then Mainsail full A before next Moonraker feature batch. 500 no-motion mapping and G3 impact audit advance by actual dependencies; other machine families last.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

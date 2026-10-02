@@ -2,8 +2,8 @@
   "schema": 1,
   "date": "2026-10-03",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-  "state": "local_compiled_software_passed_ci_pr_pending",
-  "scope": "Source-bound native upload/move overwrite, explicit lifecycle and resolved-directory boundaries, necessary motion representations, real native pulse/performance checks and independent compiled mixed printing passed locally. Exact new-head required CI/review/PR, complete client pages, target hardware/G3, complete Moonraker and Python retirement remain open.",
+  "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
+  "scope": "Original upload/move overwrite evidence below remains bound to its recorded source/manifest. Current shared thermal/homing safety repairs and new compiled manifest are recorded in ciSafetyRepairs; exact repair-head CI and integration remain pending. Full clients/hardware/G3/Moonraker/Python retirement are open.",
   "sources": {
     "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
     "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
@@ -861,9 +861,585 @@
     "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
     "draft": false,
     "merged": false,
-    "requiredCi": "pending_for_final_head",
+    "requiredCi": "pending_for_repair_head",
     "review": "bounded_local_software_review_completed",
-    "submission": "Existing authenticated IAB fallback after connector 403; provider readback confirmed exact source head and develop base. Subsequent receipt/document-only head requires its own CI. All source hashes and captured test inputs unchanged.",
-    "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement."
+    "submission": "Existing PR #3 remains open. Original 60176186 head host CI failed; after terminal failure necessary safety repairs and diagnostics are source-bound here. Repair head requires complete new CI, then normal PR merge and post-merge checks; no old firmware pass reused.",
+    "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
+    "failedAttempt": "ciSafetyRepairs.failedCi",
+    "currentRepairSources": "ciSafetyRepairs.sourceHashes",
+    "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904"
+  },
+  "ciSafetyRepairs": {
+    "date": "2026-10-03",
+    "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
+    "sourceParent": "ae793182516075e4f6d8749052c4f49543cb92a0",
+    "sourceHashes": {
+      "host/src/thermal/control.ts": "148331d61044f6a9ed377bbd208ad964cbb138ed2d1244d282e72868b7efce62",
+      "host/src/homing/stop-confirmation.ts": "007c1093393d34a8a8194bdb5a28de3fc56b876aa50a36cb899961d30bdf403f",
+      "host/src/homing/move-execution.ts": "82445d81a023c0fb56a2cc7c5270a1de0e472d1294d129b57283c9b37bde37e5",
+      "host/test/heater-output-refresh.test.ts": "f4d25bca124eaade07d2ead0cc89c92e51b671fdbfa749e918817b580b605f0c",
+      "host/test/homing-move-execution.test.ts": "7ce6a5f6f43d47f1c9217c29c49aa72dc996bd86e558dec0237b4081ffdcbdca",
+      "host/test/delta-probe.test.ts": "a8c08ba7c974364957566a34fc1316a5657dd18a22c880593a3cd186274cedbf",
+      "host/bench/slow-heater.ts": "49e0a7861ae631fff5d40d77f22ddfbd4d11c05b79ffcbd1eeaebfaa4c5824a4",
+      "host/bench/homing-move-execution.ts": "16e0161c95e9eb720d3dce3562b583a3c0d2a296eb34b8a4163e16df18d70ec2",
+      "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad"
+    },
+    "failedCi": {
+      "head": "601761868d52e21f38da6ac9542769ce523a109c",
+      "testedMerge": "31ed43e949b3e4bd136a913ab9d03ca57b55128e",
+      "node": "v26.10.0",
+      "host": {
+        "runId": 37063657733,
+        "jobId": 111026035321,
+        "conclusion": "failure",
+        "tests": 3912,
+        "passed": 3909,
+        "failed": 3,
+        "durationMs": 578678.255233,
+        "log": {
+          "path": "/tmp/anyraid-pr3-ci-host.log",
+          "sha256": "0f2920fbd1d8d2343af75dd8ca7bb22a8c863576c85dd93a6f2f2542b54d235d"
+        },
+        "laterStages": "native protocol, sanitizers and Linux MCU skipped after ordinary-test failure"
+      },
+      "firmware": {
+        "runId": 37063657738,
+        "jobId": 111026035517,
+        "conclusion": "success",
+        "scope": "This failed head only; not a repair-head pass"
+      },
+      "failures": [
+        {
+          "test": "Delta single probe owns every tower across MCU ordering (reverse=true, missingHit=true)",
+          "actual": "Invalid mapped trigger clock: member=1, oid=0, mapped=1736368, observed=1736269",
+          "state": "fixed_leading_estimate_counterexample_actual_endpoint_confirmation"
+        },
+        {
+          "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "actual": "409 Delta calibration requires an idle homed printer",
+          "state": "not_reproduced_not_closed_failure_observation_added"
+        },
+        {
+          "test": "configured HTU21D heater publishes fractional humidity and CRC fault stops both MCUs",
+          "actual": "Heater PWM refresh deadline missed",
+          "state": "fixed_phase_aligned_one_second_poll_counterexample"
+        }
+      ]
+    },
+    "originalFailureBaseline": {
+      "tests": 23,
+      "passed": 22,
+      "failed": 1,
+      "skipped": 0,
+      "durationMs": 66944.985946,
+      "log": {
+        "path": "/tmp/anyraid-pr3-failure-baseline.log",
+        "sha256": "0b3cdafc2c97f018136dbb107d488ba91b09d97ea0c9f60ccb8f947ad4c58a98"
+      },
+      "scope": "Sequential local original source Delta printer/probe and HTU21D hardware; heater deadline failed, Delta happened to pass. Passing samples do not close the remote Delta save failure."
+    },
+    "counterexamples": {
+      "thermal": {
+        "originalControlOracle": {
+          "path": "/tmp/anyraid-pr3-control-oracle.ts",
+          "sha256": "55c1314d95fbb06349afd4b97c6af3a88f0b795107bc99f3469aef91fbae9c14",
+          "source": "601761868d52e21f38da6ac9542769ce523a109c:host/src/thermal/control.ts"
+        },
+        "originalResult": {
+          "tests": 1,
+          "passed": 0,
+          "failed": 1,
+          "skipped": 0,
+          "durationMs": 105.277073,
+          "log": {
+            "path": "/tmp/anyraid-pr3-pwm-fixed-input-before-native.log",
+            "sha256": "a3585aa2603997cf3748f6fcffac4193b3c996fab0c727c5837f91b60d566d84"
+          }
+        },
+        "input": {
+          "sampleTime": 1.1000005,
+          "protectionTicks": [
+            2.1,
+            3.1,
+            4.100001
+          ]
+        },
+        "fix": "Reserve two seconds for 1Hz polling and acknowledged output renewal. Original sensor timestamp, freshness, PID update count, heating verification and strict three-second deadline retained.",
+        "validation": {
+          "tests": 31,
+          "passed": 31,
+          "failed": 0,
+          "skipped": 0,
+          "durationMs": 31112.779342,
+          "log": {
+            "path": "/tmp/anyraid-pr3-pwm-after-native.log",
+            "sha256": "01ecaf15b05c5fd7c08dd8036deee9450f55cfb5b7f374a75f98475e6669941e"
+          }
+        }
+      },
+      "exhaustedHoming": {
+        "originalResult": {
+          "tests": 1,
+          "passed": 0,
+          "failed": 1,
+          "skipped": 0,
+          "durationMs": 1462.233782,
+          "log": {
+            "path": "/tmp/anyraid-pr3-clock-fixed-input-before.log",
+            "sha256": "571a1cb2eed3d3d5074ac197dc342d54e3a0cc09cbebe4466cb13c6b74a6b11a"
+          }
+        },
+        "input": {
+          "physicalMcus": 2,
+          "hostEstimateLeadTicks": "20000",
+          "actualUptime": "unaltered",
+          "noHitReason": 3,
+          "stepperCounter": 300
+        },
+        "fix": "After drip exhaustion confirm the admitted endpoint with actual integer uptime on every physical MCU before stop/readback. Reuse serialized uptime route; original deadline, abort, history pins, mapping and position/trigger guards retained. Triggered path skips this wait.",
+        "earlyValidation": {
+          "tests": 49,
+          "passed": 49,
+          "failed": 0,
+          "skipped": 0,
+          "durationMs": 74244.104276,
+          "log": {
+            "path": "/tmp/anyraid-pr3-clock-after-native.log",
+            "sha256": "35323ca922bdaf709c24c6657be1769802c68bb1390ca6bbcf7307d000aeac8c"
+          },
+          "scope": "Before addition of missing-observation deadline case and Delta save failure diagnostics; production repair sources unchanged."
+        },
+        "missingObservation": "Existing 2000ms move deadline rejects missing actual uptime, safety stop is confirmed and reset_step_clock is not emitted; included in final regression."
+      },
+      "deltaSave": {
+        "state": "not_reproduced_not_closed",
+        "additionalObservation": {
+          "tests": 1,
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "durationMs": 13808.413835,
+          "log": {
+            "path": "/tmp/anyraid-pr3-delta-save-observe.log",
+            "sha256": "4bc66190555071867fcbaab3715771b083effa191ad7dd26f6117976389d3fb5"
+          }
+        },
+        "change": "Only failure diagnostics: before/after motion, homed axes, controller state, pending actions, stop state and calibration diagnostic. Original status=200 assertion retained; no retry or runtime admission change.",
+        "candidateCause": "Background idle clock maintenance is an unproven hypothesis; original CI lacked before-save state."
+      }
+    },
+    "finalRegression": {
+      "tests": 60,
+      "passed": 60,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 53235.176074,
+      "log": {
+        "path": "/tmp/anyraid-pr3-safety-integration.log",
+        "sha256": "24c1838a6cd3c660932acaa5c5c890243de13deb2aa12b0cf4f6bd522c4f517b"
+      },
+      "scope": "Homing execution, linear seek, group plan, preparation/recovery, linear command, native Delta calibration and Delta probe. Includes deadline/no-reset case and final Delta diagnostics. Overlaps earlier suites; counts must not be summed as unique coverage."
+    },
+    "typecheck": {
+      "passed": true,
+      "log": {
+        "path": "/tmp/anyraid-pr3-safety-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "performance": {
+      "thermal": {
+        "before": {
+          "runtime": "v26.9.0",
+          "ticks": 10000,
+          "samplePeriodSeconds": 30,
+          "sampleTimeoutSeconds": 36,
+          "pwmWatchdogSeconds": 3,
+          "writes": 5000,
+          "checksum": 25011499.100001328,
+          "warmups": 3,
+          "runs": 9,
+          "medianMs": 3.800159000000008,
+          "maxMs": 4.855360000000005,
+          "scope": "virtual clock, real thermal controller and output renewal, immediate fake ACK; no hardware or serial IO",
+          "log": {
+            "path": "/tmp/anyraid-pr3-slow-heater-before.log",
+            "sha256": "b95626dece0441ba1e13de44a79cec6e31d3eb885363b0d122ca4badab680206"
+          }
+        },
+        "after": {
+          "runtime": "v26.9.0",
+          "ticks": 10000,
+          "samplePeriodSeconds": 30,
+          "sampleTimeoutSeconds": 36,
+          "pwmWatchdogSeconds": 3,
+          "writes": 10000,
+          "checksum": 50027999.09999732,
+          "warmups": 3,
+          "runs": 9,
+          "medianMs": 5.064592000000005,
+          "maxMs": 5.80377,
+          "scope": "virtual clock, real thermal controller and output renewal, immediate fake ACK; no hardware or serial IO",
+          "log": {
+            "path": "/tmp/anyraid-pr3-slow-heater-after.log",
+            "sha256": "4d03b491e6d4870ee05f2b4b25cb2765c92cec27ddd38f4fa52093cc4f423389"
+          }
+        },
+        "medianIncrementMs": 1.2644329999999968,
+        "incrementMicrosecondsPerTick": 0.12644329999999968,
+        "outputFrequency": "Continuous slow-source heating renews at approximately 1Hz instead of 0.5Hz; acknowledged writes doubled from 5000 to 10000 in this virtual-clock benchmark.",
+        "scope": "Measured CPU overhead only, immediate fake ACK, no serial or target hardware budget proof."
+      },
+      "homing": {
+        "node": "v26.9.0",
+        "samples": 11,
+        "direct": {
+          "elapsed": {
+            "medianMs": 225.84690499999942,
+            "p95Ms": 227.07330899999943
+          },
+          "cpu": {
+            "medianMs": 2.838,
+            "p95Ms": 5.821
+          }
+        },
+        "managed": {
+          "elapsed": {
+            "medianMs": 225.7549280000003,
+            "p95Ms": 226.62409399999888
+          },
+          "cpu": {
+            "medianMs": 2.848,
+            "p95Ms": 4.119
+          }
+        },
+        "scope": "Real native scheduled-hit orchestration on local simulated MCU, excluding bootstrap/physical hardware and no Python/target throughput comparison.",
+        "log": {
+          "path": "/tmp/anyraid-pr3-homing-performance.log",
+          "sha256": "d46a7490be301e8b6a8c6e20f53cf8e3ec75dc6935da05d82b9034132fb8b99f"
+        },
+        "passed": true,
+        "unchangedGates": {
+          "elapsedMedianRatioMaximum": 1.25,
+          "cpuMedianRatioMaximum": 1.75,
+          "cpuMedianAdditiveMs": 1,
+          "cpuMedianMaximumMs": 20
+        }
+      }
+    },
+    "compiled": {
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 123023.011519,
+      "log": {
+        "path": "/tmp/anyraid-pr3-safety-compiled.log",
+        "sha256": "5ff64fe1c01922312905c1e9943ec3f36bf9a802e0ca46969767455a32a83315"
+      },
+      "bundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+      "selections": [
+        "^namespace=true ",
+        "^htu=true htuHeater=true "
+      ],
+      "cases": [
+        {
+          "namespace": true,
+          "motionReportLoad": true,
+          "configListRequests": 2068,
+          "configListP99Ms": 5.490381000003254,
+          "configDownloads": 2068,
+          "configDownloadP99Ms": 9.49213299999974,
+          "liveMotionSamples": 5853,
+          "liveExtrusionSamples": 1463,
+          "nativeAuthorization": true,
+          "apiLoad": true,
+          "completedStatistics": {
+            "total_duration": 10.359990945,
+            "print_duration": 4.875672445000001,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": false,
+          "htuHeater": false,
+          "htuModel": null,
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 10035,
+          "phaseP99Ms": 3.5755090000002383,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": true,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 312,
+              "writes": 43
+            },
+            {
+              "statusReads": 212,
+              "writes": 42
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 2062,
+          "historyP99Ms": 52.65881800000352,
+          "lifecycleShutdowns": 8,
+          "copyRequests": 16,
+          "copyP95Ms": 200.75746499999514,
+          "copyOverwriteRequests": 16,
+          "copyOverwriteP95Ms": 266.2028599999976,
+          "directoryCopyRequests": 16,
+          "directoryCopyP95Ms": 312.37256799999886,
+          "copiesDuringPrint": 4,
+          "directoryCopiesDuringPrint": 2,
+          "fileNotifications": 1160,
+          "fileNotificationP95Ms": 89.89030300000013,
+          "movesDuringPrint": 4,
+          "directoryMoveRequests": 16,
+          "directoryMoveP95Ms": 493.99920399999974,
+          "directoryMovesDuringPrint": 4,
+          "moveRequests": 16,
+          "moveP95Ms": 426.8086420000036,
+          "deleteRequests": 16,
+          "deleteP95Ms": 355.3102949999993,
+          "publicThumbnailRequests": 16,
+          "publicThumbnailP95Ms": 220.24470599999768,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 146.7109249999994,
+          "metadataRequests": 16,
+          "metadataP95Ms": 292.0479389999964,
+          "downloads": 16,
+          "downloadP95Ms": 46.80648400000064,
+          "wireCommands": 232,
+          "wireSteps": 7490,
+          "minimumStepLeadMs": 88.22,
+          "directoryRequests": 8530,
+          "directoryP99Ms": 35.204375000001164,
+          "statusRequests": 40142,
+          "uploads": 16,
+          "statusP99Ms": 3.184674999996787,
+          "uploadP95Ms": 92.103618000001,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.977343,
+                "maxMs": 22.822911
+              },
+              "cpu": {
+                "user": 12039916,
+                "system": 2327737
+              },
+              "rss": 345423872
+            },
+            {
+              "loop": {
+                "p99Ms": 1.980415,
+                "maxMs": 15.851519
+              },
+              "cpu": {
+                "user": 7364086,
+                "system": 1648993
+              },
+              "rss": 365555712
+            }
+          ]
+        },
+        {
+          "namespace": false,
+          "motionReportLoad": true,
+          "configListRequests": 0,
+          "configListP99Ms": null,
+          "configDownloads": 0,
+          "configDownloadP99Ms": null,
+          "liveMotionSamples": 0,
+          "liveExtrusionSamples": 0,
+          "nativeAuthorization": false,
+          "apiLoad": false,
+          "completedStatistics": {
+            "total_duration": 11.118723482999998,
+            "print_duration": 2.497749391000001,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": true,
+          "htuHeater": true,
+          "htuModel": "SHT21",
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 0,
+          "phaseP99Ms": null,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": false,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 206,
+              "writes": 43
+            },
+            {
+              "statusReads": 120,
+              "writes": 43
+            }
+          ],
+          "faultInjected": "htu-humidity-crc",
+          "historyNotifications": 32,
+          "historyRequests": 0,
+          "historyP99Ms": null,
+          "lifecycleShutdowns": 8,
+          "copyRequests": 0,
+          "copyP95Ms": null,
+          "copyOverwriteRequests": 0,
+          "copyOverwriteP95Ms": null,
+          "directoryCopyRequests": 0,
+          "directoryCopyP95Ms": null,
+          "copiesDuringPrint": 0,
+          "directoryCopiesDuringPrint": 0,
+          "fileNotifications": 4,
+          "fileNotificationP95Ms": null,
+          "movesDuringPrint": 0,
+          "directoryMoveRequests": 0,
+          "directoryMoveP95Ms": null,
+          "directoryMovesDuringPrint": 0,
+          "moveRequests": 0,
+          "moveP95Ms": null,
+          "deleteRequests": 0,
+          "deleteP95Ms": null,
+          "publicThumbnailRequests": 0,
+          "publicThumbnailP95Ms": null,
+          "thumbnailRequests": 0,
+          "thumbnailP95Ms": null,
+          "metadataRequests": 0,
+          "metadataP95Ms": null,
+          "downloads": 0,
+          "downloadP95Ms": null,
+          "wireCommands": 268,
+          "wireSteps": 8101,
+          "minimumStepLeadMs": 86.821,
+          "directoryRequests": 0,
+          "directoryP99Ms": null,
+          "statusRequests": 0,
+          "uploads": 0,
+          "statusP99Ms": null,
+          "uploadP95Ms": null,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.680383,
+                "maxMs": 27.787263
+              },
+              "cpu": {
+                "user": 1525914,
+                "system": 266038
+              },
+              "rss": 183095296
+            },
+            {
+              "loop": {
+                "p99Ms": 1.767423,
+                "maxMs": 13.672447
+              },
+              "cpu": {
+                "user": 1006098,
+                "system": 166001
+              },
+              "rss": 202833920
+            }
+          ]
+        }
+      ],
+      "scope": "Independent emitted JS/native addons/production dependencies, PATH=/no-programs, no Python or TS child loading, two simulated MCUs and two device generations; original load, deadlines, stop/precision/step-lead and loop gates retained. HTU case retains original no-namespace-load scope.",
+      "artifactRetention": "Not implemented: current acceptance harness deletes each product directory. Same production manifest across these two builds is not retained/reused artifact or complete Fluidd/Mainsail page acceptance."
+    },
+    "review": {
+      "state": "bounded_local_software_review_completed",
+      "finding": "No demonstrated blocking source issue in the two counterexample repairs. Original move cancellation/deadline, shared-MCU uptime serialization, strict mappings/stopped positions, strict thermal deadline and freshness retained. Extra 1Hz thermal writes disclosed; fixed deadline and original native performance gates pass. Delta 409 remains unclosed; required repair-head CI must determine it with new observations.",
+      "externalReviewSubmission": false
+    },
+    "scope": "Current repaired production/test fingerprints and local evidence only. Does not overwrite original 30cafd1b/8fd8048d acceptance. Exact repair-head host/firmware CI, PR integration and post-merge checks, retained same-package Fluidd/Mainsail A, historical G3, 500 target precision/performance/stop, complete Moonraker, all 177 Python files/default entry and release remain open."
   }
 }

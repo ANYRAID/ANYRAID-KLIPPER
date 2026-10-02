@@ -126,7 +126,10 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
     t.diagnostic('DeltaCalibrationInput '+JSON.stringify(service.calibrationDiagnostic()?.input));
     const replay=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});assert.deepEqual((await replay.json() as any).result,result);assert.equal(hits,16);
     const activeGeometry=owner.kinematics.calibrationGeometry,saveBody=JSON.stringify({version:1,state_token:result.state_token,action:'save'});
-    const saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});assert.equal(saved.status,200,await saved.clone().text());
+    const saveObservation=()=>({motion:owner.port.status,homed:owner.kinematics.status.homedAxes,state:service.printer.controller.state,pending:service.printer.controller.pendingDeviceActions,stopping:service.printer.controller.safeStopPending});
+    const beforeSave=saveObservation(),saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});
+    if(saved.status!==200)t.diagnostic(inspect({beforeSave,afterSave:saveObservation(),calibration:service.calibrationDiagnostic()},{depth:5,maxArrayLength:32}));
+    assert.equal(saved.status,200,await saved.clone().text());
     assert(configurationSession.status.sealedForRestart);assert(service.printer.maintenanceGate.status.closed);assert.deepEqual(owner.kinematics.calibrationGeometry,activeGeometry);
     const restored=await KlipperSaveSession.load(configurationPath);assert.equal(Number(restored.source.original.printer.delta_radius),result.candidate.geometry.radius);
     assert.equal(Object.keys(restored.source.original.delta_calibrate).filter(k=>/^height[0-9]+$/.test(k)).length,7);

@@ -9,6 +9,7 @@ import type {StepCompressor} from '../motion/step-compressor.ts';
 import {serialClock} from '../protocol/serial-queue.ts';
 import {observeRetirement} from '../motion/retired.ts';
 import {PrintClockTimeline} from '../timing/print-clock-timeline.ts';
+import {readHomingClock} from './stop-confirmation.ts';
 export interface ArmedHomingGroup extends HomingStopGroup {readonly startClocks:readonly bigint[];readonly expireTimeout:number;}
 export interface HomingReadback {
  readonly stop:HomingStopSetResult;readonly histories:readonly HomingHistoryBinding[];
@@ -83,6 +84,23 @@ export class HomingMoveExecution {
  }
  #clock(member:number){return this.#timelines[member]??this.#representatives[member];}
  #checkMappings(){for(const {stepper,offset,frequency,timeline} of this.#mappings){const current=stepper.calibration,saved=timeline?.status.calibration??{offset,frequency};if(current.offset!==saved.offset||current.frequency!==saved.frequency)throw new Error('Homing clock calibration changed');}}
+ async #confirmExhausted(signal:AbortSignal){
+  // An estimate can lead firmware by a few ticks. Confirm the admitted endpoint
+  // in each physical MCU before stopping a no-hit trajectory; otherwise its
+  // end reference can lie after the stopped position observation. Keep history,
+  // trigger ownership and the original run deadline throughout this wait.
+  const members=new Map(this.#members.map((member,index)=>[member.session,{member,index}]));
+  await Promise.all([...members.values()].map(async({member,index})=>{
+   const endpoint=this.#clock(index).clockAt(this.#o.endTime);
+   for(;;){
+    signal.throwIfAborted();this.#checkMappings();
+    if(await readHomingClock(member,signal)>=endpoint)return;
+    let timer:ReturnType<typeof setTimeout>|undefined;
+    try{await observeRetirement(new Promise<void>(resolve=>{timer=setTimeout(resolve,1);}),signal);}
+    finally{clearTimeout(timer);}
+   }
+  }));
+ }
  get status(){return {started:!!this.#promise,finished:this.#finished,disposed:this.#disposed,cleanupPending:this.#cleanupPending,cleanupErrors:[...this.#cleanupErrors]};}
  run(signal:AbortSignal){if(this.#disposed)return Promise.reject(new Error('Homing move disposed'));return this.#promise??=this.#run(signal);}
  async #run(signal:AbortSignal){
@@ -94,6 +112,7 @@ export class HomingMoveExecution {
   try{
    s.throwIfAborted();for(const h of this.#o.histories)releaseHistory.push(h.history.pin());for(const timeline of new Set(this.#timelines.filter(t=>t!==undefined))){const lease=timeline.retain(timeline.clockAt(this.#o.startTime));releaseHistory.push(()=>lease.release());}this.#checkMappings();await run(this.#set.arm(s));
    const drip=await run(this.#drip.run(this.#o.startTime,this.#o.endTime,s,this.#o.timeoutMs));
+   if(drip.reason==='exhausted')await run(this.#confirmExhausted(s));
    if(drip.reason==='triggered'&&this.#o.onTriggered)await run(this.#o.onTriggered(s));
    this.#checkMappings();await run(this.#recovery.recover(s).then(result=>{if(s.aborted){result.motion.dispose();throw s.reason;}motion=result.motion;return result;}));
    for(const session of sessions)session.assertActive();s.throwIfAborted();if(!this.#readback)throw new Error('Missing homing readback');

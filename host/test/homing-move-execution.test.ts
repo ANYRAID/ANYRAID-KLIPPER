@@ -4,6 +4,30 @@ import {homingSetPositionOffsets} from '../src/homing/position-offsets.ts';
 import {HomingMoveExecution} from '../src/homing/move-execution.ts';
 import {nativeHomingFixture} from './helpers/homing-move-execution.ts';
 const signal=()=>new AbortController().signal;
+test('exhausted homing confirms each actual MCU endpoint before stopping when its estimate leads firmware',async()=>{
+ const x=await nativeHomingFixture(2);let result:Awaited<ReturnType<HomingMoveExecution['run']>>|undefined;
+ try{
+  for(const [i,session] of x.f.sessions.entries()){
+   const estimated=session.clock.sync.getClock.bind(session.clock.sync);
+   session.clock.sync.getClock=time=>estimated(time)+20000n;
+   x.f.fs[i].setTriggerReason(3,8);x.f.fs[i].setStepperPosition(1,300);
+  }
+  using move=new HomingMoveExecution(x.options);result=await move.run(signal());
+  assert.equal(result.drip.reason,'exhausted');assert.deepEqual(result.missingHits,[0]);
+  assert.deepEqual(result.offsets.map(p=>p.trigger),[300n,300n]);
+  for(const position of result.stop.positions)assert(position.observedClock>=result.triggerClocks[0][position.member]);
+  assert.equal(x.f.stops,0);
+ }finally{result?.motion.dispose();await x.close();}
+});
+test('missing actual endpoint observation keeps the original deadline and cannot reset coordinates', {timeout:5000},async()=>{
+ const x=await nativeHomingFixture();
+ try{
+  x.f.fs[0].setTriggerReason(3,8);x.f.fs[0].ignore('get_uptime');
+  using move=new HomingMoveExecution({...x.options,timeoutMs:2000});
+  await assert.rejects(move.run(signal()),/Homing move timed out/);
+  assert.equal(x.f.stops,1);assert(!x.f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));
+ }finally{await x.close();}
+});
 test('trigger device output precedes recovery and its failure prevents coordinate reset',async()=>{
  const x=await nativeHomingFixture();let timer:ReturnType<typeof setTimeout>|undefined;
  try{let called=0;using move=new HomingMoveExecution({...x.options,onTriggered:async()=>{called++;assert(!x.f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));throw Error('probe stow failed');}});timer=setTimeout(()=>x.hit(0),(x.lead+.025)*1000);await assert.rejects(move.run(signal()),/probe stow failed/);assert.equal(called,1);assert.equal(x.f.stops,1);assert(!x.f.fs[0].outputs.some(o=>o.name==='reset_step_clock'));}finally{clearTimeout(timer);await x.close();}
