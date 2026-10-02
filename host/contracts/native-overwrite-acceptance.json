@@ -2,7 +2,7 @@
   "schema": 1,
   "date": "2026-10-03",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
-  "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
+  "state": "local_configured_print_fixture_repair_passed_exact_new_head_ci_pending",
   "scope": "Original upload/move overwrite evidence below remains bound to its recorded source/manifest. Current shared thermal/homing safety repairs and new compiled manifest are recorded in ciSafetyRepairs; exact repair-head CI and integration remain pending. Full clients/hardware/G3/Moonraker/Python retirement are open.",
   "sources": {
     "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
@@ -861,17 +861,19 @@
     "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
     "draft": false,
     "merged": false,
-    "requiredCi": "pending_for_repair_head",
+    "requiredCi": "pending_for_configured_print_fixture_repair_head",
     "review": "bounded_local_software_review_completed",
-    "submission": "Existing PR #3 remains open. Original 60176186 head host CI failed; after terminal failure necessary safety repairs and diagnostics are source-bound here. Repair head requires complete new CI, then normal PR merge and post-merge checks; no old firmware pass reused.",
+    "submission": "PR #3 remains open. 435e6b73 passed all ordinary tests and native protocol, failed configured print during UBSan. Matching full-file failure captured premature simulated trigger; fixture-only repair passed both sanitizer regressions. Complete new-head CI and post-merge checks remain required.",
     "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
     "failedAttempt": "ciSafetyRepairs.failedCi",
     "currentRepairSources": "ciSafetyRepairs.sourceHashes",
-    "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904"
+    "currentCompiledManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+    "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
+    "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes"
   },
   "ciSafetyRepairs": {
     "date": "2026-10-03",
-    "state": "local_safety_regression_performance_and_compiled_passed_repair_head_ci_pending",
+    "state": "repair_head_435_ordinary_and_protocol_passed_ubsan_configured_print_failed_local_fixture_fix_passed_next_ci_pending",
     "sourceParent": "ae793182516075e4f6d8749052c4f49543cb92a0",
     "sourceHashes": {
       "host/src/thermal/control.ts": "148331d61044f6a9ed377bbd208ad964cbb138ed2d1244d282e72868b7efce62",
@@ -1441,5 +1443,138 @@
       "externalReviewSubmission": false
     },
     "scope": "Current repaired production/test fingerprints and local evidence only. Does not overwrite original 30cafd1b/8fd8048d acceptance. Exact repair-head host/firmware CI, PR integration and post-merge checks, retained same-package Fluidd/Mainsail A, historical G3, 500 target precision/performance/stop, complete Moonraker, all 177 Python files/default entry and release remain open."
+  },
+  "configuredPrintFixtureRepair": {
+    "date": "2026-10-03",
+    "state": "local_configured_print_fixture_repair_passed_exact_new_head_ci_pending",
+    "sourceParent": "435e6b730a7ee3bcc55ba07630c2be68dfbb5310",
+    "sourceHashes": {
+      "host/test/configured-print.test.ts": "279743d3bd318d5a2dce3abc5cde1714573e29e133f6027d81eb3dc71ffa779c"
+    },
+    "failedCi": {
+      "head": "435e6b730a7ee3bcc55ba07630c2be68dfbb5310",
+      "testedMerge": "48f19de9c204383891872085a01d7a385f53dbd6",
+      "node": "v26.10.0",
+      "host": {
+        "runId": 37068421157,
+        "jobId": 111041851150,
+        "conclusion": "failure",
+        "ordinary": {
+          "tests": 3915,
+          "passed": 3915,
+          "failed": 0,
+          "durationMs": 536673.60309
+        },
+        "nativeProtocol": "passed",
+        "ubsan": {
+          "state": "failed",
+          "file": "test/configured-print.test.ts",
+          "tests": 5,
+          "passed": 4,
+          "failed": 1,
+          "test": "configured hardware owns ADC heaters and file lifetime (interrupt=true)",
+          "error": "Print device stopped",
+          "durationMs": 636.398005
+        },
+        "laterStages": "Remaining first UBSan files, entire ASan+UBSan round and Linux MCU did not complete after this failure. No sanitizer memory diagnostic was observed in the captured failure.",
+        "log": {
+          "path": "/tmp/anyraid-pr3-435-host.log",
+          "sha256": "a2441c82c02754bfa8ad0c0dd94064cb4699637de15d9a292ab3049bd3d73f50"
+        }
+      },
+      "firmware": {
+        "runId": 37068421193,
+        "jobId": 111041850543,
+        "conclusion": "success",
+        "scope": "435e6b73 only; not the next repair head"
+      }
+    },
+    "diagnostic": {
+      "singleCase": {
+        "node269": {
+          "processes": 20,
+          "passed": 20,
+          "summary": {
+            "path": "/tmp/anyraid-configured-stop-ubsan-observations.json",
+            "sha256": "b3dd557139fbb32f8509f9999b63c439f35448bc05ffa1b7a44587aaecc99b97"
+          }
+        },
+        "node2610": {
+          "processes": 20,
+          "passed": 20,
+          "summary": {
+            "path": "/tmp/anyraid-configured-stop-ubsan-node2610-observations.json",
+            "sha256": "b4742b2373521e700456279e8cc19c8f137fecc6a951e82356f55e0a79e9358a"
+          }
+        },
+        "conclusion": "Single-case successes did not explain the failure; complete-file context was required."
+      },
+      "completeFile": {
+        "node": "v26.10.0",
+        "boundedAtProcesses": 10,
+        "executedProcesses": 1,
+        "stopOnFirstFailure": true,
+        "tests": 5,
+        "passed": 4,
+        "failed": 1,
+        "log": {
+          "path": "/tmp/anyraid-configured-stop-full-node2610-0.log",
+          "sha256": "cce725c5c8111caade6084c9592c330f415638d032729cf9eee2d244084e2020"
+        },
+        "summary": {
+          "path": "/tmp/anyraid-configured-stop-full-node2610-observations.json",
+          "sha256": "00cc61f5400ce6bd088634948952b7ec3db97c1d00d3a77fca591c32b5bf44ce"
+        },
+        "stage": "prepare",
+        "primaryFault": "Endstop trigger is in the future",
+        "captured": {
+          "armClock": "1624364",
+          "hostEstimate": "1624910",
+          "firmwareClock": "1623362",
+          "earlyTicks": 1002
+        },
+        "conclusion": "The unchanged fixture injected the armed trigger after the host estimate passed but before actual simulated firmware time. Production strict trigger validation rejected the event; thermal shutdown then masked the primary error with Print device stopped. This captures the local matching failure; remote CI lacked the underlying snapshot."
+      }
+    },
+    "fix": "Wait for both estimated host time and actual integer firmware clock before injecting the unchanged armed event. Keep original ADC timer, stop assertions, motor counts and production timing/position/abort guards. Add bounded failure-only stage/clock/device observations; no retry or runtime algorithm change.",
+    "validation": {
+      "node": "v26.10.0",
+      "ubsan": {
+        "tests": 26,
+        "passed": 26,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 19167.798682,
+        "log": {
+          "path": "/tmp/anyraid-pr3-configured-clock-fixed-ubsan.log",
+          "sha256": "9317451436b4baee95bf8848bc8c4bae49463e1fc444983f73e4ddf839f1338e"
+        }
+      },
+      "asanUbsan": {
+        "tests": 26,
+        "passed": 26,
+        "failed": 0,
+        "skipped": 0,
+        "durationMs": 19774.648228,
+        "log": {
+          "path": "/tmp/anyraid-pr3-configured-clock-fixed-asan.log",
+          "sha256": "ae03264dd77bd4b2f8638b7727131c643574f562ca9c713d4f25a7d6d9a7c347"
+        }
+      },
+      "scope": "Configured print complete file plus existing homing-stop and homing-stop-set suites. Includes production rejection of future triggers and confirmed stop. Counts overlap and are not 52 unique tests.",
+      "typecheck": {
+        "passed": true,
+        "log": {
+          "path": "/tmp/anyraid-pr3-configured-clock-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "performance": {
+      "productionSourceChanged": false,
+      "bundleManifestSha256": "181d2dbc080f357b686309beabe41a10c4d4a0db3fea97306c65b4be48ffd904",
+      "scope": "Only test stimulus and failure diagnostics changed; previous source-bound production performance and compiled-load observations remain applicable at their original scope. This is not target-hardware, complete client or full CI proof."
+    },
+    "remaining": "Exact new-head full required CI, normal develop merge and post-merge checks; original Delta save 409 and historical G3 remain open."
   }
 }

@@ -42,8 +42,12 @@ Python 文件。使用和当前证据见[启动说明](Node_Host_Startup.md#校�
 [覆盖证据](../host/contracts/native-overwrite-acceptance.json)。
 [PR #3](https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3) 的 `60176186`
 主机 CI 三项失败；当前必要加热／归零修复及 Delta 保存失败观测的本机
-证据单列于覆盖证据 `ciSafetyRepairs`，完整修复新头 CI、正常合并及
-完整客户端仍待完成。
+证据单列于覆盖证据 `ciSafetyRepairs`。随后 `435e6b73` 的普通 3,915 项
+及原生协议通过，但配置打印在 UBSan 失败；完整文件本机观测捕获模拟
+限位事件提前实际固件时钟 1,002 tick。仅修正该夹具注入条件并保留
+失败观测，生产严格时钟保护未改，26 项相关回归分别通过 UBSan 和
+ASan＋UBSan，证据见 `configuredPrintFixtureRepair`。完整必要修复新头
+CI、正常合并及完整客户端仍待完成，不能复用该失败头的固件通过。
 下一出口为覆盖集成后的固定同包 Fluidd／Mainsail 完整流程，再按实际
 产品缺口推进离线管理、队列、当前平台维护和剩余完整 Moonraker。
 系列配置预检、旧宏场景映射和 G3 判别提前推进，其他机型最后处理。
