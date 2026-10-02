@@ -612,5 +612,415 @@
       "productSourceChanged": false,
       "evidenceReuse": "Recorded product source fingerprints unchanged; compiled-product manifest 6c826ff92218d37047a832433ed6fba2ba10d6877d3390c58f9ee18092827582 and necessary namespace performance evidence remain scoped to the original product/environment"
     }
+  },
+  "thumbnailCompatibility": {
+    "date": "2026-10-02",
+    "implementationBase": "ec4639fb506ad426a7feff24f61fb0997324a8ca",
+    "scope": "Native managed-image GET compatibility software increment; full actual same-package fixed-client outlet still pending",
+    "upstream": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "application": "moonraker/components/application.py:85,554-600",
+      "applicationReference": {
+        "path": "/tmp/anyraid-thumbnail-pinned-application.py",
+        "sha256": "def768fef23065ce807a2a34de7f23b62f25f077407757b7b765f463798b0188"
+      },
+      "authorization": "moonraker/components/authorization.py:774-909",
+      "authorizationReference": {
+        "path": "/tmp/anyraid-thumbnail-pinned-authorization-excerpt.py",
+        "sha256": "0e75d30b5a43b9e8778fb1a08abd8ee6baf1f18358b5f66203f628344c6c5660"
+      }
+    },
+    "behavior": [
+      "Managed PNG/JPG GET without credential follows fixed Moonraker optional authentication; force_logins does not require thumbnail login",
+      "Eligibility uses actual HTTP method, transport, method permission and decoded managed-thumbnail route; URI traversal, non-image extension and alternate file roots remain excluded",
+      "Metadata/current source binding and custom policy checks still execute before image reads; stale deleted source maps to 404 instead of leaking ENOENT as HTTP 500",
+      "Malformed/revoked JWT and invalid API key still fail; signed expired access JWT may read the optional image route as upstream does",
+      "HEAD, metadata, ordinary G-code downloads, mutations, RPCs and notifications retain existing protection; custom authorization callbacks remain authoritative"
+    ],
+    "local": {
+      "node": "v26.9.0",
+      "targeted": 2,
+      "relatedRegression": {
+        "files": 7,
+        "tests": 22,
+        "pass": 22,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "typecheck": "passed",
+      "whitespace": "passed",
+      "initialFixtureFailures": [
+        "Read-only unassembled fixture originally expected DELETE 401; existing route correctly returned 405; only fixture expectation corrected",
+        "Source deletion while cached thumbnail remained yielded 500; production now maps missing source ENOENT to 404"
+      ],
+      "compiled": {
+        "tests": 1,
+        "pass": 1,
+        "durationMs": 37775.511966,
+        "metrics": {
+          "namespace": true,
+          "motionReportLoad": true,
+          "configListRequests": 825,
+          "configListP99Ms": 4.8705209999970975,
+          "configDownloads": 824,
+          "configDownloadP99Ms": 10.796528000002581,
+          "liveMotionSamples": 2634,
+          "liveExtrusionSamples": 1444,
+          "nativeAuthorization": true,
+          "apiLoad": true,
+          "completedStatistics": {
+            "total_duration": 8.708036632999999,
+            "print_duration": 2.542359915999999,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "72c24a3e9b859cf6f208bd2334ec0662ca415b0bb896679579b169c3cb36cda2",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": false,
+          "htuHeater": false,
+          "htuModel": null,
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 3999,
+          "phaseP99Ms": 4.7504900000003545,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": true,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 168,
+              "writes": 43
+            },
+            {
+              "statusReads": 64,
+              "writes": 42
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 897,
+          "historyP99Ms": 11.155653999998322,
+          "lifecycleShutdowns": 8,
+          "fileNotifications": 132,
+          "fileNotificationP95Ms": 11.249515999999858,
+          "deleteRequests": 16,
+          "deleteP95Ms": 10.584745000000112,
+          "publicThumbnailRequests": 16,
+          "publicThumbnailP95Ms": 3.4416810000002442,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 9.876995000000534,
+          "metadataRequests": 16,
+          "metadataP95Ms": 12.449663000001237,
+          "downloads": 16,
+          "downloadP95Ms": 4.030649000000267,
+          "wireCommands": 190,
+          "wireSteps": 3700,
+          "minimumStepLeadMs": 86.382,
+          "directoryRequests": 3822,
+          "directoryP99Ms": 9.347307,
+          "statusRequests": 16001,
+          "uploads": 16,
+          "statusP99Ms": 5.061783999997715,
+          "uploadP95Ms": 16.65634499999942,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.980415,
+                "maxMs": 20.856831
+              },
+              "cpu": {
+                "user": 6677855,
+                "system": 1130406
+              },
+              "rss": 332410880
+            },
+            {
+              "loop": {
+                "p99Ms": 1.895423,
+                "maxMs": 11.010047
+              },
+              "cpu": {
+                "user": 2272980,
+                "system": 367422
+              },
+              "rss": 334532608
+            }
+          ]
+        },
+        "nativeRestart": {
+          "nativeAuthorizationRestart": {
+            "compiled": true,
+            "processRestart": true,
+            "persistedLogin": true,
+            "priorTokenAccepted": true,
+            "filesAndHistory": true,
+            "noReplay": true,
+            "interruptedResumeRejected": true,
+            "explicitCancel": true,
+            "logoutRevoked": true
+          }
+        },
+        "scope": "Same emitted production package with installed dependencies, no Python/TS loader; PTY MCU simulation in parent only; original loop and positive step-lead assertions unchanged"
+      },
+      "benchmark": {
+        "baseline": "Isolated exact ec4639fb source archive; identical expanded benchmark script and unchanged dependencies/native addons; sequential baseline/current per route",
+        "warmups": 3,
+        "runs": 5,
+        "callsPerRound": 100000,
+        "maximumMicrosecondsPerRequest": 10,
+        "results": {
+          "status": {
+            "baseline": {
+              "runtime": "v26.9.0",
+              "route": "status",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                205.03955800000006,
+                209.27840000000003,
+                199.35776499999997,
+                198.15303800000015,
+                198.90188899999998
+              ],
+              "medianMs": 199.35776499999997,
+              "microsecondsPerRequest": 1.9935776499999998,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-baseline-status.json",
+                "sha256": "b63baf8d65f5acdfd0b480f19e01d91d17a410fe632af63861a28f8b10d5e585"
+              }
+            },
+            "current": {
+              "runtime": "v26.9.0",
+              "route": "status",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                199.96714399999996,
+                199.22767299999998,
+                197.11882300000002,
+                197.53983799999992,
+                192.59359599999993
+              ],
+              "medianMs": 197.53983799999992,
+              "microsecondsPerRequest": 1.9753983799999992,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-current-status.json",
+                "sha256": "bbd4d22c7814506e32257f3c7da0a936014c0b961970662e611018564644f1cf"
+              }
+            }
+          },
+          "file": {
+            "baseline": {
+              "runtime": "v26.9.0",
+              "route": "file",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                191.74220300000002,
+                193.17796499999997,
+                192.450014,
+                191.68179199999986,
+                193.10150299999987
+              ],
+              "medianMs": 192.450014,
+              "microsecondsPerRequest": 1.9245001400000001,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-baseline-file.json",
+                "sha256": "2aec2639cc0099b93bcb53ba5f04df9fc6c37e6c906f2a84a4ea3cf38a1596dc"
+              }
+            },
+            "current": {
+              "runtime": "v26.9.0",
+              "route": "file",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                301.4817190000001,
+                304.2735,
+                302.66533500000014,
+                303.27083500000003,
+                304.9514879999997
+              ],
+              "medianMs": 303.27083500000003,
+              "microsecondsPerRequest": 3.0327083500000005,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-current-file.json",
+                "sha256": "183afb8c5c78dd78223fc4a35acc2a0873d4c59a120b48128d20921b5005c016"
+              }
+            }
+          },
+          "image": {
+            "baseline": {
+              "runtime": "v26.9.0",
+              "route": "image",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                210.489602,
+                211.29090399999995,
+                213.49425500000007,
+                212.03046399999994,
+                212.47355000000016
+              ],
+              "medianMs": 212.03046399999994,
+              "microsecondsPerRequest": 2.120304639999999,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-baseline-image.json",
+                "sha256": "18ff581f31ca67eae734fba23d2277abab62e4fd9d5c3c241db88d2c1aae735a"
+              }
+            },
+            "current": {
+              "runtime": "v26.9.0",
+              "route": "image",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                359.2984100000001,
+                360.76937099999986,
+                356.2264550000002,
+                353.5973670000003,
+                353.8435989999998
+              ],
+              "medianMs": 356.2264550000002,
+              "microsecondsPerRequest": 3.5622645500000023,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-current-image.json",
+                "sha256": "ea9b56a700d9114ff1926eea2fcf91ad68b04b2e64e105a170f718c535ef187f"
+              }
+            }
+          },
+          "anonymous-image": {
+            "current": {
+              "runtime": "v26.9.0",
+              "route": "anonymous-image",
+              "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+              "samplesMs": [
+                140.75898199999995,
+                140.35429699999997,
+                141.175428,
+                140.89603399999987,
+                140.83399299999996
+              ],
+              "medianMs": 140.83399299999996,
+              "microsecondsPerRequest": 1.4083399299999997,
+              "maximumMicrosecondsPerRequest": 10,
+              "artifact": {
+                "path": "/tmp/anyraid-thumb-auth-current-anonymous-image.json",
+                "sha256": "52cdd082d3c1b78b41d1f64dff54738473cfac54a4e8f61ba22abf8ada7daf15"
+              }
+            }
+          }
+        },
+        "scope": "CPU microbenchmark excludes network/disk/target board; runtime printing performance observed separately in compiled mixed-load case"
+      },
+      "actualClient": {
+        "client": "Fluidd 1.37.6",
+        "manifestSha256": "72c24a3e9b859cf6f208bd2334ec0662ca415b0bb896679579b169c3cb36cda2",
+        "login": "passed",
+        "directoryCreateAndBrowse": "passed",
+        "upload": "not verified: browser file-chooser setFiles did not return within original fixture lifetime; proxy log has no upload request",
+        "requestTimeoutMs": 10000,
+        "reportedToolWallTimeSeconds": 57854.357,
+        "fixture": {
+          "pid": 1262568,
+          "execSession": 34660,
+          "originalLimitMinutes": 15,
+          "terminalExitCode": 0,
+          "terminalLog": "CLIENT_TIMEOUT"
+        },
+        "remaining": [
+          "Actual thumbnail visibility after page upload",
+          "Pause/resume/cancel, refresh/reconnect and same-package process recovery",
+          "Complete fixed Mainsail same-bundle flow"
+        ],
+        "scope": "No page success inferred from API/compiled tests. Earlier d8f9 actual page upload remains separate historical evidence."
+      }
+    },
+    "sourceSha256": {
+      "host/src/moonraker/api-key-authorization.ts": "037bfec9ff513286416d5251aebfe0d68ee3fbc8d882194c11a8d9b6a3413366",
+      "host/src/moonraker/authorization-policy.ts": "c3f0c45183c48cff4069e8cb35036d174eb13c3a1f36e0e84b4ef33938a8cfec",
+      "host/src/moonraker/native-print-uploads.ts": "115349f09d165b9c778a40d621d8d17a4c2eeb38c192f56a5fd6ae19de9660ee",
+      "host/src/moonraker/thumbnail-download.ts": "883f209ceb7bc5d33d25d23172c5d59ef5e9a9cd5bf5f86ba59c4106ed509925",
+      "host/test/native-thumbnail-authorization.test.ts": "c7d2ed6379449a8e12a7fb9077655379132e6215f364575c913100d687648cb1",
+      "host/bench/api-key-authorization.ts": "c54f9869b09c24a529ac0218f3f3e2c3aff884d57228f413ef5b0814e15cc170",
+      "host/acceptance/product-compiled-journey.test.ts": "3d1643b2f4d6da6e6e2ec0223b22596dd1753783f4ba65c0ee21f148b5a959d6"
+    },
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-auth.log",
+        "sha256": "500dd55f4dfbeaf526806b2c30f2152f3d90916758e01bbae8add786dbeb1b1a"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-auth-fixed.log",
+        "sha256": "834a30d2761573f1b7afb7a57152ea2dc6b504c4e2cbb122aff8988aafa06a48"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-auth-final.log",
+        "sha256": "90c2c848748c0f908ed2e0f0b98ba0d4ba27f23e62e3eb25170357ae122b7952"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-regression.log",
+        "sha256": "954bfe0c5c4effdb6899dd1de9451411465a20d11908a08799ae5e2b07f8a012"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-typecheck-final.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-thumbnail-compiled.log",
+        "sha256": "98de6941b169835792ada5bcf011ebe93b065fb1724534fb5ec8701590018ba0"
+      },
+      {
+        "path": "/tmp/anyraid-m2a-fluidd-thumbnail-client.log",
+        "sha256": "790f78bb8e05ccda6652289def60906561ec3920ab9b70e9d5ea7b08b9ee62f4"
+      }
+    ]
   }
 }

@@ -2,8 +2,9 @@ import type {FileMetadataStore} from './file-metadata.ts';
 import {ThumbnailStorageBusyError,type ThumbnailStorage} from './thumbnail-storage.ts';
 import {ApiError,type RpcContext} from './rpc.ts';
 export interface ThumbnailDownload {size:number;contentType:string;read():Promise<{bytes:Buffer;sha256:string}>;}
-/** Logical gcodes URLs only. Current metadata and per-source authorization are
- * both required; a bundle UUID is never an authorization credential. */
+/** Logical gcodes URLs only. Current metadata and per-source policy checks are
+ * both required. Native authorization permits managed PNG/JPG GETs without a
+ * credential, as pinned Moonraker does; a bundle UUID does not grant file access. */
 export class ThumbnailDownloads {
  private storage:Pick<ThumbnailStorage,'read'>;private metadata:FileMetadataStore;private assertAvailable:(()=>void)|undefined;
  constructor(storage:Pick<ThumbnailStorage,'read'>,metadata:FileMetadataStore,assertAvailable?:()=>void){this.storage=storage;this.metadata=metadata;this.assertAvailable=assertAvailable;}

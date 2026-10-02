@@ -1,6 +1,15 @@
 import {randomBytes} from 'node:crypto';
 import {isIP} from 'node:net';
 import {ApiError} from './rpc.ts';
+/** Pinned application.py permits unauthenticated PNG/JPG GETs. Native file
+ * routes expose only managed thumbnails: still resolve the current metadata
+ * owner before reading, and never extend this exception to HEAD or G-code. */
+export function anonymousThumbnailGet(request:{method?:string;url?:string}):boolean{
+ if(request.method!=='GET'||!request.url)return false;
+ let path:string;try{path=decodeURIComponent(request.url.split('?')[0]);}catch{return false;}
+ if(Buffer.byteLength(path)>4096||/[\x00-\x1f\x7f\\]/u.test(path)||path.split('/').slice(1).some(part=>!part||part==='.'||part==='..'))return false;
+ return /^\/server\/files\/gcodes\/(?:[^/]+\/)*\.thumbs\/thumb-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/(?:0|[1-9][0-9]?)\.(?:png|jpg)$/u.test(path);
+}
 /** Socket peer only. Forwarded headers require a separate trusted-proxy policy. */
 export function authorizationAddress(value:unknown):string{
  if(typeof value!=='string'||!isIP(value))throw new ApiError(401,'Client address unavailable');

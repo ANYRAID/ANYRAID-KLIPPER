@@ -187,7 +187,7 @@ export class NativePrintUploads {
  hasThumbnail(path:string):boolean{return this.#metadata.hasThumbnail(path);}
  resolveThumbnail(path:string,context:RpcContext):Promise<ThumbnailDownload>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native thumbnails closed'));const signal=AbortSignal.any([context.signal,this.#abort.signal]);
-  const task=this.#metadata.resolveThumbnail(path,{...context,signal,authorize:async(method,params)=>this.#authorize(context,{...params,...(typeof params.filename==='string'?{file_id:await this.#files.resolvePath(nativeFilename(params.filename),signal)}:{})},signal,method)});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
+  const task=this.#metadata.resolveThumbnail(path,{...context,signal,authorize:async(method,params)=>this.#authorize(context,{...params,...(typeof params.filename==='string'?{file_id:await this.#files.resolvePath(nativeFilename(params.filename),signal)}:{})},signal,method)}).catch(error=>{if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Thumbnail source not found');throw error;});this.#pending.add(task);return task.finally(()=>this.#pending.delete(task));
  }
  thumbnails(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json[]>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native thumbnails closed'));

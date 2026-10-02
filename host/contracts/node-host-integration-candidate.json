@@ -265,7 +265,7 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "1b80 prescribed CI passed. M2a namespace software/API and compiled-product evidence is separate in native-file-namespace-acceptance.json; obtain exact new-head CI and complete fixed-client same-bundle page acceptance. Historical mapped-clock, PWM, Delta calibration and G3 failures remain unresolved; no merge or real motion approval inferred.",
+    "next": "ec4639 host fails two dual-carriage clock mappings; fix/discriminate cause before merge. New thumbnail software evidence and blocked actual file chooser are recorded separately.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
       "baseRevision": "ce7002bedf37e938bb483572949f3703ac6476cb",
@@ -603,7 +603,65 @@
         "scope": "Check conclusions only; finite successful observations do not close historical G3 failures or prove target timing."
       },
       "scope": "Decoded complete host logs obtained from the GitHub connector. PR and push ordinary-test outcomes differ on the same source revision. Firmware result is pending; no merge or hardware approval."
-    }
+    },
+    "additionalObservations": [
+      {
+        "source": "ec4639fb506ad426a7feff24f61fb0997324a8ca",
+        "testedMerge": "7972379e",
+        "observedAt": "2026-10-02T10:21:40Z",
+        "host": {
+          "run": 36903503029,
+          "job": 110508181359,
+          "result": "failure",
+          "tests": 3814,
+          "pass": 3812,
+          "fail": 2,
+          "cancelled": 0,
+          "skipped": 0,
+          "oldFilenameAssertion": "passed",
+          "failures": [
+            {
+              "case": "configured cartesian y carriage starts, homes on two MCUs and moves selected motor",
+              "member": 1,
+              "oid": 0,
+              "mapped": "1625345",
+              "observed": "1625271"
+            },
+            {
+              "case": "configured hybrid_corexz x carriage starts, homes on two MCUs and moves selected motor",
+              "member": 0,
+              "oid": 0,
+              "mapped": "1835297",
+              "observed": "1834165"
+            }
+          ],
+          "cause": "Invalid mapped trigger clock; cause unresolved. Original integer clock check and fail-stop retained",
+          "notExecuted": [
+            "native protocol",
+            "UBSan",
+            "ASan+UBSan",
+            "Linux MCU build"
+          ],
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-ec4639-host-failures.log",
+            "sha256": "967e749121e44fb26fdcd4ff0ebaa34c7147f0453cb87e735af071a60e996b12"
+          }
+        },
+        "firmware": {
+          "run": 36903503063,
+          "job": 110508180628,
+          "result": "success",
+          "scope": "Job terminal and complete log verified; not Python retirement or additional machine adaptation"
+        },
+        "motion": {
+          "run": 36903503152,
+          "jobs": 8,
+          "result": "success",
+          "scope": "Finite diagnostic observation does not close G3"
+        },
+        "next": "Capture and discriminate mapped trigger versus observed clock in existing two-MCU dual-carriage software path; no clamping, tolerance/deadline relaxation or physical motion. Thumbnail source increment has separate local evidence and requires its own exact-head CI."
+      }
+    ]
   },
   "mergeReady": false,
   "remaining": [

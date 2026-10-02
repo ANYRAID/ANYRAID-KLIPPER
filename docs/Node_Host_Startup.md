@@ -2177,6 +2177,16 @@ loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从�
 首次身份应通过可信本地配置流程预置；不得公开 API Key 或增加未鉴权的
 远程初始化入口。这不是默认部署切换或实机验收。
 
+原生授权沿用固定 Moonraker 的图片 GET 非必需鉴权语义：当前有效的
+托管 PNG／JPG 缩略图可由浏览器无令牌读取，force_logins 不阻止图片显示。
+提供错误凭据仍拒绝；签名有效但过期的 access JWT 在此图片 GET 路径
+允许读取，退出／删除身份后的 JWT 仍拒绝。匿名调用仍须通过当前元数据
+及源文件绑定检查，源已删除返回 404；UUID 不授予 G-code 访问权限。
+HEAD、普通文件下载、元数据、修改、RPC 和通知保持原鉴权；外部自定义
+鉴权回调继续决定是否允许。此软件契约及并发打印验证见
+[目录文件验收](../host/contracts/native-file-namespace-acceptance.json)，
+两套实际客户端同包完整流程仍待完成。
+
 `host/test/product-native-authorization.test.ts` 验证原生产品的策略拒绝、
 混合回调拒绝、数据库清理，以及模拟 MCU 服务两次启动间的用户登录、
 JWT 状态访问与退出撤销。41 项相关回归通过。Node 26.9.0 桌面启动基准

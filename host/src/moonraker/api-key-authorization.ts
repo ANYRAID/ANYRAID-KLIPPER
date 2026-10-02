@@ -8,7 +8,7 @@ import type {EndpointRegistry} from './endpoints.ts';
 import type {NetworkAuthorization,MoonrakerNetworkOptions} from './server.ts';
 import {LocalUserAuthorization,type LocalUserOptions,type UserChange,type UserCommitted} from './local-user-authorization.ts';
 import {ApiError,type Json,type AuthorizedUser,type RpcContext} from './rpc.ts';
-import {authorizationAddress,LoginAttempts,OneShotTokens} from './authorization-policy.ts';
+import {anonymousThumbnailGet,authorizationAddress,LoginAttempts,OneShotTokens} from './authorization-policy.ts';
 import type {DeliveryReport} from './notifications.ts';
 export interface AuthorizationEvents {broadcast(method:string,params:readonly Json[]):Promise<DeliveryReport>;}
 export interface AuthorizationOptions extends LocalUserOptions {trustedClients?:readonly string[];maxLoginAttempts?:number;enableApiKey?:boolean;monotonicNow?:()=>number;}
@@ -48,10 +48,11 @@ export class ApiKeyAuthorization {
  authorize(method:string,params:Readonly<Record<string,Json>>,context:NetworkAuthorization):AuthorizedUser|undefined{
   this.#active();context.signal.throwIfAborted();
   this.#requests.set(context.signal,context.request);
+  const optionalThumbnail=method==='server.files.download'&&context.transport==='http'&&anonymousThumbnailGet(context.request);
   const remember=(principal:Principal)=>{this.#principals.set(context.signal,principal);if(context.transport==='websocket')this.#connections.set(context.request,principal);return typeof principal==='number'?identity:{username:principal==='trusted'?'_TRUSTED_USER_':principal.username};};
   const validate=(principal:Principal)=>{if(typeof principal==='number'){if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Invalid API Key');}else if(principal==='trusted'){if(!this.#trusts(context.request))throw new ApiError(401,'Trusted client authorization no longer available');}else this.#users!.decode(principal.token,'access',false);return remember(principal);};
   const identify=method==='server.connection.identify',session=this.#connections.get(context.request);
-  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#users.decode(token);return remember({token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});};
+  const acceptToken=(token:unknown)=>{if(!this.#users)throw new ApiError(401,'Bearer authentication is not configured');const user=this.#users.decode(token,'access',!optionalThumbnail&&!['access.login','access.refresh_jwt','access.info'].includes(method));if(context.transport==='websocket')this.#users.decode(token);return remember({token:token as string,username:user.username,kid:JSON.parse(Buffer.from((token as string).split('.')[0],'base64url').toString()).kid});};
   const acceptKey=(key:unknown)=>{if(!this.#matches(key))throw new ApiError(401,'Invalid API Key');return remember(this.#generation);};
   if(identify){try{if(params.access_token!==undefined)return acceptToken(params.access_token);if(params.api_key!==undefined)return acceptKey(params.api_key);}catch(error){if(context.transport==='websocket')this.#connections.set(context.request,null);throw error;}}
   // A successful WS login supersedes credentials from the upgrade request.
@@ -68,7 +69,7 @@ export class ApiKeyAuthorization {
   if(context.request.url?.includes('token')){const oneShot=new URL(context.request.url,'http://localhost').searchParams.getAll('token').at(-1);if(oneShot!==undefined){const principal=this.#oneShots.consume(oneShot,authorizationAddress(context.request.socket.remoteAddress));if(principal!==undefined){const user=validate(principal);if(context.transport==='http')this.#oneShotRequests.set(context.request,principal);return user;}}}
   const header=context.request.headers['x-api-key'];if(header!==undefined)return acceptKey(header);
   if(this.#trusts(context.request))return remember('trusted');
-  if(method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
+  if(optionalThumbnail||method==='access.info'||this.#users&&(method==='access.login'||method==='access.refresh_jwt'))return;
   throw new ApiError(401,'Unauthorized');
  }
  #trusts(request:IncomingMessage){
