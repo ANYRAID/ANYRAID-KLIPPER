@@ -265,8 +265,8 @@
       "performanceRows": 27,
       "scope": "Local reference/test repair only. Production algorithms, endpoint owners and deadlines unchanged. Full CI on the new commit still required."
     },
-    "next": "Finish the existing one-second calibration fix batch and exact-source verification. At bounded diagnostic checkpoints or while waiting for checks/required observations, advance only Moonraker user paths with proven independent dependencies. Required CI failures still block merge and physical motion.",
-    "latestObservedSource": "ab4d207d2df0da2c298091627256bd611bf4bff7",
+    "next": "Push test-only post-drain/rebuild cadence assertions, then verify exact new-head required CI. Keep copy/overwrite source draft outside that candidate until its complete compiled/performance/client evidence is ready.",
+    "latestObservedSource": "492bf405744e21701686ddc7c647672699ed404b",
     "currentScope": "The current field below is the historical fully passing 1b80f71d reference, not the latest candidate conclusion. Read latestObservedSource with additionalObservations; softwareBase and product retain their original source and manifest identity.",
     "current": {
       "revision": "1b80f71d726cac2fb2012a1ed3d6916c4421b9ab",
@@ -1271,12 +1271,113 @@
           "scope": "Finite jobs only, not G3 closure"
         },
         "closure": "No merge, physical motion or G3 closure. Previous BLTouch and manual-mesh failures passed this round; unexplained historical causes remain open. Uncommitted one-second cadence draft is not included in this remote source."
+      },
+      {
+        "revision": "492bf405744e21701686ddc7c647672699ed404b",
+        "testedMergeRevision": "b8d87e306913ed1f66ca821729fe5c79b6b7455b",
+        "status": "completed",
+        "host": {
+          "run": 37026800709,
+          "job": 110903379623,
+          "conclusion": "failure",
+          "ordinary": {
+            "tests": 3863,
+            "passed": 3861,
+            "failed": 2,
+            "durationMs": 574126.444689
+          },
+          "failures": [
+            {
+              "test": "idle calibration preserves stationary counters and subsequent movement (filtered=true)",
+              "actual": {
+                "attempted": 1,
+                "updated": 1
+              },
+              "expected": {
+                "attempted": 0,
+                "updated": 0
+              },
+              "location": "idle-clock-calibration.test.ts:19 after forcePosition"
+            },
+            {
+              "test": "paced motion automatically recalibrates MCU a across multiple periods",
+              "actual": {
+                "attempted": 1,
+                "updated": 1
+              },
+              "expected": {
+                "attempted": 0,
+                "updated": 0
+              },
+              "location": "periodic-clock-calibration.test.ts:25 after firmware drain"
+            }
+          ],
+          "causeBoundary": "The four-second implementation made post-drain/post-rebuild zero-update expectations appear stable. One-second cadence can legitimately expire while waiting. Successful refresh is not a stopped-clock or endpoint failure.",
+          "laterStages": "Protocol, sanitizers and Linux MCU skipped after ordinary-test failure.",
+          "failureExcerpt": {
+            "path": "/tmp/anyraid-492bf405-host-failures.log",
+            "sha256": "d4235fbcfe637274bd2e6d34dafce1491de312bf4fb161df2f6d5a8201408c20"
+          }
+        },
+        "firmware": {
+          "run": 37026801344,
+          "job": 110903381092,
+          "conclusion": "success"
+        },
+        "finiteMotion": {
+          "run": 37026801071,
+          "jobs": [
+            {
+              "job": 110903381037,
+              "name": "motion (26.10.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380999,
+              "name": "motion (26.9.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380985,
+              "name": "motion (26.10.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380934,
+              "name": "motion (26.9.0, off, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380931,
+              "name": "motion (26.10.0, default, source)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380901,
+              "name": "motion (26.10.0, off, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380861,
+              "name": "motion (26.9.0, default, compiled)",
+              "conclusion": "success"
+            },
+            {
+              "job": 110903380697,
+              "name": "motion (26.9.0, off, compiled)",
+              "conclusion": "success"
+            }
+          ],
+          "conclusion": "success",
+          "scope": "Finite jobs only, not G3 closure"
+        },
+        "closure": "No merge or G3 closure. Prior reverse-MCU missing-trigger and immediate second G28 failures passed here; historical unexplained clock/precision/process anomalies remain open."
       }
     ]
   },
   "mergeReady": false,
   "remaining": [
-    "ab4d207d exact-source host CI: 3860/3862 ordinary tests passed; reverse-MCU missing trigger maps 28 ticks beyond stopped observation, and immediate second G28 trigger reports a future tick. Protocol/sanitizers/Linux MCU skipped. Firmware and eight finite diagnostics passed; required new-head CI and historical G3 gates remain.",
+    "492bf405 exact-source host CI: 3861/3863 ordinary tests passed; two post-drain/rebuild assertions still expect no calibration although a one-second deadline legitimately expired and refreshed successfully. Protocol/sanitizers/Linux MCU skipped. Firmware/eight finite jobs passed; fresh exact-head required checks and historical G3 gates remain.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",

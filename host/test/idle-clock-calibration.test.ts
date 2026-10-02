@@ -16,7 +16,12 @@ for(const filtered of [false,true])test(`idle calibration preserves stationary c
   t.kinematics.markHomed([0]);t.port.move([51,0,0,2.1],10);
   assert.throws(()=>t.port.maintainIdleClocks(signal()),/stationary ownership/);assert.equal(t.port.status.failed,false);
   await t.port.drain(signal());assert.equal(t.generation.motion.bindings[0].history.status.lastPlannedPosition,200n);assert.equal(t.generation.motion.bindings[1].history.status.lastPlannedPosition,30n);assert.equal(t.f.stops,0);
-  await t.port.forcePosition([51,0,0,2.1],signal());assert.deepEqual(await t.port.maintainIdleClocks(signal()),{attempted:0,updated:0});assert.equal(t.f.stops,0);
+  await t.port.forcePosition([51,0,0,2.1],signal());
+  // Rebuilding/draining may consume the next one-second interval. Permit its
+  // required successful refresh and verify stationary ownership, not elapsed
+  // wall time. A failed refresh still fails this assertion.
+  const pulses=t.f.fw.motion.filter(m=>m.name==='queue_step').length,refresh=await t.port.maintainIdleClocks(signal());
+  assert(refresh.attempted===0||refresh.attempted===1);assert.equal(refresh.updated,refresh.attempted);assert.equal(t.f.fw.motion.filter(m=>m.name==='queue_step').length,pulses);assert.deepEqual(t.port.position(),[51,0,0,2.1]);assert.equal(t.f.stops,0);
  }finally{await t.close();}
 });
 test('idle calibration cancellation stops the owner and every MCU',async()=>{

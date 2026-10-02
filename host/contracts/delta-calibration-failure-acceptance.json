@@ -1055,5 +1055,55 @@
       "Cycnumbris 500 physical stop, target budgets and long printing",
       "Full native Moonraker, consumer operation scenarios and all Python retirement"
     ]
+  },
+  "cadenceElapsedSlotCheckpoint": {
+    "sourceBase": "492bf405744e21701686ddc7c647672699ed404b",
+    "date": "2026-10-03",
+    "scope": "Test-only clock expectations. Copy/overwrite working-tree draft excluded from isolated candidate; no production timing, solver, stop or firmware changes.",
+    "sourceSha256": {
+      "host/test/periodic-clock-calibration.test.ts": "c3fcf9e55d8ac2edda7c4f047385a5399461beef757a1769437e3d33c30dfa6c",
+      "host/test/idle-clock-calibration.test.ts": "01f31cb077725f82e215b73e3b05eb685dab0b6649326b86b0e7c8e6d46427cc"
+    },
+    "remoteEvidence": "host/contracts/node-host-integration-candidate.json additionalObservations for 492bf405",
+    "changes": [
+      "Synchronous post-drain slot freezes only the clock read during synchronous calls: attempted count must match public due predicate; segment count must match actual successful updates; repeated same slot must do zero work. No IO executes with frozen time.",
+      "Post-position-rebuild idle refresh may be due; every attempted update must succeed and emit no additional step pulse, preserve exact position and leave no MCU stop."
+    ],
+    "local": {
+      "distinctTests": 9,
+      "isolatedTests": 9,
+      "isolatedPass": 9,
+      "isolatedTypecheck": true,
+      "isolation": "git archive HEAD host/scripts plus only two test files; linked unchanged local native build/development dependencies. New namespace-copy.ts absent.",
+      "snapshotPath": "/tmp/anyraid-cadence-slot.FlmPrt",
+      "snapshotRetained": false
+    },
+    "performance": {
+      "productionChanged": false,
+      "reusedEvidence": "clockCadenceCheckpoint; timing/native source unchanged. No new copy performance claim."
+    },
+    "logArtifacts": [
+      {
+        "path": "/tmp/anyraid-cadence-post-drain-fix.log",
+        "sha256": "d1bc22af5cdcfa21df8eb242f12a14b9c715d489644197d6ce5718e2660da8cd"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-slot-isolated.log",
+        "sha256": "2b2acb6e11da67e9b43e9647530daa119480ae2f12dbae2ac23c3fb6bd16c516"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-slot-isolated-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/tmp/anyraid-cadence-slot-whitespace.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "remaining": [
+      "Fresh exact-source required CI",
+      "Historical unresolved G3, actual fixed clients and Cycnumbris 500 target acceptance",
+      "Copy/overwrite draft compiled/performance validation, upload overwrite and full Moonraker/Python retirement"
+    ]
   }
 }
