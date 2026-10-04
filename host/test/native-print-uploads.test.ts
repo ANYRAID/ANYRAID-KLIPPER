@@ -27,6 +27,25 @@ test('closed process files reject deletion even while their device delegate rema
   await root.close();assert.equal(borrower.status.closed,false);await assert.rejects(root.remove({path:'gcodes/retained.gcode'},{transport:'http',signal:signal.signal,authorize(){}}),/closed/);assert.equal((await files.inspect('retained')).id,'retained');
  }finally{signal.abort();await controller.retire();await borrower.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
 });
+test('device upload drain cancels process staging while retaining process reads and storage',async()=>{
+ const dir=await mkdtemp(join(tmpdir(),'device-upload-drain-')),files=await PublishedPrintFiles.open(join(dir,'files')),root=new NativePrintUploads(files,new MaintenanceGate(),{stagingRoot:dir}),gate=new MaintenanceGate(),device=new NativePrintUploads(files,gate,{},root),generation=new AbortController();
+ const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate});device.bindPrintController(controller);root.bindDeviceFiles(device,generation.signal);
+ const network=new MoonrakerNetwork(new JsonRpcDispatcher(),{nativeUploads:root,authorize(){}}),address=await network.listen(),base=`http://127.0.0.1:${address.port}`;let pending:ReturnType<typeof httpRequest>|undefined;
+ try{
+  const outcome=Promise.withResolvers<number|'ECONNRESET'>();
+  pending=httpRequest(base+'/server/files/upload',{method:'POST',headers:{'content-type':'multipart/form-data; boundary=device-drain','transfer-encoding':'chunked'}},response=>{response.resume();response.on('end',()=>outcome.resolve(response.statusCode!));});pending.on('error',error=>{if((error as NodeJS.ErrnoException).code==='ECONNRESET')outcome.resolve('ECONNRESET');else outcome.reject(error);});
+  pending.write('--device-drain\r\nContent-Disposition: form-data; name="file"; filename="part.gcode"\r\nContent-Type: application/octet-stream\r\n\r\nG1 X9');
+  await until(()=>root.status.mutations===1&&gate.status.activities===1);
+  assert.equal(device.status.pending,1);
+  await device.drain();
+  assert.equal(generation.signal.aborted,false,'Device drain itself must cancel its staged work');
+  assert.equal(root.status.closed,false);assert.equal(root.status.pending,0);assert.equal(root.status.mutations,0);assert.equal(device.status.pending,0);assert.equal(gate.status.activities,0);
+  assert.deepEqual((await readdir(dir)).filter(name=>name.startsWith('anyraid-upload-')),[]);
+  assert.deepEqual(await root.list({},new AbortController().signal),[]);assert.equal(files.status.closed,false);
+  pending.end('\n\r\n--device-drain--\r\n');const cancelled=await outcome.promise;assert(cancelled===503||cancelled==='ECONNRESET');
+  assert.equal(files.status.publishedFiles,0);
+ }finally{pending?.destroy();generation.abort();await network.close();await controller.retire();await device.drain();await root.drain();await files.close();await rm(dir,{recursive:true,force:true});}
+});
 async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['authorize'];removal?:boolean}={}){
  const dir=await mkdtemp(join(tmpdir(),'native-upload-test-')),gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files')),uploads=new NativePrintUploads(files,gate,{stagingRoot:dir,maxFileBytes:options.max??4*1024**2,maxUploads:1}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);registerNativeFileInfo(endpoints,uploads);
  const controller=options.removal?new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:130},{},{maintenanceGate:gate}):undefined;if(controller)uploads.bindPrintController(controller);

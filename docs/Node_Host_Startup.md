@@ -1373,6 +1373,11 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 席位；下载和外部授权沿用独立预算。真正达到修改容量时仍返回 429，
 有容量的活动／暂停文件删除继续由打印保护返回 409。
 
+进程文件库可以跨设备重建保留；带设备准入的上传暂存任务同时由原设备
+等待清理完成。关闭设备或退役其代次会取消上传，移除暂存并释放维护活动
+后才能释放原设备。捕获旧代次的迟到请求仍返回 503，不能落入新设备；
+进程只读查询及已有下载不随设备关闭。修改席位仍只由进程上传所有者计数。
+
 `POST /server/files/directory` 创建目录，`GET` 列出直接子项，`DELETE`
 只删除空目录；对应 RPC 为 `server.files.post_directory`、
 `server.files.get_directory` 和 `server.files.delete_directory`。

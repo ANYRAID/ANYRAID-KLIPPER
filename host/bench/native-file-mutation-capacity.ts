@@ -9,8 +9,8 @@ import {verifyProductBundle} from '../src/runtime/product-service-unit.ts';
 
 // Both variants execute installed production JS. Driver setup, hashing and
 // FormData construction are outside timing. Run after print-load acceptance.
-const [baselineInput,candidateInput]=process.argv.slice(2);
-if(!baselineInput||!candidateInput)throw new Error('Expected baseline and candidate compiled bundles');
+const [baselineInput,candidateInput,mode]=process.argv.slice(2);
+if(!baselineInput||!candidateInput||mode!==undefined&&mode!=='--process-owned'||process.argv.length>5)throw new Error('Expected baseline and candidate compiled bundles [--process-owned]');
 const bundles=await Promise.all([baselineInput,candidateInput].map(p=>verifyProductBundle(resolve(p))));
 const benchRoot=resolve(process.env.FILE_MUTATION_BENCH_ROOT??'host/build/file-mutation-bench');
 await mkdir(benchRoot,{recursive:true});const root=await mkdtemp(join(benchRoot,'paired-'));
@@ -25,11 +25,12 @@ try{
   ]);
   const dir=join(root,String(index));await mkdir(dir);
   const gate=new MaintenanceGate(),files=await PublishedPrintFiles.open(join(dir,'files'));
-  const uploads=new NativePrintUploads(files,gate,{stagingRoot:root}),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);
+  const processFiles=mode?new NativePrintUploads(files,new MaintenanceGate(),{stagingRoot:root}):undefined,generation=new AbortController();
+  const uploads=new NativePrintUploads(files,gate,{stagingRoot:root},processFiles),rpc=new JsonRpcDispatcher(),endpoints=new EndpointRegistry(rpc);
   const controller=new PrintController({async prepare(){},async start(){},async pause(){},async resume(){},async finish(){},async stop(){}},{maxNozzle:300,maxBed:120},{},{maintenanceGate:gate});
-  uploads.bindPrintController(controller);registerNativeFileInfo(endpoints,uploads);
-  const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:uploads,authorize(){}});
-  const owner={files,uploads,controller,network,bundle,url:'',sequence:0};owners.push(owner);
+  uploads.bindPrintController(controller);if(processFiles)processFiles.bindDeviceFiles(uploads,generation.signal);registerNativeFileInfo(endpoints,uploads,{reads:processFiles??uploads});
+  const network=new MoonrakerNetwork(rpc,{endpoints,nativeUploads:processFiles??uploads,authorize(){}});
+  const owner={files,uploads,processFiles,generation,controller,network,bundle,url:'',sequence:0};owners.push(owner);
   const address=await network.listen();owner.url='http://127.0.0.1:'+address.port;
  }
  async function sample(index:number,record:boolean){
@@ -40,7 +41,7 @@ try{
    const began=performance.now(),response=await fetch(owner.url+'/server/files/directory?extended=true');assert.equal(response.status,200);const directory=(await response.json() as any).result;const elapsed=performance.now()-began;assert.equal(directory.files.length,1);assert.equal(directory.files[0].file_id,id);if(record)samples[index].directory.push(elapsed);
   }
   const before=performance.now(),removed=await fetch(owner.url+'/server/files/gcodes/'+id+'.gcode',{method:'DELETE'});assert.equal(removed.status,200,await removed.clone().text());assert.equal((await removed.json() as any).result.action,'delete_file');const removeMs=performance.now()-before;
-  assert.equal(owner.uploads.status.pending,0);assert.equal(owner.controller.state,'idle');if(record){samples[index].upload.push(uploadMs);samples[index].remove.push(removeMs);}
+  assert.equal(owner.uploads.status.pending,0);if(owner.processFiles){assert.equal(owner.processFiles.status.pending,0);assert.equal(owner.processFiles.status.mutations,0);}assert.equal(owner.controller.state,'idle');if(record){samples[index].upload.push(uploadMs);samples[index].remove.push(removeMs);}
  }
  for(let warm=0;warm<3;warm++)for(const index of [0,1])await sample(index,false);
  delay.enable();await new Promise(resolve=>setTimeout(resolve,5));delay.reset();
@@ -50,7 +51,7 @@ try{
  const identities=await Promise.all(bundles.map(async path=>({path,manifestSha256:createHash('sha256').update(await readFile(join(path,'build-info.json'))).digest('hex')})));
  for(const bundle of bundles)await verifyProductBundle(bundle);
  const loop={p99Ms:delay.percentile(99)/1e6,maxMs:delay.max/1e6};assert(loop.p99Ms<50);assert(loop.maxMs<100);
- console.log(JSON.stringify({node:process.version,filesystemMagic:statfsSync(root).type,inputBytes:data.length,inputSha256:sha256,warmups:3,order,identities,results,medianCandidateBaselineRatios:Object.fromEntries((['upload','remove','directory'] as const).map(key=>[key,results[1][key].medianMs/results[0][key].medianMs])),loop,scope:'Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.'},null,2));
+ console.log(JSON.stringify({node:process.version,ownership:mode?'process-store-device-upload':'device-store',filesystemMagic:statfsSync(root).type,inputBytes:data.length,inputSha256:sha256,warmups:3,order,identities,results,medianCandidateBaselineRatios:Object.fromEntries((['upload','remove','directory'] as const).map(key=>[key,results[1][key].medianMs/results[0][key].medianMs])),loop,scope:'Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.'},null,2));
 }finally{
- delay.disable();for(const owner of owners){await owner.network.close();await owner.controller.retire();await owner.uploads.close();await owner.files.close();}await rm(root,{recursive:true,force:true});
+ delay.disable();for(const owner of owners){owner.generation.abort();await owner.network.close();await owner.controller.retire();await owner.uploads.close();await owner.processFiles?.close();await owner.files.close();}await rm(root,{recursive:true,force:true});
 }

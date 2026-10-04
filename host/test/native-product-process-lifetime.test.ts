@@ -103,6 +103,7 @@ test('chunked same-path upload admitted by the old device cannot overwrite after
    pending=request(base+'/server/files/upload',{method:'POST',headers:{...headers,'content-type':'multipart/form-data; boundary=retired-upload','transfer-encoding':'chunked'}},response=>{response.resume();response.on('end',()=>outcome.resolve(response.statusCode!));});pending.on('error',error=>{if((error as NodeJS.ErrnoException).code==='ECONNRESET')outcome.resolve('ECONNRESET');else outcome.reject(error);});
    pending.write('--retired-upload\r\nContent-Disposition: form-data; name="file"; filename="target.gcode"\r\nContent-Type: application/octet-stream\r\n\r\nG1 X9');
    await until(()=>files.status.pending===1);
+   assert.equal(f.profiles[0].options.server.nativeUploads!.status.pending,1,'The retiring device owner must join the staged process upload before releasing its generation');
    await assert.rejects(f.control.reinitialize(),/quiescent printer/);
    const restart=await fetch(base+'/printer/restart',{method:'POST',headers});assert.equal(restart.status,200,await restart.clone().text());
    rebuilding=until(()=>f.profiles.length===2&&f.addresses.length===2);await until(()=>f.counts.calls===2);await f.detached;

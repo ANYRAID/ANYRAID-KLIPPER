@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "date": "2026-10-03",
+  "date": "2026-10-04",
   "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
   "scope": "Historical first integration source/install receipt, supplemented by separately source-bound increments and currentDelivery. Read currentDelivery for execution state; older source/product/remote fields retain their original scope. Not complete migration, production release or hardware approval.",
   "remote": {
@@ -2146,7 +2146,7 @@
     "currentImplementation": {
       "batch": "M2b 3b upload/move overwrite",
       "branch": "devac/moonraker-file-overwrite",
-      "state": "local_required_repairs_passed_exact_new_head_ci_pending",
+      "state": "necessary_upload_generation_repair_locally_verified_new_head_ci_pending",
       "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
       "benchmarkBaseline": {
         "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
@@ -2160,34 +2160,36 @@
         "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
       },
       "evidence": "host/contracts/native-overwrite-acceptance.json",
-      "compiledBundleManifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+      "compiledBundleManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
       "integrationCheckpoint": {
         "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
         "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
         "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
         "draft": false,
         "merged": false,
-        "requiredCi": "pending_for_new_admission_recovery_repair_head",
+        "requiredCi": "pending_for_new_upload_generation_drain_repair_head",
         "review": "bounded_local_review_and_necessary_local_checks_passed_exact_head_ci_pending",
-        "submission": "Necessary local repair is ready to seal/push to existing PR #3. Exact runtime/test/benchmark hashes in admissionAndRecoveryRepair; 75 affected local checks, three same-package compiled journeys, paired real-storage performance and sealed typecheck pass. Exact new-head CI, normal develop merge and post-merge checks remain pending. Historical failed attempts and unobserved start sample retained.",
+        "submission": "4a399 exact-head required host CI failed at old upload cleanup. Necessary repair has deterministic original-runtime counterexample, 60 affected checks, three required same-package journeys completed and process-owned paired performance; seal/push new head, then exact required CI and normal integration. Matrix overrun and browser tool failures retained.",
         "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
         "failedAttempt": "ciSafetyRepairs.failedCi",
-        "currentRepairSources": "admissionAndRecoveryRepair.sourceHashes",
-        "currentCompiledManifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+        "currentRepairSources": "generationUploadDrainRepair.sourceHashes",
+        "currentCompiledManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
         "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
         "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes",
         "currentManualOwnershipRepairSources": "manualOwnershipRepair.sourceHashes",
         "failedManualOwnershipAttempt": "manualOwnershipRepair.failedCi",
-        "sourceParent": "7a66f5554a5bf12896d9ef899753ab4b984bd457"
+        "sourceParent": "4a399a4b8938ce9274647d4e5b501a8b9f6e9a66",
+        "failedUploadDrainAttempt": "generationUploadDrainRepair.failedCi"
       },
       "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
       "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs",
       "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair",
       "manualOwnershipRepair": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair",
-      "latestFailureTriage": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair.latestFailureTriage",
-      "admissionAndRecoveryRepair": "host/contracts/native-overwrite-acceptance.json#admissionAndRecoveryRepair"
+      "latestFailureTriage": "host/contracts/native-overwrite-acceptance.json#generationUploadDrainRepair.failedCi",
+      "admissionAndRecoveryRepair": "host/contracts/native-overwrite-acceptance.json#admissionAndRecoveryRepair",
+      "generationUploadDrainRepair": "host/contracts/native-overwrite-acceptance.json#generationUploadDrainRepair"
     },
-    "next": "Seal and push necessary verified repair to existing PR #3; require exact new-head complete CI, bounded review and normal develop integration/post-merge checks, then same-package actual Fluidd/Mainsail. Retain unresolved historical motion/start observations; no weakened gates. Other machine families last.",
+    "next": "Seal/push upload generation drain repair to existing PR #3; exact new-head complete CI and required review before normal develop merge/post-merge verification. Continue fixed-package real client acceptance; do not repeat unchanged broken chooser. Complete Moonraker and full retirement gates preserved.",
     "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

@@ -2361,5 +2361,666 @@
       "all Python and original macro scenario retirement",
       "release"
     ]
+  },
+  "generationUploadDrainRepair": {
+    "date": "2026-10-04",
+    "state": "necessary_upload_generation_repair_locally_verified_new_head_ci_pending",
+    "sourceParent": "4a399a4b8938ce9274647d4e5b501a8b9f6e9a66",
+    "sourceHashes": {
+      "host/src/moonraker/native-print-uploads.ts": "b0f967326a8bf2f8847f5f9f3d5e8395f3eff732ec261f0d2f3d94d0e1f50b15",
+      "host/test/native-print-uploads.test.ts": "77551a0c292667ff9760ccba3495386a283ee8fe294836847e0697469a727f24",
+      "host/test/native-product-process-lifetime.test.ts": "a6738f30c74d424d599f23c8d05b57330f248374968f6cae869ad68ad59d1bba",
+      "host/bench/native-file-mutation-capacity.ts": "d94f76f70f16b796b107220eb58b0f00dd0b5c9d938cbb54d1a07735040db1a8"
+    },
+    "failedCi": {
+      "head": "4a399a4b8938ce9274647d4e5b501a8b9f6e9a66",
+      "syntheticMerge": "e1e3ce70cd084bffee2bea3459f895db98a3ed6c",
+      "hostRun": 37080107642,
+      "hostJob": 111078535311,
+      "ordinary": {
+        "tests": 3919,
+        "passed": 3918,
+        "failed": 1
+      },
+      "failure": "native-product-process-lifetime.test.ts:109; old upload pending 1 when replacement factory entered; expected 0",
+      "skipped": [
+        "protocol-native",
+        "native-sanitized",
+        "Linux MCU"
+      ],
+      "firmware": {
+        "run": 37080107633,
+        "job": 111078535239,
+        "conclusion": "success",
+        "scope": "Only failed source 4a399; not new repair validation"
+      },
+      "log": {
+        "path": "/tmp/anyraid-pr3-4a399-host.log",
+        "sha256": "3e6ebab055fdf78940acb61638e36578f0b2040c4375566410c40e44537e87a3"
+      }
+    },
+    "mechanism": "Process file owner tracked staged uploads, but retiring device did not join their cleanup. The same promise is now joined by its captured device; either device close or generation retirement cancels it. Late captured closed/retired bindings reject before staging. Reads/downloads remain process-owned and mutation capacity is unchanged.",
+    "counterexample": {
+      "log": {
+        "path": "/tmp/anyraid-generation-upload-before.log",
+        "sha256": "e87ca2bd2f41127500afde98350e07603614ec5ca4b733f2abde7bf5ac31a705"
+      },
+      "result": "1 failed as expected on original 4a399 runtime; admitted process upload absent from old device drain (0 instead of 1). Original factory pending=0 and zero replacement/event assertions retained."
+    },
+    "validation": {
+      "regression": {
+        "tests": 60,
+        "passed": 60,
+        "failed": 0,
+        "durationMs": 22719.21999,
+        "log": {
+          "path": "/tmp/anyraid-generation-upload-after-corrected.log",
+          "sha256": "2d0ffe8fee95f82f446bb14a8330182bbb258b16eab5f6d6cf0d8cc795756b10"
+        },
+        "coverage": [
+          "Actual process restart cancels old chunked same-path upload, joins staging cleanup before new factory and rejects late completion",
+          "Direct device drain cancels staging without generation signal abort; zero staging/maintenance activity and retained process read/store",
+          "Existing upload/overwrite/permission/capacity and device-attachment regressions"
+        ]
+      },
+      "typecheck": {
+        "passed": true,
+        "log": {
+          "path": "/tmp/anyraid-generation-upload-sealed-typecheck.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "build": {
+        "passed": true,
+        "log": {
+          "path": "/tmp/anyraid-generation-upload-build.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "install": {
+        "durationMs": 824.5969699999999,
+        "dependencies": 14,
+        "log": {
+          "path": "/tmp/anyraid-generation-upload-install.log",
+          "sha256": "44941c0fc4957e4a21f46ac87ab010995251c2a26180d8ca04ea3977873a999d"
+        }
+      },
+      "compiled": {
+        "requiredJourneysCompleted": 3,
+        "observations": [
+          {
+            "namespace": true,
+            "motionReportLoad": true,
+            "configListRequests": 2064,
+            "configListP99Ms": 7.976425000000745,
+            "configDownloads": 2064,
+            "configDownloadP99Ms": 6.590842999998131,
+            "liveMotionSamples": 5445,
+            "liveExtrusionSamples": 1456,
+            "nativeAuthorization": true,
+            "apiLoad": true,
+            "completedStatistics": {
+              "total_duration": 9.566695229,
+              "print_duration": 4.320416151000002,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 10023,
+            "phaseP99Ms": 3.2200599999996484,
+            "loaded": false,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": false,
+            "manualTilt": false,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": false,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": false,
+            "tmc": [
+              {
+                "statusReads": 304,
+                "writes": 43
+              },
+              {
+                "statusReads": 216,
+                "writes": 42
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              }
+            ],
+            "faultInjected": "adc",
+            "historyNotifications": 32,
+            "historyRequests": 2054,
+            "historyP99Ms": 50.512236999999004,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 16,
+            "copyP95Ms": 183.70064800000182,
+            "copyOverwriteRequests": 16,
+            "copyOverwriteP95Ms": 265.47031199999765,
+            "directoryCopyRequests": 16,
+            "directoryCopyP95Ms": 394.8293840000006,
+            "copiesDuringPrint": 4,
+            "directoryCopiesDuringPrint": 2,
+            "fileNotifications": 1160,
+            "fileNotificationP95Ms": 88.91116300000431,
+            "movesDuringPrint": 4,
+            "directoryMoveRequests": 16,
+            "directoryMoveP95Ms": 494.566353000002,
+            "directoryMovesDuringPrint": 3,
+            "moveRequests": 16,
+            "moveP95Ms": 366.3118800000011,
+            "deleteRequests": 16,
+            "deleteP95Ms": 347.4252039999992,
+            "publicThumbnailRequests": 16,
+            "publicThumbnailP95Ms": 80.74247200000536,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 147.47610800000257,
+            "metadataRequests": 16,
+            "metadataP95Ms": 293.90519499999937,
+            "downloads": 16,
+            "downloadP95Ms": 3.358752000000095,
+            "wireCommands": 217,
+            "wireSteps": 6996,
+            "minimumStepLeadMs": 83.191,
+            "directoryRequests": 8519,
+            "directoryP99Ms": 33.556721000000834,
+            "statusRequests": 40081,
+            "uploads": 16,
+            "statusP99Ms": 2.8098969999991823,
+            "uploadP95Ms": 90.97255600000062,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.956863,
+                  "maxMs": 20.873215
+                },
+                "cpu": {
+                  "user": 11903531,
+                  "system": 2145308
+                },
+                "rss": 356057088
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.939455,
+                  "maxMs": 12.214271
+                },
+                "cpu": {
+                  "user": 7382097,
+                  "system": 1622329
+                },
+                "rss": 368336896
+              }
+            ]
+          },
+          {
+            "namespace": false,
+            "motionReportLoad": true,
+            "configListRequests": 0,
+            "configListP99Ms": null,
+            "configDownloads": 0,
+            "configDownloadP99Ms": null,
+            "liveMotionSamples": 2813,
+            "liveExtrusionSamples": 1547,
+            "nativeAuthorization": false,
+            "apiLoad": false,
+            "completedStatistics": {
+              "total_duration": 7.780172256000001,
+              "print_duration": 2.3517109090000012,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 4032,
+            "phaseP99Ms": 3.513028999999733,
+            "loaded": true,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": false,
+            "manualTilt": false,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": true,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": true,
+            "tmc": [
+              {
+                "statusReads": 168,
+                "writes": 55
+              },
+              {
+                "statusReads": 68,
+                "writes": 54
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              },
+              {
+                "statusReads": 88,
+                "writes": 46
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              },
+              {
+                "statusReads": 16,
+                "writes": 46
+              },
+              {
+                "statusReads": 22,
+                "writes": 46
+              },
+              {
+                "statusReads": 56,
+                "writes": 54
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              }
+            ],
+            "faultInjected": "tmc-reset",
+            "historyNotifications": 32,
+            "historyRequests": 889,
+            "historyP99Ms": 20.1284169999999,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 0,
+            "copyP95Ms": null,
+            "copyOverwriteRequests": 0,
+            "copyOverwriteP95Ms": null,
+            "directoryCopyRequests": 0,
+            "directoryCopyP95Ms": null,
+            "copiesDuringPrint": 0,
+            "directoryCopiesDuringPrint": 0,
+            "fileNotifications": 132,
+            "fileNotificationP95Ms": 33.40677700000015,
+            "movesDuringPrint": 0,
+            "directoryMoveRequests": 0,
+            "directoryMoveP95Ms": null,
+            "directoryMovesDuringPrint": 0,
+            "moveRequests": 0,
+            "moveP95Ms": null,
+            "deleteRequests": 16,
+            "deleteP95Ms": 96.05546999999933,
+            "publicThumbnailRequests": 0,
+            "publicThumbnailP95Ms": null,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 14.888976999998704,
+            "metadataRequests": 16,
+            "metadataP95Ms": 183.22863900000084,
+            "downloads": 16,
+            "downloadP95Ms": 10.861143000000084,
+            "wireCommands": 485,
+            "wireSteps": 7402,
+            "minimumStepLeadMs": 71.959,
+            "directoryRequests": 3814,
+            "directoryP99Ms": 9.817200999998022,
+            "statusRequests": 16125,
+            "uploads": 16,
+            "statusP99Ms": 3.0507639999996172,
+            "uploadP95Ms": 45.26608800000031,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.956863,
+                  "maxMs": 21.200895
+                },
+                "cpu": {
+                  "user": 5399219,
+                  "system": 682955
+                },
+                "rss": 306294784
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.906687,
+                  "maxMs": 8.814591
+                },
+                "cpu": {
+                  "user": 1898591,
+                  "system": 265102
+                },
+                "rss": 303210496
+              }
+            ]
+          },
+          {
+            "namespace": false,
+            "motionReportLoad": true,
+            "configListRequests": 0,
+            "configListP99Ms": null,
+            "configDownloads": 0,
+            "configDownloadP99Ms": null,
+            "liveMotionSamples": 3426,
+            "liveExtrusionSamples": 1472,
+            "nativeAuthorization": false,
+            "apiLoad": false,
+            "completedStatistics": {
+              "total_duration": 7.3916948620000005,
+              "print_duration": 2.4315514659999997,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 4637,
+            "phaseP99Ms": 3.606201999995392,
+            "loaded": false,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": true,
+            "manualTilt": true,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": false,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": false,
+            "tmc": [
+              {
+                "statusReads": 192,
+                "writes": 43
+              },
+              {
+                "statusReads": 72,
+                "writes": 42
+              }
+            ],
+            "faultInjected": "adc",
+            "historyNotifications": 32,
+            "historyRequests": 1023,
+            "historyP99Ms": 16.602710000006482,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 0,
+            "copyP95Ms": null,
+            "copyOverwriteRequests": 0,
+            "copyOverwriteP95Ms": null,
+            "directoryCopyRequests": 0,
+            "directoryCopyP95Ms": null,
+            "copiesDuringPrint": 0,
+            "directoryCopiesDuringPrint": 0,
+            "fileNotifications": 132,
+            "fileNotificationP95Ms": 34.770768000002136,
+            "movesDuringPrint": 0,
+            "directoryMoveRequests": 0,
+            "directoryMoveP95Ms": null,
+            "directoryMovesDuringPrint": 0,
+            "moveRequests": 0,
+            "moveP95Ms": null,
+            "deleteRequests": 16,
+            "deleteP95Ms": 90.00211800000397,
+            "publicThumbnailRequests": 0,
+            "publicThumbnailP95Ms": null,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 2.3139369999989867,
+            "metadataRequests": 16,
+            "metadataP95Ms": 188.59106400000746,
+            "downloads": 16,
+            "downloadP95Ms": 4.842195000004722,
+            "wireCommands": 275,
+            "wireSteps": 4805,
+            "minimumStepLeadMs": 87.332,
+            "directoryRequests": 4383,
+            "directoryP99Ms": 10.989556000000448,
+            "statusRequests": 18557,
+            "uploads": 16,
+            "statusP99Ms": 3.2152470000000903,
+            "uploadP95Ms": 49.028651000000536,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.959935,
+                  "maxMs": 20.611071
+                },
+                "cpu": {
+                  "user": 6058055,
+                  "system": 741045
+                },
+                "rss": 274554880
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.897471,
+                  "maxMs": 9.674751
+                },
+                "cpu": {
+                  "user": 1929841,
+                  "system": 286522
+                },
+                "rss": 286236672
+              }
+            ]
+          }
+        ],
+        "namespace": {
+          "log": {
+            "path": "/tmp/anyraid-generation-upload-compiled.log",
+            "sha256": "6240c116956d8a8d8e8fcaa9308478751727a90599e123a99d08502080a84111"
+          },
+          "result": "Namespace journey completed successfully with original load/assertions. Invocation mistakenly expanded all 73 cases; intentionally stopped after 9 completed passes, 0 failures, 64 cancelled. Aggregate is NOT a full matrix pass."
+        },
+        "remaining": {
+          "log": {
+            "path": "/tmp/anyraid-generation-upload-compiled-required.log",
+            "sha256": "51d209e4a1b9206eb4594414e1faefc8c7f074025faac5e9492dcf16d1dbcad1"
+          },
+          "result": "Z endstop interrupted recovery and manual bed tilt, exact filter zEndstop=true|manualTilt=true; 2/2 pass. Same retained package, no namespace repeat."
+        },
+        "scope": "Same independently installed production JS, simulated MCU; no target-board or Python speed proof"
+      },
+      "pairedPerformance": {
+        "node": "v26.10.0",
+        "ownership": "process-store-device-upload",
+        "filesystemMagic": 61267,
+        "inputBytes": 65536,
+        "inputSha256": "55493bca59f2bb54d0fa82eb48fc4c61af5b9a8882a8900a30bd8efa2396b523",
+        "warmups": 3,
+        "order": [
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "identities": [
+          {
+            "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-admission-recovery-candidate/app",
+            "manifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f"
+          },
+          {
+            "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-generation-upload-candidate/app",
+            "manifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35"
+          }
+        ],
+        "results": [
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 28.25046199999997,
+              "p95Ms": 30.258196999999655,
+              "p99Ms": 30.29982599999994
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 13.62545,
+              "p95Ms": 14.856304999999793,
+              "p99Ms": 15.583133000000089
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.4241750000001048,
+              "p95Ms": 0.6947280000000546,
+              "p99Ms": 1.053433000000041
+            }
+          },
+          {
+            "upload": {
+              "samples": 32,
+              "medianMs": 25.92927499999996,
+              "p95Ms": 34.24111300000004,
+              "p99Ms": 37.86733600000002
+            },
+            "remove": {
+              "samples": 32,
+              "medianMs": 11.957430000000045,
+              "p95Ms": 15.586033999999927,
+              "p99Ms": 20.30538999999999
+            },
+            "directory": {
+              "samples": 256,
+              "medianMs": 0.4257350000000315,
+              "p95Ms": 0.6810379999999441,
+              "p99Ms": 1.8460519999998724
+            }
+          }
+        ],
+        "medianCandidateBaselineRatios": {
+          "upload": 0.9178354322134622,
+          "remove": 0.8775805569724335,
+          "directory": 1.0036777273529236
+        },
+        "loop": {
+          "p99Ms": 1.829887,
+          "maxMs": 3.739647
+        },
+        "scope": "Paired loopback HTTP on the same real workspace filesystem, compiled production JS and independent installed dependencies. Includes real staging/publication/deletion durability and client work. Complements concurrent print acceptance; not target-board, Python comparison or physical printer proof.",
+        "log": {
+          "path": "/tmp/anyraid-generation-upload-paired-bench.log",
+          "sha256": "cb76d052a401affa2924febe9f91dc442bddcb2c6ec24a5f55dc587c0efcfd70"
+        }
+      }
+    },
+    "bundle": {
+      "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/anyraid-generation-upload-candidate/app",
+      "manifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+    },
+    "review": {
+      "scope": "Bounded local review of captured ownership, cleanup/rejection symmetry, unchanged capacities, preserved process read/download lifetime and performance path. No external approval or full production review claimed."
+    },
+    "remaining": [
+      "Exact new-head complete required CI, external review and normal develop integration/post-merge verification",
+      "Version package reuse fixtures and actual complete Fluidd then Mainsail same-package journey",
+      "Historical unobserved manual start and G3 numerical failures, Cycnumbris 500 hardware precision/timing and stop/recovery",
+      "Complete Moonraker, original macro scenarios, all Python retirement and release; other machines last"
+    ]
   }
 }

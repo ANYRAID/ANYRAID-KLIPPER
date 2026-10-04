@@ -172,10 +172,14 @@ export class NativePrintUploads {
   if(this.#closed)return Promise.reject(new ApiError(503,'Native uploads are closed'));
   if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Too many uploads'));
   if(binding&&context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'Upload belongs to a retired device'));
-  const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
+  if(binding&&(binding.signal.aborted||binding.owner.#closed))return Promise.reject(new ApiError(503,'Upload belongs to a retired device'));
+  const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal,binding.owner.#abort.signal]:[]]);
   const printOwner=binding?binding.owner.#print:this.#print;
   const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles,printOwner));this.#pending.add(task);this.#mutations.add(task);
-  const release=()=>{this.#pending.delete(task);this.#mutations.delete(task);};void task.then(release,release);return task;
+  // The store persists, but staging admitted with a device must finish cleanup
+  // before that device releases its generation lease. Reads remain process-owned.
+  if(binding)binding.owner.#pending.add(task);
+  const release=()=>{this.#pending.delete(task);this.#mutations.delete(task);if(binding)binding.owner.#pending.delete(task);};void task.then(release,release);return task;
  }
  async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:PrintController):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
