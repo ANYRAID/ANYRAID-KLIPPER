@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "status": "locally_verified_task_candidate",
+  "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
+  "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+  "sourceSha256": {
+    "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+    "host/test/acceptance-bundle.test.ts": "f020a827efb11de0d6b50d1d0e4946f2868d7fce88ca5d0a892de7e13d11aaaa",
+    "host/test/helpers/compiled-client-host.ts": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+    "host/acceptance/client-probe.ts": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+    "host/acceptance/client-probe.test.ts": "27d7e72d0dbca3bf80d86bf78f7b03d094f7be4ec52af3706fd6d4257871454b",
+    "host/acceptance/product-compiled-journey.test.ts": "e699f1f0bb053bd9a37245fa1e8767bdc7aaa4e9b4f6cb542c18516ff12b0d21"
+  },
+  "bundle": {
+    "manifestSha256": "c042717638d84b035f66411dac2b792f7e9e9ee2ff5adac333295b3160a26b51",
+    "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+    "independentProductionDependencies": 14,
+    "buildAndInstallMs": 6586.379148
+  },
+  "rules": {
+    "allThreeReuseValuesRequired": true,
+    "defaultFreshBuildPreserved": true,
+    "inventoryAndAbiVerifiedBeforeLaunch": true,
+    "independentLockedDependencies": true,
+    "workspaceCanonicalOverlapRejected": true,
+    "identityRecheckedAfterRun": true,
+    "buildOnMismatch": false,
+    "productionHotPathAdded": false
+  },
+  "recoveryFixture": {
+    "observedBefore": [
+      {
+        "scope": "JWT and trusted loopback before fix",
+        "route": "/printer/restart",
+        "status": 409,
+        "tests": 2,
+        "failed": 2
+      },
+      {
+        "scope": "Bounded JWT diagnostic",
+        "route": "/printer/host/config/save",
+        "status": 409,
+        "message": "Host transition blocks configuration save"
+      }
+    ],
+    "observedAfter": {
+      "modes": [
+        "JWT",
+        "trusted loopback"
+      ],
+      "deviceReadyPublished": true,
+      "busy": true,
+      "operation": "running"
+    },
+    "cause": "Device-ready callback resolves before ProductHostControl persists the terminal receipt and releases the transition owner",
+    "change": "Observe expected durable terminal receipt and busy=false before the next mutation, within the original 10/15 second deadlines",
+    "mutationRetries": 0,
+    "productionAdmissionChanged": false
+  },
+  "validation": {
+    "identity": {
+      "tests": 7,
+      "passed": 7,
+      "failed": 0
+    },
+    "retainedProtocol": {
+      "tests": 2,
+      "passed": 2,
+      "failed": 0,
+      "durationMs": 113164.324268
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "sameBundleMixedPrint": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "minimumStepLeadMs": 87.128,
+      "eventLoopP99Ms": 1.970175,
+      "eventLoopMaxMs": 20.643839,
+      "statusRequests": 28953,
+      "statusP99Ms": 3.352392000000691,
+      "fileNotifications": 840,
+      "uploads": 16,
+      "copyRequests": 16,
+      "copyOverwriteRequests": 16,
+      "directoryCopyRequests": 16,
+      "moveRequests": 16,
+      "directoryMoveRequests": 16,
+      "originalBudgetsAndAssertionsPreserved": true,
+      "scope": "Develop-based production bundle, original two-MCU/two-generation namespace workload; does not include unmerged PR #3 upload/move overwrite increments"
+    },
+    "defaultFreshBuildProtocol": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "trustedLoopback": false,
+      "durationMs": 62978.758422,
+      "bundleManifestSha256": "c042717638d84b035f66411dac2b792f7e9e9ee2ff5adac333295b3160a26b51"
+    },
+    "requiredTaskCi": "not_started",
+    "inspectionBoundaryCost": {
+      "scope": "Read-only test supervisor startup/exit checks, warm filesystem, no production hot-path changes",
+      "warmups": 2,
+      "samplesMs": [
+        177.998607,
+        175.571687,
+        168.98543599999994,
+        155.54344000000015,
+        171.73879999999986
+      ],
+      "medianMs": 171.73879999999986,
+      "maxMs": 177.998607,
+      "processMaxRssKiB": 138452,
+      "identityUnchanged": true
+    }
+  },
+  "remaining": [
+    "Required exact-head CI, review and normal develop integration",
+    "Actual complete same-bundle Fluidd and Mainsail page journeys",
+    "PR #3 integration remains gated by review; not bypassed by this task",
+    "G3, Cycnumbris 500 hardware, complete Moonraker, all Python and macro scenario retirement"
+  ],
+  "evidenceSha256": {
+    "identity": {
+      "file": "anyraid-fixed-bundle-source-identity.log",
+      "sha256": "10f8f9fa1b2b945142e4009c116f8a8a5219d9218d013a8dc9e74f8f766f004f"
+    },
+    "retainedProtocol": {
+      "file": "anyraid-fixed-bundle-source-protocol-settled.log",
+      "sha256": "c3d4027798eb63058a17ebf42dd5556864e99acf3356c98180337ac11d542ea9"
+    },
+    "mixedPrint": {
+      "file": "anyraid-fixed-bundle-source-mixed-print.log",
+      "sha256": "40ff97e11348d6f47e81567ff9ffa73eafe95b66ae34696c236ec10516034d66"
+    },
+    "defaultMode": {
+      "file": "anyraid-fixed-bundle-source-default-protocol.log",
+      "sha256": "152a9d5e16fbdb51b392a3fea6c74bd92304a8197e4f7f3332570cd7e52be90a"
+    },
+    "beforeRestart409": {
+      "file": "anyraid-fixed-bundle-source-protocol.log",
+      "sha256": "f54ad663e8971fbdf786a6eba62900623eecc536d08ec06407c2fe2671ac47a1"
+    },
+    "beforeConfig409": {
+      "file": "anyraid-fixed-bundle-source-protocol-diagnosis.log",
+      "sha256": "47f9a6c6b77dd9fb9c21e63688563d08e8db69c4432186ba583c74f18f672da6"
+    },
+    "typecheck": {
+      "file": "anyraid-fixed-bundle-source-typecheck.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "file": "anyraid-fixed-bundle-source-whitespace.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "build": {
+      "file": "anyraid-fixed-bundle-source-build.log",
+      "sha256": "6d44975304649213948ee7a606e0066ea84b2a2d2a03372eb8db11c01c8cfe65"
+    },
+    "nativeBuild": {
+      "file": "anyraid-fixed-bundle-source-native-build.log",
+      "sha256": "062e354d1d1ec15fb25aab54f76e8af883c311130a8fa407ee3e451ef15aee63"
+    },
+    "inspectionCost": {
+      "file": "anyraid-fixed-bundle-source-inspection-cost.json",
+      "sha256": "723b34ebd5150b3c5eda1abebb009b6b5a7f1142f4639e5b35c9608990522d9b"
+    }
+  }
+}

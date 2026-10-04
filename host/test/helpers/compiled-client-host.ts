@@ -1,3 +1,4 @@
+import {externalAcceptanceBundle,assertSeparateAcceptanceWorkspace,assertAcceptanceBundleUnchanged} from './acceptance-bundle.ts';
 import {spawn} from 'node:child_process';
 import {writeFile,readFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -9,7 +10,9 @@ import {productMachineFixture} from './product-machine.ts';
 import {simulateClientFirmware} from './client-firmware.ts';
 /** Separate emitted product process. All PTY and test code stays in the parent. */
 export async function startCompiledClientHost(dir:string,signal:AbortSignal,onReady:(base:string)=>void,trustedLoopback=false,session?:{fixture:Awaited<ReturnType<typeof productMachineFixture>>;reuseBuild:boolean}){
- const app=join(dir,'app');if(!session?.reuseBuild){await buildProductHost(app);await installProductDependencies(app);}signal.throwIfAborted();
+ const retained=await externalAcceptanceBundle(),app=retained?.path??join(dir,'app');
+ if(retained){await assertSeparateAcceptanceWorkspace(retained,dir);console.log('CLIENT_DEPENDENCIES '+retained.dependenciesSha256);}
+ else if(!session?.reuseBuild){await buildProductHost(app);await installProductDependencies(app);}signal.throwIfAborted();
  console.log('CLIENT_ARTIFACT '+createHash('sha256').update(await readFile(join(app,'build-info.json'))).digest('hex'));
  const fixture=session?.fixture??await productMachineFixture(dir,false,'ack');
  const configRoot=join(dir,'config');
@@ -61,6 +64,6 @@ export const createProductHostProfile=createNativeProductHostFactory(${JSON.stri
  child.stdout!.on('data',chunk=>{unread+=String(chunk);if(unread.length>65536){child.kill('SIGTERM');return;}for(let at=unread.indexOf('\n');at>=0;at=unread.indexOf('\n')){const line=unread.slice(0,at);unread=unread.slice(at+1);try{const message=JSON.parse(line);if(message.event==='ready'){simulation?.close();simulation=simulateClientFirmware(fixture,starts);console.log('CLIENT_GENERATION '+generation);console.log('CLIENT_FIRMWARE '+JSON.stringify(fixture.transport.firmware.map(device=>({resets:device.configurationTraffic.resets,configurations:device.configurationTraffic.finalizations}))));onReady('http://127.0.0.1:'+message.address.port);}}catch{}}});
  child.stderr!.on('data',chunk=>process.stderr.write(chunk));
  let killTimer:ReturnType<typeof setTimeout>|undefined;const stop=()=>{if(child.exitCode!==null||child.signalCode!==null)return;child.kill('SIGINT');killTimer??=setTimeout(()=>child.kill('SIGKILL'),5000);};signal.addEventListener('abort',stop,{once:true});if(signal.aborted)stop();
- const lifetime=ended.finally(async()=>{signal.removeEventListener('abort',stop);if(killTimer)clearTimeout(killTimer);await requests;simulation?.close();if(!session)await fixture.close();});void lifetime.catch(()=>{});
+ const lifetime=ended.finally(async()=>{signal.removeEventListener('abort',stop);if(killTimer)clearTimeout(killTimer);await requests;simulation?.close();if(!session)await fixture.close();if(retained)await assertAcceptanceBundleUnchanged(retained);});void lifetime.catch(()=>{});
  return {lifetime,async close(){stop();const timer=setTimeout(()=>child.kill('SIGKILL'),5000);try{await lifetime;}finally{clearTimeout(timer);}}};
 }

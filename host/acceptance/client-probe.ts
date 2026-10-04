@@ -1,6 +1,8 @@
 import {startCompiledClientHost} from '../test/helpers/compiled-client-host.ts';
 import {createServer,request} from 'node:http';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdtemp,readFile,rm,realpath} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {externalAcceptanceBundle,assertSeparateAcceptanceWorkspace,assertAcceptanceBundleUnchanged} from '../test/helpers/acceptance-bundle.ts';
 import {join,extname,resolve} from 'node:path';
 import {WebSocket,WebSocketServer} from 'ws';
 import {DatabaseStore} from '../src/moonraker/database.ts';
@@ -12,7 +14,10 @@ const assets=process.argv[2];if(!assets)throw new Error('Usage: node host/accept
 const assetRoot=resolve(assets);await readFile(join(assetRoot,'index.html'));
 const trustedLoopback=process.argv[4]==='--trusted-loopback';if(process.argv[4]&&!trustedLoopback||process.argv.length>5)throw new Error('Unknown client probe option');
 const port=Number(process.argv[3]??18326);if(!Number.isInteger(port)||port<1024||port>65535)throw new Error('Invalid loopback port');
-const dir=await mkdtemp('/tmp/anyraid-client-data-'),abort=new AbortController(),issuer='http://printer.test';const db=await DatabaseStore.open({path:join(dir,'auth.sqlite')}),api=await ApiKeyAuthorization.open(db,{issuer});const key=api.localApiKey();await api.close();await db.close();
+const retained=await externalAcceptanceBundle();
+const dir=await realpath(await mkdtemp(join(tmpdir(),'anyraid-client-data-')));
+if(retained){try{await assertSeparateAcceptanceWorkspace(retained,dir);}catch(error){await rm(dir,{recursive:true,force:true});throw error;}}
+const abort=new AbortController(),issuer='http://printer.test';const db=await DatabaseStore.open({path:join(dir,'auth.sqlite')}),api=await ApiKeyAuthorization.open(db,{issuer});const key=api.localApiKey();await api.close();await db.close();
 // This is a short interactive check, not a long-running firmware simulator.
 const deadline=setTimeout(()=>{console.log('CLIENT_TIMEOUT');abort.abort();},15*60*1000);
 let upstream='';const sockets=new Set<WebSocket>(),wss=new WebSocketServer({noServer:true});
@@ -42,4 +47,4 @@ try{
  console.log('CLIENT_PROCESS '+processGeneration);
  await host.lifetime;
  }while(restartRequested&&!abort.signal.aborted);
-}finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await fixture.close();await rm(dir,{recursive:true,force:true});}}
+}finally{abort.abort();clearTimeout(deadline);await bootstrap;for(const socket of sockets)socket.terminate();server.close();wss.close();try{await host?.close();}finally{await fixture.close();await rm(dir,{recursive:true,force:true});if(retained)await assertAcceptanceBundleUnchanged(retained);}}

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {externalAcceptanceBundle,assertAcceptanceBundleUnchanged} from '../test/helpers/acceptance-bundle.ts';
 import {spawn} from 'node:child_process';
 import {WebSocket} from 'ws';
 import {once} from 'node:events';
@@ -10,6 +11,7 @@ import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
 for(const trustedLoopback of [false,true])test(`compiled client fixture preserves service and MCU identity across reinitialize, restart and firmware restart (trusted=${trustedLoopback})`, {timeout:180000},async t=>{
+ const retained=await externalAcceptanceBundle();
  const sockets:WebSocket[]=[];
  const root=await mkdtemp(join(tmpdir(),'client-probe-check-')),reserve=createServer();await writeFile(join(root,'index.html'),'<!doctype html><title>Fixture</title>');
  await new Promise<void>(resolve=>reserve.listen(0,'127.0.0.1',resolve));const address=reserve.address();assert(address&&typeof address!=='string');const port=address.port;await new Promise<void>((resolve,reject)=>reserve.close(error=>error?reject(error):resolve()));
@@ -19,7 +21,15 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
   await Promise.race([ready.promise,new Promise((_,reject)=>{const timer=setTimeout(()=>reject(new Error('Fixture startup timeout: '+stderr)),90000);timer.unref();ready.promise.finally(()=>clearTimeout(timer)).catch(()=>{});})]);const base=`http://127.0.0.1:${port}`;
   assert.equal((await fetch(base+'/server/info')).status,trustedLoopback?200:401);
   const login=await fetch(base+'/access/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({username:'operator',password:'client-test-only'})});assert.equal(login.status,200);const token=(await login.json()).result.token,headers={'content-type':'application/json',...trustedLoopback?{}:{authorization:'Bearer '+token}};
-  const invoke=async(path:string,body?:object)=>{const response=await fetch(base+path,{headers,...body?{method:'POST',body:JSON.stringify(body)}:{},signal:AbortSignal.timeout(5000)});assert.equal(response.status,200,path);return (await response.json()).result;};
+  const invoke=async(path:string,body?:object)=>{const response=await fetch(base+path,{headers,...body?{method:'POST',body:JSON.stringify(body)}:{},signal:AbortSignal.timeout(5000)});assert.equal(response.status,200,response.status===200?path:path+': '+(await response.text()).slice(0,8192));return (await response.json()).result;};
+  // Device-ready publication precedes the durable recovery receipt and release
+  // of the transition owner. Observe both before admitting the next mutation.
+  const waitRecovery=async(until:number,field:'operation'|'restart_operation'|'firmware_restart_operation',wanted='succeeded',requestId?:string)=>{
+   for(;;){assert(performance.now()<until,'Recovery completion exceeded original deadline');const state=await invoke('/printer/host/status'+(requestId?'?request_id='+requestId:'')),operation=state[field];
+    assert(operation,'Missing durable recovery operation');assert.equal(state.storage_failed,false);assert.notEqual(operation.state,'interrupted');assert.notEqual(operation.state,wanted==='failed'?'succeeded':'failed');
+    if(operation.state===wanted&&state.busy===false)return;await delay(20);
+   }
+  };
   const connect=async()=>{
    const ws=new WebSocket(base.replace('http:','ws:')+'/websocket');sockets.push(ws);const notifications:any[]=[];let id=0;const pending=new Map<number,{resolve:(value:any)=>void;reject:(error:Error)=>void;timer:ReturnType<typeof setTimeout>}>();
    ws.on('message',data=>{const value=JSON.parse(String(data));if(value.method){notifications.push(value);return;}const task=pending.get(value.id);if(!task)return;clearTimeout(task.timer);pending.delete(value.id);if(value.error)task.reject(Error(JSON.stringify(value.error)));else task.resolve(value.result);});
@@ -45,9 +55,12 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
   assert.equal(await invoke('/printer/print/resume',{}),'ok');await waitState('completed');await waitNotification(peer,'complete');
   const hostState=await invoke('/printer/host/status');assert.equal((await invoke('/printer/host/reinitialize',{version:1,request_id:'client-reinitialize',state_token:hostState.state_token})).accepted,true);
   const until=performance.now()+10000;while(!output.includes('CLIENT_GENERATION 2')){assert(performance.now()<until,stderr);await delay(50);}
+  const publishedControl=await invoke('/printer/host/status?request_id=client-reinitialize');t.diagnostic(JSON.stringify({deviceReadyBeforeRecoveryCheck:{busy:publishedControl.busy,operation:publishedControl.operation?.state}}));
+  await waitRecovery(until,'operation','succeeded','client-reinitialize');
   assert.equal(peer.ws.readyState,WebSocket.OPEN);const renewed=await peer.call('printer.objects.subscribe',{objects:{print_stats:['state','filename'],pause_resume:['is_paused']}});assert.equal(renewed.status.print_stats.state,'standby');assert.equal(renewed.status.pause_resume.is_paused,false);
   for(const [route,expected] of [['restart',3],['firmware_restart',4]] as const){
    assert.equal(await invoke('/printer/'+route,{}),'ok');const deadline=performance.now()+15000;while(!output.includes('CLIENT_GENERATION '+expected)){assert(performance.now()<deadline,stderr);await delay(50);}
+   await waitRecovery(deadline,route==='restart'?'restart_operation':'firmware_restart_operation');
    assert.equal(peer.ws.readyState,WebSocket.OPEN);const snapshot=await peer.call('printer.objects.subscribe',{objects:{print_stats:['state']}});assert.equal(snapshot.status.print_stats.state,'standby');assert((await invoke('/server/files/list')).some((file:any)=>file.path==='client-sample.gcode'));
    assert((await invoke('/server/info')).components.includes('history'));
    assert.deepEqual(await invoke('/server/files/list?root=config'),configList);
@@ -68,17 +81,18 @@ for(const trustedLoopback of [false,true])test(`compiled client fixture preserve
   peer=await connect();assert.equal(peer.snapshot.status.print_stats.state,'standby');assert.equal((await invoke('/printer/print/status')).state,'idle');
   const lastTraffic=JSON.parse(output.split('\n').filter(line=>line.startsWith('CLIENT_FIRMWARE ')).at(-1)!.slice('CLIENT_FIRMWARE '.length));assert.deepEqual(lastTraffic.map((d:any)=>[d.resets,d.configurations]),[[1,2],[1,2]]);
   const artifacts=[...output.matchAll(/CLIENT_ARTIFACT ([a-f0-9]+)/g)].map(match=>match[1]);assert.equal(artifacts.length,2);assert.equal(artifacts[0],artifacts[1]);
+  if(retained){assert(artifacts.every(hash=>hash===retained.manifestSha256));const dependencies=[...output.matchAll(/CLIENT_DEPENDENCIES ([a-f0-9]+)/g)].map(match=>match[1]);assert.equal(dependencies.length,2);assert(dependencies.every(hash=>hash===retained.dependenciesSha256));await assertAcceptanceBundleUnchanged(retained);}
   t.diagnostic(JSON.stringify({processRecovery:{trustedLoopback,newProcess:true,sameArtifact:true,sameMcuConfiguration:true,originalJwt:true,filesAndHistoryPreserved:true,noPrintReplay:true}}));
   const configSource=await fetch(base+'/server/files/config/printer.cfg',{headers}),previous=await configSource.text(),oldDigest=configSource.headers.get('etag')!;
   const form=new FormData();form.append('file',new Blob([previous+'# client saved\n']),'printer.cfg');form.append('root','config');form.append('path','');const saveStart=performance.now(),saved=await fetch(base+'/server/files/upload',{method:'POST',headers:{...Object.fromEntries(Object.entries(headers).filter(([name])=>name.toLowerCase()!=='content-type')),'if-match':oldDigest},body:form});assert.equal(saved.status,200,await saved.clone().text());const savedConfig=(await saved.json() as any).result;assert.equal(savedConfig.print_started,false);assert.equal(await (await fetch(base+'/server/files/config/'+encodeURIComponent(savedConfig.backup),{headers})).text(),previous);
-  const saveMs=performance.now()-saveStart;assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const configDeadline=performance.now()+15000;while((await invoke('/server/info')).native_host.ready!==true){assert(performance.now()<configDeadline,stderr);await delay(50);}assert.equal(await (await fetch(base+'/server/files/config/printer.cfg',{headers})).text(),previous+'# client saved\n');
+  const saveMs=performance.now()-saveStart;assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const configDeadline=performance.now()+15000;while((await invoke('/server/info')).native_host.ready!==true){assert(performance.now()<configDeadline,stderr);await delay(50);}await waitRecovery(configDeadline,'restart_operation');assert.equal(await (await fetch(base+'/server/files/config/printer.cfg',{headers})).text(),previous+'# client saved\n');
   t.diagnostic(JSON.stringify({configSave:{trustedLoopback,saveMs,exactBackup:true,scriptRestart:true,noPrintReplay:(await invoke('/printer/print/status')).state==='idle'}}));
   const backupList=await peer.call('printer.host.config.get_backups',{path:'printer.cfg'});assert(backupList.backups.some((b:any)=>b.path===savedConfig.backup));assert.equal(backupList.capacity,16);
   const broken=await invoke('/printer/host/config/save',{version:1,path:'printer.cfg',content:previous+'\n[unsupported_config_recovery]\n',expected_sha256:savedConfig.sha256});
-  assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const failureDeadline=performance.now()+15000;while((await invoke('/printer/host/status')).restart_operation?.state!=='failed'){assert(performance.now()<failureDeadline,stderr);await delay(50);}assert.equal((await invoke('/server/info')).native_host.ready,false);
+  assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const failureDeadline=performance.now()+15000;while((await invoke('/printer/host/status')).restart_operation?.state!=='failed'){assert(performance.now()<failureDeadline,stderr);await delay(50);}await waitRecovery(failureDeadline,'restart_operation','failed');assert.equal((await invoke('/server/info')).native_host.ready,false);
   const restoreStart=performance.now(),restored=await peer.call('printer.host.config.restore',{version:1,path:'printer.cfg',backup:savedConfig.backup,backup_sha256:oldDigest.slice(1,-1),expected_sha256:broken.sha256});assert.equal(restored.applied,false);assert.equal(restored.restartRequired,true);assert.equal(restored.print_started,false);assert.equal((await invoke('/server/info')).native_host.ready,false);
   assert.equal(await (await fetch(base+'/server/files/config/printer.cfg',{headers})).text(),previous);assert.equal(await (await fetch(base+'/server/files/config/'+encodeURIComponent(restored.backup),{headers})).text(),previous+'\n[unsupported_config_recovery]\n');const restoreMs=performance.now()-restoreStart;
-  assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const restoredDeadline=performance.now()+15000;while((await invoke('/server/info')).native_host.ready!==true){assert(performance.now()<restoredDeadline,stderr);await delay(50);}assert.equal((await invoke('/printer/print/status')).state,'idle');
+  assert.equal(await invoke('/printer/gcode/script',{script:'RESTART'}),'ok');const restoredDeadline=performance.now()+15000;while((await invoke('/server/info')).native_host.ready!==true){assert(performance.now()<restoredDeadline,stderr);await delay(50);}await waitRecovery(restoredDeadline,'restart_operation');assert.equal((await invoke('/printer/print/status')).state,'idle');
   const removed=await fetch(base+'/printer/host/config/backups',{method:'DELETE',headers,body:JSON.stringify({version:1,path:'printer.cfg',backup:savedConfig.backup,backup_sha256:oldDigest.slice(1,-1)})});assert.equal(removed.status,200,await removed.clone().text());assert.equal((await removed.json() as any).result.removed,true);assert(!(await peer.call('printer.host.config.get_backups',{path:'printer.cfg'})).backups.some((b:any)=>b.path===savedConfig.backup));
   let rotation=restored;for(let n=0;n<18;n++)rotation=await invoke('/printer/host/config/save',{version:1,path:'printer.cfg',content:previous,expected_sha256:rotation.sha256});assert(rotation.rotatedBackup);assert.equal((await peer.call('printer.host.config.get_backups',{path:'printer.cfg'})).backups.length,16);
   t.diagnostic(JSON.stringify({configBackups:{trustedLoopback,restoreMs,rpcQuery:true,rpcRestore:true,failedStartupRepair:true,explicitRestart:true,httpDelete:true,currentVersionBackedUp:true,capacity:16,repeatedSaves:18,rotation:true,noPrintReplay:true}}));
