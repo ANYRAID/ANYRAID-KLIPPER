@@ -27,8 +27,8 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个
 出口推进。develop 当前已集成 PR #2；上传／移动覆盖 PR #3 的精确头
 `12e85c5` 主机与固件 CI 通过，仍待审阅、正常合并及合并后验证。
-固定包验收夹具 `dd6ce0d` 已提交，本机协议与混合打印通过，PR 尚未创建，
-规定 CI 未启动；其范围见[验收契约](host/contracts/fixed-client-bundle-acceptance.json)。
+固定包验收夹具及必要无 JIT 对照已推送，本机协议与混合打印通过；
+PR 尚未创建，规定 CI 待验。其范围见[验收契约](host/contracts/fixed-client-bundle-acceptance.json)。
 完整 Fluidd／Mainsail 同包页面流程、G3、真实装配及目标板验收仍未完成。
 
 现有服务、文件／身份／历史、打印状态机及恢复设施继续复用。当前先
