@@ -29,7 +29,26 @@ Delta 校准故障现保留可信进程内诊断，区分采样、同步、拟�
 Python 文件。使用和当前证据见[启动说明](Node_Host_Startup.md#校准故障的本地诊断)
 及[诊断验收](../host/contracts/delta-calibration-failure-acceptance.json)。
 
-## 当前执行计划（2026-10-02 审计）
+## 当前执行计划（2026-10-04 审计）
+
+唯一执行计划见[交付计划](Node_Host_Delivery_Plan.md)。完整替代目标不变，
+以同包软件闭环 → 当前系列受控试验 → 全面退役发布拆解；当前只适配
+Cycnumbris 500，其他机型最后。Python 台账不作为逐文件翻译队列。
+
+develop 已集成 PR #2，基线 `4b6a2317` 的规定检查通过。PR #3 当前头
+`12e85c5` 的主机、原生协议、两种 sanitizer、Linux MCU 及固件检查成功；
+仍待审阅、正常合并和合并后验证，不用旧头 CI 失败描述当前候选。
+固定包验收夹具源码 `dd6ce0d` 已提交并推送，本机验证见
+[契约](../host/contracts/fixed-client-bundle-acceptance.json)；PR 未创建，
+规定 CI 未启动，未带入 PR #3 的生产覆盖增量。当前先收口两个候选，
+再完成同包 Fluidd／Mainsail 实际客户端，随后按唯一队列推进剩余 Moonraker。
+
+G3 已有同次输入、求导前失配及比较中间值异常的现场；下一判别先核查
+独立环境的匹配对照，不从头重复已有捕获或将有限成功当根因关闭。
+默认 Python、177 个 klippy 文件、完整页面、系列材料和目标板仍未退役
+或验收。具体阻碍及退出条件见唯一计划，下列历史记录不用于自动调度。
+
+## 历史执行记录（2026-10-02）
 
 执行顺序、阶段出口与任务准入以 [总到分交付计划](Node_Host_Delivery_Plan.md)
 为准。当前只适配 ANYRAID Cycnumbris 500 系列；Moonraker 完整替代
