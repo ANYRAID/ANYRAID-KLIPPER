@@ -57,7 +57,7 @@ for(const reverse of [false,true])test(`configured linear handoff homes and clos
   const h=f.hardware.plan.homing[0];let sent=false;
   timer=setInterval(()=>{
    const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;
-   const clock=BigInt(Number(arm.parameters.clock));if(f.initial.generation.members[0].session.clock.sync.getClock(serialClock.now())<clock)return;sent=true;
+   const clock=BigInt(Number(arm.parameters.clock));if(BigInt(f.firmware[0].currentClock())<clock)return;sent=true;
    const oid=h.triggers[0].protocol.oid;f.firmware[0].setTriggerReason(1,oid);f.firmware[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},h.endstop.oid);f.firmware[0].emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});
   },1);
   const command=new LinearHomingCommand(kinematics,new GCodeMove(port),port,rails,5000);await command.home([0],f.signal);assert(sent);clearInterval(timer);timer=undefined;

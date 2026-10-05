@@ -36,7 +36,7 @@ for(const stuck of [false,true])test(`two-pass native G28 ${stuck?'rejects an im
   const arms=t.f.fw.outputs.filter(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);
   if(arms.length<=hits)return;
   const arm=arms[hits],clock=BigInt(Number(arm.parameters.clock))+(hits&&!stuck?30000n:0n);
-  if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<clock)return;
+  if(BigInt(t.f.fw.currentClock())<clock)return;
   if(hits)t.f.fw.setStepperPosition(3,stuck?120:107);
   hits++;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:Number(clock)});
  },1);

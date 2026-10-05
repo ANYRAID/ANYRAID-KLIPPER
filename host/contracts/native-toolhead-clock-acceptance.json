@@ -1,15 +1,38 @@
 {
   "schema": 1,
-  "status": "candidate_targeted_and_compiled_passed_full_suite_failed_usb_fixture_corrected",
+  "status": "candidate_targeted_and_compiled_passed_local_runtime_failures_preserved_new_ci_required",
   "scope": "Native toolhead time status and postmerge calibration fixture correction. Desktop/PTYSIM client and performance evidence only; physical motion and G3 unresolved.",
   "sourceBase": "ec04b98adf514f3d0640540c7d85d730f49f0ece",
   "sourceSha256": {
     "host/src/homing/native-linear-port.ts": "cd891df39955538a6686142f112bbd4ee33a20de2e0bb3c7f735416f9745ba93",
     "host/src/runtime/product-objects.ts": "95730bff8af4176402ab4e2eb153568a4acf5b9ddec2d15f5dd0f6cabc744640",
-    "host/test/initial-linear.test.ts": "6d52ee5912755ce537b636d54bf60be3cbde2564fd61fd1422638b5e098f686d",
+    "host/test/initial-linear.test.ts": "49e247d7e210db1161329a207d2b29f6f7d1a36e50395ef9f8bc5d266dc5c98b",
     "host/test/product-service.test.ts": "81d4a6240b5a343e4c7c5f1f1cbec1b1f1179d21e086ec559293d776ff0fbff8",
     "host/test/motion-streamer.test.ts": "e35377e1f104ffb48b7011ab60936eb0aa2cdaee82e5e2f2170e1a5885b0bd3d",
-    "host/bench/native-toolhead-clock.ts": "22dd4ed409cb8338d37f3f890e23c176fde6374ec3f73e3b91878f0c35467be9"
+    "host/bench/native-toolhead-clock.ts": "22dd4ed409cb8338d37f3f890e23c176fde6374ec3f73e3b91878f0c35467be9",
+    "host/test/bltouch-native-port.test.ts": "d6a812646d8a847448f68551923d92a18872f569703907762f4d41c03a8a6bf4",
+    "host/test/native-carriage-port.test.ts": "878ef3bc40cdbffcf74c191851ddf6ac83c2e41eaabb7305769d811ee5883b69",
+    "host/test/helpers/native-print-homing.ts": "47f0c0e9adbb2f88d444d15a7683260480c344167208144132cd5fe60f1b1140",
+    "host/test/homing-native-linear-port.test.ts": "aa4816f38e98dd19d37d93cace0c7a1dcd36884ca888c20823b6a09d7250f17b",
+    "host/test/idle-clock-calibration.test.ts": "36738f1b85d2039a8913ce45e8d3429533d975e31a18c5db9c2559b328ee43b0",
+    "host/test/motor-enable.test.ts": "8854ddc17e1bd4d5ce855bda2f728a9c7e0bbd87c4c67b25d2b8276d72462d83",
+    "host/test/motor-release.test.ts": "ee57c285872a774c51e164725f8a6eb34e9c9abe804a7e948fc18883a91dc83c",
+    "host/test/multi-extrusion-printer.test.ts": "f144a47082cd75e1e6fad1a2f3de5a535fce16cec7c4046ed6e13576a0047cb4",
+    "host/test/native-bed-mesh.test.ts": "f7bcb801136a4bcb078597a03d23d84e93227ac814e5f95bcbbefb0295ece795",
+    "host/test/native-bed-tilt.test.ts": "cc78847af4f5a95b6d849070d719f456854e3e215e11376fdf01e0346f810b58",
+    "host/test/native-fan-gcode.test.ts": "0abaff8192620dd12655561dc4a84b5b8d0ff4af7aa3135c9071c327bc9efca7",
+    "host/test/native-grid-cancellation.test.ts": "7423c0cf7a0bed2791f9e5481a11d9c37b5c7e81329fd32f29e8b185910f40b9",
+    "host/test/native-grid-product.test.ts": "3d552fcf41695c4bc0633da1f0dac27ded8833ea50f9dc63a889729b05322dba",
+    "host/test/native-linear-gcode.test.ts": "8974c09ae414486f1550225264774ac575121e90b9bee6855b78057d64b39a56",
+    "host/test/native-output-pin.test.ts": "8f04b137e84903b27805a0b21dffae3b67c6b68ac688ff4c0d10c5b54ba36159",
+    "host/test/native-probe-grid.test.ts": "3cea0e01c5845a759cb1d157be9b9beb102eb6c83513ef72bdbbe907367c40b3",
+    "host/test/native-probe.test.ts": "d85c8042cf477958b5af457689fde9b1e8202ebece6ef49fa8e4f8ddbf810528",
+    "host/test/native-quad-calibration.test.ts": "68da8fb9a0766981a5833c3288cb451dabaa65d980f8e2a1056a7215161b8bf6",
+    "host/test/native-screws-tilt.test.ts": "0a967d3b52a04cd2ad974d850eec048d86f9c9c782ed00d0c10f2187b38f5755",
+    "host/test/native-z-tilt-calibration.test.ts": "009135c9bc16c8c0aa76174d11dd9935f34aeff5eb1e9e442dd8c0d4152d4d9a",
+    "host/test/product-printer.test.ts": "434de45085d602ca346f877617b5f62fefcabca2eacc0121035d38522a3dbd72",
+    "host/test/always-on-motors.test.ts": "ff173eae1d9221669b01e55edd2a0be0b022e98d325b2c96f0fd9831dafb4b71",
+    "host/test/auxiliary-motion.test.ts": "9eb49f8ed06d5e83b80697711c7f3d1a57824f6c2c635e69bee9896d4ea09ccd"
   },
   "change": {
     "field": "toolhead.estimated_print_time",
@@ -92,8 +115,106 @@
         }
       ]
     },
-    "exactHeadCI": "not_started",
-    "afterUsbCorrection": "complete current-head ordinary and remote checks pending"
+    "exactHeadCI": {
+      "head": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61",
+      "hostRun": 37314170393,
+      "hostJob": 111776615308,
+      "buildRun": 37314170292,
+      "buildJob": 111776615480,
+      "motion": "not triggered: workflow path filter does not match this diff",
+      "host": "completed_failure",
+      "ordinaryTests": 3932,
+      "ordinaryPassed": 3931,
+      "ordinaryFailures": 1,
+      "durationMs": 572507.54695,
+      "failures": [
+        {
+          "file": "host/test/initial-linear.test.ts",
+          "test": "configured linear handoff homes and closes replacement generations, auxiliary first=true",
+          "message": "Endstop trigger is in the future"
+        }
+      ],
+      "afterOrdinary": {
+        "protocol": "skipped",
+        "sanitized": "skipped",
+        "linuxMcu": "skipped"
+      },
+      "build": "completed_success",
+      "log": {
+        "file": "anyraid-pr5-0b9-host-ci-20261005.log",
+        "sha256": "2ef8f5ccee1fed8734a2cf4e15bf476bb0db6cab3cfd514d42a6b1885043c441"
+      }
+    },
+    "afterUsbCorrection": {
+      "file": "anyraid-toolhead-clock-usb-full-20261005.log",
+      "sha256": "1856284c348422dd8773f78373cdc05262cfe576112b19cb369c6f21b3634afe",
+      "sourceCommit": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61",
+      "tests": 3911,
+      "passed": 3905,
+      "failed": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 327613.143749,
+      "note": "A module-level TypeScript loader failure prevents some tests registering; counts differ from the previous run. USB cancellation and new clock cases passed.",
+      "failures": [
+        {
+          "file": "host/test/bltouch-native-port.test.ts",
+          "message": "Endstop trigger is in the future",
+          "count": 1
+        },
+        {
+          "file": "host/test/native-carriage-port.test.ts",
+          "message": "Endstop trigger is in the future",
+          "count": 2
+        },
+        {
+          "file": "host/test/product-build.test.ts",
+          "message": "Native TypeScript SIGSEGV",
+          "pc": "0x180796e",
+          "closure": "unresolved"
+        },
+        {
+          "file": "host/test/spectrogram.test.ts",
+          "message": "Expected cell limit; got Spectrogram timestamps must increase",
+          "closure": "unresolved"
+        },
+        {
+          "file": "host/test/spi-temperature.test.ts",
+          "message": "Node ERR_INTERNAL_ASSERTION: memory access out of bounds during TypeScript parsing",
+          "closure": "unresolved"
+        }
+      ]
+    },
+    "afterFirmwareHitCorrection": {
+      "file": "anyraid-firmware-hit-clock-full-20261005.log",
+      "sha256": "e2a179e87b19a6b8425209ba6faa0a267d110d68c6cacdcb5a000c1bc8647394",
+      "tests": 3917,
+      "passed": 3914,
+      "failed": 3,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 337810.903153,
+      "sourceScope": "After initial BLTouch/carriage actual-clock guard corrections, before audited remaining hit producers",
+      "failures": [
+        {
+          "file": "host/test/motan-table.test.ts",
+          "test": "Motan mixed CSV CLI",
+          "signal": "SIGTRAP",
+          "message": "V8 Fatal unreachable code; WebAssembly register allocator stack; no CSV output"
+        },
+        {
+          "file": "host/test/representable-profile.test.ts",
+          "message": "test module failed before registering all cases; no precise cause in final assertion"
+        },
+        {
+          "file": "host/test/shaper-export.test.ts",
+          "signal": "SIGSEGV",
+          "message": "graph_shaper.ts --help child exited without output"
+        }
+      ],
+      "closure": "Runtime/toolchain root cause unresolved; no optimization/thread/concurrency/time budget changed"
+    },
+    "currentCandidateCI": "pending after publishing audited hit-producer corrections"
   },
   "readPerformance": {
     "file": "anyraid-toolhead-clock-read-bench-fixed-20261005.log",
@@ -243,7 +364,7 @@
           }
         ]
       },
-      "pageUpload": "not verified; files seeded by API",
+      "pageUpload": "not verified; seeded by API; in-app chooser previously failed, shared Playwright README absent, connected browser inventory has no Chrome surface",
       "latePause": "Short-job pause reached completion boundary and returned 409; not counted as successful pause"
     },
     "logs": [
@@ -330,5 +451,145 @@
       "failed": 0,
       "durationMs": 1199.624051
     }
+  },
+  "firmwareHitFixture": {
+    "sources": [
+      "host/test/always-on-motors.test.ts",
+      "host/test/auxiliary-motion.test.ts",
+      "host/test/bltouch-native-port.test.ts",
+      "host/test/helpers/native-print-homing.ts",
+      "host/test/homing-native-linear-port.test.ts",
+      "host/test/idle-clock-calibration.test.ts",
+      "host/test/initial-linear.test.ts",
+      "host/test/motor-enable.test.ts",
+      "host/test/motor-release.test.ts",
+      "host/test/multi-extrusion-printer.test.ts",
+      "host/test/native-bed-mesh.test.ts",
+      "host/test/native-bed-tilt.test.ts",
+      "host/test/native-carriage-port.test.ts",
+      "host/test/native-fan-gcode.test.ts",
+      "host/test/native-grid-cancellation.test.ts",
+      "host/test/native-grid-product.test.ts",
+      "host/test/native-linear-gcode.test.ts",
+      "host/test/native-output-pin.test.ts",
+      "host/test/native-probe-grid.test.ts",
+      "host/test/native-probe.test.ts",
+      "host/test/native-quad-calibration.test.ts",
+      "host/test/native-screws-tilt.test.ts",
+      "host/test/native-z-tilt-calibration.test.ts",
+      "host/test/product-printer.test.ts"
+    ],
+    "change": "Wait for simulated firmware currentClock(), instead of the host clock estimate, before emitting a synthetic endstop hit. Production actual-uptime ordering and future-trigger rejection unchanged.",
+    "regression": {
+      "file": "anyraid-firmware-hit-clock-regression-20261005.log",
+      "sha256": "4c52696385934ae24a65ed1ae7aeaef5ef89f3721ebd437a0512a23b7225f699",
+      "tests": 23,
+      "passed": 23,
+      "failed": 0,
+      "durationMs": 9537.839202,
+      "includes": "Future/malformed/regressed stopped-clock rejection and ordered actual uptime readback"
+    },
+    "ordinary": "Historical local complete failures retained; latest source type/affected checks passed, new exact-head remote complete workflow required",
+    "audit": {
+      "file": "anyraid-hit-producer-audit-20261005.json",
+      "sha256": "b18133a952f9bd50b85ad119bbdc63ffdd2be780670e6b0564dd460678ab09ca",
+      "remainingFiles": 22,
+      "remainingGuards": 24,
+      "scope": "Only synthetic endstop-hit guards; normal waits, ADC scheduling, clock estimators, production guards and timing limits unchanged",
+      "excluded": [
+        "endstop-verification: normal host wait",
+        "dual-carriage-printer: already guarded by actual fw.currentClock() as well"
+      ]
+    },
+    "typecheck": {
+      "file": "anyraid-hit-producer-final-typecheck-20261005.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "status": "passed"
+    },
+    "affected": [
+      {
+        "file": "anyraid-hit-producer-affected-20261005.log",
+        "sha256": "1692fcd352d9c780adc0671adf8306f7d47aeb7df6d4a27883c5de540b78a387",
+        "files": 23,
+        "tests": 174,
+        "passed": 174,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "durationMs": 73663.690803
+      },
+      {
+        "file": "anyraid-hit-producer-remaining-20261005.log",
+        "sha256": "b22aef07c438d03898077348afb2fa64fe9a84c37bb6b37b0f901684a8030ad3",
+        "files": 2,
+        "tests": 19,
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "durationMs": 8099.530423
+      }
+    ]
+  },
+  "diagnostics": {
+    "scope": "Bounded local source/optimization and compiler-thread controls; no compiler or test-runner flags changed",
+    "normalSpectrogram": {
+      "file": "anyraid-spectrogram-normal-discriminator-20261005.log",
+      "sha256": "c401d608d1e7d2933f62a25752e15cfcb3102f5363f9572f8a0cfff9fb11d47e",
+      "tests": 2,
+      "passed": 2
+    },
+    "sourceJitless": {
+      "file": "anyraid-spectrogram-jitless-discriminator-20261005.log",
+      "sha256": "81f7581f76bd049840f442e8f30f1407e523d0b0f727fcc9f184929d1e1a5f71",
+      "status": "unsupported: native TypeScript stripping requires WebAssembly, which jitless disables; not an algorithm verdict"
+    },
+    "sourceNoOpt": {
+      "file": "anyraid-source-noopt-discriminator-20261005.log",
+      "sha256": "57f865138787f55e8dc1a3b9171eb7a47cecdce339d04caf9a0898c8ff115284",
+      "tests": 24,
+      "passed": 24,
+      "scope": "Spectrogram plus SPI temperature only; does not establish an optimization root cause"
+    },
+    "compilerThreads": {
+      "file": "anyraid-tsc-thread-discriminator-20261005.json",
+      "sha256": "c908cf235d3de5c7399dfe92693cbcb8452929a837e5d1596222bd062aef50d4",
+      "results": [
+        {
+          "id": "default",
+          "status": 0,
+          "signal": null,
+          "wallMs": 819.4104629999999
+        },
+        {
+          "id": "single-thread",
+          "status": 0,
+          "signal": null,
+          "wallMs": 1800.452668
+        }
+      ],
+      "scope": "One default and one singleThreaded product noEmit run; neither reproduced the crash, so root cause remains unresolved"
+    },
+    "kernelEvidence": "Kernel journal unavailable to current account even outside sandbox; no absence-of-hardware-error claim",
+    "motanStack": {
+      "file": "anyraid-motan-wasm-stack-symbols-20261005.log",
+      "sha256": "21e21bf69a4341b88234407478cc031d21dde489c33a967ae46611a3ec5a7329",
+      "tool": "addr2line -C -f against the verified Node v26.10.0 binary",
+      "symbols": [
+        "ConstraintBuilder::AllocateFixed",
+        "ConstraintBuilder::MeetConstraintsBefore",
+        "ConstraintBuilder::MeetRegisterConstraints",
+        "turboshaft::Pipeline::AllocateRegisters",
+        "turboshaft::ExecuteTurboshaftWasmCompilation"
+      ],
+      "scope": "Identifies fatal stack as V8 WebAssembly register allocation; does not prove software versus hardware cause or the source-loading boundary"
+    }
+  },
+  "pullRequest": {
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5",
+    "state": "draft",
+    "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5414956907",
+    "reviewedHead": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61",
+    "mergeAllowed": false
   }
 }

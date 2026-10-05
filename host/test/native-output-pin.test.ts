@@ -6,7 +6,6 @@ import {ConfigurationSource} from '../src/moonraker/config-source.ts';
 import {planLinearPrinter} from '../src/config/linear-printer.ts';
 import {startConfiguredPrinter} from '../src/runtime/configured-printer.ts';
 import {setTimeout as delay} from 'node:timers/promises';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 async function fixture(){
  const f=await configuredPrinterFixture();
  try{
@@ -66,7 +65,7 @@ test('homing transfers multi-MCU output ownership without replaying values or lo
   let sent=false;timer=setInterval(()=>{
    const fw=t.f.firmware[0],arm=fw.outputs.find(e=>e.name==='endstop_home'&&e.parameters.oid===h.endstop.oid&&Number(e.parameters.sample_count)>0);
    if(!arm||sent)return;const clock=Number(arm.parameters.clock);
-   if(t.f.group.session('mcu').clock.sync.getClock(serialClock.now())<BigInt(clock))return;sent=true;
+   if(BigInt(fw.currentClock())<BigInt(clock))return;sent=true;
    fw.setTriggerReason(1,trigger);fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},h.endstop.oid);
    fw.emit('trsync_state',{oid:trigger,can_trigger:0,trigger_reason:1,clock});
   },1);

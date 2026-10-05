@@ -44,7 +44,7 @@ for(const reverse of [false,true])test(`configured two-extruder motion binds ind
    await gcode.dispatch.execute('ACTIVATE_EXTRUDER EXTRUDER=extruder1\nG11');assert.equal(gcode.retraction!.retracted,false);assert(Math.abs(port.position()[4]-.3)<1e-12);
    await gcode.dispatch.execute('SET_PRESSURE_ADVANCE ADVANCE=0.05\nSET_PRESSURE_ADVANCE EXTRUDER=extruder ADVANCE=0.02');assert.equal(port.pressureAdvanceSettings('e1').advance,.05);assert.equal(port.pressureAdvanceSettings('e').advance,.02);
    const beforeHome=port.position().slice(3),h=hardware.plan.homing.find(h=>h.section==='stepper_x')!;let sent=false;
-   const homeTimer=setInterval(()=>{const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;const clock=BigInt(Number(arm.parameters.clock));if(f.group.session('mcu').clock.sync.getClock(serialClock.now())<clock)return;sent=true;
+   const homeTimer=setInterval(()=>{const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;const clock=BigInt(Number(arm.parameters.clock));if(BigInt(f.firmware[0].currentClock())<clock)return;sent=true;
     f.firmware[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},h.endstop.oid);
     for(const trigger of h.triggers){const fw=f.firmware[trigger.mcu==='mcu'?0:1],oid=trigger.protocol.oid;fw.setTriggerReason(1,oid);fw.emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});}
    },1);

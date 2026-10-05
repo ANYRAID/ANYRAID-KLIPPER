@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {idleMotionFixture} from './helpers/idle-motion.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 const signal=()=>new AbortController().signal;
 for(const filtered of [false,true])test(`idle calibration preserves stationary counters and subsequent movement (filtered=${filtered})`,async()=>{
  const t=await nativeLinearFixture(0,()=>true,filtered,undefined,false,true,true);try{
@@ -34,7 +33,7 @@ test('homing after idle calibration adopts the live clock and preserves authorit
  const t=await nativeLinearFixture(0,()=>false,false,undefined,false,true,true);let hit=false;
  const timer=setInterval(()=>{
   const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||hit)return;
-  const clock=Number(arm.parameters.clock);if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;
+  const clock=Number(arm.parameters.clock);if(BigInt(t.f.fw.currentClock())<BigInt(clock))return;
   hit=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});
  },1);
  try{

@@ -1,7 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 for(const mode of ['flat','single','retry','exhausted','diverging','invalid'])test(`automatic native Z tilt probe and adjustment mode=${mode}`,async()=>{
  const t=await nativeLinearFixture(0,()=>false,false,undefined,true,false,false,{z_offset:'0',x_offset:'2',y_offset:'-3'},undefined,undefined,false,undefined,undefined,2),s=new AbortController().signal,handled=new Set<unknown>();let hits=0,count=0;
  const plan={points:[[50,0],[50.01,0],[50,.01]] as [number,number][],horizontalHeight:1,travelSpeed:10,motors:[{id:'z',x:52,y:-3},{id:'z1',x:52.01,y:-3},{id:'z2',x:52,y:-2.99}],maximumTravel:.5,retries:mode==='single'?0:mode==='diverging'?3:1,retryTolerance:.000001};
@@ -9,7 +8,7 @@ for(const mode of ['flat','single','retry','exhausted','diverging','invalid'])te
   const output=t.f.fw.outputs,arm=output.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0&&!handled.has(m));
   if(!arm){if(hits&&output.findLastIndex(m=>m.name==='reset_step_clock')>output.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0))t.f.fw.setTriggerReason(2,8);return;}
   const pass=Math.floor(hits/3),point=hits%3,variation=mode==='flat'||mode==='retry'&&pass>0?0:point*(mode==='diverging'?pass+1:1);
-  const hit=Number(arm.parameters.clock)+50000+variation*4000;if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(hit+1000))return;
+  const hit=Number(arm.parameters.clock)+50000+variation*4000;if(BigInt(t.f.fw.currentClock())<BigInt(hit+1000))return;
   handled.add(arm);hits++;count-=15+variation;t.f.fw.setTriggerReason(1,8);for(const oid of [2,10,11])t.f.fw.setStepperPosition(oid,count);
   t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:hit});
  },1);
