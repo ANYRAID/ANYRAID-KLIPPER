@@ -1022,5 +1022,563 @@
         "sha256": "790f78bb8e05ccda6652289def60906561ec3920ab9b70e9d5ea7b08b9ee62f4"
       }
     ]
+  },
+  "recursiveDirectoryDeletion": {
+    "date": "2026-10-05",
+    "base": "d41052b73bcfe875fbf74587ed7f1f41b09427e0",
+    "scope": "M2c recursive nonempty directory deletion candidate based on normally merged PR6 develop tree; not integrated, not full Moonraker/Python retirement, target-board timing, motion precision or real-client page acceptance.",
+    "upstream": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "fileManagerBlob": "6fe3ce383f0ff1a36cd82a4222e0d6760ae0b93d",
+      "commonBlob": "145bc6d36159feaff71827572c496cd6351277b9",
+      "ranges": {
+        "directory": [
+          480,
+          550
+        ],
+        "boolean": [
+          577,
+          648
+        ]
+      }
+    },
+    "sourceSha256": {
+      "host/src/storage/namespace-delete.ts": "647968f30d66d157051bc352a07e44d367ffab862b48298aba9b94d9121ac6a0",
+      "host/src/storage/published-files.ts": "f0570aca6e744e5614b77626ba2b1de18cd07c05a867c2b75adfac8669246b55",
+      "host/src/moonraker/native-print-uploads.ts": "c7cd410e093fcd4d639303735afeb3a4c2bc17a168714572e848255e4f2b9535",
+      "host/test/published-directory-delete.test.ts": "77e5bc2b7a2ecd48753916fbe7eaea8708fe0d853384918aa078260d46172d03",
+      "host/test/native-offline-file-management.test.ts": "4a6e1e5f87280177ff47e1254ef88985a8e880210443a1c97c001625bdc48d90",
+      "host/test/native-print-uploads.test.ts": "b2e8d990278a64a3c541db1fcae16d0299eda341a797a3e77d37f4e3d1fcdf63",
+      "host/acceptance/product-compiled-journey.test.ts": "0e3a29beb2f8946767ebcade4755230b1c0ece7a5438605e67ef0591b9f6a99d",
+      "host/bench/published-directory-delete.ts": "673adb45c30631f2624c409cfd543556054dd29fa73c8389bb6f0e7398cb4074"
+    },
+    "implemented": [
+      "HTTP DELETE /server/files/directory and RPC server.files.delete_directory; boolean or case-insensitive true/false strings; forbid gcodes root",
+      "authorize every removed directory and immutable file before admission; changed membership refuses without mutation",
+      "same print owner guards active/paused members; confirmed offline owner fences new attachment until commit",
+      "complete old namespace digest, deletion intent fsync, receipt removal, directory index fsync and intent retirement; restart finishes verified decision",
+      "shared blobs and acquired sealed readers preserved; one root delete_dir notification; nested metadata revoked",
+      "catalog reads during planning and durable commit expose complete old/new cached namespace"
+    ],
+    "validation": {
+      "focused": {
+        "tests": 113,
+        "passed": 113
+      },
+      "finalStorage": {
+        "tests": 43,
+        "passed": 43
+      },
+      "rpcAndAdmission": {
+        "tests": 54,
+        "passed": 54
+      },
+      "benchmark": {
+        "node": "v26.10.0",
+        "baselinePath": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-offline-management/host/src/storage/published-files.ts",
+        "filesystemType": "0xef53",
+        "files": 1024,
+        "catalog": {
+          "baseline": {
+            "samples": 11,
+            "medianMs": 0.12609234000003197,
+            "p95Ms": 0.14149751999997534,
+            "p99Ms": 0.14149751999997534,
+            "maxMs": 0.14149751999997534
+          },
+          "candidate": {
+            "samples": 11,
+            "medianMs": 0.12468309999996563,
+            "p95Ms": 0.1623679599999741,
+            "p99Ms": 0.1623679599999741,
+            "maxMs": 0.1623679599999741
+          },
+          "medianRatio": 0.9888237461524944
+        },
+        "recursiveDeletion": {
+          "operations": 8,
+          "filesPerOperation": 128,
+          "samples": 8,
+          "medianMs": 985.411202000003,
+          "p95Ms": 1140.2707789999986,
+          "p99Ms": 1140.2707789999986,
+          "maxMs": 1140.2707789999986,
+          "catalogSamplesPerOperation": [
+            187,
+            218,
+            185,
+            192,
+            173,
+            187,
+            183,
+            191
+          ]
+        },
+        "concurrentCatalog": {
+          "samples": 1516,
+          "medianMs": 0.16067199999815784,
+          "p95Ms": 0.23983299999963492,
+          "p99Ms": 0.6097069999959785,
+          "maxMs": 16.630752000004577
+        },
+        "eventLoop": {
+          "p99Ms": 1.761279,
+          "maxMs": 5.509119
+        },
+        "sharedBlobPreserved": true,
+        "reopened": true,
+        "chargedBytes": 154330,
+        "scope": "Workspace disk fsync; original 50 ms query / 50-100 ms loop gates. Atomic cached reads include planning and durable commit. Not target-board, upstream speed parity, physical power-loss, motion precision or real print-duration proof.",
+        "sourceBoundary": "Measured before final delete/replacement temporary-file whitelist separation; directory algorithm and query/event-loop gates unchanged. Strict whitelist covered by final compiled followup and replacement/copy/delete regressions."
+      },
+      "compiledPreviousWhitelist": {
+        "manifestSha256": "405c4f15af89889b210cc64ea900c3af17c749bcd486640dfa5c32ba01887d48",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+        "passed": 1,
+        "durationMs": 73671.817031,
+        "statusRequests": 42095,
+        "statusP99Ms": 3.7877560000015364,
+        "minimumStepLeadMs": 80.956,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.970175,
+              "maxMs": 21.938175
+            },
+            "cpu": {
+              "user": 12474607,
+              "system": 2358285
+            },
+            "rss": 294342656
+          },
+          {
+            "loop": {
+              "p99Ms": 1.958911,
+              "maxMs": 12.869631
+            },
+            "cpu": {
+              "user": 7836576,
+              "system": 1732461
+            },
+            "rss": 358760448
+          }
+        ],
+        "recursiveOperations": 16,
+        "firstInEachGenerationWhilePrinting": true,
+        "offlineNestedDelete": true
+      },
+      "reviewedWhitelist": {
+        "manifestSha256": "57f1ede8fe2517b87b07fd27782d04b2f4686b8b6b6792d8a2e268e549abd936",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+        "firstMixed": "failed at 26222.784428 ms with Node26 Undici ERR_INVALID_STATE at asynchronous request body controller.enqueue; four recursive groups completed; root cause unresolved; no pass claim",
+        "instrumentedFollowup": {
+          "passed": 1,
+          "durationMs": 72975.638982,
+          "log": "/home/dek02/.cache/codex/tmp/anyraid-delete-annotated-compiled-followup-20261005.log",
+          "sha256": "d86542d4750539a231153149b1c613d417dd8824551267c9398c8a8d1159fb69",
+          "metrics": {
+            "namespace": true,
+            "motionReportLoad": true,
+            "configListRequests": 2127,
+            "configListP99Ms": 5.609780000000683,
+            "configDownloads": 2127,
+            "configDownloadP99Ms": 10.564175999999861,
+            "liveMotionSamples": 5763,
+            "liveExtrusionSamples": 1456,
+            "nativeAuthorization": true,
+            "apiLoad": true,
+            "completedStatistics": {
+              "total_duration": 10.538795916,
+              "print_duration": 4.903027662,
+              "filament_used": 1
+            },
+            "bundleManifestSha256": "57f1ede8fe2517b87b07fd27782d04b2f4686b8b6b6792d8a2e268e549abd936",
+            "bmp180": false,
+            "bme": false,
+            "bmeHeater": false,
+            "htu": false,
+            "htuHeater": false,
+            "htuModel": null,
+            "lm75": false,
+            "lm75Heater": false,
+            "sht": false,
+            "shtHeater": false,
+            "aht": false,
+            "ahtHeater": false,
+            "combinedHeater": false,
+            "combined": false,
+            "multi": false,
+            "dual": false,
+            "servos": false,
+            "outputPins": false,
+            "phaseQueries": 10299,
+            "phaseP99Ms": 3.876421000000846,
+            "loaded": false,
+            "spi": false,
+            "software": false,
+            "model5160": false,
+            "model2240": false,
+            "curved": false,
+            "probeHome": false,
+            "safeHome": false,
+            "bltouch": false,
+            "tilted": false,
+            "manualTilt": false,
+            "skew": false,
+            "screws": false,
+            "manualScrews": false,
+            "bedScrews": false,
+            "kinematics": "cartesian",
+            "temperatureSensor": false,
+            "temperatureFan": false,
+            "hostSensor": false,
+            "spiSensor": false,
+            "spiHeater": false,
+            "sharedSpi": false,
+            "zEndstop": false,
+            "max31855": false,
+            "max31856": false,
+            "max31865": false,
+            "zTilt": false,
+            "quad": false,
+            "stressed": true,
+            "sensorless": false,
+            "tmc": [
+              {
+                "statusReads": 320,
+                "writes": 43
+              },
+              {
+                "statusReads": 216,
+                "writes": 42
+              },
+              {
+                "statusReads": 8,
+                "writes": 40
+              }
+            ],
+            "faultInjected": "adc",
+            "historyNotifications": 32,
+            "historyRequests": 2113,
+            "historyP99Ms": 51.4349610000063,
+            "lifecycleShutdowns": 8,
+            "copyRequests": 16,
+            "copyP95Ms": 198.0456379999996,
+            "copyOverwriteRequests": 16,
+            "copyOverwriteP95Ms": 298.8901740000001,
+            "directoryCopyRequests": 16,
+            "directoryCopyP95Ms": 320.10523600000306,
+            "copiesDuringPrint": 3,
+            "directoryCopiesDuringPrint": 2,
+            "fileNotifications": 1132,
+            "fileNotificationP95Ms": 90.688011000002,
+            "movesDuringPrint": 3,
+            "directoryMoveRequests": 16,
+            "directoryMoveP95Ms": 476.5979719999996,
+            "directoryMovesDuringPrint": 3,
+            "moveRequests": 16,
+            "moveP95Ms": 259.11707500000193,
+            "deleteRequests": 16,
+            "deleteP95Ms": 369.6679079999958,
+            "publicThumbnailRequests": 16,
+            "publicThumbnailP95Ms": 192.5553929999951,
+            "thumbnailRequests": 16,
+            "thumbnailP95Ms": 92.55146900000545,
+            "metadataRequests": 16,
+            "metadataP95Ms": 244.60121599999547,
+            "downloads": 16,
+            "downloadP95Ms": 45.041010000000824,
+            "wireCommands": 236,
+            "wireSteps": 7506,
+            "minimumStepLeadMs": 83.436,
+            "directoryRequests": 8734,
+            "directoryP99Ms": 38.28128700000161,
+            "statusRequests": 41205,
+            "uploads": 16,
+            "statusP99Ms": 4.096014000002469,
+            "uploadP95Ms": 49.367605000003095,
+            "generations": [
+              {
+                "loop": {
+                  "p99Ms": 1.981439,
+                  "maxMs": 20.791295
+                },
+                "cpu": {
+                  "user": 12667603,
+                  "system": 2406990
+                },
+                "rss": 363225088
+              },
+              {
+                "loop": {
+                  "p99Ms": 1.977343,
+                  "maxMs": 12.910591
+                },
+                "cpu": {
+                  "user": 7566981,
+                  "system": 1800046
+                },
+                "rss": 361787392
+              }
+            ]
+          },
+          "offline": {
+            "sameListener": true,
+            "priorJwt": true,
+            "originalSockets": true,
+            "unauthorizedRejected": true,
+            "copy": true,
+            "movePreservesIdentity": true,
+            "copyOverwriteReplacesIdentity": true,
+            "delete": true,
+            "recursiveDelete": true,
+            "nestedMetadataRevoked": true,
+            "sharedPrintSourcePreserved": true,
+            "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+            "notifications": 16,
+            "recursiveDeleteNotifications": 4
+          },
+          "deletions": [
+            {
+              "generation": 1,
+              "group": 0,
+              "durationMs": 225.34688900000037,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 1,
+              "durationMs": 410.8085379999975,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 2,
+              "durationMs": 468.17350400000214,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 3,
+              "durationMs": 403.49473800000123,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 4,
+              "durationMs": 110.50877400000172,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 5,
+              "durationMs": 105.34315200000128,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 6,
+              "durationMs": 111.2138440000017,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 1,
+              "group": 7,
+              "durationMs": 111.64695000000211,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 0,
+              "durationMs": 219.3460780000023,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 1,
+              "durationMs": 227.28492099999858,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 2,
+              "durationMs": 470.3106140000018,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 3,
+              "durationMs": 271.77680499999406,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 4,
+              "durationMs": 125.21540699999605,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 5,
+              "durationMs": 109.20643600000767,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 6,
+              "durationMs": 101.79034800000954,
+              "sharedSourcePreserved": true
+            },
+            {
+              "generation": 2,
+              "group": 7,
+              "durationMs": 104.76146500000323,
+              "sharedSourcePreserved": true
+            }
+          ],
+          "scope": "Single followup after unchanged bundle identity and response-read diagnostics; does not close prior parent Undici error or compiler/hardware stability gate"
+        }
+      },
+      "full": {
+        "tests": 3953,
+        "passed": 3952,
+        "failed": 1,
+        "durationMs": 338130.4486,
+        "failedTest": "test/sd-flash-build.test.ts:11",
+        "error": "Unmodified TypeScript Go compiler SIGSEGV in LinkStore.Get / mapaccess1_fast64 at unexpected address 0x186fd49; root cause unresolved; single-file followup 1/1 passed; original failure retained",
+        "log": "/home/dek02/.cache/codex/tmp/anyraid-delete-full-20261005.log",
+        "sha256": "0212bd7061f92b0d65e97cbb00725e30368800bd831f732b9d04288d9b871f77",
+        "singleFileFollowup": {
+          "tests": 1,
+          "passed": 1,
+          "durationMs": 5213.947265,
+          "log": "/home/dek02/.cache/codex/tmp/anyraid-delete-sd-build-followup-20261005.log",
+          "sha256": "07cf3902d404b1531259c9619702ef3a49552f25eded715668f1ae2a99f17727"
+        }
+      },
+      "typecheck": {
+        "passed": true,
+        "node": "v26.10.0",
+        "log": "/home/dek02/.cache/codex/tmp/anyraid-delete-annotated-typecheck-20261005.log"
+      }
+    },
+    "preservedFailures": [
+      "fixture tried to write read-only survivor receipt; corrected explicit permission setup",
+      "product installation helper rejected relative path; used required absolute path",
+      "initial compiled fixture driver-current request returned legitimate idle-only 409; fixture now awaits available before obtaining token",
+      "reviewed mixed load failed in Undici request-body enqueue; 128 keepalive early rejections, 128 close early rejections and 128 immediate abort controls did not reproduce; no root-cause or stability claim",
+      "Full 3953-test run: 3952 passed, SD build failed in TypeScript Go compiler; no single-batch all-green or hardware root-cause claim"
+    ],
+    "logs": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-focused-20261005.log",
+        "sha256": "88482feb15fbbb8bcf8a5a9b2dc4bd5cf622cbdda3f78935041b8964f696dcce"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-reviewed-storage-20261005.log",
+        "sha256": "97fdc3ef4dc0a5644ee8493db88ef71e933c4f4cd936e36855a2c1922034f6f8"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-rpc-admission-20261005.log",
+        "sha256": "9494b0b389479c139f0a3529bbec8544b3f37ff9f414b297b51a7cbdc6273b15"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-benchmark-20261005.log",
+        "sha256": "2e9051769adf9ac582cd223a007cb54811d080098b8b041aa2eb9875d7261c52"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-final-compiled-mixed-20261005.log",
+        "sha256": "48eaccab8e0b0585beedd70b881c324c4413a9f03d42dec2f50ace8ea699152c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-reviewed-compiled-mixed-20261005.log",
+        "sha256": "37484ca6c78fc0a55667be3361d1880dc6bd9fd3a982698720e9fda3a2be75cc"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-storage-direct-20261005.log",
+        "sha256": "50f0e51fff05cb5b62c8cae9e66533fe4076bf63666fe528aba54ec444cbb8f1"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-bundle-build-20261005.log",
+        "sha256": "e5f953ed51646193402e469085c21d1686320dc4ee35f2bf7acf6a985b3de07d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-compiled-mixed-20261005.log",
+        "sha256": "aa160fef04d010ef51e800def668f166c087bbc8fd2725666d13b383a73b6ab7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-undici-early-response-probe-20261005.log",
+        "sha256": "1e97c2003beb17c3458f75605dfdf163ad29434f589ae59ba13bd2b22a6786a0"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-undici-early-close-probe-20261005.log",
+        "sha256": "052517e04ee28da48523151ef8c24eac10408b85404f4a024fce4a754f5690f3"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-undici-abort-probe-20261005.log",
+        "sha256": "2ebcdb4246d30836d9a677de6aca6fb7f072961fb9b43f05dc3e1d4ae9a3e1a2"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-annotated-typecheck-20261005.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-annotated-compiled-followup-20261005.log",
+        "sha256": "d86542d4750539a231153149b1c613d417dd8824551267c9398c8a8d1159fb69"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delete-sd-build-followup-20261005.log",
+        "sha256": "07cf3902d404b1531259c9619702ef3a49552f25eded715668f1ae2a99f17727"
+      }
+    ],
+    "remainingGates": [
+      "Precise new-head full CI; local full run had one compiler crash, standalone followup passed; preserved Undici/Go faults remain unresolved",
+      "Precise new-head review and CI, normal develop integration and postmerge validation; dependency PR6 normally merged, its postmerge checks running",
+      "full fixed-client secure consumer journey and page upload",
+      "G3 unresolved; physical printer, target-board performance/precision, all Moonraker and remaining Python retirement"
+    ],
+    "validatedDependencyHead": "52c8a2bbc59ccd98c32902cc4644e9cae53ef080",
+    "dependencyIntegration": {
+      "pr": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/6",
+      "head": "52c8a2bbc59ccd98c32902cc4644e9cae53ef080",
+      "merge": "d41052b73bcfe875fbf74587ed7f1f41b09427e0",
+      "mergedAt": "2026-10-05T15:06:03Z",
+      "sameTreeAsReviewedHead": true,
+      "finalSelfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/6#issuecomment-5997179036",
+      "headHost": {
+        "head": "52c8a2bbc59ccd98c32902cc4644e9cae53ef080",
+        "run": 37325372644,
+        "job": 111814636131,
+        "conclusion": "success",
+        "ordinary": [
+          "2026-10-05T14:41:53.8991984Z ℹ tests 3936",
+          "2026-10-05T14:41:53.8992820Z ℹ pass 3936",
+          "2026-10-05T14:41:53.8993234Z ℹ fail 0",
+          "2026-10-05T14:41:53.8994963Z ℹ duration_ms 581957.057912"
+        ],
+        "sanitizerCases": 2372,
+        "sanitizerGroups": 298,
+        "log": "/home/dek02/.cache/codex/tmp/anyraid-pr6-head-host-20261005.log",
+        "sha256": "211d82fd2225912f6eeaf412b463d6ba9572ca74950174d22de0c92eb2fb2852"
+      },
+      "headFirmware": {
+        "run": 37325372796,
+        "job": 111814636674,
+        "conclusion": "success"
+      },
+      "postmerge": {
+        "host": {
+          "run": 37330039026,
+          "job": 111830523427,
+          "status": "in_progress"
+        },
+        "firmware": {
+          "run": 37330039058,
+          "job": 111830523854,
+          "status": "in_progress"
+        }
+      },
+      "motionWorkflow": "not triggered; not current-head motion proof"
+    }
   }
 }

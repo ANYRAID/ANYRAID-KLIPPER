@@ -720,5 +720,47 @@
         ]
       }
     }
+  },
+  "confirmedOfflineIntegration": {
+    "pr": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/6",
+    "head": "52c8a2bbc59ccd98c32902cc4644e9cae53ef080",
+    "merge": "d41052b73bcfe875fbf74587ed7f1f41b09427e0",
+    "mergedAt": "2026-10-05T15:06:03Z",
+    "sameTreeAsReviewedHead": true,
+    "finalSelfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/6#issuecomment-5997179036",
+    "headHost": {
+      "head": "52c8a2bbc59ccd98c32902cc4644e9cae53ef080",
+      "run": 37325372644,
+      "job": 111814636131,
+      "conclusion": "success",
+      "ordinary": [
+        "2026-10-05T14:41:53.8991984Z ℹ tests 3936",
+        "2026-10-05T14:41:53.8992820Z ℹ pass 3936",
+        "2026-10-05T14:41:53.8993234Z ℹ fail 0",
+        "2026-10-05T14:41:53.8994963Z ℹ duration_ms 581957.057912"
+      ],
+      "sanitizerCases": 2372,
+      "sanitizerGroups": 298,
+      "log": "/home/dek02/.cache/codex/tmp/anyraid-pr6-head-host-20261005.log",
+      "sha256": "211d82fd2225912f6eeaf412b463d6ba9572ca74950174d22de0c92eb2fb2852"
+    },
+    "headFirmware": {
+      "run": 37325372796,
+      "job": 111814636674,
+      "conclusion": "success"
+    },
+    "postmerge": {
+      "host": {
+        "run": 37330039026,
+        "job": 111830523427,
+        "status": "in_progress"
+      },
+      "firmware": {
+        "run": 37330039058,
+        "job": 111830523854,
+        "status": "in_progress"
+      }
+    },
+    "motionWorkflow": "not triggered; not current-head motion proof"
   }
 }
