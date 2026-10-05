@@ -54,6 +54,36 @@ async function fixture(options:{max?:number;authorize?:MoonrakerNetworkOptions['
 }
 const moveHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/move',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
 const copyHttp=(f:Awaited<ReturnType<typeof fixture>>,source:string,dest:string)=>fetch(f.url+'/server/files/copy',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({source,dest})});
+const deleteDirectoryHttp=(f:Awaited<ReturnType<typeof fixture>>,path:string,force:unknown=true)=>fetch(f.url+'/server/files/directory',{method:'DELETE',headers:{'content-type':'application/json'},body:JSON.stringify({path,force})});
+test('recursive delete JSON-RPC uses the same durable subtree operation and boolean contract',async()=>{
+ const f=await fixture({removal:true}),signal=new AbortController().signal;
+ try{await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'rpc-child',path:'parts'},'child.gcode'));const call=async(force:unknown)=>(await (await fetch(f.url+'/server/jsonrpc',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:7,method:'server.files.delete_directory',params:{path:'gcodes/parts',force}})})).json());assert((await call(1)).error);assert.equal(f.files.status.publishedFiles,1);const result=await call('True');assert.equal(result.id,7);assert.equal(result.result.action,'delete_dir');assert.equal(f.files.status.publishedFiles,0);assert.equal(await f.files.hasDirectory('parts',signal),false);}finally{await f.clean();}
+});
+test('recursive directory DELETE authorizes every identity, revokes nested metadata and emits one root event',async()=>{
+ const policies:any[]=[],f=await fixture({removal:true,authorize(method,p){if(method==='server.files.delete_directory')policies.push(p);}}),signal=new AbortController().signal,events:any[]=[];
+ try{
+  for(const p of ['parts','parts/sub','other'])await f.files.mutateDirectory(p,false,signal);
+  for(const [id,path] of [['a','parts'],['b','parts/sub'],['outside','other']])assert.equal((await f.post(multipart('G1 X1\n',{file_id:id,path},id+'.gcode'))).status,200);
+  assert.equal((await fetch(f.url+'/server/files/metadata?filename=parts/sub/b.gcode')).status,200);
+  const off=f.uploads.observeChanges(e=>events.push(e));try{const response=await deleteDirectoryHttp(f,'gcodes/parts');assert.equal(response.status,200,await response.clone().text());assert.deepEqual((await response.json()).result,{action:'delete_dir',item:{path:'parts',root:'gcodes',modified:0,size:0,permissions:''}});}finally{off();}
+  assert.deepEqual(events.map(e=>[e.action,e.item.path]),[['delete_dir','parts']]);assert.deepEqual(policies.filter(p=>p.file_id).map(p=>p.file_id),['a','b']);assert(policies.some(p=>p.path==='gcodes/parts/sub'&&p.action==='delete_dir'));
+  assert.equal((await fetch(f.url+'/server/files/metadata?filename=parts/sub/b.gcode')).status,404);assert.equal((await fetch(f.url+'/server/files/gcodes/parts/a.gcode')).status,404);assert.equal(await (await fetch(f.url+'/server/files/gcodes/other/outside.gcode')).text(),'G1 X1\n');assert.equal(f.controller!.state,'idle');
+ }finally{await f.clean();}
+});
+test('recursive deletion denies a child policy and active or paused membership, allowing an unrelated subtree',async()=>{
+ let deny=false;const f=await fixture({removal:true,authorize(method,p){if(deny&&method==='server.files.delete_directory'&&p.file_id==='b')throw new ApiError(403,'Denied child');}}),signal=new AbortController().signal;
+ try{
+  for(const p of ['parts','other'])await f.files.mutateDirectory(p,false,signal);for(const [id,path] of [['a','parts'],['b','parts'],['outside','other']])await f.post(multipart('G1 X1\n',{file_id:id,path},id+'.gcode'));
+  assert.equal((await deleteDirectoryHttp(f,'gcodes/parts',false)).status,409);assert.equal((await deleteDirectoryHttp(f,'gcodes',true)).status,400);assert.equal((await deleteDirectoryHttp(f,'gcodes/parts','maybe')).status,400);deny=true;assert.equal((await deleteDirectoryHttp(f,'gcodes/parts')).status,403);assert.equal(f.files.status.publishedFiles,3);deny=false;
+  await f.controller!.start({version:1,requestId:'recursive-active',fileId:'b',nozzle:0,bed:0});assert.equal((await deleteDirectoryHttp(f,'gcodes/parts')).status,403);await f.controller!.pause();assert.equal((await deleteDirectoryHttp(f,'gcodes/parts')).status,403);assert.equal((await deleteDirectoryHttp(f,'gcodes/other','true')).status,200);assert.equal(f.controller!.state,'paused');await f.controller!.cancel();assert.equal((await deleteDirectoryHttp(f,'gcodes/parts')).status,200);
+ }finally{await f.clean();}
+});
+test('directory membership added during authorization rejects recursive deletion with zero effects',async()=>{
+ const held=Promise.withResolvers<void>();let entered=false;const f=await fixture({removal:true,authorize(method,p){if(method==='server.files.delete_directory'&&p.file_id){entered=true;return held.promise;}}}),signal=new AbortController().signal;let pending:Promise<Response>|undefined;
+ try{
+  await f.files.mutateDirectory('parts',false,signal);await f.post(multipart('G1 X1\n',{file_id:'a',path:'parts'},'a.gcode'));pending=deleteDirectoryHttp(f,'gcodes/parts');await until(()=>entered);const path=join(f.dir,'late');await writeFile(path,'G1 X2\n');const source=await open(path,'r');try{await f.files.publish('late','late.gcode',source,signal,'parts/late.gcode');}finally{await source.close();}held.resolve();assert.equal((await pending).status,409);assert.equal(f.files.filename('a'),'parts/a.gcode');assert.equal(f.files.filename('late'),'parts/late.gcode');assert(!(await readdir(join(f.dir,'files'))).includes('.namespace-delete.json'));
+ }finally{held.resolve();await pending?.catch(()=>{});await f.clean();}
+});
 test('standard multipart overwrite publishes fresh immutable ID and create_file while refreshing metadata',async()=>{
  const f=await fixture({removal:true}),events:any[]=[];const off=f.uploads.observeChanges(e=>events.push(e));try{
   const data='; generated by PrusaSlicer 2.8 on 2026-01-01 at 12:34:56\n; layer_height = .2\nG1 X1\n',nextData=data.replace('= .2','= .4').replace('G1 X1','G1 X9');

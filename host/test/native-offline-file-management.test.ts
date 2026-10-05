@@ -7,6 +7,26 @@ import {NativeProductFileResources} from '../src/runtime/native-product-machine.
 import {PublishedPrintFiles} from '../src/storage/published-files.ts';
 import {ApiError,type RpcContext} from '../src/moonraker/rpc.ts';
 const context=():RpcContext=>({transport:'http',signal:new AbortController().signal,authorize(){}});
+test('confirmed offline recursive deletion fences attachment and emits only the deleted subtree',async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),release=Promise.withResolvers<void>(),events:any[]=[],off=f.uploads.observeChanges(e=>events.push(e));let pending:Promise<unknown>|undefined;
+ const original=f.files.deleteDirectory.bind(f.files);
+ try{
+  await f.files.mutateDirectory('parts',false,context().signal);await f.uploads.move({source:'gcodes/part.gcode',dest:'gcodes/parts/part.gcode'},context());events.length=0;
+  await assert.rejects(f.uploads.mutateDirectory({path:'gcodes/parts',force:'FALSE'},'DELETE',context()),(e:any)=>e.status===409);await assert.rejects(f.uploads.mutateDirectory({path:'gcodes/parts',force:1},'DELETE',context()),(e:any)=>e.status===400);
+  f.files.deleteDirectory=async(...args)=>{entered.resolve();await release.promise;return original(...args);};pending=f.uploads.mutateDirectory({path:'gcodes/parts',force:'TRUE'},'DELETE',context());await entered.promise;assert.equal(f.resources.status.offlineMutations,1);assert.throws(()=>f.resources.acquire(f.options),/device attachment/);release.resolve();await pending;assert.equal(f.resources.status.offlineMutations,0);assert.deepEqual(events.map(e=>[e.action,(e.item as any).path]),[['delete_dir','parts']]);const lease=f.resources.acquire(f.options);lease.release();
+ }finally{release.resolve();await pending?.catch(()=>{});off();await f.close();}
+});
+test('retired or unconfirmed offline recursive deletion is denied before touching members',async()=>{
+ const f=await fixture(),generation=new AbortController();generation.abort();
+ try{await f.files.mutateDirectory('parts',false,context().signal);await f.uploads.move({source:'gcodes/part.gcode',dest:'gcodes/parts/part.gcode'},context());await assert.rejects(f.uploads.mutateDirectory({path:'gcodes/parts',force:true},'DELETE',{...context(),nativeGenerationSignal:generation.signal,nativeGenerationRetiredAtAdmission:false}),(e:any)=>e.status===503);const lease=f.resources.acquire(f.options);await assert.rejects(f.uploads.mutateDirectory({path:'gcodes/parts',force:true},'DELETE',context()),(e:any)=>e.status===503);lease.release(false);await assert.rejects(f.uploads.mutateDirectory({path:'gcodes/parts',force:true},'DELETE',context()),(e:any)=>e.status===503);assert.equal(await f.files.resolvePath('parts/part.gcode',context().signal),'original');}finally{await f.close();}
+});
+test('attachment during recursive member authorization rejects deletion without changing the namespace',async()=>{
+ const f=await fixture(),entered=Promise.withResolvers<void>(),allowed=Promise.withResolvers<void>();let lease:ReturnType<NativeProductFileResources['acquire']>|undefined,pending:Promise<unknown>|undefined;
+ try{
+  await f.files.mutateDirectory('parts',false,context().signal);await f.uploads.move({source:'gcodes/part.gcode',dest:'gcodes/parts/part.gcode'},context());
+  pending=f.uploads.mutateDirectory({path:'gcodes/parts',force:true},'DELETE',{...context(),authorize(_method,p){if(p.file_id){entered.resolve();return allowed.promise;}}});const rejected=assert.rejects(pending,(e:any)=>e.status===403);await entered.promise;lease=f.resources.acquire(f.options);allowed.resolve();await rejected;assert.equal(await f.files.resolvePath('parts/part.gcode',context().signal),'original');assert.equal(await f.files.hasDirectory('parts',context().signal),true);assert.equal(f.resources.status.offlineMutations,0);
+ }finally{allowed.resolve();await pending?.catch(()=>{});lease?.release();await f.close();}
+});
 async function fixture(){
  const root=await mkdtemp(join(tmpdir(),'native-offline-')),options={filesRoot:join(root,'files'),metadataRoot:join(root,'metadata')};
  const resources=await NativeProductFileResources.open(options),lease=resources.acquire(options),files=lease.files;

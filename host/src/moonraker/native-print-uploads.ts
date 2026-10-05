@@ -6,7 +6,7 @@ import {mkdtemp,open,rm,type FileHandle} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {randomUUID,createHash} from 'node:crypto';
-import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError,PublishedCopyCommitError,PublishedReplacementCommitError} from '../storage/published-files.ts';
+import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitError,PublishedNamespaceMoveCommitError,PublishedCopyCommitError,PublishedReplacementCommitError,PublishedDeleteCommitError} from '../storage/published-files.ts';
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
@@ -320,11 +320,13 @@ export class NativePrintUploads {
  mutateDirectory(params:Readonly<Record<string,Json>>,verb:'POST'|'DELETE',context:RpcContext):Promise<Json>{
   if(this.#closed)return Promise.reject(new ApiError(503,'Native files closed'));
   if(this.#mutations.size>=this.#capacity)return Promise.reject(new ApiError(429,'Native file mutation capacity exceeded'));
+  const force=typeof params.force==='string'?params.force.toLowerCase():params.force;
+  if(verb==='DELETE'&&(force===true||force==='true'))return this.#deleteDirectory(params,context);
   const binding=this.#deviceFiles,signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal]:[]]);
   const task=Promise.resolve().then(async()=>{
    signal.throwIfAborted();if(Object.keys(params).some(key=>!['path',...(verb==='DELETE'?['force']:[])].includes(key)))throw new ApiError(400,'Invalid directory mutation arguments');
    const path=nativeDirectory(params.path);if(!path)throw new ApiError(400,'Cannot mutate the gcodes root');
-   if(params.force!==undefined&&params.force!==false&&params.force!=='false')throw new ApiError(400,'Recursive deletion requires a separate controlled operation');
+   if(force!==undefined&&force!==false&&force!=='false')throw new ApiError(400,'Invalid directory force argument');
    let release:(()=>void)|undefined,releaseDevice:(()=>void)|undefined;
    try{
     try{release=this.#gate.activity();if(binding&&binding.owner.#gate!==this.#gate)releaseDevice=binding.owner.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks directory mutation');}
@@ -333,6 +335,25 @@ export class NativePrintUploads {
     return {action:changed.action,item:{path,root:'gcodes',modified:changed.modified,size:0,permissions:verb==='DELETE'?'':'rw'}};
    }catch(error){if(error instanceof PublishedDirectoryCommitError)throw new ApiError(500,'Directory transaction requires recovery',{phase:error.phase});const code=(error as NodeJS.ErrnoException)?.code;if(code==='ENOENT')throw new ApiError(404,'Directory or parent not found');if(code==='EEXIST'||code==='ENOTEMPTY')throw new ApiError(409,code==='EEXIST'?'Directory or file already exists':'Directory is not empty');throw error;}
    finally{releaseDevice?.();release?.();}
+  });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
+ }
+ #deleteDirectory(params:Readonly<Record<string,Json>>,context:RpcContext):Promise<Json>{
+  if(this.#deviceFiles){const binding=this.#deviceFiles;if(context.nativeGenerationSignal&&context.nativeGenerationSignal!==binding.signal)return Promise.reject(new ApiError(503,'Directory deletion belongs to a retired device'));return binding.owner.mutateDirectory(params,'DELETE',{...context,signal:AbortSignal.any([context.signal,binding.signal])});}
+  if(!this.canRemove||this.#retiredMutation(context))return Promise.reject(new ApiError(503,'Directory deletion requires its print owner or confirmed offline owner'));
+  const signal=AbortSignal.any([context.signal,this.#abort.signal]);
+  const task=Promise.resolve().then(async()=>{
+   if(Object.keys(params).some(k=>!['path','force'].includes(k)))throw new ApiError(400,'Invalid directory deletion arguments');const path=nativeDirectory(params.path);if(!path)throw new ApiError(400,'Cannot delete the gcodes root');
+   let release:(()=>void)|undefined,releaseFiles:(()=>void)|undefined;
+   try{
+    try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks directory deletion');}
+    await this.#authorize(context,{path:'gcodes/'+path},signal,'server.files.delete_directory');signal.throwIfAborted();const plan=await this.#files.prepareDirectoryDelete(path,signal);
+    const survivors=new Set(plan.directoriesAfter.map(e=>e.path));for(const entry of plan.directoriesBefore)if(!survivors.has(entry.path))await this.#authorize(context,{path:'gcodes/'+entry.path,action:'delete_dir'},signal,'server.files.delete_directory');
+    for(const {file} of plan.deleted)await this.#authorize(context,{path:'gcodes/'+visibleFilePath(file),file_id:file.id,filename:file.name,size:file.size,sha256:file.sha256},signal,'server.files.delete_directory');
+    try{releaseFiles=this.#beginFileMutations(plan.deleted.map(e=>e.file.id));}catch{throw new ApiError(403,'Print or maintenance owns this directory');}
+    const changed=await this.#files.deleteDirectory(plan,signal);for(const {file} of plan.deleted)await this.#metadata.invalidate(visibleFilePath(file));
+    return {action:changed.action,item:{path,root:'gcodes',modified:0,size:0,permissions:''}};
+   }catch(error){if(error instanceof PublishedDeleteCommitError)throw new ApiError(500,'Directory deletion requires recovery',{phase:error.phase});if(error instanceof PublishedFileChangedError)throw new ApiError(409,error.message);if((error as NodeJS.ErrnoException).code==='ENOENT')throw new ApiError(404,'Directory not found');throw error;}
+   finally{releaseFiles?.();release?.();}
   });this.#pending.add(task);this.#mutations.add(task);return task.finally(()=>{this.#pending.delete(task);this.#mutations.delete(task);});
  }
  async #directory(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{
