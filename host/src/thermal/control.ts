@@ -67,7 +67,12 @@ export class HeaterPWM {
   if(this.#stopped||target<=0||this.#value===0)return;
   const time=estimatedPrintTime+this.#delay;
   if(estimatedPrintTime>this.#validUntil||time>=this.#scheduledTime+3)throw new Error('Heater PWM refresh deadline missed');
-  if(time+1<this.#scheduledTime+3)return;
+  // Protection polls once per second. A one-second renewal window can be
+  // skipped when a sample aligns with that timer: one tick lands just before
+  // the window and the next just after the device deadline. Reserve two
+  // seconds for the next poll and its acknowledged write; the deadline above
+  // remains strict, and the caller still checks the original sample freshness.
+  if(time+2<this.#scheduledTime+3)return;
   this.#scheduledTime=time;this.#next=time+3-(3*this.#delay+.001);
   return {time,power:this.#value};
  }

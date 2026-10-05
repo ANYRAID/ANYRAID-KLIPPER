@@ -2446,5 +2446,10 @@
       }
     ],
     "conclusion": "100 sequential compiled-JavaScript processes, 16 numerical rounds each, completed without observed failures. Finite success does not close prior integrity failures or certify this host. Sandbox attempt EEs7SE had empty output and missing verification marker and was not counted."
+  },
+  "currentOverwriteCapture": {
+    "evidence": "host/contracts/motion-overwrite-capture.json",
+    "state": "two_captured_inputs_locally_corrected",
+    "scope": "Two newly captured sub-clock representations locally corrected and current compiled software case passed; prior historical failures and complete G3 remain unresolved."
   }
 }

@@ -1,11 +1,12 @@
 import type {Move,Trapezoid} from './lookahead.ts';
+type NativeProfile=Trapezoid&{accel:number};
 const bits=new DataView(new ArrayBuffer(8));
 function spacing(value:number):number{value=Math.abs(value);bits.setFloat64(0,value);bits.setBigUint64(0,bits.getBigUint64(0)+1n);return bits.getFloat64(0)-value;}
 /** A trapezoid may contain a phase shorter than the absolute clock
  * can represent. One-sided replacement preserves exact endpoints; two-sided
  * plateau folding has an explicit one-ULP / 1e-12 mm endpoint-error ceiling.
  * Never increase acceleration or change the planner's logical timeline. */
-export function representableProfile(move:Move,time:number):(Trapezoid&{accel:number})|undefined{
+export function representableProfile(move:Move,time:number):NativeProfile|undefined{
  const p=move.profile!;
  const accelEnd=time+p.accelT,cruiseEnd=accelEnd+p.cruiseT;
  if(!(p.cruiseT>0)||!(p.accelT>0&&accelEnd===time||cruiseEnd===accelEnd||p.decelT>0&&cruiseEnd+p.decelT===cruiseEnd))return;
@@ -39,7 +40,10 @@ export function representableProfile(move:Move,time:number):(Trapezoid&{accel:nu
  // End-clock rounding and coordinate rounding have distinct plateaus. Their
  // overlap can lie between the two endpoint candidates (not at either one).
  // The midpoint is only another candidate; all exact invariants still apply.
- candidate:for(const duration of [geometric,ramp,ramp+(geometric-ramp)*.5]){
+ // At an absolute clock boundary the midpoint can round past the end-clock
+ // plateau while the ramp candidate misses an extrusion endpoint. Interior
+ // quarter points sample that overlap; every original exact guard still runs.
+ candidate:for(const duration of [geometric,ramp,ramp+(geometric-ramp)*.5,ramp+(geometric-ramp)*.25,ramp+(geometric-ramp)*.75]){
  const accel=Math.abs(p.endV-p.startV)/duration;
  if(!(duration>0)||!(accel>0)||accel>move.accel||time+duration!==((time+p.accelT)+p.cruiseT)+p.decelT)continue;
  const signed=accelerating?accel:-accel,distance=(p.startV+.5*signed*duration)*duration;
@@ -88,4 +92,30 @@ export function representableProfile(move:Move,time:number):(Trapezoid&{accel:nu
   }
  }
 
+}
+
+/** A tiny accelerating ramp alongside a real deceleration needs independent
+ * accelerations. Borrow one clock interval from cruise for the first ramp;
+ * keep the original deceleration untouched in a second native row. Exact
+ * boundary speeds, native XYZ/E endpoints and the logical end clock are
+ * mandatory. The analytic travel change is capped at one coordinate ULP
+ * and 1e-12 mm. No planner profile or native validation is changed. */
+export function representableSplitProfile(move:Move,time:number):{head:NativeProfile;tail:NativeProfile;tailTime:number;tailPos:number[]}|undefined{
+ const p=move.profile!,accelEnd=time+p.accelT,cruiseEnd=accelEnd+p.cruiseT;
+ if(!(p.accelT>0)||accelEnd!==time||!(p.cruiseT>0)||!(p.decelT>0)||!(cruiseEnd>time)||!(cruiseEnd+p.decelT>cruiseEnd)||!(p.cruiseV>p.startV))return;
+ const duration=spacing(time),extra=duration-p.accelT,cruise=p.cruiseT-extra,dv=p.cruiseV-p.startV,accel=dv/duration,tailTime=time+duration;
+ if(!(extra>0)||!(cruise>0)||!(accel>0)||accel>move.accel||p.startV+accel*duration!==p.cruiseV||p.cruiseV-move.accel*p.decelT!==p.endV||!(tailTime>time)||!(tailTime+cruise>tailTime)||tailTime+cruise+p.decelT!==cruiseEnd+p.decelT)return;
+ const distance=(p.startV+.5*accel*duration)*duration,tailPos=move.startPos.slice();
+ for(let i=0;i<move.axesR.length;i++){
+  const r=move.axesR[i];if(!r)continue;
+  const bound=dv*extra*Math.abs(r);
+  if(!Number.isFinite(bound)||bound>Math.min(spacing(move.startPos[i]),spacing(move.endPos[i]),1e-12))return;
+  const middle=move.startPos[i]+r*distance;
+  const end=(middle+r*(p.cruiseV*cruise))+r*((p.cruiseV-.5*move.accel*p.decelT)*p.decelT);
+  const eMiddle=move.startPos[i]+(p.startV*r+.5*accel*r*duration)*duration;
+  const eEnd=(eMiddle+p.cruiseV*r*cruise)+(p.cruiseV*r-.5*move.accel*r*p.decelT)*p.decelT;
+  if(!Number.isFinite(end)||end!==move.endPos[i]||i>=3&&eEnd!==move.endPos[i])return;
+  tailPos[i]=i>=3?eMiddle:middle;
+ }
+ return {head:{startV:p.startV,cruiseV:p.cruiseV,endV:p.cruiseV,accelT:duration,cruiseT:0,decelT:0,accel},tail:{...p,startV:p.cruiseV,accelT:0,cruiseT:cruise,accel:move.accel},tailTime,tailPos};
 }
