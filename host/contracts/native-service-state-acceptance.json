@@ -1,0 +1,343 @@
+{
+  "schema": 1,
+  "status": "candidate-failed-clock-gate",
+  "date": "2026-10-06",
+  "runtime": "Node.js 26.10.0",
+  "base": "796e65d993c3a8894967411de91cbec4501f8a6f",
+  "sourceCommit": "9f3ae3876cb67c50d7d0931b2ddc4dd44767f627",
+  "scope": "Read-only native process systemd state queries, cached system_info, exact current-process unit and authorized service notifications; service controls, complete M4 and overall delivery remain open",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "moonraker/components/machine.py",
+    "blob": "09c1c7bfa80406d405881d3c9289d4382dc39980",
+    "sha256": "2ad8c81824d487c58f6dd92d08ad8a013c255a5a88a251ba99d75188cd7d1dbe",
+    "wire": "provider, available_services, service_state, instance_ids, per-service notify_service_state_changed"
+  },
+  "sources": {
+    "host/src/moonraker/system-services.ts": "f27ee7ff0bbdb8adfd6009fd06900704efe259c5e7f66d34cf1ad48f6743c6ed",
+    "host/src/moonraker/configured-server.ts": "7e10d3b0777c8e4679892cd441462992c92bcd5fd670d0bc935bef37af69bfe9",
+    "host/src/runtime/product-service.ts": "458bf73a44743b8861aa9dafd0a36873d700b86d3dd1e0f9fd114317b886a9f2",
+    "host/src/runtime/native-product-machine.ts": "a68f4cdf5af186b59c10782e0151f41fc8d1f4c6e07c08f6f1495fab45b49ca0",
+    "host/test/system-services.test.ts": "843d8405d61a280fe34a7aabadb8a255b508ee0702558bda431825a747267e86",
+    "host/test/configured-system-services.test.ts": "b085f21b4aac054dfecb7e292f15a186b2d8e14d6693069db1bffae6319c430d",
+    "host/test/product-service.test.ts": "ccaaffe96dbb8c6b0c9b5fc1f8286951d906af18fe0e77c5d56543b5d1a08c8b",
+    "host/test/node-motion-probe.test.ts": "bd831e6a0c8b406cb88b77dfa837ec82cb4104096e9e3ba0e8421971db47aed9",
+    "host/test/manual-delta-preflight.test.ts": "4b995d127d5793ee900321a6f5aec3e6c2f0a77cbc636f794bd93e2ec8fed2d9",
+    "host/test/helpers/step-clock-diagnostic.ts": "0ab36ce734cd3b1efd7c6ec5fea6bb4a37a8a289a7a11f0fba7c81b37ab309ab",
+    "host/bench/system-services.ts": "b77b85a6f53b18b08d7bf42d039b48a2ccc599f5614dbf870831da0c220f35c1",
+    "host/acceptance/product-compiled-journey.test.ts": "99095a7bcdbe27eca276be87f0ee543c44a4941e7b945ff2410cae0c757760d2"
+  },
+  "invariants": [
+    "Fixed read-only systemctl argv, no shell/sudo/password/host service mutation",
+    "Each child command bounded by one second and 1 MiB; catalogue bounded by 64 exact allowed units",
+    "Legitimate escaped unrelated list entries do not break detection; selected service names remain strict and alias remapping fails closed",
+    "Current kernel cgroup identifies the actual service; combined native Klipper/Moonraker share that verified instance ID",
+    "HTTP/RPC queries clone cache without subprocess work; polls coalesce and publish one complete snapshot",
+    "Initial and unchanged snapshots are silent; deltas follow committed state and use the actual bounded authorized network owner",
+    "Invalid or failed snapshots retain the complete prior view; unavailable initial provider remains none rather than invented success",
+    "Close aborts and joins source; process cache/notifications survive device generation retirement"
+  ],
+  "validation": {
+    "typecheck": {
+      "conclusion": "passed",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-diagnostic-typecheck-20261006.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      }
+    },
+    "owners": {
+      "tests": 43,
+      "passed": 43,
+      "durationMs": 22677.561952,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-owners-20261006.log",
+        "sha256": "a3aebe4a58597511c495648ed2870edbfb20a971bfdccf30b69bb86ec59efc64"
+      }
+    },
+    "clockCaptureScoped": {
+      "tests": 2,
+      "passed": 2,
+      "durationMs": 27216.294009,
+      "scope": "One 60-second-limited verification of test-only capture in two fixed Delta scenes; no failure reproduced, not full-suite or root-cause closure",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-clock-capture-scoped-20261006.log",
+        "sha256": "658145dfd96688def0b2297436393315a20380cdc971a041f7a92554a3307353"
+      }
+    },
+    "realQueryBenchmark": {
+      "node": "v26.10.0",
+      "samples": 22,
+      "measured": 20,
+      "warmups": 2,
+      "medianMs": 13.320496999999989,
+      "p99Ms": 14.747385000000008,
+      "loopP99Ms": 2.576383,
+      "loopMaxMs": 4.227071,
+      "cpu": {
+        "user": 72554,
+        "system": 33267
+      },
+      "provider": "systemd_cli",
+      "scope": "Sequential real read-only developer Linux systemctl queries, 22 polls with 2 warmups excluded. No synthetic source; no Python baseline, target board, concurrent printing or physical accuracy claim.",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-real-bench-20261006.json",
+        "sha256": "5fcd08ac3e590171b9cd56f14014ce954c011b95622477d2afb0c7df85d33a57"
+      }
+    },
+    "initialFull": {
+      "tests": 3979,
+      "passed": 3979,
+      "durationMs": 339857.110796,
+      "scope": "Before the escaped-unit parsing correction; not substituted for final source",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-initial-full-20261006.log",
+        "sha256": "eefebdf7d1cb9d9ef11b1d453eb54b30a27cdf87e38706ade2a71bce4aef06a1"
+      }
+    },
+    "latestFullBeforeClockCapture": {
+      "tests": 3980,
+      "passed": 3979,
+      "failed": 1,
+      "conclusion": "failed",
+      "error": "Calibration would overlap previously accepted step clocks",
+      "scope": "Final production service logic; before adding test-only failure capture. No passing current-head full-suite claim. Original numerical guard and tests retained.",
+      "testedSources": {
+        "base": "796e65d993c3a8894967411de91cbec4501f8a6f",
+        "state": "Working source before adding test-only failure capture; full test failed, no passing claim",
+        "sources": {
+          "host/src/moonraker/system-services.ts": "f27ee7ff0bbdb8adfd6009fd06900704efe259c5e7f66d34cf1ad48f6743c6ed",
+          "host/src/moonraker/configured-server.ts": "7e10d3b0777c8e4679892cd441462992c92bcd5fd670d0bc935bef37af69bfe9",
+          "host/src/runtime/product-service.ts": "458bf73a44743b8861aa9dafd0a36873d700b86d3dd1e0f9fd114317b886a9f2",
+          "host/src/runtime/native-product-machine.ts": "a68f4cdf5af186b59c10782e0151f41fc8d1f4c6e07c08f6f1495fab45b49ca0",
+          "host/test/system-services.test.ts": "843d8405d61a280fe34a7aabadb8a255b508ee0702558bda431825a747267e86",
+          "host/test/configured-system-services.test.ts": "b085f21b4aac054dfecb7e292f15a186b2d8e14d6693069db1bffae6319c430d",
+          "host/test/product-service.test.ts": "ccaaffe96dbb8c6b0c9b5fc1f8286951d906af18fe0e77c5d56543b5d1a08c8b",
+          "host/test/node-motion-probe.test.ts": "bd831e6a0c8b406cb88b77dfa837ec82cb4104096e9e3ba0e8421971db47aed9",
+          "host/bench/system-services.ts": "b77b85a6f53b18b08d7bf42d039b48a2ccc599f5614dbf870831da0c220f35c1",
+          "host/acceptance/product-compiled-journey.test.ts": "99095a7bcdbe27eca276be87f0ee543c44a4941e7b945ff2410cae0c757760d2",
+          "host/test/manual-delta-preflight.test.ts": "68061d92186eec4ff859a21ad76cb2b49c564349b28b2fe88092746e4b946ada"
+        },
+        "logSha256": "fb3266a03928e7477977664275d5980b1927bfce0cef528d58052d5f479a9d97"
+      },
+      "durationMs": 340951.205123,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-final-full-20261006.log",
+        "sha256": "fb3266a03928e7477977664275d5980b1927bfce0cef528d58052d5f479a9d97"
+      }
+    },
+    "linuxProbe": {
+      "node": "v26.10.0",
+      "platform": "linux",
+      "provider": "systemd_cli",
+      "availableCount": 1,
+      "ownMoonrakerKnown": true,
+      "ownKlipperKnown": false,
+      "status": {
+        "samples": 1,
+        "failures": 0,
+        "notification_failures": 0,
+        "pending": false,
+        "closed": false
+      },
+      "scope": "Read-only developer Linux systemd probe, no installed target service or physical printer acceptance",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-linux-probe-20261006.log",
+        "sha256": "1a6979284c50937aafe6e2cbc8a6b3b8bd80498b976e9f99d7818f539d910e08"
+      }
+    },
+    "compiled": {
+      "tests": 1,
+      "passed": 1,
+      "durationMs": 71614.950891,
+      "bundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-service-provider/host/build/service-state-final-bundle",
+        "manifestSha256": "9e1257b74a77bf5b221c0e6d087649f750525754e9c2b64a41d929f2e672f549",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+      },
+      "buildLog": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-bundle-build-20261006.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "installLog": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-bundle-install-20261006.log",
+        "sha256": "b732ad470096b51d51dc73d096c8b2fd0b5fa41475500e170f8ca54ed39956f3"
+      },
+      "services": {
+        "syntheticSystemd": true,
+        "samples": 33,
+        "failedQueries": 1,
+        "queries": 1948,
+        "queryP99Ms": 3.9524490000039805,
+        "notifications": 124,
+        "authorizedNotifications": true,
+        "sharedNativeUnit": true
+      },
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2318,
+        "queryP99Ms": 4.174151999999594,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      },
+      "printing": {
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.971199,
+              "maxMs": 20.643839
+            },
+            "cpu": {
+              "user": 12538999,
+              "system": 2300520
+            },
+            "rss": 352010240
+          },
+          {
+            "loop": {
+              "p99Ms": 1.949695,
+              "maxMs": 13.369343
+            },
+            "cpu": {
+              "user": 7581338,
+              "system": 1703003
+            },
+            "rss": 360517632
+          }
+        ],
+        "statusRequests": 40533,
+        "statusP99Ms": 3.5324340000006487,
+        "minimumStepLeadMs": 84.254,
+        "wireCommands": 229,
+        "wireSteps": 7410
+      },
+      "scope": "Same independently installed compiled package, authenticated HTTP/WebSocket, two device generations, synthetic systemctl properties and real native sampler, PTY/simulated MCUs. Existing file, print, stop, lead-time, loop and 90-second gates unchanged. Not target-board or physical print acceptance.",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-compiled-20261006.log",
+        "sha256": "ec757c3b4cb1a8f19221cfd5eac52c92c7e850416579dfe7a29b54b9123e4d30"
+      }
+    },
+    "microbenchmark": {
+      "scope": "CPU-only cached system_info serialization and synthetic service polls: maximum 64 services, 5000 queries and 500 polls per round, 8 alternating rounds, first 2 warm-up rounds excluded. No subprocess, Python baseline, target board or physical print timing.",
+      "baseline": {
+        "queryMedianUs": 3.2700000001568696,
+        "queryP99MedianUs": 3.970000000208529,
+        "pollP99MedianUs": 0.31000000012681994,
+        "loopP99MedianMs": 1.542143
+      },
+      "enabled": {
+        "queryMedianUs": 48.18999999997686,
+        "queryP99MedianUs": 58.91099999985272,
+        "pollP99MedianUs": 117.74200000036217,
+        "loopP99MedianMs": 6.242303
+      },
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-current-bench-20261006.json",
+        "sha256": "0e8007bf5e345f39509545386ef0327ad321aa2f8ac82d699bf15b24412dda77"
+      }
+    }
+  },
+  "retainedLimitations": [
+    {
+      "issue": "First final bundle installation invocation used a relative path and was rejected before dependency installation. Corrected only the invocation to the required absolute path; installer protections unchanged.",
+      "excluded": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-relative-install-rejected-20261006.log",
+        "sha256": "ad325da51655a0fd5664ea5aabbe48a42ec245b9d0ced8ec35ff19ed5b7bd101"
+      }
+    },
+    {
+      "issue": "Final production service candidate on develop without PR #9 network changes reproduced the same Delta calibration guard failure, 3979/3980. Does not exclude load causation. Current head adds bounded read-only test observations to preserve old/new calibration maps, generation and returned step history on an actual failure, plus wire/timeline/phase; native pending frontier remains explicitly unknown. Scope test success and forthcoming exact-head CI do not close this or PR #9 failure.",
+      "sourceRecord": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-failed-full-source-20261006.json",
+        "sha256": "7a7663269061f952181172cde0b9d4fa0134126770e5ff859fc7a9e6ff651d5b"
+      },
+      "failure": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-final-full-20261006.log",
+        "sha256": "fb3266a03928e7477977664275d5980b1927bfce0cef528d58052d5f479a9d97"
+      },
+      "captureCheck": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-clock-capture-scoped-20261006.log",
+        "sha256": "658145dfd96688def0b2297436393315a20380cdc971a041f7a92554a3307353"
+      }
+    },
+    {
+      "issue": "Second full run before actual child cancellation fix failed the jitless motion diagnostic: child exit 1, detailed report deleted by the old test. Cause unknown; later passing results do not close it. The test now retains failed reports and emits their child stdout/stderr, signals and input fingerprints without relaxing assertions.",
+      "tests": 3979,
+      "passed": 3978,
+      "failed": 1,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-jitless-failed-full-20261006.log",
+        "sha256": "9b0944e2e5f62861a006be0a6b8bf0c21516680c4f2aba5e99093c9310669323"
+      }
+    },
+    {
+      "issue": "Actual cancellation test exposed execFile signal abort using SIGTERM despite the configured killSignal; a SIGTERM-ignoring query hung. Externally assisted cleanup run excluded. Final helper explicitly kills only its query child with SIGKILL and waits for close; 43 owner cases pass with no watchdog assistance.",
+      "excluded": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-owners-child-abort-assisted-excluded-20261006.log",
+        "sha256": "1aee5676e9321409167895b2c71f437226bcc0e823c91c9aa52ef7d744a5174d"
+      }
+    },
+    {
+      "issue": "Restricted sandbox test runner reported a successful file-level test without the seven internal registrations; excluded. Authorized TAP verified seven actual cases; final joint owner run includes all cases."
+    },
+    {
+      "issue": "Real Linux initial detection failed on three legitimate escaped unrelated unit names; corrected list syntax and --full, with final probe and affected tests verified",
+      "initialProbe": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-linux-probe-initial-20261006.log",
+        "sha256": "cc19836d2b1a657eee71e5c47398e04eb2f0f9ab1825085830eb24b1dd359a16"
+      }
+    },
+    {
+      "issue": "First benchmark overlapped typecheck and is excluded from performance evidence; final benchmark reran with no other local test/build job",
+      "excluded": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-service-provider-bench-typecheck-overlap-excluded-20261006.json",
+        "sha256": "9966beda9ed2d7be5a5fe4dfff6d25e27904f3ee9c079047c4f828f587655a16"
+      }
+    },
+    {
+      "issue": "Separate PR #9 exact head has motion timing CI failure; retained and never closed by this candidate tests",
+      "head": "25fdd6a3d8c6dd512582234ef9d1ed5dec72586d",
+      "run": 37343545889,
+      "tests": 3975,
+      "passed": 3974,
+      "failed": 1,
+      "error": "Calibration would overlap previously accepted step clocks",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr9-exact-head-ci-failure-20261006.log",
+        "sha256": "eb52ad5db93b4128aceca13b0c02a82fadab8055841fa1774a68a1e00293a6aa"
+      }
+    }
+  ],
+  "developIntegration": {
+    "status": "pending-candidate-ci-and-review",
+    "parentQueue": {
+      "merge": "796e65d993c3a8894967411de91cbec4501f8a6f",
+      "hostRun": 37341965147,
+      "hostJob": 111870986640,
+      "buildRun": 37341965727,
+      "buildJob": 111870988847,
+      "conclusion": "all required checks completed/success",
+      "ordinaryTests": 3970,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr8-postmerge-final-host-20261006.log",
+        "sha256": "b06025319097fc5ba72b41c0bf2f5d5f2500dfb56367a9e702003e9cd55f4445"
+      }
+    }
+  },
+  "remaining": [
+    "Self-review of exact candidate head, all required CI, develop merge and postmerge checks",
+    "Actual service controls with response completion, native stop ownership, permissions, installation validation and rollback",
+    "Controlled moonraker.asvc installation compatibility and independent legacy Klippy instance detection",
+    "Network PR #9 timing failure investigation and G3 closure; complete network/provider and distribution contracts",
+    "Complete supported Fluidd/Mainsail real page journeys including upload/reconnect/authorization",
+    "Cycnumbris 500 wiring/configuration, target performance and physical motion/precision gates",
+    "All 177 Python sources, default runtime, daily tools and Python-based CI retirement; complete Moonraker/macros; normal master release; other machine families last"
+  ]
+}
