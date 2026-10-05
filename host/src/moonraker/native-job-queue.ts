@@ -1,0 +1,291 @@
+// Queue wire shapes follow Moonraker job_queue.py, GPL-3.0-or-later.
+// Original Copyright (C) 2021 Eric Callahan. Product recovery never replays prints.
+import { randomBytes, randomUUID, createHash } from 'node:crypto';
+import { DatabaseStore } from './database.ts';
+import type { DatabaseNamespace } from './database-namespace.ts';
+import { PrintJournal } from '../operations/print-journal.ts';
+import { validJournalId } from '../operations/print-journal-types.ts';
+import { printFilename } from './print-api.ts';
+import { historyBoolean } from './history-api.ts';
+import { ApiError, type Json, type RpcContext } from './rpc.ts';
+import type { EndpointRegistry } from './endpoints.ts';
+
+export interface QueuedNativeJob {
+  readonly job_id: string;
+  readonly filename: string;
+  readonly file_id: string;
+  readonly time_added: number;
+  readonly user: string | null;
+}
+interface Claim { job_id: string; request_id: string; file_id: string; }
+interface Receipt { id: string; fingerprint: string; jobs: string[]; }
+type QueueState = 'paused' | 'loading' | 'starting';
+interface Catalogue {
+  version: 1;
+  revision: number;
+  jobs: QueuedNativeJob[];
+  claim: Claim | null;
+  receipts: Receipt[];
+}
+export interface NativeJobQueueOptions {
+  database: DatabaseStore;
+  journal: PrintJournal;
+  /** Same published-file owner as printing. Returns its immutable identity. */
+  resolveFile(filename: string, signal: AbortSignal): Promise<string>;
+  /** Current device availability. A queued item grants no device authority. */
+  canStart(): boolean;
+  /** Must use the existing print controller/journal, honor the immutable file
+   * identity and reauthorize printer.print.start; never retry a device action.
+   * Resolution means journal reservation, not physical print completion. */
+  start(job: QueuedNativeJob, requestId: string, context: RpcContext): Promise<void>;
+  notify?(event: Json): void | Promise<void>;
+  maxJobs?: number;
+}
+const namespace = 'native_job_queue';
+const owners = new WeakSet<DatabaseStore>();
+// Keep the private namespace registration until its database owner closes.
+// Unregistering a queue must not expose durable queue identities to public APIs.
+const registrations = new WeakMap<DatabaseStore, DatabaseNamespace>();
+const empty = (): Catalogue => ({ version: 1, revision: 0, jobs: [], claim: null, receipts: [] });
+const jobId = (value: unknown): value is string => typeof value === 'string' && /^[A-F0-9]{16}$/.test(value);
+function fields(value: object, keys: string[]): boolean {
+  return Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+}
+function catalogue(value: Json, maxJobs: number): Catalogue {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new ApiError(503, 'Invalid persisted job queue');
+  const v = value as unknown as Catalogue;
+  if (!fields(v, ['version', 'revision', 'jobs', 'claim', 'receipts']) || v.version !== 1 || !Number.isSafeInteger(v.revision) || v.revision < 0 || !Array.isArray(v.jobs) || v.jobs.length > maxJobs || !Array.isArray(v.receipts) || v.receipts.length > 64)
+    throw new ApiError(503, 'Invalid persisted job queue');
+  const ids = new Set<string>();
+  for (const job of v.jobs) {
+    if (!job || typeof job !== 'object' || !fields(job, ['job_id', 'filename', 'file_id', 'time_added', 'user']) || !jobId(job.job_id) || ids.has(job.job_id) || !validJournalId(job.file_id) || !Number.isFinite(job.time_added) || job.time_added < 0 || job.user !== null && (typeof job.user !== 'string' || !job.user || !job.user.isWellFormed() || job.user.includes('\0') || Buffer.byteLength(job.user) > 4096))
+      throw new ApiError(503, 'Invalid persisted queue member');
+    try { if (printFilename(job.filename) !== job.filename) throw new Error(); } catch { throw new ApiError(503, 'Invalid persisted queue filename'); }
+    ids.add(job.job_id);
+  }
+  if (v.claim !== null && (!v.claim || typeof v.claim !== 'object' || !fields(v.claim, ['job_id', 'request_id', 'file_id']) || !jobId(v.claim.job_id) || !validJournalId(v.claim.request_id) || !ids.has(v.claim.job_id) || v.jobs.find(j => j.job_id === v.claim!.job_id)!.file_id !== v.claim.file_id))
+    throw new ApiError(503, 'Invalid persisted queue claim');
+  const receiptIds = new Set<string>();
+  for (const receipt of v.receipts) {
+    if (!receipt || typeof receipt !== 'object' || !fields(receipt, ['id', 'fingerprint', 'jobs']) || !validJournalId(receipt.id) || receiptIds.has(receipt.id) || typeof receipt.fingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(receipt.fingerprint) || !Array.isArray(receipt.jobs) || receipt.jobs.length > maxJobs || receipt.jobs.some(id => !jobId(id)) || new Set(receipt.jobs).size !== receipt.jobs.length)
+      throw new ApiError(503, 'Invalid persisted queue receipt');
+    receiptIds.add(receipt.id);
+  }
+  return structuredClone(v);
+}
+function list(value: Json | undefined, key: string): string[] {
+  const items = typeof value === 'string' ? value.split(',').map(v => v.trim()).filter(Boolean) : value;
+  if (!Array.isArray(items) || !items.length || items.length > 128 || items.some(item => typeof item !== 'string' || !item))
+    throw new ApiError(400, 'Missing or invalid queue ' + key);
+  return items as string[];
+}
+
+/** Process catalogue only. PrintJournal remains the sole execution history.
+ * Accepted writes are atomic and never cancelled or retried. Recovery resolves
+ * a claim from that journal and always pauses, without calling start(). */
+export class NativeJobQueue {
+  readonly #options: NativeJobQueueOptions;
+  readonly #namespace: DatabaseNamespace;
+  readonly #maxJobs: number;
+  #catalogue: Catalogue;
+  #tail = Promise.resolve();
+  #notifications = Promise.resolve();
+  #pending = 0;
+  #notificationPending = 0;
+  #notificationDropped = 0;
+  #notificationError: string | null = null;
+  #storageFailed = false;
+  #closing = false;
+  #closed: Promise<void> | undefined;
+  #pause = 0;
+  #state: QueueState = 'paused';
+  #dispatch: Promise<void> | undefined;
+  #lifetime = new AbortController();
+  private constructor(options: NativeJobQueueOptions, owner: DatabaseNamespace, value: Catalogue, maxJobs: number) {
+    this.#options = options; this.#namespace = owner; this.#catalogue = value; this.#maxJobs = maxJobs;
+  }
+  static async open(options: NativeJobQueueOptions): Promise<NativeJobQueue> {
+    const maxJobs = options.maxJobs ?? 128;
+    if (!(options.database instanceof DatabaseStore) || !(options.journal instanceof PrintJournal) || options.journal.closed || !Number.isSafeInteger(maxJobs) || maxJobs < 1 || maxJobs > 128 || typeof options.resolveFile !== 'function' || typeof options.canStart !== 'function' || typeof options.start !== 'function' || options.notify !== undefined && typeof options.notify !== 'function')
+      throw new TypeError('Invalid native job queue owner');
+    if (owners.has(options.database)) throw new TypeError('Job queue database already owned');
+    owners.add(options.database);
+    try {
+      let owner = registrations.get(options.database);
+      if (!owner) { owner = await options.database.registerLocalNamespace(namespace, { forbidden: true }); registrations.set(options.database, owner); }
+      const present = await owner.contains('catalogue');
+      const saved = present ? await owner.get('catalogue') : null;
+      if (present && saved === null) throw new ApiError(503, 'Invalid persisted job queue');
+      const queue = new NativeJobQueue({ ...options }, owner, saved === null ? empty() : catalogue(saved, maxJobs), maxJobs);
+      if (saved === null) await owner.insert('catalogue', queue.#catalogue as unknown as Json);
+      await queue.#recover();
+      return queue;
+    } catch (error) { owners.delete(options.database); throw error; }
+  }
+  get status() {
+    const now = Date.now() / 1000;
+    return {
+      queued_jobs: this.#catalogue.jobs.map(job => ({ filename: job.filename, job_id: job.job_id, time_added: job.time_added, time_in_queue: Math.max(0, now - job.time_added) })),
+      queue_state: this.#state,
+    };
+  }
+  get diagnostics() {
+    return { revision: this.#catalogue.revision, pending: this.#pending, dispatching: !!this.#dispatch, claim: this.#catalogue.claim ? { ...this.#catalogue.claim } : null, storage_failed: this.#storageFailed, closed: this.#closing, notifications: { pending: this.#notificationPending, dropped: this.#notificationDropped, error: this.#notificationError } };
+  }
+  #assertWritable(): void {
+    if (this.#closing || this.#storageFailed) throw new ApiError(503, 'Job queue requires recovery');
+  }
+  #serialize<T>(work: () => Promise<T>): Promise<T> {
+    try { this.#assertWritable(); if (this.#pending >= 16) throw new ApiError(429, 'Job queue capacity exceeded'); } catch (error) { return Promise.reject(error); }
+    this.#pending++;
+    const result = this.#tail.then(work);
+    this.#tail = result.then(() => {}, () => {}).finally(() => { this.#pending--; });
+    return result;
+  }
+  async #commit(next: Catalogue, action: string): Promise<void> {
+    this.#assertWritable();
+    if (this.#catalogue.revision >= Number.MAX_SAFE_INTEGER) throw new ApiError(503, 'Job queue revision exhausted');
+    next.revision = this.#catalogue.revision + 1;
+    next = catalogue(next as unknown as Json, this.#maxJobs);
+    try { await this.#namespace.insert('catalogue', next as unknown as Json); }
+    catch (error) {
+      // The database's validated capacity/backpressure rejection precedes commit
+      // or rolls its transaction back. An unknown result instead needs recovery.
+      if (!(error instanceof ApiError && [400, 409, 413, 429].includes(error.status))) { this.#storageFailed = true; this.#state = 'paused'; }
+      throw error;
+    }
+    this.#catalogue = next;
+    this.#emit(action);
+  }
+  #emit(action = 'state_changed'): void {
+    if (!this.#options.notify || this.#closing) return;
+    if (this.#notificationPending >= 64) { this.#notificationDropped++; this.#notificationError = 'Refresh job queue after notification overflow'; return; }
+    const event: Json = { action, updated_queue: action === 'state_changed' ? null : this.status.queued_jobs, queue_state: this.#state };
+    this.#notificationPending++;
+    this.#notifications = this.#notifications.then(async () => { if (!this.#closing) await this.#options.notify!(event); }).catch(error => { this.#notificationError = error instanceof Error ? error.message : 'Queue notification failed'; }).finally(() => { this.#notificationPending--; });
+  }
+  #setState(state: QueueState): void {
+    if (this.#state !== state) { this.#state = state; this.#emit(); }
+  }
+  async #recover(): Promise<void> {
+    const claim = this.#catalogue.claim;
+    if (!claim) return;
+    const record = await this.#options.journal.get(claim.request_id);
+    if (record && record.request.fileId !== claim.file_id) throw new ApiError(503, 'Queue claim conflicts with print journal');
+    const next = structuredClone(this.#catalogue);
+    if (record) next.jobs = next.jobs.filter(job => job.job_id !== claim.job_id);
+    next.claim = null;
+    await this.#commit(next, record ? 'job_loaded' : 'state_changed');
+  }
+  async add(filenames: string[], reset: boolean, context: RpcContext, requestId?: string): Promise<Json> {
+    if (!filenames.length || filenames.length > this.#maxJobs || typeof reset !== 'boolean' || requestId !== undefined && !validJournalId(requestId)) throw new ApiError(400, 'Invalid queue admission');
+    const names = filenames.map(name => printFilename(name)), user = context.user?.username ?? null;
+    const fingerprint = createHash('sha256').update(JSON.stringify([names, reset, user])).digest('hex');
+    return this.#serialize(async () => {
+      this.#assertWritable(); context.signal.throwIfAborted();
+      const receipt = requestId === undefined ? undefined : this.#catalogue.receipts.find(r => r.id === requestId);
+      if (receipt) { if (receipt.fingerprint !== fingerprint) throw new ApiError(409, 'Queue request identity already used'); return this.status; }
+      if (reset && this.#catalogue.claim) throw new ApiError(409, 'Queue print admission is pending');
+      if ((reset ? 0 : this.#catalogue.jobs.length) + names.length > this.#maxJobs) throw new ApiError(413, 'Job queue is full');
+      const signal = AbortSignal.any([context.signal, this.#lifetime.signal]);
+      const jobs: QueuedNativeJob[] = [];
+      for (const filename of names) {
+        signal.throwIfAborted(); const fileId = await this.#options.resolveFile(filename, signal);
+        if (!validJournalId(fileId)) throw new ApiError(502, 'Invalid queue file identity');
+        await context.authorize('printer.print.start', { filename, file_id: fileId }); signal.throwIfAborted();
+        jobs.push({ job_id: randomBytes(8).toString('hex').toUpperCase(), filename, file_id: fileId, time_added: Date.now() / 1000, user });
+      }
+      const next = structuredClone(this.#catalogue); next.jobs = [...reset ? [] : next.jobs, ...jobs];
+      if (new Set(next.jobs.map(job => job.job_id)).size !== next.jobs.length) throw new ApiError(503, 'Queue identity collision');
+      if (requestId !== undefined) next.receipts = [...next.receipts, { id: requestId, fingerprint, jobs: jobs.map(job => job.job_id) }].slice(-64);
+      signal.throwIfAborted(); await this.#commit(next, 'jobs_added'); return this.status;
+    });
+  }
+  remove(ids: string[], all: boolean, context: RpcContext): Promise<Json> {
+    if (!Array.isArray(ids) || ids.length > this.#maxJobs || ids.some(id => typeof id !== 'string') || typeof all !== 'boolean') throw new ApiError(400, 'Invalid queue deletion');
+    return this.#serialize(async () => {
+      context.signal.throwIfAborted(); const claim = this.#catalogue.claim;
+      if (claim && (all || ids.includes(claim.job_id))) throw new ApiError(409, 'Print admission owns this queue member');
+      const next = structuredClone(this.#catalogue);
+      next.jobs = all ? [] : next.jobs.filter(job => !ids.includes(job.job_id));
+      if (next.jobs.length !== this.#catalogue.jobs.length) await this.#commit(next, 'jobs_removed');
+      return this.status;
+    });
+  }
+  jump(id: string, context: RpcContext): Promise<Json> {
+    return this.#serialize(async () => {
+      context.signal.throwIfAborted(); if (this.#catalogue.claim) throw new ApiError(409, 'Queue print admission is pending');
+      const job = this.#catalogue.jobs.find(job => job.job_id === id); if (!job) throw new ApiError(400, 'Invalid job id: ' + id);
+      const next = structuredClone(this.#catalogue); next.jobs = [job, ...next.jobs.filter(job => job.job_id !== id)];
+      await this.#commit(next, 'jobs_reordered'); return this.status;
+    });
+  }
+  async pause(): Promise<Json> {
+    this.#pause++; this.#setState('paused');
+    await this.#dispatch; await this.#tail;
+    return this.status;
+  }
+  async start(context: RpcContext): Promise<Json> {
+    this.#assertWritable(); context.signal.throwIfAborted();
+    if (context.nativeGenerationRetiredAtAdmission) throw new ApiError(503, 'Queue start entered a detached device window');
+    if (this.#dispatch) return this.status;
+    const pause = this.#pause;
+    const signal = AbortSignal.any([context.signal, this.#lifetime.signal, ...context.nativeGenerationSignal ? [context.nativeGenerationSignal] : []]);
+    const dispatch = this.#serialize(async () => {
+      signal.throwIfAborted(); if (pause !== this.#pause || !this.#catalogue.jobs.length || !this.#options.canStart()) return;
+      if (this.#catalogue.claim) throw new ApiError(503, 'Queue admission awaits journal recovery');
+      const job = this.#catalogue.jobs[0]; this.#setState('loading');
+      try {
+        const identity = await this.#options.resolveFile(job.filename, signal);
+        if (identity !== job.file_id) throw new ApiError(409, 'Queued file has been replaced');
+        await context.authorize('printer.print.start', { filename: job.filename, file_id: job.file_id }); signal.throwIfAborted();
+        if (pause !== this.#pause || !this.#options.canStart()) return;
+        const next = structuredClone(this.#catalogue), requestId = 'queue-' + randomUUID();
+        next.claim = { job_id: job.job_id, request_id: requestId, file_id: job.file_id };
+        await this.#commit(next, 'state_changed');
+        // A pause during the catalogue transaction prevents device admission.
+        if (pause === this.#pause && !signal.aborted && !this.#closing) {
+          this.#setState('starting');
+          await this.#options.start(Object.freeze({ ...job }), requestId, { ...context, signal });
+          const record = await this.#options.journal.get(requestId);
+          if (!record || record.request.fileId !== job.file_id) throw new ApiError(502, 'Queue start did not reserve the matching print request');
+        }
+      } finally {
+        this.#setState('paused');
+        if (!this.#storageFailed && !this.#closing) await this.#recover();
+      }
+    });
+    this.#dispatch = dispatch;
+    try { await dispatch; } finally { if (this.#dispatch === dispatch) this.#dispatch = undefined; }
+    return this.status;
+  }
+  close(): Promise<void> {
+    if (this.#closed) return this.#closed;
+    this.#closing = true; this.#pause++; this.#lifetime.abort(new Error('Job queue closed')); this.#state = 'paused';
+    return this.#closed = (async () => { await Promise.allSettled([this.#dispatch, this.#tail]); await this.#notifications; owners.delete(this.#options.database); })();
+  }
+}
+/** Registration shares the real REST/RPC authorizer. No raw device command or
+ * user identity parameter can be accepted through the queue endpoints. */
+export function registerNativeJobQueue(registry: EndpointRegistry, queue: NativeJobQueue): () => void {
+  const releases: (() => void)[] = [];
+  const allowed = (params: Readonly<Record<string, Json>>, keys: string[]) => { if (Object.keys(params).some(key => !keys.includes(key))) throw new ApiError(400, 'Unexpected queue argument'); };
+  try {
+    releases.push(registry.register({ endpoint: '/server/job_queue/status', methods: ['GET'] }, params => { allowed(params, []); return queue.status; }));
+    releases.push(registry.register({ endpoint: '/server/job_queue/job', methods: ['POST', 'DELETE'] }, (params, verb, context) => {
+      allowed(params, verb === 'POST' ? ['filenames', 'reset', 'request_id'] : ['job_ids', 'all']);
+      if (verb === 'POST') {
+        if (params.request_id !== undefined && typeof params.request_id !== 'string') throw new ApiError(400, 'Invalid queue request_id');
+        return queue.add(list(params.filenames, 'filenames'), historyBoolean(params.reset), context, params.request_id);
+      }
+      const all = historyBoolean(params.all); return queue.remove(all ? [] : list(params.job_ids, 'job_ids'), all, context);
+    }));
+    releases.push(registry.register({ endpoint: '/server/job_queue/jump', methods: ['POST'] }, (params, _verb, context) => {
+      allowed(params, ['job_id']);
+      if (typeof params.job_id !== 'string') throw new ApiError(400, 'Missing queue job_id'); return queue.jump(params.job_id, context);
+    }));
+    releases.push(registry.register({ endpoint: '/server/job_queue/pause', methods: ['POST'] }, params => { allowed(params, []); return queue.pause(); }));
+    releases.push(registry.register({ endpoint: '/server/job_queue/start', methods: ['POST'] }, (params, _verb, context) => { allowed(params, []); return queue.start(context); }));
+  } catch (error) { for (const undo of releases.reverse()) undo(); throw error; }
+  return () => { for (const undo of releases.reverse()) undo(); };
+}
