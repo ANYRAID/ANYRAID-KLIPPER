@@ -132,13 +132,14 @@ test('recovery resolves claims from the real journal without device actions or a
 });
 
 test('corrupt catalogues and mismatched journal claims fail closed without erasing members', async () => {
-  for (const corruption of ['version', 'claim', 'identity']) {
+  for (const corruption of ['version', 'claim', 'identity', 'receipt-type']) {
     const f = await fixture();
     try {
       await f.queue.add(['one.gcode'], false, context()); await f.queue.close();
       const value = await f.database.get('native_job_queue', 'catalogue') as any;
       if (corruption === 'version') value.version = 2;
       if (corruption === 'claim') value.claim = { job_id: '0000000000000000', request_id: 'foreign', file_id: 'file-one' };
+      if (corruption === 'receipt-type') value.receipts = [{ id: 'corrupt-receipt', fingerprint: ['a'.repeat(64)], jobs: [] }];
       if (corruption === 'identity') {
         value.claim = { job_id: value.jobs[0].job_id, request_id: 'wrong-file', file_id: 'file-one' };
         await f.journal.reserve({ version: 1, requestId: 'wrong-file', fileId: 'another-file', nozzle: 0, bed: 0 });
@@ -185,7 +186,8 @@ test('failed catalogue write latches mutations while existing read snapshot surv
 test('known record-capacity rejection rolls back the complete batch without poisoning subsequent admissions', async () => {
   const f = await fixture({}, { maxRecordBytes: 300 });
   try {
-    await assert.rejects(f.queue.add(['one.gcode', 'two.gcode'], false, context()), statusError(413));
+    // Four members exceed 300 bytes even when timestamps serialize as integers.
+    await assert.rejects(f.queue.add(['one.gcode', 'two.gcode', 'one.gcode', 'two.gcode'], false, context()), statusError(413));
     assert.equal(f.queue.status.queued_jobs.length, 0); assert.equal(f.queue.diagnostics.revision, 0); assert.equal(f.queue.diagnostics.storage_failed, false);
     await f.queue.add(['one.gcode'], false, context()); assert.equal(f.queue.status.queued_jobs.length, 1); assert.equal(f.queue.diagnostics.revision, 1);
     assert.equal(f.calls.length, 0);

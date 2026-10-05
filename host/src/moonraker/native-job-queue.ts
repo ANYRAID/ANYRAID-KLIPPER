@@ -67,7 +67,7 @@ function catalogue(value: Json, maxJobs: number): Catalogue {
     throw new ApiError(503, 'Invalid persisted queue claim');
   const receiptIds = new Set<string>();
   for (const receipt of v.receipts) {
-    if (!receipt || typeof receipt !== 'object' || !fields(receipt, ['id', 'fingerprint', 'jobs']) || !validJournalId(receipt.id) || receiptIds.has(receipt.id) || !/^[a-f0-9]{64}$/.test(receipt.fingerprint) || !Array.isArray(receipt.jobs) || receipt.jobs.length > maxJobs || receipt.jobs.some(id => !jobId(id)) || new Set(receipt.jobs).size !== receipt.jobs.length)
+    if (!receipt || typeof receipt !== 'object' || !fields(receipt, ['id', 'fingerprint', 'jobs']) || !validJournalId(receipt.id) || receiptIds.has(receipt.id) || typeof receipt.fingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(receipt.fingerprint) || !Array.isArray(receipt.jobs) || receipt.jobs.length > maxJobs || receipt.jobs.some(id => !jobId(id)) || new Set(receipt.jobs).size !== receipt.jobs.length)
       throw new ApiError(503, 'Invalid persisted queue receipt');
     receiptIds.add(receipt.id);
   }
