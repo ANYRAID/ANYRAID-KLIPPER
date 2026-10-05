@@ -153,8 +153,203 @@
     "provider none, no available service control or fabricated service instance names",
     "Legacy python field intentionally omitted; runtime reports Node",
     "Unknown virtualization stays unknown when detection is unavailable",
-    "Network change events, service management, provider integration and distro-specific release fallbacks remain pending",
+    "Service management, provider integration and distro-specific release fallbacks remain pending; network event candidate evidence is recorded separately below",
     "SD/CAN data parsing tested with fixtures; no target SD/CAN hardware acceptance",
     "No browser recheck, Python comparison, target-board or physical motion acceptance"
-  ]
+  ],
+  "networkEvents": {
+    "date": "2026-10-06",
+    "base": "d1aed43e62bf94e8c07b284ad8b3251d0e609e3b",
+    "status": "candidate-not-integrated",
+    "upstream": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "file": "moonraker/components/machine.py",
+      "sha256": "2ad8c81824d487c58f6dd92d08ad8a013c255a5a88a251ba99d75188cd7d1dbe"
+    },
+    "implemented": [
+      "Only UP Linux interfaces; unchanged snapshots and CAN-only changes emit no Ethernet event",
+      "Missing, failed or malformed command results retain the last valid network/CAN maps; valid empty snapshots clear links",
+      "No initial event; changed complete snapshots use real notify_net_state_changed authorization and bounded tracked dispatch",
+      "Process-owned source and original authorized WebSockets survive device replacement",
+      "Cached HTTP/JSON-RPC queries do not execute commands; committed snapshots survive observer failure; closure joins pending source/observer work"
+    ],
+    "sourceSha256": {
+      "host/src/moonraker/system-information.ts": "43f26be7425f3951be6ca35b18befdf2e04660910ed2b5b385ba323327e57abb",
+      "host/src/moonraker/configured-server.ts": "3855a4ef7bc17cdd14649b4b63861e915cffa11841585c50213cef3d5b703697",
+      "host/test/system-information.test.ts": "312b20cdf3b702c080917877174e9ef22a686b0414529661b443493aae0b9754",
+      "host/test/configured-server.test.ts": "99d3659129595626e5cd9d4eb3aa4718fde2570a02a7f2be6f59677d0c0f7a94",
+      "host/acceptance/product-compiled-journey.test.ts": "7222bb1fa156b9c9d00f93455e2869b0a4f03cd87cd90c55684e23280fec2eb6",
+      "host/bench/system-network-events.ts": "7b96f308847696add7899634e60e48b034637911a573aedf9c83a80809da1e59"
+    },
+    "logSha256": {
+      "anyraid-network-events-typecheck-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-network-events-first-tests-20261006.log": "ed144a123f7567753afee918efcf0571d7adb166a06b782b95eb9938c21dc9c2",
+      "anyraid-network-events-native-build-20261006.log": "b6da38422ac04dfcf7f8835b83d103bad029e844c99d5a3fa0ac94d0eadf2ac9",
+      "anyraid-network-events-focused-20261006.log": "42e7e1318a7d73094a51b557da03e70257212af19b420ae886475fd12cfc3733",
+      "anyraid-network-events-final-typecheck-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-network-events-bundle-build-20261006.log": "928ee7f6590ac30dd4b3a651d44cf1f0f04ea765e24f3a3476dc733071500177",
+      "anyraid-network-events-strict-typecheck-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-network-events-final-bundle-build-20261006.log": "ee410a082976d5eca9779121f3bcad5251e863fe020fc349d263b9ede004bff9",
+      "anyraid-network-events-benchmark-20261006.log": "3bcc155ee34fb379411d4d727e380e44af6970a8fd626ac73eb8f193a7cf31cb",
+      "anyraid-network-events-isolated-benchmark-20261006.log": "3ce509428c6c0896161cbdf8255efdf45d046bbace46ac047c30876bc8d10e8e",
+      "anyraid-network-events-compiled-20261006.log": "190502d5e4dbcabf493ee347436312cf3c27b98ff2992fc9086e00524bafb4cc",
+      "anyraid-network-events-final-check-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-network-events-full-20261006.log": "4bbb89ee19076bbc5f570a51adcb1e19fbb475d7ae2c5c545738bdb3b82b708e",
+      "anyraid-network-events-csv-diagnostic-20261006.log": "635f2210695d99c8751eff2cf352852ef4cd757316965594c2debe43033c2086",
+      "anyraid-network-events-final-focused-20261006.log": "382209e715e3b1c819c8f1cbe375a89aa5d6ca25139b0a269ba75b82b05a371d",
+      "anyraid-network-events-kernel-window-20261006.log": "ab8bb7a416753d324909e5c6be9b32496906a9f952db1fc2a84294530e3cf201"
+    },
+    "focusedBeforeCanCase": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "durationMs": 39256.737726
+    },
+    "finalFullLocal": {
+      "tests": 3957,
+      "pass": 3956,
+      "fail": 1,
+      "durationMs": 341083.931001,
+      "status": "failed",
+      "failedModule": "test/motan-csv-export.test.ts",
+      "details": "Two CSV cases passed before an unchanged module-level failure; compact reporter supplied no signal or underlying error. No CSV/Motan implementation changes. Separate TAP diagnostic 4/4 passed, not a root-cause resolution or full-suite success."
+    },
+    "benchmark": {
+      "node": "v26.10.0",
+      "queriesPerRun": 5000,
+      "changesPerRun": 500,
+      "links": 64,
+      "withoutObserver": {
+        "runs": 7,
+        "snapshotMicroseconds": {
+          "median": 143.11244799999986,
+          "p95": 146.31531439999998
+        },
+        "refreshMicroseconds": {
+          "median": 125.81129599999986,
+          "p95": 126.35138000000006
+        },
+        "p99LoopMs": {
+          "median": 14.475263,
+          "p95": 17.498111
+        },
+        "maxLoopMs": {
+          "median": 14.557183,
+          "p95": 18.317311
+        }
+      },
+      "withObserver": {
+        "runs": 7,
+        "snapshotMicroseconds": {
+          "median": 142.64852359999966,
+          "p95": 144.48574100000008
+        },
+        "refreshMicroseconds": {
+          "median": 271.69430800000197,
+          "p95": 275.4932420000004
+        },
+        "p99LoopMs": {
+          "median": 14.524415,
+          "p95": 15.155199
+        },
+        "maxLoopMs": {
+          "median": 14.745599,
+          "p95": 15.163391
+        }
+      },
+      "scope": "Alternating order on the same engine with 64 synthetic Linux interface rows; measures cached cloning and notification callback overhead. Actual WebSocket dispatch and motion contention are covered by the compiled load journey. No Python, target-board or physical printer comparison."
+    },
+    "compiled": {
+      "bundleManifestSha256": "0fca88d8c46d0a2674d9cca1143ab13b81c2caf657d2727a1d6353ab6651c644",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "tests": 1,
+      "pass": 1,
+      "durationMs": 68500.275575,
+      "networkChanges": {
+        "sourceSamples": 7,
+        "notifications": 20,
+        "authorizedObservers": 4,
+        "failedCommandRetained": true,
+        "deviceGenerations": [
+          1,
+          2
+        ],
+        "systemQueries": 570,
+        "systemQueryP99Ms": 8.371546999999737
+      },
+      "statusQueries": 38560,
+      "statusP99Ms": 3.4238039999981993,
+      "minimumStepLeadMs": 87.589,
+      "generations": [
+        {
+          "loop": {
+            "p99Ms": 1.991679,
+            "maxMs": 19.496959
+          },
+          "cpu": {
+            "user": 11630639,
+            "system": 2216515
+          },
+          "rss": 341606400
+        },
+        {
+          "loop": {
+            "p99Ms": 1.967103,
+            "maxMs": 12.976127
+          },
+          "cpu": {
+            "user": 8109230,
+            "system": 1746886
+          },
+          "rss": 392282112
+        }
+      ],
+      "scope": "Emitted JS, independent installed dependencies and addons; real authorization and notification dispatch, actual Linux CPU/distribution reads with controlled reserved-address network input. Existing upload/copy/move/recursive delete/config/history/print/stop workload and original deadlines retained. Simulated MCU transport, no real host network mutation or hardware performance conclusion."
+    },
+    "preservedFailures": [
+      {
+        "log": "anyraid-network-events-first-tests-20261006.log",
+        "result": "7 unit cases passed; configured module failed before its cases because this fresh worktree lacked sealed-file.node. Required native build then focused 39/39 passed."
+      },
+      {
+        "log": "anyraid-network-events-bundle-build-20261006.log",
+        "result": "Bundle build succeeded; dependency installer rejected relative path. Final build and independent installation used an absolute path."
+      },
+      {
+        "log": "anyraid-network-events-benchmark-20261006.log",
+        "result": "Completed but overlapped product build; excluded from reported performance. Independent benchmark ran to completion before compiled load."
+      },
+      {
+        "log": "anyraid-network-events-full-20261006.log",
+        "result": "3957 reported tests, 3956 passed, one unchanged Motan CSV module failure. Independent 4/4 TAP diagnostic and affected 40/40 passed; original full failure and unknown root retained. Kernel query could not access system journal; no entries is not evidence of no crash."
+      }
+    ],
+    "remaining": [
+      "Exact-head CI, normal PR/develop integration and post-merge gates",
+      "Service provider/control, public interface/SSID reporting and distro fallbacks remain pending",
+      "Complete browser client path, target-board/SD/CAN hardware and motion G3 remain open"
+    ],
+    "integrationBase": {
+      "pr": 7,
+      "develop": "d1aed43e62bf94e8c07b284ad8b3251d0e609e3b",
+      "hostRun": 37335602054,
+      "buildRun": 37335601995,
+      "conclusion": "success",
+      "ordinaryTests": 3953,
+      "hostLogSha256": "71bb7b20b243b3323ef7c3f5d49cb3c739172ba941e3caa5c3c0d698b9dfff9c"
+    },
+    "finalFocused": {
+      "tests": 40,
+      "pass": 40,
+      "fail": 0,
+      "durationMs": 39297.765426
+    },
+    "csvDiagnostic": {
+      "tests": 4,
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 1427.088254,
+      "rootCause": "unresolved"
+    }
+  }
 }
