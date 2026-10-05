@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "locally_verified_task_candidate",
+  "status": "candidate_full_local_suite_failed",
   "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
   "sourceSha256": {
@@ -113,12 +113,67 @@
       "maxMs": 177.998607,
       "processMaxRssKiB": 138452,
       "identityUnchanged": true
+    },
+    "ordinarySuite20261005": {
+      "sourceHead": "8945c0f6006f1f2870225de5879e183e70428a97",
+      "mqttFixtureSha256": "b707a6566bc13433cd529da58e5f15ea94ca9464bb256545a3e7faec7f4009e0",
+      "node": "26.10.0",
+      "nativeBuild": "passed",
+      "tests": 3884,
+      "passed": 3877,
+      "failed": 7,
+      "durationMs": 331520.268056,
+      "concurrencyAndBudgetsUnchanged": true,
+      "failures": [
+        {
+          "file": "configured-print.test.ts",
+          "error": "Print device stopped"
+        },
+        {
+          "file": "delta-printer.test.ts",
+          "error": "Invalid mapped trigger clock: member=1, oid=0, mapped=1731217, observed=1730986"
+        },
+        {
+          "file": "motan-output-path.test.ts",
+          "error": "CLI child status null; signal not captured by original assertion"
+        },
+        {
+          "file": "motan-sos-design.test.ts",
+          "error": "SIGSEGV"
+        },
+        {
+          "file": "print-durable.test.ts",
+          "error": "Print cancel timed out after 30 ms"
+        },
+        {
+          "file": "product-build.test.ts",
+          "error": "Native TypeScript compiler SIGSEGV"
+        },
+        {
+          "file": "screws-tilt-config.test.ts",
+          "error": "SIGSEGV"
+        }
+      ],
+      "isolation": {
+        "files": 7,
+        "tests": 48,
+        "passed": 48,
+        "failed": 0,
+        "durationMs": 30648.306279,
+        "scope": "Original parameters with reduced competing file set; does not close full-suite failures or G3"
+      },
+      "previousInterruptedRun": {
+        "terminalSummary": false,
+        "passedObserved": 2622,
+        "failedObserved": 1,
+        "countedAsPass": false
+      }
     }
   },
   "remaining": [
+    "Candidate normal merge of latest develop, affected validation and full exact-head CI",
     "Required exact-head CI, review and normal develop integration",
     "Actual complete same-bundle Fluidd and Mainsail page journeys",
-    "PR #3 integration remains gated by review; not bypassed by this task",
     "G3, Cycnumbris 500 hardware, complete Moonraker, all Python and macro scenario retirement"
   ],
   "evidenceSha256": {
@@ -165,6 +220,59 @@
     "inspectionCost": {
       "file": "anyraid-fixed-bundle-source-inspection-cost.json",
       "sha256": "723b34ebd5150b3c5eda1abebb009b6b5a7f1142f4639e5b35c9608990522d9b"
+    },
+    "interruptedOrdinary": {
+      "file": "anyraid-fixed-candidate-8945-full-test-20261005.log",
+      "sha256": "240abb94e8e9f27205ca2d20d6f0b67d6652f012779fed10ab2459afdbcc52cc"
+    },
+    "mqttBefore": {
+      "file": "anyraid-fixed-candidate-mqtt-isolation-20261005.log",
+      "sha256": "e878d5dae9efd5d3b781bb3afd2d6b06e3396861c0f3ff0149dfad35596ff385"
+    },
+    "mqttAfter": {
+      "file": "anyraid-fixed-candidate-mqtt-fixed-20261005.log",
+      "sha256": "48d4098bedd5889a5248b795d433edbf42e834a784f0179970d47b49ab095dd3"
+    },
+    "ordinaryFailed": {
+      "file": "anyraid-fixed-candidate-mqtt-fixed-full-20261005.log",
+      "sha256": "5acc1ceb260a94ae7710c131428bb6056d20ca8e83db6bd875050251dee5bc8c"
+    },
+    "sevenIsolation": {
+      "file": "anyraid-fixed-candidate-seven-isolation-20261005.log",
+      "sha256": "3cc5b97a8b2682dba3e12712141b31030d5d12c78d3c347bc3513e113b8198a9"
     }
+  },
+  "mqttFixtureRepair": {
+    "sourceHead": "8945c0f6006f1f2870225de5879e183e70428a97",
+    "file": "host/test/configured-product-print.test.ts",
+    "sha256": "b707a6566bc13433cd529da58e5f15ea94ca9464bb256545a3e7faec7f4009e0",
+    "cause": "MQTT start returns durable admission before the original start operation persists started and enters printing; complete while preparing correctly rejects",
+    "change": "Await the original idempotent start promise before completing the fixture",
+    "productionChanged": false,
+    "deadlinesChanged": false,
+    "mutationRetries": 0,
+    "before": {
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "error": "Cannot complete while preparing"
+    },
+    "after": {
+      "tests": 19,
+      "passed": 19,
+      "failed": 0,
+      "durationMs": 1923.831379
+    }
+  },
+  "pr3Integration": {
+    "pr": 3,
+    "review": "COMMENTED",
+    "reviewId": "PRR_kwDOUhWiXM8AAAABQpVDSQ",
+    "head": "12e85c5d6d7d2654215e292bf5eaaecb0234252e",
+    "mergeCommit": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+    "mergedAt": "2026-10-05T08:48:49Z",
+    "exactHeadRequiredCi": "passed",
+    "postMergeCi": "in_progress",
+    "candidateIncludesMerge": false
   }
 }

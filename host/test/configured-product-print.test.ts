@@ -35,6 +35,8 @@ test('MQTT native start uses durable request identity across transport timestamp
   assert.equal((await request(1,'printer.print.start',{...params,mqtt_timestamp:1})).result.accepted,true);
   assert.equal((await request(2,'printer.print.start',{...params,mqtt_timestamp:2})).result.accepted,true);assert.deepEqual(calls,['prepare','start']);
   assert.equal((await request(3,'printer.print.cancel',{request_id:'old',state_token:controller.stateToken})).error.code,409);assert.deepEqual(calls,['prepare','start']);
+  // MQTT admission confirms durable ownership, not completion of the start operation.
+  await controller.start(controller.currentRequest!);assert.equal(controller.state,'printing');
   await controller.complete('job');await request(4,'printer.print.reset',{request_id:'job',state_token:controller.stateToken});const queried=await request(5,'printer.print.status',{request_id:'job'});assert.equal(queried.result.record.state,'completed');assert.equal(queried.result.current.state,'idle');assert.deepEqual(calls,['prepare','start','finish']);const stopped=await request(6,'printer.emergency_stop',{});assert.equal(stopped.result.current.state,'failed');assert.notEqual(stopped.result.current.state_token,queried.result.current.state_token);assert.equal((await request(7,'printer.print.start',{...params,request_id:'new'})).error.code,409);assert.deepEqual(calls,['prepare','start','finish','stop']);
  }finally{await service?.close();await sensorTransport.close();sensors.close();await journal.close();await peer.close();await rm(dir,{recursive:true,force:true});}
 });
