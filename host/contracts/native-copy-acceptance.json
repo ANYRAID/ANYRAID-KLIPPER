@@ -318,5 +318,133 @@
     "fixed Fluidd/Mainsail same-bundle full pages",
     "target-board/Python performance and physical interruption",
     "historical G3 precision/process failures and all-Python retirement"
-  ]
+  ],
+  "reviewSupplement": {
+    "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+    "script": "host/contracts/native-copy-review-boundaries.ts",
+    "scriptSha256": "47fd824c7b6b7b679f01500438fadf57cb3e074ba12300b4863c38200e1faf24",
+    "command": "host/node_modules/.cache/node26/node-v26.9.0-linux-x64/bin/node --test --test-reporter=tap host/contracts/native-copy-review-boundaries.ts",
+    "node": "v26.9.0",
+    "tests": 4,
+    "pass": 4,
+    "fail": 0,
+    "durationMs": 401.034744,
+    "log": "/tmp/anyraid-copy-58-review-boundaries-versioned.log",
+    "logSha256": "3bb0c0ad61c5d456c71d79a7685ffa81f9b38ec8b3b1d945beddd315ee0f681b",
+    "scenarios": [
+      "Full file-count capacity allows overwrite; fresh copy beyond capacity rejects without effects",
+      "Peak byte quota rejects before intent and preserves old target",
+      "Cancellation after journal staging before intent preserves old target with no notification",
+      "Cancellation after durable intent completes overwrite; old sealed reader survives; two reopens do not duplicate notification"
+    ],
+    "typecheck": {
+      "status": "passed",
+      "scope": "Explicit strict TypeScript command for this contract script; main host project typecheck also passed",
+      "explicitLog": "/tmp/anyraid-copy-review-explicit-typecheck.log",
+      "explicitLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "scope": "Four additional bounded local source experiments, separate from the original 118 regressions and remote sanitizer totals. No production source or original gate changed; not physical power-loss, target-board, actual client or full Moonraker acceptance."
+  },
+  "integrationCheckpoint": {
+    "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+    "testedPullRequestMerge": "043b5e44ef5ab1e7488a560066488efd0260666b",
+    "requiredChecks": "passed",
+    "host": {
+      "runId": 37043834607,
+      "jobId": 110960224301,
+      "conclusion": "success",
+      "tests": 3881,
+      "pass": 3881,
+      "fail": 0,
+      "durationMs": 578805.707044,
+      "nativeProtocol": "passed",
+      "sanitizers": {
+        "ubsan": {
+          "files": 149,
+          "tests": 1180,
+          "fail": 0,
+          "maxMs": 45947.818419
+        },
+        "asan": {
+          "files": 149,
+          "tests": 1180,
+          "fail": 0,
+          "maxMs": 46421.30338300008
+        }
+      },
+      "originalChildDeadlineMs": 60000,
+      "linuxMcu": "passed"
+    },
+    "firmware": {
+      "runId": 37043834587,
+      "jobId": 110960225228,
+      "conclusion": "success",
+      "scope": "Terminal build job and artifact upload observed; no reused configuration/test counts"
+    },
+    "merge": {
+      "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+      "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "parents": [
+        "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e"
+      ],
+      "sourceTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+      "mergeTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+      "mergedAtUtc": "2026-10-02T18:30:34Z",
+      "method": "normal merge",
+      "merged": true
+    },
+    "postMerge": {
+      "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "status": "passed",
+      "host": {
+        "runId": 37047916751,
+        "jobId": 110973808529,
+        "status": "completed",
+        "conclusion": "success",
+        "stageResults": {
+          "ordinary": "success",
+          "nativeProtocol": "success",
+          "sanitizer": "success",
+          "linuxMcu": "success"
+        },
+        "ordinary": {
+          "tests": 3881,
+          "passed": 3881,
+          "failed": 0,
+          "durationMs": 578710.381453
+        },
+        "sanitizers": {
+          "ubsan": {
+            "files": 149,
+            "tests": 1180,
+            "failed": 0,
+            "maxChildMs": 45928.703393
+          },
+          "asanPlusUbsan": {
+            "files": 149,
+            "tests": 1180,
+            "failed": 0,
+            "maxChildMs": 46366.370618000044
+          }
+        },
+        "originalChildDeadlineMs": 60000,
+        "decodedLogCharacters": 1701583,
+        "checkoutVerified": true
+      },
+      "firmware": {
+        "runId": 37047916546,
+        "jobId": 110973807706,
+        "status": "completed",
+        "conclusion": "success",
+        "stageResults": {
+          "build": "success",
+          "artifactUpload": "success"
+        }
+      },
+      "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
+      "observedAtUtc": "2026-10-02T19:20:02.811Z"
+    },
+    "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
+  }
 }

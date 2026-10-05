@@ -707,5 +707,41 @@
     "softwareEvidence": "native-file-namespace-acceptance.json#thumbnailCompatibility",
     "softwareContract": "Native optional image GET and missing-source 404 fixed; actual page verification not passed",
     "date": "2026-10-02"
+  },
+  "samePackageChooserFailure": {
+    "began": "2026-10-03",
+    "errorObserved": "2026-10-04",
+    "source": "4a399a4b8938ce9274647d4e5b501a8b9f6e9a66",
+    "bundleManifestSha256": "70475ef3675b204fc67aa042e0b4a4ed39ff3b660d1524d6471234a56e77706f",
+    "client": "Fluidd 1.37.6",
+    "authorization": "Local JWT",
+    "verified": [
+      "Actual login, jobs list and file chooser opening"
+    ],
+    "unverified": [
+      "Actual file upload, thumbnail, complete print/recovery page journey"
+    ],
+    "chooser": {
+      "requestedToolTimeoutMs": 20000,
+      "reportedToolWallTimeSeconds": 106447.0228,
+      "error": "No node found for given backend id; fileChooser.setFiles failed"
+    },
+    "fixture": {
+      "execSession": 33204,
+      "parentPid": 1630130,
+      "originalLimitMinutes": 15,
+      "terminalExitCode": 0,
+      "terminalMessage": "CLIENT_TIMEOUT",
+      "loggedPageUploadRequests": 0,
+      "log": {
+        "path": "/tmp/anyraid-fluidd-704a-page.log",
+        "sha256": "29f67f06190203f4ec847f1ed24112d7cc5d7a69d0af11a88fce5a2e5e79ff8c"
+      }
+    },
+    "fallback": {
+      "documentedSharedPlaywrightReadme": "/home/dek02/.codex/tools/playwright/README.md",
+      "status": "Path absent on live inspection; configured shared runtime not located"
+    },
+    "scope": "Browser chooser tool failure, not upload/product acceptance; no page success inferred from protocol or seeded files."
   }
 }

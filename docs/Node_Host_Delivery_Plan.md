@@ -86,7 +86,8 @@ PR #3 的 [主机 CI](https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37
 `37285981616` 运行中，尚不记为合并后通过。
 
 固定包夹具候选见[验收契约](../host/contracts/fixed-client-bundle-acceptance.json)。
-它基于 develop，未带入 PR #3 的生产覆盖增量；两份包不能混称同一产物。
+历史验收包基于 `4b6a2317`，未包含 PR #3；当前任务正合并 `65067ea9`，
+整合源码须重新验证，旧包通过不能转记为新包通过。
 候选修正了设备 ready 早于耐久回执及恢复所有者释放的等待边界，沿用原
 期限、停止门槛和零修改重试。七项身份检查、两种鉴权协议、默认新建包
 JWT 及同包混合打印通过；最小步进提前量 87.128 ms、循环 P99 1.970175 ms。
@@ -112,8 +113,8 @@ JWT 及同包混合打印通过；最小步进提前量 87.128 ms、循环 P99 1
 | M5／C | 剩余完整 Moonraker 与全部 Python／旧宏场景退役 | 完整契约、目标性能／精度、系列和发布门槛全部通过 |
 | 最后 G6 | 其他机型 | 当前系列完整交付后再展开 |
 
-当前已有两个待收口候选，不新增第三个功能批次。固定包设施仅支撑同包
-出口，不能借此带入未合并生产实现。正常集成后的新包须核验变更范围，
+覆盖增量已正常集成，固定包设施继续收口，不新增第三个功能批次。
+固定包设施仅支撑同包出口，生产实现来自正常合并的 develop。正常集成后的新包须核验变更范围，
 补齐受影响验证，不能直接继承两份旧包的同包通过声明。
 
 每项失败固定输入、前置状态、资源所有者、契约及实际结果；一次只验证
@@ -136,31 +137,32 @@ PR #3 已提交精确头自行审查记录并正常合并；连接器写接口 4
 
 ### 集成与参考维护
 
-集成候选及来源边界见
-[候选证据](../host/contracts/node-host-integration-candidate.json)。
-既有 M1 独立编译产物清单 SHA-256 为
-`e83b2f347f85fc1d8406cada4dae171a5ad53313f8f53db00ab9846056993e79`；
-643 个文件核验、独立生产依赖安装、无运动 CLI 及禁用 Python 的 Linux MCU
-构建已有证据。它们不替代当前 STM32、动态机器装配或旧主机 C 接口兼容检查。
+SOS 固定参考更新须从[参考清单](../host/contracts/motan-sos-reference.json)
+记录的提交取得原 oracle，在隔离目录以记录的 CPython、NumPy 2.5.3、
+SciPy 1.17.1、mpmath 1.3.0 校验完整输入和高精度结果后更新来源与摘要。
+日常测试无 Python，记录缺失／损坏直接失败，不动态回退。
+既有独立安装证据、原生插件和无 Python Linux MCU 构建按各自指纹复用；
+不代替当前 STM32、动态装配、旧入口兼容和目标安装验证。
 
-SOS 固定参考变更须从参考清单记录的提交取得原 oracle 和基准，在隔离目录
-以记录的 CPython、NumPy 2.5.3、SciPy 1.17.1、mpmath 1.3.0 校验完整输入
-及高精度结果，再更新有界记录、摘要与来源。日常测试无 Python，
-缺失／损坏记录直接失败，无动态回退。捕获源摘要见
-[固定参考清单](../host/contracts/motan-sos-reference.json)。
+## 提交、验证与报告
 
-## 从产品路径到实现任务
+每批先固定失败、出口、源码、依赖、预期操作和预算；受影响回归及同包
+验证完成后形成可审阅提交，再执行精确待合并头全部规定检查和审阅。
+只在新失败／新增修改／未解风险时补充或重复验证。测试期间冻结受测
+共享依赖，真正结束后再修改；不混用版本或删除失败日志。
+sanitizer 保留原 149 文件、独立子进程和每文件 60 秒期限，不将排队时间
+计为文件执行时间，不重试／省略用例取得通过。
 
-按交付物 → 用户路径 → 权威所有者 → 最小实现增量 → 验收 → 切换展开。
-打印控制、Moonraker 和设备 IO 共用同一产品入口，不再建设第二套文件库、
-打印状态机或恢复日志。复用分层如下：
+任务分支只经 PR 执行完整主机／固件和适用运动诊断；develop／master
+保留 push 的合并后规定检查。现有矩阵、PR 路径筛选和手动诊断入口不变。
+纯审计改动本地提交并随下一必要实现正常同步，不因文档改动取消作业或
+重启矩阵；最终新头仍须通过规定 CI。
 
-| 所有者 | 职责与实现边界 |
-| --- | --- |
-| 进程服务 | Moonraker 监听器、身份、数据库、文件及历史跨设备重建保留；端点、权限、事件和持久化按固定上游逐项验收 |
-| 打印／维护操作 | 权威状态机、类型化版本请求、前置检查、互斥、幂等、取消和恢复；客户端命令不绕过操作门禁 |
-| 设备代际与 MCU | 配置、真实停止、运动时序、温控及 IO；旧代际排空后才释放，失败保留可查询故障，不伪报 ready |
-| 数值与构建运行 | 固定精度参考、必要热路径基准、无 Python 依赖和目标安装；仅证实缺口后选 Rust，不先改写已有 C 内核 |
+使用独立任务工作树及中文提交，身份为已核实 GitHub 登录的
+`arthasxkyang <arthasxkyang@gmail.com>`。按任务 PR → develop → master
+推进，合并前核验远程状态，不覆盖用户改动、不重置或强推共享分支。
+develop 完成规定集成／远程验证后再经主线 PR 及检查，在授权范围内正式
+部署、验收与回滚；不在云服务器主检出开发。
 
 | 路径 | 本批实现边界及完成判据 |
 | --- | --- |
@@ -366,6 +368,7 @@ develop 须通过规定集成／远程验证；主线 PR 和规定检查通过�
 | --- | --- |
 | 固定上游范围 | [注册点清单](../host/contracts/moonraker-upstream.json)，提交 `1cfb0c41e468645951a371621f06d32777b6107c`；37 个组件／167 个注册点不是展开契约或完成率分母，旧状态标签不能代替当前验收 |
 | 候选来源与当前 CI | [集成候选](../host/contracts/node-host-integration-candidate.json) |
+| 当前上传／移动覆盖 | [覆盖证据](../host/contracts/native-overwrite-acceptance.json)，本机回归、基准及独立编译负载已通过；精确新头 CI、合并及客户端仍待验 |
 | 参考及代际修复 | [固定参考修复](../host/contracts/ci-reference-lifecycle-acceptance.json)、[停止与状态修复](../host/contracts/ci-stop-state-acceptance.json) |
 | 服务及标准重启 | [进程服务](../host/contracts/native-process-server-acceptance.json)、[断开窗口](../host/contracts/native-process-offline-resources-acceptance.json)、[主机重启](../host/contracts/native-standard-restart-acceptance.json)、[固件故障](../host/contracts/native-standard-restart-fault-acceptance.json)、[固件重启](../host/contracts/native-firmware-restart-acceptance.json) |
 | 安装／配置／备份 | [独立安装](../host/contracts/product-independent-install-acceptance.json)、[配置读取](../host/contracts/native-config-files-read-acceptance.json)、[配置保存](../host/contracts/native-config-files-save-acceptance.json)、[备份管理](../host/contracts/native-config-backups-acceptance.json) |

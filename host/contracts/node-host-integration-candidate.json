@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "date": "2026-10-03",
+  "date": "2026-10-04",
   "softwareBase": "f4715a3a0bc8a54582b3d8bf7377ddf183c423b9",
-  "scope": "Pre-develop draft integration candidate. Committed source snapshot only; M2 working-tree draft excluded. Local Linux x64 build/install and no-motion CLI acceptance, not full migration, complete Moonraker, production release or target hardware approval.",
+  "scope": "Historical first integration source/install receipt, supplemented by separately source-bound increments and currentDelivery. Read currentDelivery for execution state; older source/product/remote fields retain their original scope. Not complete migration, production release or hardware approval.",
   "remote": {
     "repository": "ANYRAID/ANYRAID-KLIPPER",
     "base": "develop",
@@ -15,7 +15,8 @@
     "observedRevision": "379f785734da6b33043405a613cf4a17fb3d2836",
     "draft": false,
     "merged": true,
-    "mergeCommitSha": "81f8c9ce66d06199dd20360ab09bff9cf54f1473"
+    "mergeCommitSha": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+    "scope": "Historical PR #1 integration snapshot; latest merged revision is currentDelivery.latestMergedRevision. Master was independently rechecked unchanged during this audit."
   },
   "isolation": {
     "source": "git archive of softwareBase in /tmp; uncommitted published-files.ts and untracked published-paths.ts absent",
@@ -1502,7 +1503,7 @@
   },
   "mergeReady": false,
   "remaining": [
-    "PR #1 merged normally into develop as 81f8c9c; post-merge host has three dual-carriage trigger-clock failures (3860/3863), firmware and eight finite diagnostics passed. Mainline and physical admission remain closed.",
+    "Latest develop 4b6a2317 required host and firmware post-merge checks passed. Historical 81f8c9c failure retained separately. New overwrite runtime draft has local evidence only; mainline/default and physical admission remain closed.",
     "A4 same-candidate real Fluidd/Mainsail page G-code upload and complete recovery outlet.",
     "Full M2 file management, M3 job queue, M4 machine/provider operations and remaining complete G1 contracts.",
     "177 tracked Python files, default installation/CI/runtime retirement and controlled macro scenario closure.",
@@ -1592,7 +1593,7 @@
       "manifestSha256": "7dc939820f0b52e65b6b2ab48e22abd326f7cfb0f5ad7e944d7d2d70e338a6f5"
     },
     "m2bCopyDraft": {
-      "status": "local software acceptance passed; not yet submitted or integrated",
+      "status": "software increment reviewed, required source CI passed, normally merged as 4b6a2317, actual develop required host/firmware checks passed",
       "sourceHashes": {
         "host/acceptance/product-compiled-journey.test.ts": "d0528602ce1f3bf232440bf405f345a929bbf9552da5c98ff3b0fd2595b31a22",
         "host/src/moonraker/configured-server.ts": "5706f52e645209a611fb504b399df98fa6f4d3b47619d319ed2f8a240ac8a61c",
@@ -1640,7 +1641,309 @@
         "historical G3 precision/process failures and all-Python retirement"
       ],
       "typecheck": true,
-      "evidence": "host/contracts/native-copy-acceptance.json"
+      "evidence": "host/contracts/native-copy-acceptance.json",
+      "pullRequest": {
+        "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+        "base": "develop",
+        "baseRevision": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "head": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+        "draft": false,
+        "merged": true,
+        "observedAtUtc": "2026-10-02T18:34:54.638Z",
+        "checks": {
+          "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+          "testedPullRequestMerge": "043b5e44ef5ab1e7488a560066488efd0260666b",
+          "requiredChecks": "passed",
+          "host": {
+            "runId": 37043834607,
+            "jobId": 110960224301,
+            "conclusion": "success",
+            "tests": 3881,
+            "pass": 3881,
+            "fail": 0,
+            "durationMs": 578805.707044,
+            "nativeProtocol": "passed",
+            "sanitizers": {
+              "ubsan": {
+                "files": 149,
+                "tests": 1180,
+                "fail": 0,
+                "maxMs": 45947.818419
+              },
+              "asan": {
+                "files": 149,
+                "tests": 1180,
+                "fail": 0,
+                "maxMs": 46421.30338300008
+              }
+            },
+            "originalChildDeadlineMs": 60000,
+            "linuxMcu": "passed"
+          },
+          "firmware": {
+            "runId": 37043834587,
+            "jobId": 110960225228,
+            "conclusion": "success",
+            "scope": "Terminal build job and artifact upload observed; no reused configuration/test counts"
+          },
+          "merge": {
+            "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+            "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+            "parents": [
+              "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+              "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e"
+            ],
+            "sourceTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+            "mergeTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+            "mergedAtUtc": "2026-10-02T18:30:34Z",
+            "method": "normal merge",
+            "merged": true
+          },
+          "postMerge": {
+            "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+            "status": "passed",
+            "host": {
+              "runId": 37047916751,
+              "jobId": 110973808529,
+              "status": "completed",
+              "conclusion": "success",
+              "stageResults": {
+                "ordinary": "success",
+                "nativeProtocol": "success",
+                "sanitizer": "success",
+                "linuxMcu": "success"
+              },
+              "ordinary": {
+                "tests": 3881,
+                "passed": 3881,
+                "failed": 0,
+                "durationMs": 578710.381453
+              },
+              "sanitizers": {
+                "ubsan": {
+                  "files": 149,
+                  "tests": 1180,
+                  "failed": 0,
+                  "maxChildMs": 45928.703393
+                },
+                "asanPlusUbsan": {
+                  "files": 149,
+                  "tests": 1180,
+                  "failed": 0,
+                  "maxChildMs": 46366.370618000044
+                }
+              },
+              "originalChildDeadlineMs": 60000,
+              "decodedLogCharacters": 1701583,
+              "checkoutVerified": true
+            },
+            "firmware": {
+              "runId": 37047916546,
+              "jobId": 110973807706,
+              "status": "completed",
+              "conclusion": "success",
+              "stageResults": {
+                "build": "success",
+                "artifactUpload": "success"
+              }
+            },
+            "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
+            "observedAtUtc": "2026-10-02T19:20:02.811Z"
+          },
+          "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
+        },
+        "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement.",
+        "mergeRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2"
+      },
+      "reviewReceipt": {
+        "reviewer": "Current task agent; bounded software-increment admission review, not external GitHub approval or production audit",
+        "headRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+        "baseRevision": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+        "sourceHashesVerified": 9,
+        "decision": "Bounded software-increment review passed and required exact-head CI passed; normal PR #2 merge completed. Post-merge checks and broader product gates remain pending.",
+        "topics": [
+          {
+            "topic": "Storage identity, quota and recovery",
+            "inspection": "namespace-copy.ts planning/intent schema/complete-membership replay; published-files.ts copy intent, hash verification, new receipts, replacement and byte accounting",
+            "evidence": "Original 37 storage regressions plus four distinct review-boundary experiments in native-copy-acceptance.json; no deletion-before-publication shortcut"
+          },
+          {
+            "topic": "API authorization and ownership",
+            "inspection": "Resolved file and directory-member policy checks, replaced target admission, process route registration, current-generation delegation, pending authorization drain and late chunked request fencing",
+            "evidence": "Original 36 API and 45 product-lifetime regressions; scope remains native gcodes only; offline mutation remains pending"
+          },
+          {
+            "topic": "Compiled product and performance",
+            "inspection": "Successful operation counts/active generation checkpoints, source/target identity and preview assertions, event counts, retained runout pause/object-cancel timing, full-journey watchdog distinguished from original print/stop/idle/loop gates; alternating filesystem catalog benchmark baseline",
+            "evidence": "Source-bound compiled manifest and real filesystem metrics in native-copy-acceptance.json; 16 copies/16 overwrites/16 directory copies and 840 file events; no CPython/target-board/print-duration claim"
+          },
+          {
+            "topic": "Motion fixture isolation",
+            "inspection": "dual-carriage-printer.test.ts waits for actual simulated integer MCU clock while retaining host-clock and all trigger/motor assertions; failure-only observations bounded at 64",
+            "evidence": "Captured early auxiliary firmware event and local 4+15 homing regressions; no production motion algorithm, clock mapping, tolerance or stop deadline changed; historical G3 remains open"
+          }
+        ],
+        "remaining": [
+          "Fixed-client pages, target board and physical power-loss acceptance",
+          "Upload/move overwrite, complete Moonraker, historical G3 and full Python retirement"
+        ]
+      },
+      "integrationCheckpoint": {
+        "sourceRevision": "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e",
+        "testedPullRequestMerge": "043b5e44ef5ab1e7488a560066488efd0260666b",
+        "requiredChecks": "passed",
+        "host": {
+          "runId": 37043834607,
+          "jobId": 110960224301,
+          "conclusion": "success",
+          "tests": 3881,
+          "pass": 3881,
+          "fail": 0,
+          "durationMs": 578805.707044,
+          "nativeProtocol": "passed",
+          "sanitizers": {
+            "ubsan": {
+              "files": 149,
+              "tests": 1180,
+              "fail": 0,
+              "maxMs": 45947.818419
+            },
+            "asan": {
+              "files": 149,
+              "tests": 1180,
+              "fail": 0,
+              "maxMs": 46421.30338300008
+            }
+          },
+          "originalChildDeadlineMs": 60000,
+          "linuxMcu": "passed"
+        },
+        "firmware": {
+          "runId": 37043834587,
+          "jobId": 110960225228,
+          "conclusion": "success",
+          "scope": "Terminal build job and artifact upload observed; no reused configuration/test counts"
+        },
+        "merge": {
+          "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/2",
+          "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+          "parents": [
+            "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+            "58a7ec044d414714ce2bfa241fcfd78f0f8ed51e"
+          ],
+          "sourceTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+          "mergeTree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+          "mergedAtUtc": "2026-10-02T18:30:34Z",
+          "method": "normal merge",
+          "merged": true
+        },
+        "postMerge": {
+          "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+          "status": "passed",
+          "host": {
+            "runId": 37047916751,
+            "jobId": 110973808529,
+            "status": "completed",
+            "conclusion": "success",
+            "stageResults": {
+              "ordinary": "success",
+              "nativeProtocol": "success",
+              "sanitizer": "success",
+              "linuxMcu": "success"
+            },
+            "ordinary": {
+              "tests": 3881,
+              "passed": 3881,
+              "failed": 0,
+              "durationMs": 578710.381453
+            },
+            "sanitizers": {
+              "ubsan": {
+                "files": 149,
+                "tests": 1180,
+                "failed": 0,
+                "maxChildMs": 45928.703393
+              },
+              "asanPlusUbsan": {
+                "files": 149,
+                "tests": 1180,
+                "failed": 0,
+                "maxChildMs": 46366.370618000044
+              }
+            },
+            "originalChildDeadlineMs": 60000,
+            "decodedLogCharacters": 1701583,
+            "checkoutVerified": true
+          },
+          "firmware": {
+            "runId": 37047916546,
+            "jobId": 110973807706,
+            "status": "completed",
+            "conclusion": "success",
+            "stageResults": {
+              "build": "success",
+              "artifactUpload": "success"
+            }
+          },
+          "motionDiagnostics": "Not triggered: no changed path matches this workflow's explicit filters. Prior eight-case diagnostic receipt remains historical, not a new pass.",
+          "observedAtUtc": "2026-10-02T19:20:02.811Z"
+        },
+        "scope": "Required source CI, bounded software review, normal PR merge and actual 4b6a2317 develop host/firmware checks passed. Exact checkout verified in decoded host log; both sanitizer passes completed with original child deadline. Not G3, full clients, target hardware, complete Moonraker or Python retirement."
+      }
+    },
+    "m2bOverwrite": {
+      "state": "manual_ownership_regressions_passed_final_compiled_failures_under_diagnosis",
+      "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "evidence": "host/contracts/native-overwrite-acceptance.json",
+      "sourceHashes": {
+        "host/src/storage/namespace-replace.ts": "3c574aa301c74b34fa3c0549bfd4b7399d1d93790e093da3eee091c3e079cb69",
+        "host/src/storage/published-files.ts": "01bc6ab855b0c9ee2a65ed9ac0b6e3adf86c26a7aa5d4c8500e145f25b88428e",
+        "host/src/moonraker/native-print-uploads.ts": "ccda5a0227c5554e73d56bcd919d8e447f40e76877a358c10ab4898c9157303c",
+        "host/src/motion/representable-profile.ts": "d6e6a85a227664b746e45b63d19770962b614c2395db0e941ec35cd3ee89bcc8",
+        "host/src/motion/trap-queue.ts": "ac05c048e72fc112404e11899090a8d967727a1875f917daaf042eb3e9562da7",
+        "host/test/published-replace.test.ts": "18c187f26ef6066fe194bb9c63bfe8863d66668ce2afabbdf705593f70298e9c",
+        "host/test/published-move.test.ts": "4477c9a4efdd4147df60f16bcbcfeee7eebd0b4f66870aec0f6ad0ff17c454d5",
+        "host/test/native-print-uploads.test.ts": "2f55d1164629b2cbab18ebf97ee106aed4ce584f93da8311fecf736d1ae2bfb1",
+        "host/test/native-product-process-lifetime.test.ts": "5f5b429b3990f26b40409b91512b61f776f66f1c1b2a4493854145f033fa04ae",
+        "host/test/representable-profile.test.ts": "ad610f6398cd89e9799a1363ec4e95dbfd67df361d7b96f818fd9182c6aaa3a2",
+        "host/test/trap-queue.test.ts": "87920c4c58313a8ae020a2c29976054de5fdb36a556d5377baf58594519a6680",
+        "host/acceptance/product-compiled-journey.test.ts": "a70799cafc722f8ebcdb95465761770ef626658b820045f967ac3e89b63834ad",
+        "host/bench/published-replace.ts": "f9b0fb40d6a8f77f520759ed8ff92cc4e02cb593aa77225ea51b14469c5d6bcc",
+        "host/bench/representable-profile-overwrite.ts": "869a083ef5bf8c6870c9de3d9930b5cfaf37840dd84a476e5f042f750613ed19",
+        "host/scripts/replay-overwrite-motion.ts": "427e882a643d8c97008dd4b96e680e797997377bdb5beb68765af40c55130d6a"
+      },
+      "affectedRegression": 125,
+      "processLifecycle": 10,
+      "totalDistinct": 271,
+      "compiled": "final_candidate_failed_two_of_three",
+      "requiredNewHeadCi": "pending_for_manual_ownership_repair_head",
+      "integrated": false,
+      "nativeMotion": 24,
+      "motionIntegration": 112,
+      "compiledBundleManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+      "motionEvidence": "host/contracts/motion-overwrite-capture.json",
+      "integrationCheckpoint": {
+        "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
+        "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
+        "draft": false,
+        "merged": false,
+        "requiredCi": "pending_for_manual_ownership_repair_head",
+        "review": "local_call_chain_review_complete_final_compiled_failures_open",
+        "submission": "Existing PR #3 head 7a66f555 terminal failure. Six-adapter manual ownership repair is uncommitted local work: deterministic counterexample and affected regressions pass; final compiled cases are 1/3, two assertion failures retained. Diagnose them before sealing/pushing a new candidate; complete required CI and integration remain pending.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
+        "failedAttempt": "ciSafetyRepairs.failedCi",
+        "currentRepairSources": "ciSafetyRepairs.sourceHashes",
+        "currentCompiledManifestSha256": "4a753b4d77551e025a5465eebd66e05e6469823c8635ed69af16308c3e64b5e7",
+        "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
+        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes",
+        "currentManualOwnershipRepairSources": "manualOwnershipRepair.sourceHashes",
+        "failedManualOwnershipAttempt": "manualOwnershipRepair.failedCi"
+      },
+      "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs",
+      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair",
+      "manualOwnershipRepair": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair"
     }
   },
   "integrationCheckpoint": {
@@ -1833,5 +2136,60 @@
         "scope": "Existing compatibility fixture, not new machine adaptation. Required new-head CI and historical G3 remain open."
       }
     }
+  },
+  "currentDelivery": {
+    "executionPlan": "docs/Node_Host_Delivery_Plan.md",
+    "goalStatus": "active",
+    "latestMergedRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+    "latestIncrementEvidence": "host/contracts/native-copy-acceptance.json",
+    "postMergeChecks": "increments.m2bCopyDraft.integrationCheckpoint.postMerge",
+    "currentImplementation": {
+      "batch": "M2b 3b upload/move overwrite",
+      "branch": "devac/moonraker-file-overwrite",
+      "state": "necessary_upload_generation_repair_locally_verified_new_head_ci_pending",
+      "baselineRevision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+      "benchmarkBaseline": {
+        "revision": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "tree": "10ae0303e1250b0e68ade3a3ee662e9002e8ceb3",
+        "sourceFilesVerified": 626,
+        "node": "v26.9.0",
+        "manifestPath": "host/build/anyraid-overwrite-acceptance/baseline/manifest.json",
+        "manifestSha256": "1ee6a2c1aa973b5423cbfe51d35fa068128b3698daea7e01f3c5c9bed0c8d9ec",
+        "moduleImport": "passed",
+        "sealedFileAddonSha256": "0a142e4f08761359eb5184a3e38e6c364739526e52734c2e1b0087707921202b",
+        "scope": "Exact immutable old Node source baseline for upload/move-overwrite comparison. Shared native build/dependency links require hash/version checks before measurement; not an independently installed product, a benchmark result, CPython comparison or target acceptance."
+      },
+      "evidence": "host/contracts/native-overwrite-acceptance.json",
+      "compiledBundleManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+      "integrationCheckpoint": {
+        "source": "30cafd1b04817795ac6a871ba2c62df8517569ec",
+        "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+        "pullRequest": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/3",
+        "draft": false,
+        "merged": false,
+        "requiredCi": "pending_for_new_upload_generation_drain_repair_head",
+        "review": "bounded_local_review_and_necessary_local_checks_passed_exact_head_ci_pending",
+        "submission": "4a399 exact-head required host CI failed at old upload cleanup. Necessary repair has deterministic original-runtime counterexample, 60 affected checks, three required same-package journeys completed and process-owned paired performance; seal/push new head, then exact required CI and normal integration. Matrix overrun and browser tool failures retained.",
+        "scope": "Task PR submitted; not develop integration, complete clients, hardware, G3 or Python retirement.",
+        "failedAttempt": "ciSafetyRepairs.failedCi",
+        "currentRepairSources": "generationUploadDrainRepair.sourceHashes",
+        "currentCompiledManifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+        "failedRepairAttempt": "configuredPrintFixtureRepair.failedCi",
+        "currentFixtureRepairSources": "configuredPrintFixtureRepair.sourceHashes",
+        "currentManualOwnershipRepairSources": "manualOwnershipRepair.sourceHashes",
+        "failedManualOwnershipAttempt": "manualOwnershipRepair.failedCi",
+        "sourceParent": "4a399a4b8938ce9274647d4e5b501a8b9f6e9a66",
+        "failedUploadDrainAttempt": "generationUploadDrainRepair.failedCi"
+      },
+      "historicalCompiledBundleManifestSha256": "8fd8048d8aa22f958470308b9b300653fc6d9c605c7d03a971705d81a217c280",
+      "ciSafetyRepairs": "host/contracts/native-overwrite-acceptance.json#ciSafetyRepairs",
+      "configuredPrintFixtureRepair": "host/contracts/native-overwrite-acceptance.json#configuredPrintFixtureRepair",
+      "manualOwnershipRepair": "host/contracts/native-overwrite-acceptance.json#manualOwnershipRepair",
+      "latestFailureTriage": "host/contracts/native-overwrite-acceptance.json#generationUploadDrainRepair.failedCi",
+      "admissionAndRecoveryRepair": "host/contracts/native-overwrite-acceptance.json#admissionAndRecoveryRepair",
+      "generationUploadDrainRepair": "host/contracts/native-overwrite-acceptance.json#generationUploadDrainRepair"
+    },
+    "next": "Seal/push upload generation drain repair to existing PR #3; exact new-head complete CI and required review before normal develop merge/post-merge verification. Continue fixed-package real client acceptance; do not repeat unchanged broken chooser. Complete Moonraker and full retirement gates preserved.",
+    "finalGates": "Same-bundle real clients, complete Moonraker, Cycnumbris 500 installation/stop/precision/performance, macro scenario closure, all-Python retirement and release remain open. Other machine families last."
   }
 }

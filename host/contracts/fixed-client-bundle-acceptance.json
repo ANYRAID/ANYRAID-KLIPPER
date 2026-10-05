@@ -273,6 +273,13 @@
     "mergedAt": "2026-10-05T08:48:49Z",
     "exactHeadRequiredCi": "passed",
     "postMergeCi": "in_progress",
-    "candidateIncludesMerge": false
+    "candidateIncludesMerge": true
+  },
+  "integratedCandidate": {
+    "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+    "journeySha256": "2565c1f7d0b38e56b2841b93c05aaa6a2f3b128fcd79f4fd256b36db4783d725",
+    "scope": "PR #3 namespace overwrite workload retained; fixed bundle selection and after-cleanup identity check layered on top",
+    "validation": "pending",
+    "historicalBundleNotReusedAsIntegratedPass": true
   }
 }
