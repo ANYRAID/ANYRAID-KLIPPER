@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "status": "locally_verified_ci_candidate_remote_not_started",
+  "purpose": "Independent-environment compiled jitless coverage for archived unresolved G3 failures",
+  "workflow": ".github/workflows/node-motion-diagnostics.yaml",
+  "workflowSha256": "086027d4edf886b80a9049312a8d39c7de508a19992eb01caafde744827d07df",
+  "diagnosticScriptSha256": "cb869d7f2bd64e44927f1405780643c9a2362f2451f22a9f065c83128224de65",
+  "base": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
+  "originalCases": 8,
+  "addedCases": [
+    {
+      "node": "26.9.0",
+      "optimization": "jitless",
+      "execution": "compiled"
+    },
+    {
+      "node": "26.10.0",
+      "optimization": "jitless",
+      "execution": "compiled"
+    }
+  ],
+  "rules": {
+    "noOriginalCasesRemoved": true,
+    "sourceJitlessNotScheduled": true,
+    "productionAlgorithmChanged": false,
+    "permissions": "contents:read",
+    "jobDeadlineMinutes": 10,
+    "childDeadlineMs": 10000,
+    "maxParallel": 2,
+    "freshProcessesPerRemoteCase": 50,
+    "workersPerCase": 1,
+    "firstFailurePreserved": true,
+    "failureArchive": "always",
+    "archiveRetentionDays": 30,
+    "precisionBudgetsUnchanged": true
+  },
+  "validation": {
+    "yamlParsing": "passed",
+    "matrixExpansion": "10 unique valid cases; original eight retained",
+    "projectWhitespace": "passed",
+    "workflowWhitespace": "passed",
+    "actionlint": "unavailable_not_run",
+    "localCases": [
+      {
+        "version": "26.9.0",
+        "scope": "complete_local_batch",
+        "configuredFreshProcesses": 50,
+        "completed": 50,
+        "failures": 0,
+        "completionMarkers": 50,
+        "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+        "compiler": "7.0.2",
+        "reportSha256": "3930efd6f395bf5e2a806ff10770eebe89f61f2a55cd8cfa8a5b2f1931b7ba53",
+        "fixtureSha256": "00b190313de55fa3d600c7f5da73c4da0104e31276a79a81a2f355c7f2b96c59",
+        "compiledEntries": 208,
+        "frozenSourceEntries": 208,
+        "compiledInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07",
+        "frozenSourceInventorySha256": "4b5c2bda59479db557d4d61d73272464b50cf02683ea08731311827189dc2f73",
+        "historicalClosureMatches": true,
+        "elapsedMs": 326591.121047,
+        "childP95Ms": 6542.635240999996,
+        "childMaxMs": 6710.606954999996,
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        }
+      },
+      {
+        "version": "26.10.0",
+        "scope": "local_command_smoke_only",
+        "configuredFreshProcesses": 1,
+        "completed": 1,
+        "failures": 0,
+        "completionMarkers": 1,
+        "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+        "compiler": "7.0.2",
+        "reportSha256": "388e51f6f0113ec5991e13bedc986069e356991c171de0260ced41d05d3ef4a4",
+        "fixtureSha256": "6d97314909d27e3343bb28b9fdd3f65a923de9ab2ae64cb5d271acb7e52c54c7",
+        "compiledEntries": 208,
+        "frozenSourceEntries": 208,
+        "compiledInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07",
+        "frozenSourceInventorySha256": "4b5c2bda59479db557d4d61d73272464b50cf02683ea08731311827189dc2f73",
+        "historicalClosureMatches": true,
+        "elapsedMs": 6741.328169,
+        "childP95Ms": 6482.408661,
+        "childMaxMs": 6482.408661,
+        "system": {
+          "platform": "linux",
+          "arch": "x64",
+          "kernel": "6.18.36-amd64-desktop-rolling",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "cpuAffinity": "0-5"
+        }
+      }
+    ]
+  },
+  "runtimeMeasurementScope": "Offline diagnostic subprocess runtime; not production hot-path or printing throughput",
+  "remaining": [
+    "Exact-head mandatory host and firmware CI",
+    "Remote execution of all ten motion diagnostic cases",
+    "Review and normal develop integration",
+    "G3 historical numeric/crash root cause or verified isolation",
+    "Actual same-bundle clients and target hardware acceptance",
+    "Complete Moonraker and Python retirement"
+  ]
+}

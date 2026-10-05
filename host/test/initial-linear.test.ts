@@ -13,8 +13,21 @@ test('configured motor enables continue through a shared in-stream calibration',
   const g=f.initial.generation,clock=g.clockTimelines!.find(c=>c.id==='mcu')!.timeline,original=g.source.flushThrough.bind(g.source);let updated=false;
   g.source.flushThrough=async(until,...args)=>{
    const result=await original(until,...args);if(!updated){
-    const limit=g.source.status.sourceTime-Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future))-.001,plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
-    await g.coordinator.advanceWindow(plan.time,g.coordinator.status.committedTime);clock.calibrateMotion(plan.tick,1000100,g.coordinator,g.motion.bindings.map(b=>b.id));g.assertMotorCalibration();updated=true;
+    const limit=g.source.status.sourceTime-Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future))-.001,ids=g.motion.bindings.map(b=>b.id);
+    // A newly generated pulse may round to the first exact anchor. Preserve
+    // the rejected mapping, then inspect exactly one following candidate.
+    for(let attempt=0;attempt<2&&!updated;attempt++){
+     const plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
+     const before=clock.status,calibrations=g.motion.bindings.map(b=>b.stepper.calibration),committed=g.coordinator.status.committedTime;
+     g.coordinator.generateCalibrationBoundary(plan.time);
+     try{clock.calibrateMotion(plan.tick,1000100,g.coordinator,ids);updated=true;}
+     catch(error){
+      if(attempt!==0||!(error instanceof RangeError)||error.message!=='Calibration would overlap previously accepted step clocks')throw error;
+      assert.deepEqual(clock.status,before);assert.deepEqual(g.motion.bindings.map(b=>b.stepper.calibration),calibrations);assert.equal(g.coordinator.status.failed,false);
+     }
+     assert.equal(g.coordinator.status.committedTime,committed);g.assertMotorCalibration();
+    }
+    assert(updated);
    }return result;
   };
   const q=new LookAheadQueue();q.add(new Move(motionLimits(100,1000),[0,0,0,0],[20,0,0,0],20));await new RebuiltMotionStreamer(g).append(q.flush(),f.signal);await g.source.drain([],f.signal);

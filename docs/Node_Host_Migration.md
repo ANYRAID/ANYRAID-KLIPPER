@@ -29,7 +29,15 @@ Delta 校准故障现保留可信进程内诊断，区分采样、同步、拟�
 Python 文件。使用和当前证据见[启动说明](Node_Host_Startup.md#校准故障的本地诊断)
 及[诊断验收](../host/contracts/delta-calibration-failure-acceptance.json)。
 
-## 当前执行入口（2026-10-04 审计）
+## 当前执行入口（2026-10-05）
+
+唯一执行计划见[交付计划](Node_Host_Delivery_Plan.md)。PR #3 已自行审查
+并正常合并到 develop `65067ea9`；合并后检查仍在运行。固定包候选
+正在正常同步该基线；其历史包与完整本机失败均保留独立源码及环境身份，
+见[固定包契约](../host/contracts/fixed-client-bundle-acceptance.json)。
+同包完整页面、G3、当前系列装配与全面 Python／宏退役仍未完成。
+
+## 历史执行记录（2026-10-02）
 
 执行顺序、阶段出口与任务准入以 [总到分交付计划](Node_Host_Delivery_Plan.md)
 为准。当前只适配 ANYRAID Cycnumbris 500 系列；Moonraker 完整替代

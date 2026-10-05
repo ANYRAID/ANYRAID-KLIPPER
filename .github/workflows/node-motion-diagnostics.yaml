@@ -41,6 +41,13 @@ jobs:
         node: ['26.9.0', '26.10.0']
         optimization: ['default', 'off']
         execution: ['source', 'compiled']
+        include:
+          - node: '26.9.0'
+            optimization: 'jitless'
+            execution: 'compiled'
+          - node: '26.10.0'
+            optimization: 'jitless'
+            execution: 'compiled'
     steps:
       - uses: actions/checkout@v5
         with:

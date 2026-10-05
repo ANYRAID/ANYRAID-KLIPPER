@@ -15,6 +15,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
 import {setTimeout as delay} from 'node:timers/promises';
+import {externalAcceptanceBundle,assertSeparateAcceptanceWorkspace,assertAcceptanceBundleUnchanged} from '../test/helpers/acceptance-bundle.ts';
 import {buildProductHost} from '../scripts/build-product-host.ts';
 import {installProductDependencies} from '../test/helpers/product-install.ts';
 import {configuredPrinterFixture} from '../test/helpers/configured-printer.ts';
@@ -39,7 +40,10 @@ for(const {namespace=false,nativeAuthorization=false,apiLoad=false,loaded,spi,bm
  const sensorSection=combined&&temperatureFan?'temperature_fan combined':temperatureFan?'temperature_fan chamber':'temperature_sensor chamber';
  const stressed=apiLoad||loaded||tilted||temperatureSensor||zTilt||quad||skew||screws||bedScrews;
  const calibrationKind=quad?'quad_gantry_level':'z_tilt';
- const dir=await realpath(await mkdtemp(join(tmpdir(),'compiled-journey-'))),app=join(dir,'app'),f=await configuredPrinterFixture(false,false);
+ const retained=await externalAcceptanceBundle();
+ const dir=await realpath(await mkdtemp(join(tmpdir(),'compiled-journey-'))),app=retained?.path??join(dir,'app');
+ if(retained){try{await assertSeparateAcceptanceWorkspace(retained,dir);}catch(error){await rm(dir,{recursive:true,force:true});throw error;}}
+ const f=await configuredPrinterFixture(false,false);
  const transports:Awaited<ReturnType<typeof productTransports>>[]=[],timers=new Set<ReturnType<typeof setTimeout>>();
  const configRoot=join(dir,'config'),printerConfig=nativeAuthorization?join(configRoot,'printer.cfg'):join(dir,'printer.cfg'),configPath=join(dir,'moonraker.conf'),manifest=join(dir,'machine.json'),trace=join(dir,'events.jsonl');
  let poll:ReturnType<typeof setInterval>|undefined,child:ReturnType<typeof spawn>|undefined,ended:Promise<{code:number|null;signal:NodeJS.Signals|null}>|undefined,watchdog:ReturnType<typeof setTimeout>|undefined,homed=0,probed=0,watchdogFired=false,stderr='',base='';
@@ -136,7 +140,8 @@ for(const {namespace=false,nativeAuthorization=false,apiLoad=false,loaded,spi,bm
  try{
   if(nativeAuthorization){await mkdir(configRoot);await writeFile(join(configRoot,'load.cfg'),'x'.repeat(256*1024));}
   if(hostSensor)await writeFile(join(dir,'host-temperature'),'42000\n');
-  await buildProductHost(app);const installation=await installProductDependencies(app);t.diagnostic(JSON.stringify({installation}));
+  if(retained)t.diagnostic(JSON.stringify({retainedBundle:retained}));
+  else{await buildProductHost(app);const installation=await installProductDependencies(app);t.diagnostic(JSON.stringify({installation}));}
   const png=await sharp({create:{width:80,height:40,channels:3,background:'#123456'}}).png().toBuffer(),encoded=png.toString('base64'),preview=`; thumbnail_png begin 80x40 ${encoded.length}\n; ${encoded}\n; thumbnail_png end\n`;
   // The namespace model retains all 1,000 extrusion moves and adds a 20 mm
   // return trip at the same speed for sustained file load; final XYZ/E and
@@ -710,5 +715,5 @@ Object.defineProperty(createProductHostProfile,'serverLifetime',{value:nativeFac
   if(stressed){if(motionReportLoad){assert(liveMotionSamples>0);assert(liveExtrusionSamples>0);}assert(phaseTimes.length>=100);assert(historyTimes.length>=100);assert.equal(deleteTimes.length,16);if(namespace){assert.equal(copyTimes.length,16);assert.equal(copyOverwriteTimes.length,16);assert.equal(directoryCopyTimes.length,16);for(const generation of [1,2]){assert(copiesDuringPrint.includes(generation),'Must copy an active source during each printing generation');assert(directoryCopiesDuringPrint.includes(generation),'Must copy unrelated directories during each printing generation');}assert.equal(moveTimes.length,16);assert.equal(directoryMoveTimes.length,16);for(const generation of [1,2])assert(directoryMovesDuringPrint.includes(generation),'Must move unrelated directories during each printing generation');for(const generation of [1,2])assert(movesDuringPrint.includes(generation),'Must move unrelated files during each printing generation');}assert.equal(thumbnailTimes.length,16);if(nativeAuthorization)assert.equal(publicThumbnailTimes.length,16);assert.equal(metadataTimes.length,16);assert.equal(downloadTimes.length,16);assert(directoryTimes.length>=100);assert(latencies.length>=100);assert.equal(uploadTimes.length,16);}
   if(nativeAuthorization&&apiLoad){assert(configListTimes.length>=100);assert(configDownloadTimes.length>=100);assert(backupQueryTimes.length>=100);backupQueryTimes.sort((a,b)=>a-b);t.diagnostic(JSON.stringify({configBackupLoad:{requests:backupQueryTimes.length,p99Ms:backupQueryTimes[Math.floor(backupQueryTimes.length*.99)],mutationsBlockedDuringPrint:true}}));}
   for(const generation of metrics.generations){assert(generation.loop.p99Ms<50);assert(generation.loop.maxMs<100);}
- }catch(error){t.diagnostic(JSON.stringify({failureContext:{loaded,loadGeneration,watchdogFired,fileLoadProgress:{uploadOverwrites:uploadOverwriteTimes.length,moveOverwrites:moveOverwriteTimes.length,replacementSeeds:replacementSeedTimes.length,uploads:uploadTimes.length,copies:copyTimes.length,overwrites:copyOverwriteTimes.length,directoryCopies:directoryCopyTimes.length,deletes:deleteTimes.length,statusRequests:latencies.length},homed,exitCode:child?.exitCode,signalCode:child?.signalCode,stderr,events:await readFile(trace,'utf8').catch(()=>null)}}));throw error;}finally{for(const socket of eventSockets)socket.terminate();await stopLoad().catch(()=>{});if(watchdog)clearTimeout(watchdog);if(child&&child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended?.catch(()=>{});if(poll)clearInterval(poll);if(thermal)clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const transport of transports)await transport.close();await f.close();await rm(dir,{recursive:true,force:true});}
+ }catch(error){t.diagnostic(JSON.stringify({failureContext:{loaded,loadGeneration,watchdogFired,fileLoadProgress:{uploadOverwrites:uploadOverwriteTimes.length,moveOverwrites:moveOverwriteTimes.length,replacementSeeds:replacementSeedTimes.length,uploads:uploadTimes.length,copies:copyTimes.length,overwrites:copyOverwriteTimes.length,directoryCopies:directoryCopyTimes.length,deletes:deleteTimes.length,statusRequests:latencies.length},homed,exitCode:child?.exitCode,signalCode:child?.signalCode,stderr,events:await readFile(trace,'utf8').catch(()=>null)}}));throw error;}finally{for(const socket of eventSockets)socket.terminate();await stopLoad().catch(()=>{});if(watchdog)clearTimeout(watchdog);if(child&&child.exitCode===null&&child.signalCode===null)child.kill('SIGKILL');await ended?.catch(()=>{});if(poll)clearInterval(poll);if(thermal)clearInterval(thermal);for(const timer of timers)clearTimeout(timer);for(const transport of transports)await transport.close();await f.close();await rm(dir,{recursive:true,force:true});if(retained)await assertAcceptanceBundleUnchanged(retained);}
 });

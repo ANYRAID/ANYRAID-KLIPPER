@@ -1,0 +1,309 @@
+{
+  "schema": 1,
+  "status": "G3_unresolved",
+  "scope": "One exact-binary/closure default-optimization compiled comparison; finite successes do not resolve historical integrity failures or prove motion safety",
+  "date": "2026-10-04",
+  "remote": {
+    "runId": 37040778077,
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37040778077",
+    "commit": "81f8c9ce66d06199dd20360ab09bff9cf54f1473",
+    "jobId": 110950060326,
+    "artifactId": 11242232229,
+    "archiveSha256": "1fd05cd8b1e6ae9bb951df6566931c4a934060f6a615361e2d6d9f0b76b5d19e",
+    "reportSha256": "391c33c55aa328719c9ccbe6c119253368eca68b72599736ca7d63f45957cf4b",
+    "report": {
+      "state": "completed",
+      "nodeVersion": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "compiler": "7.0.2",
+      "kind": "motion",
+      "asan": "off",
+      "optimization": "default",
+      "execution": "compiled",
+      "limit": 50,
+      "workers": 1,
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.17.0-1022-azure",
+        "cpu": "AMD EPYC 7763 64-Core Processor",
+        "cpuAffinity": "0-3"
+      },
+      "elapsedMs": 17509.446583,
+      "completed": 50,
+      "failed": 0,
+      "completionMarkers": 50,
+      "active": 0,
+      "mismatches": 0,
+      "coreFiles": 0,
+      "fixtureSha256": "64049981439bddeba9de8676f1db66bc7a5e1e49ab5aba00f7203e1383f06108"
+    },
+    "matrix": [
+      {
+        "jobId": 110950060030,
+        "name": "motion (26.10.0, off, source)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.10.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "off",
+          "execution": "source"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060248,
+        "name": "motion (26.9.0, default, source)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.9.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "default",
+          "execution": "source"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060321,
+        "name": "motion (26.10.0, off, compiled)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.10.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "off",
+          "execution": "compiled",
+          "compilerVersion": "7.0.2"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060326,
+        "name": "motion (26.9.0, default, compiled)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.9.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "default",
+          "execution": "compiled",
+          "compilerVersion": "7.0.2"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060365,
+        "name": "motion (26.9.0, off, compiled)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.9.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "off",
+          "execution": "compiled",
+          "compilerVersion": "7.0.2"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060428,
+        "name": "motion (26.10.0, default, source)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.10.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "default",
+          "execution": "source"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060537,
+        "name": "motion (26.10.0, default, compiled)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.10.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "default",
+          "execution": "compiled",
+          "compilerVersion": "7.0.2"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      },
+      {
+        "jobId": 110950060590,
+        "name": "motion (26.9.0, off, source)",
+        "conclusion": "success",
+        "configuration": {
+          "kind": "motion",
+          "version": "v26.9.0",
+          "limit": 50,
+          "workers": 1,
+          "segv": "default",
+          "asan": "off",
+          "wasmBounds": "trap",
+          "jsOptimization": "off",
+          "execution": "source"
+        },
+        "result": {
+          "runs": 50,
+          "failures": 0
+        }
+      }
+    ]
+  },
+  "local": {
+    "sourceHead": "12e85c5d6d7d2654215e292bf5eaaecb0234252e",
+    "diagnosticScriptSha256": "cb869d7f2bd64e44927f1405780643c9a2362f2451f22a9f065c83128224de65",
+    "reportSha256": "bb062cd143f968b29ca9cbcca8310309b89c468b80bd2d8511b44b3fc8384676",
+    "report": {
+      "state": "completed",
+      "nodeVersion": "v26.9.0",
+      "nodeSha256": "05757b064ad2a221b41874794da42361c9bab033c7c33c1f1b458c25a7de7e59",
+      "compiler": "7.0.2",
+      "kind": "motion",
+      "asan": "off",
+      "optimization": "default",
+      "execution": "compiled",
+      "limit": 50,
+      "workers": 1,
+      "system": {
+        "platform": "linux",
+        "arch": "x64",
+        "kernel": "6.18.36-amd64-desktop-rolling",
+        "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+        "cpuAffinity": "0-5"
+      },
+      "elapsedMs": 15331.669448,
+      "completed": 50,
+      "failed": 0,
+      "completionMarkers": 50,
+      "active": 0,
+      "mismatches": 0,
+      "coreFiles": 0,
+      "fixtureSha256": "e2fa95939b188619aea93973e9120b9a03e822d3ff24e2e4112223e62377a3b7"
+    }
+  },
+  "comparison": {
+    "sameNodeBinary": true,
+    "sameCompiler": true,
+    "sameNormalizedFixture": true,
+    "normalizedFixtureSha256": "20b2efed5ab60cf62b94723dced5c910a4d4d66d26841dde009366838aa498d3",
+    "modules": {
+      "entries": 7,
+      "equal": 7,
+      "differingPaths": [],
+      "firstInventorySha256": "c364ff7f15f0bbf19078813fc059ff34fed851cf6a714bc51987a6b87cfc7a62",
+      "secondInventorySha256": "c364ff7f15f0bbf19078813fc059ff34fed851cf6a714bc51987a6b87cfc7a62"
+    },
+    "compiledClosure": {
+      "entries": 208,
+      "equal": 208,
+      "differingPaths": [],
+      "firstInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07",
+      "secondInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07"
+    },
+    "frozenSourceClosure": {
+      "entries": 208,
+      "equal": 208,
+      "differingPaths": [],
+      "firstInventorySha256": "4b5c2bda59479db557d4d61d73272464b50cf02683ea08731311827189dc2f73",
+      "secondInventorySha256": "4b5c2bda59479db557d4d61d73272464b50cf02683ea08731311827189dc2f73"
+    },
+    "historicalDefaultCompiledClosure": {
+      "entries": 208,
+      "equal": 208,
+      "differingPaths": [],
+      "firstInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07",
+      "secondInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07"
+    },
+    "historicalJitlessCompiledClosure": {
+      "entries": 208,
+      "equal": 208,
+      "differingPaths": [],
+      "firstInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07",
+      "secondInventorySha256": "9533ef17e42fa1cb0616c6c197d72aa214289e73f1194e67f145e7a11dbe7d07"
+    }
+  },
+  "fixedCase": {
+    "filter": "weighted4",
+    "profile": {
+      "order": 4,
+      "jerkLimit": true
+    },
+    "innerIterations": 16,
+    "positionTolerance": 1e-12,
+    "curveTolerances": [
+      1e-8,
+      0.0001,
+      1e-10
+    ],
+    "sameOriginalOracle": true
+  },
+  "findings": [
+    "Both current default compiled samples completed 50 fresh children without mismatch; original verifier and tolerances unchanged",
+    "All 208 compiled and 208 frozen source/reference entries match between local and remote, and historical compiled closure matches",
+    "Observed local and remote CPU/kernel differ; no causality established",
+    "Current remote matrix lacks jitless compiled cases; off uses --no-maglev and --no-turbofan, not --jitless"
+  ],
+  "nextExperiment": "Matched independent-environment jitless compiled workload using the same frozen closure, Node binary, original input/oracle and first-failure capture; do not repeat default-mode success as closure",
+  "notProven": [
+    "Historical numerical or process-crash root cause",
+    "Production motion isolation and integrity",
+    "Target-board precision, printing throughput or stopping",
+    "Actual client, complete Moonraker or Python retirement"
+  ]
+}

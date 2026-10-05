@@ -2424,10 +2424,52 @@ PATH 工具的子进程中运行产品；PTY、限位与温度模拟留在父进
 只能在无物理设备接入的开发环境使用。标准编译产品流程仍使用既有
 `product-compiled-journey.test.ts`。
 
+### 固定同一编译包验收
+
+客户端探针与编译打印旅程支持复用已构建、独立安装生产依赖的包。先用
+`node host/scripts/build-product-host.ts /absolute/retained-product` 构建，再用
+`node /absolute/retained-product/scripts/product-install.js --bundle /absolute/retained-product`
+安装生产依赖。在封存时记录身份：
+
+```sh
+ANYRAID_ACCEPTANCE_BUNDLE=/absolute/retained-product node --input-type=module -e '
+import {inspectAcceptanceBundle} from "./host/test/helpers/acceptance-bundle.ts";
+console.log(JSON.stringify(await inspectAcceptanceBundle(process.env.ANYRAID_ACCEPTANCE_BUNDLE)));
+'
+```
+
+后续每次验收使用封存的两个摘要；不要每次重新计算期望值来接受已改变的包。
+三项环境变量必须一起提供：
+
+```sh
+export ANYRAID_ACCEPTANCE_BUNDLE=/absolute/retained-product
+export ANYRAID_ACCEPTANCE_MANIFEST_SHA256=封存的manifestSha256
+export ANYRAID_ACCEPTANCE_DEPENDENCIES_SHA256=封存的dependenciesSha256
+export TMPDIR=/absolute/acceptance-temporary-data
+node host/acceptance/client-probe.ts /absolute/path/to/frontend 18326
+node --test --test-isolation=none --test-concurrency=1 host/acceptance/client-probe.test.ts
+node --test --test-isolation=none --test-name-pattern='^namespace=true nativeAuthorization=true apiLoad=true load=false spi=false ' host/acceptance/product-compiled-journey.test.ts
+```
+
+TMPDIR 须为已存在、位于包外的测试数据目录；本机约定使用
+`/home/dek02/.cache/codex/tmp`。同时校验实际目录，避免符号链接造成
+夹具数据和清理路径与保留包重叠。缺变量、摘要不符、Node ABI 不符、
+源码依赖链接、锁定版本不符或开发依赖混入均直接拒绝；不会自动重建。
+启动及进程退出时重新核验保留包，产品进程和父进程的包／依赖身份分列。
+三项变量均未设置时，保留原来的新建包与独立安装流程。
+
+复用校验发生在测试监督进程的启动／退出边界，不加入运动规划、打印、
+订阅或文件请求的热路径。该设施减少反复构建，不能把协议验收或模拟
+MCU 的负载结果解释成实际页面、目标板或精度验收。验证范围见
+[固定包验收记录](../host/contracts/fixed-client-bundle-acceptance.json)。
+
 探针打印 `CLIENT_PARENT` 父进程 PID。仅向已确认属于本轮本地探针的父
 进程发送 SIGUSR2 可关闭当前 WebSocket，验证客户端重新连接及订阅；
 SIGUSR1 可等待当前产品子进程正常退出后，复用原编译包、持久数据和
 原 MCU 模型启动新的产品进程。原身份、文件、历史须保留，不重放作业。
+设备 ready 发布和恢复回执完成是两个边界。继续重启或修改配置前，须查询
+`/printer/host/status`，确认对应回执为预期终态且 `busy=false`；设备 ready
+不能替代转换所有者释放。夹具在原有期限内等待此条件，不重试被拒绝的修改。
 这些信号只属于测试监督进程，不是产品 API 或物理 MCU 操作；正常进程
 恢复不能作为强杀、断电或实机恢复证据。SIGINT／SIGTERM 结束整轮探针。
 

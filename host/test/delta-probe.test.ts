@@ -1,6 +1,8 @@
 import {KlipperSaveSession} from '../src/config/klipper-save-session.ts';
 import {Thermistor} from '../src/thermal/thermistor.ts';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {startConfiguredDeltaProductService} from '../src/runtime/product-service.ts';
 import {productTransports} from './helpers/product-transports.ts';
 import {PrintJournal} from '../src/operations/print-journal.ts';
@@ -67,9 +69,11 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
  const wireTrace:{sample:number;armClock:number;actualArmClocks:number[];counts:[string,number][];triggerClock?:number;actualTriggerClocks?:number[];positions:{member:number;oid:number;position:number;clock:number}[]}[]=[];
  try{
   const raw=deltaPrinterSections(f.reader.source.original);raw.probe={pin:'^aux:PA13',z_offset:'.123456789',x_offset:'-2',y_offset:'3',samples:'2',sample_retract_dist:'.2',samples_tolerance:'10'};
-  raw.delta_calibrate={radius:'2',horizontal_move_z:'10'};
+  // Keep the small-span rejection in delta-calibration.test.ts. A positive
+  // fit/save journey needs a well-spaced grid with this 0.0125 mm wire model.
+  raw.delta_calibrate={radius:'65',horizontal_move_z:'10'};
   const reader=new ConfigurationReader(new ConfigurationSource('/delta.cfg',raw,[]),null),plan=planDeltaHardware(reader,{mcus:['mcu','aux'],enableLeadTime:.001,fanMinimumScheduleTime:.001});
-  const transport=await productTransports(reader),dir=await mkdtemp('/tmp/delta-probe-api-'),journal=await PrintJournal.open({path:dir+'/jobs.db',deviceId:'probe'});await writeFile(dir+'/moonraker.conf','[server]\nhost=127.0.0.1\nport=0');
+  const transport=await productTransports(reader),dir=await mkdtemp(join(tmpdir(),'delta-probe-api-')),journal=await PrintJournal.open({path:dir+'/jobs.db',deviceId:'probe'});await writeFile(dir+'/moonraker.conf','[server]\nhost=127.0.0.1\nport=0');
   const configurationPath=dir+'/printer.cfg';await writeFile(configurationPath,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n')+'\n');
   const {session:configurationSession}=await KlipperSaveSession.load(configurationPath);
   const service=await startConfiguredDeltaProductService(transport.reader,transport.policies,{journal,configurationSession,maintenanceGate:new MaintenanceGate(),limits:{maxNozzle:300,maxBed:130}},{configPath:dir+'/moonraker.conf',machine:{enableLeadTime:.001,fanMinimumScheduleTime:.001},print:{output(){},motorCompletion:'hold',startupHoming:{mode:'home',axes:[0,1,2]},parking:{parkXY:[0,0],retract:0,lift:0,travelSpeed:10,liftSpeed:5,retractSpeed:5},lifecycle:{async prepare(){},async start(){},async finishOutputs(){},async stopOutputs(){}},async open(){throw Error('Unexpected print');}},server:{information:{connected:false,state:'disconnected',components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize:()=>{}}},f.signal);
@@ -127,9 +131,16 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
     const replay=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body});assert.deepEqual((await replay.json() as any).result,result);assert.equal(hits,16);
     const activeGeometry=owner.kinematics.calibrationGeometry,saveBody=JSON.stringify({version:1,state_token:result.state_token,action:'save'});
     const saveObservation=()=>({motion:owner.port.status,homed:owner.kinematics.status.homedAxes,state:service.printer.controller.state,pending:service.printer.controller.pendingDeviceActions,stopping:service.printer.controller.safeStopPending});
-    const beforeSave=saveObservation(),saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});
-    if(saved.status!==200)t.diagnostic(inspect({beforeSave,afterSave:saveObservation(),calibration:service.calibrationDiagnostic()},{depth:5,maxArrayLength:32}));
-    assert.equal(saved.status,200,await saved.clone().text());
+    // Clock maintenance shares dispatch ownership. Join it and retain that
+    // owner across admission and HTTP completion; never retry a rejected save.
+    await service.printer.print.gcode.dispatch.runExclusive(async signal=>{
+     signal.throwIfAborted();const available=(await (await fetch(calibrationUrl)).json() as any).result;
+     assert.equal(available.available,true);assert.equal(available.state_token,result.state_token);
+     const beforeSave=saveObservation();assert.equal(beforeSave.motion.busy,false);
+     const saved=await fetch(calibrationUrl,{method:'POST',headers:{'content-type':'application/json'},body:saveBody});
+     if(saved.status!==200)t.diagnostic(inspect({beforeSave,afterSave:saveObservation(),calibration:service.calibrationDiagnostic()},{depth:5,maxArrayLength:32}));
+     assert.equal(saved.status,200,await saved.clone().text());
+    },f.signal);
     assert(configurationSession.status.sealedForRestart);assert(service.printer.maintenanceGate.status.closed);assert.deepEqual(owner.kinematics.calibrationGeometry,activeGeometry);
     const restored=await KlipperSaveSession.load(configurationPath);assert.equal(Number(restored.source.original.printer.delta_radius),result.candidate.geometry.radius);
     assert.equal(Object.keys(restored.source.original.delta_calibrate).filter(k=>/^height[0-9]+$/.test(k)).length,7);
