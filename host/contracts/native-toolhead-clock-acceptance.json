@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate_targeted_and_compiled_passed_local_runtime_failures_preserved_new_ci_required",
+  "status": "merged_develop_exact_head_ci_passed_postmerge_running_motion_gates_open",
   "scope": "Native toolhead time status and postmerge calibration fixture correction. Desktop/PTYSIM client and performance evidence only; physical motion and G3 unresolved.",
   "sourceBase": "ec04b98adf514f3d0640540c7d85d730f49f0ece",
   "sourceSha256": {
@@ -231,6 +231,47 @@
       "build": "completed/success",
       "motion": "not triggered by changed paths",
       "scope": "Partial remote workflow observation; no merge or full current-head closure claim."
+    },
+    "finalExactHeadCI": {
+      "head": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
+      "hostRun": 37316564618,
+      "hostJob": 111784675845,
+      "buildRun": 37316564941,
+      "buildJob": 111784677067,
+      "host": "completed_success",
+      "build": "completed_success",
+      "ordinary": {
+        "tests": 3932,
+        "passed": 3932,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 535140.238685
+      },
+      "protocol": "success",
+      "sanitized": {
+        "tests": 298,
+        "nativeBuilds": 14,
+        "failedRecords": 0
+      },
+      "linuxMcu": "success",
+      "motion": "not triggered by this diff",
+      "log": {
+        "file": "anyraid-pr5-1889-host-ci-20261005.log",
+        "sha256": "7cb150b8fa5366f30d99357ae67c2053aa34ae2b8862f2ed203d67ccbf2df829"
+      }
+    },
+    "postmerge": {
+      "head": "03bb460939dc57b70089b26b4d743651195c0d2b",
+      "observation": "2026-10-05T14:07:00Z",
+      "hostRun": 37321178632,
+      "hostJob": 111800349583,
+      "buildRun": 37321178389,
+      "buildJob": 111800347354,
+      "host": "in_progress",
+      "build": "in_progress",
+      "productionAndTestDiffFromReviewedHead": "empty",
+      "remaining": "Complete merged-head required checks; historical local intermittent failures and G3 are not closed by clean CI."
     }
   },
   "readPerformance": {
@@ -445,7 +486,7 @@
       "file": "mainsail-jwt-initializing-20261005.png",
       "sha256": "a332508129092fa93afa94fc679496e0030e0591e4d8e137cda6e4e4daafd005"
     },
-    "next": "Resolve secured-client login initialization without relaxing upstream authentication; complete fixed-bundle client journey separately.",
+    "next": "Do not repeat credentialless official-client JWT initialization or patch error normalization as a login solution. Finish supported trusted-profile page journey; authenticated product access remains required and needs a separately validated client/proxy identity path without anonymous grants.",
     "trustedLoopback": {
       "testedSourceHead": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
       "bundleManifest": "bf4d61e4b382851f80991ed52543551b67530b11af5d72e1b9e17306f04ad2eb",
@@ -595,6 +636,47 @@
         }
       ],
       "scope": "Partial actual Mainsail journey on unchanged independent package and simulated MCU. Does not close secured-client initial login, page upload, automatic reconnect, target hardware, performance or G3."
+    },
+    "sourceAuthenticationDiscriminator": {
+      "sourceCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "node": "v26.10.0",
+      "files": [
+        {
+          "path": "src/plugins/webSocketClient.ts",
+          "sha256": "487acec5dd9a16a79f9cb20454672cb10c15075197aeaaae870e27848e22ee50"
+        },
+        {
+          "path": "src/store/server/actions.ts",
+          "sha256": "8aaf37b159eb6c7ea4292e5f7afd63cb527e24df021b101920c6478836f9eb43"
+        },
+        {
+          "path": "src/store/socket/actions.ts",
+          "sha256": "46027dea298742ad5ca7a10f0ee4d253c670c89a92a2fe40b81c2aaada18424a"
+        },
+        {
+          "path": "src/components/TheConnectingDialog.vue",
+          "sha256": "eacfb7626baa691a4831e09b32cefe10fcc7ba023ce596dc8945fcbaf4d3e12a"
+        }
+      ],
+      "checks": {
+        "uncredentialedIdentify": true,
+        "rawRpcErrorLeavesInitializationUnchanged": true,
+        "errorNormalizationOnlyReportsConnectionFailure": true,
+        "connectionDialogContainsRetryAndHelpOnly": true
+      },
+      "scope": "Official source init/socket actions executed with a fake transport; no browser pass, backend mutation, new login support, or auth bypass.",
+      "decision": "Error normalization alone cannot provide Mainsail JWT login; official Mainsail trusted profile and authenticated product delivery remain distinct.",
+      "evidence": {
+        "file": "anyraid-mainsail-auth-discriminator-20261005.json",
+        "sha256": "f829b3e754bf6e74b98d536c842dd64c9fcc9dbb949c1164a2429d7fdb3d113a"
+      },
+      "sources": [
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/plugins/webSocketClient.ts",
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/store/server/actions.ts",
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/components/TheConnectingDialog.vue"
+      ],
+      "backendChanged": false,
+      "officialAssetsChanged": false
     }
   },
   "closure": {
@@ -754,13 +836,20 @@
   },
   "pullRequest": {
     "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5",
-    "state": "draft",
-    "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5415180392",
+    "state": "merged",
+    "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5415634073",
     "reviewedHead": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
-    "mergeAllowed": false,
+    "mergeAllowed": true,
     "previousReview": {
       "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5414956907",
       "reviewedHead": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61"
+    },
+    "mergedAt": "2026-10-05T14:00:02Z",
+    "mergeCommit": "03bb460939dc57b70089b26b4d743651195c0d2b",
+    "target": "develop",
+    "proof": {
+      "file": "pr5-merged-develop-20261005.png",
+      "sha256": "2d246ba6af4ca2ecf495a8ba3fe859783ff815d84073cd4a59fdccea2b1bcec3"
     }
   }
 }
