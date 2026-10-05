@@ -61,9 +61,11 @@ test('released device window retains authorized file queries, uploads, authorita
   for(const path of ['/printer/files/info?file_id=retained','/server/files/list','/server/files/directory?path=gcodes&extended=true','/server/files/metadata?filename=retained.gcode','/server/files/thumbnails?filename=retained.gcode','/server/history/job?uid='+job.job_id,'/server/history/totals'])await get(path);
   assert.equal((await get('/server/history/list')).jobs[0].job_id,job.job_id);assert.equal(await (await fetch(base+'/server/files/gcodes/retained.gcode',{headers})).text(),'; layer_height = 0.2\nG1 X1\n');
   assert.equal((await fetch(base+'/printer/print/start',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"filename":"retained.gcode"}'})).status,503);
-  assert.equal((await fetch(base+'/server/files/delete_file?path=gcodes/retained.gcode',{method:'DELETE',headers})).status,503);
-  assert.equal((await fetch(base+'/server/files/move',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"source":"gcodes/retained.gcode","dest":"gcodes/new.gcode"}'})).status,503);
-  assert.equal((await fetch(base+'/server/files/copy',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"source":"gcodes/retained.gcode","dest":"gcodes/new.gcode"}'})).status,503);
+  const offlineCopy=await fetch(base+'/server/files/copy',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"source":"gcodes/retained.gcode","dest":"gcodes/new.gcode"}'});assert.equal(offlineCopy.status,200,await offlineCopy.clone().text());
+  const offlineMove=await fetch(base+'/server/files/move',{method:'POST',headers:{...headers,'content-type':'application/json'},body:'{"source":"gcodes/new.gcode","dest":"gcodes/organized-offline.gcode"}'});assert.equal(offlineMove.status,200,await offlineMove.clone().text());
+  const offlineDelete=await fetch(base+'/server/files/delete_file?path=gcodes/organized-offline.gcode',{method:'DELETE',headers});assert.equal(offlineDelete.status,200,await offlineDelete.clone().text());
+  await until(()=>events.some(e=>e.method==='notify_filelist_changed'&&e.params[0].action==='delete_file'&&e.params[0].item.path==='organized-offline.gcode'));
+  assert.equal((await get('/server/files/list'))[0].permissions,'rw');
   await upload('offline');await until(()=>events.some(e=>e.method==='notify_filelist_changed'&&e.params[0].item.file_id==='offline'));
   socket.send(JSON.stringify({jsonrpc:'2.0',id:2,method:'server.history.list'}));await until(()=>events.some(e=>e.id===2));assert.equal(events.find(e=>e.id===2).result.count,1);
   const deleted=await fetch(base+'/server/history/job?uid='+job.job_id,{method:'DELETE',headers});assert.equal(deleted.status,200);assert.equal((await get('/server/history/list')).count,0);assert.equal((await journal.get('history'))!.state,'cancelled');

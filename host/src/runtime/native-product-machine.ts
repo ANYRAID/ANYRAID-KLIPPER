@@ -64,23 +64,35 @@ export class NativeProductFileResources {
  readonly #files:PublishedPrintFiles;readonly #filesRoot:string;readonly #metadataRoot:string;
  #lease:ReturnType<typeof Promise.withResolvers<void>>|undefined;#closed=false;#closing:Promise<void>|undefined;
  #processFiles:NativePrintUploads|undefined;#openingFiles:Promise<NativePrintUploads>|undefined;
+ #retirementFailed=false;#offlineOperations=0;readonly #offlineIds=new Set<string>();
+ #beginOfflineMutation(ids:readonly string[]):()=>void{
+  if(this.#closed||this.#lease||this.#retirementFailed||this.#offlineOperations>=4)throw new Error('Offline file mutation unavailable');
+  if(!Array.isArray(ids)||ids.length>10000||new Set(ids).size!==ids.length||ids.some(id=>typeof id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/.test(id)||this.#offlineIds.has(id)))throw new Error('Invalid or owned offline file identity');
+  const captured=[...ids];for(const id of captured)this.#offlineIds.add(id);this.#offlineOperations++;let released=false;
+  return ()=>{if(!released){released=true;for(const id of captured)this.#offlineIds.delete(id);this.#offlineOperations--;}};
+ }
  async processFiles(options:NativeUploadOptions):Promise<NativePrintUploads>{
   if(this.#closed)throw new Error('Native process files closed');
-  this.#openingFiles??=NativePrintUploads.open(this.#files,new MaintenanceGate(),{...options,metadataRoot:this.#metadataRoot}).then(owner=>this.#processFiles=owner);return this.#openingFiles;
+  const resources=this;
+  this.#openingFiles??=NativePrintUploads.open(this.#files,new MaintenanceGate(),{...options,metadataRoot:this.#metadataRoot}).then(owner=>{
+   owner.bindOfflineFileMutations({get available(){return !resources.#closed&&!resources.#lease&&!resources.#retirementFailed;},beginFileMutations:ids=>resources.#beginOfflineMutation(ids)});
+   return this.#processFiles=owner;
+  });return this.#openingFiles;
  }
  private constructor(files:PublishedPrintFiles,filesRoot:string,metadataRoot:string){this.#files=files;this.#filesRoot=filesRoot;this.#metadataRoot=metadataRoot;}
  static async open(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'|'files'>):Promise<NativeProductFileResources>{
   const {filesRoot,metadataRoot}=storageRoots(options),files=await PublishedPrintFiles.open(filesRoot,{...options.files});
   return new NativeProductFileResources(files,filesRoot,metadataRoot);
  }
- get status(){return {closing:this.#closed,leased:!!this.#lease,files:this.#files.status};}
- acquire(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>):{files:PublishedPrintFiles;release:()=>void}{
+ get status(){return {closing:this.#closed,leased:!!this.#lease,retirementFailed:this.#retirementFailed,offlineMutations:this.#offlineOperations,files:this.#files.status};}
+ acquire(options:Pick<NativeProductMachineOptions,'filesRoot'|'metadataRoot'>):{files:PublishedPrintFiles;release:(confirmed?:boolean)=>void}{
   const roots=storageRoots(options);
   if(roots.filesRoot!==this.#filesRoot||roots.metadataRoot!==this.#metadataRoot)throw new Error('Native process storage identity cannot change');
   if(this.#closed||this.#files.status.closed)throw new Error('Native process files closed');
   if(this.#lease)throw new Error('Previous native file generation has not retired');
+  if(this.#retirementFailed||this.#offlineOperations)throw new Error('Native process files are not available for device attachment');
   const lease=Promise.withResolvers<void>();this.#lease=lease;
-  return {files:this.#files,release:()=>{if(this.#lease===lease){this.#lease=undefined;lease.resolve();}}};
+  return {files:this.#files,release:(confirmed=true)=>{if(this.#lease===lease){if(!confirmed)this.#retirementFailed=true;this.#lease=undefined;lease.resolve();}}};
  }
  close():Promise<void>{
   if(this.#closing)return this.#closing;this.#closed=true;
@@ -96,12 +108,12 @@ export async function createNativeProductBindings(configuration:ProductMachineCo
  if(resources!==undefined&&(!(resources instanceof NativeProductFileResources)||options.files!==undefined))throw new TypeError('Native process file resources cannot override file options');
  const config=structuredClone(configuration),ids=Object.keys(config.mcus),filesOptions={...options.files},uploadOptions={...options.uploads},standard=options.standardPrint?{nozzle:options.standardPrint.nozzle,bed:options.standardPrint.bed}:undefined,createAdapter=options.createAdapter;
  if(standard&&(!Number.isFinite(standard.nozzle)||standard.nozzle<0||standard.nozzle>config.limits.maxNozzle||!Number.isFinite(standard.bed)||standard.bed<0||standard.bed>config.limits.maxBed))throw new TypeError('Standard print temperatures exceed machine limits');
- let adapter:NativeMachineAdapter|undefined,files:PublishedPrintFiles|undefined,uploads:NativePrintUploads|undefined,closing:Promise<void>|undefined,fileLease:{files:PublishedPrintFiles;release:()=>void}|undefined;
+ let adapter:NativeMachineAdapter|undefined,files:PublishedPrintFiles|undefined,uploads:NativePrintUploads|undefined,closing:Promise<void>|undefined,fileLease:{files:PublishedPrintFiles;release:(confirmed?:boolean)=>void}|undefined;
  const stopped=new AbortController(),pending=new Set<Promise<unknown>>();
  const track=<T>(work:()=>Promise<T>):Promise<T>=>{if(stopped.signal.aborted)return Promise.reject(stopped.signal.reason);if(pending.size>=8)return Promise.reject(new ApiError(429,'Native file admission capacity exceeded'));const task=Promise.resolve().then(work);pending.add(task);void task.then(()=>pending.delete(task),()=>pending.delete(task));return task;};
  const release=():Promise<void>=>{
   if(closing)return closing;const done=Promise.withResolvers<void>();closing=done.promise;stopped.abort(new Error('Native machine bindings closed'));
-  void (async()=>{await Promise.allSettled([...pending]);const errors:unknown[]=[];for(const close of [()=>uploads?.drain(),()=>resources?undefined:files?.close(),()=>adapter?.release()])try{await close();}catch(error){errors.push(error);}fileLease?.release();if(errors.length)throw new AggregateError(errors,'Native machine bindings cleanup failed');})().then(done.resolve,done.reject);return closing;
+  void (async()=>{await Promise.allSettled([...pending]);const errors:unknown[]=[];for(const close of [()=>uploads?.drain(),()=>resources?undefined:files?.close(),()=>adapter?.release()])try{await close();}catch(error){errors.push(error);}fileLease?.release(errors.length===0);if(errors.length)throw new AggregateError(errors,'Native machine bindings cleanup failed');})().then(done.resolve,done.reject);return closing;
  };
  try{
   fileLease=resources?.acquire({filesRoot,metadataRoot});

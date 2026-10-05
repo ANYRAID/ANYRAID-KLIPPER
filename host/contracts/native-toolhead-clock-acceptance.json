@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate_targeted_and_compiled_passed_local_runtime_failures_preserved_new_ci_required",
+  "status": "merged_develop_exact_head_ci_passed_postmerge_running_motion_gates_open",
   "scope": "Native toolhead time status and postmerge calibration fixture correction. Desktop/PTYSIM client and performance evidence only; physical motion and G3 unresolved.",
   "sourceBase": "ec04b98adf514f3d0640540c7d85d730f49f0ece",
   "sourceSha256": {
@@ -214,7 +214,65 @@
       ],
       "closure": "Runtime/toolchain root cause unresolved; no optimization/thread/concurrency/time budget changed"
     },
-    "currentCandidateCI": "pending after publishing audited hit-producer corrections"
+    "currentCandidateCI": "pending after publishing audited hit-producer corrections",
+    "currentHeadRemoteObservation": {
+      "observedAt": "2026-10-05T13:48:44Z",
+      "head": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
+      "hostRun": 37316564618,
+      "hostJob": 111784675845,
+      "typecheck": "success",
+      "whitespace": "success",
+      "ordinary": "success; exact counts pending terminal raw log",
+      "protocol": "success",
+      "sanitizers": "in_progress",
+      "linuxMcu": "pending",
+      "buildRun": 37316564941,
+      "buildJob": 111784677067,
+      "build": "completed/success",
+      "motion": "not triggered by changed paths",
+      "scope": "Partial remote workflow observation; no merge or full current-head closure claim."
+    },
+    "finalExactHeadCI": {
+      "head": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
+      "hostRun": 37316564618,
+      "hostJob": 111784675845,
+      "buildRun": 37316564941,
+      "buildJob": 111784677067,
+      "host": "completed_success",
+      "build": "completed_success",
+      "ordinary": {
+        "tests": 3932,
+        "passed": 3932,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 535140.238685
+      },
+      "protocol": "success",
+      "sanitized": {
+        "tests": 298,
+        "nativeBuilds": 14,
+        "failedRecords": 0
+      },
+      "linuxMcu": "success",
+      "motion": "not triggered by this diff",
+      "log": {
+        "file": "anyraid-pr5-1889-host-ci-20261005.log",
+        "sha256": "7cb150b8fa5366f30d99357ae67c2053aa34ae2b8862f2ed203d67ccbf2df829"
+      }
+    },
+    "postmerge": {
+      "head": "03bb460939dc57b70089b26b4d743651195c0d2b",
+      "observation": "2026-10-05T14:07:00Z",
+      "hostRun": 37321178632,
+      "hostJob": 111800349583,
+      "buildRun": 37321178389,
+      "buildJob": 111800347354,
+      "host": "in_progress",
+      "build": "in_progress",
+      "productionAndTestDiffFromReviewedHead": "empty",
+      "remaining": "Complete merged-head required checks; historical local intermittent failures and G3 are not closed by clean CI."
+    }
   },
   "readPerformance": {
     "file": "anyraid-toolhead-clock-read-bench-fixed-20261005.log",
@@ -402,7 +460,7 @@
     "archiveSha256": "c4d9d96f89851c6ae0709c2f20725447f3fe8c57cf193869b0083441bd93378a",
     "indexSha256": "67901d36d7cd98b20e4daf40469f23f0aec75063fada5cecfdc19c21b0f7bab8",
     "assetsModified": false,
-    "status": "failed_initialization_in_JWT_mode",
+    "status": "JWT_initialization_failed_trusted_loopback_partial_journey_passed",
     "origins": [
       "http://127.0.0.1:18327",
       "http://localhost:18327"
@@ -418,7 +476,7 @@
       "console": "Error while identifying client: [object Object]"
     },
     "verifiedClientCause": "Pinned client emitAndWait rejects raw RPC error object; init catch compares Error.message or String(object) with Unauthorized, so the connection-failed branch is not entered.",
-    "nativeAuthBoundary": "Pinned upstream BaseRemoteConnection.authenticate rejects missing credentials when need_auth is true. No anonymous identity grant, auth bypass or trusted-loopback workaround applied.",
+    "nativeAuthBoundary": "JWT observation retains missing-credential rejection and has no anonymous grant or bypass. A separate explicitly configured trusted-loopback acceptance branch is recorded below; it does not close JWT initialization.",
     "upstreamReference": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/common.py#L394",
     "log": {
       "file": "anyraid-mainsail-toolhead-clock-20261005.log",
@@ -428,7 +486,198 @@
       "file": "mainsail-jwt-initializing-20261005.png",
       "sha256": "a332508129092fa93afa94fc679496e0030e0591e4d8e137cda6e4e4daafd005"
     },
-    "next": "Resolve secured-client login initialization without relaxing upstream authentication; complete fixed-bundle client journey separately."
+    "next": "Do not repeat credentialless official-client JWT initialization or patch error normalization as a login solution. Finish supported trusted-profile page journey; authenticated product access remains required and needs a separately validated client/proxy identity path without anonymous grants.",
+    "trustedLoopback": {
+      "testedSourceHead": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
+      "bundleManifest": "bf4d61e4b382851f80991ed52543551b67530b11af5d72e1b9e17306f04ad2eb",
+      "dependencies": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "authentication": "Existing explicitly configured numeric loopback trust in the PTY-only acceptance fixture, separate from JWT mode.",
+      "acceptedOrigin": "http://localhost:18328",
+      "domScript": "/assets/index-jNhnvCHe.js",
+      "unexpectedOrigin": {
+        "origin": "http://127.0.0.1:18328",
+        "domScript": "./assets/index-D-yWxGqL.js",
+        "page": "Fluidd 1.37.6 despite HTTP index matching the pinned Mainsail index",
+        "accepted": false,
+        "rootCause": "not established"
+      },
+      "pageUpload": "not verified; both files were seeded by API",
+      "shortJob": "Actual UI start followed by automatic Complete and completed history",
+      "longJob": "Actual UI pause at 12%, resume, automatic Complete and completed history",
+      "printingRefresh": "Actual page reload during third long job recovered printing state",
+      "printingDisconnect": {
+        "preDropEvidence": "anyraid-mainsail-trusted-printing-drop-20261005.json",
+        "preDropState": "printing",
+        "preDropProgress": 0.3787340748230536,
+        "reconnect": "Explicit try again required; page resumed at 74% Printing. Not automatic reconnect."
+      },
+      "cancel": "Actual pause at 83% then cancel; backend cancelled and virtual SD inactive. Page requires device reinitialization.",
+      "restart": "Actual standard printer.restart button created device generation 2 and restored ready without resetting either simulated firmware.",
+      "processRecovery": {
+        "supervisor": "Existing test-only SIGUSR1 control, not a production service provider",
+        "oldChildPid": 2535193,
+        "newChildPid": 2536550,
+        "state": "ready",
+        "historyCount": 3,
+        "statuses": [
+          "cancelled",
+          "completed",
+          "completed"
+        ],
+        "reconnect": "Explicit try again restored actual history page"
+      },
+      "fileOperations": {
+        "rename": "client-sample.gcode to mainsail-renamed.gcode; retained file_id client-sample",
+        "copy": "mainsail-copy.gcode; new distinct file_id",
+        "directory": "mainsail-folder",
+        "downloadBytes": "HTTP read verification only; not browser download acceptance",
+        "bytes": 19785,
+        "sha256": "859b9d2ce3b7ae5adbb1708cf7c864ba8d70e4eed556f2453fcbab0ce4d13655"
+      },
+      "teardown": {
+        "session": 13793,
+        "result": 0,
+        "bundleUnchanged": "Existing retained-bundle verifier passed during clean shutdown"
+      },
+      "logs": [
+        {
+          "file": "anyraid-mainsail-trusted-toolhead-clock-20261005.log",
+          "sha256": "d2ce64895264320e78c53505154899fc7ca775f6b07f6d666620cc3939b66b27"
+        },
+        {
+          "file": "anyraid-trusted-ui-http-index-20261005.html",
+          "sha256": "67901d36d7cd98b20e4daf40469f23f0aec75063fada5cecfdc19c21b0f7bab8"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-resumed-state-20261005.json",
+          "sha256": "bb78b75a4707edaf50c6b6127b095e45b4cb1b14dca187b2bb4612df6562e1d3"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-terminal-state-20261005.json",
+          "sha256": "9f07d910ac74542a6f858a59a3118bb3663028369b1394403e0ca55009962cfc"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-printing-drop-20261005.json",
+          "sha256": "1bbcfcd3dc4d3c82bd20001e104ba9a07d129a811220b1f7dee21c52aea6bbd0"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-third-paused-20261005.json",
+          "sha256": "a5d7bb89d3f64f509330382c6f695b433b1eae5dcb16d136ba79401adff1fd06"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-cancelled-state-20261005.json",
+          "sha256": "4deab29ef3eb5b519b128050e034b3104ece4ee5f9235ca30f7af920d0f34c52"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-restarted-info-20261005.json",
+          "sha256": "bea34976bbe35c498603b9b876199fb37c6d54c9f6c9d545779cf2010f24bf05"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-process-recovery-20261005.json",
+          "sha256": "86250e36f749c931a2ae8aad6d91b17d43a1beb4d29f8f94e46bc68fd94bd251"
+        },
+        {
+          "file": "anyraid-mainsail-trusted-file-operations-20261005.json",
+          "sha256": "5a76727137e44d71bd54ef069ff8dd09d6ea34dff426994fc10745909d9537d9"
+        }
+      ],
+      "proofs": [
+        {
+          "file": "mainsail-trusted-unexpected-fluidd-20261005.png",
+          "sha256": "cd4bffe29a4aad1dfd682af98d976c6a2eb4a25bbdb909292237985974e1db2f"
+        },
+        {
+          "file": "mainsail-trusted-completed-20261005.png",
+          "sha256": "27618767bca190943c011dfb10dc5b3ed9ed4a0b4bd429919614cf0b7d2eff0a"
+        },
+        {
+          "file": "mainsail-trusted-history-20261005.png",
+          "sha256": "3258c936b5aea63d91dc126a8a10bfe27ca16fc0a170644ff6b9dba3a4771dd4"
+        },
+        {
+          "file": "mainsail-trusted-paused-20261005.png",
+          "sha256": "852c08156122f4dec050e287b015e09e10aa347a7750c5c96880f424fed7bd02"
+        },
+        {
+          "file": "mainsail-trusted-resumed-20261005.png",
+          "sha256": "cf07173bc53b644c3b972e0a2a989304b54c2b211bb4ec390d34c53c5aa57479"
+        },
+        {
+          "file": "mainsail-trusted-long-completed-20261005.png",
+          "sha256": "d739f4b6fe2257e4de8d8ade69d48ec3e0b306f4aa61b6342ae4fd27d93332e9"
+        },
+        {
+          "file": "mainsail-trusted-long-history-20261005.png",
+          "sha256": "ebd6fd6571796043ded0118cc4e53287ea7812ebc0feaee30b82eaaef7735873"
+        },
+        {
+          "file": "mainsail-trusted-printing-reconnected-20261005.png",
+          "sha256": "cb6d5cfe067eb3cac9e77fb832e54e91d2eeb7bdfeecfe1d4c5b5e7d5dc3d706"
+        },
+        {
+          "file": "mainsail-trusted-cancel-reinit-20261005.png",
+          "sha256": "81885dff26e1617eca000f827ef3a4973a650257fd46a8166f74ce17a515ef1f"
+        },
+        {
+          "file": "mainsail-trusted-restarted-20261005.png",
+          "sha256": "a48e2cbedce04f0292ebc8e95b3295011dd94d2cd894dd2d506328330ae75419"
+        },
+        {
+          "file": "mainsail-trusted-cancel-history-20261005.png",
+          "sha256": "efb002b5526fd9dd0ee72c800947f7dd3c073a9e8c4e966e89ff957565b79a9b"
+        },
+        {
+          "file": "mainsail-trusted-process-recovered-20261005.png",
+          "sha256": "46be92f29bee7c49508f8224d50510eef708903edbf3405ed0e8d758e19f5795"
+        },
+        {
+          "file": "mainsail-trusted-file-operations-20261005.png",
+          "sha256": "c32424e222552bd21ac780f38796e27dbccd7735c9d2138dd110c07bb08f5a30"
+        }
+      ],
+      "scope": "Partial actual Mainsail journey on unchanged independent package and simulated MCU. Does not close secured-client initial login, page upload, automatic reconnect, target hardware, performance or G3."
+    },
+    "sourceAuthenticationDiscriminator": {
+      "sourceCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "node": "v26.10.0",
+      "files": [
+        {
+          "path": "src/plugins/webSocketClient.ts",
+          "sha256": "487acec5dd9a16a79f9cb20454672cb10c15075197aeaaae870e27848e22ee50"
+        },
+        {
+          "path": "src/store/server/actions.ts",
+          "sha256": "8aaf37b159eb6c7ea4292e5f7afd63cb527e24df021b101920c6478836f9eb43"
+        },
+        {
+          "path": "src/store/socket/actions.ts",
+          "sha256": "46027dea298742ad5ca7a10f0ee4d253c670c89a92a2fe40b81c2aaada18424a"
+        },
+        {
+          "path": "src/components/TheConnectingDialog.vue",
+          "sha256": "eacfb7626baa691a4831e09b32cefe10fcc7ba023ce596dc8945fcbaf4d3e12a"
+        }
+      ],
+      "checks": {
+        "uncredentialedIdentify": true,
+        "rawRpcErrorLeavesInitializationUnchanged": true,
+        "errorNormalizationOnlyReportsConnectionFailure": true,
+        "connectionDialogContainsRetryAndHelpOnly": true
+      },
+      "scope": "Official source init/socket actions executed with a fake transport; no browser pass, backend mutation, new login support, or auth bypass.",
+      "decision": "Error normalization alone cannot provide Mainsail JWT login; official Mainsail trusted profile and authenticated product delivery remain distinct.",
+      "evidence": {
+        "file": "anyraid-mainsail-auth-discriminator-20261005.json",
+        "sha256": "f829b3e754bf6e74b98d536c842dd64c9fcc9dbb949c1164a2429d7fdb3d113a"
+      },
+      "sources": [
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/plugins/webSocketClient.ts",
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/store/server/actions.ts",
+        "https://github.com/mainsail-crew/mainsail/blob/v2.19.0/src/components/TheConnectingDialog.vue"
+      ],
+      "backendChanged": false,
+      "officialAssetsChanged": false
+    }
   },
   "closure": {
     "allClientPaths": false,
@@ -587,9 +836,20 @@
   },
   "pullRequest": {
     "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5",
-    "state": "draft",
-    "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5414956907",
-    "reviewedHead": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61",
-    "mergeAllowed": false
+    "state": "merged",
+    "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5415634073",
+    "reviewedHead": "1889b4b6d1efa34be2e74c4e24098d0fef2c4f6d",
+    "mergeAllowed": true,
+    "previousReview": {
+      "selfReview": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/5#pullrequestreview-5414956907",
+      "reviewedHead": "0b9f0a8b97973a8891957dc7ac1d6e914cfa9c61"
+    },
+    "mergedAt": "2026-10-05T14:00:02Z",
+    "mergeCommit": "03bb460939dc57b70089b26b4d743651195c0d2b",
+    "target": "develop",
+    "proof": {
+      "file": "pr5-merged-develop-20261005.png",
+      "sha256": "2d246ba6af4ca2ecf495a8ba3fe859783ff815d84073cd4a59fdccea2b1bcec3"
+    }
   }
 }

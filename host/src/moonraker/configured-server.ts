@@ -64,7 +64,7 @@ const sensorOwners=new WeakSet<SensorStore>();
 const uploadOwners=new WeakSet<NativePrintUploads>();
 // Process routes survive replacement. Mutations capture and drain their current
 // device delegate themselves; never bind a retained route to the first scope.
-const nativeProcessFileRoutes=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails','/server/files/move','/server/files/copy']);
+const nativeProcessFileRoutes=new Set(['/printer/files/info','/server/files/roots','/server/files/list','/server/files/directory','/server/files/metadata','/server/files/thumbnails','/server/files/move','/server/files/copy','/server/files/delete_file']);
 function assertNativeProcessResources(options:ConfiguredServerOptions){
  if(options.nativeDetached!==undefined&&options.nativeDetached!==true)throw new ConfigurationError('Invalid native detached mode');
  if(options.nativeDetached&&(options.productPrint||options.nativeUploads||options.nativeObjects||options.nativeHost||options.productPressure||options.productPrintCompatibility||options.klippy||options.history||options.onPrintStartComplete||!options.nativePrinterIdentity||!options.productHostControl))throw new ConfigurationError('Detached native startup requires process resources without a device owner');
@@ -252,8 +252,9 @@ export class ConfiguredMoonraker {
    this.#broadcastTracked('notify_history_changed',[{...event,job:{...event.job,exists}} as unknown as Json],this.#historyNotifications);
   }});
   this.#nativeUploads=options.nativeUploads;this.#nativeUploads?.bindPrintController(options.productPrint!);if(this.#nativeProcessFiles&&this.#nativeUploads)this.#nativeProcessFiles.bindDeviceFiles(this.#nativeUploads,initialScope!.signal);
-  const releaseProcessFiles=this.#nativeProcessFiles?registerNativeFileInfo(this.endpoints,this.#nativeProcessFiles,{deleteRoute:false,configFiles:this.#configFiles}):()=>{};
-  let releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles,readRoutes:!this.#nativeProcessFiles}):()=>{};
+  this.#nativeProcessFiles?.bindOfflineReadiness(()=>!this.#stopping&&this.#nativeRetirementDrained&&this.#nativeRetiredSnapshot?.hardware_state==='stopped');
+  const releaseProcessFiles=this.#nativeProcessFiles?registerNativeFileInfo(this.endpoints,this.#nativeProcessFiles,{configFiles:this.#configFiles}):()=>{};
+  let releaseUploads=this.#nativeUploads?registerNativeFileInfo(this.endpoints,this.#nativeUploads,{metadata:!this.#metadataFiles,readRoutes:!this.#nativeProcessFiles,deleteRoute:!this.#nativeProcessFiles}):()=>{};
   this.#printApi=options.productPrint?new ProductPrintApi(options.productPrint,this.maintenanceGate,options.productPressure,options.productPrintCompatibility):options.nativeDetached?undefined:new PrintApi({backend:()=>this.#stopping?undefined:this.#klippy,maintenanceGate:this.maintenanceGate,beginStart:this.#historyRuntime?(event,request,lifetime)=>this.#historyRuntime!.beginPrint(event.filename,event.user,request,lifetime):undefined,onStartComplete:options.onPrintStartComplete});
   const releaseConfigWriter=this.#configFiles?.bindWriter(context=>this.#beginConfigWrite(context))??(()=>{});
   const releaseConfigSave=this.#configFiles?.registerSave(this.endpoints)??(()=>{});
@@ -484,7 +485,7 @@ export class ConfiguredMoonraker {
    for(const action of ['start','pause','resume','cancel','reset','status','pressure_advance'])releases.push(this.endpoints.register({endpoint:'/printer/print/'+action,methods:[action==='status'?'GET':'POST']},unavailable));
    releases.push(this.endpoints.register({endpoint:'/printer/emergency_stop',methods:['POST']},unavailable));
    for(const action of ['list','query','subscribe'])releases.push(this.endpoints.register({endpoint:'objects/'+action,methods:['GET','POST'],remote:true},unavailable));
-   releases.push(this.endpoints.register({endpoint:'/server/files/delete_file',methods:['DELETE']},unavailable));
+   if(!this.#nativeProcessFiles)releases.push(this.endpoints.register({endpoint:'/server/files/delete_file',methods:['DELETE']},unavailable));
   }catch(error){for(const release of releases.reverse())release();throw error;}return ()=>{for(const release of releases.splice(0).reverse())release();};
  }
  #releaseNativeBindings():void{for(const release of this.#nativeReleases.splice(0).reverse())release();if(!this.#nativeProcessFiles)this.#releaseFileChanges=()=>{};}
@@ -521,7 +522,7 @@ export class ConfiguredMoonraker {
     this.#nativeSubscriptions=owner;this.#subscriptions=delivery;
     this.#nativeReleases.push(this.endpoints.register({endpoint:'objects/subscribe',methods:['GET','POST'],remote:true,transports:['websocket','http']},(params,_verb,context)=>delivery.subscribe(params,context)));
     if(uploads){
-     this.#nativeReleases.push(registerNativeFileInfo(this.endpoints,uploads,{metadata:!this.#metadataFiles,readRoutes:!this.#nativeProcessFiles}));
+     this.#nativeReleases.push(registerNativeFileInfo(this.endpoints,uploads,{metadata:!this.#metadataFiles,readRoutes:!this.#nativeProcessFiles,deleteRoute:!this.#nativeProcessFiles}));
      if(!this.#nativeProcessHistory){this.#nativeHistory=registerNativeHistory(this.endpoints,controller,uploads,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);});this.#nativeReleases.push(this.#nativeHistory);}
      if(!this.#nativeProcessFiles){this.#releaseFileChanges=uploads.observeChanges(event=>this.#broadcastTracked('notify_filelist_changed',[event],this.#fileNotifications));this.#nativeReleases.push(this.#releaseFileChanges);}
     }
