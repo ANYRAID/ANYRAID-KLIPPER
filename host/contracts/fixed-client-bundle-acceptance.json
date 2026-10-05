@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "task_candidate_clock_fixture_local_suite_passed_exact_head_ci_pending",
+  "status": "merged_into_develop_postmerge_clock_fixture_failure",
   "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
   "sourceSha256": {
@@ -1552,5 +1552,73 @@
       "next": "Do not repeat the unchanged chooser operation; resolve the excessive tool latency before the actual upload journey"
     }
   },
-  "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"
+  "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately",
+  "latestIntegration": {
+    "pullRequest": 4,
+    "head": "89a9e3e38b8ab28d605bc85fdd293643042406b7",
+    "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+    "merge": "ec04b98adf514f3d0640540c7d85d730f49f0ece",
+    "mergedAt": "2026-10-05T12:32:23Z",
+    "premerge": {
+      "host": {
+        "run": 37306283248,
+        "status": "success",
+        "ordinary": {
+          "tests": 3929,
+          "passed": 3929,
+          "failed": 0,
+          "durationMs": 583297.979299
+        },
+        "sanitizedInvocations": 298,
+        "nativeBuildInvocations": 14,
+        "protocolNative": "passed",
+        "linuxMCU": "passed"
+      },
+      "firmware": {
+        "run": 37306283203,
+        "status": "success"
+      },
+      "motion": {
+        "run": 37306283193,
+        "jobs": 10,
+        "samples": 500,
+        "failed": 0,
+        "status": "success",
+        "closure": "finite diagnostic only; G3 unresolved"
+      }
+    },
+    "postmerge": {
+      "host": {
+        "run": 37310232299,
+        "job": 111763555768,
+        "status": "failure",
+        "ordinary": {
+          "tests": 3929,
+          "passed": 3928,
+          "failed": 1,
+          "durationMs": 504962.731081
+        },
+        "failure": {
+          "file": "host/test/motion-streamer.test.ts",
+          "test": "paced stream accepts a shared calibration between windows and retains old sampled time",
+          "message": "Calibration would overlap previously accepted step clocks"
+        },
+        "protocolNative": "skipped",
+        "sanitizers": "skipped",
+        "linuxMCU": "skipped"
+      },
+      "firmware": {
+        "run": 37310232351,
+        "status": "success"
+      },
+      "motion": {
+        "run": 37310232231,
+        "status": "success",
+        "completedSuccess": 10,
+        "samples": "not re-counted from logs",
+        "G3": "unresolved"
+      }
+    },
+    "next": "Fix the observed fixture within its native clock guards and complete current-head checks; real client correction tracked separately in native-toolhead-clock-acceptance.json"
+  }
 }

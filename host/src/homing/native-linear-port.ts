@@ -166,6 +166,15 @@ export class NativeLinearHomingPort implements LinearHomingPort {
  assertActive(){if(this.#failed)throw new Error('Native motion port stopped',{cause:this.#fault});this.#g.group.assertActive();}
  /** Last planned coordinates remain readable after stop; they are not measured position. */
  position(){return this.#admission.logicalPosition;}
+ /** Read-only status in the current generation's shared print-time mapping.
+  * Never renew sampling, reserve clocks or authorize motion from a query. */
+ estimatedPrintTime(eventtime:number):number|null{
+  if(!Number.isFinite(eventtime)||eventtime<0)throw new RangeError('Invalid print-time observation');
+  if(this.#failed||this.#g.coordinator.status.retired)return null;
+  const clock=this.#g.clockMembers[0];
+  if(clock.session.clock.status.state!=='active'||!clock.session.clock.sync.active)return null;
+  return clock.stepper.printTimeAtClock(clock.session.clock.sync.getClock(eventtime));
+ }
  /** Read current generation only; stopped/disposed queues are never sampled. */
  motionReport(eventtime:number,extrusionAxis=3){
   if(this.#failed||this.#g.coordinator.status.retired)return {live_position:null,live_velocity:null,live_extruder_velocity:null};

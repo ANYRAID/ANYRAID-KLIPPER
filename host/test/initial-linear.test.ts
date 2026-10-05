@@ -8,6 +8,18 @@ import {serialClock} from '../src/protocol/serial-queue.ts';
 import {setTimeout as delay} from 'node:timers/promises';
 import {RebuiltMotionStreamer} from '../src/runtime/motion-streamer.ts';
 import {LookAheadQueue,Move,motionLimits} from '../src/motion/lookahead.ts';
+for(const reverse of [false,true])test(`toolhead time advances without reserving motion or mutating calibration, auxiliary first=${reverse}`,async()=>{
+ const f=await initialLinearFixture(reverse);try{
+  const g=f.initial.generation,{port}=f.initial.createLinearPort(f.reader,f.configuredSettings),member=g.clockMembers[0],now=serialClock.now();
+  const before={coordinator:g.coordinator.status,source:g.source.status,calibrations:g.motion.bindings.map(b=>b.stepper.calibration),timelines:g.clockMembers.map(m=>m.timeline?.status),outputs:f.firmware.map(m=>m.outputs.length)};
+  const first=port.estimatedPrintTime(now),later=port.estimatedPrintTime(now+1.25);assert.notEqual(first,null);assert.notEqual(later,null);
+  const mapping=member.timeline?.status.calibration??member.calibration(),firstClock=member.session.clock.sync.getClock(now),laterClock=member.session.clock.sync.getClock(now+1.25);
+  assert.equal(first,Number(firstClock)/mapping.frequency+mapping.offset);assert.equal(later,Number(laterClock)/mapping.frequency+mapping.offset);assert(later!>first!);
+  assert.deepEqual({coordinator:g.coordinator.status,source:g.source.status,calibrations:g.motion.bindings.map(b=>b.stepper.calibration),timelines:g.clockMembers.map(m=>m.timeline?.status),outputs:f.firmware.map(m=>m.outputs.length)},before);
+  for(const invalid of [NaN,Infinity,-1])assert.throws(()=>port.estimatedPrintTime(invalid),/observation/);assert.deepEqual(f.stops,[0,0]);
+  await f.hardware.close();assert.equal(port.estimatedPrintTime(serialClock.now()),null);assert.deepEqual(f.stops,[1,1]);
+ }finally{await f.hardware.close();await f.close();}
+});
 test('configured motor enables continue through a shared in-stream calibration',async()=>{
  const f=await initialLinearFixture();try{
   const g=f.initial.generation,clock=g.clockTimelines!.find(c=>c.id==='mcu')!.timeline,original=g.source.flushThrough.bind(g.source);let updated=false;
