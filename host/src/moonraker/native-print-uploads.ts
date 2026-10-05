@@ -267,6 +267,14 @@ export class NativePrintUploads {
   if(Object.keys(params).some(key=>key!=='file_id')||!validId(params.file_id))throw new ApiError(400,'Expected file_id');
   try{const record=await this.#files.inspect(params.file_id);signal.throwIfAborted();return record as unknown as Json;}catch(error){if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published file not found');throw error;}
  }
+ /** Trusted queue composition only: identities remain in the same published
+  * store, and print authorization/acquisition must still run at dispatch. */
+ async resolveQueuedFile(filename:string,signal:AbortSignal):Promise<string>{
+  signal.throwIfAborted();if(this.#closed)throw new ApiError(503,'Native files closed');
+  const path=nativeFilename(filename);
+  try{const id=await this.#files.resolvePath(path,signal);await this.#files.inspect(id);signal.throwIfAborted();if(await this.#files.resolvePath(path,signal)!==id)throw new ApiError(409,'Queued published path changed');return id;}
+  catch(error){if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Published queue file not found');throw error;}
+ }
  matchesDownload(path:string):boolean{try{nativeDownloadFilename(path);return true;}catch{return false;}}
  matchesThumbnail(path:string):boolean{if(!path.startsWith('/server/files/gcodes/'))return false;try{return /(?:^|\/)\.thumbs\//u.test(decodeURIComponent(path.slice('/server/files/gcodes/'.length)));}catch{return false;}}
  download(path:string,context:RpcContext,consume:(file:NativeFileDownload,signal:AbortSignal)=>Promise<void>):Promise<void>{

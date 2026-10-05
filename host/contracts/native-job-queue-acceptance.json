@@ -1,0 +1,289 @@
+{
+  "schema": 1,
+  "status": "candidate-not-integrated",
+  "date": "2026-10-05",
+  "runtime": "Node.js 26.10.0",
+  "base": "d41052b73bcfe875fbf74587ed7f1f41b09427e0",
+  "scope": "Default manual native process queue with stable published-file identities, private catalogue and the existing print controller/journal; full M3 and goal remain incomplete",
+  "upstream": {
+    "repository": "Arksine/moonraker",
+    "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "path": "moonraker/components/job_queue.py",
+    "blob": "41312f1ee6afcccba9f1130b4b87451c48e549e5",
+    "contract": "Default paused manual mode, HTTP/RPC job/status/start/pause/jump, job wire fields and notify_job_queue_changed; automatic modes/transition G-Code not claimed"
+  },
+  "owners": {
+    "catalogue": "Same process DatabaseStore, native_job_queue forbidden namespace retained on queue close",
+    "files": "Same NativePrintUploads/PublishedPrintFiles; no replica file store",
+    "execution": "ProductPrintApi.startQueued -> same PrintController and PrintJournal; no parallel print execution journal"
+  },
+  "invariants": [
+    "All filenames resolve and authorize before one durable queue write",
+    "Optional enqueue request_id is bound to normalized input and user, retained for 64 receipts",
+    "Bound 128 members, 16 pending mutations and 64 notification backlog; public DTO has no internal file/request/user identities",
+    "Bind immutable file ID at enqueue and compare again at dispatch; actual machine policy and printer.print.start authorization run again",
+    "Durable claim before admission; journal reservation uses the stable claim request ID",
+    "Unknown admission outcomes are reconciled from PrintJournal once; known accepted requests never silently retry",
+    "Queue pause leaves active printing under the existing print controller",
+    "Retired generation authorization cannot start a replacement device",
+    "New database and journal workers resolve interrupted claims and always recover paused; no automatic replay",
+    "Known transaction-capacity/backpressure rejection rolls back without poisoning the queue; unknown storage result requires recovery",
+    "Status during durable mutation is a complete cached old/new catalogue",
+    "Authorized notification delivery reuses configured server broadcaster; observer failure never rolls back a committed mutation",
+    "Service close drains queue before process database closure"
+  ],
+  "sources": {
+    "host/src/moonraker/native-job-queue.ts": "eb237112d37ab32a85a77c3bd35b3954b31e23511a86c6f1d6be73cb92403486",
+    "host/src/moonraker/configured-server.ts": "92b87cf1a8ce34a4398ddca5d84caabcdb6219d3feb0552d94bda8c0f5a7ba88",
+    "host/src/moonraker/native-print-uploads.ts": "823646be5750e5aae5c542266443583f9e4c96a00f098437a60e8c2671697420",
+    "host/src/moonraker/product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+    "host/test/native-job-queue.test.ts": "a416ec7b2ea5c2819f67836a9637c05f8a170af570cdd8173ecf5684091c87e6",
+    "host/test/native-configured-job-queue.test.ts": "b332ba8741a8ca17b292af182147f09db8d4093b258a74ac7bae8ffab044d6bb",
+    "host/bench/native-job-queue.ts": "65b8e654361ffc9a6454a6deeffe53fbf2dd3751484b469cb6b1352f99052625",
+    "host/acceptance/product-compiled-journey.test.ts": "0731f63302b982c4e91274e9381f77670c2871218ca5587f264b4fcf5fce67d0"
+  },
+  "validation": {
+    "typecheck": "passed",
+    "affectedOwners": {
+      "tests": 48,
+      "passed": 48,
+      "failed": 0,
+      "scope": "Queue, actual configured service, printing, history, server and generation attachment/retirement"
+    },
+    "configurationPolicy": {
+      "tests": 4,
+      "passed": 4,
+      "scope": "Actual queue path plus explicit rejection and zero device effects for unsupported automatic/load/legacy G-Code transition"
+    },
+    "fullLocal": {
+      "status": "passed",
+      "tests": 3953,
+      "passed": 3953,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 337795.53717,
+      "scope": "Complete ordinary host batch on queue candidate over develop d41052b7; separate later merged-baseline checks remain required"
+    },
+    "sameDisk": {
+      "runtime": "v26.10.0",
+      "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+      "filesystem": 61267,
+      "jobs": 128,
+      "durableMutations": 64,
+      "fullCatalogueReadMs": {
+        "count": 10000,
+        "median": 0.0016699999999900683,
+        "p95": 0.00238000000001648,
+        "p99": 0.006899999999973261,
+        "max": 0.0963610000000017
+      },
+      "concurrentReadMs": {
+        "count": 1382912,
+        "median": 0.00008000000002539309,
+        "p95": 0.0012200000001030276,
+        "p99": 0.0017800000000534055,
+        "max": 0.12359099999997625
+      },
+      "mutationMs": {
+        "count": 64,
+        "median": 8.028110999999967,
+        "p95": 11.667561999999975,
+        "p99": 14.880045999999993,
+        "max": 14.880045999999993
+      },
+      "eventLoopMs": {
+        "p99": 3.938303,
+        "max": 5.398527
+      },
+      "budgetsMs": {
+        "queryP99": 50,
+        "eventLoopP99": 50,
+        "eventLoopMax": 100
+      },
+      "reopenCatalogueVerified": true
+    },
+    "finalCompiled": {
+      "passed": true,
+      "bundle": "host/build/queue-final-bundle",
+      "manifestSha256": "53351fba9b9bb3c86b6591eca839895250fb3c618f7fd5c81c0efc5d08333388",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "durationMs": 71360.618864,
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2329,
+        "queryP99Ms": 3.9894449999992503,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      },
+      "statusQueries": 40998,
+      "statusP99Ms": 2.7085470000019995,
+      "minimumStepLeadMs": 82.333,
+      "loop": [
+        {
+          "p99Ms": 1.942527,
+          "maxMs": 20.905983
+        },
+        {
+          "p99Ms": 1.927167,
+          "maxMs": 12.378111
+        }
+      ],
+      "historyP99Ms": 50.28879099999904,
+      "scope": "Independent emitted JS/addons/dependencies and actual dual simulated MCU process; existing printing/stop/timing/precision and load budgets unchanged; no target-board or physical acceptance claim"
+    },
+    "earlierCompiled": {
+      "passed": true,
+      "manifestSha256": "e72f180605abf1ad805f97bb50bd14f1cee418687f646c5e39f579db383e4401",
+      "scope": "Earlier queue source before known transaction-capacity classification fix; final source separately rebuilt and validated"
+    }
+  },
+  "preservedFailures": [
+    {
+      "log": "anyraid-queue-typecheck-20261005.log",
+      "issue": "Private-field typeof parser syntax",
+      "resolution": "Explicit QueueState type; later typechecks pass"
+    },
+    {
+      "log": "anyraid-queue-tests-20261005.log",
+      "issue": "New task native modules not built; test file did not execute cases",
+      "resolution": "Required native build completed before real tests"
+    },
+    {
+      "log": "anyraid-queue-tests-followup-20261005.log",
+      "issue": "Four reopened queue failures due to repeated local namespace registration",
+      "resolution": "Retain private namespace registration for database lifetime; same/new-worker recovery tests pass"
+    },
+    {
+      "log": "anyraid-queue-private-reopen-tests-20261005.log",
+      "issue": "Corruption test used top-level null insert, which the database intentionally ignores",
+      "resolution": "Use persisted unsupported schema version; rejection and no erasure proven"
+    },
+    {
+      "log": "anyraid-queue-configured-regressions-20261005.log",
+      "tests": 37,
+      "passed": 36,
+      "issue": "New fixture claimed ready with empty MCU list, legitimately rejected before queue operation",
+      "resolution": "Fixture supplies explicitly simulated status entry; production host validation unchanged, standalone and affected followups pass"
+    }
+  ],
+  "dependencyIntegration": {
+    "pr": 6,
+    "merge": "d41052b73bcfe875fbf74587ed7f1f41b09427e0",
+    "hostRun": 37330039026,
+    "hostJob": 111830523427,
+    "buildRun": 37330039058,
+    "postMerge": "all-success",
+    "ordinaryTests": 3936,
+    "ordinaryPasses": 3936,
+    "archivedHostLogSha256": "77a1f9018cdea4ad1421d93bddadc861ea1e88b24d740ff3c0e333962b517fd5"
+  },
+  "logs": {
+    "anyraid-queue-typecheck-20261005.log": {
+      "sha256": "d5e965a2e327bc23cc08bb954ea69e032d21758ffe06aba2a3876e33abe9c4d7",
+      "bytes": 115
+    },
+    "anyraid-queue-tests-20261005.log": {
+      "sha256": "780b99bcd65938f0d98ef77443cca01ce5b88965d44e2f6b3a5b10c6041a1537",
+      "bytes": 1436
+    },
+    "anyraid-queue-tests-followup-20261005.log": {
+      "sha256": "a93c476b3e6701bccfe6a4c31b0cd52dd6f6bff064de7e9a8da4e04493bd78ea",
+      "bytes": 4189
+    },
+    "anyraid-queue-private-reopen-tests-20261005.log": {
+      "sha256": "c0d3ecae233e9e5376da94c1f0a0a533db027ee3347f8d4a1d5d0cb1b1bb2057",
+      "bytes": 1734
+    },
+    "anyraid-queue-catalogue-tests-20261005.log": {
+      "sha256": "468b0c0f1bb056212efa17af78d263a76371e93d01c2c7a251c14dc718d24e85",
+      "bytes": 1082
+    },
+    "anyraid-queue-catalogue-benchmark-20261005.log": {
+      "sha256": "4fb9a1f66271aca1360497223671238ca3e37760923f4f8ef821f8d1a6f99a39",
+      "bytes": 975
+    },
+    "anyraid-queue-owner-regressions-20261005.log": {
+      "sha256": "4901939865ce3eba8477d88fbbb001268f9cb9e396de5b9d6cb255d87dd65b15",
+      "bytes": 2706
+    },
+    "anyraid-queue-restart-tests-20261005.log": {
+      "sha256": "8ec8dbaed719776ee25ec94e0f0eb13d45b9a5167a49430226a98bed1a8821e5",
+      "bytes": 1430
+    },
+    "anyraid-queue-configured-regressions-20261005.log": {
+      "sha256": "6e9b94fb204f1b7294439a3c1a00bd16874d2b175bf1e76271ca022a4b967291",
+      "bytes": 5144
+    },
+    "anyraid-queue-configured-host-fixture-followup-20261005.log": {
+      "sha256": "2542e5f97ac07c8c90d703e9e5ed6d7a7dd5282462284fa1a6709bfb6665bd46",
+      "bytes": 255
+    },
+    "anyraid-queue-final-focused-20261005.log": {
+      "sha256": "b4009080030392dd9fd376cdc7006cb464b736b65afbeb49731a8da161e2574b",
+      "bytes": 6000
+    },
+    "anyraid-queue-policy-startup-tests-20261005.log": {
+      "sha256": "2a95fbb5a08b1f5e0899b6d255fcb6501b7045f02e8ce618791638106483e3eb",
+      "bytes": 583
+    },
+    "anyraid-queue-final-source-typecheck-20261005.log": {
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "bytes": 37
+    },
+    "anyraid-queue-bundle-build-20261005.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "anyraid-queue-bundle-install-20261005.log": {
+      "sha256": "2797b4a20f54c7e6eab7a011b69d659b43ca983f486fc5c9ae2e05f8a1352c2b",
+      "bytes": 318
+    },
+    "anyraid-queue-compiled-mixed-20261005.log": {
+      "sha256": "8aa404c52dac9725f6c17bbf6f1165b72833d9d195186e3488dcf6e69418ea20",
+      "bytes": 6252
+    },
+    "anyraid-queue-final-bundle-build-20261005.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "anyraid-queue-final-bundle-install-20261005.log": {
+      "sha256": "95b12b988a1b7a50588a818fc4cd5adc1fbaad1434a0ff1e1a774ae7863962ed",
+      "bytes": 315
+    },
+    "anyraid-queue-final-compiled-mixed-20261005.log": {
+      "sha256": "39aa0c1461578c6f41d2b0932e67fdef87f128745c002939e846349bff36fca6",
+      "bytes": 6242
+    },
+    "anyraid-pr6-postmerge-final-host-20261005.log": {
+      "sha256": "77a1f9018cdea4ad1421d93bddadc861ea1e88b24d740ff3c0e333962b517fd5",
+      "bytes": 1724692
+    },
+    "anyraid-queue-full-20261005.log": {
+      "sha256": "52d2b80b2f9e028af8c02a86dd7ea0a0e8e58b852b5fd3bb2302d75c75e50d09",
+      "bytes": 415710
+    },
+    "anyraid-queue-final-typecheck-20261005.log": {
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "bytes": 37
+    },
+    "anyraid-pr7-head-final-host-20261005.log": {
+      "sha256": "64c11df51c76db53534dc567c8e5889aff0ef9a8c17beb18d73ababdbb1aa8bb",
+      "bytes": 1725650
+    }
+  },
+  "remainingGates": [
+    "Exact-head normal PR CI, self-review, develop merge and postmerge gates",
+    "Automatic transition/load modes with typed product-operation provider, live authorization, cancellation and failure coupling",
+    "Full same-bundle Fluidd/Mainsail queue and file-to-print client paths",
+    "Target-board queue/printing performance and physical precision/stability acceptance; G3 remains unresolved",
+    "Complete Moonraker, all old macro scenarios, 177 tracked klippy Python files and normal mainline release; other machines last"
+  ]
+}
