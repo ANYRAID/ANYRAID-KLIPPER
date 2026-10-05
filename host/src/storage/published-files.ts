@@ -8,6 +8,7 @@ import {defaultPrintSnapshotBudget,type PrintSnapshotBudget} from '../gcode/snap
 import {publishedPath,visibleFilePath,pathParent,pathBasename,PublishedDirectoryCommitError} from './published-paths.ts';
 import {planNamespaceMove,validateMoveIntent,recoverMoveRecords,sameNamespaceMove,samePublishedFile,type NamespaceMove} from './namespace-move.ts';
 import {planNamespaceCopy,validateCopyIntent,recoverCopyRecords,sameNamespaceCopy,type NamespaceCopy} from './namespace-copy.ts';
+import {planNamespaceDelete,validateDeleteIntent,recoverDeleteRecords,sameNamespaceDelete,type NamespaceDelete} from './namespace-delete.ts';
 import {replacementNamespaceHash,validateReplacementIntent,recoverReplacementRecords,replacementIntentLimit,type FileReplacement} from './namespace-replace.ts';
 const native=createRequire(import.meta.url)(process.env.ANYRAID_SEALED_FILE_ADDON??'../../build/sealed-file.node') as {lockDirectory(fd:number):void};
 export interface PublishedPrintFile {readonly version:1;readonly id:string;readonly sha256:string;readonly size:number;readonly name:string;readonly path?:string;}
@@ -15,6 +16,10 @@ export class PublishedFileChangedError extends Error {}
 export class PublishedFileMoveCommitError extends Error {
  readonly phase:'before-replace'|'replaced';
  constructor(phase:'before-replace'|'replaced',cause:unknown){super('File move requires recovery',{cause});this.phase=phase;}
+}
+export class PublishedDeleteCommitError extends Error {
+ readonly phase:'before-intent'|'intent-published';
+ constructor(phase:'before-intent'|'intent-published',cause:unknown){super('Directory deletion requires recovery',{cause});this.phase=phase;}
 }
 export interface PublishedFileMove {readonly before:PublishedPrintFile;readonly after:PublishedPrintFile;readonly modified:number;readonly replaced?:PublishedPrintFile;}
 export interface PublishedUploadReplacement {readonly id:string;readonly name:string;readonly path:string;readonly replaced:PublishedPrintFile;readonly namespaceSha256:string;readonly directories:FileReplacement['directories'];}
@@ -52,6 +57,7 @@ export class PublishedPrintFiles {
  readonly #copies=new WeakMap<NamespaceCopy,string>();
  readonly #uploadReplacements=new WeakSet<PublishedUploadReplacement>();
  readonly #fileReplacements=new WeakMap<PublishedFileMove,FileReplacement>();
+ readonly #deletions=new WeakSet<NamespaceDelete>();
  #cachedNamespaceWindow=false;
  observeDirectories(observer:(change:PublishedDirectoryChange)=>void):()=>void{if(this.#closed||typeof observer!=='function'||this.#directoryObservers.size>=8||this.#directoryObservers.has(observer))throw new Error('Published directory observer unavailable');this.#directoryObservers.add(observer);return ()=>this.#directoryObservers.delete(observer);}
  /** Internal synchronous commit observers. Transport delivery must enqueue work
@@ -74,7 +80,7 @@ export class PublishedPrintFiles {
  get status(){return {storedBytes:this.#storedBytes,reservedBytes:this.#reservedBytes,publishedFiles:this.#records.size,pendingPublications:this.#publishing.size,maxStorageBytes:this.#maxStorage,maxPublishedFiles:this.#maxFiles,writeFault:this.#writeFault,closed:this.#closed,pendingOperations:this.#pending.size,maxFileBytes:this.#maxBytes,maxOperations:this.#maxOperations};}
  async directoryPath(signal:AbortSignal):Promise<string>{signal.throwIfAborted();if(this.#closed)throw new Error('Published files closed');const path=await readlink(`/proc/self/fd/${this.#root.fd}`);signal.throwIfAborted();return path;}
  async #recover():Promise<void>{
-  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0,intent:NamespaceMove|undefined,copyIntent:NamespaceCopy|undefined,replacement:FileReplacement|undefined;
+  const blobs=new Map<string,number>(),receipts=new Map<string,number>(),temporary:string[]=[];let count=0,intent:NamespaceMove|undefined,copyIntent:NamespaceCopy|undefined,replacement:FileReplacement|undefined,deletion:NamespaceDelete|undefined;
   const directory=await opendir(this.#path('.'));
   for await(const entry of directory){
    if(++count>32768)throw new Error('Published directory entry limit exceeded');
@@ -84,12 +90,17 @@ export class PublishedPrintFiles {
    else if(entry.name==='.namespace-move.json')intent=await this.#loadMoveIntent();
    else if(entry.name==='.namespace-copy.json')copyIntent=await this.#loadCopyIntent();
    else if(entry.name==='.namespace-replace.json')replacement=await this.#loadReplacementIntent();
+   else if(entry.name==='.namespace-delete.json')deletion=await this.#loadDeleteIntent();
    else if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name))receipts.set(entry.name,stat.size);
    else if(/^\.directories-[a-f0-9-]{36}$/.test(entry.name))temporary.push(entry.name);
-   else if(/^\.(?:upload|receipt|move|copy|replace)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
+   else if(/^\.(?:upload|receipt|move|copy|replace|delete)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))temporary.push(entry.name);
    else throw new Error('Unknown published storage entry');
   }
-  if([intent,copyIntent,replacement].filter(Boolean).length>1)throw new Error('Conflicting namespace intents');
+  if([intent,copyIntent,replacement,deletion].filter(Boolean).length>1)throw new Error('Conflicting namespace intents');
+  if(deletion){
+   const files=await this.#replacementDiskFiles('.namespace-delete.json');await recoverDeleteRecords(deletion,files,this.#directories);await this.#applyDirectoryDelete(deletion);
+   this.#directories.clear();this.#directoryBytes=0;await this.#recover();return;
+  }
   if(replacement){
    const files:PublishedPrintFile[]=[];for(const [name] of receipts){const record=await this.#record(name.slice(0,-5));if(blobs.get(record.sha256+'.gcode')!==record.size)throw new Error('Replacement recovery content reference is invalid');files.push(record);}
    await recoverReplacementRecords(replacement,files,this.#directorySnapshot());await this.#applyReplacement(replacement,files);
@@ -116,6 +127,57 @@ export class PublishedPrintFiles {
   for(const name of garbage)await unlink(this.#path(name));if(garbage.length)await this.#root.sync();
   this.#storedBytes=this.#directoryBytes+receiptBytes+[...referenced].reduce((total,name)=>total+blobs.get(name)!,0);
  }
+ async #loadDeleteIntent():Promise<NamespaceDelete>{
+  const file=await open(this.#path('.namespace-delete.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
+  try{const before=await file.stat({bigint:true});if(!before.isFile()||before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7777n)!==0o600n||before.size>48n*1024n**2n)throw new Error('Invalid delete intent file');const bytes=await file.readFile(),after=await file.stat({bigint:true});if(BigInt(bytes.length)!==before.size||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Delete intent changed while reading');return validateDeleteIntent(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));}finally{await file.close();}
+ }
+ async #applyDirectoryDelete(plan:NamespaceDelete):Promise<void>{
+  await this.#verifyDirectoryAuthority(plan.directoriesBefore,plan.directoriesAfter);
+  const files=await this.#replacementDiskFiles('.namespace-delete.json');await recoverDeleteRecords(plan,files,this.#directories);
+  const verified=new Set<string>(),signal=new AbortController().signal;
+  // Keep blobs until the intent is retired: interrupted recovery can verify
+  // deleted receipts even when their names have already disappeared.
+  for(const {file} of plan.deleted)if(!verified.has(file.sha256)){await this.#verifyExisting(file,signal);verified.add(file.sha256);}
+  for(const {file} of plan.deleted){const current=await this.#record(file.id).catch(error=>{if(error.code!=='ENOENT')throw error;return undefined;});if(current){if(!samePublishedFile(current,file))throw new PublishedFileChangedError('Delete receipt changed');await unlink(this.#path(file.id+'.json'));await this.#root.sync();}}
+  await this.#verifyDirectoryAuthority(plan.directoriesBefore,plan.directoriesAfter);
+  const temp=this.#path('.directories-'+randomUUID()),handle=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);
+  try{await handle.writeFile(JSON.stringify({version:1,directories:plan.directoriesAfter}));await handle.sync();}finally{await handle.close();}
+  await rename(temp,this.#path('.directories.json'));await this.#root.sync();
+  await unlink(this.#path('.namespace-delete.json'));await this.#root.sync();
+ }
+ prepareDirectoryDelete(path:string,signal:AbortSignal):Promise<NamespaceDelete>{return this.#run(async()=>{
+  this.#cachedNamespaceWindow=true;try{
+  signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');
+  const plan=await planNamespaceDelete(path,[...this.#records.values()].map(e=>({file:e.record,modified:e.modified})),this.#directories);
+  for(const {file} of plan.deleted){signal.throwIfAborted();if(!samePublishedFile(await this.#record(file.id),file))throw new PublishedFileChangedError('Delete source changed outside store');}
+  signal.throwIfAborted();this.#deletions.add(plan);return plan;
+  }finally{this.#cachedNamespaceWindow=false;}
+ },true,signal);}
+ deleteDirectory(plan:NamespaceDelete,signal:AbortSignal):Promise<PublishedDirectoryChange>{return this.#run(async()=>{
+  this.#cachedNamespaceWindow=true;try{
+   signal.throwIfAborted();if(this.#writeFault)throw new Error('Published namespace requires recovery');if(!this.#deletions.has(plan))throw new Error('Delete plan belongs to another store');
+   const current=await planNamespaceDelete(plan.source,[...this.#records.values()].map(e=>({file:e.record,modified:e.modified})),this.#directories);if(!sameNamespaceDelete(current,plan))throw new PublishedFileChangedError('Authorized deletion membership changed');
+   const chunks:Buffer[]=[Buffer.from(JSON.stringify({version:1,action:'delete_dir',source:plan.source,namespaceSha256:plan.namespaceSha256}).slice(0,-1)+',"deleted":[')];let bytes=chunks[0].length;
+   for(const [i,entry] of plan.deleted.entries()){signal.throwIfAborted();const chunk=Buffer.from((i?',':'')+JSON.stringify(entry));bytes+=chunk.length;chunks.push(chunk);if(i%128===127)await new Promise<void>(resolve=>setImmediate(resolve));}
+   const suffix=Buffer.from('],"directoriesBefore":'+JSON.stringify(plan.directoriesBefore)+',"directoriesAfter":'+JSON.stringify(plan.directoriesAfter)+'}');bytes+=suffix.length;chunks.push(suffix);
+   const directoryBytes=Buffer.byteLength(JSON.stringify({version:1,directories:plan.directoriesAfter})),reserved=bytes+directoryBytes;
+   if(bytes>48*1024**2||reserved>this.#maxStorage-this.#storedBytes-this.#reservedBytes)throw new Error('Delete journal or staging quota exceeded');
+   const temp=this.#path('.delete-'+randomUUID());let handle:FileHandle|undefined,published=false,failure:unknown;this.#reservedBytes+=reserved;
+   try{
+    handle=await open(temp,constants.O_CREAT|constants.O_EXCL|constants.O_WRONLY|constants.O_NOFOLLOW,0o600);for(const chunk of chunks){signal.throwIfAborted();await handle.writeFile(chunk);}await handle.sync();await handle.close();handle=undefined;
+    const actual=await this.#replacementDiskFiles('.namespace-delete.json');await recoverDeleteRecords(plan,actual,this.#directories);const actualById=new Map(actual.map(f=>[f.id,f]));if(plan.deleted.some(e=>!actualById.has(e.file.id)||!samePublishedFile(actualById.get(e.file.id)!,e.file)))throw new PublishedFileChangedError('Delete source disappeared before intent');
+    const checked=new Set<string>();for(const {file} of plan.deleted)if(!checked.has(file.sha256)){await this.#verifyExisting(file,signal);checked.add(file.sha256);}
+    await this.#verifyDirectoryAuthority(plan.directoriesBefore);signal.throwIfAborted();await lstat(this.#path('.namespace-delete.json')).then(()=>{throw new Error('Previous deletion requires recovery');},error=>{if(error.code!=='ENOENT')throw error;});
+    await rename(temp,this.#path('.namespace-delete.json'));published=true;await this.#root.sync();await this.#applyDirectoryDelete(plan);
+    const records=new Map(this.#records),paths=new Map(this.#paths),references=new Map(this.#references);let releasedBytes=0;const garbage=new Map<string,number>();
+    for(const {file} of plan.deleted){const old=records.get(file.id)!;releasedBytes+=old.receiptBytes;records.delete(file.id);paths.delete(visibleFilePath(file));const remaining=references.get(file.sha256)!-1;if(remaining)references.set(file.sha256,remaining);else{references.delete(file.sha256);garbage.set(file.sha256,file.size);}}
+    for(const [hash,size] of garbage){await unlink(this.#path(hash+'.gcode'));releasedBytes+=size;}if(garbage.size)await this.#root.sync();
+    this.#records=records;this.#paths=paths;this.#references=references;this.#directories=new Map(plan.directoriesAfter.map(e=>[e.path,e.modified]));this.#storedBytes+=directoryBytes-this.#directoryBytes-releasedBytes;this.#directoryBytes=directoryBytes;this.#deletions.delete(plan);
+    const event=Object.freeze({action:'delete_dir' as const,path:plan.source,modified:0});for(const observer of this.#directoryObservers)try{observer(event);}catch{this.#observerFailures++;}return event;
+   }catch(error){failure=error;if(published)this.#writeFault=error;throw new PublishedDeleteCommitError(published?'intent-published':'before-intent',error);}
+   finally{try{await handle?.close();if(!published){await unlink(temp).catch(error=>{if(error.code!=='ENOENT')throw error;});await this.#root.sync();}}catch(cleanup){this.#writeFault=new AggregateError([...(failure?[failure]:[]),cleanup],'Delete cleanup failed');throw new PublishedDeleteCommitError(published?'intent-published':'before-intent',this.#writeFault);}finally{this.#reservedBytes-=reserved;}}
+  }finally{this.#cachedNamespaceWindow=false;}
+ },true,signal);}
  async #loadMoveIntent():Promise<NamespaceMove>{
   const file=await open(this.#path('.namespace-move.json'),constants.O_RDONLY|constants.O_NOFOLLOW|constants.O_NONBLOCK);
   try{const before=await file.stat({bigint:true});if(!before.isFile()||before.uid!==BigInt(process.getuid!())||before.nlink!==1n||(before.mode&0o7777n)!==0o600n||before.size>48n*1024n**2n)throw new Error('Invalid move intent file');const bytes=await file.readFile();const after=await file.stat({bigint:true});if(BigInt(bytes.length)!==before.size||before.size!==after.size||before.mtimeNs!==after.mtimeNs||before.ctimeNs!==after.ctimeNs)throw new Error('Move intent changed while reading');return validateMoveIntent(JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes)));}finally{await file.close();}
@@ -257,12 +319,12 @@ export class PublishedPrintFiles {
  async #replacementDirectoryAuthority(plan:Pick<FileReplacement,'directories'>):Promise<void>{await this.#verifyDirectoryAuthority(plan.directories).catch(error=>{if(error.code!=='ENOENT'||plan.directories.length)throw error;});}
  /** Read actual receipt membership, rather than trusting the cached inventory
   * when admitting a durable replacement or repairing an interrupted decision. */
- async #replacementDiskFiles():Promise<PublishedPrintFile[]>{
+ async #replacementDiskFiles(intentName:'.namespace-replace.json'|'.namespace-delete.json'='.namespace-replace.json'):Promise<PublishedPrintFile[]>{
   const files:PublishedPrintFile[]=[],directory=await opendir(this.#path('.'));let count=0;
   for await(const entry of directory){
    if(++count>32768)throw new Error('Published directory entry limit exceeded');const stat=await lstat(this.#path(entry.name));if(!stat.isFile()||stat.uid!==process.getuid!())throw new PublishedFileChangedError('Replacement storage entry changed');
    if(/^[A-Za-z0-9_-]{1,128}\.json$/.test(entry.name)){const record=await this.#record(entry.name.slice(0,-5)),content=await lstat(this.#path(record.sha256+'.gcode'));if(!content.isFile()||content.size!==record.size)throw new PublishedFileChangedError('Replacement content reference changed');files.push(record);}
-   else if(!/^[a-f0-9]{64}\.gcode$/.test(entry.name)&&entry.name!=='.directories.json'&&entry.name!=='.namespace-replace.json'&&!/^\.(?:upload|receipt|replace)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(entry.name))throw new PublishedFileChangedError('Unexpected replacement storage entry');
+   else if(!/^[a-f0-9]{64}\.gcode$/.test(entry.name)&&entry.name!=='.directories.json'&&entry.name!==intentName&&!(intentName==='.namespace-delete.json'&&/^\.directories-[a-f0-9-]{36}$/.test(entry.name))&&!(intentName==='.namespace-delete.json'?/^\.(?:upload|receipt|delete)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/:/^\.(?:upload|receipt|replace)-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/).test(entry.name))throw new PublishedFileChangedError('Unexpected replacement storage entry');
   }
   return files;
  }
