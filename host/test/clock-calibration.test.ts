@@ -21,6 +21,20 @@ test('calibration boundary generation is synchronous, bounded and never flushes 
  for(const until of [NaN,Infinity,1,1.1])assert.throws(()=>c.generateCalibrationBoundary(until));assert.equal(c.status.generatedTime,1.001);
  await c.advance(2);assert.equal(s.flush().position,200n);await c.shutdown();assert.throws(()=>c.generateCalibrationBoundary(2.001),/healthy/);
 });
+test('a pulse at the exact calibration anchor is rejected atomically and the next tick preserves it',async()=>{
+ using q=new TrapQueue();q.appendRaw(new Float64Array([4e-7,0,2,0,0,0,0,1,0,0,20,20,0]));
+ using x=q.createStepper(settings,'x',.0125),z=q.createStepper({...settings,oid:4},'z',.0125);let commits=0,stops=0;
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'z',queue:q,stepper:z}],{async commit(){commits++;},async stop(){stops++;}}),clock=new PrintClockTimeline({offset:0,frequency:1e6});
+ try{
+  c.generateCalibrationBoundary(.000312);const first=clock.planCalibration(c.status.generatedTime,.002,1000100);assert(first);assert.equal(first.tick,313n);c.generateCalibrationBoundary(first.time);
+  const before=clock.status,calibration=x.calibration;
+  assert.throws(()=>clock.calibrateMotion(first.tick,1000100,c,['z','x']),{name:'RangeError',message:'Calibration would overlap previously accepted step clocks'});
+  assert.deepEqual(clock.status,before);assert.deepEqual(x.calibration,calibration);assert.deepEqual(z.calibration,calibration);assert.equal(c.status.failed,false);assert.equal(commits,0);assert.equal(stops,0);
+  const next=clock.planCalibration(c.status.generatedTime,.002,1000100);assert(next);assert.equal(next.tick,314n);c.generateCalibrationBoundary(next.time);clock.calibrateMotion(next.tick,1000100,c,['z','x']);
+  assert.deepEqual(x.calibration,clock.status.calibration);assert.deepEqual(z.calibration,x.calibration);assert.equal(commits,0);assert.equal(stops,0);
+  const accepted=x.flush();assert.equal(accepted.position,1n);assert.equal(accepted.history.length,6);assert.equal(accepted.history[0],313n);assert.equal(accepted.history[1],313n);assert.equal(accepted.history[3],1n);
+ }finally{await c.shutdown();}
+});
 test('motion history cutoff uses retained calibration instead of the latest affine mapping',async()=>{
  using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,101,0,0,0,0,0,0,0,0,0,0]));using s=q.createStepper(settings,'x',.01);
  const clock=new PrintClockTimeline({offset:0,frequency:1e6}),c=new MotionCoordinator([{id:'x',queue:q,stepper:s}],{async commit(){},async stop(){}},1024,0,[],new Map([['x',clock]]));

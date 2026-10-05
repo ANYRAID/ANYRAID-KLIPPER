@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "task_candidate_local_suite_passed_exact_head_ci_pending",
+  "status": "task_candidate_clock_fixture_local_suite_passed_exact_head_ci_pending",
   "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
   "sourceSha256": {
@@ -1434,10 +1434,51 @@
         },
         "reusedDeltaTargeted": "32 passing cases bind unchanged Delta test source hashes in conditionedDeltaFixture"
       },
-      "remaining": "Final commit CI, actual frontend page and target-board gates; a successful full run does not establish the cause of prior native crashes"
+      "remaining": "Exact ebf3bd1b CI passed cancellation cases but failed one initial-linear calibration case; actual frontend and target-board gates remain open"
     },
     "requiredExactHeadCi": {
-      "state": "pending_next_controlled_fixture_head",
+      "state": "previous_head_failed_next_clock_fixture_commit_pending",
+      "sourceHead": "ebf3bd1bfbce2ce1c8fc3fbe895ba90fb2e329e6",
+      "host": {
+        "runId": 37297281197,
+        "jobId": 111721394388,
+        "state": "completed",
+        "conclusion": "failure",
+        "tests": 3928,
+        "passed": 3927,
+        "failed": 1,
+        "durationMs": 512758.146425,
+        "failure": {
+          "file": "initial-linear.test.ts",
+          "test": "configured motor enables continue through a shared in-stream calibration",
+          "error": "Calibration would overlap previously accepted step clocks",
+          "exactClockPhaseCaptured": false
+        },
+        "subsequentProtocolSanitizerAndLinuxMcu": "skipped"
+      },
+      "firmware": {
+        "runId": 37297281216,
+        "jobId": 111721394312,
+        "state": "completed",
+        "conclusion": "success"
+      },
+      "motionDiagnostics": {
+        "runId": 37297281198,
+        "jobs": [
+          111721395361,
+          111721395585,
+          111721395627,
+          111721395653,
+          111721395662,
+          111721395691,
+          111721395693,
+          111721395719,
+          111721395787,
+          111721395800
+        ],
+        "allJobsCompletedSuccessfully": true,
+        "sampleCountsIndependentlyRead": false
+      },
       "previousHead": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
       "previousResults": "integratedCandidate.conditionedDeltaFixture.validation.exactFinalHeadCi",
       "requiredForMerge": [
@@ -1445,7 +1486,70 @@
         "Build test",
         "Ten motion diagnostics jobs"
       ],
-      "scope": "Current repaired source full local check passed. The final containing commit must pass its own required CI; no previous CI substitutes for it."
+      "scope": "The preceding ebf3bd1b head failed required CI and cannot merge. Repaired source passed its own full local suite; the next containing commit still must pass all required CI."
+    },
+    "clockAnchorFixture": {
+      "sourceBase": "ebf3bd1bfbce2ce1c8fc3fbe895ba90fb2e329e6",
+      "sourceSha256": {
+        "host/test/clock-calibration.test.ts": "6de3c65ad78181cec8f398456bf6e3a1458264a6821e1c6c4c0e0e0c01562c6e",
+        "host/test/initial-linear.test.ts": "01b8038c1d330d0c26665d304a4faf20b691302f28b5130dfa34155a060ffb4b"
+      },
+      "discriminator": {
+        "moveStartSeconds": 4e-7,
+        "velocityMmPerSecond": 20,
+        "stepDistanceMm": 0.0125,
+        "frequencyHz": 1000000,
+        "generatedBeforeSeconds": 0.000312,
+        "rejectedAnchorTick": 313,
+        "acceptedPulseTick": 313,
+        "acceptedFollowingAnchorTick": 314,
+        "atomicMappingRejection": true,
+        "noPacketsOrStopDuringCalibration": true
+      },
+      "change": "Use synchronous generateCalibrationBoundary; inspect at most two exact candidates, accepting a single next candidate only after the specific native overlap rejection with all mappings unchanged. Keep motor clock assertions, 1600 steps and no-stop checks. Add deterministic rejection and following-tick regression.",
+      "productionChanges": false,
+      "precisionAndBudgetsUnchanged": true,
+      "validation": {
+        "typecheck": "passed",
+        "targeted": {
+          "tests": 21,
+          "passed": 21,
+          "failed": 0,
+          "durationMs": 7028.511643,
+          "logSha256": "2bbb9771680a2e19a81b16744f4e40e004f405c2ec687285e36eb0bf9fbb1141"
+        },
+        "fullOrdinary": {
+          "command": "npm test",
+          "state": "completed",
+          "conclusion": "success",
+          "tests": 3929,
+          "passed": 3929,
+          "failed": 0,
+          "durationMs": 336922.13858,
+          "logSha256": "7a4984244d4c425ad310875e80c46bfbfd94bcca897b03854ba5a9ce9376cbd7",
+          "originalConcurrencyAndBudgets": true,
+          "prototypeObserverPreload": false,
+          "sourceFrozen": true
+        },
+        "requiredContainingCommitCi": "pending_commit"
+      },
+      "limits": [
+        "The deterministic counterexample disproves the first-anchor success assumption; exact failing CI clock phase was not captured",
+        "This is a fixture correction, not a verified production clock-maintenance deferral fix",
+        "Historical native faults, G3, real target-board precision and default switching remain open"
+      ]
+    },
+    "clientUploadToolProbe20261005": {
+      "scope": "Pure localhost file input capability probe; no product upload and no backend submission",
+      "filename": "upload-chooser-probe.txt",
+      "fileInputSelected": true,
+      "toolWallTimeSeconds": 3811.2239,
+      "requestedToolTimeoutMs": 15000,
+      "requestedChooserTimeoutMs": 5000,
+      "productProbeDeadlineSeconds": 900,
+      "withinProductDeadline": false,
+      "actualFluiddAndMainsailJourneyPassed": false,
+      "next": "Do not repeat the unchanged chooser operation; resolve the excessive tool latency before the actual upload journey"
     }
   },
   "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"
