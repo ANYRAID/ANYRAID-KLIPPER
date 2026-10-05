@@ -299,11 +299,13 @@
     "postMergeCi": {
       "host": {
         "run": 37285981612,
-        "state": "in_progress",
+        "job": 111684866915,
+        "state": "completed",
+        "conclusion": "success",
         "ordinary": "passed",
         "protocol": "passed",
-        "sanitizers": "in_progress",
-        "linuxMcu": "pending"
+        "sanitizers": "passed",
+        "linuxMcu": "passed"
       },
       "firmware": {
         "run": 37285981616,
@@ -419,8 +421,520 @@
       "independentProductionDependencies": 14,
       "buildAndInstallMs": 5941.460416999999
     },
-    "requiredExactHeadCi": "not_started",
-    "mergeReadiness": "draft_due_to_unclosed_local_full_suite_failures"
+    "requiredExactHeadCi": {
+      "head": "9630d4630b30d52514cf229da7c43d55e9877ec0",
+      "state": "failed",
+      "host": {
+        "run": 37288736899,
+        "job": 111693847060,
+        "state": "completed",
+        "conclusion": "failure",
+        "typecheck": "passed",
+        "ordinary": {
+          "tests": 3927,
+          "passed": 3926,
+          "failed": 1,
+          "durationMs": 578737.895383,
+          "file": "test/delta-probe.test.ts",
+          "test": "Delta automatic product service exposes tokenized two-sample probing (run=0)",
+          "line": 132,
+          "actual": 409,
+          "expected": 200,
+          "error": "Delta calibration requires an idle homed printer",
+          "observedBeforeSave": {
+            "busy": true,
+            "phase": "clock",
+            "failed": false,
+            "pendingMoves": 0,
+            "homedAxes": "xyz",
+            "controller": "idle"
+          },
+          "localThreeFailuresNotObserved": "This remote run did not observe the prior three local failures; no root cause closure inferred"
+        },
+        "protocol": "skipped",
+        "sanitizers": "skipped",
+        "linuxMcu": "skipped"
+      },
+      "firmware": {
+        "run": 37288736886,
+        "job": 111693846571,
+        "state": "completed",
+        "conclusion": "success"
+      },
+      "motion": {
+        "run": 37288736904,
+        "state": "completed",
+        "conclusion": "success",
+        "cases": 10,
+        "freshProcessesPerCase": 50,
+        "freshProcesses": 500,
+        "failures": 0,
+        "jobs": [
+          {
+            "job": 111693847929,
+            "name": "motion (26.9.0, off, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-9PaM2k",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.9.0/x64/bin/node",
+                "version": "v26.9.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "off",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-9PaM2k",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848215,
+            "name": "motion (26.9.0, default, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-SgovQn",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.9.0/x64/bin/node",
+                "version": "v26.9.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "default",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-SgovQn",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848261,
+            "name": "motion (26.9.0, off, source)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-JpyOa4",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.9.0/x64/bin/node",
+                "version": "v26.9.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "off",
+                "execution": "source"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-JpyOa4",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848293,
+            "name": "motion (26.10.0, off, source)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-z4jrwc",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.10.0/x64/bin/node",
+                "version": "v26.10.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "off",
+                "execution": "source"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-z4jrwc",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848323,
+            "name": "motion (26.10.0, default, source)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-5AkxEk",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.10.0/x64/bin/node",
+                "version": "v26.10.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "default",
+                "execution": "source"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-5AkxEk",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848342,
+            "name": "motion (26.10.0, default, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-YSKxIl",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.10.0/x64/bin/node",
+                "version": "v26.10.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "default",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-YSKxIl",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848368,
+            "name": "motion (26.9.0, jitless, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-LpFhqy",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.9.0/x64/bin/node",
+                "version": "v26.9.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "jitless",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-LpFhqy",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848389,
+            "name": "motion (26.9.0, default, source)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-f8WX56",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.9.0/x64/bin/node",
+                "version": "v26.9.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "default",
+                "execution": "source"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-f8WX56",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848499,
+            "name": "motion (26.10.0, off, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-PKvdN1",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.10.0/x64/bin/node",
+                "version": "v26.10.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "off",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-PKvdN1",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          },
+          {
+            "job": 111693848751,
+            "name": "motion (26.10.0, jitless, compiled)",
+            "result": "success",
+            "records": [
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-jnbvfO",
+                "kind": "motion",
+                "node": "/opt/hostedtoolcache/node/26.10.0/x64/bin/node",
+                "version": "v26.10.0",
+                "limit": 50,
+                "workers": 1,
+                "segv": "default",
+                "asan": "off",
+                "wasmBounds": "trap",
+                "jsOptimization": "jitless",
+                "execution": "compiled",
+                "compilerVersion": "7.0.2"
+              },
+              {
+                "directory": "/home/runner/work/_temp/motion-diagnostics/anyraid-node-asan-jnbvfO",
+                "runs": 50,
+                "failures": 0
+              }
+            ]
+          }
+        ],
+        "scope": "Finite fresh-process offline diagnostic batches only; not native MCU timing, physical precision or production printing throughput; G3 remains unresolved"
+      },
+      "scope": "These checks bind 9630d463. Save fixture repair requires checks of its final new head."
+    },
+    "mergeReadiness": "draft_due_to_unclosed_local_full_suite_failures",
+    "pullRequest": {
+      "number": 4,
+      "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/4",
+      "draft": true,
+      "head": "9630d4630b30d52514cf229da7c43d55e9877ec0",
+      "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+      "review": {
+        "id": "PRR_kwDOUhWiXM8AAAABQpnjEw",
+        "state": "COMMENTED",
+        "submittedAt": "2026-10-05T09:16:17Z"
+      }
+    },
+    "failureInvestigation": {
+      "date": "2026-10-05",
+      "sourceHead": "9630d4630b30d52514cf229da7c43d55e9877ec0",
+      "originalFullSuiteFailuresClosed": false,
+      "unchangedFromDevelop": {
+        "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+        "paths": [
+          "host/src",
+          "host/test/print-durable.test.ts",
+          "host/test/source-brake.test.ts",
+          "host/test/product-build.test.ts",
+          "host/scripts/build-product-host.ts",
+          "host/tsconfig.product-host.json",
+          "host/package-lock.json",
+          "host/test/helpers/idle-motion.ts"
+        ],
+        "productCompilationExcludesChangedTestAndAcceptanceFiles": true,
+        "qualification": "Scope comparison does not itself establish a common cause or close the complete local check"
+      },
+      "cancellationPhaseObservation": {
+        "hypothesis": "Distinguish retained device acknowledgement from durable terminal journal delay before changing a safety deadline",
+        "originalTest": "recovery timeout owns late stop and cannot clear interruption before acknowledgement",
+        "originalStopMs": 30,
+        "productionStopMs": 10000,
+        "scope": "One filtered original test with buffered prototype/timer observations; additional observer microtasks and timing overhead make this diagnostic only, not a replacement full-suite result",
+        "filesystem": {
+          "target": "/home/dek02/.cache/codex/tmp",
+          "source": "/dev/sda5",
+          "type": "ext4",
+          "journalMode": "DELETE",
+          "synchronous": 3
+        },
+        "node": "v26.10.0",
+        "observerSha256": "9f61b35542d82cf85197cd10046a21b05e22a92a11239c87c90f07cbba17db74",
+        "logSha256": "3990d26b851e95434787d56fded8411d557069d68a6bd157510783b8c9d471cb",
+        "observerSource": "import {writeSync} from 'node:fs';\nimport {monitorEventLoopDelay} from 'node:perf_hooks';\nimport {PrintController} from '/home/dek02/.codex/worktrees/moonraker-fixed-bundle-acceptance/ANYRAID-KLIPPER/host/src/operations/print.ts';\nimport {PrintJournal} from '/home/dek02/.codex/worktrees/moonraker-fixed-bundle-acceptance/ANYRAID-KLIPPER/host/src/operations/print-journal.ts';\nconst events=[],begin=performance.now(),loop=monitorEventLoopDelay({resolution:1});loop.enable();\nconst record=(kind,data={})=>events.push({kind,ms:performance.now()-begin,...data});\nconst observe=(promise,kind,data={})=>{promise.then(()=>record(kind+'-resolved',data),error=>record(kind+'-rejected',{...data,error:error.message}));return promise;};\nconst transition=PrintJournal.prototype.transition;\nPrintJournal.prototype.transition=function(...args){const data={state:args[2],pending:this.pendingRequests};record('journal-transition-called',data);return observe(transition.apply(this,args),'journal-transition',data);};\nconst cancel=PrintController.prototype.cancel;let cancels=0;\nPrintController.prototype.cancel=function(...args){const data={index:++cancels,state:this.state,pendingDeviceActions:this.pendingDeviceActions};record('cancel-called',data);return observe(cancel.apply(this,args),'cancel',data);};\nconst restore=PrintController.restore;\nPrintController.restore=function(device,...args){const stop=device.stop;device.stop=function(...stopArgs){record('device-stop-called');return observe(stop.apply(this,stopArgs),'device-stop');};return restore.call(this,device,...args);};\nconst timer=setTimeout;\nglobalThis.setTimeout=function(callback,ms,...args){if(ms!==30)return timer(callback,ms,...args);const scheduled=performance.now();record('deadline-scheduled',{timeoutMs:ms});return timer(function(...values){record('deadline-dispatched',{elapsedMs:performance.now()-scheduled});return callback(...values);},ms,...args);};\nprocess.once('exit',()=>{loop.disable();if(events.length)writeSync(1,JSON.stringify({cancelPhaseDiagnostic:{pid:process.pid,node:process.version,observerScope:'Buffered observations on unchanged test/controller/journal; not a replacement full-suite gate',loopP99Ms:loop.percentile(99)/1e6,loopMaxMs:loop.max/1e6,events}})+'\\n');});\n",
+        "trace": {
+          "pid": 11,
+          "node": "v26.10.0",
+          "observerScope": "Buffered observations on unchanged test/controller/journal; not a replacement full-suite gate",
+          "loopP99Ms": 1.864703,
+          "loopMaxMs": 2.166783,
+          "events": [
+            {
+              "kind": "journal-transition-called",
+              "ms": 111.721436,
+              "state": "started",
+              "pending": 0
+            },
+            {
+              "kind": "journal-transition-resolved",
+              "ms": 137.95455099999998,
+              "state": "started",
+              "pending": 0
+            },
+            {
+              "kind": "cancel-called",
+              "ms": 208.39590000000004,
+              "index": 1,
+              "state": "interrupted",
+              "pendingDeviceActions": 0
+            },
+            {
+              "kind": "deadline-scheduled",
+              "ms": 208.68758300000002,
+              "timeoutMs": 30
+            },
+            {
+              "kind": "device-stop-called",
+              "ms": 208.743354
+            },
+            {
+              "kind": "deadline-dispatched",
+              "ms": 238.36564200000004,
+              "elapsedMs": 29.669209000000023
+            },
+            {
+              "kind": "cancel-rejected",
+              "ms": 238.526404,
+              "index": 1,
+              "state": "interrupted",
+              "pendingDeviceActions": 0,
+              "error": "Print cancel timed out after 30 ms"
+            },
+            {
+              "kind": "cancel-called",
+              "ms": 239.10112100000003,
+              "index": 2,
+              "state": "failed",
+              "pendingDeviceActions": 1
+            },
+            {
+              "kind": "deadline-scheduled",
+              "ms": 239.12899200000004,
+              "timeoutMs": 30
+            },
+            {
+              "kind": "device-stop-resolved",
+              "ms": 239.16088200000002
+            },
+            {
+              "kind": "journal-transition-called",
+              "ms": 239.236063,
+              "state": "cancelled",
+              "pending": 0
+            },
+            {
+              "kind": "journal-transition-resolved",
+              "ms": 267.20763,
+              "state": "cancelled",
+              "pending": 0
+            },
+            {
+              "kind": "cancel-resolved",
+              "ms": 267.300701,
+              "index": 2,
+              "state": "failed",
+              "pendingDeviceActions": 1
+            }
+          ]
+        },
+        "observedResult": {
+          "runnerReportedTests": 1,
+          "passed": 1,
+          "failed": 0,
+          "deviceStopCalls": 1,
+          "retryDeadlineToDeviceAckMs": 0.03189000000001,
+          "cancelledJournalRoundTripMs": 27.971567,
+          "secondCancelRoundTripMs": 28.19957999999997
+        },
+        "qualification": "The device ACK interval starts at the second observation timer, not at a captured physical stop or release timestamp. Trace state data is state at call. This successful observed execution cannot identify which phase failed in the original full run. Preserve its timeout as unresolved.",
+        "nextDecision": "Capture these phase boundaries on the next necessary full run; evaluate real storage/worker latency against target budgets without changing EXTRA durability, observation deadlines or ownership.",
+        "environment": "Restricted local process, ext4 temporary directory; original full-suite process load not recreated"
+      },
+      "compilerFaultAddress": {
+        "compiler": "TypeScript native 7.0.2",
+        "compilerSha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+        "elfType": "EXEC",
+        "originalLogSha256": "6fddd6875a61ee7deed6ed40c4e020dcfe6730e108671419f86ca3fcb2188eba",
+        "originalSignal": "SIGSEGV",
+        "originalSignalCode": 2,
+        "observedPc": "0x186e492",
+        "executableLoad": {
+          "start": "0x400000",
+          "endExclusive": "0xc9fa31"
+        },
+        "readOnlyLoad": {
+          "start": "0xca0000",
+          "endExclusive": "0x1a91b60"
+        },
+        "observedPcInReadOnlyNonExecutableLoad": true,
+        "comparison": {
+          "mappedInstructionAfterCall": "0x86e492",
+          "precedingCall": "0x86e48d",
+          "callTarget": "0x622720",
+          "xor": "0x1000000"
+        },
+        "qualification": "ELF and disassembly are current on-disk observations for this binary hash. A legitimate instruction one bit away is not proof of intended return address, stack corruption mechanism, compiler defect or hardware cause. No crash-time memory/core/backtrace was obtained."
+      },
+      "crashCaptureAvailability": {
+        "coreLimit": 0,
+        "corePattern": "core",
+        "matchingCoreFound": false,
+        "coredumpctl": "unavailable",
+        "gdb": "not_on_current_PATH",
+        "kernelJournal": "system entries unavailable to current user; no entries is not proof no crash occurred"
+      },
+      "nextAction": "Retain all three original failures. Await independent exact-head checks, then capture failure phases and native crash-time state on a discriminating local run instead of repeating successful samples or changing numerical tolerances."
+    },
+    "deltaSaveFixtureRepair": {
+      "trigger": "HTTP save attempted while periodic stationary clock maintenance owned the native port",
+      "behavior": "Use existing dispatch.runExclusive to join prior clock work and hold its ownership across available/token verification and one HTTP save; backend safety checks unchanged, no modification retries",
+      "scope": "Existing Delta compatibility regression only; no additional machine adaptation",
+      "productionChanges": false,
+      "deadlinesAndPrecisionBudgetsUnchanged": true,
+      "temporaryDirectory": "node:os tmpdir follows TMPDIR",
+      "sourceSha256": "cfd1a9f23432aad54ebe68aad266343f627b9a7f499adc11e9261323123a18c0",
+      "validation": {
+        "typecheck": "passed",
+        "targeted": {
+          "tests": 40,
+          "passed": 40,
+          "failed": 0,
+          "durationMs": 25148.232882,
+          "logSha256": "30426e762e0fda92f3496136c31ef380479a2e8e56a2fc6f10b73185b294bd21"
+        },
+        "initialRestrictedAttempt": "Blocked before mock UART setup by Unix socket listen EPERM; normal local-permission run above completed",
+        "fullOrdinary": "running_after_necessary_fixture_change",
+        "exactFinalHeadCi": "not_started"
+      }
+    }
   },
   "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"
 }
