@@ -197,7 +197,17 @@
       "anyraid-network-events-full-20261006.log": "4bbb89ee19076bbc5f570a51adcb1e19fbb475d7ae2c5c545738bdb3b82b708e",
       "anyraid-network-events-csv-diagnostic-20261006.log": "635f2210695d99c8751eff2cf352852ef4cd757316965594c2debe43033c2086",
       "anyraid-network-events-final-focused-20261006.log": "382209e715e3b1c819c8f1cbe375a89aa5d6ca25139b0a269ba75b82b05a371d",
-      "anyraid-network-events-kernel-window-20261006.log": "ab8bb7a416753d324909e5c6be9b32496906a9f952db1fc2a84294530e3cf201"
+      "anyraid-network-events-kernel-window-20261006.log": "ab8bb7a416753d324909e5c6be9b32496906a9f952db1fc2a84294530e3cf201",
+      "anyraid-network-events-full-diagnostic-tap-20261006.log": "caaa0afa9aab11d7a29122ea3e3bfa2e86cdcd4bcdddf5bef814d8f229a5c0e0",
+      "anyraid-network-events-full-diagnostic-events-20261006.log": "893870448de98f69921064a70a29929b0526b5576b8ef513f4e59fadc8fd3f5c",
+      "anyraid-node-test-diagnostic-reporter-20261006.mjs": "c9120047e5cb0b052c11ec1b6d202c9613b50846dae1c4e80134d9da7c071f6a",
+      "anyraid-network-queue-merge-typecheck-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-network-queue-merged-full-20261006.log": "9f9b10d31a11e81bc55d74e5dd2088ed23b9c49c90414a8b8af09d24d158577f",
+      "anyraid-network-queue-bundle-build-sandbox-20261006.log": "fcbcbf5b1963ae6c4f7b765437973b73736ad31375dba4fd646fce716db2e637",
+      "anyraid-network-queue-bundle-build-20261006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "anyraid-network-queue-bundle-install-20261006.log": "984d2de6bd2162d26fc555fda5ab0f387ab38433ab23ea2ca69c383ca64a3f92",
+      "anyraid-network-queue-bundle-identity-20261006.log": "eb3ff7b87428baea852a852a48f8e390cd239bf09c4a36348d5834be7d91880c",
+      "anyraid-network-queue-compiled-20261006.log": "385864713805ffb6f4dc5c3cf0aeeac8f87dce47cf3ba3c2b10ad389a250d059"
     },
     "focusedBeforeCanCase": {
       "tests": 39,
@@ -350,6 +360,118 @@
       "fail": 0,
       "durationMs": 1427.088254,
       "rootCause": "unresolved"
+    },
+    "initialSourceCommit": "0f26eaaf7e19b6d8e9fbae9f09cd8be08d5c0904",
+    "originalHeadFullDiagnostic": {
+      "status": "passed",
+      "tests": 3958,
+      "passed": 3958,
+      "failed": 0,
+      "durationMs": 341054.64881,
+      "sourceCommit": "0f26eaaf7e19b6d8e9fbae9f09cd8be08d5c0904",
+      "reporter": "TAP plus structured failure/summary events; original concurrency unchanged",
+      "rootCause": "Original module failure did not reproduce. Original failure remains unresolved; no signal or new crash was captured."
+    },
+    "developIntegration": {
+      "status": "candidate-not-integrated",
+      "date": "2026-10-06",
+      "base": "796e65d993c3a8894967411de91cbec4501f8a6f",
+      "sourceMerge": "d675f8594316916108671c14b1e650ee534e0086",
+      "basePr": 8,
+      "baseReviewedHead": "c05901bdfeb5a0c63c79e92ea315f0856fcb7324",
+      "baseExactHeadCI": {
+        "hostRun": 37337360551,
+        "buildRun": 37337360583,
+        "conclusion": "success",
+        "ordinaryTests": 3970,
+        "hostLogSha256": "fa65aba51c68a218483f626e90931e343cdacc57ef5df52cd4490e683c920ec3"
+      },
+      "basePostMerge": {
+        "hostRun": 37341965147,
+        "buildRun": 37341965727,
+        "statusAtValidation": "in_progress"
+      },
+      "sourceSha256": {
+        "host/src/moonraker/system-information.ts": "43f26be7425f3951be6ca35b18befdf2e04660910ed2b5b385ba323327e57abb",
+        "host/src/moonraker/configured-server.ts": "1a60ac9285f25c9d8cead40b4ea73fb7c31e97a28c63ab35290c25c68c738487",
+        "host/test/system-information.test.ts": "312b20cdf3b702c080917877174e9ef22a686b0414529661b443493aae0b9754",
+        "host/test/configured-server.test.ts": "99d3659129595626e5cd9d4eb3aa4718fde2570a02a7f2be6f59677d0c0f7a94",
+        "host/acceptance/product-compiled-journey.test.ts": "a71a5ce912ec28ae1801f1ed2f0b457eddb9b2b71c767640d85b8a6c08e8bdc8",
+        "host/bench/system-network-events.ts": "7b96f308847696add7899634e60e48b034637911a573aedf9c83a80809da1e59",
+        "host/src/moonraker/native-job-queue.ts": "3f2d7bb085b017b552cdb9e075353fc28bdc949b0a4bcad46e3641602be2e5d5",
+        "host/src/moonraker/product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd"
+      },
+      "typecheck": "passed",
+      "fullLocal": {
+        "tests": 3975,
+        "passed": 3975,
+        "failed": 0,
+        "durationMs": 342545.465059
+      },
+      "compiled": {
+        "tests": 1,
+        "passed": 1,
+        "durationMs": 71408.431773,
+        "manifestSha256": "be9120e2f6692fb4aed9f6e001673bdad3207056e0456f8a6b8adedf7be351fd",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+        "networkChanges": {
+          "sourceSamples": 7,
+          "notifications": 20,
+          "authorizedObservers": 4,
+          "failedCommandRetained": true,
+          "deviceGenerations": [
+            1,
+            2
+          ],
+          "systemQueries": 597,
+          "systemQueryP99Ms": 3.619135000000824
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2310,
+          "queryP99Ms": 9.400918999999703,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "printing": {
+          "statusRequests": 40267,
+          "statusP99Ms": 3.430771999999706,
+          "minimumStepLeadMs": 88.373,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.979391,
+                "maxMs": 20.283391
+              },
+              "cpu": {
+                "user": 12535233,
+                "system": 2440138
+              },
+              "rss": 342175744
+            },
+            {
+              "loop": {
+                "p99Ms": 1.959935,
+                "maxMs": 12.935167
+              },
+              "cpu": {
+                "user": 8082038,
+                "system": 1754944
+              },
+              "rss": 365518848
+            }
+          ]
+        }
+      },
+      "preservedBuildFailure": "Initial private build was denied a compiler subprocess with EPERM in the sandbox. The identical command succeeded with authorized validation permissions; this is not a captured product/compiler crash.",
+      "scope": "One independently built and installed package includes both queue and network events; original print, stop, query, loop and 90-second gates. Actual local Linux metadata, controlled synthetic interfaces and simulated MCU; no target-board or physical print-speed claim."
     }
   }
 }
