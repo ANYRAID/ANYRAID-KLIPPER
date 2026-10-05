@@ -1083,6 +1083,102 @@
         "submittedAt": "2026-10-05T09:50:28Z",
         "mergeAllowed": false
       }
+    },
+    "conditionedDeltaFixture": {
+      "sourceBase": "4959cb4e",
+      "scope": "Existing Delta compatibility only; current product adaptation remains Cycnumbris 500",
+      "productionChanges": false,
+      "deadlinesAndPrecisionChanged": false,
+      "negativeInputSource": {
+        "head": "5536850a3ed085b02df4cb3dfa376a738e009f3b",
+        "job": 111703189526,
+        "path": "integratedCandidate.deltaSaveFixtureRepair.validation.capturedFailedFit"
+      },
+      "negativeObservation": {
+        "values": 41,
+        "converged": false,
+        "reason": "line_search_failed",
+        "rounds": 97,
+        "condition": 11362382.505723825,
+        "initialError": 644.6905941323877,
+        "finalError": 1.3583296606986401,
+        "workerRejects": true
+      },
+      "spatialControl": {
+        "scaleXY": 32.5,
+        "sameObservedZ": true,
+        "converged": true,
+        "condition": 6.402131182748483,
+        "scope": "Offline conditioning discriminator; not measured data or a substitute calibration",
+        "doesNotProve": "The origin of quantized wire variation or physical precision"
+      },
+      "positiveJourney": {
+        "samplingRadiusBeforeMm": 2,
+        "samplingRadiusAfterMm": 65,
+        "samplesUnchanged": 2,
+        "pointsUnchanged": 7,
+        "totalProbeHitsUnchanged": 16,
+        "assertionsPreserved": "Candidate, finite improvement, same-token replay, single durable save, unchanged live geometry, sealed configuration, closed maintenance, parsed seven height records",
+        "smallSpanCoverage": "Latest exact failure rejected in synchronous and worker paths; existing small-span success and one-step perturbation rejection remain"
+      },
+      "bltouchOwner": {
+        "barrier": "Existing dispatch.runExclusive spans GET admission, single POST, replay and final native travel",
+        "noRecursiveDispatch": true,
+        "stuckPin": "503, revoked homing, failed device, one trigger and native fault; dispatch must reject Native motion stopped",
+        "availableFailureCause": "Prior log did not isolate it; a clock-owner race is excluded by this fixture rather than claimed proven",
+        "temporaryDirectory": "tmpdir follows TMPDIR"
+      },
+      "cancelFailurePhases": {
+        "tests": [
+          "late recovery stop",
+          "entire stop-and-commit reuse"
+        ],
+        "budgetsMs": 30,
+        "onlyFailedTestOutput": true,
+        "maximumEvents": [
+          24,
+          32
+        ],
+        "scope": "Inline test device/journal callback timestamps and rejection markers; snapshots labelled after cleanup",
+        "limitations": [
+          "Extra observational work is present in these two tests",
+          "No physical-stop or event-loop attribution",
+          "Prior unobserved failures remain unclosed"
+        ]
+      },
+      "validation": {
+        "node": "26.10.0",
+        "typecheck": "passed",
+        "targeted": {
+          "tests": 32,
+          "passed": 32,
+          "failed": 0,
+          "durationMs": 31664.511083,
+          "logSha256": "73edcf749aa491b19692f6dd0331206ab6162fe23f5c620a346c2dbb24d4cbe2"
+        },
+        "restrictedPrintDurable": "one file wrapper passed before final marker refinement; not counted as complete case-level validation",
+        "fullOrdinary": {
+          "state": "running",
+          "command": "npm test",
+          "originalConcurrencyAndBudgets": true,
+          "prototypeObserverPreload": false,
+          "sourceFrozen": true
+        },
+        "exactFinalHeadCi": "not_started"
+      },
+      "sourceSha256": {
+        "host/test/delta-calibration.test.ts": "8bb3099ca363278e616b857e1d7b1b8537049cb2cfac3b357385033748383978",
+        "host/test/delta-probe.test.ts": "f0cb4db39c91a4f3b4c601395091ba73d67b2ea9d9d099ac3f156c82c64c6005",
+        "host/test/delta-bltouch.test.ts": "0b90604d69b3424e731b8a05d219fca216c8e5580a7a74f2e973a40261a5a239",
+        "host/test/print-durable.test.ts": "bf13db49c2b709a16c4217400c53a9e1f46f055dd14ad4070d152ea44e2fa6a9"
+      },
+      "doesNotClose": [
+        "Original full-run failures",
+        "Historical G3",
+        "Real target-board performance and precision",
+        "Actual frontend page journey",
+        "Complete Python and macro retirement"
+      ]
     }
   },
   "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"

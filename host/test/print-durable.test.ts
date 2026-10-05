@@ -296,10 +296,14 @@ test('recovery timeout owns late stop and cannot clear interruption before ackno
   await f.controller().start(request);
   await f.reopen();
   const release = deferred();
-  let stops = 0;
+  let stops = 0, complete = false;
+  const started = performance.now(), phases: { phase: string; elapsedMs: number }[] = [];
+  const mark = (phase: string) => { if (phases.length < 24) phases.push({ phase, elapsedMs: performance.now() - started }); };
   f.device.stop = async () => {
     stops++;
+    mark('device-stop-enter');
     await release.promise;
+    mark('device-stop-ack');
   };
   const restored = await PrintController.restore(
     f.device,
@@ -307,15 +311,29 @@ test('recovery timeout owns late stop and cannot clear interruption before ackno
     { stopMs: 30 },
     { journal: f.journal },
   );
+  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'late-recovery-stop', budgetMs: 30, phases, stateAfterCleanup: restored.state, pendingAfterCleanup: restored.pendingDeviceActions, safeStopPending: restored.safeStopPending, stops, scope: 'Test callback phases; no physical stop latency or event-loop attribution' })); });
+  const transition = f.journal.transition.bind(f.journal);
+  f.journal.transition = async (...args) => {
+    if (args[2] === 'cancelled') mark('cancelled-journal-enter');
+    const record = await transition(...args);
+    if (args[2] === 'cancelled') mark('cancelled-journal-ack');
+    return record;
+  };
+  mark('first-cancel');
   await assert.rejects(restored.cancel(), /timed out/);
+  mark('first-timeout-observed');
   assert.equal((await f.journal.active())?.state, 'interrupted');
   assert.throws(() => restored.reset('job'));
+  mark('retry-cancel');
   const retry = restored.cancel();
+  mark('device-stop-release');
   release.resolve();
-  await retry;
+  try { await retry; } catch (error) { mark('retry-rejected'); throw error; }
+  mark('retry-completed');
   assert.equal(stops, 1);
   assert.equal((await f.journal.get('job'))?.state, 'cancelled');
   restored.reset('job');
+  complete = true;
 });
 test('restoring a terminal journal yields idle without device calls', async (t) => {
   const f = await setup(t),
@@ -416,23 +434,30 @@ test('repeated cancel deadlines reuse the entire stop-and-commit operation', asy
     { stopMs: 30 },
     { journal: f.journal },
   );
-  let stops = 0,
-    commits = 0;
+  let stops = 0, commits = 0, complete = false;
+  const started = performance.now(), phases: { phase: string; elapsedMs: number }[] = [];
+  const mark = (phase: string) => { if (phases.length < 32) phases.push({ phase, elapsedMs: performance.now() - started }); };
+  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'stop-and-commit-reuse', budgetMs: 30, phases, stateAfterCleanup: controller.state, pendingAfterCleanup: controller.pendingDeviceActions, safeStopPending: controller.safeStopPending, stops, commits, scope: 'Test callback phases; no physical stop latency or event-loop attribution' })); });
   f.device.stop = async () => {
     stops++;
+    mark('device-stop-ack');
   };
   const transition = f.journal.transition.bind(f.journal);
   f.journal.transition = async (...args) => {
+    if (args[2] === 'cancelled') mark('cancelled-journal-enter');
     const record = await transition(...args);
     if (args[2] === 'cancelled') {
+      mark('cancelled-journal-durable-ack');
       commits++;
       await release.promise;
+      mark('cancelled-journal-owner-release');
     }
     return record;
   };
   await controller.start(request);
   try {
     for (let i = 0; i < 3; i++) {
+      mark('expected-timeout-cancel-' + i);
       await assert.rejects(controller.cancel(), /timed out/);
       assert.equal(controller.state, 'failed');
       assert.throws(() => controller.reset('job'));
@@ -440,17 +465,23 @@ test('repeated cancel deadlines reuse the entire stop-and-commit operation', asy
     assert.equal(stops, 1);
     assert.equal(commits, 1);
   } finally {
+    mark('journal-release');
     release.resolve();
   }
-  await controller.cancel();
+  mark('reconcile-cancel');
+  try { await controller.cancel(); } catch (error) { mark('reconcile-rejected'); throw error; }
+  mark('reconcile-completed');
   assert.equal(stops, 1);
   assert.equal(commits, 1);
   controller.reset('job');
   f.device.prepare = async () => {};
   await controller.start({ ...request, requestId: 'next' });
   assert.equal((await f.journal.get('next'))?.state, 'started');
-  await controller.cancel();
+  mark('next-job-cancel');
+  try { await controller.cancel(); } catch (error) { mark('next-job-cancel-rejected'); throw error; }
+  mark('next-job-cancel-completed');
   assert.equal(stops, 2);
   assert.equal(commits, 2);
   assert.equal((await f.journal.get('next'))?.state, 'cancelled');
+  complete = true;
 });

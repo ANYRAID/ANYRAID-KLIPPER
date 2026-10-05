@@ -69,7 +69,9 @@ for(let run=0;run<(benchmark?4:1);run++)test(`Delta automatic product service ex
  const wireTrace:{sample:number;armClock:number;actualArmClocks:number[];counts:[string,number][];triggerClock?:number;actualTriggerClocks?:number[];positions:{member:number;oid:number;position:number;clock:number}[]}[]=[];
  try{
   const raw=deltaPrinterSections(f.reader.source.original);raw.probe={pin:'^aux:PA13',z_offset:'.123456789',x_offset:'-2',y_offset:'3',samples:'2',sample_retract_dist:'.2',samples_tolerance:'10'};
-  raw.delta_calibrate={radius:'2',horizontal_move_z:'10'};
+  // Keep the small-span rejection in delta-calibration.test.ts. A positive
+  // fit/save journey needs a well-spaced grid with this 0.0125 mm wire model.
+  raw.delta_calibrate={radius:'65',horizontal_move_z:'10'};
   const reader=new ConfigurationReader(new ConfigurationSource('/delta.cfg',raw,[]),null),plan=planDeltaHardware(reader,{mcus:['mcu','aux'],enableLeadTime:.001,fanMinimumScheduleTime:.001});
   const transport=await productTransports(reader),dir=await mkdtemp(join(tmpdir(),'delta-probe-api-')),journal=await PrintJournal.open({path:dir+'/jobs.db',deviceId:'probe'});await writeFile(dir+'/moonraker.conf','[server]\nhost=127.0.0.1\nport=0');
   const configurationPath=dir+'/printer.cfg';await writeFile(configurationPath,Object.entries(transport.reader.source.original).map(([section,options])=>'['+section+']\n'+Object.entries(options).map(([key,value])=>key+': '+value.replaceAll('\n','\n  ')).join('\n')).join('\n')+'\n');

@@ -65,3 +65,19 @@ test('exact remote Delta failures reproduce unconverged fitting and never escape
  const candidate=await executor.fit(successful);assert(candidate.search.converged);assert(candidate.finalError<1e-18);assert.equal(executor.busy,false);
  t.diagnostic('RemoteDeltaFitDiscriminator '+JSON.stringify({sources,values:first.length,reason:result.search.reason,rounds:result.search.rounds,condition:result.search.condition,initialError:result.initialError,finalError:result.finalError,workerRejected:true,successfulControlConverged:true}));
 });
+
+
+test('latest captured small-radius Delta fit stays rejected while a well-spaced control converges',async t=>{
+ const evidence=JSON.parse(readFileSync(new URL('../contracts/fixed-client-bundle-acceptance.json',import.meta.url),'utf8'));
+ const capture=evidence.integratedCandidate.deltaSaveFixtureRepair.validation.capturedFailedFit;
+ assert.equal(capture.sourceHead,'5536850a3ed085b02df4cb3dfa376a738e009f3b');assert.equal(capture.sourceJob,111703189526);
+ const input:DeltaCalibrationInput={geometry:capture.geometry,probes:capture.stable.map((stable:DeltaCalibrationInput['probes'][number]['stable'])=>({height:capture.height,stable})),manual:capture.manual,distances:capture.distances};
+ const before=structuredClone(input),result=fitDeltaCalibration(input);
+ assert.equal(result.search.converged,false);assert.equal(result.search.reason,'line_search_failed');assert(result.finalError>1);assert.deepEqual(input,before);
+ const executor=new DeltaCalibrationExecutor();await assert.rejects(executor.fit(input),/Delta calibration did not converge: line_search_failed/);assert.equal(executor.busy,false);assert.deepEqual(input,before);
+ // Change only the spatial extent of these same observed Z errors. This is
+ // an offline conditioning control, not a replacement measurement or fit.
+ const model=new DeltaCalibration(input.geometry),control={...input,probes:input.probes.map(p=>{const [x,y,z]=model.position(p.stable);return {...p,stable:model.stable([x*32.5,y*32.5,z])};})};
+ const candidate=await executor.fit(control);assert(candidate.search.converged);assert(candidate.finalError<candidate.initialError);assert(candidate.search.condition<10);assert.equal(executor.busy,false);
+ t.diagnostic('LatestDeltaFitDiscriminator '+JSON.stringify({source:capture.sourceHead,job:capture.sourceJob,values:41,reason:result.search.reason,rounds:result.search.rounds,condition:result.search.condition,initialError:result.initialError,finalError:result.finalError,workerRejected:true,spatialControlConverged:true,spatialControlCondition:candidate.search.condition,scope:'Captured failure and offline spatial conditioning only; does not close wire timing or physical precision'}));
+});
