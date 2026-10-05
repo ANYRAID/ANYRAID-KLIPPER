@@ -931,8 +931,157 @@
           "logSha256": "30426e762e0fda92f3496136c31ef380479a2e8e56a2fc6f10b73185b294bd21"
         },
         "initialRestrictedAttempt": "Blocked before mock UART setup by Unix socket listen EPERM; normal local-permission run above completed",
-        "fullOrdinary": "running_after_necessary_fixture_change",
-        "exactFinalHeadCi": "not_started"
+        "fullOrdinary": {
+          "sourceHead": "5536850a3ed085b02df4cb3dfa376a738e009f3b",
+          "state": "completed",
+          "tests": 3925,
+          "passed": 3921,
+          "failed": 4,
+          "durationMs": 335515.916659,
+          "logSha256": "b807f2c84d93205ff233e29875d2178ad0bbbc6c3d548b913e861fa7469411f5",
+          "originalConcurrencyAndBudgets": true,
+          "observerPreload": false,
+          "failures": [
+            "Delta BLTouch each=false stuck=false: Invalid mapped trigger clock member=0 oid=0 mapped=7673335 observed=7645020",
+            "recovery timeout owns late stop: Print cancel timed out after 30 ms",
+            "repeated cancel deadlines reuse stop-and-commit: Print cancel timed out after 30 ms",
+            "source-brake file wrapper failed; reporter did not identify signal in this run"
+          ],
+          "historicalFailureCausesClosed": false
+        },
+        "exactFinalHeadCi": {
+          "head": "5536850a3ed085b02df4cb3dfa376a738e009f3b",
+          "hostRun": 37291645450,
+          "firmwareRun": 37291645267,
+          "motionRun": 37291645367,
+          "stateAtObservation": "completed_jobs",
+          "conclusion": null,
+          "host": {
+            "job": 111703189526,
+            "conclusion": "failure",
+            "tests": 3927,
+            "passed": 3925,
+            "failed": 2,
+            "durationMs": 539839.516931,
+            "failures": [
+              {
+                "file": "test/delta-bltouch.test.ts",
+                "line": 28,
+                "error": "assert(state.available)",
+                "each": true,
+                "stuck": false,
+                "cause": "not yet isolated; clock-owner competition is a candidate, not proven by this log"
+              },
+              {
+                "file": "test/delta-probe.test.ts",
+                "line": 125,
+                "status": 503,
+                "stage": "fit",
+                "error": "Delta calibration did not converge: line_search_failed",
+                "scope": "before save; does not validate repaired save endpoint"
+              }
+            ],
+            "protocol": "skipped",
+            "sanitizers": "skipped",
+            "linuxMcu": "skipped"
+          },
+          "firmware": {
+            "conclusion": "success"
+          },
+          "motion": {
+            "jobs": 10,
+            "conclusion": "success",
+            "jobIds": [
+              111703188496,
+              111703188755,
+              111703188814,
+              111703188858,
+              111703188878,
+              111703188931,
+              111703188961,
+              111703189007,
+              111703189014,
+              111703189019
+            ],
+            "sampleCountsIndependentlyReadThisRun": false,
+            "closesG3": false
+          }
+        },
+        "capturedFailedFit": {
+          "sourceJob": 111703189526,
+          "sourceHead": "5536850a3ed085b02df4cb3dfa376a738e009f3b",
+          "geometry": {
+            "radius": 100,
+            "angles": [
+              210,
+              330,
+              90
+            ],
+            "arms": [
+              250,
+              250,
+              250
+            ],
+            "endstops": [
+              300,
+              300,
+              300
+            ],
+            "stepDistances": [
+              0.0125,
+              0.0125,
+              0.0125
+            ]
+          },
+          "height": 0.123456789,
+          "stable": [
+            [
+              23230,
+              23230,
+              23230
+            ],
+            [
+              23263.823890082684,
+              23253.82295277944,
+              23164.40269957477
+            ],
+            [
+              23189.168174358474,
+              23283.522439544442,
+              23189.168174358474
+            ],
+            [
+              23161.243423782333,
+              23250.207042368867,
+              23250.207042368867
+            ],
+            [
+              23195.91758172969,
+              23195.91758172969,
+              23269.289241181694
+            ],
+            [
+              23246.5982367534,
+              23168.09398980033,
+              23246.5982367534
+            ],
+            [
+              23276.39745009156,
+              23192.535595331658,
+              23192.535595331658
+            ]
+          ],
+          "manual": [],
+          "distances": [],
+          "next": "Compare this exact captured input against existing deterministic fit discriminators before modifying simulation or solver; do not loosen convergence or precision"
+        }
+      },
+      "supplementalSelfReview": {
+        "head": "5536850a3ed085b02df4cb3dfa376a738e009f3b",
+        "reviewId": "PRR_kwDOUhWiXM8AAAABQp9sCw",
+        "state": "COMMENTED",
+        "submittedAt": "2026-10-05T09:50:28Z",
+        "mergeAllowed": false
       }
     }
   },

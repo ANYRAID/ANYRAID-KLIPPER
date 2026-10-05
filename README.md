@@ -30,7 +30,7 @@ Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的
 固定包验收夹具及必要无 JIT 对照已正常同步该基线；新整合包本机
 协议及混合打印通过，完整本机检查仍有三项失败。草稿 PR #4 已创建
 并提交自审；该头固件和运动诊断通过，主机检查的保存竞争正在修复，
-最终修复头仍须规定 CI，尚未合并。其范围见[验收契约](host/contracts/fixed-client-bundle-acceptance.json)。
+修复头 `5536850a` 已启动规定 CI，本机完整检查 3921／3925，尚未合并。其范围见[验收契约](host/contracts/fixed-client-bundle-acceptance.json)。
 完整 Fluidd／Mainsail 同包页面流程、G3、真实装配及目标板验收仍未完成。
 
 现有服务、文件／身份／历史、打印状态机及恢复设施继续复用。当前先
