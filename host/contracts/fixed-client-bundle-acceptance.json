@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "integrated_task_candidate_full_local_suite_failed",
+  "status": "task_candidate_local_suite_passed_exact_head_ci_pending",
   "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
   "sourceSha256": {
@@ -421,7 +421,7 @@
       "independentProductionDependencies": 14,
       "buildAndInstallMs": 5941.460416999999
     },
-    "requiredExactHeadCi": {
+    "historicalExactHeadCi": {
       "head": "9630d4630b30d52514cf229da7c43d55e9877ec0",
       "state": "failed",
       "host": {
@@ -731,7 +731,7 @@
       },
       "scope": "These checks bind 9630d463. Save fixture repair requires checks of its final new head."
     },
-    "mergeReadiness": "draft_due_to_unclosed_local_full_suite_failures",
+    "mergeReadiness": "draft_until_final_controlled_fixture_head_ci_and_scope_review",
     "pullRequest": {
       "number": 4,
       "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/4",
@@ -901,7 +901,23 @@
           "callTarget": "0x622720",
           "xor": "0x1000000"
         },
-        "qualification": "ELF and disassembly are current on-disk observations for this binary hash. A legitimate instruction one bit away is not proof of intended return address, stack corruption mechanism, compiler defect or hardware cause. No crash-time memory/core/backtrace was obtained."
+        "qualification": "ELF and disassembly are current on-disk observations for this binary hash. A legitimate instruction one bit away is not proof of intended return address, stack corruption mechanism, compiler defect or hardware cause. No crash-time memory/core/backtrace was obtained.",
+        "additionalObservation": {
+          "sourceHead": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
+          "logSha256": "80b597e16d50f1dc36674514ab15afed664b4d9d5aa515d450f8c9a70a493765",
+          "compilerSha256": "4f2de678286401759b3fb4475bafe35b8f32b4b3a07d92642bbf37eadc9b34a4",
+          "signal": "SIGSEGV",
+          "signalCode": 2,
+          "observedPc": "0x1422166",
+          "observedPcInReadOnlyNonExecutableLoad": true,
+          "comparison": {
+            "mappedInstructionAfterCall": "0x422166",
+            "precedingCall": "0x422161",
+            "callTarget": "0x430ca0",
+            "xor": "0x1000000"
+          },
+          "qualification": "Current static ELF comparison only, no crash-time memory/core; does not prove intended PC, compiler defect, hardware cause or corruption mechanism"
+        }
       },
       "crashCaptureAvailability": {
         "coreLimit": 0,
@@ -909,9 +925,23 @@
         "matchingCoreFound": false,
         "coredumpctl": "unavailable",
         "gdb": "not_on_current_PATH",
-        "kernelJournal": "system entries unavailable to current user; no entries is not proof no crash occurred"
+        "kernelJournal": "system entries unavailable to current user; no entries is not proof no crash occurred",
+        "systemKernelRead": "Read-only sudo -n journalctl unavailable: password required. Unprivileged filtered journal cannot see system entries; neither establishes absence of hardware errors."
       },
-      "nextAction": "Retain all three original failures. Await independent exact-head checks, then capture failure phases and native crash-time state on a discriminating local run instead of repeating successful samples or changing numerical tolerances."
+      "nextAction": "Complete exact final fixture-head checks and scope review, then independent Moonraker software integration; retain historical faults for a bounded experiment obtaining crash-time state, with real motion/default switching blocked by G3.",
+      "postRepairScope": {
+        "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
+        "unchangedPaths": [
+          "host/src",
+          "src",
+          "host/package-lock.json",
+          "host/scripts/build-product-host.ts",
+          "host/tsconfig.product-host.json"
+        ],
+        "compilerUnchanged": true,
+        "currentFullSuitePassed": true,
+        "qualification": "Verified scope and full suite result permit review of this test/acceptance-only increment after exact-head CI; do not close historical native faults or G3. No real motion/default switching."
+      }
     },
     "deltaSaveFixtureRepair": {
       "trigger": "HTTP save attempted while periodic stationary clock maintenance owned the native port",
@@ -1158,13 +1188,191 @@
         },
         "restrictedPrintDurable": "one file wrapper passed before final marker refinement; not counted as complete case-level validation",
         "fullOrdinary": {
-          "state": "running",
+          "head": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
+          "state": "completed",
+          "conclusion": "failure",
           "command": "npm test",
+          "tests": 3913,
+          "passed": 3909,
+          "failed": 4,
+          "durationMs": 335660.030973,
+          "logSha256": "80b597e16d50f1dc36674514ab15afed664b4d9d5aa515d450f8c9a70a493765",
           "originalConcurrencyAndBudgets": true,
           "prototypeObserverPreload": false,
-          "sourceFrozen": true
+          "sourceFrozen": true,
+          "failures": [
+            "Two cancellation tests exceeded the 30 ms entire stop-and-durable-commit observation deadline",
+            "product-build third test: native TypeScript compiler SIGSEGV",
+            "representable-profile file process failed; signal not reported by this log"
+          ],
+          "failurePhases": [
+            {
+              "test": "late-recovery-stop",
+              "budgetMs": 30,
+              "phases": [
+                {
+                  "phase": "first-cancel",
+                  "elapsedMs": 0.9946920000002137
+                },
+                {
+                  "phase": "device-stop-enter",
+                  "elapsedMs": 1.0683930000000146
+                },
+                {
+                  "phase": "first-timeout-observed",
+                  "elapsedMs": 31.21936800000003
+                },
+                {
+                  "phase": "retry-cancel",
+                  "elapsedMs": 31.47102100000029
+                },
+                {
+                  "phase": "device-stop-release",
+                  "elapsedMs": 31.483132000000296
+                },
+                {
+                  "phase": "device-stop-ack",
+                  "elapsedMs": 31.49961200000007
+                },
+                {
+                  "phase": "cancelled-journal-enter",
+                  "elapsedMs": 31.554302000000007
+                },
+                {
+                  "phase": "retry-rejected",
+                  "elapsedMs": 60.722527000000355
+                },
+                {
+                  "phase": "cancelled-journal-ack",
+                  "elapsedMs": 78.82842000000028
+                }
+              ],
+              "stateAfterCleanup": "failed",
+              "pendingAfterCleanup": 0,
+              "safeStopPending": false,
+              "stops": 1,
+              "scope": "Test callback phases; no physical stop latency or event-loop attribution"
+            },
+            {
+              "test": "stop-and-commit-reuse",
+              "budgetMs": 30,
+              "phases": [
+                {
+                  "phase": "expected-timeout-cancel-0",
+                  "elapsedMs": 74.09045500000002
+                },
+                {
+                  "phase": "device-stop-ack",
+                  "elapsedMs": 74.2112659999998
+                },
+                {
+                  "phase": "cancelled-journal-enter",
+                  "elapsedMs": 74.23330600000008
+                },
+                {
+                  "phase": "cancelled-journal-durable-ack",
+                  "elapsedMs": 104.92904799999997
+                },
+                {
+                  "phase": "expected-timeout-cancel-1",
+                  "elapsedMs": 105.04720999999972
+                },
+                {
+                  "phase": "expected-timeout-cancel-2",
+                  "elapsedMs": 135.29739699999982
+                },
+                {
+                  "phase": "journal-release",
+                  "elapsedMs": 165.52744299999995
+                },
+                {
+                  "phase": "reconcile-cancel",
+                  "elapsedMs": 165.5301730000001
+                },
+                {
+                  "phase": "cancelled-journal-owner-release",
+                  "elapsedMs": 165.54333300000008
+                },
+                {
+                  "phase": "reconcile-completed",
+                  "elapsedMs": 165.573574
+                },
+                {
+                  "phase": "next-job-cancel",
+                  "elapsedMs": 240.35332599999992
+                },
+                {
+                  "phase": "device-stop-ack",
+                  "elapsedMs": 240.39182600000004
+                },
+                {
+                  "phase": "cancelled-journal-enter",
+                  "elapsedMs": 240.40346599999975
+                },
+                {
+                  "phase": "next-job-cancel-rejected",
+                  "elapsedMs": 270.62196300000005
+                },
+                {
+                  "phase": "cancelled-journal-durable-ack",
+                  "elapsedMs": 286.0158839999999
+                },
+                {
+                  "phase": "cancelled-journal-owner-release",
+                  "elapsedMs": 286.0250350000001
+                }
+              ],
+              "stateAfterCleanup": "failed",
+              "pendingAfterCleanup": 0,
+              "safeStopPending": false,
+              "stops": 2,
+              "commits": 2,
+              "scope": "Test callback phases; no physical stop latency or event-loop attribution"
+            }
+          ]
         },
-        "exactFinalHeadCi": "not_started"
+        "exactFinalHeadCi": {
+          "head": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
+          "host": {
+            "run": 37295383572,
+            "job": 111715250935,
+            "state": "completed",
+            "conclusion": "failure",
+            "tests": 3928,
+            "passed": 3927,
+            "failed": 1,
+            "durationMs": 546923.38856,
+            "failure": "repeated cancel deadlines reuse the entire stop-and-commit operation",
+            "deviceAckAfterNextCancelMs": 0.038327,
+            "journalRoundTripMs": 235.965935,
+            "protocol": "skipped",
+            "sanitizers": "skipped",
+            "linuxMcu": "skipped"
+          },
+          "firmware": {
+            "run": 37295383621,
+            "job": 111715251016,
+            "state": "completed",
+            "conclusion": "success"
+          },
+          "motion": {
+            "run": 37295383445,
+            "jobs": [
+              111715251512,
+              111715251678,
+              111715251691,
+              111715251695,
+              111715251850,
+              111715251862,
+              111715251877,
+              111715251891,
+              111715251950,
+              111715252096
+            ],
+            "allJobsCompletedSuccessfully": true,
+            "scope": "Ten job conclusions verified; sample counts not independently re-read for this head; finite offline results do not close G3"
+          }
+        }
       },
       "sourceSha256": {
         "host/test/delta-calibration.test.ts": "8bb3099ca363278e616b857e1d7b1b8537049cb2cfac3b357385033748383978",
@@ -1179,6 +1387,65 @@
         "Actual frontend page journey",
         "Complete Python and macro retirement"
       ]
+    },
+    "controlledCancelFixture": {
+      "sourceBase": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
+      "sourceSha256": {
+        "host/test/print-durable.test.ts": "7f0f7a1481ad8831ce66bb7ff6c47a190ffb7f6e55345f48ea132579ef89187c"
+      },
+      "observedFailure": "Local and independent remote phase traces show a new cancelled journal durable acknowledgement arriving after the 30 ms deadline despite immediate simulated device ACK; the fixture wrongly assumed the storage commit would finish within that deadline",
+      "change": "Use explicit journal-entry, commit-permit, durable-ACK and owner-release barriers; expect original 30 ms waits to reject while held; late completion remains failed until explicit reconciliation of the same operation; check one stop and one commit per job, reset exclusion and a fresh next job",
+      "productionChanges": false,
+      "stopDeadlineMs": 30,
+      "productionStopDeadlineMs": 10000,
+      "durabilityChanged": false,
+      "concurrencyChanged": false,
+      "precisionChanged": false,
+      "phaseOutput": {
+        "onlyFailedTest": true,
+        "maximumEvents": [
+          32,
+          40
+        ],
+        "scope": "Controlled test callback milestones; not physical stop or storage performance measurements"
+      },
+      "validation": {
+        "node": "26.10.0",
+        "typecheck": "passed",
+        "targeted": {
+          "tests": 16,
+          "passed": 16,
+          "failed": 0,
+          "durationMs": 2830.452699,
+          "logSha256": "db08c45ea1f1ae8526d54fdcce874f81fc1bb2f5c5d921355d560d907dbdc6ab"
+        },
+        "fullOrdinary": {
+          "command": "npm test",
+          "state": "completed",
+          "conclusion": "success",
+          "tests": 3928,
+          "passed": 3928,
+          "failed": 0,
+          "durationMs": 334171.245884,
+          "logSha256": "6778c5f25a03658d2010bfc686588926baae8af7d64db8f619187382c22fef14",
+          "originalConcurrencyAndBudgets": true,
+          "prototypeObserverPreload": false,
+          "sourceFrozen": true
+        },
+        "reusedDeltaTargeted": "32 passing cases bind unchanged Delta test source hashes in conditionedDeltaFixture"
+      },
+      "remaining": "Final commit CI, actual frontend page and target-board gates; a successful full run does not establish the cause of prior native crashes"
+    },
+    "requiredExactHeadCi": {
+      "state": "pending_next_controlled_fixture_head",
+      "previousHead": "7f6f1241e77d075ca2123f6fbaa9789cfa2da1dc",
+      "previousResults": "integratedCandidate.conditionedDeltaFixture.validation.exactFinalHeadCi",
+      "requiredForMerge": [
+        "Node host including ordinary, protocol, sanitizer and Linux MCU",
+        "Build test",
+        "Ten motion diagnostics jobs"
+      ],
+      "scope": "Current repaired source full local check passed. The final containing commit must pass its own required CI; no previous CI substitutes for it."
     }
   },
   "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"

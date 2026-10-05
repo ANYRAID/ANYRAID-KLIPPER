@@ -295,10 +295,10 @@ test('recovery timeout owns late stop and cannot clear interruption before ackno
   const f = await setup(t);
   await f.controller().start(request);
   await f.reopen();
-  const release = deferred();
-  let stops = 0, complete = false;
+  const release = deferred(), commitEntered = deferred(), permitCommit = deferred(), committed = deferred();
+  let stops = 0, commits = 0, complete = false;
   const started = performance.now(), phases: { phase: string; elapsedMs: number }[] = [];
-  const mark = (phase: string) => { if (phases.length < 24) phases.push({ phase, elapsedMs: performance.now() - started }); };
+  const mark = (phase: string) => { if (phases.length < 32) phases.push({ phase, elapsedMs: performance.now() - started }); };
   f.device.stop = async () => {
     stops++;
     mark('device-stop-enter');
@@ -311,29 +311,56 @@ test('recovery timeout owns late stop and cannot clear interruption before ackno
     { stopMs: 30 },
     { journal: f.journal },
   );
-  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'late-recovery-stop', budgetMs: 30, phases, stateAfterCleanup: restored.state, pendingAfterCleanup: restored.pendingDeviceActions, safeStopPending: restored.safeStopPending, stops, scope: 'Test callback phases; no physical stop latency or event-loop attribution' })); });
+  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'late-recovery-stop', budgetMs: 30, phases, stateAfterCleanup: restored.state, pendingAfterCleanup: restored.pendingDeviceActions, safeStopPending: restored.safeStopPending, stops, commits, scope: 'Controlled test callback phases; no physical stop or storage latency attribution' })); });
   const transition = f.journal.transition.bind(f.journal);
   f.journal.transition = async (...args) => {
-    if (args[2] === 'cancelled') mark('cancelled-journal-enter');
+    if (args[2] === 'cancelled') {
+      mark('cancelled-journal-enter');
+      commitEntered.resolve();
+      await permitCommit.promise;
+    }
     const record = await transition(...args);
-    if (args[2] === 'cancelled') mark('cancelled-journal-ack');
+    if (args[2] === 'cancelled') {
+      commits++;
+      mark('cancelled-journal-ack');
+      committed.resolve();
+    }
     return record;
   };
-  mark('first-cancel');
-  await assert.rejects(restored.cancel(), /timed out/);
-  mark('first-timeout-observed');
-  assert.equal((await f.journal.active())?.state, 'interrupted');
-  assert.throws(() => restored.reset('job'));
-  mark('retry-cancel');
-  const retry = restored.cancel();
-  mark('device-stop-release');
-  release.resolve();
-  try { await retry; } catch (error) { mark('retry-rejected'); throw error; }
-  mark('retry-completed');
-  assert.equal(stops, 1);
-  assert.equal((await f.journal.get('job'))?.state, 'cancelled');
-  restored.reset('job');
-  complete = true;
+  try {
+    mark('first-cancel');
+    await assert.rejects(restored.cancel(), /timed out/);
+    mark('first-timeout-observed');
+    assert.equal((await f.journal.active())?.state, 'interrupted');
+    assert.throws(() => restored.reset('job'));
+    mark('retry-cancel');
+    const retry = assert.rejects(restored.cancel(), /timed out/);
+    mark('device-stop-release');
+    release.resolve();
+    await commitEntered.promise;
+    assert.equal((await f.journal.active())?.state, 'interrupted');
+    assert.throws(() => restored.reset('job'));
+    await retry;
+    mark('retry-timeout-observed');
+    assert.equal(restored.state, 'failed');
+    assert.equal(stops, 1);
+    assert.equal(commits, 0);
+    mark('journal-permit-commit');
+    permitCommit.resolve();
+    await committed.promise;
+    assert.equal((await f.journal.get('job'))?.state, 'cancelled');
+    assert.equal(restored.state, 'failed');
+    // Reconcile the same acknowledged operation; no new stop or journal write.
+    await restored.cancel();
+    assert.equal(restored.state, 'cancelled');
+    assert.equal(stops, 1);
+    assert.equal(commits, 1);
+    restored.reset('job');
+    complete = true;
+  } finally {
+    release.resolve();
+    permitCommit.resolve();
+  }
 });
 test('restoring a terminal journal yields idle without device calls', async (t) => {
   const f = await setup(t),
@@ -426,8 +453,8 @@ test('validation and rejected live-record restoration do not consume journal own
   assert.equal((await f.journal.get('job'))?.state, 'reserved');
 });
 test('repeated cancel deadlines reuse the entire stop-and-commit operation', async (t) => {
-  const f = await setup(t),
-    release = deferred();
+  const f = await setup(t), release = deferred(), firstDurable = deferred(),
+    nextEntered = deferred(), nextPermit = deferred(), nextDurable = deferred();
   const controller = new PrintController(
     f.device,
     { maxNozzle: 280, maxBed: 110 },
@@ -436,19 +463,23 @@ test('repeated cancel deadlines reuse the entire stop-and-commit operation', asy
   );
   let stops = 0, commits = 0, complete = false;
   const started = performance.now(), phases: { phase: string; elapsedMs: number }[] = [];
-  const mark = (phase: string) => { if (phases.length < 32) phases.push({ phase, elapsedMs: performance.now() - started }); };
-  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'stop-and-commit-reuse', budgetMs: 30, phases, stateAfterCleanup: controller.state, pendingAfterCleanup: controller.pendingDeviceActions, safeStopPending: controller.safeStopPending, stops, commits, scope: 'Test callback phases; no physical stop latency or event-loop attribution' })); });
+  const mark = (phase: string) => { if (phases.length < 40) phases.push({ phase, elapsedMs: performance.now() - started }); };
+  t.after(() => { if (!complete) t.diagnostic('CancelFailurePhases ' + JSON.stringify({ test: 'stop-and-commit-reuse', budgetMs: 30, phases, stateAfterCleanup: controller.state, pendingAfterCleanup: controller.pendingDeviceActions, safeStopPending: controller.safeStopPending, stops, commits, scope: 'Controlled test callback phases; no physical stop or storage latency attribution' })); });
   f.device.stop = async () => {
     stops++;
     mark('device-stop-ack');
   };
   const transition = f.journal.transition.bind(f.journal);
   f.journal.transition = async (...args) => {
-    if (args[2] === 'cancelled') mark('cancelled-journal-enter');
+    if (args[2] === 'cancelled') {
+      mark('cancelled-journal-enter');
+      if (args[0] === 'next') { nextEntered.resolve(); await nextPermit.promise; }
+    }
     const record = await transition(...args);
     if (args[2] === 'cancelled') {
       mark('cancelled-journal-durable-ack');
       commits++;
+      if (args[0] === 'next') nextDurable.resolve(); else firstDurable.resolve();
       await release.promise;
       mark('cancelled-journal-owner-release');
     }
@@ -462,26 +493,40 @@ test('repeated cancel deadlines reuse the entire stop-and-commit operation', asy
       assert.equal(controller.state, 'failed');
       assert.throws(() => controller.reset('job'));
     }
+    // Storage completion is asynchronous even after the device acknowledges.
+    // Wait for that exact write, while its owner remains deliberately held.
+    await firstDurable.promise;
     assert.equal(stops, 1);
     assert.equal(commits, 1);
-  } finally {
-    mark('journal-release');
+    assert.throws(() => controller.reset('job'));
     release.resolve();
+    await controller.cancel();
+    assert.equal(stops, 1);
+    assert.equal(commits, 1);
+    controller.reset('job');
+    f.device.prepare = async () => {};
+    await controller.start({ ...request, requestId: 'next' });
+    assert.equal((await f.journal.get('next'))?.state, 'started');
+    mark('next-job-cancel');
+    const cancellation = assert.rejects(controller.cancel(), /timed out/);
+    await nextEntered.promise;
+    assert.equal((await f.journal.get('next'))?.state, 'started');
+    assert.throws(() => controller.reset('next'));
+    await cancellation;
+    assert.equal(controller.state, 'failed');
+    assert.equal(stops, 2);
+    assert.equal(commits, 1);
+    nextPermit.resolve();
+    await nextDurable.promise;
+    assert.equal((await f.journal.get('next'))?.state, 'cancelled');
+    assert.equal(controller.state, 'failed');
+    await controller.cancel();
+    assert.equal(controller.state, 'cancelled');
+    assert.equal(stops, 2);
+    assert.equal(commits, 2);
+    complete = true;
+  } finally {
+    release.resolve();
+    nextPermit.resolve();
   }
-  mark('reconcile-cancel');
-  try { await controller.cancel(); } catch (error) { mark('reconcile-rejected'); throw error; }
-  mark('reconcile-completed');
-  assert.equal(stops, 1);
-  assert.equal(commits, 1);
-  controller.reset('job');
-  f.device.prepare = async () => {};
-  await controller.start({ ...request, requestId: 'next' });
-  assert.equal((await f.journal.get('next'))?.state, 'started');
-  mark('next-job-cancel');
-  try { await controller.cancel(); } catch (error) { mark('next-job-cancel-rejected'); throw error; }
-  mark('next-job-cancel-completed');
-  assert.equal(stops, 2);
-  assert.equal(commits, 2);
-  assert.equal((await f.journal.get('next'))?.state, 'cancelled');
-  complete = true;
 });
