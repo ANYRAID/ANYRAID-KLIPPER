@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate_full_local_suite_failed",
+  "status": "integrated_task_candidate_full_local_suite_failed",
   "scope": "Fixed compiled-bundle reuse for client and mixed-print acceptance; no production algorithm changes or physical-device acceptance",
   "sourceBase": "4b6a23171b818aaec6b8d562e3e4f192f62f09a2",
   "sourceSha256": {
@@ -171,7 +171,7 @@
     }
   },
   "remaining": [
-    "Candidate normal merge of latest develop, affected validation and full exact-head CI",
+    "Exact-head required CI and ten motion diagnostic jobs; assess unclosed local full-suite failures before candidate merge",
     "Required exact-head CI, review and normal develop integration",
     "Actual complete same-bundle Fluidd and Mainsail page journeys",
     "G3, Cycnumbris 500 hardware, complete Moonraker, all Python and macro scenario retirement"
@@ -240,6 +240,30 @@
     "sevenIsolation": {
       "file": "anyraid-fixed-candidate-seven-isolation-20261005.log",
       "sha256": "3cc5b97a8b2682dba3e12712141b31030d5d12c78d3c347bc3513e113b8198a9"
+    },
+    "integratedTypecheck": {
+      "file": "anyraid-integrated-candidate-typecheck-20261005.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "integratedTargeted": {
+      "file": "anyraid-integrated-candidate-targeted-20261005.log",
+      "sha256": "0c4598304a904d96605bcace92224ddc6bd359b51e86aee9ac165a986b093603"
+    },
+    "integratedOrdinary": {
+      "file": "anyraid-integrated-9811d50-full-test-20261005.log",
+      "sha256": "6fddd6875a61ee7deed6ed40c4e020dcfe6730e108671419f86ca3fcb2188eba"
+    },
+    "integratedBuild": {
+      "file": "anyraid-integrated-9811d50-bundle-build-20261005.log",
+      "sha256": "e44b187e5883ca8ef1b05ac83b7d47c09b7d604413d31baf151142d9f7497ad6"
+    },
+    "integratedProtocol": {
+      "file": "anyraid-integrated-9811d50-protocol-20261005.log",
+      "sha256": "cb3937fe26f63926e44283e8ec4df27180d333ae214b1964089226cabb7f5492"
+    },
+    "integratedMixed": {
+      "file": "anyraid-integrated-9811d50-mixed-print-20261005.log",
+      "sha256": "09adf8c03ba7963bf3275caa80c7979d42e006b00c7148ce0ce28e101fcc547d"
     }
   },
   "mqttFixtureRepair": {
@@ -272,14 +296,131 @@
     "mergeCommit": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
     "mergedAt": "2026-10-05T08:48:49Z",
     "exactHeadRequiredCi": "passed",
-    "postMergeCi": "in_progress",
+    "postMergeCi": {
+      "host": {
+        "run": 37285981612,
+        "state": "in_progress",
+        "ordinary": "passed",
+        "protocol": "passed",
+        "sanitizers": "in_progress",
+        "linuxMcu": "pending"
+      },
+      "firmware": {
+        "run": 37285981616,
+        "state": "completed",
+        "conclusion": "success"
+      }
+    },
     "candidateIncludesMerge": true
   },
   "integratedCandidate": {
     "base": "65067ea964c5cf486e0af0b0e95fcf338d6dd38c",
     "journeySha256": "2565c1f7d0b38e56b2841b93c05aaa6a2f3b128fcd79f4fd256b36db4783d725",
     "scope": "PR #3 namespace overwrite workload retained; fixed bundle selection and after-cleanup identity check layered on top",
-    "validation": "pending",
-    "historicalBundleNotReusedAsIntegratedPass": true
-  }
+    "validation": {
+      "typecheck": "passed",
+      "targeted": {
+        "tests": 26,
+        "passed": 26,
+        "failed": 0,
+        "durationMs": 1807.563249
+      },
+      "ordinary": {
+        "tests": 3925,
+        "passed": 3922,
+        "failed": 3,
+        "durationMs": 332127.077012,
+        "originalConcurrencyAndBudgets": true,
+        "failures": [
+          {
+            "file": "print-durable.test.ts",
+            "test": "recovery timeout owns late stop and cannot clear interruption before acknowledgement",
+            "error": "Print cancel timed out after 30 ms"
+          },
+          {
+            "file": "product-build.test.ts",
+            "test": "product publication is reproducible and preserves prior output on compiler or addon failure",
+            "error": "Native TypeScript compiler SIGSEGV"
+          },
+          {
+            "file": "source-brake.test.ts",
+            "error": "Test process SIGSEGV"
+          }
+        ]
+      },
+      "protocol": {
+        "tests": 2,
+        "passed": 2,
+        "failed": 0,
+        "durationMs": 112716.187043,
+        "modes": [
+          "JWT",
+          "trusted loopback"
+        ],
+        "sameBundleIdentityUnchanged": true
+      },
+      "mixedPrint": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 66403.016248,
+        "originalBudgetsAndAssertionsPreserved": true,
+        "minimumStepLeadMs": 84.374,
+        "eventLoopP99Ms": 2.004991,
+        "eventLoopMaxMs": 19.595263,
+        "statusRequests": 38022,
+        "statusP99Ms": 3.282933000000412,
+        "fileNotifications": 1160,
+        "replacements": {
+          "seed": {
+            "operations": 32,
+            "p95Ms": 264.22914299999684,
+            "maxMs": 310.2271270000001
+          },
+          "upload": {
+            "operations": 16,
+            "p95Ms": 332.20625799999834,
+            "maxMs": 332.20625799999834
+          },
+          "move": {
+            "operations": 16,
+            "p95Ms": 452.77549700000236,
+            "maxMs": 452.77549700000236
+          },
+          "uploadDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "moveDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "notifications": 320,
+          "originalNotifications": 840
+        },
+        "sameBundleIdentityUnchanged": true,
+        "scope": "Native compiled host, simulated two-MCU/two-generation namespace workload; does not certify physical speed or precision"
+      }
+    },
+    "historicalBundleNotReusedAsIntegratedPass": true,
+    "sourceHead": "9811d50c30957fa841a67bda6a2852e861dfcc83",
+    "sourceSha256": {
+      "host/test/helpers/acceptance-bundle.ts": "60f5f9236c8d45ceb0d3fdf29aaa5a0dfde14b107e209f0b24df5e61e1a6ed08",
+      "host/test/acceptance-bundle.test.ts": "f020a827efb11de0d6b50d1d0e4946f2868d7fce88ca5d0a892de7e13d11aaaa",
+      "host/test/helpers/compiled-client-host.ts": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+      "host/acceptance/client-probe.ts": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec",
+      "host/acceptance/client-probe.test.ts": "27d7e72d0dbca3bf80d86bf78f7b03d094f7be4ec52af3706fd6d4257871454b",
+      "host/acceptance/product-compiled-journey.test.ts": "2565c1f7d0b38e56b2841b93c05aaa6a2f3b128fcd79f4fd256b36db4783d725",
+      "host/test/configured-product-print.test.ts": "b707a6566bc13433cd529da58e5f15ea94ca9464bb256545a3e7faec7f4009e0"
+    },
+    "bundle": {
+      "manifestSha256": "3873aeabe818a823a0311fd520807da7f4c7155e7f1f71f27d22bfa545c7bf35",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "independentProductionDependencies": 14,
+      "buildAndInstallMs": 5941.460416999999
+    },
+    "requiredExactHeadCi": "not_started",
+    "mergeReadiness": "draft_due_to_unclosed_local_full_suite_failures"
+  },
+  "sourceSha256Scope": "Historical dd6ce0d fixture and 4b6a2317 bundle; integrated candidate below binds changed journey and MQTT separately"
 }
