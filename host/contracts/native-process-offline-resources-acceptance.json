@@ -246,5 +246,479 @@
     "No Python dependency was removed by this lifecycle increment; default install/CI and 177 tracked klippy Python files remain.",
     "Known numerical mismatch/crash observations remain unresolved. Desktop metrics are necessary regression evidence, not target-board budgets, print-quality proof or speed improvement.",
     "No real printer was connected, no production entrypoint switched, and no remote push or deployment occurred."
-  ]
+  ],
+  "offlineManagementCandidate": {
+    "implementationBase": "03bb460939dc57b70089b26b4d743651195c0d2b",
+    "node": "v26.10.0",
+    "status": "Targeted regressions, corrected full-batch failures and compiled confirmed-offline plus mixed-print journey passed; exact-head CI and integration pending",
+    "sourceSha256": {
+      "host/src/moonraker/configured-server.ts": "dc6cdad134f351774ec74f40a2de394010cae2b32ba56f0d2d7b954d562469f5",
+      "host/src/moonraker/native-print-uploads.ts": "e61031c104e6d88cc23e169b4fbf79c49dac576125b44be923c9d4a5ae47d07f",
+      "host/src/runtime/native-product-machine.ts": "05789b223ab75e6087950eb456216690f64dbcff5140d2f960b578a4022897b0",
+      "host/test/native-product-process-lifetime.test.ts": "7745626f3bdd73ca210e871f420e46d6ac5703fd11c8a376ffeae35c70bdec12",
+      "host/test/native-offline-file-management.test.ts": "3a2e7b54fb2e42c49687742b4909d0c77ba6f593c21ce529a61d6446803e0d02",
+      "host/test/native-product-bootstrap.test.ts": "6c0b3eb137843eb88e2eaa07b57593ba9f153adab83cac050a7bf301139965ab",
+      "host/acceptance/product-compiled-journey.test.ts": "34d43c687eef070ec0aa03bd41890965d885f08c13b598530f73aa92c7689742"
+    },
+    "operations": [
+      "delete_file",
+      "move_file",
+      "move_dir",
+      "copy_file",
+      "copy_dir",
+      "upload overwrite"
+    ],
+    "authority": "Existing print controller online; process file identity admission only after server-confirmed physical stop, released device lease and successful cleanup offline.",
+    "protection": [
+      "Offline changes fence new device acquisition",
+      "Same identities exclude competing changes",
+      "Late old-generation bodies rejected",
+      "Device acquired during delayed authorization rejects the old offline commit",
+      "Failed stop/cleanup does not authorize mutation",
+      "Existing per-source/target policies, immutable content, metadata, durability, notification and drain retained"
+    ],
+    "regressions": {
+      "affected": {
+        "tests": 56,
+        "passed": 56,
+        "failed": 0,
+        "durationMs": 12831.011829
+      },
+      "lateAdmission": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 531.613599
+      }
+    },
+    "historicalCandidateFailures": [
+      {
+        "log": "anyraid-offline-regression-20261005.log",
+        "tests": 53,
+        "passed": 51,
+        "failed": 2,
+        "failures": [
+          "Legacy refusal message mismatch",
+          "Unconfirmed stop incorrectly allowed upload replacement (200 instead of 503)"
+        ]
+      },
+      {
+        "log": "anyraid-offline-readiness-regression-20261005.log",
+        "tests": 56,
+        "passed": 55,
+        "failed": 1,
+        "failures": [
+          "Correct denial but wrong HTTP category, 403 instead of 503"
+        ]
+      },
+      {
+        "file": "anyraid-offline-compiled-journey-20261005.log",
+        "pass": 0,
+        "fail": 1,
+        "reason": "Original detached fixture holds replacement device lease; 503 denial is correct. Added separate pre-acquisition confirmed-offline window and preserved leased-window denial."
+      }
+    ],
+    "bundle": {
+      "installation": {
+        "durationMs": 833.8200999999999,
+        "dependencies": 14
+      },
+      "bundle": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-offline-management/host/build/offline-client-bundle",
+        "manifestSha256": "2f8ffbe581ddc04cc1d7060f2a3c1eb9d14277aef8e80dfb345bda1fe49ad452",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+      },
+      "node": "v26.10.0"
+    },
+    "compiledMixed": {
+      "passed": true,
+      "durationMs": 67477.277882,
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 2005,
+        "configListP99Ms": 6.587258000000475,
+        "configDownloads": 2005,
+        "configDownloadP99Ms": 7.48122499999954,
+        "liveMotionSamples": 5825,
+        "liveExtrusionSamples": 1467,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.533808579,
+          "print_duration": 4.922782805999997,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "2f8ffbe581ddc04cc1d7060f2a3c1eb9d14277aef8e80dfb345bda1fe49ad452",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 9703,
+        "phaseP99Ms": 3.7754379999996672,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 296,
+            "writes": 43
+          },
+          {
+            "statusReads": 211,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 1990,
+        "historyP99Ms": 54.02408600000126,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 283.33838200000173,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 280.60931600000185,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 263.3834930000012,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1160,
+        "fileNotificationP95Ms": 77.80369300000166,
+        "movesDuringPrint": 4,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 480.86550999999963,
+        "directoryMovesDuringPrint": 4,
+        "moveRequests": 16,
+        "moveP95Ms": 263.7942870000006,
+        "deleteRequests": 16,
+        "deleteP95Ms": 328.25322400000005,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 197.4635100000014,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 146.36964199999784,
+        "metadataRequests": 16,
+        "metadataP95Ms": 292.11613600000055,
+        "downloads": 16,
+        "downloadP95Ms": 46.4319230000001,
+        "wireCommands": 227,
+        "wireSteps": 7390,
+        "minimumStepLeadMs": 87.078,
+        "directoryRequests": 8231,
+        "directoryP99Ms": 36.63735099999758,
+        "statusRequests": 38809,
+        "uploads": 16,
+        "statusP99Ms": 3.4951469999941764,
+        "uploadP95Ms": 90.300223000002,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.987583,
+              "maxMs": 21.069823
+            },
+            "cpu": {
+              "user": 11703503,
+              "system": 2194415
+            },
+            "rss": 337326080
+          },
+          {
+            "loop": {
+              "p99Ms": 1.944575,
+              "maxMs": 14.049279
+            },
+            "cpu": {
+              "user": 7328577,
+              "system": 1694202
+            },
+            "rss": 349896704
+          }
+        ]
+      }
+    },
+    "logs": [
+      {
+        "file": "anyraid-offline-final-regression-20261005.log",
+        "sha256": "c42ae57d8c02a9ce01695ee88a6062c5ee2dd4754f801927be57ca99e7c68448"
+      },
+      {
+        "file": "anyraid-offline-late-admission-20261005.log",
+        "sha256": "8131514a2b8834075af65095dee3de40f9b768249ea2fb049c02f2f15a1214ea"
+      },
+      {
+        "file": "anyraid-offline-compiled-mixed-20261005.log",
+        "sha256": "7d6e414ddfa516e1d842f9132171af4286c15b8fa6178c0f39969c122c59ceea"
+      },
+      {
+        "file": "anyraid-offline-regression-20261005.log",
+        "sha256": "1fc6d33ef9dd415d0b80e1f505abcbb869a6c1d18f12eea25aad1cb886802dd1"
+      },
+      {
+        "file": "anyraid-offline-readiness-regression-20261005.log",
+        "sha256": "e1e1cfc5742ec392e8e556dd29f0ee18b9a7f2dcb1b2c328e76261346c415f26"
+      },
+      {
+        "file": "anyraid-offline-full-20261005.log",
+        "sha256": "01f32ce232411e89d83574fddd7562e79c98e7c3c4a85b0068842dc674244d9c"
+      },
+      {
+        "file": "anyraid-offline-full-failure-followup-20261005.log",
+        "sha256": "97e82db6caf89139700e89d48bcbd06b191f759895b0fb299972b19dbeffae0d"
+      },
+      {
+        "file": "anyraid-offline-complete-typecheck-20261005.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      },
+      {
+        "file": "anyraid-offline-compiled-journey-20261005.log",
+        "sha256": "80062b62cb97a6d6b208488b73287e931687f624d4b21168ce77a74732343495"
+      },
+      {
+        "file": "anyraid-offline-final-typecheck-after-window-20261005.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      },
+      {
+        "file": "anyraid-offline-compiled-confirmed-window-20261005.log",
+        "sha256": "dd4ed452a540cf7f8404fedf6abf4e6bb729d304e0f04ace36daf11aa01a86c5"
+      }
+    ],
+    "scope": "Source actual host loop and independently compiled mixed printing, simulated PTY MCUs only. Not complete offline/recursive management, full fixed-client page acceptance, target-board performance, motion precision or Python retirement.",
+    "remaining": [
+      "Exact new-head required CI and normal PR to develop followed by merged-head verification",
+      "Nonempty recursive cleanup with identity protection, authorization, durable intent and recovery",
+      "Remaining fixed-client and secured access outlets",
+      "Physical stop providers, target platform and G3"
+    ],
+    "fullOrdinary": {
+      "tests": 3936,
+      "pass": 3932,
+      "fail": 4,
+      "durationMs": 335271.622591,
+      "exitCode": 1,
+      "followup": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "durationMs": 14464.967431
+      },
+      "causes": [
+        "Three obsolete bootstrap delete-unavailable assertions changed to verify actual authorized offline copy/delete and anonymous denial after confirmed cleanup",
+        "Unchanged serial-clock-provenance C compilation hit GCC 12 internal compiler error; focused recheck passed, intermittent fault remains open"
+      ],
+      "singleFullRunGreen": false
+    },
+    "upstreamReference": {
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "path": "moonraker/components/file_manager/file_manager.py",
+      "line": 544,
+      "url": "https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/file_manager/file_manager.py#L544"
+    },
+    "compiledOfflineManagement": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 70520.578671,
+      "operations": {
+        "sameListener": true,
+        "priorJwt": true,
+        "originalSockets": true,
+        "unauthorizedRejected": true,
+        "copy": true,
+        "movePreservesIdentity": true,
+        "copyOverwriteReplacesIdentity": true,
+        "delete": true,
+        "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+        "notifications": 16
+      },
+      "metrics": {
+        "namespace": true,
+        "motionReportLoad": true,
+        "configListRequests": 2081,
+        "configListP99Ms": 7.27386000000115,
+        "configDownloads": 2081,
+        "configDownloadP99Ms": 10.644667000000481,
+        "liveMotionSamples": 5402,
+        "liveExtrusionSamples": 1455,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 9.365046926,
+          "print_duration": 4.294541622999998,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "2f8ffbe581ddc04cc1d7060f2a3c1eb9d14277aef8e80dfb345bda1fe49ad452",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 10119,
+        "phaseP99Ms": 3.7173099999999977,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 304,
+            "writes": 43
+          },
+          {
+            "statusReads": 224,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 2073,
+        "historyP99Ms": 55.73785599999974,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 193.67791399999987,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 334.0702360000014,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 286.56306400000176,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1176,
+        "fileNotificationP95Ms": 88.83407599999919,
+        "movesDuringPrint": 3,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 479.8362999999954,
+        "directoryMovesDuringPrint": 2,
+        "moveRequests": 16,
+        "moveP95Ms": 458.72091199999886,
+        "deleteRequests": 16,
+        "deleteP95Ms": 371.2767480000002,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 234.314314999996,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 149.58815699999832,
+        "metadataRequests": 16,
+        "metadataP95Ms": 274.85978199999954,
+        "downloads": 16,
+        "downloadP95Ms": 56.37346699999762,
+        "wireCommands": 215,
+        "wireSteps": 6976,
+        "minimumStepLeadMs": 88.403,
+        "directoryRequests": 8575,
+        "directoryP99Ms": 37.073811999998725,
+        "statusRequests": 40478,
+        "uploads": 16,
+        "statusP99Ms": 3.4495280000001003,
+        "uploadP95Ms": 89.97008799999821,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.976319,
+              "maxMs": 20.299775
+            },
+            "cpu": {
+              "user": 11949409,
+              "system": 2229095
+            },
+            "rss": 308326400
+          },
+          {
+            "loop": {
+              "p99Ms": 1.975295,
+              "maxMs": 16.293887
+            },
+            "cpu": {
+              "user": 8092822,
+              "system": 1746241
+            },
+            "rss": 399454208
+          }
+        ]
+      }
+    }
+  }
 }
