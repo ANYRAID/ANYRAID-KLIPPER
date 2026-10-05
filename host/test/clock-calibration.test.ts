@@ -28,7 +28,14 @@ test('a pulse at the exact calibration anchor is rejected atomically and the nex
  try{
   c.generateCalibrationBoundary(.000312);const first=clock.planCalibration(c.status.generatedTime,.002,1000100);assert(first);assert.equal(first.tick,313n);c.generateCalibrationBoundary(first.time);
   const before=clock.status,calibration=x.calibration;
-  assert.throws(()=>clock.calibrateMotion(first.tick,1000100,c,['z','x']),{name:'RangeError',message:'Calibration would overlap previously accepted step clocks'});
+  assert.throws(()=>clock.calibrateMotion(first.tick,1000100,c,['z','x']),error=>{
+   assert(error instanceof RangeError);assert.equal(error.message,'Calibration would overlap previously accepted step clocks');
+   assert.equal((error as RangeError&{code:string}).code,'ERR_CLOCK_CALIBRATION_ANCHOR_PULSE');
+   assert.deepEqual((error as RangeError&{calibrationBoundary:unknown}).calibrationBoundary,{candidateClock:'313',latestClock:'313',flushedClock:'0',stepAccounting:'8',generatedTime:first.time,candidateRawClock:313,applying:false});return true;
+  });
+  const nextMapping={offset:first.time-Number(first.tick)/1000100,frequency:1000100};
+  assert.throws(()=>x.calibrateClock(nextMapping.offset,nextMapping.frequency),{code:'ERR_CLOCK_CALIBRATION_OVERLAP'});
+  assert.throws(()=>x.validateClockCalibration(nextMapping.offset+1e-6,nextMapping.frequency),{code:'ERR_CLOCK_CALIBRATION_OVERLAP'});
   assert.deepEqual(clock.status,before);assert.deepEqual(x.calibration,calibration);assert.deepEqual(z.calibration,calibration);assert.equal(c.status.failed,false);assert.equal(commits,0);assert.equal(stops,0);
   const next=clock.planCalibration(c.status.generatedTime,.002,1000100);assert(next);assert.equal(next.tick,314n);c.generateCalibrationBoundary(next.time);clock.calibrateMotion(next.tick,1000100,c,['z','x']);
   assert.deepEqual(x.calibration,clock.status.calibration);assert.deepEqual(z.calibration,x.calibration);assert.equal(commits,0);assert.equal(stops,0);

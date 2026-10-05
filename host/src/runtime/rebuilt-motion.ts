@@ -158,7 +158,7 @@ export async function bindRebuiltMotion(o:RebuiltMotionOptions){
    const now=serialClock.now(),local=group.session(id).clock.sync;if(owner.timeline.clockAt(status.generatedTime)<=local.getClock(now))return false;
    const candidate=sync.propose(status.generatedTime,now),plan=sync.planShared(candidate,owner.timeline,coordinator,limit);if(!plan||plan.time-status.generatedTime>.01)return false;
    coordinator.generateCalibrationBoundary(plan.time);if(plan.tick<=local.getClock(serialClock.now()))return false;
-   sync.applyShared(candidate,owner.timeline,coordinator,grouped[member].map(b=>b.id));return true;
+   return sync.tryApplyShared(candidate,owner.timeline,coordinator,grouped[member].map(b=>b.id));
   };
   const calibrateMotionClock=(id:string,generationLimit:number)=>calibrateMotion(id,generationLimit);
   const releaseBoundaryOutput=():BoundaryOutputTransfer|undefined=>{

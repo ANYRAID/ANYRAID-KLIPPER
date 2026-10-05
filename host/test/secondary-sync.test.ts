@@ -43,6 +43,40 @@ test('inactive clocks and unrepresentable native ranges fail without changing th
 import {TrapQueue} from '../src/motion/trap-queue.ts';
 import {MotionCoordinator} from '../src/motion/coordinator.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
+import {CalibrationCadence} from '../src/timing/calibration-cadence.ts';
+test('maintenance defers a native anchor pulse atomically and publishes the next exact tick',async()=>{
+ const main=new ClockSync(1e6,0n,0),local=new ClockSync(1000100,0n,0),sync=new SecondarySync(main,local,0,{offset:0,frequency:1e6,syncTime:0});
+ const clock=new PrintClockTimeline(sync.mapping),cadence=new CalibrationCadence(),settings={frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6};
+ using q=new TrapQueue();q.appendRaw(new Float64Array([4e-7,0,2,0,0,0,0,1,0,0,20,20,0]));
+ using x=q.createStepper(settings,'x',.0125),z=q.createStepper({...settings,oid:4},'z',.0125);let commits=0,stops=0;
+ const c=new MotionCoordinator([{id:'x',queue:q,stepper:x},{id:'z',queue:q,stepper:z}],{async commit(){commits++;},async stop(){stops++;}});
+ try{
+  c.generateCalibrationBoundary(.000312);const proposal=sync.propose(c.status.generatedTime,0),initial=sync.mapping,first=sync.planShared(proposal,clock,c,.002)!;
+  assert.equal(first.tick,313n);c.generateCalibrationBoundary(first.time);const before=clock.status;
+  assert.equal(cadence.run(0,()=>sync.tryApplyShared(proposal,clock,c,['z','x'])),false);
+  assert.deepEqual(sync.mapping,initial);assert.deepEqual(clock.status,before);assert.deepEqual(x.calibration,before.calibration);assert.deepEqual(z.calibration,before.calibration);
+  assert.equal(c.status.failed,false);assert.equal(commits,0);assert.equal(stops,0);
+  assert.equal(cadence.run(.249,()=>assert.fail('retry was too early')),undefined);
+  assert.equal(cadence.run(.25,()=>{const next=sync.planShared(proposal,clock,c,.002)!;assert.equal(next.tick,314n);c.generateCalibrationBoundary(next.time);return sync.tryApplyShared(proposal,clock,c,['z','x']);}),true);
+  assert.deepEqual(x.calibration,clock.status.calibration);assert.deepEqual(z.calibration,x.calibration);assert.deepEqual(sync.mapping,{...x.calibration,syncTime:proposal.syncTime});
+  assert.equal(commits,0);assert.equal(stops,0);assert.equal(clock.clockAt(first.time),313n);
+  const accepted=x.flush();assert.equal(accepted.position,1n);assert.deepEqual([...accepted.history],[313n,313n,0n,1n,313n,0n]);
+  assert.throws(()=>sync.tryApplyShared(proposal,clock,c,['z','x']),/Stale/);
+ }finally{await c.shutdown();}
+});
+test('maintenance propagates past-clock overlap and terminal application faults',async t=>{
+ for(const terminal of [false,true]){
+  const main=new ClockSync(1e6,0n,0),local=new ClockSync(1000100,0n,0),sync=new SecondarySync(main,local,0,{offset:0,frequency:1e6,syncTime:0}),clock=new PrintClockTimeline(sync.mapping);
+  using q=new TrapQueue();q.appendRaw(new Float64Array([0,0,2,0,0,0,0,0,0,0,0,0,0]));
+  using x=q.createStepper({frequency:1e6,timeOffset:0,oid:3,maxError:0,queueStepTag:5,directionTag:6},'x',.01);
+  const c=new MotionCoordinator([{id:'x',queue:q,stepper:x}],{async commit(){},async stop(){}},1024),error=Object.assign(new RangeError('Calibration would overlap previously accepted step clocks'),{code:terminal?'ERR_CLOCK_CALIBRATION_ANCHOR_PULSE':'ERR_CLOCK_CALIBRATION_OVERLAP'});
+  try{
+   c.generateCalibrationBoundary(.001);const p=sync.propose(.001,0),before=sync.mapping;
+   const fail=()=>{throw error;},mocked=terminal?t.mock.method(x,'calibrateClock',fail):t.mock.method(clock,'calibrateMotion',fail);
+   try{assert.throws(()=>sync.tryApplyShared(p,clock,c,['x']),e=>e===error);assert.deepEqual(sync.mapping,before);assert.equal(clock.status.segments,1);assert.equal(c.status.failed,terminal);}finally{mocked.mock.restore();}
+  }finally{await c.shutdown();}
+ }
+});
 test('peripheral-only calibration preserves delayed samples and publishes the applied mapping',()=>{
  const {main,local}=clocks(),sync=new SecondarySync(main,local,10),clock=new PrintClockTimeline(sync.mapping),old=clock.clockAt(1.4);
  main.accept({clock32:1400000,sentTime:10.4,receiveTime:10.402},true);local.accept({clock32:10799920,sentTime:10.4,receiveTime:10.402},true);
