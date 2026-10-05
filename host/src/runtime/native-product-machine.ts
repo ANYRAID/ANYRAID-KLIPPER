@@ -200,7 +200,7 @@ export function createNativeProductHostFactory(path:string,options:Omit<NativePr
     const signal=AbortSignal.any([incoming,stopped.signal]),config=await readProductMachine(path,signal);await ensureProcess(config,signal);
     const process=processResources!.server,files=await resources!.processFiles(snapshot.uploads);
     const serverOptions={nativeDetached:true as const,configFiles,nativeProcessFiles:files,nativeProcessHistory:processJournal!,productHostControl:control,
-     nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
+     nativePrinterIdentity:{configFile:config.printerConfig,softwareVersion:process.information.version},systemInformation:process.systemInformation??{},systemServices:process.systemServices??{},procStats:process.procStats??{},gcodeStore:process.gcodeStore??{},temperatureStore:{...process.temperatureStore,previous:undefined}};
     const server=process.authorization?await ConfiguredMoonraker.loadAuthorized(config.moonrakerConfig,{...process,...serverOptions}):await ConfiguredMoonraker.load(config.moonrakerConfig,{...process,...serverOptions});
     return {server,recoveryJournal:{path:config.journalPath+'.host-recovery.sqlite',deviceId:config.deviceId}};
    })();

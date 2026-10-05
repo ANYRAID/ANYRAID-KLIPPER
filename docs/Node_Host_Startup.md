@@ -2571,11 +2571,28 @@ systemd-detect-virt，限定一秒和 1 MiB 输出。配置文本仅解析，不
 shell 脚本执行。虚拟化检测不可用时明确返回 unknown。
 
 字段 `runtime` 报告 Node 名称与版本，不伪造旧 `python` 运行时字段。
-当前 `provider: none`，服务控制列表为空，未知的服务实例名为空字符串；
-这表示尚未接入系统服务管理，并不表示操作系统没有运行服务。原生产品
-自身的受控生命周期接口继续使用既有入口。网络变化通知、其他发行版
-数据源回退及目标 SD/CAN 硬件验证仍待完成。详情与性能见
+原生产品进程默认接入只读服务采样：每两秒以固定 argv 调用 systemctl，
+每个命令限定一秒和 1 MiB，最多 64 个允许单元。成功查询报告
+`provider: systemd_cli`；不可用时保留完整上次结果，首次不可用如实报告
+`none`。HTTP／RPC 查询只读缓存，不启动子进程。初次和重复结果不通知，
+变化后发送逐服务 `notify_service_state_changed`，沿用真实通知鉴权和容量限制。
+关闭取消并等待在途查询；设备代次重建保留服务所有者及缓存。
+
+默认范围为 klipper／moonraker 完整匹配的数字实例、anyraid-node-product-host
+及内核 cgroup 确认的当前进程单元；可信进程选项 `systemServices.allowedUnits`
+可追加显式单元，不接受请求参数扩大范围。当前拒绝别名单元重映射。
+原生 Klipper 与 Moonraker 共用进程时，两个 instance_ids 都来自实际共用单元；
+未知实例仍为空字符串，不能推测为已安装的独立服务。采用外部 Klippy 的
+独立实例识别、moonraker.asvc 的受控安装兼容仍待接入。
+
+这是服务状态出口；服务控制、系统重启／关机、权限配置、安装验证与回滚
+仍待完成。已有产品 RESTART／FIRMWARE_RESTART 是设备代次操作，不能
+冒充系统单元重启。系统单元自重启必须接通真实停止与响应交接后才准入。
+网络通知候选 PR #9 因精确头运动时序 CI 失败暂缓合并，其他发行版回退
+及目标 SD/CAN 硬件验证仍待完成。详情与性能见
 [系统信息验收](../host/contracts/native-system-information-acceptance.json)。
+服务状态增量、失败门禁与各项测量见
+[服务状态验收](../host/contracts/native-service-state-acceptance.json)。
 
 交互夹具收到某 MCU 的停止确认后，不再向它的 PTY 发送 ADC 数据。
 准备阶段取消可能使设备需要重新初始化；状态应如实保留，不为了通过
