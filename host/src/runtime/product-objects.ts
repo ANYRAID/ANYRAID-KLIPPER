@@ -22,7 +22,7 @@ export function productObjects(printer:ProductServicePrinter,nativeHost:NativeHo
   ['print_stats',()=>productPrintStatus(printer.controller,printer.print.gcode.layers,filename)],
   ['pause_resume',()=>productPauseStatus(printer.controller.state)],
   ['idle_timeout',()=>({...printer.idleTimeout.status,motors_releasable:printer.machine.port.canReleaseMotors})],
-  ['toolhead',()=>{const k=printer.machine.kinematics.status;return {homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:(()=>{const p=printer.machine.port.homingPosition();return [p[0],p[1],p[2],p[3+(printer.print.gcode.tools?.active??0)]];})(),extruder:pressure?.name??'extruder',...printer.machine.port.velocityStatus};}],
+  ['toolhead',eventtime=>{const k=printer.machine.kinematics.status;return {estimated_print_time:printer.machine.port.estimatedPrintTime(eventtime),homed_axes:k.homedAxes,axis_minimum:[...k.axisMinimum,0],axis_maximum:[...k.axisMaximum,0],position:(()=>{const p=printer.machine.port.homingPosition();return [p[0],p[1],p[2],p[3+(printer.print.gcode.tools?.active??0)]];})(),extruder:pressure?.name??'extruder',...printer.machine.port.velocityStatus};}],
   ['heaters',()=>{const h=printer.hardware.heaters.status;return {available_heaters:h.available_heaters,available_sensors:h.available_sensors,available_monitors:[]};}],
  ]);
  if(screws)readers.set('screws_tilt_adjust',screws);

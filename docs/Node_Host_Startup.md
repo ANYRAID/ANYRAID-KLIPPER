@@ -430,6 +430,13 @@ WebSocket 重连后需重新识别／鉴权并调用 `printer.objects.subscribe`
 
 ## 实时运动状态
 
+原生 `toolhead.estimated_print_time` 由当前设备代际的共享 MCU 时间
+映射读取，单位为秒。它可在空闲和作业完成后持续更新，供客户端正确
+刷新合并的状态；端口停止／退役或时钟不可用时返回 null，设备未绑定时
+仍沿用对象查询拒绝。查询不刷新采样、预约时钟、修改校准或授权运动，
+也不表示真实打印准入或编码器测量。证据与本机性能范围见
+[状态时间修复验收](../host/contracts/native-toolhead-clock-acceptance.json)。
+
 原生产品的 `motion_report` 提供 `live_position`、`live_velocity` 与
 `live_extruder_velocity`，通过原有对象查询／订阅和鉴权路径发布。
 运动时使用同步 MCU 时间读取当前 C trapq 的轨迹阶段；排空完成后使用

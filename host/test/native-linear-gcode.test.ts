@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 import {mkdtemp,writeFile,open,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
@@ -37,7 +36,7 @@ test('native G-code assembly owns G28 and modal motion through exact step output
  const t=await nativeLinearFixture(),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000);let sent=false;
  const timer=setInterval(()=>{
   const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;
-  const clock=BigInt(Number(arm.parameters.clock));if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<clock)return;sent=true;
+  const clock=BigInt(Number(arm.parameters.clock));if(BigInt(t.f.fw.currentClock())<clock)return;sent=true;
   t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:Number(clock)});
  },1);
  try{

@@ -10,7 +10,6 @@ import {mcuOids} from '../src/protocol/mcu-oids.ts';
 import type {MCUGroup} from '../src/runtime/mcu-group.ts';
 import {MotorEnable} from '../src/outputs/motor-enable.ts';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 const signal=()=>new AbortController().signal;
 for(const mode of ['always','mixed'] as const){
  test(`configured ${mode} motors stream and finish a print without claiming software power-off`,async()=>{
@@ -48,6 +47,6 @@ test('mixed configuration failure does not reserve always-on members prematurely
 });
 test('always-on motors complete filtered two-pass homing and resume without digital transitions',async()=>{
  const t=await nativeLinearFixture(.2,()=>false,true,undefined,'always');let hits=0;
- const timer=setInterval(()=>{if(t.port.status.phase!=='seek'){t.f.fw.setTriggerReason(2,8);if(t.port.status.phase==='retract')t.f.fw.setStepperPosition(3,120);return;}const arms=t.f.fw.outputs.filter(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(arms.length<=hits)return;const arm=arms[hits],clock=Number(arm.parameters.clock)+(hits?30000:0);if(t.generation.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;if(hits)t.f.fw.setStepperPosition(3,107);hits++;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
+ const timer=setInterval(()=>{if(t.port.status.phase!=='seek'){t.f.fw.setTriggerReason(2,8);if(t.port.status.phase==='retract')t.f.fw.setStepperPosition(3,120);return;}const arms=t.f.fw.outputs.filter(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(arms.length<=hits)return;const arm=arms[hits],clock=Number(arm.parameters.clock)+(hits?30000:0);if(BigInt(t.f.fw.currentClock())<BigInt(clock))return;if(hits)t.f.fw.setStepperPosition(3,107);hits++;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
  try{await t.command.home([0],signal());assert.equal(hits,2);assert.equal(t.kinematics.status.homedAxes,'x');t.port.move([51.5,0,0,2],10);await t.port.drain(signal());assert.equal(t.f.fw.outputs.filter(m=>m.name==='queue_digital_out').length,0);assert.equal(t.generation.motorEnable!.status.alwaysOn.length,4);assert.equal(t.f.stops,0);}finally{clearInterval(timer);await t.close();}
 });

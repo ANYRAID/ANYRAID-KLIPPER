@@ -1,11 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 import {BedMesh} from '../src/motion/bed-mesh.ts';
 test('owned Z probe drains queued motion, measures physical coordinates and retains mesh through recovery',async()=>{
  const t=await nativeLinearFixture(),s=new AbortController().signal;let sent=false;
- const timer=setInterval(()=>{const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const hit=Number(arm.parameters.clock)+50000;if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(hit+1000))return;sent=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setStepperPosition(2,-15);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:hit});},1);
+ const timer=setInterval(()=>{const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const hit=Number(arm.parameters.clock)+50000;if(BigInt(t.f.fw.currentClock())<BigInt(hit+1000))return;sent=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setStepperPosition(2,-15);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:hit});},1);
  try{
   t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);
   const mesh=new BedMesh({min_x:0,max_x:100,min_y:0,max_y:100,x_count:2,y_count:2,mesh_x_pps:0,mesh_y_pps:0,algo:'direct',tension:.2},[[.2,.2],[.2,.2]]);await t.port.replaceBedMesh(mesh,{},s,'saved');t.coordinates.resetPosition();t.coordinates.execute('G1',{X:51,F:600});assert(t.port.status.pendingMoves>0);
@@ -46,7 +45,7 @@ test('native sample session retains exclusive ownership across retract and secon
  const timer=setInterval(()=>{
   if(hits===1&&!retracted){if(t.f.fw.outputs.findLastIndex(m=>m.name==='reset_step_clock')>t.f.fw.outputs.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0)&&t.f.fw.motion.length>motionAtHit){retracted=true;t.f.fw.setTriggerReason(2,8);t.f.fw.setStepperPosition(2,185);}}
   const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0&&!handled.has(m));if(!arm)return;
-  const hit=Number(arm.parameters.clock)+50000;if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(hit+1000))return;
+  const hit=Number(arm.parameters.clock)+50000;if(BigInt(t.f.fw.currentClock())<BigInt(hit+1000))return;
   handled.add(arm);hits++;motionAtHit=t.f.fw.motion.length;t.f.fw.setTriggerReason(1,8);t.f.fw.setStepperPosition(2,hits===1?-15:170);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:hit});
  },1);
  try{

@@ -33,8 +33,14 @@ test('USB process execution preserves argv and cwd, distinguishes exits and canc
   await runUsbFlashCommand([process.execPath,'-e','require("fs").writeFileSync(process.argv[1],JSON.stringify({cwd:process.cwd(),arg:process.argv[2]}))',out,arg],root,signal());assert.deepEqual(JSON.parse(await readFile(out,'utf8')),{cwd:root,arg});
   await assert.rejects(runUsbFlashCommand([process.execPath,'-e','process.exit(7)'],root,signal()),e=>e instanceof UsbFlashExitError&&e.exitCode===7);
   await assert.rejects(runUsbFlashCommand([join(root,'absent')],root,signal()),{code:'ENOENT'});
-  const ready=join(root,'ready'),controller=new AbortController();const pending=runUsbFlashCommand([process.execPath,'-e','process.on("SIGTERM",()=>{});require("fs").writeFileSync(process.argv[1],String(process.pid));setInterval(()=>{},100)',ready],root,controller.signal);const rejected=assert.rejects(pending,/cancel writer/);
-  for(let i=0;;i++){try{await readFile(ready);break;}catch{if(i>200)throw new Error('writer not ready');await delay(10);}}
-  const pid=Number(await readFile(ready,'utf8'));controller.abort(new Error('cancel writer'));await rejected;assert.throws(()=>process.kill(pid,0),{code:'ESRCH'});
+  const ready=join(root,'ready'),controller=new AbortController();const pending=runUsbFlashCommand([process.execPath,'-e','process.on("SIGTERM",()=>{});const fs=require("fs");fs.writeFileSync(process.argv[1],"");setTimeout(()=>fs.writeFileSync(process.argv[1],String(process.pid)),30);setInterval(()=>{},100)',ready],root,controller.signal);const rejected=assert.rejects(pending,/cancel writer/);
+  // Creation precedes PID publication. Never interpret an empty file as PID
+  // zero (the caller's process group); keep the same bounded readiness wait.
+  let pid=0;for(let i=0;;i++){
+   try{const value=await readFile(ready,'utf8');if(/^[1-9][0-9]*$/.test(value)&&Number.isSafeInteger(Number(value))&&Number(value)>1){pid=Number(value);break;}}
+   catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}
+   if(i>200)throw new Error('writer not ready');await delay(10);
+  }
+  controller.abort(new Error('cancel writer'));await rejected;assert.throws(()=>process.kill(pid,0),{code:'ESRCH'});
  }finally{await rm(root,{recursive:true,force:true});}
 });

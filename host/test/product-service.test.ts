@@ -24,6 +24,25 @@ async function fixture(){
  const product={journal,maintenanceGate,limits:{maxNozzle:300,maxBed:130}};const serviceOptions:ProductServiceOptions={configPath,server:{information:{connected:false,state:'disconnected' as const,components:[],failedComponents:[],directories:[],warnings:[],version:'test',missingRequirements:[]},authorize:(_method,_params,context)=>{if(context.request.headers['x-api-key']!=='test')throw new ApiError(401,'Denied');return {username:'operator'};}}};
  return {...f,dir,journal,product,serviceOptions,async dispose(){await f.close();await journal.close();await rm(dir,{recursive:true,force:true});}};
 }
+test('toolhead status keeps emitting the real MCU time after a completed print',async()=>{
+ const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined,socket:WebSocket|undefined;
+ f.serviceOptions.server.authorizeNotification=()=>{};
+ try{
+  const path=join(f.dir,'terminal.gcode');await writeFile(path,'G1 X0.05 F60\n');
+  f.options.print.startupHoming={mode:'require_homed',axes:[0]};f.options.print.open=async()=>GCodeFileReader.adopt(await open(path,'r'));
+  owner=await startProductService(f.reader,f.connections,'mcu',f.layout,f.options,f.product,f.serviceOptions,f.signal);owner.printer.linear.kinematics.markHomed([0]);
+  const base=`http://127.0.0.1:${owner.address.port}`,headers={'x-api-key':'test'},query=async()=>{const response=await fetch(base+'/printer/objects/query?toolhead=estimated_print_time',{headers});assert.equal(response.status,200);return (await response.json() as any).result.status.toolhead.estimated_print_time;};
+  const before=await query();assert.equal(typeof before,'number');assert(Number.isFinite(before));
+  socket=new WebSocket(base.replace('http:','ws:')+'/websocket',{headers});const terminal=Promise.withResolvers<void>(),subscribed=Promise.withResolvers<void>();void terminal.promise.catch(()=>{});void subscribed.promise.catch(()=>{});let sawComplete=false,terminalTime=0,followupTime=0;
+  socket.on('message',bytes=>{const message=JSON.parse(String(bytes));if(message.error){const error=Error(JSON.stringify(message.error));terminal.reject(error);subscribed.reject(error);}if(message.id===1&&message.result)subscribed.resolve();if(message.method!=='notify_status_update')return;
+   const [status,time]=message.params;if(status.print_stats?.state==='complete'){sawComplete=true;terminalTime=time;}
+   if(sawComplete&&time>=terminalTime+1&&typeof status.toolhead?.estimated_print_time==='number'){followupTime=time;terminal.resolve();}
+  });await once(socket,'open');
+  const timeout=setTimeout(()=>{const error=Error('No advancing toolhead status after terminal print');terminal.reject(error);subscribed.reject(error);},5000);
+  try{socket.send(JSON.stringify({jsonrpc:'2.0',id:1,method:'printer.objects.subscribe',params:{objects:{toolhead:['estimated_print_time'],print_stats:['state'],virtual_sdcard:['progress']}}}));await subscribed.promise;await owner.printer.controller.start({version:1,requestId:'terminal-status',fileId:'file',nozzle:0,bed:0});await terminal.promise;}finally{clearTimeout(timeout);}
+  assert.equal(owner.printer.controller.state,'completed');assert(followupTime>=terminalTime+1);assert(await query()>before);assert.deepEqual(owner.printer.linear.port.position(),[.05,0,0,0]);
+ }finally{socket?.terminate();await owner?.close();await f.dispose();}
+});
 test('authorized HTTP pressure tuning completes while a paused native file retains its dispatch',async()=>{
  const f=await fixture();let owner:Awaited<ReturnType<typeof startProductService>>|undefined;
  try{

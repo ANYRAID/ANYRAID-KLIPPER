@@ -37,11 +37,21 @@ test('paced stream accepts a shared calibration between windows and retains old 
   g.source.flushThrough=async(until,...args)=>{
    const result=await original(until,...args);if(!updated){
     const limit=g.source.status.sourceTime-Math.max(...g.motion.bindings.map(b=>b.stepper.scanWindow.future))-.001;
-    const plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
-    await g.coordinator.advanceWindow(plan.time,g.coordinator.status.committedTime);
-    const old=g.members[0].session.clock.sync.lastClock,before=clock.printTimeAtClock(old);
-    clock.calibrateMotion(plan.tick,1000100,g.coordinator,g.motion.bindings.map(b=>b.id));updated=true;
-    assert.equal(g.clockMembers[0].stepper.printTimeAtClock(old),before);g.assertClockCalibration();
+    const old=g.members[0].session.clock.sync.lastClock,oldTime=clock.printTimeAtClock(old),ids=g.motion.bindings.map(b=>b.id);
+    // A pulse generated at the first exact anchor may round onto that tick.
+    // Keep the native overlap rejection and inspect only the next candidate.
+    for(let attempt=0;attempt<2&&!updated;attempt++){
+     const plan=clock.planCalibration(g.coordinator.status.generatedTime,limit,1000100);assert(plan);
+     const before=clock.status,calibrations=g.motion.bindings.map(b=>b.stepper.calibration),committed=g.coordinator.status.committedTime;
+     g.coordinator.generateCalibrationBoundary(plan.time);
+     try{clock.calibrateMotion(plan.tick,1000100,g.coordinator,ids);updated=true;}
+     catch(error){
+      if(attempt!==0||!(error instanceof RangeError)||error.message!=='Calibration would overlap previously accepted step clocks')throw error;
+      assert.deepEqual(clock.status,before);assert.deepEqual(g.motion.bindings.map(b=>b.stepper.calibration),calibrations);assert.equal(g.coordinator.status.failed,false);
+     }
+     assert.equal(g.coordinator.status.committedTime,committed);
+    }
+    assert(updated);assert.equal(g.clockMembers[0].stepper.printTimeAtClock(old),oldTime);g.assertClockCalibration();
    }return result;
   };
   await stream.append(trajectory(),signal());await g.source.drain([],signal());assert(updated);assert.equal(g.motion.bindings[0].history.status.lastPlannedPosition,2100n);assert.equal(f.stops,0);await g.coordinator.shutdown();

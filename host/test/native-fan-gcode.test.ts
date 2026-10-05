@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 const signal=()=>new AbortController().signal,rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance:0,retractSpeed:10,secondSpeed:5,endstops:['test']}));
 async function fixture(kickStartTime=0){const t=await nativeLinearFixture(0,()=>false,true,{kickStartTime,minimumScheduleTime:.001}),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{});g.enable();return {t,g,writes:()=>t.f.fw.outputs.filter(m=>m.name==='queue_pwm_out_generation'),steps:()=>t.f.fw.motion.filter(m=>m.name==='queue_step'),close:async()=>{await g.close();await t.close();}};}
 test('idle fan commands queue without motion permission and checkpoint confirms a stationary endpoint',async()=>{
@@ -40,7 +39,7 @@ test('cancelled idle fan checkpoint cannot publish completion or move motors',as
 });
 test('G28 preserves fan duty across retired solvers and the new generation accepts M107',async()=>{
  const f=await fixture();let sent=false;
- const timer=setInterval(()=>{const arm=f.t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const clock=Number(arm.parameters.clock);if(f.t.generation.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;sent=true;f.t.f.fw.setTriggerReason(1,8);f.t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);f.t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
+ const timer=setInterval(()=>{const arm=f.t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const clock=Number(arm.parameters.clock);if(BigInt(f.t.f.fw.currentClock())<BigInt(clock))return;sent=true;f.t.f.fw.setTriggerReason(1,8);f.t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);f.t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
  try{
   await f.g.dispatch.execute('M106 S128');const resets=f.t.f.fw.outputs.filter(m=>m.name==='reset_pwm_out_generation').length;
   await f.g.dispatch.execute('G28 X');assert(sent);assert.equal(f.t.kinematics.status.homedAxes,'x');assert.deepEqual(f.writes().map(m=>m.parameters.value),[128]);assert.equal(f.t.f.fw.outputs.filter(m=>m.name==='reset_pwm_out_generation').length,resets);
@@ -56,7 +55,7 @@ for(const stuck of [false,true])test(`two-pass G28 with a running fan ${stuck?'s
  const timer=setInterval(()=>{
   if(t.port.status.phase!=='seek'){t.f.fw.setTriggerReason(2,8);if(t.port.status.phase==='retract')t.f.fw.setStepperPosition(3,120);return;}
   const arms=t.f.fw.outputs.filter(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(arms.length<=hits)return;const arm=arms[hits],clock=Number(arm.parameters.clock)+(hits&&!stuck?30000:0);
-  if(t.generation.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;if(hits)t.f.fw.setStepperPosition(3,stuck?120:107);hits++;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});
+  if(BigInt(t.f.fw.currentClock())<BigInt(clock))return;if(hits)t.f.fw.setStepperPosition(3,stuck?120:107);hits++;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});
  },1);
  try{
   await t.port.queueCoolingFan(.5,signal());await t.port.drain(signal());

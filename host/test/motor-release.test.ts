@@ -4,7 +4,6 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
 import {DigitalOutput} from '../src/outputs/digital.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 const signal=()=>new AbortController().signal,rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance:0,retractSpeed:10,secondSpeed:5,endstops:['test']}));
 async function fixture(power=true){const t=await nativeLinearFixture(0,()=>true,true,{kickStartTime:0,minimumScheduleTime:.001},power),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{});g.enable();t.kinematics.markHomed([0,1,2]);return {t,g,writes:()=>t.f.fw.outputs.filter(m=>m.name==='queue_digital_out'),close:async()=>{await g.close();await t.close();}};}
 test('M84 drains queued motion, preserves the fan, and confirms MCU time on both sides of disable',async()=>{
@@ -21,7 +20,7 @@ test('motion after release requires a new homing operation before another enable
  const f=await fixture();try{await f.g.dispatch.execute('G1 X51 F600\nM84');const count=f.t.f.fw.motion.length;await assert.rejects(f.g.dispatch.execute('G1 X51.5'),/home/i);assert.equal(f.t.f.fw.motion.length,count);assert.equal(f.writes().length,2);}finally{await f.close();}
 });
 test('release followed by G28 safely re-enables the retained driver owner and resumes motion',async()=>{
- const f=await fixture();let hit=false;const timer=setInterval(()=>{const arm=f.t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||hit)return;const clock=Number(arm.parameters.clock);if(f.t.generation.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;hit=true;f.t.f.fw.setTriggerReason(1,8);f.t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);f.t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
+ const f=await fixture();let hit=false;const timer=setInterval(()=>{const arm=f.t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||hit)return;const clock=Number(arm.parameters.clock);if(BigInt(f.t.f.fw.currentClock())<BigInt(clock))return;hit=true;f.t.f.fw.setTriggerReason(1,8);f.t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);f.t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});},1);
  try{await f.g.dispatch.execute('G1 X51 F600\nM84');f.t.f.fw.setStepperPosition(3,200);await f.g.dispatch.execute('G28 X\nG1 X51.5 F600');assert(hit);assert.equal(f.t.kinematics.status.homedAxes,'x');assert.deepEqual(f.writes().map(c=>c.parameters.on_ticks),[0,1,0]);assert(Number(f.writes()[2].parameters.clock)>=Number(f.writes()[1].parameters.clock)+100000);assert.equal(f.t.port.position()[0],51.5);assert.equal(f.t.f.stops,0);}finally{clearInterval(timer);await f.close();}
 });
 test('release never publishes completion before the off acknowledgement',async()=>{

@@ -4,7 +4,6 @@ import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {linearMotionReader} from './helpers/linear-motion-config.ts';
 import {readNativeBedMesh} from '../src/config/native-bed-mesh.ts';
 import {NativeLinearGCode} from '../src/runtime/native-linear-gcode.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 const configuration=()=>readNativeBedMesh(linearMotionReader({bed_mesh:{},'bed_mesh saved':{version:'1',min_x:'0',max_x:'100',min_y:'0',max_y:'100',x_count:'2',y_count:'2',mesh_x_pps:'0',mesh_y_pps:'0',algo:'direct',tension:'.2',points:'.2,.2\n.2,.2'}}))!;
 const rails=[51,0,0].map(endstop=>({endstop,positiveDirection:false,speed:10,retractDistance:0,retractSpeed:10,secondSpeed:5,endstops:['test']}));
 test('native saved mesh changes actual Z steps; parking is physical and clear preserves the physical endpoint',async()=>{
@@ -21,7 +20,7 @@ test('native saved mesh changes actual Z steps; parking is physical and clear pr
 });
 test('native homing keeps other axes physical while preserving the selected mesh across rebase',async()=>{
  const t=await nativeLinearFixture(),g=new NativeLinearGCode(t.port,t.kinematics,rails,()=>{},5000,1,undefined,undefined,configuration()),s=new AbortController().signal;let sent=false;
- const timer=setInterval(()=>{const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const clock=BigInt(Number(arm.parameters.clock));if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<clock)return;sent=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:Number(clock)});},1);
+ const timer=setInterval(()=>{const arm=t.f.fw.outputs.find(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0);if(!arm||sent)return;const clock=BigInt(Number(arm.parameters.clock));if(BigInt(t.f.fw.currentClock())<clock)return;sent=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock:Number(clock)});},1);
  try{
   t.kinematics.markHomed([0,1,2]);await t.port.forcePosition([50,0,1,2],s);g.coordinates.resetPosition();g.enable();await g.dispatch.execute('BED_MESH_PROFILE LOAD=saved\nG28 X');assert(sent);assert.equal(t.port.homingPosition()[2],1);assert.equal(t.port.position()[2],.8);assert.equal(g.coordinates.state.position[2],.8);assert.equal(t.port.currentBedMesh()!.calcZ(51,0),.2);
  }finally{clearInterval(timer);await g.close();await t.close();}

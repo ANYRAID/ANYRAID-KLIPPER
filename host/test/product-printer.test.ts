@@ -43,7 +43,7 @@ test('native product persists completion only after real motion and heater-off a
     f.firmware[1].emit('analog_in_state',{oid:plan.sensor.adc.oid,next_clock:Number(BigInt.asUintN(32,next)),values:Buffer.from([raw&255,raw>>8])});
    }
    const arm=f.firmware[0].outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||triggered)return;
-   const clock=BigInt(Number(arm.parameters.clock));if(printer.group.session('mcu').clock.sync.getClock(serialClock.now())<clock)return;triggered=true;
+   const clock=BigInt(Number(arm.parameters.clock));if(BigInt(f.firmware[0].currentClock())<clock)return;triggered=true;
    const oid=h.triggers[0].protocol.oid;f.firmware[0].setTriggerReason(1,oid);f.firmware[0].setEndstopState({homing:0,pin_value:0,next_clock:Number(clock)+Number(arm.parameters.rest_ticks)},h.endstop.oid);f.firmware[0].emit('trsync_state',{oid,can_trigger:0,trigger_reason:1,clock:Number(clock)});
   },20);
   const stream=printer.controller.watchState(AbortSignal.any([watch.signal,AbortSignal.timeout(10000)]));

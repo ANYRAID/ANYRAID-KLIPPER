@@ -5,7 +5,6 @@ import {nativeLinearFixture} from './helpers/native-linear-port.ts';
 import {bindRebuiltMotion} from '../src/runtime/rebuilt-motion.ts';
 import {BedMeshMovePort} from '../src/motion/bed-mesh-port.ts';
 import {motionLimits} from '../src/motion/lookahead.ts';
-import {serialClock} from '../src/protocol/serial-queue.ts';
 import {PrintClockTimeline} from '../src/timing/print-clock-timeline.ts';
 const signal=()=>new AbortController().signal;
 test('sampled clock retirement respects idle motion and delayed sensor leases',async()=>{
@@ -74,7 +73,7 @@ test('missing auxiliary clock response prevents successful drain and stops both 
 test('G28 preserves auxiliary fan ownership through homing recovery and subsequent motion',async()=>{
  const t=await nativeLinearFixture(0,()=>false,false,{kickStartTime:0,minimumScheduleTime:.001},false,true);let sent=false;
  const timer=setInterval(()=>{
-  const arm=t.f.fw.outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;const clock=Number(arm.parameters.clock);if(t.f.options.members[0].session.clock.sync.getClock(serialClock.now())<BigInt(clock))return;
+  const arm=t.f.fw.outputs.find(o=>o.name==='endstop_home'&&Number(o.parameters.sample_count)>0);if(!arm||sent)return;const clock=Number(arm.parameters.clock);if(BigInt(t.f.fw.currentClock())<BigInt(clock))return;
   sent=true;t.f.fw.setTriggerReason(1,8);t.f.fw.setEndstopState({homing:0,pin_value:0,next_clock:clock+Number(arm.parameters.rest_ticks)},7);t.f.fw.emit('trsync_state',{oid:8,can_trigger:0,trigger_reason:1,clock});
  },1);
  try{
