@@ -372,9 +372,14 @@ export class ConfiguredMoonraker {
   if(!this.#database||!this.#nativeProcessHistory||!this.#nativeProcessFiles)throw new ConfigurationError('Native job queue requires the matching process database, files and print journal');
   const config=this.reader.section('job_queue');
   const load=config.getBoolean('load_on_startup',{defaultValue:false}),automatic=config.getBoolean('automatic_transition',{defaultValue:false}),transition=config.get('job_transition_gcode',{defaultValue:''}).trim();
-  config.getFloat('job_transition_delay',{defaultValue:0.01,above:0});
-  if(load||automatic||transition)throw new ConfigurationError('Native queue automatic transition and legacy transition G-Code require an explicit product operation provider');
+  const delay=config.getFloat('job_transition_delay',{defaultValue:0.01,above:0});
+  if(load||transition)throw new ConfigurationError('Native queue startup loading and legacy transition G-Code require an explicit product operation provider');
+  if(automatic&&!this.#authorization)throw new ConfigurationError('Native automatic queue requires the process authorization owner');
+  if(delay*1000>2147483647)throw new ConfigurationError('Native queue transition delay exceeds timer capacity');
   this.#nativeQueue=await NativeJobQueue.open({database:this.#database,journal:this.#nativeProcessHistory,
+   automaticTransition:automatic,transitionDelayMs:delay*1000,
+   captureAuthority:(context,lifetime)=>this.#authorization!.capturePrintAuthority(context,lifetime),
+   activePrint:()=>{const controller=this.#nativeController,request=controller?.currentRequest;return !this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&request&&['preparing','printing','pausing','paused','resuming','finishing'].includes(controller.state)?{requestId:request.requestId}:undefined;},
    resolveFile:(filename,signal)=>this.#nativeProcessFiles!.resolveQueuedFile(filename,signal),
    canStart:()=>!this.#stopping&&this.#printApi instanceof ProductPrintApi&&this.#printApi.status.standard_print&&!!this.#nativeController&&['idle','completed','cancelled'].includes(this.#nativeController.state),
    start:async(job,requestId,context)=>{context.nativeGenerationSignal?.throwIfAborted();if(this.#stopping||!(this.#printApi instanceof ProductPrintApi))throw new ApiError(503,'Native queue device unavailable');await this.#printApi.startQueued(job,requestId,context);},

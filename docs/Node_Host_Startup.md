@@ -50,10 +50,24 @@ node scripts/product-host.ts --profile /etc/anyraid/machine.ts
 也保留该策略。通知采用已授权连接，状态查询在写入时读取完整旧／新目录。
 服务退出先排空队列工作，再关闭进程数据库与文件／打印日志所有者。
 
-目前只接通显式启动；`load_on_startup`、`automatic_transition` 的 true 值
-和非空 `job_transition_gcode` 明确拒绝，待受控产品操作 provider 完成，
-不会把旧宏当作任意 G-Code 执行。完整自动队列、同包客户端、目标板负载
-和正常集成仍待验，不能据此关闭 M3 或默认 Python 退役门槛。
+默认仍为手动队列。自动续打候选须使用进程授权所有者的真实配置入口，
+在 `[job_queue]` 显式设置 `automatic_transition=true`；自定义网络鉴权
+本身不足以开启。`job_transition_delay` 默认 0.01 秒，是软件事件调度
+等待，不是运动时钟或打印精度参数。
+
+显式启动队列，或在当前任务准备／打印／暂停期间加入任务且队列未被
+显式暂停时，捕获当次已验证的授权主体和设备代际。后续启动只由该任务
+的持久 `completed` 事件触发；每次重新核验原 API Key 代次、JWT 有效期／
+撤销或可信客户端策略，再校验文件身份及实际机器准备策略。另一个
+WebSocket 登录不能替换原主体。执行授权仅存于进程内，不写入队列目录；
+HTTP 返回后任务可继续，但凭据失效、暂停、取消、失败、设备退役或服务
+关闭会停止续打。不确定准入回执核对原日志后暂停，不自动重试设备动作。
+恢复始终暂停，须重新显式启动；队列暂停仍不取消当前打印。
+
+`load_on_startup=true` 和非空 `job_transition_gcode` 仍明确拒绝，待受控
+产品操作 provider 完成，不执行任意旧宏。启动自动加载、旧过渡宏转换、
+同包客户端、目标板负载和正常集成仍待验，不能据此关闭完整 M3 或默认
+Python 退役门槛。验收范围见[队列契约](../host/contracts/native-job-queue-acceptance.json)。
 
 ### 原生设备退役边界
 
