@@ -2885,3 +2885,10 @@ Python 特有的反向引用、前后查找等不受支持，装配时拒绝，�
 
 语义来源为[固定 Moonraker 授权源码](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py)；
 匹配引擎与正则限制见[RE2 WASM 项目](https://github.com/google/re2-wasm)。
+
+组合上传候选在 `6dd2ec15` 基线上通过 123 项相关回归及独立编译
+12 项关键检查；额外装配网关的 `f76efc7d` 固定包已实际验证
+Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览解码
+32×32。该页面包包含尚未集成的候选，不能转记为 develop 或实机
+通过；完整客户端、目标性能和 G3 仍待验。详细边界保留于
+[组合上传验收契约](../host/contracts/upload-print-intent-acceptance.json)。
