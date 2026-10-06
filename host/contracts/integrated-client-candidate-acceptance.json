@@ -4345,5 +4345,928 @@
         "sha256": "58b5d1a2bf06f8cae54844ff9a7932c7b6b67da6e56ea37ad67d13cf2cddbcb9"
       }
     ]
+  },
+  "finalOriginalMixedGate": {
+    "date": "2026-10-07",
+    "sourceHead": "ef2800988683d3b3c51f71a33608c514df52af0d",
+    "scope": "One ordinary unchanged mixed-load invocation on the current composed fixed package; not accepted develop, all historical failures or physical acceptance.",
+    "runtime": "v26.10.0",
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-bundle",
+      "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "conditionChange": "This fixed composition incorporates accepted metadata cleanup, upload intent and calibration admission plus gateway, reasons, preparation pause, first-stream accounting and standalone database snapshot candidate. Earlier c0b199cb product lacked these runtime additions; historical failure unchanged in its original record.",
+    "invocation": {
+      "filter": "^namespace=true nativeAuthorization=true apiLoad=true ",
+      "automaticQueue": "on",
+      "machineControl": "on",
+      "motionReport": "default on",
+      "objectPriming": "default off",
+      "objectCancellation": "default early",
+      "corsOrigin": "unset original inputs",
+      "observationOverlay": false,
+      "originalHarnessDeadlineMs": 90000,
+      "originalOuterDeadlineMs": 180000,
+      "unchangedInputAndAssertions": true,
+      "noRetry": true
+    },
+    "result": {
+      "exitCode": 0,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 73885.517606,
+      "metrics": {
+        "namespace": true,
+        "automaticQueue": true,
+        "motionReportLoad": true,
+        "objectPriming": false,
+        "earlyObjectCancellation": true,
+        "fileMoveOwnership": [
+          {
+            "generation": 1,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9715.366992
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 9948.944577
+            },
+            "durationMs": 233.58364500000062
+          },
+          {
+            "generation": 1,
+            "group": 1,
+            "before": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15575.055903
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 15767.57261
+            },
+            "durationMs": 192.52058699999907
+          },
+          {
+            "generation": 1,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 18988.549391
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 19082.845703
+            },
+            "durationMs": 94.29600199999913
+          },
+          {
+            "generation": 1,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22380.219504
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 22657.321209
+            },
+            "durationMs": 277.10213499999736
+          },
+          {
+            "generation": 1,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26067.373659
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 26333.917941
+            },
+            "durationMs": 266.5417630000011
+          },
+          {
+            "generation": 1,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28490.183112
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 28580.129298
+            },
+            "durationMs": 89.94636700000046
+          },
+          {
+            "generation": 1,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 30229.643898
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 30323.704519
+            },
+            "durationMs": 94.0610110000016
+          },
+          {
+            "generation": 1,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 32001.646057
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "complete",
+              "fileId": "authorized-file",
+              "atMs": 32079.297611
+            },
+            "durationMs": 77.65168399999675
+          },
+          {
+            "generation": 2,
+            "group": 0,
+            "before": {
+              "state": "printing",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 49780.686655
+            },
+            "after": {
+              "state": "printing",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 50234.076073
+            },
+            "durationMs": 453.3897780000043
+          },
+          {
+            "generation": 2,
+            "group": 1,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 53179.862428
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 53407.023983
+            },
+            "durationMs": 227.16167500000302
+          },
+          {
+            "generation": 2,
+            "group": 2,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 56685.690087
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 57001.906461
+            },
+            "durationMs": 316.21651399999973
+          },
+          {
+            "generation": 2,
+            "group": 3,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 60068.731843
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 60324.070572
+            },
+            "durationMs": 255.33892899999773
+          },
+          {
+            "generation": 2,
+            "group": 4,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 63563.121846
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 63827.962258
+            },
+            "durationMs": 264.84068199999456
+          },
+          {
+            "generation": 2,
+            "group": 5,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 65984.35759
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 66073.678902
+            },
+            "durationMs": 89.32118199999968
+          },
+          {
+            "generation": 2,
+            "group": 6,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 67704.602248
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 67771.469148
+            },
+            "durationMs": 66.8671100000065
+          },
+          {
+            "generation": 2,
+            "group": 7,
+            "before": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 69511.587252
+            },
+            "after": {
+              "state": "completed",
+              "requestId": "queue-7dcd9234-ef28-44d1-9480-a43c96c0b90e",
+              "fileId": "authorized-file",
+              "atMs": 69610.878602
+            },
+            "durationMs": 99.29142000000866
+          }
+        ],
+        "movesPrintingGenerations": [
+          1,
+          2
+        ],
+        "configListRequests": 2175,
+        "configListP99Ms": 7.2472580000030575,
+        "configDownloads": 2174,
+        "configDownloadP99Ms": 9.941757000000507,
+        "liveMotionSamples": 6096,
+        "liveExtrusionSamples": 1439,
+        "nativeAuthorization": true,
+        "apiLoad": true,
+        "completedStatistics": {
+          "total_duration": 10.887943513,
+          "print_duration": 5.093268436999999,
+          "filament_used": 1
+        },
+        "bundleManifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+        "bmp180": false,
+        "bme": false,
+        "bmeHeater": false,
+        "htu": false,
+        "htuHeater": false,
+        "htuModel": null,
+        "lm75": false,
+        "lm75Heater": false,
+        "sht": false,
+        "shtHeater": false,
+        "aht": false,
+        "ahtHeater": false,
+        "combinedHeater": false,
+        "combined": false,
+        "multi": false,
+        "dual": false,
+        "servos": false,
+        "outputPins": false,
+        "phaseQueries": 10501,
+        "phaseP99Ms": 3.80355100000088,
+        "loaded": false,
+        "spi": false,
+        "software": false,
+        "model5160": false,
+        "model2240": false,
+        "curved": false,
+        "probeHome": false,
+        "safeHome": false,
+        "bltouch": false,
+        "tilted": false,
+        "manualTilt": false,
+        "skew": false,
+        "screws": false,
+        "manualScrews": false,
+        "bedScrews": false,
+        "kinematics": "cartesian",
+        "temperatureSensor": false,
+        "temperatureFan": false,
+        "hostSensor": false,
+        "spiSensor": false,
+        "spiHeater": false,
+        "sharedSpi": false,
+        "zEndstop": false,
+        "max31855": false,
+        "max31856": false,
+        "max31865": false,
+        "zTilt": false,
+        "quad": false,
+        "stressed": true,
+        "sensorless": false,
+        "tmc": [
+          {
+            "statusReads": 320,
+            "writes": 43
+          },
+          {
+            "statusReads": 232,
+            "writes": 42
+          },
+          {
+            "statusReads": 8,
+            "writes": 40
+          }
+        ],
+        "faultInjected": "adc",
+        "historyNotifications": 32,
+        "historyRequests": 2136,
+        "historyP99Ms": 60.67594200000167,
+        "lifecycleShutdowns": 8,
+        "copyRequests": 16,
+        "copyP95Ms": 214.35274699999718,
+        "copyOverwriteRequests": 16,
+        "copyOverwriteP95Ms": 310.6838729999945,
+        "directoryCopyRequests": 16,
+        "directoryCopyP95Ms": 293.7464219999965,
+        "copiesDuringPrint": 4,
+        "directoryCopiesDuringPrint": 2,
+        "fileNotifications": 1132,
+        "fileNotificationP95Ms": 365.0015569999996,
+        "movesDuringPrint": 3,
+        "directoryMoveRequests": 16,
+        "directoryMoveP95Ms": 508.29496700000163,
+        "directoryMovesDuringPrint": 2,
+        "moveRequests": 16,
+        "moveP95Ms": 453.0566340000005,
+        "deleteRequests": 16,
+        "deleteP95Ms": 406.257110999999,
+        "publicThumbnailRequests": 16,
+        "publicThumbnailP95Ms": 217.1861710000012,
+        "thumbnailRequests": 16,
+        "thumbnailP95Ms": 92.56186499999603,
+        "metadataRequests": 16,
+        "metadataP95Ms": 317.7662880000007,
+        "downloads": 16,
+        "downloadP95Ms": 53.54909499999849,
+        "wireCommands": 232,
+        "wireSteps": 7880,
+        "minimumStepLeadMs": 81.562,
+        "directoryRequests": 8859,
+        "directoryP99Ms": 39.580396999990626,
+        "statusRequests": 41996,
+        "uploads": 16,
+        "statusP99Ms": 4.086774000000332,
+        "uploadP95Ms": 57.69959000000017,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 1.974271,
+              "maxMs": 19.234815
+            },
+            "cpu": {
+              "user": 12775183,
+              "system": 2430659
+            },
+            "rss": 345714688
+          },
+          {
+            "loop": {
+              "p99Ms": 1.959935,
+              "maxMs": 12.722175
+            },
+            "cpu": {
+              "user": 8502964,
+              "system": 1793376
+            },
+            "rss": 386830336
+          }
+        ]
+      },
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2406,
+        "queryP99Ms": 9.097687999998016,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      },
+      "diagnostics": [
+        {
+          "retainedBundle": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-bundle",
+            "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+            "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+          }
+        },
+        {
+          "earlyObjectCancellation": {
+            "before": {
+              "gcode_move": {
+                "speed_factor": 1,
+                "speed": 600,
+                "extrude_factor": 1,
+                "absolute_coordinates": true,
+                "absolute_extrude": true,
+                "homing_origin": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "position": [
+                  1.21,
+                  0,
+                  0,
+                  0.121
+                ],
+                "gcode_position": [
+                  1.21,
+                  0,
+                  0,
+                  0.121
+                ],
+                "axis_map": {
+                  "X": 0,
+                  "Y": 1,
+                  "Z": 2,
+                  "E": 3
+                }
+              },
+              "print_stats": {
+                "filename": "parts/first/renamed journey.gcode",
+                "print_duration": 0.035619091999999,
+                "total_duration": 4.192273611999999,
+                "filament_used": 0.121,
+                "state": "printing",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              }
+            },
+            "after": {
+              "gcode_move": {
+                "speed_factor": 1,
+                "speed": 600,
+                "extrude_factor": 1,
+                "absolute_coordinates": true,
+                "absolute_extrude": true,
+                "homing_origin": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "position": [
+                  1.21,
+                  0,
+                  0,
+                  0.121
+                ],
+                "gcode_position": [
+                  1.21,
+                  0,
+                  0,
+                  0.121
+                ],
+                "axis_map": {
+                  "X": 0,
+                  "Y": 1,
+                  "Z": 2,
+                  "E": 3
+                }
+              },
+              "print_stats": {
+                "filename": "parts/first/renamed journey.gcode",
+                "print_duration": 0.039507403999999954,
+                "total_duration": 4.1961614639999985,
+                "filament_used": 0.121,
+                "state": "printing",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              }
+            },
+            "originalMoves": 1000,
+            "priming": false,
+            "appliesTo": "future_admissions"
+          }
+        },
+        {
+          "pausedMotionReport": {
+            "live_position": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "live_velocity": 0,
+            "live_extruder_velocity": 0
+          }
+        },
+        {
+          "filamentRunout": {
+            "sensor": "filament_switch_sensor tool",
+            "compiled": true,
+            "automaticPause": true,
+            "absentResumeRejected": true,
+            "runoutPauseMs": 1774.6060980000002,
+            "settledStepClock": true,
+            "noAutomaticResume": true
+          }
+        },
+        {
+          "beforeObjectCancellation": {
+            "objectPriming": false,
+            "earlyObjectCancellation": true,
+            "cancelState": {
+              "state_token": "2a7df849-2073-4562-9c0d-ae5091a1b1fe",
+              "request_id": "complete",
+              "available": true,
+              "objects": [
+                {
+                  "name": "LIVE"
+                },
+                {
+                  "name": "SKIP"
+                }
+              ],
+              "excluded_objects": [
+                "SKIP"
+              ],
+              "current_object": null,
+              "applies_to": "future_admissions"
+            },
+            "progress": {
+              "eventtime": 817086.777708312,
+              "status": {
+                "virtual_sdcard": {
+                  "progress": 0.8850289882176922,
+                  "is_active": false,
+                  "file_position": 18929,
+                  "file_size": 21388
+                },
+                "gcode_move": {
+                  "speed_factor": 1,
+                  "speed": 600,
+                  "extrude_factor": 1,
+                  "absolute_coordinates": true,
+                  "absolute_extrude": true,
+                  "homing_origin": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "position": [
+                    10,
+                    0,
+                    0,
+                    2
+                  ],
+                  "gcode_position": [
+                    10,
+                    0,
+                    0,
+                    2
+                  ],
+                  "axis_map": {
+                    "X": 0,
+                    "Y": 1,
+                    "Z": 2,
+                    "E": 3
+                  }
+                },
+                "toolhead": {
+                  "estimated_print_time": 12.686011,
+                  "homed_axes": "xyz",
+                  "axis_minimum": [
+                    0,
+                    0,
+                    0,
+                    0
+                  ],
+                  "axis_maximum": [
+                    200,
+                    200,
+                    200,
+                    0
+                  ],
+                  "position": [
+                    10,
+                    0,
+                    0,
+                    1
+                  ],
+                  "extruder": "extruder",
+                  "max_velocity": 100,
+                  "max_accel": 1000,
+                  "square_corner_velocity": 5,
+                  "minimum_cruise_ratio": 0.5
+                },
+                "print_stats": {
+                  "filename": "parts/first/renamed journey.gcode",
+                  "print_duration": 2.889904972999999,
+                  "total_duration": 7.2699324899999995,
+                  "filament_used": 1,
+                  "state": "paused",
+                  "message": "",
+                  "info": {
+                    "total_layer": null,
+                    "current_layer": null
+                  }
+                }
+              }
+            },
+            "skipOffset": 21229
+          }
+        },
+        {
+          "objectCancellation": {
+            "compiled": true,
+            "firstTargetCancellation": false,
+            "objectPriming": false,
+            "earlyObjectCancellation": true,
+            "paused": true,
+            "retryWithoutMotion": true
+          }
+        },
+        {
+          "nativeTemperatureHistory": {
+            "samples": 14,
+            "sensors": [
+              "extruder",
+              "heater_bed"
+            ],
+            "authenticated": true
+          }
+        },
+        {
+          "idleTimeout": {
+            "heaterOff": true,
+            "motorRelease": true,
+            "hostRemainsReady": true
+          }
+        },
+        {
+          "pausedTimeout": {
+            "cancelled": true,
+            "resumeRejected": true
+          }
+        },
+        {
+          "compiledOfflineManagement": {
+            "sameListener": true,
+            "priorJwt": true,
+            "originalSockets": true,
+            "unauthorizedRejected": true,
+            "copy": true,
+            "movePreservesIdentity": true,
+            "copyOverwriteReplacesIdentity": true,
+            "delete": true,
+            "recursiveDelete": true,
+            "nestedMetadataRevoked": true,
+            "sharedPrintSourcePreserved": true,
+            "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+            "notifications": 16,
+            "recursiveDeleteNotifications": 4
+          }
+        },
+        {
+          "compiledConfigOffline": {
+            "originalJwt": true,
+            "realConfiguration": true,
+            "readOnly": true,
+            "sameProcessRoot": true
+          }
+        },
+        {
+          "compiledDetachedWindow": {
+            "sameListener": true,
+            "priorJwt": true,
+            "originalSockets": true,
+            "metadataAndHistory": true,
+            "downloadSha256": "83d53f045cccb12646cceba8cf479357153e20933bfab0897cbf551176724318",
+            "noPrintReplay": true,
+            "fileQueries": 50,
+            "fileQueryP99Ms": 0.4791250000052969
+          }
+        },
+        {
+          "retainedProcessServer": {
+            "sameAddress": true,
+            "priorJwtAccepted": true,
+            "originalSocketsOpen": true,
+            "reinitializeMs": 4083.994356999996
+          }
+        },
+        {
+          "temperatureHistoryRestart": {
+            "preserved": true,
+            "samplesBefore": 40,
+            "samplesAfter": 42
+          }
+        },
+        {
+          "nativeAuthorizationRestart": {
+            "compiled": true,
+            "processRestart": true,
+            "persistedLogin": true,
+            "priorTokenAccepted": true,
+            "filesAndHistory": true,
+            "noReplay": true,
+            "interruptedResumeRejected": true,
+            "explicitCancel": true,
+            "logoutRevoked": true
+          }
+        },
+        {
+          "compiledMachineControl": {
+            "actions": 12,
+            "printingGenerations": [
+              1,
+              2
+            ],
+            "settlementMs": [
+              85.14804300000105,
+              69.4792550000002,
+              71.50906700000087,
+              83.50429500000064,
+              74.22835599999962,
+              73.25772599999982,
+              71.4773189999978,
+              81.96892200000002,
+              99.49066000000312,
+              89.32094099999813,
+              76.8926369999972,
+              75.7431049999941
+            ],
+            "syntheticCommand": true,
+            "durableReceipts": true,
+            "noDeviceRetirement": true,
+            "hardwareAcceptance": false
+          }
+        },
+        {
+          "compiledServices": {
+            "syntheticSystemd": true,
+            "samples": 34,
+            "failedQueries": 1,
+            "queries": 2028,
+            "queryP99Ms": 3.5750389999957406,
+            "notifications": 128,
+            "authorizedNotifications": true,
+            "sharedNativeUnit": true
+          }
+        },
+        {
+          "networkChanges": {
+            "sourceSamples": 7,
+            "notifications": 20,
+            "authorizedObservers": 4,
+            "failedCommandRetained": true,
+            "deviceGenerations": [
+              1,
+              2
+            ],
+            "systemQueries": 622,
+            "systemQueryP99Ms": 3.0225919999938924
+          }
+        },
+        {
+          "replacements": {
+            "seed": {
+              "operations": 32,
+              "p95Ms": 306.85012399999687,
+              "maxMs": 320.0351249999949
+            },
+            "upload": {
+              "operations": 16,
+              "p95Ms": 439.9782200000009,
+              "maxMs": 439.9782200000009
+            },
+            "move": {
+              "operations": 16,
+              "p95Ms": 563.2673919999943,
+              "maxMs": 563.2673919999943
+            },
+            "uploadDuringPrintGenerations": [
+              1,
+              2
+            ],
+            "moveDuringPrintGenerations": [
+              1,
+              2
+            ],
+            "notifications": 320,
+            "originalNotifications": 776
+          }
+        },
+        {
+          "configBackupLoad": {
+            "requests": 2174,
+            "p99Ms": 3.0902029999997467,
+            "mutationsBlockedDuringPrint": true
+          }
+        }
+      ]
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-final-original-mixed-20261007.log",
+        "sha256": "e86c799b0a893cb2048672cc4ef76e801e8554313439f9fddc86242685a0657e"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/acceptance/product-compiled-journey.test.ts",
+        "sha256": "7ada9ec56e657a1357a7376b06ea60be7fc48423f818fd8acad685104b888770"
+      }
+    ],
+    "history": {
+      "oldPreparationPauseMixedFailuresClosed": false,
+      "oldObservationOnlySuccessNotPromoted": true,
+      "g3Closed": false,
+      "fullClientAcceptance": false
+    },
+    "integrationChecks": {
+      "develop": "8dd55f9fde3d570542787173c32a66012bb08d51",
+      "pr25PostHost": 37537436246,
+      "pr25PostFirmware": 37537436148,
+      "pr25BothAllRequiredChecks": "completed/success",
+      "pr23Head": "e67ccb8ab5993fa2e178d2126c129acbdaab0c88",
+      "pr23Host": 37540786185,
+      "pr23Firmware": 37540786109,
+      "pr23Status": "in_progress at evidence seal",
+      "remaining": "22,27,28 current heads await full CI; combined fixed package is not accepted develop"
+    }
   }
 }
