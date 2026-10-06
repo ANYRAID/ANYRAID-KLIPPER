@@ -2397,8 +2397,8 @@ default_source: moonraker
 
 省略 max_login_attempts 表示不限失败次数。稳定 issuer 由产品配置提供，
 不会从临时监听端口推导。未知 default_source 警告后回退到 moonraker；
-trusted_clients 已支持显式数字 IP／CIDR；LDAP、域名信任、cors_domains
-和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
+trusted_clients 已支持显式数字 IP／CIDR；cors_domains 支持下述受限模式。
+LDAP、域名信任和其他尚未实现的授权规则会在装配前明确报错。此入口不能同时传入外部入站、通知或订阅鉴权回调。
 
 loadAuthorized 不监听；成功后调用 server.start()。首次凭据可从本地
 `server.authorization.localApiKey()` 获取，不能写入日志。装配构造完成后，
@@ -2800,3 +2800,31 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 已能进入 Standby 和作业页面。页面上传等未完成项仍阻止完整流程声明。
 默认探针仍
 使用凭据模式，Fluidd 的登录验收入口不变。
+
+
+## 原生 Moonraker 跨域访问配置
+
+在上述原生授权入口的 `[authorization]` 中配置浏览器来源：
+
+```ini
+cors_domains:
+  https://fluidd.example.com
+  https://*.example.com
+```
+
+配置只允许浏览器跨域读取和 WebSocket 升级，API Key／JWT、接口与
+通知授权仍独立执行；CORS 通配符不会授予打印权限。预检允许 Authorization、
+X-Api-Key 和 X-Access-Token。允许来源的鉴权错误携带 CORS 响应头；
+未允许来源拒绝，默认无 Origin 的既有客户端行为沿用。
+
+沿用固定上游的点／星号转换、完整首匹配、顶级域通配符和末尾斜杠
+警告后忽略规则；有有效模式时支持已有数字 trusted_clients 的 IP 回退，
+不会解析域名或扩大信任。保留现有网络边界，只接受规范 HTTP(S) Origin。
+最多 128 个模式，每项最多 1024 字符；匹配使用锁定的 re2-wasm 1.0.2。
+Python 特有的反向引用、前后查找等不受支持，装配时拒绝，不静默转换。
+这项限制是当前兼容差额，不能宣称全部 Python 正则兼容。
+
+`npm run bench:moonraker-cors-policy` 计量原大小与满容量规则；
+编译包混合打印验收可设置 `ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com`，
+沿用全部原负载、运动精度与性能判据。实际 Fluidd／Mainsail 页面、目标板
+和物理打印仍须单独验收，不以 HTTP 协议测试替代。
