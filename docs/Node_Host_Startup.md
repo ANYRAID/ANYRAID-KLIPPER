@@ -1542,7 +1542,12 @@ startup，正常已装配主机是 ready，未恢复的 interrupted 作业是 er
 可见路径；空闲或重置后为空，完成及故障状态保留当前作业名。
 未装配该所有者时不猜测自定义文件命名。`pause_resume.is_paused` 在暂停
 确认后为 true，恢复确认前仍为 true；仅发起暂停时不能声称已暂停。
-当前未提供实际累计打印时间或耗材统计，不能从文件进度推算这些字段。
+原生线性产品的 `filament_used` 来自已接受运动的有符号 G-code 挤出量，
+不是编码器测量。`print_duration` 从首次净正挤出开始，排除已确认暂停
+和恢复准备；`total_duration` 包含准备与暂停。文件流首次启动和停车
+返回后的恢复均在运动生命周期确认后、文件命令准入前启用统计，避免
+等待外层启动回执时漏计文件前缀。失败、取消与完成冻结终态统计；
+缺少可恢复记录时保留未知值，不从文件进度推算。
 
 ### 原生 G-code 目录与上传
 
@@ -2917,6 +2922,13 @@ Python 特有的反向引用、前后查找等不受支持，装配时拒绝，�
 
 语义来源为[固定 Moonraker 授权源码](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py)；
 匹配引擎与正则限制见[RE2 WASM 项目](https://github.com/google/re2-wasm)。
+
+组合上传候选在 `6dd2ec15` 基线上通过 123 项相关回归及独立编译
+12 项关键检查；额外装配网关的 `f76efc7d` 固定包已实际验证
+Mainsail 2.19.0 文件选择、显式启动、单作业完成和历史，预览解码
+32×32。该页面包包含尚未集成的候选，不能转记为 develop 或实机
+通过；完整客户端、目标性能和 G3 仍待验。详细边界保留于
+[组合上传验收契约](../host/contracts/upload-print-intent-acceptance.json)。
 
 ### 受保护的官方 Mainsail 接入候选
 

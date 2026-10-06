@@ -1,8 +1,8 @@
 {
   "version": 1,
   "auditedAt": "2026-10-07",
-  "baseDevelop": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
-  "status": "local candidate; exact-head CI and full same-package pages pending",
+  "baseDevelop": "6dd2ec15d0e438e1fd6ce7d706f637e640c51af0",
+  "status": "local code and bounded actual same-package upload/print path passed; exact-head CI and normal integration pending",
   "contract": {
     "reference": "https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-upload",
     "explicitFlag": "print=true",
@@ -95,8 +95,8 @@
     "Client disconnect leaves held authorizer counted, never admits late result"
   ],
   "currentBundle": {
-    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-bundle",
-    "manifestSha256": "2fb22973b805f75d24411db3b220a5f08a25da6bd5cc44e32e4448d0c884bb9f",
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-metadata-integrated-bundle",
+    "manifestSha256": "fa095e9592e03cb83ed6be5018e5754c8877d6175df9ab9b7d4d6249cbc448ad",
     "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
   },
   "earlierImplementation": {
@@ -581,6 +581,323 @@
     {
       "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-performance-common-path-20261007.json",
       "sha256": "b4c0c718de5ea6b0d0319e1fe8b95e26f449d5ae9a5365f16c866ba1b59c353c"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-metadata-integrated-regressions-20261007.log",
+      "sha256": "be426d063217fc5d6d7cdff57ef202458b1e4d46a7d9bec9c30f19572cee9464"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-metadata-integrated-build-20261007.log",
+      "sha256": "861b7540c0236d4d03730e7aa706146c4124a675873907f0dc9cb5e8c7e0d42f"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-metadata-integrated-compiled-20261007.log",
+      "sha256": "b227690ab6a9b62d813bd0fe7d49cb13cf880792f99bb1b6a18c2a91b54728f9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-metadata-integrated-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-final-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
-  ]
+  ],
+  "originalBaseDevelop": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+  "historicalBundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-bundle",
+    "manifestSha256": "2fb22973b805f75d24411db3b220a5f08a25da6bd5cc44e32e4448d0c884bb9f",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "latestDevelopValidation": {
+    "sourceHead": "d38b30b37b4b1a467e7fa51dcfcd04822b61fe3c",
+    "source": {
+      "pass": 123,
+      "fail": 0,
+      "deadlineMs": 60000,
+      "durationMs": 13280.533295,
+      "supervisorMs": 13319.415518,
+      "status": 0,
+      "signal": null,
+      "addedCoverage": "Original metadata-extractor tests on accepted #24 baseline"
+    },
+    "compiled": {
+      "pass": 12,
+      "fail": 0,
+      "deadlineMs": 30000,
+      "durationMs": 1296.889802,
+      "supervisorMs": 1324.933144,
+      "status": 0,
+      "signal": null,
+      "noTypeScriptLoading": true,
+      "path": "/no-programs"
+    },
+    "typecheck": "exit0",
+    "performanceReuse": "All three measured production modules have unchanged fingerprints since common-path measurement; original data remains scoped to that source/bundle. New metadata/integrated page bundle has no new target/mixed performance claim.",
+    "whitespace": {
+      "exit": 0,
+      "gitDiffCheck": 0
+    }
+  },
+  "samePackagePage": {
+    "date": "2026-10-07",
+    "sourceHead": "5845f354af4eed18ca050d4931cb0402574ed16c",
+    "composition": "Normal merges in isolated integration candidate; includes unaccepted #20 preparation pause/#22 reasons/#23 gateway plus accepted #24 and unpublished upload intent. Does not prove accepted develop integration.",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-bundle",
+      "manifestSha256": "f76efc7d5ee86feeb123f21161b8d77ce3e80946b70f9545c59af5597afd8808",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "regressions": {
+      "parents": 22,
+      "pass": 22,
+      "fail": 0,
+      "durationMs": 2260.853492,
+      "compiledChildren": {
+        "gatewayAndAssets": 8,
+        "cors": 2
+      },
+      "childrenOverlap": true,
+      "uploadCompiled": {
+        "pass": 12,
+        "fail": 0,
+        "durationMs": 1232.438408,
+        "supervisorMs": 1261.587852,
+        "deadlineMs": 30000,
+        "noTypeScriptLoading": true,
+        "path": "/no-programs"
+      },
+      "typecheck": "exit0"
+    },
+    "actualMainsail": {
+      "version": "2.19.0",
+      "sourceCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "nativeForceLogins": true,
+      "browserIdentity": "Native account through HttpOnly opaque gateway session; no trusted loopback or API-key injection",
+      "browser": "Chrome153/Playwright1.62.1",
+      "tools": "Built-in browser login/page observed; real chooser/download via existing shared Playwright",
+      "sessionCookie": [
+        {
+          "name": "anyraid-client-loopback",
+          "httpOnly": true,
+          "secure": false,
+          "sameSite": "Strict",
+          "path": "/"
+        }
+      ],
+      "worker": {
+        "controller": "http://127.0.0.1:18448/sw.js",
+        "registrations": [
+          {
+            "scope": "http://127.0.0.1:18448/",
+            "active": "http://127.0.0.1:18448/sw.js"
+          }
+        ]
+      },
+      "realChooser": {
+        "filename": "组合验收 50%.gcode",
+        "bytes": 20123,
+        "elapsedMs": 77.77797699999792
+      },
+      "uploadHttp": 200,
+      "uploadReceipt": {
+        "item": {
+          "path": "组合验收 50%.gcode",
+          "root": "gcodes",
+          "modified": 1791319578.266324,
+          "size": 20123,
+          "permissions": "rw"
+        },
+        "action": "create_file",
+        "file": {
+          "version": 1,
+          "id": "4b2fac82-0ce2-4726-aff0-83d0d526048b",
+          "name": "组合验收 50%.gcode",
+          "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+          "size": 20123,
+          "path": "组合验收 50%.gcode"
+        },
+        "print_started": true,
+        "print_queued": false,
+        "print_request_id": "upload-eed38e70-991e-48a8-b1bf-bcc83b168834",
+        "result": {
+          "item": {
+            "path": "组合验收 50%.gcode",
+            "root": "gcodes",
+            "modified": 1791319578.266324,
+            "size": 20123,
+            "permissions": "rw"
+          },
+          "action": "create_file",
+          "file": {
+            "version": 1,
+            "id": "4b2fac82-0ce2-4726-aff0-83d0d526048b",
+            "name": "组合验收 50%.gcode",
+            "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+            "size": 20123,
+            "path": "组合验收 50%.gcode"
+          },
+          "print_started": true,
+          "print_queued": false,
+          "print_request_id": "upload-eed38e70-991e-48a8-b1bf-bcc83b168834"
+        }
+      },
+      "resultAlias": true,
+      "printingObserved": {
+        "status": 200,
+        "body": {
+          "result": {
+            "eventtime": 810783.68327137,
+            "status": {
+              "print_stats": {
+                "filename": "组合验收 50%.gcode",
+                "print_duration": 5.830082682999986,
+                "total_duration": 9.754101432000011,
+                "filament_used": 0.631,
+                "state": "printing",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              },
+              "virtual_sdcard": {
+                "progress": 0.512547830840332,
+                "is_active": true,
+                "file_position": 10314,
+                "file_size": 20123
+              }
+            }
+          }
+        }
+      },
+      "terminal": {
+        "status": 200,
+        "body": {
+          "result": {
+            "eventtime": 810796.578924178,
+            "status": {
+              "print_stats": {
+                "filename": "组合验收 50%.gcode",
+                "print_duration": 10.234590868,
+                "total_duration": 14.158673138000013,
+                "filament_used": 1,
+                "state": "complete",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              },
+              "virtual_sdcard": {
+                "progress": 1,
+                "is_active": false,
+                "file_position": 20123,
+                "file_size": 20123
+              }
+            }
+          }
+        }
+      },
+      "history": {
+        "job_id": "000001",
+        "user": "unknown",
+        "filename": "组合验收 50%.gcode",
+        "status": "completed",
+        "start_time": 1791319578.283,
+        "end_time": 1791319592.442,
+        "total_duration": 14.158673138000013,
+        "print_duration": 10.234590868,
+        "filament_used": 1,
+        "metadata": {
+          "native_request_id": "upload-eed38e70-991e-48a8-b1bf-bcc83b168834"
+        },
+        "auxiliary_data": [],
+        "exists": true
+      },
+      "historyCount": 1,
+      "seededSampleExcluded": true,
+      "noSeparateStartRpc": true,
+      "thumbnail": [
+        {
+          "tag": "IMG",
+          "naturalWidth": 32,
+          "naturalHeight": 32,
+          "text": "",
+          "title": null,
+          "aria": null,
+          "html": "<img src=\"//127.0.0.1:18448/server/files/gcodes/.thumbs/thumb-acedc584-b667-47d3-9e45-e3b53b962143/0.png?timestamp=1791319578266\" width=\"32\" height=\"32\" alt=\"组合验收 50%.gcode\" aria-haspopup=\"true\" aria-expanded=\"false\">"
+        }
+      ],
+      "download": {
+        "filename": "组合验收 50%.gcode",
+        "failure": null,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "matchesUpload": true
+      },
+      "logout": {
+        "deleteHttp200": true,
+        "emptyCookie": true,
+        "api401": true,
+        "loginPage": true,
+        "secondLoginPreservedOneCompletedJob": true,
+        "automaticReplay": false
+      },
+      "scope": "One actual same-package explicit upload/print/preview/download/completion/history/logout path on PTY fixture. No physical printing, mixed target load, or full Fluidd/Mainsail/config/queue/system/preparation-pause acceptance."
+    },
+    "toolObservations": [
+      "First immediate session inspection preceded async login response; later cookie and worker proof waited for page state",
+      "Right-click snapshot preceded reactive menu; ordinary row click opened Start Job confirmation, explicitly cancelled without starting another job",
+      "Download after dialog cancellation had no visible menu and timed out; observed original row DOM/source, reopened context menu and actual download succeeded",
+      "Built-in session already showed login when explicit logout click was attempted; no-match tool result, subsequent DOM confirmed login. No product failure inferred."
+    ],
+    "cleanup": {
+      "browser": "Explicit close then stdin EOF,exit0",
+      "gateway": "Normal TERM,exit0",
+      "native": "Normal TERM,exit0; original helper verified fixed package unchanged",
+      "pidsAbsent": [
+        3027446,
+        3027327
+      ]
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-build-20261007.log",
+        "sha256": "073a86264522b4aa55c4f4d84adfbc007bbdf313231572c4b8d867ebb94baf72"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-regressions-20261007.log",
+        "sha256": "8a5ec8919c0551bcf6f68041306eb004d88ccc88b90af128bf6d9f853f3a76b6"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-client-compiled-20261007.log",
+        "sha256": "d37cd99c807cd49f85577b4480a125ebcc1ed355e877b69aaa908412aab6b345"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-types-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-native-page-20261007.log",
+        "sha256": "b31677de710184a9851c2787efdfc1060bae7d4a75485bd2409cf7682b59ffe0"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-cli-page-20261007.log",
+        "sha256": "4901b782ff8739f34eabcd51b9601f2812b69d15d7a32f63dd3187b7cc49959e"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-page-public-evidence-20261007.log",
+        "sha256": "3a87153fd87d4bb8085edc9a0ccc20765070e67f4148f301d5ff7ad3048c4f74"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-history-complete-20261007.png",
+        "sha256": "e758d63e67bbb56456e4b37d83aa4aacc1483b34f63ae386c234c726b61c3cf1"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-upload-print-logged-out-20261007.png",
+        "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
+      }
+    ],
+    "remaining": "Current head CI/normal integration, full same-package clients, target board performance/precision, G3 and Python retirement."
+  }
 }

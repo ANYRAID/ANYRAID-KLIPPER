@@ -1,0 +1,201 @@
+{
+  "date": "2026-10-07",
+  "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+  "trigger": {
+    "candidateSourceHead": "5845f354af4eed18ca050d4931cb0402574ed16c",
+    "bundleManifestSha256": "f76efc7d5ee86feeb123f21161b8d77ce3e80946b70f9545c59af5597afd8808",
+    "candidateEvidenceHead": "cb082387",
+    "evidenceField": "fluiddConfigurationQueueAndRecovery.preparationPause",
+    "expectedMm": 1,
+    "observedMm": 0.881,
+    "scope": "Actual Fluidd on a fixed compiled PTY/MCU model bundle; no evidence of lost physical motion."
+  },
+  "implementation": {
+    "boundary": "After acknowledged native startup with local stop/abort/active guards, before first file admission. Reuses existing native return-stream accounting observer.",
+    "resumePreparationStillExcluded": true,
+    "perMoveAccountingAndMotionMathUnchanged": true,
+    "deviceDeadlinesUnchanged": true,
+    "noReplay": true
+  },
+  "validation": {
+    "regressionBefore": {
+      "pass": 3,
+      "fail": 1,
+      "expectedFailure": "Original first stream did not enable meter: 0 !== 0.125"
+    },
+    "sourceAfter": {
+      "pass": 48,
+      "fail": 0,
+      "durationMs": 11748.117919,
+      "deadlineMs": 60000
+    },
+    "compiled": {
+      "parentTests": 1,
+      "reusedChildAssertions": 4,
+      "deadlineMs": 30000,
+      "noTypeScriptLoading": true,
+      "noExternalPathPrograms": true,
+      "identity": {
+        "identity": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-product-bundle",
+          "manifestSha256": "89b46b687e1cb911fc0a6e81b0e72478558def7359889c3da96a9afe06a3ae06",
+          "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+        },
+        "installed": {
+          "durationMs": 844.795717,
+          "dependencies": 15
+        }
+      }
+    },
+    "asan": {
+      "attempts": 1,
+      "deadlineMs": 60000,
+      "elapsedMs": 12724.767219,
+      "status": 0,
+      "signal": null,
+      "error": null,
+      "reusedNativeSourceHead": "5755b1d8a687bdfa2b701e2e875409e01c9c3170",
+      "sourceComparison": "git diff --name-only 5755b1d8 -- *.c *.h host/scripts/build-*.ts: empty",
+      "fingerprints": {
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/ar100-flash-test-asan.node": "57c5880331365303b6fa66ced4ef82018243d94d4dd3da2eeaead152c976d7c0",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/can-query-asan.node": "d9674bd2758cd818c0b44c1d8fee4ec1214fb0b04ade9dd6b3fd0310453297b7",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/sealed-file-asan.node": "463a477e320937fb1d01b64eb238fcdd48ce7d6dcb0efe0c3f89565be371ccbc",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/unix-peer-asan.node": "b2038bc9af74abb5ee5d15ef6461d33c211f744ad7abb04478f7cbc1c82de9d9",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/serialqueue-asan.node": "54eb692476d389e007a799724bcf491336411c26f8555c3189c9949411c009d4",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/trapq-asan.node": "5c222ae7f1fca352e649508ce90b11f193c3e28ae54458e8d93267181c40a09c",
+        "/home/dek02/.cache/codex/tmp/anyraid-moonraker-print-conflict-reasons/host/build/stepcompress-asan.node": "aef8d449722de2550d6ea64e5d7d3c6fb19dac2141b6383dd20fbbc15c5451fc"
+      },
+      "pass": 22,
+      "fail": 0
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "whitespace": {
+      "exit": 0,
+      "sourceWhitespaceAndCachedDiffPassed": true
+    },
+    "fixtureCorrections": [
+      "Initial native mock omitted subscribeStop; fixed before classifying production failure.",
+      "Initial decimal prefix after lifecycle extrusion produced ordinary binary coordinate subtraction 0.11899999999999977; log retained. Final boundary regression uses binary-exact 0.125/0.875 with strict equalities, no tolerance relaxation."
+    ]
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "baseline": {
+      "medianMs": 203.00761399999965,
+      "p95Ms": 205.51427599999988
+    },
+    "lines": 100000,
+    "bytes": 2034802,
+    "sha256": "4d06cd52af099dc9e8d75c8660b2efdc5e980af7b84606d5c466170467879e30",
+    "warmups": 5,
+    "pairedSamples": 11,
+    "alternatingOrder": true,
+    "samples": [
+      [
+        203.21122700000024,
+        203.00761399999965,
+        203.91851600000018,
+        205.51427599999988,
+        204.12676900000042,
+        205.41157499999917,
+        201.6375369999996,
+        202.15266399999928,
+        201.68419799999992,
+        202.80640200000016,
+        202.13628400000016
+      ],
+      [
+        203.12667599999986,
+        210.3730059999998,
+        205.78951000000006,
+        205.19302200000038,
+        209.4131150000003,
+        201.9355510000005,
+        206.01165199999923,
+        202.78555200000028,
+        201.7640190000002,
+        202.84670300000016,
+        202.29278599999998
+      ]
+    ],
+    "candidate": {
+      "medianMs": 203.12667599999986,
+      "p95Ms": 210.3730059999998
+    },
+    "medianRatio": 1.0005864903175514,
+    "maximumMedianRatio": 1.15,
+    "exactCoordinatesAndSpeeds": true,
+    "terminalFilamentMm": 100,
+    "eventLoop": {
+      "p95Ms": 1.122303,
+      "maxMs": 96.993279
+    },
+    "scope": "Same real cached file, dispatch/parser/GCodeMove and accepted accounting; native startup edge only. No physical MCU, thermal preparation, journal latency or target board budget.",
+    "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+    "hotCodeComparison": "No diff in GCodeMove, ExtrusionAccounting, homing or native C math versus baseline; one lifecycle callback at stream start.",
+    "allSamplesRetained": true,
+    "wholeRunLoopMaximumRetained": true,
+    "targetBoardBudgetPassed": false
+  },
+  "sourceFingerprints": [
+    {
+      "path": "host/src/operations/native-file-motion.ts",
+      "sha256": "3956081dc42b04caec69068bb801dfae32e4665e0f18f810efd64814955d1a5c"
+    },
+    {
+      "path": "host/test/native-file-start-accounting.test.ts",
+      "sha256": "0d9e42f8fe197d6d82a07ccf3eaeb246345eb2beffe8ac13e3ce022459b03985"
+    },
+    {
+      "path": "host/test/native-file-start-accounting-compiled.test.ts",
+      "sha256": "761d29e37f06f1f7a9ad5f72a02bd8039987f288c293f1ee30ac13bdcd7b8623"
+    },
+    {
+      "path": "host/scripts/test-native-sanitized.ts",
+      "sha256": "8dc6c5583b7e7a1ac1446cb2a21e2b06fb6af73ee06f82455e5ffde42ed6e107"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-native-file-start-accounting-binary-before-20261007.log",
+      "sha256": "92de9bcb70cbe3e5a67987a5655f06d112c909e1caa6dd9a9cdc7627a850bc5e"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-native-file-start-accounting-binary-after-20261007.log",
+      "sha256": "3708ca52d39f34996efbb35db49069027012e83759c3587397408a04f17947f7"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-decimal-fixture-failure-20261007.log",
+      "sha256": "6443a0b91684b83f4581574ccfdc9e279c974cf67834421ab907c52fa1a25f72"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-compiled-20261007.log",
+      "sha256": "9f7c159bc4dfeaccf437199890d87b2cdc2f6a51365731812edf5f4bdbd16cbd"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-asan-20261007.log",
+      "sha256": "c6a3c6e695fa9f72b83b030f7c8b353fcf1187aa6e31f21c4ad2aa88d0da09e9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-benchmark-result-20261007.json",
+      "sha256": "b6e11ffa67a206b44a2c51680f6747b96534b56612b805e9abc7c37f61804ca9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-start-accounting-benchmark-20261007.mjs",
+      "sha256": "dbcdfe5c779646d192bc2396db0f570a44b0088288068df2b8ffad742c2c3119"
+    }
+  ],
+  "scope": {
+    "normalIntegrationPending": true,
+    "actualPreparationPausePageRecheckPending": true,
+    "fullClientAcceptance": false,
+    "physicalAcceptance": false,
+    "targetPerformancePassed": false,
+    "G3": "unresolved",
+    "trackedKlippyPythonFiles": 177,
+    "defaultEntry": "Python",
+    "fullGoalComplete": false
+  }
+}
