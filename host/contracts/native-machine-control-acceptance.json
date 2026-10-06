@@ -85,7 +85,7 @@
       "manifestSha256": "700e50ee9582c3ef2735fc440d4fbc6b5a85a0c919f6ccbbcffb4d9bb1447fc4",
       "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
       "native": "Unchanged native files copied from WAL bundle; TS independently emitted",
-      "validationScope": "Read-only deployment preparation only; old WAL printing/receipt performance results are not transferred to this bundle"
+      "validationScope": "Read-only deployment preparation, 640-receipt desktop original-budget benchmark and one default software PTY mixed scenario; no actual systemd/polkit, target board, all variants or physical printing"
     }
   },
   "validation": {
@@ -1626,6 +1626,300 @@
       "firmwareRun": 37474489603,
       "firmware": "in_progress",
       "scope": "Live observation before deployment preparation commit; not full CI or new-head validation"
+    },
+    "pr12PostMergeFailure": {
+      "head": "a2e97c3bf38b1745e517d75c180d148d99099df9",
+      "hostRun": 37473175187,
+      "job": 112301686853,
+      "conclusion": "failure",
+      "typecheck": "success",
+      "ordinary": "success",
+      "protocol": "success",
+      "sanitizer": {
+        "phase": "AddressSanitizer",
+        "testFile": "host/test/product-service.test.ts",
+        "passed": 17,
+        "total": 19,
+        "failures": [
+          {
+            "test": "configured Z tilt HTTP calibration owns probe, motor adjustment and duplicate receipts",
+            "error": "Native motion port busy or paused",
+            "location": "host/test/product-service.test.ts:204"
+          },
+          {
+            "test": "skew HTTP persistence reloads exact server coefficients and fences previous service tokens",
+            "error": "Skew persistence requires idle printer and configuration session; 409 !== 200",
+            "location": "host/test/product-service.test.ts:262"
+          }
+        ],
+        "nativeMemoryDiagnosticsReported": 0,
+        "scope": "No reported sanitizer memory diagnostic is not proof that no other defect exists",
+        "excerpts": [
+          "2026-10-06T14:13:29.8029246Z not ok 13 - configured Z tilt HTTP calibration owns probe, motor adjustment and duplicate receipts\n2026-10-06T14:13:29.8032679Z   ---\n2026-10-06T14:13:29.8033477Z   duration_ms: 888.392809\n2026-10-06T14:13:29.8033961Z   type: 'test'\n2026-10-06T14:13:29.8034744Z   location: '/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/product-service.test.ts:195:1'\n2026-10-06T14:13:29.8035390Z   failureType: 'testCodeFailure'\n2026-10-06T14:13:29.8035777Z   error: 'Native motion port busy or paused'\n2026-10-06T14:13:29.8036125Z   code: 'ERR_TEST_FAILURE'\n2026-10-06T14:13:29.8036407Z   stack: |-\n2026-10-06T14:13:29.8037024Z     #operate (file:///home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/src/homing/native-linear-port.ts:298:36)\n2026-10-06T14:13:29.8038208Z     NativeLinearHomingPort.forcePosition (file:///home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/src/homing/native-linear-port.ts:496:50)\n2026-10-06T14:13:29.8039285Z     TestContext.<anonymous> (file:///home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/product-service.test.ts:204:86)\n2026-10-06T14:13:29.8040107Z     process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n2026-10-06T14:13:29.8040637Z     async Test.run (node:internal/test_runner/test:1409:7)\n2026-10-06T14:13:29.8041309Z     async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\n2026-10-06T14:13:29.8042596Z   ...",
+          "2026-10-06T14:13:34.1160239Z not ok 16 - skew HTTP persistence reloads exact server coefficients and fences previous service tokens\n2026-10-06T14:13:34.1163053Z   ---\n2026-10-06T14:13:34.1166257Z   duration_ms: 782.324571\n2026-10-06T14:13:34.1166781Z   type: 'test'\n2026-10-06T14:13:34.1167703Z   location: '/home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/product-service.test.ts:246:1'\n2026-10-06T14:13:34.1168759Z   failureType: 'testCodeFailure'\n2026-10-06T14:13:34.1169284Z   error: |-\n2026-10-06T14:13:34.1170346Z     {\"status\":409,\"body\":{\"error\":{\"code\":409,\"message\":\"Skew persistence requires idle printer and configuration session\"}}}\n2026-10-06T14:13:34.1171408Z     \n2026-10-06T14:13:34.1172027Z     409 !== 200\n2026-10-06T14:13:34.1172444Z     \n2026-10-06T14:13:34.1172826Z   code: 'ERR_ASSERTION'\n2026-10-06T14:13:34.1173304Z   name: 'AssertionError'\n2026-10-06T14:13:34.1173749Z   expected: 200\n2026-10-06T14:13:34.1174174Z   actual: 409\n2026-10-06T14:13:34.1174562Z   operator: 'strictEqual'\n2026-10-06T14:13:34.1175009Z   stack: |-\n2026-10-06T14:13:34.1176158Z     TestContext.<anonymous> (file:///home/runner/work/ANYRAID-KLIPPER/ANYRAID-KLIPPER/host/test/product-service.test.ts:262:119)\n2026-10-06T14:13:34.1177601Z     process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n2026-10-06T14:13:34.1178610Z     async Test.run (node:internal/test_runner/test:1409:7)\n2026-10-06T14:13:34.1179570Z     async Test.processPendingSubtests (node:internal/test_runner/test:974:7)\n2026-10-06T14:13:34.1180559Z   ..."
+        ]
+      },
+      "linuxMcu": "skipped",
+      "firmwareRun": 37473175074,
+      "firmware": "success",
+      "knownCandidateRepair": {
+        "commit": "c85495c21b140ee0892717acfb69a58e8a452e8a",
+        "includedIn": "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33",
+        "change": "Fixture dispatch ownership for Z tilt/QGL preparation and bounded same-token idle admission with zero-side-effect checks; production algorithm/guard/tolerance unchanged",
+        "scope": "Candidate must pass exact-head complete CI; historical failure preserved",
+        "currentSourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
+      },
+      "comment": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/12#issuecomment-6018213366",
+      "failedSourceSha256": "ccaaffe96dbb8c6b0c9b5fc1f8286951d906af18fe0e77c5d56543b5d1a08c8b"
+    },
+    "pr14PreparationHeadObservation": {
+      "head": "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33",
+      "hostRun": 37477249209,
+      "hostJob": 112315775398,
+      "whitespace": "success",
+      "typecheck": "success",
+      "ordinary": "success",
+      "protocol": "success",
+      "sanitizer": "in_progress",
+      "linuxMcu": "pending",
+      "firmwareRun": 37477249177,
+      "firmwareJob": 112315775426,
+      "firmware": "success",
+      "scope": "Live observation; not complete validation",
+      "observedAt": "2026-10-06T14:35:06Z"
+    },
+    "deploymentPreparationFinalLoad": {
+      "head": "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33",
+      "sourceFingerprints": {
+        "host/src/moonraker/machine-control.ts": "15ea9e52dfdaa76e15a724ddf422307c62618ec5656bfe2b77178fbea97a6a8f",
+        "host/src/moonraker/product-host-api.ts": "e612f4d137445550e5d3af5fa0b343d9c243718eb60a781045b1df4c0d7b1f9d",
+        "host/src/runtime/host-recovery-journal-worker.ts": "2dc7ec1384b9802d88cbcae3b4594fff26e3e71561a26aa15a2f2539e792dc84",
+        "host/src/runtime/host-recovery-journal.ts": "23c9bf4503dbb33750003e323e489226f4e47f6a2f24a45e587736dc2f633d31",
+        "host/src/runtime/native-product-machine.ts": "69f9e4737c2eb5ea3437719cca52676f2be7dce17a40a10d0275ba13560f60b8",
+        "host/src/runtime/product-host-control.ts": "d03d307dc3b7a0583cc0d06e9cfff11baa69eaccd7d579d76304295721aaafce",
+        "host/src/runtime/product-host.ts": "507ddcb50a4dc672d90ba04246d49de93282c486249751fe0b5a40c868eda311",
+        "host/test/helpers/recovery-journal-v1.ts": "154c45385b91c3d4b0415f8e4a50470144ce3591dd046643123c082ed9012347",
+        "host/test/host-recovery-retention.test.ts": "93f489d6b65597af1dcf1cc199710501b101d4d088085fd15c75b6e38d036f40",
+        "host/test/machine-control.test.ts": "74556da80bf28a92873f06b18e17d0322e94e8957a09ffba96d4047f2dca941b",
+        "host/test/machine-control-api.test.ts": "95011a232b3f4390f946bd14c6c071694959f4fb23243959f71fafa85a888ceb",
+        "host/test/machine-recovery-journal.test.ts": "0a972584b2c5a387f600eebccddcd74f22523635f351247eb6b9c27db4905029",
+        "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
+        "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
+        "host/acceptance/product-compiled-journey.test.ts": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
+        "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+        "host/test/host-recovery-wal.test.ts": "42beea964cb6bf413e0fe8316174b3adb9b184c81e50ef8fed2c8d4fcc9fe20a",
+        "host/test/delta-probe.test.ts": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365",
+        "host/src/runtime/product-service-unit.ts": "444649911c8cd0f414e955feefb4029e7893e3c41cb4e2ef48aa0308059dc266",
+        "host/test/product-service-unit.test.ts": "ea411b6f4ace9de8878843281923d4bf478bf1b5fe2077b8e79e8375d9b26505",
+        "host/test/product-machine-control-policy.test.ts": "829d13023b6a39116443635d09e8c1aa73d48760c88874eae637eab216c1225f",
+        "scripts/product-service-unit.ts": "1b024b90fac3c7c2b3805a79d6eeb79f88781124700d2b69d9123ebac05fbd4e"
+      },
+      "bundleManifestSha256": "700e50ee9582c3ef2735fc440d4fbc6b5a85a0c919f6ccbbcffb4d9bb1447fc4",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "identitiesBeforeAndAfter": "verified unchanged for full manifest and independent production dependencies",
+      "full640": {
+        "conclusion": "passed-original-budgets",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-recovery-preparation-full-20261006.log",
+          "sha256": "b5503dd461fe0ba293c87cecfa57ebf3eff612095168022fa1da6d05072452e4"
+        },
+        "metrics": {
+          "node": "v26.10.0",
+          "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+          "bundle": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-machine-control/host/build/machine-control-preparation-pinned-bundle",
+          "mode": "full",
+          "receipts": 640,
+          "statusReads": 500000,
+          "measuredRounds": 8,
+          "statusRoundP99Ms": [
+            0.003109039999981178,
+            0.003299640000004729,
+            0.0033014600000024073,
+            0.003092639999995299,
+            0.003131439999997383,
+            0.0031330199999865726,
+            0.003122239999975136,
+            0.003109840000033728
+          ],
+          "statusP99MedianMs": 0.003131439999997383,
+          "actions": 200,
+          "durationMs": 3953.832756,
+          "admission": {
+            "medianMs": 6.435362000000168,
+            "p99Ms": 13.750962999998592,
+            "maxMs": 14.134867999997368
+          },
+          "settlement": {
+            "medianMs": 19.48275499999727,
+            "p99Ms": 33.42602199999965,
+            "maxMs": 39.116753000000244
+          },
+          "eventLoopP99Ms": 1.881087,
+          "cpuUsage": {
+            "user": 2596230,
+            "system": 198669
+          },
+          "databaseBytes": 102400,
+          "scope": "Desktop durable worker and serialized status CPU benchmark with no-op action owner; not service execution, target-board timing or physical printing."
+        }
+      },
+      "mixed": {
+        "conclusion": "passed-one-default-software-case",
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 72144.620718,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-preparation-mixed-20261006.log",
+          "sha256": "b99a3ffc32d0a2a5d61831b3abcfbb088c422b19a64ffb236436ced7bf32be3a"
+        },
+        "input": "Original default namespace scenario, machine control on, original 1000 movements/counts/deadlines, no priming or cancellation override",
+        "metrics": {
+          "statusQueries": 40493,
+          "statusP99Ms": 4.729699999999866,
+          "historyQueries": 2054,
+          "historyP99Ms": 59.525110999999015,
+          "minimumStepLeadMs": 88.772,
+          "loops": [
+            {
+              "p99Ms": 2.001919,
+              "maxMs": 18.317311
+            },
+            {
+              "p99Ms": 1.929215,
+              "maxMs": 12.681215
+            }
+          ],
+          "completedStatistics": {
+            "total_duration": 10.48914739,
+            "print_duration": 4.928368275999998,
+            "filament_used": 1
+          },
+          "movesPrintingGenerations": [
+            1,
+            2
+          ],
+          "firstFileMoves": [
+            {
+              "generation": 1,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9743.726935
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 10191.442276
+              },
+              "durationMs": 447.7202010000001
+            },
+            {
+              "generation": 2,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-13662a90-0e58-4705-aafb-8539bb1f0a34",
+                "fileId": "authorized-file",
+                "atMs": 49079.412566
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "queue-13662a90-0e58-4705-aafb-8539bb1f0a34",
+                "fileId": "authorized-file",
+                "atMs": 49140.513177
+              },
+              "durationMs": 61.100891000001866
+            }
+          ],
+          "fileLoads": {
+            "upload": 16,
+            "download": 16,
+            "metadata": 16,
+            "copy": 16,
+            "copyOverwrite": 16,
+            "directoryCopy": 16,
+            "directoryMove": 16,
+            "move": 16,
+            "delete": 16
+          },
+          "machineControl": {
+            "actions": 12,
+            "printingGenerations": [
+              1,
+              2
+            ],
+            "settlementMs": [
+              74.30823799999962,
+              71.53103300000112,
+              77.30534599999919,
+              74.77197399999932,
+              74.89734500000122,
+              68.75446799999918,
+              84.7502500000046,
+              81.55504900000233,
+              102.90975900000194,
+              72.25930299999891,
+              68.0424090000015,
+              72.57048599999689
+            ],
+            "syntheticCommand": true,
+            "durableReceipts": true,
+            "noDeviceRetirement": true,
+            "hardwareAcceptance": false
+          },
+          "queue": {
+            "groups": 16,
+            "printingGenerations": [
+              1,
+              2
+            ],
+            "queries": 2328,
+            "queryP99Ms": 5.859314000001177,
+            "durableMutations": 64,
+            "actualStartRequestPrefix": "queue-",
+            "journalCompleted": true,
+            "authorizedNotifications": true,
+            "noAutomaticReplay": true
+          },
+          "network": {
+            "sourceSamples": 7,
+            "notifications": 20,
+            "authorizedObservers": 4,
+            "failedCommandRetained": true,
+            "deviceGenerations": [
+              1,
+              2
+            ],
+            "systemQueries": 602,
+            "systemQueryP99Ms": 4.2938539999995555
+          }
+        },
+        "scope": "One final-bundle software PTY scenario with synthetic system commands; history P99 59.525111ms is an observation, not a target-budget pass or an attributed regression cause"
+      }
+    },
+    "pr14ExactCiAndMerge": {
+      "head": "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33",
+      "hostRun": 37477249209,
+      "hostJob": 112315775398,
+      "host": "all-required-steps-success",
+      "firmwareRun": 37477249177,
+      "firmwareJob": 112315775426,
+      "firmware": "success",
+      "merge": "6a389a2d023216a8b5223e86023168878032434d",
+      "parents": [
+        "a2e97c3bf38b1745e517d75c180d148d99099df9",
+        "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33"
+      ],
+      "tree": "95d595cb6af28bd8aa9f064536bfb0b2a8d120fb",
+      "treeEqualsReviewedHead": true,
+      "review": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/14#issuecomment-6018803574",
+      "postMergeHostRun": 37481854349,
+      "postMergeFirmwareRun": 37481854419,
+      "postMergeScope": "Separate live jobs; not yet complete validation",
+      "scope": "Integrated software candidate; historical failures, actual system permissions, target performance and G3 remain open"
     }
   },
   "performance": {
@@ -1673,5 +1967,5 @@
     "Cycnumbris 500 verified profile/board and physical stop evidence",
     "G3 precision/motion, default Python entry, 177 klippy Python files, full Moonraker and normal master release"
   ],
-  "sourcesScope": "Current candidate source fingerprints. Earlier runtime/performance results remain bound to their recorded bundles and executions; the new preparation bundle has only the explicitly recorded preparation validation."
+  "sourcesScope": "Current candidate source fingerprints. Earlier results retain their recorded bundle and execution identities. Final preparation bundle validates only the explicitly recorded read-only preparation, 640-receipt original-budget benchmark and one default software PTY mixed scenario; full CI, actual system authorization, target performance and physical gates are separate."
 }
