@@ -4062,5 +4062,288 @@
         "sha256": "778aca70af12649cdc54e1d8318f75a286f5abd5871290074365e592da4a671b"
       }
     ]
+  },
+  "databaseMaintenanceFinalPage": {
+    "date": "2026-10-07",
+    "scope": "Actual Fluidd1.37.6 maintenance only on compiled protected client and pinned package with independent production dependencies. Two simulated PTY MCUs; no physical movement or physical device path.",
+    "sourceHead": "599288a6",
+    "identity": {
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-bundle",
+        "manifestSha256": "41ea309562f785b2c77647e508bf748072b3d487bd9dddda2fa4242bcdd6dc4d",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "installed": {
+        "durationMs": 839.257218,
+        "dependencies": 15
+      }
+    },
+    "profile": {
+      "date": "2026-10-07",
+      "scope": "Final fixed compiled package; same explicitly configured temporary backup directory and complete process-restart owner. Original 15 minute deadline retained.",
+      "sourceHead": "2c107ca0",
+      "helper": {
+        "originalSha256": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316",
+        "preparedSha256": "b6c1bf96974841208d91e367c4e0b6fc1840872dcfe744bdaa4c865ab46f85c2"
+      },
+      "nativeSha256": "8b90d4b3aa4a8f212dd811a93ff3b029ead21b8941e9c11ea06fa4e6507206fc",
+      "driverSha256": "6979df174725bb8bf0bfcdcf4acfb66364ea11ee9f7eac267f33282599d3e3c2",
+      "fixture": "database-backups under own transient directory; process restores terminate owned child then reopen same app/storage only after full cleanup"
+    },
+    "operations": {
+      "settingsBaseline": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "settingsDownload": {
+        "filename": "backup-fluidd-v1.37.6-C500 数据库恢复基准.json",
+        "failure": null
+      },
+      "backupCreation": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": [
+              "20261007-060246.db"
+            ]
+          }
+        }
+      },
+      "changedBeforeDatabaseRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复后改值"
+          }
+        }
+      },
+      "databaseRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "backupListAfterRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": [
+              "20261007-060246.db"
+            ]
+          }
+        }
+      },
+      "compact": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "changedBeforeSettingsRestore": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 设置恢复前改值"
+          }
+        }
+      },
+      "settingsRestoreChooser": {
+        "elapsedMs": 67.15444300000672
+      },
+      "settingsRestored": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespace": "fluidd",
+            "key": "uiSettings.general.instanceName",
+            "value": "C500 数据库恢复基准"
+          }
+        }
+      },
+      "backupDelete": {
+        "status": 200,
+        "body": {
+          "result": {
+            "namespaces": [
+              "fluidd",
+              "webcams"
+            ],
+            "backups": []
+          }
+        }
+      },
+      "printer": {
+        "status": 200,
+        "body": {
+          "result": {
+            "eventtime": 815462.303255259,
+            "status": {
+              "print_stats": {
+                "filename": "",
+                "print_duration": 0,
+                "total_duration": 0,
+                "filament_used": 0,
+                "state": "standby",
+                "message": "",
+                "info": {
+                  "total_layer": null,
+                  "current_layer": null
+                }
+              },
+              "toolhead": {
+                "estimated_print_time": 252.968523,
+                "homed_axes": "",
+                "axis_minimum": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "axis_maximum": [
+                  200,
+                  200,
+                  200,
+                  0
+                ],
+                "position": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "extruder": "extruder",
+                "max_velocity": 100,
+                "max_accel": 1000,
+                "square_corner_velocity": 5,
+                "minimum_cruise_ratio": 0.5
+              }
+            }
+          }
+        }
+      },
+      "history": {
+        "status": 200,
+        "body": {
+          "result": {
+            "count": 0,
+            "jobs": []
+          }
+        }
+      },
+      "logoutCookies": [],
+      "logoutLoginPage": true
+    },
+    "snapshot": {
+      "before": [
+        {
+          "name": "20261007-060246.db",
+          "bytes": 20480,
+          "mode": "600",
+          "sha256": "344b829c68b06fd42de54fd2c7b7f506a9a185681c36841cadb10f42b9b26bf6"
+        }
+      ],
+      "after": [
+        {
+          "name": "20261007-060246.db",
+          "bytes": 20480,
+          "mode": "600",
+          "sha256": "344b829c68b06fd42de54fd2c7b7f506a9a185681c36841cadb10f42b9b26bf6"
+        }
+      ],
+      "unchanged": true,
+      "sidecars": 0
+    },
+    "process": {
+      "restarted": 2,
+      "parent": 3049886,
+      "gateway": 3050112,
+      "driverExit": 0,
+      "parentExit": 0,
+      "gatewayExit": 0,
+      "fixtureRemoved": true,
+      "bundleUnchangedOnFinalClose": true
+    },
+    "limitations": [
+      "This final package combines candidates not all integrated into develop; full CI is still required for the database PR.",
+      "No target-board throughput, G3, real motion, physical printer, complete client suite or full Python retirement acceptance.",
+      "Legacy WAL snapshots are outside the standalone-new-snapshot claim.",
+      "Logout observer id51 was issued before the DELETE response completed and returned200; retain race explicitly, do not claim post-logout API401 for this run. Cookie removal and login page were observed afterward.",
+      "Source wrapper database tests still include their existing Python oracle; compiled product evidence is separate."
+    ],
+    "toolErrors": [
+      {
+        "id": 8,
+        "ok": false,
+        "error": "Error: locator.press: key: expected string, got undefined"
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-actual-page-20261007.log",
+        "sha256": "3f184a3c174089c0a29ff5c55436b0bf4698ae93a1ae999ad09b6298f96004aa"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-native-page-20261007.log",
+        "sha256": "8d611bf2576c2114f08cb0fc2add1f233ab949a6ccba894ec7f876397670de14"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-cli-page-20261007.log",
+        "sha256": "faea5bd40a2ce4749c1365af49da1859a00cde5bebed5c557c4a05754c84236d"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-before-restore-20261007.json",
+        "sha256": "91506c2c45b983a3d194a8c73f4fb02efef900d7b0f538da3c101adc347286fd"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-after-restore-20261007.json",
+        "sha256": "91506c2c45b983a3d194a8c73f4fb02efef900d7b0f538da3c101adc347286fd"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-client-identity-20261007.json",
+        "sha256": "0a8f75e1d95f624c049dcf824bab66d4adf5723534d24235e498dc10293a1c77"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-fluidd-settings-20261007.json",
+        "sha256": "fd3bcdd252625bd766c286fa4f8bc1286efd15740526dfae02681b3fcd308b52"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-backup-visible-20261007.png",
+        "sha256": "824c4e75e4d83c3c24356969b57c9eefdff4855d190fc8d5913fb9181afc89ee"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-restored-20261007.png",
+        "sha256": "9fcb90b620afc50635a66185b5b2d950ede9b0911b8328b68998f727b92259c4"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-final-deleted-20261007.png",
+        "sha256": "58b5d1a2bf06f8cae54844ff9a7932c7b6b67da6e56ea37ad67d13cf2cddbcb9"
+      }
+    ]
   }
 }
