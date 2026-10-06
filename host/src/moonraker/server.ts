@@ -1,4 +1,5 @@
 import type {ThumbnailDownloads} from './thumbnail-download.ts';
+import {CorsPolicy} from './cors-policy.ts';
 import {NativePrintUploads} from './native-print-uploads.ts';
 import type {NativeConfigFiles} from './native-config-files.ts';
 import {discardRejectedUploadBody} from './rejected-upload-body.ts';
@@ -43,6 +44,8 @@ export interface MoonrakerNetworkOptions {
  /** Additional allowed browser origins. Same-origin and clients without Origin
   * are accepted; method authorization is always required independently. */
  origins?:readonly string[];maxConnections?:number;maxRequests?:number;maxRequestsPerSocket?:number;
+ /** Configuration-owned CORS admission, independent of method authentication. */
+ cors?:CorsPolicy;
  requestTimeoutMs?:number;shutdownTimeoutMs?:number;maxBufferedBytes?:number;maxOutputBytes?:number;
 }
 interface Peer{socket:WebSocket;request:IncomingMessage;abort:AbortController;active:number;alive:boolean;}
@@ -66,6 +69,7 @@ export class MoonrakerNetwork {
   this.#maximumOutputBytes=bounded(options.maxOutputBytes,8*maxBytes,64*maxBytes);
   this.#maxBuffered=bounded(options.maxBufferedBytes,8*maxBytes,64*maxBytes);this.#maxConnections=bounded(options.maxConnections,50,10000);this.#maxRequests=bounded(options.maxRequests,256,10000);this.#perSocket=bounded(options.maxRequestsPerSocket,32,1000);this.#timeout=bounded(options.requestTimeoutMs,300000,2147483647);this.#shutdownTimeout=bounded(options.shutdownTimeoutMs,5000,60000);
   this.#origins=new Set((options.origins??[]).map(origin=>{const url=new URL(origin);if(!['http:','https:'].includes(url.protocol)||url.origin!==origin)throw new Error('Invalid allowed origin');return origin;}));
+  if(options.cors!==undefined&&!(options.cors instanceof CorsPolicy))throw new TypeError('Invalid CORS policy');
   if(options.authorizeNotification!==undefined&&typeof options.authorizeNotification!=='function')throw new TypeError('Invalid notification authorization');
   if(options.authorizeSubscriptionConnection!==undefined&&typeof options.authorizeSubscriptionConnection!=='function')throw new TypeError('Invalid subscription connection authorization');
   if(options.authorizeNotification)this.#notifications=new NotificationFanout(options.notificationLimits);
@@ -112,7 +116,7 @@ export class MoonrakerNetwork {
  }
  #origin(request:IncomingMessage):boolean{
   const origin=request.headers.origin;if(origin===undefined)return true;
-  try{const url=new URL(origin);return this.#origins.has(origin)||['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase();}catch{return false;}
+  try{const url=new URL(origin);return this.#origins.has(origin)||this.#options.cors?.matches(origin)===true||['http:','https:'].includes(url.protocol)&&url.origin===origin&&url.host.toLowerCase()===request.headers.host?.toLowerCase();}catch{return false;}
  }
  #error(response:ServerResponse,status:number,message:string,data?:Json):void{if(response.destroyed||response.writableEnded)return;if(response.headersSent){response.destroy();return;}response.writeHead(status,{'content-type':'application/json; charset=UTF-8'});response.end(JSON.stringify({error:{code:status,message,...data===undefined?{}:{data}}}));}
  #rejectUpgrade(socket:Duplex,status:number):void{socket.end(`HTTP/1.1 ${status} Rejected\r\nConnection: close\r\nContent-Length: 0\r\n\r\n`);}
@@ -136,8 +140,8 @@ export class MoonrakerNetwork {
   const url=request.url??'',at=url.indexOf('?'),path=at<0?url:url.slice(0,at),query=at<0?'':url.slice(at+1),isRPC=path==='/server/jsonrpc',isUpload=!!nativeUploads&&path==='/server/files/upload',isDownload=nativeUploads?.matchesDownload(path)??false,isConfigDownload=this.#options.configFiles?.matchesDownload(path)??false,isNativeThumbnail=!!nativeUploads&&!isDownload&&nativeUploads.matchesThumbnail(path)&&(!this.#options.thumbnails||nativeUploads.hasThumbnail(path)),isThumbnail=isNativeThumbnail||(this.#options.thumbnails?.matches(path)??false),allowed=isRPC||isUpload?['POST']:isDownload&&nativeUploads!.canRemove?['GET','HEAD','DELETE']:isDownload||isConfigDownload||isThumbnail?['GET','HEAD']:this.#options.endpoints?.allowed(path);
   if(!allowed){this.#error(response,404,'Not Found');return;}
   if(!this.#origin(request)){this.#error(response,403,'Origin not allowed');return;}
-  if(request.headers.origin&&this.#origins.has(request.headers.origin)){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
-  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, If-None-Match, Range, If-Range'});response.end();return;}
+  if(request.headers.origin&&(this.#origins.has(request.headers.origin)||this.#options.cors?.matches(request.headers.origin))){response.setHeader('access-control-allow-origin',request.headers.origin);response.setHeader('vary','Origin');response.setHeader('access-control-allow-credentials','true');response.setHeader('access-control-expose-headers','ETag, Content-Disposition, Content-Length, Content-Range, Accept-Ranges');}
+  if(request.method==='OPTIONS'){response.writeHead(204,{'access-control-allow-methods':[...allowed,'OPTIONS'].join(', '),'access-control-allow-headers':'Content-Type, Authorization, X-Api-Key, X-Access-Token, If-None-Match, Range, If-Range'});response.end();return;}
   if(!allowed.some(v=>v===request.method)){this.#error(response,405,'Method Not Allowed');return;}
   if(isRPC&&!request.headers['content-type']?.trim().startsWith('application/json')){this.#error(response,400,'Invalid content type, application/json required');return;}
   if(this.#requests.size>=this.#maxRequests){this.#error(response,429,'Too many active requests');return;}

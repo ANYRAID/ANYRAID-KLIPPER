@@ -358,8 +358,8 @@ export class ConfiguredMoonraker {
    authorizeNotification:(method,params,context)=>owner().networkOptions.authorizeNotification!(method,params,context),
    authorizeSubscriptionConnection:(source,target)=>owner().networkOptions.authorizeSubscriptionConnection!(source,target)
   };
-  const {reader,automatic}=await this.#prepare(filename,resolved),policy=readAuthorizationOptions(reader,options.authorization.issuer);
-  const server=new ConfiguredMoonraker(reader,resolved,automatic);
+  const {reader,automatic}=await this.#prepare(filename,resolved),{cors,...policy}=readAuthorizationOptions(reader,options.authorization.issuer);
+  const server=new ConfiguredMoonraker(reader,{...resolved,...cors?{cors}:{}},automatic);
   server.#configurationPath=filename;server.#nativeProcessOptions=nativeProcessOptions(options);
   try{
    auth=await ApiKeyAuthorization.open(options.database,policy);server.#authorization=auth;
