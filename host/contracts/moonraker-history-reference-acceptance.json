@@ -1,0 +1,248 @@
+{
+  "schema": 1,
+  "status": "candidate-local-validated-exact-head-ci-and-integration-open",
+  "date": "2026-10-06",
+  "node": "v26.10.0",
+  "base": "6a389a2d023216a8b5223e86023168878032434d",
+  "reference": {
+    "path": "host/contracts/moonraker-history-reference-retirement.json",
+    "sha256": "aba9b160e4c88a953e3b477a4143bf7daf3274b42d7909d64665c627d08fd92b",
+    "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "scope": "Fixed independent upstream outputs, original input bytes and raw JSON preserve negative zero; no expected result derived from current implementation"
+  },
+  "sources": {
+    "host/test/helpers/history-reference.ts": "db5781416b8cf4ee7a8b7fd24662e3120f9ec9e7a2157dc842f3c9799cfe95b9",
+    "host/test/history-fields.test.ts": "336f669f0e42a9bcca71918ba5f6f4945c5f165027656c05ce0ed016ddc8b55e",
+    "host/test/history-metadata.test.ts": "889bc9dbf0fdc77375c629c2a96f9926c2e8962e799174cb3fd6e60b6a1a34f2",
+    "host/test/history-runtime.test.ts": "993e38b3acd0162db62c0deffd43a90ea371d3a9fc9b49e31c7a03f0c6a17120",
+    "host/test/history-marker.test.ts": "3b7f5c43f69cd4e92da4bc258cdababc95e24cf0ca43bdbaf712308f38f29def",
+    "host/bench/history-fields.ts": "b3216d58127578b00824487bab9c2b32291c135953bc876c4e94415846fa3fde"
+  },
+  "unchangedProductionSources": {
+    "host/src/moonraker/history-fields.ts": "703aa3f2270526fdc68cb467c3d5043bef620dc95e5e623a9be548359c550c06",
+    "host/src/moonraker/history-tracker.ts": "4c51db83c9824eff940debc56bd96636e5493aa09f2612e58c0ae04da4d9466c",
+    "host/src/moonraker/history-metadata.ts": "ec2f159cfdc62f61a1c1e74edeef3c72c5fa27335ad86926965e4bd1860407d9",
+    "host/src/moonraker/history-runtime.ts": "5843fa6ae602858f94551f0a2b3ab21b6987f9fc0d57329374ae2fcc2cf48fc2",
+    "host/src/moonraker/history-repository.ts": "92b798dff2d280b594d37f9efba09229c036124fb62621277081aab841cedd00",
+    "host/src/moonraker/history-file-metadata.ts": "8608de58a379e090d0fdbfda67af32e96bd447baa3b137bd2b8697a499efa7df",
+    "host/src/moonraker/database-record.ts": "071aadd187435a63a45034606560be84589a637f50ba2edd8f051b84012565c3",
+    "host/src/moonraker/database.ts": "f5487f6bb91d55e5817175e20affcd3e897532a65bf315030ad23d17b60d2f5f",
+    "host/src/moonraker/job-state.ts": "48b28513101dae2109fc4407e01933ac82e26d31b342b769a05dd3bda64a3a57"
+  },
+  "removedRuntimePythonCalls": {
+    "tests": 4,
+    "benchmarks": 1,
+    "scope": "These four test files and one benchmark only; other Python reference calls and all 177 tracked klippy Python files remain"
+  },
+  "validation": {
+    "regression": {
+      "passed": 27,
+      "failed": 0,
+      "durationMs": 1505.495988,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-reference-integrated-tests-20261006.log",
+        "sha256": "a1e03f53b0a31b9ab2db0cdc75fb0f589a66757bce94b6aa687d607a9ba8b48d"
+      }
+    },
+    "typecheck": {
+      "conclusion": "passed",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-reference-integrated-typecheck-20261006.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      }
+    },
+    "noPython": {
+      "guard": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-no-python-20261006.mjs",
+        "sha256": "54fb6b50810da18b6c1c1cef0ee08896276b80486d2f32f83d3c364995f11cbc"
+      },
+      "coverage": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-guard-integrated-coverage-20261006.jsonl",
+        "sha256": "56dae6fdead98e8e4a0ef9b868d2e6db08a6dae79b6dfa8fa8e9943205548ae9"
+      },
+      "loadedTestProcesses": 4,
+      "externalCommandAttempts": 0,
+      "negativeCases": 5,
+      "negativeCommands": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-guard-integrated-negative-20261006.jsonl",
+        "sha256": "81a8aac518393fcac8fdc8ba4ce6ad072ed865000865ec1aa7a92e3b6b96b912"
+      },
+      "scope": "Public child_process calls intercepted; all four actual test processes load the guard. Absolute and PATH Python and shell calls rejected before execution"
+    },
+    "benchmark": {
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-fields-no-python-final-benchmark-20261006.log",
+        "sha256": "4b940967db1479771af75b76a96baed2d6203c0cc8e78048f2b18610d627011c"
+      },
+      "commandLog": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-guard-final-bench-commands-20261006.jsonl",
+        "sha256": "c06a71b7e70b1568b7ae0c4031ba0cc0df4446034091c3127d360a98259eb6f4"
+      },
+      "metrics": {
+        "node": "v26.10.0",
+        "baseline": "255bb601",
+        "strategies": [
+          "basic",
+          "delta",
+          "accumulate",
+          "average",
+          "maximum",
+          "minimum",
+          "collect"
+        ],
+        "updatesPerRound": 100000,
+        "snapshotsPerRound": 1000,
+        "fields": 16,
+        "rounds": 9,
+        "warmup": 2,
+        "samples": 7,
+        "pythonTiming": "Historical Python 3.12.13 desktop capture; not a fresh runtime comparison or target-board acceptance",
+        "updates": [
+          {
+            "strategy": "basic",
+            "previous": {
+              "medianMs": 1.602409999999992,
+              "p95Ms": 3.7282969999999978
+            },
+            "current": {
+              "medianMs": 2.233238,
+              "p95Ms": 5.550470000000004
+            }
+          },
+          {
+            "strategy": "delta",
+            "previous": {
+              "medianMs": 2.3014790000000005,
+              "p95Ms": 2.6309129999999925
+            },
+            "current": {
+              "medianMs": 3.344202000000024,
+              "p95Ms": 5.265627000000023
+            }
+          },
+          {
+            "strategy": "accumulate",
+            "previous": {
+              "medianMs": 1.9953449999999862,
+              "p95Ms": 2.3647100000000023
+            },
+            "current": {
+              "medianMs": 2.5396319999999832,
+              "p95Ms": 2.9966679999999997
+            }
+          },
+          {
+            "strategy": "average",
+            "previous": {
+              "medianMs": 2.350038999999981,
+              "p95Ms": 2.498681999999974
+            },
+            "current": {
+              "medianMs": 3.230099999999993,
+              "p95Ms": 4.992743000000019
+            }
+          },
+          {
+            "strategy": "maximum",
+            "previous": {
+              "medianMs": 1.7804129999999532,
+              "p95Ms": 1.8426729999999907
+            },
+            "current": {
+              "medianMs": 2.548971999999992,
+              "p95Ms": 2.645464000000004
+            }
+          },
+          {
+            "strategy": "minimum",
+            "previous": {
+              "medianMs": 2.0162559999999985,
+              "p95Ms": 2.064286999999979
+            },
+            "current": {
+              "medianMs": 2.5197019999999952,
+              "p95Ms": 2.672834000000023
+            }
+          },
+          {
+            "strategy": "collect",
+            "previous": {
+              "medianMs": 21.277349999999956,
+              "p95Ms": 25.041217999999958
+            },
+            "current": {
+              "medianMs": 21.116247999999928,
+              "p95Ms": 25.692335999999955
+            }
+          }
+        ],
+        "snapshots": [
+          {
+            "mode": "fixed",
+            "node": {
+              "medianMs": 28.381450000000086,
+              "p95Ms": 28.76305500000001
+            },
+            "capturedPython": {
+              "medianMs": 40.52493395283818,
+              "p95Ms": 40.58415500912815
+            }
+          },
+          {
+            "mode": "changing",
+            "node": {
+              "medianMs": 29.577745999999934,
+              "p95Ms": 31.168575000000146
+            },
+            "capturedPython": {
+              "medianMs": 43.84179599583149,
+              "p95Ms": 43.889497057534754
+            }
+          }
+        ],
+        "integerDelta": {
+          "node": {
+            "medianMs": 13.531991000000062,
+            "p95Ms": 14.953780000000052
+          },
+          "capturedPython": {
+            "medianMs": 27.200005017220974,
+            "p95Ms": 27.347987052053213
+          }
+        }
+      },
+      "scope": "Unchanged original desktop load and exact equality assertions; only git invoked. Python timings are capture-time historical data. Several current strategy timings exceed the older 255bb601 TS baseline; this batch changes no production source and does not claim target performance closure"
+    },
+    "initialFailure": {
+      "passed": 25,
+      "failed": 2,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-reference-retirement-tests-20261006.log",
+        "sha256": "02d4a62dff2a5f0d101b6970446bb7c3807980a878790400d2c68329106e85c0"
+      },
+      "typecheck": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-reference-retirement-typecheck-20261006.log",
+        "sha256": "295d3d732a949a5d7803aa46f4b56a2ae5c85feab4e76fc0971dc6a1e3236bdf"
+      },
+      "initialReference": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-reference-initial-inventory-20261006.json",
+        "sha256": "f3ba19a0f90e4ec1d6153cb0b9c6d81c42ddcfc1fbd1665c930c3b5a860b22ab"
+      },
+      "reason": "Reference input byte encoding/order mismatch, repaired against unchanged original input; independent upstream event output rechecked identical"
+    },
+    "firstBenchmark": {
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-fields-no-python-benchmark-20261006.log",
+        "sha256": "b2f6b49b346d20454a2040ad07e19c1a829e3fb8fa9b88280c7fe20dc9cd4ff9"
+      },
+      "scope": "Earlier benchmark loop read bounds from descriptor properties; final code reads local constants, both original loads retained"
+    }
+  },
+  "open": [
+    "Exact final candidate CI and normal PR integration",
+    "Other daily history/Python reference calls",
+    "Complete native Moonraker and client acceptance",
+    "Target board performance, G3 and physical printing",
+    "Default entry switch, full Python retirement and master release"
+  ]
+}

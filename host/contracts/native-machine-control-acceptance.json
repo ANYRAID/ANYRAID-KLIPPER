@@ -1899,6 +1899,27 @@
         },
         "scope": "One final-bundle software PTY scenario with synthetic system commands; history P99 59.525111ms is an observation, not a target-budget pass or an attributed regression cause"
       }
+    },
+    "pr14ExactCiAndMerge": {
+      "head": "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33",
+      "hostRun": 37477249209,
+      "hostJob": 112315775398,
+      "host": "all-required-steps-success",
+      "firmwareRun": 37477249177,
+      "firmwareJob": 112315775426,
+      "firmware": "success",
+      "merge": "6a389a2d023216a8b5223e86023168878032434d",
+      "parents": [
+        "a2e97c3bf38b1745e517d75c180d148d99099df9",
+        "abe7b4b7d82ea1e5df2d42b39a7bf9e830d51a33"
+      ],
+      "tree": "95d595cb6af28bd8aa9f064536bfb0b2a8d120fb",
+      "treeEqualsReviewedHead": true,
+      "review": "https://github.com/ANYRAID/ANYRAID-KLIPPER/pull/14#issuecomment-6018803574",
+      "postMergeHostRun": 37481854349,
+      "postMergeFirmwareRun": 37481854419,
+      "postMergeScope": "Separate live jobs; not yet complete validation",
+      "scope": "Integrated software candidate; historical failures, actual system permissions, target performance and G3 remain open"
     }
   },
   "performance": {
