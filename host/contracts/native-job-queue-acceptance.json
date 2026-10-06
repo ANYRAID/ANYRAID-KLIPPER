@@ -1173,6 +1173,59 @@
       "Full Fluidd/Mainsail page journeys and target-board performance",
       "G3 remains unresolved; real movement, printing and default Python switch not authorized by this evidence",
       "177 tracked klippy Python plus remaining build/test/benchmark Python retirement and full goal still open"
-    ]
+    ],
+    "integration": {
+      "base": "16149841b149361bc88533449ab1feed7f744faf",
+      "reviewedHistoryPr": 15,
+      "reviewedHistoryHead": "ee1959a297983f589537cad5a0e93d00b9eabba7",
+      "baseTree": "34e521625953800246bd5084053402639e018a9e",
+      "productionUnchangedFromCandidate": "139dff182bf0efae50b1a6c8aee8125a47facbf5",
+      "local": {
+        "passed": 68,
+        "queueAndHistory": {
+          "passed": 59,
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-develop-integration-tests-20261006.log",
+            "sha256": "45978ffbff20dc1f5becb5292e89d6a57f56e0e6044ccd3162047ef08b1a3271"
+          }
+        },
+        "authorization": {
+          "passed": 9,
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-develop-integration-authorization-20261006.log",
+            "sha256": "882abb1cb3715910ec052f6196bb2e26169e620eef393a0cc78e2be89165222a"
+          }
+        },
+        "types": {
+          "conclusion": "passed",
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-develop-integration-types-20261006.log",
+            "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+          }
+        },
+        "whitespace": {
+          "conclusion": "passed",
+          "scope": "Full required source whitespace check",
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-develop-integration-whitespace-final-20261006.log",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "initialFailure": {
+            "reason": "Extra newline left by appended-document conflict resolution; trimmed EOF, no code change",
+            "log": {
+              "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-develop-integration-whitespace-20261006.log",
+              "sha256": "a1a6f3c8cdef16e120ec0075c7d06c67448e870462171fd438c937430b4e8821"
+            }
+          }
+        }
+      },
+      "performance": "Existing pinned 9c2b83f5 bundle and a275822e dependencies retained: production hashes unchanged after normal develop integration; benchmarks not rerun merely for documentation or history-test changes.",
+      "basePostMerge": {
+        "hostRun": 37487358392,
+        "firmwareRun": 37487358295,
+        "status": "in-progress-at-integration"
+      },
+      "candidateFullCi": "Required for resulting exact head; earlier 139dff18 runs do not cover the merge."
+    }
   }
 }
