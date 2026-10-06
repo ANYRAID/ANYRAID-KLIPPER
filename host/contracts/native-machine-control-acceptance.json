@@ -34,7 +34,7 @@
     "host/test/machine-recovery-journal.test.ts": "0a972584b2c5a387f600eebccddcd74f22523635f351247eb6b9c27db4905029",
     "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
     "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
-    "host/acceptance/product-compiled-journey.test.ts": "3f80dac830e8cb4e0a663a6ddad492c8a9c1fa48867582641f899fe3a80d9a93",
+    "host/acceptance/product-compiled-journey.test.ts": "f1ab2b519aaa3918cc8cca240a5a241b1b56eeb05a271668401feb0c205e07bd",
     "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
   },
   "invariants": [
@@ -562,6 +562,178 @@
         "Actual maintenance-gate owner forces a busy rejection; successful measure/save/load/remove preserve exact coefficients across restart"
       ],
       "scope": "Product-service file only. Production idle rejection, motion formulas, native addons and original deadlines unchanged; original complete-suite and performance failures are not closed."
+    },
+    "earlyCancellationDiscriminator": {
+      "conclusion": "failed-printing-file-move-coverage",
+      "tests": 1,
+      "passed": 0,
+      "failed": 1,
+      "durationMs": 73284.765069,
+      "error": "Must move unrelated files during each printing generation",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-early-cancel-discriminator-20261006.log",
+        "sha256": "e7183954650674c68e9b770c5580d5d48a753d37e3185731ee53c05765322f78"
+      },
+      "sourceSha256": "f1ab2b519aaa3918cc8cca240a5a241b1b56eeb05a271668401feb0c205e07bd",
+      "bundleManifestSha256": "93edda5e2261c5d44cf9b0cf3f918be06d4f32d5b9ee9d4c5ce9a15275a34fbd",
+      "flags": {
+        "ANYRAID_BENCH_MACHINE_CONTROL": "on",
+        "ANYRAID_BENCH_OBJECT_CANCELLATION": "early",
+        "ANYRAID_BENCH_OBJECT_PRIMING": "unset"
+      },
+      "input": "Unchanged original 1000 moves and X99/E2 target, all namespace loads, 12-second completion and 90-second child watchdog budgets",
+      "earlyCancellation": {
+        "before": {
+          "gcode_move": {
+            "speed_factor": 1,
+            "speed": 600,
+            "extrude_factor": 1,
+            "absolute_coordinates": true,
+            "absolute_extrude": true,
+            "homing_origin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "position": [
+              3.77,
+              0,
+              0,
+              0.377
+            ],
+            "gcode_position": [
+              3.77,
+              0,
+              0,
+              0.377
+            ],
+            "axis_map": {
+              "X": 0,
+              "Y": 1,
+              "Z": 2,
+              "E": 3
+            }
+          },
+          "print_stats": {
+            "filename": "parts/first/renamed journey.gcode",
+            "print_duration": 0.030412732999999206,
+            "total_duration": 4.234348895000001,
+            "filament_used": 0.377,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          }
+        },
+        "after": {
+          "gcode_move": {
+            "speed_factor": 1,
+            "speed": 600,
+            "extrude_factor": 1,
+            "absolute_coordinates": true,
+            "absolute_extrude": true,
+            "homing_origin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "position": [
+              3.77,
+              0,
+              0,
+              0.377
+            ],
+            "gcode_position": [
+              3.77,
+              0,
+              0,
+              0.377
+            ],
+            "axis_map": {
+              "X": 0,
+              "Y": 1,
+              "Z": 2,
+              "E": 3
+            }
+          },
+          "print_stats": {
+            "filename": "parts/first/renamed journey.gcode",
+            "print_duration": 0.03450696799999969,
+            "total_duration": 4.238442880000001,
+            "filament_used": 0.377,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          }
+        },
+        "originalMoves": 1000,
+        "priming": false,
+        "appliesTo": "future_admissions"
+      },
+      "completedStatistics": {
+        "total_duration": 11.033930789,
+        "print_duration": 5.154070777000001,
+        "filament_used": 1
+      },
+      "machineControl": {
+        "actions": 12,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "settlementMs": [
+          173.18771099999867,
+          169.67181400000118,
+          168.60324899999978,
+          166.16988599999968,
+          139.2596310000008,
+          160.017742,
+          173.75528499999928,
+          158.8967230000053,
+          176.59815399999934,
+          168.36585200000263,
+          167.23000599999796,
+          167.32628699999623
+        ],
+        "syntheticCommand": true,
+        "durableReceipts": true,
+        "noDeviceRetirement": true,
+        "hardwareAcceptance": false
+      },
+      "fileLoads": {
+        "moveRequests": 16,
+        "directoryMoveRequests": 16,
+        "copies": 16,
+        "directoryCopies": 16,
+        "uploads": 16,
+        "movesObservedDuringPrinting": 1,
+        "generationIds": "Not captured by this metrics block; count alone does not identify missing generation."
+      },
+      "loop": [
+        {
+          "p99Ms": 2.121727,
+          "maxMs": 18.399231
+        },
+        {
+          "p99Ms": 1.956863,
+          "maxMs": 12.713983
+        }
+      ],
+      "typecheck": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-early-cancel-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "scope": "Separate changed cancellation timing. First print completed and 12 synthetic commands settled across both printing generations, but whole-case rejection remains. Does not replace the default paused-first-target failure, close performance or prove physical printing."
     }
   },
   "performance": {
@@ -575,7 +747,8 @@
     "filesystem": "/dev/sda5 ext4, owned TMPDIR; historic filesystem provenance not captured",
     "storage": "100 measured after 20 warmups; 4KiB overwrite+fsync median 5.312261 ms/P99 5.597956 ms; DELETE/EXTRA INSERT transaction median 25.340482 ms/P99 26.991915 ms. Diagnostic separate from worker, no root-cause closure.",
     "mixed": "Six first-generation synthetic OS jobs submitted, latest receipts succeeded and host busy=false at timeout, live X around 68 while commanded X10/E2, approximately 88.5% committed file progress. Priming the original five-extrusion exclusion state did not fix the timeout; investigate already admitted motion before cancellation. Do not drop original 1000 moves or widen deadlines. The new pre-cancel observation confirms commanded E2 and filament_used=2 before cancellation; this excludes using the subsequent exclusion receipt to undo already admitted SKIP movement. Fix fixture admission precondition before assessing mixed timing.",
-    "priming": "ANYRAID_BENCH_OBJECT_PRIMING=on adds exclude/reset before the original 1000 moves only as a diagnostic input; default unprimed remains unchanged. Not a replacement passing case."
+    "priming": "ANYRAID_BENCH_OBJECT_PRIMING=on adds exclude/reset before the original 1000 moves only as a diagnostic input; default unprimed remains unchanged. Not a replacement passing case.",
+    "earlyCancellation": "Optional early discriminator cancels at E=0.377 with original five-extrusion warmup remaining; first print completed with filament_used=1 and print_duration=5.154070777s. 12 synthetic service commands settled during both generations; whole case still failed because only one file move observation overlapped printing across both generations. Generation identity was not logged; instrument before/after operation ownership before attributing cause."
   },
   "notValidation": [
     {
