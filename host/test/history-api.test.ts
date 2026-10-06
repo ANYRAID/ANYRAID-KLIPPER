@@ -46,8 +46,8 @@ test('history parameter conversions, file failure, cancellation and unregister r
 test('history get, deletion and base-total reset match pinned upstream handlers',()=>fixture(async(history)=>{
  const rows=[];for(let i=0;i<3;i++){const values={...data,start_time:100+i,total_duration:2,print_duration:1,metadata:{}},job=await history.start(values);await history.finish(job.job_id,'completed',values,200+i);rows.push({id:i+1,start:100+i,end:200+i});}
  const operations=[{method:'get',uid:'1'},{method:'delete',uid:'1'},{method:'deleteAll'},{method:'get',uid:'1'},{method:'reset'},{method:'totals'}];
- const {execFileSync}=await import('node:child_process'),{historyMutationOracle}=await import('./helpers/history-oracle.ts');
- const reference=JSON.parse(execFileSync('/usr/bin/python3',['-c',historyMutationOracle()],{input:JSON.stringify({rows,operations}),encoding:'utf8'}));
+ const {historyReference}=await import('./helpers/history-reference.ts');
+ const reference=historyReference<unknown[]>('history-api',JSON.stringify({rows,operations}));
  const registry=new EndpointRegistry(new JsonRpcDispatcher()),release=registerHistory(registry,{repository:history,fileExists:()=>false}),context:RpcContext={transport:'http',signal:new AbortController().signal,authorize(){}},actual=[];
  try{for(const operation of operations){const method=operation.method;try{const value=await registry.invoke('/server/history/'+(method==='reset'?'reset_totals':method==='totals'?'totals':'job'),method==='reset'?'POST':method==='delete'||method==='deleteAll'?'DELETE':'GET',method==='deleteAll'?{all:true}:operation.uid?{uid:operation.uid}:{},context);actual.push({value});}catch(error){assert.ok(error instanceof ApiError);actual.push({error:error.status});}}assert.deepEqual(actual,reference);}finally{release();}
 }));

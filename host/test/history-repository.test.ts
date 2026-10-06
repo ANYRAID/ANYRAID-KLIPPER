@@ -53,8 +53,8 @@ test('history table prototypes and filtered lists match pinned upstream handlers
  const history=await HistoryRepository.open(db),rows=[];
  for(let i=0;i<3;i++){const created=await history.start({...start,start_time:100+i,metadata:{}});await history.finish(created.job_id,'completed',start,200+i);rows.push({id:i+1,start:100+i,end:200+i});}
  const queries=[{},{since:100,before:202,order:'asc'},{limit:0,start:999},{limit:1,start:1}];
- const {execFileSync}=await import('node:child_process'),{historyOracle}=await import('./helpers/history-oracle.ts'),{historyTables}=await import('../src/moonraker/history-repository.ts');
- const reference=JSON.parse(execFileSync('/usr/bin/python3',['-c',historyOracle()],{input:JSON.stringify({rows,queries}),encoding:'utf8'}));
+ const {historyReference}=await import('./helpers/history-reference.ts'),{historyTables}=await import('../src/moonraker/history-repository.ts');
+ const reference=historyReference<{prototypes:string[];results:unknown[]}>('history-repository',JSON.stringify({rows,queries}));
  assert.deepEqual(reference.prototypes,historyTables.map(t=>t.prototype));
  for(let i=0;i<queries.length;i++){const actual=await history.list(queries[i]);assert.deepEqual({...actual,jobs:actual.jobs.map(j=>({...j,exists:false}))},reference.results[i]);}
 }));
