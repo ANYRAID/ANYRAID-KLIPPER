@@ -34,7 +34,7 @@
     "host/test/machine-recovery-journal.test.ts": "0a972584b2c5a387f600eebccddcd74f22523635f351247eb6b9c27db4905029",
     "host/test/native-product-machine-control.test.ts": "649afb07aec39f71d0b59e9024d76dbf37dbbc41063410f420f427b8eff2f6d6",
     "host/bench/machine-recovery.ts": "b05aa4481f03ed84a7e05561a3bbe0da215896b3f599e3e11c113715b8b42862",
-    "host/acceptance/product-compiled-journey.test.ts": "f1ab2b519aaa3918cc8cca240a5a241b1b56eeb05a271668401feb0c205e07bd",
+    "host/acceptance/product-compiled-journey.test.ts": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
     "host/test/product-service.test.ts": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
   },
   "invariants": [
@@ -734,6 +734,248 @@
         }
       },
       "scope": "Separate changed cancellation timing. First print completed and 12 synthetic commands settled across both printing generations, but whole-case rejection remains. Does not replace the default paused-first-target failure, close performance or prove physical printing."
+    },
+    "mixedOwnershipCorrection": {
+      "conclusion": "passed-default-software-case",
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 71250.210334,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-mixed-default-20261006.log",
+        "sha256": "c831ef66a6952f8a3d896acd4a61da2471acf5ddd087d202d4f4837cb2082388"
+      },
+      "sourceSha256": "34624b8fe50a08e5e4f3f0b4f359c5e896c391d513bef9ef74ad016dbdf2e8fe",
+      "bundleManifestSha256": "93edda5e2261c5d44cf9b0cf3f918be06d4f32d5b9ee9d4c5ce9a15275a34fbd",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "flags": {
+        "ANYRAID_BENCH_MACHINE_CONTROL": "on",
+        "ANYRAID_BENCH_OBJECT_CANCELLATION": "unset; default early",
+        "ANYRAID_BENCH_OBJECT_PRIMING": "unset"
+      },
+      "earlierOwnershipDiscriminator": {
+        "conclusion": "passed",
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 71700.358931,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-file-move-ownership-20261006.log",
+          "sha256": "44799d161a4a45259f938c19127b5bc75a80dd831ae9bc6e7aef518e4f05f03e"
+        },
+        "typecheck": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-file-move-ownership-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        },
+        "sourceIdentity": "Before default-mode change; harness source fingerprint not captured at invocation. Do not label current complete-source verification."
+      },
+      "typecheck": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-machine-control-mixed-default-type-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "earlyCancellation": {
+        "before": {
+          "gcode_move": {
+            "speed_factor": 1,
+            "speed": 600,
+            "extrude_factor": 1,
+            "absolute_coordinates": true,
+            "absolute_extrude": true,
+            "homing_origin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "position": [
+              1.21,
+              0,
+              0,
+              0.121
+            ],
+            "gcode_position": [
+              1.21,
+              0,
+              0,
+              0.121
+            ],
+            "axis_map": {
+              "X": 0,
+              "Y": 1,
+              "Z": 2,
+              "E": 3
+            }
+          },
+          "print_stats": {
+            "filename": "parts/first/renamed journey.gcode",
+            "print_duration": 0.027502988000000186,
+            "total_duration": 4.261828339000001,
+            "filament_used": 0.121,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          }
+        },
+        "after": {
+          "gcode_move": {
+            "speed_factor": 1,
+            "speed": 600,
+            "extrude_factor": 1,
+            "absolute_coordinates": true,
+            "absolute_extrude": true,
+            "homing_origin": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "position": [
+              1.21,
+              0,
+              0,
+              0.121
+            ],
+            "gcode_position": [
+              1.21,
+              0,
+              0,
+              0.121
+            ],
+            "axis_map": {
+              "X": 0,
+              "Y": 1,
+              "Z": 2,
+              "E": 3
+            }
+          },
+          "print_stats": {
+            "filename": "parts/first/renamed journey.gcode",
+            "print_duration": 0.03229752200000075,
+            "total_duration": 4.266622593000001,
+            "filament_used": 0.121,
+            "state": "printing",
+            "message": "",
+            "info": {
+              "total_layer": null,
+              "current_layer": null
+            }
+          }
+        },
+        "originalMoves": 1000,
+        "priming": false,
+        "appliesTo": "future_admissions"
+      },
+      "completedStatistics": {
+        "total_duration": 11.778671836000001,
+        "print_duration": 5.4258928000000015,
+        "filament_used": 1
+      },
+      "machineControl": {
+        "actions": 12,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "settlementMs": [
+          163.7150130000009,
+          168.0717509999995,
+          172.39558899999975,
+          155.0553660000005,
+          164.9563190000008,
+          161.95630900000106,
+          163.69507100000192,
+          169.1055039999992,
+          171.66848700000264,
+          171.71081799999956,
+          168.7828389999995,
+          157.61740000000282
+        ],
+        "syntheticCommand": true,
+        "durableReceipts": true,
+        "noDeviceRetirement": true,
+        "hardwareAcceptance": false
+      },
+      "movesPrintingGenerations": [
+        1,
+        2
+      ],
+      "workloadCounts": {
+        "copyRequests": 16,
+        "copyOverwriteRequests": 16,
+        "directoryCopyRequests": 16,
+        "moveRequests": 16,
+        "directoryMoveRequests": 16,
+        "uploads": 16,
+        "downloads": 16,
+        "metadataRequests": 16,
+        "thumbnailRequests": 16,
+        "publicThumbnailRequests": 16,
+        "deleteRequests": 16
+      },
+      "minimumStepLeadMs": 86.817,
+      "statusP99Ms": 3.534916999997222,
+      "loop": [
+        {
+          "p99Ms": 1.967103,
+          "maxMs": 18.153471
+        },
+        {
+          "p99Ms": 1.938431,
+          "maxMs": 13.066239
+        }
+      ],
+      "invariants": [
+        "First namespace source copy, replacement and file move must finish before runout pause; same original 12-second checkpoint limit",
+        "Move coverage requires printing both before and after successful move, same print request and file identity",
+        "Original 1000 moves, X99/E2, workload counts, 12-second completion and 90-second child watchdog limits retained",
+        "Namespace normal case cancels future object before at least five remaining original extrusions; explicit paused-first-target mode retains old diagnostic",
+        "Original failed logs and 25-ms durable admission rejection retained"
+      ],
+      "scope": "One default namespace mixed case on the frozen emitted product bundle with PTY MCU and synthetic 20-ms OS command adapter. Full original workload gates passed; not actual systemd, target-board timing, physical print, all acceptance variants or G3 completion.",
+      "recordedFileMoves": 16,
+      "fileMoveOwnershipSha256": "c3a8c357b37eaa50b3ec0954f347542614c5e376f63698fc3612c56db5606959",
+      "firstFileMoves": [
+        {
+          "generation": 1,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 9910.065858
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "complete",
+            "fileId": "authorized-file",
+            "atMs": 10395.594379
+          },
+          "durationMs": 485.5304410000008
+        },
+        {
+          "generation": 2,
+          "group": 0,
+          "before": {
+            "state": "printing",
+            "requestId": "queue-5e1e4ebd-fc1d-4d34-89e2-331911f29cb3",
+            "fileId": "authorized-file",
+            "atMs": 48749.940757
+          },
+          "after": {
+            "state": "printing",
+            "requestId": "queue-5e1e4ebd-fc1d-4d34-89e2-331911f29cb3",
+            "fileId": "authorized-file",
+            "atMs": 49067.610268
+          },
+          "durationMs": 317.66961099999753
+        }
+      ]
     }
   },
   "performance": {
@@ -746,9 +988,10 @@
     },
     "filesystem": "/dev/sda5 ext4, owned TMPDIR; historic filesystem provenance not captured",
     "storage": "100 measured after 20 warmups; 4KiB overwrite+fsync median 5.312261 ms/P99 5.597956 ms; DELETE/EXTRA INSERT transaction median 25.340482 ms/P99 26.991915 ms. Diagnostic separate from worker, no root-cause closure.",
-    "mixed": "Six first-generation synthetic OS jobs submitted, latest receipts succeeded and host busy=false at timeout, live X around 68 while commanded X10/E2, approximately 88.5% committed file progress. Priming the original five-extrusion exclusion state did not fix the timeout; investigate already admitted motion before cancellation. Do not drop original 1000 moves or widen deadlines. The new pre-cancel observation confirms commanded E2 and filament_used=2 before cancellation; this excludes using the subsequent exclusion receipt to undo already admitted SKIP movement. Fix fixture admission precondition before assessing mixed timing.",
+    "mixed": "Historical: Six first-generation synthetic OS jobs submitted, latest receipts succeeded and host busy=false at timeout, live X around 68 while commanded X10/E2, approximately 88.5% committed file progress. Priming the original five-extrusion exclusion state did not fix the timeout; investigate already admitted motion before cancellation. Do not drop original 1000 moves or widen deadlines. The new pre-cancel observation confirms commanded E2 and filament_used=2 before cancellation; this excludes using the subsequent exclusion receipt to undo already admitted SKIP movement. Fix fixture admission precondition before assessing mixed timing.",
     "priming": "ANYRAID_BENCH_OBJECT_PRIMING=on adds exclude/reset before the original 1000 moves only as a diagnostic input; default unprimed remains unchanged. Not a replacement passing case.",
-    "earlyCancellation": "Optional early discriminator cancels at E=0.377 with original five-extrusion warmup remaining; first print completed with filament_used=1 and print_duration=5.154070777s. 12 synthetic service commands settled during both generations; whole case still failed because only one file move observation overlapped printing across both generations. Generation identity was not logged; instrument before/after operation ownership before attributing cause."
+    "earlyCancellation": "Optional early discriminator cancels at E=0.377 with original five-extrusion warmup remaining; first print completed with filament_used=1 and print_duration=5.154070777s. 12 synthetic service commands settled during both generations; whole case still failed because only one file move observation overlapped printing across both generations. Generation identity was not logged; instrument before/after operation ownership before attributing cause.",
+    "mixedAfterOwnershipCorrection": "Default namespace software case passed: 12 synthetic OS jobs finish during both printing generations, first file move before/after snapshots share request and file identity, original 16 operations in every workload category retained. Status P99 3.534917 ms, loop P99 1.967103/1.938431 ms, minimum first-step lead 86.817 ms, completed commanded filament 1 mm. No target/physical timing claim; 25-ms durable admission gate still failed."
   },
   "notValidation": [
     {
@@ -766,7 +1009,7 @@
   ],
   "open": [
     "Complete final ordinary/protocol/sanitizer/Linux MCU and exact PR head checks",
-    "Close durable admission and mixed printing failure gates with discriminatory evidence",
+    "Close durable admission; validate actual target/client mixed printing beyond the passed default software simulation",
     "Target system permission install, actual systemd integration and verified rollback using stopped-owner log backups",
     "Full Fluidd/Mainsail page workflows including actual page upload",
     "Cycnumbris 500 verified profile/board and physical stop evidence",
