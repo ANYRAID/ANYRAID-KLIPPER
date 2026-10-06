@@ -10,6 +10,7 @@ import {PublishedPrintFiles,PublishedFileChangedError,PublishedFileMoveCommitErr
 import {visibleFilePath,pathBasename,PublishedDirectoryCommitError} from '../storage/published-paths.ts';
 import {nativeFilename,nativeDirectory,nativeDownloadFilename} from './native-file-path.ts';
 import {PrintController} from '../operations/print.ts';
+import {ProductPrintApi} from './product-print-api.ts';
 import {PrintSnapshotBudget} from '../gcode/snapshot-budget.ts';
 import {NativeFileMetadata} from './native-file-metadata.ts';
 import {NativePersistentMetadata} from './native-persistent-metadata.ts';
@@ -25,8 +26,8 @@ import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import type {EndpointRegistry} from './endpoints.ts';
 import type {NativeConfigFiles} from './native-config-files.ts';
 const validId=(id:unknown):id is string=>typeof id==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(id);
-/** Native-mode multipart admission. Publishes immutable bytes, never starts a
- * print. The file store is externally owned and must also back FilePrintDevice. */
+/** Native multipart publication. An explicit print flag uses the bound durable
+ * print API after staging and mutation leases have retired. */
 export class NativePrintUploads {
  readonly #files:PublishedPrintFiles;readonly #gate:MaintenanceGate;readonly #root:string;readonly #max:number;readonly #capacity:number;
  // Drain tracks all owned work; only staging/mutation work consumes mutation slots.
@@ -36,6 +37,7 @@ export class NativePrintUploads {
  #closed=false;#published=0;
  #draining:Promise<void>|undefined;
  #print:PrintController|undefined;
+ #printApi:ProductPrintApi|undefined;
  #offlineFiles:NativeOfflineFileMutations|undefined;
  #offlineReady:(()=>boolean)|undefined;
  readonly #metadataOwner:NativePrintUploads|undefined;
@@ -61,7 +63,7 @@ export class NativePrintUploads {
  filename(fileId:string):string{if(!validId(fileId))throw new ApiError(400,'Invalid native file ID');return this.#files.filename(fileId);}
  usesGate(gate:MaintenanceGate):boolean{return gate===this.#gate;}
  acceptsController(controller:PrintController):boolean{return controller instanceof PrintController&&controller.usesMaintenanceGate(this.#gate)&&(!this.#print||this.#print===controller);}
- bindPrintController(controller:PrintController):void{if(!this.acceptsController(controller))throw new Error('Invalid native file print owner');this.#print=controller;}
+ bindPrintController(controller:PrintController,api?:ProductPrintApi):void{if(!this.acceptsController(controller)||api&&(!(api instanceof ProductPrintApi)||!api.usesController(controller)))throw new Error('Invalid native file print owner');this.#print=controller;this.#printApi=api;}
  bindOfflineFileMutations(owner:NativeOfflineFileMutations):void{
   if(this.#closed||this.#metadataOwner||this.#print||this.#offlineFiles||!owner||typeof owner.beginFileMutations!=='function')throw new Error('Invalid offline file owner');
   this.#offlineFiles=owner;
@@ -205,13 +207,14 @@ export class NativePrintUploads {
   if(binding&&(binding.signal.aborted||binding.owner.#closed))return Promise.reject(new ApiError(503,'Upload belongs to a retired device'));
   const signal=AbortSignal.any([context.signal,this.#abort.signal,...binding?[binding.signal,binding.owner.#abort.signal]:[]]);
   const printOwner=binding?binding.owner.#print:this.#print??(this.#offlineAvailable()&&!this.#retiredMutation(context)?{beginFileMutation:(id:string)=>this.#beginFileMutations([id])}:undefined);
-  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles,printOwner));this.#pending.add(task);this.#mutations.add(task);
+  const api=binding?binding.owner.#printApi:this.#printApi;
+  const task=Promise.resolve().then(()=>this.#receive(request,context,signal,binding?binding.owner.#gate:undefined,configFiles,printOwner,api));this.#pending.add(task);this.#mutations.add(task);
   // The store persists, but staging admitted with a device must finish cleanup
   // before that device releases its generation lease. Reads remain process-owned.
   if(binding)binding.owner.#pending.add(task);
   const release=()=>{this.#pending.delete(task);this.#mutations.delete(task);if(binding)binding.owner.#pending.delete(task);};void task.then(release,release);return task;
  }
- async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>):Promise<Json>{
+ async #receive(request:IncomingMessage,context:RpcContext,signal:AbortSignal,deviceGate?:MaintenanceGate,configFiles?:NativeConfigFiles,printOwner?:Pick<PrintController,'beginFileMutation'>,api?:ProductPrintApi):Promise<Json>{
   signal.throwIfAborted();let release:()=>void;
   try{release=this.#gate.activity();}catch{throw new ApiError(409,'Maintenance blocks file uploads');}
   let releaseDevice:(()=>void)|undefined;try{if(deviceGate&&deviceGate!==this.#gate)releaseDevice=deviceGate.activity();}catch{release();throw new ApiError(409,'Maintenance blocks file uploads');}
@@ -247,7 +250,7 @@ export class NativePrintUploads {
     releaseDevice?.();releaseDevice=undefined;release();return await configFiles.save(name,content,condition?.replace(/^"|"$/g,''),context);
    }
    if(!/\.(gcode|gco|g)$/i.test(filename))throw new ApiError(400,'Expected one named G-code file');
-   if(fields.root!==undefined&&fields.root!=='gcodes'||fields.print!==undefined&&!['false','0',''].includes(fields.print))throw new ApiError(400,'Native upload uses gcodes storage; start printing with a separate durable request');
+   if(fields.root!==undefined&&fields.root!=='gcodes'||fields.print!==undefined&&!['false','0','','true'].includes(fields.print))throw new ApiError(400,'Expected gcodes root and boolean print flag');
    const id=fields.file_id??randomUUID(),sha256=hash.digest('hex');if(!validId(id))throw new ApiError(400,'Invalid upload file ID');
    // Explicit legacy IDs without a path retain their already issued addresses.
    // Standard multipart clients publish the actual filename in the visible tree.
@@ -268,7 +271,25 @@ export class NativePrintUploads {
     if((error as NodeJS.ErrnoException)?.code==='EEXIST')throw new ApiError(409,'File ID or path exists; query its receipt');if((error as NodeJS.ErrnoException)?.code==='ENOENT')throw new ApiError(404,'Upload directory not found');throw error;
    }
    this.#published++;const published=await this.#files.describe(id,signal);
-   return {item:{path:visibleFilePath(record),root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
+   const receipt={item:{path:visibleFilePath(record),root:'gcodes',modified:published.modified,size:record.size,permissions:this.canRemove?'rw':'r'},action:'create_file',file:record as unknown as Json,print_started:false,print_queued:false};
+   if(fields.print==='true'){
+    // The ordinary upload keeps its original return/finally path. Only this
+    // explicit intent retires staging and mutation leases before admission.
+    await file.close();file=undefined;await rm(directory,{recursive:true,force:true});directory=undefined;
+    releaseFile?.();releaseFile=undefined;releaseDevice?.();releaseDevice=undefined;release();signal.throwIfAborted();
+    const requestId='upload-'+randomUUID();
+    try{
+     if(!api)throw new ApiError(503,'Uploaded file is available; native printing is unavailable');
+     await api.startUploaded({filename:visibleFilePath(record),file_id:record.id},requestId,{...context,signal});
+     return {...receipt,print_started:true,print_request_id:requestId};
+    }catch(error){
+     if(signal.aborted)throw signal.reason;
+     // Publication is durable. A failed print admission cannot roll it back,
+     // replay the intent or pretend the controller accepted the operation.
+     return {...receipt,print_request_id:requestId,print_error:{code:error instanceof ApiError?error.status:503,message:error instanceof ApiError?error.message:'Uploaded file could not be admitted; query print request state'}};
+    }
+   }
+   return receipt;
   }finally{try{await file?.close();}finally{try{if(directory)await rm(directory,{recursive:true,force:true});}finally{releaseFile?.();releaseDevice?.();release();}}}
  }
  async info(params:Readonly<Record<string,Json>>,signal:AbortSignal):Promise<Json>{

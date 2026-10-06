@@ -1,0 +1,586 @@
+{
+  "version": 1,
+  "auditedAt": "2026-10-07",
+  "baseDevelop": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+  "status": "local candidate; exact-head CI and full same-package pages pending",
+  "contract": {
+    "reference": "https://moonraker.readthedocs.io/en/latest/external_api/file_manager/#file-upload",
+    "explicitFlag": "print=true",
+    "ordinaryFlags": [
+      "omitted",
+      "",
+      "false",
+      "0"
+    ],
+    "root": "gcodes",
+    "sharedOwner": "ProductPrintApi published-file translation then existing PrintController.admit and PrintJournal",
+    "normalPublicationPathPreserved": true,
+    "leasesReleasedBeforePrintAuthorization": true,
+    "authorities": [
+      "server.files.upload",
+      "printer.print.start"
+    ],
+    "immutableFileIdCompared": true,
+    "generationAndAbortCapturedAtAdmission": true,
+    "requestId": "upload-UUID",
+    "printPolicyDeadlineMs": 30000,
+    "partialFailure": "Durable uploaded file, print_started=false, print_queued=false, print_request_id, print_error. No rollback, automatic queueing, retry or recovery replay.",
+    "admissionReceiptIsNotPhysicalPrintCompletion": true,
+    "httpStatus": 200,
+    "remainingWireDifference": "Official 201/Location contract not closed by this batch"
+  },
+  "verification": {
+    "source": {
+      "pass": 114,
+      "fail": 0,
+      "deadlineMs": 60000,
+      "durationMs": 12687.850821,
+      "supervisorMs": 12723.323424,
+      "exit": 0,
+      "signal": null,
+      "files": [
+        "upload-print-intent",
+        "native-print-uploads",
+        "product-print-api",
+        "native-job-queue",
+        "native-configured-job-queue",
+        "native-automatic-job-queue",
+        "native-generation-attachment",
+        "native-generation-retirement",
+        "product-server-generation"
+      ]
+    },
+    "compiled": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "deadlineMs": 30000,
+      "durationMs": 1270.089877,
+      "supervisorMs": 1300.323106,
+      "exit": 0,
+      "signal": null,
+      "typescriptLoading": false,
+      "path": "/no-programs"
+    },
+    "asan": {
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "attempts": 1,
+      "deadlineMs": 60000,
+      "durationMs": 2082.569754,
+      "supervisorMs": 2129.379995,
+      "exit": 0,
+      "signal": null,
+      "options": "detect_leaks=0:abort_on_error=1",
+      "nativeBuildHead": "5755b1d8a687bdfa2b701e2e875409e01c9c3170",
+      "nativeSourceComparison": "No C/H/build-native source difference"
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "whitespace": {
+      "exit": 0
+    }
+  },
+  "assertions": [
+    "Actual configured HTTP publication then independent authorization after staging cleanup",
+    "Sealed file byte digest and one EOF completion in native journal",
+    "Ordinary upload has zero policy/print calls",
+    "Print denial retains uploaded identity with zero device effects",
+    "Upload denial has zero publication",
+    "Unavailable policy and changed resolved ID do not print",
+    "Busy print keeps unrelated upload without admitting another print",
+    "Device retirement fences held authorization and keeps publication",
+    "Client disconnect leaves held authorizer counted, never admits late result"
+  ],
+  "currentBundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-bundle",
+    "manifestSha256": "2fb22973b805f75d24411db3b220a5f08a25da6bd5cc44e32e4448d0c884bb9f",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+  },
+  "earlierImplementation": {
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-bundle",
+      "manifestSha256": "84540cae384cb94817c348283ad38a35630d251ed04980f5500b80117aa03e54",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "sourceTests": {
+      "pass": 114,
+      "fail": 0
+    },
+    "compiledTests": {
+      "pass": 12,
+      "fail": 0
+    },
+    "performance": {
+      "node": "v26.10.0",
+      "baselineHashes": {
+        "native-print-uploads.ts": "e07525ba1cf9a196bd9b68ef16a4238e5f6dd3f25b2c07c3d1af9b37b1d03698",
+        "product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+        "configured-server.ts": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00"
+      },
+      "warmups": 5,
+      "retainedRounds": 11,
+      "order": "Paired sequential, alternating original/candidate order by round",
+      "inputs": [
+        {
+          "bytes": 20123,
+          "sha256": "21d51bfeee1ced1e6b33685768b954191551a0c4f1909f06d04b36aefb18dbfa"
+        },
+        {
+          "bytes": 256000,
+          "sha256": "ab1a0836e5aa1f46891e04181052b232c4276d8911dda3987df23bc72e8cc3af"
+        },
+        {
+          "bytes": 2000000,
+          "sha256": "7562815c4f213ffd73d69e4a90c6c6100b1b33edecf660829b44a14b51e71353"
+        }
+      ],
+      "reports": [
+        {
+          "variant": "original",
+          "ordinaryUploads": [
+            {
+              "medianMs": 19.655590000000302,
+              "p95Ms": 25.655895000000328,
+              "samplesMs": [
+                19.649020000000064,
+                24.495312000000013,
+                19.34201699999994,
+                19.722030999999788,
+                19.25748599999997,
+                19.797872000000098,
+                19.356988,
+                25.655895000000328,
+                19.477798000000348,
+                19.655590000000302,
+                20.339567999999872
+              ]
+            },
+            {
+              "medianMs": 21.319048000000066,
+              "p95Ms": 29.147662000000082,
+              "samplesMs": [
+                21.502659999999878,
+                29.147662000000082,
+                21.319048000000066,
+                21.393958999999995,
+                20.750742000000173,
+                20.015313999999762,
+                20.68949100000009,
+                21.16453599999977,
+                26.27668100000028,
+                19.954953999999816,
+                21.44075900000007
+              ]
+            },
+            {
+              "medianMs": 34.729461999999785,
+              "p95Ms": 39.86483700000008,
+              "samplesMs": [
+                33.16265499999986,
+                38.98531800000001,
+                39.86483700000008,
+                39.34282099999973,
+                38.54799299999968,
+                39.40379200000007,
+                33.53413900000032,
+                32.5459679999999,
+                34.18864600000006,
+                33.82101200000034,
+                34.729461999999785
+              ]
+            }
+          ],
+          "explicitPrintAdmission": {
+            "medianMs": 45.26939500000026,
+            "p95Ms": 65.56005199999981,
+            "samplesMs": [
+              44.341035000000375,
+              44.42480599999999,
+              45.30064500000026,
+              51.53182199999992,
+              45.26939500000026,
+              48.55702000000019,
+              44.51673700000083,
+              45.969952999999805,
+              65.56005199999981,
+              44.36629499999981,
+              43.56634699999995
+            ]
+          }
+        },
+        {
+          "variant": "candidate",
+          "ordinaryUploads": [
+            {
+              "medianMs": 19.94572300000027,
+              "p95Ms": 37.557451999999785,
+              "samplesMs": [
+                20.28794700000003,
+                37.557451999999785,
+                20.17151600000011,
+                19.52714900000001,
+                24.084896999999728,
+                19.18101499999966,
+                19.94572300000027,
+                26.451354000000265,
+                19.371577000000343,
+                19.253936000000067,
+                19.19970599999988
+              ]
+            },
+            {
+              "medianMs": 20.783961999999974,
+              "p95Ms": 22.01465600000006,
+              "samplesMs": [
+                21.096985999999788,
+                21.73598199999992,
+                22.01465600000006,
+                21.126815999999963,
+                20.5617400000001,
+                20.783961999999974,
+                20.6011910000002,
+                20.498879000000215,
+                21.126716000000215,
+                20.252117,
+                20.56926999999996
+              ]
+            },
+            {
+              "medianMs": 39.166719999999714,
+              "p95Ms": 41.57431499999984,
+              "samplesMs": [
+                39.15385900000001,
+                41.57431499999984,
+                38.974677000000156,
+                37.47083100000009,
+                39.166719999999714,
+                40.1562100000001,
+                39.35552099999995,
+                38.27026999999998,
+                39.208090000000084,
+                36.85485500000004,
+                39.43419300000005
+              ]
+            }
+          ],
+          "explicitPrintAdmission": {
+            "medianMs": 43.40652500000033,
+            "p95Ms": 47.07595500000025,
+            "samplesMs": [
+              45.301454999999805,
+              44.556407000000036,
+              43.27750400000059,
+              44.06760200000008,
+              43.40652500000033,
+              43.097131000000445,
+              44.35409499999969,
+              42.868429000000106,
+              43.165422000000035,
+              42.664426999999705,
+              47.07595500000025
+            ]
+          }
+        }
+      ],
+      "parentEventLoop": {
+        "p95Ms": 1.480703,
+        "maxMs": 6.467583
+      },
+      "scope": "Desktop HTTP publication plus software policy/authorization/durable admission only. No physical motion, file execution, mixed printing, target board, Python comparison or statistical non-regression claim."
+    },
+    "disposition": "Small-file P95 increase retained. Ordinary-path extra async publication wrapper removed; changed implementation measured once with the same inputs. No assertion/input/sample/deadline weakening."
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "baselineHashes": {
+      "native-print-uploads.ts": "e07525ba1cf9a196bd9b68ef16a4238e5f6dd3f25b2c07c3d1af9b37b1d03698",
+      "product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+      "configured-server.ts": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00"
+    },
+    "warmups": 5,
+    "retainedRounds": 11,
+    "order": "Paired sequential, alternating original/candidate order by round",
+    "inputs": [
+      {
+        "bytes": 20123,
+        "sha256": "21d51bfeee1ced1e6b33685768b954191551a0c4f1909f06d04b36aefb18dbfa"
+      },
+      {
+        "bytes": 256000,
+        "sha256": "ab1a0836e5aa1f46891e04181052b232c4276d8911dda3987df23bc72e8cc3af"
+      },
+      {
+        "bytes": 2000000,
+        "sha256": "7562815c4f213ffd73d69e4a90c6c6100b1b33edecf660829b44a14b51e71353"
+      }
+    ],
+    "reports": [
+      {
+        "variant": "original",
+        "ordinaryUploads": [
+          {
+            "medianMs": 20.24805000000015,
+            "p95Ms": 23.227932000000237,
+            "samplesMs": [
+              20.32492100000013,
+              20.21846000000005,
+              20.621924000000035,
+              20.24805000000015,
+              19.94442600000002,
+              21.45425299999988,
+              20.47901200000024,
+              19.6953239999998,
+              19.50832199999968,
+              20.151268999999957,
+              23.227932000000237
+            ]
+          },
+          {
+            "medianMs": 21.103829000000133,
+            "p95Ms": 22.851259000000027,
+            "samplesMs": [
+              21.103829000000133,
+              22.851259000000027,
+              21.062609000000066,
+              21.056239000000005,
+              22.38550299999997,
+              22.55636500000037,
+              20.6729449999998,
+              20.4156109999999,
+              21.644295000000056,
+              21.34598199999982,
+              20.964558000000125
+            ]
+          },
+          {
+            "medianMs": 38.18323499999997,
+            "p95Ms": 42.86336600000004,
+            "samplesMs": [
+              37.54378800000018,
+              41.309038999999984,
+              42.86336600000004,
+              36.38705600000003,
+              38.18323499999997,
+              38.465658000000076,
+              40.150976000000355,
+              35.190861999999925,
+              38.08141399999977,
+              39.8093429999999,
+              33.78484799999978
+            ]
+          }
+        ],
+        "explicitPrintAdmission": {
+          "medianMs": 50.81717299999946,
+          "p95Ms": 75.41346900000008,
+          "samplesMs": [
+            14.880581999999777,
+            75.41346900000008,
+            51.205997000000025,
+            52.04570599999988,
+            52.09434599999986,
+            49.69799000000057,
+            49.855742000000646,
+            49.82146199999988,
+            51.80842299999949,
+            50.81717299999946,
+            49.47729799999979
+          ]
+        }
+      },
+      {
+        "variant": "candidate",
+        "ordinaryUploads": [
+          {
+            "medianMs": 20.305270000000064,
+            "p95Ms": 25.289465000000064,
+            "samplesMs": [
+              20.305270000000064,
+              25.289465000000064,
+              23.415525000000116,
+              20.364941999999928,
+              21.30479200000036,
+              19.642253999999866,
+              21.234491000000162,
+              19.720974999999726,
+              19.712125000000015,
+              20.038498000000345,
+              20.273549999999886
+            ]
+          },
+          {
+            "medianMs": 21.485962999999856,
+            "p95Ms": 24.385704999999916,
+            "samplesMs": [
+              20.975509000000102,
+              24.385704999999916,
+              21.485962999999856,
+              21.800197000000253,
+              21.59557500000028,
+              21.178620000000137,
+              21.30138100000022,
+              20.528593,
+              21.656414999999924,
+              21.012257999999747,
+              22.285571999999775
+            ]
+          },
+          {
+            "medianMs": 39.13004499999988,
+            "p95Ms": 45.44229399999995,
+            "samplesMs": [
+              39.13004499999988,
+              43.057728,
+              40.80831399999988,
+              33.63128600000027,
+              40.0483549999999,
+              33.363143000000036,
+              40.08575500000006,
+              45.44229399999995,
+              39.058464999999615,
+              32.76992700000028,
+              33.49933400000009
+            ]
+          }
+        ],
+        "explicitPrintAdmission": {
+          "medianMs": 50.32938699999977,
+          "p95Ms": 51.39263899999969,
+          "samplesMs": [
+            36.76577900000029,
+            51.39263899999969,
+            50.572619999999915,
+            50.78464200000053,
+            50.32938699999977,
+            49.14418500000011,
+            50.109685000000354,
+            51.06913499999973,
+            49.29502599999978,
+            48.805491000000075,
+            50.484199000000444
+          ]
+        }
+      }
+    ],
+    "parentEventLoop": {
+      "p95Ms": 1.486847,
+      "maxMs": 7.098367
+    },
+    "scope": "Desktop HTTP publication plus software policy/authorization/durable admission only. No physical motion, file execution, mixed printing, target board, Python comparison or statistical non-regression claim."
+  },
+  "performanceDecision": {
+    "ordinaryMedianExtraMs": [
+      0.05722,
+      0.382134,
+      0.94681
+    ],
+    "ordinaryP95ExtraMs": [
+      2.061533,
+      1.534446,
+      2.578928
+    ],
+    "separateToCombinedMedianMs": [
+      50.817173,
+      50.329387
+    ],
+    "separateToCombinedP95Ms": [
+      75.413469,
+      51.392639
+    ],
+    "statisticalNonRegressionProved": false,
+    "targetBoardGatePassed": false,
+    "mixedPrintDeadlineGatePassed": false,
+    "remaining": "Desktop filesystem and scheduling variance plus real target storage/mixed print budget require acceptance; earlier tail increase is not erased."
+  },
+  "scope": {
+    "physicalMotion": false,
+    "defaultEntry": "Python",
+    "trackedKlippyPythonFiles": 177,
+    "G3": "unresolved",
+    "completeClientAcceptance": false,
+    "fullGoalComplete": false
+  },
+  "sourceFingerprints": [
+    {
+      "path": "host/src/moonraker/native-print-uploads.ts",
+      "sha256": "27bdf16fb69f80961e27103e688842b6cd17006c7f49eb359381619b39a3f0cd"
+    },
+    {
+      "path": "host/src/moonraker/product-print-api.ts",
+      "sha256": "c64c6f1c6e86a920262e302263756d7374b3a7e887fc2c454061ba847daea191"
+    },
+    {
+      "path": "host/src/moonraker/configured-server.ts",
+      "sha256": "0ff4f2e988595d885bd57d5c2073c7270fb9edbca9e25256c433fba68e8edad8"
+    },
+    {
+      "path": "host/test/upload-print-intent.test.ts",
+      "sha256": "3180b1dde8a9d056975e30c9043ca8b245f6b32a1e5509077c5c4a3ef17af409"
+    },
+    {
+      "path": "host/test/native-print-uploads.test.ts",
+      "sha256": "1b0063f0a15403b18069265c2a151ea686f8500202535ab396c4963de7101359"
+    },
+    {
+      "path": "host/bench/upload-print-intent.ts",
+      "sha256": "20fe158022cff9e33478e003d89438cd0542c72b9cafb7f21d678d6d2669623c"
+    }
+  ],
+  "evidence": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-source-check-20261007.mjs",
+      "sha256": "7b207fc65ae7392e2c6d87cf4b3c9e8b9d6d2f2c0c0a7623a2898244db347da6"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-regressions-common-path-20261007.log",
+      "sha256": "91bc53c9fe809dbbfbda4429f8fbc6a638696d8cebfac435113eb7bc6ba70484"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-build-20261007.mjs",
+      "sha256": "cec0d5398513343a7e6a05536a61026fbcdb335854052845488bd6cf73cba35d"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-build-20261007.log",
+      "sha256": "7a24fd29fa8fb52ab2637a7342223119b300e517c9a0a51fb42b03ac7022ce72"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-compiled-check-20261007.mjs",
+      "sha256": "713fba559dc2105ebe700338491dcb02e7b7cf4b443af6638c4aaf41135e9d5f"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-common-path-compiled-check-20261007.log",
+      "sha256": "2ffc162b737b4541b838c2d4768033677c066b26e7991965f0e40b879f900497"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-asan-check-20261007.mjs",
+      "sha256": "b9421a9c5cf5d11b8b3fcd6a6d025083382a277e38d1e4a37527fd8581de5a61"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-asan-check-20261007.log",
+      "sha256": "5fc09c0a8fa7adf660c3a9fa586eaaa05c8c429e809b3bec2e90eb1cea1a1f42"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-types-common-path-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-whitespace-staged-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-performance-20261007.json",
+      "sha256": "f57d9dc517ecd73b401607303f4c6aa23d0579f590b46c6f3d8b526b71cda90d"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-upload-print-performance-common-path-20261007.json",
+      "sha256": "b4c0c718de5ea6b0d0319e1fe8b95e26f449d5ae9a5365f16c866ba1b59c353c"
+    }
+  ]
+}
