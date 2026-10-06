@@ -1,0 +1,1144 @@
+{
+  "schema": 1,
+  "implementationBase": "67da7e990fdbdab8cf8fb8c01bfc0cc25d3b7fae",
+  "scope": "File commit notification/metadata invalidation ordering; source regressions and independently installed compiled products on desktop with PTY simulated MCU. No target hardware, G3, full client or full Moonraker acceptance.",
+  "failure": {
+    "uiBundleManifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff",
+    "nativeUploadsSourceSha256": "a7999035dc21cc3505a5e435a09a4668acc62fa7bcd882af14fb6d0bc2e90fc0",
+    "actualRename": true,
+    "repeatedNewThumbnailStatus": 404,
+    "downloadUnchanged": true,
+    "controlledSourceRegression": {
+      "exit": 1,
+      "status": 404,
+      "error": "Thumbnail not found"
+    },
+    "cause": "Published move event triggers client metadata scan before the same operation finishes source/destination metadata retirement; later invalidation retires the newly selected preview."
+  },
+  "fix": {
+    "changedProductArtifacts": [
+      "host/src/moonraker/native-print-uploads.js"
+    ],
+    "productionSourceFiles": 1,
+    "usesExistingFileStorageMetadataAndPrintOwners": true,
+    "barrierStartsAfterAuthorizationAndMutationAdmission": true,
+    "metadataDelegatesShareProcessBarrier": true,
+    "failedMutationStillSettlesBarrier": true,
+    "unsubscribedOrClosedObserversReceiveNoLateEvents": true,
+    "changesMotionAlgorithms": false,
+    "changesDeadlinesOrPrecisionTolerances": false
+  },
+  "sources": [
+    {
+      "path": "host/src/moonraker/native-print-uploads.ts",
+      "sha256": "e07525ba1cf9a196bd9b68ef16a4238e5f6dd3f25b2c07c3d1af9b37b1d03698"
+    },
+    {
+      "path": "host/src/moonraker/native-persistent-metadata.ts",
+      "sha256": "5ea5fcce76422c3c3d29064e0d4dc9f015b24110eccc3c05ad5e8bea326a53be"
+    },
+    {
+      "path": "host/src/moonraker/file-metadata.ts",
+      "sha256": "94c5cccdb93769766275d39c9290146fbf9d82dcb34ceb9daeab1e878654efc2"
+    },
+    {
+      "path": "host/src/storage/published-files.ts",
+      "sha256": "f0570aca6e744e5614b77626ba2b1de18cd07c05a867c2b75adfac8669246b55"
+    },
+    {
+      "path": "host/acceptance/product-compiled-journey.test.ts",
+      "sha256": "7415430cb3e5e82d48ee962b66acd84f22daabc5d8b77dbbf850ddd2da4ae780"
+    },
+    {
+      "path": "host/acceptance/client-probe.ts",
+      "sha256": "551f352c91c2cac824912ce81cdf0561372c608f815912eb908038266b47d6ec"
+    },
+    {
+      "path": "host/test/helpers/compiled-client-host.ts",
+      "sha256": "bc2886d1bdb8b2081ff6fde9bfe77b2307e1a36680ae322e0931bd5f336a8316"
+    },
+    {
+      "path": "host/test/native-file-preview-notification.test.ts",
+      "sha256": "51d399df1dceffc2800662d5b687cbf0a20b58af9583ec6a3c05dc99f2faae3b"
+    }
+  ],
+  "validation": {
+    "relatedPassed": 60,
+    "relatedIncomplete": "Original run had one serialqueue.node loader failure; it was not recorded as a product failure or passed check.",
+    "nativeBuildExit": 0,
+    "remainingLifetimePassed": 15,
+    "finalNewBoundaryCasesPassed": 5,
+    "heldAuthorizationCasePassed": 1,
+    "testCountsOverlap": true,
+    "typecheckExit": 0,
+    "whitespacePassed": true
+  },
+  "compiledMixed": {
+    "node": "v26.10.0",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "order": [
+      "baseline",
+      "candidate"
+    ],
+    "independentInstalledDependencies": 14,
+    "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+    "originalAcceptanceSha256": "7415430cb3e5e82d48ee962b66acd84f22daabc5d8b77dbbf850ddd2da4ae780",
+    "originalInputsAssertionsDeadlinesAndTolerancesUnchanged": true,
+    "automaticQueue": true,
+    "machineControl": true,
+    "runs": [
+      {
+        "variant": "baseline",
+        "exit": 0,
+        "bundle": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-baseline-bundle",
+          "manifestSha256": "0f387e56307920db318c58929f31c93854bfdd7846bf73b72a663d79f71379ff",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "log": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-mixed-baseline-20261007.log",
+        "metrics": {
+          "namespace": true,
+          "automaticQueue": true,
+          "motionReportLoad": true,
+          "objectPriming": false,
+          "earlyObjectCancellation": true,
+          "fileMoveOwnership": [
+            {
+              "generation": 1,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9439.034643
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9634.058687
+              },
+              "durationMs": 195.030444
+            },
+            {
+              "generation": 1,
+              "group": 1,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 14556.858877
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 14807.162898
+              },
+              "durationMs": 250.30823099999907
+            },
+            {
+              "generation": 1,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 17678.099436
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 17909.951849
+              },
+              "durationMs": 231.85358300000007
+            },
+            {
+              "generation": 1,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 21477.639922
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 21743.480208
+              },
+              "durationMs": 265.84128599999895
+            },
+            {
+              "generation": 1,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 25389.01765
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 25614.647089
+              },
+              "durationMs": 225.62762900000234
+            },
+            {
+              "generation": 1,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 27394.108617
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 27471.111251
+              },
+              "durationMs": 77.0032140000003
+            },
+            {
+              "generation": 1,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 28942.443552
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 29025.577209
+              },
+              "durationMs": 83.1343270000034
+            },
+            {
+              "generation": 1,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 30581.062789
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 30669.861544
+              },
+              "durationMs": 88.79957500000091
+            },
+            {
+              "generation": 2,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 47965.100589
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 48397.05794
+              },
+              "durationMs": 431.9575210000039
+            },
+            {
+              "generation": 2,
+              "group": 1,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 51035.993631
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 51390.863227
+              },
+              "durationMs": 354.8696759999948
+            },
+            {
+              "generation": 2,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 54984.000806
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 55179.099824
+              },
+              "durationMs": 195.09911799999827
+            },
+            {
+              "generation": 2,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 58402.779037
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 58586.659412
+              },
+              "durationMs": 183.88057500000286
+            },
+            {
+              "generation": 2,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 61712.85218
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 61879.117335
+              },
+              "durationMs": 166.26539500000217
+            },
+            {
+              "generation": 2,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 63399.549343
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 63476.612659
+              },
+              "durationMs": 77.06328599999688
+            },
+            {
+              "generation": 2,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 64802.01663
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 64879.40986
+              },
+              "durationMs": 77.39335999999457
+            },
+            {
+              "generation": 2,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 66370.434159
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-29636b5a-0938-439f-af05-c8fa5ae6cc61",
+                "fileId": "authorized-file",
+                "atMs": 66448.860201
+              },
+              "durationMs": 78.42611200000101
+            }
+          ],
+          "movesPrintingGenerations": [
+            1,
+            2
+          ],
+          "configListRequests": 2057,
+          "configListP99Ms": 4.3228109999981825,
+          "configDownloads": 2056,
+          "configDownloadP99Ms": 9.874336999999286,
+          "liveMotionSamples": 5832,
+          "liveExtrusionSamples": 1457,
+          "nativeAuthorization": true,
+          "apiLoad": true,
+          "completedStatistics": {
+            "total_duration": 10.460194637,
+            "print_duration": 4.887781894,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "0f387e56307920db318c58929f31c93854bfdd7846bf73b72a663d79f71379ff",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": false,
+          "htuHeater": false,
+          "htuModel": null,
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 9931,
+          "phaseP99Ms": 4.575724000002083,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": true,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 312,
+              "writes": 43
+            },
+            {
+              "statusReads": 210,
+              "writes": 42
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 2020,
+          "historyP99Ms": 57.50715299999865,
+          "lifecycleShutdowns": 8,
+          "copyRequests": 16,
+          "copyP95Ms": 218.86304999999993,
+          "copyOverwriteRequests": 16,
+          "copyOverwriteP95Ms": 302.3661629999988,
+          "directoryCopyRequests": 16,
+          "directoryCopyP95Ms": 391.34897600000113,
+          "copiesDuringPrint": 4,
+          "directoryCopiesDuringPrint": 2,
+          "fileNotifications": 1132,
+          "fileNotificationP95Ms": 153.07766899999842,
+          "movesDuringPrint": 3,
+          "directoryMoveRequests": 16,
+          "directoryMoveP95Ms": 535.4008640000011,
+          "directoryMovesDuringPrint": 3,
+          "moveRequests": 16,
+          "moveP95Ms": 431.1402620000008,
+          "deleteRequests": 16,
+          "deleteP95Ms": 404.5207259999952,
+          "publicThumbnailRequests": 16,
+          "publicThumbnailP95Ms": 204.3718779999981,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 94.49701300000015,
+          "metadataRequests": 16,
+          "metadataP95Ms": 334.54574399999547,
+          "downloads": 16,
+          "downloadP95Ms": 50.40782899999613,
+          "wireCommands": 237,
+          "wireSteps": 7506,
+          "minimumStepLeadMs": 87.645,
+          "directoryRequests": 8349,
+          "directoryP99Ms": 39.52042899999651,
+          "statusRequests": 39738,
+          "uploads": 16,
+          "statusP99Ms": 4.282991000000038,
+          "uploadP95Ms": 54.161802999999054,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 2.004991,
+                "maxMs": 19.103743
+              },
+              "cpu": {
+                "user": 12665964,
+                "system": 2473025
+              },
+              "rss": 312897536
+            },
+            {
+              "loop": {
+                "p99Ms": 1.941503,
+                "maxMs": 16.416767
+              },
+              "cpu": {
+                "user": 7649627,
+                "system": 1732613
+              },
+              "rss": 378232832
+            }
+          ]
+        }
+      },
+      {
+        "variant": "candidate",
+        "exit": 0,
+        "bundle": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-candidate-bundle",
+          "manifestSha256": "f2c6cece7b56fd4f17b8a9d31028db7dc899153172ef491cca52e665756f34c9",
+          "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+        },
+        "log": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-mixed-candidate-20261007.log",
+        "metrics": {
+          "namespace": true,
+          "automaticQueue": true,
+          "motionReportLoad": true,
+          "objectPriming": false,
+          "earlyObjectCancellation": true,
+          "fileMoveOwnership": [
+            {
+              "generation": 1,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9697.613305
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9970.392938
+              },
+              "durationMs": 272.78416300000026
+            },
+            {
+              "generation": 1,
+              "group": 1,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 15280.379777
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 15357.97868
+              },
+              "durationMs": 77.60314299999845
+            },
+            {
+              "generation": 1,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 18836.898765
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 18914.806971
+              },
+              "durationMs": 77.90938599999936
+            },
+            {
+              "generation": 1,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 22216.097876
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 22452.811721
+              },
+              "durationMs": 236.7143049999977
+            },
+            {
+              "generation": 1,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 25599.125717
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 25824.635538
+              },
+              "durationMs": 225.50629099999787
+            },
+            {
+              "generation": 1,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 27622.162785
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 27710.85086
+              },
+              "durationMs": 88.68857500000013
+            },
+            {
+              "generation": 1,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 29428.014862
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 29519.379629
+              },
+              "durationMs": 91.36553699999786
+            },
+            {
+              "generation": 1,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 31173.533502
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 31287.764301
+              },
+              "durationMs": 114.23119900000165
+            },
+            {
+              "generation": 2,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 48714.904919
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 48930.030068
+              },
+              "durationMs": 215.1254790000021
+            },
+            {
+              "generation": 2,
+              "group": 1,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 52027.511423
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 52208.303624
+              },
+              "durationMs": 180.79304100000445
+            },
+            {
+              "generation": 2,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 55892.092638
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 55970.021665
+              },
+              "durationMs": 77.92984699999943
+            },
+            {
+              "generation": 2,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 58819.806567
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 59055.718845
+              },
+              "durationMs": 235.91259800000262
+            },
+            {
+              "generation": 2,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 62329.576576
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 62600.107595
+              },
+              "durationMs": 270.5309189999971
+            },
+            {
+              "generation": 2,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 64751.145136
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 64839.75149
+              },
+              "durationMs": 88.60715399999754
+            },
+            {
+              "generation": 2,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 66404.503944
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 66483.453963
+              },
+              "durationMs": 78.95055900000443
+            },
+            {
+              "generation": 2,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 67927.632632
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-c68abebf-2688-4e17-9115-c8eccafd539f",
+                "fileId": "authorized-file",
+                "atMs": 68004.891392
+              },
+              "durationMs": 77.25970000000962
+            }
+          ],
+          "movesPrintingGenerations": [
+            1,
+            2
+          ],
+          "configListRequests": 2110,
+          "configListP99Ms": 6.234553999998752,
+          "configDownloads": 2110,
+          "configDownloadP99Ms": 11.172232999997505,
+          "liveMotionSamples": 6160,
+          "liveExtrusionSamples": 1467,
+          "nativeAuthorization": true,
+          "apiLoad": true,
+          "completedStatistics": {
+            "total_duration": 10.865930426999999,
+            "print_duration": 5.142092493999999,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "f2c6cece7b56fd4f17b8a9d31028db7dc899153172ef491cca52e665756f34c9",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": false,
+          "htuHeater": false,
+          "htuModel": null,
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 10217,
+          "phaseP99Ms": 4.194790000001376,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": true,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 312,
+              "writes": 43
+            },
+            {
+              "statusReads": 224,
+              "writes": 42
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 2073,
+          "historyP99Ms": 61.419710999995004,
+          "lifecycleShutdowns": 8,
+          "copyRequests": 16,
+          "copyP95Ms": 188.61865399999806,
+          "copyOverwriteRequests": 16,
+          "copyOverwriteP95Ms": 251.82377500000075,
+          "directoryCopyRequests": 16,
+          "directoryCopyP95Ms": 379.1274310000008,
+          "copiesDuringPrint": 4,
+          "directoryCopiesDuringPrint": 2,
+          "fileNotifications": 1132,
+          "fileNotificationP95Ms": 142.33353200000056,
+          "movesDuringPrint": 3,
+          "directoryMoveRequests": 16,
+          "directoryMoveP95Ms": 477.1980330000006,
+          "directoryMovesDuringPrint": 3,
+          "moveRequests": 16,
+          "moveP95Ms": 272.22793600000114,
+          "deleteRequests": 16,
+          "deleteP95Ms": 166.97948499999984,
+          "publicThumbnailRequests": 16,
+          "publicThumbnailP95Ms": 203.51405199999863,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 90.84703100000479,
+          "metadataRequests": 16,
+          "metadataP95Ms": 367.53200900000047,
+          "downloads": 16,
+          "downloadP95Ms": 57.93481900000006,
+          "wireCommands": 229,
+          "wireSteps": 7856,
+          "minimumStepLeadMs": 87.678,
+          "directoryRequests": 8568,
+          "directoryP99Ms": 40.71160400000008,
+          "statusRequests": 40867,
+          "uploads": 16,
+          "statusP99Ms": 3.8206560000035097,
+          "uploadP95Ms": 64.53339699999924,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 2.026495,
+                "maxMs": 19.021823
+              },
+              "cpu": {
+                "user": 12515452,
+                "system": 2444176
+              },
+              "rss": 344109056
+            },
+            {
+              "loop": {
+                "p99Ms": 1.937407,
+                "maxMs": 12.517375
+              },
+              "cpu": {
+                "user": 7925480,
+                "system": 1801003
+              },
+              "rss": 356229120
+            }
+          ]
+        }
+      }
+    ],
+    "conclusion": "Both existing mixed gates passed for these two products and this desktop condition. One AB pair is not statistical speedup or physical/target performance proof.",
+    "runtimeEvidence": {
+      "method": "Retained 2026-10-06T17:54:10.975Z exec invocation prefixes PATH with the pinned Node26 bin; runner, test and compiled host spawn process.execPath. Receipt generation used system Node22 and its version is not the benchmark runtime.",
+      "executable": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+      "executableSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+    }
+  },
+  "page": {
+    "client": {
+      "name": "Fluidd",
+      "version": "1.37.6",
+      "commit": "d894c50d580212c245a7c552ae695008c441683b",
+      "archiveSha256": "9fe5bcd4a443f4cccd20cef222e70cc334a874070b21d116097a28405b0ed456"
+    },
+    "candidateBundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-candidate-bundle",
+      "manifestSha256": "f2c6cece7b56fd4f17b8a9d31028db7dc899153172ef491cca52e665756f34c9",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+    },
+    "actualLoginWithoutSeededBrowserCredentials": true,
+    "actualChooserUploads": 2,
+    "chooserMs": [
+      44.96439300000202,
+      39.371684000012465
+    ],
+    "renamedAndCopiedPreviewsHttpStatus": 200,
+    "renamedAndCopiedPreviewsDecodedDimensions": [
+      32,
+      32
+    ],
+    "input": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-page 50%.gcode",
+      "bytes": 20123,
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8"
+    },
+    "actualDownloads": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-renamed-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "bundleManifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-copied-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "bundleManifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-fixed-renamed-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "bundleManifestSha256": "f2c6cece7b56fd4f17b8a9d31028db7dc899153172ef491cca52e665756f34c9"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-fixed-copied-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "bundleManifestSha256": "f2c6cece7b56fd4f17b8a9d31028db7dc899153172ef491cca52e665756f34c9"
+      }
+    ],
+    "nonemptyDirectoryCreatedUploadedAndDeletedThroughUi": true,
+    "rootSourceAndCopyRetained": true,
+    "freshAuthenticatedSecondBrowserObservedOriginalPreviews": true,
+    "configEditorRead": {
+      "bundleManifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff",
+      "getStatus": 200,
+      "visibleContent": "[include parts/machine.cfg]",
+      "writeOrRestartExecuted": false
+    },
+    "noFilePrinted": true,
+    "seededSampleNotUsedForUploadOrPrint": true,
+    "browserProcessesExit": [
+      0,
+      0,
+      0
+    ],
+    "productProcessesExit": [
+      0,
+      0
+    ],
+    "finalCompiledIdentityUnchanged": true
+  },
+  "raw": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-before-20261007.log",
+      "sha256": "e743dbef8943865cb455f2fea0f595fde56d4651c74a55739f3be5e0d20bc863"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-after-20261007.log",
+      "sha256": "a619c367d68d504a09e1d460861c99fbc66fee33dfde61e0cd1ea7fbd425a7ab"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-related-20261007.log",
+      "sha256": "dd237e30cb583eab5a2afded9f0161e00fa45c0c76dc94546c8775c9ec30ffc2"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-lifetime-20261007.log",
+      "sha256": "b9bddae30ef42932384a60ca7381ceb881857b05dd96ff60c65273b13374e8dc"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-final-boundaries-20261007.log",
+      "sha256": "ec8c2d751995d38ffbf9baf126f4cb64e5a695d97e0e7d7178cfc1161bf14af9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-authorization-20261007.log",
+      "sha256": "169ae78ce92347f5cfa586ecc995109a914f29a6b4e01e3c838b54fe5ea4047b"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-final-types-20261007.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-compiled-ab-20261007.mjs",
+      "sha256": "4ba14014a7dad7292cd3a27e5fbf59481998a72e48c57a8cecda6bc4cc68bcc8"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-compiled-ab-20261007.jsonl",
+      "sha256": "4948abf3e6a1cbe6743edbfe50a581da292b541da32b0d43cb6bf08f19e2fcbe"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-mixed-baseline-20261007.log",
+      "sha256": "f0b2b5d1341fd94df26647d8a9bf39e0e86b9487bcbfd9bc8a9826cba0ace144"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preview-notification-mixed-candidate-20261007.log",
+      "sha256": "ef5834073fd183325dcf263df5e48162ab002fdd8a09d60a89f4461570a1425c"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-file-management-observations-20261007.json",
+      "sha256": "810efa93f94209a26a17dc1878921a63447e964b39efee3f3b8394c0d4ff6bb3"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-preview-notification-observations-20261007.json",
+      "sha256": "d6b095ccfa91b4b80abb09ea048a99c48fe414c95a7c7d6e35fe5921abb35e45"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-file-management-20261007.log",
+      "sha256": "7faad223c5aa97e45b3208b7f3b64152f012a0a36e0200c2372e5e8523cece46"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-preview-notification-candidate-20261007.log",
+      "sha256": "51f7053f2b0b5476b6a084c7ebf45b841b71cafc6c985b8ae5f206d11e8d4803"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-page-file-driver-20261007.mjs",
+      "sha256": "1a683cd13029f3b7b8503511acebf5a4a430fea32b0a407731a4da3a4834aaeb"
+    }
+  ],
+  "screens": [
+    {
+      "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-rename-preview-failure-20261007.png",
+      "sha256": "6e1924761df2b80434d8c3eb722cf8da5f487b661a40515ca8c90ef907d8affc",
+      "visuallyInspected": true
+    },
+    {
+      "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-config-read-20261007.png",
+      "sha256": "dc621c392de04dcab668ae7ac477f8e27bcefb9f6226376a4b9db90cb6021934",
+      "visuallyInspected": true
+    },
+    {
+      "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-rename-preview-fixed-20261007.png",
+      "sha256": "b761abe6a376c4f9b2ad295dbb5b4ca7f56eb1ad1eddd6057e5d1496ff74bf48",
+      "visuallyInspected": true
+    },
+    {
+      "path": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/build/pr-proof/fluidd-file-management-fixed-20261007.png",
+      "sha256": "f823e124d1d4c55e1e5aaa58e760fc4adf44363d3a405028c42927f29ee5d7dc",
+      "visuallyInspected": true
+    }
+  ],
+  "remaining": {
+    "exactHeadFullCi": "pending after submission",
+    "normalDevelopIntegration": false,
+    "pr20PriorTwoMixedFailures": "unresolved; new unrelated product results do not close them",
+    "corsPr19OrdinaryCi": "still running at last observation",
+    "g3": "unresolved",
+    "mainsailProtectedFlow": "incomplete",
+    "targetBoardAndPhysicalMachine": "not verified",
+    "defaultPython": true,
+    "trackedKlippyPythonFiles": 177,
+    "fullGoalComplete": false
+  }
+}

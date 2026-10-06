@@ -22,6 +22,8 @@ ANYRAID 的 Node.js 26 / TypeScript 主机迁移进度、验证门禁和 Moonrak
 系列，优先完成 Moonraker，其他机型适配后置到最后。host 运行需要
 Node.js 26.9 或更高的 26.x 版本。当前打印入口仍为 Python，新的主机
 实现尚未完成硬件验收。
+原生文件通知的候选修复已补齐提交与预览失效顺序，并用实际 Fluidd
+重命名、复制及非空目录删除复验，见[预览通知验收](host/contracts/native-file-preview-notification-acceptance.json)。
 面向用户的未发布变化见 [版本变化](CHANGELOG.md)。
 
 交付按同包软件闭环、Cycnumbris 500 受控试验、完整退役与发布三个
