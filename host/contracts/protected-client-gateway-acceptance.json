@@ -499,5 +499,73 @@
       "path": "/home/dek02/.cache/codex/tmp/anyraid-client-gateway-actual-page-interactive-20261007.log",
       "sha256": "563318606adf808b5fa4efd2e59a416534db52bd894757bf3f7ca506299abbf7"
     }
-  ]
+  ],
+  "commandClockPositionDiscrimination": {
+    "date": "2026-10-07",
+    "sourceHead": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+    "scope": "Deterministic firmware-handler discrimination only; reuse actual stepper.c/trsync.c with existing GPIO and timer stubs. Not a fresh motion run or physical accuracy acceptance.",
+    "capturedInput": {
+      "source": "/home/dek02/.cache/codex/tmp/anyraid-pr23-delta-receive-counter-classification-20261007.json",
+      "firstPulse": 2601027,
+      "interval": 2500,
+      "count": 20,
+      "stopClock": 2504434,
+      "baseClockDerivedFromFirstPulse": 2598527,
+      "initialPosition": -24
+    },
+    "runs": [
+      {
+        "sanitizer": "undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-ubsan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      },
+      {
+        "sanitizer": "address,undefined",
+        "exit": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-asan-20261007.log",
+          "sha256": "e7319363378175727a56ecc3b3561ee0436578eea2025582dcd1bc3f9ea2ac04"
+        },
+        "result": {
+          "capturedFutureBefore": -24,
+          "capturedFutureAfterStop": -24,
+          "partialNegativeAdd": -26,
+          "wrapAfterStop": -27,
+          "receiveOnlyWrong": -44
+        }
+      }
+    ],
+    "conclusion": "A queued20-pulse command accepted before stop but scheduled after stop leaves actual C position at-24; receive-only accounting would yield-44. Scheduled partial negative-add and32bit wrap cases retain only executed pulses. This establishes a fixture receive-counter confound; it does not close all remote failures or validate host motion precision.",
+    "next": "Implement bounded commanded-clock test counting and compare against this independent C reference; preserve original motion inputs and1e-10 assertions. Never equalize tower counts or alter runtime math.",
+    "productionSourcesChanged": false,
+    "g3Closed": false,
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.c",
+        "sha256": "9a06e2b9d6a174d44e690790dc5159eb7c7a0e80a916447ee11d8fb322901f91"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-command-clock-reference-20261007.mjs",
+        "sha256": "92002f0f6ba7070ccf7723eebc5a9c2b8a952af3a9bfebb0a589d36e9dcfb4f0"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/stepper.c",
+        "sha256": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-protected-client-gateway/src/trsync.c",
+        "sha256": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41"
+      }
+    ]
+  }
 }
