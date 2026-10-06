@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
 import {SerialSession} from '../src/protocol/serial-session.ts';
+import {NativeSerialQueue} from '../src/protocol/serial-queue.ts';
 import {serialFirmware} from './helpers/serial-firmware.ts';
 const signal=()=>new AbortController().signal;
 test('native byte stream initializes dictionary and clock then serves acknowledged queries',async()=>{
@@ -11,10 +12,16 @@ test('native byte stream initializes dictionary and clock then serves acknowledg
  await session.stop();assert.equal(session.clock.sync.active,false);assert.equal(stops,1);await session.stop();assert.equal(stops,1);await assert.rejects(session.query(Uint8Array.of(2),'uptime',signal()),/not ready/);
  }finally{await session.stop();await firmware.close();}
 });
-test('cancellation during dictionary bootstrap fences native I/O and stops once',async()=>{
- const firmware=await serialFirmware();firmware.ignore('identify');let stops=0;const session=new SerialSession(firmware.fd,{async stopDevice(){stops++;}}),abort=new AbortController();
- try{const p=session.initialize(abort.signal);const rejected=assert.rejects(p,/cancel/);await delay(15);abort.abort(new Error('cancel bootstrap'));await rejected;assert.equal(session.status.state,'closed');assert.equal(session.status.pendingAcks,0);assert.equal(stops,1);const before=firmware.frames;await delay(30);assert.equal(firmware.frames,before);
- }finally{await session.stop();await firmware.close();}
+test('cancellation during dictionary bootstrap fences native I/O and stops once',async t=>{
+ const firmware=await serialFirmware();firmware.ignore('identify');let stops=0,closed:NativeSerialQueue|undefined;
+ const close=NativeSerialQueue.prototype.close;
+ t.mock.method(NativeSerialQueue.prototype,'close',function(this:NativeSerialQueue){close.call(this);closed=this;});
+ const assertClosed=()=>{assert.ok(closed,'native queue must close before device stop');assert.throws(()=>closed!.send(Uint8Array.of(3)),/closed/);assert.throws(()=>closed!.pull(),/closed/);assert.throws(()=>closed!.stats,/closed/);};
+ const session=new SerialSession(firmware.fd,{async stopDevice(){stops++;assertClosed();}}),abort=new AbortController();
+ try{const p=session.initialize(abort.signal);const rejected=assert.rejects(p,/cancel/);await delay(15);abort.abort(new Error('cancel bootstrap'));await rejected;assert.equal(session.status.state,'closed');assert.equal(session.status.pendingAcks,0);assert.equal(session.status.stopError,undefined);assert.equal(stops,1);assertClosed();await session.stop();assert.equal(stops,1);
+ // A peer may still receive bytes written before the queue closed. Native
+ // handle rejection, not the peer's later callback count, proves the fence.
+ }finally{t.mock.restoreAll();try{await session.stop();}finally{closed?.close();await firmware.close();}}
 });
 test('device stop errors survive reentrant shutdown and reject the caller',async()=>{
  const firmware=await serialFirmware();let stops=0;let session:SerialSession;

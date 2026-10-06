@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "scope": "native queue cancellation test boundary; no production code changes",
+  "baseRevision": "0c304f41e2aa4a5c64baa18ec33aa94e29dc8a10",
+  "runtime": "Node.js 26.10.0",
+  "historicalFailure": {
+    "revision": "02d113946be32ea3f468c680f80fe7c0f4ff5b3c",
+    "workflowRun": 37456906680,
+    "job": 112246634760,
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37456906680/job/112246634760",
+    "ordinary": {
+      "pass": 3971,
+      "fail": 1,
+      "total": 3972,
+      "durationMs": 575142.015607
+    },
+    "test": "cancellation during dictionary bootstrap fences native I/O and stops once",
+    "assertion": {
+      "actualFrames": 2,
+      "expectedFrames": 1
+    },
+    "missingObservation": "send-side timestamp/counter at the actual cancellation; historical packet origin not reconstructed",
+    "skipped": [
+      "protocol-native",
+      "native-sanitized",
+      "linux-mcu"
+    ]
+  },
+  "discriminator": {
+    "input": "pause real socket peer, observe bytes_write > 0, close real native queue, resume peer",
+    "result": "previously written complete frame arrives after close; native handle rejects send, pull and stats",
+    "doesNotProve": [
+      "physical MCU stop",
+      "origin of the historical late frame",
+      "G3"
+    ]
+  },
+  "focused": {
+    "pass": 37,
+    "fail": 0,
+    "total": 37,
+    "durationMs": 2869.307289
+  },
+  "negativeControl": {
+    "temporaryCopyOnly": true,
+    "fault": "omit real queue close in test observation wrapper",
+    "expectedExitCode": 1,
+    "actualExitCode": 1,
+    "pass": 0,
+    "fail": 1,
+    "total": 1,
+    "diagnostic": "Missing expected exception; Serial device stop failed",
+    "countedAsPassingTest": false,
+    "cleanup": "restore wrapper and close captured real native queue"
+  },
+  "sourceFingerprints": [
+    {
+      "path": "host/test/serial-session.test.ts",
+      "sha256": "51e2968e35e2c5b49760bde478a44f2629a747bc001574e01ad17b0e7a80aaaa"
+    },
+    {
+      "path": "host/test/serial-queue.test.ts",
+      "sha256": "b1fcc34c3161d0a415bf6b1284d3da0d9327fe6e34b2fa6afd11d0154a973a94"
+    },
+    {
+      "path": "host/src/protocol/serial-session.ts",
+      "sha256": "6422390a8b0d1c1598ecdeb1ceaa2b23ece409a99b8a4e1bde079900445befc9"
+    },
+    {
+      "path": "host/src/protocol/serial-queue.ts",
+      "sha256": "acf55a51185c528c56b9c3d94f17b19e8e79850c91d44a0b916a70ac009d594f"
+    },
+    {
+      "path": "host/native/serialqueue.c",
+      "sha256": "32f0391468ed1ff9422915caf696cbf384c852d0d55dcfe079a468f67df3cc12"
+    },
+    {
+      "path": "klippy/chelper/serialqueue.c",
+      "sha256": "d940580868eab9e1d012f65fa1bc79b1eb24209147b2e06f512e87dbdbb2e9d0"
+    }
+  ],
+  "logFingerprints": [
+    {
+      "name": "native",
+      "file": "anyraid-serial-cancel-native-20261006.log",
+      "sha256": "d970fbfae8c683329becaf13af9cce975f4ae30b17c4481704305e1093f21188"
+    },
+    {
+      "name": "focused",
+      "file": "anyraid-serial-cancel-focused-20261006.log",
+      "sha256": "53b085f705acfa3fb06e6273a63da9c8d02f99c4fea2cd9b6a17fdba00e5bb36"
+    },
+    {
+      "name": "type",
+      "file": "anyraid-serial-cancel-type-20261006.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    {
+      "name": "negative",
+      "file": "anyraid-serial-cancel-negative-20261006.log",
+      "sha256": "e87bcc449f2bc0f49e8afd24958b05c9078651c1f1615742f21616b5b071cc16"
+    }
+  ],
+  "fullCandidateCI": "pending",
+  "postMergeCI": "pending",
+  "productionPerformance": "unchanged production source; no replacement or speedup claimed",
+  "defaultPython": "retained"
+}
