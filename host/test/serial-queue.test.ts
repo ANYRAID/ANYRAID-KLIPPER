@@ -32,6 +32,15 @@ test('native queue validates clocks, payloads and capacity before enqueueing',as
 test('closing native duplicate leaves original descriptor owned by caller',async()=>{
  const p=await serialPair(),q=new NativeSerialQueue(p.fd);q.close();const q2=new NativeSerialQueue(p.fd);q2.close();await p.close();assert.throws(()=>new NativeSerialQueue(-1),/descriptor/);
 });
+test('closed native queue rejects I/O while the peer drains a previously written frame',async()=>{
+ const pair=await serialPair(),queue=new NativeSerialQueue(pair.fd),decoder=new FrameDecoder(),frames:Uint8Array[]=[];
+ pair.peer.pause();pair.peer.on('data',chunk=>{frames.push(...decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk));});
+ try{
+ queue.send(Uint8Array.of(3,5));await until(()=>Number(/\bbytes_write=(\d+)/u.exec(queue.stats)?.[1])>0);
+ assert.equal(frames.length,0);queue.close();assert.throws(()=>queue.send(Uint8Array.of(3)),/closed/);assert.throws(()=>queue.pull(),/closed/);assert.throws(()=>queue.stats,/closed/);
+ pair.peer.resume();await until(()=>frames.length>0);assert.deepEqual(frames[0],encodeFrame(1,Uint8Array.of(3,5)));
+ }finally{queue.close();await pair.close();}
+});
 test('event watcher observes data queued before registration and stops callbacks after close',async()=>{
  const p=await serialPair(),q=new NativeSerialQueue(p.fd),decoder=new FrameDecoder();let peerSaw=false,calls=0;const events:SerialEvent[]=[];
  try{p.peer.on('data',chunk=>{for(const f of decoder.push(typeof chunk==='string'?Buffer.from(chunk):chunk)){peerSaw=true;p.peer.write(encodeFrame((f[1]+1)&15,new Uint8Array()));}});const id=q.send(Uint8Array.of(3));await until(()=>peerSaw);await delay(10);
