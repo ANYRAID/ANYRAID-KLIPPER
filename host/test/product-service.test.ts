@@ -210,7 +210,15 @@ test('configured Z tilt HTTP calibration owns probe, motor adjustment and duplic
    if(!arm){if(hits&&outputs.findLastIndex(m=>m.name==='reset_step_clock')>outputs.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0))fw.setTriggerReason(2,trigger.oid);return;}
    const hit=Number(arm.parameters.clock)+50000;if(fw.currentClock()<hit+1000)return;handled.add(arm);hits++;fw.setTriggerReason(1,trigger.oid);fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},probe.endstop.oid);fw.emit('trsync_state',{oid:trigger.oid,can_trigger:0,trigger_reason:1,clock:hit});
   },1);
-  const response=await post(),receipt=await response.json() as any;assert.equal(response.status,200,JSON.stringify(receipt));assert.equal(hits,2);assert.equal(receipt.result.result.passes,1);assert.equal(receipt.result.result.persisted,false);
+  let receipt:any;
+  // Join any admitted clock maintenance, then retain dispatch until the one
+  // explicit calibration has returned. The endpoint keeps its idle guards.
+  await owner.printer.print.gcode.dispatch.runExclusive(async signal=>{
+   signal.throwIfAborted();assert.equal(owner!.printer.linear.port.status.busy,false);
+   assert.equal(await owner!.printer.print.gcode.dispatch.runWhenIdle(async()=>assert.fail('Clock maintenance entered held calibration'),signal),false);
+   const response=await post();receipt=await response.json();assert.equal(response.status,200,JSON.stringify(receipt));
+  },f.signal);
+  assert.equal(hits,2);assert.equal(receipt.result.result.passes,1);assert.equal(receipt.result.result.persisted,false);
   const motion=fw.motion.length,repeated=await post();assert.deepEqual(await repeated.json(),receipt);assert.equal(fw.motion.length,motion);assert.equal(hits,2);
   assert.deepEqual(owner.printer.print.gcode.coordinates.state.position,owner.printer.linear.port.position());
   const status=await (await fetch(base+'/printer/objects/query?z_tilt',{headers})).json() as any;assert.deepEqual(status.result.status.z_tilt,{applied:true});
@@ -241,7 +249,15 @@ test('configured quad gantry HTTP calibration owns probe, motor adjustment and d
    if(!arm){if(hits&&outputs.findLastIndex(m=>m.name==='reset_step_clock')>outputs.findLastIndex(m=>m.name==='endstop_home'&&Number(m.parameters.sample_count)>0))fw.setTriggerReason(2,trigger.oid);return;}
    const hit=Number(arm.parameters.clock)+50000;if(fw.currentClock()<hit+1000)return;handled.add(arm);hits++;fw.setTriggerReason(1,trigger.oid);fw.setEndstopState({homing:0,pin_value:0,next_clock:hit+Number(arm.parameters.rest_ticks)},probe.endstop.oid);fw.emit('trsync_state',{oid:trigger.oid,can_trigger:0,trigger_reason:1,clock:hit});
   },1);
-  const response=await post(),receipt=await response.json() as any;assert.equal(response.status,200,JSON.stringify(receipt));assert.equal(hits,4);assert.equal(receipt.result.result.passes,1);assert.equal(receipt.result.result.persisted,false);
+  let receipt:any;
+  // Join any admitted clock maintenance, then retain dispatch until the one
+  // explicit calibration has returned. The endpoint keeps its idle guards.
+  await owner.printer.print.gcode.dispatch.runExclusive(async signal=>{
+   signal.throwIfAborted();assert.equal(owner!.printer.linear.port.status.busy,false);
+   assert.equal(await owner!.printer.print.gcode.dispatch.runWhenIdle(async()=>assert.fail('Clock maintenance entered held calibration'),signal),false);
+   const response=await post();receipt=await response.json();assert.equal(response.status,200,JSON.stringify(receipt));
+  },f.signal);
+  assert.equal(hits,4);assert.equal(receipt.result.result.passes,1);assert.equal(receipt.result.result.persisted,false);
   const motion=fw.motion.length,repeated=await post();assert.deepEqual(await repeated.json(),receipt);assert.equal(fw.motion.length,motion);assert.equal(hits,4);
   assert.deepEqual(owner.printer.print.gcode.coordinates.state.position,owner.printer.linear.port.position());
   const status=await (await fetch(base+'/printer/objects/query?quad_gantry_level',{headers})).json() as any;assert.deepEqual(status.result.status.quad_gantry_level,{applied:true});
