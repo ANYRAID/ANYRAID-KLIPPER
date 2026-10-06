@@ -1498,6 +1498,33 @@
       "Historical intermittent terminal failure cause remains unproven",
       "Original calibration precision/clock mismatch and full G3",
       "Same-bundle client, complete Moonraker and Python retirement, Cycnumbris 500 target board and physical acceptance"
-    ]
+    ],
+    "developIntegration": {
+      "base": "cad9fde62a658f00eaeeb751eab3f9b483c682f8",
+      "sourceMerge": "094cab3e",
+      "previousHead": "f827c11c017fb97a2f96db7f9001e030baa19d4b",
+      "previousCi": {
+        "host": 37489529613,
+        "firmware": 37489529606,
+        "conclusion": "completed/success"
+      },
+      "conflictResolution": "Original base observation is deeply equal; stopBoundaryCandidate and both plan appendices retained in full",
+      "validation": {
+        "tests": 25,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-cad9-tests-20261007.log",
+          "sha256": "2d7ed8173b7683754a4e84a0b2b91ce869c092fd88e2f2878de6529654c994a5"
+        },
+        "types": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-cad9-types-20261007.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        },
+        "whitespace": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-cad9-whitespace-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "remaining": "New exact-head full CI and normal PR integration; historical failure cause and G3 are not closed"
+    }
   }
 }
