@@ -22,13 +22,14 @@ test('native product rejects invalid authorization before MCU and journal acquis
  try{
   for(const mode of ['unsupported','mixed','closed','issuer']){
    const db=await DatabaseStore.open({path:join(root,mode+'.sqlite')}),config=options(f,root,db,()=>releases++);
-   await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n'+(mode==='unsupported'?'[authorization]\ncors_domains: *\n':''));
+   await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n'+(mode==='unsupported'?'[authorization]\nunsupported_rule: deny\n':''));
    const factory=config.createAdapter;
    config.createAdapter=async()=>{const adapter=await factory();if(mode==='mixed')Object.assign(adapter.server,{authorize:()=>{}});if(mode==='issuer')adapter.server.authorization={issuer:'not-an-origin'};return adapter;};
    if(mode==='closed')await db.close();
-   try{await assert.rejects(loadNativeProductMachineProfile(f.path,config,new AbortController().signal),mode==='unsupported'?/Unsupported/:mode==='mixed'?/external callbacks/:mode==='closed'?/open database/:/issuer/);
+   let unexpected:Awaited<ReturnType<typeof loadNativeProductMachineProfile>>|undefined;
+   try{await assert.rejects(async()=>{unexpected=await loadNativeProductMachineProfile(f.path,config,new AbortController().signal);},mode==='unsupported'?/Unsupported/:mode==='mixed'?/external callbacks/:mode==='closed'?/open database/:/issuer/);
     assert.equal(db.status.closed,true);await assert.rejects(access(f.config.journalPath));assert.deepEqual(f.transport.stops,[0,0]);assert(f.transport.firmware.every(m=>m.stepperConfigs.length===0&&m.motion.length===0));
-   }finally{await db.close();}
+   }finally{await unexpected?.release();await db.close();}
   }
   assert.equal(releases,4);
  }finally{await f.close();await rm(root,{recursive:true,force:true});}
@@ -39,14 +40,17 @@ test('native product owns login and authenticated printer state across service r
   const provision=await ApiKeyAuthorization.open(db,authorization);try{key=provision.localApiKey();}finally{await provision.close();await db.close();}
   for(let generation=0;generation<2;generation++){
    const f=await productMachineFixture(root),abort=new AbortController();db=await DatabaseStore.open({path});let failure:unknown,observed:Promise<void>|undefined;
+   await writeFile(f.config.moonrakerConfig,'[server]\nhost: 127.0.0.1\nport: 0\n[authorization]\nforce_logins: true\ncors_domains: *\n');
    try{
     await runProductHost(s=>loadNativeProductMachineProfile(f.path,options(f,root,db,()=>releases++),s),abort.signal,address=>{
      observed=(async()=>{
       const url=`http://127.0.0.1:${address.port}`;
       const request=async(route:string,headers:Record<string,string>={},body?:object)=>{const response=await fetch(url+route,{headers:{'content-type':'application/json',...headers},method:body?'POST':'GET',body:body?JSON.stringify(body):undefined});return {status:response.status,body:await response.json() as any};};
       assert.equal((await request('/printer/print/status')).status,401);
+      const origin='https://fluidd.example.com',crossOriginDenied=await fetch(url+'/printer/print/status',{headers:{origin}});assert.equal(crossOriginDenied.status,401);assert.equal(crossOriginDenied.headers.get('access-control-allow-origin'),origin);await crossOriginDenied.arrayBuffer();
       if(!generation){const created=await request('/access/user',{'x-api-key':key},{username:'operator',password:'test-password'});assert.equal(created.status,200);token=created.body.result.token;}
       const state=await request('/printer/print/status',{authorization:'Bearer '+token});assert.equal(state.status,200);assert.equal(state.body.result.state,'idle');
+      const crossOriginState=await fetch(url+'/printer/print/status',{headers:{origin,authorization:'Bearer '+token}});assert.equal(crossOriginState.status,200);assert.equal(crossOriginState.headers.get('access-control-allow-origin'),origin);assert.equal((await crossOriginState.json() as any).result.state,'idle');
       const login=await request('/access/login',{}, {username:'operator',password:'test-password'});assert.equal(login.status,200);token=login.body.result.token;
       const info=await request('/server/info',{authorization:'Bearer '+token});assert.equal(info.status,200);assert(info.body.result.components.includes('authorization'));assert.deepEqual(info.body.result.registered_directories,['gcodes']);
       if(!generation){

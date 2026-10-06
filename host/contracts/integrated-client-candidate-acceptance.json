@@ -54,7 +54,7 @@
       "postMergeFirmwareRun": 37513468883,
       "postMergeChecks": "in_progress at receipt preparation"
     },
-    "remaining": "PR19 and PR22 checks in progress; PR20 original two failures remain open. Combined candidate is not permission to merge these heads."
+    "remaining": "PR19 original workflow cancelled after local confirmed stale fixture; repair+latest develop and PR22 latest develop new heads require full CI. PR20 original two failures remain open. Combined candidate is not permission to merge these heads."
   },
   "sourceFiles": {
     "host/package.json": "ecaaad3de70053474ec444fba9e833b2c2650df4823919b11b8ed6917bcf0b7e",
@@ -1480,5 +1480,280 @@
     "Complete Moonraker and consumer controlled operations",
     "177 klippy Python files and all Python build/install/test retirement",
     "Normal master PR/release and default replacement"
-  ]
+  ],
+  "fluiddConfigAndNormalActiveRecovery": {
+    "date": "2026-10-07",
+    "candidateSourceCommit": "edf31b18",
+    "runtime": {
+      "node": "v26.10.0",
+      "binarySha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+      "playwright": "1.62.1",
+      "chrome": "153.0.8010.36"
+    },
+    "bundle": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-client-final-bundle",
+      "manifestSha256": "e5bc7946a93ba71e16adde5b2fce4bd0c0a44492dddf51813fae10d926c68ca8",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "unchanged": "All 22 sealed production source/test/reference fingerprints unchanged; bundle independently rechecked after both processes ended",
+    "authorization": "Fresh actual page local-user login/JWT, no trusted-loopback bypass; test credentials excluded",
+    "config": {
+      "before": {
+        "bytes": 28,
+        "sha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd"
+      },
+      "saved": {
+        "bytes": 67,
+        "sha256": "0531be8d1ffe21372146312449654183f19aedc2089726e3a073b8b7240ceb65"
+      },
+      "restored": {
+        "bytes": 28,
+        "sha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd"
+      },
+      "operation": "Actual Monaco editor keyboard input, Save and restart, original HTTP upload and printer.firmware_restart; successful immutable before-image backup and GET/read in reopened page",
+      "backups": [
+        {
+          "name": ".printer.cfg.save-backup-e3377e46-f27f-4b3a-9c54-8b7a8fcef67b",
+          "bytes": 28,
+          "sha256": "5910577ee77e76af7b1f9ee17efaf6adda54479af819cb6fb6d54b698edfa7cd",
+          "readOnly": true
+        },
+        {
+          "name": ".printer.cfg.save-backup-ca42844a-4983-40ce-a915-b5f80aec040b",
+          "bytes": 29,
+          "sha256": "1a35e6d2f3cb70efdade030466837526c775c0e1ea240c1d8a4f51beddccca6e",
+          "readOnly": true
+        },
+        {
+          "name": ".printer.cfg.save-backup-348a0bfc-4a3d-4a00-8867-2c26c2f4a9a5",
+          "bytes": 67,
+          "sha256": "0531be8d1ffe21372146312449654183f19aedc2089726e3a073b8b7240ceb65",
+          "readOnly": true
+        }
+      ],
+      "restartReceipts": [
+        {
+          "request_id": "firmware-restart-58e083ea-15af-4262-9bb9-3089f0c16301",
+          "state_token": "142e5d68-9163-4498-be96-50b9b98fb473",
+          "state": "succeeded",
+          "error": null,
+          "kind": "firmware_restart"
+        },
+        {
+          "request_id": "firmware-restart-8b26d412-79ce-434b-987c-800974c5ec3e",
+          "state_token": "9adfe5ce-a804-49c3-b9ba-0d8d8e3d4c2d",
+          "state": "failed",
+          "error": "Reinitialization failed; inspect host readiness and process error",
+          "kind": "firmware_restart"
+        },
+        {
+          "request_id": "firmware-restart-cb9c1518-d035-41c4-8bc2-aed6851e4373",
+          "state_token": "3d619cb6-5e6e-4fa7-a5a6-8a349fdb6291",
+          "state": "succeeded",
+          "error": null,
+          "kind": "firmware_restart"
+        }
+      ],
+      "failedInput": "Whole-text keyboard insertion left one extra closing bracket. Actual saved bytes were invalid, startup failed, print remained 503 and authorized process/config APIs stayed available. Page removed bracket then explicitly saved and restarted; no automatic retry or action replay.",
+      "editorToolFailure": "Click on zero-width native-edit-context timed out. Locator keyboard focus and actual visible view-lines subsequently confirmed edit; click failure retained in transcript, not a product test failure"
+    },
+    "upload": {
+      "realChooser": true,
+      "registeredBeforeClick": true,
+      "elapsedMs": 37.62544199998956,
+      "httpStatus": 200,
+      "filename": "整合验收 50%.gcode",
+      "bytes": 20123,
+      "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+      "seededSampleExcluded": true,
+      "download": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-config-recovery-upload-download-20261007.gcode",
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "scope": "Actual page download after process restart; exactly equals original bytes"
+      }
+    },
+    "normalActiveRecovery": {
+      "before": {
+        "state": "paused",
+        "pausedBeforeFile": true,
+        "filePosition": 0,
+        "pendingDeviceActions": 0,
+        "requestId": "compat-bb2a472d-d724-4b33-9bc1-22f5654cbaa0",
+        "history": [
+          {
+            "id": "000001",
+            "status": "in_progress",
+            "filename": "整合验收 50%.gcode"
+          }
+        ]
+      },
+      "supervisorAction": "SIGUSR1 to verified own PID2992998; normal emitted product stop, child lifetime awaited, same package/storage/MCU model reused",
+      "after": {
+        "state": "idle",
+        "request": null,
+        "history": [
+          {
+            "id": "000001",
+            "status": "cancelled",
+            "filename": "整合验收 50%.gcode"
+          }
+        ]
+      },
+      "automaticReplay": false,
+      "explicitNewPageStart": {
+        "request": "compat-5c482a5b-3f33-4a2e-ae90-ba189eedd143",
+        "state": "completed",
+        "history": [
+          {
+            "id": "000002",
+            "status": "completed",
+            "filename": "整合验收 50%.gcode"
+          },
+          {
+            "id": "000001",
+            "status": "cancelled",
+            "filename": "整合验收 50%.gcode"
+          }
+        ]
+      },
+      "clientRecovery": "Automatically reconnected/identified/subscribed, no refresh or relogin; two Socket disconnected pageerrors retained",
+      "semantics": "Graceful shutdown cancels active preparation-held request. This is cancelled, not interrupted; no crash/forced termination/power-loss or post-file-start active recovery claim."
+    },
+    "cleanup": {
+      "probeSession": 46542,
+      "driverSession": 93613,
+      "terminalExitCodes": [
+        0,
+        0
+      ],
+      "probeStop": "Verified own PID SIGTERM and original fixture cleanup",
+      "driverStop": "Normal browser close then stdin EOF"
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-config-before-save-20261007.json",
+        "sha256": "543c5d1644009c6b6129a55d570a08ec42560c78d192eadc76852489da65628d",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-config-after-save-20261007.json",
+        "sha256": "beecca3f340560bcd36463a53f9a1731b84dfd50354ede05a1b1fe59dc47952e",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-config-second-restart-observation-20261007.json",
+        "sha256": "db8ce84d19b506d9b0a6c7795368e6f654f40de193165a943d819801c7c7b9e1",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-config-corrected-ready-20261007.json",
+        "sha256": "9362c21eabcbf12cf469752e1c2cf94e2296ae701d241e85f8c7a88647fc1581",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-active-before-process-restart-20261007.json",
+        "sha256": "95c61218333b0c76080f6c371df857e6294dbb180f2d1d7f8d228c6bc30384dd",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-active-after-process-restart-20261007.json",
+        "sha256": "506b005c3c2bc425c7cba27d133a0d5500f76b4bfa3f3fda78704b1a27887248",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-active-explicit-new-print-20261007.json",
+        "sha256": "563c9abdca2daa735ab583899a64951049279a9b25f41013362831486c71d136",
+        "scope": "Read-only authenticated status/config/history evidence; no seeded actions"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-config-recovery-page-sanitized-20261007.log",
+        "sha256": "587bdf6fe96d087eee0f9cc12e96c340dbd0c0b93f4b1c4aadd69a0ae5728d1f",
+        "scope": "Complete driver stdout observations with pending login DOM entry excluded; no input command echo or credentials"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-config-recovery-probe-20261007.log",
+        "sha256": "f980a25e1c690c2a476180ac63aae5a8955523f3e5171a5bf5d9451dcb0c2f55",
+        "scope": "Fixture HTTP/RPC and product-process/generation output; no credential values"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-page-config-recovery-driver-20261007.mjs",
+        "sha256": "80c773e9ae0b070e895600731f8a843091a2abdf6442d618c8d3e5509554ffd7",
+        "scope": "Actual page keyboard/locator driver; original driver retained unchanged"
+      }
+    ],
+    "screenshots": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-config-edited-20261007.png",
+        "sha256": "96a7c52823729500142520866aa4142a255f3bf57b51c26fd333b77003bab2c4",
+        "scope": "Actual page capture; state independently bound to observer JSON"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-config-reread-20261007.png",
+        "sha256": "1569901c5dc43e079c19b5e20311eb32591f697d711a8098de1efdd3fb84131b",
+        "scope": "Actual page capture; state independently bound to observer JSON"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-active-before-restart-20261007.png",
+        "sha256": "ef9a731b5da0c9281e4a062f79fdfff17fcd0d380cf48f348dfb7d15bb44cfd0",
+        "scope": "Actual page capture; state independently bound to observer JSON"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-active-after-restart-history-20261007.png",
+        "sha256": "fbde0d0caaad21b6874a2cdfbf27b6921730b67f9cfa809f7a8f9a431ba53ecb",
+        "scope": "Actual page capture; state independently bound to observer JSON"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-fluidd-config-recovery-final-history-20261007.png",
+        "sha256": "5fc7a0f59a9a7603328bd686439baca9e41c2d35eb19ecdcd26f2f73d31a3d57",
+        "scope": "Visually inspected actual page: one completed and one cancelled record"
+      }
+    ],
+    "performance": "No production code changes or new throughput measurement. Prior original same-package mixed-load evidence retained only for its exact scope; chooser elapsed time is not printer performance.",
+    "remaining": [
+      "Same-package protected Mainsail",
+      "Forced/crash recovery with journal interrupted, separately from graceful cancellation",
+      "Active recovery after actual file start",
+      "Normal full upstream integration and unresolved PR20 historical failures",
+      "G3, physical precision/performance and full Python/Moonraker retirement"
+    ]
+  },
+  "nativeAuthorizationFixtureRepair": {
+    "date": "2026-10-07",
+    "source": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate/host/test/product-native-authorization.test.ts",
+      "sha256": "497e793ab5dddf4fb88b124ee19fc9c072bf999ed02b059ed02af27f30b80ada"
+    },
+    "upstreamRepairCommit": "2c2a50be",
+    "tests": 2,
+    "failed": 0,
+    "log": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-native-auth-full-build-20261007.log",
+      "sha256": "7c01907cb3fa2ec1ac11f3ac6702d8928d8371257ef4c50cd9c54eca9723841b"
+    },
+    "initialNotStarted": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-native-auth-repaired-20261007.log",
+        "sha256": "d3d35181db520abdd40e15a11fa2540e8a8c8b00d9ffe389af2c921c0e011586"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-native-auth-after-build-20261007.log",
+        "sha256": "8017b603c6190b27b0e769b88351055a76745d06032b66ca038c9d4814302afb"
+      }
+    ],
+    "initialFailure": "Source-worktree serialqueue then stepcompress native addon absent; no authorization tests started. Original independently compiled product package and page evidence unaffected.",
+    "nativeBuild": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-auth-full-native-build-20261007.log",
+      "sha256": "a2c33ec499468537255c18fdc8e83afdad08cdc92857a93e6cd1acf6a53266f9"
+    },
+    "types": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate-6ff-typecheck-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "whitespace": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-integrated-client-candidate-6ff-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "productionBundleChanged": false,
+    "scope": "Copy exactly repaired upstream fixture; unknown options still reject, cleanup of unexpected accepted profile and native two-generation CORS/auth positive checks. Source coverage only, not whole CI."
+  }
 }
