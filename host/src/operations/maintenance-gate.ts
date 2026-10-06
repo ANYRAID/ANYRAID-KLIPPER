@@ -1,4 +1,8 @@
-export class MaintenanceBusyError extends Error {}
+export type MaintenanceConflictReason='producer_busy'|'maintenance_active'|'admission_closed'|'activity_capacity';
+export class MaintenanceBusyError extends Error {
+ readonly reason:MaintenanceConflictReason;
+ constructor(message:string,reason:MaintenanceConflictReason='producer_busy'){super(message);this.reason=reason;}
+}
 /** One service generation, one JS event loop. Probes must be synchronous and
  * side-effect free. Registration is retained while old producer references can
  * still be called; construct a fresh gate when rebuilding the service. */
@@ -12,7 +16,7 @@ export class MaintenanceGate {
   return true;
  }
  registerIdle(probe:()=>boolean):()=>void{if(typeof probe!=='function')throw new TypeError('Invalid maintenance probe');if(this.#closed||this.#maintenance||this.#idle.size>=64)throw new MaintenanceBusyError('Cannot register a producer during maintenance');this.#idle.add(probe);let released=false;return ()=>{if(!released){released=true;this.#idle.delete(probe);}};}
- activity():()=>void{if(this.#closed||this.#maintenance)throw new MaintenanceBusyError('Maintenance blocks new printer activity');if(this.#activities>=65536)throw new MaintenanceBusyError('Printer activity capacity exceeded');this.#activities++;let released=false;return ()=>{if(!released){released=true;this.#activities--;}};}
+ activity():()=>void{if(this.#closed||this.#maintenance)throw new MaintenanceBusyError('Maintenance blocks new printer activity',this.#closed?'admission_closed':'maintenance_active');if(this.#activities>=65536)throw new MaintenanceBusyError('Printer activity capacity exceeded','activity_capacity');this.#activities++;let released=false;return ()=>{if(!released){released=true;this.#activities--;}};}
  acquire():()=>void{
   if(this.#closed||this.#maintenance||this.#activities)throw new MaintenanceBusyError('Printer activity blocks maintenance');this.#maintenance=true;
   try{for(const idle of this.#idle)if(idle()!==true)throw new MaintenanceBusyError('A printer producer is not idle');}catch(error){this.#maintenance=false;throw error;}

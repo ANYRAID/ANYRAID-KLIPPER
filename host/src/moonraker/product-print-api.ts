@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 import {printFilename} from './print-api.ts';
 import {PrintController,type StartPrint} from '../operations/print.ts';
 import {journalRequest,validJournalId} from '../operations/print-journal-types.ts';
-import {MaintenanceGate} from '../operations/maintenance-gate.ts';
+import {MaintenanceGate,MaintenanceBusyError} from '../operations/maintenance-gate.ts';
 import {ApiError,authorizedContext,type Json,type RpcContext} from './rpc.ts';
 import {EndpointRegistry} from './endpoints.ts';
 import type {PressureAdvancePort} from '../gcode/pressure-advance.ts';
@@ -97,6 +97,7 @@ export class ProductPrintApi {
     const message=error instanceof Error?error.message:'';
     if(message==='Print request expired before admission')reject(new ApiError(410,message));
     else if(error instanceof RangeError)reject(new ApiError(400,'Invalid print request'));
+    else if(error instanceof MaintenanceBusyError)reject(new ApiError(409,'Print request was not completed; query request state',{reason:error.reason}));
     else reject(new ApiError(409,'Print request was not completed; query request state'));
    }).finally(()=>context.signal.removeEventListener('abort',aborted));
   });

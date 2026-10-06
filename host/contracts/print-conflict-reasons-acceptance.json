@@ -1,0 +1,426 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "status": "candidate; exact-head full CI and normal PR integration pending",
+  "base": "67da7e990fdbdab8cf8fb8c01bfc0cc25d3b7fae",
+  "node": {
+    "version": "v26.10.0",
+    "execPath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+    "sha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da"
+  },
+  "problem": "Real typed maintenance rejections became a generic 409 with no reason; journal null cannot identify which admission constraint rejected the request.",
+  "change": {
+    "reasons": [
+      "maintenance_active",
+      "admission_closed",
+      "activity_capacity",
+      "producer_busy"
+    ],
+    "source": "Actual MaintenanceBusyError instance at original throw; no message matching, post-hoc state inference or client supplied reason.",
+    "preserved": [
+      "HTTP/WebSocket status and generic message",
+      "ordinary errors do not expose internal messages or data",
+      "shared gate predicates and 65536 activity capacity",
+      "authorization and 400/410/499 mappings",
+      "journal ownership and state tokens",
+      "no automatic retry/replay",
+      "motion, numerical tolerances, original loads and deadlines"
+    ],
+    "baselineSources": [
+      {
+        "path": "host/src/operations/maintenance-gate.ts",
+        "sha256": "e9d5cdf3ef1e21ec06dc1f1385f721992bc92b8a9a6065b31c771456d7f27636"
+      },
+      {
+        "path": "host/src/moonraker/product-print-api.ts",
+        "sha256": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd"
+      },
+      {
+        "path": "host/bench/maintenance-gate.ts",
+        "sha256": "942e442bd86d644535f65db85764536cd3998708284e210d70e99913a10ee715"
+      },
+      {
+        "path": "host/bench/product-print-api.ts",
+        "sha256": "edc56320e03c36c2cd72b3e9b7559637503811266ca7b273c6b55fe1033b1c74"
+      }
+    ],
+    "candidateSources": [
+      {
+        "path": "host/src/operations/maintenance-gate.ts",
+        "sha256": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+      },
+      {
+        "path": "host/src/moonraker/product-print-api.ts",
+        "sha256": "b59e5f9221db8591591e10b33bf4527201df11acf9fa5dcf549abc93625e22e3"
+      },
+      {
+        "path": "host/test/product-print-conflict-reasons.test.ts",
+        "sha256": "78dadf01e132e1d9b24301a5c377d6b37f514c5f5f3fd522de8be246bb7f0919"
+      },
+      {
+        "path": "host/bench/maintenance-gate.ts",
+        "sha256": "942e442bd86d644535f65db85764536cd3998708284e210d70e99913a10ee715"
+      },
+      {
+        "path": "host/bench/product-print-api.ts",
+        "sha256": "edc56320e03c36c2cd72b3e9b7559637503811266ca7b273c6b55fe1033b1c74"
+      }
+    ]
+  },
+  "regression": {
+    "fixtureFailures": [
+      {
+        "log": "before",
+        "classification": "Required sealed-file native addon missing; tests not started."
+      },
+      {
+        "log": "red",
+        "classification": "New test fixture had incorrect authorizer signature and expected active[] instead of null; not product failures."
+      }
+    ],
+    "deterministicRed": {
+      "log": "red-corrected",
+      "failed": 5,
+      "productionModified": false,
+      "reason": "Missing reason data on genuine maintenance, admission-closed and capacity conflicts."
+    },
+    "newTests": {
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 993.027651
+    },
+    "relatedTests": {
+      "passed": 65,
+      "failed": 0,
+      "files": 8,
+      "durationMs": 5776.019566
+    },
+    "uniqueSourceTests": 72,
+    "finalTypecheck": {
+      "exitCode": 0
+    },
+    "requiredWhitespace": {
+      "command": "bash scripts/check_whitespace.sh",
+      "exitCode": 0
+    },
+    "covered": [
+      "native/standard HTTP and WebSocket",
+      "absent identity remains 401 without reason",
+      "held maintenance rejects before reservation, device effects or state-token changes",
+      "release does not replay; explicit submission can start",
+      "65536 real leases reject capacity then invalidation rejects closed admission",
+      "typed producer error versus ordinary Error with spoofed reason"
+    ],
+    "limitation": "No-effect assertions apply to controlled initial start admission only. Reason data does not certify any arbitrary operation had no device effects."
+  },
+  "compiled": {
+    "node": "v26.10.0",
+    "execPath": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+    "installation": {
+      "durationMs": 815.3298950000001,
+      "dependencies": 14
+    },
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-candidate-bundle",
+      "manifestSha256": "843fe19e13e0d76957ca78585f0cb3a05fde095d9f081c25c34a9a69e8208e55",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+    },
+    "baselineManifestSha256": "0f387e56307920db318c58929f31c93854bfdd7846bf73b72a663d79f71379ff",
+    "differences": [
+      "host/src/moonraker/product-print-api.js",
+      "host/src/operations/maintenance-gate.js"
+    ],
+    "proof": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-proof.mjs",
+      "sha256": "68a00cf153fab8b72b29c089576631e71e8b45e04c0f611946550dcda07b1dd4",
+      "sourceSha256": "78dadf01e132e1d9b24301a5c377d6b37f514c5f5f3fd522de8be246bb7f0919",
+      "command": [
+        "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+        "--no-experimental-strip-types",
+        "--test",
+        "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-proof.mjs"
+      ],
+      "stripTypes": false,
+      "exitCode": 0,
+      "tests": 7,
+      "environmentPath": "/no-programs"
+    },
+    "unchangedAfter": true,
+    "scope": "Actual emitted JavaScript HTTP/WebSocket, durable Worker SQLite and shared maintenance gate, test identity and device substitute; no real frontend or MCU.",
+    "duplicateMetadataPropertyCorrectedWithoutRerun": true,
+    "proofGenerator": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compile-proof.ts",
+      "sha256": "26a039fcf3e0a36ab36066a0ca0e4805cda8aff4a5a3742b1a6bf104e56b7333"
+    },
+    "tests": {
+      "passed": 7,
+      "failed": 0,
+      "durationMs": 845.066263
+    },
+    "physicalDevice": false,
+    "realFrontend": false
+  },
+  "performance": {
+    "execution": "One unchanged original baseline/candidate execution each; baseline completed before production edit, candidate after fixed production sources. No tests/builds or other acceptance workload overlapped these formal measurements.",
+    "gate": {
+      "warmup": 4,
+      "samples": 20,
+      "rounds": 24,
+      "lifecyclesPerSample": 1000,
+      "admissionPairsPerSample": 100000,
+      "idleOwners": [
+        1,
+        64
+      ],
+      "baseline": {
+        "node": "v26.10.0",
+        "scope": "CPU only; 1000 no-op device print lifecycles per sample; 100000 activity+maintenance pairs; no motion, transport or hardware timing",
+        "baseline": {
+          "medianMs": 9.389055999999982,
+          "p95Ms": 10.770392000000015
+        },
+        "gated": {
+          "medianMs": 9.879876000000024,
+          "p95Ms": 13.372451000000012
+        },
+        "admission": {
+          "1": {
+            "medianMs": 2.823993000000087,
+            "p95Ms": 3.7216999999999416
+          },
+          "64": {
+            "medianMs": 15.346047999999996,
+            "p95Ms": 15.477201000000036
+          }
+        }
+      },
+      "candidate": {
+        "node": "v26.10.0",
+        "scope": "CPU only; 1000 no-op device print lifecycles per sample; 100000 activity+maintenance pairs; no motion, transport or hardware timing",
+        "baseline": {
+          "medianMs": 9.14225399999998,
+          "p95Ms": 10.320502999999974
+        },
+        "gated": {
+          "medianMs": 9.098032999999987,
+          "p95Ms": 11.831606999999963
+        },
+        "admission": {
+          "1": {
+            "medianMs": 2.7432340000000295,
+            "p95Ms": 3.647508000000016
+          },
+          "64": {
+            "medianMs": 15.467063999999937,
+            "p95Ms": 15.608156000000008
+          }
+        }
+      },
+      "owner64P95DeltaNsPerPair": 1.3095499999997173
+    },
+    "durableApi": {
+      "jobs": 200,
+      "warmup": 2,
+      "samples": 7,
+      "rounds": 9,
+      "alternatingModes": true,
+      "baseline": {
+        "node": "v26.10.0",
+        "jobs": 200,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Durable admission latency only, direct controller vs native API adapter; worker SQLite on local temp filesystem, device substitute, excludes authorization provider/network/heating/motion.",
+        "direct": {
+          "medianMs": 4769.604207999961,
+          "p95Ms": 4900.690327999793
+        },
+        "api": {
+          "medianMs": 4771.191503000155,
+          "p95Ms": 4807.02023000014
+        },
+        "queryDirect": {
+          "medianMs": 12.546289999998407,
+          "p95Ms": 13.840783999999985
+        },
+        "queryApi": {
+          "medianMs": 12.829935999994632,
+          "p95Ms": 13.894005999987712
+        }
+      },
+      "candidate": {
+        "node": "v26.10.0",
+        "jobs": 200,
+        "warmup": 2,
+        "samples": 7,
+        "scope": "Durable admission latency only, direct controller vs native API adapter; worker SQLite on local temp filesystem, device substitute, excludes authorization provider/network/heating/motion.",
+        "direct": {
+          "medianMs": 4755.297897000011,
+          "p95Ms": 5048.331528999872
+        },
+        "api": {
+          "medianMs": 4774.3152750000445,
+          "p95Ms": 4878.909574000121
+        },
+        "queryDirect": {
+          "medianMs": 13.055951999995159,
+          "p95Ms": 14.07433899998432
+        },
+        "queryApi": {
+          "medianMs": 12.986690000019735,
+          "p95Ms": 15.48529700000654
+        }
+      },
+      "apiP95DeltaMsPer200Jobs": 71.88934399998107,
+      "queryApiP95DeltaMsPer200Queries": 1.5912910000188276
+    },
+    "predefinedThreshold": null,
+    "conclusion": "Successful gate predicates/counters and API work unchanged; only failure classification is added. Local CPU results are close; durable API P95 increased 71.889344 ms per 200 admissions and query P95 increased 1.591291 ms per 200 queries. These scripts define no threshold. Do not certify no regression, statistical speedup or target printing speed; retain measurements for target acceptance.",
+    "physicalOrMotionTiming": false
+  },
+  "priorMixedObservation": {
+    "head": "9359d0a1f2f0a7e8e88a1e09a30d4f2034d9385f",
+    "manifestSha256": "c0b199cb1f6adcbe4afe24fbe60f2df125d7606cad91bb130b79ea0ccdfdbfff",
+    "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+    "exitCode": 0,
+    "durationMs": 72191.320571,
+    "rootCauseConfirmed": false,
+    "qualityGateClosed": false,
+    "recursiveCleanup": [
+      {
+        "generation": 1,
+        "group": 0,
+        "state": "printing",
+        "elapsedMs": 247.92713000000003
+      },
+      {
+        "generation": 2,
+        "group": 0,
+        "state": "printing",
+        "elapsedMs": 229.86413500000344
+      }
+    ],
+    "limitations": [
+      "Prior two failures not reproduced.",
+      "Successful-start gate trace stayed in transient child trace and was not exported by original success report; do not claim a retained maintenance snapshot or cause.",
+      "Observation scaffolding may affect timing; it is not an ordinary passing quality gate or hardware result."
+    ],
+    "receipt": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-gate-origin-receipt-20261007.json",
+      "sha256": "d6da202593b02afbb38689b45b29a3676e84eb928e15d9c698b1d35cee2aad63"
+    },
+    "sources": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-client-page-upload-proof/host/acceptance/product-compiled-journey-gate-origin-diagnostic.test.ts",
+        "sha256": "472482ec5515f7f3bdf6ee35a623406cdb06b77b27067a6c525c0ca77a232fd7"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-gate-origin-source-20261007.json",
+        "sha256": "57b02aa41634e363daf5b7dd886fec68dc3b5e7fc3376e641c32e460b7290318"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-gate-origin-20261007.log",
+        "sha256": "bdbb77528b7f24262a3ea8417daa868fbf386d677764f8e6a5cd8f7c5aec62fc"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-mixed-2-candidate-20261007.log",
+        "sha256": "433aa30c98c2102ad0bc63d3fb69d6743a42157932fd01184f62ba652f5b8e2b"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-preparation-pause-final-mixed-20261007.log",
+        "sha256": "856a91fb0bd589b05a7fd2019cfeb43f0231c0da7b971b74d1b561380e542875"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-before-20261007.log",
+      "sha256": "f9b3c460d712257c5d795f27b9e7e4cddfc2af53be6499d8f7fcb75d57c6a2ad"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-native-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-red-20261007.log",
+      "sha256": "ce1d3a1e92745e7bf9438acbc6474b699b7978cc1b35c047aa1283cd9d18b940"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-red-corrected-20261007.log",
+      "sha256": "0f185ee225aa140c395835100f118e43efc0f1dad83b5b10a46cfa6df1b6aff7"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-after-20261007.log",
+      "sha256": "787f574b679ea1570f6e009f678ffa5acd5be68676e6e9d2ae3e65f3cace1c69"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-related-20261007.log",
+      "sha256": "0141041aded499b2b9fba428cc921ac658b093f1e9c1a26e360698e130d6201e"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-final-tests-20261007.log",
+      "sha256": "3abf37f7aed5d13f9c9eaa9a937b0ddd60465899a5158ae135b725f3afd100d6"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-final-types-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-final-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-build-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-tests-20261007.log",
+      "sha256": "4a6bdfe33f6db3eacbee3eb9890f1b68ba6007893e8817e78feab559c68a16e9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-build-proof-20261007.log",
+      "sha256": "b1341b2483c7b094880fd8b2103831721e29995e43716ac1771a53243fbbf726"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-receipt-20261007.json",
+      "sha256": "9bde1f0a2f68443982892ba9c01cef76d8ff7a6b81a7f7f488914f566e0358ec"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-gate-baseline-20261007.json",
+      "sha256": "9f906df6527149b876b03ecc14be61b60143507951569ba107032124aaedc69a"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-gate-candidate-20261007.json",
+      "sha256": "0aacbfdeb0ab4dc1fe33b490a95d141ce1651096f0542c402b241914bb07c5d4"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-api-baseline-20261007.json",
+      "sha256": "b969334cb7f86476bd9487b15f1a48d70048ac7068beec537e06557d125a1f99"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-api-candidate-20261007.json",
+      "sha256": "a2aef472bb7869bbc25e76e2a37861231bc7d9e24e4057ed8bd1eeb9d1cdcc96"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-baseline-sources-20261007.json",
+      "sha256": "a965637c6c110afefbd05044bfd98a4542468d1c2f951a982bbf0335411c3c3e"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compile-proof.ts",
+      "sha256": "26a039fcf3e0a36ab36066a0ca0e4805cda8aff4a5a3742b1a6bf104e56b7333"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-print-conflict-compiled-proof.mjs",
+      "sha256": "68a00cf153fab8b72b29c089576631e71e8b45e04c0f611946550dcda07b1dd4"
+    }
+  ],
+  "delivery": {
+    "pr20HistoricalFailuresClosed": false,
+    "g3Closed": false,
+    "protectedMainsailComplete": false,
+    "sameBundleFullClientsComplete": false,
+    "targetBoardOrCycnumbris500Accepted": false,
+    "klippyPythonFilesRemaining": 177,
+    "pythonDefaultChanged": false,
+    "fullGoalComplete": false
+  }
+}
