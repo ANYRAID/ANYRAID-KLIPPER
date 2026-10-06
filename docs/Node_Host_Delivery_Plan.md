@@ -1,6 +1,6 @@
 # Klipper 与 Moonraker 集成交付计划
 
-审计日期：2026-10-07；已核验 develop：`6dd2ec15d0e438e1fd6ce7d706f637e640c51af0`；
+审计日期：2026-10-07；已核验 develop：`207fc578d66d29d49b530057255f14b8bd01adfd`；
 master 历史核验：`ce7002bedf37e938bb483572949f3703ac6476cb`。本文件是唯一执行计划。
 历史实现、失败与测量保留在[迁移记录](Node_Host_Migration.md)和版本化契约；
 运行与装配见[启动说明](Node_Host_Startup.md)。源码、产物和依赖分别绑定指纹，
