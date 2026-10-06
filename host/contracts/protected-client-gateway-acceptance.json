@@ -693,5 +693,76 @@
     "fullNewHeadCi": "Not started at this seal",
     "physicalAcceptance": false,
     "g3Closed": false
+  },
+  "latestDevelopFixtureIntegration": {
+    "date": "2026-10-07",
+    "sourceHead": "65be2694ba62406f8738b5d8d23276e958b7ff51",
+    "develop": "8dd55f9fde3d570542787173c32a66012bb08d51",
+    "merge": "Normal task-branch merge; documentation conflicts retained both scope/history blocks. Nonconflicting outdated setup descriptions updated from accepted develop.",
+    "initialDependencyFailure": {
+      "reason": "Previous development dependency link did not contain accepted re2-wasm; independent npm ci --ignore-scripts and standard native build then prepared task tree",
+      "passed": 29,
+      "failed": 7,
+      "exitCode": 1,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-gateway-source-20261007.log",
+        "sha256": "d742f2f51306f2846eee573f1e96165c6778e26d7ab73af4c915671b17104958"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-counter-typecheck-20261007.log",
+        "sha256": "da67896bc95081fd11b07e142335f020dac86430f9a1b05cbf64f80121b69432"
+      }
+    },
+    "prepared": {
+      "passed": 119,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 32051.427363,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-counter-gateway-source-20261007.log",
+        "sha256": "43169d4ebf3f692b491cc103818dce22da9de244b9f9806e85ccdeb4b50c3cf3"
+      },
+      "independentCompiledChildren": {
+        "gatewayAndAssets": 8,
+        "cors": 2,
+        "noTypeScript": true,
+        "path": "/no-programs",
+        "scope": "Same protocol assertions; overlaps source checks, not added to unique count"
+      },
+      "types": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-prepared-typecheck-20261007.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "dependencies": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-dependency-install-20261007.log",
+          "sha256": "449e059500e8bd0e09074bc380dc02f4b6f44d9415c5104dd4e06defb32453a5"
+        }
+      },
+      "nativeBuild": {
+        "exitCode": 0,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-integrated-native-build-20261007.log",
+          "sha256": "c98d8efc2b1e191d5341191ce73c6875e5b7b0e5b59393bf066c1301213339db"
+        }
+      }
+    },
+    "whitespaceAndDiffCheck": {
+      "exitCode": 0
+    },
+    "productionDeltaFromDevelop": [
+      "host/src/runtime/product-client-gateway.ts",
+      "host/src/runtime/product-client-assets.ts"
+    ],
+    "gatewayAndAssetsUnchangedFromOriginalHead": true,
+    "performance": "Original gateway performance and original fixed-page package remain historical at their own scope. Current independent compiled protocol does not transfer old mixed-client/target-board evidence.",
+    "newHeadRemoteCi": "Required after final push; previous head4057/4059 remains failed and is not counted as passed",
+    "g3Closed": false,
+    "defaultEntryStillPython": true,
+    "trackedPython": 177
   }
 }
