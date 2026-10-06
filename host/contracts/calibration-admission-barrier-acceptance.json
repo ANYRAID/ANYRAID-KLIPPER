@@ -2,7 +2,7 @@
   "version": 1,
   "auditedAt": "2026-10-07",
   "baseDevelop": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
-  "status": "local-candidate; current-head CI pending",
+  "status": "Previous exact head all prescribed checks success; normal merge of accepted metadata baseline resolves documentation conflict, new head CI pending",
   "change": "Only Z tilt and quad gantry integration tests retain existing dispatch ownership through their single positive HTTP admission and receipt; production unchanged.",
   "failures": [
     {
@@ -139,5 +139,30 @@
       "path": "/home/dek02/.cache/codex/tmp/anyraid-pr19-postmerge-quad-failure-20261007.log",
       "sha256": "a0abcf5f7a3ff0c7bfbc9804016fb8cc0e93097a9fd660c93600ef587b10a062"
     }
-  ]
+  ],
+  "previousExactHead": {
+    "sha": "d79d76a439be5ed60183cee5c173862a0b59bc05",
+    "host": {
+      "run": 37525777021,
+      "job": 112482280088,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        "whitespace",
+        "typecheck",
+        "ordinary",
+        "protocol-native",
+        "UBSAN/ASAN",
+        "LinuxMCU"
+      ]
+    },
+    "firmware": {
+      "run": 37525777071,
+      "job": 112482279778,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  },
+  "newBaseline": "6dd2ec15d0e438e1fd6ce7d706f637e640c51af0",
+  "baselineScope": "Both calibration test files and native math unchanged from verified head; accepted metadata source inherited. No change in original assertions or timeouts."
 }

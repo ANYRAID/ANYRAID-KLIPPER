@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-07",
+  "scope": "Metadata worker ownership/cleanup repair candidate based on develop 4e731894; not original remote failure root-cause closure or physical/full migration acceptance",
+  "base": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+  "runtime": "v26.10.0",
+  "sourceFiles": {
+    "host/src/moonraker/metadata-extractor.ts": "e95bfc32612ef46c1f97a5319ef93d207d234ebc3370f3cefdafd5f22acd4a17",
+    "host/src/moonraker/metadata-extractor-worker.ts": "2d1730fc00df52aac80623049d8a24b44113f634efbd0c224c6f3fff01e3409b",
+    "host/test/metadata-extractor.test.ts": "c982cada356857fe8042906b1edd81f37d24b5a5b2d4bca0d9cac9036add69dd",
+    "host/bench/metadata-worker-close.ts": "ffe9a30d46f13f0c302ed62b970698d207fa2444a4e02a5b56fabeab93809766"
+  },
+  "originalRemoteFailure": {
+    "pr": 23,
+    "head": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+    "workflow": 37520679682,
+    "job": 112464982701,
+    "ordinary": {
+      "pass": 4057,
+      "fail": 2
+    },
+    "test": "timeout fences the instance and termination releases active and queued sources",
+    "assertion": "Metadata source remains open after worker termination",
+    "otherFailure": "Delta probe terminal XY 25.33227372071191,-30.18106073441564 instead of 25,-30; unchanged tolerance 1e-10; not repaired by metadata change",
+    "protocol": "skipped",
+    "sanitizer": "skipped",
+    "linuxMcu": "skipped",
+    "firmware": {
+      "workflow": 37520679680,
+      "result": "success"
+    },
+    "rootCause": "Original remote inode leak not reproduced locally. Source inspection confirms rejection clears ownership records before worker close acknowledgment. New handshake addresses this gap; no claim that every worker/runtime failure can release unacknowledged sources.",
+    "logExcerpt": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-current-head-failure-20261007.log",
+      "sha256": "695d40e539aa1f00b105a30a5885efca53efff8bc42bb265d9217f465e2de256"
+    },
+    "selfReviewComment": 6024395847
+  },
+  "behavior": {
+    "requestDeadline": "unchanged; original timeoutMs:1 and original two 2,000,000-byte source input retained",
+    "rejection": "immediate; cancel shared flags; closed instance rejects new admissions",
+    "ownership": "Pending records retained until worker reply following awaited source.close(), including queued transferred handles",
+    "close": "Idempotent; shutdown message joins original queue then closes worker port; one-second graceful cleanup interval then forced termination if necessary",
+    "unconfirmed": "Unacknowledged jobs cause close rejection; no success/zero-ownership claim and no unsafe raw descriptor close",
+    "shutdownIntervalIsScanDeadlineExtension": false,
+    "shutdownIntervalIsHardTotalTerminationDeadline": false
+  },
+  "validation": {
+    "relatedSource": {
+      "pass": 47,
+      "fail": 0,
+      "groups": [
+        {
+          "pass": 14,
+          "scope": "9 metadata extractor including new full-capacity close and 5 byte-window checks"
+        },
+        {
+          "pass": 33,
+          "scope": "Persistent metadata, lifecycle, retirement, intents and snapshots"
+        }
+      ]
+    },
+    "compiled": {
+      "identity": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-bundle",
+        "manifestSha256": "d3707a22c7765a176678a8f6e72b68d63f260f16a55c9f6c9ebd4bf76394a80f",
+        "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+      },
+      "pass": 9,
+      "fail": 0,
+      "durationMs": 285.13995,
+      "noTypeScriptLoading": true,
+      "path": "/no-programs",
+      "scope": "Original same nine assertions, independent installed production dependencies; overlap with source tests, not added as unique cases"
+    },
+    "typecheck": "exit 0 after development dependency link corrected",
+    "baseline": {
+      "initialNineTests": "9/9; remote inode leak not reproduced",
+      "firstOwnershipRun": "test harness unhandled rejection after negative assertion; preserved as invalid negative comparison",
+      "correctedHandler": {
+        "pass": 8,
+        "fail": 1,
+        "error": "Rejected jobs retain ownership until the worker acknowledges source closure: 0 !== 64",
+        "scope": "Deterministic premature public ownership accounting, not reproduction of remote inode leak"
+      }
+    },
+    "setupFailures": [
+      "Initial typecheck used stale development dependency link without re2-wasm; corrected only local link, current typecheck passes",
+      "14 related source checks passed; native-persistent-metadata file could not import sealed-file.node; supplied unchanged addon from built independent bundle, then previously unstarted storage group 33/33"
+    ],
+    "whitespace": "Whole-source prescribed checker exit 0; git diff --check exit 0"
+  },
+  "performance": {
+    "node": "v26.10.0",
+    "baselineHashes": {
+      "metadata-extractor.ts": "373963efd5b64fd93e663b83be90efa04d80956478571761ab07a023a16a15a1",
+      "metadata-extractor-worker.ts": "7ec5e608732d484b5a1c6d1447b146aedfb9179696d679cdc0572005a9afa6b2"
+    },
+    "warmups": 5,
+    "runs": 11,
+    "variants": [
+      "PrusaSlicer",
+      "Cura",
+      "BambuStudio",
+      "UnknownSlicer"
+    ],
+    "bytes": [
+      2560135,
+      3600050,
+      3600071,
+      2000000
+    ],
+    "reports": [
+      {
+        "label": "original",
+        "scans": [
+          {
+            "medianMs": 6.350664000000052,
+            "p95Ms": 7.403395000000046,
+            "samplesMs": [
+              5.688487000000009,
+              6.7423689999999965,
+              6.634866999999986,
+              7.403395000000046,
+              6.36211400000002,
+              6.350664000000052,
+              6.265454000000091,
+              6.3339449999999715,
+              7.18746299999998,
+              6.1702229999999645,
+              5.623816999999917
+            ]
+          },
+          {
+            "medianMs": 4.560175999999956,
+            "p95Ms": 5.171861999999919,
+            "samplesMs": [
+              3.612546000000009,
+              3.6889779999999632,
+              5.171861999999919,
+              4.295013999999924,
+              4.332053999999971,
+              4.67125800000008,
+              4.758017999999993,
+              5.14716199999998,
+              4.837058999999954,
+              4.560175999999956,
+              3.618376999999896
+            ]
+          },
+          {
+            "medianMs": 4.433444999999949,
+            "p95Ms": 6.076381999999967,
+            "samplesMs": [
+              4.433444999999949,
+              4.283602999999971,
+              4.645578,
+              4.370404000000008,
+              4.247253999999998,
+              4.375974000000042,
+              4.454195000000027,
+              4.299664000000007,
+              5.493525999999974,
+              4.929919999999925,
+              6.076381999999967
+            ]
+          },
+          {
+            "medianMs": 32.557411,
+            "p95Ms": 55.84020799999996,
+            "samplesMs": [
+              33.94312499999995,
+              32.63125200000002,
+              33.12799600000005,
+              32.42329900000004,
+              32.28371699999991,
+              32.414999999999964,
+              32.557411,
+              32.47160999999994,
+              33.922694999999976,
+              55.84020799999996,
+              32.4346589999999
+            ]
+          }
+        ],
+        "parentEventLoop": {
+          "p95Ms": 1.154047,
+          "maxMs": 2.271231
+        },
+        "completedWorkCloseMs": 1.927530000000047
+      },
+      {
+        "label": "acknowledged-close",
+        "scans": [
+          {
+            "medianMs": 5.979191000000128,
+            "p95Ms": 8.823080000000118,
+            "samplesMs": [
+              5.979191000000128,
+              8.003561999999874,
+              8.37114500000007,
+              8.823080000000118,
+              5.462004999999863,
+              6.965140999999903,
+              5.567156999999952,
+              6.578157000000147,
+              5.615117000000055,
+              5.622188000000051,
+              5.546055999999908
+            ]
+          },
+          {
+            "medianMs": 3.711917000000085,
+            "p95Ms": 4.190781999999899,
+            "samplesMs": [
+              3.6199169999999867,
+              3.6944870000002084,
+              3.711917000000085,
+              3.606997000000092,
+              4.190781999999899,
+              3.686427999999978,
+              3.6940569999999298,
+              3.7931690000000344,
+              3.953939999999875,
+              3.9640199999998913,
+              3.7743390000000545
+            ]
+          },
+          {
+            "medianMs": 4.378924000000097,
+            "p95Ms": 6.59445699999992,
+            "samplesMs": [
+              4.400955000000067,
+              4.397915000000012,
+              4.249562999999853,
+              4.210272000000032,
+              4.386214999999993,
+              4.32281399999988,
+              4.378924000000097,
+              4.228693000000021,
+              4.412315000000035,
+              4.305763999999954,
+              6.59445699999992
+            ]
+          },
+          {
+            "medianMs": 33.45983000000001,
+            "p95Ms": 54.81410699999992,
+            "samplesMs": [
+              33.45983000000001,
+              31.934535000000096,
+              32.15113700000006,
+              54.81410699999992,
+              32.436879999999974,
+              33.56954100000007,
+              32.13785699999994,
+              54.58306500000003,
+              46.12563799999998,
+              52.83699699999988,
+              31.185347000000093
+            ]
+          }
+        ],
+        "parentEventLoop": {
+          "p95Ms": 1.160191,
+          "maxMs": 2.957311
+        },
+        "completedWorkCloseMs": 2.5666859999998906
+      }
+    ],
+    "scope": "Sequential desktop Node baseline then candidate. Original byte inputs, source transfer/stat/parse/close and field equality retained. No target board, mixed printing, Python comparison or statistical non-regression claim."
+  },
+  "performanceDecision": "Desktop sequential paired observation only. Some P95 values increase; no statistical non-regression, original Python comparison, target board or mixed printing claim. No math/precision or motion queue change.",
+  "artifacts": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-regression-20261007.log",
+      "sha256": "c0d47ddc0d39b3a61026f849ba2d2d40276b5c468ad1169b0dc0e3680894e201"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-original-baseline-20261007.log",
+      "sha256": "a3c3fe62be078990e03b849413b5836dfb328089df3e77336e11112c6aba0aa6"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-original-ownership-20261007.log",
+      "sha256": "a15dd0087c66db75936caf588a6ad90dc4681ef64628155c9501ef0637e82c90"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-original-handler-fixed-20261007.log",
+      "sha256": "92d6b3f724d62bf433b75440bd536fb707e8d3a989e826dc5c0e588943a0ce32"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-related-20261007.log",
+      "sha256": "1c1f3a15c545225a73e32b5f841ad2fea18657e35236b52dff06c162ee211ef8"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-storage-related-20261007.log",
+      "sha256": "bcbc54df874976765a9573b30dc7f3c20e098d404b7c40123e03c70d7bfbfcd1"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-compiled-20261007.log",
+      "sha256": "a5d17ad45854fdbb182cf4ae3ae6cab2729742215c41d7e489d3dd863ba63669"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-metadata-worker-close-performance-20261007.json",
+      "sha256": "d751ae0abce83d8d8ed5146426e6e3c63f21c5f3801074dcb29e7540dbd09a0a"
+    }
+  ],
+  "remaining": "Final exact-head full CI and normal PR integration; Delta mismatch, PR22 quad admission, PR20 mixed failures, same-bundle clients, target performance/G3/full Python retirement remain open"
+}
