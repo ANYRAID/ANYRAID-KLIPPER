@@ -2842,3 +2842,6 @@ Python 特有的反向引用、前后查找等不受支持，装配时拒绝，�
 编译包混合打印验收可设置 `ANYRAID_BENCH_CORS_ORIGIN=https://fluidd.example.com`，
 沿用全部原负载、运动精度与性能判据。实际 Fluidd／Mainsail 页面、目标板
 和物理打印仍须单独验收，不以 HTTP 协议测试替代。
+
+语义来源为[固定 Moonraker 授权源码](https://github.com/Arksine/moonraker/blob/1cfb0c41e468645951a371621f06d32777b6107c/moonraker/components/authorization.py)；
+匹配引擎与正则限制见[RE2 WASM 项目](https://github.com/google/re2-wasm)。
