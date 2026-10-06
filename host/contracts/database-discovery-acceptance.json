@@ -1,0 +1,167 @@
+{
+  "date": "2026-10-07",
+  "baselineHead": "207fc578d66d29d49b530057255f14b8bd01adfd",
+  "source": {
+    "host/src/moonraker/configured-server.ts": "b418d510dbbe7d48d6fa69f9f8ad9b77db2356fc06cbf41182184f8d76ea5d54",
+    "host/test/configured-server.test.ts": "a0466b8ffee72a7846db33304dc93df7a0044da21dceb6751946139a0581a960",
+    "host/test/api-key-authorization-compiled.test.ts": "be98c27426d7c4b4610154019532b810515334106ed6bfe6319c45e708ff29b8"
+  },
+  "problem": {
+    "actualClient": "Fluidd1.37.6",
+    "originalBundleManifest": "e70d6ee506f0b22c0ef3f1c806d229fb8c5f5edb4372779ec2db67f6d204ac9d",
+    "observed": {
+      "scope": "Read-only independently authorized local fixture observer",
+      "status": 200,
+      "body": {
+        "result": {
+          "klippy_connected": true,
+          "klippy_state": "ready",
+          "components": [
+            "authorization",
+            "webcam",
+            "proc_stats",
+            "history"
+          ],
+          "failed_components": [],
+          "registered_directories": [
+            "gcodes",
+            "config"
+          ],
+          "warnings": [],
+          "moonraker_version": "compiled-client-fixture",
+          "missing_klippy_requirements": [],
+          "api_version": [
+            1,
+            5,
+            0
+          ],
+          "api_version_string": "1.5.0",
+          "websocket_count": 1,
+          "host_type": "node",
+          "native_host": {
+            "version": 1,
+            "ready": true,
+            "group_state": "ready",
+            "hardware_state": "ready",
+            "print_state": "idle",
+            "homed_axes": "",
+            "closing": false,
+            "admission_closed": false,
+            "maintenance": false,
+            "mcus": [
+              {
+                "id": "mcu",
+                "state": "ready"
+              },
+              {
+                "id": "aux",
+                "state": "ready"
+              }
+            ]
+          }
+        }
+      },
+      "snapshot": {
+        "filename": "20261007-054347.db",
+        "bytes": 20480,
+        "sha256": "5fc2ee03596e9bf6bdd14135e8db885ef9c8c70c83e1fc64e7b929a4a29b5a5f"
+      }
+    },
+    "backupRpcSent": true,
+    "backupApiList": [
+      "20261007-054347.db"
+    ],
+    "actualDomStillEmpty": true,
+    "why": "Client initializes database/getBackups only if server.info components declares database. Existing owned component registered endpoints but omitted declaration.",
+    "configurationBoundary": "Previous no-backupDirectory fixture failure retained separately. This new actual observation explicitly supplied backupDirectory and restore owner; declaration still absent."
+  },
+  "implementation": {
+    "owner": "ConfiguredMoonraker.setInformation",
+    "change": "Include actual owned database in immutable component declaration; retain deduplication and lifecycle replacements.",
+    "unchanged": [
+      "database algorithms and schema",
+      "maintenance gate",
+      "authorization policy",
+      "restart ownership",
+      "motion and print dispatch",
+      "native C sources and precision budgets"
+    ]
+  },
+  "validation": {
+    "before": {
+      "firstAttempt": "Missing task native dependency; not product assertion",
+      "builtOriginal": "1 fail: advertised database count0 expected1"
+    },
+    "source": {
+      "pass": 60,
+      "fail": 0,
+      "durationMs": 17667.080209,
+      "deadlineMs": 60000,
+      "scope": "Node wrapper executes existing pinned Python oracle in database.test; this is not complete test Python retirement."
+    },
+    "compiled": {
+      "pass": 1,
+      "fail": 0,
+      "durationMs": 7141.497332,
+      "independentProductionDependencies": true,
+      "path": "/no-programs",
+      "tsLoading": false,
+      "diagnostics": [
+        {
+          "compiled": true,
+          "oneShotAndLoginPolicy": true,
+          "oneShotStatusMaxMs": 2.42378999999994,
+          "jwtLifecycle": true,
+          "websocketSurvivesTokenExpiry": true,
+          "logoutEventAfterResponse": true,
+          "websocketStatusP99Ms": 0.17566200000010213,
+          "jwtStatusP99Ms": 0.47523599999999533,
+          "unauthorizedRejected": true,
+          "rotationRevokesOldKey": true,
+          "statusRequests": 200,
+          "statusP99Ms": 2.1957579999999552,
+          "scope": "Sequential local HTTP and WebSocket requests; no physical MCU or concurrent printing"
+        },
+        {
+          "compiled": true,
+          "configurationOwned": true,
+          "policyApplied": true,
+          "persistentIdentityAfterRestart": true,
+          "statusRequests": 200,
+          "statusP99Ms": 1.926924999999983,
+          "scope": "Sequential local HTTP on independent compiled configured service; no printing or target hardware"
+        }
+      ],
+      "existingStatusP99BudgetMs": 50
+    },
+    "typecheck": {
+      "exit": 0
+    },
+    "actualFixedPage": "pending",
+    "requiredExactHeadCi": "pending",
+    "normalIntegration": "pending"
+  },
+  "artifacts": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-before-20261007.log",
+      "sha256": "2cab1c7cc6edb41788631fb55c505cbd1135239d7801f9dccfbcd05bbb713ac9"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-before-built-20261007.log",
+      "sha256": "c05f7853ceb6ae70764b54fca10ed328ed49c7349f3772867dfc27cba95e05c8"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-after-20261007.log",
+      "sha256": "ab617858c8788424ab07e6f20d010e45a9bc555e76566a27e377e3f4739b22ce"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-database-discovery-compiled-20261007.log",
+      "sha256": "779e939529ba1e8addf85835a17be4e6e02c4fbc57920ad08a15e11aa039f954"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-database-before-observer-20261007.json",
+      "sha256": "bad82c1abececcbc0b617af93b7654f08f2b1227f9666f0453f26d957f07d858"
+    }
+  ],
+  "scope": "Desktop local source and independent compiled service. Original actual official-client discrepancy retained. Not full same-bundle clients, target performance, physical motion, G3 or Python retirement closure."
+}

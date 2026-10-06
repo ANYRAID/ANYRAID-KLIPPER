@@ -146,6 +146,18 @@ stops、lifecycle、output、authorizePrintFile 和 release；不能再返回 se
 进程 release 再释放其他依赖，只有未移交／未关闭的组件才需自行关闭。
 release 应幂等，关闭错误不得丢弃。
 
+进程装配提供已打开的 `DatabaseStore` 时，服务信息自动声明 `database`
+组件，使 Fluidd 等客户端初始化实际备份列表；设备状态替换不会丢失该
+声明。未装配数据库时不额外声明。备份目录仍须由装配者显式设置
+`DatabaseStore.open({path, backupDirectory})`，使用独立绝对路径，不能
+覆盖活动数据库及其日志；未配置目录的备份请求返回 503。
+数据库恢复只在 `server.onDatabaseRestore` 提供完整服务重启所有者时
+注册。恢复响应完成后，该所有者须关闭旧服务及全部数据库依赖，再重新
+打开数据库和组件；只重建设备不足以恢复。备份、压缩及恢复沿用实际
+空闲状态与同一维护门禁，打印或暂停期间拒绝。该声明修复的源码与独立
+编译验证通过，实际客户端及正常集成边界见
+[数据库发现验收](../host/contracts/database-discovery-acceptance.json)。
+
 工厂声明 `serverLifetime: 'process'`，主机循环以相同服务器绑定新设备，
 保持 HTTP/WebSocket、身份、温度历史和文件锁。包装工厂须同时转发这个
 属性、bootstrap、resetFirmware、close 及调用的 signal／reload context；遗漏 bootstrap
