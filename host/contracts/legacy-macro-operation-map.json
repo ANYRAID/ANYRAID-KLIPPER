@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "sourceRevision": "6ad9f5950ad0a6e1b45d68866484fddce342aa21",
+  "inventory": "legacy-macro-source-inventory.json",
+  "status": "static-preparation-only",
+  "seriesIdentity": "unconfirmed",
+  "effectiveMacroUnionCount": 48,
+  "ownerHashes": [
+    {
+      "file": "host/src/moonraker/product-print-api.ts",
+      "sha256": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd"
+    },
+    {
+      "file": "host/src/operations/print.ts",
+      "sha256": "cc4278a130b8692637fa10d41cd6781fde8dcd521ed0de889eaf08e0f83db430"
+    },
+    {
+      "file": "host/src/operations/thermal-print-device.ts",
+      "sha256": "ebeb250583895f2980cca4471f6085f033835e3b3ec7f7afb3d4652838d8f9f6"
+    },
+    {
+      "file": "host/src/operations/native-linear-print.ts",
+      "sha256": "30c19322f28761b977b90c7983526b7f3a9f8d1818f8f8b54605bc31a5706205"
+    },
+    {
+      "file": "host/src/operations/native-pause-parking.ts",
+      "sha256": "f1e26c1ab47e64ffdf917aedffb56f07cad1516c39aa8503ec39f734b2eb29c7"
+    },
+    {
+      "file": "host/src/runtime/product-motion-printer.ts",
+      "sha256": "04b2910c88dfdaa742b1996b1a9b9cc6d9fe7bf2716f2dbbe33aa075bcd24e47"
+    },
+    {
+      "file": "host/src/inputs/filament-switch.ts",
+      "sha256": "5dfa5a6dcddfbdd75e1540887cde9ba36f2c2e666133ab2d32455fc952073fb3"
+    },
+    {
+      "file": "host/src/operations/maintenance-gate.ts",
+      "sha256": "e9d5cdf3ef1e21ec06dc1f1385f721992bc92b8a9a6065b31c771456d7f27636"
+    },
+    {
+      "file": "host/src/inputs/filament-encoder.ts",
+      "sha256": "369ca1ddc1f0d68be84c8b27e8d73856769a8ac9d2e726a2afe2006be1fed5d5"
+    },
+    {
+      "file": "host/src/homing/native-linear-port.ts",
+      "sha256": "cd891df39955538a6686142f112bbd4ee33a20de2e0bb3c7f735416f9745ba93"
+    },
+    {
+      "file": "host/src/gcode/print-layer-info.ts",
+      "sha256": "d83661f1323e462b3a510388fc55297bdac20f7df04223e476a80d8a612bcc65"
+    },
+    {
+      "file": "host/src/runtime/product-print-status.ts",
+      "sha256": "45aab475f85ba5f889bf7288d5ac795ecb461fc788a23e5ac3028a718fee22f3"
+    },
+    {
+      "file": "host/src/moonraker/native-probe.ts",
+      "sha256": "5bf82fa1c6334b4a984b68833ff1d399f3e57007e997ecfa3e929993f2d8bcc3"
+    },
+    {
+      "file": "host/src/runtime/product-service.ts",
+      "sha256": "29e19aa6b7c62759ecdee46dcb5b4d9229800707c38b52b25baa76bd56574467"
+    },
+    {
+      "file": "host/src/moonraker/native-bed-mesh-selection.ts",
+      "sha256": "5f2c26fe6a58d4e14da8f7270a80afcb66fe04fe019c85e8dabce8d7f9d4b12e"
+    },
+    {
+      "file": "host/src/calibration/shaper-fit-executor.ts",
+      "sha256": "8807c7955adb983c9e1ca517707f0c90ac7ae00f89138b04ea44f88117f7647e"
+    },
+    {
+      "file": "host/src/moonraker/native-configuration.ts",
+      "sha256": "da671d731d159aa430a936730d392c4c574e31d7f7a1b1e54ee4b5e6b009b306"
+    },
+    {
+      "file": "host/src/config/klipper-save-session.ts",
+      "sha256": "e1f4702d10de8bff28c52d3da1f2547837aa5fc2c42c947c11e9c3852991d514"
+    },
+    {
+      "file": "host/src/runtime/configured-hardware.ts",
+      "sha256": "b3e2f9762f898f2941b457975742abdf9aa116758e48bef7f45b217ebc893bb5"
+    },
+    {
+      "file": "host/src/config/product-machine.ts",
+      "sha256": "1b4ec3b2aead1e74aadf98a5eb63f79cbe9b17b73c297fc09c127dcccc4183f5"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "print",
+      "title": "打印准备、结束与取消",
+      "macros": [
+        "gcode_macro PRINT_START",
+        "gcode_macro PRINT_END",
+        "gcode_macro CANCEL_PRINT"
+      ],
+      "existingOwners": [
+        "host/src/moonraker/product-print-api.ts",
+        "host/src/operations/print.ts",
+        "host/src/operations/thermal-print-device.ts",
+        "host/src/operations/native-linear-print.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "现有打印所有者覆盖文件、温控、完成和停止；旧开始中的擦嘴、调平、探针及准备顺序尚无系列受控配方。",
+      "acceptance": "逐阶段取消、温控故障、EOF 排空、运动及输出停止 ACK、恢复不自动重放；同包打印负载与目标板速度。"
+    },
+    {
+      "id": "pause",
+      "title": "暂停、停车与恢复",
+      "macros": [
+        "gcode_macro PAUSE",
+        "gcode_macro RESUME",
+        "gcode_macro _TOOLHEAD_PARK_PAUSE_CANCEL"
+      ],
+      "existingOwners": [
+        "host/src/operations/native-pause-parking.ts",
+        "host/src/operations/thermal-print-device.ts",
+        "host/src/moonraker/product-print-api.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "已有停车全程预检、原路返回和温度恢复门槛；旧包停车位置、换料期间恢复、系列碰撞边界尚待确认。",
+      "acceptance": "全程位置边界、冷挤出、Z 余量、停止失败、迟到恢复、停车往返精度。"
+    },
+    {
+      "id": "load",
+      "title": "装料与屏幕装料",
+      "macros": [
+        "gcode_macro LOAD_FILAMENT",
+        "gcode_macro LOAD_FILAMENT_CLEANUP",
+        "gcode_macro LOAD_FILAMENT_HEAT_AND_FEED",
+        "gcode_macro LOAD_FILAMENT_PURGE_AND_FINISH",
+        "gcode_macro SCREEN_LOAD_FILAMENT",
+        "delayed_gcode LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+        "delayed_gcode LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+      ],
+      "existingOwners": [
+        "host/src/runtime/product-motion-printer.ts",
+        "host/src/inputs/filament-switch.ts"
+      ],
+      "migrationStatus": "not-implemented",
+      "gap": "检测输入已有；等待挤出机开关、加热送料、等待工具头开关、清料和擦嘴的持久受控操作尚缺。",
+      "acceptance": "每个等待阶段有期限、取消及停止确认；传感器抖动、缺料、迟到回调、重复请求和重启不送料。"
+    },
+    {
+      "id": "unload",
+      "title": "退料与切断",
+      "macros": [
+        "gcode_macro UNLOAD_FILAMENT",
+        "gcode_macro UNLOAD_FILAMENT_CLEANUP",
+        "delayed_gcode UNLOAD_FILAMENT_CHECK_TOOLHEAD",
+        "delayed_gcode UNLOAD_FILAMENT_WAIT_REMOVE"
+      ],
+      "existingOwners": [
+        "host/src/runtime/product-motion-printer.ts",
+        "host/src/operations/maintenance-gate.ts"
+      ],
+      "migrationStatus": "not-implemented",
+      "gap": "尚缺切刀路径、加热退料、工具头开关检查和取料等待的受控操作；不复制原坐标为机器策略。",
+      "acceptance": "切刀与刷子机械边界、离开模型再下降、冷热挤出、等待超时、取消所有回调、断电恢复。"
+    },
+    {
+      "id": "runout",
+      "title": "缺料检测与暂停",
+      "macros": [
+        "gcode_macro EXTRUDER_SWITCH_RUNOUT_START",
+        "gcode_macro FILAMENT_RUNOUT_PAUSE"
+      ],
+      "existingOwners": [
+        "host/src/runtime/product-motion-printer.ts",
+        "host/src/inputs/filament-switch.ts",
+        "host/src/inputs/filament-encoder.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "原生传感器已接同一打印暂停所有者并检查恢复条件；旧双开关策略和系列布线仍待验证。",
+      "acceptance": "去抖、检测新鲜度、重复缺料、取消竞态、补料后恢复门槛和目标板事件负载。"
+    },
+    {
+      "id": "wipe",
+      "title": "清料与擦嘴",
+      "macros": [
+        "gcode_macro WIPE_NOZZLE"
+      ],
+      "existingOwners": [
+        "host/src/operations/maintenance-gate.ts",
+        "host/src/homing/native-linear-port.ts"
+      ],
+      "migrationStatus": "not-implemented",
+      "gap": "已有活动门禁和运动守卫；清料温度、刷子路径、重复次数和阶段回执尚无受控配方。",
+      "acceptance": "温控、冷热挤出、模型避让、刷子位置、路径预检、每段取消和真实停止。"
+    },
+    {
+      "id": "layers",
+      "title": "按层暂停与层信息",
+      "macros": [
+        "gcode_macro SET_PAUSE_AT_LAYER",
+        "gcode_macro SET_PAUSE_NEXT_LAYER",
+        "gcode_macro SET_PRINT_STATS_INFO"
+      ],
+      "existingOwners": [
+        "host/src/gcode/print-layer-info.ts",
+        "host/src/runtime/product-print-status.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "层信息已有；按层暂停策略尚缺，不将层统计更新视为暂停操作。",
+      "acceptance": "层号边界、同层重复、下一层一次消费、停止后清除、恢复与跨作业隔离、热路径负载。"
+    },
+    {
+      "id": "mesh",
+      "title": "调平与探测",
+      "macros": [
+        "gcode_macro BED_MESH_CALIBRATE",
+        "gcode_macro QUAD_GANTRY_LEVEL",
+        "gcode_macro G32"
+      ],
+      "existingOwners": [
+        "host/src/moonraker/native-probe.ts",
+        "host/src/runtime/product-service.ts",
+        "host/src/moonraker/native-bed-mesh-selection.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "归零、网格、Z tilt 和四龙门 typed 入口已有；G32 组合操作、旧 IDM 探针和机器装配仍待补齐。",
+      "acceptance": "同一门禁、令牌、期限、未归零拒绝、探测停止、独立精度参考、保存后显式重新初始化。"
+    },
+    {
+      "id": "calibration",
+      "title": "共振、PID、IDM 数据采集与保存",
+      "macros": [
+        "gcode_macro AUTO_Resonance_Compensation",
+        "gcode_macro 自动振动补偿",
+        "gcode_macro 运行共振补偿校准",
+        "gcode_macro 运行IDM探针校准",
+        "gcode_macro DATA_SAMPLE",
+        "gcode_macro PID_CALIBRATE_HOTEND",
+        "gcode_macro PID_CALIBRATE_HOTEND_200",
+        "gcode_macro PID_CALIBRATE_HOTEND_240",
+        "gcode_macro PID_HEATER2",
+        "gcode_macro SAVE_CONFIG_MACRO"
+      ],
+      "existingOwners": [
+        "host/src/calibration/shaper-fit-executor.ts",
+        "host/src/moonraker/native-configuration.ts",
+        "host/src/config/klipper-save-session.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "已有离线共振数学及部分 typed 配置保存；整条采集、加热 PID、serial_dual、IDM 校准及其保存操作尚缺。",
+      "acceptance": "原始通道温度保护、超时、测量数据指纹、数值参考、配置版本检查、保存失败恢复和显式重载。"
+    },
+    {
+      "id": "diagnostic",
+      "title": "归零压力、批次调平与坐标诊断",
+      "macros": [
+        "gcode_macro START_HOME_STRESS_TEST",
+        "gcode_macro STOP_HOME_STRESS_TEST",
+        "delayed_gcode HOME_STRESS_TEST_LOOP",
+        "gcode_macro Z_TILT_BATCH_10000",
+        "gcode_macro SLOWSPEED",
+        "gcode_macro SET_Z_0",
+        "gcode_macro SET_Z_80"
+      ],
+      "existingOwners": [
+        "host/src/moonraker/native-probe.ts",
+        "host/src/operations/maintenance-gate.ts"
+      ],
+      "migrationStatus": "not-implemented",
+      "gap": "普通归零已有；持续压力任务、批次管理和人为指定 Z 坐标没有消费级操作，不作为打印文件命令放行。",
+      "acceptance": "维护身份、有限批次、阶段日志、硬停止、迟到循环拒绝；坐标诊断必须独立准入，真实运动仍受 G3 限制。"
+    },
+    {
+      "id": "fan",
+      "title": "打印冷却风扇映射",
+      "macros": [
+        "gcode_macro M106"
+      ],
+      "existingOwners": [
+        "host/src/runtime/configured-hardware.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "硬件与原生输出所有者已有；旧 M106.1 和 generic fan 的系列通道、模式和退出策略须显式映射。",
+      "acceptance": "通道映射、量程、停机输出、异常反馈及同包打印负载。"
+    },
+    {
+      "id": "client",
+      "title": "客户端辅助及全局参数",
+      "macros": [
+        "gcode_macro _CLIENT_EXTRUDE",
+        "gcode_macro _CLIENT_RETRACT",
+        "gcode_macro _CLIENT_LINEAR_MOVE",
+        "gcode_macro _GLOBAL_VARS"
+      ],
+      "existingOwners": [
+        "host/src/operations/native-pause-parking.ts",
+        "host/src/config/product-machine.ts"
+      ],
+      "migrationStatus": "partial",
+      "gap": "已有停车和版本化机器数据；需将辅助用途并入对应 typed 操作，未核对的 M8/G9 不能自动翻译。",
+      "acceptance": "拒绝任意脚本与未支持命令、冷挤出、模态隔离、配置范围和零副作用的迟到授权。"
+    }
+  ]
+}
