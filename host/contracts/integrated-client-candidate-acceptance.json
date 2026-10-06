@@ -1905,6 +1905,97 @@
       },
       "pr24": "Independent cleanup repair; current exact-head CI pending, no original root-cause closure"
     },
-    "remaining": "Complete same-package clients,original failures,G3/target performance/precision/physical acceptance,all Python retirement and default release open"
+    "remaining": "Complete same-package clients,original failures,G3/target performance/precision/physical acceptance,all Python retirement and default release open",
+    "deltaFailureClassification": {
+      "scope": "Read-only classification of same failing invocation; no fresh motion run, no input/tolerance change or physical accuracy claim",
+      "expectedXY": [
+        25,
+        -30
+      ],
+      "actualPosition": [
+        25.33227372071191,
+        -30.18106073441564,
+        9.600550284323617,
+        0
+      ],
+      "injectedMainClock": 2502934,
+      "mainStop": {
+        "sequence": 69,
+        "receivedClock": 2504434,
+        "kind": "trigger",
+        "oid": 9,
+        "stopped": [
+          0,
+          1,
+          2
+        ]
+      },
+      "futureAcceptedBeforeStop": [
+        {
+          "sequence": 67,
+          "receivedClock": 2503008,
+          "kind": "queue_step",
+          "oid": 0,
+          "interval": 2500,
+          "count": 20,
+          "add": 0,
+          "direction": -1,
+          "discarded": false,
+          "firstClock": 2601027,
+          "endClock": 2648527
+        },
+        {
+          "sequence": 68,
+          "receivedClock": 2503016,
+          "kind": "queue_step",
+          "oid": 1,
+          "interval": 2500,
+          "count": 20,
+          "add": 0,
+          "direction": -1,
+          "discarded": false,
+          "firstClock": 2601027,
+          "endClock": 2648527
+        }
+      ],
+      "positionResponses": [
+        {
+          "member": 0,
+          "oid": 0,
+          "position": -44,
+          "clock": 2510803
+        },
+        {
+          "member": 1,
+          "oid": 0,
+          "position": -24,
+          "clock": 2510565
+        },
+        {
+          "member": 0,
+          "oid": 1,
+          "position": -44,
+          "clock": 2511985
+        },
+        {
+          "member": 0,
+          "oid": 2,
+          "position": 0,
+          "clock": 2513156
+        }
+      ],
+      "observation": "Two main-MCU batches of20 future pulses were received after the synthetic count injection and before main stop; requested first pulse is later than stop. Delta test increments entire batch on reception, whereas C queue schedules pulses and position query subtracts unexecuted pulses. This demonstrates a receive-counter confound in the failing test; does not prove physical motion/kernel correctness.",
+      "decision": "Next: bounded commanded-clock counter model that drops unexecuted pulses on observed stop, preserve original inputs and1e-10 checks, validate with independent C semantics. Do not force equal tower counts at trigger or modify runtime math.",
+      "g3Closed": false,
+      "artifact": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-pr23-delta-receive-counter-classification-20261007.json",
+        "sha256": "3a045725159cb2b271c0b457b1b90315c4f5656ab90541ebfca90e53aceba3ec"
+      },
+      "references": {
+        "src/stepper.c": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5",
+        "host/test/delta-probe.test.ts": "de61b2b27b8da825b66e913e785a9a93683a41dcbaa4e77b5ba28bd1ff4569d4",
+        "host/test/helpers/stepper-stop-fence.ts": "a598f4918acfb29a3c41b74904fa7fe13a95d290fac72cf200b4ada60b52653c"
+      }
+    }
   }
 }
