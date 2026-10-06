@@ -1,5 +1,6 @@
 import {Webcams} from './webcams.ts';
 import {SystemInformation,type SystemInformationSource} from './system-information.ts';
+import {SystemServices,validateSystemServices,type SystemServicesOptions} from './system-services.ts';
 import {ProcStats,type ProcStatsSource} from './proc-stats.ts';
 import {NativeHostNotifications} from './native-host-notifications.ts';
 import {NativeRequestScope} from './native-request-scope.ts';
@@ -117,6 +118,8 @@ export interface ConfiguredServerOptions extends Omit<MoonrakerNetworkOptions,'e
  gcodeStore?:{maxBytes?:number};
  procStats?:{source?:ProcStatsSource};
  systemInformation?:{source?:SystemInformationSource};
+ /** Process-owned service metadata; never grants system service control. */
+ systemServices?:SystemServicesOptions;
  /** Transfers telemetry store lifetime on successful load; samples once per second after listening. */
  sensors?:SensorStore;
  /** Transfers an unstarted MQTT source owned by the supplied sensor store. */
@@ -185,6 +188,8 @@ export class ConfiguredMoonraker {
  #gcodeNotifications=notificationMetrics();#klippyNotifications=notificationMetrics();#klippyEvents=new KlippyNotifications();
  #gcodeStore:GcodeStore|undefined;
  #systemInformation:SystemInformation|undefined;
+ #systemServices:SystemServices|undefined;#serviceNotifications=notificationMetrics();
+ #systemNotifications=notificationMetrics();
  #procStats:ProcStats|undefined;#procNotifications=notificationMetrics();
  #temperatureStore:TemperatureStoreRuntime|undefined;
  #nativeTemperatureObjects:NativeObjects|undefined;
@@ -268,8 +273,12 @@ export class ConfiguredMoonraker {
   let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined)):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,()=>this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
-  if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source);
-  const releaseSystem=this.#systemInformation?this.endpoints.register({endpoint:'/machine/system_info',methods:['GET']},()=>this.#systemInformation!.snapshot()):()=>{};
+  if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source,network=>{if(!this.#stopping)this.#broadcastTracked('notify_net_state_changed',[network],this.#systemNotifications);});
+  if(options.systemServices)this.#systemServices=new SystemServices(options.systemServices,change=>this.#broadcastTracked('notify_service_state_changed',[change],this.#serviceNotifications),!!(options.productPrint||options.nativeDetached));
+  const releaseSystem=this.#systemInformation?this.endpoints.register({endpoint:'/machine/system_info',methods:['GET']},()=>{
+   const value=this.#systemInformation!.snapshot() as {system_info:Record<string,Json>};
+   if(this.#systemServices)Object.assign(value.system_info,this.#systemServices.snapshot());return value;
+  }):()=>{};
   if(options.procStats)this.#procStats=new ProcStats({...options.procStats,connections:()=>this.#network.status.connections,notify:(method,value)=>this.#broadcastTracked(method,[value],this.#procNotifications)});
   const releaseProc=this.#procStats?this.endpoints.register({endpoint:'/machine/proc_stats',methods:['GET']},()=>this.#procStats!.snapshot()):()=>{};
   const releaseGcode=this.#gcodeStore?registerGcodeStore(this.endpoints,this.#gcodeStore):()=>{};
@@ -319,6 +328,7 @@ export class ConfiguredMoonraker {
   if(options.history!==undefined&&(!options.history||!(options.history.repository instanceof HistoryRepository)||!options.database||!options.history.repository.owns(options.database)||typeof options.history.fileExists!=='function'||options.history.metadata!==undefined&&typeof options.history.metadata!=='function'))throw new ConfigurationError('History requires its database and file existence owner');
   if(options.temperatureStore!==undefined&&(!options.temperatureStore||typeof options.temperatureStore!=='object'||Array.isArray(options.temperatureStore)))throw new ConfigurationError('Invalid temperature store options');
   if(options.systemInformation!==undefined&&(!options.systemInformation||typeof options.systemInformation!=='object'||Array.isArray(options.systemInformation)))throw new ConfigurationError('Invalid system information options');
+  if(options.systemServices!==undefined){if(!options.systemInformation)throw new ConfigurationError('System services require system information');validateSystemServices(options.systemServices);}
   if(options.procStats!==undefined&&(!options.procStats||typeof options.procStats!=='object'||Array.isArray(options.procStats)))throw new ConfigurationError('Invalid process statistics options');
   if(options.gcodeStore!==undefined&&(!options.gcodeStore||typeof options.gcodeStore!=='object'||Array.isArray(options.gcodeStore)))throw new ConfigurationError('Invalid G-code store options');
   if(options.metadataMonitor!==undefined&&(!options.metadataFiles||!options.metadataMonitor||typeof options.metadataMonitor!=='object'||Array.isArray(options.metadataMonitor)))throw new ConfigurationError('Metadata monitoring requires a file owner');
@@ -583,6 +593,8 @@ export class ConfiguredMoonraker {
   this.#gcodeStore?.record(response,'response');this.#broadcastGcode(response);
  }
  get systemInformationStatus(){return this.#systemInformation?.status??null;}
+ get systemServicesStatus(){return this.#systemServices?{...this.#systemServices.status,notifications:{...this.#serviceNotifications}}:null;}
+ get systemNotificationMetrics(){return {...this.#systemNotifications};}
  get procStatsStatus(){return this.#procStats?.status??null;}
  get gcodeStoreStatus(){return this.#gcodeStore?.status??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
@@ -654,6 +666,7 @@ export class ConfiguredMoonraker {
    this.#startupAbort.signal.throwIfAborted();
    if(this.#nativeTemperatureObjects)this.#temperatureStore!.readyNative(this.#nativeTemperatureObjects);
    await this.#systemInformation?.start();this.#startupAbort.signal.throwIfAborted();
+   await this.#systemServices?.start();this.#startupAbort.signal.throwIfAborted();
    const address=await this.#network.listen(this.binding.port,this.binding.host);
    this.#startupAbort.signal.throwIfAborted();
    this.#nativeLifecycle?.start();this.#procStats?.start();
@@ -676,6 +689,6 @@ export class ConfiguredMoonraker {
   this.#releaseNativeQueue();const queueClosed=this.#nativeQueue?.close();
   this.#nativeScope?.retire();
   this.#nativeLifecycle?.close();this.#nativeHistory?.();this.#releaseFileChanges();
-  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,nativeClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,databaseClosed,this.#systemInformation?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),networkClosed.then(()=>this.#configFiles?.close(),()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
+  this.#stopping=true;this.maintenanceGate.invalidate();clearInterval(this.#sensorTimer);this.#sensorTimer=undefined;const mqttRpcClosed=this.#mqttRpc?.close()??Promise.resolve();const mqttStatusClosed=this.#mqttStatus?.close()??Promise.resolve();const mqttMacrosClosed=this.#mqttMacros?.close()??Promise.resolve();const sensorTransportClosed=this.#sensorTransport?.close()??Promise.resolve();this.#sensors?.close();const printClosed=Promise.resolve(this.#printApi?.close());this.#startupAbort.abort(new Error('Configured server is stopping'));this.#subscriptions?.close();this.#nativeSubscriptions?.close();const historyClosed=this.#historyRuntime?.close(this.#jobState?.lastStats??{})??Promise.resolve();const networkClosed=this.#network.close();const authorizationClosed=networkClosed.then(()=>this.#authorization?.close(),async error=>{try{await this.#authorization?.close();}catch(cleanup){throw new AggregateError([error,cleanup],'Network and authorization cleanup failed');}throw error;});const webcamsClosed=networkClosed.then(()=>this.#webcams?.close(),()=>this.#webcams?.close());const nativeClosed=Promise.allSettled([queueClosed,this.#nativeUploads?.drain(),this.#nativeProcessFiles?.drain(),this.#nativeScope?.drain(),this.#nativeHistory?.drain()]).then(results=>{const errors=results.filter(r=>r.status==='rejected').map(r=>r.reason);if(errors.length)throw new AggregateError(errors,'Native dependencies failed to drain');});const databaseClosed=Promise.allSettled([historyClosed,authorizationClosed,webcamsClosed,nativeClosed]).then(()=>this.#database?.close());const settled=await Promise.allSettled([nativeClosed,printClosed,this.#printStateTask,mqttRpcClosed,mqttStatusClosed,mqttMacrosClosed,sensorTransportClosed,historyClosed,authorizationClosed,webcamsClosed,databaseClosed,this.#systemInformation?.close(),this.#systemServices?.close(),this.#procStats?.close(),this.#temperatureStore?.close(),this.#supervisor?.stop(),this.#klippy?.close(),this.#metadataMonitor?.close(),this.#metadataFiles?.close(),networkClosed.then(()=>this.#configFiles?.close(),()=>this.#configFiles?.close())]);const errors=settled.filter(value=>value.status==='rejected').map(value=>value.reason);if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'Configured server cleanup failed');for(const release of this.#klippyRoutes.values())release();this.#klippyRoutes.clear();this.#releaseAuthorization();this.#release();if(this.#metadataFiles)fileOwners.delete(this.#metadataFiles);if(this.#database)databaseOwners.delete(this.#database);if(this.#configFiles)configFileOwners.delete(this.#configFiles);
  }
 }

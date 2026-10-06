@@ -2,6 +2,7 @@
 import {open} from 'node:fs/promises';
 import {execFile} from 'node:child_process';
 import {cpus,machine,release} from 'node:os';
+import {isDeepStrictEqual} from 'node:util';
 import {fixedDecimal} from '../math/python-decimal.ts';
 import type {Json} from './rpc.ts';
 export function osRelease(text:string):Record<string,Json>{
@@ -25,25 +26,56 @@ export function sdInformation(cid:string,csd:string):Record<string,Json>{
 }
 export function networkInformation(value:unknown):{network:Record<string,Json>;canbus:Record<string,Json>}{
  const network:Record<string,Json>={},canbus:Record<string,Json>={};if(!Array.isArray(value)||value.length>2048)return {network,canbus};
- for(const row of value){if(!row||typeof row!=='object'||typeof row.ifname!=='string'||!/^[-\w.:@]{1,256}$/.test(row.ifname)||row.ifname==='__proto__')continue;
+ for(const row of value){if(!row||typeof row!=='object'||row.operstate!=='UP'||typeof row.ifname!=='string'||!/^[-\w.:@]{1,256}$/.test(row.ifname)||row.ifname==='__proto__')continue;
   if(row.link_type==='can'){const info=row.linkinfo?.info_data;canbus[row.ifname]={tx_queue_len:Number.isSafeInteger(row.txqlen)?row.txqlen:0,bitrate:Number.isSafeInteger(info?.bittiming?.bitrate)?info.bittiming.bitrate:-1,driver:typeof info?.bittiming_const?.name==='string'?info.bittiming_const.name:'unknown'};}
   else if(row.link_type==='ether'&&typeof row.address==='string'&&Array.isArray(row.addr_info)){const addresses=row.addr_info.filter((a:any)=>a&&['inet','inet6'].includes(a.family)&&typeof a.local==='string').map((a:any)=>({family:a.family==='inet'?'ipv4':'ipv6',address:a.local,is_link_local:a.scope==='link'}));if(addresses.length)network[row.ifname]={mac_address:row.address,ip_addresses:addresses};}
  }return {network,canbus};
+}
+/** Missing/failed commands are unknown, not evidence that links disappeared. */
+export function linuxNetworkFields(value:string|null):Partial<ReturnType<typeof networkInformation>>{
+ if(value===null)return {};try{
+  const rows=JSON.parse(value);if(!Array.isArray(rows)||rows.length>2048)return {};
+  for(const row of rows){
+   if(!row||typeof row!=='object'||Array.isArray(row)||typeof row.operstate!=='string')return {};
+   if(row.operstate!=='UP')continue;
+   if(typeof row.link_type!=='string')return {};
+   if(!['ether','can'].includes(row.link_type))continue;
+   if(typeof row.ifname!=='string'||!/^[-\w.:@]{1,256}$/.test(row.ifname)||row.ifname==='__proto__')return {};
+   if(row.link_type==='can'&&!Number.isSafeInteger(row.txqlen))return {};
+   if(row.link_type==='ether'&&Object.hasOwn(row,'address')){
+    if(typeof row.address!=='string'||row.addr_info!==undefined&&!Array.isArray(row.addr_info))return {};
+    if((row.addr_info??[]).some((address:any)=>!address||typeof address!=='object'||Array.isArray(address)||Object.hasOwn(address,'family')&&Object.hasOwn(address,'local')&&(!['inet','inet6'].includes(address.family)||typeof address.local!=='string')))return {};
+   }
+  }
+  return networkInformation(rows);
+ }catch{return {};}
 }
 async function read(path:string,signal:AbortSignal):Promise<string>{let file:Awaited<ReturnType<typeof open>>|undefined;try{signal.throwIfAborted();file=await open(path,'r');const chunks:Buffer[]=[];let size=0;while(size<=1048576){signal.throwIfAborted();const buffer=Buffer.allocUnsafe(Math.min(32768,1048577-size)),{bytesRead}=await file.read(buffer,0,buffer.length,null);if(!bytesRead)break;size+=bytesRead;chunks.push(buffer.subarray(0,bytesRead));}signal.throwIfAborted();return size>1048576?'':Buffer.concat(chunks,size).toString('utf8');}catch{signal.throwIfAborted();return '';}finally{await file?.close();}}
 async function command(file:string,args:string[],signal:AbortSignal):Promise<string|null>{return new Promise((resolve,reject)=>{execFile(file,args,{signal,timeout:1000,maxBuffer:1048576,encoding:'utf8'},(error,stdout)=>{if(signal.aborted)reject(signal.reason);else resolve(error&&stdout.trim()!=='none'?null:stdout.trim());});});}
 export type SystemInformationSource=(signal:AbortSignal)=>Promise<Record<string,Json>>;
 export const linuxSystemInformation:SystemInformationSource=async signal=>{
  const settled=await Promise.allSettled([read('/etc/os-release',signal),read('/proc/cpuinfo',signal),read('/proc/meminfo',signal),read('/sys/block/mmcblk0/device/cid',signal),read('/sys/block/mmcblk0/device/csd',signal),command('ip',['-json','-details','address'],signal),command('systemd-detect-virt',[],signal),command('systemd-detect-virt',['--container'],signal)]);signal.throwIfAborted();const values=settled.map(r=>r.status==='fulfilled'?r.value:null),[os,cpu,mem,cid,csd,ip,virt,container]=values;
- let interfaces={network:{},canbus:{}};try{interfaces=networkInformation(JSON.parse(ip??''));}catch{}
+ const interfaces=linuxNetworkFields(ip);
  return {cpu_info:cpuInformation(cpu??'',mem??'',cpus().length,process.arch,machine()),sd_info:sdInformation(cid??'',csd??''),distribution:osRelease(os??''),virtualization:!virt?{virt_type:'unknown',virt_identifier:'unknown'}:virt==='none'?{virt_type:'none',virt_identifier:'none'}:{virt_type:container===null?'unknown':container!=='none'?'container':'vm',virt_identifier:virt},...interfaces,provider:'none',available_services:[],service_state:{},instance_ids:{moonraker:'',klipper:''},runtime:{name:'node',version:process.version}};
 };
 export class SystemInformation {
- readonly #source:SystemInformationSource;readonly #abort=new AbortController();#value:Record<string,Json>={};#pending:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#started=false;#samples=0;#failures=0;
- constructor(source:SystemInformationSource=linuxSystemInformation){if(typeof source!=='function')throw new TypeError('Invalid system information source');this.#source=source;}
- get status(){return {samples:this.#samples,failures:this.#failures,pending:!!this.#pending,closed:this.#abort.signal.aborted};}
+ readonly #source:SystemInformationSource;readonly #networkChanged:((network:Record<string,Json>)=>void|Promise<void>)|undefined;readonly #abort=new AbortController();#value:Record<string,Json>={};#pending:Promise<void>|undefined;#timer:ReturnType<typeof setTimeout>|undefined;#started=false;#samples=0;#failures=0;#notificationFailures=0;
+ constructor(source:SystemInformationSource=linuxSystemInformation,networkChanged?:(network:Record<string,Json>)=>void|Promise<void>){if(typeof source!=='function'||networkChanged!==undefined&&typeof networkChanged!=='function')throw new TypeError('Invalid system information source');this.#source=source;this.#networkChanged=networkChanged;}
+ get status(){return {samples:this.#samples,failures:this.#failures,pending:!!this.#pending,closed:this.#abort.signal.aborted,notification_failures:this.#notificationFailures};}
  snapshot():Json{return {system_info:structuredClone(this.#value)};}
- refresh():Promise<void>{if(this.#abort.signal.aborted)return Promise.reject(this.#abort.signal.reason);if(this.#pending)return this.#pending;const pending=this.#source(this.#abort.signal).then(value=>{this.#abort.signal.throwIfAborted();this.#value=structuredClone(value);this.#samples++;}).finally(()=>{if(this.#pending===pending)this.#pending=undefined;});this.#pending=pending;return pending;}
+ refresh():Promise<void>{
+  if(this.#abort.signal.aborted)return Promise.reject(this.#abort.signal.reason);if(this.#pending)return this.#pending;
+  const pending=this.#source(this.#abort.signal).then(async value=>{
+   this.#abort.signal.throwIfAborted();const next=structuredClone(value),previous=this.#value;
+   for(const field of ['network','canbus']){
+    if(!Object.hasOwn(next,field))next[field]=structuredClone(previous[field]??{});
+    if(!next[field]||typeof next[field]!=='object'||Array.isArray(next[field]))throw new TypeError('Invalid system network snapshot');
+   }
+   const changed=this.#samples>0&&!isDeepStrictEqual(previous.network,next.network);
+   this.#value=next;this.#samples++;
+   if(changed&&this.#networkChanged)try{await this.#networkChanged(structuredClone(next.network) as Record<string,Json>);}catch{this.#notificationFailures++;}
+  }).finally(()=>{if(this.#pending===pending)this.#pending=undefined;});this.#pending=pending;return pending;
+ }
  async start(){if(this.#started)return;this.#started=true;await this.refresh();this.#schedule();}
  #schedule(){if(this.#abort.signal.aborted)return;this.#timer=setTimeout(()=>{this.#timer=undefined;void this.refresh().catch(()=>{if(!this.#abort.signal.aborted)this.#failures++;}).finally(()=>this.#schedule());},10000);this.#timer.unref();}
  async close(){this.#abort.abort(new Error('System information closed'));clearTimeout(this.#timer);await this.#pending?.catch(()=>{});}
