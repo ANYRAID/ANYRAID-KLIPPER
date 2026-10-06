@@ -303,7 +303,8 @@
     "bench:probe-linear-seek": "node bench/probe-linear-seek.ts",
     "bench:native-probe": "node bench/native-probe.ts",
     "build:fatfs": "node scripts/build-fatfs.ts",
-    "bench:fatfs": "node bench/fatfs.ts"
+    "bench:fatfs": "node bench/fatfs.ts",
+    "bench:moonraker-cors-policy": "node bench/moonraker-cors-policy.ts"
   },
   "devDependencies": {
     "@types/busboy": "1.5.4",
@@ -323,13 +324,14 @@
     "fontkit": "2.0.4",
     "markdown-it": "15.0.2",
     "markdown-it-attrs": "4.3.1",
+    "ml-matrix": "6.15.0",
     "mqtt": "5.16.0",
     "pdfkit": "0.20.2",
     "qoijs": "1.0.0",
+    "re2-wasm": "1.0.2",
     "sharp": "0.35.4",
     "svg-to-pdfkit": "0.1.8",
     "ws": "8.21.3",
-    "yaml": "2.9.1",
-    "ml-matrix": "6.15.0"
+    "yaml": "2.9.1"
   }
 }

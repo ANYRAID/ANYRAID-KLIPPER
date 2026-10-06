@@ -683,5 +683,37 @@
       },
       "decision": "Original remote refusal not reproduced. No root-cause closure, no retry to find green, no admission bypass, and no CI rerun. Preserve original remote failure and freeze current head while original firmware job remains running."
     }
+  },
+  "latestAcceptedBaseline": {
+    "head": "8dd55f9fde3d570542787173c32a66012bb08d51",
+    "normalMerge": true,
+    "productionConflicts": 0,
+    "local": {
+      "pass": 108,
+      "fail": 0,
+      "durationMs": 23615.337128,
+      "typecheck": "success",
+      "sourceWhitespace": "success",
+      "originalInputsDeadlinesAndPrecision": true
+    },
+    "scope": "Stable MaintenanceBusyError reason in shared call path only; original65k limit, authorization, stop, token and durable admission retained. Added accepted upload path and accepted calibration test barrier inherited from develop. Old failure and finite observation retained; new head full CI still pending.",
+    "source": {
+      "host/src/moonraker/product-print-api.ts": "cfd8e296cb099c1e469093967a59fbaa15ad9da7154f5147393002b5143c0f83",
+      "host/src/operations/maintenance-gate.ts": "f7df9634dc7f2a87fd1971786d933aed1907c99bde26955c33e947761e8bb9c3"
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-native-build-20261007.log",
+        "sha256": "120d19bb93a4f02ca626339e5f927b73602121973a6ddde7fc729fb1edd1aa97"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-source-20261007.log",
+        "sha256": "35820cf70196a1cb6af15f08ea0e4312872c4ada1732174876a72142d97be529"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-reasons-merged-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
   }
 }

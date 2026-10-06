@@ -11,7 +11,7 @@ test('authorization configuration consumes typed policy and preserves invalid-so
  const fallback=reader({default_source:'typo'});readAuthorizationOptions(fallback,'http://printer.test');assert.match(fallback.warnings()[0],/falling back/);
 });
 test('authorization configuration rejects unsupported access rules, LDAP, invalid ranges and unstable issuer shapes',()=>{
- const invalid:Record<string,string>[]=[{max_login_attempts:'0'},{login_timeout:'0'},{login_timeout:'3651'},{force_logins:'perhaps'},{enable_api_key:'perhaps'},{trusted_clients:'printer.example.com'},{cors_domains:'*'},{default_source:'ldap'},{unknown:'value'}];for(const options of invalid)assert.throws(()=>readAuthorizationOptions(reader(options),'http://printer.test'));
+ const invalid:Record<string,string>[]=[{max_login_attempts:'0'},{login_timeout:'0'},{login_timeout:'3651'},{force_logins:'perhaps'},{enable_api_key:'perhaps'},{trusted_clients:'printer.example.com'},{cors_domains:'['},{default_source:'ldap'},{unknown:'value'}];for(const options of invalid)assert.throws(()=>readAuthorizationOptions(reader(options),'http://printer.test'));
  assert.throws(()=>readAuthorizationOptions(reader({},{ldap:{}}),'http://printer.test'),/LDAP/);
  for(const issuer of ['not-url','file:///printer','http://printer.test/','http://printer.test/path','http://user:pass@printer.test'])assert.throws(()=>readAuthorizationOptions(reader(),issuer),/issuer/);
 });
