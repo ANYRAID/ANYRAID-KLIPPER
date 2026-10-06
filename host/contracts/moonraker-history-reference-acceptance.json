@@ -244,5 +244,590 @@
     "Complete native Moonraker and client acceptance",
     "Target board performance, G3 and physical printing",
     "Default entry switch, full Python retirement and master release"
-  ]
+  ],
+  "storageReferenceRetirement": {
+    "status": "candidate-local-validated-exact-head-ci-and-integration-open",
+    "date": "2026-10-06",
+    "base": "16149841b149361bc88533449ab1feed7f744faf",
+    "node": "v26.10.0",
+    "scope": "Remaining eight direct Python executions in history tests and benchmarks replaced by fixed independent output. No production changes. Earlier receipt fields describe their historical source/inventory, not this new revision.",
+    "sources": {
+      "host/contracts/moonraker-history-reference-retirement.json": "b66a887e208ead4686778f240880fee1b40f5a5119d8423031f1e3f513052959",
+      "host/test/helpers/history-reference.ts": "01d1526d883d09a2021352c50c6a193549421890609fcd36fe048208878e11ab",
+      "host/test/history-api.test.ts": "59ffc7343131e626de022eeed78887662a9b3a600bd82de13aa3f1771096df77",
+      "host/test/history-repository.test.ts": "f21923afecb20863eaba25da090042d7c255b92af9aad5ec206b659e61db200b",
+      "host/test/history-tracker.test.ts": "6294743b46d102ad64e38c6e3389bb7d31696d8cc5e21356dea00d17311848f3",
+      "host/test/history-auxiliary.test.ts": "9bae2008f61996f4894c96e519519140e06bc773c9d8eb4c3a0f2967818705dc",
+      "host/test/history-reference.test.ts": "8038f56e991edcf5750ea36f6ba5a77e11669a709bf8e22e8cee1e55645a72c7",
+      "host/bench/history-api.ts": "29ce6927a889e93e942ae6b85865db421c5a814facbd234548a4b5c86171bf1e",
+      "host/bench/history-repository.ts": "3bc883d23325745b5fa53417f7e4b620dcbeb571a33b0a25955769afc5149fa5",
+      "host/bench/history-tracker.ts": "b0616392a48d2c2a6d279f371a10d3d165a955df4cee2732ed0459d6dfea40a3"
+    },
+    "unchangedProductionSources": {
+      "host/src/moonraker/history-api.ts": "b8193d504decb0d9a39d68b1ff99dce4c75862c5f37a78125bee5e5004bcafc8",
+      "host/src/moonraker/history-repository.ts": "92b798dff2d280b594d37f9efba09229c036124fb62621277081aab841cedd00",
+      "host/src/moonraker/history-tracker.ts": "4c51db83c9824eff940debc56bd96636e5493aa09f2612e58c0ae04da4d9466c",
+      "host/src/moonraker/history-round.ts": "ade71b01803a3f7552cef9ea36f0bd4e8862eb654e80a6c6028032e5b6d499e0",
+      "host/src/moonraker/database.ts": "f5487f6bb91d55e5817175e20affcd3e897532a65bf315030ad23d17b60d2f5f",
+      "host/src/moonraker/database-engine.ts": "4f60e805f5ffa0ee385c93cd5b731a2389d2cdc36d3e3384bf68e0280b99142f"
+    },
+    "reference": {
+      "path": "host/contracts/moonraker-history-reference-retirement.json",
+      "sha256": "b66a887e208ead4686778f240880fee1b40f5a5119d8423031f1e3f513052959",
+      "previousInventorySha256": "aba9b160e4c88a953e3b477a4143bf7daf3274b42d7909d64665c627d08fd92b",
+      "originalFiveCaptures": "Byte values and all individual provenance fields unchanged; previous whole-file identity preserved as historical scope.",
+      "upstreamCommit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "method": "Original unchanged test/benchmark child_process calls intercepted after real successful CPython execution. No output calculated from TypeScript implementation.",
+      "captureRuntime": "CPython 3.12.13",
+      "captureHarness": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-capture-20261006.mjs",
+        "sha256": "f03db96406110bbce702f4d3d8f66330ca58035707a31342bf6d68a3cb8ca100"
+      },
+      "rawCapture": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-capture-20261006.jsonl",
+        "sha256": "480f10a727bed05c2873c055e0361f5c06968975498c50b3a907cdec4729ab66"
+      },
+      "cases": [
+        {
+          "name": "history-rounding",
+          "originalCaller": "host/test/history-auxiliary.test.ts",
+          "originalCallerSha256": "eabb81cf01fd0aec3bdaea8bd22e7c37189f2155ef24f9cff8957f10b776ee45",
+          "inputSha256": "64e92c897fb897ac47128c4c3bdf376195c05bb19a45bbdcdc774be0fada9a97",
+          "outputSha256": "496112c98ef6aed259e5f8c2901a968e355b51f62e10e6dc4963e9b475d30638",
+          "programSha256": "42462410ce98f14e8c31f0904475779c7dc6bdc1c3f3d4bfe8056f9171c0d241",
+          "capturedAt": "2026-10-06T15:46:33.823Z"
+        },
+        {
+          "name": "history-auxiliary-totals",
+          "originalCaller": "host/test/history-auxiliary.test.ts",
+          "originalCallerSha256": "eabb81cf01fd0aec3bdaea8bd22e7c37189f2155ef24f9cff8957f10b776ee45",
+          "inputSha256": "04fbc5bc56bf4499ef45d70994ed3a0696c1dc84bc98e2e158f827834ab20e2d",
+          "outputSha256": "5585a9ef505acee7052cb7b6e6dc0fee016a559c77bbc1375d11de4af33184c8",
+          "programSha256": "118903a4ee74abbf452754d7c0c681ad15bb762792597d641299975764c69d0d",
+          "capturedAt": "2026-10-06T15:46:35.007Z"
+        },
+        {
+          "name": "history-repository",
+          "originalCaller": "host/test/history-repository.test.ts",
+          "originalCallerSha256": "2bf1c4cf86c4a791c777d746fb0b10cb8c59e8673440e0c18f7ef22b1457184c",
+          "inputSha256": "71753dd96999dbd1b31d9a5c4df8c28ed2f4a4669dc570ef5d50663d17ed4343",
+          "outputSha256": "f7a1bf9b22095da47d0ff7155c131cb5ce5eccf59f785bd6c5969c5f5e33eef4",
+          "programSha256": "e79e1f5a8693146bdefd5978ef3ad7003f490f968a6d0a904f831e0f49712478",
+          "capturedAt": "2026-10-06T15:46:36.903Z"
+        },
+        {
+          "name": "history-tracker",
+          "originalCaller": "host/test/history-tracker.test.ts",
+          "originalCallerSha256": "73cc42fe3c6f267c74621d95d6ab556675c219f752554158360371b818598f54",
+          "inputSha256": "310b6ad12dd352d522c8176bcc4bb98135280e444b782a37d9638a7463687d4d",
+          "outputSha256": "ee72eac2b06714c316720cf11899e4cb0e24873026f50b36f0c242679c5ce600",
+          "programSha256": "0c1e1a6418d797b44a3c23a9520b8b7c63a12008ae67bb9bc5362790b1a08b22",
+          "capturedAt": "2026-10-06T15:46:37.668Z"
+        },
+        {
+          "name": "history-api-benchmark",
+          "originalCaller": "host/bench/history-api.ts",
+          "originalCallerSha256": "896817da2c2ceafbbf3fc4ab968cbaf044ffdbcab4f134ff6149072c58bce4e5",
+          "inputSha256": "370e8808313353f4c9458f2ce0a4cc17202012607e1b3429b605fd0a0a6d30cb",
+          "outputSha256": "b4c3fef0ca99094361cd4c49453a6017d622aac90e7206b55de84101b43dd226",
+          "programSha256": "34119e089be4ff803681b8aa17c492b9a572e78b66db371a107a44a5620efe91",
+          "capturedAt": "2026-10-06T15:46:50.256Z"
+        },
+        {
+          "name": "history-repository-benchmark",
+          "originalCaller": "host/bench/history-repository.ts",
+          "originalCallerSha256": "731773925063e860b1a2857b850dbce50b922155fdcaa27b0f208d8582035ff9",
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outputSha256": "29cf15cff6327f437cda49cef5e860ef547aafb720b5ff61731c7571ddaea35b",
+          "programSha256": "8ad7a178f70fa04146daf813506ddc5a684538b53325f80251a7776c04362d85",
+          "capturedAt": "2026-10-06T15:46:56.760Z"
+        },
+        {
+          "name": "history-tracker-benchmark",
+          "originalCaller": "host/bench/history-tracker.ts",
+          "originalCallerSha256": "683fb560087c212ce534e2cb26b02774165fdc971b9a0ec1172756bf0b7b0035",
+          "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outputSha256": "2470e60933295972b3a07291dc2da0d13db93cc9b245002ed787152bb8d9e869",
+          "programSha256": "4c99edb60f04b3fabb23baf2b67adace5d08e745f60711940739315fbbde56a1",
+          "capturedAt": "2026-10-06T15:47:00.538Z"
+        },
+        {
+          "name": "history-api",
+          "originalCaller": "host/test/history-api.test.ts",
+          "originalCallerSha256": "165075a6e076fe2c8c1f10428260ce4ea71f5783a238f413468060bf93d28717",
+          "inputSha256": "116a73aba7590478855efb966ff54811c22295cd98ceb1b35748e9340f82c779",
+          "outputSha256": "e352bedd4101761d39c40dc30bdbe5da2d3f25b94c6267a190971d0d5100993f",
+          "programSha256": "c7ecc4c65222995c2107ef861294ee44fbca988800140348f6638268759ed689",
+          "capturedAt": "2026-10-06T15:47:16.558Z"
+        }
+      ],
+      "roundingCases": 1444,
+      "trackerCases": 14,
+      "trackerOperationsPerCase": 780,
+      "frozenAuxiliaryValues": 35
+    },
+    "removedRuntimePythonCalls": {
+      "tests": 5,
+      "benchmarks": 3,
+      "scope": "These four original test files and three original benchmarks only. Combined with previous batch: 13 direct history calls retired; Python strings in pinned independent oracle data remain for provenance. Other project Python paths and 177 tracked klippy Python files remain."
+    },
+    "validation": {
+      "completeHistoryTests": {
+        "passed": 76,
+        "failed": 0,
+        "files": 11,
+        "durationMs": 9683.1096,
+        "scope": "All existing ten history files plus four meaningful integrity cases in the new history-reference file. Original strict equality, signed zero, overflow, byte bounds, durable SQLite, actual HTTP/RPC, ownership, cancellation and notification checks retained.",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-complete-tests-20261006.log",
+          "sha256": "46ffbca4a52b9ba381ae4e0161db3ca29230210a4d5389ce66f1fa52d582f786"
+        }
+      },
+      "typecheck": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-typecheck-with-integrity-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "whitespace": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-whitespace-staged-20261006.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "noPython": {
+        "guard": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-no-python-20261006.mjs",
+          "sha256": "54fb6b50810da18b6c1c1cef0ee08896276b80486d2f32f83d3c364995f11cbc"
+        },
+        "testProcessLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-no-python-complete-children-20261006.jsonl",
+          "sha256": "93181f2242246014f85f0712ee7b5cfbf0160996e66a99471deaaddb90250113"
+        },
+        "benchmarkProcessLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-no-python-final-bench-children-20261006.jsonl",
+          "sha256": "d58c4422b69352fa2410ee4f84669f4676d17259e277506c5f38a7a8eb9e30f8"
+        },
+        "loadedRecords": 70,
+        "mainTestProcesses": 11,
+        "mainBenchmarkProcesses": 3,
+        "observedCommands": [],
+        "negativeChecks": [
+          {
+            "name": "PATH spawn",
+            "rejectedBeforeExecution": true
+          },
+          {
+            "name": "absolute spawn",
+            "rejectedBeforeExecution": true
+          },
+          {
+            "name": "PATH execFile",
+            "rejectedBeforeExecution": true
+          },
+          {
+            "name": "absolute execFile",
+            "rejectedBeforeExecution": true
+          },
+          {
+            "name": "shell",
+            "rejectedBeforeExecution": true
+          }
+        ],
+        "negativeLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-negative-guard-20261006.log",
+          "sha256": "7f9eaaddc515ead1f05efb525ef504d8badc498e2b449fb7798ff69fa8792466"
+        },
+        "scope": "Node child_process methods instrumented at process boot, including every actual test process and inherited database workers. No forbidden executable attempted in positive cases. PATH/absolute Python spawn/execFile and shell rejected before execution; no claim about unrelated runtime paths."
+      },
+      "referenceIntegrity": "Whole inventory SHA, pinned upstream commit/source, retained helper or original executed program SHA, original input/output bytes, separately guarded benchmark workloads; stale input, signed-zero preservation, smaller workload, corrupt/missing inventory and changed upstream/helper rejected without fallback.",
+      "originalRuns": {
+        "first": {
+          "passed": 26,
+          "failedFileBoot": 1,
+          "reason": "Fresh worktree sealed-file.node not built; history-api file failed before tests. Other three original files completed all 26 cases and their four captures.",
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-original-tests-20261006.log",
+            "sha256": "c17ffcfc1478f3da4327cc7bd6728cf14982e277a7a75642304e5f1255bf5623"
+          }
+        },
+        "apiAfterBuild": {
+          "passed": 5,
+          "failed": 0,
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-original-api-tests-20261006.log",
+            "sha256": "dec62617f06b8c7491e85957d319ad1694e1df75b0cb3ed5027c7677d8453dc0"
+          }
+        },
+        "build": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-native-build-20261006.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "preFinalValidation": {
+        "history49": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-retired-tests-20261006.log",
+          "sha256": "6abfe70454ef2cdc4bf9139f6f2f84f0320e9459613f57c032810e2ce379a906"
+        },
+        "runtime23": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-retired-runtime-tests-20261006.log",
+          "sha256": "5f5f7ee98e36e16df46620125e24cf3d2a6d0c0d77d9e300f785f76702b5dd16"
+        },
+        "scope": "Initial 49-case command used history-events.test.ts, which did not exist and Node ignored; therefore event coverage was not claimed. Correct actual history-runtime file covered separately, then all eleven history files explicitly globbed for final 76/76. Final generic type annotations refined before final runs."
+      }
+    },
+    "performance": {
+      "scope": "Desktop original workload, before/after Node measurements; recorded Python is historical only. No production changed, no full print rerun warranted, no target-board or physical print-speed acceptance. Original benchmarks had no independent latency threshold; no added or relaxed budget.",
+      "api": {
+        "before": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "nodeEndpoint": {
+            "medianMs": 27.64200999999997,
+            "p95Ms": 30.277022999999986
+          },
+          "pythonHandler": {
+            "medianMs": 17.680338001810014,
+            "p95Ms": 17.710159067064524
+          },
+          "eventLoopMaxMs": 1.613823,
+          "scope": "50 paginated lists of 50 rows from 200 rows. Both WAL/FULL files; Node Worker+endpoint; pinned Python handler direct async adapter, omits provider thread. Both file-existence checks return false without I/O. Not HTTP, filesystem checking or print-speed acceptance."
+        },
+        "after": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "nodeEndpoint": {
+            "medianMs": 25.772655999999984,
+            "p95Ms": 28.941944999999976
+          },
+          "pythonHistorical": {
+            "capturedAt": "2026-10-06T15:46:50.256Z",
+            "runtime": "CPython 3.12.13",
+            "result": {
+              "medianMs": 17.680338001810014,
+              "p95Ms": 17.710159067064524
+            }
+          },
+          "eventLoopMaxMs": 1.642495,
+          "scope": "50 paginated lists of 50 rows from 200 rows. Historical Python capture uses the same original WAL/FULL workload; current run executes Node only. Node Worker+endpoint; pinned Python handler direct async adapter, omits provider thread. Original file-existence checks return false without I/O. Not HTTP, filesystem checking or print-speed acceptance."
+        },
+        "workload": {
+          "runs": 7,
+          "warmup": 2,
+          "measured": 5,
+          "listsPerRun": 50,
+          "rows": 200,
+          "limit": 50,
+          "start": 50
+        },
+        "beforeLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-original-api-bench-20261006.log",
+          "sha256": "694a88756b66472de5817a6b37a3d26868ccc1272577fefc472e6b8fa14b063b"
+        },
+        "afterLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-final-api-bench-20261006.log",
+          "sha256": "c7051c991225ef156783f582adabafe1e0aa3d2679fd85d84730f7d8397025cc"
+        }
+      },
+      "repository": {
+        "before": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "nodeWorker": {
+            "medianMs": 313.42857100000015,
+            "p95Ms": 360.3586580000001
+          },
+          "pythonThread": {
+            "medianMs": 425.4019489744678,
+            "p95Ms": 456.41833101399243
+          },
+          "eventLoopMaxMs": 2.000895,
+          "scope": "25 start/finish/total cycles, WAL/FULL, excludes setup and final assertions. Node atomic finish/totals, upstream separate transactions. Python methods grouped per job in one thread, async loop per cycle. No file metadata or notifications; not full server or print-speed evidence."
+        },
+        "after": {
+          "node": "v26.10.0",
+          "filesystemMagic": 61267,
+          "nodeWorker": {
+            "medianMs": 305.961777,
+            "p95Ms": 311.7100660000001
+          },
+          "pythonHistorical": {
+            "capturedAt": "2026-10-06T15:46:56.760Z",
+            "runtime": "CPython 3.12.13",
+            "result": {
+              "medianMs": 425.4019489744678,
+              "p95Ms": 456.41833101399243
+            }
+          },
+          "eventLoopMaxMs": 2.094079,
+          "scope": "25 start/finish/total cycles, WAL/FULL, excludes setup and final assertions. Node atomic finish/totals, upstream separate transactions. Historical Python capture only; current run executes Node only. Original Python methods grouped per job in one thread, async loop per cycle. No file metadata or notifications; not full server or print-speed evidence."
+        },
+        "workload": {
+          "runs": 7,
+          "warmup": 2,
+          "measured": 5,
+          "cycles": 25,
+          "WAL": true,
+          "FULL": true
+        },
+        "beforeLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-original-repository-bench-20261006.log",
+          "sha256": "6b059ef30d231e622f712dd05ca686c8d1ca74972558736d3568d67baa3586bb"
+        },
+        "afterLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-final-repository-bench-20261006.log",
+          "sha256": "34cfcdabeab88b6848703dc7e4f697b0cd8c3ed00760a269eacef77b5b12fad8"
+        }
+      },
+      "tracker": {
+        "before": {
+          "node": "v26.10.0",
+          "count": 100000,
+          "warmup": 2,
+          "samples": 11,
+          "scope": "synchronous field updates, no persistence or hardware",
+          "results": [
+            {
+              "strategy": "basic",
+              "node": {
+                "medianMs": 1.700590999999804,
+                "p95Ms": 3.433492000000115
+              },
+              "python": {
+                "medianMs": 24.152626981958747,
+                "p95Ms": 24.174027959816158
+              }
+            },
+            {
+              "strategy": "delta",
+              "node": {
+                "medianMs": 2.95894700000008,
+                "p95Ms": 5.534097999999631
+              },
+              "python": {
+                "medianMs": 33.265838981606066,
+                "p95Ms": 33.364531002007425
+              }
+            },
+            {
+              "strategy": "accumulate",
+              "node": {
+                "medianMs": 2.5151310000001104,
+                "p95Ms": 4.795859000000291
+              },
+              "python": {
+                "medianMs": 31.94568306207657,
+                "p95Ms": 32.43560891132802
+              }
+            },
+            {
+              "strategy": "average",
+              "node": {
+                "medianMs": 2.6451319999996485,
+                "p95Ms": 3.4975030000000515
+              },
+              "python": {
+                "medianMs": 39.863841026090086,
+                "p95Ms": 39.9436519946903
+              }
+            },
+            {
+              "strategy": "maximum",
+              "node": {
+                "medianMs": 2.106355999999778,
+                "p95Ms": 2.2052880000001096
+              },
+              "python": {
+                "medianMs": 38.861029082909226,
+                "p95Ms": 38.90085907187313
+              }
+            },
+            {
+              "strategy": "minimum",
+              "node": {
+                "medianMs": 2.333629000000201,
+                "p95Ms": 2.419828999999936
+              },
+              "python": {
+                "medianMs": 38.69581699836999,
+                "p95Ms": 38.8279480393976
+              }
+            },
+            {
+              "strategy": "collect",
+              "node": {
+                "medianMs": 22.318475000000035,
+                "p95Ms": 22.902330999999776
+              },
+              "python": {
+                "medianMs": 74.38150595407933,
+                "p95Ms": 74.48424701578915
+              }
+            }
+          ]
+        },
+        "after": {
+          "node": "v26.10.0",
+          "count": 100000,
+          "warmup": 2,
+          "samples": 11,
+          "capturedAt": "2026-10-06T15:47:00.538Z",
+          "referenceRuntime": "CPython 3.12.13",
+          "scope": "synchronous field updates, no persistence or hardware; Node executes today, CPython samples are historical",
+          "results": [
+            {
+              "strategy": "basic",
+              "node": {
+                "medianMs": 1.704660000000004,
+                "p95Ms": 2.6949729999999903
+              },
+              "pythonHistorical": {
+                "medianMs": 24.152626981958747,
+                "p95Ms": 24.174027959816158
+              }
+            },
+            {
+              "strategy": "delta",
+              "node": {
+                "medianMs": 2.7213140000000067,
+                "p95Ms": 5.770180999999994
+              },
+              "pythonHistorical": {
+                "medianMs": 33.265838981606066,
+                "p95Ms": 33.364531002007425
+              }
+            },
+            {
+              "strategy": "accumulate",
+              "node": {
+                "medianMs": 2.2898190000000227,
+                "p95Ms": 5.62385900000001
+              },
+              "pythonHistorical": {
+                "medianMs": 31.94568306207657,
+                "p95Ms": 32.43560891132802
+              }
+            },
+            {
+              "strategy": "average",
+              "node": {
+                "medianMs": 2.47165099999998,
+                "p95Ms": 3.064598000000018
+              },
+              "pythonHistorical": {
+                "medianMs": 39.863841026090086,
+                "p95Ms": 39.9436519946903
+              }
+            },
+            {
+              "strategy": "maximum",
+              "node": {
+                "medianMs": 2.256937999999991,
+                "p95Ms": 2.361218999999977
+              },
+              "pythonHistorical": {
+                "medianMs": 38.861029082909226,
+                "p95Ms": 38.90085907187313
+              }
+            },
+            {
+              "strategy": "minimum",
+              "node": {
+                "medianMs": 2.2864679999999566,
+                "p95Ms": 2.3993300000000204
+              },
+              "pythonHistorical": {
+                "medianMs": 38.69581699836999,
+                "p95Ms": 38.8279480393976
+              }
+            },
+            {
+              "strategy": "collect",
+              "node": {
+                "medianMs": 20.095706000000007,
+                "p95Ms": 23.658398999999974
+              },
+              "pythonHistorical": {
+                "medianMs": 74.38150595407933,
+                "p95Ms": 74.48424701578915
+              }
+            }
+          ]
+        },
+        "workload": {
+          "strategies": 7,
+          "updatesPerRun": 100000,
+          "runs": 13,
+          "warmup": 2,
+          "measured": 11
+        },
+        "beforeLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-original-tracker-bench-20261006.log",
+          "sha256": "f874278990de40d6672a2a93e6a4add1b24e7b4484616bcde39ed401d9301509"
+        },
+        "afterLog": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-storage-final-tracker-bench-20261006.log",
+          "sha256": "8cc889277fc20e838c89b765f8dfd50fab8f593f2c46cbfe22dba39eedc6762e"
+        }
+      }
+    },
+    "limits": [
+      "Exact candidate full CI and normal PR integration pending.",
+      "Unresolved G3 numerical/timing/physical stop gates remain; no real motion, default host change, system installation or master release.",
+      "Complete Moonraker, real Fluidd/Mainsail journey, Cycnumbris 500 assembly and target hardware/performance are not closed.",
+      "Fixed capture is not an upstream-version-independent oracle. New inputs or upstream require isolated independent regeneration and reviewed hashes, never TypeScript implementation outputs."
+    ],
+    "developIntegration": {
+      "date": "2026-10-07",
+      "base": "cad9fde62a658f00eaeeb751eab3f9b483c682f8",
+      "sourceMerge": "faba34d1cc48d858737bcb7893fccf03105e48ba",
+      "includedStopHead": "735a3dedf6bb8039d5061315dedc566c0419d22b",
+      "previousHead": "278dd895efeb94eef1715a781b917f3d7a1023ff",
+      "previousCi": {
+        "host": 37491425224,
+        "firmware": 37491425220,
+        "conclusion": "completed/success"
+      },
+      "conflicts": "Only appended plan sections; complete automatic queue, stop-boundary and history reference records retained",
+      "tests": {
+        "history": {
+          "passed": 76,
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-history-stop-integrated-history-tests-20261007.log",
+            "sha256": "b58f42718b2bdb9b01760b30b5cce3d2041e76991359ca69f9b8a3b563697dd3"
+          }
+        },
+        "stopAndAutomaticQueue": {
+          "passed": 25,
+          "log": {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-history-stop-integrated-stop-tests-20261007.log",
+            "sha256": "19b52d6db4716cbbe21dd52590153109208a6befdba846ba2701e9556aecf23f"
+          }
+        },
+        "total": 101
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-stop-integrated-types-20261007.log",
+        "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+      },
+      "whitespace": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-history-stop-integrated-whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "noPython": {
+        "guardSha256": "54fb6b50810da18b6c1c1cef0ee08896276b80486d2f32f83d3c364995f11cbc",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-history-stop-integrated-guard-20261007.jsonl",
+          "sha256": "6650cf2009620ec5d8cbdd227fc712200b4a41dbcd0642abd2bd31cdc2e6f9f2"
+        },
+        "mainTestProcesses": 11,
+        "loadedRecords": 70,
+        "observedCommands": []
+      },
+      "performanceReuse": "All 10 retirement/consumer/benchmark fingerprints and six actual history/database production owner fingerprints unchanged; original workload/time receipts retained, no new target performance claim. Production host/src and src equal current develop except no changes.",
+      "remaining": "New exact-head full CI and normal PR integration; included #17 not claimed separately merged; historical root cause and G3 retained"
+    }
+  }
 }
