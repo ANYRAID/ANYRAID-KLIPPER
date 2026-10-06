@@ -27,6 +27,17 @@ test('timeout fences the instance and termination releases active and queued sou
  // descriptor still owns this source inode, including transferred/queued ones.
  for(const name of readdirSync('/proc/self/fd')){let stat;try{stat=fstatSync(Number(name),{bigint:true});}catch(error){if((error as NodeJS.ErrnoException).code==='EBADF')continue;throw error;}assert.ok(stat.dev!==identity.dev||stat.ino!==identity.ino,'Metadata source remains open after worker termination');}}finally{await extractor.close();await f.close();}
 });
+test('close joins all transferred sources at full capacity before reporting cleanup',async()=>{
+ const f=await fixture('G1 Z.2 X1\n'.repeat(200000)),extractor=await MetadataExtractor.open({maxPending:64}),sources=await Promise.all(Array.from({length:64},()=>open(f.path,'r')));
+ try{
+  const identity=fstatSync(sources[0].fd,{bigint:true}),requests=sources.map(source=>extractor.extract(source,new AbortController().signal));
+  const settled=Promise.allSettled(requests);assert(sources.every(source=>source.fd===-1));const closing=extractor.close();assert.equal(extractor.close(),closing);
+  assert.equal(extractor.pendingRequests,64,'Rejected jobs retain ownership until the worker acknowledges source closure');
+  const results=await settled;assert(results.every(result=>result.status==='rejected'));
+  await closing;assert.equal(extractor.pendingRequests,0);assert.equal(extractor.closed,true);
+  for(const name of readdirSync('/proc/self/fd')){let stat;try{stat=fstatSync(Number(name),{bigint:true});}catch(error){if((error as NodeJS.ErrnoException).code==='EBADF')continue;throw error;}assert.ok(stat.dev!==identity.dev||stat.ino!==identity.ino,'Full-capacity metadata source remains open after cleanup');}
+ }finally{await Promise.all(sources.map(source=>source.close()));await extractor.close();await f.close();}
+});
 test('cache tickets reject stale scans and failure does not invalidate a newer result',async()=>{
  const f=await fixture(),extractor=await MetadataExtractor.open(),store=new FileMetadataStore();try{const source=await open(f.path,'r');const old=scanMetadataFields(extractor,store,'file.gcode',source,new AbortController().signal),newer=store.begin('file.gcode');store.commit(newer,{size:777});assert.equal(await old,false);assert.equal(store.metadata('file.gcode').size,777);
   assert.equal(await scanMetadataFields(extractor,store,'file.gcode',await open(f.path,'r'),new AbortController().signal),true);assert.equal(store.metadata('file.gcode').slicer,'PrusaSlicer');
