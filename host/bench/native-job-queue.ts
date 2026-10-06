@@ -14,6 +14,9 @@ const database = await DatabaseStore.open({ path: join(root, 'moonraker.db') });
 const journal = await PrintJournal.open({ path: join(root, 'prints.db'), deviceId: 'queue-benchmark' });
 const options = {
   database, journal,
+  automaticTransition: process.env.ANYRAID_BENCH_AUTOMATIC_QUEUE === 'on',
+  captureAuthority: (context: RpcContext, lifetime: AbortSignal) => ({ ...context, signal: lifetime }),
+  activePrint: () => undefined,
   async resolveFile(filename: string) { return filename.replace('.gcode', ''); },
   canStart: () => false,
   async start() { throw new Error('Benchmark must not start a print'); },
@@ -52,6 +55,7 @@ try {
   polling = false; await reader; delay.disable();
   const result = {
     runtime: process.version,
+    automaticTransition: options.automaticTransition,
     scope: 'Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim',
     filesystem: (await statfs(root)).type,
     jobs: 128, durableMutations: writes.length,

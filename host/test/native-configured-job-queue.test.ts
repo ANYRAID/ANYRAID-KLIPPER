@@ -67,7 +67,7 @@ test('configured process queue shares published files, print admission, history,
   } finally { socket?.terminate(); await server?.close(); await deviceFiles.drain(); await processFiles.drain(); await files.close(); await journal.close(); await database.close(); await rm(root, { recursive: true, force: true }); }
 });
 
-for (const option of ['automatic_transition=true', 'load_on_startup=true', 'job_transition_gcode=G1 X10']) test('unsupported queue operation fails startup before device effects: ' + option, async () => {
+for (const option of ['automatic_transition=true', 'load_on_startup=true', 'job_transition_gcode=G1 X10']) test('unsupported or unowned queue operation fails startup before device effects: ' + option, async () => {
   const root = await mkdtemp(join(tmpdir(), 'configured-queue-policy-')), config = join(root, 'moonraker.conf');
   await writeFile(config, '[server]\nhost=127.0.0.1\nport=0\n[job_queue]\n' + option + '\n');
   const database = await DatabaseStore.open({ path: join(root, 'moonraker.db') }), journal = await PrintJournal.open({ path: join(root, 'prints.db'), deviceId: 'queue-printer' });
@@ -76,11 +76,12 @@ for (const option of ['automatic_transition=true', 'load_on_startup=true', 'job_
   let deviceEffects = 0;
   const controller = new PrintController({ async prepare() { deviceEffects++; }, async start() { deviceEffects++; }, async pause() {}, async resume() {}, async finish() {}, async stop() {} }, { maxNozzle: 300, maxBed: 120 }, {}, { journal, maintenanceGate: gate });
   try {
-    await assert.rejects(ConfiguredMoonraker.loadAuthorized(config, {
+    const load = (options: Parameters<typeof ConfiguredMoonraker.loadAuthorized>[1]) => option === 'automatic_transition=true' ? ConfiguredMoonraker.load(config, { ...options, authorize: () => ({ username: 'operator' }) }) : ConfiguredMoonraker.loadAuthorized(config, options);
+    await assert.rejects(load({
       information: { connected: false, state: 'disconnected', components: [], failedComponents: [], directories: [], warnings: [], version: 'queue-test', missingRequirements: [] },
       database, authorization: { issuer: 'https://queue.invalid' }, productPrint: controller, maintenanceGate: gate,
       nativeUploads: deviceFiles, nativeProcessFiles: processFiles, nativeProcessHistory: journal,
-    }), /explicit product operation provider/);
+    }), /explicit product operation provider|process authorization owner/);
     assert.equal(deviceEffects, 0); assert.equal(database.status.closed, true);
     assert.equal(deviceFiles.status.closed, true); assert.equal(processFiles.status.closed, true);
     assert.deepEqual(await journal.historyList({ limit: 10 }), []);

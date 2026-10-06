@@ -569,5 +569,610 @@
         "failed": 0
       }
     }
-  ]
+  ],
+  "automaticTransitionCandidate": {
+    "date": "2026-10-06",
+    "status": "candidate-local-verified-full-ci-and-integration-open",
+    "base": "6a389a2d023216a8b5223e86023168878032434d",
+    "runtime": "Node.js 26.10.0",
+    "sources": {
+      "host/src/moonraker/native-job-queue.ts": "b9af477de590b7284fc7b5806e96038fc1f1eeada61c1e05c37173eb84de8de3",
+      "host/src/moonraker/api-key-authorization.ts": "3f983a6a60528341364a42041946fb1b4bfecd8f64bed9bf1316a7879b3e440f",
+      "host/src/moonraker/configured-server.ts": "dbd97ce8d35e7fe17fc20134e7ab0d232c7fc149c625764fe1d538a60bf1adcf",
+      "host/test/native-automatic-job-queue.test.ts": "a2b1506fc2e6b426c57249ad67f924ee0d2e345d2a670ae19b256a8a93dad3b6",
+      "host/test/native-job-queue.test.ts": "465976e153c87dfb925d83e6a7f90bc6a47db7b82cf6c83f376056f1f76da157",
+      "host/test/native-configured-job-queue.test.ts": "08268d7aebcf33cad28f7a48e483cf577a6648f63b25b14bcab8e9c7b120d710",
+      "host/bench/native-job-queue.ts": "3afd0001b923995c640a63048c9ec51a698825d7c5273b91cd0fc8d351eb05a4",
+      "host/acceptance/product-compiled-journey.test.ts": "7415430cb3e5e82d48ee962b66acd84f22daabc5d8b77dbbf850ddd2da4ae780",
+      "host/contracts/moonraker-job-queue.json": "1667a1b5152ffd0a98bade718c1ef83fbbddc0d061596983b58b03bdc4f3ee35"
+    },
+    "unchangedRuntimeSources": {
+      "host/src/operations/print.ts": "cc4278a130b8692637fa10d41cd6781fde8dcd521ed0de889eaf08e0f83db430",
+      "host/src/operations/print-journal.ts": "a59f0cfc1bf27f9a0b469cceef9bc97146b6da8b134f3e8d1ec28c5a6382aaa0",
+      "host/src/operations/print-journal-worker.ts": "0ce3984c19780193b09710832b766d9d4899dc8f32d31f6461e2c4558e4df08a",
+      "host/src/moonraker/product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+      "host/src/homing/native-delta-port.ts": "0fe6992ef4f28d35868773a6b4d2f384cf59c50141a738922180cf5fef51a29a"
+    },
+    "priorEvidence": "All pre-existing fields retain their historical manual-queue scope and fingerprints; they are not reclassified as current automatic results.",
+    "upstream": {
+      "contract": "host/contracts/moonraker-job-queue.json",
+      "commit": "1cfb0c41e468645951a371621f06d32777b6107c",
+      "blob": "41312f1ee6afcccba9f1130b4b87451c48e549e5",
+      "sourceSha256": "abd06b8226a21ad35054c9a671dfd8dfbe704c8260a76defddda91d2f2b7ccc8",
+      "license": "GPL-3.0-or-later",
+      "scope": "Pinned upstream data only; never executed by tests, benchmarks or the production queue"
+    },
+    "invariants": [
+      "Opt-in through the existing process authorization, controller, journal and file owners; no recreated user grants from catalogue usernames",
+      "Capture one original authenticated principal and generation; fresh key-generation, JWT expiry/revocation or trusted-policy validation on every subsequent start",
+      "Process-only authority survives a completed request, never persisted; another WebSocket login cannot replace it",
+      "Only matching durable completed events schedule one successor after the configured delay; duplicate/unrelated events cannot admit jobs",
+      "Pause, cancellation, failure, retirement, closure or uncertain acknowledgement stops continuation without retrying device actions",
+      "Restart always restores paused members and never execution authority",
+      "Queue pause does not cancel active printing; default manual behavior retained",
+      "Preparation and active printing may arm through explicitly authorized enqueue; explicit queue pause prevents rearming"
+    ],
+    "validation": {
+      "sourceTests": {
+        "passed": 41,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-current-source-tests-20261006.log",
+          "sha256": "f857d1ee5519cb2e1beba18a87318606692d8fc98fb00d0e01cacf1c627ff1c6"
+        }
+      },
+      "types": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-with-benchmark-typecheck-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "compiledJourney": {
+        "passed": 12,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-compiled-tests-20261006.log",
+          "sha256": "2348393103d215f88b9f45cbe2570c9f64f2348d5dc0a24c3531ed7fb3219a84"
+        },
+        "scope": "Real compiled ConfiguredMoonraker/PrintController/PrintJournal/database/file owners and emitted JS workers with simulated backend; TS driver only. No physical printer or actual client UI."
+      },
+      "compiledMixed": {
+        "passed": 1,
+        "durationMs": 70478.777971,
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-compiled-mixed-20261006.log",
+          "sha256": "c1785f25065ad00d1e1a500e0917106fb2d781a12335d647ed028f812bfdf7e1"
+        },
+        "result": {
+          "namespace": true,
+          "automaticQueue": true,
+          "motionReportLoad": true,
+          "objectPriming": false,
+          "earlyObjectCancellation": true,
+          "fileMoveOwnership": [
+            {
+              "generation": 1,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 9761.198432
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 10009.503017
+              },
+              "durationMs": 248.3079149999994
+            },
+            {
+              "generation": 1,
+              "group": 1,
+              "before": {
+                "state": "finishing",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 15941.843735
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 16032.118349
+              },
+              "durationMs": 90.27865500000007
+            },
+            {
+              "generation": 1,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 19115.86902
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 19349.290492
+              },
+              "durationMs": 233.42156199999954
+            },
+            {
+              "generation": 1,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 22559.39973
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 22793.360728
+              },
+              "durationMs": 233.96118800000113
+            },
+            {
+              "generation": 1,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 26135.697458
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 26403.51418
+              },
+              "durationMs": 267.8125319999999
+            },
+            {
+              "generation": 1,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 28559.441299
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 28657.312668
+              },
+              "durationMs": 97.87150900000051
+            },
+            {
+              "generation": 1,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 30181.281435
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 30261.271926
+              },
+              "durationMs": 79.98995099999956
+            },
+            {
+              "generation": 1,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 31883.120343
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "complete",
+                "fileId": "authorized-file",
+                "atMs": 31960.652717
+              },
+              "durationMs": 77.53312400000141
+            },
+            {
+              "generation": 2,
+              "group": 0,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 48061.254728
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 48488.39287
+              },
+              "durationMs": 427.13840199999686
+            },
+            {
+              "generation": 2,
+              "group": 1,
+              "before": {
+                "state": "printing",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 50686.431636
+              },
+              "after": {
+                "state": "printing",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 50954.212849
+              },
+              "durationMs": 267.781332999999
+            },
+            {
+              "generation": 2,
+              "group": 2,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 54322.172895
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 54590.94028
+              },
+              "durationMs": 268.76729499999783
+            },
+            {
+              "generation": 2,
+              "group": 3,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 57910.991052
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 57987.673458
+              },
+              "durationMs": 76.68280599999707
+            },
+            {
+              "generation": 2,
+              "group": 4,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 60872.125197
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 61153.440332
+              },
+              "durationMs": 281.3151849999995
+            },
+            {
+              "generation": 2,
+              "group": 5,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 63209.22204
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 63288.678336
+              },
+              "durationMs": 79.45666599999822
+            },
+            {
+              "generation": 2,
+              "group": 6,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 64647.566804
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 64725.328943
+              },
+              "durationMs": 77.76266900000337
+            },
+            {
+              "generation": 2,
+              "group": 7,
+              "before": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 66204.61494
+              },
+              "after": {
+                "state": "completed",
+                "requestId": "queue-04eac4fd-591b-4fb8-8139-b43ddf693dee",
+                "fileId": "authorized-file",
+                "atMs": 66283.148557
+              },
+              "durationMs": 78.5341069999995
+            }
+          ],
+          "movesPrintingGenerations": [
+            1,
+            2
+          ],
+          "configListRequests": 2054,
+          "configListP99Ms": 5.32600900000034,
+          "configDownloads": 2054,
+          "configDownloadP99Ms": 8.776866999993217,
+          "liveMotionSamples": 6222,
+          "liveExtrusionSamples": 1459,
+          "nativeAuthorization": true,
+          "apiLoad": true,
+          "completedStatistics": {
+            "total_duration": 11.060102911999998,
+            "print_duration": 5.162434448000002,
+            "filament_used": 1
+          },
+          "bundleManifestSha256": "9c2b83f5aa24961d1f1a5217048d203a8b2dcf11c654a3f9d8bf8cb713d0cc16",
+          "bmp180": false,
+          "bme": false,
+          "bmeHeater": false,
+          "htu": false,
+          "htuHeater": false,
+          "htuModel": null,
+          "lm75": false,
+          "lm75Heater": false,
+          "sht": false,
+          "shtHeater": false,
+          "aht": false,
+          "ahtHeater": false,
+          "combinedHeater": false,
+          "combined": false,
+          "multi": false,
+          "dual": false,
+          "servos": false,
+          "outputPins": false,
+          "phaseQueries": 9949,
+          "phaseP99Ms": 4.31862799999999,
+          "loaded": false,
+          "spi": false,
+          "software": false,
+          "model5160": false,
+          "model2240": false,
+          "curved": false,
+          "probeHome": false,
+          "safeHome": false,
+          "bltouch": false,
+          "tilted": false,
+          "manualTilt": false,
+          "skew": false,
+          "screws": false,
+          "manualScrews": false,
+          "bedScrews": false,
+          "kinematics": "cartesian",
+          "temperatureSensor": false,
+          "temperatureFan": false,
+          "hostSensor": false,
+          "spiSensor": false,
+          "spiHeater": false,
+          "sharedSpi": false,
+          "zEndstop": false,
+          "max31855": false,
+          "max31856": false,
+          "max31865": false,
+          "zTilt": false,
+          "quad": false,
+          "stressed": true,
+          "sensorless": false,
+          "tmc": [
+            {
+              "statusReads": 312,
+              "writes": 43
+            },
+            {
+              "statusReads": 208,
+              "writes": 42
+            },
+            {
+              "statusReads": 8,
+              "writes": 40
+            }
+          ],
+          "faultInjected": "adc",
+          "historyNotifications": 32,
+          "historyRequests": 2028,
+          "historyP99Ms": 51.47125699999742,
+          "lifecycleShutdowns": 8,
+          "copyRequests": 16,
+          "copyP95Ms": 191.17551599999933,
+          "copyOverwriteRequests": 16,
+          "copyOverwriteP95Ms": 238.57847799999945,
+          "directoryCopyRequests": 16,
+          "directoryCopyP95Ms": 334.45007999999507,
+          "copiesDuringPrint": 4,
+          "directoryCopiesDuringPrint": 2,
+          "fileNotifications": 1132,
+          "fileNotificationP95Ms": 89.3693749999984,
+          "movesDuringPrint": 3,
+          "directoryMoveRequests": 16,
+          "directoryMoveP95Ms": 489.8040880000008,
+          "directoryMovesDuringPrint": 2,
+          "moveRequests": 16,
+          "moveP95Ms": 426.7442179999998,
+          "deleteRequests": 16,
+          "deleteP95Ms": 165.5167939999992,
+          "publicThumbnailRequests": 16,
+          "publicThumbnailP95Ms": 177.4020240000009,
+          "thumbnailRequests": 16,
+          "thumbnailP95Ms": 77.52016500000173,
+          "metadataRequests": 16,
+          "metadataP95Ms": 330.14556599999923,
+          "downloads": 16,
+          "downloadP95Ms": 52.447768999998516,
+          "wireCommands": 229,
+          "wireSteps": 7930,
+          "minimumStepLeadMs": 85.799,
+          "directoryRequests": 8394,
+          "directoryP99Ms": 37.880677000001015,
+          "statusRequests": 39793,
+          "uploads": 16,
+          "statusP99Ms": 3.450308000006771,
+          "uploadP95Ms": 242.62932200000068,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 1.970175,
+                "maxMs": 18.579455
+              },
+              "cpu": {
+                "user": 12502615,
+                "system": 2251224
+              },
+              "rss": 346693632
+            },
+            {
+              "loop": {
+                "p99Ms": 1.948671,
+                "maxMs": 13.508607
+              },
+              "cpu": {
+                "user": 7298486,
+                "system": 1656540
+              },
+              "rss": 376434688
+            }
+          ]
+        },
+        "scope": "One default original 1000-move namespace/native-authorization/API-load scenario with automatic queue enabled; original budgets unchanged. Software PTY MCU, not all variants or physical acceptance."
+      },
+      "compiledCatalogue": {
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-compiled-catalogue-benchmark-20261006.log",
+          "sha256": "54257bc580ec489b5c53e98e9c74fd63c4dff9036f16581ad54791cfc0368f15"
+        },
+        "harness": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-compiled-catalogue-benchmark-20261006.mjs",
+          "sha256": "ba4f1165ee38694f655c24a5c34f5f040acfeb5af4b9939ba6de49757781bb08"
+        },
+        "benchmark": {
+          "runtime": "v26.10.0",
+          "automaticTransition": true,
+          "scope": "Durable queue catalogue and concurrent status reads on this desktop filesystem; no target-board, compiled-product or motion-performance claim",
+          "filesystem": 61267,
+          "jobs": 128,
+          "durableMutations": 64,
+          "fullCatalogueReadMs": {
+            "count": 10000,
+            "median": 0.0016610000000127911,
+            "p95": 0.0018399999999871852,
+            "p99": 0.0049500000000080036,
+            "max": 0.08786200000000122
+          },
+          "concurrentReadMs": {
+            "count": 1599232,
+            "median": 0.00008000000002539309,
+            "p95": 0.0011700000000018917,
+            "p99": 0.00171100000000024,
+            "max": 0.2814639999999997
+          },
+          "mutationMs": {
+            "count": 64,
+            "median": 8.738294999999994,
+            "p95": 10.50122399999998,
+            "p99": 12.655398999999989,
+            "max": 12.655398999999989
+          },
+          "eventLoopMs": {
+            "p99": 3.702783,
+            "max": 5.595135
+          },
+          "budgetsMs": {
+            "queryP99": 50,
+            "eventLoopP99": 50,
+            "eventLoopMax": 100
+          },
+          "reopenCatalogueVerified": true
+        },
+        "scope": "Same pinned compiled queue/journal/database under PATH=/no-programs and disabled TS parsing. Original 128-job/64-mutation benchmark; no target-board or whole-product claim."
+      },
+      "initialFailures": {
+        "logs": [
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-initial-tests-20261006.log",
+            "sha256": "82b137da0c0a443f1be31515ce79e3c660de2efc601f2e209eb482f21a3b4c8c"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-owned-tests-20261006.log",
+            "sha256": "e5ddfb1799d4c50673e2a553b1112f72602feb0b7a395a16de8056d6264d6072"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-lifetime-tests-20261006.log",
+            "sha256": "0326ef88d7f05fe79b6300d94927a339cea8c9b48449294a1d8317e61acf4c66"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-positive-diagnosis-20261006.log",
+            "sha256": "03ffa9a34be4c9f2f0dc807380310fb23181f8438d3a029a425f315f95d95725"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-sealed-source-tests-20261006.log",
+            "sha256": "61207525c26276fa8925767e6c681d94def2ac774a3ef8be896988cc8112f722"
+          },
+          {
+            "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-sealed-typecheck-20261006.log",
+            "sha256": "66ce6bbe60eb1cb4b13cf7583fbec29bc6c3bdf645ee14ad5e47068c275b8680"
+          }
+        ],
+        "scope": "Preserve missing native build, invalid test journal transition, test timing before print preparation/catalogue recovery, and missing test authorizer/type errors. No production tolerance or performance budget was relaxed."
+      }
+    },
+    "bundle": {
+      "baseline": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-machine-control/host/build/machine-control-preparation-pinned-bundle",
+        "manifestSha256": "700e50ee9582c3ef2735fc440d4fbc6b5a85a0c919f6ccbbcffb4d9bb1447fc4",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+      },
+      "candidate": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-automatic-queue/host/build/automatic-queue-pinned-bundle",
+        "manifestSha256": "9c2b83f5aa24961d1f1a5217048d203a8b2dcf11c654a3f9d8bf8cb713d0cc16",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23"
+      }
+    },
+    "identityAfter": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-automatic-queue-post-benchmark-identity-20261006.json",
+      "sha256": "a9285f6c886e797bd6f2e8013a0f923aa46d7348eeb2f57443a2f0fad9976aef"
+    },
+    "remaining": [
+      "Full exact-head CI and normal develop integration",
+      "load_on_startup=true and nonempty legacy transition G-Code require controlled product operation conversion",
+      "Full Fluidd/Mainsail page journeys and target-board performance",
+      "G3 remains unresolved; real movement, printing and default Python switch not authorized by this evidence",
+      "177 tracked klippy Python plus remaining build/test/benchmark Python retirement and full goal still open"
+    ]
+  }
 }
