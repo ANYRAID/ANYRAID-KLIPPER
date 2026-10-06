@@ -48,5 +48,1456 @@
       "wallMs": 869.7684200000003
     }
   ],
-  "scope": "Two simulated MCU sessions; two off-center mechanical probe samples with retract and recovery. Direct owner samples precede HTTP product service samples; setup excluded. Test seeds homed coordinates, no physical probe accuracy or complete G28-to-probe acceptance."
+  "scope": "Two simulated MCU sessions; two off-center mechanical probe samples with retract and recovery. Direct owner samples precede HTTP product service samples; setup excluded. Test seeds homed coordinates, no physical probe accuracy or complete G28-to-probe acceptance.",
+  "postMergeTerminalObservation": {
+    "schema": 1,
+    "status": "unresolved-software-pty-terminal-mismatch",
+    "date": "2026-10-06",
+    "commit": "6a389a2d023216a8b5223e86023168878032434d",
+    "pr": 14,
+    "runId": 37481854349,
+    "jobId": 112331730416,
+    "source": "host/test/delta-probe.test.ts",
+    "timestamp": "2026-10-06T14:49:18.4151776",
+    "diagnostic": {
+      "run": 0,
+      "expectedXY": [
+        25,
+        -30
+      ],
+      "terminalPosition": [
+        25.33227372071191,
+        -30.18106073441564,
+        9.600550284323617,
+        0
+      ],
+      "result": {
+        "position": [
+          25,
+          -30.00000000000003,
+          9.750000000000043,
+          0
+        ],
+        "bed_position": [
+          23,
+          -27.00000000000003,
+          9.626543211000042
+        ],
+        "samples": [
+          [
+            25,
+            -30.00000000000003,
+            9.775000000000034,
+            0
+          ],
+          [
+            25,
+            -30.00000000000003,
+            9.725000000000051,
+            0
+          ]
+        ],
+        "retries": 0,
+        "attempts": 2,
+        "bedPosition": [
+          23,
+          -27.00000000000003,
+          9.626543211000042
+        ]
+      },
+      "hits": 2,
+      "acceptedWireTrace": [
+        {
+          "sample": 0,
+          "armClock": 1896244,
+          "actualArmClocks": [
+            1806728,
+            1806270
+          ],
+          "counts": [],
+          "positions": [
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -20,
+              "clock": 1963894
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -20,
+              "clock": 1963476
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -20,
+              "clock": 1965183
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 1966368
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -4,
+              "clock": 2263445
+            },
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -4,
+              "clock": 2265338
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -4,
+              "clock": 2266558
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 2268255
+            }
+          ],
+          "triggerClock": 1946244,
+          "actualTriggerClocks": [
+            1955761,
+            1955303
+          ]
+        },
+        {
+          "sample": 1,
+          "armClock": 2467355,
+          "actualArmClocks": [
+            2382986,
+            2382527
+          ],
+          "counts": [
+            [
+              "0:0",
+              -4
+            ],
+            [
+              "0:1",
+              -4
+            ],
+            [
+              "1:0",
+              -4
+            ]
+          ],
+          "positions": [
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -44,
+              "clock": 2532349
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -24,
+              "clock": 2531910
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -44,
+              "clock": 2533614
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 2534796
+            }
+          ],
+          "triggerClock": 2517355,
+          "actualTriggerClocks": [
+            2526357,
+            2525898
+          ]
+        }
+      ],
+      "scope": "Same-invocation software PTY observation; no physical accuracy claim"
+    },
+    "scope": "One actual post-merge CI invocation. No root-cause closure or physical accuracy claim; preserve original 1e-10 assertion.",
+    "notExecuted": [
+      "No rerun to obtain green",
+      "No change to numerical tolerance, motion implementation, fixture counts or clock timing"
+    ],
+    "sourceSha256": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365",
+    "observedBoundary": "Returned probe result retains expected XY, but after-trigger stepper_get_position observations differ between towers in sample 1: -44, -44 and -24. This does not identify the cause.",
+    "nextDiscriminator": "Record accepted queue_step receive order versus scheduled execution/trigger clocks and per-binding stop ownership at the observed boundary before attributing the mismatch to arithmetic, runtime or the software firmware fixture."
+  },
+  "stopBoundaryCandidate": {
+    "schema": 1,
+    "date": "2026-10-06",
+    "runtime": "Node.js 26.10.0",
+    "base": "16149841b149361bc88533449ab1feed7f744faf",
+    "status": "local-verified-exact-ci-and-integration-open",
+    "hypothesis": "A received queue_step can change the old count model after the real MCU would latch SF_NEED_RESET, producing unequal tower counts. Test this rule against actual C handlers, then observe original fixed two-sample input.",
+    "decision": "Correct the demonstrated receive-count fixture deviation only; original historical terminal failure is not proven caused by this rule, and numerical/timing G3 remains open.",
+    "deadline": "C reference subprocesses enforce 60s compilation/10s execution limits; original fixed-input observation limited to one invocation (20.294s) and affected batch to one invocation (32.468s). Those integration commands had no enforced top-level timeout; no repeated original sample to obtain green.",
+    "sources": {
+      "host/test/delta-probe.test.ts": "de61b2b27b8da825b66e913e785a9a93683a41dcbaa4e77b5ba28bd1ff4569d4",
+      "host/test/helpers/stepper-stop-fence.ts": "a598f4918acfb29a3c41b74904fa7fe13a95d290fac72cf200b4ada60b52653c",
+      "host/test/helpers/stepper-stop-firmware/test.c": "d692a0a0b32b7b47ddb63de1bc09614b0219f2329d36a64b2dc3bf1ff6b380b5",
+      "host/test/helpers/stepper-stop-firmware/autoconf.h": "9a0f2829b51bfca5b5be41351b3a811dffc37f59ca77010a997fe7647fe54634",
+      "host/test/stepper-stop-fence.test.ts": "f82d683bd4c2e8d0a047fccb6f48e24752dd466ddb9d1892a8bea136545e3e7e"
+    },
+    "unchangedProduction": {
+      "src/stepper.c": "09326367a812d02b4499a75351abcdd412075330b6c282c340a2c5003ca840c5",
+      "src/trsync.c": "5280841586c84b6c6498208d629edfa02a50e11da1ea5bd5d90b616c97dc4b41",
+      "host/src/homing/native-delta-port.ts": "0fe6992ef4f28d35868773a6b4d2f384cf59c50141a738922180cf5fef51a29a",
+      "host/src/homing/native-linear-port.ts": "cd891df39955538a6686142f112bbd4ee33a20de2e0bb3c7f735416f9745ba93",
+      "host/src/kinematics/delta.ts": "7c7f3fbb4dd5074dfa985252b4e61b9b49a5adda0f19709b0011cb6309e0efbd"
+    },
+    "independentReference": {
+      "method": "Compile actual src/stepper.c and src/trsync.c, with deterministic GPIO/timer/allocator stubs only; generic full-scheduled path. UBSan and ASan+UBSan, non-PIE for ASan per existing host convention.",
+      "result": {
+        "afterStop": -24,
+        "afterLate": -24,
+        "unboundAfterLate": -44,
+        "afterReset": -8,
+        "afterDuplicate": -6
+      },
+      "scope": "Stop discards pending and late commands until explicit reset; per-trsync registered-stepper ownership and duplicate inactive trigger. No board or physical timing acceptance.",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-c-reference-final-20261006.log",
+        "sha256": "d666ce8e7a52a135f09d118b84c7615800019346d8f70fbfd99e7d491256bdd0"
+      }
+    },
+    "observationOnly": {
+      "sourceSnapshot": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-observation-only-test-20261006.ts",
+        "sha256": "337924bba3c3bbfdf2db78298bd960d60ae2f6b65f7364466c5de7570bc2a6f0"
+      },
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-observation-only-run-20261006.log",
+        "sha256": "6873aae3644fbcc4dbb02e330e28ef7a7b226c1ae2dce5b9ca62c32edacc1b0a"
+      },
+      "passed": 1,
+      "terminalPosition": [
+        25,
+        -30.00000000000003,
+        9.700000000000045,
+        0
+      ],
+      "perMember": [
+        {
+          "events": 72,
+          "dropped": 0,
+          "discarded": 0,
+          "receivedBeforeRequested": 32
+        },
+        {
+          "events": 36,
+          "dropped": 0,
+          "discarded": 0,
+          "receivedBeforeRequested": 16
+        }
+      ],
+      "interpretation": "Original assertion passed once; no post-stop discarded command observed. This is not reproduction or closure of the historical mismatch."
+    },
+    "validation": {
+      "affected": {
+        "passed": 13,
+        "scope": "Original direct two-sample probe, direct six-point calibration, HTTP API two-sample probe and seven-point fit/save, six accepted serial boundary checks, four deterministic stop tests including actual C and same-frame late command/query.",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-affected-tests-20261006.log",
+          "sha256": "796f67df992c6fb837d8a07e09b3de8dc4a733499fc7fe0cfc721bf6317ae347"
+        }
+      },
+      "types": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-final-types-20261006.log",
+          "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+        }
+      },
+      "whitespace": {
+        "conclusion": "passed",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-whitespace-20261006.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "correctedObservation": {
+        "terminalPosition": [
+          25,
+          -30.00000000000003,
+          9.700000000000045,
+          0
+        ],
+        "result": {
+          "position": [
+            25,
+            -30.00000000000003,
+            9.750000000000043,
+            0
+          ],
+          "bed_position": [
+            23,
+            -27.00000000000003,
+            9.626543211000042
+          ],
+          "samples": [
+            [
+              25,
+              -30.00000000000003,
+              9.775000000000034,
+              0
+            ],
+            [
+              25,
+              -30.00000000000003,
+              9.725000000000051,
+              0
+            ]
+          ],
+          "retries": 0,
+          "attempts": 2,
+          "bedPosition": [
+            23,
+            -27.00000000000003,
+            9.626543211000042
+          ]
+        },
+        "hits": 2,
+        "wireStopObservations": [
+          {
+            "dropped": 0,
+            "events": [
+              {
+                "sequence": 1,
+                "receivedClock": 1656033,
+                "kind": "trsync_start",
+                "oid": 6
+              },
+              {
+                "sequence": 2,
+                "receivedClock": 1657289,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 6
+              },
+              {
+                "sequence": 3,
+                "receivedClock": 1658442,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 1,
+                "trigger": 6
+              },
+              {
+                "sequence": 4,
+                "receivedClock": 1659669,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 2,
+                "trigger": 6
+              },
+              {
+                "sequence": 5,
+                "receivedClock": 1660946,
+                "kind": "trigger",
+                "oid": 6,
+                "stopped": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "sequence": 6,
+                "receivedClock": 1664921,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 7,
+                "receivedClock": 1666096,
+                "kind": "reset_step_clock",
+                "oid": 1,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 8,
+                "receivedClock": 1667237,
+                "kind": "reset_step_clock",
+                "oid": 2,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 9,
+                "receivedClock": 1683686,
+                "kind": "trsync_start",
+                "oid": 6
+              },
+              {
+                "sequence": 10,
+                "receivedClock": 1687803,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 6
+              },
+              {
+                "sequence": 11,
+                "receivedClock": 1689050,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 1,
+                "trigger": 6
+              },
+              {
+                "sequence": 12,
+                "receivedClock": 1689191,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 2,
+                "trigger": 6
+              },
+              {
+                "sequence": 13,
+                "receivedClock": 1690339,
+                "kind": "trigger",
+                "oid": 6,
+                "stopped": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "sequence": 14,
+                "receivedClock": 1694326,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 15,
+                "receivedClock": 1695542,
+                "kind": "reset_step_clock",
+                "oid": 1,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 16,
+                "receivedClock": 1696839,
+                "kind": "reset_step_clock",
+                "oid": 2,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 17,
+                "receivedClock": 1799122,
+                "kind": "trsync_start",
+                "oid": 9
+              },
+              {
+                "sequence": 18,
+                "receivedClock": 1800438,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 9
+              },
+              {
+                "sequence": 19,
+                "receivedClock": 1801595,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 1,
+                "trigger": 9
+              },
+              {
+                "sequence": 20,
+                "receivedClock": 1802734,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 2,
+                "trigger": 9
+              },
+              {
+                "sequence": 21,
+                "receivedClock": 1808483,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 1900187,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1900187,
+                "endClock": 1900187
+              },
+              {
+                "sequence": 22,
+                "receivedClock": 1808499,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 1900187,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1900187,
+                "endClock": 1900187
+              },
+              {
+                "sequence": 23,
+                "receivedClock": 1808502,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1902885,
+                "endClock": 1905401
+              },
+              {
+                "sequence": 24,
+                "receivedClock": 1808504,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1902885,
+                "endClock": 1905401
+              },
+              {
+                "sequence": 25,
+                "receivedClock": 1808505,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1907901,
+                "endClock": 1942901
+              },
+              {
+                "sequence": 26,
+                "receivedClock": 1808507,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1907901,
+                "endClock": 1942901
+              },
+              {
+                "sequence": 27,
+                "receivedClock": 1846421,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1945401,
+                "endClock": 1992901
+              },
+              {
+                "sequence": 28,
+                "receivedClock": 1846434,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1945401,
+                "endClock": 1992901
+              },
+              {
+                "sequence": 29,
+                "receivedClock": 1896428,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1995401,
+                "endClock": 2042901
+              },
+              {
+                "sequence": 30,
+                "receivedClock": 1896442,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1995401,
+                "endClock": 2042901
+              },
+              {
+                "sequence": 31,
+                "receivedClock": 1946397,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2045401,
+                "endClock": 2092901
+              },
+              {
+                "sequence": 32,
+                "receivedClock": 1946405,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2045401,
+                "endClock": 2092901
+              },
+              {
+                "sequence": 33,
+                "receivedClock": 1956525,
+                "kind": "trigger",
+                "oid": 9,
+                "stopped": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "sequence": 34,
+                "receivedClock": 1964483,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 35,
+                "receivedClock": 1965632,
+                "kind": "reset_step_clock",
+                "oid": 1,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 36,
+                "receivedClock": 1966756,
+                "kind": "reset_step_clock",
+                "oid": 2,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 37,
+                "receivedClock": 1969088,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2172895,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2172895,
+                "endClock": 2172895
+              },
+              {
+                "sequence": 38,
+                "receivedClock": 1969093,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2172895,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2172895,
+                "endClock": 2172895
+              },
+              {
+                "sequence": 39,
+                "receivedClock": 1969095,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2175593,
+                "endClock": 2178109
+              },
+              {
+                "sequence": 40,
+                "receivedClock": 1969097,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2175593,
+                "endClock": 2178109
+              },
+              {
+                "sequence": 41,
+                "receivedClock": 1969099,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 12,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2180609,
+                "endClock": 2208109
+              },
+              {
+                "sequence": 42,
+                "receivedClock": 1969100,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 12,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2180609,
+                "endClock": 2208109
+              },
+              {
+                "sequence": 43,
+                "receivedClock": 1969102,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2715,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2210824,
+                "endClock": 2210824
+              },
+              {
+                "sequence": 44,
+                "receivedClock": 2112027,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2715,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2210824,
+                "endClock": 2210824
+              },
+              {
+                "sequence": 45,
+                "receivedClock": 2272123,
+                "kind": "trsync_start",
+                "oid": 6
+              },
+              {
+                "sequence": 46,
+                "receivedClock": 2274444,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 6
+              },
+              {
+                "sequence": 47,
+                "receivedClock": 2275620,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 1,
+                "trigger": 6
+              },
+              {
+                "sequence": 48,
+                "receivedClock": 2276817,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 2,
+                "trigger": 6
+              },
+              {
+                "sequence": 49,
+                "receivedClock": 2278012,
+                "kind": "trigger",
+                "oid": 6,
+                "stopped": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "sequence": 50,
+                "receivedClock": 2281855,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 51,
+                "receivedClock": 2282996,
+                "kind": "reset_step_clock",
+                "oid": 1,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 52,
+                "receivedClock": 2284083,
+                "kind": "reset_step_clock",
+                "oid": 2,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 53,
+                "receivedClock": 2385510,
+                "kind": "trsync_start",
+                "oid": 9
+              },
+              {
+                "sequence": 54,
+                "receivedClock": 2386689,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 9
+              },
+              {
+                "sequence": 55,
+                "receivedClock": 2387840,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 1,
+                "trigger": 9
+              },
+              {
+                "sequence": 56,
+                "receivedClock": 2388954,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 2,
+                "trigger": 9
+              },
+              {
+                "sequence": 57,
+                "receivedClock": 2392855,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2486389,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2486389,
+                "endClock": 2486389
+              },
+              {
+                "sequence": 58,
+                "receivedClock": 2392861,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2486389,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2486389,
+                "endClock": 2486389
+              },
+              {
+                "sequence": 59,
+                "receivedClock": 2392863,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2489087,
+                "endClock": 2491603
+              },
+              {
+                "sequence": 60,
+                "receivedClock": 2392865,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2698,
+                "count": 2,
+                "add": -182,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2489087,
+                "endClock": 2491603
+              },
+              {
+                "sequence": 61,
+                "receivedClock": 2392867,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2494103,
+                "endClock": 2529103
+              },
+              {
+                "sequence": 62,
+                "receivedClock": 2392868,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2494103,
+                "endClock": 2529103
+              },
+              {
+                "sequence": 63,
+                "receivedClock": 2432830,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2531603,
+                "endClock": 2579103
+              },
+              {
+                "sequence": 64,
+                "receivedClock": 2432835,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2531603,
+                "endClock": 2579103
+              },
+              {
+                "sequence": 65,
+                "receivedClock": 2483663,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2581603,
+                "endClock": 2629103
+              },
+              {
+                "sequence": 66,
+                "receivedClock": 2483667,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2581603,
+                "endClock": 2629103
+              },
+              {
+                "sequence": 67,
+                "receivedClock": 2533539,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2631603,
+                "endClock": 2679103
+              },
+              {
+                "sequence": 68,
+                "receivedClock": 2533544,
+                "kind": "queue_step",
+                "oid": 1,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2631603,
+                "endClock": 2679103
+              },
+              {
+                "sequence": 69,
+                "receivedClock": 2541373,
+                "kind": "trigger",
+                "oid": 9,
+                "stopped": [
+                  0,
+                  1,
+                  2
+                ]
+              },
+              {
+                "sequence": 70,
+                "receivedClock": 2549346,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 71,
+                "receivedClock": 2550484,
+                "kind": "reset_step_clock",
+                "oid": 1,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 72,
+                "receivedClock": 2551611,
+                "kind": "reset_step_clock",
+                "oid": 2,
+                "requestedClock": 0
+              }
+            ]
+          },
+          {
+            "dropped": 0,
+            "events": [
+              {
+                "sequence": 1,
+                "receivedClock": 1655615,
+                "kind": "trsync_start",
+                "oid": 3
+              },
+              {
+                "sequence": 2,
+                "receivedClock": 1658018,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 3
+              },
+              {
+                "sequence": 3,
+                "receivedClock": 1659259,
+                "kind": "trigger",
+                "oid": 3,
+                "stopped": [
+                  0
+                ]
+              },
+              {
+                "sequence": 4,
+                "receivedClock": 1664504,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 5,
+                "receivedClock": 1683278,
+                "kind": "trsync_start",
+                "oid": 3
+              },
+              {
+                "sequence": 6,
+                "receivedClock": 1686181,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 3
+              },
+              {
+                "sequence": 7,
+                "receivedClock": 1687389,
+                "kind": "trigger",
+                "oid": 3,
+                "stopped": [
+                  0
+                ]
+              },
+              {
+                "sequence": 8,
+                "receivedClock": 1693903,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 9,
+                "receivedClock": 1798711,
+                "kind": "trsync_start",
+                "oid": 5
+              },
+              {
+                "sequence": 10,
+                "receivedClock": 1800011,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 5
+              },
+              {
+                "sequence": 11,
+                "receivedClock": 1808086,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 1899710,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1899710,
+                "endClock": 1899710
+              },
+              {
+                "sequence": 12,
+                "receivedClock": 1808089,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2699,
+                "count": 2,
+                "add": -183,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1902409,
+                "endClock": 1904925
+              },
+              {
+                "sequence": 13,
+                "receivedClock": 1808091,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1907425,
+                "endClock": 1942425
+              },
+              {
+                "sequence": 14,
+                "receivedClock": 1846013,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1944925,
+                "endClock": 1992425
+              },
+              {
+                "sequence": 15,
+                "receivedClock": 1896024,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 1994925,
+                "endClock": 2042425
+              },
+              {
+                "sequence": 16,
+                "receivedClock": 1945980,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2044925,
+                "endClock": 2092425
+              },
+              {
+                "sequence": 17,
+                "receivedClock": 1954743,
+                "kind": "trigger",
+                "oid": 5,
+                "stopped": [
+                  0
+                ]
+              },
+              {
+                "sequence": 18,
+                "receivedClock": 1964058,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 19,
+                "receivedClock": 1968680,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2172429,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2172429,
+                "endClock": 2172429
+              },
+              {
+                "sequence": 20,
+                "receivedClock": 1968682,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2699,
+                "count": 2,
+                "add": -183,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2175128,
+                "endClock": 2177644
+              },
+              {
+                "sequence": 21,
+                "receivedClock": 1968683,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 12,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2180144,
+                "endClock": 2207644
+              },
+              {
+                "sequence": 22,
+                "receivedClock": 1968685,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2716,
+                "count": 1,
+                "add": 0,
+                "direction": 1,
+                "discarded": false,
+                "firstClock": 2210360,
+                "endClock": 2210360
+              },
+              {
+                "sequence": 23,
+                "receivedClock": 2271698,
+                "kind": "trsync_start",
+                "oid": 3
+              },
+              {
+                "sequence": 24,
+                "receivedClock": 2274018,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 3
+              },
+              {
+                "sequence": 25,
+                "receivedClock": 2275193,
+                "kind": "trigger",
+                "oid": 3,
+                "stopped": [
+                  0
+                ]
+              },
+              {
+                "sequence": 26,
+                "receivedClock": 2281429,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              },
+              {
+                "sequence": 27,
+                "receivedClock": 2383927,
+                "kind": "trsync_start",
+                "oid": 5
+              },
+              {
+                "sequence": 28,
+                "receivedClock": 2385085,
+                "kind": "stepper_stop_on_trigger",
+                "oid": 0,
+                "trigger": 5
+              },
+              {
+                "sequence": 29,
+                "receivedClock": 2392446,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2485936,
+                "count": 1,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2485936,
+                "endClock": 2485936
+              },
+              {
+                "sequence": 30,
+                "receivedClock": 2392448,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2699,
+                "count": 2,
+                "add": -183,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2488635,
+                "endClock": 2491151
+              },
+              {
+                "sequence": 31,
+                "receivedClock": 2392450,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 15,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2493651,
+                "endClock": 2528651
+              },
+              {
+                "sequence": 32,
+                "receivedClock": 2432408,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2531151,
+                "endClock": 2578651
+              },
+              {
+                "sequence": 33,
+                "receivedClock": 2482100,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2581151,
+                "endClock": 2628651
+              },
+              {
+                "sequence": 34,
+                "receivedClock": 2533117,
+                "kind": "queue_step",
+                "oid": 0,
+                "interval": 2500,
+                "count": 20,
+                "add": 0,
+                "direction": -1,
+                "discarded": false,
+                "firstClock": 2631151,
+                "endClock": 2678651
+              },
+              {
+                "sequence": 35,
+                "receivedClock": 2539659,
+                "kind": "trigger",
+                "oid": 5,
+                "stopped": [
+                  0
+                ]
+              },
+              {
+                "sequence": 36,
+                "receivedClock": 2548919,
+                "kind": "reset_step_clock",
+                "oid": 0,
+                "requestedClock": 0
+              }
+            ]
+          }
+        ],
+        "scope": "Receive-count software model; requested clocks and C stop ownership observed, physical execution timing not emulated"
+      },
+      "performanceScope": "No production host or MCU code changed; original probe/calibration scope, geometry, sensor counts, timing and 1e-10 XY assertion retained. No causal timing or target-board performance claim.",
+      "probeWallMs": [
+        {
+          "run": 0,
+          "api": false,
+          "wallMs": 808.0036040000001
+        },
+        {
+          "run": 0,
+          "api": true,
+          "wallMs": 882.0649599999997
+        }
+      ]
+    },
+    "invariants": [
+      "Accepted command observer only; no decoder replay or duplicate frame actions",
+      "Stop only the actual per-MCU registered stepper IDs; inactive trigger cannot affect an unbound or reinitialized owner",
+      "Only reset_step_clock clears the stop latch; trsync_start does not",
+      "Retain 128 bounded diagnostic events per MCU; requested clocks recorded but physical tick execution not modeled",
+      "No motion/math/default-entry change; original failure and G3 retained"
+    ],
+    "initialFailures": [
+      {
+        "reason": "TS parameter property unsupported by Node strip-only; used ordinary readonly field without runtime transforms",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-c-reference-20261006.log",
+          "sha256": "177440a11de7f85427e1cb6c60baabe6643a1b92a46ee2e91f6a5ef9a6e4baeb"
+        }
+      },
+      {
+        "reason": "C host stub initially omitted DIV_ROUND_UP; supplied standard positive tick macro, kept compiler warnings as errors",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-c-reference-compile-failure-20261006.log",
+          "sha256": "08dae52e8387e332e21117de9afc2e708988d36865acabc261148e544a054601"
+        }
+      },
+      {
+        "reason": "Initial test command ran at repository root with host-relative path; no test executed; corrected working directory once",
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-delta-stop-observation-path-failure-20261006.log",
+          "sha256": "59eb482ebe51c5570f7d011be074d5c9bfcc21a65ec0559382164058be41f950"
+        }
+      }
+    ],
+    "remaining": [
+      "Exact-head full required CI and normal develop PR integration",
+      "Historical intermittent terminal failure cause remains unproven",
+      "Original calibration precision/clock mismatch and full G3",
+      "Same-bundle client, complete Moonraker and Python retirement, Cycnumbris 500 target board and physical acceptance"
+    ]
+  }
 }
