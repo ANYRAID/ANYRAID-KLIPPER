@@ -10,6 +10,7 @@
   "include": [
     "src/**/*.ts",
     "../scripts/product-host.ts",
+    "../scripts/product-client.ts",
     "../scripts/product-service-unit.ts",
     "../scripts/product-install.ts",
     "../scripts/product-preflight.ts",

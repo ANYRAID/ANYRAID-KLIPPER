@@ -2820,3 +2820,49 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 已能进入 Standby 和作业页面。页面上传等未完成项仍阻止完整流程声明。
 默认探针仍
 使用凭据模式，Fluidd 的登录验收入口不变。
+
+### 受保护的官方 Mainsail 接入候选
+
+固定官方 Mainsail 2.19.0 的连接初始化不提交本项目的原生用户凭据。
+可选的 `product-client` 入口提供产品登录页，复用原生 Moonraker 用户及
+JWT 授权，不新增打印、文件、历史或运动所有者。默认入口仍为 Python。
+登录成功后打开 `/_client/control`，其 iframe 在 `/` 加载原版 Mainsail；
+官方导航路径返回相同的安装版 index，避免子路径出现空白页面。
+登录、退出、API 和控制台导航始终访问网络；官方 Service Worker 原字节
+由边界包装器加载，不能以缓存前端页面替代会话或 API 响应。
+
+编译包包含 `scripts/product-client.js`。它作为独立的受监督进程运行，
+只监听 127.0.0.1，并要求显式固定的私有原生 Moonraker 回环监听地址：
+
+```sh
+node /installed/product/scripts/product-client.js \
+  --origin https://printer.example.com \
+  --upstream http://127.0.0.1:7125 \
+  --assets /installed/mainsail-2.19.0 --port 8080
+```
+
+外部 HTTPS 由现有 TLS 代理提供，保留准确的 Host；代理应将该站点的
+全部 HTTP／WebSocket 路径转发至此入口，并支持 Upgrade。原生监听器
+保持私有、启用本项目原生用户授权；禁止把打印文件／配置可写目录用作
+`--assets`。前端资源须来自受信安装目录。本候选未自动安装 systemd、
+TLS 或权限规则，不构成生产安装验收。仅本机开发可以显式使用
+`--origin http://127.0.0.1:8080 --loopback-http`；公网 HTTP 会被拒绝。
+
+浏览器只持有随机、HttpOnly、SameSite=Strict 的会话句柄；HTTPS 使用
+Secure Cookie。用户 JWT／刷新凭据只驻留网关内存，会话最多 24 小时，
+请求不能用自身身份头覆盖会话身份。原生授权决定账号、权限及操作准入；
+网关不重试修改请求或重放作业。网关重启会要求重新登录，不自动恢复
+打印。退出先调用原生注销，再清除本地会话和连接；原生注销失败时仍
+清除本地句柄，但不会声称服务器凭据已经撤销。关闭网关不注销其他
+客户端。默认上限为 128 会话、50 个 WebSocket、256 个活动请求；
+WebSocket 单帧 1 MiB、全局发送缓冲 8 MiB，有界请求与流式回压保留。
+
+独立 JavaScript 包验证命令为
+`node --test host/test/product-client-gateway-compiled.test.ts`；
+必要网络对照为 `node host/bench/product-client-gateway.ts`。每份样本保持
+原网络基准的 200 REST、200 HTTP JSON-RPC、500 WebSocket 及 16 并发
+320 次负载，3 次预热、至少 11 份保留样本。桌面同进程对照有可测 HTTP
+代理开销；不能解释成目标板、TLS、混合打印或零退化通过。受保护页面、
+原始失败及数值见[接入验收](../host/contracts/protected-client-gateway-acceptance.json)。
+完整同包 Fluidd／Mainsail、进程崩溃恢复、目标板、G3 和全面 Python
+退役仍待完成。
