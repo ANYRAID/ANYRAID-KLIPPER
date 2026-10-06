@@ -20,9 +20,18 @@ test('failed calibration does not report success or postpone error propagation',
 for(const target of ['m','a'])test(`paced motion automatically recalibrates MCU ${target} across multiple periods`,async t=>{
  const f=await rebuiltFixture(false,false,false,false,true),clock=new PrintClockTimeline({offset:0,frequency:1e6}),signal=new AbortController().signal;try{
   const sync=new SecondarySync(f.options.group.session(target==='m'?'a':'m').clock.sync,f.options.group.session(target).clock.sync,0,{offset:0,frequency:1e6,syncTime:0});
+  let deferred=0;
+  if(target==='m'){
+   const apply=sync.tryApplyShared.bind(sync);
+   t.mock.method(sync,'tryApplyShared',(...[candidate,timeline,coordinator,ids]:Parameters<SecondarySync['tryApplyShared']>)=>{
+    if(!deferred){deferred++;assert.equal(timeline.status.segments,1);for(const b of f.options.motion.bindings)assert.deepEqual(b.stepper.calibration,{offset:0,frequency:1e6});return false;}
+    return apply(candidate,timeline,coordinator,ids);
+   });
+  }
   const g=await bindRebuiltMotion({...f.options,clockTimelines:['m','a'].map(id=>({id,timeline:id===target?clock:new PrintClockTimeline({offset:0,frequency:1e6}),synchronizer:id===target?sync:undefined}))}),q=new LookAheadQueue();
   q.add(new Move(motionLimits(100,1000),[50,0,0,2],[55,0,0,2],1));await new RebuiltMotionStreamer(g).append(q.flush(),signal);await g.source.drain([],signal);
   assert(clock.status.segments>=3);for(const b of g.motion.bindings)assert.deepEqual(b.stepper.calibration,target==='m'?clock.status.calibration:{offset:0,frequency:1e6});assert.equal(g.motion.bindings[0].history.status.lastPlannedPosition,600n);assert.equal(f.stops,0);
+  assert.equal(deferred,Number(target==='m'));
   // Firmware drain can cross another one-second deadline. Snapshot one
   // synchronous slot: a due update is valid, but no slot can publish twice.
   const now=serialClock.now(),frozen=t.mock.method(serialClock,'now',()=>now);

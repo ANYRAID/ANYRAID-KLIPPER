@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 #include "stepcompress.h"
 #include "msgblock.h"
 #include "trapq-handle.h"
@@ -131,6 +132,30 @@ static napi_value flush(napi_env env,napi_callback_info info) {
     CHECK(napi_set_named_property(env,result,"messages",messages));CHECK(napi_set_named_property(env,result,"history",history));CHECK(napi_set_named_property(env,result,"position",position));
     message_queue_free(&h->messages);stepcompress_history_expire(h->sc,UINT64_MAX);h->pending=stepcompress_pending_steps(h->sc);h->flushed_clock=barrier>h->flushed_clock?barrier:h->flushed_clock;h->failed=0;return result;
 }
+/* Failure-only evidence. Preserve the guard, rounding and accepted pulse data. */
+static napi_value reject_calibration_overlap(napi_env env,struct handle *h,
+        bool apply,uint64_t clock,uint64_t latest,double time,double raw) {
+    const char *code=!apply&&clock>=h->flushed_clock&&h->total&&clock==latest
+        ?"ERR_CLOCK_CALIBRATION_ANCHOR_PULSE":"ERR_CLOCK_CALIBRATION_OVERLAP";
+    napi_value code_value,message,error,details,value;
+    CHECK(napi_create_string_utf8(env,code,NAPI_AUTO_LENGTH,&code_value));
+    CHECK(napi_create_string_utf8(env,"Calibration would overlap previously accepted step clocks",NAPI_AUTO_LENGTH,&message));
+    CHECK(napi_create_range_error(env,code_value,message,&error));
+    CHECK(napi_create_object(env,&details));
+    /* Solver accounting is an estimate, not an observed physical pulse count. */
+    const char *names[]={"candidateClock","latestClock","flushedClock","stepAccounting"};
+    uint64_t clocks[]={clock,latest,h->flushed_clock,h->total};
+    for(size_t i=0;i<4;i++){
+        char buffer[32];snprintf(buffer,sizeof(buffer),"%llu",(unsigned long long)clocks[i]);
+        CHECK(napi_create_string_utf8(env,buffer,NAPI_AUTO_LENGTH,&value));
+        CHECK(napi_set_named_property(env,details,names[i],value));
+    }
+    CHECK(napi_create_double(env,time,&value));CHECK(napi_set_named_property(env,details,"generatedTime",value));
+    CHECK(napi_create_double(env,raw,&value));CHECK(napi_set_named_property(env,details,"candidateRawClock",value));
+    CHECK(napi_get_boolean(env,apply,&value));CHECK(napi_set_named_property(env,details,"applying",value));
+    CHECK(napi_set_named_property(env,error,"calibrationBoundary",details));
+    CHECK(napi_throw(env,error));return NULL;
+}
 static napi_value calibrate_clock(napi_env env,napi_callback_info info) {
     size_t argc=4;napi_value args[4];CHECK(napi_get_cb_info(env,info,&argc,args,NULL,NULL));if(argc!=4)REJECT("Expected handle, offset, frequency and apply flag");
     struct handle *h=get(env,args[0],0);if(!h)return NULL;
@@ -143,7 +168,8 @@ static napi_value calibrate_clock(napi_env env,napi_callback_info info) {
         double raw=(time-offset)*frequency,converted=raw+.5;
         if(!isfinite(converted)||raw<0||converted>9007199254740991.)REJECT("Calibration exceeds exact clock range");
         uint64_t clock=(uint64_t)converted;
-        if(clock<h->flushed_clock||(h->total&&clock<=latest))REJECT("Calibration would overlap previously accepted step clocks");
+        if(clock<h->flushed_clock||(h->total&&clock<=latest))
+            return reject_calibration_overlap(env,h,apply,clock,latest,time,raw);
     }
     napi_value result;CHECK(napi_get_undefined(env,&result));
     if(apply){stepcompress_set_time(h->sc,offset,frequency);h->offset=offset;h->frequency=frequency;}
