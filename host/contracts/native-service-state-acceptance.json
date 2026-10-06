@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "status": "candidate-failed-clock-gate",
+  "status": "combined-candidate-local-validation-passed-ci-pending",
   "date": "2026-10-06",
   "runtime": "Node.js 26.10.0",
   "base": "796e65d993c3a8894967411de91cbec4501f8a6f",
@@ -339,5 +339,302 @@
     "Complete supported Fluidd/Mainsail real page journeys including upload/reconnect/authorization",
     "Cycnumbris 500 wiring/configuration, target performance and physical motion/precision gates",
     "All 177 Python sources, default runtime, daily tools and Python-based CI retirement; complete Moonraker/macros; normal master release; other machine families last"
-  ]
+  ],
+  "initialCandidateStatus": "candidate-failed-clock-gate",
+  "currentIntegration": {
+    "date": "2026-10-06",
+    "sourceMerge": "796b741419598874cb6aa66c69c00bad2ab8e870",
+    "sourceValidationCommit": "b57d5ee6bccadc81d4a0d1ee5bbff67c8265049e",
+    "developBase": "6ad9f5950ad0a6e1b45d68866484fddce342aa21",
+    "networkCandidate": "e4683d7c869087d8278bc7803daa0ef73c5a17d8",
+    "networkPr": 9,
+    "networkStatusAtValidation": "draft-exact-head-ci-running-not-integrated",
+    "oldExactHead": {
+      "head": "5745045cc553e448204e2a5aac7cc3272982d552",
+      "hostRun": 37350302011,
+      "buildRun": 37350302012,
+      "conclusion": "success"
+    },
+    "typecheck": "passed",
+    "whitespace": "passed",
+    "focused": {
+      "tests": 83,
+      "passed": 83,
+      "failed": 0,
+      "durationMs": 84001.126835
+    },
+    "benchmark": {
+      "node": "v26.10.0",
+      "scope": "CPU-only cached system_info serialization and synthetic service polls: maximum 64 services, 5000 queries and 500 polls per round, 8 alternating rounds, first 2 warm-up rounds excluded. No subprocess, Python baseline, target board or physical print timing.",
+      "baseline": [
+        {
+          "queries": {
+            "medianUs": 3.731000000016138,
+            "p99Us": 4.450000000133514
+          },
+          "polls": {
+            "medianUs": 0.14999999984866008,
+            "p99Us": 0.27000000000043656
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.602559,
+          "loopMaxMs": 1.602559
+        },
+        {
+          "queries": {
+            "medianUs": 3.7399999998797284,
+            "p99Us": 4.380000000082873
+          },
+          "polls": {
+            "medianUs": 0.1300000001265289,
+            "p99Us": 0.26000000002568413
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.598463,
+          "loopMaxMs": 1.598463
+        },
+        {
+          "queries": {
+            "medianUs": 3.7300000001323497,
+            "p99Us": 4.639999999881184
+          },
+          "polls": {
+            "medianUs": 0.14000000010128133,
+            "p99Us": 0.6399999999757711
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.371135,
+          "loopMaxMs": 1.371135
+        },
+        {
+          "queries": {
+            "medianUs": 3.7300000001323497,
+            "p99Us": 4.689999999982319
+          },
+          "polls": {
+            "medianUs": 0.1700000000255386,
+            "p99Us": 0.31000000012681994
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.626111,
+          "loopMaxMs": 1.626111
+        },
+        {
+          "queries": {
+            "medianUs": 3.750000000309228,
+            "p99Us": 16.889999999875727
+          },
+          "polls": {
+            "medianUs": 0.16000000005078618,
+            "p99Us": 0.2600000002530578
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.596415,
+          "loopMaxMs": 1.596415
+        },
+        {
+          "queries": {
+            "medianUs": 3.749999999854481,
+            "p99Us": 12.760000000071159
+          },
+          "polls": {
+            "medianUs": 0.14999999984866008,
+            "p99Us": 0.3299999998489511
+          },
+          "notifications": 0,
+          "loopP99Ms": 1.380351,
+          "loopMaxMs": 1.380351
+        }
+      ],
+      "enabled": [
+        {
+          "queries": {
+            "medianUs": 49.09099999997579,
+            "p99Us": 66.3600000000315
+          },
+          "polls": {
+            "medianUs": 105.19199999998818,
+            "p99Us": 205.94200000005003
+          },
+          "notifications": 32000,
+          "loopP99Ms": 7.172095,
+          "loopMaxMs": 7.245823
+        },
+        {
+          "queries": {
+            "medianUs": 49.12999999987733,
+            "p99Us": 60.32999999979438
+          },
+          "polls": {
+            "medianUs": 100.161000000071,
+            "p99Us": 112.24100000004
+          },
+          "notifications": 32000,
+          "loopP99Ms": 6.311935,
+          "loopMaxMs": 6.365183
+        },
+        {
+          "queries": {
+            "medianUs": 49.28100000006452,
+            "p99Us": 65.58100000006561
+          },
+          "polls": {
+            "medianUs": 100.24100000009639,
+            "p99Us": 114.25199999985125
+          },
+          "notifications": 32000,
+          "loopP99Ms": 6.500351,
+          "loopMaxMs": 6.602751
+        },
+        {
+          "queries": {
+            "medianUs": 49.10999999992782,
+            "p99Us": 60.24100000013277
+          },
+          "polls": {
+            "medianUs": 100.13100000014674,
+            "p99Us": 111.59100000031685
+          },
+          "notifications": 32000,
+          "loopP99Ms": 6.373375,
+          "loopMaxMs": 6.393855
+        },
+        {
+          "queries": {
+            "medianUs": 49.11099999981161,
+            "p99Us": 60.97100000033606
+          },
+          "polls": {
+            "medianUs": 99.97100000009596,
+            "p99Us": 114.4920000001548
+          },
+          "notifications": 32000,
+          "loopP99Ms": 6.373375,
+          "loopMaxMs": 6.389759
+        },
+        {
+          "queries": {
+            "medianUs": 49.051000000417844,
+            "p99Us": 125.35200000002078
+          },
+          "polls": {
+            "medianUs": 100.07099999984348,
+            "p99Us": 226.20299999971394
+          },
+          "notifications": 32000,
+          "loopP99Ms": 7.622655,
+          "loopMaxMs": 8.179711
+        }
+      ]
+    },
+    "compiled": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "durationMs": 72508.174827,
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-service-provider/host/build/service-network-bundle",
+      "manifestSha256": "1544fbf23b68b2aeb1f4daba4a8b78a0af73808dfc7d29fd73a0802b13702ca5",
+      "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+      "services": {
+        "syntheticSystemd": true,
+        "samples": 34,
+        "failedQueries": 1,
+        "queries": 1972,
+        "queryP99Ms": 9.180849000000308,
+        "notifications": 128,
+        "authorizedNotifications": true,
+        "sharedNativeUnit": true
+      },
+      "networkChanges": {
+        "sourceSamples": 7,
+        "notifications": 20,
+        "authorizedObservers": 4,
+        "failedCommandRetained": true,
+        "deviceGenerations": [
+          1,
+          2
+        ],
+        "systemQueries": 606,
+        "systemQueryP99Ms": 10.3447840000008
+      },
+      "queue": {
+        "groups": 16,
+        "printingGenerations": [
+          1,
+          2
+        ],
+        "queries": 2345,
+        "queryP99Ms": 4.799081999999544,
+        "durableMutations": 64,
+        "actualStartRequestPrefix": "queue-",
+        "journalCompleted": true,
+        "authorizedNotifications": true,
+        "noAutomaticReplay": true
+      },
+      "printing": {
+        "statusRequests": 40577,
+        "statusP99Ms": 4.397466999999779,
+        "minimumStepLeadMs": 78.91,
+        "generations": [
+          {
+            "loop": {
+              "p99Ms": 2.070527,
+              "maxMs": 18.857983
+            },
+            "cpu": {
+              "user": 13048731,
+              "system": 2578867
+            },
+            "rss": 341295104
+          },
+          {
+            "loop": {
+              "p99Ms": 2.024447,
+              "maxMs": 16.580607
+            },
+            "cpu": {
+              "user": 8107124,
+              "system": 1869830
+            },
+            "rss": 397639680
+          }
+        ]
+      }
+    },
+    "sourceSha256": {
+      "host/src/moonraker/system-services.ts": "f27ee7ff0bbdb8adfd6009fd06900704efe259c5e7f66d34cf1ad48f6743c6ed",
+      "host/src/moonraker/configured-server.ts": "bedc2880e97c72a33bab02abe2704368f688c8a711cde9ed20036ce46203c9fa",
+      "host/src/runtime/product-service.ts": "458bf73a44743b8861aa9dafd0a36873d700b86d3dd1e0f9fd114317b886a9f2",
+      "host/src/runtime/native-product-machine.ts": "a68f4cdf5af186b59c10782e0151f41fc8d1f4c6e07c08f6f1495fab45b49ca0",
+      "host/test/system-services.test.ts": "843d8405d61a280fe34a7aabadb8a255b508ee0702558bda431825a747267e86",
+      "host/test/configured-system-services.test.ts": "c5290751e00cee65d12cf4899158616d40bb3c7a39e230b33de490d3e96a6db7",
+      "host/test/product-service.test.ts": "ccaaffe96dbb8c6b0c9b5fc1f8286951d906af18fe0e77c5d56543b5d1a08c8b",
+      "host/test/node-motion-probe.test.ts": "bd831e6a0c8b406cb88b77dfa837ec82cb4104096e9e3ba0e8421971db47aed9",
+      "host/test/manual-delta-preflight.test.ts": "4b995d127d5793ee900321a6f5aec3e6c2f0a77cbc636f794bd93e2ec8fed2d9",
+      "host/test/helpers/step-clock-diagnostic.ts": "67b13490952d87ce5be338debfd401aded6679be0bee0ee98a5fbbab1e6e484d",
+      "host/bench/system-services.ts": "b77b85a6f53b18b08d7bf42d039b48a2ccc599f5614dbf870831da0c220f35c1",
+      "host/acceptance/product-compiled-journey.test.ts": "9a02463f68985ce71fe6839b38b0ec52a3146f4db510e9d550d83369bed85547",
+      "host/src/moonraker/system-information.ts": "43f26be7425f3951be6ca35b18befdf2e04660910ed2b5b385ba323327e57abb",
+      "host/native/stepcompress.c": "d6bcdd6e37d031d1d99eecf23eb230ff5a257bea2d5fac8386fa5f85045478b2",
+      "host/src/runtime/rebuilt-motion.ts": "20484904a919c30f34054c57a8209599c60a428a0e11d1b74390711a7227aa30",
+      "host/src/timing/secondary-sync.ts": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+      "host/test/clock-calibration.test.ts": "705c5fc7e9c0c199f25d7cc37a2077c133a056bf641f06e761a21e4e44c323d5",
+      "host/test/secondary-sync.test.ts": "f6147f6fd06c0764d2effddc98131dd6c480cd448acccc888d97668faa9197ae",
+      "host/test/periodic-clock-calibration.test.ts": "92fb3ea94cc3446967bc22147ca217f43d6a627e7e4c6368f7648a8719b24ab2"
+    },
+    "logSha256": {
+      "anyraid-service-network-native-20261006.log": "26e3cfe4e3e6af281f52dee3994485b06d02fc739e7b36ff8c5b62523e250a5d",
+      "anyraid-service-network-type-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+      "anyraid-service-network-whitespace-20261006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "anyraid-service-network-focused-20261006.log": "775cdf62c5cd04e71e24c00f910aa2418dd4edeeff2d847983cee830f4537f90",
+      "anyraid-service-network-focused-final-20261006.log": "de329cd13b54aef9c5bc767ed3ccaacbcbd29cbc20979f0282347ec6d0372ca2",
+      "anyraid-service-network-benchmark-20261006.log": "f32fb1a4782728907403a2f3d291a9cf2d260fe7fe0a0d5ab96b8f66bd090e6f",
+      "anyraid-service-network-bundle-build-20261006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "anyraid-service-network-bundle-install-20261006.log": "0a58f35ee974841afd1f56940d8ab8f19bd8fdf7db4d092fd256e5a844f57357",
+      "anyraid-service-network-bundle-identity-20261006.log": "426acf79c7fa758f2848b10bebe22deb4c161b08506f90a61e6bfdd828629743",
+      "anyraid-service-network-compiled-20261006.log": "d0e6f8efd109bbd34ab2ca79e0e21913719f55ade89fc879de802530f9c7315d"
+    },
+    "preservedIntegrationFailure": "First combined owner run still expected the pre-network system_info structure. Fixture and exact full-object assertion now include network/canbus; backend logic and all authorization, timing, stop and precision gates unchanged. First run retained; final affected combination rerun after this actual test change.",
+    "scope": "One independent installed compiled package includes network events, read-only services, queue and unchanged print/file/stop workloads on simulated MCU. No real network/service mutation, target-board or physical print-speed conclusion. Exact-head and postmerge gates, complete M4, clients and G3 remain open."
+  }
 }
