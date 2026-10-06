@@ -1755,5 +1755,156 @@
     },
     "productionBundleChanged": false,
     "scope": "Copy exactly repaired upstream fixture; unknown options still reject, cleanup of unexpected accepted profile and native two-generation CORS/auth positive checks. Source coverage only, not whole CI."
+  },
+  "integratedProtectedClientCandidate": {
+    "date": "2026-10-07",
+    "sourceHead": "56054e432b715995d9e63702793815546307d3dd",
+    "base": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+    "gateway": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+    "composition": "Normal merges into existing isolated integration branch, retaining preparation pause and conflict reasons; no live PR head change",
+    "identity": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-client-bundle",
+      "manifestSha256": "59ce98b0854a0b9d079c921c15cd11d771a950ef71ef36fe2c5733a9b580e953",
+      "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb"
+    },
+    "regressions": {
+      "parents": 21,
+      "pass": 21,
+      "fail": 0,
+      "durationMs": 7081.143412,
+      "compiledChildren": {
+        "gatewayAndAssets": 8,
+        "cors": 2
+      },
+      "scope": "Includes compiled wrappers; children overlap, not summed as independent cases"
+    },
+    "typecheck": "exit0",
+    "actualMainsail": {
+      "frontend": "2.19.0",
+      "sourceCommit": "5fb9e77fb9f4e60cf0725d9dc7f57cf7b84bbd70",
+      "nativeForceLogins": true,
+      "browserIdentity": "Native operator through gateway session, no trusted-loopback or shared API key",
+      "realChooser": {
+        "filename": "整合验收 50%.gcode",
+        "bytes": 20123,
+        "elapsedMs": 34.16909199999645,
+        "status": 200
+      },
+      "thumbnail": "Browser PNG request 200; dimensions not newly measured",
+      "download": {
+        "filename": "整合验收 50%.gcode",
+        "failure": null,
+        "sha256": "768c861f8b9f6193d3cea871fa31d7d9bb29cf0e5931306031679b5d3c6e0bf8",
+        "matchesSource": true
+      },
+      "short": "Explicit page print completed,10s motion/1mm filament/14s total; seeded sample excluded",
+      "long": {
+        "filename": "控制验收 50%.gcode",
+        "separateChooserMs": 45.8454769999953,
+        "status": 200,
+        "path": "Explicit separate start, pause, actual refresh with paused retained, resume/pause/cancel; no mutation retries",
+        "terminal": "cancelled with deviceShutdown observed"
+      },
+      "firmwareRestart": {
+        "explicitPage": true,
+        "samePrivatePort": 39497,
+        "oldMcu": [
+          {
+            "resets": 0,
+            "configurations": 1
+          },
+          {
+            "resets": 0,
+            "configurations": 1
+          }
+        ],
+        "newMcu": [
+          {
+            "resets": 1,
+            "configurations": 2
+          },
+          {
+            "resets": 1,
+            "configurations": 2
+          }
+        ]
+      },
+      "history": "Actual page:2 jobs,completed short/cancelled long; no implicit replay after firmware restart",
+      "logout": "Click observed; immediate cookie inspection still had session, driver closed before completion barrier. No completed logout/API401 claim for this packet",
+      "scope": "Same-package Mainsail partial path; Fluidd/preparation pause/config/queue/system/process-crash/physical paths not newly accepted"
+    },
+    "compatibilityGap": {
+      "action": "Official Mainsail Upload & Print",
+      "chooserMs": 58.208614000002854,
+      "httpStatus": 400,
+      "pageAlert": "Cannot upload the file!",
+      "source": "NativePrintUploads explicitly rejects print:true; separate durable start required",
+      "decision": "Successful separate upload/start does not close combination flow"
+    },
+    "toolFailures": [
+      "First plain-pipe browser driver exited0 with no actions because stdin closed",
+      "Missing space in local chooser path:ENOENT, no upload; corrected original bytes",
+      "Two matching cells caused strict locator rejection; inspect then choose unique text cell",
+      "Logout observation closed driver before asynchronous barrier",
+      "First receipt writer nested git subprocess got sandbox EPERM despite emitted HEAD; no receipt written or commit created, rerun writer without subprocess"
+    ],
+    "cleanup": {
+      "native": "Normal TERM, exit0, package unchanged verified",
+      "gateway": "Normal TERM,exit0",
+      "browser": "Close and EOF,exit0"
+    },
+    "artifacts": [
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-client-build-20261007.log",
+        "sha256": "d4289bbcd6ac2ba9a72bc27e7d969109e2c17bbf40eea9e5769d019832d140b2"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-client-regressions-20261007.log",
+        "sha256": "9586e66707f8bec71357f4345a1ae9877b91ddc283961b645d00cc44687b7af6"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-native-page-20261007.log",
+        "sha256": "1f24d25e319dfeedb3ecab4673cceab225bd5a80db02c54117458bd9e40e416c"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-cli-page-20261007.log",
+        "sha256": "6f9547baa67255871db4a71da09e5200c487fae2188e94b2d5961ed61a36a601"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-page-public-evidence-20261007.log",
+        "sha256": "831ae15770798c4af3e028a6b6821e711451239ea1a70d44e656ddbf3d8d1d86"
+      },
+      {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-integrated-protected-history-20261007.png",
+        "sha256": "5d5f349d72e4498dd810784dd0d2cba1e528da523292fca78034651534f72081"
+      }
+    ],
+    "integration": {
+      "pr19": {
+        "merge": "4e731894304de04a34bd7077334c6ad4cd3c6b49",
+        "exactHead": "All prescribed checks success",
+        "postMergeHost": 37520881231,
+        "hostAtReceipt": "Ordinary/protocol success;sanitizer in_progress",
+        "postMergeFirmware": 37520881307,
+        "firmware": "success"
+      },
+      "pr23": {
+        "head": "5f92b95a127b2be62245b981b0e7530fe37d835e",
+        "workflow": 37520679682,
+        "ordinary": {
+          "pass": 4057,
+          "fail": 2
+        },
+        "failures": [
+          "Delta terminal XY differs at original 1e-10 tolerance",
+          "Metadata source inode open after worker termination"
+        ],
+        "remainingPhases": "Protocol/sanitizer/Linux MCU skipped",
+        "firmware": "success",
+        "selfReviewComment": 6024395847
+      },
+      "pr24": "Independent cleanup repair; current exact-head CI pending, no original root-cause closure"
+    },
+    "remaining": "Complete same-package clients,original failures,G3/target performance/precision/physical acceptance,all Python retirement and default release open"
   }
 }
