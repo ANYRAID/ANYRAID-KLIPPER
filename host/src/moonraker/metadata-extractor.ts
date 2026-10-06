@@ -12,13 +12,14 @@ interface Pending {cancel:Int32Array;finish:(error:unknown,value?:MetadataExtrac
  * whole instance; create a new instance explicitly after handling the fault. */
 export class MetadataExtractor {
  #worker:Worker;#pending=new Map<number,Pending>();#next=0;#closed=false;#closing:Promise<void>|undefined;#options:Required<MetadataExtractorOptions>;
+ #exit=Promise.withResolvers<void>();#exited=false;
  private constructor(options:Required<MetadataExtractorOptions>){this.#options=options;this.#worker=new Worker(workerEntry('./metadata-extractor-worker.ts',import.meta.url),{workerData:options,execArgv:[],resourceLimits:{maxOldGenerationSizeMb:128,maxYoungGenerationSizeMb:16,stackSizeMb:4}});}
  static async open(input:MetadataExtractorOptions={}):Promise<MetadataExtractor>{
   const options={maxPending:input.maxPending??4,timeoutMs:input.timeoutMs??5000,maxFileBytes:input.maxFileBytes??16*1024**3,maxOutputBytes:input.maxOutputBytes??256*1024};
   for(const [name,max,min] of [['maxPending',64,1],['timeoutMs',60000,1],['maxFileBytes',1024**4,0],['maxOutputBytes',1024**2,1]] as const)if(!Number.isSafeInteger(options[name])||options[name]<min||options[name]>max)throw new RangeError('Invalid metadata extraction capacity');
   const instance=new MetadataExtractor(options),ready=Promise.withResolvers<void>();
   instance.#worker.on('error',error=>{ready.reject(error);instance.#fail(error);});
-  instance.#worker.on('exit',()=>{const error=new ApiError(503,'Metadata extraction worker exited');ready.reject(error);instance.#fail(error);});
+  instance.#worker.on('exit',()=>{const error=new ApiError(503,'Metadata extraction worker exited');ready.reject(error);instance.#fail(error);instance.#exited=true;instance.#exit.resolve();});
   instance.#worker.on('message',message=>{
    if(message.ready){ready.resolve();return;}
    const pending=instance.#pending.get(message.id);if(!pending)return;
@@ -47,14 +48,29 @@ export class MetadataExtractor {
   const id=++this.#next,cancel=new Int32Array(new SharedArrayBuffer(4)),result=Promise.withResolvers<MetadataExtraction|MetadataFieldExtraction>();let settled=false;
   const finish=(error:unknown,value?:MetadataExtraction|MetadataFieldExtraction)=>{if(settled)return;settled=true;if(error!==undefined)result.reject(error);else if(signal.aborted)result.reject(signal.reason);else result.resolve(value!);};
   const abort=()=>{Atomics.store(cancel,0,1);finish(signal.reason??new ApiError(499,'Metadata extraction cancelled'));};
-  const timer=setTimeout(()=>{this.#fail(new ApiError(504,'Metadata extraction timed out'));void this.close();},this.#options.timeoutMs);
+  const timer=setTimeout(()=>{this.#fail(new ApiError(504,'Metadata extraction timed out'));void this.close().catch(()=>{});},this.#options.timeoutMs);
   const dispose=()=>{clearTimeout(timer);signal.removeEventListener('abort',abort);};
   this.#pending.set(id,{cancel,finish,dispose});signal.addEventListener('abort',abort,{once:true});
   try{this.#worker.postMessage({id,source,window,cancel:cancel.buffer,includeThumbnailData},source?[source]:[]);}catch(error){this.#pending.delete(id);dispose();finish(error);}
   return result.promise;
  }
- #fail(error:unknown):void{this.#closed=true;for(const pending of this.#pending.values()){Atomics.store(pending.cancel,0,1);pending.finish(error);pending.dispose();}this.#pending.clear();}
- close():Promise<void>{if(this.#closing)return this.#closing;this.#fail(new ApiError(503,'Metadata extractor is closed'));this.#closing=this.#worker.terminate().then(()=>{});return this.#closing;}
+ #fail(error:unknown):void{this.#closed=true;for(const pending of this.#pending.values()){Atomics.store(pending.cancel,0,1);pending.finish(error);pending.dispose();}}
+ close():Promise<void>{if(this.#closing)return this.#closing;this.#fail(new ApiError(503,'Metadata extractor is closed'));this.#closing=this.#shutdown();return this.#closing;}
+ async #shutdown():Promise<void>{
+  // Request rejection is immediate. Ownership remains until each worker reply,
+  // which follows source.close(), including jobs still queued in the channel.
+  // Killing the worker first can discard transferred FileHandles without that
+  // acknowledgment. This separate cleanup budget never extends a scan deadline.
+  let timer:ReturnType<typeof setTimeout>|undefined;
+  try{
+   if(!this.#exited){
+    try{this.#worker.postMessage({shutdown:true});}catch{await this.#worker.terminate();}
+    await Promise.race([this.#exit.promise,new Promise<void>(resolve=>{timer=setTimeout(resolve,1000);})]);
+    if(!this.#exited)await this.#worker.terminate();
+   }
+   if(this.#pending.size)throw new ApiError(503,'Metadata source cleanup was not acknowledged');
+  }finally{if(timer)clearTimeout(timer);}
+ }
 }
 /** The caller authorizes filename↔descriptor and invalidates tickets on every source
  * change. This helper neither watches the filesystem nor generates image metadata. */
