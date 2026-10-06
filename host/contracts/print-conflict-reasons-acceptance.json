@@ -487,5 +487,201 @@
     ],
     "performance": "Original reasons implementation, original benchmark source/load unchanged; retain original scoped paired measurements. Develop preview integration has separate PR21 original mixed performance evidence. No new statistical/target performance claim.",
     "boundary": "No PR20 preparation-pause source absorbed; old843 package remains prior version; new exact head full CI and normal merge still required."
+  },
+  "currentHeadSanitizerFailure": {
+    "date": "2026-10-07",
+    "head": "5755b1d8a687bdfa2b701e2e875409e01c9c3170",
+    "workflow": 37516737798,
+    "job": 112451468715,
+    "url": "https://github.com/ANYRAID/ANYRAID-KLIPPER/actions/runs/37516737798",
+    "ordinaryTests": "success",
+    "protocol": "success",
+    "sanitizer": "failure",
+    "linuxMcu": "skipped",
+    "test": "configured quad gantry HTTP calibration owns probe, motor adjustment and duplicate receipts",
+    "source": "host/test/product-service.test.ts:244",
+    "expectedHttp": 200,
+    "actualHttp": 409,
+    "message": "Probe requires an idle homed printer",
+    "fileTests": {
+      "pass": 18,
+      "fail": 1,
+      "durationMs": 24896.947859
+    },
+    "sanitizedCommand": {
+      "deadlineMs": 60000,
+      "elapsedMs": 24971.131984000094,
+      "status": 1,
+      "signal": null
+    },
+    "logExcerpt": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-current-sanitizer-failure-20261007.log",
+      "sha256": "ada8abd0b957c20cb2ba41270bca6538d2a9c7c26d47efede592d9b0a6e5f8a7"
+    },
+    "rootCause": "尚未定位。实际断言为准入拒绝，不能直接归因于本批原因分类，也不是已证实的 sanitizer 内存错误。",
+    "decision": "保持草稿，不合并、不重启原检查、不放宽运动/准入/精度/期限。下一次单次只读观测区分控制器、硬件、homed 和端口状态；不改变原请求或重试求通过。",
+    "originalMixedFailuresAndG3Closed": false,
+    "phase": "AddressSanitizer; original seven --address addons, confirmed from workflow logs",
+    "localBoundedObservation": {
+      "originalSourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc",
+      "firstHarnessLaunch": {
+        "outcome": "ERR_MODULE_NOT_FOUND for ./helpers/configured-printer.ts in temporary copy; no original product tests executed",
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-asan-admission-observation-20261007.log",
+          "sha256": "dd79feefb9ff687465baf61fc53fa71f2e88df8556856f8885dc51d2c9797a2b"
+        }
+      },
+      "correctedLaunch": {
+        "scope": "Absolute parent imports fixed; reuse the seven unchanged ASAN builds; one complete original file, unchanged 19 tests, inputs, requests, callbacks and assertions; read-only original getter observation only",
+        "tests": 19,
+        "pass": 19,
+        "fail": 0,
+        "durationMs": 26788.538242,
+        "elapsedMs": 26834.179380999998,
+        "deadlineMs": 60000,
+        "status": 0,
+        "signal": null,
+        "artifact": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-pr22-asan-admission-observation-import-fixed-20261007.log",
+          "sha256": "44d8876e6d24190b48144093c09174ccca0857ce52685dd1a349026fed10b26e"
+        },
+        "quadAdmissionObservation": {
+          "before": {
+            "elapsedMs": 20072.814641,
+            "controller": "idle",
+            "pendingDeviceActions": 0,
+            "safeStopPending": false,
+            "hardware": "ready",
+            "homed": "xyz",
+            "busy": false,
+            "phase": "idle",
+            "pendingMoves": 0,
+            "failed": false
+          },
+          "after": {
+            "elapsedMs": 22135.487492,
+            "controller": "idle",
+            "pendingDeviceActions": 0,
+            "safeStopPending": false,
+            "hardware": "ready",
+            "homed": "xyz",
+            "busy": false,
+            "phase": "idle",
+            "pendingMoves": 0,
+            "failed": false
+          },
+          "status": 200,
+          "receipt": {
+            "result": {
+              "state_token": "df9af10e-8295-46ab-8a0a-0c81123f43ec",
+              "state": "ready",
+              "available": true,
+              "result": {
+                "passes": 1,
+                "samples": [
+                  [
+                    50,
+                    0,
+                    0.775
+                  ],
+                  [
+                    50,
+                    0.01,
+                    0.775
+                  ],
+                  [
+                    50.01,
+                    0.01,
+                    0.775
+                  ],
+                  [
+                    50.01,
+                    0,
+                    0.775
+                  ]
+                ],
+                "measured_range": 0,
+                "tolerance_satisfied": true,
+                "adjustments": [
+                  {
+                    "id": "z",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z1",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z2",
+                    "adjustment": 0
+                  },
+                  {
+                    "id": "z3",
+                    "adjustment": 0
+                  }
+                ],
+                "final_z": 1,
+                "persisted": false
+              }
+            }
+          },
+          "observedCalls": 4,
+          "observations": [
+            {
+              "elapsedMs": 20074.006276,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 20074.018806,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 22134.845454,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            },
+            {
+              "elapsedMs": 22134.857664,
+              "controller": "idle",
+              "pendingDeviceActions": 0,
+              "safeStopPending": false,
+              "hardware": "ready",
+              "homed": "xyz",
+              "busy": false,
+              "phase": "idle",
+              "pendingMoves": 0,
+              "failed": false
+            }
+          ],
+          "originalRequestCount": 1,
+          "readOnlyGetter": true,
+          "sourceSha256": "aa2008a92f24cfaa2e62d00441fdabe249f9a324f90d78e91b023abe449af5bc"
+        }
+      },
+      "decision": "Original remote refusal not reproduced. No root-cause closure, no retry to find green, no admission bypass, and no CI rerun. Preserve original remote failure and freeze current head while original firmware job remains running."
+    }
   }
 }
