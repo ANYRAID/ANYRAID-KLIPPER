@@ -2907,5 +2907,27 @@
         }
       ]
     }
-  ]
+  ],
+  "inspectorBoundaryCorrection": {
+    "date": "2026-10-06",
+    "originalInspectorRevision": "69b54625",
+    "originalInspectorSha256": "f1c607aff90d01ffb6c35bb64092688f9154ce23267a86166f7b21be4729cf31",
+    "currentInspectorSha256": "f6c9f6403b8dce9934c64a9c7efa0652597995799f836a60fba58b09b9c46214",
+    "historicalPackages": "Original export and its four hashes remain unchanged; three parser hashes still match. No claim that old packages were re-exported with the revised inspector.",
+    "reproduction": {
+      "input": "Synthetic own-directory printer.cfg with lone CR before absolute outside.cfg include",
+      "before": "Old exporter accepted OUTSIDE_SENTINEL from outside the archive",
+      "after": "Include escapes archive; no output; extracted directory cleaned"
+    },
+    "validation": {
+      "test": "host/test/legacy-macro-inspection.test.ts",
+      "passed": 3,
+      "zipInputs": 9,
+      "negative": 6,
+      "positive": 3,
+      "logSha256": "fc3245aea97e62880c5d005efe7d48e12e142276d6e63bf54493811e74ce8df2",
+      "scope": "LF/CRLF/CR, absolute and parent include rejection, inside expansion and source line, no device or real external configuration"
+    },
+    "exactHeadCI": "not-run"
+  }
 }

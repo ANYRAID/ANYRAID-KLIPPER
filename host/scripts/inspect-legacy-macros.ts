@@ -28,7 +28,9 @@ try{
    const data=execFileSync('unzip',['-p',archive,member],{timeout:10000,maxBuffer:8*1024*1024});
    extracted+=data.length;if(extracted>8*1024*1024)throw new RangeError('Extracted config byte limit exceeded');
    // Keep includes inside this archive. Reject rather than rewrite unsafe paths.
-   for(const line of data.toString('utf8').split(/\r?\n/)){
+   // Match the configuration loader's newline normalization before checking
+   // includes; lone CR must not hide an absolute or parent-directory include.
+   for(const line of data.toString('utf8').replace(/\r\n|\r/g,'\n').split('\n')){
     const include=line.split('#',1)[0].match(/^\[include\s+(.+)\]/)?.[1].trim();
     if(include&&(isAbsolute(include)||include.includes('\\')||include.split('/').includes('..')))throw new Error('Include escapes archive');
    }
@@ -37,7 +39,7 @@ try{
   const inspection=await inspectKlipperConfiguration(join(directory,primary[0]));
   const definitions=new Map<string,{file:string;line:number}[]>();
   for(const file of inspection.source.files){
-   const lines=(await readFile(file.filename,'utf8')).split(/\r?\n/);
+   const lines=(await readFile(file.filename,'utf8')).replace(/\r\n|\r/g,'\n').split('\n');
    for(let line=0;line<lines.length;line++){
     const section=lines[line].split('#',1)[0].match(/^\[(gcode_macro\s+[^\]]+|delayed_gcode\s+[^\]]+)\]/)?.[1];
     if(section){const existing=definitions.get(section)??[];existing.push({file:relative(directory,file.filename),line:line+1});definitions.set(section,existing);}

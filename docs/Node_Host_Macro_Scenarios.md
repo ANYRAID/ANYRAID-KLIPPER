@@ -32,7 +32,7 @@ node scripts/inspect-legacy-macros.ts "$TMPDIR/legacy-macro-inventory.json" \
 
 需要 Node.js 26、`unzip` 和已设置的绝对 TMPDIR。工具只提取普通 `.cfg`
 数据，拒绝重复成员、路径越界和越界 include，并限制包、文件、深度及子进程
-资源。需要检查的原包未纳入 Git。源摘要绑定本次脚本和配置解析源码，复核
+资源。需要检查的原包未纳入 Git。源摘要绑定原导出脚本与配置解析源码，复核
 新版本时须重新检查这些摘要。
 
 ## 从用户场景到现有所有者
@@ -78,3 +78,12 @@ node scripts/inspect-legacy-macros.ts "$TMPDIR/legacy-macro-inventory.json" \
 组件来源、机械边界、真实停止证据以及目标性能预算。系列身份确认前可以
 准备共用操作，不能宣称已完成机型装配。G3 仍限制真实运动、实机打印及
 默认入口切换；本清单和普通软件 CI 不关闭 G3 或全面 Python 退役。
+
+2026-10-06 自审确认旧检查器未规范化单独 CR，合成包可让包外
+include 通过，虽未执行动作，仍违反输入边界。修订统一采用配置
+加载器的 CRLF／CR → LF 规则，并用于定义行号。三组端到端回归
+覆盖九个 ZIP 输入：六项包外拒绝、三项包内展开及退出清理。
+回归需要 `zip`／`unzip`；实际清单工具仍只需要 `unzip`。原导出
+清单和四项历史摘要保留，三个解析器摘要仍匹配当前源码；旧脚本
+摘要可在 `69b54625` 核验。新工具摘要和复现范围记录于源清单的
+`inspectorBoundaryCorrection`，未伪称三份原包已由新工具重新导出。
