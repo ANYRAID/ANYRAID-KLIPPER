@@ -1,0 +1,593 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "runtime": "v26.10.0",
+  "base": "cad9fde62a658f00eaeeb751eab3f9b483c682f8",
+  "productionSourceMerge": "15e9668094e373f53382667f635f914a17e3ace9",
+  "sourceFiles": {
+    "host/src/moonraker/cors-policy.ts": "6866f95e44d47e018cb80a1ea64f83de0317a411ee5a5d4612074c086be1d92f",
+    "host/src/moonraker/server.ts": "4527b732c4ade8b972cd358260dde61a4b6e8f7feba1e4f0cc156a82ec02fe2f",
+    "host/src/moonraker/authorization-config.ts": "713f80aa8927c7ba3f3e2cf3e7729855f533dceda8552df9f752c16bb8e901aa",
+    "host/src/moonraker/configured-server.ts": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00",
+    "host/test/cors-policy.test.ts": "6b8e84a328893b3ebc5ae1dab27e572c07f4c7a055a1ad08d3f5ed6b2ba0c681",
+    "host/test/configured-cors.test.ts": "d8b3a4eb983eabdd2c8c188bbe1eb1b3fb7a8f067094fb74b0289f154be4d232",
+    "host/test/configured-cors-compiled.test.ts": "f85e18b3c1aa27d2006a9e2b68a5d67b68aa3e73820bb0228bb856dbd62cd3a0",
+    "host/bench/moonraker-cors-policy.ts": "b57d032659426016f9011f5b1870f6af50112044277410bcd5252f5b2d9c5688",
+    "host/acceptance/product-compiled-journey.test.ts": "7ada9ec56e657a1357a7376b06ea60be7fc48423f818fd8acad685104b888770",
+    "host/package.json": "ecaaad3de70053474ec444fba9e833b2c2650df4823919b11b8ed6917bcf0b7e",
+    "host/package-lock.json": "82975ad865eec2d40128626f78a06eab535e85c4acfb736773ba9a7c12023771"
+  },
+  "reference": {
+    "path": "host/contracts/moonraker-cors-reference.json",
+    "sha256": "a1d13f275b648203e36e6ec4a4d723e763c7fefbefaa3d707282862e20756742",
+    "upstream": "1cfb0c41e468645951a371621f06d32777b6107c",
+    "sourcePath": "moonraker/components/authorization.py",
+    "sourceSha256": "1ee62abc536cdb83e9efe65b07bf05114c9244137cc61befb1073dc54f22bc11",
+    "captureHarness": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-capture-20261007.py",
+      "sha256": "fe2dbc3f4b7cd2a042d30158487d15c5b35b839a118538bf81f9c4c9019a1442"
+    },
+    "decisions": 130,
+    "scope": "Actual pinned unmodified setup/check_cors AST functions executed once in CPython 3.12.13; server warnings and numeric IP/CIDR owner stubs. Existing canonical HTTP(S) Origin boundary additionally applied. Not complete owner or all Python regex semantics."
+  },
+  "validation": {
+    "sourceTests": {
+      "passed": 37,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-integrated-tests-20261007.log",
+        "sha256": "95c7d9d9d392bdc9acdf7e4f3a7689cc4eb49049950d6140d26d9122f04b7119"
+      }
+    },
+    "compiledProtocol": {
+      "parentTests": 1,
+      "childTests": 2,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-compiled-protocol-context-corrected-20261007.log",
+        "sha256": "73a0164dce69af83876217c2e922e6efc831f37855fe56b08b6c74f999cba843"
+      },
+      "childEnvironment": {
+        "PATH": "/no-programs",
+        "NODE_OPTIONS": "--no-experimental-strip-types",
+        "NODE_PATH": "",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "NODE_TEST_CONTEXT": "removed from child"
+      }
+    },
+    "types": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-final-driver-typecheck-20261007.log",
+      "sha256": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696"
+    },
+    "whitespace": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-final-whitespace-20261007.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "networkRegressions": {
+      "passed": 36,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-final-network-regressions-20261007.log",
+        "sha256": "2082dfeaa7d15ef8766f3ad450fd8623eb5f174f3c7e129f480973ac4e5a92a2"
+      },
+      "scope": "Original HTTP/WS limits and transports, configured server, numeric trust, identity/events, product server generations and independent compiled CORS wrapper; 2 child protocol checks separately reported"
+    },
+    "totalParentTests": 73
+  },
+  "bundle": {
+    "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy/host/build/cors-pinned-bundle",
+    "manifestSha256": "115e01e6fb7a52b1a82dfa115050f2d92bad8ce53a5876d5853244290c3f3e6d",
+    "dependenciesSha256": "316d3b7cdb75f365d194be63498d2fb2156b2eb9ebbd04ec6ce0f0d62ec667cb",
+    "installation": {
+      "durationMs": 1223.757352,
+      "dependencies": 15,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-product-install-absolute-20261007.log",
+        "sha256": "717d764d43a5fd60a9b3f33eab42d66b5a0185b757766baa11b26e675dd42807"
+      },
+      "installer": "Existing compiled Node product-install.js; empty PATH, TS loading disabled, independent production tree; no npm/Python subprocess"
+    }
+  },
+  "performance": {
+    "policyCpu": {
+      "runtime": "v26.10.0",
+      "scope": "Desktop CORS admission CPU cost; 100000 matches per normal round, 10000 per 128-pattern capacity round; 3 warmups and 5 retained rounds; excludes sockets, authentication and motion; no independent target-board CORS budget is supplied",
+      "results": [
+        {
+          "name": "literal",
+          "patterns": 1,
+          "iterations": 100000,
+          "originBytes": 26,
+          "samplesMs": [
+            39.47456600000004,
+            38.980800000000045,
+            39.32960399999996,
+            38.06673000000001,
+            38.05752899999999
+          ],
+          "microsecondsPerRequest": 0.3898080000000005
+        },
+        {
+          "name": "wildcard",
+          "patterns": 1,
+          "iterations": 100000,
+          "originBytes": 26,
+          "samplesMs": [
+            330.0009850000001,
+            323.127393,
+            322.9021210000001,
+            320.63476400000036,
+            319.40473999999995
+          ],
+          "microsecondsPerRequest": 3.229021210000001
+        },
+        {
+          "name": "trusted-ip",
+          "patterns": 1,
+          "iterations": 100000,
+          "originBytes": 21,
+          "samplesMs": [
+            247.41489999999976,
+            248.40181100000063,
+            247.2978089999997,
+            247.54236200000014,
+            250.32768399999986
+          ],
+          "microsecondsPerRequest": 2.4754236200000013
+        },
+        {
+          "name": "denied",
+          "patterns": 1,
+          "iterations": 100000,
+          "originBytes": 20,
+          "samplesMs": [
+            240.94482400000015,
+            240.9977140000001,
+            240.71192100000007,
+            240.10826400000042,
+            239.8835420000005
+          ],
+          "microsecondsPerRequest": 2.4071192100000007
+        },
+        {
+          "name": "128-literals-denied",
+          "patterns": 128,
+          "iterations": 10000,
+          "originBytes": 20,
+          "samplesMs": [
+            7.113344000000325,
+            7.112234000000171,
+            7.136883999999554,
+            7.128053999999793,
+            7.119994000000588
+          ],
+          "microsecondsPerRequest": 0.7119994000000588
+        },
+        {
+          "name": "128-wildcards-denied",
+          "patterns": 128,
+          "iterations": 10000,
+          "originBytes": 20,
+          "samplesMs": [
+            1882.7842259999998,
+            1929.4612989999987,
+            1897.6892950000001,
+            1895.2744469999998,
+            1924.789767000002
+          ],
+          "microsecondsPerRequest": 189.7689295
+        },
+        {
+          "name": "bounded-long-pattern",
+          "patterns": 1,
+          "iterations": 100000,
+          "originBytes": 1009,
+          "samplesMs": [
+            14259.165738000003,
+            13646.816829000003,
+            13645.438139999998,
+            13649.578274,
+            13804.297670999993
+          ],
+          "microsecondsPerRequest": 136.49578274
+        }
+      ],
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-policy-benchmark-20261007.log",
+        "sha256": "8bc4ab90ac5ee68f262be2284ace0f7064245e213ab89cd011f65a5b3d5ab3c7"
+      }
+    },
+    "apiKeyCpu": {
+      "runtime": "v26.10.0",
+      "route": "status",
+      "scope": "100000 HTTP authentications per round; 3 warmups and 5 retained rounds; includes live owner checks, request route policy and credential processing; excludes sockets and IO; not a Python comparison",
+      "samplesMs": [
+        201.29233,
+        200.19746599999996,
+        192.87942900000007,
+        193.4872580000001,
+        191.5910040000001
+      ],
+      "medianMs": 193.4872580000001,
+      "microsecondsPerRequest": 1.934872580000001,
+      "maximumMicrosecondsPerRequest": 10,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-api-key-benchmark-20261007.log",
+        "sha256": "03d13f27c9ee45a8a946d822e141487ca9272f3bb9b60bba8614426860a495fe"
+      }
+    },
+    "sameBundleMixed": {
+      "originEnabled": {
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-compiled-mixed-native-ready-20261007.log",
+          "sha256": "1d8f79c0ae3896afbf31c2b2e1ec16687b4f2432a1a924b7fb69a4d7278add5c"
+        },
+        "passed": 1,
+        "durationMs": 71043.189678,
+        "statusRequests": 39096,
+        "statusP99Ms": 8.407919999999649,
+        "loops": [
+          {
+            "p99Ms": 2.258943,
+            "maxMs": 27.557887
+          },
+          {
+            "p99Ms": 1.960959,
+            "maxMs": 13.451263
+          }
+        ],
+        "minimumStepLeadMs": 87.308,
+        "wireCommands": 232,
+        "wireSteps": 8000,
+        "historyRequests": 1990,
+        "historyP99Ms": 63.69708499999979,
+        "completedStatistics": {
+          "total_duration": 10.947192835,
+          "print_duration": 5.165056297,
+          "filament_used": 1
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2271,
+          "queryP99Ms": 8.353478999999425,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "machine": {
+          "actions": 12,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "settlementMs": [
+            74.83646699999917,
+            69.29272200000014,
+            66.94778399999996,
+            76.59617900000012,
+            77.907052999999,
+            74.83605700000044,
+            82.65101099999447,
+            77.00550300000032,
+            107.0642599999992,
+            75.02230000000418,
+            65.85607100000198,
+            71.58318899999722
+          ],
+          "syntheticCommand": true,
+          "durableReceipts": true,
+          "noDeviceRetirement": true,
+          "hardwareAcceptance": false
+        },
+        "replacement": {
+          "seed": {
+            "operations": 32,
+            "p95Ms": 268.6794169999994,
+            "maxMs": 289.8772370000006
+          },
+          "upload": {
+            "operations": 16,
+            "p95Ms": 485.2494660000011,
+            "maxMs": 485.2494660000011
+          },
+          "move": {
+            "operations": 16,
+            "p95Ms": 512.2891049999998,
+            "maxMs": 512.2891049999998
+          },
+          "uploadDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "moveDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "notifications": 320,
+          "originalNotifications": 776
+        }
+      },
+      "noOriginControl": {
+        "log": {
+          "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-compiled-mixed-no-origin-control-20261007.log",
+          "sha256": "4db5c160a77f14bcfe357717842384c6449ab547b2a5ae33312e5fe1bbe78736"
+        },
+        "passed": 1,
+        "durationMs": 70016.075107,
+        "statusRequests": 39187,
+        "statusP99Ms": 4.4747930000012275,
+        "loops": [
+          {
+            "p99Ms": 1.991679,
+            "maxMs": 18.677759
+          },
+          {
+            "p99Ms": 1.976319,
+            "maxMs": 17.580031
+          }
+        ],
+        "minimumStepLeadMs": 82.03,
+        "wireCommands": 229,
+        "wireSteps": 7852,
+        "historyRequests": 1993,
+        "historyP99Ms": 54.191334000002826,
+        "completedStatistics": {
+          "total_duration": 10.997311638,
+          "print_duration": 5.115670604000001,
+          "filament_used": 1
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2255,
+          "queryP99Ms": 4.2186299999993935,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "machine": {
+          "actions": 12,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "settlementMs": [
+            71.47942899999907,
+            78.52597400000013,
+            73.97493000000031,
+            70.0929529999994,
+            77.37500900000123,
+            71.81349399999999,
+            70.52598800000123,
+            70.94150400000217,
+            109.80779600000096,
+            75.0401320000019,
+            69.83819999999832,
+            74.21306199999526
+          ],
+          "syntheticCommand": true,
+          "durableReceipts": true,
+          "noDeviceRetirement": true,
+          "hardwareAcceptance": false
+        },
+        "replacement": {
+          "seed": {
+            "operations": 32,
+            "p95Ms": 203.9937060000011,
+            "maxMs": 276.5008160000016
+          },
+          "upload": {
+            "operations": 16,
+            "p95Ms": 447.79696399999375,
+            "maxMs": 447.79696399999375
+          },
+          "move": {
+            "operations": 16,
+            "p95Ms": 437.5285410000033,
+            "maxMs": 437.5285410000033
+          },
+          "uploadDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "moveDuringPrintGenerations": [
+            1,
+            2
+          ],
+          "notifications": 320,
+          "originalNotifications": 776
+        }
+      },
+      "commonFlags": {
+        "automaticQueue": true,
+        "machineControl": true,
+        "motionReport": true,
+        "objectPriming": false,
+        "objectCancellationTiming": "early"
+      },
+      "origin": "https://fluidd.example.com",
+      "invariants": "Original 1000 moves, 16 groups per file workload, 16 queue groups/64 durable mutations, 12 synthetic system actions, two PTY generations, original precision/stop/clock/assertion budgets unchanged. Only Origin and cors_domains differ.",
+      "budgets": {
+        "statusP99Ms": 50,
+        "eventLoopP99Ms": 50,
+        "eventLoopMaximumMs": 100,
+        "minimumStepLeadMs": 0
+      },
+      "interpretation": "Both pass original gates. Origin status P99 8.408ms versus control 4.475ms retained. Sequential desktop samples are not isolated causal attribution or proof of zero regression; prior #16 3.450ms lacked this machine-control load. No independent target history or CORS budget. No target/physical precision or performance claim."
+    }
+  },
+  "initialFailures": [
+    {
+      "reason": "New consumed empty cors_domains absent from existing config response expectation; added that field without removing old assertions",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-initial-tests-corrected-20261007.log",
+        "sha256": "02dec00c7c2097330237254ea61f246038ba8693b94323a2d33317670d66f843"
+      }
+    },
+    {
+      "reason": "Corrected new fixture registration signature and WS identify URL, retaining old authorization cases",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-affected-tests-20261007.log",
+        "sha256": "ba16c042eaee48b47d034316ad4edf23e8a7473506767f1d189d9e31fcc8fc1c"
+      }
+    },
+    {
+      "reason": "Relative bundle argument rejected before installation; used absolute path without changing validation",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-product-install-20261007.log",
+        "sha256": "e78886b20db14830ca7ffa5907f7d30357c8563477890c834bed5c61a64d7db4"
+      }
+    },
+    {
+      "reason": "Nested test inherited NODE_TEST_CONTEXT and report was empty; removed child context, required explicit TAP pass 2/fail 0",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-compiled-protocol-20261007.log",
+        "sha256": "14d7ba8212f9de7fceecc7e0b877674c069530efc503ad70c423922560c7e618"
+      }
+    },
+    {
+      "reason": "Parent test workspace lacked serialqueue before journey; built parent plugins, locked production unchanged",
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-compiled-mixed-20261007.log",
+        "sha256": "e582ae8fbf0fd556e24642656550a369395befd088545a218be0288225fa6185"
+      }
+    }
+  ],
+  "remaining": [
+    "Final exact-head full CI and normal develop PR integration",
+    "Python-only regex rejected; full compatibility still a gap",
+    "Official Fluidd/Mainsail complete same-bundle client acceptance",
+    "177 klippy Python files, remaining Moonraker/legacy scenarios and full Python retirement",
+    "Cycnumbris 500 target/physical precision and performance; motion G3",
+    "Normal master release/default switch/rollback"
+  ],
+  "nativeAuthorizationFixtureRepair": {
+    "date": "2026-10-07",
+    "oldHead": "82347cbc88c90874672b85a1e6521dbf1b4505bf",
+    "repairCommit": "2c2a50be",
+    "normalMergeBase": "6ff1a391f4a1b4ba9cc8360a0a326da6a7fd695e",
+    "originalSource": {
+      "path": "host/test/product-native-authorization.test.ts",
+      "sha256": "aaa448e229008e4fe055e0e6ed87abf0116fbd3eea9d800c181271cbc9fc9c80"
+    },
+    "correctedSource": {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy/host/test/product-native-authorization.test.ts",
+      "sha256": "497e793ab5dddf4fb88b124ee19fc9c072bf999ed02b059ed02af27f30b80ada"
+    },
+    "originalObservation": {
+      "selectedTests": 1,
+      "failed": 1,
+      "exitCode": 124,
+      "observerLimitSeconds": 30,
+      "testFailureMs": 338.652872,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-native-authorizer-original-diagnostic-20261007.log",
+        "sha256": "eae234dadef9ab3408126f81798d1908493f1362d036402d65ec148a4573bc1b"
+      },
+      "finding": "Previously unsupported cors_domains:* is now accepted. Original assert.rejects fails, accepted profile is not released, process remains until diagnostic observer limit. Not a passed test or changed original deadline."
+    },
+    "originalCi": {
+      "runId": 37495638112,
+      "jobId": 112379331993,
+      "status": "completed",
+      "conclusion": "cancelled",
+      "ordinary": "cancelled",
+      "protocol": "skipped",
+      "sanitizer": "skipped",
+      "linuxMcu": "skipped",
+      "completedLog": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors19-cancelled-ci-20261007.log",
+        "sha256": "b5fea61432287192ad6e7d7cbaa91ce2737261622cf7e98fac89bb4baee16ac9"
+      },
+      "remoteAttribution": "Last visible test was Delta BLTouch assembly; completed remote log does not contain Missing expected rejection stack. Local exact-source cause confirmed; remote causal attribution inferred pending corrected full CI.",
+      "decision": "Cancel only this original stalled workflow after one discriminating exact-source observation; genuine fixture correction produces a new commit rather than unchanged green-seeking rerun."
+    },
+    "change": {
+      "negativeInput": "unknown unsupported_rule:deny; original /Unsupported/ rejection and pre-acquisition/release assertions retained",
+      "cleanup": "Unexpected accepted profile still fails rejection assertion; finally releases acquired owner before database close",
+      "positive": "Existing two-generation native service case now checks configured CORS wildcard still returns unauthenticated 401 and authenticated JWT 200; original login/oneshot replay/upload/download/logout assertions unchanged",
+      "productionAuthorizationChanged": false,
+      "originalMathLoadsTolerancesOrDeadlinesChanged": false
+    },
+    "beforeMerge": {
+      "tests": 33,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-native-authorizer-corrected-20261007.log",
+        "sha256": "b09410c878da0baaa0e8bee049cb5cf0d72fe56f162f09d78f7cf6439673fbd3"
+      },
+      "scope": "Overlaps prior73; do not sum"
+    },
+    "afterNormalMerge": {
+      "tests": 22,
+      "failed": 0,
+      "log": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-cors-develop6ff-regressions-20261007.log",
+        "sha256": "9f67581e610c6bee01e37cae7d95bc52009a2ce713963f65c34d6b2f2eefcd8b"
+      },
+      "types": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy-6ff-typecheck-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "whitespace": {
+        "path": "/home/dek02/.cache/codex/tmp/anyraid-moonraker-cors-policy-6ff-whitespace-20261007.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "fullCi": "new exact head required; not yet passed"
+    },
+    "compiled": {
+      "childProtocolTests": 2,
+      "independentDependencies": true,
+      "emptyPath": true,
+      "noTypeScriptLoading": true,
+      "scope": "Fresh compile of integrated source inside existing wrapper; temporary package deleted normally. Original115 bundle remains original scoped evidence, not new package identity."
+    },
+    "performanceReuse": {
+      "verifiedCors": [
+        {
+          "path": "host/src/moonraker/cors-policy.ts",
+          "sha256": "6866f95e44d47e018cb80a1ea64f83de0317a411ee5a5d4612074c086be1d92f"
+        },
+        {
+          "path": "host/src/moonraker/server.ts",
+          "sha256": "4527b732c4ade8b972cd358260dde61a4b6e8f7feba1e4f0cc156a82ec02fe2f"
+        },
+        {
+          "path": "host/src/moonraker/authorization-config.ts",
+          "sha256": "713f80aa8927c7ba3f3e2cf3e7729855f533dceda8552df9f752c16bb8e901aa"
+        },
+        {
+          "path": "host/src/moonraker/configured-server.ts",
+          "sha256": "f1b8413b903863bf9e22f3786679b0cf439d8ece35ce8499bcbb7f73a4b88b00"
+        },
+        {
+          "path": "host/bench/moonraker-cors-policy.ts",
+          "sha256": "b57d032659426016f9011f5b1870f6af50112044277410bcd5252f5b2d9c5688"
+        },
+        {
+          "path": "host/package.json",
+          "sha256": "ecaaad3de70053474ec444fba9e833b2c2650df4823919b11b8ed6917bcf0b7e"
+        },
+        {
+          "path": "host/package-lock.json",
+          "sha256": "82975ad865eec2d40128626f78a06eab535e85c4acfb736773ba9a7c12023771"
+        }
+      ],
+      "scope": "Unchanged CORS/auth sources, package manifests and policy benchmark; historical original-scope results retained. NativePrintUploads changes inherited from develop PR21, not a new motion or precision change."
+    },
+    "exclusions": [
+      "new exact-head full CI and normal PR integration",
+      "PR20 original mixed failures",
+      "G3",
+      "target board and physical acceptance"
+    ]
+  }
+}
