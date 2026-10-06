@@ -1,17 +1,17 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {spawnSync} from 'node:child_process';
 import {HistoryFields} from '../src/moonraker/history-fields.ts';
 import {HistoryTracker,historyStrategies,type HistoryNumberType} from '../src/moonraker/history-tracker.ts';
 import type {Json} from '../src/moonraker/rpc.ts';
-import {historyFieldOracle} from './helpers/history-field-oracle.ts';
+import {historyReference} from './helpers/history-reference.ts';
 type Op={kind:'state';active:boolean;paused:boolean}|{kind:'update';value:Json;numberType?:HistoryNumberType}|{kind:'pause';exclude:boolean}|{kind:'reset';value?:Json;numberType?:HistoryNumberType};
 test('registered field configuration and snapshots match pinned upstream with mixed integer and float samples',()=>{
  const ops:Op[]=[{kind:'state',active:true,paused:false}];
  for(const numberType of ['integer','float'] as const){ops.push({kind:'reset',value:15,numberType});for(const value of [15,-15,25,true,false])ops.push({kind:'update',value,numberType});}
  ops.push({kind:'reset'}, {kind:'update',value:2.675},{kind:'pause',exclude:true},{kind:'state',active:true,paused:true},{kind:'update',value:50},{kind:'state',active:true,paused:false},{kind:'update',value:51},{kind:'reset',value:[1,true]},{kind:'update',value:{x:[1]}},{kind:'update',value:{x:[true]}},{kind:'reset',value:null});
  const cases=historyStrategies.flatMap(strategy=>[null,2,-1].map(precision=>({strategy,precision,ops})));
- const child=spawnSync('python3',['-c',historyFieldOracle()+'\nprint(json.dumps([field_run(c) for c in json.load(sys.stdin)]))'],{input:JSON.stringify(cases),encoding:'utf8',maxBuffer:4*1024*1024});assert.equal(child.status,0,child.stderr);const expected=JSON.parse(child.stdout);
+ const input=JSON.stringify(cases),expected=historyReference<unknown[]>('history-fields',input);
+ assert.throws(()=>historyReference('history-fields',input.replace('"precision":2','"precision":3')),/reference input changed/);
  for(const [i,c] of cases.entries()){
   let active=false,paused=false;const fields=new HistoryFields(exclude=>active&&!(exclude&&paused)),field=fields.register({provider:'sensor',name:'reading',description:'Reading',strategy:c.strategy,units:'J',reportTotal:true,reportMaximum:true,precision:c.precision});
   const actual=c.ops.map(op=>{switch(op.kind){case 'state':active=op.active;paused=op.paused;break;case 'update':field.tracker.update(op.value,op.numberType);break;case 'pause':field.tracker.setExcludePaused(op.exclude);break;case 'reset':field.tracker.setResetCallback(op.value===undefined?undefined:()=>op.value!,op.numberType);fields.reset();break;}return {configuration:field.configuration,snapshot:fields.snapshot()};});

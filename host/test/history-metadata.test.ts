@@ -3,19 +3,18 @@ import assert from 'node:assert/strict';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {execFileSync} from 'node:child_process';
 import {DatabaseStore} from '../src/moonraker/database.ts';
 import {HistoryRepository} from '../src/moonraker/history-repository.ts';
 import {HistoryRuntime} from '../src/moonraker/history-runtime.ts';
 import {captureHistoryMetadata,type HistoryMetadataSnapshot} from '../src/moonraker/history-metadata.ts';
-import {historyMetadataOracle} from './helpers/history-oracle.ts';
+import {historyReference} from './helpers/history-reference.ts';
 import {encodeDatabaseRecord} from '../src/moonraker/database-record.ts';
 import {ApiError} from '../src/moonraker/rpc.ts';
 const stats={filename:'part.gcode',total_duration:3,print_duration:2,filament_used:2.675};
 async function fixture(run:(history:HistoryRepository)=>Promise<void>){const dir=await mkdtemp(join(tmpdir(),'history-metadata-')),db=await DatabaseStore.open({path:join(dir,'db')});try{await run(await HistoryRepository.open(db));}finally{await db.close();await rm(dir,{recursive:true,force:true});}}
 test('metadata cleanup matches pinned upstream and never mutates caller-owned fields',()=>{
  const fields={print_start_time:100,job_id:'prior',size:1e20,negativeZero:-0,modified:99,thumbnails:[{data:'aGVsbG8=',relative_path:'thumb.png',size:5}]},saved=structuredClone(fields);
- const actual=captureHistoryMetadata({generation:'mv-1',fields}).snapshot.fields,expected=JSON.parse(execFileSync('/usr/bin/python3',['-c',historyMetadataOracle()],{input:encodeDatabaseRecord(fields),encoding:'utf8'}));
+ const actual=captureHistoryMetadata({generation:'mv-1',fields}).snapshot.fields,expected=historyReference('history-metadata',encodeDatabaseRecord(fields));
  assert.deepEqual(actual,expected);assert.deepEqual(fields,saved);assert.equal(Object.hasOwn(actual,'job_id'),false);
 });
 test('queued metadata snapshots isolate source mutations and refresh only the bound generation',()=>fixture(async history=>{

@@ -7,6 +7,7 @@ import {DatabaseStore} from '../src/moonraker/database.ts';
 import {HistoryRepository} from '../src/moonraker/history-repository.ts';
 import {HistoryRuntime,type HistoryEvent} from '../src/moonraker/history-runtime.ts';
 import type {JobChange} from '../src/moonraker/job-state.ts';
+import {historyReference} from './helpers/history-reference.ts';
 const stats={filename:'part.gcode',total_duration:30,print_duration:25,filament_used:2.675};
 const change=(event:'started'|'complete'|'cancelled',current=stats,previous=stats):JobChange=>({kind:'state',event,current,previous});
 async function fixture(run:(history:HistoryRepository,db:DatabaseStore)=>Promise<void>){const dir=await mkdtemp(join(tmpdir(),'history-runtime-')),db=await DatabaseStore.open({path:join(dir,'db')});try{await run(await HistoryRepository.open(db),db);}finally{await db.close();await rm(dir,{recursive:true,force:true});}}
@@ -41,7 +42,6 @@ test('database failure fences the runtime and close reports it without replay',(
 }));
 test('history event mapping and record snapshots match pinned upstream state handlers',()=>fixture(async history=>{
  const events:HistoryEvent[]=[],runtime=new HistoryRuntime(history,{clock:()=>100,notify:event=>{events.push(event);}});
- const {historyEventsOracle}=await import('./helpers/history-oracle.ts'),{execFileSync}=await import('node:child_process');
  const changes:JobChange[]=[
   change('started'),
   {kind:'state',event:'paused',previous:stats,current:stats},
@@ -51,7 +51,7 @@ test('history event mapping and record snapshots match pinned upstream state han
   change('started',{...stats,filename:'second.gcode'}),
   {kind:'state',event:'standby',previous:{...stats,filename:'second.gcode'},current:{filename:'',total_duration:0}},
  ];
- const reference=JSON.parse(execFileSync('/usr/bin/python3',['-c',historyEventsOracle()],{input:JSON.stringify(changes),encoding:'utf8'}));
+ const reference=historyReference('history-events',JSON.stringify(changes));
  for(const event of changes)runtime.observe(event);await runtime.drain();assert.deepEqual(events,reference);await runtime.close(stats);
 }));
 test('cancelled queued mutations do not execute or fault event tracking',()=>fixture(async history=>{

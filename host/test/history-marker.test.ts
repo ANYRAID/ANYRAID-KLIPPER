@@ -7,6 +7,7 @@ import {DatabaseStore} from '../src/moonraker/database.ts';
 import {HistoryRepository} from '../src/moonraker/history-repository.ts';
 import {HistoryFileMetadata} from '../src/moonraker/history-file-metadata.ts';
 import {ApiError,type Json} from '../src/moonraker/rpc.ts';
+import {historyReference} from './helpers/history-reference.ts';
 const input={filename:'part.gcode',start_time:100,total_duration:0,print_duration:0,filament_used:0,metadata:{size:1},metadata_generation:'mv-1'};
 async function fixture(run:(history:HistoryRepository,db:DatabaseStore,path:string)=>Promise<void>){const dir=await mkdtemp(join(tmpdir(),'history-marker-')),path=join(dir,'db'),db=await DatabaseStore.open({path});try{await run(await HistoryRepository.open(db),db,path);}finally{await db.close();await rm(dir,{recursive:true,force:true});}}
 test('markers persist across restart, update only their selected generation and retain exact 64-bit IDs',()=>fixture(async(history,db,path)=>{
@@ -37,7 +38,6 @@ test('deleted history does not erase last-print metadata and corrupt markers fai
  await db.sql(['history_metadata'],[{sql:'UPDATE history_metadata SET job_id=0'}]);await assert.rejects(history.metadataMarker(input.filename,'mv-1'),e=>e instanceof ApiError&&e.status===422);
 }));
 test('exposed print marker fields match pinned upstream metadata writeback',()=>fixture(async(history)=>{
- const {execFileSync}=await import('node:child_process'),{historyMarkerOracle}=await import('./helpers/history-oracle.ts');
- const job=await history.start(input),reference=JSON.parse(execFileSync('/usr/bin/python3',['-c',historyMarkerOracle()],{input:JSON.stringify({...input,job_id:job.job_id}),encoding:'utf8'}));
+ const job=await history.start(input),reference=historyReference('history-marker',JSON.stringify({...input,job_id:job.job_id}));
  assert.deepEqual({...input.metadata,...await history.metadataMarker(input.filename,'mv-1')},reference);
 }));
