@@ -5,6 +5,7 @@ import { DatabaseStore } from './database.ts';
 import type { DatabaseNamespace } from './database-namespace.ts';
 import { PrintJournal } from '../operations/print-journal.ts';
 import { validJournalId } from '../operations/print-journal-types.ts';
+import type { JournalHistoryEvent } from '../operations/print-journal-types.ts';
 import { printFilename } from './print-api.ts';
 import { historyBoolean } from './history-api.ts';
 import { ApiError, type Json, type RpcContext } from './rpc.ts';
@@ -19,7 +20,7 @@ export interface QueuedNativeJob {
 }
 interface Claim { job_id: string; request_id: string; file_id: string; }
 interface Receipt { id: string; fingerprint: string; jobs: string[]; }
-type QueueState = 'paused' | 'loading' | 'starting';
+type QueueState = 'paused' | 'ready' | 'loading' | 'starting';
 interface Catalogue {
   version: 1;
   revision: number;
@@ -40,6 +41,20 @@ export interface NativeJobQueueOptions {
   start(job: QueuedNativeJob, requestId: string, context: RpcContext): Promise<void>;
   notify?(event: Json): void | Promise<void>;
   maxJobs?: number;
+  automaticTransition?: boolean;
+  transitionDelayMs?: number;
+  /** Trusted owner freezes the initiating principal and revalidates it on each
+   * print. Never reconstruct authority from the persisted catalogue username. */
+  captureAuthority?(context: RpcContext, lifetime: AbortSignal): RpcContext;
+  /** Matching process controller only; no legacy or replacement generation. */
+  activePrint?(): { requestId: string } | undefined;
+}
+interface Continuation {
+  context: RpcContext;
+  pause: number;
+  requestId: string;
+  finished?: JournalHistoryEvent;
+  removeAbort: () => void;
 }
 const namespace = 'native_job_queue';
 const owners = new WeakSet<DatabaseStore>();
@@ -101,6 +116,12 @@ export class NativeJobQueue {
   #state: QueueState = 'paused';
   #dispatch: Promise<void> | undefined;
   #lifetime = new AbortController();
+  #continuation: Continuation | undefined;
+  #transitionTimer: ReturnType<typeof setTimeout> | undefined;
+  #automaticTask: Promise<void> | undefined;
+  #releaseHistory: (() => void) | undefined;
+  #pauseRequested = false;
+  #transitionError: string | null = null;
   private constructor(options: NativeJobQueueOptions, owner: DatabaseNamespace, value: Catalogue, maxJobs: number) {
     this.#options = options; this.#namespace = owner; this.#catalogue = value; this.#maxJobs = maxJobs;
   }
@@ -108,6 +129,8 @@ export class NativeJobQueue {
     const maxJobs = options.maxJobs ?? 128;
     if (!(options.database instanceof DatabaseStore) || !(options.journal instanceof PrintJournal) || options.journal.closed || !Number.isSafeInteger(maxJobs) || maxJobs < 1 || maxJobs > 128 || typeof options.resolveFile !== 'function' || typeof options.canStart !== 'function' || typeof options.start !== 'function' || options.notify !== undefined && typeof options.notify !== 'function')
       throw new TypeError('Invalid native job queue owner');
+    if (options.automaticTransition !== undefined && typeof options.automaticTransition !== 'boolean' || options.transitionDelayMs !== undefined && (!Number.isFinite(options.transitionDelayMs) || options.transitionDelayMs <= 0 || options.transitionDelayMs > 2147483647)) throw new TypeError('Invalid queue transition policy');
+    if (options.automaticTransition && (typeof options.captureAuthority !== 'function' || typeof options.activePrint !== 'function')) throw new TypeError('Automatic queue requires explicit print authority and controller');
     if (owners.has(options.database)) throw new TypeError('Job queue database already owned');
     owners.add(options.database);
     try {
@@ -119,6 +142,7 @@ export class NativeJobQueue {
       const queue = new NativeJobQueue({ ...options }, owner, saved === null ? empty() : catalogue(saved, maxJobs), maxJobs);
       if (saved === null) await owner.insert('catalogue', queue.#catalogue as unknown as Json);
       await queue.#recover();
+      if (options.automaticTransition) queue.#releaseHistory = options.journal.subscribeHistory(event => queue.#observe(event));
       return queue;
     } catch (error) { owners.delete(options.database); throw error; }
   }
@@ -130,7 +154,50 @@ export class NativeJobQueue {
     };
   }
   get diagnostics() {
-    return { revision: this.#catalogue.revision, pending: this.#pending, dispatching: !!this.#dispatch, claim: this.#catalogue.claim ? { ...this.#catalogue.claim } : null, storage_failed: this.#storageFailed, closed: this.#closing, notifications: { pending: this.#notificationPending, dropped: this.#notificationDropped, error: this.#notificationError } };
+    return { revision: this.#catalogue.revision, pending: this.#pending, dispatching: !!this.#dispatch, claim: this.#catalogue.claim ? { ...this.#catalogue.claim } : null, storage_failed: this.#storageFailed, closed: this.#closing, automatic: { armed: !!this.#continuation, scheduled: !!this.#transitionTimer, error: this.#transitionError }, notifications: { pending: this.#notificationPending, dropped: this.#notificationDropped, error: this.#notificationError } };
+  }
+  #disarm(): void {
+    if (this.#transitionTimer) clearTimeout(this.#transitionTimer);
+    this.#transitionTimer = undefined;
+    this.#continuation?.removeAbort(); this.#continuation = undefined;
+  }
+  #arm(context: RpcContext, requestId: string): Continuation {
+    context.signal.throwIfAborted(); context.nativeGenerationSignal?.throwIfAborted();
+    if (context.nativeGenerationRetiredAtAdmission || !context.nativeGenerationSignal) throw new ApiError(503, 'Automatic queue requires an attached device generation');
+    this.#disarm(); this.#transitionError = null;
+    const signals = [context.signal, context.nativeGenerationSignal];
+    const revoke = () => { if (this.#continuation === lease) { this.#disarm(); this.#setState('paused'); } };
+    const lease: Continuation = { context, pause: this.#pause, requestId, removeAbort: () => { for (const signal of signals) signal.removeEventListener('abort', revoke); } };
+    this.#continuation = lease;
+    for (const signal of signals) signal.addEventListener('abort', revoke, { once: true });
+    return lease;
+  }
+  #observe(event: JournalHistoryEvent): void {
+    const lease = this.#continuation;
+    if (!lease || event.action !== 'finished' || event.record.request.requestId !== lease.requestId || lease.finished) return;
+    lease.finished = event;
+    if (event.record.state !== 'completed') { this.#disarm(); this.#setState('paused'); return; }
+    this.#schedule(lease);
+  }
+  #schedule(lease: Continuation): void {
+    if (this.#continuation !== lease || this.#closing || this.#storageFailed || lease.pause !== this.#pause || !lease.finished || this.#dispatch || this.#transitionTimer) return;
+    if (!this.#catalogue.jobs.length) { this.#disarm(); this.#setState('paused'); return; }
+    this.#setState('loading');
+    this.#transitionTimer = setTimeout(() => {
+      this.#transitionTimer = undefined;
+      if (this.#continuation !== lease || lease.pause !== this.#pause || this.#closing) return;
+      // Completion is durable before this callback; never retry a rejected
+      // admission or substitute a new device/connection principal.
+      const task = (async () => {
+        try {
+          lease.context.signal.throwIfAborted(); lease.context.nativeGenerationSignal?.throwIfAborted();
+          if (!this.#options.canStart()) throw new ApiError(409, 'Completed queue device unavailable');
+          await this.#start(lease.context, true);
+        } catch { this.#disarm(); this.#transitionError = 'Automatic print admission failed; explicitly restart the queue'; this.#setState('paused'); }
+      })();
+      this.#automaticTask = task;
+      void task.finally(() => { if (this.#automaticTask === task) this.#automaticTask = undefined; });
+    }, this.#options.transitionDelayMs ?? 10);
   }
   #assertWritable(): void {
     if (this.#closing || this.#storageFailed) throw new ApiError(503, 'Job queue requires recovery');
@@ -151,7 +218,7 @@ export class NativeJobQueue {
     catch (error) {
       // The database's validated capacity/backpressure rejection precedes commit
       // or rolls its transaction back. An unknown result instead needs recovery.
-      if (!(error instanceof ApiError && [400, 409, 413, 429].includes(error.status))) { this.#storageFailed = true; this.#state = 'paused'; }
+      if (!(error instanceof ApiError && [400, 409, 413, 429].includes(error.status))) { this.#storageFailed = true; this.#disarm(); this.#state = 'paused'; }
       throw error;
     }
     this.#catalogue = next;
@@ -198,7 +265,19 @@ export class NativeJobQueue {
       const next = structuredClone(this.#catalogue); next.jobs = [...reset ? [] : next.jobs, ...jobs];
       if (new Set(next.jobs.map(job => job.job_id)).size !== next.jobs.length) throw new ApiError(503, 'Queue identity collision');
       if (requestId !== undefined) next.receipts = [...next.receipts, { id: requestId, fingerprint, jobs: jobs.map(job => job.job_id) }].slice(-64);
-      signal.throwIfAborted(); await this.#commit(next, 'jobs_added'); return this.status;
+      const active = this.#options.automaticTransition && !this.#pauseRequested ? this.#options.activePrint!() : undefined;
+      const authority = active && !this.#continuation ? this.#options.captureAuthority!(context, this.#lifetime.signal) : undefined;
+      // Validate the ephemeral authority before committing any queue members.
+      authority?.signal.throwIfAborted(); authority?.nativeGenerationSignal?.throwIfAborted();
+      if (authority && (!authority.nativeGenerationSignal || authority.nativeGenerationRetiredAtAdmission)) throw new ApiError(503, 'Automatic queue requires an attached device generation');
+      signal.throwIfAborted(); await this.#commit(next, 'jobs_added');
+      if (this.#options.automaticTransition && !this.#pauseRequested) {
+        if (active && this.#options.activePrint!()?.requestId === active.requestId) {
+          if (!this.#continuation && authority && !authority.signal.aborted && !authority.nativeGenerationSignal!.aborted) this.#arm(authority, active.requestId);
+          if (this.#continuation?.requestId === active.requestId) this.#setState('ready');
+        }
+      }
+      return this.status;
     });
   }
   remove(ids: string[], all: boolean, context: RpcContext): Promise<Json> {
@@ -209,6 +288,7 @@ export class NativeJobQueue {
       const next = structuredClone(this.#catalogue);
       next.jobs = all ? [] : next.jobs.filter(job => !ids.includes(job.job_id));
       if (next.jobs.length !== this.#catalogue.jobs.length) await this.#commit(next, 'jobs_removed');
+      if (!next.jobs.length) { this.#disarm(); this.#setState('paused'); }
       return this.status;
     });
   }
@@ -221,18 +301,35 @@ export class NativeJobQueue {
     });
   }
   async pause(): Promise<Json> {
-    this.#pause++; this.#setState('paused');
+    this.#pause++; this.#pauseRequested = true; this.#disarm(); this.#setState('paused');
     await this.#dispatch; await this.#tail;
     return this.status;
   }
   async start(context: RpcContext): Promise<Json> {
+    return this.#start(context, false);
+  }
+  async #start(context: RpcContext, continuation: boolean): Promise<Json> {
     this.#assertWritable(); context.signal.throwIfAborted();
     if (context.nativeGenerationRetiredAtAdmission) throw new ApiError(503, 'Queue start entered a detached device window');
     if (this.#dispatch) return this.status;
+    let authority = context;
+    if (!continuation) {
+      if (this.#options.automaticTransition) {
+        authority = this.#options.captureAuthority!(context, this.#lifetime.signal);
+        context = { ...context, user: authority.user, authorize: authority.authorize };
+      }
+      this.#pauseRequested = false;
+      this.#disarm(); this.#transitionError = null;
+    }
     const pause = this.#pause;
     const signal = AbortSignal.any([context.signal, this.#lifetime.signal, ...context.nativeGenerationSignal ? [context.nativeGenerationSignal] : []]);
     const dispatch = this.#serialize(async () => {
-      signal.throwIfAborted(); if (pause !== this.#pause || !this.#catalogue.jobs.length || !this.#options.canStart()) return;
+      signal.throwIfAborted(); if (pause !== this.#pause || !this.#catalogue.jobs.length) return;
+      if (!this.#options.canStart()) {
+        const active = this.#options.automaticTransition ? this.#options.activePrint!() : undefined;
+        if (active && !continuation) { this.#arm(authority, active.requestId); this.#setState('ready'); }
+        return;
+      }
       if (this.#catalogue.claim) throw new ApiError(503, 'Queue admission awaits journal recovery');
       const job = this.#catalogue.jobs[0]; this.#setState('loading');
       try {
@@ -246,23 +343,31 @@ export class NativeJobQueue {
         // A pause during the catalogue transaction prevents device admission.
         if (pause === this.#pause && !signal.aborted && !this.#closing) {
           this.#setState('starting');
+          // Arm before admission: an immediate durable completion must not be
+          // lost while start() or catalogue recovery is still pending.
+          if (this.#options.automaticTransition) this.#arm(authority, requestId);
           await this.#options.start(Object.freeze({ ...job }), requestId, { ...context, signal });
           const record = await this.#options.journal.get(requestId);
           if (!record || record.request.fileId !== job.file_id) throw new ApiError(502, 'Queue start did not reserve the matching print request');
         }
-      } finally {
-        this.#setState('paused');
-        if (!this.#storageFailed && !this.#closing) await this.#recover();
+      } catch (error) { this.#disarm(); throw error; }
+      finally {
+        try { if (!this.#storageFailed && !this.#closing) await this.#recover(); }
+        catch (error) { this.#disarm(); this.#setState('paused'); throw error; }
+        this.#setState(this.#continuation && this.#catalogue.jobs.length ? 'ready' : 'paused');
       }
     });
     this.#dispatch = dispatch;
-    try { await dispatch; } finally { if (this.#dispatch === dispatch) this.#dispatch = undefined; }
+    try { await dispatch; } finally {
+      if (this.#dispatch === dispatch) this.#dispatch = undefined;
+      if (this.#continuation?.finished) this.#schedule(this.#continuation);
+    }
     return this.status;
   }
   close(): Promise<void> {
     if (this.#closed) return this.#closed;
-    this.#closing = true; this.#pause++; this.#lifetime.abort(new Error('Job queue closed')); this.#state = 'paused';
-    return this.#closed = (async () => { await Promise.allSettled([this.#dispatch, this.#tail]); await this.#notifications; owners.delete(this.#options.database); })();
+    this.#closing = true; this.#pause++; this.#disarm(); this.#releaseHistory?.(); this.#lifetime.abort(new Error('Job queue closed')); this.#state = 'paused';
+    return this.#closed = (async () => { await Promise.allSettled([this.#automaticTask, this.#dispatch, this.#tail]); await this.#notifications; owners.delete(this.#options.database); })();
   }
 }
 /** Registration shares the real REST/RPC authorizer. No raw device command or

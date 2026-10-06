@@ -10,6 +10,7 @@ import { PrintController } from '../src/operations/print.ts';
 import { ApiError, JsonRpcDispatcher, type RpcContext, type Json } from '../src/moonraker/rpc.ts';
 import { EndpointRegistry } from '../src/moonraker/endpoints.ts';
 import { MoonrakerNetwork } from '../src/moonraker/server.ts';
+import { setTimeout as delay } from 'node:timers/promises';
 
 const context = (authorize: RpcContext['authorize'] = () => ({ username: 'operator' })): RpcContext => ({ transport: 'http', signal: new AbortController().signal, user: { username: 'operator' }, authorize });
 async function fixture(overrides: Partial<NativeJobQueueOptions> = {}, databaseOptions: Partial<DatabaseStoreOptions> = {}) {
@@ -33,6 +34,75 @@ async function fixture(overrides: Partial<NativeJobQueueOptions> = {}, databaseO
   return { root, database, journal, controller, files, calls, events, options, get queue() { return queue; }, async reopen() { await queue.close(); queue = await NativeJobQueue.open(options); return queue; }, async close() { await queue.close(); await controller.cancel(); await journal.close(); await database.close(); await rm(root, { recursive: true, force: true }); } };
 }
 const statusError = (status: number) => (error: unknown) => error instanceof ApiError && error.status === status;
+const automatic = {
+  automaticTransition: true, transitionDelayMs: 10,
+  captureAuthority: (ctx: RpcContext, lifetime: AbortSignal) => ({ ...ctx, signal: AbortSignal.any([lifetime, ctx.nativeGenerationSignal!]) }),
+};
+const automaticContext = (): RpcContext => ({ ...context(), nativeGenerationSignal: new AbortController().signal });
+
+test('automatic owner restart retains remaining jobs but discards every execution grant', async () => {
+  const f = await fixture({ ...automatic, activePrint: () => undefined });
+  try {
+    const ctx = automaticContext();
+    await f.queue.add(['one.gcode', 'two.gcode'], false, ctx); await f.queue.start(ctx);
+    while (f.controller.state === 'preparing') await delay(1);
+    assert.equal(f.queue.diagnostics.automatic.armed, true);
+    await f.reopen(); assert.equal(f.queue.diagnostics.automatic.armed, false);
+    await f.controller.complete(f.controller.currentRequest!.requestId); await delay(30);
+    assert.equal(f.calls.filter(c => c.startsWith('start:')).length, 1);
+    assert.equal(f.queue.status.queue_state, 'paused'); assert.equal(f.queue.status.queued_jobs.length, 1);
+    assert.equal(JSON.stringify(await f.database.get('native_job_queue', 'catalogue')).includes('token'), false);
+  } finally { await f.close(); }
+});
+
+test('completion during the first admission is retained and duplicate or unrelated events cannot dispatch extra jobs', async () => {
+  const f = await fixture(); await f.queue.close();
+  let observe: Parameters<PrintJournal['subscribeHistory']>[0] | undefined;
+  let finished: Parameters<NonNullable<typeof observe>>[0] | undefined;
+  const subscribe = f.journal.subscribeHistory.bind(f.journal);
+  f.journal.subscribeHistory = listener => { observe = listener; return subscribe(event => {
+    if (event.action === 'finished') {
+      finished = event;
+      listener({ ...event, record: { ...event.record, request: { ...event.record.request, requestId: 'unrelated' } } });
+    }
+    listener(event); listener(event);
+  }); };
+  const queue = await NativeJobQueue.open({ ...f.options, ...automatic, activePrint: () => undefined,
+    async start(job, id, ctx) {
+      await f.options.start(job, id, ctx); while (f.controller.state === 'preparing') await delay(1);
+      await f.controller.complete(id);
+    },
+  });
+  try {
+    await queue.add(['one.gcode', 'two.gcode'], false, automaticContext()); await queue.start(automaticContext());
+    const deadline = performance.now() + 3000;
+    while (queue.status.queued_jobs.length || queue.diagnostics.dispatching) { assert(performance.now() < deadline); await delay(2); }
+    assert.equal(f.calls.filter(c => c.startsWith('start:')).length, 2);
+    assert(finished); observe!(finished); observe!({ ...finished, record: { ...finished.record, request: { ...finished.record.request, requestId: 'unrelated' } } });
+    await delay(30); assert.equal(f.calls.filter(c => c.startsWith('start:')).length, 2);
+    assert.equal(queue.status.queue_state, 'paused'); assert.equal(queue.diagnostics.claim, null);
+  } finally { await queue.close(); await f.close(); }
+});
+
+test('a durable reservation followed by an uncertain failure pauses automatic mode without retry or replay', async () => {
+  const f = await fixture(); await f.queue.close(); let attempts = 0;
+  const options = { ...f.options, ...automatic, activePrint: () => undefined,
+    async start(job: import('../src/moonraker/native-job-queue.ts').QueuedNativeJob, id: string) {
+      attempts++; await f.journal.reserve({ version: 1, requestId: id, fileId: job.file_id, nozzle: 0, bed: 0 });
+      throw new Error('Fixture response lost after durable reservation');
+    },
+  };
+  const queue = await NativeJobQueue.open(options);
+  try {
+    await queue.add(['one.gcode', 'two.gcode'], false, automaticContext());
+    await assert.rejects(queue.start(automaticContext()), /response lost/); await delay(30);
+    assert.equal(attempts, 1); assert.equal(queue.status.queued_jobs.length, 1); assert.equal(queue.status.queue_state, 'paused');
+    assert.equal(queue.diagnostics.automatic.armed, false); await queue.close();
+    const reopened = await NativeJobQueue.open(options);
+    try { await delay(30); assert.equal(attempts, 1); assert.equal(reopened.status.queue_state, 'paused'); }
+    finally { await reopened.close(); }
+  } finally { await queue.close(); await f.close(); }
+});
 
 test('queue admission is all-or-nothing, idempotent, private, and durable across owner restart', async () => {
   const f = await fixture();

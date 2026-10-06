@@ -48,5 +48,192 @@
       "wallMs": 869.7684200000003
     }
   ],
-  "scope": "Two simulated MCU sessions; two off-center mechanical probe samples with retract and recovery. Direct owner samples precede HTTP product service samples; setup excluded. Test seeds homed coordinates, no physical probe accuracy or complete G28-to-probe acceptance."
+  "scope": "Two simulated MCU sessions; two off-center mechanical probe samples with retract and recovery. Direct owner samples precede HTTP product service samples; setup excluded. Test seeds homed coordinates, no physical probe accuracy or complete G28-to-probe acceptance.",
+  "postMergeTerminalObservation": {
+    "schema": 1,
+    "status": "unresolved-software-pty-terminal-mismatch",
+    "date": "2026-10-06",
+    "commit": "6a389a2d023216a8b5223e86023168878032434d",
+    "pr": 14,
+    "runId": 37481854349,
+    "jobId": 112331730416,
+    "source": "host/test/delta-probe.test.ts",
+    "timestamp": "2026-10-06T14:49:18.4151776",
+    "diagnostic": {
+      "run": 0,
+      "expectedXY": [
+        25,
+        -30
+      ],
+      "terminalPosition": [
+        25.33227372071191,
+        -30.18106073441564,
+        9.600550284323617,
+        0
+      ],
+      "result": {
+        "position": [
+          25,
+          -30.00000000000003,
+          9.750000000000043,
+          0
+        ],
+        "bed_position": [
+          23,
+          -27.00000000000003,
+          9.626543211000042
+        ],
+        "samples": [
+          [
+            25,
+            -30.00000000000003,
+            9.775000000000034,
+            0
+          ],
+          [
+            25,
+            -30.00000000000003,
+            9.725000000000051,
+            0
+          ]
+        ],
+        "retries": 0,
+        "attempts": 2,
+        "bedPosition": [
+          23,
+          -27.00000000000003,
+          9.626543211000042
+        ]
+      },
+      "hits": 2,
+      "acceptedWireTrace": [
+        {
+          "sample": 0,
+          "armClock": 1896244,
+          "actualArmClocks": [
+            1806728,
+            1806270
+          ],
+          "counts": [],
+          "positions": [
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -20,
+              "clock": 1963894
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -20,
+              "clock": 1963476
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -20,
+              "clock": 1965183
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 1966368
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -4,
+              "clock": 2263445
+            },
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -4,
+              "clock": 2265338
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -4,
+              "clock": 2266558
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 2268255
+            }
+          ],
+          "triggerClock": 1946244,
+          "actualTriggerClocks": [
+            1955761,
+            1955303
+          ]
+        },
+        {
+          "sample": 1,
+          "armClock": 2467355,
+          "actualArmClocks": [
+            2382986,
+            2382527
+          ],
+          "counts": [
+            [
+              "0:0",
+              -4
+            ],
+            [
+              "0:1",
+              -4
+            ],
+            [
+              "1:0",
+              -4
+            ]
+          ],
+          "positions": [
+            {
+              "member": 0,
+              "oid": 0,
+              "position": -44,
+              "clock": 2532349
+            },
+            {
+              "member": 1,
+              "oid": 0,
+              "position": -24,
+              "clock": 2531910
+            },
+            {
+              "member": 0,
+              "oid": 1,
+              "position": -44,
+              "clock": 2533614
+            },
+            {
+              "member": 0,
+              "oid": 2,
+              "position": 0,
+              "clock": 2534796
+            }
+          ],
+          "triggerClock": 2517355,
+          "actualTriggerClocks": [
+            2526357,
+            2525898
+          ]
+        }
+      ],
+      "scope": "Same-invocation software PTY observation; no physical accuracy claim"
+    },
+    "scope": "One actual post-merge CI invocation. No root-cause closure or physical accuracy claim; preserve original 1e-10 assertion.",
+    "notExecuted": [
+      "No rerun to obtain green",
+      "No change to numerical tolerance, motion implementation, fixture counts or clock timing"
+    ],
+    "sourceSha256": "9f3d9c891e9df893e74f311b33b429d0ca3c3d29590a2e7733b735be93d54365",
+    "observedBoundary": "Returned probe result retains expected XY, but after-trigger stepper_get_position observations differ between towers in sample 1: -44, -44 and -24. This does not identify the cause.",
+    "nextDiscriminator": "Record accepted queue_step receive order versus scheduled execution/trigger clocks and per-binding stop ownership at the observed boundary before attributing the mismatch to arithmetic, runtime or the software firmware fixture."
+  }
 }

@@ -78,6 +78,34 @@ export class ApiKeyAuthorization {
   if(['forwarded','x-forwarded-for','x-real-ip'].some(name=>request.headers[name]!==undefined))return false;
   return this.#trusted.matches(request.socket.remoteAddress);
  }
+ /** Process-only print authority for an explicitly armed queue. Capture the
+  * authenticated principal, never a username supplied by a request or saved
+  * catalogue. Revalidate key generation/JWT expiry and revocation each time;
+  * another login on the original connection cannot replace this principal. */
+ capturePrintAuthority(context:RpcContext,lifetime:AbortSignal):RpcContext{
+  this.#active();context.signal.throwIfAborted();
+  lifetime.throwIfAborted();context.nativeGenerationSignal?.throwIfAborted();
+  const signal=AbortSignal.any([lifetime,...context.nativeGenerationSignal?[context.nativeGenerationSignal]:[]]);
+  const request=this.#requests.get(context.signal),known=this.#principals.get(context.signal);
+  if(!request||known===undefined)throw new ApiError(401,'Authenticated print authority required');
+  const principal:Principal=typeof known==='object'?Object.freeze({...known}):known;
+  const authorize=(method:string):AuthorizedUser=>{
+   this.#active();signal.throwIfAborted();
+   if(method!=='printer.print.start')throw new ApiError(403,'Queue authority permits print admission only');
+   if(typeof principal==='number'){
+    if(!this.#enableApiKey||principal!==this.#generation)throw new ApiError(401,'Queue API Key authority revoked');return identity;
+   }
+   if(principal==='trusted'){
+    if(!this.#trusts(request))throw new ApiError(401,'Queue trusted client authority revoked');return Object.freeze({username:'_TRUSTED_USER_'});
+   }
+   const user=this.#users!.decode(principal.token,'access');
+   if(user.username!==principal.username)throw new ApiError(401,'Queue user authority changed');
+   return Object.freeze({username:user.username});
+  };
+  const user=authorize('printer.print.start');
+  if(context.user?.username!==user.username)throw new ApiError(401,'Queue request identity changed');
+  return Object.freeze({transport:context.transport,signal,user,nativeGenerationSignal:context.nativeGenerationSignal,nativeGenerationRetiredAtAdmission:context.nativeGenerationRetiredAtAdmission,authorize});
+ }
  readonly networkOptions:Pick<MoonrakerNetworkOptions,'authorize'|'authorizeNotification'|'authorizeSubscriptionConnection'>={
   authorize:(method,params,context)=>this.authorize(method,params,context),
   authorizeNotification:(method,params,context)=>{
