@@ -1,0 +1,2933 @@
+{
+  "version": 1,
+  "sourceRevision": "6ad9f5950ad0a6e1b45d68866484fddce342aa21",
+  "sourceHashes": [
+    {
+      "file": "scripts/inspect-legacy-macros.ts",
+      "sha256": "f1c607aff90d01ffb6c35bb64092688f9154ce23267a86166f7b21be4729cf31"
+    },
+    {
+      "file": "src/config/klipper-files.ts",
+      "sha256": "92131bc2cdb096de5183eb5896c2ff6f940da521ec0876db9acdee4f1c09a3c7"
+    },
+    {
+      "file": "src/config/klipper-text.ts",
+      "sha256": "7dd45f77223f38b629d89ef674c1e5180bb325c948ec02f37b74b2bdf0c3962b"
+    },
+    {
+      "file": "src/config/klipper-autosave.ts",
+      "sha256": "23ce8c7505664b555b2ea1c42bb94b80c3ca6806b25dfefc5f411832c0c067ed"
+    }
+  ],
+  "node": "v26.10.0",
+  "method": "inspectKlipperConfiguration; active includes and SAVE_CONFIG; literal command inventory only",
+  "limitations": [
+    "No template rendering, branch expansion, plugin loading, device access or motion",
+    "Archive labels do not establish Cycnumbris 500 series identity",
+    "Definition locations show occurrences, not option-level winning provenance",
+    "No configuration values, credentials or machine identifiers are exported"
+  ],
+  "packages": [
+    {
+      "archive": "中高配配置文件.zip",
+      "archiveSha256": "f2530ec9386660f08b575d64f7f4c4d50e174a47f69fc874231f7c41166ce091",
+      "primary": "config/printer.cfg",
+      "seriesIdentity": "unconfirmed",
+      "effectiveSectionCount": 124,
+      "activeFiles": [
+        {
+          "file": "config/printer.cfg",
+          "sha256": "c948eb73694facb076e37a950a14a33d4a2c857f26c3a2b94f23be9fcd58bc9b"
+        },
+        {
+          "file": "config/mainsail.cfg",
+          "sha256": "29d4c97b099e481c25c0a875b3f0696850a6aafa67775aee8d05e8682352ffb4"
+        },
+        {
+          "file": "config/gjt.cfg",
+          "sha256": "49fa54e65b11f040db613703482f8d16d94e812287a0b3f22812cd3f2ca74d1b"
+        },
+        {
+          "file": "config/eddy.cfg",
+          "sha256": "7a9144665e6fa594a23a356132668512c27f1d4d9988181eee6e02a5b15abb6d"
+        },
+        {
+          "file": "config/G.cfg",
+          "sha256": "bd259b1bc8d4e4399f4909825a61ed5d17a0ebae23adf7ad8f95cada34160406"
+        },
+        {
+          "file": "config/WaterCooled.cfg",
+          "sha256": "ecd836392bf9b5141d21b726ddea574ee8e05898282073c83c752a1f745fc546"
+        },
+        {
+          "file": "config/LED.cfg",
+          "sha256": "04b95e34bb4bb3ddd3eb03ecaaa164942cdb95d399dee435271331e72fe0ee45"
+        },
+        {
+          "file": "config/fan.cfg",
+          "sha256": "c91893922426040a161713d4904078fbb2709d47b1c1dfe9407509131fc3d7ca"
+        }
+      ],
+      "excludedMembers": [
+        "config/moonraker.conf",
+        "config/KlipperScreen.conf"
+      ],
+      "macros": [
+        {
+          "section": "delayed_gcode HOME_STRESS_TEST_LOOP",
+          "gcodeSha256": "ce9bf67e647dcf833eb2873be1829d743ef5de28ff87ba68b608def0c03502c7",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1392
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+          "gcodeSha256": "cb1c7b8a5fe21b53cc5d3758fdde7dd2cf85e0a5e20475583339a4ebe6c4a479",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1274
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_PURGE_AND_FINISH",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH",
+          "gcodeSha256": "559e909ef749661a388120458021fac50b23441fdfe04cbdbbaf6ca0f942efa2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1203
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_CHECK_TOOLHEAD",
+          "gcodeSha256": "381177968cd95fcf60111eb66aff20d61f7eccc52e3320d9b3afed612f8b30cc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 983
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_WAIT_REMOVE",
+          "gcodeSha256": "ae88bddeacccea5669807ad9d62292af4122a00748892b77f036445d3020eff9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 999
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_EXTRUDE",
+          "gcodeSha256": "875a235e8f078f78c9d1be844a1a59d1eef6829f4a509de01ba296b744a4a604",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 256
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G10",
+            "G11",
+            "M82",
+            "M83",
+            "RESPOND"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_LINEAR_MOVE",
+          "gcodeSha256": "c6c15b604fb526a259b73427a69c1237eccdf53decc23ae55820c325607396db",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 295
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G9",
+            "M8",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_RETRACT",
+          "gcodeSha256": "e9151d45af17840885e46b6ff3cf02d3c2750f4c5bb3f09e4f60ff39030bed02",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 286
+            }
+          ],
+          "literalCommands": [
+            "_CLIENT_EXTRUDE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _GLOBAL_VARS",
+          "gcodeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 132
+            }
+          ],
+          "literalCommands": [],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro _TOOLHEAD_PARK_PAUSE_CANCEL",
+          "gcodeSha256": "9d8c784c7be84f79c4e41f3e34b9048bf1430b56f3817bddf5491bb60d948435",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 214
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "RESPOND",
+            "_CLIENT_RETRACT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro AUTO_Resonance_Compensation",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 47
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro BED_MESH_CALIBRATE",
+          "gcodeSha256": "ab628cac9ede4493a110b3ac6249cdb074ca42e6a9942ef9543dc7ca64435fc1",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 23
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 56
+            }
+          ],
+          "literalCommands": [
+            "M140",
+            "_BED_MESH_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_BED_MESH_CALIBRATE"
+        },
+        {
+          "section": "gcode_macro CANCEL_PRINT",
+          "gcodeSha256": "5d6cab3625d7968328ae07e4b6b1a0f39c8dc12106b5996b7e3e11e6d0133304",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 63
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 362
+            }
+          ],
+          "literalCommands": [
+            "CANCEL_PRINT_BASE",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "CANCEL_PRINT_BASE"
+        },
+        {
+          "section": "gcode_macro DATA_SAMPLE",
+          "gcodeSha256": "617a1f7ef05992d4c69c27fcdee153db48d11407ffe9b8eafac57ca33502e04c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 457
+            }
+          ],
+          "literalCommands": [
+            "G0",
+            "G28",
+            "G4",
+            "IDM_STREAM",
+            "M104",
+            "M106",
+            "M140",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro EXTRUDER_SWITCH_RUNOUT_START",
+          "gcodeSha256": "c899ceea41c75deafc67d5dad17ab21638b0bec75806632a6d42c39553c82e5e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 191
+            }
+          ],
+          "literalCommands": [
+            "FILAMENT_RUNOUT_PAUSE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro FILAMENT_RUNOUT_PAUSE",
+          "gcodeSha256": "dc7d9d02cd43a588fd963c728357bdd68db344aa20d56ad2bb7d34baeb3f9a59",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 219
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PAUSE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro G32",
+          "gcodeSha256": "a1411f9b13c18959f11256c4571c7795b21f658dd8e2427a9f26f83f69d5be4f",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 574
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G92",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT",
+          "gcodeSha256": "c215029f28590fd6849c8fb14d1b100536c10f12da087f4a00df3c0fd919c9f5",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1098
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "65e15bd190d0675a1e287568ab5613e107b00affc8e8fcd187fc8021491f24f2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1341
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_HEAT_AND_FEED",
+          "gcodeSha256": "f2419650890fdeed43dd1abb3cbec5f434119275929b87e3a1909674cc322fa8",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1245
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M109",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_PURGE_AND_FINISH",
+          "gcodeSha256": "8d445e667b534bd2356843cd3d9395890ade4de9ecaebb01eefeec82cae81f43",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1314
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "M118",
+            "M83",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro M106",
+          "gcodeSha256": "d788d903fbaea1f556e8adc471f46bf65cb301024d392753eaeab5c3a6dc1cc3",
+          "definitions": [
+            {
+              "file": "config/fan.cfg",
+              "line": 105
+            }
+          ],
+          "literalCommands": [
+            "M106.1",
+            "SET_FAN_SPEED"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "M106.1"
+        },
+        {
+          "section": "gcode_macro PAUSE",
+          "gcodeSha256": "f7a715b87bd7292ed851e884427b2dd63db70a4224d2bda1150bc35715235e22",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 93
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 242
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "M118",
+            "PAUSE_BASE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "PAUSE_BASE"
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND_200",
+          "gcodeSha256": "bc91dbf1ce8a6b191134c9fe5d6cfc520f0c46995d9f69110efc82df8b5b17e6",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 78
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SERIAL_DUAL_PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_HEATER2",
+          "gcodeSha256": "9d8b45ffb473cd62397980dc0d8ca8ea56be4c14612fad31afb1e6105bce2730",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 386
+            }
+          ],
+          "literalCommands": [
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_END",
+          "gcodeSha256": "5601cb483c5ac137a1ad9eb8e5152aeb46ad4a923f7da44aa93ce664b390296c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 413
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 521
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "M400",
+            "M84",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_START",
+          "gcodeSha256": "e4356318dd30ad656e16e3e292cc84f60ef6bfd2b394f66734afff2aa437e4fc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 139
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G4",
+            "G92",
+            "M109",
+            "M140",
+            "M190",
+            "PROBE_CALIBRATE",
+            "QUAD_GANTRY_LEVEL",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro QUAD_GANTRY_LEVEL",
+          "gcodeSha256": "8753a6e014b1ee74aa2dcfb4bba94ade6ce1e3cb751fe443752540b61067b430",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 31
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "_QUAD_GANTRY_LEVEL"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_QUAD_GANTRY_LEVEL"
+        },
+        {
+          "section": "gcode_macro RESUME",
+          "gcodeSha256": "19e71884b49087f8c0f047fd0419202c0f8d971ad2b88d91fc366976f82c2459",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 114
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 317
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G91",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "RESUME_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "RESUME_BASE"
+        },
+        {
+          "section": "gcode_macro SAVE_CONFIG_MACRO",
+          "gcodeSha256": "b6ca734f0db180549eb71f419945f27239508ff23993095f1b68978aef0b862d",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 90
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SAVE_CONFIG"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SCREEN_LOAD_FILAMENT",
+          "gcodeSha256": "b66766a0ee97b0d0d7ee7751b058a8a5dd16c96a592ee4cd3fb8c09dbe2c4c9e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1055
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "LOAD_FILAMENT",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_AT_LAYER",
+          "gcodeSha256": "7165d9bcaffd20360d14dd9c0f66669e13a042876f25b799a677c64687b38995",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 185
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_NEXT_LAYER",
+          "gcodeSha256": "7acd03b1c01a12acb16403cfaaa99422d8baf7e01f434588aae2aacadee5584c",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 176
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PRINT_STATS_INFO",
+          "gcodeSha256": "b8124b01062e2ef3b09b4acd560a193b16f57801c41df9dff78d69d1cc8926fd",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 196
+            }
+          ],
+          "literalCommands": [
+            "RESPOND",
+            "SET_PAUSE_AT_LAYER",
+            "SET_PAUSE_NEXT_LAYER",
+            "SET_PRINT_STATS_INFO_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "SET_PRINT_STATS_INFO_BASE"
+        },
+        {
+          "section": "gcode_macro SET_Z_0",
+          "gcodeSha256": "9413273c31ebf5e8c80306eda60fc10684127076411c454febf8a21f45b5c89a",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 105
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SET_Z_80",
+          "gcodeSha256": "d8d2926ef4cb6772517884e2915a8c292917411a453ba8815311ec015ff78a9c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 98
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SLOWSPEED",
+          "gcodeSha256": "98cfaa560c75db16139fe2d682061f9bb74551dde799ec61122f155a58368bf9",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 77
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "G4",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro START_HOME_STRESS_TEST",
+          "gcodeSha256": "631b4ad4292812e9d00308089d58ddffee44e70767306c3785e754b79db5ff27",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1385
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro STOP_HOME_STRESS_TEST",
+          "gcodeSha256": "0b921676ad5ba8bb8dd42233932780978cea94f6692a7fc51ca2babc4cded254",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1405
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT",
+          "gcodeSha256": "84c16a23fe93db4d000acc5154bb7ce5e03f803c1d0e5943d4fd6057d881ed93",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 799
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G4",
+            "G90",
+            "M104",
+            "M109",
+            "M118",
+            "M400",
+            "M83",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_CHECK_TOOLHEAD"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "4a9ded3f3df31b8faed3dce9bde0a4addfe726d2ef6925eb52126f870e4a3e60",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1024
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro WIPE_NOZZLE",
+          "gcodeSha256": "a6059427a4382e0fe389603ed5070b688953a256f174d1e60ca337d5edd3f6cf",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 616
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "M104",
+            "M106",
+            "M118",
+            "M83",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "SET_HEATER_TEMPERATURE",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro Z_TILT_BATCH_10000",
+          "gcodeSha256": "9cb294479a7025227d18a07499bb82a2764943632977f30b2afbc58f758bfb38",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 61
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "G28",
+            "G4",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro 自动振动补偿",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 42
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行IDM探针校准",
+          "gcodeSha256": "a553ac9f6470570916cc0752ea426b5924f155e4d317f21e7dbbf2aab8979801",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 114
+            }
+          ],
+          "literalCommands": [
+            "IDM_CALIBRATE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行共振补偿校准",
+          "gcodeSha256": "7b6f2b867a021c13c68e19e0c8a51451dc9d7f91bb2ce895c60edb9c3575a4a3",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 67
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        }
+      ]
+    },
+    {
+      "archive": "低配机器配置文件.zip",
+      "archiveSha256": "836e6f36cf5ae3c12214f31a1c27a0bf1df24ea9322f62cbfec1f94c03d3dc96",
+      "primary": "config/printer.cfg",
+      "seriesIdentity": "unconfirmed",
+      "effectiveSectionCount": 99,
+      "activeFiles": [
+        {
+          "file": "config/printer.cfg",
+          "sha256": "d87affd15f6f6524d4dfee43477c46cf869a8e1fd25328085a49f51695173019"
+        },
+        {
+          "file": "config/mainsail.cfg",
+          "sha256": "29d4c97b099e481c25c0a875b3f0696850a6aafa67775aee8d05e8682352ffb4"
+        },
+        {
+          "file": "config/gjt.cfg",
+          "sha256": "ce40d4ece646bf9c87d18a79949e68ec8509a3c05b649a5b6236757b5476b2fe"
+        },
+        {
+          "file": "config/eddy.cfg",
+          "sha256": "f72350bbdfd9f50902f66b8226ab8e19a60dc3fd05adf1d47a56ceeeee000b72"
+        },
+        {
+          "file": "config/G.cfg",
+          "sha256": "0e00df3324f6c4a1eb3502d84024958a0306c1ae8160e9dc5625aa71e1dcecfa"
+        },
+        {
+          "file": "config/fan.cfg",
+          "sha256": "a5860e6be0078711b9745d78f40716d3cfdd2cd17a4fa238cac9195ee6203f95"
+        }
+      ],
+      "excludedMembers": [
+        "config/KlipperScreen.conf",
+        "config/moonraker.conf"
+      ],
+      "macros": [
+        {
+          "section": "delayed_gcode HOME_STRESS_TEST_LOOP",
+          "gcodeSha256": "ce9bf67e647dcf833eb2873be1829d743ef5de28ff87ba68b608def0c03502c7",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1475
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+          "gcodeSha256": "cb1c7b8a5fe21b53cc5d3758fdde7dd2cf85e0a5e20475583339a4ebe6c4a479",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1357
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_PURGE_AND_FINISH",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH",
+          "gcodeSha256": "559e909ef749661a388120458021fac50b23441fdfe04cbdbbaf6ca0f942efa2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1286
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_CHECK_TOOLHEAD",
+          "gcodeSha256": "381177968cd95fcf60111eb66aff20d61f7eccc52e3320d9b3afed612f8b30cc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1066
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_WAIT_REMOVE",
+          "gcodeSha256": "ae88bddeacccea5669807ad9d62292af4122a00748892b77f036445d3020eff9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1082
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_EXTRUDE",
+          "gcodeSha256": "875a235e8f078f78c9d1be844a1a59d1eef6829f4a509de01ba296b744a4a604",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 256
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G10",
+            "G11",
+            "M82",
+            "M83",
+            "RESPOND"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_LINEAR_MOVE",
+          "gcodeSha256": "c6c15b604fb526a259b73427a69c1237eccdf53decc23ae55820c325607396db",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 295
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G9",
+            "M8",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_RETRACT",
+          "gcodeSha256": "e9151d45af17840885e46b6ff3cf02d3c2750f4c5bb3f09e4f60ff39030bed02",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 286
+            }
+          ],
+          "literalCommands": [
+            "_CLIENT_EXTRUDE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _GLOBAL_VARS",
+          "gcodeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 215
+            }
+          ],
+          "literalCommands": [],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro _TOOLHEAD_PARK_PAUSE_CANCEL",
+          "gcodeSha256": "9d8c784c7be84f79c4e41f3e34b9048bf1430b56f3817bddf5491bb60d948435",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 214
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "RESPOND",
+            "_CLIENT_RETRACT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro AUTO_Resonance_Compensation",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 59
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro BED_MESH_CALIBRATE",
+          "gcodeSha256": "ab628cac9ede4493a110b3ac6249cdb074ca42e6a9942ef9543dc7ca64435fc1",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 35
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 127
+            }
+          ],
+          "literalCommands": [
+            "M140",
+            "_BED_MESH_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_BED_MESH_CALIBRATE"
+        },
+        {
+          "section": "gcode_macro CANCEL_PRINT",
+          "gcodeSha256": "990795e6bd818d7737ad8b1efc9bf7c5c64f7acd156893278b54deba36859168",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 63
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 445
+            }
+          ],
+          "literalCommands": [
+            "CANCEL_PRINT_BASE",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "CANCEL_PRINT_BASE"
+        },
+        {
+          "section": "gcode_macro DATA_SAMPLE",
+          "gcodeSha256": "617a1f7ef05992d4c69c27fcdee153db48d11407ffe9b8eafac57ca33502e04c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 540
+            }
+          ],
+          "literalCommands": [
+            "G0",
+            "G28",
+            "G4",
+            "IDM_STREAM",
+            "M104",
+            "M106",
+            "M140",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro EXTRUDER_SWITCH_RUNOUT_START",
+          "gcodeSha256": "c899ceea41c75deafc67d5dad17ab21638b0bec75806632a6d42c39553c82e5e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 274
+            }
+          ],
+          "literalCommands": [
+            "FILAMENT_RUNOUT_PAUSE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro FILAMENT_RUNOUT_PAUSE",
+          "gcodeSha256": "dc7d9d02cd43a588fd963c728357bdd68db344aa20d56ad2bb7d34baeb3f9a59",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 302
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PAUSE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro G32",
+          "gcodeSha256": "a1411f9b13c18959f11256c4571c7795b21f658dd8e2427a9f26f83f69d5be4f",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 599
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G92",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT",
+          "gcodeSha256": "c215029f28590fd6849c8fb14d1b100536c10f12da087f4a00df3c0fd919c9f5",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1181
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "65e15bd190d0675a1e287568ab5613e107b00affc8e8fcd187fc8021491f24f2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1424
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_HEAT_AND_FEED",
+          "gcodeSha256": "f2419650890fdeed43dd1abb3cbec5f434119275929b87e3a1909674cc322fa8",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1328
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M109",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_PURGE_AND_FINISH",
+          "gcodeSha256": "8d445e667b534bd2356843cd3d9395890ade4de9ecaebb01eefeec82cae81f43",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1397
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "M118",
+            "M83",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PAUSE",
+          "gcodeSha256": "f7a715b87bd7292ed851e884427b2dd63db70a4224d2bda1150bc35715235e22",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 93
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 325
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "M118",
+            "PAUSE_BASE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "PAUSE_BASE"
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND",
+          "gcodeSha256": "4dcfc73f28f429fb3e2961f8e19c19d2f0f92943a864fdecfc975c25a9aadadd",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 147
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND_200",
+          "gcodeSha256": "4e563cd07abed40b3f21bc959895e865b5301f6be2e6a35bbb26ce7f9fc47d95",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 155
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND_240",
+          "gcodeSha256": "bc11af49a4543d293c1075cce320b9f01bae16dcb4f60d0e5d59ef5d9b049418",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 163
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_HEATER2",
+          "gcodeSha256": "9d8b45ffb473cd62397980dc0d8ca8ea56be4c14612fad31afb1e6105bce2730",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 376
+            }
+          ],
+          "literalCommands": [
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_END",
+          "gcodeSha256": "5601cb483c5ac137a1ad9eb8e5152aeb46ad4a923f7da44aa93ce664b390296c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 496
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 604
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "M400",
+            "M84",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_START",
+          "gcodeSha256": "e4356318dd30ad656e16e3e292cc84f60ef6bfd2b394f66734afff2aa437e4fc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 222
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G4",
+            "G92",
+            "M109",
+            "M140",
+            "M190",
+            "PROBE_CALIBRATE",
+            "QUAD_GANTRY_LEVEL",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro QUAD_GANTRY_LEVEL",
+          "gcodeSha256": "8753a6e014b1ee74aa2dcfb4bba94ade6ce1e3cb751fe443752540b61067b430",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 43
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "_QUAD_GANTRY_LEVEL"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_QUAD_GANTRY_LEVEL"
+        },
+        {
+          "section": "gcode_macro RESUME",
+          "gcodeSha256": "19e71884b49087f8c0f047fd0419202c0f8d971ad2b88d91fc366976f82c2459",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 114
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 400
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G91",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "RESUME_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "RESUME_BASE"
+        },
+        {
+          "section": "gcode_macro SAVE_CONFIG_MACRO",
+          "gcodeSha256": "b6ca734f0db180549eb71f419945f27239508ff23993095f1b68978aef0b862d",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 173
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SAVE_CONFIG"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SCREEN_LOAD_FILAMENT",
+          "gcodeSha256": "b66766a0ee97b0d0d7ee7751b058a8a5dd16c96a592ee4cd3fb8c09dbe2c4c9e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1138
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "LOAD_FILAMENT",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_AT_LAYER",
+          "gcodeSha256": "7165d9bcaffd20360d14dd9c0f66669e13a042876f25b799a677c64687b38995",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 185
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_NEXT_LAYER",
+          "gcodeSha256": "7acd03b1c01a12acb16403cfaaa99422d8baf7e01f434588aae2aacadee5584c",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 176
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PRINT_STATS_INFO",
+          "gcodeSha256": "b8124b01062e2ef3b09b4acd560a193b16f57801c41df9dff78d69d1cc8926fd",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 196
+            }
+          ],
+          "literalCommands": [
+            "RESPOND",
+            "SET_PAUSE_AT_LAYER",
+            "SET_PAUSE_NEXT_LAYER",
+            "SET_PRINT_STATS_INFO_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "SET_PRINT_STATS_INFO_BASE"
+        },
+        {
+          "section": "gcode_macro SET_Z_0",
+          "gcodeSha256": "9413273c31ebf5e8c80306eda60fc10684127076411c454febf8a21f45b5c89a",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 188
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SET_Z_80",
+          "gcodeSha256": "d8d2926ef4cb6772517884e2915a8c292917411a453ba8815311ec015ff78a9c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 181
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SLOWSPEED",
+          "gcodeSha256": "98cfaa560c75db16139fe2d682061f9bb74551dde799ec61122f155a58368bf9",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 80
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "G4",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro START_HOME_STRESS_TEST",
+          "gcodeSha256": "631b4ad4292812e9d00308089d58ddffee44e70767306c3785e754b79db5ff27",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1468
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro STOP_HOME_STRESS_TEST",
+          "gcodeSha256": "0b921676ad5ba8bb8dd42233932780978cea94f6692a7fc51ca2babc4cded254",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1488
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT",
+          "gcodeSha256": "84c16a23fe93db4d000acc5154bb7ce5e03f803c1d0e5943d4fd6057d881ed93",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 882
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G4",
+            "G90",
+            "M104",
+            "M109",
+            "M118",
+            "M400",
+            "M83",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_CHECK_TOOLHEAD"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "4a9ded3f3df31b8faed3dce9bde0a4addfe726d2ef6925eb52126f870e4a3e60",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1107
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro WIPE_NOZZLE",
+          "gcodeSha256": "a6059427a4382e0fe389603ed5070b688953a256f174d1e60ca337d5edd3f6cf",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 699
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "M104",
+            "M106",
+            "M118",
+            "M83",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "SET_HEATER_TEMPERATURE",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro Z_TILT_BATCH_10000",
+          "gcodeSha256": "9cb294479a7025227d18a07499bb82a2764943632977f30b2afbc58f758bfb38",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 64
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "G28",
+            "G4",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro 自动振动补偿",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 54
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行IDM探针校准",
+          "gcodeSha256": "a553ac9f6470570916cc0752ea426b5924f155e4d317f21e7dbbf2aab8979801",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 197
+            }
+          ],
+          "literalCommands": [
+            "IDM_CALIBRATE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行共振补偿校准",
+          "gcodeSha256": "7b6f2b867a021c13c68e19e0c8a51451dc9d7f91bb2ce895c60edb9c3575a4a3",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 138
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        }
+      ]
+    },
+    {
+      "archive": "高坚果配置文件.zip",
+      "archiveSha256": "9b0a31b21b7a4f2e5ce56e6b6d024d6b6fd065e13327688fc2f52b29bcae40fa",
+      "primary": "config/printer.cfg",
+      "seriesIdentity": "unconfirmed",
+      "effectiveSectionCount": 113,
+      "activeFiles": [
+        {
+          "file": "config/printer.cfg",
+          "sha256": "7fe82d3ff6a2a975b258acc476f9009b9facfba3a7b2392811fd69aeeb51a242"
+        },
+        {
+          "file": "config/mainsail.cfg",
+          "sha256": "29d4c97b099e481c25c0a875b3f0696850a6aafa67775aee8d05e8682352ffb4"
+        },
+        {
+          "file": "config/gjt.cfg",
+          "sha256": "64ea85443408f592a2a634f1e26fa67dc3c2b4e8d8d65108121680bfea484aae"
+        },
+        {
+          "file": "config/eddy.cfg",
+          "sha256": "6842d84aa700f5af74dfd16b2c31e33d8c4502b5388ee63d68322bdb600924e8"
+        },
+        {
+          "file": "config/G.cfg",
+          "sha256": "b83da341e7de1208d7bb1d4196b9f9041618272a248f604f481546a3574e245d"
+        },
+        {
+          "file": "config/LED.cfg",
+          "sha256": "11abaa105a0751888c7796988c29ad942978ae2e62e55ad7f7f8a90a339b2e51"
+        },
+        {
+          "file": "config/fan.cfg",
+          "sha256": "cd204a843446c6258711209835d67e221808ede17fd5c875e2888c639ba74885"
+        }
+      ],
+      "excludedMembers": [
+        "config/config-20260822-213934.zip",
+        "config/KlipperScreen.conf",
+        "config/moonraker.conf",
+        "config/printer.cfg.backup.20260714_082142",
+        "config/printer.cfg.backup.20260714_125233",
+        "config/printer.cfg.backup.20260715_015147",
+        "config/printer.cfg.backup.20260715_070028",
+        "config/printer.cfg.backup.20260717_080639",
+        "config/printer.cfg.backup.20260720_064334",
+        "config/printer.cfg.backup.20260720_071052",
+        "config/printer.cfg.backup.20260723_031052",
+        "config/printer.cfg.backup.20260804_024809",
+        "config/printer.cfg.backup.20260805_024857",
+        "config/sample-bigtreetech-ebb-canbus-v1.2.cfg",
+        "config/sample-bigtreetech-lis2dw-v1.0.cfg",
+        "config/WaterCooled.cfg"
+      ],
+      "macros": [
+        {
+          "section": "delayed_gcode HOME_STRESS_TEST_LOOP",
+          "gcodeSha256": "ce9bf67e647dcf833eb2873be1829d743ef5de28ff87ba68b608def0c03502c7",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1475
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+          "gcodeSha256": "cb1c7b8a5fe21b53cc5d3758fdde7dd2cf85e0a5e20475583339a4ebe6c4a479",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1357
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_PURGE_AND_FINISH",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH",
+          "gcodeSha256": "559e909ef749661a388120458021fac50b23441fdfe04cbdbbaf6ca0f942efa2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1286
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_CHECK_TOOLHEAD",
+          "gcodeSha256": "381177968cd95fcf60111eb66aff20d61f7eccc52e3320d9b3afed612f8b30cc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1066
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "delayed_gcode UNLOAD_FILAMENT_WAIT_REMOVE",
+          "gcodeSha256": "ae88bddeacccea5669807ad9d62292af4122a00748892b77f036445d3020eff9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1082
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_GCODE_VARIABLE",
+            "UNLOAD_FILAMENT_CLEANUP",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_EXTRUDE",
+          "gcodeSha256": "875a235e8f078f78c9d1be844a1a59d1eef6829f4a509de01ba296b744a4a604",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 256
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G10",
+            "G11",
+            "M82",
+            "M83",
+            "RESPOND"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_LINEAR_MOVE",
+          "gcodeSha256": "c6c15b604fb526a259b73427a69c1237eccdf53decc23ae55820c325607396db",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 295
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G9",
+            "M8",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _CLIENT_RETRACT",
+          "gcodeSha256": "e9151d45af17840885e46b6ff3cf02d3c2750f4c5bb3f09e4f60ff39030bed02",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 286
+            }
+          ],
+          "literalCommands": [
+            "_CLIENT_EXTRUDE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro _GLOBAL_VARS",
+          "gcodeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 215
+            }
+          ],
+          "literalCommands": [],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro _TOOLHEAD_PARK_PAUSE_CANCEL",
+          "gcodeSha256": "9d8c784c7be84f79c4e41f3e34b9048bf1430b56f3817bddf5491bb60d948435",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 214
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "RESPOND",
+            "_CLIENT_RETRACT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro AUTO_Resonance_Compensation",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 59
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro BED_MESH_CALIBRATE",
+          "gcodeSha256": "ab628cac9ede4493a110b3ac6249cdb074ca42e6a9942ef9543dc7ca64435fc1",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 35
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 127
+            }
+          ],
+          "literalCommands": [
+            "M140",
+            "_BED_MESH_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_BED_MESH_CALIBRATE"
+        },
+        {
+          "section": "gcode_macro CANCEL_PRINT",
+          "gcodeSha256": "990795e6bd818d7737ad8b1efc9bf7c5c64f7acd156893278b54deba36859168",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 63
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 445
+            }
+          ],
+          "literalCommands": [
+            "CANCEL_PRINT_BASE",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "CANCEL_PRINT_BASE"
+        },
+        {
+          "section": "gcode_macro DATA_SAMPLE",
+          "gcodeSha256": "617a1f7ef05992d4c69c27fcdee153db48d11407ffe9b8eafac57ca33502e04c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 540
+            }
+          ],
+          "literalCommands": [
+            "G0",
+            "G28",
+            "G4",
+            "IDM_STREAM",
+            "M104",
+            "M106",
+            "M140",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro EXTRUDER_SWITCH_RUNOUT_START",
+          "gcodeSha256": "c899ceea41c75deafc67d5dad17ab21638b0bec75806632a6d42c39553c82e5e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 274
+            }
+          ],
+          "literalCommands": [
+            "FILAMENT_RUNOUT_PAUSE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro FILAMENT_RUNOUT_PAUSE",
+          "gcodeSha256": "dc7d9d02cd43a588fd963c728357bdd68db344aa20d56ad2bb7d34baeb3f9a59",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 302
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PAUSE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro G32",
+          "gcodeSha256": "a1411f9b13c18959f11256c4571c7795b21f658dd8e2427a9f26f83f69d5be4f",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 545
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G92",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT",
+          "gcodeSha256": "c215029f28590fd6849c8fb14d1b100536c10f12da087f4a00df3c0fd919c9f5",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1181
+            }
+          ],
+          "literalCommands": [
+            "LOAD_FILAMENT_CLEANUP",
+            "LOAD_FILAMENT_HEAT_AND_FEED",
+            "M118",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "65e15bd190d0675a1e287568ab5613e107b00affc8e8fcd187fc8021491f24f2",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1424
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH",
+            "LOAD_FILAMENT_WAIT_EXTRUDER_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_HEAT_AND_FEED",
+          "gcodeSha256": "f2419650890fdeed43dd1abb3cbec5f434119275929b87e3a1909674cc322fa8",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1328
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M109",
+            "M118",
+            "M83",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "LOAD_FILAMENT_FEED_TO_TOOLHEAD_SWITCH"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro LOAD_FILAMENT_PURGE_AND_FINISH",
+          "gcodeSha256": "8d445e667b534bd2356843cd3d9395890ade4de9ecaebb01eefeec82cae81f43",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1397
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "LOAD_FILAMENT_CLEANUP",
+            "M118",
+            "M83",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PAUSE",
+          "gcodeSha256": "f7a715b87bd7292ed851e884427b2dd63db70a4224d2bda1150bc35715235e22",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 93
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 325
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G90",
+            "G91",
+            "M118",
+            "PAUSE_BASE",
+            "SAVE_GCODE_STATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "PAUSE_BASE"
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND",
+          "gcodeSha256": "4dcfc73f28f429fb3e2961f8e19c19d2f0f92943a864fdecfc975c25a9aadadd",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 147
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND_200",
+          "gcodeSha256": "4e563cd07abed40b3f21bc959895e865b5301f6be2e6a35bbb26ce7f9fc47d95",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 155
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_CALIBRATE_HOTEND_240",
+          "gcodeSha256": "bc11af49a4543d293c1075cce320b9f01bae16dcb4f60d0e5d59ef5d9b049418",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 163
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro PID_HEATER2",
+          "gcodeSha256": "9d8b45ffb473cd62397980dc0d8ca8ea56be4c14612fad31afb1e6105bce2730",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 407
+            }
+          ],
+          "literalCommands": [
+            "PID_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_END",
+          "gcodeSha256": "5601cb483c5ac137a1ad9eb8e5152aeb46ad4a923f7da44aa93ce664b390296c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 496
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 604
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "G0",
+            "G1",
+            "G90",
+            "G91",
+            "G92",
+            "M104",
+            "M106",
+            "M140",
+            "M400",
+            "M84",
+            "TURN_OFF_HEATERS"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro PRINT_START",
+          "gcodeSha256": "e4356318dd30ad656e16e3e292cc84f60ef6bfd2b394f66734afff2aa437e4fc",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 222
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "BED_MESH_CLEAR",
+            "G1",
+            "G28",
+            "G4",
+            "G92",
+            "M109",
+            "M140",
+            "M190",
+            "PROBE_CALIBRATE",
+            "QUAD_GANTRY_LEVEL",
+            "WIPE_NOZZLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro QUAD_GANTRY_LEVEL",
+          "gcodeSha256": "8753a6e014b1ee74aa2dcfb4bba94ade6ce1e3cb751fe443752540b61067b430",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 43
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CLEAR",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "_QUAD_GANTRY_LEVEL"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "_QUAD_GANTRY_LEVEL"
+        },
+        {
+          "section": "gcode_macro RESUME",
+          "gcodeSha256": "19e71884b49087f8c0f047fd0419202c0f8d971ad2b88d91fc366976f82c2459",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 114
+            },
+            {
+              "file": "config/G.cfg",
+              "line": 400
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G91",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "RESUME_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "RESUME_BASE"
+        },
+        {
+          "section": "gcode_macro SAVE_CONFIG_MACRO",
+          "gcodeSha256": "b6ca734f0db180549eb71f419945f27239508ff23993095f1b68978aef0b862d",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 173
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SAVE_CONFIG"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SCREEN_LOAD_FILAMENT",
+          "gcodeSha256": "b66766a0ee97b0d0d7ee7751b058a8a5dd16c96a592ee4cd3fb8c09dbe2c4c9e",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1138
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "LOAD_FILAMENT",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_AT_LAYER",
+          "gcodeSha256": "7165d9bcaffd20360d14dd9c0f66669e13a042876f25b799a677c64687b38995",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 185
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PAUSE_NEXT_LAYER",
+          "gcodeSha256": "7acd03b1c01a12acb16403cfaaa99422d8baf7e01f434588aae2aacadee5584c",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 176
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro SET_PRINT_STATS_INFO",
+          "gcodeSha256": "b8124b01062e2ef3b09b4acd560a193b16f57801c41df9dff78d69d1cc8926fd",
+          "definitions": [
+            {
+              "file": "config/mainsail.cfg",
+              "line": 196
+            }
+          ],
+          "literalCommands": [
+            "RESPOND",
+            "SET_PAUSE_AT_LAYER",
+            "SET_PAUSE_NEXT_LAYER",
+            "SET_PRINT_STATS_INFO_BASE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true,
+          "renameExisting": "SET_PRINT_STATS_INFO_BASE"
+        },
+        {
+          "section": "gcode_macro SET_Z_0",
+          "gcodeSha256": "9413273c31ebf5e8c80306eda60fc10684127076411c454febf8a21f45b5c89a",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 188
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SET_Z_80",
+          "gcodeSha256": "d8d2926ef4cb6772517884e2915a8c292917411a453ba8815311ec015ff78a9c",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 181
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "SET_KINEMATIC_POSITION"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro SLOWSPEED",
+          "gcodeSha256": "6323ae1b40553b87058fe2c395e2aea367d23a141677f88664b6f08ec0012129",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 75
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "G4",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro START_HOME_STRESS_TEST",
+          "gcodeSha256": "631b4ad4292812e9d00308089d58ddffee44e70767306c3785e754b79db5ff27",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1468
+            }
+          ],
+          "literalCommands": [
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro STOP_HOME_STRESS_TEST",
+          "gcodeSha256": "0b921676ad5ba8bb8dd42233932780978cea94f6692a7fc51ca2babc4cded254",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1488
+            }
+          ],
+          "literalCommands": [
+            "M118",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "HOME_STRESS_TEST_LOOP"
+          ],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT",
+          "gcodeSha256": "84c16a23fe93db4d000acc5154bb7ce5e03f803c1d0e5943d4fd6057d881ed93",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 882
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G4",
+            "G90",
+            "M104",
+            "M109",
+            "M118",
+            "M400",
+            "M83",
+            "SAVE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_CHECK_TOOLHEAD"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro UNLOAD_FILAMENT_CLEANUP",
+          "gcodeSha256": "4a9ded3f3df31b8faed3dce9bde0a4addfe726d2ef6925eb52126f870e4a3e60",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 1107
+            }
+          ],
+          "literalCommands": [
+            "M104",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SET_GCODE_VARIABLE",
+            "UPDATE_DELAYED_GCODE"
+          ],
+          "literalDelayedTargets": [
+            "UNLOAD_FILAMENT_WAIT_REMOVE"
+          ],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro WIPE_NOZZLE",
+          "gcodeSha256": "a6059427a4382e0fe389603ed5070b688953a256f174d1e60ca337d5edd3f6cf",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 699
+            }
+          ],
+          "literalCommands": [
+            "G1",
+            "G28",
+            "G90",
+            "M104",
+            "M106",
+            "M118",
+            "M83",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "SET_HEATER_TEMPERATURE",
+            "TEMPERATURE_WAIT"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro Z_TILT_BATCH_10000",
+          "gcodeSha256": "9cb294479a7025227d18a07499bb82a2764943632977f30b2afbc58f758bfb38",
+          "definitions": [
+            {
+              "file": "config/printer.cfg",
+              "line": 59
+            }
+          ],
+          "literalCommands": [
+            "BED_MESH_CALIBRATE",
+            "G28",
+            "G4",
+            "M118",
+            "RESTORE_GCODE_STATE",
+            "SAVE_GCODE_STATE",
+            "Z_TILT_ADJUST"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": true
+        },
+        {
+          "section": "gcode_macro 自动振动补偿",
+          "gcodeSha256": "dcbe03dfb2e65b2b8573d48fe94ccd11ab07465ab46399b7d1bdb52386cb74c9",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 54
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "SAVE_CONFIG",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行IDM探针校准",
+          "gcodeSha256": "a553ac9f6470570916cc0752ea426b5924f155e4d317f21e7dbbf2aab8979801",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 197
+            }
+          ],
+          "literalCommands": [
+            "IDM_CALIBRATE",
+            "M118"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        },
+        {
+          "section": "gcode_macro 运行共振补偿校准",
+          "gcodeSha256": "7b6f2b867a021c13c68e19e0c8a51451dc9d7f91bb2ce895c60edb9c3575a4a3",
+          "definitions": [
+            {
+              "file": "config/G.cfg",
+              "line": 138
+            }
+          ],
+          "literalCommands": [
+            "G28",
+            "M118",
+            "SHAPER_CALIBRATE"
+          ],
+          "literalDelayedTargets": [],
+          "hasTemplate": false
+        }
+      ]
+    }
+  ],
+  "inspectorBoundaryCorrection": {
+    "date": "2026-10-06",
+    "originalInspectorRevision": "69b54625",
+    "originalInspectorSha256": "f1c607aff90d01ffb6c35bb64092688f9154ce23267a86166f7b21be4729cf31",
+    "currentInspectorSha256": "f6c9f6403b8dce9934c64a9c7efa0652597995799f836a60fba58b09b9c46214",
+    "historicalPackages": "Original export and its four hashes remain unchanged; three parser hashes still match. No claim that old packages were re-exported with the revised inspector.",
+    "reproduction": {
+      "input": "Synthetic own-directory printer.cfg with lone CR before absolute outside.cfg include",
+      "before": "Old exporter accepted OUTSIDE_SENTINEL from outside the archive",
+      "after": "Include escapes archive; no output; extracted directory cleaned"
+    },
+    "validation": {
+      "test": "host/test/legacy-macro-inspection.test.ts",
+      "passed": 3,
+      "zipInputs": 9,
+      "negative": 6,
+      "positive": 3,
+      "logSha256": "fc3245aea97e62880c5d005efe7d48e12e142276d6e63bf54493811e74ce8df2",
+      "scope": "LF/CRLF/CR, absolute and parent include rejection, inside expansion and source line, no device or real external configuration"
+    },
+    "exactHeadCI": "not-run"
+  }
+}
