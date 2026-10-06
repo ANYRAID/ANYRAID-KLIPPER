@@ -472,6 +472,180 @@
       },
       "preservedBuildFailure": "Initial private build was denied a compiler subprocess with EPERM in the sandbox. The identical command succeeded with authorized validation permissions; this is not a captured product/compiler crash.",
       "scope": "One independently built and installed package includes both queue and network events; original print, stop, query, loop and 90-second gates. Actual local Linux metadata, controlled synthetic interfaces and simulated MCU; no target-board or physical print-speed claim."
+    },
+    "anchorIntegration": {
+      "date": "2026-10-06",
+      "status": "candidate-local-scope-passed-exact-head-ci-pending",
+      "base": "6ad9f5950ad0a6e1b45d68866484fddce342aa21",
+      "basePr": 11,
+      "reviewedClockHead": "5b24329737e306292b3b9227563969aaf31598c5",
+      "sourceMerge": "bbd95c2f94924d1ac64160c844ec838192ebdc75",
+      "baseExactHeadCI": {
+        "hostRun": 37352205223,
+        "buildRun": 37352205319,
+        "conclusion": "success",
+        "ordinaryTests": 3972
+      },
+      "basePostMerge": {
+        "hostRun": 37453098969,
+        "buildRun": 37453098808,
+        "statusAtValidation": "in_progress"
+      },
+      "sourceSha256": {
+        "host/src/moonraker/system-information.ts": "43f26be7425f3951be6ca35b18befdf2e04660910ed2b5b385ba323327e57abb",
+        "host/src/moonraker/configured-server.ts": "1a60ac9285f25c9d8cead40b4ea73fb7c31e97a28c63ab35290c25c68c738487",
+        "host/test/system-information.test.ts": "312b20cdf3b702c080917877174e9ef22a686b0414529661b443493aae0b9754",
+        "host/test/configured-server.test.ts": "99d3659129595626e5cd9d4eb3aa4718fde2570a02a7f2be6f59677d0c0f7a94",
+        "host/acceptance/product-compiled-journey.test.ts": "a71a5ce912ec28ae1801f1ed2f0b457eddb9b2b71c767640d85b8a6c08e8bdc8",
+        "host/bench/system-network-events.ts": "7b96f308847696add7899634e60e48b034637911a573aedf9c83a80809da1e59",
+        "host/src/moonraker/native-job-queue.ts": "3f2d7bb085b017b552cdb9e075353fc28bdc949b0a4bcad46e3641602be2e5d5",
+        "host/src/moonraker/product-print-api.ts": "ce188cd6fcc1c52b05eaa27d5f5d240d014c6739a9d2240fcc9fa99b3a59e8dd",
+        "host/native/stepcompress.c": "d6bcdd6e37d031d1d99eecf23eb230ff5a257bea2d5fac8386fa5f85045478b2",
+        "host/src/runtime/rebuilt-motion.ts": "20484904a919c30f34054c57a8209599c60a428a0e11d1b74390711a7227aa30",
+        "host/src/timing/secondary-sync.ts": "80f333fa80fda220576049820f2b5ff46ac487c0ee4f3911fe500db1189e0a54",
+        "host/test/clock-calibration.test.ts": "705c5fc7e9c0c199f25d7cc37a2077c133a056bf641f06e761a21e4e44c323d5",
+        "host/test/secondary-sync.test.ts": "f6147f6fd06c0764d2effddc98131dd6c480cd448acccc888d97668faa9197ae",
+        "host/test/periodic-clock-calibration.test.ts": "92fb3ea94cc3446967bc22147ca217f43d6a627e7e4c6368f7648a8719b24ab2"
+      },
+      "typecheck": "passed",
+      "whitespace": "passed",
+      "focused": {
+        "tests": 54,
+        "passed": 54,
+        "failed": 0,
+        "durationMs": 55552.68201
+      },
+      "benchmark": {
+        "node": "v26.10.0",
+        "queriesPerRun": 5000,
+        "changesPerRun": 500,
+        "links": 64,
+        "withoutObserver": {
+          "runs": 7,
+          "snapshotMicroseconds": {
+            "median": 142.56111299999975,
+            "p95": 144.0464939999999
+          },
+          "refreshMicroseconds": {
+            "median": 125.5658680000015,
+            "p95": 126.11085600000115
+          },
+          "p99LoopMs": {
+            "median": 14.434303,
+            "p95": 14.614527
+          },
+          "maxLoopMs": {
+            "median": 14.450687,
+            "p95": 14.655487
+          }
+        },
+        "withObserver": {
+          "runs": 7,
+          "snapshotMicroseconds": {
+            "median": 143.83195139999987,
+            "p95": 145.91908860000004
+          },
+          "refreshMicroseconds": {
+            "median": 271.9832480000005,
+            "p95": 272.54749400000037
+          },
+          "p99LoopMs": {
+            "median": 14.680063,
+            "p95": 16.457727
+          },
+          "maxLoopMs": {
+            "median": 15.106047,
+            "p95": 19.578879
+          }
+        },
+        "scope": "Alternating order on the same engine with 64 synthetic Linux interface rows; measures cached cloning and notification callback overhead. Actual WebSocket dispatch and motion contention are covered by the compiled load journey. No Python, target-board or physical printer comparison."
+      },
+      "compiled": {
+        "tests": 1,
+        "passed": 1,
+        "failed": 0,
+        "durationMs": 71758.466068,
+        "manifestSha256": "82c81b17721652b4b4d97157725a6747ea715f59fec7dde54b235ea4287136e5",
+        "dependenciesSha256": "a275822e0d36a387292a9c16b233e7beb8dc59d47c029630939dacd5b8bbcf23",
+        "networkChanges": {
+          "sourceSamples": 7,
+          "notifications": 20,
+          "authorizedObservers": 4,
+          "failedCommandRetained": true,
+          "deviceGenerations": [
+            1,
+            2
+          ],
+          "systemQueries": 598,
+          "systemQueryP99Ms": 5.305849000000308
+        },
+        "queue": {
+          "groups": 16,
+          "printingGenerations": [
+            1,
+            2
+          ],
+          "queries": 2311,
+          "queryP99Ms": 4.006611000000703,
+          "durableMutations": 64,
+          "actualStartRequestPrefix": "queue-",
+          "journalCompleted": true,
+          "authorizedNotifications": true,
+          "noAutomaticReplay": true
+        },
+        "printing": {
+          "statusRequests": 39928,
+          "statusP99Ms": 4.582678999999189,
+          "minimumStepLeadMs": 84.597,
+          "generations": [
+            {
+              "loop": {
+                "p99Ms": 2.338815,
+                "maxMs": 20.791295
+              },
+              "cpu": {
+                "user": 12743789,
+                "system": 2438543
+              },
+              "rss": 346759168
+            },
+            {
+              "loop": {
+                "p99Ms": 1.996799,
+                "maxMs": 13.189119
+              },
+              "cpu": {
+                "user": 7840667,
+                "system": 1804029
+              },
+              "rss": 392196096
+            }
+          ]
+        }
+      },
+      "logSha256": {
+        "anyraid-network-anchor-native-20261006.log": "b6da38422ac04dfcf7f8835b83d103bad029e844c99d5a3fa0ac94d0eadf2ac9",
+        "anyraid-network-anchor-type-20261006.log": "396901319daac4a4413b23478852db3c572014f86c71d148273565f0f3332696",
+        "anyraid-network-anchor-whitespace-20261006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "anyraid-network-anchor-focused-20261006.log": "98c6e9d25139667418b95877b045f25f0b2df175e08a13a2a10ba446cba68f5a",
+        "anyraid-network-anchor-benchmark-20261006.log": "49f1a62b60f1dec9233dabfe7b638007fa9e6f3d98fcc934807fac143def7395",
+        "anyraid-network-anchor-bundle-build-20261006.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "anyraid-network-anchor-bundle-install-20261006.log": "d2950d355266ac40fedc56931765dc2f740aed532f5b0612c156bdd6c21efae8",
+        "anyraid-network-anchor-bundle-identity-20261006.log": "79f2722aa1c89b3d8f45807f1437287f6786ae32da35e00e73b6856ae4a3edaf",
+        "anyraid-network-anchor-compiled-20261006.log": "761e903d7764a4295a312b024f914ffbcc6b9762e3589ad7c34e35d29681d98d"
+      },
+      "preservedExactHeadFailure": {
+        "head": "25fdd6a3d8c6dd512582234ef9d1ed5dec72586d",
+        "hostRun": 37343545889,
+        "tests": 3975,
+        "passed": 3974,
+        "failed": 1,
+        "case": "manual-delta-preflight reachable=false",
+        "error": "Calibration would overlap previously accepted step clocks",
+        "logSha256": "eb52ad5db93b4128aceca13b0c02a82fadab8055841fa1774a68a1e00293a6aa",
+        "phase": "Actual failing parameters were not captured; the deterministic anchor counterexample does not prove the historical failure phase."
+      },
+      "scope": "Independent emitted JS and installed dependencies; same authorized network/queue/files/stop workload and simulated MCU. Original precision, step lead, loop and time gates preserved. Exact-head CI, post-merge, full clients, target hardware and motion G3 remain open."
     }
   }
 }
