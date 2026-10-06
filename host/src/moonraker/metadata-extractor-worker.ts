@@ -21,5 +21,5 @@ async function execute(request:Request):Promise<void>{
  try{await request.source?.close();}catch(reason){throw new AggregateError([error,reason].filter(v=>v!==undefined),'Metadata source close failed');}
  port.postMessage(error?{id:request.id,error:{code:error instanceof ApiError?error.status:422,message:error instanceof Error?error.message:String(error)}}:{id:request.id,value});
 }
-port.on('message',(request:Request)=>{queue=queue.then(()=>execute(request)).catch(error=>{throw error;});});
+port.on('message',(request:Request|{shutdown:true})=>{queue=queue.then(()=> 'shutdown' in request?port.close():execute(request)).catch(error=>{throw error;});});
 port.postMessage({ready:true});

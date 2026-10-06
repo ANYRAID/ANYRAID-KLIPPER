@@ -2841,6 +2841,21 @@ node host/acceptance/client-probe.ts /absolute/path/to/mainsail 18334 --trusted-
 使用凭据模式，Fluidd 的登录验收入口不变。
 
 
+## 元数据 Worker 的关闭确认候选
+
+扫描超时立即拒绝请求、取消全部已准入工作并封闭实例，原扫描期限不变。
+`close()` 保留同一 Promise，已转移句柄的请求记录须等 Worker 回执确认
+`source.close()` 完成后才释放。关闭消息按原串行队列处理，覆盖尚未开始
+解析的源文件；正常关闭宽限为一秒，其后尝试强制终止。宽限不是扫描
+期限的扩展，也不是原生线程终止的总时间保证。若仍缺关闭回执，`close()`
+明确失败，不把 Worker 退出当成源文件释放证明，不用原始 fd 号盲目关闭。
+
+必要对照可设置 `ANYRAID_METADATA_BASELINE` 为原实现仓库的绝对路径后，
+运行 `node host/bench/metadata-worker-close.ts`。基准核验原源码摘要，沿用
+原四种字节输入、5 次预热与 11 次保留样本，检查字段一致性；桌面对照
+不替代目标板或混合打印性能。原远程句柄泄漏尚未本机复现，来源、回归、
+编译包及性能样本见[清理验收](../host/contracts/metadata-worker-close-acceptance.json)。
+
 ## 原生 Moonraker 跨域访问配置
 
 在上述原生授权入口的 `[authorization]` 中配置浏览器来源：
