@@ -13,7 +13,7 @@ export function captureStepClockDiagnostics(emit:(value:unknown)=>void){
    const generated=read(()=>this.generatedTime);
    // Observed returned history does not include the compressor's pending
    // future pulse; label it explicitly rather than inventing that frontier.
-   try{emit({stepClockFailure:{owner:identity(this),error:String(error),generated,previous:read(()=>this.calibration),candidate:{offset,frequency},previousClock:read(()=>this.clockAt(this.generatedTime)),candidateRaw:typeof generated==='number'?(generated-offset)*frequency:null,candidateRounded:typeof generated==='number'?Math.floor((generated-offset)*frequency+.5):null,scan:read(()=>this.scanWindow),recent,pendingNativeFrontier:'not exposed by current native API'}});}catch{}
+   try{emit({stepClockFailure:{owner:identity(this),error:String(error),nativeCode:read(()=>error&&typeof error==='object'&&'code' in error?error.code:null),nativeBoundary:read(()=>error&&typeof error==='object'&&'calibrationBoundary' in error?error.calibrationBoundary:null),generated,previous:read(()=>this.calibration),candidate:{offset,frequency},previousClock:read(()=>this.clockAt(this.generatedTime)),candidateRaw:typeof generated==='number'?(generated-offset)*frequency:null,candidateRounded:typeof generated==='number'?Math.floor((generated-offset)*frequency+.5):null,scan:read(()=>this.scanWindow),recent,pendingNativeFrontier:'Use actual nativeBoundary when present; returned history remains incomplete'}});}catch{}
    throw error;
   }
  };

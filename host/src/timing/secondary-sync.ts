@@ -79,6 +79,17 @@ export class SecondarySync {
    this.#offset=applied.offset;this.#frequency=applied.frequency;this.#syncTime=candidate.syncTime;this.#revision++;
   }finally{this.#applying=false;}
  }
+ /** Maintenance may defer an exact accepted-pulse anchor rejected by native
+  * prevalidation. Every mapping stays unchanged; the next bounded slot plans
+  * after this generated prefix. Past-clock overlap and application faults
+  * remain fatal, including a fault after another emitter has been updated. */
+ tryApplyShared(candidate:Readonly<SecondaryCalibration>,timeline:PrintClockTimeline,coordinator:MotionCoordinator,ids:readonly string[]):boolean{
+  try{this.applyShared(candidate,timeline,coordinator,ids);return true;}
+  catch(error){
+   if(error instanceof RangeError&&'code' in error&&error.code==='ERR_CLOCK_CALIBRATION_ANCHOR_PULSE'&&!coordinator.status.failed&&!coordinator.status.retired)return false;
+   throw error;
+  }
+ }
  apply(candidate:Readonly<SecondaryCalibration>,coordinator:Pick<MotionCoordinator,'calibrateClock'>,ids:readonly string[]):void{
   this.#validate(candidate);
   this.#applying=true;

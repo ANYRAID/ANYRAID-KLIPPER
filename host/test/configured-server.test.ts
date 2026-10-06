@@ -89,3 +89,20 @@ test('sensor sampling failure stops the timer and exposes component failure with
   await new Promise(r=>setTimeout(r,1100));assert.equal(calls,1);
  }finally{await service.close();}
 }));
+test('network changes use real authorized WebSocket dispatch while system queries stay cached', {timeout:20000},()=>fixture('[server]\nhost=127.0.0.1\nport=0',async path=>{
+ let samples=0;const events:any[]=[];const source=async()=>({runtime:{name:'node'},network:{eth0:{mac_address:'02:00:00:00:00:01',ip_addresses:[{family:'ipv4',address:++samples===1?'192.0.2.1':'192.0.2.2',is_link_local:false}]}},canbus:{}});
+ const service=await ConfiguredMoonraker.load(path,{authorize,information:info(),systemInformation:{source},authorizeNotification:(_method,_params,context)=>{if(context.request.headers['x-observer']!=='allowed')throw new ApiError(403,'Observation denied');}});
+ const sockets:WebSocket[]=[];
+ try{
+  const address=await service.start(),url=`http://127.0.0.1:${address.port}`,headers={'x-api-key':'test'};
+  assert.equal(samples,1);assert.equal((await fetch(url+'/machine/system_info')).status,401);
+  for(const role of ['allowed','denied']){const ws=new WebSocket(url.replace('http:','ws:')+'/websocket',{headers:{...headers,'x-observer':role}});sockets.push(ws);ws.on('message',data=>events.push({role,...JSON.parse(data.toString())}));await once(ws,'open');}
+  const first:any=await(await fetch(url+'/machine/system_info',{headers})).json();assert.equal(first.result.system_info.network.eth0.ip_addresses[0].address,'192.0.2.1');
+  const rpc:any=await(await fetch(url+'/server/jsonrpc',{method:'POST',headers:{...headers,'content-type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:'machine.system_info'})})).json();assert.deepEqual(rpc.result,first.result);assert.equal(samples,1);assert.equal(events.length,0);
+  const changed=await once(sockets[0],'message',{signal:AbortSignal.timeout(14000)});assert.deepEqual(JSON.parse(changed[0].toString()),{jsonrpc:'2.0',method:'notify_net_state_changed',params:[{eth0:{mac_address:'02:00:00:00:00:01',ip_addresses:[{family:'ipv4',address:'192.0.2.2',is_link_local:false}]}}]});
+  const deadline=Date.now()+1000;while(service.systemNotificationMetrics.denied<1&&Date.now()<deadline)await new Promise(r=>setTimeout(r,5));
+  assert.equal(samples,2);assert.equal(events.length,1);assert.equal(events[0].role,'allowed');assert.equal(service.systemNotificationMetrics.sent,1);assert.equal(service.systemNotificationMetrics.denied,1);
+  const second:any=await(await fetch(url+'/machine/system_info',{headers})).json();assert.deepEqual(second.result.system_info.network,events[0].params[0]);assert.equal(samples,2);
+ }finally{for(const socket of sockets)socket.terminate();await service.close();}
+ assert.equal(service.systemInformationStatus?.closed,true);assert.equal(service.systemInformationStatus?.pending,false);assert.equal(service.rpc.has('machine.system_info'),false);
+}));

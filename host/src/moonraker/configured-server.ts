@@ -189,6 +189,7 @@ export class ConfiguredMoonraker {
  #gcodeStore:GcodeStore|undefined;
  #systemInformation:SystemInformation|undefined;
  #systemServices:SystemServices|undefined;#serviceNotifications=notificationMetrics();
+ #systemNotifications=notificationMetrics();
  #procStats:ProcStats|undefined;#procNotifications=notificationMetrics();
  #temperatureStore:TemperatureStoreRuntime|undefined;
  #nativeTemperatureObjects:NativeObjects|undefined;
@@ -272,7 +273,7 @@ export class ConfiguredMoonraker {
   let releaseHistory=options.history?registerHistory(this.endpoints,{...options.history,auxiliaryTotals:options.history.auxiliary?()=>this.#historyRuntime!.auxiliaryTotals():options.history.auxiliaryTotals},operation=>this.#historyRuntime!.mutate(operation)):(options.productPrint&&this.#nativeUploads||this.#nativeProcessHistory&&this.#nativeProcessFiles)?(this.#nativeHistory=registerNativeHistory(this.endpoints,(this.#nativeProcessHistory??options.productPrint)!, (this.#nativeProcessFiles??this.#nativeUploads)!,event=>{if(!this.#stopping)this.#broadcastTracked('notify_history_changed',[event],this.#historyNotifications);},this.#nativeProcessHistory?()=>this.#nativeController:undefined)):()=>{};
   const releaseMaintenance=this.#database?registerDatabaseMaintenance(this.endpoints,this.#database,()=>this.#requireDatabaseIdle(),options.onDatabaseRestore?()=>{this.#databaseRestart.requested=true;void Promise.resolve().then(options.onDatabaseRestore).catch(error=>{this.#databaseRestart.error=error instanceof Error?error.message:'Database restart failed';});}:undefined,()=>this.maintenanceGate):()=>{};
   const releaseTemperature=this.#temperatureStore?registerTemperatureStore(this.endpoints,this.#temperatureStore.store):()=>{};
-  if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source);
+  if(options.systemInformation)this.#systemInformation=new SystemInformation(options.systemInformation.source,network=>{if(!this.#stopping)this.#broadcastTracked('notify_net_state_changed',[network],this.#systemNotifications);});
   if(options.systemServices)this.#systemServices=new SystemServices(options.systemServices,change=>this.#broadcastTracked('notify_service_state_changed',[change],this.#serviceNotifications),!!(options.productPrint||options.nativeDetached));
   const releaseSystem=this.#systemInformation?this.endpoints.register({endpoint:'/machine/system_info',methods:['GET']},()=>{
    const value=this.#systemInformation!.snapshot() as {system_info:Record<string,Json>};
@@ -593,6 +594,7 @@ export class ConfiguredMoonraker {
  }
  get systemInformationStatus(){return this.#systemInformation?.status??null;}
  get systemServicesStatus(){return this.#systemServices?{...this.#systemServices.status,notifications:{...this.#serviceNotifications}}:null;}
+ get systemNotificationMetrics(){return {...this.#systemNotifications};}
  get procStatsStatus(){return this.#procStats?.status??null;}
  get gcodeStoreStatus(){return this.#gcodeStore?.status??null;}
  get gcodeNotifications(){return {...this.#gcodeNotifications};}
