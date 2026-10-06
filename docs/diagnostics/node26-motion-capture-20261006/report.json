@@ -1,0 +1,74 @@
+{
+  "childWorkingDirectory": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa",
+  "corePolicy": {
+    "filter": "00000033",
+    "pattern": "core",
+    "usesPid": "1",
+    "limits": "Max core file size        0                    unlimited            bytes     "
+  },
+  "node": "/home/dek02/.codex/worktrees/e068/ANYRAID-KLIPPER/host/node_modules/.cache/node26/node-v26.10.0-linux-x64/bin/node",
+  "version": "v26.10.0",
+  "nodeSha256": "ab9c8eecf9f82d6693cdc3accced17034065c8d96213b0aa76a7e803d20ae1da",
+  "addonHashes": {},
+  "moduleHashes": {
+    "src/diagnostics/graph-motion.ts": "976fc6717387cdd23f2daffd43a91ae942f71ee6d9defef8e3775596b68544bf",
+    "src/diagnostics/motion-filters.ts": "fc3cc774cd6d5201e93ee8047ef4bca56f53162800f170c06b2429f98d6e90eb",
+    "src/diagnostics/legacy-motion-shaper.ts": "3947c37fc42ef508507b8e31fed476b4039bfeb0713b0e664464241cd91265db",
+    "src/diagnostics/stats-svg.ts": "693872d1214521fa5834524de22a01f190b77a502526c6b652d5daf787279aaa",
+    "bench/motion-graph-reference.ts": "e4c314ef5bbb7d5344311e731ccdb45e66c3b7c0a180d5afb34bdda1feed5cf7",
+    "contracts/motion-graph-fixtures.ts": "f4d6b0f4424c07c6853090118d756f5fe03f83e289b35eacd65b1e954fd99a91",
+    "contracts/motion-retirement.json": "53ba846df4333bd12ac21253bb11b9769c5424296882109c7be95e825387905c"
+  },
+  "compiledHashes": {},
+  "frozenSourceHashes": {},
+  "execution": "source",
+  "system": {
+    "platform": "linux",
+    "arch": "x64",
+    "kernel": "6.18.36-amd64-desktop-rolling",
+    "cpu": "AMD Ryzen 5 3500X 6-Core Processor",
+    "cpuAffinity": "0-5"
+  },
+  "kind": "motion",
+  "segv": "default",
+  "asan": "off",
+  "wasmBounds": "trap",
+  "jsOptimization": "off",
+  "args": [
+    "--no-maglev",
+    "--no-turbofan",
+    "/home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs"
+  ],
+  "limit": 1,
+  "workers": 1,
+  "fixtureSha256": "41ed23abcf964c8ab9ac9e0d0834017c9f3880ad9f713d8626d2c120e23c6b3c",
+  "startedAt": "2026-10-06T12:48:49.242Z",
+  "updatedAt": "2026-10-06T12:48:52.603Z",
+  "elapsedMs": 3360.17248,
+  "state": "failed",
+  "active": [],
+  "coreFiles": [],
+  "mismatchFiles": [
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/motion-mismatch-2892195-8.bin",
+      "bytes": 4690926,
+      "sha256": "5841eba781b5309f039dac3dc8e69618dd3fa4ad7cf0ff71f73fc976d84b47a6"
+    },
+    {
+      "path": "/home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/motion-mismatch-2892195-8.bin.repeat",
+      "bytes": 2139444,
+      "sha256": "e17eaaeb47aad77efaa7a8029db183d3641b6e263f98dc54044da5204bd0b617"
+    }
+  ],
+  "results": [
+    {
+      "index": 0,
+      "pid": 2892195,
+      "status": 1,
+      "signal": null,
+      "stdout": "motion:loading\nmotion:loaded\n",
+      "stderr": "file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs:31\n   throw new Error('Motion numerical mismatch '+JSON.stringify({run,panel:i,curve:j,index:k,actual:v,expected:expected.values[k],error:v-expected.values[k],xor,repeated,capture:capture.href,nearby:c.values.slice(Math.max(0,k-2),k+3),reference:expected.values.slice(Math.max(0,k-2),k+3)}));\n         ^\n\nError: Motion numerical mismatch {\"run\":8,\"panel\":0,\"curve\":0,\"index\":10215,\"actual\":-1.5339643404743697,\"expected\":-1.5339643736211883,\"error\":3.3146818623208674e-8,\"xor\":\"0xb27ff00\",\"repeated\":-1.5339643736211883,\"capture\":\"file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/motion-mismatch-2892195-8.bin\",\"nearby\":[-1.599226884607674,-1.5663817163868998,-1.5339643404743697,-1.5019729203658017,-1.4704052959402247],\"reference\":[-1.599226884607674,-1.5663817163868998,-1.5339643736211883,-1.501972887218983,-1.4704052959402247]}\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs:31:10\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs:20:12\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs:18:118\n    at Array.forEach (<anonymous>)\n    at file:///home/dek02/.cache/codex/tmp/anyraid-node-asan-ZxlyNa/fixture.mjs:18:9\n\nNode.js v26.10.0\n",
+      "elapsedMs": 3201.790253
+    }
+  ]
+}
